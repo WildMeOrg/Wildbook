@@ -46,10 +46,23 @@ if(request.getParameter("delete")!=null){
 		
 		StoredQuery s=st.get(i);
 		myShepherd.getPM().deletePersistent(s);
+		
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
 		
 	}
+	
+	/*
+	Set<String> keys=qc.cachedQueries().keySet();
+	Iterator it=keys.iterator();
+	while(it.hasNext()){
+		String teatro=(String)it.next();
+		System.out.println("Deleting: "+teatro);
+		
+	}
+	*/
+	
+	qc.loadQueries();
 	
 	
 	//remove cache files
@@ -68,7 +81,24 @@ if(request.getParameter("delete")!=null){
 
 
 try{
-	
+
+	if(qc.getQueryByName("numMarkedIndividualsPlains")==null){
+		StoredQuery sq=new StoredQuery("numMarkedIndividualsPlains", "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc)  && enc.genus == 'Equus' && enc.specificEpithet == 'quagga' VARIABLES org.ecocean.Encounter enc");
+		sq.setExpirationTimeoutDuration(600000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		qc.loadQueries();
+	}
+	if(qc.getQueryByName("numMarkedIndividualsGrevy")==null){
+		StoredQuery sq=new StoredQuery("numMarkedIndividualsGrevy", "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc)  && enc.genus == 'Equus' && enc.specificEpithet == 'grevyi' VARIABLES org.ecocean.Encounter enc");
+		sq.setExpirationTimeoutDuration(600000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		qc.loadQueries();
+	}
+
 	if(qc.getQueryByName("numMarkedIndividuals")==null){
 		StoredQuery sq=new StoredQuery("numMarkedIndividuals", "SELECT FROM org.ecocean.MarkedIndividual");
 		sq.setExpirationTimeoutDuration(600000);
@@ -77,6 +107,7 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries();
 	}
+
 	if(qc.getQueryByName("numEncounters")==null){
 		StoredQuery sq=new StoredQuery("numEncounters", "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null");
 		sq.setExpirationTimeoutDuration(600000);
@@ -104,6 +135,7 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries();
 	}
+	
 	if(qc.getQueryByName("top3Encounters")==null){
 		StoredQuery sq=new StoredQuery("top3Encounters", "SELECT FROM org.ecocean.Encounter ORDER BY dwcDateAddedLong descending RANGE 1,4");
 		sq.setExpirationTimeoutDuration(600000);
@@ -112,6 +144,7 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries();
 	}
+
 	
 	
 
@@ -130,6 +163,7 @@ try{
 	while(iter.hasNext()){
 		String keyName=iter.next();
 		CachedQuery cquery=queries.get(keyName);
+		System.out.println("XXX"+cquery.getQueryString());
 		cquery.executeCollectionQuery(myShepherd,true);
 		%>
 		
