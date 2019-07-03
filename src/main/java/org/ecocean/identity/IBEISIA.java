@@ -2834,14 +2834,15 @@ System.out.println(">>>>>>>> sex -> " + rtn);
 // we also have /max (or /min) we can add, like:
 //http://104.42.42.134:5010/api/annot/age/months/max/json/?annot_uuid_list=[{%22__UUID__%22:%22dbbf90ea-61ef-4ac6-8ddc-d4879df14ea0%22}]
         JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/age/months/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+//NOTE the double JSONArray here:   {"response":[[6,11]], ...
 System.out.println(">>>>>>>> age -> " + rtn);
-        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
+        if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
         //NOTE!  this is in months. UNSURE what **unit** Encounter.age is meant to be!  storing value as-is (months)  FIXME
-        Double min = rtn.getJSONArray("response").optDouble(0, -1.0);
-        Double max = rtn.getJSONArray("response").optDouble(1, -1.0);
-        if (max != -1.0) {  //we basically favor max (if both min and max are set)  TODO kosher???  we could average
+        Double min = rtn.getJSONArray("response").getJSONArray(0).optDouble(0, -1.0);
+        Double max = rtn.getJSONArray("response").getJSONArray(0).optDouble(1, -1.0);
+        if (max != -1.0D) {  //we basically favor max (if both min and max are set)  TODO kosher???  we could average
             return max;
-        } else if (min != 1.0) {
+        } else if (min != -1.0D) {
             return min;
         }
         return null;
