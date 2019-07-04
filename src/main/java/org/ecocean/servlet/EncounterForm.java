@@ -51,6 +51,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.MailThreadExecutorService;
 import org.ecocean.Util;
+import org.ecocean.AccessControl;
 import org.ecocean.Encounter;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
@@ -1038,8 +1039,11 @@ System.out.println("depth --> " + fv.get("depth").toString());
       //System.out.println("I set the date as a LONG to: "+enc.getDWCDateAddedLong());
       enc.setDWCDateLastModified(strOutputDateTime);
 
-        MarkedIndividual indiv = assignMarkedIndividual(myShepherd, enc, getVal(fv, "indiv-id"));
-        System.out.println("assignMarkedIndividual(" + enc + ") ==> " + indiv);
+        MarkedIndividual indiv = null;
+        if (!AccessControl.isAnonymous(request)) {
+            indiv = assignMarkedIndividual(myShepherd, enc, getVal(fv, "indiv-id"));
+            System.out.println("assignMarkedIndividual(" + enc + ") ==> " + indiv);
+        }
 
 
         //this will try to set from MediaAssetMetadata -- ymmv
@@ -1272,7 +1276,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
 
     private MarkedIndividual assignMarkedIndividual(Shepherd myShepherd, Encounter enc, String indivId) {
-        if (indivId == null) return null;
+        if (!Util.stringExists(indivId)) return null;
         MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(indivId);
         if (indiv == null) {
             indiv = new MarkedIndividual(indivId, enc);
