@@ -179,7 +179,7 @@ if(rEncounters.size()>0){
  for(int y=0;y<havegpsSize;y++){
 	 Encounter thisEnc=(Encounter)rEncounters.get(y);
 		String encSubdir = thisEnc.subdir();
-
+		if((thisEnc.getDecimalLatitude()!=null)&&(thisEnc.getDecimalLongitude()!=null)){
  %>
           
           var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
@@ -221,7 +221,7 @@ google.maps.event.addListener(marker,'click', function() {
  		  map.fitBounds(bounds);       
  
  <%
- 
+ }
 	 }
 } 
 
