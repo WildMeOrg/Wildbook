@@ -68,6 +68,7 @@
                 /rest/** = authcBasicWildbook,roles[rest]
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
                 #/LightRest/** = authcBasicWildbook,roles[rest]
+				/LightRestBasic/** = authcBasicWildbook,roles[rest]
 
 
 
@@ -1507,6 +1508,7 @@
 <servlet-mapping>
   <servlet-name>LightRest</servlet-name>
   <url-pattern>/LightRest/*</url-pattern>
+  <url-pattern>/LightRestBasic/*</url-pattern>
 </servlet-mapping>
 
 <servlet-mapping>
