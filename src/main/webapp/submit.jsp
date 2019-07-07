@@ -699,7 +699,7 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
             ? CommonConfiguration.getIndexedPropertyValues("locationID", request)
             : CommonConfiguration.getIndexedPropertyValues("locationID", context); //passing context doesn't check for custom props
           for (String locationID: locationIDs) {
-            %><option value="locationID"><%=locationID%></option><%
+            %><option value="<%=locationID%>"><%=locationID%></option><%
           }
           %>
         </select>
