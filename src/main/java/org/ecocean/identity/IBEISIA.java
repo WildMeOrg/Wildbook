@@ -2796,8 +2796,14 @@ System.out.println(map);
 System.out.println(">>>>>>>> sex -> " + rtn);
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get sex from annot uuid=" + uuid);
         int sexi = rtn.getJSONArray("response").optInt(0, -1);
-        if (sexi == -1) return null;
-        //what else???
+        if (sexi == -1) {
+            return null;
+        } else if (sexi == 0) {
+            return "female";
+        } else if (sexi == 1) {
+            return "male";
+        }
+        System.out.println("WARNING: iaSexFromAnnotUUID(" + uuid + ") returned unknown integer sex value=" + sexi);
         return null;
     }
 
@@ -2825,17 +2831,21 @@ System.out.println(">>>>>>>> sex -> " + rtn);
 //http://52.37.240.178:5000/api/annot/age/months/json/?annot_uuid_list=[{%22__UUID__%22:%224517636f-65ad-a236-950c-107f2c962c19%22}]
 // note - returns array with min/max.... doubles?
     public static Double iaAgeFromAnnotUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-/*
+// we also have /max (or /min) we can add, like:
 //http://104.42.42.134:5010/api/annot/age/months/max/json/?annot_uuid_list=[{%22__UUID__%22:%22dbbf90ea-61ef-4ac6-8ddc-d4879df14ea0%22}]
-// note: we have "max" and "min" so just using max (???)
-        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/age/months/max/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/age/months/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+//NOTE the double JSONArray here:   {"response":[[6,11]], ...
 System.out.println(">>>>>>>> age -> " + rtn);
-        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
-        //return rtn.getJSONArray("response").optDouble(0, (Double)null);
-
-NOTE: DISABLED FOR NOW?????   FIXME
-*/
-        return (Double)null;
+        if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
+        //NOTE!  this is in months. UNSURE what **unit** Encounter.age is meant to be!  storing value as-is (months)  FIXME
+        Double min = rtn.getJSONArray("response").getJSONArray(0).optDouble(0, -1.0);
+        Double max = rtn.getJSONArray("response").getJSONArray(0).optDouble(1, -1.0);
+        if (max != -1.0D) {  //we basically favor max (if both min and max are set)  TODO kosher???  we could average
+            return max;
+        } else if (min != -1.0D) {
+            return min;
+        }
+        return null;
     }
 
     //note: for list of valid viewpoint values "consult IA".  *wink*
