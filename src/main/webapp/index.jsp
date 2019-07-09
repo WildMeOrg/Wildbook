@@ -51,12 +51,12 @@ try{
 
 
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals", context).executeCountQuery(myShepherd).intValue();
+    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
     numEncounters=myShepherd.getNumEncounters();
     //numEncounters=qc.getQueryByName("numEncounters", context).executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
-    numDataContributors=qc.getQueryByName("numUsersWithRoles", context).executeCountQuery(myShepherd).intValue();
-    numUsers=qc.getQueryByName("numUsers", context).executeCountQuery(myShepherd).intValue();
+    numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
+    numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
     numUsersWithRoles = numUsers-numDataContributors;
 
 

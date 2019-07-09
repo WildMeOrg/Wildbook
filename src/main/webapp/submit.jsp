@@ -1317,12 +1317,19 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 function sendButtonClicked() {
 	console.log('sendButtonClicked()');
 	$('.required-missing').removeClass('required-missing')
+<%
 
+if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+%>
 	if (!$('#genusSpecies').val()) {
 		$('#genusSpecies').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
 		return false;
 	}
+	<%
+}
+	%>
 
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
