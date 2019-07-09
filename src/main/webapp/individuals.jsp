@@ -452,7 +452,7 @@ $(document).ready(function() {
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
               String myNickname = "";
-              myNickname = sharky.getDisplayName();
+              myNickname = sharky.getDisplayName("Nickname");
             %>
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
