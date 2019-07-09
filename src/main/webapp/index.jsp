@@ -334,7 +334,12 @@ try{
 			long oldDate = oldestEnc.getDWCDateAddedLong();
 			long newDate = youngestEnc.getDWCDateAddedLong();
 			long yearSpan = (newDate - oldDate) / 31556952000L;                     
-			avgSightingsPerYear = Math.round(numEncounters / yearSpan);
+			if (yearSpan > 1) {
+                avgSightingsPerYear = Math.round(numEncounters / yearSpan);
+            } else { 
+                avgSightingsPerYear = numEncounters;
+			}
+
 	}
 
 	//if (youngestEnc!=null&&oldestEnc!=null&&youngestEnc.get(0)!=null&&oldestEnc.get(0)!=null) {
