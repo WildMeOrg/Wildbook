@@ -54,7 +54,7 @@ if(request.getParameter("locationCodeField")!=null){
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
 
-int numIndividualsOnPage=18;
+int numIndividualsOnPage=10;
 
 int startNum = 0;
 int endNum = numIndividualsOnPage;
@@ -357,6 +357,7 @@ int numDataContributors=0;
         <div class="row gunit-row">
         <%
         MarkedIndividual[] pair = new MarkedIndividual[2];
+        ArrayList<JSONObject>[] exemps = new ArrayList[2];
         if(rIndividuals.get(i*2)!=null){
         	pair[0]=rIndividuals.get(i*2);
         }
@@ -378,7 +379,8 @@ int numDataContributors=0;
               if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
             }
           }
-          ArrayList<JSONObject> al = indie.getExemplarImages(request);
+          ArrayList<JSONObject> al = indie.getExemplarImages(myShepherd,request);
+          exemps[j]=al;
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
@@ -436,7 +438,8 @@ int numDataContributors=0;
               </div>
               <%
               // display=none copies of the above for each additional image
-              ArrayList<JSONObject> al = pair[j].getExemplarImages(request);
+              //ArrayList<JSONObject> al = pair[j].getExemplarImages(myShepherd, request);
+              ArrayList<JSONObject> al =exemps[j];
               for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
                 JSONObject newMaJson = new JSONObject();
                 newMaJson = al.get(extraImgNo);
