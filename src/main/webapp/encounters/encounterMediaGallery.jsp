@@ -954,7 +954,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
 
     var tooltip;
     if (feat.individualId) {
-        tooltip = 'Name: <b>' + feat.individualId + '</b>';
+        tooltip = 'Name: <b>' + feat.displayName + '</b>';
     } else {
         tooltip = '<i>Unnamed individual</i>';
     }
