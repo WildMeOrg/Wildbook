@@ -1040,7 +1040,7 @@ if (sharky.getNames() != null) {
     <div class="slider col-sm-6 center-slider">
       <%-- Get images for slider --%>
       <%
-      ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
+      ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(myShepherd, request);
       String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
