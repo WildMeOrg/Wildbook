@@ -41,7 +41,10 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
+myShepherd.beginDBTransaction();
+if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 CommonConfiguration.ensureServerInfo(myShepherd, request);
+myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
@@ -518,8 +521,9 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             </nav>
         </header>
 
-        <script>
+       <script>
         $('#search-site').autocomplete({
+            // sortResults: true, // they're already sorted
             appendTo: $('#navbar-top'),
             response: function(ev, ui) {
                 if (ui.content.length < 1) {
@@ -530,7 +534,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             },
             select: function(ev, ui) {
                 if (ui.item.type == "individual") {
-                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
+                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?id=") %>" + ui.item.value);
                 }
                 else if (ui.item.type == "locationID") {
                 	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
@@ -557,6 +561,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     success: function( data ) {
                         var res = $.map(data, function(item) {
                             var label="";
+                            var nickname="";
                             if ((item.type == "individual")&&(item.species!=null)) {
 //                                label = item.species + ": ";
                             }
@@ -565,9 +570,15 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             } else {
                                 label = "";
                             }
-                            return {label: label + item.label,
+                            
+                            if(item.nickname != null){
+                            	nickname = " ("+item.nickname+")";
+                            }
+                            
+                            return {label: label + item.label+nickname,
                                     value: item.value,
-                                    type: item.type};
+                                    type: item.type,
+                                    nickname: nickname};
                             });
 
                         response(res);
