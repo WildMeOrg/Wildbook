@@ -52,7 +52,8 @@ import java.util.List;
 //handles operations to sharks. possible operations include, create new, add encounter, remove encounter from
 public class AddLabeledKeyword extends HttpServlet {
 
-  Shepherd myShepherd;
+  //this could create a long-term leak, commenting out
+  //Shepherd myShepherd;
   PrintWriter out;
   boolean locked=false;
 
@@ -71,7 +72,7 @@ public class AddLabeledKeyword extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
-    myShepherd=new Shepherd(request);
+    Shepherd myShepherd=new Shepherd(request);
     myShepherd.setAction("AddLabeledKeyword.class");
     myShepherd.beginDBTransaction();
     response.setContentType("text/html");
@@ -85,26 +86,30 @@ public class AddLabeledKeyword extends HttpServlet {
     String mid   = request.getParameter("mid");
     System.out.printf("AddLabeledKeyword has our kw vars %s: %s for ma %s\n", label, value, mid);
     if (!Util.stringExists(label)) {
-      errorAndClose("Missing 'label' param on AddLabeledKeyword", response);
+      errorAndClose("Missing 'label' param on AddLabeledKeyword", response,myShepherd);
       return;
     }
     if (!Util.stringExists(value)) {
-      errorAndClose("Missing 'value' param on AddLabeledKeyword", response);
+      errorAndClose("Missing 'value' param on AddLabeledKeyword", response,myShepherd);
       return;
     }
     if (!Util.stringExists(mid)) {
-      errorAndClose("Missing 'mid' param on AddLabeledKeyword", response);
+      errorAndClose("Missing 'mid' param on AddLabeledKeyword", response,myShepherd);
       return;
     }
     System.out.printf("AddLabeledKeyword has our kw vars %s: %s for ma %s\n", label, value, mid);
 
     MediaAsset ma = myShepherd.getMediaAsset(mid);
     if (ma==null) {
-      errorAndClose("Could not find MediaAsset "+mid+" specified as 'mid' in AddLabeledKeyword", response);
+      errorAndClose("Could not find MediaAsset "+mid+" specified as 'mid' in AddLabeledKeyword", response,myShepherd);
       return;
     }
 
     LabeledKeyword lkw = myShepherd.getOrCreateLabeledKeyword(label, value, true); // true: commit lkw to database
+    
+    //if the method above succeeded, then it ended on a commit in a store method, so now need to beginDBTRansaction again
+    myShepherd.beginDBTransaction();
+    
     ma.addKeyword(lkw);
     if (ma.hasKeyword(lkw)) {
       // construct jout to conform with RestKeyword
@@ -113,12 +118,16 @@ public class AddLabeledKeyword extends HttpServlet {
       newj.put(lkw.getIndexname(), lkw.getDisplayName());
       jout.put("newKeywords", newj);
     }
-
+    
+    //if we're modifying ma, then another commit is needed to persist that
+    myShepherd.commitDBTransaction();
 
     // else {
     //     jout.put("error", "unknown command");
     // }
-
+    
+    //if all went well, then close SHepherd
+    myShepherd.closeDBTransaction();
     response.setContentType("text/plain");
     out.println(jout.toString());
     out.flush();
@@ -126,7 +135,7 @@ public class AddLabeledKeyword extends HttpServlet {
   }
 
 
-  private void errorAndClose(String msg, HttpServletResponse response) {
+  private void errorAndClose(String msg, HttpServletResponse response, Shepherd myShepherd) {
     jout.put("error", msg);
     out.println(jout);
     out.close();
