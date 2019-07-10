@@ -26,28 +26,30 @@ public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(
     long time1=System.currentTimeMillis();
 	ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
-    String jdoql="SELECT FROM org.ecocean.media.MediaAsset WHERE enc.individualID == \""+indy.getIndividualID()+"\" && (enc.dynamicProperties == null || enc.dynamicProperties.toLowerCase().indexOf(\"publicview=no\") == -1) && enc.annotations.contains(annot) && annot.mediaAsset == this VARIABLES org.ecocean.Annotation annot;org.ecocean.Encounter enc ORDER BY enc.dwcDateAddedLong DESC RANGE 0, "+numResults;
-
-    Vector<MediaAsset> assets=new Vector<MediaAsset>();
+    //String jdoql="SELECT FROM org.ecocean.media.MediaAsset WHERE enc.individualID == \""+indy.getIndividualID()+"\" && (enc.dynamicProperties == null || enc.dynamicProperties == \"\" || enc.dynamicProperties.toLowerCase().indexOf(\"publicview=no\") == -1) && enc.annotations.contains(annot) && annot.mediaAsset == this VARIABLES org.ecocean.Annotation annot;org.ecocean.Encounter enc ORDER BY enc.dwcDateAddedLong DESC RANGE 0, "+numResults;
+     String jdoql="SELECT FROM org.ecocean.Annotation WHERE enc.individualID == \""+indy.getIndividualID()+"\" && (enc.dynamicProperties == null || enc.dynamicProperties.toLowerCase().indexOf(\"publicview=no\") == -1) && enc.annotations.contains(this) VARIABLES org.ecocean.Encounter enc ORDER BY enc.dwcDateAddedLong DESC RANGE 0, "+numResults;
+    
+    //System.out.println(jdoql);
+    Vector<Annotation> assets=new Vector<Annotation>();
 
 
 	    Query query=myShepherd.getPM().newQuery(jdoql);
 	    //query.setOrdering(order);
 	    //query.setRange(0, (numResults));
 	    Collection c2 = (Collection) (query.execute());
-	    assets=new Vector<MediaAsset>(c2);
+	    assets=new Vector<Annotation>(c2);
 	    query.closeAll();
 
 	    
-	    //System.out.println("here2 with assets="+assets.size()+" after query: "+jdoql);
+	    //System.out.println("here2 with assets="+assets.size()+" for indy "+indy.getIndividualID()+" after query: "+jdoql);
 	    
 		//String photographerName="Bob";
 	    
 	    
-	        for (MediaAsset ma: assets) {
+	        for (Annotation ann: assets) {
 	          //if (!ann.isTrivial()) continue;
 	          //System.out.println("Here3!");
-	
+			  MediaAsset ma=ann.getMediaAsset();
 	          //if (ma != null) {
 	            //JSONObject j = new JSONObject();
 	            JSONObject j = ma.sanitizeJson(req, new JSONObject(),myShepherd);
@@ -65,6 +67,7 @@ public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(
 	            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
 	            if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) {
 	                j.put("urlMid", kids.get(0).webURL().toString());
+	                //System.out.println("Found a mid for: "+indy.getIndividualID());
 	            } else {
 	                j.put("urlMid", ((u == null) ? "" : u.toString()));  //we reuse urlDisplay value :/
 	            }
@@ -81,12 +84,18 @@ public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(
 	              //ok, we have a viable candidate
 	
 	              //put ProfilePhotos at the beginning
-	              if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
+	              if(ma.hasKeyword("ProfilePhoto")){
+	            	  al.add(0, j);
+	            	  //System.out.println("Found a ProfilePhoto for: "+indy.getIndividualID());
+	            	}
 	              //do nothing and don't include it if it has NoProfilePhoto keyword
-	              else if(ma.hasKeyword("NoProfilePhoto")){}
+	              else if(ma.hasKeyword("NoProfilePhoto")){
+	            	  //System.out.println("Found a NoProfilePhoto for: "+indy.getIndividualID());
+	              }
 	              //otherwise, just add it to the bottom of the stack
 	              else{
 	                al.add(j);
+	                //System.out.println("Found a regular photo for: "+indy.getIndividualID());
 	              }
 	
 	            }
