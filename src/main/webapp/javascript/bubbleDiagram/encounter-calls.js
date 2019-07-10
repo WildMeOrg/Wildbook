@@ -165,6 +165,10 @@ var getSexHaploData = function(individualID, items) {
     }
     makeCooccurrenceChart(items);
     makeTable(items, "#coHead", "#coBody",null);
+    $('#cooccurrenceTable tr').click(function() {
+        selectedWhale = ($(this).attr("class"));
+        goToWhaleURL(selectedWhale);
+      });
   });
 };
 
@@ -397,6 +401,10 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         encounterData.push(encounter);
       }
       makeTable(encounterData, "#encountHead", "#encountBody", "date");
+      $('#encountTable tr').click(function() {
+          selectedWhale = ($(this).attr("class"));
+          goToEncounterURL(selectedWhale);
+      });
     });
 }
 
