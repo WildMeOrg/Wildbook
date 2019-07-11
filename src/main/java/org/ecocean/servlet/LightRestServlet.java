@@ -29,6 +29,7 @@ import org.ecocean.ShepherdPMF;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.security.Collaboration;
+import org.ecocean.CommonConfiguration;
 // import each class we have capability for
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
@@ -1068,8 +1069,8 @@ System.out.println("??? TRY COMPRESS ??");
         }
 
         private JSONObject getEncLightJson(Encounter enc, HttpServletRequest req) {
-
-            if (!Collaboration.canUserViewOwnedObject(enc.getSubmitterID(), req, myShepherd)) return null;
+            String context=ServletUtilities.getContext(req);
+            if ((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true")) && !Collaboration.canUserViewOwnedObject(enc.getSubmitterID(), req, myShepherd)) return null;
 
             // would be time to check for viewing permissions
 
