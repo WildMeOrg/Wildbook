@@ -400,7 +400,7 @@ finally{
 			</p>
 		</div>
 		<div class="hidden-xs col-sm-5  col-md-5  col-lg-5">
-			<img  src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
+			<img  src="images/how_it_works.png" alt=""  />
 		</div>
 	</div>
 
@@ -408,7 +408,7 @@ finally{
 
 	<div class="row"> 
 		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
-			<img  src="images/how_it_works_submit.jpg" alt=""  />
+			<img  src="images/submit_photo_id.png" alt=""  />
 		</div>
 		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 			<h3><%=props.getProperty("innerSubmitH3") %></h3>
@@ -436,7 +436,7 @@ finally{
 
 	<div class="row"> 
 		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
-			<img  src="images/how_it_works_matching_process.jpg" alt=""  />
+			<img  src="images/dragon_bounding.png" alt=""  />
 		</div>
 		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 			<h3><%=props.getProperty("innerMatchingH3") %></h3>
