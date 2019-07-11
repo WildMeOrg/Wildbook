@@ -365,20 +365,6 @@ input.nameKey, input.nameValue {
       $("#bioSamplesTableTab").removeClass("active");
       });
 
-      setTimeout(function() {
-      $('#encountTable tr').click(function() {
-        selectedWhale = ($(this).attr("class"));
-        goToEncounterURL(selectedWhale);
-      });
-
-      $('#cooccurrenceTable tr').click(function() {
-        selectedWhale = ($(this).attr("class"));
-        goToWhaleURL(selectedWhale);
-      });
-      $("#encountTable td:nth-child(1)").attr("class", "hide");
-      $("#encountTable th:nth-child(1)").attr("class", "hide");
-
-    }, 6000);
 
     var buttons = $("#edit, #closeEdit").on("click", function(){
         buttons.toggle();
@@ -453,7 +439,7 @@ $(document).ready(function() {
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
               String myNickname = "";
-              myNickname = sharky.getDisplayName();
+              myNickname = sharky.getDisplayName("Nickname");
             %>
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
@@ -1041,7 +1027,7 @@ if (sharky.getNames() != null) {
     <div class="slider col-sm-6 center-slider">
       <%-- Get images for slider --%>
       <%
-      ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
+      ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(myShepherd, request);
       String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
