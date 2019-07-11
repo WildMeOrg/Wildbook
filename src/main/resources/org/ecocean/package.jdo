@@ -865,6 +865,14 @@
 		</field>
 	</class>
 
+	<class name="Config">
+		<field name="name" primary-key="true" />
+		<field name="value">
+        		<column jdbc-type="LONGVARCHAR"/>
+		</field>
+	</class>
+
+
 	<class name="NoteField" identity-type="application">
 		<field name="id" primary-key="true">
 			<column length="36"/>
