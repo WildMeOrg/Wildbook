@@ -85,6 +85,8 @@ System.out.println("(old) has keyword -> " + kma);
 			}
 		}
 		out.println("{\"success\": true}");
+	        myShepherd.commitDBTransaction();
+	        myShepherd.closeDBTransaction();
 		return;
 	}
 
@@ -93,6 +95,8 @@ System.out.println("(old) has keyword -> " + kma);
 		boolean setTo = request.getParameter("isModeLive").toLowerCase().equals("true");
 		CatTest.setModeLive(setTo, myShepherd);
 		out.println("{\"success\": true, \"setTo\": " + setTo + "}");
+	        myShepherd.commitDBTransaction();
+	        myShepherd.closeDBTransaction();
 		return;
 	}
 
