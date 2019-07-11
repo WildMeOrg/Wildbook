@@ -221,10 +221,6 @@ System.out.println("cutoff = " + cutoff);
 		countSinceSunday = c.size();
 	}
 
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
-
-
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <script src="tools/panzoom/jquery.panzoom.min.js"></script>
@@ -253,6 +249,12 @@ var results = [];
 var userReport = <%=userReport%>;
 var maxThisWeek = 2;
 var codeVersion = 1; //really for localStorage
+
+<%
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+%>
+
 
 var assets = <%= jall.toString() %>;
 $(document).ready(function() {
