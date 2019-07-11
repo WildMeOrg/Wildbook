@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 public class CommonConfiguration {
   
   private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
+  private static final String GOOGLE_CONFIGURATION_PROPERTIES = "googleKeys.properties";
   
   //class setup
   //private static Properties props = new Properties();
@@ -429,12 +430,14 @@ public class CommonConfiguration {
   }
 
   public static String getGoogleMapsKey(String context) {
-    return getProperty("googleMapsKey",context);
+    return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES,"",context).getProperty("googleMapsKey",context);
   }
 
+  /*
   public static String getGoogleSearchKey(String context) {
     return getProperty("googleSearchKey",context);
   }
+*/
 
   public static String getDefaultGoogleMapsCenter(String context) {
     if (getProperty("googleMapsCenter",context)!=null) {
