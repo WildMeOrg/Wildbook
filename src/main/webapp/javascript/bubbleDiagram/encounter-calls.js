@@ -165,6 +165,10 @@ var getSexHaploData = function(individualID, items) {
     }
     makeCooccurrenceChart(items);
     makeTable(items, "#coHead", "#coBody",null);
+    $('#cooccurrenceTable tr').click(function() {
+        selectedWhale = ($(this).attr("class"));
+        goToWhaleURL(selectedWhale);
+      });
   });
 };
 
@@ -173,8 +177,12 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
   refreshTable(sortOn);
 
   function refreshTable(sortOn) {
+	  var keys=d3.keys(items[0]);
+	  if(tableHeadLocation == "#encountHead"){
+		  keys.shift();
+	  }
     var thead = d3.select(tableHeadLocation).selectAll("th")
-    .data(d3.keys(items[0]))
+    .data(keys)
     .enter().append("th").text(function(d){
       if(d === "text") {
         return dict['occurringWith'];
@@ -197,7 +205,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
       } if(d === "occurringWith") {
         return dict['occurringWith'];
       } if(d === "catalogNumber") {
-        return dict['catalogNumber'];
+        //return dict['catalogNumber'];
       } if(d === "roles") {
         return dict['roles'];
       } if(d === "relationshipWith") {
@@ -227,8 +235,15 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
       }
       return d3.values(d)[0];
     });
-
-    var td = tr.selectAll("td").data(function(d){return d3.values(d);});
+    var td = tr.selectAll("td").data(function(d){
+	    if(tableHeadLocation == "#encountHead"){
+	    		var smaller=d3.values(d);
+	    		smaller.shift();
+	    		return smaller;
+	    	}
+	    	return d3.values(d);
+    	}
+    );
     td.enter().append("td").html(function(d) {
       if(d == 'TissueSample') {
         return "<img class='encounterImg' src='images/microscope.gif'/>";
@@ -386,6 +401,10 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         encounterData.push(encounter);
       }
       makeTable(encounterData, "#encountHead", "#encountBody", "date");
+      $('#encountTable tr').click(function() {
+          selectedWhale = ($(this).attr("class"));
+          goToEncounterURL(selectedWhale);
+      });
     });
 }
 
