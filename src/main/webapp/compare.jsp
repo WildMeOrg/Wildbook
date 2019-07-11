@@ -26,6 +26,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("compare.jsp");
+myShepherd.beginDBTransaction();
 
 
   //handle some cache-related security
@@ -187,7 +188,6 @@ System.out.println("(old) has keyword -> " + kma);
   ;
 */
 
-	myShepherd.beginDBTransaction();
 	Vector all = myShepherd.getAllEncountersNoFilterAsVector();
 	JSONArray jall = new JSONArray();
 	for (Object obj : all) {
@@ -202,8 +202,6 @@ System.out.println("(old) has keyword -> " + kma);
 		j.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
 		jall.put(j);
 	}
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
 
 	int countSinceSunday = 0;
 	if (username != null) {
@@ -222,6 +220,9 @@ System.out.println("cutoff = " + cutoff);
 		Collection c = (Collection) (qry.execute());
 		countSinceSunday = c.size();
 	}
+
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 
 
 %>

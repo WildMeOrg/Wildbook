@@ -872,6 +872,17 @@
 		</field>
 	</class>
 
+	<class name="CatTest" identity-type="application">
+		<field name="id" primary-key="true" value-strategy="identity"/>
+		<field name="username" />
+		<field name="trial" />
+		<field name="results">
+        		<column jdbc-type="LONGVARCHAR"/>
+		</field>
+		<field name="timestamp">
+			<column jdbc-type="BIGINT" allows-null="true"/>
+		</field>
+	</class>
 
 	<class name="NoteField" identity-type="application">
 		<field name="id" primary-key="true">
