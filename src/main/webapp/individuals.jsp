@@ -1559,60 +1559,8 @@ if (sharky.getNames() != null) {
         	<p class="para"><%=props.getProperty("noCooccurrences") %></p><br />
         <%
         }
-        //
 
 
-
-          if (isOwner) {
-        %>
-        <br />
-        <p>
-        <strong><img align="absmiddle" src="images/48px-Crystal_Clear_mimetype_binary.png" /> <%=additionalDataFiles %></strong>
-        <%if ((sharky.getDataFiles()!=null)&&(sharky.getDataFiles().size() > 0)) {%>
-        </p>
-        <table>
-          <%
-            Vector addtlFiles = sharky.getDataFiles();
-            for (int pdq = 0; pdq < addtlFiles.size(); pdq++) {
-              String file_name = (String) addtlFiles.get(pdq);
-          %>
-
-          <tr>
-            <td><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/individuals/<%=sharky.getId()%>/<%=file_name%>"><%=file_name%>
-            </a></td>
-            <td>&nbsp;&nbsp;&nbsp;[<a
-              href="IndividualRemoveDataFile?individual=<%=id%>&filename=<%=file_name%>"><%=delete %>
-            </a>]
-            </td>
-          </tr>
-
-          <%}%>
-        </table>
-        <%} else {%> <%=none %>
-        </p>
-        <%
-          }
-          if (CommonConfiguration.isCatalogEditable(context)) {
-        %>
-        <form action="IndividualAddFile" method="post"
-              enctype="multipart/form-data" name="addDataFiles"><input
-          name="action" type="hidden" value="fileadder" id="action"> <input
-          name="individual" type="hidden" value="<%=sharky.getId()%>"
-          id="individual">
-
-          <p><%=addDataFile %>:</p>
-
-          <p><input name="file2add" type="file" size="50"></p>
-
-          <p><input name="addtlFile" type="submit" id="addtlFile"
-                    value="<%=sendFile %>"></p></form>
-        <%
-          }
-
-
-
-
-          }
         %>
 
         </td>
@@ -1765,8 +1713,58 @@ if (sharky.getNames() != null) {
           <jsp:param name="name" value="<%=id%>"/>
         </jsp:include>
       </div>
+      <br>
       <%-- End of Map --%>
+      <%
+      if (isOwner) {
+        %>
+        <br />
+        <p>
+        <strong><img align="absmiddle" src="images/48px-Crystal_Clear_mimetype_binary.png" /> <%=additionalDataFiles %></strong>
+        <%if ((sharky.getDataFiles()!=null)&&(sharky.getDataFiles().size() > 0)) {%>
+        </p>
+        <table>
+          <%
+            Vector addtlFiles = sharky.getDataFiles();
+            for (int pdq = 0; pdq < addtlFiles.size(); pdq++) {
+              String file_name = (String) addtlFiles.get(pdq);
+          %>
 
+          <tr>
+            <td><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/individuals/<%=sharky.getId()%>/<%=file_name%>"><%=file_name%>
+            </a></td>
+            <td>&nbsp;&nbsp;&nbsp;[<a
+              href="IndividualRemoveDataFile?individual=<%=id%>&filename=<%=file_name%>"><%=delete %>
+            </a>]
+            </td>
+          </tr>
+
+          <%}%>
+        </table>
+        <%} 
+        else {
+        	%> 
+        	<%=none %></p>
+        	<%
+          }
+        if (CommonConfiguration.isCatalogEditable(context)) {
+        %>
+        <form action="IndividualAddFile" method="post" enctype="multipart/form-data" name="addDataFiles">
+        	<input name="action" type="hidden" value="fileadder" id="action"> 
+          	<input name="individual" type="hidden" value="<%=sharky.getId()%>" id="individual">
+          	<p><%=addDataFile %>:</p>
+          	<p><input name="file2add" type="file" size="50"></p>
+          	<p><input name="addtlFile" type="submit" id="addtlFile" value="<%=sendFile %>"></p>
+         </form>
+         <br>
+        <%
+          }
+
+
+
+
+          }
+		%>
 
 
               <%-- Start Adoption --%>
