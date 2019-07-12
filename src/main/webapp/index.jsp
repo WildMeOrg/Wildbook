@@ -328,10 +328,12 @@ catch(Exception e){
     System.out.println("      *** This entails configuring a directory via cache.properties and running appadmin/testQueryCache.jsp");
     e.printStackTrace();
 }
+/*
 finally{
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
 }
+*/
 %>
 
 <section class="hero container-fluid main-section relative">
@@ -366,7 +368,13 @@ finally{
 		<div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 			<h3><%=props.getProperty("innerPhotoH3") %></h3>
 			<p class="lead">
-				<%=props.getProperty("innerPhotoP") %>
+
+<%=NoteField.buildHtmlDiv("beb1e7ba-809b-46a9-9f94-c943e7d002d9", myShepherd)%>
+
+<div class="org-ecocean-notefield-default" id="default-beb1e7ba-809b-46a9-9f94-c943e7d002d9">
+    <%=props.getProperty("innerPhotoP") %>
+</div>
+
 			</p>
 		</div>
 		<div class="hidden-xs col-sm-5  col-md-5  col-lg-5">
