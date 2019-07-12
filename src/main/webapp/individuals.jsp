@@ -1578,7 +1578,7 @@ if (sharky.getNames() != null) {
           %>
 
           <tr>
-            <td><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/individuals/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%>
+            <td><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/individuals/<%=sharky.getId()%>/<%=file_name%>"><%=file_name%>
             </a></td>
             <td>&nbsp;&nbsp;&nbsp;[<a
               href="IndividualRemoveDataFile?individual=<%=id%>&filename=<%=file_name%>"><%=delete %>
@@ -1597,7 +1597,7 @@ if (sharky.getNames() != null) {
         <form action="IndividualAddFile" method="post"
               enctype="multipart/form-data" name="addDataFiles"><input
           name="action" type="hidden" value="fileadder" id="action"> <input
-          name="individual" type="hidden" value="<%=sharky.getName()%>"
+          name="individual" type="hidden" value="<%=sharky.getId()%>"
           id="individual">
 
           <p><%=addDataFile %>:</p>
