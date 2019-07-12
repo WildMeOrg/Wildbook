@@ -32,6 +32,11 @@
   -webkit-text-fill-color: #005589;
 }
 
+#markedIndividualHeader a{
+  -webkit-text-fill-color: white;
+}
+
+
 /*Edit forms*/
 label {
   font-weight: lighter;
