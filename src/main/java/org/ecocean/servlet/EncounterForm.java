@@ -1047,11 +1047,22 @@ System.out.println("depth --> " + fv.get("depth").toString());
             if (!spamBot) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
                 enc.refreshAssetFormats(myShepherd);
-
                 //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
                 //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
-                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
-                myShepherd.storeNewTask(task);
+
+                // LOCAL: don't send to IA if the animal is dead
+                String lStatus = enc.getLivingStatus();
+                if ("alive".equals(lStatus)) {
+                  try {
+                    Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
+                    myShepherd.storeNewTask(task);
+                  } catch (Exception e) {
+                    e.printStackTrace();
+                  }
+                } else {
+                  System.out.println("[INFO]: Animal marked dead (RIP), skipping IA intake in EncounterForm"); 
+                }
+
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
