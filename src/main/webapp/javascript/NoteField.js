@@ -7,9 +7,9 @@ wildbook.NoteField = {
     editClick: function(wrap, ev) {
         var id = wrap.id.substring(5);
         if (wildbook.NoteField.quill[id]) return;
-        wildbook.NoteField.originalContent[id] = document.getElementById(id).innerHTML;
+        wildbook.NoteField.originalContent[id] = document.getElementById('id-' + id).innerHTML;
         $(wrap).find('.org-ecocean-notefield-control').css('visibility', 'hidden');
-        wildbook.NoteField.quill[id] = new Quill('#' + id, {
+        wildbook.NoteField.quill[id] = new Quill('#id-' + id, {
             theme: 'snow'
         });
         var menus = '<span class="ql-formats">';
@@ -22,7 +22,7 @@ wildbook.NoteField = {
     closeEdit: function(id, content) {  //content overrides quill content
         if (!content) content = wildbook.NoteField.quill[id].root.innerHTML;
         $('#wrap-' + id + ' .ql-toolbar').remove();
-        $('#' + id).removeClass('ql-container').removeClass('ql-snow').html(content);
+        $('#id-' + id).removeClass('ql-container').removeClass('ql-snow').html(content);
         delete(wildbook.NoteField.quill[id]);
         return content;
     },
@@ -57,7 +57,10 @@ wildbook.NoteField = {
     },
 
     initDiv: function(el) {
-        var w = $('<div class="org-ecocean-notefield-wrapper" id="wrap-' + el.id + '" />');
+        var id = el.id.substring(3);
+        var w = $('<div class="org-ecocean-notefield-wrapper" id="wrap-' + id + '" />');
+        var def = document.getElementById('default-' + id);
+        if ((el.innerHTML == '') && def) el.innerHTML = def.innerHTML;
         $(el).wrap(w)
         $(el).before('<div class="org-ecocean-notefield-control el el-edit" />');
     }

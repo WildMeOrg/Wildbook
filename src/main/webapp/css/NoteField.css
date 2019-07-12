@@ -30,6 +30,10 @@
     color: #AF0;
 }
 
+.org-ecocean-notefield-default {
+    display: none;
+}
+
 .wb-ql-menu {
     color: black;
 }
