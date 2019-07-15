@@ -156,7 +156,7 @@ public class Collaboration implements java.io.Serializable {
 			queryString += " && state == '" + state + "'";
 		}
 //System.out.println("qry -> " + queryString);
-		myShepherd.setAction("Collaboration.class1");
+		//myShepherd.setAction("Collaboration.class1");
 		Query query = myShepherd.getPM().newQuery(queryString);
     //ArrayList got = myShepherd.getAllOccurrences(query);
 		List returnMe=myShepherd.getAllOccurrences(query);

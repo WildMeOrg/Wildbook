@@ -62,7 +62,7 @@
     rEncounters = queryResult.getResult();
 
     // security
-    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request,myShepherd);
     rEncounters = hiddenData.securityScrubbedResults(rEncounters);
     		
     		
