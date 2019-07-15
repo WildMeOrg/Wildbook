@@ -318,7 +318,7 @@ public class Collaboration implements java.io.Serializable {
 
 	public static boolean canUserViewOwnedObject(User viewer, User owner, HttpServletRequest request) {
 		// if they own it
-		if (viewer.getUUID()!=null && viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
+		if (viewer!=null && owner!=null && viewer.getUUID()!=null && viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
 		// if viewer and owner have sharing turned on
 		if (((viewer!=null && 
 				viewer.hasSharing() && 
