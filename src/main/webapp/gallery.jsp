@@ -136,8 +136,8 @@ try{
 	
 	// security
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
-		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
-		rIndividuals = hiddenData.viewableResults(rIndividuals);
+		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
+		rIndividuals = hiddenData.viewableResults(rIndividuals, myShepherd);
 	}
 	
 	if (rIndividuals.size() < listNum) {

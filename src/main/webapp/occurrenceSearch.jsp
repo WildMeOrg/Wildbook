@@ -50,6 +50,8 @@ context=ServletUtilities.getContext(request);
 
   int firstYear = 1980;
   myShepherd.beginDBTransaction();
+  boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
+
   try {
     firstYear = myShepherd.getEarliestSightingYear();
     nowYear = myShepherd.getLastSightingYear();
@@ -69,7 +71,6 @@ context=ServletUtilities.getContext(request);
 
   props = ShepherdProperties.getOrgProperties("individualSearch.properties", langCode, request);
 
-  boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
 
 %>
 

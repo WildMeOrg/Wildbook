@@ -103,7 +103,7 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
       int numMatchingEncounters = rEncounters.size();
 
       // Security: categorize hidden encounters with the initializer
-      HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+      HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
 
       // so we know how many MA columns we need
       setMediaAssetCounts(rEncounters);

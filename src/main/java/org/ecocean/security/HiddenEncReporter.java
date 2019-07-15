@@ -1,6 +1,8 @@
 package org.ecocean.security;
 
 import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
+
 import java.util.Vector;
 import javax.servlet.http.HttpServletRequest;
 
@@ -8,8 +10,8 @@ public class HiddenEncReporter extends HiddenDataReporter<Encounter> {
 
 	protected static final String className = "Encounter";
 
-	public HiddenEncReporter(Vector tObjectsToFilter, HttpServletRequest request) {
-		super(className, tObjectsToFilter, request);
+	public HiddenEncReporter(Vector tObjectsToFilter, HttpServletRequest request, Shepherd myShepherd) {
+		super(className, tObjectsToFilter, request, myShepherd);
 	}
 
 	// atomic methods that HiddenDataReporter methods call
