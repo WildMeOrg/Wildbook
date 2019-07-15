@@ -1,6 +1,8 @@
 package org.ecocean.security;
 
 import org.ecocean.Occurrence;
+import org.ecocean.Shepherd;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.Vector;
 
@@ -8,11 +10,11 @@ public class HiddenOccReporter extends HiddenDataReporter<Occurrence> {
 	
 	protected static final String className = "Occurrence";
 
-	public HiddenOccReporter(Vector tObjectsToFilter, HttpServletRequest request, boolean viewOnly) {
-		super(className, tObjectsToFilter, request, viewOnly);
+	public HiddenOccReporter(Vector tObjectsToFilter, HttpServletRequest request, boolean viewOnly, Shepherd myShepherd) {
+		super(className, tObjectsToFilter, request, viewOnly, myShepherd);
 	}
-	public HiddenOccReporter(Vector tObjectsToFilter, HttpServletRequest request) {
-		super(className, tObjectsToFilter, request);
+	public HiddenOccReporter(Vector tObjectsToFilter, HttpServletRequest request, Shepherd myShepherd) {
+		super(className, tObjectsToFilter, request, myShepherd);
 	}
 
 

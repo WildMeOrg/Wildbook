@@ -51,8 +51,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
 
-    boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
-
+    
 
 %>
 
@@ -678,9 +677,31 @@ if(CommonConfiguration.showReleaseDate(context)){
         <input name="location" type="text" id="location" size="40" class="form-control">
       </div>
     </div>
+    <%
+    //let's pre-populate important info for logged in users
+    boolean useCustomProperties=false;
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
+    String project="";
+    if(request.getRemoteUser()!=null){
+        submitterName=request.getRemoteUser();
+        Shepherd myShepherd=new Shepherd(context);
+        myShepherd.setAction("submit.jsp1");
+        myShepherd.beginDBTransaction();
+        useCustomProperties = User.hasCustomProperties(request,myShepherd); // don't want to call this a bunch
 
-
-<%
+        if(myShepherd.getUser(submitterName)!=null){
+            User user=myShepherd.getUser(submitterName);
+            if(user.getFullName()!=null){submitterName=user.getFullName();}
+            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+            if(user.getUserProject()!=null){project=user.getUserProject();}
+        }
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+    }
+    
 //add locationID to fields selectable
 
 
@@ -797,31 +818,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 </fieldset>
 <hr />
-
-
-    <%
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
-    String project="";
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-        Shepherd myShepherd=new Shepherd(context);
-        myShepherd.setAction("submit.jsp1");
-        myShepherd.beginDBTransaction();
-        if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-    }
-    %>
-
 
 
   <fieldset>

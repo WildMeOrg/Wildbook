@@ -207,7 +207,7 @@ try {
 			</td>
 			<%}%>
 			<td class="col-md-2 merge-field">
-				<%=markA.getMergedComments(markB, request)%>
+				<%=markA.getMergedComments(markB, request, myShepherd)%>
 			</td>
 		-->
 

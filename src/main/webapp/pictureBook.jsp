@@ -48,7 +48,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   String order ="";
   MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
   rIndividuals = result.getResult();
-  HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
+  HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
   rIndividuals = hiddenData.securityScrubbedResults(rIndividuals);
 	numResults = rIndividuals.size();
 	System.out.println("PictureBook: returned "+numResults+" individuals");
@@ -230,7 +230,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		if (count>maxPages) break;
 
 		String id = mark.getIndividualID();
-		String altID = mark.getAlternateID();
+		String altID = mark.getDisplayName();
 		if (Util.shouldReplace(mark.getNickName(), altID)) altID = mark.getNickName();
 		String altIDStr = (Util.stringExists(altID)) ? ("<em>("+altID+")</em>") : "";
 		System.out.println("PictureBook: proceeded past hasHeader check");

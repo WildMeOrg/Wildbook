@@ -2525,18 +2525,18 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
 
     // Need request to record which user did it
-    public void mergeIndividual(MarkedIndividual other, HttpServletRequest request) {
+    public void mergeIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
       for (Encounter enc: other.getEncounters()) {
         other.removeEncounter(enc);
         enc.setIndividual(this);
       }
       this.names.merge(other.getNames());
-      this.setComments(getMergedComments(other, request));
+      this.setComments(getMergedComments(other, request, myShepherd));
       refreshDependentProperties();
     }
 
-    public String getMergedComments(MarkedIndividual other, HttpServletRequest request) {
-      User user = new Shepherd(request).getUser(request);
+    public String getMergedComments(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
+      User user = myShepherd.getUser(request);
       String mergedComments = Util.stringExists(getComments()) ? getComments() : "";
     
       mergedComments += "<p>This individual merged with individual "+other.getIndividualID()+" (\""+other.getDisplayName()+"\")";
@@ -2561,7 +2561,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
 
     public void mergeAndThrowawayIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
-      mergeIndividual(other, request);
+      mergeIndividual(other, request, myShepherd);
       myShepherd.throwAwayMarkedIndividual(other);
     }
 

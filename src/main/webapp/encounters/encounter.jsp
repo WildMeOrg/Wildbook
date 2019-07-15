@@ -125,7 +125,6 @@ File encounterDir = new File(encountersDir, num);
 String langCode=ServletUtilities.getLanguageCode(request);
 
 
-boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
 
 
 //let's load encounters.properties
@@ -146,8 +145,6 @@ boolean useCustomProperties = User.hasCustomProperties(request); // don't want t
   boolean haveRendered = false;
 
   
-  Properties encprops = ShepherdProperties.getOrgProperties("encounter.properties", langCode, context, request);
-  pageContext.setAttribute("set", encprops.getProperty("set"));
 
   Properties collabProps = new Properties();
   collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
@@ -500,13 +497,18 @@ var encounterNumber = '<%=num%>';
 
 			<%
   			myShepherd.beginDBTransaction();
+			Properties encprops = ShepherdProperties.getOrgProperties("encounter.properties", langCode, context, request, myShepherd);
+			pageContext.setAttribute("set", encprops.getProperty("set"));
+
+			boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
+
 
   			if (myShepherd.isEncounter(num)) {
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
-            System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
-            String encNum = enc.getCatalogNumber();
+            	System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
+            	String encNum = enc.getCatalogNumber();
 						boolean visible = enc.canUserAccess(request);
 						if (!visible) visible = checkAccessKey(request, enc);
 						if (!visible) {
@@ -930,7 +932,7 @@ if(enc.getLocation()!=null){
           <option value=""></option>
 
           <%
-          if (User.hasCustomProperties(request)) {
+          if (useCustomProperties) {
             List<String> countries = CommonConfiguration.getIndexedPropertyValues("country",request);
             for (String country: countries) {
               %>
@@ -4060,7 +4062,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
         <div class="col-sm-5">
           <%
           List<String> behaviors = CommonConfiguration.getIndexedPropertyValues("behavior", request);
-          System.out.println("got behaviors list "+behaviors);
+          //System.out.println("got behaviors list "+behaviors);
           if (!Util.isEmpty(behaviors)) {
           %>
           <select name="behaviorComment" id="behaviorInput" class="form-control" size="1">
@@ -4151,7 +4153,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
       <div class="col-sm-5">
         <%
         List<String> groupRoles = CommonConfiguration.getIndexedPropertyValues("groupRole", request);
-        System.out.println("got groupRoles list "+groupRoles);
+        //System.out.println("got groupRoles list "+groupRoles);
         if (!Util.isEmpty(groupRoles)) {
         %>
         <select name="groupRoleComment" id="groupRoleInput" class="form-control" size="1">
