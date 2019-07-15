@@ -66,7 +66,7 @@ public class MergeIndividual extends HttpServlet {
       boolean throwaway = Util.stringExists(throwawayStr) && !throwawayStr.toLowerCase().equals("false");
 
       // here's where the magic happens
-      mark1.mergeIndividual(mark2, request);
+      mark1.mergeIndividual(mark2, request, myShepherd);
       if (sex != null) mark1.setSex(sex);
       if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
       if (throwaway) myShepherd.throwAwayMarkedIndividual(mark2);

@@ -1,6 +1,8 @@
 package org.ecocean.security;
 
 import org.ecocean.MarkedIndividual;
+import org.ecocean.Shepherd;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.Vector;
 
@@ -8,11 +10,11 @@ public class HiddenIndividualReporter extends HiddenDataReporter<MarkedIndividua
 
 	protected static final String className = "Individual";
 
-	public HiddenIndividualReporter(Vector tObjectsToFilter, HttpServletRequest request, boolean viewOnly) {
-		super(className, tObjectsToFilter, request, viewOnly);
+	public HiddenIndividualReporter(Vector tObjectsToFilter, HttpServletRequest request, boolean viewOnly, Shepherd myShepherd) {
+		super(className, tObjectsToFilter, request, viewOnly, myShepherd);
 	}
-	public HiddenIndividualReporter(Vector tObjectsToFilter, HttpServletRequest request) {
-		super(className, tObjectsToFilter, request);
+	public HiddenIndividualReporter(Vector tObjectsToFilter, HttpServletRequest request, Shepherd myShepherd) {
+		super(className, tObjectsToFilter, request, myShepherd);
 	}
 
 	// atomic methods that HiddenDataReporter methods call

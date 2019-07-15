@@ -78,7 +78,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
         rEncounters = queryResult.getResult();
 
-        HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+        HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
 
         int numMatchingEncounters=rEncounters.size();
       
