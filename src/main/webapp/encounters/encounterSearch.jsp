@@ -51,7 +51,6 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
-boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
 
 %>
 
@@ -255,6 +254,8 @@ $(".search-collapse-header a").click(function(){
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("encounterSearch.jsp");
   myShepherd.beginDBTransaction();
+  boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
+
 
 
   Properties encprops = new Properties();

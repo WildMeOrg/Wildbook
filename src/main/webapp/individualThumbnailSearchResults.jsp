@@ -52,7 +52,7 @@
     MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, "individualID ascending");
     rIndividuals = queryResult.getResult();
 
-    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
+    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
     rIndividuals = hiddenData.securityScrubbedResults(rIndividuals);
 
     String[] keywords = request.getParameterValues("keyword");
