@@ -78,10 +78,10 @@ public class CalendarXMLServer extends HttpServlet {
 
     myShepherd.beginDBTransaction();
     
-    EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "individualID descending");
+    EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "individual.individualID descending");
     rEncounters = queryResult.getResult();
 
-    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
     rEncounters = hiddenData.securityScrubbedResults(rEncounters);
 
 

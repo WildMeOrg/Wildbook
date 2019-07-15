@@ -185,7 +185,7 @@ public class SOCPROGExport extends HttpServlet{
 
            
             Vector iterateMe=query2Individuals;
-            HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(iterateMe, request);
+            HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(iterateMe, request, myShepherd);
             hiddenData.writeHiddenDataReport(workbookOBIS,2); // since 0 and 1 are in use above;
             
             for(int k=0;k<iterateMe.size();k++){

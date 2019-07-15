@@ -147,17 +147,27 @@ public class User implements Serializable {
   public boolean hasCustomProperties() {
     return ShepherdProperties.userHasOverrideString(this);
   }
-  public static boolean hasCustomProperties(HttpServletRequest request) {
+  public static boolean hasCustomProperties(HttpServletRequest request, Shepherd myShepherd) {
     if (request == null) return false;
     String manualOrg = request.getParameter("organization");
     if (Util.stringExists(manualOrg)) {
       if (ShepherdProperties.orgHasOverwrite(manualOrg)) return true;
     }
-    Shepherd myShepherd = new Shepherd(request);
     User user = myShepherd.getUser(request);
     if (user == null) return false;
     return user.hasCustomProperties();
   }
+  
+  public static boolean hasCustomProperties(HttpServletRequest request) {
+     Shepherd myShepherd = new Shepherd(request);
+     myShepherd.setAction("User.hasCustomProperties");
+     myShepherd.beginDBTransaction();
+     boolean hasIt=hasCustomProperties(request, myShepherd);
+     myShepherd.rollbackDBTransaction();
+     myShepherd.closeDBTransaction();
+     return hasIt;
+  }
+
 
 
   public String getEmailAddress ()

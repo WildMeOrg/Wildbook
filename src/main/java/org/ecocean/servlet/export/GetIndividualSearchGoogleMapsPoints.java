@@ -103,8 +103,8 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     rIndividuals = queryResult.getResult();
     
     // viewOnly=true arg means this hiddenData relates to viewing the summary results
-    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true);
-    rIndividuals = hiddenData.viewableResults(rIndividuals, true);
+    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true, myShepherd);
+    rIndividuals = hiddenData.viewableResults(rIndividuals, true, myShepherd);
 
 
     int numIndividuals=rIndividuals.size();
