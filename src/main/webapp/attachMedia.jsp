@@ -183,6 +183,7 @@ private static Map<String,String> getTripInfo(Occurrence occ) {
     Map<String,String> typeLabel = new HashMap<String,String>();
     typeLabel.put("ci", "Channel Is");
     typeLabel.put("wa", "WhaleAlert");
+    typeLabel.put("cw", "CaribWhale");
 
     Map<String,String> rtn = new HashMap<String,String>();
     String src = occ.getSource();

@@ -40,6 +40,7 @@ private static String tripListSummary(JSONObject s) {
 private static Occurrence loadByTripId(Shepherd myShepherd, int tripId) {
     String jdo = "SELECT FROM org.ecocean.Occurrence WHERE source=='SpotterConserveIO:ci:" + tripId;
     jdo += "' || source=='SpotterConserveIO:wa:" + tripId + "'";
+    jdo += " || source=='SpotterConserveIO:cw:" + tripId + "'";
     Query q = myShepherd.getPM().newQuery(jdo);
     Collection results = (Collection)q.execute();
     if (results.size() < 1) return null;
@@ -153,6 +154,31 @@ private static String justSomeTrips(String[] tripIds, Shepherd myShepherd) {
                 fetchLog("- " + occ);
             }
             return occs;
+
+        } else if (flavor.equals("cw")) {
+            Survey surv = SpotterConserveIO.cwToSurvey(tripData, myShepherd);
+            myShepherd.getPM().makePersistent(surv);
+            fetchLog("spotterTest: created " + surv.toString());
+            ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
+            if (tracks != null) {
+                for (SurveyTrack trk : tracks) {
+                    fetchLog("- " + trk);
+                    ArrayList<Occurrence> occs = trk.getOccurrences();
+                    if (occs == null) {
+                        fetchLog("- no Occurrences");
+                    } else {
+                        for (Occurrence occ : occs) {
+                            myShepherd.getPM().makePersistent(occ);
+                            fetchLog("- " + occ);
+                        }
+                    }
+                    fetchLog("- " + ((trk.getPath() == null) ? "no path" : trk.getPath()));
+                }
+            } else {
+                fetchLog("- no tracks");
+            }
+            myShepherd.getPM().makePersistent(surv);
+            return surv;
 
         } else {
             fetchLog("ERROR: unknown flavor " + flavor);
