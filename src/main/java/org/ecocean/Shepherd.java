@@ -3619,7 +3619,7 @@ public class Shepherd {
     int numUsers=users.size();
     for(int i=0;i<numUsers;i++){
       User user=users.get(i);
-      if(doesUserHaveRole(user.getUsername(), locationID.trim(),context)){
+      if(locationID!=null && doesUserHaveRole(user.getUsername(), locationID.trim(),context)){
         if((user.getReceiveEmails())&&(user.getEmailAddress()!=null)){addresses+=(user.getEmailAddress()+",");}
       }
     }
