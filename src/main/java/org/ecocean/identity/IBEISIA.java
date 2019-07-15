@@ -619,6 +619,7 @@ System.out.println("     gotta compute :(");
             }
         }
         myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return null;
     }
 
