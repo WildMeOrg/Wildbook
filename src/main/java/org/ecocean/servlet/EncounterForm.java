@@ -1167,13 +1167,15 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
             }
           
             // Email those assigned this location code
-            String informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
-            if (informMe != null) {
-              List<String> cOther = NotificationMailer.splitEmails(informMe);
-              for (String emailTo : cOther) {
-                NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
-                mailer.setUrlScheme(request.getScheme());
-                  es.execute(mailer);
+            if(enc.getLocationID()!=null) {
+              String informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
+              if (informMe != null) {
+                List<String> cOther = NotificationMailer.splitEmails(informMe);
+                for (String emailTo : cOther) {
+                  NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
+                  mailer.setUrlScheme(request.getScheme());
+                    es.execute(mailer);
+                }
               }
             }
           
