@@ -1832,10 +1832,10 @@ public class Shepherd {
   public List getAllOccurrences(Query myQuery) {
     Collection c;
     try {
-      System.out.println("getAllOccurrences is called on query "+myQuery);
+      //System.out.println("getAllOccurrences is called on query "+myQuery);
       c = (Collection) (myQuery.execute());
       ArrayList list = new ArrayList(c);
-      System.out.println("getAllOccurrences got "+list.size()+" occurrences");
+      //System.out.println("getAllOccurrences got "+list.size()+" occurrences");
       //Collections.reverse(list);
       Iterator it = list.iterator();
       return list;
@@ -1891,10 +1891,10 @@ public class Shepherd {
   public Iterator<Occurrence> getAllOccurrences(Query acceptedOccurrences, Map<String, Object> paramMap) {
     Collection c;
     try {
-      System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
+      //System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
       c = (Collection) (acceptedOccurrences.executeWithMap(paramMap));
       ArrayList list = new ArrayList(c);
-      System.out.println("getAllOccurrences got "+list.size()+" occurrences");
+      //System.out.println("getAllOccurrences got "+list.size()+" occurrences");
       //Collections.reverse(list);
       Iterator it = list.iterator();
       return it;

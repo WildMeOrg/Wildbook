@@ -103,7 +103,7 @@
     rEncounters=new Vector(c);
 
     // 
-    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
     rEncounters = hiddenData.securityScrubbedResults(rEncounters);
 
 

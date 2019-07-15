@@ -133,7 +133,7 @@ public class OccurrenceSearchExportGtm extends HttpServlet {
 
         OccurrenceQueryResult queryResult = OccurrenceQueryProcessor.processQuery(myShepherd, request, "");
         rOccurrences = queryResult.getResult();
-        HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request);
+        HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request,myShepherd);
         rOccurrences = hiddenData.securityScrubbedResults(rOccurrences);
 
         boolean removedDateless = rOccurrences.removeAll(getDatelessOccurrences(rOccurrences));

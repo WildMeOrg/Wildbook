@@ -199,9 +199,11 @@ public class CommonConfiguration {
     */
     public static URI getServerURI(String context) {
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("CommonCOnfiguration.getServerURI");
         myShepherd.beginDBTransaction();
         URI u = getServerURI(myShepherd);
         myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return u;
     }
     public static String getServerURL(String context) {

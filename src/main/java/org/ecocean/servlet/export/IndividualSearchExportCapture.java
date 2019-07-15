@@ -46,7 +46,7 @@ public class IndividualSearchExportCapture extends HttpServlet{
 
     MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
     rIndividuals = result.getResult();
-    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
+    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
 
     int numIndividuals=rIndividuals.size();
     int numSharks=0;
