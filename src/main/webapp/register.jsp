@@ -1,9 +1,12 @@
-
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties" %>
-
-
+<style>
+label {
+    font-size: 0.9em;
+    width: 12em;
+}
+</style>
 <%
 
 String context = ServletUtilities.getContext(request);
@@ -13,6 +16,7 @@ String context = ServletUtilities.getContext(request);
   String langCode=ServletUtilities.getLanguageCode(request);
 
     String modeString = request.getParameter("mode");
+    boolean instrOnly = Util.requestParameterSet(request.getParameter("instructions"));
 
 //set up the file input stream
   Properties props = new Properties();
@@ -43,6 +47,8 @@ String context = ServletUtilities.getContext(request);
         mode = 3;
     }
 
+    if (instrOnly) mode = 3;
+
     //////session.setAttribute("error", "<b>FAKE</b> error fromMode=" + fromMode);
 %>
 
@@ -71,43 +77,16 @@ if (session.getAttribute("error") != null) {
 <% if (mode < 0) { %>
 
 <div class="explanation-section">
-<h2>About Kitizen Science</h2>
 
 <p>
-Kitizen Science is a project
-......
-</p>
-
-
-<h2>Submission Rules</h2>
-
-
-<p>
-Photos must be free-roaming outdoor cats (feral or friendly).  Owned or cared-for outdoor cats are fine, so long as they are outdoor cats rather than indoor-only pets.  Try to submit several photos of the cat from different angles so we can see their full coat pattern.  Photos can contain more than one cat, but if possible, take photos with only one cat in each image.  Do not photograph a cat more than once per day (more than one encounter), but you can - and should -  submit the same cat on multiple days.  We're trying to build a history of cats and when they are seen, so don't feel like you're not participating well if you submit the one cat who lives in your yard every day.  We want it!
-</p>
-
-
-<h2>How it Works</h2>
-
-<p>
-Photo submissions are made online by registered volunteers at kitizenscience.org using the <i>"Report Encounter"</i> link.  Once logged in, the "Report Encounter" page will allow you to upload photos, click on a map where the photo was taken, and add information about the cat.  If using a mobile phone to take your cat photos, please turn on location services/GPS photo information so that we can get more data from your photos.  Mobile devices are the easiest way to shoot and submit photos, since you can do everything from one place, but you are welcome to use any type of digital camera and computer.  This website should work in all browsers and on mobile devices, but please let us know if you have any issues.
-</P>
-
-
-<h2>How to Submit Photo Encounters</h2>
-
-
-<p>
-After registering for the website, log into kitizenscience.org, and then click on Report an Encounter in the top menu bar.  This takes you to the encounter submission page.  Here, you upload photos, select the date and time when they were taken, and click on a map with the location.  Zoom in as close as possible when marking the location on the map.  We would also like you to add some basic information about the cat in the photo to help us organize your photos.  Under the section About the Animal, you can add the cat's sex (if known), whether it's alive or dead, any names you or others use for the cat, the cat's approximate age, whether the cat has either ear tipped (cut) to indicate that it has been spayed/neutered, and the the cat's primary 1-3 colors.  (You don't need to list every color on a cat, so a brown tabby with a small orange or streak would just be listed here as a brown cat.)  If there are multiple cats in your photo submission, just pick one and fill in the data for that cat.
-</p>
-
-<p>
-These instructions can be viewed again later by clicking on the Participate link in the top menu, and selecting <i>"How to Submit Photos."</i>
+Our first phase of validation tests are running from now until October 29, 2019.  This validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones.  You can read the
+<a href="register.jsp?instructions">instructions page</a>
+first to see more about what this trial involves.
 </p>
 
 <p>
     <form method="post">
-    <input type="submit" value="Register to use Kitizen Science" />
+    <input type="submit" value="Register to Participate" />
     <input type="hidden" name="fromMode" value="-1" />
     </form>
 
@@ -118,24 +97,109 @@ if (mode == 0) {
 %>
 
 <div id="consent-section">
-<h2>Informed Consent to Participate</h2>
+<h2>
+UNIVERSITY OF WASHINGTON -
+CONSENT FORM
+</h2>
 
+<h3>Testing Volunteers' Ability to Identify Individual Cats from Photos</h3>
 
-<p>(a bunch of stuff about consent)</p>
+<p>
+<b>Researcher: Sabrina Aeluro, graduate student at the University of Washington<br />
+Study email: kitizenscience@gmail.com</b>
+</p>
 
+<h3>
+Researcher's statement and purpose of study
+</h3>
 
-<h2>Research Volunteer Agreement</h2>
+<p>
+The purpose of this study is to test volunteers' abilities to make correct photo identifications of free-roaming cats using an online citizen science platform.  The cat photos in this study are of outdoor cats in their normal environment, and no cats were harmed in the collection of these photos.  This study is open to all people over the age of 18 who are interested in cats.
+</p>
 
-<p>Do you agree?</p>
+<p>
+The purpose of this consent form is to give you the information you will need to help you decide whether to be in the study or not.  Please read the form carefully.  You may ask questions about the purpose of the research, what we would ask you to do, the possible risks and benefits, your rights as a volunteer, and anything else about the research or this form that is not clear.  When we have answered all your questions, you can decide if you want to be in the study or not.  This process is called “informed consent.”  You may save a copy of this form for your records.
+</p>
+
+<h3>
+Study procedures
+</h3>
+
+<p>
+After registering for the study website, this study starts with a short survey about volunteers' backgrounds and personal demographics, and then participants will be presented with photo matching trials.  Once a trial has started, volunteers will be shown two photos and asked to select whether the same cat is pictured in both photos.  Volunteers can do as many or as few matching trials as they like.
+</p>
+
+<h3>
+Risks, stress, or discomfort
+</h3>
+
+<p>
+This study is designed with the aim to be minimally intrusive, inoffensive, and is not intended to cause stress or place subjects at risk.
+</p>
+
+<h3>
+Alternatives to taking part in this study
+</h3>
+
+<p>
+You have the option to not take part in this study.
+</p>
+
+<h3>
+Benefits of the study
+</h3>
+
+<p>
+While there is no individual benefit or compensation for participating in this study, your answers will help validate the methods of Kitizen Science, a new citizen science program for monitoring the impacts of spay/neuter programs on free-roaming cat populations.
+</p>
+
+<h3>
+Confidentiality of research information
+</h3>
+
+<p>
+The study does not require the collection of any personally identifying information apart from an email address.  Your email address is confidential and will not be published as part of this research.  While efforts are taken to ensure the privacy and security of your responses, in the event of a data breach, your survey answers and photo matching data could be linked to you email address.
+</p>
+
+<p>
+Government or university staff sometimes review studies such as this one to make sure they are being done safely and legally.  If a review of this study takes place, your responses may be examined.  The reviewers will protect your privacy.  The study records will not be used to put you at legal risk of harm.
+</p>
+
+<h3>
+Other information
+</h3>
+
+<p>
+You may refuse to participate and you are free to withdraw from this study at any time without penalty or loss of benefits to which you are otherwise entitled.
+</p>
+
+<h3>
+Research-related injury
+</h3>
+
+<p>
+If you think you have been harmed from being in this research, contact Sabrina Aeluro via the study email address: kitizenscience@gmail.com.  The UW does not normally provide compensation for harm except through its discretionary program for medical injury.  However, the law may allow you to seek other compensation if the harm is the fault of the researchers.  You do not waive any right to seek payment by signing this consent form.
+</p>
+
+<h3>
+Subject's statement 
+</h3>
+
+<p>
+This study has been explained to me.  I volunteer to take part in this research.  I have had a chance to ask questions.  If I have questions later about the research, or if I have been harmed by participating in this study, I can contact the researcher listed on this consent form.  If I have questions about my rights as a research subject, I can call the University of Washington Human Subjects Division at 206-543-0098 or call collect at 206-221-5940.
+</p>
+
+<p>
+I consent to participate in this study.
+</p>
+
 
 <div>
 <form method="post">
     <input type="submit" value="Agree" />
     <input type="hidden" name="fromMode" value="0" />
-</form>
-<form method="post">
-    <input type="submit" value="Disagree" />
-    <input type="hidden" name="fromMode" value="-2" />
+
+    <input type="button" value="Disagree" onClick="window.location.href='./';" />
 </form>
 </div>
 
@@ -155,12 +219,12 @@ if (mode == 1) {
 <input type="hidden" name="fromMode" value="1" />
 
 <div>
-	<label for="fullname">Full name:</label>
-	<input type="text" id="fullname" name="fullname" maxlength="50" />
+	<label for="username">Username</label>
+	<input type="text" id="username" name="username" maxlength="50" />
 </div>
 <div>
-	<label for="email">Email address:</label>
-	<input type="email" id="email" name="email" maxlength="50" />
+	<label for="email">Email address</label>
+	<input type="email" id="email" name="email" class="ui-autocomplete-input" maxlength="50" />
 </div>
 
 <div>
@@ -173,11 +237,11 @@ if (mode == 1) {
 </div>
 
 <div>
-<input type="checkbox" /> Agree to terms?  etc?
+    <label for="agree-terms">Agree to terms (etc)?</label> <input id="agree-terms" name="agree-terms" type="checkbox" />
 </div>
 
 
-<div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
+<div id="myCaptcha" style="margin-top: 20px;"></div>
 <script>
     var captchaWidgetId;
     function onloadCallback() {
