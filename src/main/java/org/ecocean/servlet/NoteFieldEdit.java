@@ -74,8 +74,10 @@ public class NoteFieldEdit extends HttpServlet {
         String content = jsonIn.optString("content", "");
         if (!Util.isUUID(id)) throw new RuntimeException(id + " is not a uuid");
         NoteField nf = myShepherd.getNoteField(id);
-        if ((nf == null) && !NoteField.canCreate(user)) {
+        if ((nf == null) && !NoteField.canCreate(request, myShepherd)) {
             rtn.put("error", "id=" + id + " does not exist and cannot be created");
+        } else if ((nf != null) && !nf.canEdit(request, myShepherd)) {
+            rtn.put("error", "id=" + id + " cannot be edited");
         } else {
             rtn.put("id", id);
             if (nf == null) {

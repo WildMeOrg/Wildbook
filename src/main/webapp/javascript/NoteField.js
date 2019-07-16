@@ -1,6 +1,5 @@
 
 wildbook.NoteField = {
-    className: 'org-ecocean-notefield',
     originalContent: {},
     quill: {},
 
@@ -56,6 +55,12 @@ wildbook.NoteField = {
         $('#wrap-' + id).find('.org-ecocean-notefield-control').css('visibility', 'visible');
     },
 
+    tryDefault: function(el) {
+        var id = el.id.substring(3);
+        var def = document.getElementById('default-' + id);
+        if (def) el.innerHTML = def.innerHTML;
+    }, 
+
     initDiv: function(el) {
         var id = el.id.substring(3);
         var w = $('<div class="org-ecocean-notefield-wrapper" id="wrap-' + id + '" />');
@@ -68,8 +73,11 @@ wildbook.NoteField = {
 
 
 $('body').ready(function() {
-    $('.' + wildbook.NoteField.className).each(function(i, el) {
+    $('.org-ecocean-notefield').each(function(i, el) {
         wildbook.NoteField.initDiv(el);
+    });
+    $('.org-ecocean-notefield-need-default').each(function(i, el) {
+        wildbook.NoteField.tryDefault(el);
     });
     $('.org-ecocean-notefield-control').on('mouseenter mouseleave', function(ev) {
         if (ev.type == 'mouseenter') {

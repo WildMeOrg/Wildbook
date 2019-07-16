@@ -369,7 +369,7 @@ finally{
 			<h3><%=props.getProperty("innerPhotoH3") %></h3>
 			<p class="lead">
 
-<%=NoteField.buildHtmlDiv("beb1e7ba-809b-46a9-9f94-c943e7d002d9", myShepherd)%>
+<%=NoteField.buildHtmlDiv("beb1e7ba-809b-46a9-9f94-c943e7d002d9", request, myShepherd)%>
 
 <div class="org-ecocean-notefield-default" id="default-beb1e7ba-809b-46a9-9f94-c943e7d002d9">
     <%=props.getProperty("innerPhotoP") %>

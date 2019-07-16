@@ -45,10 +45,10 @@ public class NoteField implements java.io.Serializable {
         nf.id = id;
         return nf;
     }
-    public static String buildHtmlDiv(String id, Shepherd myShepherd) {
+    public static String buildHtmlDiv(String id, HttpServletRequest request, Shepherd myShepherd) {
         NoteField nf = build(id, myShepherd);
         if (nf == null) return "<!-- NoteField.build(" + id + ") failed -->";
-        return nf.toHtmlDiv();
+        return nf.toHtmlDiv(request, myShepherd);
     }
 
     public String getContent() {
@@ -67,23 +67,42 @@ public class NoteField implements java.io.Serializable {
         return id;
     }
 
-    //TODO FIXME real security.  :)
+/*
+TODO - more complex security (.owner ?)
+
     public static boolean canCreate(User u) {
         return !(u == null);
     }
     public boolean canEdit(User u) {
         return !(u == null);
     }
+    public boolean canRead(User u) {
+        return true;
+    }
+*/
     public boolean canEdit(HttpServletRequest request, Shepherd myShepherd) {
-        return canEdit(AccessControl.getUser(request, myShepherd));
+        if (request == null) return false;
+        return request.isUserInRole("admin");
+        //return canEdit(AccessControl.getUser(request, myShepherd));
     }
     public static boolean canCreate(HttpServletRequest request, Shepherd myShepherd) {
-        return canCreate(AccessControl.getUser(request, myShepherd));
+        if (request == null) return false;
+        return request.isUserInRole("admin");
+        //return canCreate(AccessControl.getUser(request, myShepherd));
+    }
+    public static boolean canRead(HttpServletRequest request, Shepherd myShepherd) {
+        return true;
+        //return canRead(AccessControl.getUser(request, myShepherd));
     }
 
-    public String toHtmlDiv() {
-        String h = "<div class=\"org-ecocean-notefield\" id=\"" + this.id + "\">";
+    public String toHtmlDiv(HttpServletRequest request, Shepherd myShepherd) {
         String cont = this.getContent();
+        if (!canRead(request, myShepherd)) return "<!-- 401 " + this.id + " -->";
+        if (!canEdit(request, myShepherd)) {
+            if (cont != null) return "<div class=\"org-ecocean-notefield-readonly\" id=\"id-" + this.id + "\">" + cont + "</div>";
+            return "<div class=\"org-ecocean-notefield-need-default\" id=\"id-" + this.id + "\"></div>";  //have no content. default?
+        }
+        String h = "<div class=\"org-ecocean-notefield\" id=\"id-" + this.id + "\">";
         if (cont != null) h += cont;
         h += "</div>";
         return h;
