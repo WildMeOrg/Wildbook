@@ -6,6 +6,15 @@ label {
     font-size: 0.9em;
     width: 12em;
 }
+
+#survey-section p {
+    margin-top: 30px;
+}
+
+#survey-section .top {
+    vertical-align: top;
+}
+
 </style>
 <%
 
@@ -79,7 +88,7 @@ if (session.getAttribute("error") != null) {
 <div class="explanation-section">
 
 <p>
-Our first phase of validation tests are running from now until October 29, 2019.  This validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones.  You can read the
+Our first phase of validation tests are running from now until September 29, 2019.  This validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones.  You can read the
 <a href="register.jsp?instructions">instructions page</a>
 first to see more about what this trial involves.
 </p>
@@ -266,16 +275,105 @@ if (mode == 1) {
 if (mode == 2) {
 %>
 <div id="survey-section">
-<h2>Survey</h2>
-<p>Please fill out this short survey.... </p>
 <form method="post">
-<input type="hidden" name="fromMode" value="2" />
+
+<h2>Survey</h2>
 
 <p>
-.....
+We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
 </p>
 
+<p>
+Are you currently involved in volunteering with cats in some way?
+<select class="top" name="cat_volunteer">
+<option>No</option>
+<option>Yes</option>
+</select>
+</p>
+
+<p>
+Do you have a disability or personal limitation (such as being a parent/caregiver) that prevents you from volunteering with cats in a typical offline setting like a shelter?
+<select class="top" name="disability">
+<option>No</option>
+<option>Yes</option>
+<option>Sometimes</option>
+</select>
+</p>
+
+<p>
+Do you currently have a cat/cats in your care?
+<select class="top" name="have_cats" multiple>
+<option>Yes, a pet cat/cats</option>
+<option>Yes, I care for feral/free-roaming cats</option>
+<option>No</option>
+</select>
+</p>
+
+<p>
+Have you ever participated in an online citizen science project doing image identification or classification?
+<select class="top" name="citsci_participate">
+<option>No</option>
+<option>Yes</option>
+</select>
+</p>
+
+<p>
+What is your current age?
+<select class="top" name="age">
+<option>18</option>
+<option>100</option>
+</select>
+</p>
+
+<p>
+Are you retired?
+<select class="top" name="retired">
+<option>No</option>
+<option>Yes</option>
+</select>
+</p>
+
+<p>
+What is your gender?
+<select class="top" name="retired">
+<option>Woman</option>
+<option>Man</option>
+<option>Nonbinary/Other</option>
+</select>
+</p>
+
+<p>
+What is your race/ethnicity (select multiple if appropriate):
+<select class="top" name="ethnicity" multiple>
+<option>American Indian or Alaska Native</option>
+<option>Black or African American</option>
+<option>Hispanic or Latino</option>
+<option>Middle Eastern</option>
+<option>Native Hawaiian or Pacific Islander</option>
+<option>White</option>
+</select>
+</p>
+
+<p>
+Highest level of education:
+<select class="top" name="education">
+<option>Less than high school</option>
+<option>High school</option>
+<option>Technical school, Associate's degree, or some college</option>
+<option>Bachelor's degree</option>
+<option>Graduate/professional degree</option>
+</select>
+</p>
+
+<p>
+How did you hear about Kitizen Science?
+<textarea style="width: 30em; height: 5em;" class="top" name="how_hear"></textarea>
+</p>
+
+<input type="hidden" name="fromMode" value="2" />
+
 <input type="submit" value="Submit survey" />
+
 </form>
 </div>
 
