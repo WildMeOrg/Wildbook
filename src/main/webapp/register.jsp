@@ -196,10 +196,10 @@ I consent to participate in this study.
 
 <div>
 <form method="post">
-    <input type="submit" value="Agree" />
+    <input type="submit" value="Yes" />
     <input type="hidden" name="fromMode" value="0" />
 
-    <input type="button" value="Disagree" onClick="window.location.href='./';" />
+    <input type="button" value="No" onClick="window.location.href='./';" />
 </form>
 </div>
 
