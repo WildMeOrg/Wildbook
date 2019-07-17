@@ -407,10 +407,19 @@ if (sv!=null) {
 		<%
 		}
 		%>
+
+<div>
+<h2>Comments</h2>
+<p>
+<%=comments%>
+</p>
+</div>
+
 	</div>			
 	<br/>
 	<hr/>
 </div>
+
 
 <script>
 $(document).ready(function() {
