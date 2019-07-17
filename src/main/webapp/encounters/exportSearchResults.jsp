@@ -144,7 +144,7 @@
 		 
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 		
-		<p>Encounter Metadata Export <a href="<%=serverUrl%>/EncounterSearchExportMetadataExcel?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+		<p><br>Standard Format Export <a href="<%=serverUrl%>/EncounterSearchExportMetadataExcel?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 		
 
