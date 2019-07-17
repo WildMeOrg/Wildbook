@@ -377,6 +377,25 @@ How did you hear about Kitizen Science?
 </form>
 </div>
 
+
+<% /*
+
+Thanks!  Here's the survey page text for the UW-only registrants:
+
+==
+
+We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
+
+Do you currently have a cat/cats in your care? [Checkboxes, can select multiple: Yes, a pet cat/cats; Yes, I care for feral/free-roaming cats, No]
+
+Have you ever participated in an online citizen science project doing image identification or classification? [Drop-down: Yes; No]
+
+Have you ever volunteered to do image identification or classification as part of research that is NOT online citizen science, such as viewing camera trap images for UW wildlife researchers? [Drop-down: Yes; No]
+
+What is your current standing in school? [Dropdown: Freshman; Sophomore; Junior; Senior; Master's Student; Doctoral Student]
+
+*/ %>
+
 <% }
 if (mode == 3) {
 %>
