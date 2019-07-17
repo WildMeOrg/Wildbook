@@ -374,19 +374,6 @@ input.nameKey, input.nameValue {
       $("#bioSamplesTableTab").removeClass("active");
       });
 
-      setTimeout(function() {
-      $('#encountTable tr').click(function() {
-        selectedWhale = ($(this).attr("class"));
-        goToEncounterURL(selectedWhale);
-      });
-
-      $('#cooccurrenceTable tr').click(function() {
-        selectedWhale = ($(this).attr("class"));
-        goToWhaleURL(selectedWhale);
-      });
-
-
-    }, 1000);
 
     var buttons = $("#edit, #closeEdit").on("click", function(){
         buttons.toggle();
