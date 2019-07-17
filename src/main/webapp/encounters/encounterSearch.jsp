@@ -970,11 +970,11 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   <td>
     <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
-      Labeled Keywords</a></h4>
+      Image Label Filters</a></h4>
 
     <div id="keywords" style="display:none; ">
     	<table id="labeled-kw-table">
-				<tr><strong>Labeled Keywords</strong></tr>
+				<tr><strong>Image Label Filters</strong></tr>
 				<tr><td colspan="3"><p><em>Filter by Labeled Keywords on an Encounter's photos. Select labels and (optionally) values for Labeled Keywords below.</em>
 					<ul>
 						<li>If you select a label and no values, the search will include all possible values for that label.</li>
