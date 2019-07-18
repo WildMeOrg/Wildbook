@@ -23,6 +23,7 @@ String context = ServletUtilities.getContext(request);
   //setup our Properties object to hold all properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
+  boolean loggedIn = !AccessControl.isAnonymous(request);
 
     String modeString = request.getParameter("mode");
     boolean instrOnly = Util.requestParameterSet(request.getParameter("instructions"));
@@ -80,6 +81,7 @@ if (session.getAttribute("error") != null) {
 	out.println("<p class=\"error\">" + session.getAttribute("error") + "</p>");
 	session.removeAttribute("error");
 }
+
 %>
 </div>
               
@@ -93,11 +95,18 @@ Our first phase of validation tests are running from now until September 29, 201
 first to see more about what this trial involves.
 </p>
 
+<%  if (loggedIn) { %>
+    <b>You are logged in already.  <a href="compare.jsp">Please proceed to study.</a></b>
+<% } else { %>
+
 <p>
     <form method="post">
     <input type="submit" value="Register to Participate" />
     <input type="hidden" name="fromMode" value="-1" />
     </form>
+</p>
+
+<% } %>
 
 </div>
 
@@ -400,12 +409,91 @@ What is your current standing in school? [Dropdown: Freshman; Sophomore; Junior;
 if (mode == 3) {
 %>
 <div id="instructions">
-<h2>Instructions!</h2>
-<p>do some stuff.....
-</p>
+
+<h2>Instructions</h2>
+
+<p>The first of our three validation tests is about determining how good humans are at identifying cats from photos by making matches between one cat photo and a library of cat photos.  Similar tests have been conducted on many types of animals since it's important for researchers to understand and plan for human error rates. </p>
+<p>This study is running from July 29 to September 29, 2019.  You can join at any time during that period.  You can complete all 24 matching trials, or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each matching trial will each take less than an hour to complete. You can complete a maximum of 2 matching trials per day.  Previous studies of photo identification in animals have suggested that observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time. </p>
+<p><strong>Enrollment process </strong></p>
+<p>This study asks you to consent to participate as a research volunteer, register for the website, and answer some demographic questions.  We don't need to know your name, but you will need to register for the website with an email address. </p>
+<p><strong>Rules </strong></p>
+<p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change ability to identify cats in photos, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own. </p>
+<p><strong>Trial instructions </strong></p>
+<p>After logging in, you will be presented with matching trials.  Click to start a trial.  Once you complete a trial, you won't be presented with the same one again.   </p>
+<p>Once you start a trial, you will have a &quot;Cat to Match&quot; photo on the left side of the screen and a &quot;Cat Library&quot; on the right side, with the options to click &quot;yes&quot; or &quot;no&quot; and zoom on either photo.   </p>
+<p>During each individual trial, the Cat to Match photo will stay the same as you click through all of the Cat Library photos, and there may be one, multiple, or no matching cats in the library.  There is no &quot;I'm unsure&quot;  because we want you to make your best guess.  After clicking through all images in the Cat Library, the trial is complete, and you may do another trial or log off.  The Cat Library is the same in all trials and contains over 100 photos. </p>
+<p>Most photos are taken at a distance, so make sure to click photos to zoom all the way in.  (Clicking on an image zooms in on it, and you are zoomed in all the way once clicking no longer increases the image size.)  These test photos were obtained in the same way that our project will gather data in the real world: by taking photos of free-roaming cats as they are seen walking through a neighborhood while not trespassing on private property.  That means some cats are harder to see than others, and you won't always get to see good details.</p>
+<p><strong>How to compare similar cats </strong></p>
+<p>Even two similar-looking cats can be separated if you examine them closely.  Here are some details to look for when comparing two cats.</p>
+<table width="100%" border="0" align="center" cellpadding="10" cellspacing="0">
+  <tr>
+    <td valign="top"><div align="center">Does the cat have her ear tip removed, a marker that she has been sterilized?  These can be hard to see at a distance, or in cats that had a small amount of their ear tip removed.</div></td>
+    <td valign="top"><div align="center">Is the cat wearing a collar?  Keep in mind that collars can be added or removed, unlike fur coat patterns.</div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/whattolookfor_eartip.jpg" width="287" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_collar.jpg" width="287" height="250" /></div></td>
+  </tr>
+  <tr>
+    <td height="50">&nbsp;</td>
+    <td height="50">&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top"><div align="center">Faces provide a lot of clues.  Does the cat have a strong &quot;M&quot; pattern on his forehead?  What position and color are the stripes on his cheeks?  Is there a stripe on his nose?</div></td>
+    <td valign="top"><div align="center">Tabby cats can look the same at first glance, but the arrangement of their stripes is different.  Some have wider or thinner stripes, darker or lighter stripes, running across the cat at different angles. </div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/whattolookfor_face.jpg" width="287" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_flanks.jpg" width="287" height="250" /></div></td>
+  </tr>
+  <tr>
+    <td height="50">&nbsp;</td>
+    <td height="50">&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top"><div align="center">Look at her legs.  Does the cat have white mittens/boots?  Does she have darkly-colored stripes or pale stripes?  If you're looking at photos of a left and right side of a cat, is a distinctive mark on the same side of the cat's body?</div></td>
+    <td valign="top"><div align="center">Along with color patterns and stripes, tails can be different, and some cats have shorter or kinked tails.</div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/whattolookfor_frontlegs.jpg" width="287" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_tail.jpg" width="238" height="250" /></div></td>
+  </tr>
+  <tr>
+    <td height="50">&nbsp;</td>
+    <td height="50">&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top"><div align="center">How long and thick is the cat's fur?  Does she have a big fluffy coat or a short coat?</div></td>
+    <td valign="top"><div align="center">Remember that not every cat photo is going to be a great one, and sometimes you won't have the best view.  Try to do your best with the angle you have. </div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/whattolookfor_longfur.jpg" width="307" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_backside.jpg" width="213" height="250" /></div></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p><strong>That's everything!   </strong></p>
+<p>We hope this is a fun and straightforward study.  If you have any questions, please email kitizenscience@gmail.com.</p>
+<p>&nbsp;</p>
+
+
+<% if (!instrOnly) {
+        if (loggedIn) {
+%>
+
+<p align="center"><strong><a href="compare.jsp">Proceed to Study</strong></p>
+
+<%      } else { //is logged in %>
+
+<p align="center"><strong><a href="compare.jsp">Login to Proceed to Study</strong></p>
+
+<%      } %>
+
 </div>
 
-<% } %>
+<% }
+
+} %>
             </div>
             
           <jsp:include page="footer.jsp" flush="true"/>

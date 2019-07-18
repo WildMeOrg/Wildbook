@@ -67,6 +67,8 @@
                 #and admin 
                 [urls]
 
+		/compare.jsp = authc, roles[subject]
+
                 #/rest/** = authcBasicWildbook,roles[rest]
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
                 #/LightRest/** = authcBasicWildbook,roles[rest]
