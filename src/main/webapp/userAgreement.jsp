@@ -59,11 +59,11 @@ context=ServletUtilities.getContext(request);
           
           <h1>Wildbook User Agreement</h1>
        <p>Welcome to Wildbook! Please read this Visitor Agreement. By using this web site, you accept its terms. This Visitor Agreement applies to any web page using the following domains, which are collectively known as "Wildbook":
-<ul><li>cascadia.wildbook.org</li></ul>
+<ul><li>kitizenscience.org</li></ul>
    
 </p>
 
-<p>This Wildbook is for demonstration purposes only and may not be used in any manner by any entity beyond Cascadia Research Collective and its staff.</p>
+<p>This Wildbook is for demonstration purposes only and may not be used in any manner by any entity beyond KitizenScience and its staff.</p>
             <%
           	if((request.getParameter("username")!=null)&&(request.getParameter("password")!=null)){
           	%>
