@@ -668,13 +668,13 @@ td span.trial-date {
 	<div id="compare-wrapper">
 		<div class="compare-image-wrapper">
 			<div class="compare-image-div compare-image-div-left" id="image-ref-div">
-				<div class="compare-image-label">reference</div>
+				<div class="compare-image-label">Cat to Match</div>
 				<img id="image-ref" class="compare-image" />
 				<div class="compare-image-zoom"></div>
 			</div>
 
 			<div class="middle-controls" id="match-question">
-				<div style="padding: 10px; font-size: 1.3em;">Is this the same cat in both photos?</div>
+				<div style="padding: 10px; font-size: 1.3em;">Is this the same cat in both photos?<br />Use the zoom tool for distant photos.</div>
 				<div>
 					<input type="button" value="YES" onClick="return answerClick('yes');" />
 					<input type="button" value="NO" onClick="return answerClick('no');" />
@@ -686,7 +686,7 @@ td span.trial-date {
 			</div>
 
 			<div class="compare-image-div compare-image-div-right" id="image-test-div">
-				<div class="compare-image-label">test</div>
+				<div class="compare-image-label">Cat Library</div>
 				<img id="image-test" class="compare-image" />
 				<div class="compare-image-zoom"></div>
 			</div>
