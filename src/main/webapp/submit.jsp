@@ -3,7 +3,7 @@
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.List,
+                 java.util.List,java.util.ArrayList,
                  java.util.Locale" %>
 
 
@@ -567,9 +567,15 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
         <select name="locationID" id="locationID" class="form-control">
           <option value="" selected="selected"></option>
           <%
-          List<String> locationIDs = (useCustomProperties)
-            ? CommonConfiguration.getIndexedPropertyValues("locationID", request)
-            : CommonConfiguration.getIndexedPropertyValues("locationID", context); //passing context doesn't check for custom props
+          List<String> locationIDs = null;
+          if (useCustomProperties) {
+            locationIDs = CommonConfiguration.getIndexedPropertyValues("locationID", request);
+          } else {
+            Shepherd locShepherd = Shepherd.newActiveShepherd(context, "submit-locations");
+            try { locationIDs = locShepherd.getAllLocationIDs(); }
+            catch (Exception e) { locationIDs = new ArrayList<String>(); }
+            finally { locShepherd.rollbackAndClose(); }
+          }
           for (String locationID: locationIDs) {
             %><option value="<%=locationID%>"><%=locationID%></option><%
           }
