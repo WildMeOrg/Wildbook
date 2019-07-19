@@ -147,7 +147,7 @@ public class User implements Serializable {
   public boolean hasCustomProperties() {
     return ShepherdProperties.userHasOverrideString(this);
   }
-  public static boolean hasCustomProperties(HttpServletRequest request) {
+  public static boolean hasCustomProperties(HttpServletRequest request, Shepherd myShepherd) {
     if (request == null) return false;
     Shepherd readOnlyShep = Shepherd.newActiveShepherd(request, "hasCustomProperties");
     boolean ans = hasCustomProperties(readOnlyShep, request);
@@ -164,6 +164,17 @@ public class User implements Serializable {
     if (user == null) return false;
     return user.hasCustomProperties();
   }
+  
+  public static boolean hasCustomProperties(HttpServletRequest request) {
+     Shepherd myShepherd = new Shepherd(request);
+     myShepherd.setAction("User.hasCustomProperties");
+     myShepherd.beginDBTransaction();
+     boolean hasIt=hasCustomProperties(request, myShepherd);
+     myShepherd.rollbackDBTransaction();
+     myShepherd.closeDBTransaction();
+     return hasIt;
+  }
+
 
 
   public String getEmailAddress ()
@@ -445,6 +456,10 @@ public class User implements Serializable {
         if (uuid == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
         return uuid.hashCode();
     }
+
+
+
+
 
     public String toString() {
         return new ToStringBuilder(this)

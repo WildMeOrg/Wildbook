@@ -43,6 +43,10 @@ public class ShepherdProperties {
     return getProperties(fileName, langCode, context, getOverwriteStringForUser(request));
   }
   
+  public static Properties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request, Shepherd myShepherd) {
+    return getProperties(fileName, langCode, context, getOverwriteStringForUser(request, myShepherd));
+  }
+  
   public static Properties getOrgProperties(String fileName, String langCode, HttpServletRequest request) {
     return getOrgProperties(fileName, langCode, ServletUtilities.getContext(request), request);
   }
@@ -55,7 +59,7 @@ public class ShepherdProperties {
     return loadProperties(fullPath);
   }
 
-  public static String getOverwriteStringForUser(HttpServletRequest request) {
+  public static String getOverwriteStringForUser(HttpServletRequest request, Shepherd myShepherd) {
     if (request == null) return null;
     String manualOrgName = request.getParameter("organization");
     // manual request params
@@ -64,12 +68,24 @@ public class ShepherdProperties {
       if (Util.stringExists(overwrite)) return overwrite;
     }
     // now try based on the user's organizations
-    Shepherd readOnlyShep = Shepherd.newActiveShepherd(request, "getOverwriteStringForUser");
-    User user = readOnlyShep.getUser(request);
-    String ans = (user==null) ? null : getOverwriteStringForUser(user);
-    readOnlyShep.rollbackAndClose();
-    return ans;
+    User user = myShepherd.getUser(request);
+    if (user==null) return null;
+    return getOverwriteStringForUser(user);
   }
+  
+  public static String getOverwriteStringForUser(HttpServletRequest request) {
+    Shepherd myShepherd = new Shepherd(request);
+    myShepherd.setAction("getOverwriteStringForUser");
+    myShepherd.beginDBTransaction();
+    String myString=getOverwriteStringForUser(request,myShepherd);
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+    return myString;
+  }
+  
+  
+  
+  
   public static String getOverwriteStringForUser(User user) {
     if (user == null || user.getOrganizations()==null) return null;
     for (Organization org: user.getOrganizations()) {

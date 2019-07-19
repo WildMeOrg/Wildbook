@@ -184,9 +184,17 @@ if(request.getQueryString()!=null){
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
   <tr><td bgcolor="#CCCCCC"><strong>Picture Book</strong><br/><%=props.getProperty("generatePictureBook") %></td></tr>
-  <tr><td bgcolor="#FFFFFF"><a href="//<%=CommonConfiguration.getURLLocation(request)%>/pictureBook.jsp?<%=queryString%>">
-    <%=props.getProperty("clickHere") %></a>
-        </td></tr>
+  <tr>
+  	<td bgcolor="#FFFFFF">
+  	
+		<form name="pictureBook" action="//<%=CommonConfiguration.getURLLocation(request)%>/pictureBook.jsp?<%=queryString%>" method="get">
+		  	<%=props.getProperty("maxPagesToDisplay") %> <input type="text" name="maxPages" size="5" maxLength="10" value="50"/>
+		    	
+		  <input type="submit" value="<%=props.getProperty("clickHere") %>">
+	    </form>
+    
+    </td>
+  </tr>
 </table>
 </p>
 

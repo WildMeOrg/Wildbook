@@ -87,11 +87,12 @@ if (request.getParameter("acmId") != null) {
 //TODO security for this stuff, obvs?
 //quick hack to set id & approve
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
+        String taskId = request.getParameter("taskId");
 	JSONObject res = new JSONObject("{\"success\": false}");
 	res.put("encounterId", request.getParameter("number"));
 	res.put("encounterId2", request.getParameter("enc2"));
 	res.put("individualId", request.getParameter("individualID"));
-	//note: short circuiting for now!  needs more testing
+        res.put("taskId", taskId);
 
 	myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
@@ -159,8 +160,15 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		return;
 	}
 
-// TODO enc.setMatchedBy() + comments + etc?????
+
+        String matchMsg = enc.getMatchedBy();
+        if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
+        matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
+        enc.setMatchedBy(matchMsg);  //(aka setIdentificationRemarks)
+
+
 	enc.setIndividual(indiv);
+
 	enc.setState("approved");
 	indiv.addEncounter(enc);
 	if (enc2 != null) {
@@ -211,7 +219,6 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 
 
   //session.setMaxInactiveInterval(6000);
-  //String taskId =srequest.getParameter("taskId");
 
 %>
 
@@ -446,8 +453,6 @@ function init2() {   //called from wildbook.init() when finished
 		tryTaskId(tid);
 	}
 
-
-
 	// If we don't have any ID task elements, it's reasonable to assume we are waiting for something.
 	// If we don't have anything but null task types after a while, lets just reload the page and get updated info. 
 	// We get to this condition when the page loads too fast and you have only __NULL__ type tasks, 
@@ -463,7 +468,7 @@ function init2() {   //called from wildbook.init() when finished
 			console.log("Processed Task: "+JSON.stringify(processedTask));
 			var type = wildbook.IA.getPluginType(processedTask);
 			console.log("TYPE : "+type);
-			if (type!="__NULL__"||processedTask.children) {
+			if ((type!="__NULL__"&&type!=false)||processedTask.children) {
 				onlyNullTaskType = false;
 				$('#initial-waiter').remove();
 			}
@@ -938,9 +943,9 @@ console.info('annotCheckbox taskId %s => %o .... queryAnnotation => %o', taskId,
 		var link = "merge.jsp?individualA="+jel.data('individ')+"&individualB="+queryAnnotation.indivId;
 		h = 'These encounters are already assigned to two <b>different individuals</b>.  <a href="'+link+'" class="button" > Merge Individuals</a>';
 	} else if (jel.data('individ')) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\');" type="button" value="Set to individual ' + jel.data('individ') + '" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', null, \'' + taskId + '\');" type="button" value="Set to individual ' + jel.data('individ') + '" />';
 	} else if (queryAnnotation.indivId) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\');" type="button" value="Use individual ' + jel.data('individ') + ' for unnamed match below" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', null, \'' + taskId + '\');" type="button" value="Use individual ' + jel.data('individ') + ' for unnamed match below" />';
 	} else {
                 //disable onChange for now -- as autocomplete will trigger!
 		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
@@ -1143,15 +1148,15 @@ console.warn(inds);
 }
 
 
-function approvalButtonClick(encID, indivID, encID2) {
+function approvalButtonClick(encID, indivID, encID2, taskId) {
 	var msgTarget = '#enc-action';  //'#approval-buttons';
-	console.info('approvalButtonClick: id(%s) => %s %s', indivID, encID, encID2);
+	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s', indivID, encID, encID2, taskId);
 	if (!indivID || !encID) {
 		jQuery(msgTarget).html('Argument errors');
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
-	var url = 'iaResults.jsp?number=' + encID + '&individualID=' + indivID;
+	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
 	if (encID2) url += '&enc2=' + encID2;
 	jQuery.ajax({
 		url: url,

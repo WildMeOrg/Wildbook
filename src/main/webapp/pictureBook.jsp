@@ -22,7 +22,15 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int maxPages = 10;
+  int maxPages = 10000000;
+  if(request.getParameter("maxPages")!=null){
+	  try{
+		  maxPages=(new Integer(request.getParameter("maxPages"))).intValue();
+	  }
+	  catch(Exception e){
+		  e.printStackTrace();
+	  }
+  }
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
@@ -40,7 +48,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   String order ="";
   MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
   rIndividuals = result.getResult();
-  HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request);
+  HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
   rIndividuals = hiddenData.securityScrubbedResults(rIndividuals);
 	numResults = rIndividuals.size();
 	System.out.println("PictureBook: returned "+numResults+" individuals");

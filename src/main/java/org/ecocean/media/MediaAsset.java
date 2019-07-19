@@ -109,6 +109,7 @@ public class MediaAsset implements java.io.Serializable {
     protected ArrayList<Keyword> keywords;
 
     protected String hashCode;
+    protected String contentHash;  // see Util.fileContentHash()
 
     protected String detectionStatus;
     protected String identificationStatus;
@@ -906,15 +907,31 @@ public class MediaAsset implements java.io.Serializable {
         store.copyAssetAny(this, targetMA);
     }
 
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException{
+      return sanitizeJson(request,jobj, true);
+    }
+    
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+          String context = ServletUtilities.getContext(request);
+          Shepherd myShepherd=new Shepherd(context);
+          myShepherd.setAction("MediaAsset.santizeJSON");
+          myShepherd.beginDBTransaction();
+          org.datanucleus.api.rest.orgjson.JSONObject obj= sanitizeJson(request, jobj, true, myShepherd);
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+          return obj;
+    }
 
         public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
-                org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
-            return sanitizeJson(request, jobj, true);
+                org.datanucleus.api.rest.orgjson.JSONObject jobj, Shepherd myShepherd) throws org.datanucleus.api.rest.orgjson.JSONException {
+            return sanitizeJson(request, jobj, true, myShepherd);
         }
 
         //fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
         public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
-              org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+              org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess, Shepherd myShepherd) throws org.datanucleus.api.rest.orgjson.JSONException {
               jobj.put("id", this.getId());
               jobj.put("acmId", this.getAcmId());
                 jobj.put("detectionStatus", this.getDetectionStatus());
@@ -927,9 +944,9 @@ public class MediaAsset implements java.io.Serializable {
             jobj.put("store", s);
 
             String context = ServletUtilities.getContext(request);
-            Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("MediaAsset.class_1");
-            myShepherd.beginDBTransaction();
+            //Shepherd myShepherd = new Shepherd(context);
+            //myShepherd.setAction("MediaAsset.class_1");
+           // myShepherd.beginDBTransaction();
 
             ArrayList<Feature> fts = getFeatures();
             if ((fts != null) && (fts.size() > 0)) {
@@ -982,11 +999,11 @@ public class MediaAsset implements java.io.Serializable {
 
             ArrayList<MediaAsset> kids = null;
             if (!jobj.optBoolean("_skipChildren", false)) kids = this.findChildren(myShepherd);
-            myShepherd.rollbackDBTransaction();
+            //myShepherd.rollbackDBTransaction();
             if ((kids != null) && (kids.size() > 0)) {
                 org.datanucleus.api.rest.orgjson.JSONArray k = new org.datanucleus.api.rest.orgjson.JSONArray();
                 for (MediaAsset kid : kids) {
-                    k.put(kid.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess));
+                    k.put(kid.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess, myShepherd));
                 }
                 jobj.put("children", k);
             }
@@ -1018,8 +1035,8 @@ public class MediaAsset implements java.io.Serializable {
                 jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
             }
             
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
+            //myShepherd.rollbackDBTransaction();
+            //myShepherd.closeDBTransaction();
 
             return jobj;
         }

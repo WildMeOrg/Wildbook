@@ -315,6 +315,7 @@ public abstract class AssetStore implements java.io.Serializable {
         } catch (Exception ex) {
             throw new IOException("updateChild() error caching local file: " + ex.toString());
         }
+        if (parent.localPath() == null) throw new IOException("updateChild() found null localPath() on parent");
         File sourceFile = parent.localPath().toFile();
         File targetFile = new File(sourceFile.getParent().toString() + File.separator + Util.generateUUID() + "-" + type + ".jpg");
         boolean allowed = _updateChildLocalWork(parent, type, opts, sourceFile, targetFile, skipCropping);  //does the heavy lifting
@@ -664,6 +665,7 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
         }
         File file = ma.localPath().toFile();
         if (!file.exists()) throw new IOException(file + " does not exist");
+        ma.contentHash = Util.fileContentHash(file);
         JSONObject data = new JSONObject();
         JSONObject attr = extractMetadataAttributes(file);
         if (attr != null) data.put("attributes", attr);
@@ -686,6 +688,7 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
     public static JSONObject extractMetadataAttributes(File file) throws IOException {  //some "generic attributes" (i.e. not from specific sources like exif)
         JSONObject j = new JSONObject();
         j.put("contentType", Files.probeContentType(file.toPath()));  //hopefully we can always/atleast get this
+        j.put("length", file.length());
 
         //we only kinda care about bimg failure -- see: non-images
         BufferedImage bimg = null;

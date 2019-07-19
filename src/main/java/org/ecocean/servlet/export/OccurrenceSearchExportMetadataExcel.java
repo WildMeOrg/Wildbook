@@ -114,7 +114,7 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
         int numMatchingOccurrences=rOccurrences.size();
 
        //business logic start here
-        HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request);
+        HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request,myShepherd);
 
         //load the optional locales
         Properties props = new Properties();

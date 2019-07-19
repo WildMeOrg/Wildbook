@@ -2031,7 +2031,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
   public void setLocationID(String newLocationID) {
-    this.locationID = newLocationID.trim();
+    if (newLocationID!=null) {
+      this.locationID = newLocationID.trim();
+    }
   }
 
   public Double getMaximumDepthInMeters() {
@@ -2391,6 +2393,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         this.setGenus(sp[0]);
         this.setSpecificEpithet(sp[1]);
     }
+
+
+
 
     //find the first one(s) we can
     public void setLatLonFromAssets() {
@@ -3814,6 +3819,9 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         this.submitters=submitters;
       }
     }
+
+    
+    
     public void setPhotographers(List<User> photographers) {
       if(photographers==null){this.photographers=null;}
       else{

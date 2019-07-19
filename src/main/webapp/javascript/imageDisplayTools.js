@@ -575,6 +575,7 @@ console.warn('>>>>>>>>>>>>>>>>>>>>>>>>> %o', url);
 }
 
 maLib.mkImg = function(maJson) {
+	//console.log('maJson: '+maJson);
     var url = maLib.getUrl(maJson);
     return '<img class="lazyload" id="figure-img-' + maJson.id + ':' + maJson.annotation.id + '" data-enh-mediaAssetId="' + maJson.id + '" data-enh-annotationId="' + maJson.annotation.id + '" src="' + wildbookGlobals.baseUrl + '/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" />';
 }

@@ -16,7 +16,7 @@
 
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
-    <geotools.version>8.3</geotools.version>
+    <geotools.version>21.1</geotools.version>
 	
 	<!--
 	 <project.http.version></project.http.version>
@@ -57,6 +57,14 @@
     <groupId>com.rabbitmq</groupId>
     <artifactId>amqp-client</artifactId>
     <version>5.1.2</version>
+</dependency>
+
+
+
+<dependency>
+    <groupId>org.lz4</groupId>
+    <artifactId>lz4-java</artifactId>
+    <version>1.4.0</version>
 </dependency>
 
     <dependency>
@@ -136,7 +144,7 @@
     <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.0</version>
+        <version>3.8.1</version>
     </dependency>
 
 <dependency>
@@ -814,6 +822,7 @@
             <argument>target/classes/org/ecocean/media/package.jdo</argument>
             <argument>target/classes/org/ecocean/identity/package.jdo</argument>
             <argument>target/classes/org/ecocean/ia/package.jdo</argument>
+            <argument>target/classes/org/ecocean/servlet/importer/package.jdo</argument>
             <argument>target/classes/org/ecocean/social/package.jdo</argument>
 			<argument>target/classes/org/ecocean/movement/package.jdo</argument>
           </arguments>
