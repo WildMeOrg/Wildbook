@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, 
-         java.io.File, java.util.*, javax.servlet.http.HttpSession" %>
+         java.io.File, java.util.*, javax.servlet.http.HttpSession, org.ecocean.ia.Task" %>
 
 <jsp:include page="header.jsp" flush="true"/>
 
@@ -77,6 +77,7 @@ new_message.append("<html><body>");
 
     myShepherd.beginDBTransaction();
     try {
+
       enc = myShepherd.getEncounter(number);
       
       
@@ -132,8 +133,8 @@ new_message.append("<html><body>");
     //myShepherd.closeDBTransaction();
     
   }
-  
 
+  String taskId = request.getParameter("taskId").trim();
 %>
 
 <h1 class="intro"><%=props.getProperty("success") %></h1>
@@ -146,6 +147,18 @@ new_message.append("<html><body>");
 <p><%=props.getProperty("futureReference") %> <strong><%=number%></strong>.</p>
 
 <%=props.getProperty("questions") %> <a href="mailto:<%=CommonConfiguration.getAutoEmailAddress(context) %>"><%=CommonConfiguration.getAutoEmailAddress(context) %></a></p>
+
+<%
+if (taskId!=null&&!"".equals(taskId)) {
+%>
+
+<p>
+  <b><a href="//<%=CommonConfiguration.getURLLocation(request)%>/iaResults.jsp?taskId=<%=taskId%>"><%=props.getProperty("viewIAResults") %></b></a>.
+</p>
+<br>
+<%
+}
+%>
 
 <p>
 	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.

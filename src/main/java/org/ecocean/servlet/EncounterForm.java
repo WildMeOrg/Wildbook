@@ -1058,6 +1058,8 @@ System.out.println("depth --> " + fv.get("depth").toString());
         if (!llSet) enc.setLatLonFromAssets();
         if (enc.getYear() < 1) enc.setDateFromAssets();
 
+        Task task = null; // we need this available to get an ID from for confirmSubmit redirect.
+
             String newnum = "";
             if (!spamBot) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
@@ -1065,7 +1067,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
                 //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
                 //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
-                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
+                task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
                 myShepherd.storeNewTask(task);
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
@@ -1092,7 +1094,13 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
         
         //send submitter on to confirmSubmit.jsp
         //response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
-        WebUtils.redirectToSavedRequest(request, response, ("/confirmSubmit.jsp?number=" + encID));
+
+        String reDir = "/confirmSubmit.jsp?number=" + encID;
+        if (task!=null&&task.getId()!=null) {
+          reDir += "&taskId="+task.getId();
+        }
+
+        WebUtils.redirectToSavedRequest(request, response, (reDir));
         
         //start email appropriate parties
         if(CommonConfiguration.sendEmailNotifications(context)){
