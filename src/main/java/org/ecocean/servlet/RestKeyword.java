@@ -229,10 +229,8 @@ public class RestKeyword extends HttpServlet {
     public static String getViewpoint(String kwName) {
       if (kwName==null) return null;
       String lower = kwName.toLowerCase();
-      if (lower.contains("dorsal")) {
-        if (lower.contains("left")) return "left";
-        if (lower.contains("right")) return "right";
-      }
+      if (lower.contains("left")) return "left";
+      if (lower.contains("right")) return "right";
       return null;
     }
 
@@ -251,8 +249,8 @@ public class RestKeyword extends HttpServlet {
     public static String getKwNameFromIaViewpoint(String iaViewpoint) {
       if (iaViewpoint==null) return null;
       String lower = iaViewpoint.toLowerCase();
-      if (lower.contains("left")) return "Left Dorsal Fin";
-      if (lower.contains("right")) return "Right Dorsal Fin";
+      if (lower.contains("left")) return "Left Side";
+      if (lower.contains("right")) return "Right Side";
       return null;
     }
 

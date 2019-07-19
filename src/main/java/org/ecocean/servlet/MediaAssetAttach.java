@@ -39,14 +39,14 @@ public class MediaAssetAttach extends HttpServlet {
 
     try {
       args = ServletUtilities.jsonFromHttpServletRequest(request);
-    }
-
-    catch (JSONException e){
+    } catch (JSONException e){
       // urgh... depending on if POSTing from Postman or $.ajax, parameters must be handled differently.
       args.put("attach",request.getParameter("attach"));
       args.put("detach",request.getParameter("detach"));
       args.put("EncounterID", request.getParameter("EncounterID"));
       args.put("MediaAssetID", request.getParameter("MediaAssetID"));
+      //leave this print in case of shenanigans even though we have alternate behavior
+      e.printStackTrace();
     }
 
     //String encID = request.getParameter("EncounterID");
@@ -84,7 +84,6 @@ public class MediaAssetAttach extends HttpServlet {
     JSONArray alreadyAttached = new JSONArray();
 
     try {
-
       myShepherd.beginDBTransaction();
 
     Encounter enc = myShepherd.getEncounter(encID);
@@ -139,14 +138,13 @@ public class MediaAssetAttach extends HttpServlet {
     myShepherd.commitDBTransaction();
 
     // DETACH MEDIAASSET FROM ENCOUNTER
-  } catch (Exception e) {
-    e.printStackTrace(out);
-    myShepherd.rollbackDBTransaction();
-  }
+    } catch (Exception e) {
+      e.printStackTrace(out);
+      myShepherd.rollbackDBTransaction();
+    }
   finally {
     myShepherd.closeDBTransaction();
   }
-
   out.println(res.toString());
   out.close();
 

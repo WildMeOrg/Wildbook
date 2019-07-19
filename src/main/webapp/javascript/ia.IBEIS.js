@@ -47,10 +47,10 @@ wildbook.IA.plugins.push({
                 } else {
     	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
-                    // TODO logic for actual detectionstatus values
+                    var requireSpecies = wildbook.IA.requireSpeciesForId();
                     if (ma.detectionStatus && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
                         menuText = 'Still waiting for detection results. Refresh page to see updates.'
-                    } else if (ma.taxonomyString) {
+                    } else if (requireSpecies=="false"||ma.taxonomyString) {
                         menuText = 'start matching';
                         console.log('no detection status for ma '+JSON.stringify(ma));
                         alreadyLinked = true;
@@ -69,6 +69,7 @@ wildbook.IA.plugins.push({
 	            	var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                     var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                     var ma = assetById(mid);
+console.log('xxxx mid=%o, aid=%o, ma=%o', mid, aid, ma);
                     var requireSpecies = wildbook.IA.requireSpeciesForId();
                     if (ma.detectionStatus && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
                         return; // no action if we're waiting for detection
@@ -111,6 +112,7 @@ wildbook.IA.plugins.push({
                 var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
+console.log('xxxy mid=%o, aid=%o, ma=%o', mid, aid, ma);
                 var requireSpecies = wildbook.IA.requireSpeciesForId();
                 if (requireSpecies=="false"||ma.taxonomyString) {
                     var data = {
@@ -175,8 +177,7 @@ wildbook.IA.plugins.push({
             status: ma.detectionStatus,
             statusText: ma.detectionStatus,
             task: ma.tasks[0],
-            taskId: ma.tasks[0].id  //<-- fyi master had this fix(??)
-            //taskId: ma.tasks[ma.tasks.length - 1].id
+            taskId: ma.tasks[0].id
         };
         if (ma.annotation && ma.annotation.identificationStatus) {
             rtn.status = ma.annotation.identificationStatus;

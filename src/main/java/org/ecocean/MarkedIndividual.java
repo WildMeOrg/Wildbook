@@ -473,8 +473,8 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     return thumbnailUrl;
   }
 
-	public String refreshThumbnailUrl(HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
-    org.datanucleus.api.rest.orgjson.JSONObject thumbJson = getExemplarThumbnail(req);
+	public String refreshThumbnailUrl(Shepherd myShepherd, HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
+    org.datanucleus.api.rest.orgjson.JSONObject thumbJson = getExemplarThumbnail(myShepherd,req);
     String thumbUrl = thumbJson.optString("url", null);
     if (Util.stringExists(thumbUrl)) this.thumbnailUrl = thumbUrl;
     return thumbUrl;
@@ -2186,15 +2186,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   }
 
   
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
-    return getExemplarImages(req, 5);
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd, HttpServletRequest req) throws JSONException {
+    return getExemplarImages(myShepherd, req, 5);
   }
 
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req, int numResults) throws JSONException {
-    return getExemplarImages(req, numResults, "_mid");
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd,HttpServletRequest req, int numResults) throws JSONException {
+    return getExemplarImages(myShepherd, req, numResults, "_mid");
   }
 
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req, int numResults, String imageSize) throws JSONException {
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd,HttpServletRequest req, int numResults, String imageSize) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
@@ -2214,14 +2214,14 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             // we have a throw-away shepherd here which is fine since we only care about the url ultimately
             URL midURL = null;
             String context = ServletUtilities.getContext(req);
-            Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("MarkedIndividual.getExemplarImages");
-            myShepherd.beginDBTransaction();
+            //Shepherd myShepherd = new Shepherd(context);
+            //myShepherd.setAction("MarkedIndividual.getExemplarImages");
+            //myShepherd.beginDBTransaction();
             ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, imageSize);
             if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
             if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
+            //myShepherd.rollbackDBTransaction();
+            //myShepherd.closeDBTransaction();
 
             if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
               
@@ -2343,17 +2343,17 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   }
 
   
-  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
+  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(Shepherd myShepherd, HttpServletRequest req) throws JSONException {
     
-    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req, 0);
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(myShepherd, req, 0);
     if(al!=null && al.size()>0){return al.get(0);}
     return new JSONObject();
     
 
   }
-  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarThumbnail(HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
+  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarThumbnail(Shepherd myShepherd, HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
     
-    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req, 0, "_thumb");
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(myShepherd, req, 0, "_thumb");
     if(al!=null && al.size()>0){return al.get(0);}
     return new JSONObject();
     
@@ -2423,11 +2423,16 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
     // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex, String genus, String specificEpithet) {
+        int idLimit = 2000;  //this is cuz we get a stack overflow if we have too many.  :(  so kinda have to fail when we have too many
         System.out.println("findByNames regex: "+regex);
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
         if (NAMES_CACHE == null) return rtn;  //snh
         if (regex == null) return rtn;
         List<String> nameIds = findNameIds(regex);
+        if (nameIds.size() > idLimit) {
+            System.out.println("WARNING: MarkedIndividual.findByNames() found too many names; failing (" + nameIds.size() + " > " + idLimit + ")");
+            return rtn;
+        }
         System.out.println("findByNames nameIds: "+nameIds.toString());
         if (nameIds.size() < 1) return rtn;
         System.out.println("findByNames: "+genus+" "+specificEpithet);
@@ -2520,18 +2525,18 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
 
     // Need request to record which user did it
-    public void mergeIndividual(MarkedIndividual other, HttpServletRequest request) {
+    public void mergeIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
       for (Encounter enc: other.getEncounters()) {
         other.removeEncounter(enc);
         enc.setIndividual(this);
       }
       this.names.merge(other.getNames());
-      this.setComments(getMergedComments(other, request));
+      this.setComments(getMergedComments(other, request, myShepherd));
       refreshDependentProperties();
     }
 
-    public String getMergedComments(MarkedIndividual other, HttpServletRequest request) {
-      User user = new Shepherd(request).getUser(request);
+    public String getMergedComments(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
+      User user = myShepherd.getUser(request);
       String mergedComments = Util.stringExists(getComments()) ? getComments() : "";
     
       mergedComments += "<p>This individual merged with individual "+other.getIndividualID()+" (\""+other.getDisplayName()+"\")";
@@ -2556,7 +2561,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
 
     public void mergeAndThrowawayIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
-      mergeIndividual(other, request);
+      mergeIndividual(other, request, myShepherd);
       myShepherd.throwAwayMarkedIndividual(other);
     }
 

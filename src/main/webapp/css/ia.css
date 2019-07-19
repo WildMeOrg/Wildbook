@@ -95,6 +95,7 @@
 
 .annot-summary {
 	/*padding: 1px 10px;*/
+        position: relative;
 	margin: 4px 0;
 }
 
@@ -110,20 +111,29 @@
 }
 
 .annot-action-checkbox-active, .annot-action-checkbox-inactive {
-	margin-right: 10px !important;
-	float: right;
+        position: absolute;
+        top: 2px;
+        right: 5px;
 	transform: scale(1.2);
 }
 
 div div .annot-action-checkbox-inactive {
 	visibility: hidden;
-	margin: 0.45em; /* vertically centers-ish */
 }
 span.illustrationLink {
 	visibility: hidden;
 }
 .annot-summary:hover span.illustrationLink {
 	visibility: visible;
+}
+span.illustrationLink a {
+	margin: 0 3px 0 10px;
+        text-decoration: none;
+        font-size: 0.8em;
+        background-color: #444;
+        border-radius: 3px;
+        padding: 1px 10px;
+        color: #DDD;
 }
 .annot-summary:hover .annot-action-checkbox-inactive {
 	visibility: visible;
@@ -171,17 +181,23 @@ span.illustrationLink {
 	display: inline-block;
 }
 
+.annot-info b {
+    width: 2.6em;
+    overflow: hidden;
+    display: inline-flex;
+}
+
 .enc-link, .indiv-link {
 	vertical-align: middle;
 	font-size: 0.8em;
 	padding: 0 3px;
 	border-radius: 4px;
-	margin: 0 3px 0 15px;
+	margin: 0 3px 0 10px;
 	background-color: #DDD;
 	overflow: hidden;
 	display: inline-block;
 	white-space: nowrap;
-	max-width: 120px;
+	max-width: 6em;
 }
 .enc-link:hover, .indiv-link:hover {
 	background-color: #DD4;

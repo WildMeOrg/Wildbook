@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 public class CommonConfiguration {
   
   private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
+  private static final String GOOGLE_CONFIGURATION_PROPERTIES = "googleKeys.properties";
   
   //class setup
   //private static Properties props = new Properties();
@@ -198,9 +199,11 @@ public class CommonConfiguration {
     */
     public static URI getServerURI(String context) {
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("CommonCOnfiguration.getServerURI");
         myShepherd.beginDBTransaction();
         URI u = getServerURI(myShepherd);
         myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return u;
     }
     public static String getServerURL(String context) {
@@ -350,6 +353,12 @@ public class CommonConfiguration {
         return dir.trim();
     }
 
+    public static String getImportDir(String context) {
+        String dir = getProperty("importDir", context);
+        if (dir == null) return null;
+        return dir.trim();
+    }
+
   public static String getMaxTriangleRotation(String context) {
     return getProperty("maxTriangleRotation",context).trim();
   }
@@ -423,12 +432,14 @@ public class CommonConfiguration {
   }
 
   public static String getGoogleMapsKey(String context) {
-    return getProperty("googleMapsKey",context);
+    return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES,"",context).getProperty("googleMapsKey",context);
   }
 
+  /*
   public static String getGoogleSearchKey(String context) {
     return getProperty("googleSearchKey",context);
   }
+*/
 
   public static String getDefaultGoogleMapsCenter(String context) {
     if (getProperty("googleMapsCenter",context)!=null) {

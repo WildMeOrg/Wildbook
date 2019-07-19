@@ -251,6 +251,7 @@ System.out.println("======================== postStream -> " + jtext);
 
 
     public static void writeToFile(URL url, File file) throws IOException {
+        if (url == null) throw new IOException("RestClient.writeToFile() got null url");
         InputStream is = url.openStream();
         OutputStream os = new FileOutputStream(file);
         byte[] b = new byte[2048];

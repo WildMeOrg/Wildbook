@@ -180,7 +180,7 @@ if(rEncounters.size()>0){
  for(int y=0;y<havegpsSize;y++){
 	 Encounter thisEnc=(Encounter)rEncounters.get(y);
 		String encSubdir = thisEnc.subdir();
-	 
+		if((thisEnc.getDecimalLatitude()!=null)&&(thisEnc.getDecimalLongitude()!=null)){
 
  %>
           
@@ -234,6 +234,7 @@ if(rEncounters.size()>0){
           map.fitBounds(bounds); 
  
  <%
+ }
  
 	 }
 } 

@@ -2,6 +2,7 @@ package org.ecocean;
 
 //import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
@@ -21,6 +22,13 @@ import java.util.TimeZone;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
+
+import org.apache.commons.lang3.StringUtils;
+import java.util.regex.Pattern;
+import net.jpountz.xxhash.XXHashFactory;
+import net.jpountz.xxhash.StreamingXXHash32;
+import net.jpountz.xxhash.XXHash32;
+
 
 //EXIF-related imports
 import java.io.File;
@@ -561,6 +569,20 @@ public class Util {
       return jsonObj;
     }
 
+    //the non-datanucleus-y version of above (which i also needed! -jon)
+    public static JSONObject requestParametersToJSONObject(HttpServletRequest request) {
+        if (request == null) return null;
+        JSONObject j = new JSONObject();
+        Enumeration<String> allParams = request.getParameterNames();
+        while (allParams.hasMoreElements()) {
+            String key = allParams.nextElement();
+            String[] vals = request.getParameterValues(key);
+            if (vals == null) continue;
+            j.put(key, new JSONArray(Arrays.asList(vals)));
+        }
+        return j;
+    }
+
     // transforms a string such as "90.1334" or "46″ N 79°" into a decimal value
     // TODO: parse second type of input string
     public static Double getDecimalCoordFromString(String latOrLong) {
@@ -879,19 +901,39 @@ public class Util {
     }
         
     public static String basicSanitize(String input) {
-      String sanitized = null;
-      if (input!=null) {
-        sanitized = input;
-        sanitized = input.replace(":", "");
-        sanitized = input.replace(";", "");
-        sanitized = sanitized.replace("\"", "");
-        sanitized = sanitized.replace("'", "");
-        sanitized = sanitized.replace("(", "");
-        sanitized = sanitized.replace(")", "");
-        sanitized = sanitized.replace("*", "");
-        sanitized = sanitized.replace("%", "");        
+      //String sanitized = null;
+      //if (input!=null) {
+      //  sanitized = input;
+      //  sanitized = input.replace(":", "");
+      //  sanitized = input.replace(";", "");
+      //  sanitized = sanitized.replace("\"", "");
+      //  sanitized = sanitized.replace("'", "");
+      //  sanitized = sanitized.replace("(", "");
+      //  sanitized = sanitized.replace(")", "");
+      //  sanitized = sanitized.replace("*", "");
+      //  sanitized = sanitized.replace("%", "");
+      //}
+      //return sanitized;
+      return sanitizeUserInput(input);
+    }
+
+    public static String sanitizeUserInput(String input) {
+      final String[] forbidden = {
+        "'", "<%", "<s", "<i", "alert(", "prompt(", "confirm(",
+         "\"", "</", "&#38;", "&#39;", "&#40;", "&#41;", "&#60;",
+        "&#62;", "&#34;", "var ", ">var", "var+", "href=",
+        ".*", "src=", "%20", "\">", "()", ");", ")&", "$(", "${", 
+        "new+", "%3C", "%3E", "%27", "%22", "><", "=\"",
+        "document.get", "document.add", "document.cookie",
+        "document[", "javascript", ":edit", "&quot", "\\u",
+        "String.from",
+      };
+      for (String forbid : forbidden) {
+        if (StringUtils.containsIgnoreCase(input, forbid)) {
+          input = input.replaceAll("(?i)"+Pattern.quote(forbid), "");
+        }
       }
-      return sanitized;
+      return input;
     }
 
     public static String joinStrings(List<String> strings) {
@@ -935,6 +977,53 @@ public class Util {
     multimap.get(key).add(val);
   }
 
+
+
+    //this is a fast hash
+    //https://lz4.github.io/lz4-java/1.5.1/docs/net/jpountz/xxhash/package-summary.html
+    public static final int XXHASH_SEED = 0x2170beef;  //just needs to be consistent
+    public static int xxhash(byte[] barr) {
+        XXHashFactory factory = XXHashFactory.fastestInstance();
+        XXHash32 hash32 = factory.hash32();
+        return hash32.hash(barr, 0, barr.length, XXHASH_SEED);
+    }
+    public static int xxhash(String s) throws IOException {
+        if (s == null) throw new IOException("xxhash() passed null string");
+        return xxhash(s.getBytes("UTF-8"));
+    }
+/*
+    //note: maybe if files become too huge, this would suck?  there is a streaming version (see docs link above)
+    // turns out it did kinda suck!! see below instead.
+    public static int xxhash(File f) throws IOException {
+        if (f == null) throw new IOException("xxhash() passed null file");
+        return xxhash(Files.readAllBytes(f.toPath()));
+    }
+*/
+    public static int xxhash(File f) throws IOException {
+        if (f == null) throw new IOException("xxhash() passed null file");
+        XXHashFactory factory = XXHashFactory.fastestInstance();
+        StreamingXXHash32 hash32 = factory.newStreamingHash32(XXHASH_SEED);
+        InputStream inputStream = new FileInputStream(f);
+        byte[] buf = new byte[8192];
+        int read;
+        while ((read = inputStream.read(buf)) != -1) {
+            hash32.update(buf, 0, read);
+        }
+        return hash32.getValue();
+    }
+    public static boolean areFilesIdentical(File f1, File f2) throws IOException {
+        if ((f1 == null) || (f2 == null)) return false;
+        if (f1.length() != f2.length()) return false;  //easy!
+        int h1 = xxhash(f1);
+        int h2 = xxhash(f2);
+        return (h1 == h2);
+    }
+
+    //value is hex number... first part is length, second part (8char) xxhash; max = 24char
+    public static String fileContentHash(File f) throws IOException {
+        if (f == null) throw new IOException("fileContentHash() passed null file");
+        return Long.toHexString(f.length()) + Integer.toHexString(xxhash(f));
+    }
 
   // h/t StackOverflow user erickson https://stackoverflow.com/questions/740299/how-do-i-sort-a-set-to-a-list-in-java
   public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {

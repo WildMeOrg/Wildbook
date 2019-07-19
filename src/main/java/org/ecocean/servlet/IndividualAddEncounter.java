@@ -88,15 +88,16 @@ public class IndividualAddEncounter extends HttpServlet {
       String nickname = "";
       myShepherd.beginDBTransaction();
       Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
-        if (enc2add == null) throw new RuntimeException("invalid encounter id=" + request.getParameter("number"));
+      if (enc2add == null) throw new RuntimeException("invalid encounter id=" + request.getParameter("number"));
       setDateLastModified(enc2add);
      
-      if (enc2add.getIndividual()==null) {
+      boolean newIndy = false;
+      if (enc2add.getIndividualID()==null) {
         MarkedIndividual addToMe = null;
         //if we dont already have this individual, we now make it  TODO this may fail because of security (in the future) so we need to take that into consideration
         if (!myShepherd.isMarkedIndividual(indivID)) {
             try {
-                System.out.println("Creating a new individual");
+                newIndy = true;
                 addToMe = new MarkedIndividual(indivID, enc2add);
                 myShepherd.storeNewMarkedIndividual(addToMe);
                 myShepherd.updateDBTransaction();
@@ -214,6 +215,9 @@ public class IndividualAddEncounter extends HttpServlet {
 
               // Specify email template type.
               String emailTemplate = "individualAddEncounter";
+              if (newIndy==true) {
+                emailTemplate = "individualCreate";
+              }
               String emailTemplate2 = "individualUpdate";
 
               

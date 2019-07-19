@@ -23,6 +23,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.Taxonomy;
+import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
@@ -268,13 +269,13 @@ System.out.println(i + " -> " + ma);
 
     public static String getBaseURL(String context) {
         String url = CommonConfiguration.getServerURL(context);
-        String containerName = CommonConfiguration.getProperty("containerName","context0");
-        if (containerName != null) containerName = containerName.trim();
-        url = CommonConfiguration.getServerURL(context);
-        if (containerName!=null&&!"".equals(containerName)) { 
-            System.out.println("Wildbook is containerized: sending container name: "+containerName+" to IA instead of localhost.");
+        String containerName = CommonConfiguration.getProperty("containerName",context);
+        if (containerName!=null&&!"".equals(containerName)) {
+            containerName = containerName.trim(); 
+            System.out.println("INFO: Wildbook is containerized: Server getBaseURL is returning: "+containerName+"");
             url = url.replace("localhost", containerName);
         }
+        System.out.println("INFO: Server getBaseURL is returning "+url);
         return url;
     }
 
