@@ -277,7 +277,10 @@
 			key: 'nickName',
 			label: '<%=props.getProperty("nickNameCol")%>',
 			value: _colNickname,
-			sortValue: function(o) { return o.nickname.toLowerCase(); },
+			sortValue: function(o) { 
+				if(o.nickname !=null) {return o.nickname.toLowerCase();} 
+				else{return "";}
+			},
 		},
 	
 		{
