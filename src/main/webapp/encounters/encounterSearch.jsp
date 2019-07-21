@@ -2,7 +2,7 @@
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.List, java.util.Map, org.datanucleus.api.rest.orgjson.JSONObject" %>
+<%@ page import="java.util.List, java.util.Map, org.datanucleus.api.rest.orgjson.JSONObject,java.util.Collections" %>
 <%@ page import="java.util.Properties, java.io.IOException" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -1453,10 +1453,10 @@ else {
 <td>
 
       <%
-      	Shepherd inShepherd=new Shepherd("context0");
-      inShepherd.setAction("encounterSearch.jsp2");
-      myShepherd.beginDBTransaction();
-        List<User> users = inShepherd.getNativeUsers();
+
+        List<String> users = myShepherd.getAllUsernames();
+        users.remove(null);
+        Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
         int numUsers = users.size();
 
       %>
@@ -1465,11 +1465,7 @@ else {
         <option value="None"></option>
         <%
           for (int n = 0; n < numUsers; n++) {
-            String username = users.get(n).getUsername();
-            String userFullName=username;
-            if(users.get(n).getFullName()!=null){
-            	userFullName=users.get(n).getFullName();
-            }
+            String username = users.get(n);
             
         	%>
         	<option value="<%=username%>"><%=username%></option>
@@ -1477,11 +1473,7 @@ else {
           }
         %>
       </select>
-<%
-inShepherd.rollbackDBTransaction();
-inShepherd.closeDBTransaction();
 
-%>
 
 </td>
 </tr>
