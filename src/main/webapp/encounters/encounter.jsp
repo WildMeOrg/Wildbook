@@ -2697,25 +2697,16 @@ else {
         <select name="submitter" id="submitterSelect" class="form-control" size="1">
             <option value=""></option>
             <%
-
-            Shepherd userShepherd=new Shepherd("context0");
-            userShepherd.setAction("encounter.jsp3");
-            userShepherd.beginDBTransaction();
-
-            ArrayList<String> usernames=userShepherd.getAllUsernames();
-
+            List<String> usernames=myShepherd.getAllUsernames();
+            usernames.remove(null);
+            Collections.sort(usernames,String.CASE_INSENSITIVE_ORDER);
             int numUsers=usernames.size();
             for(int i=0;i<numUsers;i++){
                 String thisUsername=usernames.get(i);
-                //User thisUser2=userShepherd.getUser(thisUsername);
-                String thisUserFullname=thisUsername;
-                //if((thisUser2!=null)&&(thisUser2.getFullName()!=null)){thisUserFullname=thisUser2.getFullName();}
-              %>
-              <option value="<%=thisUsername%>"><%=thisUserFullname%></option>
-              <%
+                	%>
+              		<option value="<%=thisUsername%>"><%=thisUsername%></option>
+              		<%
             }
-            userShepherd.rollbackDBTransaction();
-            userShepherd.closeDBTransaction();
             %>
           </select>
       </div>
