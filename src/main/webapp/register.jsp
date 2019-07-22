@@ -4,7 +4,8 @@
 <style>
 label {
     font-size: 0.9em;
-    width: 12em;
+    width: 30em;
+    font-weight: bold !important;
 }
 
 #survey-section p {
@@ -294,84 +295,70 @@ We would like you to answer this short survey about yourself so we can understan
 
 <p>
 Are you currently involved in volunteering with cats in some way?
-<select class="top" name="cat_volunteer">
-<option>No</option>
-<option>Yes</option>
-</select>
+<br /><input id="cat_volunteer_no" type="radio" value="No" name="cat_volunteer" /> <label for="cat_volunteer_no">No</label>
+<br /><input id="cat_volunteer_yes" type="radio" value="Yes" name="cat_volunteer" /> <label for="cat_volunteer_yes">Yes</label>
 </p>
 
 <p>
 Do you have a disability or personal limitation (such as being a parent/caregiver) that prevents you from volunteering with cats in a typical offline setting like a shelter?
-<select class="top" name="disability">
-<option>No</option>
-<option>Yes</option>
-<option>Sometimes</option>
-</select>
+<br /><input id="disability_no" type="radio" value="No" name="disability" /> <label for="disability_no">No</label>
+<br /><input id="disability_yes" type="radio" value="Yes" name="disability" /> <label for="disability_yes">Yes</label>
+<br /><input id="disability_sometimes" type="radio" value="Sometimes" name="disability" /> <label for="disability_sometimes">Sometimes</label>
 </p>
 
 <p>
 Do you currently have a cat/cats in your care?
-<select class="top" name="have_cats" multiple>
-<option>Yes, a pet cat/cats</option>
-<option>Yes, I care for feral/free-roaming cats</option>
-<option>No</option>
-</select>
+<br /><input id="have_cats_yes_pet" type="radio" value="Yes, pet" name="have_cats" /> <label for="have_cats_yes_pet">Yes, a pet cat(s)</label>
+<br /><input id="have_cats_yes_feral" type="radio" value="Yes, feral" name="have_cats" /> <label for="have_cats_yes_feral">Yes, I care for feral/free-roaming cats</label>
+<br /><input id="have_cats_no" type="radio" value="No" name="have_cats" /> <label for="have_cats_no">No</label>
 </p>
 
 <p>
 Have you ever participated in an online citizen science project doing image identification or classification?
-<select class="top" name="citsci_participate">
-<option>No</option>
-<option>Yes</option>
-</select>
+<br /><input id="citsci_no" type="radio" value="No" name="citsci" /> <label for="citsci_no">No</label>
+<br /><input id="citsci_yes" type="radio" value="Yes" name="citsci" /> <label for="citsci_yes">Yes</label>
 </p>
 
 <p>
 What is your current age?
 <select class="top" name="age">
-<option>18</option>
-<option>100</option>
+<%
+    for (int i = 18 ; i <= 100 ; i++) {
+        out.println("<option>" + i + "</option>\n");
+    }
+%>
 </select>
 </p>
 
 <p>
 Are you retired?
-<select class="top" name="retired">
-<option>No</option>
-<option>Yes</option>
-</select>
+<br /><input id="retired_no" type="radio" value="No" name="retired" /> <label for="retired_no">No</label>
+<br /><input id="retired_yes" type="radio" value="Yes" name="retired" /> <label for="retired_yes">Yes</label>
 </p>
 
 <p>
 What is your gender?
-<select class="top" name="retired">
-<option>Woman</option>
-<option>Man</option>
-<option>Nonbinary/Other</option>
-</select>
+<br /><input id="gender_woman" type="radio" value="Woman" name="gender" /> <label for="gender_woman">Woman</label>
+<br /><input id="gender_man" type="radio" value="Man" name="gender" /> <label for="gender_man">Man</label>
+<br /><input id="gender_other" type="radio" value="Other" name="gender" /> <label for="gender_other">Non-binary/Other</label>
 </p>
 
 <p>
 What is your race/ethnicity (select multiple if appropriate):
-<select class="top" name="ethnicity" multiple>
-<option>American Indian or Alaska Native</option>
-<option>Black or African American</option>
-<option>Hispanic or Latino</option>
-<option>Middle Eastern</option>
-<option>Native Hawaiian or Pacific Islander</option>
-<option>White</option>
-</select>
+<br /><input id="ethnicity_aian" type="checkbox" value="American Indian or Alaska Native" name="ethnicity" /> <label for="ethnicity_aian">American Indian or Alaska Native</label>
+<br /><input id="ethnicity_baa" type="checkbox" value="Black or African American" name="ethnicity" /> <label for="ethnicity_baa">Black or African American</label>
+<br /><input id="ethnicity_hisp" type="checkbox" value="Hispanic or Latino" name="ethnicity" /> <label for="ethnicity_hisp">Hispanic or Latino</label>
+<br /><input id="ethnicity_me" type="checkbox" value="Middle Eastern" name="ethnicity" /> <label for="ethnicity_me">Middle Eastern</label>
+<br /><input id="ethnicity_white" type="checkbox" value="White" name="ethnicity" /> <label for="ethnicity_white">White</label>
 </p>
 
 <p>
 Highest level of education:
-<select class="top" name="education">
-<option>Less than high school</option>
-<option>High school</option>
-<option>Technical school, Associate's degree, or some college</option>
-<option>Bachelor's degree</option>
-<option>Graduate/professional degree</option>
-</select>
+<br /><input id="education_less" type="radio" value="Less than high school" name="education" /> <label for="education_less">Less than high school</label>
+<br /><input id="education_hs" type="radio" value="High school" name="education" /> <label for="education_hs">High School</label>
+<br /><input id="education_some" type="radio" value="some college" name="education" /> <label for="education_some">Technical school, Associate's degree, or some college</label>
+<br /><input id="education_bach" type="radio" value="Bachelor's degree" name="education" /> <label for="education_bach">Bachelor's degree</label>
+<br /><input id="education_grad" type="radio" value="Graduate/professional degree" name="education" /> <label for="education_grad">Graduate/professional degree</label>
 </p>
 
 <p>
