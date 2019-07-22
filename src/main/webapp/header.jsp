@@ -132,7 +132,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a>
+                <!-- wild-me-badge -->
                   <div class="search-and-secondary-wrapper">
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
@@ -252,7 +252,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
             		if(numSupportedLanguages>1){
             		%>
-            			<li>
+            			<li style="display: none;">
 
 
             					<%
@@ -313,7 +313,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     </script>
 
 
-                    <div class="search-wrapper">
+                    <div class="search-wrapper" style="display: none;">
                       <label class="search-field-header">
                             <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
                               <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
@@ -346,10 +346,26 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">About <span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="<%=urlLoc %>/mission.jsp">Mission, Questions, Timeline</a></li>
+                        <li><a href="<%=urlLoc %>/whoAreWe.jsp">Who We Are</a></li>
+                    </ul>
+            </li>
+
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Cat Science <span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="<%=urlLoc %>/why.jsp">Why Kitizen Science is needed</a></li>
+                        <li><a href="<%=urlLoc %>/how.jsp">How Kitizen Science works</a></li>
+                        <li><a href="<%=urlLoc %>/spayneuter.jsp">Spay/Neuter Evidence</a></li>
+                    </ul>
+            </li>
 
                       <!-- submit encounter, survey -->
 
-                      <li class="dropdown">
+                      <li class="dropdown" style="display: none;">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
@@ -360,7 +376,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       <!-- end submit -->
 
 
-                      <li class="dropdown">
+                      <li class="dropdown" style="display: none;">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                         	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
@@ -377,24 +393,16 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                        <%
-                        if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
-                        %>
-                          <li><a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a></li>
-                        <%
-                        }
-                        %>
-                          <li><a href="userAgreement.jsp" target="_blank"><%=props.getProperty("userAgreement")%></a></li>
-
-                          <!--  examples of navigation dividers
-                          <li class="divider"></li>
-                          <li class="dropdown-header">Nav header</li>
-                           -->
-
-                        </ul>
+                    <ul class="dropdown-menu" role="menu">
+<!-- TODO make this only show to non-logged in -->
+                        <li><a href="<%=urlLoc %>/register.jsp">Sign up</a></li>
+                        <li><a href="<%=urlLoc %>/login.jsp">Login</a></li>
+                        <li><a href="<%=urlLoc %>/register.jsp?instructions">Instructions</a></li>
+                    </ul>
                       </li>
-                      <li class="dropdown">
+
+
+                      <li class="dropdown" style="display: none;">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
@@ -402,7 +410,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
                         </ul>
                       </li>
-                      <li class="dropdown">
+                      <li class="dropdown" style="display: none;">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li class="dropdown-header"><%=props.getProperty("states")%></li>
@@ -428,7 +436,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
 
-                      <li class="dropdown">
+                      <li class="dropdown" style="display: none;">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>

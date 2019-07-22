@@ -1102,14 +1102,17 @@ textarea {
   font-size: inherit;
   line-height: inherit;
 }
-a {
-  color: #005589;
+a:hover {
+  color: #bff223;
   text-decoration: none;
 }
-a:hover,
-a:focus {
-  color: #00263d;
+a, a:focus {
+  color: #999999;
   text-decoration: underline;
+}
+
+#navbar a {
+  text-decoration: none !important;
 }
 a:focus {
   outline: thin dotted;
@@ -3587,7 +3590,7 @@ tbody.collapse.in {
   list-style: none;
   font-size: 16px;
   text-align: left;
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255,255,255,0.7);
   border: 1px solid #cccccc;
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 4px;
