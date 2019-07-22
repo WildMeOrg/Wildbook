@@ -256,7 +256,7 @@ if (mode == 1) {
 </div>
 
 <div>
-    <label for="agree-terms">Agree to terms (etc)?</label> <input id="agree-terms" name="agree-terms" type="checkbox" />
+    <label for="agree-terms">Agree to <a target="_new" href="terms.jsp">Terms and Conditions</a>?</label> <input id="agree-terms" name="agree-terms" type="checkbox" />
 </div>
 
 
