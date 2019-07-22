@@ -447,8 +447,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       </li>
 
                       <li>
-                        <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
+                        <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a>
                       </li>
+
+                      <li>
+                        <a href="<%=urlLoc %>/donate.jsp">Donate</a>
+                      </li>
+
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
