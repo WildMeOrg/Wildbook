@@ -193,7 +193,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       <%
                       if (CommonConfiguration.getWikiLocation(context)!=null) {
                       %>
-                        <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
+                        <li style="display: none;"><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
                       <%
                       }
 
