@@ -47,6 +47,8 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
 String username = null;
 User user = null;
+String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+
 
 
 boolean indocetUser = false;
@@ -60,6 +62,9 @@ try {
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
     indocetUser = (user!=null && user.hasAffiliation("indocet"));
+    if(user.getUserImage()!=null){
+    	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+    }
   }
 }
 catch(Exception e){
@@ -180,10 +185,7 @@ finally{
 	                          try {
   		                    	  String fullname=request.getUserPrincipal().toString();
                               if (user.getFullName()!=null) fullname=user.getFullName();
-                              String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
-		                          if(user.getUserImage()!=null){
-		                          	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-		                          }
+
 
 		                  %>
 
