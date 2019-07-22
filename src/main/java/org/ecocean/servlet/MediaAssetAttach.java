@@ -81,7 +81,8 @@ public class MediaAssetAttach extends HttpServlet {
     myShepherd.setAction("MediaAssetAttach.class");
     PrintWriter out = response.getWriter();
 
-    JSONArray alreadyAttached = new JSONArray();
+    JSONArray alreadyAttachedIds = new JSONArray();
+    List<MediaAsset> alreadyAttached = new ArrayList<MediaAsset>();
 
     try {
       myShepherd.beginDBTransaction();
@@ -94,13 +95,14 @@ public class MediaAssetAttach extends HttpServlet {
             MediaAsset ma = myShepherd.getMediaAsset(maId);
             if (ma == null) throw new ServletException("No MediaAsset with id "+maId+" found in database.");
             if (enc.hasTopLevelMediaAsset(ma.getId())) {
-                alreadyAttached.put(ma.getId());
+                alreadyAttachedIds.put(ma.getId());
+                alreadyAttached.add(ma);
             } else {
                 mas.add(ma);
             }
         }
 
-    if (alreadyAttached.length() > 0) res.put("alreadyAttached", alreadyAttached);
+    if (alreadyAttachedIds.length() > 0) res.put("alreadyAttached", alreadyAttachedIds);
 
     // ATTACH MEDIAASSET TO ENCOUNTER
     if (args.optString("attach")!=null && args.optString("attach").equals("true")) {
@@ -114,12 +116,14 @@ public class MediaAssetAttach extends HttpServlet {
     // DETACH MEDIAASSET FROM ENCOUNTER
     else if (args.optString("detach")!=null && args.optString("detach").equals("true")) {
         boolean success = false;
-        for (MediaAsset ma : mas) {
+        for (MediaAsset ma : alreadyAttached) {
+System.out.println("DETACH: " + ma);
             // Set match against to false on the annotation(s) from this asset that were associated with the encounter. 
-            ArrayList<Annotation> maAnns = ma.getAnnotations();
-            ArrayList<Annotation> encAnns = enc.getAnnotations();
-            encAnns.retainAll(maAnns);
-            for (Annotation ann : encAnns) {ann.setMatchAgainst(false);} 
+            for (Annotation ann : enc.getAnnotations()) {
+                if (ann.getMediaAsset().getId() != ma.getId()) continue;
+System.out.println("setting matchAgainst=F on " + ann);
+                ann.setMatchAgainst(false);
+            }
             enc.removeMediaAsset(ma);
  
             String undoLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+ma.getId();
