@@ -20,15 +20,47 @@
 
 <div class="container maincontent">
 
-   <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
-        <h1><%=props.getProperty("title") %></h1>
+<div style="position: fixed; transform: rotate(23deg); color: rgba(255,100,100,0.2); font-size: 20em;">DRAFT</div>
+
+<div>
+<h2>About Kitizen Science</h2>
+
+<p>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam tincidunt sit amet est non lacinia. Nulla commodo lobortis elementum. Pellentesque congue fringilla est, consectetur lacinia ligula facilisis non. Donec in placerat magna, vel molestie nisl. Maecenas porta mattis finibus. Sed ut malesuada tortor. Vivamus convallis justo quis diam sodales, vitae ullamcorper ipsum vestibulum. Suspendisse eget maximus metus. Sed vel bibendum orci. Nam luctus ante vel urna pellentesque, sit amet vehicula elit pharetra. Aliquam pharetra, elit et faucibus consectetur, ligula sem congue odio, at bibendum tellus nisi eget nunc.
+</p>
+
+<h2>About Wild Me</h2>
+<p>
+<img style="height: 120px; float: left; margin-right: 15px;" src="images/wild-me-logo-only-100-100.png" />
+Nunc aliquet venenatis rhoncus. Vestibulum cursus laoreet sapien id volutpat. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nam ac mattis est, ac euismod dui. Duis consectetur laoreet arcu vitae auctor. Nunc eget cursus massa. Morbi sed porta sapien. Nulla facilisis imperdiet elementum. Vestibulum aliquam sagittis arcu. Etiam in elit a diam cursus egestas porttitor id orci. Morbi non metus et nunc fringilla posuere non nec risus. Integer volutpat vestibulum neque, at porttitor urna mollis eget.
+</p>
+
+<h2>Our Team</h2>
+<p>
+<img style="height: 120px; float: left; margin-right: 15px;" src="images/jon_profile.jpg" />
+<b>Jon Van Oast</b> is senior engineer at <a href="https://www.wildme.org/">Wild Me</a>, where he helps maintain and
+develop <a href="https://www.wildbook.org/">Wildbook</a>.
+He is technical lead on <a href="https://giraffespotter.org/">GiraffeSpotter - Wildbook for Giraffe</a>
+as well as providing support for many other species.
+</p>
+
+<p>
+Jon has been developing online collaborative software for over twenty years, with a
+strong interest in open source software/hardware, open data, citizen science, and conservation.
+He likes dogs, but decidedly leans cat.
+</p>
+<div style="clear: both;"></div>
+
+</div>
+
+   <div>
+    	<h2>Our Users</h2>
+
         <p class="lead">
-            Here are our fantastic researchers and volunteers.
+            Here are our fantastic volunteers, subjects, and researchers.
+            <br /><b>(This list is auto-generated, and can be removed.)</b>
         </p>
-   </div>
-   
-    <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
-    	<h3>We have many collaborating researchers and volunteers</h3>
+
   
           
         <ul class="list-unstyled list-inline block-list volunteer-list">
