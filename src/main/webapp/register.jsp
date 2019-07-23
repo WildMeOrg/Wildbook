@@ -22,6 +22,12 @@ label {
 
 #survey-section p {
     margin-top: 30px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+#survey-section p.required {
+    background-color: #FAA;
 }
 
 #survey-section .top {
@@ -306,7 +312,50 @@ if (mode == 1) {
 if (mode == 2) {
 %>
 <div id="survey-section">
-<form method="post">
+
+<script>
+var surveyRequired = [
+    'cat_volunteer',
+    'disability',
+    'have_cats',
+    'citsci',
+    'age',
+    'retired',
+    'ethnicity',
+    'gender',
+    'education',
+    'how_hear'
+];
+function checkSurvey() {
+    $('.required').removeClass('required');
+    var ok = true;
+    var msg = 'You must complete the form: ';
+    for (var i = 0 ; i < surveyRequired.length ; i++) {
+        var el = $('[name="' + surveyRequired[i] + '"]');
+        var numChecked = $('[name="' + surveyRequired[i] + '"]:checked').length;
+        if (surveyRequired[i] == 'age') {
+            numChecked = parseInt(el.val());
+        }
+        if (surveyRequired[i] == 'how_hear') {
+            numChecked = el.val().trim().length;
+        }
+
+        if (numChecked < 1) {
+            var q = el.parent().first()[0].firstChild.nodeValue;  //ugh!
+            el.parent().addClass('required');
+            ok = false;
+            msg += '\n- ' + q.trim();
+        }
+    }
+    if (!ok) {
+        window.scrollTo({top:250});
+        alert(msg);
+    }
+    return ok;
+}
+</script>
+
+<form onSubmit="return checkSurvey();" method="post">
 
 <h2>Survey</h2>
 
@@ -316,8 +365,9 @@ We would like you to answer this short survey about yourself so we can understan
 
 <p>
 Are you currently involved in volunteering with cats in some way?
-<br /><input id="cat_volunteer_no" type="radio" value="No" name="cat_volunteer" /> <label for="cat_volunteer_no">No</label>
 <br /><input id="cat_volunteer_yes" type="radio" value="Yes" name="cat_volunteer" /> <label for="cat_volunteer_yes">Yes</label>
+<br /><input id="cat_volunteer_no" type="radio" value="No" name="cat_volunteer" /> <label for="cat_volunteer_no">No</label>
+<br /><input id="cat_volunteer_past" type="radio" value="Not now, but in the past" name="cat_volunteer" /> <label for="cat_volunteer_past">Not now, but in the past</label>
 </p>
 
 <p>
@@ -329,9 +379,9 @@ Do you have a disability or personal limitation (such as being a parent/caregive
 
 <p>
 Do you currently have a cat/cats in your care?
-<br /><input id="have_cats_yes_pet" type="radio" value="Yes, pet" name="have_cats" /> <label for="have_cats_yes_pet">Yes, a pet cat(s)</label>
-<br /><input id="have_cats_yes_feral" type="radio" value="Yes, feral" name="have_cats" /> <label for="have_cats_yes_feral">Yes, I care for feral/free-roaming cats</label>
-<br /><input id="have_cats_no" type="radio" value="No" name="have_cats" /> <label for="have_cats_no">No</label>
+<br /><input id="have_cats_yes_pet" type="checkbox" value="Yes, a pet cat/cats" name="have_cats" /> <label for="have_cats_yes_pet">Yes, a pet cat/cats</label>
+<br /><input id="have_cats_yes_feral" type="checkbox" value="Yes, I care for feral/free-roaming cats" name="have_cats" /> <label for="have_cats_yes_feral">Yes, I care for feral/free-roaming cats</label>
+<br /><input id="have_cats_no" type="checkbox" value="No" name="have_cats" /> <label for="have_cats_no">No</label>
 </p>
 
 <p>
@@ -343,6 +393,7 @@ Have you ever participated in an online citizen science project doing image iden
 <p>
 What is your current age?
 <select class="top" name="age">
+    <option value="0">choose age</option>
 <%
     for (int i = 18 ; i <= 100 ; i++) {
         out.println("<option>" + i + "</option>\n");
@@ -367,9 +418,11 @@ What is your gender?
 <p>
 What is your race/ethnicity (select multiple if appropriate):
 <br /><input id="ethnicity_aian" type="checkbox" value="American Indian or Alaska Native" name="ethnicity" /> <label for="ethnicity_aian">American Indian or Alaska Native</label>
+<br /><input id="ethnicity_asian" type="checkbox" value="Asian" name="ethnicity" /> <label for="ethnicity_asian">Asian</label>
 <br /><input id="ethnicity_baa" type="checkbox" value="Black or African American" name="ethnicity" /> <label for="ethnicity_baa">Black or African American</label>
 <br /><input id="ethnicity_hisp" type="checkbox" value="Hispanic or Latino" name="ethnicity" /> <label for="ethnicity_hisp">Hispanic or Latino</label>
 <br /><input id="ethnicity_me" type="checkbox" value="Middle Eastern" name="ethnicity" /> <label for="ethnicity_me">Middle Eastern</label>
+<br /><input id="ethnicity_nhpi" type="checkbox" value="Native Hawaiian or Pacific Islander" name="ethnicity" /> <label for="ethnicity_nhpi">Native Hawaiian or Pacific Islander</label>
 <br /><input id="ethnicity_white" type="checkbox" value="White" name="ethnicity" /> <label for="ethnicity_white">White</label>
 </p>
 
@@ -388,6 +441,7 @@ How did you hear about Kitizen Science?
 </p>
 
 <input type="hidden" name="fromMode" value="2" />
+
 
 <input type="submit" value="Submit survey" />
 
