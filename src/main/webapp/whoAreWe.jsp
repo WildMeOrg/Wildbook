@@ -41,7 +41,7 @@ Nunc aliquet venenatis rhoncus. Vestibulum cursus laoreet sapien id volutpat. Pe
 <b>Jon Van Oast</b> is senior engineer at <a href="https://www.wildme.org/">Wild Me</a>, where he helps maintain and
 develop <a href="https://www.wildbook.org/">Wildbook</a>.
 He is technical lead on <a href="https://giraffespotter.org/">GiraffeSpotter - Wildbook for Giraffe</a>
-as well as providing support for many other species.
+as well as provides support for many other species.
 </p>
 
 <p>
