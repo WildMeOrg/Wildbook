@@ -121,7 +121,7 @@ private static String justSomeTrips(String[] tripIds, Shepherd myShepherd) {
 
             Survey surv = SpotterConserveIO.ciToSurvey(tripData, myShepherd);
             myShepherd.getPM().makePersistent(surv);
-            fetchLog("spotterTest: created " + surv.toString());
+            fetchLog("spotterFetch: created " + surv.toString());
             ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
             if (tracks != null) {
                 for (SurveyTrack trk : tracks) {
@@ -158,7 +158,7 @@ private static String justSomeTrips(String[] tripIds, Shepherd myShepherd) {
         } else if (flavor.equals("cw")) {
             Survey surv = SpotterConserveIO.cwToSurvey(tripData, myShepherd);
             myShepherd.getPM().makePersistent(surv);
-            fetchLog("spotterTest: created " + surv.toString());
+            fetchLog("spotterFetch: created " + surv.toString());
             ArrayList<SurveyTrack> tracks = surv.getSurveyTracks();
             if (tracks != null) {
                 for (SurveyTrack trk : tracks) {
