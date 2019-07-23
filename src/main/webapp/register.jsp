@@ -1,6 +1,15 @@
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties" %>
+<%!
+
+private static User registerUser(String username, String email, String pw1, String pw2) throws java.io.IOException {
+    if (username == null) throw new IOException("invalid username format");
+    if (email == null) throw new IOException("invalid email format");
+    if ((pw1 == null) || (pw2 == null) || !pw1.equals(pw2)) throw new IOException("password invalid or do not match");
+}
+
+%>
 <style>
 label {
     font-size: 0.9em;
@@ -90,6 +99,7 @@ if (session.getAttribute("error") != null) {
 
 <div class="explanation-section">
 
+<img src="images/participate_manatdesk.jpg" style="height: 300px; float: right;" />
 <p>
 Our first phase of validation tests are running from now until September 29, 2019.  This validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones.  You can read the
 <a href="register.jsp?instructions">instructions page</a>
