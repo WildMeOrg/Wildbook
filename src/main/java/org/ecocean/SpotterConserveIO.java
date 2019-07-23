@@ -261,9 +261,13 @@ Distance Category: "B"
         //since we dont have proper images, but only references to them, we create annotations with special "placeholder" features
         int imageStart = jin.optInt("Image Number Start", -1);
         int imageEnd = jin.optInt("Image Number End", -1);
+        int sanityMaxNumberImages = 40;
         if ((imageStart < 0) || (imageEnd < 0) || (imageEnd < imageStart)) {
             enc.addComments("<p class=\"error\"><b>NOTE:</b> invalid range for image start/end; ignored</p><xmp>" + jin.toString(4) + "</xmp>");
             System.out.println("WARNING: " + enc + " had no valid image range [" + imageStart + " - " + imageEnd + "]");
+        } else if ((imageEnd - imageStart) > sanityMaxNumberImages) {
+            enc.addComments("<p class=\"error\"><b>NOTE:</b> too many images detected (" + (imageEnd - imageStart) + " > " + sanityMaxNumberImages + "); ignored</p><xmp>" + jin.toString(4) + "</xmp>");
+            System.out.println("WARNING: " + enc + " number images > sanity check (" + sanityMaxNumberImages + ") [" + imageStart + " - " + imageEnd + "]");
         } else {
             ArrayList<Annotation> anns = new ArrayList<Annotation>();
             for (int i = imageStart ; i <= imageEnd ; i++) {
@@ -1044,7 +1048,7 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
     //TODO needs some better way to tell some of these... sigh
     public static String tripFlavor(JSONObject tripData) {
         if (tripData == null) return null;
-        if ((tripData.optString("Ship Name", null) != null) || (tripData.optString("Data Collector", null) != null) || (tripData.optString("creator", null) != null)) return "cw";
+        if ((tripData.optString("Ship Name", null) != null) || (tripData.optString("Data Collector", null) != null)) return "cw";
         if ((tripData.optJSONObject("track") != null) || (tripData.optJSONArray("CINMS Weather") != null) || (tripData.optString("CINMS Vessel", null) != null)) return "ci";
         JSONArray sarr = tripData.optJSONArray("sightings");
         //ITIS Species TSN seems to only exist in Ocean Alert, not Whale Alert
