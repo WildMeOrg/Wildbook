@@ -127,7 +127,7 @@ public class RestKeyword extends HttpServlet {
                                   kw = new Keyword(name);
                                   myShepherd.getPM().makePersistent(kw);
                                   toAdd.add(kw);
-                                  newj.put(kw.getIndexname(), kw.getReadableName());
+                                  newj.put(kw.getIndexname(), kw.getDisplayName());
                               }
                               if (newj.length() > 0) jout.put("newKeywords", newj);
   System.out.println("INFO: RestKeyword new keywords = " + newj);
@@ -184,7 +184,7 @@ public class RestKeyword extends HttpServlet {
   System.out.println(ma + " ----------> " + newList);
                           JSONObject mj = new JSONObject();
                           for (Keyword k : newList) {
-                              mj.put(k.getIndexname(), k.getReadableName());
+                              mj.put(k.getIndexname(), k.getDisplayName());
 
 
                           }
