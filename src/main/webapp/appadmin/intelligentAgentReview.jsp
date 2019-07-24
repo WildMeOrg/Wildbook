@@ -68,13 +68,16 @@ public static void annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAsse
 		//Let's get the Encounter objects related to this video
 		//JDOQL query
 		
-		//String numFilter="SELECT FROM org.ecocean.Encounter WHERE (occurrenceRemarks.indexOf('"+videoID+"') != -1)";
+		String numFilter="SELECT FROM org.ecocean.Encounter WHERE (occurrenceRemarks.indexOf('"+videoID+"') != -1)";
 		//String numFilter="SELECT FROM org.ecocean.Encounter WHERE annotations.contains(annot) && annot.mediaAsset.parentId == ma2.id && ma2.parentId == "+parentId+" VARIABLES org.ecocean.Annotation annot;org.ecocean.media.MediaAsset ma2";
 		//String numFilter="SELECT FROM org.ecocean.media.MediaAsset WHERE parentId == "+parentId + " && enc.annotations.contains(annot) && annot.mediaAsset == this VARIABLES";
 		//Query numQ=myShepherd.getPM().newQuery(numFilter);
 		
-		Query numQ = myShepherd.getPM().newQuery("javax.jdo.query.SQL","select * from \"ENCOUNTER\" where \"OCCURRENCEREMARKS\" like \'%"+videoID+"%\';");
-		numQ.setClass(Encounter.class);
+		//Query numQ = myShepherd.getPM().newQuery("javax.jdo.query.SQL","select * from \"ENCOUNTER\" where \"OCCURRENCEREMARKS\" like \'%"+videoID+"%\';");
+		//numQ.setClass(Encounter.class);
+		
+		Query numQ = myShepherd.getPM().newQuery(numFilter);
+		
 		Collection numd=(Collection)numQ.execute();
 		ArrayList<Encounter> encresults=new ArrayList<Encounter>(numd);
 		numQ.closeAll();
@@ -125,8 +128,10 @@ public static void annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAsse
 			
 			//String idFilter="SELECT FROM org.ecocean.Encounter WHERE individualID != null && (occurrenceRemarks.indexOf('"+videoID+"') != -1)";
 			
-			Query idQ = myShepherd.getPM().newQuery("javax.jdo.query.SQL","select * from \"ENCOUNTER\" where \"OCCURRENCEREMARKS\" like \'%"+videoID+"%\' and \"INDIVIDUAL\" is not null;");
-			idQ.setClass(Encounter.class);
+			//Query idQ = myShepherd.getPM().newQuery("javax.jdo.query.SQL","select * from \"ENCOUNTER\" where \"OCCURRENCEREMARKS\" like \'%"+videoID+"%\' and \"INDIVIDUAL\" is not null;");
+			//idQ.setClass(Encounter.class);
+			
+			Query idQ = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE (occurrenceRemarks.indexOf('"+videoID+"') != -1) && individual != null");
 			
 			//Query idQ=myShepherd.getPM().newQuery(idFilter);
 			Collection idd=(Collection)idQ.execute();
@@ -144,8 +149,10 @@ public static void annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAsse
 			String stateFilter="SELECT FROM org.ecocean.Encounter WHERE (state == \"approved\" || state == \"unidentifiable\" ) && (occurrenceRemarks.indexOf('"+videoID+"') != -1)";
 			
 			//select * from "ENCOUNTER" where "OCCURRENCEREMARKS" like '%l3BcXf-LrMk%' and ("STATE" = 'approved' or "STATE" = 'unidentifiable');
-			Query stateQ = myShepherd.getPM().newQuery("javax.jdo.query.SQL","select * from \"ENCOUNTER\" where \"OCCURRENCEREMARKS\" like \'%"+videoID+"%\' and (\"STATE\" = \'approved\' or \"STATE\" = \'unidentifiable\');");
-			stateQ.setClass(Encounter.class);
+			//Query stateQ = myShepherd.getPM().newQuery("javax.jdo.query.SQL","select * from \"ENCOUNTER\" where \"OCCURRENCEREMARKS\" like \'%"+videoID+"%\' and (\"STATE\" = \'approved\' or \"STATE\" = \'unidentifiable\');");
+			//stateQ.setClass(Encounter.class);
+			
+			Query stateQ=myShepherd.getPM().newQuery(stateFilter);
 			
 			//Query stateQ=myShepherd.getPM().newQuery(stateFilter);
 			Collection stated=(Collection)stateQ.execute();
@@ -310,7 +317,7 @@ myShepherd.beginDBTransaction();
 try{
 	
     List<Encounter> encs=null;
-    String filter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ( submitterID == \"wildbookai\" ) && state == \"approved\" && individual.individualID != null";  
+    String filter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ( submitterID == \"wildbookai\" ) && state == \"approved\" && individual != null";  
     Query query=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     encs=new ArrayList<Encounter>(c);
