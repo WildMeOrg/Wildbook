@@ -27,7 +27,7 @@ multipleSubmitUI = {
         metadataTile += "<div class=\"encounter-tile-div col-xs-12 col-xl-12\">";
         metadataTile += "   <div class=\"row\">";
         metadataTile += "       <div class=\"col-xs-12 col-md-5 col-lg-5 col-xl-5\">";
-        metadataTile += "           <label id=\"encounter-label-"+index+"\" class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+"&nbsp</label>";
+        metadataTile += "           <label id=\"encounter-label-"+index+"\" class=\"encounter-label\">&nbsp"+txt("encounterMetadata")+" #"+(index+1)+" "+txt("whereWhen")+"&nbsp</label>";
         metadataTile += "           <input class=\"show-metadata-btn\" type=\"button\" onclick=\"showEditMetadata("+index+")\" value=\""+txt("showDetails")+"\" />";
         metadataTile += "       </div>";
         metadataTile += "       <div class=\"col-xs-12 col-md-7 col-lg-7 col-xl-7\">";
