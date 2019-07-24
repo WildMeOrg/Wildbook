@@ -117,6 +117,17 @@ public class AddLabeledKeyword extends HttpServlet {
       JSONObject newj = new JSONObject();
       newj.put(lkw.getIndexname(), lkw.getDisplayName());
       jout.put("newKeywords", newj);
+
+      // this is just to get the results looking like RestKeyword so we can use the same UI tools
+      JSONObject allKws = new JSONObject();
+      for (Keyword k : ma.getKeywords()) {
+        allKws.put(k.getIndexname(), k.getDisplayName());
+      }
+      JSONObject jassigned = new JSONObject();
+      jassigned.put(Integer.toString(ma.getId()), allKws);
+      jout.put("results", jassigned);
+      // done w/ RestKeyword conformity
+
     }
     
     //if we're modifying ma, then another commit is needed to persist that
