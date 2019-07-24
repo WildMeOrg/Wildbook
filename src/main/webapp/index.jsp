@@ -449,7 +449,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Submit a photo</h3>
 					<p class="lead">
-						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the shark and add any other information where possible, such as flank, sex and human impact. You will receive email updates when your shark is processed by a researcher or matched in the future.
+						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the shark and add any other information about sex of the shark or visible scars. You will receive email updates when your shark is processed by a researcher or matched in the future.
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -460,7 +460,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Researcher verification</h3>
 					<p class="lead">
-						When you submit a shark identification photo, a local researcher receives a notification. This researcher will double-check the information you have submitted. After this, your photo is available for match searches.
+						After you upload your shark photo, a researcher reviews the information you submitted. Once the spots on your shark are mapped, we can search for matching spot patterns on other sharks. If we don’t find a match, your shark will be given a new, unique ID.
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
