@@ -3839,6 +3839,33 @@ public class Shepherd {
     return al;
   }
 
+  public List<MarkedIndividual> getMarkedIndividualsByGUID(String guid) {
+    List<MarkedIndividual> indys = new ArrayList<>();
+    try {
+      String filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && enc.guid.startsWith('"+guid+"') VARIABLES org.ecocean.Encounter enc" ;
+      //Extent indyClass = pm.getExtent(MarkedIndividual.class, true);
+      Query acceptedIndividuals = pm.newQuery(filter);
+      Collection<MarkedIndividual> c = (Collection<MarkedIndividual>) (acceptedIndividuals.execute());
+      indys = new ArrayList<>(c);      
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return indys;
+  }
+
+  public List<Encounter> getEncountersByGUID(String guid) {
+    List<Encounter> encs = new ArrayList<>();
+    try {
+      String filter = "SELECT FROM org.ecocean.Encounter WHERE this.guid.startsWith('"+guid+"')";
+      Query acceptedEncs = pm.newQuery(filter);
+      Collection<Encounter> c = (Collection<Encounter>) (acceptedEncs.execute());
+      encs = new ArrayList<>(c);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return encs;
+  }
+
   /**
    * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance of such it finds.
    * @param myID The individual ID to return in any case.
@@ -4331,6 +4358,39 @@ public class Shepherd {
     q.closeAll();
     return null;
   }
+
+  public User getRandomUserWithPhotoAndStatementAndRole(String role){
+    try {
+      String filter = "fullName != null && userImage != null && userStatement != null && (username.toLowerCase().indexOf('demo') == -1) && (username.toLowerCase().indexOf('test') == -1)";
+      Extent encClass = pm.getExtent(User.class, true);
+      Query q = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (q.execute());
+      if((c!=null)&&(c.size()>0)){
+        ArrayList<User> matchingUsers=new ArrayList<>(c);
+        q.closeAll();
+        int numUsers=matchingUsers.size();
+        ArrayList<User> usersWithRole = new ArrayList<>();
+        for (User u : matchingUsers) {
+          //System.out.println("User: "+u.getUsername());
+          if (doesUserHaveRole(u.getUsername(), role, "context0")) {
+            //System.out.println("Has role...");
+            usersWithRole.add(u);
+          }
+        }
+        Random rn = new Random();
+        int userNumber = rn.nextInt(usersWithRole.size());
+        //System.out.println("userNumber : "+userNumber);
+        User selected = usersWithRole.get(userNumber);
+        return selected;
+      }
+      q.closeAll();
+    } catch (Exception e) {
+      e.printStackTrace();
+    } 
+    return null;
+  }
+
+
 
   public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
     ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();

@@ -360,19 +360,19 @@ String langCode=ServletUtilities.getLanguageCode(request);
 int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
-int numMarkedIndividualsLeftFlank=0;
-int numEncountersLeftFlank=0;
+//int numMarkedIndividualsLeftFlank=0;
+//int numEncountersLeftFlank=0;
 
 try {
 
     myShepherd.beginDBTransaction();
 
-    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
-    numEncounters=myShepherd.getNumEncounters();
+    numMarkedIndividuals=myShepherd.getMarkedIndividualsByGUID("NCAquariums").size();
+    numEncounters=myShepherd.getEncountersByGUID("NCAquariums").size();
     numDataContributors=myShepherd.getNumUsers();
 
-    numEncountersLeftFlank = myShepherd.getNumEncountersLeftFlank();
-    numMarkedIndividualsLeftFlank = myShepherd.getNumMarkedIndividualsLeftFlank();
+    //numEncountersLeftFlank = myShepherd.getNumEncountersLeftFlank();
+    //numMarkedIndividualsLeftFlank = myShepherd.getNumMarkedIndividualsLeftFlank();
 
 }
 catch(Exception e){
@@ -500,6 +500,8 @@ finally{
             <!-- Random user profile to select -->
             <%
             myShepherd.beginDBTransaction();
+            //User featuredUser=myShepherd.getRandomUserWithPhotoAndStatementAndRole("spotasharkusa");
+            // The above limits to SASUSA users... but none have both image and statement. Only Sean B from AUS!
             User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
                 String profilePhotoURL="images/empty_profile.jpg";
@@ -586,28 +588,27 @@ finally{
 
                     //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                     long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
-
                     //System.out.println("  I think my startTime is: "+startTime);
-
                     Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
                     int numUsersToDisplay=3;
                     if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
                     Iterator<String> keys=spotters.keySet().iterator();
                     Iterator<Integer> values=spotters.values().iterator();
                     while((keys.hasNext())&&(numUsersToDisplay>0)){
-                          String spotter=keys.next();
-                          int numUserEncs=values.next().intValue();
-                          if(myShepherd.getUser(spotter)!=null){
-                        	  String profilePhotoURL="images/empty_profile.jpg";
-                              User thisUser=myShepherd.getUser(spotter);
-                              if(thisUser.getUserImage()!=null){
-                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-                              }
-                              //System.out.println(spotters.values().toString());
-                            Integer myInt=spotters.get(spotter);
-                            //System.out.println(spotters);
+                        String spotter=keys.next();
+                        int numUserEncs=values.next().intValue();
+                        if(myShepherd.getUser(spotter)!=null){
+                            User thisUser=myShepherd.getUser(spotter);
+                            if (myShepherd.doesUserHaveRole(thisUser.getUsername(), "spotasharkusa", context)) {
+                                String profilePhotoURL="images/empty_profile.jpg";
+                                if(thisUser.getUserImage()!=null){
+                                    profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                                }
+                                //System.out.println(spotters.values().toString());
+                                Integer myInt=spotters.get(spotter);
+                                //System.out.println(spotters);
 
-                          %>
+                                %>
                                 <li>
                                     <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
                                     <%
@@ -615,14 +616,14 @@ finally{
                                     %>
                                     <small><%=thisUser.getAffiliation() %></small>
                                     <%
-                                      }
+                                        }
                                     %>
                                     <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> encounters<span></p>
                                 </li>
-
-                           <%
-                           numUsersToDisplay--;
-                    }
+                                <%
+                                numUsersToDisplay--;
+                            }
+                        }
                    } //end while
                    myShepherd.rollbackDBTransaction();
                    %>
@@ -638,11 +639,11 @@ finally{
 <div class="container-fluid">
     <section class="container text-center  main-section">
             <div class="row">
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified sharks</i></p>
+            <section class="col-xs-12 col-sm-6 col-md-6 col-lg-6 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals%></span> identified sharks</i></p>
             </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
+            <section class="col-xs-12 col-sm-6 col-md-6 col-lg-6 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters%></span> reported sightings</i></p>
             </section>
             
 
