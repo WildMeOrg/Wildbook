@@ -260,8 +260,54 @@ if (mode == 1) {
 <div id="register-section">
 <h2>Register an account</h2>
 
+<script>
+var regexUsername = new RegExp('^[a-z0-9]+$');
+function checkAccount() {
+    var msg = 'Please correct the following problems:';
+    var ok = true;
 
-<form method="post">
+    if (!regexUsername.test($('#username').val().trim().toLowerCase())) {
+        msg += '\n- Username must be only letters and numbers';
+        ok = false;
+    }
+
+    var p1 = $('[name="password1"]').val().trim();
+    var p2 = $('[name="password2"]').val().trim();
+    if ((p1 == '') || (p1 != p2)) {
+        msg += '\n- Passwords do not match or are empty';
+        ok = false;
+    }
+    if (p1.length < 8) {
+        msg += '\n- Password should be at least 8 characters long';
+        ok = false;
+    }
+
+    if (!wildbook.isValidEmailAddress($('#email').val())) {
+        msg += '\n- Email address is invalid format';
+        ok = false;
+    }
+
+    if (!$('#agree-terms').is(':checked')) {
+        msg += '\n- Must agree to the Terms and Conditions';
+        ok = false;
+    }
+
+/*
+    if (xxx) {
+        msg += '\n- Prove you are not a robot';
+        ok = false;
+    }
+*/
+
+    if (!ok) {
+        alert(msg);
+    }
+    return ok;
+}
+
+</script>
+
+<form method="post" onSubmit="return checkAccount();">
 <input type="hidden" name="fromMode" value="1" />
 
 <div>
