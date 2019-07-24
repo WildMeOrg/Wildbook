@@ -717,6 +717,7 @@ System.out.println("[1] getMatchingSet params=" + params);
     }
 
     //note, we are give *full* task.parameters; by convention, we only act on task.parameters.matchingSetFilter
+    // > > > ATTENTION!  if you change this method, please also adjust accordingly getCurvrankDailyTag() below!! < < <
     private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
         if (taskParams == null) return "";
         String userId = taskParams.optString("userId", null);
