@@ -1042,7 +1042,8 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         String taskID = "_UNKNOWN_";
         if (task != null) taskID = task.getId();  //"should never happen"
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), myShepherd.getContext());
-        
+        String curvrankDailyTag = null;
+
         try {
             for (Annotation ann : qanns) {
                 if (validForIdentification(ann, myShepherd.getContext())) {
@@ -1060,6 +1061,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                 String iaClass = qanns.get(0).getIAClass();
 System.out.println("beginIdentifyAnnotations(): have to set tanns. Matching set being built from the first ann in the list.");
                 tanns = qanns.get(0).getMatchingSet(myShepherd, (task == null) ? null : task.getParameters());
+                curvrankDailyTag = qanns.get(0).getCurvrankDailyTag((task == null) ? null : task.getParameters());
             }
 
 System.out.println("- mark 2");
@@ -1080,6 +1082,11 @@ System.out.println("- mark 2");
                 System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
             } else {
                 System.out.println("                               ... qanns has: "+qanns.size()+" ... taans is null! Target is all annotations.");
+            }
+
+            if (curvrankDailyTag != null) {
+                if (queryConfigDict == null) queryConfigDict = new JSONObject();
+                queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
             }
 
             //this should attempt to repair missing Annotations
