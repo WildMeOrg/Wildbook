@@ -23,6 +23,7 @@
              org.ecocean.servlet.ServletUtilities,
              org.ecocean.CommonConfiguration,
              org.ecocean.Shepherd,
+             org.ecocean.Util,
              org.ecocean.Organization,
              org.ecocean.User,
              java.util.ArrayList,
@@ -49,8 +50,8 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 String username = null;
 User user = null;
 String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
-
-
+// we use this arg bc we can only log out *after* including the header on logout.jsp. this way we can still show the logged-out view in the header
+boolean loggingOut = Util.requestHasVal(request, "loggedOut");
 
 boolean indocetUser = false;
 String organization = request.getParameter("organization");
@@ -59,7 +60,7 @@ if (organization!=null && organization.toLowerCase().equals("indocet"))  {
 }
 myShepherd.beginDBTransaction();
 try {
-  if(!indocetUser && request.getUserPrincipal()!=null){
+  if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
     String orgName = "indocet";
@@ -183,8 +184,7 @@ finally{
 
 
                       <%
-
-	                      if(user != null){
+	                      if(user != null && !loggingOut){
 	                          try {
   		                    	  String fullname=request.getUserPrincipal().toString();
                               if (user.getFullName()!=null) fullname=user.getFullName();
