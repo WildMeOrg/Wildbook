@@ -52,11 +52,11 @@ public class ShepherdProperties {
   }
 
   // ONLY the overwrite props, not any other .properties
-  public static LinkedProperties getOverwriteProps(HttpServletRequest request) {
+  public static Properties getOverwriteProps(HttpServletRequest request) {
     String filename = getOverwriteStringForUser(request);
     if (filename==null) return null;
     String fullPath = "webapps/wildbook_data_dir/WEB-INF/classes/bundles/"+filename;
-    return loadProperties(fullPath);
+    return (Properties)loadProperties(fullPath);
   }
 
   public static String getOverwriteStringForUser(HttpServletRequest request, Shepherd myShepherd) {
@@ -136,7 +136,7 @@ public class ShepherdProperties {
 
     //System.out.printf("getProperties has built strings %s and %s.\n",defaultPathStr, overridePathStr);
 
-    LinkedProperties defaultProps = loadProperties(defaultPathStr);
+    Properties defaultProps = loadProperties(defaultPathStr);
     if (defaultProps==null) {
       // could not find props w this lang code, try english
       if (Util.stringExists(langCode) && !langCode.contains("en")) {
@@ -147,16 +147,16 @@ public class ShepherdProperties {
         System.out.printf("Super weird case met in ShepherdProperties.getProps(%s, %s, %s, %s). Returning generated default props.\n",fileName, langCode, context, overridePrefix);
       }
     }
-    LinkedProperties props = loadProperties(overridePathStr, defaultProps);
-    if (!Util.stringExists(overridePrefix)) return props;
+    Properties props = loadProperties(overridePathStr, defaultProps);
+    if (!Util.stringExists(overridePrefix)) return (Properties)props;
 
     // todo: now actually load the override string
     // we Do have an overridePrefix so we need to load it now
     String customUserPathString = "webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+overridePrefix;
-    return loadProperties(customUserPathString, props);
+    return (Properties)loadProperties(customUserPathString, props);
   }
 
-  public static LinkedProperties loadProperties(String pathStr, LinkedProperties defaults) {
+  public static Properties loadProperties(String pathStr, Properties defaults) {
     //System.out.println("loadProperties called for path "+pathStr);
     File propertiesFile = new File(pathStr);
     if (propertiesFile == null || !propertiesFile.exists()) return defaults;
@@ -166,14 +166,14 @@ public class ShepherdProperties {
       LinkedProperties props = (defaults!=null) ? new LinkedProperties(defaults) : new LinkedProperties();
       props.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
       if (inputStream!=null) inputStream.close();
-      return props;
+      return (Properties)props;
     } catch (Exception e) {
       System.out.println("Exception on loadProperties()");
       e.printStackTrace();
     }
     return defaults;
   }
-  public static LinkedProperties loadProperties(String pathStr) {
+  public static Properties loadProperties(String pathStr) {
     return loadProperties(pathStr, null);
   }
   public static Properties getContextsProperties(){
@@ -185,7 +185,7 @@ public class ShepherdProperties {
       } catch (IOException ioe) {
         ioe.printStackTrace();
       }
-    return props;
+    return (Properties)props;
   }
 
   public static List<String> getIndexedPropertyValues(Properties props, String baseKey) {
