@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.*;
+import org.ecocean.media.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.tag.MetalTag;
@@ -156,7 +157,7 @@ public class EncounterSearchExportAllData extends HttpServlet{
         sheet.addCell(label33);
         Label label34 = new Label(34, 0, "photographerName");
         sheet.addCell(label34);
-        Label label35 = new Label(35, 0, "keywords");
+        Label label35 = new Label(35, 0, "mediaAssetKeywords");
         sheet.addCell(label35);
 
 
@@ -380,6 +381,19 @@ public class EncounterSearchExportAllData extends HttpServlet{
             }
             
             //keywords
+            if (enc.getMedia()!=null) {
+              String allKws = "";
+              for (MediaAsset ma : enc.getMedia()) {
+                if (ma.hasKeywords()) {
+                  for (Keyword kw : ma.getKeywords()) { 
+                    allKws += kw.getReadableName()+"; ";  
+                  }
+                  Label kws = new Label(35, count, allKws);
+                  sheet.addCell(kws);
+                }
+              }
+            }
+
 
 
          } //end for loop iterating encs
