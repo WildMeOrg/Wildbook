@@ -378,21 +378,34 @@ System.out.println("     gotta compute :(");
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
 
         HashMap<String,Object> map = new HashMap<String,Object>();
-
-        String modelTag = IA.getProperty(context, "modelTag", taxy);
-        if (modelTag != null) {
-            System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
-            map.put("model_tag", modelTag);
+        Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
+        
+        String viewpointModelTag = getViewpointTag(context, taxy);
+        String labelerAlgo = getLabelerAlgo(context, taxy);
+        if (viewpointModelTag != null) {
+            System.out.println("[INFO] sendDetect() labeler_model_tag set to " + viewpointModelTag);
+            map.put("labeler_model_tag",viewpointModelTag);
+            if (labelerAlgo!=null) {
+                map.put("labeler_algo",labelerAlgo);
+                System.out.println("[INFO] sendDetect() labeler_algo set to " + labelerAlgo);
+            } else {System.out.println("[INFO] sendDetect() labeler_algo is null; skipping");} 
         } else {
-            System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
+            System.out.println("[INFO] sendDetect() labeler_model_tag is null. Viewpoint detection not available.");
         }
 
-        String labelerAlgo = IA.getProperty(context, "labelerAlgo");
-        if (labelerAlgo != null) {
-            System.out.println("[INFO] sendDetect() labelerAlgo set to " + labelerAlgo);
-            map.put("labelerAlgo", labelerAlgo);
-        } else {
-            System.out.println("[INFO] sendDetect() labelerAlgo is null; DEFAULT will be used");
+        
+        map.put("callback_url", callbackUrl(baseUrl));
+        System.out.println("sendDetect() baseUrl = " + baseUrl);
+        ArrayList<JSONObject> malist = new ArrayList<JSONObject>();
+        
+        for (MediaAsset ma : mas) {
+            if (ma == null) continue;
+            if (ma.getAcmId() == null) {  //usually this means it was not able to be added to IA (e.g. a video etc)
+                System.out.println("WARNING: sendDetect() skipping " + ma + " due to missing acmId");
+                ma.setDetectionStatus(STATUS_ERROR);  //is this wise?
+                continue;
+            }
+            malist.add(toFancyUUID(ma.getAcmId()));
         }
         map.put("image_uuid_list", malist);
         
@@ -552,11 +565,11 @@ System.out.println("     gotta compute :(");
     //DUPLICATE
    /*
     public static String getViewpointTag(String context, Taxonomy tax) {
-        if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "labelerModelTag");  //best we can hope for
-        String propKey = "labelerModelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
+        if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "viewpointModelTag");  //best we can hope for
+        String propKey = "viewpointModelTag_".concat(tax.getScientificName()).replaceAll(" ", "_");
         System.out.println("[INFO] getViewpointTag() using propKey=" + propKey + " based on " + tax);
         String vp = IA.getProperty(context, propKey);
-        if (vp == null) vp = IA.getProperty(context, "labelerModelTag");  //too bad, fallback!
+        if (vp == null) vp = IA.getProperty(context, "viewpointModelTag");  //too bad, fallback!
         return vp;
     }
     */
