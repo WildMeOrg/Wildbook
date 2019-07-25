@@ -23,15 +23,15 @@ public class ShepherdProperties {
   // set for easy .contains() checking
   public static final Set<String> overrideOrgs = new HashSet<>(Arrays.asList(overrideOrgsArr));
 
-  public static Properties getProperties(String fileName){
+  public static LinkedProperties getProperties(String fileName){
     return getProperties(fileName, "en");
   }
   
-  public static Properties getProperties(String fileName, String langCode){
+  public static LinkedProperties getProperties(String fileName, String langCode){
     return getProperties(fileName, langCode, "context0");
   }
 
-  public static Properties getProperties(String fileName, String langCode, String context){
+  public static LinkedProperties getProperties(String fileName, String langCode, String context){
     return getProperties(fileName, langCode, context, null);
   }
 
@@ -39,20 +39,20 @@ public class ShepherdProperties {
   //   + It checks the logged-in user to see if they are in an organization with an overwrite .properties file
   //   + If they are, this overwrite .properties file gets priority over the default file.
   //   + overwrite files are in wildbook_data_dir/classes/bundles/<organization>.properties
-  public static Properties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request) {
+  public static LinkedProperties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request) {
     return getProperties(fileName, langCode, context, getOverwriteStringForUser(request));
   }
   
-  public static Properties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request, Shepherd myShepherd) {
+  public static LinkedProperties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request, Shepherd myShepherd) {
     return getProperties(fileName, langCode, context, getOverwriteStringForUser(request, myShepherd));
   }
   
-  public static Properties getOrgProperties(String fileName, String langCode, HttpServletRequest request) {
+  public static LinkedProperties getOrgProperties(String fileName, String langCode, HttpServletRequest request) {
     return getOrgProperties(fileName, langCode, ServletUtilities.getContext(request), request);
   }
 
   // ONLY the overwrite props, not any other .properties
-  public static Properties getOverwriteProps(HttpServletRequest request) {
+  public static LinkedProperties getOverwriteProps(HttpServletRequest request) {
     String filename = getOverwriteStringForUser(request);
     if (filename==null) return null;
     String fullPath = "webapps/wildbook_data_dir/WEB-INF/classes/bundles/"+filename;
@@ -114,13 +114,13 @@ public class ShepherdProperties {
     return (getOverwriteStringForUser(request)!=null);
   }
 
-  public static Properties getProperties(String fileName, String langCode, String context, String overridePrefix){
+  public static LinkedProperties getProperties(String fileName, String langCode, String context, String overridePrefix){
     // initialize props as empty (no override provided) or the default values (if override provided)
     // initializing
     boolean verbose = (Util.stringExists(overridePrefix));
 
     String shepherdDataDir="wildbook_data_dir";
-    Properties contextsProps=getContextsProperties();
+    LinkedProperties contextsProps=getContextsProperties();
     if(contextsProps.getProperty(context+"DataDir")!=null) {
       shepherdDataDir=contextsProps.getProperty(context+"DataDir"); 
     }
@@ -136,7 +136,7 @@ public class ShepherdProperties {
 
     //System.out.printf("getProperties has built strings %s and %s.\n",defaultPathStr, overridePathStr);
 
-    Properties defaultProps = loadProperties(defaultPathStr);
+    LinkedProperties defaultProps = loadProperties(defaultPathStr);
     if (defaultProps==null) {
       // could not find props w this lang code, try english
       if (Util.stringExists(langCode) && !langCode.contains("en")) {
@@ -147,7 +147,7 @@ public class ShepherdProperties {
         System.out.printf("Super weird case met in ShepherdProperties.getProps(%s, %s, %s, %s). Returning generated default props.\n",fileName, langCode, context, overridePrefix);
       }
     }
-    Properties props = loadProperties(overridePathStr, defaultProps);
+    LinkedProperties props = loadProperties(overridePathStr, defaultProps);
     if (!Util.stringExists(overridePrefix)) return props;
 
     // todo: now actually load the override string
@@ -156,14 +156,14 @@ public class ShepherdProperties {
     return loadProperties(customUserPathString, props);
   }
 
-  public static Properties loadProperties(String pathStr, Properties defaults) {
+  public static LinkedProperties loadProperties(String pathStr, LinkedProperties defaults) {
     //System.out.println("loadProperties called for path "+pathStr);
     File propertiesFile = new File(pathStr);
     if (propertiesFile == null || !propertiesFile.exists()) return defaults;
     try {
       InputStream inputStream = new FileInputStream(propertiesFile);
       if (inputStream == null) return null;
-      Properties props = (defaults!=null) ? new Properties(defaults) : new Properties();
+      LinkedProperties props = (defaults!=null) ? new LinkedProperties(defaults) : new LinkedProperties();
       props.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
       if (inputStream!=null) inputStream.close();
       return props;
@@ -173,11 +173,11 @@ public class ShepherdProperties {
     }
     return defaults;
   }
-  public static Properties loadProperties(String pathStr) {
+  public static LinkedProperties loadProperties(String pathStr) {
     return loadProperties(pathStr, null);
   }
-  public static Properties getContextsProperties(){
-    Properties props=new Properties();
+  public static LinkedProperties getContextsProperties(){
+    LinkedProperties props=new LinkedProperties();
       try {
         InputStream inputStream = ShepherdProperties.class.getResourceAsStream("/bundles/contexts.properties");
         props.load(inputStream);
