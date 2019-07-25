@@ -152,6 +152,13 @@ public class EncounterSearchExportAllData extends HttpServlet{
         sheet.addCell(label31);
         Label label32 = new Label(32, 0, "satelliteTag");
         sheet.addCell(label32);
+        Label label33 = new Label(33, 0, "submitterName");
+        sheet.addCell(label33);
+        Label label34 = new Label(34, 0, "photographerName");
+        sheet.addCell(label34);
+        Label label35 = new Label(35, 0, "keywords");
+        sheet.addCell(label35);
+
 
      
         String value = "";
@@ -359,6 +366,20 @@ public class EncounterSearchExportAllData extends HttpServlet{
                 Label st = new Label(32, count, enc.getSatelliteTag().getId());
                 sheet.addCell(st);
             }
+
+            //submitter name
+            if (enc.getSubmitterName()!=null) {
+              Label sn = new Label(33, count, enc.getSubmitterName());
+              sheet.addCell(sn);
+            }
+
+            //photographer name
+            if (enc.getPhotographerName()!=null) {
+              Label pn = new Label(34, count, enc.getPhotographerName());
+              sheet.addCell(pn);
+            }
+            
+            //keywords
 
 
          } //end for loop iterating encs
