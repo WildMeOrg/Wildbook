@@ -23,6 +23,7 @@
              org.ecocean.servlet.ServletUtilities,
              org.ecocean.CommonConfiguration,
              org.ecocean.Shepherd,
+             org.ecocean.Organization,
              org.ecocean.User,
              java.util.ArrayList,
              java.util.List,
@@ -61,12 +62,12 @@ try {
   if(!indocetUser && request.getUserPrincipal()!=null){
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
-    Organization indocetOrg = myShepherd.getOrganizationByName(orgname);
-
-    indocetUser = ((user!=null && user.hasAffiliation("indocet")) || (indocetOrg!=null && indocetOrg.hasMember(user)));
-	if(user.getUserImage()!=null){
-	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-	}
+    String orgName = "indocet";
+    Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
+    indocetUser = ((user!=null && user.hasAffiliation(orgName)) || (indocetOrg!=null && indocetOrg.hasMember(user)));
+  	if(user.getUserImage()!=null){
+  	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+  	}
   }
 }
 catch(Exception e){
