@@ -11,6 +11,10 @@ public class LinkedProperties extends Properties {
 
     public LinkedProperties() {
     }
+    
+    public LinkedProperties(Properties props) {
+      super(props);
+    }
 
     public Iterable<Object> orderedKeys() {
         return Collections.list(keys());
