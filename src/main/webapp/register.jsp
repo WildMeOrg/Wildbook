@@ -2,14 +2,22 @@
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,
 java.io.IOException,
+org.ecocean.servlet.ReCAPTCHA,
 org.ecocean.*, java.util.Properties" %>
 <%!
 
-private static User registerUser(String username, String email, String pw1, String pw2) throws java.io.IOException {
-    if (username == null) throw new IOException("invalid username format");
-    if (email == null) throw new IOException("invalid email format");
-    if ((pw1 == null) || (pw2 == null) || !pw1.equals(pw2)) throw new IOException("password invalid or do not match");
-    return null;
+private static User registerUser(Shepherd myShepherd, String username, String email, String pw1, String pw2) throws java.io.IOException {
+    if (!Util.stringExists(username)) throw new IOException("Invalid username format");
+    if (!Util.isValidEmailAddress(email)) throw new IOException("Invalid email format");
+    if (!Util.stringExists(pw1) || !Util.stringExists(pw2) || !pw1.equals(pw2)) throw new IOException("Password invalid or do not match");
+    if (pw1.length() < 8) throw new IOException("Password is too short");
+    username = username.toLowerCase();
+    User exists = myShepherd.getUser(username);
+    if ((exists != null) || username.equals("admin")) throw new IOException("Invalid username");
+    User user = new User(username, pw1, Util.generateUUID());
+    user.setEmailAddress(email);
+    user.setNotes("<p data-time=\"" + System.currentTimeMillis() + "\">created via registration.</p>");
+    return user;
 }
 
 %>
@@ -38,6 +46,10 @@ label {
 <%
 
 String context = ServletUtilities.getContext(request);
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("register.jsp");
+myShepherd.beginDBTransaction();
+boolean rollback = true;
 
   //setup our Properties object to hold all properties
   //String langCode = "en";
@@ -51,6 +63,11 @@ String context = ServletUtilities.getContext(request);
   Properties props = new Properties();
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/login.properties"));
   props = ShepherdProperties.getProperties("login.properties", langCode,context);
+    boolean reg_terms = false;
+    String reg_username = "";
+    String reg_email = "";
+    String reg_password1 = "";
+    String reg_password2 = "";
 
     int mode = -1;
     try {
@@ -70,7 +87,36 @@ String context = ServletUtilities.getContext(request);
         mode = 1;
 
     } else if (fromMode == 1) {
-        mode = 2;
+        reg_terms = !(request.getParameter("agree-terms") == null);
+        reg_username = request.getParameter("username");
+        reg_email = request.getParameter("email");
+        reg_password1 = request.getParameter("password1");
+        reg_password2 = request.getParameter("password2");
+
+        User user = null;
+        String errorMessage = "Unknown error message";
+        boolean ok = ReCAPTCHA.captchaIsValid(request);
+        if (!ok) errorMessage = "You may be a robot";
+        if (ok && !reg_terms) {
+            ok = false;
+            errorMessage = "Please agree to terms and conditions";
+        }
+        if (ok) try {
+            user = registerUser(myShepherd, reg_username, reg_email, reg_password1, reg_password2);
+        } catch (java.io.IOException ex) {
+            errorMessage = ex.getMessage();
+        }
+
+        if (user == null) {
+            session.setAttribute("error", "<div class=\"error\">We have encountered an error creating your: <b>" + errorMessage + "</b>");
+            mode = 1;
+        } else {
+            myShepherd.getPM().makePersistent(user);
+            rollback = false;
+            System.out.println("[INFO] register.jsp created " + user);
+            session.setAttribute("user", user);
+            mode = 2;
+        }
 
     } else if (fromMode == 2) {
         mode = 3;
@@ -78,7 +124,6 @@ String context = ServletUtilities.getContext(request);
 
     if (instrOnly) mode = 3;
 
-    //////session.setAttribute("error", "<b>FAKE</b> error fromMode=" + fromMode);
 %>
 
 
@@ -263,6 +308,7 @@ if (mode == 1) {
 <script>
 var regexUsername = new RegExp('^[a-z0-9]+$');
 function checkAccount() {
+return true;
     var msg = 'Please correct the following problems:';
     var ok = true;
 
@@ -312,11 +358,11 @@ function checkAccount() {
 
 <div>
 	<label for="username">Username</label>
-	<input type="text" id="username" name="username" maxlength="50" />
+	<input type="text" value="<%=reg_username%>" id="username" name="username" maxlength="50" />
 </div>
 <div>
 	<label for="email">Email address</label>
-	<input type="email" id="email" name="email" class="ui-autocomplete-input" maxlength="50" />
+	<input type="email" value="<%=reg_email%>" id="email" name="email" class="ui-autocomplete-input" maxlength="50" />
 </div>
 
 <div>
@@ -329,7 +375,7 @@ function checkAccount() {
 </div>
 
 <div>
-    <label for="agree-terms">Agree to <a target="_new" href="terms.jsp">Terms and Conditions</a>?</label> <input id="agree-terms" name="agree-terms" type="checkbox" />
+    <label for="agree-terms">Agree to <a target="_new" href="terms.jsp">Terms and Conditions</a>?</label> <input id="agree-terms" name="agree-terms" type="checkbox" <%=(reg_terms ? "checked" : "")%> />
 </div>
 
 
@@ -404,6 +450,10 @@ function checkSurvey() {
 <form onSubmit="return checkSurvey();" method="post">
 
 <h2>Survey</h2>
+<input type="hidden" name="user_uuid" value="<%
+    User u = (User)session.getAttribute("user");
+    if (u != null) out.print(u.getUUID());
+%>" />
 
 <p>
 We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
@@ -613,7 +663,16 @@ if (mode == 3) {
 
 <% }
 
-} %>
+}
+
+if (rollback) {
+    myShepherd.rollbackDBTransaction();
+} else {
+    System.out.println("register.jsp committing db transaction");
+    myShepherd.commitDBTransaction();
+}
+
+%>
             </div>
             
           <jsp:include page="footer.jsp" flush="true"/>
