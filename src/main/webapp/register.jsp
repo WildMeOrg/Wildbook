@@ -451,10 +451,13 @@ function checkSurvey() {
 
 <h2>Survey</h2>
 <input type="hidden" name="user_uuid" value="<%
-    User u = (User)session.getAttribute("user");
-    if (u != null) out.print(u.getUUID());
+    User regu = (User)session.getAttribute("user");
+    if (regu != null) out.print(regu.getUUID());
 %>" />
 
+<% if (regu != null) { %>
+<p><b style="font-size: 1.3em;">Your user <u><%=regu.getUsername()%></u> has been created.</b></p>
+<% } %>
 <p>
 We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
 </p>
