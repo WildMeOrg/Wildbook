@@ -120,7 +120,7 @@ public class ShepherdProperties {
     boolean verbose = (Util.stringExists(overridePrefix));
 
     String shepherdDataDir="wildbook_data_dir";
-    LinkedProperties contextsProps=getContextsProperties();
+    Properties contextsProps=getContextsProperties();
     if(contextsProps.getProperty(context+"DataDir")!=null) {
       shepherdDataDir=contextsProps.getProperty(context+"DataDir"); 
     }
