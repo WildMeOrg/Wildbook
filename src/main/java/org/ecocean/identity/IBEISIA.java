@@ -2857,7 +2857,7 @@ System.out.println(">>>>>>>> sex -> " + rtn);
         JSONArray speciesList = new JSONArray();
         for (int i = 0 ; i < uuids.size() ; i++) {
             idList.put(toFancyUUID(uuids.get(i)));
-            speciesList.put(species.get(0));
+            speciesList.put(species.get(i).replaceAll(" ", "_").toLowerCase());
         }
         JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/species/json/?annot_uuid_list=" + idList.toString() + "&species_text_list=" + speciesList.toString()), null);
     }
