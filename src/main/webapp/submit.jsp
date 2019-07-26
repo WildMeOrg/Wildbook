@@ -597,22 +597,13 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="country" id="country" class="form-control">
           <option value="" selected="selected"></option>
-          <% if (useCustomProperties) {
+          <% 
             List<String> countries = (useCustomProperties)
             ? CommonConfiguration.getIndexedPropertyValues("country", request)
             : CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
             for (String country: countries) {
               %><option value="<%=country%>"><%=country%></option><%
-            }
-          }
-          else {
-            String[] locales = Locale.getISOCountries();
-            for (String countryCode : locales) {
-              Locale obj = new Locale("", countryCode);
-              String currentCountry = obj.getDisplayCountry();
-              %><option value="<%=currentCountry %>"><%=currentCountry%></option><%
-            }      
-          }%>
+            }%>
         </select>
       </div>
     </div>
