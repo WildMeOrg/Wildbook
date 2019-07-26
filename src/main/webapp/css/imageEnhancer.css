@@ -18,8 +18,9 @@
     right: 4px;
     bottom: 4px;
     width: 5%;
+    min-width: 25px;
     height: 0;
-    padding-bottom: 5%;
+    padding-bottom: 11%;
     /*min-width: 20px;
     max-width: 40px;*/
     background: url(../images/hamburger-menu.svg) no-repeat;
