@@ -421,7 +421,8 @@ public class Annotation implements java.io.Serializable {
 
     public String getSpecies(Shepherd myShepherd) {
         Encounter enc = this.findEncounter(myShepherd);
-        return enc.getGenus()+" "+enc.getSpecificEpithet();
+        if (enc == null) return null;
+        return enc.getTaxonomyString();
     }
 
     public String getIAClass() {
