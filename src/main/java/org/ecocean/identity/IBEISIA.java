@@ -2830,6 +2830,24 @@ System.out.println(">>>>>>>> sex -> " + rtn);
         return rtn.getJSONArray("response").optJSONObject(0);
     }
 
+    public static void iaUpdateSpecies(List<String> uuids, List<String> species, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (Util.collectionIsEmptyOrNull(uuids) || Util.collectionIsEmptyOrNull(species)) {
+            System.out.println("WARNING: iaUpdateSpecies() received empty uuids/species; ignoring");
+            return;
+        }
+        if (uuids.size() != species.size()) {
+            System.out.println("WARNING: iaUpdateSpecies() has mismatched uuids/species lengths! ignoring");
+            return;
+        }
+        JSONArray idList = new JSONArray();
+        JSONArray speciesList = new JSONArray();
+        for (int i = 0 ; i < uuids.size() ; i++) {
+            idList.put(toFancyUUID(uuids.get(i)));
+            speciesList.put(species.get(0));
+        }
+        JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/species/json/?annot_uuid_list=" + idList.toString() + "&species_text_list=" + speciesList.toString()), null);
+    }
+
 //http://104.42.42.134:5010/api/image/uri/original/json/?image_uuid_list=[{%22__UUID__%22:%2283e2439f-d112-1084-af4a-4fa9a5094e0d%22}]
     public static String iaFilepathFromImageUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL(context, "/api/image/uri/original/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
