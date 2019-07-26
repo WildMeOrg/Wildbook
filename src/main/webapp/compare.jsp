@@ -575,7 +575,7 @@ td span.trial-date {
 	position: absolute;
 	width: 100%;
 	left: 0;
-	top: 175px;
+	top: 225px;
 }
 
 .compare-image-wrapper {
