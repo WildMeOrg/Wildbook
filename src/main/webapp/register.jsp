@@ -17,6 +17,9 @@ private static User registerUser(Shepherd myShepherd, String username, String em
     User user = new User(username, pw1, Util.generateUUID());
     user.setEmailAddress(email);
     user.setNotes("<p data-time=\"" + System.currentTimeMillis() + "\">created via registration.</p>");
+    Role role = new Role(username, "subject");
+    role.setContext(myShepherd.getContext());
+    myShepherd.getPM().makePersistent(role);
     return user;
 }
 
