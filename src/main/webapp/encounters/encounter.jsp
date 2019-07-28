@@ -2607,17 +2607,16 @@ else {
                          				if(enc.getAssignedUsername()!=null){
 
                         	 				String username=enc.getAssignedUsername();
-                        	 				Shepherd aUserShepherd=new Shepherd("context0");
-                        	 				aUserShepherd.setAction("encounter.jsp2");
-                         					if(aUserShepherd.getUser(username)!=null){
+                         					if(myShepherd.getUser(username)!=null){
                          					%>
                                 			<%
 
-                         					User thisUser=aUserShepherd.getUser(username);
+                         					User thisUser=myShepherd.getUser(username);
                                 			String profilePhotoURL="../images/empty_profile.jpg";
 
                          					if(thisUser.getUserImage()!=null){
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                         						
                          					}
                          					%>
                      						<%
@@ -2632,7 +2631,7 @@ else {
      								<div>
                       <div class="row">
                         <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
-                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="height: 150px;border: 1px solid;" />
+                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="border: 1px solid;" />
                         </div>
                         <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
                           <%-- <p> --%>
@@ -2677,8 +2676,7 @@ else {
                       	&nbsp;
                       	<%
                       	}
-                        aUserShepherd.rollbackDBTransaction();
-                        aUserShepherd.closeDBTransaction();
+
                       	}
                          				//insert here
 %>
@@ -2697,25 +2695,16 @@ else {
         <select name="submitter" id="submitterSelect" class="form-control" size="1">
             <option value=""></option>
             <%
-
-            Shepherd userShepherd=new Shepherd("context0");
-            userShepherd.setAction("encounter.jsp3");
-            userShepherd.beginDBTransaction();
-
-            ArrayList<String> usernames=userShepherd.getAllUsernames();
-
+            List<String> usernames=myShepherd.getAllUsernames();
+            usernames.remove(null);
+            Collections.sort(usernames,String.CASE_INSENSITIVE_ORDER);
             int numUsers=usernames.size();
             for(int i=0;i<numUsers;i++){
                 String thisUsername=usernames.get(i);
-                //User thisUser2=userShepherd.getUser(thisUsername);
-                String thisUserFullname=thisUsername;
-                //if((thisUser2!=null)&&(thisUser2.getFullName()!=null)){thisUserFullname=thisUser2.getFullName();}
-              %>
-              <option value="<%=thisUsername%>"><%=thisUserFullname%></option>
-              <%
+                	%>
+              		<option value="<%=thisUsername%>"><%=thisUsername%></option>
+              		<%
             }
-            userShepherd.rollbackDBTransaction();
-            userShepherd.closeDBTransaction();
             %>
           </select>
       </div>

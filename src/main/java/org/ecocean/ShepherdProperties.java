@@ -56,7 +56,7 @@ public class ShepherdProperties {
     String filename = getOverwriteStringForUser(request);
     if (filename==null) return null;
     String fullPath = "webapps/wildbook_data_dir/WEB-INF/classes/bundles/"+filename;
-    return loadProperties(fullPath);
+    return (Properties)loadProperties(fullPath);
   }
 
   public static String getOverwriteStringForUser(HttpServletRequest request, Shepherd myShepherd) {
@@ -148,12 +148,12 @@ public class ShepherdProperties {
       }
     }
     Properties props = loadProperties(overridePathStr, defaultProps);
-    if (!Util.stringExists(overridePrefix)) return props;
+    if (!Util.stringExists(overridePrefix)) return (Properties)props;
 
     // todo: now actually load the override string
     // we Do have an overridePrefix so we need to load it now
     String customUserPathString = "webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+overridePrefix;
-    return loadProperties(customUserPathString, props);
+    return (Properties)loadProperties(customUserPathString, props);
   }
 
   public static Properties loadProperties(String pathStr, Properties defaults) {
@@ -163,10 +163,10 @@ public class ShepherdProperties {
     try {
       InputStream inputStream = new FileInputStream(propertiesFile);
       if (inputStream == null) return null;
-      Properties props = (defaults!=null) ? new Properties(defaults) : new Properties();
+      LinkedProperties props = (defaults!=null) ? new LinkedProperties(defaults) : new LinkedProperties();
       props.load(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
       if (inputStream!=null) inputStream.close();
-      return props;
+      return (Properties)props;
     } catch (Exception e) {
       System.out.println("Exception on loadProperties()");
       e.printStackTrace();
@@ -177,7 +177,7 @@ public class ShepherdProperties {
     return loadProperties(pathStr, null);
   }
   public static Properties getContextsProperties(){
-    Properties props=new Properties();
+    LinkedProperties props=new LinkedProperties();
       try {
         InputStream inputStream = ShepherdProperties.class.getResourceAsStream("/bundles/contexts.properties");
         props.load(inputStream);
@@ -185,7 +185,7 @@ public class ShepherdProperties {
       } catch (IOException ioe) {
         ioe.printStackTrace();
       }
-    return props;
+    return (Properties)props;
   }
 
   public static List<String> getIndexedPropertyValues(Properties props, String baseKey) {
