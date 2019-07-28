@@ -349,9 +349,9 @@ else{
 						
 						<td>
 						<%
-						if((scanEnc.getIndividualID()!=null)&&(!scanEnc.getIndividualID().equals("Unassigned"))){
+						if(scanEnc.getIndividual()!=null){
 						%>
-						<a href="../individuals.jsp?number=<%=scanEnc.getIndividualID()%>"><%=scanEnc.getIndividualID()%></a>
+						<a href="../individuals.jsp?number=<%=scanEnc.getIndividual().getDisplayName()%>"><%=scanEnc.getIndividual().getDisplayName()%></a>
 						<%
       					}
       					else{

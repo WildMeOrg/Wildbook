@@ -301,8 +301,18 @@ public class MultiValue implements java.io.Serializable {
         if (keyHint == null) return rtn;  //gets us just default (or empty if !includeDefault !!)
         if (keyHint instanceof HttpServletRequest) {
             Shepherd myShepherd = new Shepherd("context0");  //ok cuz all users live in context0, no????
-            User u = myShepherd.getUser((HttpServletRequest)keyHint);
-            if (u != null) rtn.addAll(u.getMultiValueKeys());
+            myShepherd.setAction("MultiValue.generateKeys");
+            myShepherd.beginDBTransaction();
+            try {
+              User u = myShepherd.getUser((HttpServletRequest)keyHint);
+              if (u != null) rtn.addAll(u.getMultiValueKeys());
+            }
+            catch(Exception e) {e.printStackTrace();}
+            finally {
+              myShepherd.rollbackDBTransaction();
+              myShepherd.closeDBTransaction();
+            }
+            
         //if possible, supply Organization rather than User, as User will set on all their Organizations
         } else if (keyHint instanceof Organization) {
             Organization org = (Organization)keyHint;
