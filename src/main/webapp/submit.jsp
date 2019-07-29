@@ -558,23 +558,16 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
     <div class="form-group required">
 
-      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
-        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
-</div>
-
-      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
         <p class="help-block">
-          <%=props.getProperty("examples") %>
-          <ul>
-            <li>2014-01-05 12:30</li>
-            <li>2014-03-23</li>
-            <li>2013-12</li>
-            <li>2010</li>
-          </ul>
+          <%=props.getProperty("dateHelp") %>
         </p>
       </div>
 
+      <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
+        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
+      </div>
     </div>
 
 <%
@@ -582,9 +575,9 @@ if(CommonConfiguration.showReleaseDate(context)){
 %>
 
     <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
-        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
-      </div>
+      <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
+      <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
+    </div>
 
 <%
 }
