@@ -232,7 +232,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(10.8, 160.8);
+var center = new google.maps.LatLng(-32.000, 116.000);
 
 var map;
 
@@ -669,6 +669,10 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 }  //end if showCountry
 
 %>
+
+<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+  <label class="control-label"><%=props.getProperty("mapPin") %></label>
+</div>
 
 <div>
     <p id="map">
