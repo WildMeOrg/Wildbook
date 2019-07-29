@@ -2,6 +2,8 @@
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,
 java.io.IOException,
+java.util.List,
+java.util.ArrayList,
 org.ecocean.servlet.ReCAPTCHA,
 org.ecocean.*, java.util.Properties" %>
 <%!
@@ -29,6 +31,12 @@ label {
     font-size: 0.9em;
     width: 30em;
     font-weight: bold !important;
+}
+
+.error {
+    background-color: #FAA;
+    padding: 3px 20px;
+    border-radius: 10px;
 }
 
 #survey-section p {
@@ -111,7 +119,7 @@ boolean rollback = true;
         }
 
         if (user == null) {
-            session.setAttribute("error", "<div class=\"error\">We have encountered an error creating your: <b>" + errorMessage + "</b>");
+            session.setAttribute("error", "<div class=\"error\">We have encountered an error creating your account: <b>" + errorMessage + "</b>");
             mode = 1;
         } else {
             myShepherd.getPM().makePersistent(user);
@@ -122,7 +130,23 @@ boolean rollback = true;
         }
 
     } else if (fromMode == 2) {
-        mode = 3;
+        String[] fields = new String[]{"user_uuid", "cat_volunteer", "disability", "citsci", "age", "retired", "gender", "ethnicity", "education", "how_hear"};
+        List<String> errors = new ArrayList<String>();
+        for (int i = 0 ; i < fields.length ; i++) {
+            String val = request.getParameter(fields[i]);
+System.out.println(fields[i] + ": (" + val + ")");
+            if ((val == null) || (val.trim().equals(""))) {
+                errors.add("missing a value for " + fields[i]);
+                continue;
+            }
+        }
+        errors.add("testing");
+        if (errors.size() > 0) {
+            session.setAttribute("error", "<div class=\"error\">We have encountered an error in your survey response: <b>" + String.join(", ", errors) + "</b>");
+            mode = 2;
+        } else {
+            mode = 3;
+        }
     }
 
     if (instrOnly) mode = 3;
@@ -142,10 +166,10 @@ boolean rollback = true;
 
               <p align="left">
 		
-<div style="padding: 10px;" class="error">
+<div style="padding: 10px;">
 <%
 if (session.getAttribute("error") != null) {
-	out.println("<p class=\"error\">" + session.getAttribute("error") + "</p>");
+	out.println(session.getAttribute("error"));
 	session.removeAttribute("error");
 }
 
