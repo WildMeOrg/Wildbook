@@ -49,7 +49,9 @@ myShepherd.beginDBTransaction();
 	String res = request.getParameter("results");
 	String rtrial = request.getParameter("trial");
 	if ((res != null) && (rtrial != null) && (username != null)) {
+System.out.println("SAVING " + rtrial + " for user " + username + " => " + res);
     		CatTest c = CatTest.save(myShepherd, username, rtrial, res);
+                myShepherd.commitDBTransaction();
 		JSONObject rtn = new JSONObject("{\"success\": true}");
 		rtn.put("saved", c.getResultsAsJSONArray());
 		out.println(rtn.toString());
@@ -483,6 +485,7 @@ console.warn('--------> possible %o', possible);
 }
 
 function setupForm() {
+console.log('deck length = %d', deck.length);
 	if (deck.length <= 0) {
 		if (usePractice) {
 			$('.compare-image-wrapper').html('<h1 class="blocker-message">Finished. [ Practice session - not saved. ]</h1>');
