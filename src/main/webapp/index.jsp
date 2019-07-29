@@ -514,7 +514,7 @@ finally{
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest shark encounters</h2>
+                    <h2>Latest seadragon encounters</h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%

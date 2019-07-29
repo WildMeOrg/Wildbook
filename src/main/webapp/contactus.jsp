@@ -23,9 +23,9 @@
 
         <p>The team welcomes your comments and questions.</p>
 
-<p>Please email us at <em>info at whaleshark dot org</em>, and one of us will respond as quickly as possible.</p>
+<p>Please email us at <em>dragonsearch19 at gmail dot com</em>, and one of us will respond as quickly as possible.</p>
 
-<h2>Photos for Media Publications about Wildbook for Whale Sharks</h2>
+<%-- <h2>Photos for Media Publications about Wildbook for Whale Sharks</h2>
 <p>The following photos from Wild Me Director Dr. Simon Pierce may be used freely, for editorial purposes, in return for a link back to https://www.simonjpierce.com (online) and/or correct attribution (print).</p>
 <p>
 	<img src="images/-simon-pierce-1140612.jpg" width="500px" height="*"/><br>
@@ -45,7 +45,7 @@ The following logos may be used inconjunction with our project.
 <h3>Wildbook&reg;</h3>
 
 <p><img src="images/WildBook_logo_300dpi-04.png" width="500px" height="*" /></p>
-
+ --%>
 
    
       <!-- end maintext -->
