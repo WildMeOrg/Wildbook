@@ -2,6 +2,8 @@
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,
 java.io.IOException,
+org.json.JSONObject,
+org.json.JSONArray,
 java.util.List,
 java.util.ArrayList,
 org.ecocean.servlet.ReCAPTCHA,
@@ -130,21 +132,31 @@ boolean rollback = true;
         }
 
     } else if (fromMode == 2) {
-        String[] fields = new String[]{"user_uuid", "cat_volunteer", "disability", "citsci", "age", "retired", "gender", "ethnicity", "education", "how_hear"};
+        String[] fields = new String[]{"user_uuid", "cat_volunteer", "have_cats", "disability", "citsci", "age", "retired", "gender", "ethnicity", "education", "how_hear"};
+        JSONObject resp = new JSONObject();
         List<String> errors = new ArrayList<String>();
         for (int i = 0 ; i < fields.length ; i++) {
             String val = request.getParameter(fields[i]);
-System.out.println(fields[i] + ": (" + val + ")");
+//System.out.println(fields[i] + ": (" + val + ")");
             if ((val == null) || (val.trim().equals(""))) {
                 errors.add("missing a value for " + fields[i]);
                 continue;
             }
+            if (fields[i].equals("have_cats") || fields[i].equals("ethnicity")) {
+                JSONArray mult = new JSONArray(request.getParameterValues(fields[i]));
+                resp.put(fields[i], mult);
+            } else {
+                resp.put(fields[i], val);
+            }
         }
-        errors.add("testing");
+System.out.println("survey response: " + resp.toString());
         if (errors.size() > 0) {
             session.setAttribute("error", "<div class=\"error\">We have encountered an error in your survey response: <b>" + String.join(", ", errors) + "</b>");
             mode = 2;
         } else {
+            String key = "survey_response_" + request.getParameter("user_uuid");
+            SystemValue.set(myShepherd, key, resp);
+            rollback = false;
             mode = 3;
         }
     }
