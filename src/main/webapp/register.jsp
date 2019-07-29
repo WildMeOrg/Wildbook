@@ -18,7 +18,9 @@ private static User registerUser(Shepherd myShepherd, String username, String em
     username = username.toLowerCase();
     User exists = myShepherd.getUser(username);
     if ((exists != null) || username.equals("admin")) throw new IOException("Invalid username");
-    User user = new User(username, pw1, Util.generateUUID());
+    String salt = Util.generateUUID();
+    String hashPass = ServletUtilities.hashAndSaltPassword(pw1, salt);
+    User user = new User(username, hashPass, salt);
     user.setEmailAddress(email);
     user.setNotes("<p data-time=\"" + System.currentTimeMillis() + "\">created via registration.</p>");
     Role role = new Role(username, "subject");
