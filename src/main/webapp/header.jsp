@@ -342,7 +342,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
-
                       <!-- submit encounter, survey -->
 
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
@@ -356,22 +355,21 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                       <!-- end submit -->
 
-
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
 
-                               <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li>
-
-                             <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
-
+                        	<%-- 
+                          <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                          <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li>
+                          <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li> 
+                          --%>
 
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
-                        	<li class="divider"></li>
                         </ul>
                       </li>
 
+                      <%-- 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -390,15 +388,28 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                            -->
 
                         </ul>
-                      </li>
+                      </li> 
+                      --%>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
 
+                          <%
+                          if(request.getUserPrincipal()!=null) {
+                          %>
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
+                          <%
+                          }
+                          %>
+
                         </ul>
                       </li>
+
+                      <%
+                      if(request.getUserPrincipal()!=null) {
+                      %>
+
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -419,11 +430,12 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                           <li class="divider"></li>
                           <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
                           <li><a href="<%=urlLoc %>/xcalendar/calendar2.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
-                          <% if(request.getUserPrincipal()!=null) { %>
+                          <%-- <% if(request.getUserPrincipal()!=null) { %> --%>
                             <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySubmissions")%></a></li>
-                          <% } %>
+                          <%-- <% } %> --%>
                         </ul>
                       </li>
+
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
@@ -438,16 +450,24 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                            </ul>
                       </li>
 
+                      <%
+                      }
+                      %>
+
                       <li>
                         <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
                       </li>
+
+                      <%
+                      if(request.getUserPrincipal()!=null) {
+                      %>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                             <% if (CommonConfiguration.getWikiLocation(context)!=null) { %>
                               <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>/photographing.jsp"><%=props.getProperty("userWiki")%></a></li>
-                            <% }
-                            if(request.getUserPrincipal()!=null) {
+                            <% 
+                            }
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
 
@@ -462,7 +482,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                                 <% } %>
 
 
-                            <% }
+                            <%
                             if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) { %>
                               <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
                             <% }
@@ -491,6 +511,9 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             } //end if admin %>
                         </ul>
                       </li>
+                      <%
+                      }
+                      %>
                     </ul>
 
 
