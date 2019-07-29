@@ -291,12 +291,16 @@ int numDataContributors=0;
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
     <button type="button" class="btn-link"><a href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
-
-    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
+    
+    <%-- 
+    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button> 
+    --%>
 
     <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
-
-    <button type="button" class="btn-link"><a href="gallery.jsp?adoptableSharks=true"><%=props.getProperty("adoptableSharks") %></a></button>
+    
+    <%-- 
+    <button type="button" class="btn-link"><a href="gallery.jsp?adoptableSharks=true"><%=props.getProperty("adoptableSharks") %></a></button> 
+    --%>
 
   </div>
 </nav>
