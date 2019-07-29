@@ -311,7 +311,6 @@ if (mode == 1) {
 <script>
 var regexUsername = new RegExp('^[a-z0-9]+$');
 function checkAccount() {
-return true;
     var msg = 'Please correct the following problems:';
     var ok = true;
 
@@ -576,7 +575,7 @@ if (mode == 3) {
 
 <p><h1>Instructions for Validation Study 1</h1></p>
 <p>The first of our three validation tests is about determining how good humans are at identifying cats from photos by making matches between one cat photo and a library of cat photos.  Similar tests have been conducted on many types of animals since it's important for researchers to understand and plan for human error rates. </p>
-<p>This study is running from July 29 to September 29, 2019.  You can join at any time during that period.  You can complete all ____________________ matching trials, or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each matching trial will each take 30-60 minutes to complete, depending on your personal pace. You can complete a maximum of 2 matching trials per day.  Previous studies of photo identification in animals have suggested that observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time. </p>
+<p>This study is running from July 29 to September 29, 2019.  You can join at any time during that period.  You can complete all 50 matching trials, or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each matching trial will each take 30-60 minutes to complete, depending on your personal pace. You can complete a maximum of 2 matching trials per day.  Previous studies of photo identification in animals have suggested that observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time. </p>
 <p><h2>Enrollment process </h2></p>
 <p>This study asks you to consent to participate as a research volunteer, register for the website, and answer some demographic questions.  We don't need to know your name, but you will need to register for the website with an email address. </p>
 <p><h2>Rules </h2></p>
@@ -584,7 +583,7 @@ if (mode == 3) {
 <p><h2>Trial instructions </h2></p>
 <p>After logging in, you will be presented with matching trials.  Click to start a trial.  Once you complete a trial, you won't be presented with the same one again.   </p>
 <p>Once you start a trial, you will have a &quot;Cat to Match&quot; photo on the left side of the screen and a &quot;Cat Library&quot; on the right side, with the options to click &quot;yes&quot; or &quot;no&quot; and zoom on either photo.   </p>
-<p>During each individual trial, the Cat to Match photo will stay the same as you click through all of the Cat Library photos, and there may be one, multiple, or no matching cats in the library.  There is no &quot;I'm unsure&quot;  because we want you to make your best guess.  After clicking through all images in the Cat Library, the trial is complete, and you may do another trial or log off.  The Cat Library is the same in all trials and contains ____________________ photos. </p>
+<p>During each individual trial, the Cat to Match photo will stay the same as you click through all of the Cat Library photos, and there may be one, multiple, or no matching cats in the library.  There is no &quot;I'm unsure&quot;  because we want you to make your best guess.  After clicking through all images in the Cat Library, the trial is complete, and you may do another trial or log off.  The Cat Library is the same in all trials and contains 120 photos. </p>
 <p>Most photos are taken at a distance, so make sure to click photos to zoom all the way in.  (Clicking on an image zooms in on it, and you are zoomed in all the way once clicking no longer increases the image size.)  These test photos were obtained in the same way that our project will gather data in the real world: by taking photos of free-roaming cats as they are seen walking through a neighborhood while not trespassing on private property.  That means some cats are harder to see than others, and you won't always get to see good details.</p>
 <p><h2>How to compare similar cats </h2></p>
 <p>Even two similar-looking cats can be separated if you examine them closely.  Here are some details to look for when comparing two cats.</p>
