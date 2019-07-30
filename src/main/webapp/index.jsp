@@ -379,7 +379,7 @@ finally{
 </section>
 <section class="hero-bottom container-fluid splash-section relative">
 	<a class="splash-submit" href="submit.jsp">
-		<button class="index-submit-button"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
+		<button class="index-submit-button"><%= props.getProperty("reportEncounter") %><span class="button-icon index-button-icon" aria-hidden="true"></button>
 	</a>
 </section>
 
