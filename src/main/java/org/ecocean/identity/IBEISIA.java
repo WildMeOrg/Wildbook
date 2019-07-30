@@ -2886,7 +2886,7 @@ System.out.println(">>>>>>>> sex -> " + rtn);
             idList.put(toFancyUUID(uuids.get(i)));
         }
         JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/species/json/?annot_uuid_list="+ idList.toString()), null);
-        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not getSpecies response");
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not iaGetSpecies response");
         List<String> spec = new ArrayList<String>();
         JSONArray jarr = rtn.getJSONArray("response");
         for (int i = 0 ; i < jarr.length() ; i++) {
@@ -3888,5 +3888,50 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         return rtn;
     }
 
+    //returns map of acmId=>species where IA was set incorrectly
+    public static Map<String,String> iaSpeciesDiff(Shepherd myShepherd) {
+        String context = myShepherd.getContext();
+        Map<String,String> ourMap = acmIdSpeciesMap(myShepherd);
+        List<String> iaIds = org.ecocean.ia.plugin.WildbookIAM.iaAnnotationIds(context);
+        int orig = iaIds.size();
+        //now we need the intersection of ids in IA (iaIds) and what we have -- which ideally should be the same! "ha"
+        iaIds.retainAll(new ArrayList<String>(ourMap.keySet()));
+        System.out.println("[INFO] iaSpeciesDiff() locally reduced iaIds from " + orig + " to " + iaIds.size());
+        List<String> iaList = null;
+        try {
+            iaList = iaGetSpecies(iaIds, context);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        if (iaList == null) {
+            System.out.println("ERROR: iaSpeciesDiff() could not obtain iaList; failing");
+            return null;
+        }
+System.out.println("ourMap.size = " + ourMap.size());
+System.out.println("iaIds.size = " + iaIds.size());
+System.out.println("iaList.size = " + iaList.size());
+        if (iaIds.size() != iaList.size()) {
+            System.out.println("ERROR: iaSpeciesDiff() iaIds (" + iaIds.size() + ") differs in size from iaList (" + iaList.size() + "); failing");
+            return null;
+        }
+        Map<String,String> diff = new HashMap<String,String>();
+        for (int i = 0 ; i < iaIds.size() ; i++) {
+            String ours = ourMap.get(iaIds.get(i));
+            //TODO if this is null, i guess it means we have null species set *OR* we dont have that. should never be the latter?
+            //   ... either way, not going to tell IA to set to null, so....    (is this bad?)
+            if (ours == null) continue;
+
+            String ias = iaList.get(i);
+            ours = ours.replaceAll(" ", "_").toLowerCase();
+            if (ias == null) {
+                System.out.println("[INFO] iaSpeciesDiff() acmId=" + iaIds.get(i) + " got NULL from IA versus local " + ours);
+                diff.put(iaIds.get(i), ours);
+            } else if (!ours.equals(ias.replaceAll(" ", "_").toLowerCase())) {
+                System.out.println("[INFO] iaSpeciesDiff() acmId=" + iaIds.get(i) + " got " + ias + " from IA versus local " + ours);
+                diff.put(iaIds.get(i), ours);
+            }
+        }
+        return diff;
+    }
 
 }
