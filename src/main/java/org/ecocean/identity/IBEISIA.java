@@ -2870,7 +2870,7 @@ System.out.println(">>>>>>>> sex -> " + rtn);
             return null;
         }
         //we have to split into smaller jobs due to GET url ... hence: recursion!
-        int maxSize = 500;
+        int maxSize = 300;
         if (uuids.size() > maxSize) {
             System.out.println("[INFO] iaGetSpecies() batching " + uuids.size() + " items into " + maxSize + "-sized batches");
             List<String> all = new ArrayList<String>();
