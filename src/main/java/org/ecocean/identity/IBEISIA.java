@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import javax.jdo.Query;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -3868,6 +3869,24 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         return plugin.sendAnnotations(anns, true);
     }
     
+
+    //note, this is (likely) mixed-case with space, so be warned.
+    public static Map<String,String> acmIdSpeciesMap(Shepherd myShepherd) {
+        String sql = "SELECT \"ANNOTATION\".\"ACMID\" as acmId, \"ENCOUNTER\".\"GENUS\" as genus, \"ENCOUNTER\".\"SPECIFICEPITHET\" as specificEpithet FROM \"ANNOTATION\" JOIN \"ENCOUNTER_ANNOTATIONS\" ON (\"ENCOUNTER_ANNOTATIONS\".\"ID_EID\" = \"ANNOTATION\".\"ID\") JOIN \"ENCOUNTER\" ON (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") WHERE \"ANNOTATION\".\"ACMID\" IS NOT NULL;";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        Map<String,String> rtn = new HashMap<String,String>();
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        while (it.hasNext()) {
+            Object[] row = (Object[]) it.next();
+            String acmId = (String)row[0];
+            String genus = (String)row[1];
+            String specificEpithet = (String)row[2];
+            rtn.put(acmId, Util.taxonomyString(genus, specificEpithet));
+        }
+        q.closeAll();
+        return rtn;
+    }
 
 
 }
