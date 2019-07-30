@@ -508,7 +508,7 @@ console.log('deck length = %d', deck.length);
 		return;
 	}
 	currentOffset = Math.floor(Math.random() * deck.length);
-	$('#image-ref').prop('src', assets[deck[currentOffset][0]].asset.url).panzoom('reset');
+	$('#image-ref').prop('src', assets[deck[currentOffset][0]].asset.url);
 	$('#image-test').prop('src', assets[deck[currentOffset][1]].asset.url).panzoom('reset');
 	updateStatus();
 }
