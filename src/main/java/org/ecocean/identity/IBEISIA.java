@@ -2862,6 +2862,43 @@ System.out.println(">>>>>>>> sex -> " + rtn);
         JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/species/json/?annot_uuid_list=" + idList.toString() + "&species_text_list=" + speciesList.toString()), null);
     }
 
+//https://kaiju.dyn.wildme.io:5005/api/annot/species/json/?annot_uuid_list=[{%E2%80%9C__UUID__%E2%80%9C:%E2%80%9D079700f0-98ed-46ab-885a-29450bd63924%22},{%E2%80...........
+    public static List<String> iaGetSpecies(List<String> uuids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (Util.collectionIsEmptyOrNull(uuids)) {
+            System.out.println("WARNING: iaGetSpecies() received empty uuids; ignoring");
+            return null;
+        }
+        //we have to split into smaller jobs due to GET url ... hence: recursion!
+        int maxSize = 500;
+        if (uuids.size() > maxSize) {
+            System.out.println("[INFO] iaGetSpecies() batching " + uuids.size() + " items into " + maxSize + "-sized batches");
+            List<String> all = new ArrayList<String>();
+            for (int i = 0 ; i < uuids.size() ; i += maxSize) {
+                int z = i + maxSize;
+                if (z > uuids.size()) z = uuids.size();
+                all.addAll(iaGetSpecies(uuids.subList(i, z), context));
+            }
+            return all;
+        }
+        JSONArray idList = new JSONArray();
+        for (int i = 0 ; i < uuids.size() ; i++) {
+            idList.put(toFancyUUID(uuids.get(i)));
+        }
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/species/json/?annot_uuid_list="+ idList.toString()), null);
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not getSpecies response");
+        List<String> spec = new ArrayList<String>();
+        JSONArray jarr = rtn.getJSONArray("response");
+        for (int i = 0 ; i < jarr.length() ; i++) {
+            if ((jarr.optString(i, null) == null) || jarr.getString(i).equals(IA_UNKNOWN_NAME)) {
+                spec.add(null);
+            } else {
+                spec.add(jarr.optString(i));
+            }
+        }
+        return spec;
+    }
+
+
 //http://104.42.42.134:5010/api/image/uri/original/json/?image_uuid_list=[{%22__UUID__%22:%2283e2439f-d112-1084-af4a-4fa9a5094e0d%22}]
     public static String iaFilepathFromImageUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL(context, "/api/image/uri/original/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
