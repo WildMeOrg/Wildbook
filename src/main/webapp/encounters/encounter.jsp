@@ -41,29 +41,18 @@
           returnString = props.getProperty(lcode);
 
 
-          int startNum = 1;
-          boolean keepIterating = true;
 
-          //let's iterate through the potential individuals
-          while (keepIterating) {
-            String startNumString = Integer.toString(startNum);
-            if (startNumString.length() < 3) {
-              while (startNumString.length() < 3) {
-                startNumString = "0" + startNumString;
-              }
-            }
-            String compositeString = returnString + startNumString;
-            if (!myShepherd.isMarkedIndividual(compositeString)) {
-              keepIterating = false;
-              returnString = compositeString;
-            } else {
-              startNum++;
+            //if (!myShepherd.isMarkedIndividual(compositeString)) {
+            List<MarkedIndividual> names=MarkedIndividual.findByNames(myShepherd, ".*"+returnString.toLowerCase()+"\\d+.*");
+            if(names!=null){
+            	int size=names.size();
+            	size++;
+            	String numberAsString=String.format ("%03d", size);
+            	return returnString+numberAsString;
             }
 
           }
           return returnString;
-
-        }
 
 
       }
