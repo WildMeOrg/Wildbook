@@ -1,4 +1,13 @@
 <html><head><title>KitizenScience: survey results (alpha)</title>
+<script src="../javascript/excel.js"></script>
+<script>
+function exportExcel(aEl) {
+    var d = new Date();
+    aEl.download = 'kitizen-science-survey-results-' + d.toISOString().substr(0,10) + '.xlsx';
+    aEl.href = exportTableToExcelUri(document.getElementById('data'), 'Survey Results');
+    return true;
+}
+</script>
 </head><style>
 body {
     font-family: arial;
@@ -26,7 +35,10 @@ org.json.JSONObject,
 org.json.JSONArray
               "
 %><body>
-<table>
+<p>
+    <a href="#" onClick="return exportExcel(this)">download as excel</a>
+</p>
+<table id="data">
 <thead><tr>
 <%
 
