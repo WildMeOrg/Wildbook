@@ -138,12 +138,14 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	                        <td style="border-bottom: 0px white;" colspan="2"><%=props.getProperty("confirm") %> <%=props.getProperty("newPassword") %> <input name="password2" type="password" size="15" maxlength="90" ></input></td>
 	            		</tr>
 	            		<tr><td colspan="3" style="border-top: 0px white;font-style:italic;"><%=props.getProperty("leaveBlankNoChangePassword") %></td></tr>
-	                    <tr><td colspan="3"><%=props.getProperty("fullname") %> <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
-	                    <tr><td colspan="2"><%=props.getProperty("emailAddress") %> <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1"><%=props.getProperty("receiveEmails") %> <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+	                    <!-- <tr><td colspan="3"><%=props.getProperty("fullname") %> <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr> -->
+	                    <tr><td colspan="3"><%=props.getProperty("emailAddress") %> <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><!-- <td colspan="1"><%=props.getProperty("receiveEmails") %> <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td>--></tr>
+<!--
 	                    <tr><td colspan="3"><%=props.getProperty("affiliation") %> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
 	                    <tr><td colspan="3"><%=props.getProperty("researchProject") %> <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
+-->
 	                          
-	                    <tr><td colspan="3"><%=props.getProperty("projectURL") %> <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
+	                    <tr><td colspan="3">My website/blog <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
 			     		
 			     		<tr><td colspan="3" valign="top"><%=props.getProperty("researchStatement") %> <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
 	                    
@@ -183,6 +185,7 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
         </table>
 	<br ></br>
 
+<!--
 	<h2><%=props.getProperty("socialMediaConnections") %></h2>
 
 	<div style="padding-bottom: 10px;">
@@ -274,7 +277,7 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
 %>
     	
-    </p> <!-- end content p -->
+    </p> 
     
     <h2><%=props.getProperty("myData") %></h2>
     
@@ -290,6 +293,7 @@ String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+th
         <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
     
     <p class="caption"><a href="encounters/searchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
+-->
     
 
 <%
