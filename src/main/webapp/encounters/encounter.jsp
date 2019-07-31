@@ -1021,7 +1021,18 @@ if(enc.getLocation()!=null){
                 <option value=""></option>
 
                 <%
-                List<String> locIDs = CommonConfiguration.getIndexedPropertyValues("locationID", request);
+
+
+                List<String> locIDs = null;
+
+                if (useCustomProperties) {
+                  locIDs = CommonConfiguration.getIndexedPropertyValues("locationID", request);
+                } else {
+                  Shepherd locShepherd = Shepherd.newActiveShepherd(context, "submit-locations");
+                  try { locIDs = locShepherd.getAllLocationIDs(); }
+                  catch (Exception e) { locIDs = new ArrayList<String>(); }
+                  finally { locShepherd.rollbackAndClose(); }
+                }
                 for (String locID: locIDs) {
                   String selected = (enc.getLocationID()!=null && enc.getLocationID().equals(locID)) ? "selected=\"selected\"" : "";
                   %><option <%=selected %> value="<%=locID%>"><%=locID%></option><%
