@@ -40,6 +40,7 @@ org.json.JSONArray
 <table id="data">
 <thead>
 <tr>
+    <th>trial id</th>
     <th>seq</th>
     <th>time</th>
     <th>timestamp</th>
@@ -79,7 +80,7 @@ for (Object o : all) {
     long prev = 0;
 
     for (int i = 0 ; i < res.length() ; i++) {
-        out.println("<tr" + ((start < 1) ? " class=\"start\"" : "") + "><td>" + (i + 1) + "</td>");
+        out.println("<tr" + ((start < 1) ? " class=\"start\"" : "") + "><td>" + ct.getId() + "</td><td>" + (i + 1) + "</td>");
         JSONObject pair = res.optJSONObject(i);
         if (pair == null) throw new RuntimeException("non-JSONObject at i=" + i + " for CatTest id=" + ct.getId());
         if (start < 1) {
