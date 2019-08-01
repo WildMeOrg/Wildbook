@@ -15,6 +15,7 @@ body {
 td {
     padding: 2px 10px;
     border: solid 1px #AAA;
+    font-size: 0.85em;
 }
 tr.start {
     background-color: #ABF;
@@ -39,7 +40,9 @@ org.json.JSONArray
 <table id="data">
 <thead>
 <tr>
+    <th>seq</th>
     <th>time</th>
+    <th>timestamp</th>
     <th>username</th>
     <th>trial</th>
     <th>library</th>
@@ -76,7 +79,7 @@ for (Object o : all) {
     long prev = 0;
 
     for (int i = 0 ; i < res.length() ; i++) {
-        out.println("<tr" + ((start < 1) ? " class=\"start\"" : "") + ">");
+        out.println("<tr" + ((start < 1) ? " class=\"start\"" : "") + "><td>" + (i + 1) + "</td>");
         JSONObject pair = res.optJSONObject(i);
         if (pair == null) throw new RuntimeException("non-JSONObject at i=" + i + " for CatTest id=" + ct.getId());
         if (start < 1) {
@@ -92,6 +95,7 @@ for (Object o : all) {
             out.println("<td>+ " + min + " min &nbsp; \u0394" + delta + "s</td>");
             prev = t;
         }
+        out.println("<td>" + (pair.optLong("t", -3L) / 1000L) + "</td>");
         out.println("<td>" + ct.getUsername() + "</td>");
         out.println("<td>" + ct.getTrial() + "</td>");
         String test = pair.getJSONObject("test").getString("indivId");

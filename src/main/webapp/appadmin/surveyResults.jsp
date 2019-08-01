@@ -15,6 +15,7 @@ body {
 td {
     padding: 2px 10px;
     border: solid 1px #AAA;
+    font-size: 0.85em;
 }
 tr.start {
     background-color: #ABF;
