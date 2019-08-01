@@ -40,11 +40,8 @@ context=ServletUtilities.getContext(request);
 
 <div class="container maincontent">
 
-              <h1 class="intro"><%=props.getProperty("databaseLogin")%>
+              <h1 class="intro">Volunteer login
               </h1>
-
-              <p align="left"><%=props.getProperty("requested")%>
-              </p>
 
               <p align="left">
 		
