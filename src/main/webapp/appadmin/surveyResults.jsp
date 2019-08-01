@@ -3,7 +3,7 @@
 <script>
 function exportExcel(aEl) {
     var d = new Date();
-    aEl.download = 'kitizen-science-survey-results-' + d.toISOString().substr(0,10) + '.xlsx';
+    aEl.download = 'kitizen-science-survey-results-' + d.toISOString().substr(0,10) + '.xls';
     aEl.href = exportTableToExcelUri(document.getElementById('data'), 'Survey Results');
     return true;
 }
