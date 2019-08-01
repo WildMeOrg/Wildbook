@@ -23,6 +23,7 @@
              org.ecocean.servlet.ServletUtilities,
              org.ecocean.CommonConfiguration,
              org.ecocean.Shepherd,
+             org.ecocean.AccessControl,
              org.ecocean.User,
              java.util.ArrayList,
              java.util.List,
@@ -42,6 +43,7 @@ props = ShepherdProperties.getProperties("header.properties", langCode, context)
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+boolean isAnonymous = (AccessControl.simpleUserString(request) == null);
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -395,8 +397,12 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
 <!-- TODO make this only show to non-logged in -->
+<% if (isAnonymous) { %>
                         <li><a href="<%=urlLoc %>/register.jsp">Sign up</a></li>
                         <li><a href="<%=urlLoc %>/login.jsp">Login</a></li>
+<% } else { %>
+                        <li><a href="<%=urlLoc %>/compare.jsp">Do a Matching Trial</a></li>
+<% } %>
                         <li><a href="<%=urlLoc %>/register.jsp?instructions">Instructions</a></li>
                     </ul>
                       </li>
