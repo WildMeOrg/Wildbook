@@ -56,6 +56,12 @@ label {
 #survey-section .top {
     vertical-align: top;
 }
+.big-button {
+    background-color: #BDB;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1.2em;
+}
 
 </style>
 <%
@@ -694,11 +700,11 @@ if (mode == 3) {
         if (loggedIn) {
 %>
 
-<p align="center"><strong><a href="compare.jsp">Proceed to Study</strong></p>
+<p align="center"><a class="big-button" href="compare.jsp">Proceed to Study</a></p>
 
 <%      } else { //is logged in %>
 
-<p align="center"><strong><a href="compare.jsp">Login to Proceed to Study</strong></p>
+<p align="center"><a class="big-button" href="compare.jsp">Login to Proceed to Study</a></p>
 
 <%      } %>
 
