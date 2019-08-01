@@ -217,14 +217,15 @@ System.out.println("(old) has keyword -> " + kma);
 		cal.clear(Calendar.SECOND);
 		cal.clear(Calendar.MILLISECOND);
 		//cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-		cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek() + 1);
+		//cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek() + 1);
 		long cutoff = cal.getTimeInMillis() - 10 + (4 * 60 * 60 * 1000);  // 4 hr timezone diff
-		if (cutoff > System.currentTimeMillis()) cutoff -= (7 * 24 * 60 * 60 * 1000);
+		if (cutoff > System.currentTimeMillis()) cutoff -= (1 * 24 * 60 * 60 * 1000);
 System.out.println("now = " + System.currentTimeMillis());
 System.out.println("cutoff = " + cutoff);
 		Query qry = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.CatTest WHERE username == '" + username + "' && timestamp > " + cutoff);
 		Collection c = (Collection) (qry.execute());
 		countSinceSunday = c.size();
+System.out.println("countSinceSunday = " + countSinceSunday);
 	}
 
 %>
@@ -318,7 +319,7 @@ $(document).ready(function() {
 		return;
 
 	} else if (!usePractice && (countSinceSunday >= maxThisWeek)) {
-		$('.compare-image-wrapper').html('<h1 class="blocker-message">You have taken the maximum trials this week. (' + maxThisWeek + ')</h1>');
+		$('.compare-image-wrapper').html('<h1 class="blocker-message">You have taken the maximum trials today. (' + maxThisWeek + ')</h1>');
 		return;
 	}
 
@@ -677,7 +678,7 @@ td span.trial-date {
 			</div>
 
 			<div class="middle-controls" id="match-question">
-				<div style="padding: 10px; font-size: 1.3em;">Is this the same cat in both photos?<br />Use the zoom tool for distant photos.</div>
+				<div style="padding: 10px; font-size: 1.3em;">Is this the same cat in both photos?<br />Click photos to zoom in.</div>
 				<div>
 					<input type="button" value="YES" onClick="return answerClick('yes');" />
 					<input type="button" value="NO" onClick="return answerClick('no');" />
