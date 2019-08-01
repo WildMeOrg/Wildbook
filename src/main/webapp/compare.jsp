@@ -211,6 +211,7 @@ System.out.println("(old) has keyword -> " + kma);
 
 	int countSinceSunday = 0;
 	if (username != null) {
+/*
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.clear(Calendar.MINUTE);
@@ -220,6 +221,8 @@ System.out.println("(old) has keyword -> " + kma);
 		//cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek() + 1);
 		long cutoff = cal.getTimeInMillis() - 10 + (4 * 60 * 60 * 1000);  // 4 hr timezone diff
 		if (cutoff > System.currentTimeMillis()) cutoff -= (1 * 24 * 60 * 60 * 1000);
+*/
+		long cutoff = System.currentTimeMillis() - (1 * 24 * 60 * 60 * 1000);
 System.out.println("now = " + System.currentTimeMillis());
 System.out.println("cutoff = " + cutoff);
 		Query qry = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.CatTest WHERE username == '" + username + "' && timestamp > " + cutoff);
