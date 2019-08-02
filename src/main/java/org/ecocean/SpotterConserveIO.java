@@ -237,6 +237,9 @@ Distance Category: "B"
         enc.setDynamicProperty("CINMS PID Code", jin.optString("PID Code", null));
         enc.setDynamicProperty("CINMS Card Number", jin.optString("Card Number", null));
         enc.setOccurrenceID(occId);
+        //lat/lon come from occurrence
+        enc.setDecimalLatitude(resolveLatLon(occJson, "device_latitude", "latitude"));
+        enc.setDecimalLongitude(resolveLatLon(occJson, "device_longitude", "longitude"));
         User sub = ciToUser(allJson, myShepherd);
         enc.addSubmitter(sub);
         List<User> vols = ciGetVolunteerUsers(allJson, myShepherd);
