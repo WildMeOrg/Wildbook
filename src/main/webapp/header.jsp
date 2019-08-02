@@ -166,7 +166,7 @@ boolean isAnonymous = (AccessControl.simpleUserString(request) == null);
 		                  %>
 
 		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
-		             				      <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
+		             				      <!-- <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li> -->
 
 		                      		<%
 	                          }
@@ -179,7 +179,7 @@ boolean isAnonymous = (AccessControl.simpleUserString(request) == null);
 	                      else{
 	                      %>
 
-	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li>
+	                      	<!-- <li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li> -->
 
 	                      <%
 	                      }
@@ -399,7 +399,7 @@ boolean isAnonymous = (AccessControl.simpleUserString(request) == null);
 <!-- TODO make this only show to non-logged in -->
 <% if (isAnonymous) { %>
                         <li><a href="<%=urlLoc %>/register.jsp">Sign up</a></li>
-                        <li><a href="<%=urlLoc %>/login.jsp">Login</a></li>
+                        <li><a href="<%=urlLoc %>/compare.jsp">Login</a></li>
 <% } else { %>
                         <li><a href="<%=urlLoc %>/compare.jsp">Do a Matching Trial</a></li>
 <% } %>

@@ -57,9 +57,10 @@ label {
     vertical-align: top;
 }
 .big-button {
-    background-color: #BDB;
+    background-color: #9dc327;
     border-radius: 8px;
     padding: 10px 20px;
+    color: white !important;
     font-size: 1.2em;
 }
 
