@@ -202,7 +202,7 @@ if (session.getAttribute("error") != null) {
 
 <img src="images/participate_manatdesk.jpg" style="height: 300px; float: right; margin-top: -5em;" />
 <p>
-Our first phase of validation tests are running from now until September 29, 2019.
+Our first phase of validation tests are running from now until October 6, 2019.
 </p>
 
 <p>
@@ -619,7 +619,7 @@ if (mode == 3) {
 
 <p><h1>Instructions for Validation Study 1</h1></p>
 <p>The first of our three validation tests is about determining how good humans are at identifying cats from photos by making matches between one cat photo and a library of cat photos.  Similar tests have been conducted on many types of animals since it's important for researchers to understand and plan for human error rates. </p>
-<p>This study is running from July 29 to September 29, 2019.  You can join at any time during that period.  You can complete all 50 matching trials, or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each matching trial will each take 30-60 minutes to complete, depending on your personal pace. You can complete a maximum of 2 matching trials per day.  Previous studies of photo identification in animals have suggested that observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time. </p>
+<p>This study is running from August 5 to October 6, 2019.  You can join at any time during that period.  You can complete all 50 matching trials, or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each matching trial will each take 30-60 minutes to complete, depending on your personal pace. You can complete a maximum of 2 matching trials per day.  Previous studies of photo identification in animals have suggested that observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time. </p>
 <p><h2>Enrollment process </h2></p>
 <p>This study asks you to consent to participate as a research volunteer, register for the website, and answer some demographic questions.  We don't need to know your name, but you will need to register for the website with an email address. </p>
 <p><h2>Rules </h2></p>
