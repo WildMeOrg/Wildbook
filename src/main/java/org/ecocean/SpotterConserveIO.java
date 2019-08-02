@@ -342,6 +342,9 @@ System.out.println("vols namesIn=[" + namesIn + "]");
   "Jake's trips are under project #4 which is Carib Whale and should be very similar to the CINMS format"  -virgil
         thus, some of this piggybacks on ci* calls.
 
+also, seems like project id=26 (shane's) is close enough to this that i am going to go ahead and piggyback on this
+there are of course (sigh) some minor differences, so mind the hacking.
+
 ******************************************/
     //this is the "starting point" for JSON from the API
     public static Survey cwToSurvey(JSONObject jin, Shepherd myShepherd) {
@@ -373,11 +376,13 @@ System.out.println("vols namesIn=[" + namesIn + "]");
 
 ///TODO do we .setEffort based on survey track lengths or what???
 
-        if (jin.optJSONArray("Demo Weather") != null) {
+        //HACK ... can be either one of these
+        JSONArray weatherArr = jin.optJSONArray("Demo Weather");
+        if (weatherArr == null) weatherArr = jin.optJSONArray("CaribWhale Weather");
+        if (weatherArr != null) {
             ArrayList<Observation> wths = new ArrayList<Observation>();
-            JSONArray jw = jin.getJSONArray("Demo Weather");
-            for (int i = 0 ; i < jw.length() ; i++) {
-                Observation wth = ciToWeather(jw.optJSONObject(i), survey);
+            for (int i = 0 ; i < weatherArr.length() ; i++) {
+                Observation wth = ciToWeather(weatherArr.optJSONObject(i), survey);
                 if (wth != null) wths.add(wth);
             }
             survey.addObservationArrayList(wths);
@@ -459,11 +464,13 @@ System.out.println("(cw)ciToTaxonomy => " + tax);
         //it actually appears the jin2 array contains WhaleAlert type sightings data, fwiw; but we only care about these 2:
         occ.addComments("<p class=\"import-source\">conserve.io source: <a href=\"" + jin2.optString("url") + "\"><b>" + jin2.optString("id") + "</b></a></p>");
 
-        if (jin.optJSONArray("Behavior") != null) {
+        //HACK it can be either of these   :(
+        JSONArray behavArr = jin.optJSONArray("Behavior");
+        if (behavArr == null) behavArr = jin.optJSONArray("CaribWhale Behavior");
+        if (behavArr != null) {
             List<Instant> bhvs = new ArrayList<Instant>();
-            JSONArray jb = jin.getJSONArray("Behavior");
-            for (int i = 0 ; i < jb.length() ; i++) {
-                Instant bhv = cwToBehavior(jb.optJSONObject(i));
+            for (int i = 0 ; i < behavArr.length() ; i++) {
+                Instant bhv = cwToBehavior(behavArr.optJSONObject(i));
                 if (bhv != null) bhvs.add(bhv);
             }
             occ.setBehaviors(bhvs);
@@ -491,7 +498,9 @@ System.out.println("(cw)ciToTaxonomy => " + tax);
     }
 
     public static Instant cwToBehavior(JSONObject jin) {
+        //HACK can be either of these....
         String name = jin.optString("Behavior", null);
+        if (name == null) name = jin.optString("CaribWhale Behavior", null);
         DateTime dt = toDateTime(jin.optString("create_date", null));
         if ((name == null) || (dt == null)) return null;
         return new Instant(name, dt, null);
@@ -500,6 +509,7 @@ System.out.println("(cw)ciToTaxonomy => " + tax);
     //FIXME  these are hardcoded for now cuz i have no idea how to map these -- no email addresses.  :/
     public static User cwToUser(JSONObject jin, Shepherd myShepherd) {
         if (jin.optString("creator").equals("Jlevenson1")) return myShepherd.getUserByUUID("dc23b977-dfaa-4cda-b074-78df4f388dd8");
+        if (jin.optString("creator").equals("ShaneGero")) return myShepherd.getUserByUUID("6811f404-aaa5-4b13-9d2c-111e3738955b");
         //return ciGetSubmitterUser(myShepherd);
         return null;
     }
