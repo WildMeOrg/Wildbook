@@ -31,9 +31,11 @@ Shepherd myShepherd=new Shepherd(context);
 
 <p>The name for locationID 6 is: <pre><%=LocationID.getNameforLocationID("6") %></pre></p>
 
-<p>The parent and child IDs for locationID 1 are: <pre><%=LocationID.getNamesForParentAndChildren("1").toString() %></pre></p>
+<p>The parent and child IDs for locationID 1 are: <pre><%=LocationID.getIDForParentAndChildren("1").toString() %></pre></p>
 
-
+<form>
+<%=LocationID.getHTMLSelector()%>
+</form>
 
 </body>
 </html>
