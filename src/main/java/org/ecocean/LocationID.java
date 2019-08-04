@@ -11,13 +11,20 @@ import org.json.JSONTokener;
 
 public class LocationID {
   
+  //the JSON representation of /bundles/locationID.json
   private static JSONObject json;
   
+  /*
+   * Return the JSON representation of /bundles/locationID.json 
+   */
   public static JSONObject getLocationIDStructure() {
     if(json==null)loadJSONData();
     return json;
   }
   
+  /*
+   * Force a reload of /bundles/locationID.json
+   */
   public static void reloadJSON() {
     json=null;
     loadJSONData();
@@ -58,8 +65,11 @@ public class LocationID {
     return null;
   }
   
+  /*
+   * Return the "name" attribute from JSON for a given "id" in /bundles/locationID.json
+   */
   public static String getNameforLocationID(String locationID) {
-    JSONObject j=recurseToFindID(locationID,json);
+    JSONObject j=recurseToFindID(locationID,getLocationIDStructure());
     if(j!=null) {
       try{
         return j.getString("name");
@@ -69,9 +79,20 @@ public class LocationID {
     return null;
   }
   
-  public static List<String> getNamesForParentAndChildren(String locationID) {
+  
+  /*
+   * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children
+   */
+  public static List<String> getIDForParentAndChildren(String locationID) {
     ArrayList<String> al=new ArrayList<String>();
-    JSONObject j=recurseToFindID(locationID,json);
+    return getIDForParentAndChildren(locationID,al);
+  }
+  
+  /*
+   * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children
+   */
+  public static List<String> getIDForParentAndChildren(String locationID,ArrayList<String> al) {
+    JSONObject j=recurseToFindID(locationID,getLocationIDStructure());
     if(j!=null) {
       try{
         
@@ -108,8 +129,44 @@ public class LocationID {
   catch(JSONException e) {}
   }
   
+  /*
+  * Return an HTML selector of hierarchical locationIDs with indenting
+  */
+  public static String getHTMLSelector() {
+    
+    StringBuffer selector=new StringBuffer("<select multiple=\"multiple\">\n\r");
 
+     createSelectorOptions(getLocationIDStructure(),selector,0);
+    
+    selector.append("</select>\n\r");
+    return selector.toString();
+
+  }
   
+  private static void createSelectorOptions(JSONObject jsonobj,StringBuffer selector,int nestingLevel) {
+    
+    int localNestingLevel=nestingLevel;
+    
+    //see if we can add this item to the list
+    try {
+      selector.append("<option value=\""+jsonobj.getString("id")+"\" style=\"padding-left: "+(nestingLevel*15)+"px;\">"+jsonobj.getString("name")+"</option>\n\r");
+      localNestingLevel++;
+    }
+    catch(JSONException e) {}
+
+    
+    //iterate locationID array
+    try {
+        JSONArray locs=jsonobj.getJSONArray("locationID");
+        int numLocs=locs.length();
+        for(int i=0;i<numLocs;i++) {
+          
+          JSONObject loc=locs.getJSONObject(i);
+          createSelectorOptions(loc,selector,localNestingLevel);
+        }
+    }
+    catch(JSONException e) {}
+  }
   
 
 }
