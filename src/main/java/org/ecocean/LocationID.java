@@ -159,12 +159,12 @@ public class LocationID {
   /*
   * Return an HTML selector of hierarchical locationIDs with indenting
   */
-  public static String getHTMLSelector(boolean multiselect, String selectedID,String qualifier) {
+  public static String getHTMLSelector(boolean multiselect, String selectedID,String qualifier, String htmlID, String htmlName, String htmlClass) {
     
     String multiselector="";
     if(multiselect)multiselector=" multiple=\"multiple\"";
     
-    StringBuffer selector=new StringBuffer("<select name=\"code\" id=\"selectCode\" class=\"form-control\" "+multiselector+">\n\r<option value=\"\"></option>\n\r");
+    StringBuffer selector=new StringBuffer("<select name=\""+htmlName+"\" id=\""+htmlID+"\" class=\""+htmlClass+"\" "+multiselector+">\n\r<option value=\"\"></option>\n\r");
 
      createSelectorOptions(getLocationIDStructure(qualifier),selector,0,selectedID);
     
@@ -178,7 +178,7 @@ public class LocationID {
     int localNestingLevel=nestingLevel;
     String selected="";
     String spacing="";
-    for(int i=0;i<localNestingLevel;i++) {spacing+="&nbsp;&nbsp;";}
+    for(int i=0;i<localNestingLevel;i++) {spacing+="&nbsp;&nbsp;&nbsp;";}
     //see if we can add this item to the list
     try {
       if(selectedID!=null && jsonobj.getString("id").equals(selectedID))selected=" selected=\"selected\"";
