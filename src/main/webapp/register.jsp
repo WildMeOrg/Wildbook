@@ -635,9 +635,9 @@ if (mode == 3) {
     <td width="498" valign="top"><div align="center">Is the cat wearing a collar?  Keep in mind that collars can be added or removed, unlike fur coat patterns. Don't rely only on collars, but it can be one clue.</div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="http://www.kitizenscience.org/images/whattolookfor_eartip.jpg" width="287" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_eartip.jpg" width="287" height="250" /></div></td>
     <td width="50">&nbsp;</td>
-    <td><div align="center"><img src="http://www.kitizenscience.org/images/whattolookfor_collar.jpg" width="287" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_collar.jpg" width="287" height="250" /></div></td>
   </tr>
   <tr>
     <td height="50">&nbsp;</td>
@@ -650,9 +650,9 @@ if (mode == 3) {
     <td valign="top"><div align="center">Tabby cats can look similar, but the arrangement of their stripes differs.  Some have wider or thinner stripes, darker or lighter stripes, running at different angles. </div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="http://www.kitizenscience.org/images/whattolookfor_face.jpg" width="287" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_face.jpg" width="287" height="250" /></div></td>
     <td width="50">&nbsp;</td>
-    <td><div align="center"><img src="http://www.kitizenscience.org/images/whattolookfor_flanks.jpg" width="287" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_flanks.jpg" width="287" height="250" /></div></td>
   </tr>
   <tr>
     <td height="50">&nbsp;</td>
@@ -665,9 +665,9 @@ if (mode == 3) {
     <td valign="top"><div align="center">Tails can also be different, and some cats have shorter or kinked tails. (Sometimes cats are sitting on their tails in a photo, so you can't see anything.)</div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="http://www.kitizenscience.org/images/whattolookfor_frontlegs.jpg" width="287" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_frontlegs.jpg" width="287" height="250" /></div></td>
     <td width="50">&nbsp;</td>
-    <td><div align="center"><img src="http://www.kitizenscience.org/images/whattolookfor_tail.jpg" width="238" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_tail.jpg" width="238" height="250" /></div></td>
   </tr>
   <tr>
     <td height="50">&nbsp;</td>
@@ -680,9 +680,9 @@ if (mode == 3) {
     <td valign="top"><div align="center">Remember that not every cat photo is going to be a great one, and sometimes you won't have the best view.  Try to do your best with the angle you have. </div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="http://www.kitizenscience.org/images/whattolookfor_longfur.jpg" width="307" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_longfur.jpg" width="307" height="250" /></div></td>
     <td width="50">&nbsp;</td>
-    <td><div align="center"><img src="http://www.kitizenscience.org/images/whattolookfor_backside.jpg" width="213" height="250" /></div></td>
+    <td><div align="center"><img src="images/whattolookfor_backside.jpg" width="213" height="250" /></div></td>
   </tr>
 </table>
 <p>&nbsp;</p>
