@@ -1018,7 +1018,7 @@ if(enc.getLocation()!=null){
           <div class="form-group row">
             <div class="col-sm-5">
               
-              <%=LocationID.getHTMLSelector(false, enc.getLocationID(),null) %>
+              <%=LocationID.getHTMLSelector(false, enc.getLocationID(),null,"selectCode","code","form-control") %>
               
             </div>
             <div class="col-sm-3">

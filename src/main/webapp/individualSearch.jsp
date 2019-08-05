@@ -467,35 +467,13 @@ function FSControl(controlDiv, map) {
         List<String> locIDs = (useCustomProperties)
           ? CommonConfiguration.getIndexedPropertyValues("locationID", request)
           : myShepherd.getAllLocationIDs();
-        if (Util.isEmpty(locIDs)) locIDs = myShepherd.getAllLocationIDs(); // in case not custom-defined
-        int totalLocIDs = locIDs.size();
+        //if (Util.isEmpty(locIDs)) locIDs = myShepherd.getAllLocationIDs(); // in case not custom-defined
+		//TO-DO map back into the custom work to override for user/org
+
+      %>
+		<%=LocationID.getHTMLSelector(true, "",null,"locationCodeField","locationCodeField","") %>
 
 
-        if (totalLocIDs >= 1) {
-      %>
-
-      <select multiple size="10" name="locationCodeField" id="locationCodeField" size="10">
-        <option value="None"></option>
-        <%
-          for (int n = 0; n < totalLocIDs; n++) {
-            String word = locIDs.get(n);
-            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
-        %>
-        <option value="<%=word%>"><%=word%>
-        </option>
-        <%
-            }
-          }
-        %>
-      </select>
-      <%
-      } else {
-      %>
-      <p><em><%=props.getProperty("noLocationIDs")%>
-      </em></p>
-      <%
-        }
-      %>
     </div>
   </td>
 
