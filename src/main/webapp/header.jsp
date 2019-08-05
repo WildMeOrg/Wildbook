@@ -318,7 +318,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand" href="https://dragonsearch.org/">Dragonsearch.org - Powered by Wildbook</a>
                 </div>
               </div>
 
