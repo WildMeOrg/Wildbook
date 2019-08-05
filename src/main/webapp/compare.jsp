@@ -194,8 +194,6 @@ System.out.println("(old) has keyword -> " + kma);
   ;
 */
 
-long t = System.currentTimeMillis();
-System.out.println
 	Vector all = myShepherd.getAllEncountersNoFilterAsVector();
 	JSONArray jall = new JSONArray();
 	for (Object obj : all) {
