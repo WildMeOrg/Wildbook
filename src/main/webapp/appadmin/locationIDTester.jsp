@@ -25,25 +25,32 @@ Shepherd myShepherd=new Shepherd(context);
 
 
 <body>
+<h2>Default tests</h2>
 <p><pre><%=LocationID.getLocationIDStructure().toString() %></pre></p>
 
-<p>The name for locationID 1 is: <pre><%=LocationID.getNameforLocationID("1") %></pre></p>
+<p>The name for locationID 1 is: <pre><%=LocationID.getNameForLocationID("1",null) %></pre></p>
 
-<p>The name for locationID 6 is: <pre><%=LocationID.getNameforLocationID("6") %></pre></p>
+<p>The name for locationID 6 is: <pre><%=LocationID.getNameForLocationID("6",null) %></pre></p>
 
-<p>The parent and child IDs for locationID 1 are: <pre><%=LocationID.getIDForParentAndChildren("1").toString() %></pre></p>
+<p>The parent and child IDs for locationID 1 are: <pre><%=LocationID.getIDForParentAndChildren("1",null).toString() %></pre></p>
 
 <p>
 <form>
-<%=LocationID.getHTMLSelector(true,null)%>
+<%=LocationID.getHTMLSelector(true,null,null)%>
 </form>
 </p>
 
 <p>Single select and selected: 
 <form>
-<%=LocationID.getHTMLSelector(false, "1")%>
+<%=LocationID.getHTMLSelector(false, "1",null)%>
 </form>
 </p>
 
+<h2>Override tests</h2>
+<p><pre><%=LocationID.getLocationIDStructure("test").toString() %></pre></p>
+
+<p>The name for locationID 1 is: <pre><%=LocationID.getNameForLocationID("1","test") %></pre></p>
+
+<p>The name for locationID 6 is: <pre><%=LocationID.getNameForLocationID("6","test") %></pre></p>
 </body>
 </html>
