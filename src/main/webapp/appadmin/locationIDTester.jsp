@@ -33,9 +33,17 @@ Shepherd myShepherd=new Shepherd(context);
 
 <p>The parent and child IDs for locationID 1 are: <pre><%=LocationID.getIDForParentAndChildren("1").toString() %></pre></p>
 
+<p>
 <form>
-<%=LocationID.getHTMLSelector()%>
+<%=LocationID.getHTMLSelector(true,null)%>
 </form>
+</p>
+
+<p>Single select and selected: 
+<form>
+<%=LocationID.getHTMLSelector(false, "1")%>
+</form>
+</p>
 
 </body>
 </html>

@@ -784,7 +784,7 @@ if(enc.getLocation()!=null){
 
 <a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
-<em><%=encprops.getProperty("locationID") %></em><span> <span id="displayLocationID"><%=enc.getLocationCode()%></span></span>
+<em><%=encprops.getProperty("locationID") %></em><span> <span id="displayLocationID"><%=LocationID.getNameForLocationID(enc.getLocationID())%></span></span>
 
 <br>
 
@@ -1017,29 +1017,9 @@ if(enc.getLocation()!=null){
           %>
           <div class="form-group row">
             <div class="col-sm-5">
-              <select name="code" id="selectCode" class="form-control" size=="1">
-                <option value=""></option>
-
-                <%
-
-
-                List<String> locIDs = null;
-
-                if (useCustomProperties) {
-                  locIDs = CommonConfiguration.getIndexedPropertyValues("locationID", request);
-                } else {
-                  Shepherd locShepherd = Shepherd.newActiveShepherd(context, "submit-locations");
-                  try { locIDs = locShepherd.getAllLocationIDs(); }
-                  catch (Exception e) { locIDs = new ArrayList<String>(); }
-                  finally { locShepherd.rollbackAndClose(); }
-                }
-                for (String locID: locIDs) {
-                  String selected = (enc.getLocationID()!=null && enc.getLocationID().equals(locID)) ? "selected=\"selected\"" : "";
-                  %><option <%=selected %> value="<%=locID%>"><%=locID%></option><%
-                }
-                %>
-
-              </select>
+              
+              <%=LocationID.getHTMLSelector(false, enc.getLocationID()) %>
+              
             </div>
             <div class="col-sm-3">
               <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>

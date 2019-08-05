@@ -68,7 +68,7 @@ public class LocationID {
   /*
    * Return the "name" attribute from JSON for a given "id" in /bundles/locationID.json
    */
-  public static String getNameforLocationID(String locationID) {
+  public static String getNameForLocationID(String locationID) {
     JSONObject j=recurseToFindID(locationID,getLocationIDStructure());
     if(j!=null) {
       try{
@@ -108,7 +108,7 @@ public class LocationID {
     
     //if this is the right object, return it
     try {
-      al.add(jsonobj.getString("id"));
+      if(!al.contains(jsonobj.getString("id")))al.add(jsonobj.getString("id"));
     }
     catch(JSONException e) {}
     
@@ -132,24 +132,30 @@ public class LocationID {
   /*
   * Return an HTML selector of hierarchical locationIDs with indenting
   */
-  public static String getHTMLSelector() {
+  public static String getHTMLSelector(boolean multiselect, String selectedID) {
     
-    StringBuffer selector=new StringBuffer("<select multiple=\"multiple\">\n\r");
+    String multiselector="";
+    if(multiselect)multiselector=" multiple=\"multiple\"";
+    
+    StringBuffer selector=new StringBuffer("<select name=\"code\" id=\"selectCode\" class=\"form-control\" "+multiselector+">\n\r<option value=\"\"></option>\n\r");
 
-     createSelectorOptions(getLocationIDStructure(),selector,0);
+     createSelectorOptions(getLocationIDStructure(),selector,0,selectedID);
     
     selector.append("</select>\n\r");
     return selector.toString();
 
   }
   
-  private static void createSelectorOptions(JSONObject jsonobj,StringBuffer selector,int nestingLevel) {
+  private static void createSelectorOptions(JSONObject jsonobj,StringBuffer selector,int nestingLevel, String selectedID) {
     
     int localNestingLevel=nestingLevel;
-    
+    String selected="";
+    String spacing="";
+    for(int i=0;i<localNestingLevel;i++) {spacing+="&nbsp;&nbsp;";}
     //see if we can add this item to the list
     try {
-      selector.append("<option value=\""+jsonobj.getString("id")+"\" style=\"padding-left: "+(nestingLevel*15)+"px;\">"+jsonobj.getString("name")+"</option>\n\r");
+      if(selectedID!=null && jsonobj.getString("id").equals(selectedID))selected=" selected=\"selected\"";
+      selector.append("<option value=\""+jsonobj.getString("id")+"\" "+selected+">"+spacing+jsonobj.getString("name")+"</option>\n\r");
       localNestingLevel++;
     }
     catch(JSONException e) {}
@@ -162,7 +168,7 @@ public class LocationID {
         for(int i=0;i<numLocs;i++) {
           
           JSONObject loc=locs.getJSONObject(i);
-          createSelectorOptions(loc,selector,localNestingLevel);
+          createSelectorOptions(loc,selector,localNestingLevel,selectedID);
         }
     }
     catch(JSONException e) {}
