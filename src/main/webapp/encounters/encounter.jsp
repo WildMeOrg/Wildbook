@@ -784,7 +784,7 @@ if(enc.getLocation()!=null){
 
 <a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
-<em><%=encprops.getProperty("locationID") %></em><span> <span id="displayLocationID"><%=LocationID.getNameForLocationID(enc.getLocationID())%></span></span>
+<em><%=encprops.getProperty("locationID") %></em><span> <span id="displayLocationID"><%=LocationID.getNameForLocationID(enc.getLocationID(),null)%></span></span>
 
 <br>
 
@@ -973,10 +973,10 @@ if(enc.getLocation()!=null){
       var code = $("#selectCode").val();
 
       $.post("../EncounterSetLocationID", {"number": number, "code": code},
-      function() {
+      function(response) {
         $("#locationIDerrorDiv").hide();
         $("#locationIDcheck").show();
-        $("#displayLocationID").html(code);
+        $("#displayLocationID").html(response.name);
       })
       .fail(function(response) {
         $("#locationIDerror, #locationIDerrorDiv").show();
@@ -1018,7 +1018,7 @@ if(enc.getLocation()!=null){
           <div class="form-group row">
             <div class="col-sm-5">
               
-              <%=LocationID.getHTMLSelector(false, enc.getLocationID()) %>
+              <%=LocationID.getHTMLSelector(false, enc.getLocationID(),null) %>
               
             </div>
             <div class="col-sm-3">
