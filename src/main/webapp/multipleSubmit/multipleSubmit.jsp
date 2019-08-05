@@ -39,7 +39,7 @@ if (tempBytes!=""&&tempBytes!=undefined&&!isNaN(tempBytes)) {
             <div class="container">
                 <h2><%= props.getProperty("pageHeader")%></h2>
                 <h4><b><%= props.getProperty("headerDesc")%></b></h4>
-                <p><%= props.getProperty("instructionsBody")%></p>
+                <p id="instructionsBody"><%= props.getProperty("instructionsBody")%></p>
                 <p><a href="<%=baseUrl%>/multipleSubmit/instructions.jsp"><%= props.getProperty("instructionsLink")%></a></p>
             </div>  
             <hr>

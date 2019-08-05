@@ -51,6 +51,9 @@ function continueButtonClicked() {
     $("#backButton").show();
     $("#sendButton").show();
     $(".recaptcha-div").hide();
+    // clear text in #instructionsBody, add alternate
+    $("#instructionsBody").empty();
+    $("#instructionsBody").text(txt("instructionsCurate")); 
     showSelectedMedia();
 }
 
@@ -62,6 +65,11 @@ function backButtonClicked() {
     $("#sendButton").hide();
     $(".recaptcha-div").show();
     $("#gallery-header").show();
+    // clear text in #instructionsBody, replace original  
+    // clear show/hide buttons from curation screen
+    $("#instructionsBody").empty();
+    $("#gallery-header").empty();
+    $("#instructionsBody").text(txt("instructionsBody"));
     clearSelectedMedia();
 }
 
@@ -130,10 +138,12 @@ var safeColors = [
                             ];
 
 function showSelectedMedia() {
-    let fileList = document.getElementById('file-list-container');
+    //let fileList = document.getElementById('file-list-container');
+    //fileList.innerHTML = "";
+    //fileList.outerHTML = "";
+    let fileList = document.getElementById('input-file-list');
     fileList.innerHTML = "";
-    fileList.outerHTML = "";
-    //document.getElementsByClassName("action-message")[0].innerHTML = "";
+    document.getElementsByClassName("action-message")[0].innerHTML = "";
     let files = document.getElementById('file-selector-input').files;
     let imageTiles = "";
     let metadataTiles = "";
