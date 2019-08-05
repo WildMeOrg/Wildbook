@@ -36,13 +36,13 @@ Shepherd myShepherd=new Shepherd(context);
 
 <p>
 <form>
-<%=LocationID.getHTMLSelector(true,null,null)%>
+<%=LocationID.getHTMLSelector(true,null,null,"id","name","class")%>
 </form>
 </p>
 
 <p>Single select and selected: 
 <form>
-<%=LocationID.getHTMLSelector(false, "1",null)%>
+<%=LocationID.getHTMLSelector(false, "1",null,"id","name","class")%>
 </form>
 </p>
 
@@ -52,5 +52,16 @@ Shepherd myShepherd=new Shepherd(context);
 <p>The name for locationID 1 is: <pre><%=LocationID.getNameForLocationID("1","test") %></pre></p>
 
 <p>The name for locationID 6 is: <pre><%=LocationID.getNameForLocationID("6","test") %></pre></p>
+
+<h2>Get hierarchy for ID</h2>
+
+<%
+List<String> al=LocationID.getIDForChildAndParents("Ifaty",null);
+		
+%>
+
+<p><pre>For Ifaty: <%=al.toString() %></pre></p>
+
+
 </body>
 </html>
