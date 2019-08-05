@@ -44,12 +44,13 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 boolean isAnonymous = (AccessControl.simpleUserString(request) == null);
+String pageTitle = (String)request.getAttribute("pageTitle");
+if (pageTitle == null) pageTitle = CommonConfiguration.getHTMLTitle(context);
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
-      <title><%=CommonConfiguration.getHTMLTitle(context)%>
-      </title>
+      <title><%=pageTitle%></title>
       <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
       <meta name="Description"
