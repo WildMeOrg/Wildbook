@@ -1,35 +1,79 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.CommonConfiguration,java.util.Properties, org.ecocean.servlet.ServletUtilities" %>
 <%
 
-//setup our Properties object to hold all properties
-	Properties props=new Properties();
-	String langCode=ServletUtilities.getLanguageCode(request);
-	
-	String context="context0";
-	context=ServletUtilities.getContext(request);
-	
-	//set up the file input stream
-	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
-	//props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/whoweare.properties"));
-	props=ShepherdProperties.getProperties("whoweare.properties", langCode, context);
-    
-	
+  //setup our Properties object to hold all properties
+  
+  String langCode = ServletUtilities.getLanguageCode(request);
+
+  //set up the file input stream
+  //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
+  //props.load(propsInputStream);
+  
+  
+
+  
+  String context=ServletUtilities.getContext(request);
+        request.setAttribute("pageTitle", "Kitizen Science &gt; Spay/Neuter Evidence");
+
 %>
-
-<jsp:include page="header.jsp" flush="true" />
-
+<jsp:include page="header.jsp" flush="true"/>
 <div class="container maincontent">
 
-   <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
-        <h1>Spay / Neuter</h1>
-        <p class="lead">
-            spay / neuter
-        </p>
+<h1>Spay/Neuter Evidence</h1>
+<p><em>First, a short definition of terms used on this page and elsewhere on the website.  There are a lot of names for programs that sterilize unowned outdoor cats (trap-neuter-return, shelter-neuter-return, return to field, community cat programs) and return them to where they were trapped.  Here, we use &quot;spay/neuter program&quot; as our most all-inclusive and neutral term.  There are also many names for unowned outdoor cats (feral cat, community cat, stray cat, working cat, barn cat).  We have chosen to use &quot;free-roaming cat&quot; as our most all-inclusive and neutral term. </em></p>
+<h2><img src="images/evidence_catpapers.jpg" width="260" height="400" hspace="10" vspace="10" align="right" />Isn't there already proof that spay/neuter works? </h2>
+<p>In debates about whether or not spay/neuter programs &quot;work,&quot; people with different values and goals can disagree simply because they are looking at the question differently.  There are many ways to define <em>success</em>: cat population decreases, saving cats' lives in shelters, reducing cat complaints to animal control.  There are many <em>metrics</em> to measure: shelter statistics, free-roaming cat numbers, mathematical modeling outputs.  There are many ways to <em>design</em> research: controlled experiments, observational and case studies, and statistical modeling.  And finally, <em>time frames</em> can last from a short period to decades. </p>
+<p>This page contains is a list of all known original, peer-reviewed research articles about the impacts of spay/neuter programs in North America, currently totaling 34.  Our research list does not include public opinion surveys, review articles, letters to the editor, veterinary best practice guidelines, studies from other parts of the world, dog spay/neuter, or general research about free-roaming cat behavior and health.  The list also does not include studies solely about feline contraceptives and other means of cat reproductive control that are currently in development but not yet in widespread use.  (To read more about those exciting new areas of research, visit <a href="https://www.acc-d.org" target="_blank">the Alliance for Contraception in Cats &amp; Dogs</a>.) </p>
+<h2>The Terminology of Science </h2>
+<p>There can be a language barrier and learning curve when you first start to read scientific papers, because many of the words used in science also have popular meanings. Here are some definitions of key scientific terms we use on this website and in the articles in our collection. </p>
+<p><strong>Research</strong>: In casual usage, “research” is used to mean any act of gathering information to aid in decision-making, such as “researching vacation destinations.”  In a scientific context, research is a more formal and structured process.  The scientific method consists of identifying an issue to investigate, designing a study to collect data, analyzing the data, and drawing a conclusion based on the evidence.  This process can be decision-oriented, as in “actionable science” that applies scientific findings to decision-making in a management or policy realm.  On this web page, we group research into three basic designs: experimental, observational, and modeling.  All study designs are strengthened with the use of larger sample sizes and more replications to reduce variability. </p>
+<p><strong><img src="images/evidence_controlledexperiment.jpg" width="300" height="300" hspace="10" vspace="10" align="left" />Experimental study</strong>: Experiments test whether an intentional intervention by the researcher affects subjects or areas compared to subjects or areas that do not receive the intervention.  These are known as “controls.”  For example, after spraying a fertilizer on your lawn for a month, it appears greener.  Does this prove that the fertilizer worked?  No, because you don't know what would have happened without the fertilizer.  Your lawn may be greener because it was a good month for rain.  A better plan would be a controlled experiment of spraying half of your lawn with fertilizer and leaving the other half alone.  Only by comparing treated animals, humans, or areas against a similar but untreated control group can you become more confident that it was your treatment that caused the difference.  The strongest experimental designs use randomization to determine which subjects get an intervention and which don't, ensuring that bias was not accidentally introduced in selection.  Controlled experiments can be difficult and expensive to conduct, but they allow us to draw the strongest conclusions. </p>
+<p><strong>Observational study</strong>: Observational studies are easier and less expensive to conduct than experiments.  (Think of the grass example above: an observational case study is like noting that your lawn became greener after applying fertilizer.)  In these studies, information about groups or areas is examined in detail.  These studies are often <em>retrospective</em>, meaning they analyze data about something that already happened.  Observational studies sometimes compare their group/area to another group/area, but this comparison is less rigorous than a controlled experiment.  (A friend who does not use fertilizer says she has not seen her lawn become greener this month.  But, the fertilizer is not the only difference between your two lawns.  Her soil type or shade coverage may be different.)  Observational studies can't draw as strong a conclusion as an experimental study, but they can be a valuable first step to provide background for designing an experiment, and their conclusions become stronger when repeated, especially in various contexts. </p>
+<p><strong>Modeling study</strong>: Mathematical modeling is used to make predictions about an outcome that is unknown by creating simulations based on information that is known.  You probably look at one form of modeling every day: the weather forecast.  Like weather forecasts, sometimes research models are excellent at making correct predictions, and sometimes they are not.  Models get better with the addition of more and context-specific field data.  Models give us an opportunity to simulate a wide range of events and make informed estimates about what could happen, allowing researchers to test far more ideas than would be practical or affordable to do in the real world. </p>
+<p><strong>Significant</strong>: In everyday usage, “significant” is used to suggest “important.”  In research, significance is a quantifiable measure telling the researcher that they can be fairly certain that the results are real and not the product of random chance.  It is often defined as when a statistical test has a p-value under 0.05.  The smaller a p-value is, the more certain we are.  This same approach can be used to distinguish whether two populations differ from each other, such as in testing whether your experimental and control groups' results are significantly different. </p>
+<p><strong>Peer review</strong>: A quality control step where other researchers in the same field (“peers”) read and critique your research article before it can be published.  This process is meant to find errors in your methods or thinking, ask for more details, suggest alternative explanations for your findings, and even sometimes decide that a study is not good enough to be formally published in an academic research journal. </p>
+<h2><img src="images/evidence_catintotrap.jpg" width="492" height="250" hspace="10" vspace="10" align="right" />The complete library of research </h2>
+<p>If you search online for &quot;spay neuter evidence&quot; or &quot;TNR evidence,&quot; depending on the values  of the website you happen to click, you will be presented with only half of the picture.  By contrast, this comprehensive reading list contains research with a variety of conclusions about the use of spay/neuter programs for cat management.  We want you to make your own critiques and conclusions to better understand the complexity of research on this important topic. </p>
+<p>We also want to highlight that there is not yet published research doing what Kitizen Science was founded to do: conduct <em>controlled field experiments</em> over the <em>long term</em> about the impact of spay/neuter programs on free-roaming cat <em>population sizes</em>.  Some studies have some of these pieces, but no one has yet put them all together yet. </p>
+<p>The list below contains the  author(s), year published, title, volumes/numbers/pages, and their DOI (document identification number) when one exists so you can find these articles online. </p>
+<h2>Articles</h2>
+<p>Andersen, M. C., Martin, B. J., &amp; Roemer, G. W. (2004). Use of matrix population models to estimate the efficacy of euthanasia versus trap-neuter-return for management of free-roaming cats. Journal of the American Veterinary Medical Association, 225(12), 1871–1876. https://doi.org/10.2460/javma.2004.225.1871 </p>
+<p>Bissonnette, V., Lussier, B., Doizé, B., &amp; Arsenault, J. (2018). Impact of trap-neuter-return event on the size of free-roaming cat colonies around barns and stables in Quebec: A randomized controlled trial. The Canadian Journal of Veterinary Research, 82(3), 192–197. </p>
+<p>Boone, J. D., Miller, P. S., Briggs, J. R., Benka, V. A. W., Lawler, D. F., Slater, M., Levy, J. K., Zawistowski, S. (2019). A Long-Term Lens: Cumulative Impacts of Free-Roaming Cat Management Strategy and Intensity on Preventable Cat Mortalities. Frontiers in Veterinary Science, 6(July), 1–9. https://doi.org/10.3389/fvets.2019.00238 </p>
+<p>Budke, C. M., &amp; Slater, M. R. (2009). Utilization of Matrix Population Models to Assess a 3-Year Single Treatment Nonsurgical Contraception Program Versus Surgical Sterilization in Feral Cat Populations. Journal of Applied Animal Welfare Science, 12(4), 277–292. https://doi.org/10.1080/10888700903163419 </p>
+<p>Castillo, D., &amp; Clarke, A. L. (2003). Trap/Neuter/Release Methods Ineffective in Controlling Domestic Cat “Colonies” on Public Lands. Natural Areas Association, 23(3), 247–253. </p>
+<p>Centonze, L. A., &amp; Levy, J. K. (2002). Characteristics of free-roaming cats and their caretakers. Journal of the American Veterinary Medical Association, 220(11), 1627–1633. https://doi.org/10.2460/javma.2002.220.1627 </p>
+<p>Clarke, A. L., &amp; Pacin, T. (2002). Domestic Cat “Colonies” in Natural Areas: A Growing Exotic Species Threat. Natural Areas Association, 22(2), 154–159. </p>
+<p>Edinboro, C. H., Watson, H. N., &amp; Fairbrother, A. (2016). Association between a shelter-neuter-return program and cat health at a large municipal animal shelter. Journal of the American Veterinary Medical Association, 248(3), 298–308. https://doi.org/10.2460/javma.248.3.298 </p>
+<p>Foley, P., Foley, J. E., Levy, J. K., &amp; Paik, T. (2005). Analysis of the impact of trap-neuter-return programs on populations of feral cats. Journal of the American Veterinary Medical Association, 227(11), 1775–1781. https://doi.org/10.2460/javma.2005.227.1775 </p>
+<p>Frank, J. M., &amp; Carlisle-Frank, P. L. (2007). Analysis of programs to reduce overpopulation of companion animals: Do adoption and low-cost spay/neuter programs merely cause substitution of sources? Ecological Economics, 62(3–4), 740–746. https://doi.org/10.1016/j.ecolecon.2006.09.011 </p>
+<p>Guttilla, D. A., &amp; Stapp, P. (2010). Effects of sterilization on movements of feral cats at a wildland–urban interface. Journal of Mammalogy, 91(2), 482–489. https://doi.org/10.1644/09-mamm-a-111.1 </p>
+<p>Hughes, K. L., &amp; Slater, M. R. (2002a). Implementation of a Feral Cat Management Program on a University Campus. Journal of Applied Animal Welfare Science, 5(1), 15–28. </p>
+<p>Hughes, K. L., &amp; Slater, M. R. (2002b). The Effects of Implementing a Feral Cat Spay/ Neuter Program in a Florida County Animal Control Service. Journal of Applied Animal Welfare Science, 5(4), 285–298. https://doi.org/10.1207/S15327604JAWS0504 </p>
+<p>Ireland, T., &amp; Neilan, R. M. (2016). A spatial agent-based model of feral cats and analysis of population and nuisance controls. Ecological Modelling, 337, 123–136. https://doi.org/10.1016/j.ecolmodel.2016.06.014 </p>
+<p>Johnson, K. L., &amp; Cicirelli, J. (2014). Study of the effect on shelter cat intakes and euthanasia from a shelter neuter return project of 10,080 cats from March 2010 to June 2014. PeerJ, 2(e646). https://doi.org/10.7717/peerj.646 </p>
+<p>Kass, P. H., Johnson, K. L., &amp; Weng, H.-Y. (2013). Evaluation of animal control measures on pet demographics in Santa Clara County, California, 1993–2006. PeerJ, 1, 1–15. https://doi.org/10.7717/peerj.18 </p>
+<p>Kilgour, R. J., Magle, S. B., Slater, M., Christian, A., Weiss, E., &amp; DiTullio, M. (2016). Estimating free-roaming cat populations and the effects of one year Trap-Neuter-Return management effort in a highly urban area. Urban Ecosystems, 1–10. https://doi.org/10.1007/s11252-016-0583-8 </p>
+<p>Kreisler, R. E., Cornell, H. N., &amp; Levy, J. K. (2019). Decrease in Population and Increase in Welfare of Community Cats in a Twenty-Three Year Trap-Neuter-Return Program in Key Largo, FL: The ORCAT Program. Frontiers in Veterinary Science, 6(7), 1–14. https://doi.org/10.3389/fvets.2019.00099 </p>
+<p>Levy, J. K., Gale, D. W., &amp; Gale, L. A. (2003). Evaluation of the effect of a long-term trap-neuter-return and adoption program on a free-roaming cat population. Journal of the American Veterinary Medical Association, 222(1), 42–46. https://doi.org/10.2460/javma.2003.222.42 </p>
+<p>Levy, J. K., Isaza, N. M., &amp; Scott, K. C. (2014). Effect of high-impact targeted trap-neuter-return and adoption of community cats on cat intake to a shelter. The Veterinary Journal, 201(3), 269–274. https://doi.org/10.1016/j.tvjl.2014.05.001 </p>
+<p>Lohr, C. A., Cox, L. J., &amp; Lepczyk, C. A. (2012). Costs and Benefits of Trap-Neuter-Release and Euthanasia for Removal of Urban Cats in Oahu, Hawaii. Conservation Biology, 27(1), 64–73. https://doi.org/10.1111/j.1523-1739.2012.01935.x </p>
+<p>Loyd, K. A. T., &amp; Devore, J. L. (2010). An Evaluation of Feral Cat Management Options Using a Decision Analysis Network. Ecology and Society, 15(4). https://doi.org/10.5751/ES-03558-150410 </p>
+<p>McCarthy, R. J., Levine, S. H., &amp; Reed, J. M. (2013). Estimation of effectiveness of three methods of feral cat population control by use of a simulation model. Journal of the American Veterinary Medical Association, 243(4), 502–511. https://doi.org/10.2460/javma.243.4.502 </p>
+<p>Miller, P. S., Boone, J. D., Briggs, J. R., Lawler, D. F., Levy, J. K., Nutter, F. B., Slater, M., Zawistowski, S. (2014). Simulating free-roaming cat population management options in open demographic environments. PLoS ONE, 9(11), 1–17. https://doi.org/10.1371/journal.pone.0113553 </p>
+<p>Scarlett, J., &amp; Johnston, N. (2012). Impact of a Subsidized Spay Neuter Clinic on Impoundments and Euthanasia in a Community Shelter and on Service and Complaint Calls to Animal Control. Journal of Applied Animal Welfare Science, 15(1), 53–69. https://doi.org/10.1080/10888705.2012.624902 </p>
+<p>Schmidt, P. M., Swannack, T. M., Lopez, R. R., &amp; Slater, M. R. (2009). Evaluation of euthanasia and trap-neuter-return (TNR) programs in managing free-roaming cat populations. Wildlife Research, 36, 117–125. </p>
+<p>Scott, K. C., Levy, J. K., Gorman, S. P., &amp; Newell, S. M. (2002). Body condition of feral cats and the effect of neutering. Journal of Applied Animal Welfare Science, 5(3), 203–213. https://doi.org/10.1207/S15327604JAWS0503_04 </p>
+<p>Smith, R. E., &amp; Shane, S. M. (1986). The Potential for the Control of Feral Cat Populations by Neutering. Feline Practice. </p>
+<p>Spehar, D. D., &amp; Wolf, P. J. (2017). An Examination of an Iconic Trap-Neuter-Return Program: The Newburyport, Massachusetts Case Study. Animals, 7(11), 1–16. https://doi.org/10.3390/ani7110081 </p>
+<p>Spehar, D. D., &amp; Wolf, P. J. (2018a). A case study in citizen science: The effectiveness of a trap-neuter-return program in a Chicago neighborhood. Animals, 8(1). https://doi.org/10.3390/ani8010014 </p>
+<p>Spehar, D. D., &amp; Wolf, P. J. (2018b). The impact of an integrated program of return-to-field and targeted trap-neuter-return on feline intake and euthanasia at a municipal animal shelter. Animals, 8(4). https://doi.org/10.3390/ani8040055 </p>
+<p>Spehar, D. D., &amp; Wolf, P. J. (2019). Integrated Return-To-Field and Targeted Trap-Neuter-Vaccinate-Return Programs Result in Reductions of Feline Intake and Euthanasia at Six Municipal Animal Shelters. Frontiers in Veterinary Science, 6(March). https://doi.org/10.3389/fvets.2019.00077 </p>
+<p>White, S. C., Jefferson, E., &amp; Levy, J. K. (2010). Impact of publicly sponsored neutering programs on animal population dynamics at animal shelters: The new Hampshire and Austin experiences. Journal of Applied Animal Welfare Science, 13(3), 191–212. https://doi.org/10.1080/10888700903579903 </p>
+<p>Zaunbrecher, K. I., &amp; Smith, R. E. (1993). Neutering of feral cats as an alternative to eradication programs. Journal of the American Veterinary Medical Association, 203(3), 449–452.</p>
 
-   </div>
+</div>
 
-
-  </div>
 
 <jsp:include page="footer.jsp" flush="true" />
-

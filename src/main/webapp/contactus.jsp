@@ -14,12 +14,16 @@
 
   
   String context=ServletUtilities.getContext(request);
+        request.setAttribute("pageTitle", "Kitizen Science &gt; Contact Us");
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <div class="container maincontent">
-<h1 class="intro">Contact Us</h1>
+
+<h1><img src="images/contact_greycat.jpg" width="175" height="300" hspace="10" vspace="10" align="right" />Contact Us</h1>
 <p>Contact us via email at kitizenscience@gmail.com.</p>
+
 </div>
 
 
+<jsp:include page="footer.jsp" flush="true" />
