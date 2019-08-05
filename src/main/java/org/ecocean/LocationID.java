@@ -116,7 +116,7 @@ public class LocationID {
   }
   
   /*
-   * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children
+   * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children in the order traversed
    */
   public static List<String> getIDForParentAndChildren(String locationID,ArrayList<String> al,String qualifier) {
     JSONObject j=recurseToFindID(locationID,getLocationIDStructure(qualifier));
@@ -131,6 +131,12 @@ public class LocationID {
     return al;
   }
   
+  /*
+   * Starting with a childID, get the IDs of its root parent all the way down to the child ID
+   * @childLocationID - dig for a child with this @id
+   * @qualifier to use in the digging (e.g., to define user or org value, such as use the 'indocet' qualifier)
+   * @return a List of Strings of the lineage of the child ID, starting with its highest parent down to the ID itself.
+   */
   public static List<String> getIDForChildAndParents(String childLocationIDToFind,String qualifier){
     ArrayList<String> al=new ArrayList<String>();
     JSONObject jsonobj=getLocationIDStructure(qualifier);
