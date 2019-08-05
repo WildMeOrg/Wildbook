@@ -12,126 +12,89 @@
 	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
 	//props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/whoweare.properties"));
 	props=ShepherdProperties.getProperties("whoweare.properties", langCode, context);
-    
-	
+
+        request.setAttribute("pageTitle", "Kitizen Science &gt; Who We Are");
 %>
 
 <jsp:include page="header.jsp" flush="true" />
 
 <div class="container maincontent">
 
-<div style="position: fixed; transform: rotate(23deg); color: rgba(255,100,100,0.2); font-size: 20em;">DRAFT</div>
+<h1>Who We Are</h1>
+<p>During our beta period, Kitizen Science is being developed as a Master's project lead by a cat lady in a Wildlife Science program, supported by a thesis committee of wildlife researchers and a nonprofit board  of  veterinarians.  (Read more about the importance of <a href="http://www.kitizenscience.org/why.jsp">veterinarians and wildlife population ecologists working together</a> to address cat overpopulation.)</p>
+<p><strong>Follow us on social media: </strong></p>
+<p><a href="https://www.facebook.com/kitizenscience/" target="_blank">Facebook</a>, <a href="https://twitter.com/kitizenscience" target="_blank">Twitter</a>, <a href="https://www.instagram.com/kitizenscience/" target="_blank">Instagram</a>. </p>
+<p><strong>Join our mailing list for news and updates:</strong></p>
+<p><!-- Begin Mailchimp Signup Form -->
+<link href="//cdn-images.mailchimp.com/embedcode/classic-10_7.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+	#mc_embed_signup{background:#fff; clear:left; }
+	/* Add your own Mailchimp form style overrides in your site stylesheet or in this style block.
+	   We recommend moving this block and the preceding CSS link to the HEAD of your HTML file. */
+</style>
+<div id="mc_embed_signup">
+<form action="https://gmail.us20.list-manage.com/subscribe/post?u=abd67dc212c12b5072c70a518&amp;id=bd017987f4" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+<div class="mc-field-group">
+	<label for="mce-EMAIL">Email Address </label>
+	<input type="email" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+</div>
+	<div id="mce-responses" class="clear">
+		<div class="response" id="mce-error-response" style="display:none"></div>
+		<div class="response" id="mce-success-response" style="display:none"></div>
+	</div>    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_abd67dc212c12b5072c70a518_bd017987f4" tabindex="-1" value=""></div>
+    <div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+    </div>
+</form>
+</div>
+<script type='text/javascript' src='//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js'></script><script type='text/javascript'>(function($) {window.fnames = new Array(); window.ftypes = new Array();fnames[0]='EMAIL';ftypes[0]='email';fnames[3]='ADDRESS';ftypes[3]='address';fnames[4]='PHONE';ftypes[4]='phone';}(jQuery));var $mcj = jQuery.noConflict(true);</script>
+<!--End mc_embed_signup--></p>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td colspan="2"><h2><br />
+    Executive Director and Chief Cat Scientist</h2></td>
+  </tr>
+  <tr>
+    <td width="160" height="210" valign="top"><div align="left"><img src="images/about_sabrinaaeluro.jpg" width="150" height="200" /></div></td>
+    <td height="210" valign="top"><strong>Sabrina Aeluro</strong> is an animal lover who decided to go back to school to become a science-based, professional-strength cat lady. She originally thought she would become a veterinarian, but got hooked on research. She is interested in free-roaming cat behavior in urban landscapes and conducting impact assessments of spay/neuter programs - all with the aim of learning more effective ways of reducing populations of free-roaming cats using cat-friendly methods. Sabrina loves being part of the growing movement to build collaborations between &quot;cat people&quot; and &quot;wildlife people,&quot; and she also studies the human dimensions of cat management and how feral cat advocacy groups operate. Sabrina attends the University of Washington in Seattle where she earned a Bachelor's degree in Biology and an Applied Animal Behavior Certificate. She is now working on a Master's degree in Wildlife Science in the Predator Ecology Lab, plus a Graduate Certificate in One Health. Validating Kitizen Science is her Master's project. Sabrina also enjoys travel, vegan cooking, scuba diving, volunteering with the Feral Cat Spay Neuter Project and Animal Balance, and her two blind cats, <a href="https://www.facebook.com/blindcathoneybee" target="_blank">Honey Bee and Fig</a>. Her personal website is <a href="https://www.aeluro.com/" target="_blank">aeluro.com</a>.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><h2><br />
+    Nonprofit Board of Directors - Biographies Coming Soon<br />
+    <br />
+    </h2></td>
+  </tr>
+  <tr>
+    <td colspan="2"><h2><br />
+    Scientific Advisor</h2></td>
+  </tr>
+  <tr>
+    <td width="160" height="210" valign="top"><div align="left"><img src="images/about_aaronwirsing.jpg" width="150" height="200" align="top" /></div></td>
+    <td height="210" valign="top">Hailing from South Carolina, <strong>Dr. Aaron Wirsing</strong> grew up fascinated by predators and their relationships with other species. Not much has changed; after earning an AB degree in Biology from Bowdoin College, he went on pursue Masters research focused on interactions between snowshoe hares and their predators at the University of Idaho, followed by a doctorate from Simon Fraser University (Vancouver, British Columbia, Canada), where he studied the impacts of tiger sharks on large prey species (sea cows and sea turtles) and seagrass ecosystem dynamics in Western Australia. A post-doc then took him to the Florida Everglades, where he worked with bull sharks and alligators. Today, two pictures of orcas chasing prey that Dr. Wirsing drew as a 5th grader hang in his office at the University of Washington, where he leads projects addressing the ecology and conservation of large carnivores such as gray wolves, cougars, and brown bears as PI of the Predator Ecology Lab. When not teaching and advising graduate students, Dr. Wirsing enjoys running and spending time with his wife, Brooke, and two cats, Ryan and Echo (pictured). His lab website is <a href="https://www.predatorecology.com/" target="_blank">predatorecology.com</a>.<br />
+    <br />
+    <br />
+    <br /></td>
+  </tr>
+  <tr>
+    <td colspan="2"><h2><br />
+    Technology</h2></td>
+  </tr>
+  <tr>
+    <td width="160" height="210" valign="top"><img src="images/about_wildbook.jpg" width="150" height="200" align="top" /></td>
+    <td height="210" valign="top"><strong>Wildbook®</strong> is an open source software framework to support collaborative mark-recapture, molecular ecology, and social ecology studies, especially where citizen science and artificial intelligence can help scale up projects. It is developed by the non-profit Wild Me (PI Jason Holmberg) and research partners at the University of Illinois-Chicago (PI Tanya Berger-Wolf), Rensselaer Polytechnic Institute (PI Charles V. Stewart), and Princeton University (PI Daniel Rubenstein). <a href="https://www.wildbook.org/doku.php" target="_blank">Wildbook</a> provides a technical foundation (database, APIs, computer vision, etc.) for wildlife research projects that are tracking individual animals in a wildlife population using natural markings, genetic identifiers, or vocalizations, engaging citizen scientists and/or using social media to collect sighting information, looking to build a collaborative, distributed research network for a migratory and/or global species, and looking to develop a new animal biometrics solution (e.g., pattern matching from photos) for one or more species.<br />
+    <br />
+    <br />
+    <br /></td>
+  </tr>
+  <tr>
+    <td width="160" height="210" valign="top"><div align="left"><img src="images/about_jonvanoast.jpg" width="150" height="200" align="top" /></div></td>
+    <td height="210" valign="top"><strong>Jon Van Oast</strong> is the technical lead for Kitizen Science. He is senior engineer at <a href="https://www.wildme.org/" target="_blank">Wild Me</a>, where he helps maintain and develop <a href="https://www.wildbook.org/doku.php" target="_blank">Wildbook</a>. He helps maintain <a href="https://giraffespotter.org/" target="_blank">GiraffeSpotter - Wildbook for Giraffe</a>  as well as providing support for many other species. Jon has been developing online collaborative software for over twenty years, with a strong interest in open source software/hardware, open data, citizen science, and conservation. He likes dogs, but decidedly leans cat.</td>
+  </tr>
+</table>
 
-<div>
-<h2>About Kitizen Science</h2>
-
-<p>
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam tincidunt sit amet est non lacinia. Nulla commodo lobortis elementum. Pellentesque congue fringilla est, consectetur lacinia ligula facilisis non. Donec in placerat magna, vel molestie nisl. Maecenas porta mattis finibus. Sed ut malesuada tortor. Vivamus convallis justo quis diam sodales, vitae ullamcorper ipsum vestibulum. Suspendisse eget maximus metus. Sed vel bibendum orci. Nam luctus ante vel urna pellentesque, sit amet vehicula elit pharetra. Aliquam pharetra, elit et faucibus consectetur, ligula sem congue odio, at bibendum tellus nisi eget nunc.
-</p>
-
-<h2>About Wild Me</h2>
-<p>
-<img style="height: 120px; float: left; margin-right: 15px;" src="images/wild-me-logo-only-100-100.png" />
-Nunc aliquet venenatis rhoncus. Vestibulum cursus laoreet sapien id volutpat. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nam ac mattis est, ac euismod dui. Duis consectetur laoreet arcu vitae auctor. Nunc eget cursus massa. Morbi sed porta sapien. Nulla facilisis imperdiet elementum. Vestibulum aliquam sagittis arcu. Etiam in elit a diam cursus egestas porttitor id orci. Morbi non metus et nunc fringilla posuere non nec risus. Integer volutpat vestibulum neque, at porttitor urna mollis eget.
-</p>
-
-<h2>Our Team</h2>
-<p>
-<img style="height: 120px; float: left; margin-right: 15px;" src="images/jon_profile.jpg" />
-<b>Jon Van Oast</b> is senior engineer at <a href="https://www.wildme.org/">Wild Me</a>, where he helps maintain and
-develop <a href="https://www.wildbook.org/">Wildbook</a>.
-He is technical lead on <a href="https://giraffespotter.org/">GiraffeSpotter - Wildbook for Giraffe</a>
-as well as provides support for many other species.
-</p>
-
-<p>
-Jon has been developing online collaborative software for over twenty years, with a
-strong interest in open source software/hardware, open data, citizen science, and conservation.
-He likes dogs, but decidedly leans cat.
-</p>
-<div style="clear: both;"></div>
 
 </div>
-
-   <div>
-    	<h2>Our Users</h2>
-
-        <p class="lead">
-            Here are our fantastic volunteers, subjects, and researchers.
-            <br /><b>(This list is auto-generated, and can be removed.)</b>
-        </p>
-
-  
-          
-        <ul class="list-unstyled list-inline block-list volunteer-list">
-
-			
-	<%
-	if(CommonConfiguration.showUsersToPublic(context)){
-
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("whoAreWe.jsp");
-    myShepherd.beginDBTransaction();
-    List<User> allUsers=myShepherd.getAllUsers();
-    for (ListIterator<User> it = allUsers.listIterator(); it.hasNext();) {
-      User u = it.next();
-      if (u.getFullName() != null && u.getFullName().matches("(?i).*\\b(test|demo|rest)\\b.*")
-              || u.getUsername() != null && u.getUsername().matches("(?i).*\\b(test|demo|rest)\\b.*"))
-        it.remove();
-    }
-
-    for (User thisUser : allUsers) {
-
-      String profilePhotoURL="images/empty_profile.jpg";
-		    
-    		if(thisUser.getUserImage()!=null){
-    			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-    		}
-    		%>
-    		<li>
-                <a>
-                    <div class="img-container">
-                        <img class="pull-left" src="<%=profilePhotoURL%>"  />
-                    </div>
-                    <%
-					if(thisUser.getFullName()!=null){
-		    			String displayName=thisUser.getFullName();
-					%>
-                    <div class="name"><%= StringEscapeUtils.escapeHtml4(displayName) %></div>
-                    <%
-					}
-                    
-                    if(thisUser.getAffiliation()!=null){
-    				%>
-                    <i><%=thisUser.getAffiliation() %></i>
-                    <% 
-                    }
-                    %>
-                </a>
-            </li>
-
-    	
-    		
-    		<% 
-       	
-       	
-     } //end looping through users
-     
-     myShepherd.rollbackDBTransaction();
-     myShepherd.closeDBTransaction();
-     myShepherd=null;
-     
-     %>
-     </ul>
-     
-    <% 
-	} //end if(CommonConfiguration.showUsersToPublic()){
-	%>
-
-
-<p>&nbsp;</p>
-	</div>
-  </div>
 
 <jsp:include page="footer.jsp" flush="true" />
 
