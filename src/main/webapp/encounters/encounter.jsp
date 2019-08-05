@@ -784,7 +784,21 @@ if(enc.getLocation()!=null){
 
 <a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
-<em><%=encprops.getProperty("locationID") %></em><span> <span id="displayLocationID"><%=LocationID.getNameForLocationID(enc.getLocationID(),null)%></span></span>
+<em><%=encprops.getProperty("locationID") %></em>
+<span> 
+	<span id="displayLocationID">
+	<%
+	List<String> hier=LocationID.getIDForChildAndParents(enc.getLocationID(), null);
+	int sizeHier=hier.size();
+	String displayPath="";
+	for(int q=0;q<sizeHier;q++){
+		if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
+		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
+	}
+	%>
+		<%=displayPath %>	
+	</span>
+</span>
 
 <br>
 

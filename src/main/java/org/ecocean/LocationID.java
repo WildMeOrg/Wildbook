@@ -131,6 +131,51 @@ public class LocationID {
     return al;
   }
   
+  public static List<String> getIDForChildAndParents(String childLocationIDToFind,String qualifier){
+    ArrayList<String> al=new ArrayList<String>();
+    JSONObject jsonobj=getLocationIDStructure(qualifier);
+    findPath(jsonobj, childLocationIDToFind, al);
+    return al;
+  }
+  
+  private static void findPath(JSONObject jsonobj, String childLocationIDToFind, ArrayList<String> al) {
+    try {
+      if(jsonobj.getString("id").equals( childLocationIDToFind)) {return;}
+    }
+    catch(JSONException e) {}
+    
+    //otherwise iterate through its locationID array
+    try {
+      if(jsonobj.getJSONArray("locationID")!=null) {
+  
+        JSONArray locs=jsonobj.getJSONArray("locationID");
+        //System.out.println("Iterating locationID array for: "+jsonobj.getString("name"));
+        int numLocs=locs.length();
+        for(int i=0;i<numLocs;i++) {
+          JSONObject loc=locs.getJSONObject(i);
+          JSONObject id=recurseToFindID(childLocationIDToFind,loc);
+          if(id!=null) {
+            al.add(loc.getString("id"));
+            if(loc.getString("id").equals(childLocationIDToFind))return;
+            findPath(loc, childLocationIDToFind,al);
+          }
+         
+        }
+      }
+    }
+    catch(JSONException e) {}
+  }
+  
+  private static String getIDIfContainsChildID(JSONObject jsonobj,String childID, String qualifier) {
+    List<String> list=getIDForParentAndChildren(childID,new ArrayList<String>(),qualifier);
+    try {
+      if(list!=null && list.contains(childID)) {return jsonobj.getString("id");}
+    }
+    catch(JSONException jsone) {}
+    return null;
+  }
+  
+  
   private static void recurseToFindIDStrings(JSONObject jsonobj,ArrayList<String> al) {
     
     //if this is the right object, return it
