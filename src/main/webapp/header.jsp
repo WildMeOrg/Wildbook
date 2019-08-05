@@ -403,6 +403,7 @@ if (pageTitle == null) pageTitle = CommonConfiguration.getHTMLTitle(context);
                         <li><a href="<%=urlLoc %>/compare.jsp">Login</a></li>
 <% } else { %>
                         <li><a href="<%=urlLoc %>/compare.jsp">Do a Matching Trial</a></li>
+                        <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 <% } %>
                         <li><a href="<%=urlLoc %>/register.jsp?instructions">Instructions</a></li>
                     </ul>
