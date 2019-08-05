@@ -1474,6 +1474,8 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
                 System.out.println("ERROR: iaUpdateSpecies() failed! " + ex.toString());
                 ex.printStackTrace();
             }
+        } else {
+            System.out.println("WARNING: cannot update IA, no taxonomy on " + ann);
         }
         return ann;
     }
