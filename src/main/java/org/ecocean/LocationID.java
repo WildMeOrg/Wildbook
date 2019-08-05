@@ -2,8 +2,11 @@ package org.ecocean;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.ecocean.grid.EncounterLite;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,31 +15,55 @@ import org.json.JSONTokener;
 public class LocationID {
   
   //the JSON representation of /bundles/locationID.json
-  private static JSONObject json;
+  private static ConcurrentHashMap<String,JSONObject> jsonMaps=new ConcurrentHashMap<String,JSONObject>();
+  
+  
+  public static ConcurrentHashMap<String,JSONObject> getJSONMaps(){return jsonMaps;}
   
   /*
    * Return the JSON representation of /bundles/locationID.json 
    */
   public static JSONObject getLocationIDStructure() {
-    if(json==null)loadJSONData();
-    return json;
+    if(jsonMaps.get("default")==null)loadJSONData(null);
+    return jsonMaps.get("default");
+  }
+  
+  /*
+   * Return the JSON representation of /bundles/locationID.json 
+   */
+  public static JSONObject getLocationIDStructure(String qualifier) {
+    if(qualifier==null)return getLocationIDStructure();
+    if(jsonMaps.get(qualifier)==null)loadJSONData(qualifier);
+    return jsonMaps.get(qualifier);
   }
   
   /*
    * Force a reload of /bundles/locationID.json
    */
-  public static void reloadJSON() {
-    json=null;
-    loadJSONData();
+  public static void reloadJSON(String filename) {
+    jsonMaps=new ConcurrentHashMap<String,JSONObject>();
+    loadJSONData(filename);
   }
   
-  private static void loadJSONData() {
-    InputStream is = LocationID.class.getResourceAsStream("/bundles/locationID.json");
+  private static void loadJSONData(String qualifier) {
+    InputStream is = null;
+    if(qualifier==null) {
+      is=LocationID.class.getResourceAsStream("/bundles/locationID.json");
+      //System.out.println("Loaded "+"/bundles/locationID.json");
+    }
+    else{
+      is=LocationID.class.getResourceAsStream("/bundles/locationID_"+qualifier+".json");
+      //System.out.println("Loaded "+"/bundles/locationID_"+qualifier+".json");
+    }
+    
     if (is == null) {
-        System.out.println("Cannot find file locationID.json");
+        //System.out.println("Cannot find file locationID.json");
     }
     JSONTokener tokener = new JSONTokener(is);
-    json = new JSONObject(tokener);
+    String key="default";
+    if(qualifier!=null)key=qualifier;
+    jsonMaps.put(key,new JSONObject(tokener));
+    //System.out.println("jsonMaps: "+jsonMaps.toString());
   }
   
   private static JSONObject recurseToFindID(String id,JSONObject jsonobj) {
@@ -68,8 +95,8 @@ public class LocationID {
   /*
    * Return the "name" attribute from JSON for a given "id" in /bundles/locationID.json
    */
-  public static String getNameForLocationID(String locationID) {
-    JSONObject j=recurseToFindID(locationID,getLocationIDStructure());
+  public static String getNameForLocationID(String locationID, String qualifier) {
+    JSONObject j=recurseToFindID(locationID,getLocationIDStructure(qualifier));
     if(j!=null) {
       try{
         return j.getString("name");
@@ -83,16 +110,16 @@ public class LocationID {
   /*
    * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children
    */
-  public static List<String> getIDForParentAndChildren(String locationID) {
+  public static List<String> getIDForParentAndChildren(String locationID, String qualifier) {
     ArrayList<String> al=new ArrayList<String>();
-    return getIDForParentAndChildren(locationID,al);
+    return getIDForParentAndChildren(locationID,al,qualifier);
   }
   
   /*
    * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children
    */
-  public static List<String> getIDForParentAndChildren(String locationID,ArrayList<String> al) {
-    JSONObject j=recurseToFindID(locationID,getLocationIDStructure());
+  public static List<String> getIDForParentAndChildren(String locationID,ArrayList<String> al,String qualifier) {
+    JSONObject j=recurseToFindID(locationID,getLocationIDStructure(qualifier));
     if(j!=null) {
       try{
         
@@ -132,14 +159,14 @@ public class LocationID {
   /*
   * Return an HTML selector of hierarchical locationIDs with indenting
   */
-  public static String getHTMLSelector(boolean multiselect, String selectedID) {
+  public static String getHTMLSelector(boolean multiselect, String selectedID,String qualifier) {
     
     String multiselector="";
     if(multiselect)multiselector=" multiple=\"multiple\"";
     
     StringBuffer selector=new StringBuffer("<select name=\"code\" id=\"selectCode\" class=\"form-control\" "+multiselector+">\n\r<option value=\"\"></option>\n\r");
 
-     createSelectorOptions(getLocationIDStructure(),selector,0,selectedID);
+     createSelectorOptions(getLocationIDStructure(qualifier),selector,0,selectedID);
     
     selector.append("</select>\n\r");
     return selector.toString();
