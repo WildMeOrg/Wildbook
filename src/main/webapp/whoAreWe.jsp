@@ -21,7 +21,7 @@
 <div class="container maincontent">
 
 <h1>Who We Are</h1>
-<p>During our beta period, Kitizen Science is being developed as a Master's project lead by a cat lady in a Wildlife Science program, supported by a thesis committee of wildlife researchers and a nonprofit board  of  veterinarians.  (Read more about the importance of <a href="http://www.kitizenscience.org/why.jsp">veterinarians and wildlife population ecologists working together</a> to address cat overpopulation.)</p>
+<p>During our beta period, Kitizen Science is being developed as a Master's project lead by a cat lady in a Wildlife Science program, supported by a thesis committee of wildlife researchers and a nonprofit board  of  veterinarians.  (Read more about the importance of <a href="why.jsp">veterinarians and wildlife population ecologists working together</a> to address cat overpopulation.)</p>
 <p><strong>Follow us on social media: </strong></p>
 <p><a href="https://www.facebook.com/kitizenscience/" target="_blank">Facebook</a>, <a href="https://twitter.com/kitizenscience" target="_blank">Twitter</a>, <a href="https://www.instagram.com/kitizenscience/" target="_blank">Instagram</a>. </p>
 <p><strong>Join our mailing list for news and updates:</strong></p>
