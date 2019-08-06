@@ -166,12 +166,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
   boolean proceed = true;
   boolean haveRendered = false;
 
-  
-
-  Properties collabProps = new Properties();
-  collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-
-
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
@@ -5085,7 +5079,8 @@ if(loggedIn){
     });
   });
 </script>
-
+<!-- 
+  
           <form method="post" action="encounter.jsp?number=<%=num%>" id="classEditTemplateForm">
           <div class="row datasheets">
               <div class="col-sm-12">
@@ -5169,7 +5164,8 @@ if(loggedIn){
             }
             %>
 
-          </form>
+          </form> 
+          -->
 <br>
 <hr />
 <a name="tissueSamples"></a>

@@ -342,37 +342,6 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
-                      <!-- Bots! Only show datasheet and nest dropdowns to logged in users.  -->
-                      <% 
-                        if(request.getUserPrincipal()!=null) {
-                      %>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("nests")%><span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                          <li>
-                            <a href="<%=urlLoc %>/nest/nest.jsp"><%=props.getProperty("reportNest")%></a>
-                          </li>
-                          <li>
-                            <a href="<%=urlLoc %>/nest/searchResults.jsp"><%=props.getProperty("searchNest")%></a>
-                          </li>
-                        </ul>
-                      </li>
-
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Record a Data Sheet<span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?freshWithSheet=mortality">Mortality</a></li>
-                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?freshWithSheet=tagging">Tagging</a></li>
-                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?freshWithSheet=trackcounts">Track Counts</a></li>
-                          <li><a  href="<%=urlLoc %>/dataSheet.jsp?newThreatSheet=true">Threat Sheet</a></li>
-                          <li><a  href="<%=urlLoc %>/dataSheet.jsp">Blank Sheet</a></li>
-                          <li><a  href="<%=urlLoc %>/dataSheetSearchResults.jsp">All Data Sheets</a></li>
-                        </ul>
-                      </li>
-                      <%
-                        }
-                      %>
-
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
