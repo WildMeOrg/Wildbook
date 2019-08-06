@@ -6438,6 +6438,7 @@ while (it.hasNext()) {
             <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
             <span class="item-count"><%=nullCount%></span>
         </div>
+<!-- TODO maybe an option here to not recurse to children locations? -->
         <input type="button" value="<%=encprops.getProperty("selectAll")%>"
             onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
         <input type="button" value="<%=encprops.getProperty("selectNone")%>"

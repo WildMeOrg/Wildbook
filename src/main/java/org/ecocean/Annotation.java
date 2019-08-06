@@ -727,20 +727,30 @@ System.out.println("[1] getMatchingSet params=" + params);
         String f = "";
 
         // locationId=FOO and locationIds=[FOO,BAR]
-        if (j.optString("locationId", null) != null) f += " && enc.locationID == '" + Util.basicSanitize(j.getString("locationId")) + "' ";
+        boolean useNullLocation = false;
+        List<String> rawLocationIds = new ArrayList<String>();
+        String tmp = Util.basicSanitize(j.optString("locationId", null));
+        if (Util.stringExists(tmp)) rawLocationIds.add(tmp);
         JSONArray larr = j.optJSONArray("locationIds");
         if (larr != null) {
-            List<String> locs = new ArrayList<String>();
             for (int i = 0 ; i < larr.length() ; i++) {
-                String val = Util.basicSanitize(larr.optString(i));
-                if ("__NULL__".equals(val)) {
-                    locs.add("null");
-                } else if (Util.stringExists(val)) {
-                    locs.add("'" + val + "'");
+                tmp = Util.basicSanitize(larr.optString(i));
+                if ("__NULL__".equals(tmp)) {
+                    useNullLocation = true;
+                } else if (Util.stringExists(tmp) && !rawLocationIds.contains(tmp)) {
+                    rawLocationIds.add(tmp);
                 }
             }
-            if (locs.size() > 0) f += " && (enc.locationID == " + String.join(" || enc.locationID == ", locs) + ") ";
         }
+        //TODO we could have an option to skip expansion (i.e. not include children)
+        List<String> expandedLocationIds = LocationID.expandIDs(rawLocationIds);
+        String locFilter = "";
+        if (expandedLocationIds.size() > 0) locFilter += "enc.locationID == '" + String.join("' || enc.locationID == '", expandedLocationIds) + "'";
+        if (useNullLocation) {
+            if (!locFilter.equals("")) locFilter += " || ";
+            locFilter += "enc.locationID == null";
+        }
+        if (!locFilter.equals("")) f += " && (" + locFilter + ") ";
 
         // "owner" ... which requires we have userId in the taskParams
         JSONArray owner = j.optJSONArray("owner");
