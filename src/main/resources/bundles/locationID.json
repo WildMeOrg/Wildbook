@@ -1,5 +1,5 @@
 {
-  "description": "Hierarchical Encounter.locationIDs in Wildbook",
+  "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
 		{
@@ -37,17 +37,7 @@
 			  "name": "East China Sea" },
 			 {
 			  "name": "Flores Sea" },
-			 {
-			  "name": "Gulf of Alaska" },
-			 {
-			  "name": "Sea of Cortés", "id":"sea of cortes", 
-			  "locationID":[
-				{
-				"name": "Baja California", "id":"Baja California" }
-			          
-			  
-			  ]
-			  },
+
 			 {
 			  "name": "Gulf of Carpentaria" },
 			 {
@@ -64,9 +54,116 @@
 			  "name": "Molucca Sea" },
 			 {
 			  "name": "Philippine Sea" },
+
+			  
 			 {
-			  "name": "Salish Sea" },
-			 {
+			  "name":"Eastern Pacific","id":"Eastern Pacific","locationID":[
+			  	{
+				  "name": "Gulf of Alaska" },
+				
+				{ "name":"California", "id":"California", "locationID":[] },
+				{ "name":"Central Oregon", "id":"Central Oregon", "locationID":[] },
+				
+				{ "name":"Canada", "id":"Canada", "locationID":[] },
+				{ "name":"British Columbia", "id":"British Columbia", "locationID":[] },
+				
+				{"name":"Mexico","id":"Mexico","locationID":[
+			
+					{ "name":"Bahia barra de Potosi", "id":"Bahia barra de Potosi", "locationID":[] },
+					{ "name":"Guamilule", "id":"Guamilule", "locationID":[] },
+				
+					{ "name":"Ixtapa", "id":"Ixtapa", "locationID":[] },
+
+					{ "name":"Laguna Valentin", "id":"Laguna Valentin", "locationID":[] },
+					{ "name":"Manzanillo", "id":"Manzanillo", "locationID":[] },
+					
+					{ "name":"Mexico (Pacific)-Unspecified", "id":"Mexico", "locationID":[] },
+					{ "name":"Morros", "id":"Morros", "locationID":[] },
+					
+					{ "name":"PB", "id":"PB", "locationID":[] },
+				  
+					{ "name":"Playa Blanca", "id":"Playa Blanca", "locationID":[] },
+
+					{ "name":"Playa Larga", "id":"Playa Larga", "locationID":[] },
+
+					{ "name":"Playa Tortuga", "id":"Playa Tortuga", "locationID":[] },
+
+					{ "name":"Playa Valentin", "id":"Playa Valentin", "locationID":[] },
+
+					{ "name":"Playa Viva", "id":"Playa Viva", "locationID":[] },
+
+					{ "name":"Playa tortuga", "id":"Playa tortuga", "locationID":[] },
+									{
+					"name": "Sea of Cortés", "id":"sea of cortes", 
+					"locationID":[
+						{
+						"name": "Baja California", "id":"Baja California" }
+
+					]	
+					},
+					{ "name":"Troncones", "id":"Troncones", "locationID":[] },
+					{ "name":"Valentin", "id":"Valentin", "locationID":[] },
+					{ "name":"Zihuatanejo", "id":"Zihuatanejo", "locationID":[] }
+					  
+			]},
+			{ "name":"Central America", "id":"Central America", "locationID":[] },
+			{ "name":"Costa Rica", "id":"Costa Rica", "locationID":[
+				{ "name":"Southern Costa Rica", "id":"Southern Costa Rica", "locationID":[] }
+			] },
+			{ "name":"Guatemala", "id":"Guatemala", "locationID":[] },
+
+				{ "name":"Northern Baja California", "id":"Northern Baja California", "locationID":[] },
+
+				{ "name":"Northern British Columbia", "id":"Northern British Columbia", "locationID":[] },
+
+				{ "name":"Northern California", "id":"Northern California", "locationID":[] },
+
+				{ "name":"Northern California/OR", "id":"Northern California/OR", "locationID":[] },
+
+				{ "name":"Northern Central California", "id":"Northern Central California", "locationID":[] },
+
+				{ "name":"Northern Oregon", "id":"Northern Oregon", "locationID":[] },
+
+				{ "name":"Northern Oregon/Southern Washington", "id":"Northern Oregon/Southern Washington", "locationID":[] },
+
+				{ "name":"Northern Washington", "id":"Northern Washington", "locationID":[] },
+
+				{ "name":"Northern-Central California", "id":"Northern-Central California", "locationID":[] },
+
+				{ "name":"Northern_central California", "id":"Northern_central California", "locationID":[] },
+				{ "name":"Oregon", "id":"Oregon", "locationID":[] },
+				{
+				  "name": "Salish Sea", "id": "Salish Sea" },
+				{ "name":"Santa Barbara Channel", "id":"Santa Barbara Channel", "locationID":[] },
+
+				{ "name":"Southern Baja California", "id":"Southern Baja California", "locationID":[] },
+
+				{ "name":"Southern Britidh Columbia", "id":"Southern Britidh Columbia", "locationID":[] },
+
+				{ "name":"Southern British Columbia", "id":"Southern British Columbia", "locationID":[] },
+
+				{ "name":"Southern California", "id":"Southern California", "locationID":[] },
+
+				{ "name":"Southern Central California", "id":"Southern Central California", "locationID":[] },
+				{ "name":"Southern Oregon", "id":"Southern Oregon", "locationID":[] },
+
+
+				{ "name":"Southern-Central California", "id":"Southern-Central California", "locationID":[] },
+				{ "name":"WA/BC", "id":"WA/BC", "locationID":[] },
+
+				{ "name":"WA/BC Border Region", "id":"WA/BC Border Region", "locationID":[] },
+
+				{ "name":"WA/BC Border region", "id":"WA/BC Border region", "locationID":[] },
+
+				{ "name":"WaIn: Washington Inside Waters", "id":"WaIn: Washington Inside Waters", "locationID":[] },
+
+				{ "name":"WaIn:WashingtonInsideWaters", "id":"WaIn:WashingtonInsideWaters", "locationID":[] },
+				{ "name":"Washington", "id":"Washington", "locationID":[] },
+
+				{ "name":"Washington Inside Waters", "id":"Washington Inside Waters", "locationID":[] },
+
+				{ "name":"Washington Outer Coast", "id":"Washington Outer Coast", "locationID":[] },
+			{
 			  "name": "SPLASH", "id":"SPLASH", "locationID":[
 				{
 				"name": "Asia-OG", "id": "Asia-OG"
@@ -130,7 +227,12 @@
 				}
 
 			  ] 
-			 },
+			 }
+			  
+			  
+			  ]},
+			  
+
 			 {
 			  "name": "Savu Sea" },
 			 {
@@ -148,14 +250,20 @@
 			 {
 			  "name": "Sulu Sea" },
 			 {
-			  "name": "Tasman Sea" },
-			 {
 			  "name": "Visayan Sea" },
 			 {
 			  "name": "Yellow Sea" 
-			  }
+			  },
+
+			{"name":"South Pacific","id":"South Pacific","locationID":[
+				{"name": "Tasman Sea" },
+				{ "name":"NewZealand", "id":"NewZealand", "locationID":[] }
+			]}
+			
+			  
+			  
 		],
-		"id": "1",
+		"id": "PacificOcean",
 		"defaultLatitutde": 0.0,
 		"defaultLongitude": -160.0
     },
@@ -170,12 +278,19 @@
 			  "name": "Bothnian Sea" },
 			 {
 			  "name": "Central Baltic Sea" },
+			  { "name":"Faroe Islands", "id":"Faroe Islands", "locationID":[] },
+
+			{ "name":"France", "id":"France", "locationID":[] },
 			 {
 			  "name": "Gulf of Bothnia" },
 			 {
 			  "name": "Gulf of Finland" },
 			 {
 			  "name": "Gulf of Riga" },
+			 { "name":"Greenland", "id":"Greenland", "locationID":[] },
+			  
+			{ "name":"Iceland", "id":"Iceland", "locationID":[] },
+			  
 			 {
 			  "name": "Oresund Strait" },
 			 {
@@ -227,7 +342,14 @@
 			 {
 			  "name": "Black Sea" },
 			 {
-			  "name": "Caribbean Sea" },
+			  "name": "Caribbean Sea","id":"CaribbeanSea","locationID":[
+			  	{ "name":"2h", "id":"2h", "locationID":[] },
+				{ "name":"Bahamas-GBB", "id":"Bahamas-GBB", "locationID":[] },
+				{ "name":"Bahamas-LBB", "id":"Bahamas-LBB", "locationID":[] },
+				{ "name":"Dominica", "id":"Dominica", "locationID":[] },
+				{ "name":"Guadeloupe", "id":"Guadeloupe", "locationID":[] }
+			  ] 
+			  },
 			 {
 			  "name": "Celtic Sea" },
 			 {
@@ -243,7 +365,18 @@
 			 {
 			  "name": "Gulf of Maine" },
 			 {
-			  "name": "Gulf of Mexico" },
+			  "name": "Gulf of Mexico","id":"Gulf of Mexico","locationID":[
+				{ "name":"CH", "id":"CH", "locationID":[] },
+			  
+				{ "name":"GU", "id":"GU", "locationID":[] },
+			  
+				{ "name":"SB", "id":"SB", "locationID":[] },
+			  
+				{ "name":"TB", "id":"TB", "locationID":[] },
+
+				{ "name":"TRO", "id":"TRO", "locationID":[] }
+			  
+			  ] },
 			 {
 			  "name": "Gulf of St. Lawrence" },
 			 {
@@ -264,30 +397,85 @@
 			  "name": "Sea of Azov" },
 			 {
 			  "name": "Sea of the Hebrides" },
+			  
+			  {"name":"U.S. Eastern Seaboard","id":"U.S. Eastern Seaboard","locationID":[
+			  
+					{ "name":"Montauk NY", "id":"Montauk NY", "locationID":[] },
+					{ "name":"NY Bight", "id":"NY Bight", "locationID":[] }
+			  ]},
+			  {"name":"South Atlantic","id":"South Atlantic","locationID":[
+			  
+				{ "name":"Gabon", "id":"Gabon", "locationID":[] },
+				{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
+				{ "name":"Argentina", "id":"Argentina", "locationID":[] }
+			  ]},
+			  
 			 {
 			  "name": "Wadden Sea" }
 		],
-		"id": "2",
+		"id": "AtlanticOcean",
 		"defaultLatitude": 0.0,
 		"defaultLongitude": -30.0
 	},
 	{
-		"name": "Indian Ocean",
+		"name":"Indian Ocean", "id":"IndianOcean",
 		"locationID":[
+		
+		{ "name":"BANGLADESH - West", "id":"BANGLADESH - West", "locationID":[] },
+		
+		 {"name":"India","id":"India","locationID":[
+		
+			{ "name":"INDIA - Andaman Islands", "id":"INDIA - Andaman Islands", "locationID":[] },
+
+			{ "name":"INDIA - Andhra Pradesh", "id":"INDIA - Andhra Pradesh", "locationID":[] },
+
+			{ "name":"INDIA - Arabian Sea", "id":"INDIA - Arabian Sea", "locationID":[] },
+
+			{ "name":"INDIA - Bay of Bengal", "id":"INDIA - Bay of Bengal", "locationID":[] },
+
+			{ "name":"INDIA - Goa", "id":"INDIA - Goa", "locationID":[] },
+
+			{ "name":"INDIA - Gujarat", "id":"INDIA - Gujarat", "locationID":[] },
+
+			{ "name":"INDIA - Indian Ocean", "id":"INDIA - Indian Ocean", "locationID":[] },
+
+			{ "name":"INDIA - Karnataka", "id":"INDIA - Karnataka", "locationID":[] },
+
+			{ "name":"INDIA - Kerala", "id":"INDIA - Kerala", "locationID":[] },
+
+			{ "name":"INDIA - Lakshadweep Islands", "id":"INDIA - Lakshadweep Islands", "locationID":[] },
+
+			{ "name":"INDIA - Maharashtra", "id":"INDIA - Maharashtra", "locationID":[] },
+
+			{ "name":"INDIA - Nicobar Islands", "id":"INDIA - Nicobar Islands", "locationID":[] },
+
+			{ "name":"INDIA - Orissa", "id":"INDIA - Orissa", "locationID":[] },
+
+			{ "name":"INDIA - Pondicherry", "id":"INDIA - Pondicherry", "locationID":[] },
+
+			{ "name":"INDIA - Tamilnadu", "id":"INDIA - Tamilnadu", "locationID":[] },
+
+			{ "name":"INDIA - West Bengal", "id":"INDIA - West Bengal", "locationID":[] }
+		
+		 ]},
+		 {"name":"Pakistan","id":"Pakistan","locationID":[
+			{ "name":"PAKISTAN - North", "id":"PAKISTAN - North", "locationID":[] }
+		 ]},
+		 
+		
 		 {
 		  "name": "Andaman Sea" },
 		 {
 		  "name": "Arabian Sea", "id":"Arabian sea" },
-		 {
-		  "name": "Bay of Bengal" },
-		 {
-		  "name": "Gulf of Aden" },
-		 {
-		  "name": "Gulf of Oman" },
+
 		 {
 		  "name": "Laccadive Sea" },
 		 {
-		  "name": "Mozambique Channel" },
+		  "name": "Mozambique Channel","id":"MozambiqueChannel","locationID":[
+		  
+			{ "name":"Mozambique", "id":"Mozambique", "locationID":[] }
+		  
+		  ] },
 		 {
 		  "name": "Persian Gulf" },
 		 {
@@ -379,6 +567,65 @@
 		  },
 		  {"name":"Oman","id":"Oman", 
 			"locationID":[
+				{ "name":"4h", "id":"4h", "locationID":[] },
+				{ "name":"As Sifah", "id":"As Sifah", "locationID":[] },
+
+				{ "name":"Ash Shuwayr", "id":"Ash Shuwayr", "locationID":[] },
+
+				{ "name":"Ashkharah", "id":"Ashkharah", "locationID":[] },
+				{ "name":"Azaiba", "id":"Azaiba", "locationID":[] },
+				{ "name":"Bandar al Jissah", "id":"Bandar al Jissah", "locationID":[] },
+				{ "name":"Bandar al Khayran", "id":"Bandar al Khayran", "locationID":[] },
+				{ "name":"Bandar al Rowda", "id":"Bandar al Rowda", "locationID":[] },
+				{ "name":"Barr al Hikman", "id":"Barr al Hikman", "locationID":[] },
+				{ "name":"Batinah coast", "id":"Batinah coast", "locationID":[] },
+				{ "name":"Bighalat", "id":"Bighalat", "locationID":[] },
+				{ "name":"Bimmah", "id":"Bimmah", "locationID":[] },
+				{ "name":"Bulaydah", "id":"Bulaydah", "locationID":[] },
+				{ "name":"Bustan", "id":"Bustan", "locationID":[] },
+				{ "name":"Capital Area Yacht Club", "id":"Capital Area Yacht Club", "locationID":[] },
+				{ "name":"Cat Island", "id":"Cat Island", "locationID":[] },
+				{ "name":"Dalkut", "id":"Dalkut", "locationID":[] },
+
+				{ "name":"Darsayt", "id":"Darsayt", "locationID":[] },
+
+				{ "name":"Daymaniyat Islands", "id":"Daymaniyat Islands", "locationID":[] },
+
+				{ "name":"Dhofar", "id":"Dhofar", "locationID":[] },
+
+				{ "name":"Dibab", "id":"Dibab", "locationID":[] },
+				{ "name":"Dorgahan", "id":"Dorgahan", "locationID":[] },
+
+				{ "name":"Duqm", "id":"Duqm", "locationID":[] },
+				{ "name":"Fahal Island", "id":"Fahal Island", "locationID":[] },
+				
+				{ "name":"Film", "id":"Film", "locationID":[] },
+
+				{ "name":"Fins", "id":"Fins", "locationID":[] },
+
+				{ "name":"Fujayrah", "id":"Fujayrah", "locationID":[] },
+
+				{ "name":"Ghalilah", "id":"Ghalilah", "locationID":[] },
+
+				{ "name":"Gulf of Masirah", "id":"Gulf of Masirah", "locationID":[] },
+
+				{ "name":"Gulf of Oman", "id":"Gulf of Oman", "locationID":[] },
+
+				{ "name":"Hadbaram", "id":"Hadbaram", "locationID":[] },
+
+				{ "name":"Hadbin", "id":"Hadbin", "locationID":[] },
+
+				{ "name":"Halaaniyaat Islands", "id":"Halaaniyaat Islands", "locationID":[] },
+
+				{ "name":"Hallaniyats", "id":"Hallaniyats", "locationID":[] },
+
+				{ "name":"Hamar an Nafur Island", "id":"Hamar an Nafur Island", "locationID":[] },
+
+				{ "name":"Hasik", "id":"Hasik", "locationID":[] },
+
+				{ "name":"Haynu Island", "id":"Haynu Island", "locationID":[] },
+
+				{ "name":"Hino Island", "id":"Hino Island", "locationID":[] },
 				{"name":"Kalbooh","id":"Kalbooh"},
 				{"name":"Khabbah","id":"Khabbah"},
 				{"name":"Khaluf","id":"Khaluf"},
@@ -390,13 +637,166 @@
 				{"name":"Khaysat ash Shaikh","id":"Khaysat ash Shaikh"},
 				{"name":"Khor Dirif","id":"Khor Dirif"},
 				{"name":"Khor Rouri","id":"Khor Rouri"},
-				{"name":"Khuwaymah","id":"Khuwaymah"}
+				{"name":"Khuwaymah","id":"Khuwaymah"},
+				{ "name":"Jabal Musayrah", "id":"Jabal Musayrah", "locationID":[] },
+				{ "name":"Lakbi", "id":"Lakbi", "locationID":[] },
+				{ "name":"Likbe", "id":"Likbe", "locationID":[] },
+				{ "name":"Mahawt Island", "id":"Mahawt Island", "locationID":[] },
+				{ "name":"Masirah Island", "id":"Masirah Island", "locationID":[] },
+				{ "name":"Nakdah", "id":"Nakdah", "locationID":[] },
+				{ "name":"Mina Qaboos", "id":"Mina Qaboos", "locationID":[] },
+
+				{ "name":"Mina al Fahal", "id":"Mina al Fahal", "locationID":[] },
+
+				{ "name":"Mina al Khaysa", "id":"Mina al Khaysa", "locationID":[] },
+
+				{ "name":"Mirbat", "id":"Mirbat", "locationID":[] },
+				{ "name":"Mughsayl", "id":"Mughsayl", "locationID":[] },
+
+				{ "name":"Musandam", "id":"Musandam", "locationID":[] },
+
+				{ "name":"Muscat", "id":"Muscat", "locationID":[] },
+
+				{ "name":"Muscat Island", "id":"Muscat Island", "locationID":[] },
+
+				{ "name":"Mutrah", "id":"Mutrah", "locationID":[] },
+				{ "name":"Offshore", "id":"Offshore", "locationID":[] },
+
+				{ "name":"Offshore Muscat", "id":"Offshore Muscat", "locationID":[] },
+				
+				{ "name":"Qalhat", "id":"Qalhat", "locationID":[] },
+
+				{ "name":"Qantab", "id":"Qantab", "locationID":[] },
+
+				{ "name":"Qaysad", "id":"Qaysad", "locationID":[] },
+
+				{ "name":"Quriyat", "id":"Quriyat", "locationID":[] },
+
+				{ "name":"Qurm", "id":"Qurm", "locationID":[] },
+
+				{ "name":"Raaha", "id":"Raaha", "locationID":[] },
+				
+				{ "name":"Ras Abana", "id":"Ras Abana", "locationID":[] },
+
+				{ "name":"Ras Abu Daud", "id":"Ras Abu Daud", "locationID":[] },
+
+				{ "name":"Ras Bintawt", "id":"Ras Bintawt", "locationID":[] },
+
+				{ "name":"Ras Fararah", "id":"Ras Fararah", "locationID":[] },
+
+				{ "name":"Ras Halat", "id":"Ras Halat", "locationID":[] },
+
+				{ "name":"Ras Hamar", "id":"Ras Hamar", "locationID":[] },
+
+				{ "name":"Ras Janjari", "id":"Ras Janjari", "locationID":[] },
+
+				{ "name":"Ras Khashayim", "id":"Ras Khashayim", "locationID":[] },
+
+				{ "name":"Ras Madrakah", "id":"Ras Madrakah", "locationID":[] },
+
+				{ "name":"Ras Markaz", "id":"Ras Markaz", "locationID":[] },
+
+				{ "name":"Ras Muntajib", "id":"Ras Muntajib", "locationID":[] },
+
+				{ "name":"Ras Nuss", "id":"Ras Nuss", "locationID":[] },
+
+				{ "name":"Ras Qarwaw", "id":"Ras Qarwaw", "locationID":[] },
+
+				{ "name":"Ras Raysut", "id":"Ras Raysut", "locationID":[] },
+
+				{ "name":"Ras Sajir", "id":"Ras Sajir", "locationID":[] },
+
+				{ "name":"Ras Saqlah", "id":"Ras Saqlah", "locationID":[] },
+
+				{ "name":"Ras Sarab", "id":"Ras Sarab", "locationID":[] },
+
+				{ "name":"Ras Sidrah", "id":"Ras Sidrah", "locationID":[] },
+
+				{ "name":"Ras al Aqit", "id":"Ras al Aqit", "locationID":[] },
+
+				{ "name":"Ras al Dil", "id":"Ras al Dil", "locationID":[] },
+
+				{ "name":"Ras al Gubbah", "id":"Ras al Gubbah", "locationID":[] },
+
+				{ "name":"Ras al Hadd", "id":"Ras al Hadd", "locationID":[] },
+
+				{ "name":"Ras al Hamra", "id":"Ras al Hamra", "locationID":[] },
+
+				{ "name":"Ras al Jifan", "id":"Ras al Jifan", "locationID":[] },
+
+				{ "name":"Ras al Junayz", "id":"Ras al Junayz", "locationID":[] },
+
+				{ "name":"Ras al Khamah", "id":"Ras al Khamah", "locationID":[] },
+
+				{ "name":"Ras al Nakharir", "id":"Ras al Nakharir", "locationID":[] },
+
+				{ "name":"Ras al Sarj", "id":"Ras al Sarj", "locationID":[] },
+
+				{ "name":"Ras ar Ruways", "id":"Ras ar Ruways", "locationID":[] },
+
+				{ "name":"Ras ash Shajar", "id":"Ras ash Shajar", "locationID":[] },
+
+				{ "name":"Raysut", "id":"Raysut", "locationID":[] },
+				{ "name":"Sadh", "id":"Sadh", "locationID":[] },
+
+				{ "name":"Salalah", "id":"Salalah", "locationID":[] },
+
+				{ "name":"Salutiyat", "id":"Salutiyat", "locationID":[] },
+				
+				{ "name":"Sanur", "id":"Sanur", "locationID":[] },
+
+				{ "name":"Sawda", "id":"Sawda", "locationID":[] },
+
+				{ "name":"Sawqirah", "id":"Sawqirah", "locationID":[] },
+
+				{ "name":"Seeb", "id":"Seeb", "locationID":[] },
+
+				{ "name":"Shanah", "id":"Shanah", "locationID":[] },
+
+				{ "name":"Sharbitat", "id":"Sharbitat", "locationID":[] },
+
+				{ "name":"Shina (Batinah)", "id":"Shina (Batinah)", "locationID":[] },
+
+				{ "name":"Shuayr", "id":"Shuayr", "locationID":[] },
+
+				{ "name":"Shuwaymiah", "id":"Shuwaymiah", "locationID":[] },
+
+				{ "name":"Shuwaymiyah", "id":"Shuwaymiyah", "locationID":[] },
+
+				{ "name":"Sidab", "id":"Sidab", "locationID":[] },
+
+				{ "name":"Sifah", "id":"Sifah", "locationID":[] },
+
+				{ "name":"Sirab", "id":"Sirab", "locationID":[] },
+
+				{ "name":"Sohar", "id":"Sohar", "locationID":[] },
+				{ "name":"Straits of Hormuz", "id":"Straits of Hormuz", "locationID":[] },
+				{ "name":"Sur", "id":"Sur", "locationID":[] },
+				{ "name":"Taqah", "id":"Taqah", "locationID":[] },
+
+				{ "name":"Tiwi", "id":"Tiwi", "locationID":[] },
+
+
+				{ "name":"Wadi Afal", "id":"Wadi Afal", "locationID":[] },
+
+				{ "name":"Wadi Baqlai", "id":"Wadi Baqlai", "locationID":[] },
+
+				{ "name":"Wadi Hinna", "id":"Wadi Hinna", "locationID":[] },
+
+				{ "name":"Wadi Thakaut", "id":"Wadi Thakaut", "locationID":[] },
+
+				{ "name":"Wahiba coast", "id":"Wahiba coast", "locationID":[] },
+				{ "name":"Yitti", "id":"Yitti", "locationID":[] }
 
 			]
-		  }
+		  },
+		  {"name":"Yemen","id":"Yemen","locationID":[
+		  
+		  				{ "name":"Gulf of Aden", "id":"Gulf of Aden", "locationID":[] }
+		  
+		  ]}
 
 		],
-		"id": "3",
 		"defaultLatitude": -20.0,
 		"defaultLongitude": 80.0
     },
@@ -445,7 +845,7 @@
 			  "name":"Antarctica", "id":"Antarctica"
 			 }
 	  ],
-		"id": "4",
+		"id": "SouthernOcean",
 		"defaultLatitude": -68.4380,
 		"defaultLongitude": -160.2340
     },
@@ -488,10 +888,43 @@
 			  "name": "White Sea" 
 			 }
 		],
-		"id": "5",
+		"id": "ArcticOcean",
 		"defaultLatitude": 90.0,
 		"defaultLongitude":0.0
-    }
+    },
+	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
+	
+	{ "name":"Australia", "id":"Australia", "locationID":[
+				{ "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] }
+	] },
+	{"name":"Miscellaneous","id":"Miscellaneous","locationID":[
+
+		{ "name":"1", "id":"1", "locationID":[] },
+		{ "name":"2", "id":"2", "locationID":[] },
+		{ "name":"3", "id":"3", "locationID":[] },
+		{ "name":"4", "id":"4", "locationID":[] },
+		{ "name":"5", "id":"5", "locationID":[] },
+		{ "name":"6", "id":"6", "locationID":[] },
+
+		{ "name":"", "id":"", "locationID":[] },
+
+		{ "name":"None", "id":"None", "locationID":[] },
+
+		{ "name":"Other", "id":"Other", "locationID":[] },
+
+		{ "name":"United States", "id":"United States", "locationID":[] },
+
+		{ "name":"Study Site 1", "id":"Study Site 1", "locationID":[] },
+
+		{ "name":"Study Site 2", "id":"Study Site 2", "locationID":[] },
+
+		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] },
+
+		{ "name":"locationID", "id":"locationID", "locationID":[] },
+
+		{ "name":"null", "id":"null", "locationID":[] }
+
+	]}
   ]
 }
 
