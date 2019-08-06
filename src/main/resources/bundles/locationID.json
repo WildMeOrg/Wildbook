@@ -40,9 +40,14 @@
 			 {
 			  "name": "Gulf of Alaska" },
 			 {
-			  "name": "Gulf of California" },
-			 {
-			  "name": "Sea of Cortés" },
+			  "name": "Sea of Cortés", "id":"sea of cortes", 
+			  "locationID":[
+				{
+				"name": "Baja California", "id":"Baja California" }
+			          
+			  
+			  ]
+			  },
 			 {
 			  "name": "Gulf of Carpentaria" },
 			 {
@@ -61,6 +66,71 @@
 			  "name": "Philippine Sea" },
 			 {
 			  "name": "Salish Sea" },
+			 {
+			  "name": "SPLASH", "id":"SPLASH", "locationID":[
+				{
+				"name": "Asia-OG", "id": "Asia-OG"
+				},
+				{
+				"name": "Asia-OK", "id": "Asia-OK"
+				},
+			    {
+				"name": "Asia-PHI", "id": "Asia-PHI"
+				},     
+				{
+				"name": "Bering", "id": "Bering"
+				},   
+				{
+				"name": "CA-OR", "id": "CA-OR"
+				},        
+				{
+				"name": "Cent Am", "id": "Cent Am"
+				}, 
+				{
+				"name": "E Aleut.", "id": "E Aleut."
+				}, 
+				{
+				"name": "Hawaii", "id": "Hawaii"
+				}, 
+				{
+				"name": "MX-AR", "id": "MX-AR"
+				}, 
+				{
+				"name": "MX-BC", "id": "MX-BC"
+				}, 
+				{
+				"name": "MX-ML", "id": "MX-ML"
+				},
+				{
+				"name": "NBC", "id": "NBC"
+				},
+				{
+				"name": "NGOA", "id": "NGOA"
+				},
+				{
+				"name": "NWA-SBC", "id": "NWA-SBC"
+				},
+				{
+				"name": "Russia-CI", "id": "Russia-CI"
+				},
+				{
+				"name": "Russia-GA", "id": "Russia-GA"
+				},
+				{
+				"name": "Russia-K", "id": "Russia-K"
+				},
+				{
+				"name": "W Aleut.", "id": "W Aleut."
+				},
+				{
+				"name": "SEAK", "id": "SEAK"
+				},
+				{
+				"name": "WGOA", "id": "WGOA"
+				}
+
+			  ] 
+			 },
 			 {
 			  "name": "Savu Sea" },
 			 {
@@ -207,7 +277,7 @@
 		 {
 		  "name": "Andaman Sea" },
 		 {
-		  "name": "Arabian Sea" },
+		  "name": "Arabian Sea", "id":"Arabian sea" },
 		 {
 		  "name": "Bay of Bengal" },
 		 {
@@ -221,19 +291,27 @@
 		 {
 		  "name": "Persian Gulf" },
 		 {
-		  "name": "Red Sea" },
+		  "name": "Red Sea", "id":"Red Sea", 
+		  "locationID":[
+		    {"name":"Israel","id":"Israel"}
+		  ] 
+		  },
 		 {
 		  "name": "Timor Sea" 
 		  },
-		  {
-		  "name": "Nosy Be" ,"id": "Nosy Be" 
-		  },
-		  {
-		  "name": "Nosy Iranja" ,"id": "Nosy Iranja" 
-		  },		  
-		  {
-		  "name": "Nosy Mitsio" ,"id": "Nosy Mitsio"
-		  },
+		  {"name":"Madagascar","id":"Madagascar",
+		  "locationID":[
+				  {
+				  "name": "Nosy Be" ,"id": "Nosy Be" 
+				  },
+				  {
+				  "name": "Nosy Iranja" ,"id": "Nosy Iranja" 
+				  },		  
+				  {
+				  "name": "Nosy Mitsio" ,"id": "Nosy Mitsio"
+				  }
+			  ]
+			},
 		  {
 		  "name": "Antongil Bay" ,"id": "Antongil Bay" 
 		  },
@@ -290,7 +368,33 @@
 		  },
 		  {
 		  "name": "Anjouan", "id": "Anjouan"
+		  },
+		  {"name":"Sri Lanka","id":"Sri Lanka", 
+			"locationID":[
+				{"name":"SRI LANKA - East","id":"SRI LANKA - East"},
+				{"name":"SRI LANKA - North","id":"SRI LANKA - North"},
+				{"name":"SRI LANKA - South","id":"SRI LANKA - South"},
+				{"name":"SRI LANKA - West","id":"SRI LANKA - West"}
+			]
+		  },
+		  {"name":"Oman","id":"Oman", 
+			"locationID":[
+				{"name":"Kalbooh","id":"Kalbooh"},
+				{"name":"Khabbah","id":"Khabbah"},
+				{"name":"Khaluf","id":"Khaluf"},
+				{"name":"Khawr Masirah","id":"Khawr Masirah"},
+				{"name":"Khawr Murir","id":"Khawr Murir"},
+				{"name":"Khawr Rawri","id":"Khawr Rawri"},
+				{"name":"Khawr Yenkit","id":"Khawr Yenkit"},
+				{"name":"Khaysa","id":"Khaysa"},
+				{"name":"Khaysat ash Shaikh","id":"Khaysat ash Shaikh"},
+				{"name":"Khor Dirif","id":"Khor Dirif"},
+				{"name":"Khor Rouri","id":"Khor Rouri"},
+				{"name":"Khuwaymah","id":"Khuwaymah"}
+
+			]
 		  }
+
 		],
 		"id": "3",
 		"defaultLatitude": -20.0,
@@ -336,7 +440,10 @@
 			 {
 			  "name": "Spencer Gulf" },
 			 {
-			  "name": "Weddell Sea" }
+			  "name": "Weddell Sea" },
+			 {
+			  "name":"Antarctica", "id":"Antarctica"
+			 }
 	  ],
 		"id": "4",
 		"defaultLatitude": -68.4380,
@@ -387,3 +494,4 @@
     }
   ]
 }
+
