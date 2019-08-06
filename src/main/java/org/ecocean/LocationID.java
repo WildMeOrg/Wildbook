@@ -274,7 +274,7 @@ public class LocationID {
     // please note it also will leave untouched any IDs which *are not in LocationID.json*, so they will not be filtered out
     //  (this is intentional behavior so that an ID need not be in LocationID.json to be considered valid here)
     public static List<String> expandIDs(List<String> ids) {
-        return expand(ids, null);
+        return expandIDs(ids, null);
     }
     public static List<String> expandIDs(List<String> ids, String qualifier) {
         List<String> rtn = new ArrayList<String>();
