@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import java.util.List;
+import java.util.Iterator;
 import java.util.ArrayList;
 import java.io.IOException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -148,6 +149,34 @@ public class Taxonomy implements java.io.Serializable {
             occ.setTaxonomies(newTaxs);
         }
         return occs.size();
+    }
+
+    //mostly for findMatch() below, but maybe this is useful elsewhere?
+    public List<String> filterCommonNames(String regex) {
+        List<String> found = new ArrayList<String>();
+        if (Util.collectionIsEmptyOrNull(commonNames)) return found;
+        for (String cn : commonNames) {
+            if (cn.matches(regex)) found.add(cn);
+        }
+        return found;
+    }
+
+    //the idea here is to take user input and try to match a taxonomy.  a list is returned if one cannot be narrowed down
+    //  regex must match whole word, so pre/append with .* accordingly. also, a prefix of '(?i)' will make case-insenstive
+    public static List<Taxonomy> findMatch(Shepherd myShepherd, String regex) {
+        if (regex == null) return null;
+        Iterator<Taxonomy> it = myShepherd.getAllTaxonomies();
+        List<Taxonomy> rtn = new ArrayList<Taxonomy>();
+        while (it.hasNext()) {
+            Taxonomy tx = it.next();
+            if (!tx.getScientificName().matches(regex) && (tx.filterCommonNames(regex).size() < 1)) continue;
+            if (tx.getNonSpecific()) {
+                rtn.add(tx);
+            } else {
+                rtn.add(0, tx);  //non non-specific (aka exact) taxonomies get shifted on front of array
+            }
+        }
+        return rtn;
     }
 
     public static List<Occurrence> getOccurrences(Shepherd myShepherd, Taxonomy tax) {

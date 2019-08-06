@@ -278,6 +278,8 @@
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
 				
+				/IndividualSetName = authc, roles[researcher]
+				
 				/AnnotationEdit = authc, roles[admin]
 				
 				/obrowse.jsp = authc, roles[admin]
@@ -410,6 +412,11 @@
     <servlet>
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
+  </servlet>
+  
+  <servlet>
+      <servlet-name>IndividualSetName</servlet-name>
+      <servlet-class>org.ecocean.servlet.IndividualSetName</servlet-class>
   </servlet>
 
 
@@ -669,6 +676,7 @@
     <servlet-name>MediaAssetsForUser</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetsForUser</servlet-class>
   </servlet>
+  
   <servlet>
     <servlet-name>MediaAssetAttach</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetAttach</servlet-class>
@@ -1284,15 +1292,9 @@
   </servlet>
 
 
-	<servlet>
-		<servlet-name>PrimeIBEISImageAnalysisForSpecies</servlet-name>
-		<servlet-class>org.ecocean.servlet.PrimeIBEISImageAnalysisForSpecies</servlet-class>
-	</servlet>
 
-	<servlet-mapping>
-		<servlet-name>PrimeIBEISImageAnalysisForSpecies</servlet-name>
-		<url-pattern>/PrimeIBEISImageAnalysisForSpecies</url-pattern>
-	</servlet-mapping>
+
+
 
   <servlet>
     <servlet-name>SubmitSpotsAndImage</servlet-name>
@@ -1531,6 +1533,11 @@
   <servlet-mapping>
           <servlet-name>SimpleCMROutput</servlet-name>
           <url-pattern>/SimpleCMROutput</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+          <servlet-name>IndividualSetName</servlet-name>
+          <url-pattern>/IndividualSetName</url-pattern>
   </servlet-mapping>
 
 

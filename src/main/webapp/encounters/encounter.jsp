@@ -15,7 +15,7 @@
          org.ecocean.datacollection.*,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
-	 org.json.JSONObject,
+         org.json.JSONObject,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -42,29 +42,18 @@
           returnString = props.getProperty(lcode);
 
 
-          int startNum = 1;
-          boolean keepIterating = true;
 
-          //let's iterate through the potential individuals
-          while (keepIterating) {
-            String startNumString = Integer.toString(startNum);
-            if (startNumString.length() < 3) {
-              while (startNumString.length() < 3) {
-                startNumString = "0" + startNumString;
-              }
-            }
-            String compositeString = returnString + startNumString;
-            if (!myShepherd.isMarkedIndividual(compositeString)) {
-              keepIterating = false;
-              returnString = compositeString;
-            } else {
-              startNum++;
+            //if (!myShepherd.isMarkedIndividual(compositeString)) {
+            List<MarkedIndividual> names=MarkedIndividual.findByNames(myShepherd, ".*"+returnString.toLowerCase()+"\\d+.*");
+            if(names!=null){
+            	int size=names.size();
+            	size++;
+            	String numberAsString=String.format ("%03d", size);
+            	return returnString+numberAsString;
             }
 
           }
           return returnString;
-
-        }
 
 
       }
@@ -160,7 +149,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   //Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
-  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+  //Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context, "indocet");
 
 	Properties collabProps = new Properties();
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
@@ -177,8 +166,12 @@ String langCode=ServletUtilities.getLanguageCode(request);
   boolean proceed = true;
   boolean haveRendered = false;
 
-  pageContext.setAttribute("set", encprops.getProperty("set"));
   
+
+  Properties collabProps = new Properties();
+  collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+
+
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
@@ -324,9 +317,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
       padding: 8px;
     }
 
-
-
-
 th.measurement{
 	 font-size: 0.9em;
 	 font-weight: normal;
@@ -390,8 +380,10 @@ function setIndivAutocomplete(el) {
     if (!el || !el.length) return;
     var args = {
         resMap: function(data) {
+            var taxString = $('#displayTax').text();
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
+                if (taxString && (item.species != taxString)) return null;
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
                 return { label: label, type: item.type, value: item.value };
@@ -529,21 +521,40 @@ var encounterNumber = '<%=num%>';
 
 			<%
   			myShepherd.beginDBTransaction();
+			Properties encprops = ShepherdProperties.getOrgProperties("encounter.properties", langCode, context, request, myShepherd);
+			pageContext.setAttribute("set", encprops.getProperty("set"));
+
+			boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
+
 
   			if (myShepherd.isEncounter(num)) {
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
-            String encNum = enc.getCatalogNumber();
+            	System.out.println("Got encounter "+enc+" with dataSource "+enc.getDataSource()+" and submittedDate "+enc.getDWCDateAdded());
+            	String encNum = enc.getCatalogNumber();
 						boolean visible = enc.canUserAccess(request);
 						if (!visible) visible = checkAccessKey(request, enc);
 						if (!visible) {
+
+
+              // remove any potentially-sensitive data, labeled with the secure-field class
+              %>
+              <script type="text/javascript">
+                $(document).ready(function() {
+                  $('.secure-field').remove();
+                });
+              </script>
+              <%
+
+
 							String blocker = "";
 							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
 							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
 							String uid = null;
 							String name = null;
+              String blockerOptions = "overlayCSS: { backgroundColor: '#000', opacity: 1.0, cursor:'wait'}";
 							if (request.getUserPrincipal() == null) {
 								cmsg = "<p>Access limited.</p>";
 							} if ((c == null) || (c.getState() == null)) {
@@ -783,8 +794,9 @@ $(function() {
 								} //end while
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
-				if(enc.getIndividualID()!=null){
-					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
+				if(enc.hasMarkedIndividual() && enc.getIndividual()!=null) {
+          		String dispName = enc.getIndividual().getDisplayName(request);
+					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
                	<h1 class="<%=classColor%>" id="headerText">
@@ -820,7 +832,7 @@ $(function() {
 	<!-- main display area -->
 
 				<div class="container">
-					<div class="row">
+					<div class="row secure-field">
 
 
 					<div class="row">
@@ -1034,13 +1046,21 @@ if(enc.getLocation()!=null){
           <option value=""></option>
 
           <%
-          String[] locales = Locale.getISOCountries();
-          for (String countryCode : locales) {
-            Locale obj = new Locale("", countryCode);
-            %>
-            <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
-
-            <%
+          if (useCustomProperties) {
+            List<String> countries = CommonConfiguration.getIndexedPropertyValues("country",request);
+            for (String country: countries) {
+              %>
+              <option value="<%=country%>"><%=country%></option>
+              <%
+            }
+          } else {
+            String[] locales = Locale.getISOCountries();
+            for (String countryCode : locales) {
+              Locale obj = new Locale("", countryCode);
+              %>
+              <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
+              <%
+            }
           }
           %>
         </select>
@@ -1115,24 +1135,10 @@ if(enc.getLocation()!=null){
                 <option value=""></option>
 
                 <%
-                boolean hasMoreLocs=true;
-                int codeTaxNum=0;
-                while(hasMoreLocs){
-                  String currentLoc = "locationID"+codeTaxNum;
-                  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
-                	  String selected="";
-                	  if((enc.getLocationID()!=null)&&(CommonConfiguration.getProperty(currentLoc,context).equals(enc.getLocationID()))){
-                		  selected="selected=\"selected\"";
-                	  }
-                    %>
-                    <option <%=selected %> value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
-                    <%
-                    codeTaxNum++;
-                  }
-                  else{
-                    hasMoreLocs=false;
-                  }
-
+                List<String> locIDs = CommonConfiguration.getIndexedPropertyValues("locationID", request);
+                for (String locID: locIDs) {
+                  String selected = (enc.getLocationID()!=null && enc.getLocationID().equals(locID)) ? "selected=\"selected\"" : "";
+                  %><option <%=selected %> value="<%=locID%>"><%=locID%></option><%
                 }
                 %>
 
@@ -1553,8 +1559,19 @@ if(enc.getLocation()!=null){
     							<div>
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> 
-                     <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%>">
-                     <span id="displayIndividualID"><%=ServletUtilities.handleNullString(enc.getIndividualID())%></span></a></p>
+    								 <%
+    								 String hrefVal="";
+    								 String indyDisplayName="";
+    								 if(enc.hasMarkedIndividual()){
+    									hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
+    									indyDisplayName=enc.getDisplayName();
+    								 }
+                     				%>
+                     					<a href="<%=hrefVal %>">
+                     						<span id="displayIndividualID"><%=indyDisplayName %></span>
+                     					</a>
+                     				
+                     			</p>
     							
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
@@ -1646,14 +1663,16 @@ if(enc.getLocation()!=null){
                         var action = $("#individualAddEncounterAction").val();
 
                         $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
-                        function() {
+                        function(data) {
+                        	
+                         
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
-                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
                           
-                          $('#topid').prop('href', '../individuals.jsp?number=' + individual);
+                          $('#topid').prop('href', '../individuals.jsp?number=' + data.individualID);
                           $("#topid").html(individual);
           			      	  $(".add2shark").hide();               
         			        	  $(".removeFromShark").show();      
@@ -2779,17 +2798,16 @@ else {
                          				if(enc.getAssignedUsername()!=null){
 
                         	 				String username=enc.getAssignedUsername();
-                        	 				Shepherd aUserShepherd=new Shepherd("context0");
-                        	 				aUserShepherd.setAction("encounter.jsp2");
-                         					if(aUserShepherd.getUser(username)!=null){
+                         					if(myShepherd.getUser(username)!=null){
                          					%>
                                 			<%
 
-                         					User thisUser=aUserShepherd.getUser(username);
+                         					User thisUser=myShepherd.getUser(username);
                                 			String profilePhotoURL="../images/empty_profile.jpg";
 
                          					if(thisUser.getUserImage()!=null){
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                         						
                          					}
                          					%>
                      						<%
@@ -2804,7 +2822,7 @@ else {
      								<div>
                       <div class="row">
                         <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
-                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="height: 150px;border: 1px solid;" />
+                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="border: 1px solid;" />
                         </div>
                         <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
                           <%-- <p> --%>
@@ -2849,8 +2867,7 @@ else {
                       	&nbsp;
                       	<%
                       	}
-                        aUserShepherd.rollbackDBTransaction();
-                        aUserShepherd.closeDBTransaction();
+
                       	}
                          				//insert here
 %>
@@ -2869,25 +2886,16 @@ else {
         <select name="submitter" id="submitterSelect" class="form-control" size="1">
             <option value=""></option>
             <%
-
-            Shepherd userShepherd=new Shepherd("context0");
-            userShepherd.setAction("encounter.jsp3");
-            userShepherd.beginDBTransaction();
-
-            ArrayList<String> usernames=userShepherd.getAllUsernames();
-
+            List<String> usernames=myShepherd.getAllUsernames();
+            usernames.remove(null);
+            Collections.sort(usernames,String.CASE_INSENSITIVE_ORDER);
             int numUsers=usernames.size();
             for(int i=0;i<numUsers;i++){
                 String thisUsername=usernames.get(i);
-                //User thisUser2=userShepherd.getUser(thisUsername);
-                String thisUserFullname=thisUsername;
-                //if((thisUser2!=null)&&(thisUser2.getFullName()!=null)){thisUserFullname=thisUser2.getFullName();}
-              %>
-              <option value="<%=thisUsername%>"><%=thisUserFullname%></option>
-              <%
+                	%>
+              		<option value="<%=thisUsername%>"><%=thisUsername%></option>
+              		<%
             }
-            userShepherd.rollbackDBTransaction();
-            userShepherd.closeDBTransaction();
             %>
           </select>
       </div>
@@ -3746,6 +3754,8 @@ else {
 String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
 %>
     <%-- START IMAGES --%>
+      <div id="add-image-zone" class="bc4">
+
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
         	<jsp:param name="encounterNumber" value="<%=num%>" />
         	<jsp:param name="queryString" value="<%=queryString%>" />
@@ -3757,7 +3767,9 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 		<%
 		if(isOwner){
 		%>
-	        <div id="add-image-zone" class="bc4">
+          <br/>
+          <br>
+            <div id="inner-add-image">
 
 	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
 
@@ -3778,6 +3790,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 	            </div>
 	          </div>
 	        </div>
+        </div>
         <%
         }
         %>
@@ -4228,15 +4241,29 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 
       <div class="form-group row">
         <div class="col-sm-5">
-          <textarea name="behaviorComment" class="form-control" id="behaviorInput">
+          <%
+          List<String> behaviors = CommonConfiguration.getIndexedPropertyValues("behavior", request);
+          //System.out.println("got behaviors list "+behaviors);
+          if (!Util.isEmpty(behaviors)) {
+          %>
+          <select name="behaviorComment" id="behaviorInput" class="form-control" size="1">
+            <option value=""></option>
             <%
-           if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
-           %>
-              <%=enc.getBehavior().trim()%>
+            for (String behavior: behaviors) {
+              String selected = (enc.getBehavior()!=null && enc.getBehavior().equals(behavior)) ? "selected=\"selected\"" : "";
+              %><option <%=selected %> value="<%=behavior%>"><%=behavior%></option><%
+            }
+            %>
+          </select>
+          <%} else {%>
+            <textarea name="behaviorComment" class="form-control" id="behaviorInput">
+              <% if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){ %>
+                <%=enc.getBehavior().trim()%>
+              <%}%>
+            </textarea>
           <%
           }
           %>
-          </textarea>
         </div>
         <div class="col-sm-3">
           <input name="EditBeh" type="submit" id="editBehavior" value="<%=encprops.getProperty("submitEdit")%>" class="btn btn-sm"/>
@@ -4247,11 +4274,94 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
       </form>
     </div>
 
-<%
-%>
-<!--  END BEHAVIOR SECTION -->
+<!--  START GROUP ROLE SECTION -->
+<p class="para"><%=encprops.getProperty("groupRole") %>&nbsp;
 
+  <%
 
+    String oldGroupRole = enc.getGroupRole();
+    if (oldGroupRole != null) {
+  %>
+  <span id="displayGroupRole"><%=enc.getGroupRole()%></span>
+  <%
+  } else {
+  %>
+  <span id="displayGroupRole"><%=encprops.getProperty("none")%></span>
+  <%
+    }
+    %>
+</p>
+
+    <!-- start set groupRole popup -->
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("#editGroupRole").click(function(event) {
+        event.preventDefault();
+
+        $("#editGroupRole").hide();
+
+        var number = $("#groupRoleNumber").val();
+        var groupRoleComment = $("#groupRoleInput").val();
+
+        $.post("../EncounterSetString", {"number": number, "field": "groupRole", "newVal":groupRoleComment},
+        function() {
+          $("#groupRoleErrorDiv").hide();
+          $("#groupRoleCheck").show();
+          $("#displayGroupRole").html(groupRoleComment);
+        })
+        .fail(function(response) {
+          $("#groupRoleError, #groupRoleErrorDiv").show();
+          $("#groupRoleErrorDiv").html(response.responseText);
+        });
+      });
+
+      $("#groupRoleInput").click(function() {
+        $("#groupRoleError, #groupRoleCheck, #groupRoleErrorDiv").hide()
+        $("#editGroupRole").show();
+      });
+    });
+  </script>
+  <div>
+    <div class="highlight resultMessageDiv" id="groupRoleErrorDiv"></div>
+
+    <p class="editTextObservation"><strong><%=encprops.getProperty("editGroupRoleComments")%></strong></p>
+    <span class="editTextObservation"><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></span>
+    <form name="setBehaviorComments" class="editFormObservation">
+      <input name="number" type="hidden" value="<%=num%>" id="groupRoleNumber"/>
+      <input name="action" type="hidden" value="editGroupRole" id="groupRoleAction"/>
+
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <%
+        List<String> groupRoles = CommonConfiguration.getIndexedPropertyValues("groupRole", request);
+        //System.out.println("got groupRoles list "+groupRoles);
+        if (!Util.isEmpty(groupRoles)) {
+        %>
+        <select name="groupRoleComment" id="groupRoleInput" class="form-control" size="1">
+          <option value=""></option>
+          <%
+          for (String groupRole: groupRoles) {
+            String selected = (enc.getGroupRole()!=null && enc.getGroupRole().equals(groupRole)) ? "selected=\"selected\"" : "";
+            %><option <%=selected %> value="<%=groupRole%>"><%=groupRole%></option><%
+          }
+          %>
+        </select>
+        <%} else {%>
+          <textarea name="groupRoleComment" class="form-control" id="groupRoleInput">
+            <%if(oldGroupRole!=null){%>
+              <%=oldGroupRole%>
+            <%}%>
+          </textarea>
+        <%}%>
+      </div>
+      <div class="col-sm-3">
+        <input name="EditGroupRole" type="submit" id="editGroupRole" value="<%=encprops.getProperty("submitEdit")%>" class="btn btn-sm"/>
+        <span class="form-control-feedback" style="display:none;" id="groupRoleCheck">&check;</span>
+        <span class="form-control-feedback" style="display:none;" id="groupRoleError">X</span>
+      </div>
+    </div>
+    </form>
+  </div>
 
 <!--  START PATTERNING CODE SECTION -->
 <%
@@ -6682,7 +6792,6 @@ finally{
   		myShepherd.rollbackDBTransaction();
   		myShepherd.closeDBTransaction();
 		%>
-		<p class="para">There is no corresponding encounter number in the database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
   to encounter: </strong> <input name="number" type="text" value="" size="20"> <input name="Go" type="submit" value="Submit" /></form>
@@ -6706,6 +6815,5 @@ String pswipedir = urlLoc+"/photoswipe";
 <jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
 <script src='<%=pswipedir%>/photoswipe.js'></script>
 <script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
-
 
 <jsp:include page="../footer.jsp" flush="true"/>

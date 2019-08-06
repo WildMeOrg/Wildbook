@@ -238,6 +238,26 @@ context=ServletUtilities.getContext(request);
 	<div class="row">	
 		<div class="col-xs-12">
 		<br/>
+		<p><%=props.getProperty("species") %>: 
+<%
+    if (Util.collectionIsEmptyOrNull(occ.getTaxonomies())) {
+        out.println("-");
+    } else {
+        String wait = "";
+        out.println("<ul>");
+        for (Taxonomy tx : occ.getTaxonomies()) {
+            if (tx.getNonSpecific()) {
+                wait += "<li style=\"color: #888;\">" + tx.getScientificName() + "</li>";
+            } else {
+                out.println("<li><i>" + tx.getScientificName() + "</i></li>");
+            }
+        }
+        out.println(wait);
+        out.println("</ul>");
+    }
+%>
+</p>
+
 		<p><%=props.getProperty("groupBehavior") %>: 
 			<%if(occ.getGroupBehavior()!=null){%>
 				<%=occ.getGroupBehavior() %>
@@ -255,28 +275,20 @@ context=ServletUtilities.getContext(request);
 			            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
 			            <%=props.getProperty("groupBehavior") %>:
 			        
-				        <%if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){%>
-				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
-				        <%} else { %>
+				        <%
+				        List<String> groupBehaviors = CommonConfiguration.getIndexedPropertyValues("groupBehavior",request);
+				        System.out.println("We have groupBehaviors "+groupBehaviors);
+				        if (!Util.isEmpty(groupBehaviors)) {%>
 				        	<select name="behaviorComment" id="behaviorComment">
 				        		<option value=""></option>
-				   
-				   				<%
-				   				boolean hasMoreStages=true;
-				   				int taxNum=0;
-				   				while(hasMoreStages){
-				   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
-				   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-					   	  		%>
-					   	  	 
-					   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-					   	  		<%
-					   					taxNum++;
-				      				} else {
-				         				hasMoreStages=false;
-				      				}
-				   				}%>
-				  			</select>
+					   				<%
+					   					for (String groupBehavior: groupBehaviors) {
+					   					  String selected = (occ.getGroupBehavior()!=null && occ.getGroupBehavior().equals(groupBehavior)) ? "selected=\"selected\"" : "";
+              					%><option <%=selected %> value="<%=groupBehavior%>"><%=groupBehavior%></option>
+					   					<%}%>
+				  				</select>
+					   		<%} else {%>
+				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
 				        <%}%>
 			        	<input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
 			        </form>
@@ -298,6 +310,8 @@ context=ServletUtilities.getContext(request);
 		});
 	</script>  
 	
+		<p><%=props.getProperty("numAdults") %>: <%=occ.getNumAdults() %></p>
+
 		<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 		
 		<p>
@@ -329,7 +343,6 @@ context=ServletUtilities.getContext(request);
 			</table>
 		</div>
 		
-		
 	<script>
 		var dlgIndies = $("#dialogIndies").dialog({
 		  autoOpen: false,
@@ -347,7 +360,37 @@ context=ServletUtilities.getContext(request);
 				<%=occ.getLocationID() %>
 			<%}%>
 		</p>
-		
+
+<p>
+    <%=props.getProperty("latitude")%> /
+    <%=props.getProperty("longitude")%> /
+    <%=props.getProperty("bearing")%> :
+    <%=occ.getDecimalLatitude()%>,
+    <%=occ.getDecimalLongitude()%>
+    <%=occ.getBearing()%>m
+</p>
+
+<%
+if (!Util.collectionIsEmptyOrNull(occ.getSubmitters())) {
+    out.println("<p>" + props.getProperty("submittedBy") + ": ");
+    List<String> subs = new ArrayList<String>();
+    for (User sub : occ.getSubmitters()) {
+        subs.add(sub.getDisplayName());
+    }
+    out.println(String.join(", ", subs) + "</p>");
+}
+
+if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
+    out.println("<p>" + props.getProperty("contribBy") + ": ");
+    List<String> subs = new ArrayList<String>();
+    for (User sub : occ.getInformOthers()) {
+        subs.add(sub.getDisplayName());
+    }
+    out.println(String.join(", ", subs) + "</p>");
+}
+%>
+
+                </p>
 		<table id="encounter_report" style="width:100%;">
 			<tr>
 			
@@ -386,7 +429,7 @@ context=ServletUtilities.getContext(request);
 		    
 		    <td class="lineitem">
 		    	<%if (enc.hasMarkedIndividual()) {%>
-		    	<a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
+		    	<a href="individuals.jsp?id=<%=enc.getIndividualID()%>"><%=enc.getIndividual().getDisplayName(request)%></a>
 		    	<%}else{%>
 		    		&nbsp;
 		    	<%}%>
@@ -514,7 +557,7 @@ context=ServletUtilities.getContext(request);
 						if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 						%>
 							<h2>
-								<img src="../images/lightning_dynamic_props.gif" />
+								<img src="images/lightning_dynamic_props.gif" />
 								<%=props.getProperty("dynamicProperties")%>
 								<button class="btn btn-md" type="button" name="button"
 									id="editDynamic">Edit</button>
@@ -526,7 +569,7 @@ context=ServletUtilities.getContext(request);
 						} else {
 						%>
 						<h2>
-							<img src="../images/lightning_dynamic_props.gif" />
+							<img src="images/lightning_dynamic_props.gif" />
 							<%=props.getProperty("dynamicProperties")%>
 						</h2>
 						<br/>
@@ -606,9 +649,16 @@ context=ServletUtilities.getContext(request);
 						</div>
 					</form>
 				</div>		
-			</div>				
+			</div>		
+
 			<br/><br/>
-			
+		</div>
+		
+			<div>
+				<div style="margin-left: 10px; padding: 3px; border: solid #AAA 2px;" class="comments">Comments: <%=occ.getComments()%></div>
+
+			</div>
+
 			<%
 	  		}
 	  		else{
@@ -629,7 +679,7 @@ context=ServletUtilities.getContext(request);
   }
 	  
 		%>
-		
+
 </div> <!-- End Maincontent Div --> 
 
 <jsp:include page="footer.jsp" flush="true"/>

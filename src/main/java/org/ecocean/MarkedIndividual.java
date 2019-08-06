@@ -22,6 +22,7 @@ package org.ecocean;
 import java.io.IOException;
 import java.util.*;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 
 import org.ecocean.genetics.*;
 import org.ecocean.datacollection.*;
@@ -31,6 +32,8 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
+import javax.jdo.Query;
 
 import java.text.DecimalFormat;
 
@@ -50,17 +53,21 @@ import org.datanucleus.api.rest.orgjson.JSONException;
  */
 public class MarkedIndividual implements java.io.Serializable {
 
-  //unique name of the MarkedIndividual, such as 'A-109'
-  private String individualID = "";
+    private String individualID = "";
 
-  //alternate id for the MarkedIndividual, such as a physical tag number of reference in another database
-  private String alternateid;
+    private MultiValue names;
+    private static HashMap<Integer,String> NAMES_CACHE = new HashMap<Integer,String>();  //this is for searching
+    private static HashMap<Integer,String> NAMES_KEY_CACHE = new HashMap<Integer,String>();
+
+    private String alternateid;  //TODO this will go away soon
+    private String legacyIndividualID;  //TODO this "could" go away "eventually"
 
   //additional comments added by researchers
   private String comments = "None";
 
   //sex of the MarkedIndividual
-  private String sex = "unknown";
+  public final String DEFAULT_SEX = "unknown";
+  private String sex = DEFAULT_SEX;
 
   private String genus = "";
   private String specificEpithet;
@@ -68,13 +75,12 @@ public class MarkedIndividual implements java.io.Serializable {
   //unused String that allows groups of MarkedIndividuals by optional parameters
   private String seriesCode = "None";
 
-  //nickname for the MarkedIndividual...not used for any scientific purpose
-  //also the nicknamer for credit
+  // the default is what was previously returned by .getNickName(), not the actual val
+  public final String DEFAULT_NICKNAME = "Unassigned";
   private String nickName = "", nickNamer = "";
 
   //Vector of approved encounter objects added to this MarkedIndividual
   private Vector<Encounter> encounters = new Vector<Encounter>();
-
   //Vector of unapproved encounter objects added to this MarkedIndividual
   //private Vector unidentifiableEncounters = new Vector();
 
@@ -116,9 +122,15 @@ public class MarkedIndividual implements java.io.Serializable {
 
   private long timeOfDeath=0;
 
-  public MarkedIndividual(String individualID, Encounter enc) {
 
-    this.individualID = individualID;
+    public static final String NAMES_KEY_NICKNAME = "Nickname";
+    public static final String NAMES_KEY_ALTERNATEID = "Alternate ID";
+    public static final String NAMES_KEY_LEGACYINDIVIDUALID = "_legacyIndividualID_";
+
+  public MarkedIndividual(String name, Encounter enc) {
+    this();
+    //this.individualID = individualID;
+    this.addName(name);
     encounters.add(enc);
     //dataFiles = new Vector();
     numberEncounters = 1;
@@ -135,8 +147,16 @@ public class MarkedIndividual implements java.io.Serializable {
    * empty constructor used by JDO Enhancer - DO NOT USE
    */
   public MarkedIndividual() {
+        this.individualID = Util.generateUUID();
   }
 
+    public MarkedIndividual(Encounter enc) {
+        this();
+        addEncounter(enc);
+        setTaxonomyFromEncounters();
+        setSexFromEncounters();
+        refreshDependentProperties();
+    }
 
   /**Adds a new encounter to this MarkedIndividual.
    *@param  newEncounter  the new <code>encounter</code> to add
@@ -144,10 +164,193 @@ public class MarkedIndividual implements java.io.Serializable {
    *@see  Shepherd#commitDBTransaction()
    */
 
-  public boolean addEncounter(Encounter newEncounter, String context) {
+    public String getId() {
+        return individualID;
+    }
 
-      newEncounter.assignToMarkedIndividual(individualID);
+    
 
+    //this is "something to show" (by default)... it falls back to the id,
+    //  which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
+    //  note that if keyHint is null, default is used
+    public String getDisplayName() {
+        return getDisplayName(null);
+    }
+    public String getDisplayName(Object keyHint) {
+        List<String> nameVals = getNamesList(keyHint);
+        // default case: just return the first name for the keyhint.
+        if (!Util.isEmpty(nameVals)) return nameVals.get(0);
+        // fallback case: try using the default keyhint
+        if(getNames()!=null) {
+          nameVals = getNames().getValuesDefault();
+        }
+        if (!Util.isEmpty(nameVals)) return nameVals.get(0);
+        // second fallback: try using another nameKey
+        List<String> keys = names.getSortedKeys();
+        if (!Util.isEmpty(keys) && !keys.get(0).equals(keyHint)) { // need second check to disable infinite recursion
+          return (keys.get(0)+": "+getDisplayName(keys.get(0)));
+        }
+        return displayIndividualID();
+    }
+
+    public String getDefaultName() {
+      return getName(MultiValue.DEFAULT_KEY_VALUE);
+    }
+
+    public String displayIndividualID() {
+      if (Util.isUUID(individualID)) return individualID.substring(0,8);
+      else return individualID;
+    }
+
+    public static String getDisplayNameForEncounter(Shepherd myShepherd, String encId) {
+      Encounter enc = myShepherd.getEncounter(encId);
+      if (enc==null) return null;
+      MarkedIndividual ind = enc.getIndividual();
+      if (ind==null) return null;
+      return ind.getDisplayName();
+    }
+    public static String getDisplayNameForID(Shepherd myShepherd, String indId) {
+      MarkedIndividual ind = myShepherd.getMarkedIndividualQuiet(indId);
+      if (ind==null) return null;
+      return ind.getDisplayName();
+    }
+
+    //MultiValue has some subtleties to it!
+    public void setNames(MultiValue mv) {
+        names = mv;
+        refreshNamesCache();
+    }
+    public MultiValue getNames() {
+        return names;
+    }
+    public List<String> getNameKeys() {
+      if (names==null) return new ArrayList<String>();
+      List<String> keys = names.getKeyList();
+      return names.getKeyList();
+    }
+    public List<String> getNamesList(Object keyHint) {
+        if (names == null) return null;
+        return names.getValuesAsList(keyHint);
+    }
+
+    public List<String> getNamesList() {
+        if (names == null) return null;
+        return names.getValuesDefault();
+    }
+
+    public int numNames() {
+      if (names==null) return 0;
+      return names.size();
+    }
+
+    // mostly for data cleaning purposes
+    // ignores legacyIndividualID bc we might wanna keep that
+    public void unsetNames() {
+      String legacy = getName(NAMES_KEY_LEGACYINDIVIDUALID);
+      this.names = new MultiValue();
+      if (Util.stringExists(legacy)) addName(NAMES_KEY_LEGACYINDIVIDUALID, legacy);
+
+    }
+
+    //this adds to the default
+    public void addName(String name) {
+        if (names == null) names = new MultiValue();
+        names.addValuesDefault(name);
+        refreshNamesCache();
+    }
+    public void addName(Object keyHint, String name) {
+        if (names == null) names = new MultiValue();
+        names.addValues(keyHint, name);
+        refreshNamesCache();
+    }
+
+    // adds a name and inserts a comment describing who, when, and (optionally) why that was done
+    public void addNameAndComment(Object keyHint, String name, User user, String message) {
+      String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new Date());
+      String nameStr = "("+keyHint.toString()+": "+name+")";
+      String commentPrefix = "On "+timeStamp+" "+user.getDisplayName()+" added name "+nameStr;
+      // empty message means we just have the timestamp, name, and user
+      String fullComment = (message!=null) ? (commentPrefix+": "+message) : commentPrefix;
+      fullComment+="<br>"; // formatting
+      this.addName(keyHint, name);
+      this.addComments(fullComment);
+    }
+    public void addNameAndComment(Object keyHint, String name, User user) {
+      addNameAndComment(keyHint, name, user, null);
+    }
+
+
+
+    public void addNameByKey(String key, String value) {
+        if (names == null) names = new MultiValue();
+        names.addValuesByKey(key, value);
+        refreshNamesCache();
+    }
+
+    public boolean hasName(String value) {
+      return (names!=null && names.hasValue(value));
+    }
+    public boolean hasNameSubstring(String value) {
+      return (names!=null && names.hasValueSubstring(value));
+    }
+
+///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
+
+    //this should be run once, as it will set (default key) values based on old field values
+    //   see, e.g.  appadmin/migrateMarkedIndividualNames.jsp
+    public MultiValue setNamesFromLegacy() {
+        if (names == null) names = new MultiValue();
+
+        // save the old individualID
+        if (Util.shouldReplace(individualID, legacyIndividualID)) {
+          setLegacyIndividualID(individualID);
+        }
+
+        if (Util.stringExists(getLegacyIndividualID())) {
+          names.addValuesDefault(getLegacyIndividualID());
+        }
+        // use old individualID as default name moving forward
+        
+        // add nickname and alternateID to names list (labelled), but not default list
+        if (Util.stringExists(nickName)) {
+            names.addValuesByKey(NAMES_KEY_NICKNAME, nickName);
+        }
+        //note: alternateids seems to sometimes (looking at you flukebook) contain "keys" of their own, e.g. "IFAW:fluffy"
+        //   in some perfect world this would be used as own keys.  :(
+        if (Util.stringExists(alternateid)) {
+            String[] part = alternateid.split("\\s*[;,]\\s*");
+            for (int i = 0 ; i < part.length ; i++) {
+                names.addValuesByKey(NAMES_KEY_ALTERNATEID, part[i]);
+            }
+        }
+        return names;
+    }
+
+
+    //NOTE:  this is a little wonky in that it incorporates SQL.  deal with it.
+    //you can pass null for keyHint to get default only
+    public static List<String> allNamesValues(Shepherd myShepherd, Object keyHint) {
+        Set<String> keys = MultiValue.generateKeys(keyHint);
+        List<String> rtn = new ArrayList<String>();
+        if (keys.size() < 1) return rtn;
+        List<String> keysList = new ArrayList<String>(keys);  //we want a list to use .replaceAll
+        keysList.replaceAll(s -> s.replaceAll("'", "''"));
+        keysList.replaceAll(s -> s.replaceAll("_", "\\_"));
+        keysList.replaceAll(s -> s.replaceAll(":", "_"));  //$*#(@*(! JDO PARAMETERS!!!
+        String sql = "SELECT DISTINCT(\"ID_OID\") AS \"ID\" FROM \"MULTIVALUE_VALUES\" JOIN \"MARKEDINDIVIDUAL\" ON (\"NAMES_ID_OID\" = \"ID_OID\") WHERE \"KEY\" LIKE '" + StringUtils.join(keysList, "' OR \"KEY\" LIKE '") + "'";
+System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        q.setClass(MultiValue.class);
+        List<MultiValue> mvs = (List<MultiValue>)q.execute();
+        for (MultiValue mv : mvs) {
+            List<String> vals = mv.getValuesByKeys(keys);
+            vals.removeAll(rtn);  //weed out duplicates
+            rtn.addAll(vals);
+        }
+        return rtn;
+    }
+
+  public boolean addEncounter(Encounter newEncounter) {
       //get and therefore set the haplotype if necessary
       getHaplotype();
 
@@ -163,7 +366,7 @@ public class MarkedIndividual implements java.io.Serializable {
       if(isNew){
         encounters.add(newEncounter);
         numberEncounters++;
-        refreshDependentProperties(context);
+        refreshDependentProperties();
       }
       setTaxonomyFromEncounters();  //will only set if has no value
       setSexFromEncounters();       //likewise
@@ -172,9 +375,6 @@ public class MarkedIndividual implements java.io.Serializable {
  }
 
    public boolean addEncounterNoCommit(Encounter newEncounter) {
-
-      newEncounter.assignToMarkedIndividual(individualID);
-
       //get and therefore set the haplotype if necessary
       getHaplotype();
 
@@ -190,33 +390,34 @@ public class MarkedIndividual implements java.io.Serializable {
       if(isNew){
         encounters.add(newEncounter);
         numberEncounters++;
-        //refreshDependentProperties(context);
+        refreshDependentProperties();
       }
-      setTaxonomyFromEncounters();  //will only set if has no value
-      setSexFromEncounters();       //likewise
+      //setTaxonomyFromEncounters();  //will only set if has no value
+      //setSexFromEncounters();       //likewise
       return isNew;
 
   }
+
 
    /**Removes an encounter from this MarkedIndividual.
    *@param  getRidOfMe  the <code>encounter</code> to remove from this MarkedIndividual
    *@return true for successful removal, false for unsuccessful - Note: this change must still be committed for it to be stored in the database
    *@see  Shepherd#commitDBTransaction()
    */
-  public boolean removeEncounter(Encounter getRidOfMe, String context){
+  public boolean removeEncounter(Encounter getRidOfMe) {
 
       numberEncounters--;
-
       boolean changed=false;
       for(int i=0;i<encounters.size();i++) {
         Encounter tempEnc=(Encounter)encounters.get(i);
         if(tempEnc.getEncounterNumber().equals(getRidOfMe.getEncounterNumber())) {
+
           encounters.remove(i);
           i--;
           changed=true;
           }
       }
-      refreshDependentProperties(context);
+      refreshDependentProperties();
 
       //reset haplotype
       localHaplotypeReflection=null;
@@ -237,7 +438,8 @@ public class MarkedIndividual implements java.io.Serializable {
 
 
 	public int refreshNumberEncounters() {
-		this.numberEncounters = encounters.size();
+		this.numberEncounters = 0;
+		if(encounters!=null)this.numberEncounters = encounters.size();
 		return this.numberEncounters;
 	}
 
@@ -268,12 +470,15 @@ public class MarkedIndividual implements java.io.Serializable {
 
 
 
+  public String getThumbnailUrl() {
+    return thumbnailUrl;
+  }
 
-	public String refreshThumbnailUrl(String context) {
-		Encounter[] sorted = this.getDateSortedEncounters();
-		if (sorted.length < 1) return null;
-		this.thumbnailUrl = sorted[0].getThumbnailUrl(context);
-		return this.thumbnailUrl;
+	public String refreshThumbnailUrl(Shepherd myShepherd, HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
+    org.datanucleus.api.rest.orgjson.JSONObject thumbJson = getExemplarThumbnail(myShepherd,req);
+    String thumbUrl = thumbJson.optString("url", null);
+    if (Util.stringExists(thumbUrl)) this.thumbnailUrl = thumbUrl;
+    return thumbUrl;
 	}
 
 /*
@@ -546,21 +751,37 @@ public class MarkedIndividual implements java.io.Serializable {
    *
    * @return the name of the MarkedIndividual as a String
    */
-  public String getName() {
-    return individualID;
-  }
+    public String getName() {
+        System.out.println("INFO: MarkedIndividual.getName() now is alias for .getDisplayName()");
+        return getDisplayName();
+    }
+
+    public String getName(Object keyHint) {
+      if (names==null) return null;
+      return names.getValue(keyHint);
+    }
 
   public String getIndividualID() {
       return individualID;
   }
 
-  public String getNickName() {
-    if (nickName != null) {
-      return nickName;
-    } else {
-      return "Unassigned";
+/*
+    now part of migration of all names to .names MultiValue property
+    we still want "a (singular) nickname" and notably a nickNamer
+    so we set nickname to a special keyed value, but leave nicknameR as its own property
+
+    TODO someday(?) we might want to move the nicknamer to a key, so we could have multiple nicknamers/nicknames
+*/
+    public String getNickName() {
+        if (names == null) return null;
+        List<String> many = names.getValuesByKey(NAMES_KEY_NICKNAME);
+        if ((many == null) || (many.size() < 1)) return null;  //"should" only have 0 or 1 nickname
+        return many.get(0);
     }
-  }
+
+    public void setNickName(String newName) {
+        this.addNameByKey(NAMES_KEY_NICKNAME, newName);
+    }
 
   public String getNickNamer() {
     if (nickNamer != null) {
@@ -570,25 +791,31 @@ public class MarkedIndividual implements java.io.Serializable {
     }
   }
 
-  /**
-   * Sets the nickname of the MarkedIndividual.
-   */
-  public void setNickName(String newName) {
-    nickName = newName;
-  }
-
   public void setNickNamer(String newNamer) {
     nickNamer = newNamer;
   }
 
-  public void setName(String newName) {
-    individualID = newName;
-  }
-
-    public void setIndividualID(String newName) {
-      individualID = newName;
+    public void setName(String newName) {
+        this.addName(newName);
     }
 
+    public void setLegacyIndividualID(String id) {
+      legacyIndividualID = id;
+    }
+
+    public String getLegacyIndividualID() {
+      return legacyIndividualID;
+    }
+
+
+    public void setIndividualID(String id) {
+        individualID = id;
+    }
+
+    public void setAlternateID(String alt) {
+        System.out.println("WARNING: indiv.setAlternateID() is depricated, please consider modifying .names according to a hint/context");
+        this.addNameByKey(NAMES_KEY_ALTERNATEID, alt);
+    }
 
   /**
    * Returns the specified encounter, where the encounter numbers range from 0 to n-1, where n is the total number of encounters stored
@@ -606,23 +833,39 @@ public class MarkedIndividual implements java.io.Serializable {
     return (Encounter) unidentifiableEncounters.get(i);
   }
   */
-
+  public int numEncounters() {
+    if (encounters==null) return 0;
+    return encounters.size();
+  }
   /**
    * Returns the complete Vector of stored encounters for this MarkedIndividual.
    *
    * @return a Vector of encounters
    * @see java.util.Vector
    */
-  public Vector getEncounters() {
+  public Vector<Encounter> getEncounters() {
     return encounters;
+  }
+  public int getNumEncounters() {
+    if (encounters==null) return 0;
+    return encounters.size();
+  }
+  public List<Encounter> getEncounterList() {
+    List<Encounter> encs = new ArrayList<Encounter>();
+    for (Object obj: encounters) {
+      encs.add((Encounter) obj);
+    }
+    return encs;
   }
 
     //you can choose the order of the EncounterDateComparator
     public Encounter[] getDateSortedEncounters(boolean reverse) {
     Vector final_encs = new Vector();
-    for (int c = 0; c < encounters.size(); c++) {
-      Encounter temp = (Encounter) encounters.get(c);
-      final_encs.add(temp);
+    if(encounters!=null){
+      for (int c = 0; c < encounters.size(); c++) {
+        Encounter temp = (Encounter) encounters.get(c);
+        final_encs.add(temp);
+      }
     }
 
     int finalNum = final_encs.size();
@@ -634,9 +877,16 @@ public class MarkedIndividual implements java.io.Serializable {
     Arrays.sort(encs2, dc);
     return encs2;
   }
-
   public Encounter[] getDateSortedEncounters(int limit) {
     return (getDateSortedEncounters(false, limit));
+  }
+
+  // for the scenario where you don't have permission to view this, but you'd like to
+  public String getAnEncounterOwner() {
+    for (Encounter enc: encounters) {
+      if (Util.stringExists(enc.getAssignedUsername())) return enc.getAssignedUsername();
+    }
+    return null;
   }
 
   public Encounter[] getDateSortedEncounters(boolean reverse, int limit) {
@@ -651,6 +901,12 @@ public class MarkedIndividual implements java.io.Serializable {
     return getWebUrl(this.getIndividualID(), req);
   }
 
+  public String getHyperlink(HttpServletRequest req) {
+    return "<a href=\""+getWebUrl(req)+"\"> Individual "+getDisplayName()+ "</a>";
+  }
+
+
+  
   //sorted with the most recent first
   public Encounter[] getDateSortedEncounters() {return getDateSortedEncounters(false);}
 
@@ -690,11 +946,15 @@ public class MarkedIndividual implements java.io.Serializable {
    * @return a String of comments
    */
   public void addComments(String newComments) {
-    if ((comments != null) && (!(comments.equals("None")))) {
+    System.out.println("addComments called. oldComments="+comments+" and new comments = "+newComments);
+    if (Util.stringExists(comments)) {
       comments += newComments;
     } else {
       comments = newComments;
     }
+  }
+  public void setComments(String comments) {
+    this.comments = comments;
   }
 
   /**
@@ -725,6 +985,11 @@ public class MarkedIndividual implements java.io.Serializable {
 
   }
 
+  public boolean hasSex() {
+    String thisSex = getSex();
+    return (thisSex!=null && !thisSex.equals(DEFAULT_SEX));
+  }
+
     public String getGenus() {
         return genus;
     }
@@ -739,6 +1004,17 @@ public class MarkedIndividual implements java.io.Serializable {
 
     public void setSpecificEpithet(String newEpithet) {
         specificEpithet = newEpithet;
+    }
+
+    public void setTaxonomyString(String tax) {
+      if (tax == null) return;
+      String[] parts = tax.split(" ");
+      if (parts.length < 2) {
+        setSpecificEpithet(tax);
+      } else {
+        setGenus(parts[0]);
+        setSpecificEpithet(parts[1]);
+      }
     }
 
     public String getTaxonomyString() {
@@ -766,10 +1042,10 @@ public class MarkedIndividual implements java.io.Serializable {
 
     //similar to above
     public String setSexFromEncounters(boolean force) {
-        if (!force && (sex != null)) return getSex();
+        if (!force && (sex != null) && !sex.equals("unknown")) return getSex();
         if ((encounters == null) || (encounters.size() < 1)) return getSex();
         for (Encounter enc : encounters) {
-            if (enc.getSex() != null) {
+            if (enc.getSex() != null && !enc.getSex().equals("unknown")) {
                 sex = enc.getSex();
                 return getSex();
             }
@@ -1212,38 +1488,13 @@ public class MarkedIndividual implements java.io.Serializable {
     dateTimeLatestSighting = time;
   }
 
-  public void setAlternateID(String newID) {
-    this.alternateid = newID;
-  }
-
-  public String getAlternateID() {
-    if (alternateid == null) {
-      return "None";
-    }
-    return alternateid;
-  }
-
-  /*
-   * Returns a bracketed, comma-delimited string of all of the alternateIDs registered for this marked individual, including those only assigned at the Encounter level
-   */
-   public String getAllAlternateIDs(){
-     ArrayList<String> allIDs = new ArrayList<String>();
-
-      //add any alt IDs for the individual itself
-      if(alternateid!=null){allIDs.add(alternateid);}
-
-      //add an alt IDs for the individual's encounters
-      int numEncs=encounters.size();
-      for(int c=0;c<numEncs;c++) {
-        Encounter temp=(Encounter)encounters.get(c);
-        if((temp.getAlternateID()!=null)&&(!temp.getAlternateID().equals("None"))&&(!allIDs.contains(temp.getAlternateID()))) {allIDs.add(temp.getAlternateID());}
-      }
-
-      return allIDs.toString();
-    }
 
   public String getDynamicProperties() {
     return dynamicProperties;
+  }
+
+  public void setDynamicProperties(String dprop) {
+    this.dynamicProperties = dprop;
   }
 
   public void setDynamicProperty(String name, String value) {
@@ -1410,13 +1661,15 @@ public class MarkedIndividual implements java.io.Serializable {
     int maxYears=0;
     int lowestYear=3000;
     int highestYear=0;
-    for(int c=0;c<encounters.size();c++) {
-      Encounter temp=(Encounter)encounters.get(c);
-      if((temp.getYear()<lowestYear)&&(temp.getYear()>0)) lowestYear=temp.getYear();
-      if(temp.getYear()>highestYear) highestYear=temp.getYear();
-      maxYears=highestYear-lowestYear;
-      if(maxYears<0){maxYears=0;}
-      }
+    if(encounters!=null){
+      for(int c=0;c<encounters.size();c++) {
+        Encounter temp=(Encounter)encounters.get(c);
+        if((temp.getYear()<lowestYear)&&(temp.getYear()>0)) lowestYear=temp.getYear();
+        if(temp.getYear()>highestYear) highestYear=temp.getYear();
+        maxYears=highestYear-lowestYear;
+        if(maxYears<0){maxYears=0;}
+       }
+    }
     maxYearsBetweenResightings=maxYears;
     }
 
@@ -1461,6 +1714,17 @@ public class MarkedIndividual implements java.io.Serializable {
 
     public String getGenusSpecies(){
         return getTaxonomyString();
+    }
+
+    //if not set on this, then drill down into encounters until we find one
+    public String getGenusSpeciesDeep() {
+        if (getTaxonomyString() != null) return getTaxonomyString();
+        if (Util.collectionIsEmptyOrNull(encounters)) return null;
+        for (Encounter enc : encounters) {
+            String s = Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet());
+            if (s != null) return s;  //return first one we hit
+        }
+        return null;
     }
 
 
@@ -1870,21 +2134,37 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             jobj.put("_sanitized", true);
             return jobj;
         }
+	
+
+  
+  public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+    jobj.put("displayName", this.getDisplayName());
+    jobj.remove("nickName");
+    jobj.put("nickName", this.getNickName());
+    //System.out.println("Put displayName in sanitizeJSON: "+jobj.get("displayName"));
+    return jobj;
+  }
 
   // Returns a somewhat rest-like JSON object containing the metadata
   public JSONObject uiJson(HttpServletRequest request) throws JSONException {
     JSONObject jobj = new JSONObject();
     jobj.put("individualID", this.getIndividualID());
+    jobj.put("id", this.getId());
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
     jobj.put("nickname", this.nickName);
+    jobj.put("numberEncounters", this.getNumEncounters());
+    jobj.put("numberLocations", this.getNumberLocations());
+    jobj.put("maxYearsBetweenResightings", getMaxNumYearsBetweenSightings());
+    // note this does not re-compute thumbnail url (so we can get thumbnails on searchResults in a reasonable time)
+    jobj.put("thumbnailUrl", this.thumbnailUrl);
 
     Vector<String> encIDs = new Vector<String>();
     for (Encounter enc : this.encounters) {
       encIDs.add(enc.getCatalogNumber());
     }
     jobj.put("encounterIDs", encIDs.toArray());
-    return sanitizeJson(request, jobj);
+    return sanitizeJson(request,decorateJson(request, jobj));
   }
 
   public String getUrl(HttpServletRequest request) {
@@ -1907,11 +2187,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   }
 
   
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
-    return getExemplarImages(req, 5);
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd, HttpServletRequest req) throws JSONException {
+    return getExemplarImages(myShepherd, req, 5);
   }
 
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req, int numResults) throws JSONException {
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd,HttpServletRequest req, int numResults) throws JSONException {
+    return getExemplarImages(myShepherd, req, numResults, "_mid");
+  }
+
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(Shepherd myShepherd,HttpServletRequest req, int numResults, String imageSize) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
@@ -1931,14 +2215,14 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             // we have a throw-away shepherd here which is fine since we only care about the url ultimately
             URL midURL = null;
             String context = ServletUtilities.getContext(req);
-            Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("MarkedIndividual.getExemplarImages");
-            myShepherd.beginDBTransaction();
-            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+            //Shepherd myShepherd = new Shepherd(context);
+            //myShepherd.setAction("MarkedIndividual.getExemplarImages");
+            //myShepherd.beginDBTransaction();
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, imageSize);
             if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
             if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
+            //myShepherd.rollbackDBTransaction();
+            //myShepherd.closeDBTransaction();
 
             if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
               
@@ -2059,14 +2343,27 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return al;
   }
 
-  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
-
-    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
-    if(al.size()>0){return al.get(0);}
+  
+  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(Shepherd myShepherd, HttpServletRequest req) throws JSONException {
+    
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(myShepherd, req, 0);
+    if(al!=null && al.size()>0){return al.get(0);}
     return new JSONObject();
 
 
   }
+  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarThumbnail(Shepherd myShepherd, HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
+    
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(myShepherd, req, 0, "_thumb");
+    if(al!=null && al.size()>0){return al.get(0);}
+    return new JSONObject();
+    
+
+  }
+
+
+
+  
 
 
   // WARNING! THIS IS ONLY CORRECT IF ITS LOGIC CORRESPONDS TO getExemplarImage
@@ -2117,20 +2414,164 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
 
 
-	public void refreshDependentProperties(String context) {
+	public void refreshDependentProperties() {
 		this.refreshNumberEncounters();
 		this.refreshNumberLocations();
 		this.resetMaxNumYearsBetweenSightings();
 		this.refreshDateFirstIdentified();
-		this.refreshThumbnailUrl(context);
 		this.refreshDateLastestSighting();
 	}
 
+    // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
+    // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
+    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex, String genus, String specificEpithet) {
+        int idLimit = 2000;  //this is cuz we get a stack overflow if we have too many.  :(  so kinda have to fail when we have too many
+        System.out.println("findByNames regex: "+regex);
+        List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
+        if (NAMES_CACHE == null) return rtn;  //snh
+        if (regex == null) return rtn;
+        List<String> nameIds = findNameIds(regex);
+        if (nameIds.size() > idLimit) {
+            System.out.println("WARNING: MarkedIndividual.findByNames() found too many names; failing (" + nameIds.size() + " > " + idLimit + ")");
+            return rtn;
+        }
+        System.out.println("findByNames nameIds: "+nameIds.toString());
+        if (nameIds.size() < 1) return rtn;
+        System.out.println("findByNames: "+genus+" "+specificEpithet);
+        String taxonomyStringFilter="";
+        if((genus!=null)&&(specificEpithet!=null)) {
+          taxonomyStringFilter=" && enc.genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc";
+        }
+        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE (names.id == " + String.join(" || names.id == ", nameIds)+")"+taxonomyStringFilter;
+        System.out.println("findByNames jdoql: "+jdoql);
+        Query query = myShepherd.getPM().newQuery(jdoql);
+        Collection c = (Collection) (query.execute());
+        for (Object m : c) {
+            MarkedIndividual ind = (MarkedIndividual)m;
+            rtn.add(ind);
+        }
+        query.closeAll();
+        return rtn;
+    }
+    
+    public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex) {
+      return findByNames(myShepherd, regex, null, null);
+    }
+
+    public static MarkedIndividual withName(Shepherd myShepherd, String name) {
+      return withName(myShepherd, name, null, null);
+    }
+    
+    
+    // exact case-insensitive version of above func that returns 1 or 0 individuals
+    public static MarkedIndividual withName(Shepherd myShepherd, String name, String genus, String specificEpithet) {
+      String regex = "(^|.*;)"+name+"(;.*|$)";
+      System.out.println("withName: "+genus+" "+specificEpithet);
+      List<MarkedIndividual> inds = findByNames(myShepherd, regex, genus, specificEpithet);
+      if (inds==null || inds.size()==0) return null;
+      if (inds.size()>1) System.out.println("WARNING! MarkedIndividual.withName called for name "+name+". THERE ARE "+inds.size()+" INDIVIDUALS WITH THIS NAME AND WE'RE RETURNING ONLY ONE.");
+      return inds.get(0);
+    }
+
+    //used above, but also used in IndividualQueryProcessor, for example
+    public static List<String> findNameIds(String regex) {
+        List<String> nameIds = new ArrayList<String>();
+        if (NAMES_CACHE == null) return nameIds;  //snh
+        if (regex == null) return nameIds;
+        for (Integer nid : NAMES_CACHE.keySet()) {
+            if (NAMES_CACHE.get(nid).matches(regex.toLowerCase())) nameIds.add(Integer.toString(nid));
+        }
+        return nameIds;
+    }
+
+    //only does once (when needed)
+    public static boolean initNamesCache(final Shepherd myShepherd) {
+        if ((NAMES_CACHE != null) && (NAMES_CACHE.size() > 0) && (NAMES_KEY_CACHE != null) && (NAMES_KEY_CACHE.size() > 0)) return false;
+        updateNamesCache(myShepherd);
+        return true;
+    }
+    public static Map<Integer,String> updateNamesCache(final Shepherd myShepherd) {
+        NAMES_CACHE = new HashMap<Integer,String>();
+        NAMES_KEY_CACHE = new HashMap<Integer,String>();
+        Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual");
+        Collection c = (Collection) (query.execute());
+        for (Object m : c) {
+            MarkedIndividual ind = (MarkedIndividual) m;
+            if (ind.names == null) continue;
+            NAMES_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase());
+            NAMES_KEY_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.getNameKeys()).toLowerCase());
+        }
+        return NAMES_CACHE;
+    }
+
+    //updates cache based upon this instance (assumes names has changed)
+    public void refreshNamesCache() {
+        if (names == null) return;
+        if (NAMES_CACHE == null) return;  //snh
+        NAMES_CACHE.put(names.getId(), this.getId() + ";" + String.join(";", names.getAllValues()).toLowerCase());
+    }
+
+
+    //multiple ways to remove from cache
+    public static void removeFromNamesCache(MarkedIndividual indiv) {
+        if ((indiv == null) || (indiv.names == null) || (NAMES_CACHE == null)) return;
+        removeFromNamesCache(indiv.names.getId());
+    }
+    public static void removeFromNamesCache(int namesId) {
+        if (NAMES_CACHE == null) return;
+        NAMES_CACHE.remove(namesId);
+    }
+    public void removeFromNamesCache() {
+        if (this.names == null) return;
+        removeFromNamesCache(this.names.getId());
+    }
+
+    // Need request to record which user did it
+    public void mergeIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
+      for (Encounter enc: other.getEncounters()) {
+        other.removeEncounter(enc);
+        enc.setIndividual(this);
+      }
+      this.names.merge(other.getNames());
+      this.setComments(getMergedComments(other, request, myShepherd));
+      refreshDependentProperties();
+    }
+
+    public String getMergedComments(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
+      User user = myShepherd.getUser(request);
+      String mergedComments = Util.stringExists(getComments()) ? getComments() : "";
+    
+      mergedComments += "<p>This individual merged with individual "+other.getIndividualID()+" (\""+other.getDisplayName()+"\")";
+      mergedComments += ", which had encounters: [<ul>";
+      for (Encounter enc: other.getEncounters()) {
+        mergedComments += "<li>"+enc.getCatalogNumber()+"</li>";
+      }
+      mergedComments += "</ul>]";
+
+      mergedComments += "Merged on "+Util.prettyTimeStamp();
+      
+      if (user!=null) mergedComments += " by "+ user.getDisplayName();
+      else mergedComments += " No user was logged in.";
+      
+      if (Util.stringExists(other.getComments())) {
+        mergedComments += "</p><p>Merged comments:";
+        mergedComments += other.getComments();
+      }
+
+      mergedComments += "</p>";
+      return mergedComments;
+    }
+
+    public void mergeAndThrowawayIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
+      mergeIndividual(other, request, myShepherd);
+      myShepherd.throwAwayMarkedIndividual(other);
+    }
 
     public String toString() {
         return new ToStringBuilder(this)
                 .append("individualID", individualID)
                 .append("species", getGenusSpecies())
+                .append("names", getNames())
                 .append("sex", getSex())
                 .append("numEncounters", numberEncounters)
                 .append("numLocations", numberLocations)

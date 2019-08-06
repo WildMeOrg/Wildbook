@@ -263,6 +263,7 @@ public class UserCreate extends HttpServlet {
     else{
         //output failure statement
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure:</strong> User was NOT successfully created. Your passwords did not match.");
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
@@ -274,7 +275,8 @@ public class UserCreate extends HttpServlet {
 else{
   //output failure statement
   out.println(ServletUtilities.getHeader(request));
-  out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username, email, and/or password information I needed.");
+  response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+  out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username and password information I needed.");
   out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
   out.println(ServletUtilities.getFooter(context));
   

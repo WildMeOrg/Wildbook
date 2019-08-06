@@ -259,27 +259,28 @@ The provisions of Sections 4, 6, 7 and 8 shall survive termination of this Agree
           	
           	}
           	%>
-          </div>
+
           <h1 class="intro">&nbsp;</h1>
           
           <%
           if((request.getParameter("username")!=null)&&(request.getParameter("password")!=null)){
           %>
           <p><table cellpadding="5"><tr><td>
-          	<form name="accept_agreement" action="LoginUser" method="post">
-          		<input type="hidden" name="username" value="<%=request.getParameter("username")%>" />
-          		<input type="hidden" name="password" value="<%=request.getParameter("password")%>" />
-          		<input type="submit" id="acceptUserAgreement" name="acceptUserAgreement" value="Accept"/>
-          	</form>
+            <form name="accept_agreement" action="LoginUser" method="post">
+              <input type="hidden" name="username" value="<%=request.getParameter("username")%>" />
+              <input type="hidden" name="password" value="<%=request.getParameter("password")%>" />
+              <input type="submit" id="acceptUserAgreement" name="acceptUserAgreement" value="Accept"/>
+            </form>
           </td>
           <td><form name="reject_agreement" action="index.jsp" method="get">
-          		<input type="submit" name="rejectUserAgreement" value="Reject"/>
-          	</form></td>
+              <input type="submit" name="rejectUserAgreement" value="Reject"/>
+            </form></td>
           </tr></table>
           </p>
           <%
           }
           %>
+          </div>
         </div>
 
     <jsp:include page="footer.jsp" flush="true"/>

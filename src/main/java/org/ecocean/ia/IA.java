@@ -127,7 +127,21 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         for this we use IBEISIA.identOpts to decide how many flavors of identification we need to do!   if have more than
         one we need to make a set of subtasks
         */
-        List<JSONObject> opts = IBEISIA.identOpts(context);
+
+/*
+        String iaClass = anns.get(0).getIAClass(); //IAClass is a standard with image analysis that identifies the featuretype used for identification
+        List<JSONObject> opts = null;
+        // below gets it working for dolphins but can be generalized easily from IA.properties
+        String inferredIaClass = IBEISIA.inferIaClass(anns.get(0), myShepherd);
+        String bottlenose = "dolphin_bottlenose_fin"; 
+        if (bottlenose.equals(iaClass) || bottlenose.equals(inferredIaClass)) {
+            System.out.println("IA.java is sending a Tursiops truncatus job");
+            opts = IBEISIA.identOpts(context, bottlenose);
+        } else { // defaults to the default ia.properties IBEISIdentOpt, in our case humpback flukes
+            opts = IBEISIA.identOpts(context);
+        }
+*/
+        List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
         JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above

@@ -16,6 +16,7 @@ import java.util.Hashtable;
 import org.json.*;
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenIndividualReporter;
 
 import java.util.zip.*;
 import java.io.OutputStream;
@@ -100,6 +101,12 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     else{request.setAttribute("gpsOnly", "yes");}
     MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, order);
     rIndividuals = queryResult.getResult();
+    
+    // viewOnly=true arg means this hiddenData relates to viewing the summary results
+    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true, myShepherd);
+    rIndividuals = hiddenData.viewableResults(rIndividuals, true, myShepherd);
+
+
     int numIndividuals=rIndividuals.size();
 
    
