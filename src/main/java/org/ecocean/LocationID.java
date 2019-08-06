@@ -231,7 +231,7 @@ public class LocationID {
     String multiselector="";
     if(multiselect)multiselector=" multiple=\"multiple\"";
     
-    StringBuffer selector=new StringBuffer("<select name=\""+htmlName+"\" id=\""+htmlID+"\" class=\""+htmlClass+"\" "+multiselector+">\n\r<option value=\"\"></option>\n\r");
+    StringBuffer selector=new StringBuffer("<select style=\"resize:both;\" name=\""+htmlName+"\" id=\""+htmlID+"\" class=\""+htmlClass+"\" "+multiselector+">\n\r<option value=\"\"></option>\n\r");
 
      createSelectorOptions(getLocationIDStructure(qualifier),selector,0,selectedID);
     
