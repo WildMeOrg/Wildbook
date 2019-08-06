@@ -918,6 +918,7 @@ public class Util {
     }
 
     public static String sanitizeUserInput(String input) {
+        if (input == null) return null;
       final String[] forbidden = {
         "'", "<%", "<s", "<i", "alert(", "prompt(", "confirm(",
          "\"", "</", "&#38;", "&#39;", "&#40;", "&#41;", "&#60;",
