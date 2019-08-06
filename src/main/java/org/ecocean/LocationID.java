@@ -269,4 +269,27 @@ public class LocationID {
   }
   
 
+    //this will take in a list of locationIDs and expand them to include any children they may have
+    // it returns a list that does not have duplicates, so the input list can contain relatives and all should be fine
+    // please note it also will leave untouched any IDs which *are not in LocationID.json*, so they will not be filtered out
+    //  (this is intentional behavior so that an ID need not be in LocationID.json to be considered valid here)
+    public static List<String> expandIDs(List<String> ids) {
+        return expand(ids, null);
+    }
+    public static List<String> expandIDs(List<String> ids, String qualifier) {
+        List<String> rtn = new ArrayList<String>();
+        if (Util.collectionIsEmptyOrNull(ids)) return rtn;
+        for (String id : ids) {
+            List<String> tree = getIDForParentAndChildren(id, qualifier);
+            if (tree.size() < 1) {
+                if (!rtn.contains(id)) rtn.add(id);
+            } else {
+                for (String t : tree) {
+                    if (!rtn.contains(t)) rtn.add(t);
+                }
+            }
+        }
+        return rtn;
+    }
+
 }
