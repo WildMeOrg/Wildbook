@@ -1,9 +1,12 @@
 package org.ecocean;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.ecocean.grid.EncounterLite;
@@ -47,17 +50,30 @@ public class LocationID {
   
   private static void loadJSONData(String qualifier) {
     InputStream is = null;
-    if(qualifier==null) {
-      is=LocationID.class.getResourceAsStream("/bundles/locationID.json");
-      //System.out.println("Loaded "+"/bundles/locationID.json");
-    }
-    else{
-      is=LocationID.class.getResourceAsStream("/bundles/locationID_"+qualifier+".json");
-      //System.out.println("Loaded "+"/bundles/locationID_"+qualifier+".json");
-    }
+    String filename="locationID.json";
+    if(qualifier!=null) {
+      filename="locationID_"+qualifier+".json";
+    } 
     
+    String shepherdDataDir="wildbook_data_dir";
+    Properties contextsProps=ShepherdProperties.getContextsProperties();
+    if(contextsProps.getProperty("context0"+"DataDir")!=null){
+      shepherdDataDir=contextsProps.getProperty("context0"+"DataDir");
+    }
+      
+    //first look for the file in the override director
+    File configFile = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+filename);
+
+      if(configFile.exists()) {
+        try {
+          is=new FileInputStream(configFile);
+        }
+        catch(Exception e) {e.printStackTrace();}
+      }
+    
+      //if we couldn't find it in the override dir, locad it from the web app root
     if (is == null) {
-        //System.out.println("Cannot find file locationID.json");
+      is=LocationID.class.getResourceAsStream("/bundles/"+filename);
     }
     JSONTokener tokener = new JSONTokener(is);
     String key="default";
