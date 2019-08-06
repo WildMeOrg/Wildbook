@@ -11,8 +11,13 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-Shepherd myShepherd=new Shepherd(context);
+if(request.getParameter("refresh")!=null){
+	LocationID.reloadJSON(null);
+}
 
+
+Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("locationIDTester.jsp");
 
 
 %>
@@ -73,6 +78,25 @@ List<String> al=LocationID.getIDForChildAndParents("Ifaty",null);
 %>
 
 <p><pre>For Ifaty: <%=al.toString() %></pre></p>
+
+<h2>Show unmapped locationIDs</h2>
+<%
+StringBuffer sb=new StringBuffer();
+myShepherd.beginDBTransaction();
+List<String> locs=myShepherd.getAllLocationIDs();
+int numLocs=locs.size();
+for(int k=0;k<numLocs;k++){
+	String locID=locs.get(k);
+	ArrayList<String> al2=new ArrayList<String>();
+	if(LocationID.getIDForParentAndChildren(locID, al2, null)==null ||LocationID.getIDForParentAndChildren(locID, al2, null).size()==0 ){
+		sb.append("{ \"name\":\""+locID+"\", \"id\":\""+locID+"\", \"locationID\":[] }\n\r");
+	}
+}
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+%>
+<pre><%=sb.toString() %></pre>
+
 
 
 </body>
