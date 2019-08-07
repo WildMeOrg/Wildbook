@@ -246,7 +246,7 @@
 			  },
 
 			{"name":"South Pacific","id":"South Pacific","locationID":[
-				{"name": "Tasman Sea" },
+				{"name": "Tasman Sea", id: "Tasman Sea" },
 				{ "name":"NewZealand", "id":"NewZealand", "locationID":[] }
 			]}
 			
