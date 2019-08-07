@@ -15,6 +15,7 @@
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
+         org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -22,6 +23,37 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <%!
+    //note: locIds is modified, such that it contains all the IDs we traversed
+    private static String traverseLocationIdTree(final JSONObject locIdTree, List<String> locIds, final String encLocationId, final Map<String,Long> locCount) {
+        String rtn = "";
+        if (locIdTree == null) return rtn;  //snh
+
+        String id = locIdTree.optString("id", null);
+        if (id == null) id = locIdTree.optString("name", null);  //is this kosher?????
+        if (id != null) {
+            if (!locIds.contains(id)) locIds.add(id);
+            boolean active = id.equals(encLocationId);
+            long ct = 0;
+            if (locCount.get(id) != null) ct = locCount.get(id);
+            String name = locIdTree.optString("name", id);
+            rtn += "<li class=\"item\">";
+            rtn += "<input id=\"mfl-" + id + "\" name=\"match-filter-location-id\" value=\"" + id + "\" type=\"checkbox\"" + (active ? " checked " : "") + " />";
+            rtn += "<label " + (active ? "class=\"item-checked\"" : "") + " for=\"mfl-" + id + "\">" + name + " <span class=\"item-count\">" + ct + "</span></label>";
+        }
+
+        List<String> kidVals = new ArrayList<String>();
+        JSONArray kids = locIdTree.optJSONArray("locationID");
+        if (kids != null) for (int i = 0 ; i < kids.length() ; i++) {
+            JSONObject k = kids.optJSONObject(i);
+            if (k == null) continue;
+            String kval = traverseLocationIdTree(k, locIds, encLocationId, locCount);
+            if (!kval.equals("")) kidVals.add(kval);
+        }
+        if (kidVals.size() > 0) rtn += "<ul class=\"ul-secondary\">" + String.join("\n", kidVals) + "</ul>";
+
+        if (id != null) rtn += "</li>";
+        return rtn;
+    }
 
   //shepherd must have an open trasnaction when passed in
   public String getNextIndividualNumber(Encounter enc, Shepherd myShepherd, String context) {
@@ -172,10 +204,22 @@ String langCode=ServletUtilities.getLanguageCode(request);
     border: solid 5px #888;
     background-color: #CCC;
 }
+
+/* may the css gods help us.   h/t https://stackoverflow.com/a/7785711 */
+/*
+.ia-match-filter-dialog .option-cols ul.ul-secondary {
+    margin: 0;
+    -webkit-column-break-inside: avoid; /* Chrome, Safari */
+    page-break-inside: avoid;           /* Theoretically FF 20+ */
+    break-inside: avoid-column;         /* IE 11 */
+    display:table;                      /* Actually FF 20+ */
+}
+*/
+
 .ia-match-filter-dialog .option-cols {
-    -webkit-column-count: 5;
-    -moz-column-count: 5;
-    column-count: 5;
+    -webkit-column-count: 1;
+    -moz-column-count: 1;
+    column-count: 1;
 }
 .ia-match-filter-dialog .option-cols input {
     vertical-align: top;
@@ -195,6 +239,12 @@ String langCode=ServletUtilities.getLanguageCode(request);
 }
 .ia-match-filter-dialog .option-cols .item-checked label {
     font-weight: bold;
+}
+.ia-match-filter-dialog ul {
+    list-style-type: none;
+}
+label.item-checked {
+    font-weight: bold !important;
 }
 .ia-match-filter-dialog .item-count {
     font-size: 0.8em;
@@ -925,10 +975,6 @@ if(enc.getLocation()!=null){
       $("#countryFormBtn").show();
     });
 
-    $('#ia-match-filter-location input').on('change', function(ev) {
-        iaMatchFilterLocationCountUpdate()
-    });
-    iaMatchFilterLocationCountUpdate();
   });
 </script>
 
@@ -6389,7 +6435,7 @@ function iaMatchFilterLocationCountUpdate() {
     var vals = [];
     $('#ia-match-filter-location input:checked').each(function(i,el) {
         vals.push(el.nextElementSibling.firstChild.nodeValue);
-        ct += parseInt($(el).parent().find('.item-count').text());
+        ct += parseInt($(el).parent().find('.item-count:first').text());
     });
     if ($('#match-filter-location-unlabeled').is(':checked')) ct += parseInt($('#match-filter-location-unlabeled').parent().find('.item-count').text());
     if (ct < 1) {
@@ -6399,6 +6445,26 @@ function iaMatchFilterLocationCountUpdate() {
     }
     return true;
 }
+function adjustLocationCheckboxes(el) {
+    $(el).parent().find('ul input').each(function(i, inp) {
+        inp.checked = el.checked;
+    });
+    return true;
+}
+
+$(document).ready(function() {
+    adjustLocationCheckboxes( $('.ul-root input:checked')[0] );  //this will check all below the default-checked one
+    iaMatchFilterLocationCountUpdate();
+    $('.ul-root input[type="checkbox"]').on('change', function(ev) {
+        adjustLocationCheckboxes(ev.target);
+        iaMatchFilterLocationCountUpdate();
+    });
+/*
+    $('#ia-match-filter-location input').on('change', function(ev) {
+        iaMatchFilterLocationCountUpdate()
+    });
+*/
+});
 </script>
 
 <div class="ia-match-filter-dialog">
@@ -6411,10 +6477,11 @@ function iaMatchFilterLocationCountUpdate() {
     <div id="ia-match-filter-location" class="option-cols">
 <%
 
+Map<String,Long> locCount = new HashMap<String,Long>();
+locCount.put(null, 0L);
 String sql = "SELECT \"LOCATIONID\" AS locId, COUNT(*) AS ct FROM \"ENCOUNTER\" GROUP BY locId ORDER BY locId";
 Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 List results = (List)q.execute();
-long nullCount = 0;
 int c = 0;
 Iterator it = results.iterator();
 while (it.hasNext()) {
@@ -6422,21 +6489,30 @@ while (it.hasNext()) {
     String locId = (String)row[0];
     long ct = (long)row[1];
     if (!Util.stringExists(locId) || locId.toLowerCase().equals("none")) {
-        nullCount += ct;
-        continue;
+        locCount.put(null, locCount.get(null) + ct);
+    } else {
+        locCount.put(locId, ct);
     }
-    String sel = (locId.equals(enc.getLocationID()) ? "checked" : "");
-    out.println("<div class=\"item item-" + sel + "\"><input id=\"mfl-" + c + "\" name=\"match-filter-location-id\" value=\"" + locId + "\" type=\"checkbox\"" + sel + " /><label for=\"mfl-" + c + "\">" + locId + " <span class=\"item-count\">" + ct + "</span></label></div>");
-    c++;
 }
 
+
+JSONObject locIdTree = LocationID.getLocationIDStructure();
+List<String> locIds = new ArrayList<String>();  //filled as we traverse
+String output = traverseLocationIdTree(locIdTree, locIds, enc.getLocationID(), locCount);
+out.println("<div class=\"ul-root\">" + output + "</div>");
+
+//this is a sanity check for missed locationIDs !!
+for (String l : locCount.keySet()) {
+    if (!locIds.contains(l)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
+}
 %>
+
     </div>
     <div>
         <div style="margin-top: 10px; color: #660;" class="item">
             <input type="checkbox" id="match-filter-location-unlabeled" name="match-filter-location-id" value="__NULL__" onChange="iaMatchFilterLocationCountUpdate();" />
             <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
-            <span class="item-count"><%=nullCount%></span>
+            <span class="item-count"><%=locCount.get(null)%></span>
         </div>
 <!-- TODO maybe an option here to not recurse to children locations? -->
         <input type="button" value="<%=encprops.getProperty("selectAll")%>"
