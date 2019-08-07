@@ -261,28 +261,23 @@
 		"name": "Atlantic Ocean",
 		"locationID": [
 			 {
-			  "name": "Baltic Sea" },
+			  "name": "Baltic Sea", "id": "Baltic Sea" },
 			 {
-			  "name": "Archipelago Sea" },
+			  "name": "Archipelago Sea", "id": "Archipelago Sea"  },
 			 {
-			  "name": "Bothnian Sea" },
+			  "name": "Bothnian Sea", "id": "Bothnian Sea" },
 			 {
-			  "name": "Central Baltic Sea" },
+			  "name": "Central Baltic Sea", "id": "Central Baltic Sea"  },
 			  { "name":"Faroe Islands", "id":"Faroe Islands", "locationID":[] },
 
 			{ "name":"France", "id":"France", "locationID":[] },
-			 {
-			  "name": "Gulf of Bothnia" },
-			 {
-			  "name": "Gulf of Finland" },
-			 {
-			  "name": "Gulf of Riga" },
+
 			 { "name":"Greenland", "id":"Greenland", "locationID":[] },
 			  
 			{ "name":"Iceland", "id":"Iceland", "locationID":[] },
 
 			 {
-			  "name": "Mediterranean Sea" },
+			  "name": "Mediterranean Sea", "id": "Mediterranean Sea" },
 			 {
 			  "name": "Argentine Sea", "id": "Argentine Sea"  },
 			 {
