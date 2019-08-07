@@ -37,9 +37,11 @@
             long ct = 0;
             if (locCount.get(id) != null) ct = locCount.get(id);
             String name = locIdTree.optString("name", id);
+            String desc = locIdTree.optString("description", null);
+            if (desc != null) desc = " title=\"" + desc.replaceAll("'", "\\'") + "\" ";
             rtn += "<li class=\"item\">";
             rtn += "<input id=\"mfl-" + id + "\" name=\"match-filter-location-id\" value=\"" + id + "\" type=\"checkbox\"" + (active ? " checked " : "") + " />";
-            rtn += "<label " + (active ? "class=\"item-checked\"" : "") + " for=\"mfl-" + id + "\">" + name + " <span class=\"item-count\">" + ct + "</span></label>";
+            rtn += "<label " + desc + (active ? "class=\"item-checked\"" : "") + " for=\"mfl-" + id + "\">" + name + " <span class=\"item-count\">" + ct + "</span></label>";
         }
 
         List<String> kidVals = new ArrayList<String>();
