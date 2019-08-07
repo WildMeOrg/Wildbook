@@ -730,7 +730,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			// no illustration for DTW
 			if (algoInfo == 'OC_WDTW') illustUrl = false;
 
-			displayAnnot(res.taskId, d[1], i, d[0] / 1000, illustUrl);
+			displayAnnot(res.taskId, d[1], i, d[0], illustUrl);
 			// ----- END Hotspotter IA Illustration-----
 		}
 		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
