@@ -6505,7 +6505,7 @@ out.println("<div class=\"ul-root\">" + output + "</div>");
 
 //this is a sanity check for missed locationIDs !!
 for (String l : locCount.keySet()) {
-    if (!locIds.contains(l)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
+    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
 }
 %>
 
