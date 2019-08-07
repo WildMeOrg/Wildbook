@@ -28,8 +28,9 @@
         String rtn = "";
         if (locIdTree == null) return rtn;  //snh
 
+        boolean isRoot = locIdTree.optBoolean("_isRoot", false);
         String id = locIdTree.optString("id", null);
-        if (id == null) id = locIdTree.optString("name", null);  //is this kosher?????
+        if (!isRoot && (id == null)) throw new RuntimeException("LocationID tree is missing IDs in sub-tree: " + locIdTree);
         if (id != null) {
             if (!locIds.contains(id)) locIds.add(id);
             boolean active = id.equals(encLocationId);
@@ -6497,6 +6498,7 @@ while (it.hasNext()) {
 
 
 JSONObject locIdTree = LocationID.getLocationIDStructure();
+locIdTree.put("_isRoot", true);
 List<String> locIds = new ArrayList<String>();  //filled as we traverse
 String output = traverseLocationIdTree(locIdTree, locIds, enc.getLocationID(), locCount);
 out.println("<div class=\"ul-root\">" + output + "</div>");
