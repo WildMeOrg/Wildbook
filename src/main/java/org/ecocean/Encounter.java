@@ -1783,7 +1783,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
   public void setLocationID(String newLocationID) {
-    this.locationID = newLocationID.trim();
+    this.locationID = newLocationID;
   }
 
   public Double getMaximumDepthInMeters() {
