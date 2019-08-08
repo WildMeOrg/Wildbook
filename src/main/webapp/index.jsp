@@ -392,7 +392,7 @@ finally{
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
             <h1 class="hidden">Spotashark</h1>
-            <h2>Your photos will help identify and protect endangered sand tiger sharks.</h2>
+            <h2>Your photos will help identify and protect sand tiger sharks.</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -400,7 +400,7 @@ finally{
 			</button>
 			-->
             <a href="submit.jsp">
-                <button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>
+                <button class="large">Share My Images<span class="button-icon" aria-hidden="true"></button>
             </a>
             <a href="adoptananimal.jsp">
                 <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
@@ -434,7 +434,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Photograph a Shark</h3>
 					<p class="lead">
-						Every shark has a unique spot pattern on each flank. A photo of a flank can be matched to another photo of the same flank. Or your shark may be a new addition to our database.
+						Every shark has a unique spot pattern on each flank. A photo can be matched to another photo of the same flank. Or your shark may be a new addition to our database.
 					</p>
 					<!--
 					<p class="lead">
@@ -453,7 +453,7 @@ finally{
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/spotashark/SaS-SubmitAPhoto.jpg" alt=""  />
+					<img class="pull-right" src="cust/mantamatcher/img/STSandDiver.png" alt="Photo Credit: Tanya Houppermans" title="Photo Credit: Tanya Houppermans"/>
 				</div>
 			</div>
 			<div class="item">
@@ -464,7 +464,7 @@ finally{
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/spotashark/SaS-ResearcherVerification.jpg" alt=""  />
+					<img class="pull-right" src="cust/mantamatcher/img/ResearcherVerification.png" alt=""  />
 				</div>
 			</div>
 			<div class="item">
@@ -475,17 +475,17 @@ finally{
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
+					<img class="pull-right" src="cust/mantamatcher/img/MatchingProcess.png" alt=""  />
 				</div>
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Match Result</h3>
 					<p class="lead">
-					The algorithm provides researchers with a ranked selection of possible shark matches. Researchers will then visually confirm a match to an existing shark in the database, or create a new shark profile. At this stage, you will receive an update email.					</p>
+					Computer vision provides researchers with a ranked selection of possible shark matches. Researchers will then visually confirm a match to an existing shark in the database, or create a new shark profile. At this stage, you will receive an update email.					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/spotashark/datascreen.jpg" alt=""  />
+					<img class="pull-right" src="cust/mantamatcher/img/MatchResult.png" alt=""  />
 				</div>
 			</div>
 		</div>
@@ -662,7 +662,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
                         <p class="lead">
-                            <i>&ldquo;We aim to monitor and report on the health of the Sand Tiger Shark by providing non-invasive tools to the dive community to record changes at their local aggregations sites. We also welcome similar groups from around the world to join this project.&rdquo;</i> </br>- Sean Barker, Project Leader</p>
+                            <i>&ldquo;“The more we learn about these amazing sharks, the better we can support their conservation here and around the world.”&rdquo;</i> </br>~ Hap Fatzinger, Director of the NC Aquarium at Fort Fisher</p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>
@@ -681,13 +681,13 @@ finally{
 <div class="container-fluid">
     <section class="container main-section">
         <h2 class="section-header">How can I help?</h2>
-        <p class="lead text-center">If you are not on site, there are still other ways to get engaged</p>
+        <p class="lead text-center">If you don't have any images to share, there are other ways to help</p>
 
         <section class="adopt-section row">
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3 class="uppercase">Adopt a Sand Tiger Shark</h3>
                 <ul>
-                    <li>Support individual research programs in different regions</li>
+                    <li>Support sand tiget shar research programs</li>
 					<li>Receive email updates when we resight your adopted animal</li>
 					<li>Display your photo and a quote on the animal's page in our database</li>
 </ul>
@@ -726,29 +726,10 @@ finally{
 	            myShepherd.closeDBTransaction();
             }
             %>
-
-
         </section>
         <hr />
-        <section class="donate-section">
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3>Donate</h3>
-                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these sharks and their habitat.</p>
-                <p>You can make a one time donation or <a href="adoptananimal.jsp" title="More information about donations">learn about adopting an animal</a></p>
-            </div>
-            <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <a href="oneTimeDonation.jsp">
-	                <button class="large">
-	                    One Time Donation
-	                    <span class="button-icon" aria-hidden="true">
-	                </button>
-                </a>
-            </div>
-        </section>
     </section>
 </div>
-
-
 
 <jsp:include page="footer.jsp" flush="true"/>
 
