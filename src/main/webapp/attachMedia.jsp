@@ -421,7 +421,7 @@ if (AccessControl.isAnonymous(request)) {
 </script>
 <div style="padding: 0 20px;">
 <a class="button" href="attachMedia.jsp">back to list</a>
-<h2>Occurrence <%=occ.getOccurrenceID().substring(0,8)%></h2>
+<h2>Occurrence <a href="occurrence.jsp?number=<%=occ.getOccurrenceID()%>">[<%=occ.getOccurrenceID().substring(0,8)%>]</a></h2>
 <script>
     var occurrence = {
         id: '<%=occ.getOccurrenceID()%>',
