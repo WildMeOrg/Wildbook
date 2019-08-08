@@ -39,14 +39,14 @@ public class MediaAssetAttach extends HttpServlet {
 
     try {
       args = ServletUtilities.jsonFromHttpServletRequest(request);
-    }
-
-    catch (JSONException e){
+    } catch (JSONException e){
       // urgh... depending on if POSTing from Postman or $.ajax, parameters must be handled differently.
       args.put("attach",request.getParameter("attach"));
       args.put("detach",request.getParameter("detach"));
       args.put("EncounterID", request.getParameter("EncounterID"));
       args.put("MediaAssetID", request.getParameter("MediaAssetID"));
+      //leave this print in case of shenanigans even though we have alternate behavior
+      e.printStackTrace();
     }
 
     //String encID = request.getParameter("EncounterID");
@@ -55,7 +55,13 @@ public class MediaAssetAttach extends HttpServlet {
 
     //resolve all asset ids into one list
     List<String> maIds = new ArrayList<String>();
+    /*
+    ok, leaving this for prosperity. this FAILS on the .getString() for reasons i cant explain when passed an int (non-string)
+    however, the conditional still evaluates as TRUE !!!!   good luck on this one.
+        see also:   https://github.com/stleary/JSON-java/issues/472
     if (args.optString("MediaAssetID", null) != null) maIds.add(args.getString("MediaAssetID"));
+    */
+    if (args.optString("MediaAssetID", null) != null) maIds.add(args.optString("MediaAssetID", null));
     JSONArray jarr = args.optJSONArray("mediaAssetIds");
     if (jarr != null) for (int i = 0 ; i < jarr.length() ; i++) {
         String arrId = jarr.optString(i, null);
@@ -75,10 +81,10 @@ public class MediaAssetAttach extends HttpServlet {
     myShepherd.setAction("MediaAssetAttach.class");
     PrintWriter out = response.getWriter();
 
-    JSONArray alreadyAttached = new JSONArray();
+    JSONArray alreadyAttachedIds = new JSONArray();
+    List<MediaAsset> alreadyAttached = new ArrayList<MediaAsset>();
 
     try {
-
       myShepherd.beginDBTransaction();
 
     Encounter enc = myShepherd.getEncounter(encID);
@@ -89,13 +95,14 @@ public class MediaAssetAttach extends HttpServlet {
             MediaAsset ma = myShepherd.getMediaAsset(maId);
             if (ma == null) throw new ServletException("No MediaAsset with id "+maId+" found in database.");
             if (enc.hasTopLevelMediaAsset(ma.getId())) {
-                alreadyAttached.put(ma.getId());
+                alreadyAttachedIds.put(ma.getId());
+                alreadyAttached.add(ma);
             } else {
                 mas.add(ma);
             }
         }
 
-    if (alreadyAttached.length() > 0) res.put("alreadyAttached", alreadyAttached);
+    if (alreadyAttachedIds.length() > 0) res.put("alreadyAttached", alreadyAttachedIds);
 
     // ATTACH MEDIAASSET TO ENCOUNTER
     if (args.optString("attach")!=null && args.optString("attach").equals("true")) {
@@ -109,12 +116,14 @@ public class MediaAssetAttach extends HttpServlet {
     // DETACH MEDIAASSET FROM ENCOUNTER
     else if (args.optString("detach")!=null && args.optString("detach").equals("true")) {
         boolean success = false;
-        for (MediaAsset ma : mas) {
+        for (MediaAsset ma : alreadyAttached) {
+System.out.println("DETACH: " + ma);
             // Set match against to false on the annotation(s) from this asset that were associated with the encounter. 
-            ArrayList<Annotation> maAnns = ma.getAnnotations();
-            ArrayList<Annotation> encAnns = enc.getAnnotations();
-            encAnns.retainAll(maAnns);
-            for (Annotation ann : encAnns) {ann.setMatchAgainst(false);} 
+            for (Annotation ann : enc.getAnnotations()) {
+                if (ann.getMediaAsset().getId() != ma.getId()) continue;
+System.out.println("setting matchAgainst=F on " + ann);
+                ann.setMatchAgainst(false);
+            }
             enc.removeMediaAsset(ma);
  
             String undoLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+ma.getId();
@@ -133,14 +142,13 @@ public class MediaAssetAttach extends HttpServlet {
     myShepherd.commitDBTransaction();
 
     // DETACH MEDIAASSET FROM ENCOUNTER
-  } catch (Exception e) {
-    e.printStackTrace(out);
-    myShepherd.rollbackDBTransaction();
-  }
+    } catch (Exception e) {
+      e.printStackTrace(out);
+      myShepherd.rollbackDBTransaction();
+    }
   finally {
     myShepherd.closeDBTransaction();
   }
-
   out.println(res.toString());
   out.close();
 
