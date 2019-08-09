@@ -464,14 +464,12 @@ function FSControl(controlDiv, map) {
         </em>)</p>
 
       <%
-        List<String> locIDs = (useCustomProperties)
-          ? CommonConfiguration.getIndexedPropertyValues("locationID", request)
-          : myShepherd.getAllLocationIDs();
-        //if (Util.isEmpty(locIDs)) locIDs = myShepherd.getAllLocationIDs(); // in case not custom-defined
-		//TO-DO map back into the custom work to override for user/org
+      String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+      if(qualifier==null) {qualifier="default";}
+      else{qualifier=qualifier.replaceAll(".properties","");}
 
       %>
-		<%=LocationID.getHTMLSelector(true, "",null,"locationCodeField","locationCodeField","") %>
+		<%=LocationID.getHTMLSelector(true, "",qualifier,"locationCodeField","locationCodeField","") %>
 
 
     </div>
