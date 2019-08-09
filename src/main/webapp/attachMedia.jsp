@@ -259,8 +259,8 @@ $(document).ready(function() {
     $('#occs').tablesorter();
     //$('#occs tbody td:nth-child(3)').on('click', function(ev) {
     $('#occs tr').on('click', function(ev) {
-        var occId = $(ev.currentTarget).find(':nth-child(3)').text();
-        window.location.href = 'attachMedia.jsp?id=' + occId;
+        var occId = ev.currentTarget.getAttribute('data-id');
+        wildbook.openInTab('attachMedia.jsp?id=' + occId);
     });
 
     uploaderInit(uploadFinished);
@@ -602,12 +602,12 @@ System.out.println(ft.getParameters());
 <tbody>
 <%
         for (Object o : coll) {
-            String row = "<tr>";
             occ = (Occurrence) o;
+            String row = "<tr data-id=\"" + occ.getOccurrenceID() + "\">";
             Map<String,String> tripInfo = getTripInfo(occ);
             row += "<td>" + tripInfo.get("typeLabel") + "</td>";
             row += "<td class=\"td-int\">" + tripInfo.get("id") + "</td>";
-            row += "<td class=\"td-occid\">" + occ.getOccurrenceID() + "</td>";
+            row += "<td class=\"td-occid\">" + occ.getOccurrenceID().substring(0,8) + "</td>";
             row += "<td>" + occ.getDateTimeCreated().substring(0,16) + "</td>";
             List<Taxonomy> tax = occ.getTaxonomies(); //TODO also check encs???
             if (Util.collectionIsEmptyOrNull(tax)) {
