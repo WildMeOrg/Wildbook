@@ -97,7 +97,8 @@ myShepherd.closeDBTransaction();
 %>
 <pre><%=sb.toString() %></pre>
 
-
+<h2>Test Request-based Org Loading</h2>
+<p><pre><%=LocationID.getLocationIDStructure(request).toString() %></pre></p>
 
 </body>
 </html>
