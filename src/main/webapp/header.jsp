@@ -166,7 +166,9 @@ if (pageTitle == null) pageTitle = CommonConfiguration.getHTMLTitle(context);
 
 		                  %>
 
+<!--
 		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
+-->
 		             				      <!-- <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li> -->
 
 		                      		<%
