@@ -500,13 +500,13 @@ finally{
             <!-- Random user profile to select -->
             <%
             myShepherd.beginDBTransaction();
-            //User featuredUser=myShepherd.getRandomUserWithPhotoAndStatementAndRole("spotasharkusa");
+            User featuredUser=myShepherd.getRandomUserWithPhotoAndStatementAndRole("spotasharkusa");
             // The above limits to SASUSA users... but none have both image and statement. Only Sean B from AUS!
-            User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+            //User featuredUser=myShepherd.getRandomUserWithPhotoAndStatementAndRole("spotasharkusa");
             if(featuredUser!=null){
                 String profilePhotoURL="images/empty_profile.jpg";
                 if(featuredUser.getUserImage()!=null){
-                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+                	profilePhotoURL="/wildbook_data_dir/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
                 }
 
             %>
@@ -602,7 +602,7 @@ finally{
                             if (myShepherd.doesUserHaveRole(thisUser.getUsername(), "spotasharkusa", context)) {
                                 String profilePhotoURL="images/empty_profile.jpg";
                                 if(thisUser.getUserImage()!=null){
-                                    profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                                    profilePhotoURL="/wildbook_data_dir/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
                                 }
                                 //System.out.println(spotters.values().toString());
                                 Integer myInt=spotters.get(spotter);
