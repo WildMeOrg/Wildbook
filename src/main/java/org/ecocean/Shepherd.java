@@ -4371,15 +4371,16 @@ public class Shepherd {
         int numUsers=matchingUsers.size();
         ArrayList<User> usersWithRole = new ArrayList<>();
         for (User u : matchingUsers) {
-          //System.out.println("User: "+u.getUsername());
-          if (doesUserHaveRole(u.getUsername(), role, "context0")) {
-            //System.out.println("Has role...");
+          System.out.println("Does user "+u.getUsername()+" have role "+role+" ?");
+          if (doesUserHaveRole(u.getUsername(), role.trim(), "context0")) {
             usersWithRole.add(u);
           }
         }
-        Random rn = new Random();
-        int userNumber = rn.nextInt(usersWithRole.size());
-        //System.out.println("userNumber : "+userNumber);
+        int userNumber = 0;
+        if (matchingUsers.size()>1) {
+          Random rn = new Random();
+          userNumber = rn.nextInt(usersWithRole.size());
+        }
         User selected = usersWithRole.get(userNumber);
         return selected;
       }

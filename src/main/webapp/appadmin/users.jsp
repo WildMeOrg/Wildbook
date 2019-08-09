@@ -547,7 +547,7 @@
 				userURL=thisUser.getUserURL();
     		    	}
     		    	if(thisUser.getUserImage()!=null){
-    		    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+    		    		profilePhotoURL="/wildbook_data_dir/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
     		    	}
     		    	if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
     		    	uuid=thisUser.getUUID();
