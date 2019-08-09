@@ -31,6 +31,10 @@ private static User registerUser(Shepherd myShepherd, String username, String em
 
 %>
 <style>
+.mobile-note {
+    margin: 30px 0 0 0;
+}
+
 label {
     font-size: 0.9em;
     width: 30em;
@@ -214,6 +218,10 @@ This validation test is looking at how good humans are at by-eye photo identific
 You can read the
 <a href="register.jsp?instructions">instructions page</a>
 first to see more about what this trial involves.
+</p>
+
+<p class="mobile-note">
+Note: some mobile and tablet users are reporting that images aren't loading for them.  We're working on fixing that, but in the mean time, please try a desktop or laptop computer if you are having issues with photos loading.
 </p>
 
 <%  if (loggedIn) { %>
@@ -621,6 +629,10 @@ if (mode == 3) {
 <h1>Instructions for Validation Study 1</h1><p>&nbsp;</p>
 <p>The first of our three validation tests is about determining how good humans are at identifying cats from photos by making matches between one cat photo and a library of cat photos.  Similar tests have been conducted on many types of animals since it's important for researchers to understand and plan for human error rates. </p>
 <p>This study is running from August 5 to October 6, 2019.  You can join at any time during that period.  You can complete all 50 matching trials, or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each matching trial will each take 30-60 minutes to complete, depending on your personal pace. You can complete a maximum of 2 matching trials per day.  Previous studies of photo identification in animals have suggested that observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time. </p>
+<p>
+Note: some mobile and tablet users are reporting that images aren't loading for them. We're working on fixing that, but in the mean time, please try a desktop or laptop computer if you are having issues with photos loading.
+</p>
+
 <h2>Enrollment process</h2><p>This study asks you to consent to participate as a research volunteer, register for the website, and answer some demographic questions.  We don't need to know your name, but you will need to register for the website with an email address. </p>
 <h2>Rules</h2><p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change ability to identify cats in photos, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own. </p>
 <h2>Trial instructions</h2><p>After logging in, you will be presented with matching trials.  Click to start a trial.  Once you complete a trial, you won't be presented with the same one again.   </p>
