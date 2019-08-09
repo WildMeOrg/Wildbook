@@ -235,7 +235,7 @@ System.out.println("countSinceSunday = " + countSinceSunday);
 <jsp:include page="header.jsp" flush="true"/>
 <script src="tools/panzoom/jquery.panzoom.min.js"></script>
 <script src="tools/jquery-mousewheel/jquery.mousewheel.min.js"></script>
-<script src="javascript/panzoom.js"></script>
+<script src="javascript/panzoom.js?u=<%=username%>"></script>
 
 <script>
 var usePractice = <%=!modeLive%>;
