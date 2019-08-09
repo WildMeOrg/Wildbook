@@ -9,11 +9,12 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.ecocean.grid.EncounterLite;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
+import javax.servlet.http.HttpServletRequest;
 
 public class LocationID {
   
@@ -36,6 +37,26 @@ public class LocationID {
    */
   public static JSONObject getLocationIDStructure(String qualifier) {
     if(qualifier==null)return getLocationIDStructure();
+    if(jsonMaps.get(qualifier)==null)loadJSONData(qualifier);
+    return jsonMaps.get(qualifier);
+  }
+  
+  /*
+   * Return the JSON representation of /bundles/locationID.json but check the request for the user and then try to send the appropriate org argument if it exists. 
+   */
+  public static JSONObject getLocationIDStructure(HttpServletRequest request) {
+    
+    String qualifier=null;
+    
+    Shepherd myShepherd=new Shepherd(request);
+    myShepherd.setAction("LocationID.java");
+    myShepherd.beginDBTransaction();
+    qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+    if(qualifier==null) {qualifier="default";}
+    else {qualifier=qualifier.replaceAll(".properties","");}
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+    System.out.println("qualifier for locationID JSON: "+qualifier);
     if(jsonMaps.get(qualifier)==null)loadJSONData(qualifier);
     return jsonMaps.get(qualifier);
   }
@@ -64,15 +85,21 @@ public class LocationID {
     //first look for the file in the override director
     File configFile = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+filename);
 
+      //if our config file exists in the override dir, use it
       if(configFile.exists()) {
         try {
           is=new FileInputStream(configFile);
         }
         catch(Exception e) {e.printStackTrace();}
       }
+      //if the override file does not exist, fall back to the webapp and look for the file there
+      else {
+        is=LocationID.class.getResourceAsStream("/bundles/"+filename);
+      }
     
-      //if we couldn't find it in the override dir, locad it from the web app root
+      //if we couldn't find it in the override dir or locally, load it from the web app root
     if (is == null) {
+      filename="locationID.json";
       is=LocationID.class.getResourceAsStream("/bundles/"+filename);
     }
     JSONTokener tokener = new JSONTokener(is);
