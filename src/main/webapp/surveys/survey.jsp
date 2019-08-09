@@ -213,9 +213,17 @@ if (sv!=null) {
 									for (Occurrence occ : occs) {
 										String thisOccID = occ.getID();
 										String link = occLocation + thisOccID;
+                                                                                String taxs = "";
+                                                                                if (!Util.collectionIsEmptyOrNull(occ.getTaxonomies())) {
+                                                                                    for (Taxonomy tx : occ.getTaxonomies()) {
+                                                                                        taxs += tx.getScientificName() + "; ";
+                                                                                    }
+                                                                                }
+                                                                                String when = "-";
+                                                                                if (occ.getDateTimeCreated() != null) when = occ.getDateTimeCreated().substring(11,16);
 									%>
 									<p>
-										<small>(<%=Character.toString((char)(occKey+65))%>) <a href="<%=link%>"><%=thisOccID%></a></small>
+										<small>(<%=Character.toString((char)(occKey+65))%>) <a href="<%=link%>"><%=thisOccID.substring(0,8)%></a> &nbsp; <b><%=when%></b> <i><%=taxs%></i></small>
 									</p>
 									<%
                                                                             occKey++;
@@ -424,8 +432,11 @@ if (sv!=null) {
 <script>
 $(document).ready(function() {
 	$('#errorSpan').html('<%=errors%>');
+/*
 	$('.occIDDiv').hide();
 	$('.hideOccIDs').hide();
+*/
+	$('.showOccIDs').hide();
 	$('.showOccIDs').click(function(){
 		console.log('Show Occ IDs!');
 		$('.occIDDiv').slideDown();

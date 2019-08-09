@@ -54,6 +54,7 @@ for (SurveyTrack trk : sv.getSurveyTracks()) {
         jocc.put("lat", occ.getDecimalLatitude());
         jocc.put("lon", occ.getDecimalLongitude());
         jocc.put("time", occ.getMillisFromEncounterAvg());
+        jocc.put("dateTimeCreated", occ.getDateTimeCreated());
         jocc.put("numEncounters", occ.getNumberEncounters());
         joccs.put(jocc);
     }
@@ -131,11 +132,13 @@ function drawOccurrence(occ, occI) {
     } else {
         var marker = new google.maps.Marker({
             position: new google.maps.LatLng(occ.lat, occ.lon),
+            title: '(' + String.fromCharCode(65 + occI) + ') ' + (occ.dateTimeCreated ? occ.dateTimeCreated.substring(11,16) : '') + ' [' + occ.id.substring(0,8) + ']',
             map: map,
         });
         marker.setLabel(String.fromCharCode(65 + occI));
         google.maps.event.addListener(marker, 'click', function() {
-            var content = '<p><b><a href="../occurrence.jsp?number=' + occ.id + '">' + occ.id + '</a></b></p>';
+            var content = '<p><b><a href="../occurrence.jsp?number=' + occ.id + '">Occur ' + occ.id.substring(0,8) + '</a></b><br />';
+            content += '<b>' + occ.dateTimeCreated + '</b></p>';
             content += '<p>Lat: <b>' + occ.lat + '</b><br />Lon: <b>' + occ.lon + '</b></p>';
             (new google.maps.InfoWindow({content: content })).open(map, this);
         });
