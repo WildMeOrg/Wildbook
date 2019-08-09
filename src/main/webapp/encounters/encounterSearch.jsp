@@ -526,36 +526,13 @@ function useData(doc){
         </em>)</p>
 
       <%
-        List<String> locIDs = useCustomProperties
-        	? CommonConfiguration.getIndexedPropertyValues("locationID", request)
-        	: myShepherd.getAllLocationIDs();
-        int totalLocIDs = locIDs.size();
-        if (totalLocIDs >= 1) {
-      %>
+      String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+      if(qualifier==null) {qualifier="default";}
+      else{qualifier=qualifier.replaceAll(".properties","");}
 
-      <select multiple name="locationCodeField" id="locationCodeField" size="10">
-        <option value="None"></option>
-        <%
-          for (int n = 0; n < totalLocIDs; n++) {
-            String word = locIDs.get(n);
-            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
-        %>
-        <option value="<%=word%>"><%=word%></option>
-        <%
-            }
-          }
-        %>
-      </select>
-      <%
-      } else {
       %>
-      <p><em><%=encprops.getProperty("noLocationIDs")%>
-      </em></p>
-      <%
-        }
-      %>
-      
-      
+		<%=LocationID.getHTMLSelector(true, "",qualifier,"locationCodeField","locationCodeField","") %>
+
       <%
 
 if(CommonConfiguration.showProperty("showCountry",context)){
