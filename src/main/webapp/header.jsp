@@ -39,8 +39,6 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 boolean isUserLoggedIn = false;
@@ -159,7 +157,7 @@ if (!isUserLoggedIn) {
                       <%
 
 	                      if(request.getUserPrincipal()!=null){
-	                    	  myShepherd = new Shepherd(context);
+	                    	  Shepherd myShepherd = new Shepherd(context);
 	                    	  myShepherd.setAction("header.jsp");
 
 	                          try{
