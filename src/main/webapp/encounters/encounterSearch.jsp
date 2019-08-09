@@ -526,14 +526,12 @@ function useData(doc){
         </em>)</p>
 
       <%
-        List<String> locIDs = useCustomProperties
-        	? CommonConfiguration.getIndexedPropertyValues("locationID", request)
-        	: myShepherd.getAllLocationIDs();
-        	
-        	//TO-DO map back into the custom work to override for user/org
+      String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+      if(qualifier==null) {qualifier="default";}
+      else{qualifier=qualifier.replaceAll(".properties","");}
 
       %>
-		<%=LocationID.getHTMLSelector(true, "",null,"locationCodeField","locationCodeField","") %>
+		<%=LocationID.getHTMLSelector(true, "",qualifier,"locationCodeField","locationCodeField","") %>
 
       <%
 

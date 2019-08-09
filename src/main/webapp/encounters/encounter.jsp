@@ -841,6 +841,9 @@ if(enc.getLocation()!=null){
 <span> 
 	<span id="displayLocationID">
 	<%
+    String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+    if(qualifier==null) {qualifier="default";}
+    else{qualifier=qualifier.replaceAll(".properties","");}
 	List<String> hier=LocationID.getIDForChildAndParents(enc.getLocationID(), null);
 	int sizeHier=hier.size();
 	String displayPath="";
@@ -1062,26 +1065,10 @@ if(enc.getLocation()!=null){
     <input name="number" type="hidden" value="<%=num%>" id="locationIDnumber"/>
     <input name="action" type="hidden" value="addLocCode" />
 
-        <%
-        if(CommonConfiguration.getProperty("locationID0",context)==null){
-        %>
-        <div class="form-group row">
-          <div class="col-sm-5">
-            <input name="code" type="text" class="form-control" id="selectCode"/>
-          </div>
-          <div class="col-sm-3">
-            <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
-          </div>
-        </div>
-        <%
-        }
-        else{
-          //iterate and find the locationID options
-          %>
           <div class="form-group row">
             <div class="col-sm-5">
-              
-              <%=LocationID.getHTMLSelector(false, enc.getLocationID(),null,"selectCode","code","form-control") %>
+
+              <%=LocationID.getHTMLSelector(false, enc.getLocationID(),qualifier,"selectCode","code","form-control") %>
               
             </div>
             <div class="col-sm-3">
@@ -1090,9 +1077,7 @@ if(enc.getLocation()!=null){
               <span class="form-control-feedback" id="locationIDerror">X</span>
             </div>
           </div>
-      <%
-        }
-        %>
+
 
     </form>
 </div>
@@ -6499,7 +6484,7 @@ while (it.hasNext()) {
 }
 
 
-JSONObject locIdTree = LocationID.getLocationIDStructure();
+JSONObject locIdTree = LocationID.getLocationIDStructure(request);
 locIdTree.put("_isRoot", true);
 List<String> locIds = new ArrayList<String>();  //filled as we traverse
 String output = traverseLocationIdTree(locIdTree, locIds, enc.getLocationID(), locCount);

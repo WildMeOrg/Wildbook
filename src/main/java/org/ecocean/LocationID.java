@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,7 +55,7 @@ public class LocationID {
     else {qualifier=qualifier.replaceAll(".properties","");}
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
-    System.out.println("qualifier for locationID JSON: "+qualifier);
+    //System.out.println("qualifier for locationID JSON: "+qualifier);
     if(jsonMaps.get(qualifier)==null)loadJSONData(qualifier);
     return jsonMaps.get(qualifier);
   }
