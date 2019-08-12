@@ -552,11 +552,35 @@ if(CommonConfiguration.showReleaseDate(context)){
     </div>
 
 
-<%
+    <%
+    //let's pre-populate important info for logged in users
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
+    String project="";
+    Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("submit.jsp1");
+    myShepherd.beginDBTransaction();
+    String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+    if(qualifier==null) {qualifier="default";}
+    else{qualifier=qualifier.replaceAll(".properties","");}
+    if(request.getRemoteUser()!=null){
+        submitterName=request.getRemoteUser();
+
+        if(myShepherd.getUser(submitterName)!=null){
+            User user=myShepherd.getUser(submitterName);
+            if(user.getFullName()!=null){submitterName=user.getFullName();}
+            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+            if(user.getUserProject()!=null){project=user.getUserProject();}
+        }
+
+    }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+
 //add locationID to fields selectable
 
-
-if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
@@ -564,27 +588,12 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
-          <option value="" selected="selected"></option>
-          <%
-          List<String> locationIDs = null;
-          if (useCustomProperties) {
-            locationIDs = CommonConfiguration.getIndexedPropertyValues("locationID", request);
-          } else {
-            Shepherd locShepherd = Shepherd.newActiveShepherd(context, "submit-locations");
-            try { locationIDs = locShepherd.getAllLocationIDs(); }
-            catch (Exception e) { locationIDs = new ArrayList<String>(); }
-            finally { locShepherd.rollbackAndClose(); }
-          }
-          for (String locationID: locationIDs) {
-            %><option value="<%=locationID%>"><%=locationID%></option><%
-          }
-          %>
-        </select>
+          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
+              
       </div>
     </div>
 <%
-}
+
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
@@ -668,28 +677,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 <hr />
 
 
-    <%
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
-    String project="";
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-        Shepherd myShepherd=new Shepherd(context);
-        myShepherd.setAction("submit.jsp1");
-        myShepherd.beginDBTransaction();
-        if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-    }
-    %>
+
 
 
 
