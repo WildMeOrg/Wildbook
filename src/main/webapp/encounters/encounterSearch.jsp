@@ -526,36 +526,13 @@ function useData(doc){
         </em>)</p>
 
       <%
-        List<String> locIDs = useCustomProperties
-        	? CommonConfiguration.getIndexedPropertyValues("locationID", request)
-        	: myShepherd.getAllLocationIDs();
-        int totalLocIDs = locIDs.size();
-        if (totalLocIDs >= 1) {
-      %>
+      String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+      if(qualifier==null) {qualifier="default";}
+      else{qualifier=qualifier.replaceAll(".properties","");}
 
-      <select multiple name="locationCodeField" id="locationCodeField" size="10">
-        <option value="None"></option>
-        <%
-          for (int n = 0; n < totalLocIDs; n++) {
-            String word = locIDs.get(n);
-            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
-        %>
-        <option value="<%=word%>"><%=word%></option>
-        <%
-            }
-          }
-        %>
-      </select>
-      <%
-      } else {
       %>
-      <p><em><%=encprops.getProperty("noLocationIDs")%>
-      </em></p>
-      <%
-        }
-      %>
-      
-      
+		<%=LocationID.getHTMLSelector(true, "",qualifier,"locationCodeField","locationCodeField","") %>
+
       <%
 
 if(CommonConfiguration.showProperty("showCountry",context)){
@@ -971,11 +948,11 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   <td>
     <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
-      Labeled Keywords</a></h4>
+      Image Label Filters</a></h4>
 
     <div id="keywords" style="display:none; ">
     	<table id="labeled-kw-table">
-				<tr><strong>Labeled Keywords</strong></tr>
+				<tr><strong>Image Label Filters</strong></tr>
 				<tr><td colspan="3"><p><em>Filter by Labeled Keywords on an Encounter's photos. Select labels and (optionally) values for Labeled Keywords below.</em>
 					<ul>
 						<li>If you select a label and no values, the search will include all possible values for that label.</li>
