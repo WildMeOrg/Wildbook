@@ -4,39 +4,89 @@
   "locationID": [
 
 
-		{
-		"name": "Indian Ocean",
+{
+		"name":"Indian Ocean", "id":"IndianOcean",
 		"locationID":[
+		
+		{ "name":"BANGLADESH - West", "id":"BANGLADESH - West", "locationID":[] },
+		
+		 {"name":"India","id":"India","locationID":[
+		
+			{ "name":"INDIA - Andaman Islands", "id":"INDIA - Andaman Islands", "locationID":[] },
+
+			{ "name":"INDIA - Andhra Pradesh", "id":"INDIA - Andhra Pradesh", "locationID":[] },
+
+			{ "name":"INDIA - Arabian Sea", "id":"INDIA - Arabian Sea", "locationID":[] },
+
+			{ "name":"INDIA - Bay of Bengal", "id":"INDIA - Bay of Bengal", "locationID":[] },
+
+			{ "name":"INDIA - Goa", "id":"INDIA - Goa", "locationID":[] },
+
+			{ "name":"INDIA - Gujarat", "id":"INDIA - Gujarat", "locationID":[] },
+
+			{ "name":"INDIA - Indian Ocean", "id":"INDIA - Indian Ocean", "locationID":[] },
+
+			{ "name":"INDIA - Karnataka", "id":"INDIA - Karnataka", "locationID":[] },
+
+			{ "name":"INDIA - Kerala", "id":"INDIA - Kerala", "locationID":[] },
+
+			{ "name":"INDIA - Lakshadweep Islands", "id":"INDIA - Lakshadweep Islands", "locationID":[] },
+
+			{ "name":"INDIA - Maharashtra", "id":"INDIA - Maharashtra", "locationID":[] },
+
+			{ "name":"INDIA - Nicobar Islands", "id":"INDIA - Nicobar Islands", "locationID":[] },
+
+			{ "name":"INDIA - Orissa", "id":"INDIA - Orissa", "locationID":[] },
+
+			{ "name":"INDIA - Pondicherry", "id":"INDIA - Pondicherry", "locationID":[] },
+
+			{ "name":"INDIA - Tamilnadu", "id":"INDIA - Tamilnadu", "locationID":[] },
+
+			{ "name":"INDIA - West Bengal", "id":"INDIA - West Bengal", "locationID":[] }
+		
+		 ]},
+		 {"name":"Pakistan","id":"Pakistan","locationID":[
+			{ "name":"PAKISTAN - North", "id":"PAKISTAN - North", "locationID":[] }
+		 ]},
+		 
+		
 		 {
-		  "name": "Andaman Sea" },
+		  "name": "Andaman Sea", "id": "Andaman Sea" },
 		 {
-		  "name": "Arabian Sea" },
+		  "name": "Arabian Sea", "id":"Arabian sea" },
+
 		 {
-		  "name": "Bay of Bengal" },
+		  "name": "Laccadive Sea", "id": "Laccadive Sea" },
 		 {
-		  "name": "Gulf of Aden" },
+		  "name": "Mozambique Channel","id":"MozambiqueChannel","locationID":[
+		  
+			{ "name":"Mozambique", "id":"Mozambique", "locationID":[] }
+		  
+		  ] },
 		 {
-		  "name": "Gulf of Oman" },
+		  "name": "Persian Gulf", "id": "Persian Gulf" },
 		 {
-		  "name": "Laccadive Sea" },
-		 {
-		  "name": "Mozambique Channel" },
-		 {
-		  "name": "Persian Gulf" },
-		 {
-		  "name": "Red Sea" },
-		 {
-		  "name": "Timor Sea" 
+		  "name": "Red Sea", "id":"Red Sea", 
+		  "locationID":[
+		    {"name":"Israel","id":"Israel"}
+		  ] 
 		  },
-		  {
-		  "name": "Nosy Be" ,"id": "Nosy Be" 
+		 {
+		  "name": "Timor Sea" , "id": "Timor Sea"
 		  },
-		  {
-		  "name": "Nosy Iranja" ,"id": "Nosy Iranja" 
-		  },		  
-		  {
-		  "name": "Nosy Mitsio" ,"id": "Nosy Mitsio"
-		  },
+		  {"name":"Madagascar","id":"Madagascar",
+		  "locationID":[
+				  {
+				  "name": "Nosy Be" ,"id": "Nosy Be" 
+				  },
+				  {
+				  "name": "Nosy Iranja" ,"id": "Nosy Iranja" 
+				  },		  
+				  {
+				  "name": "Nosy Mitsio" ,"id": "Nosy Mitsio"
+				  }
+			  ]
+			},
 		  {
 		  "name": "Antongil Bay" ,"id": "Antongil Bay" 
 		  },
@@ -93,9 +143,247 @@
 		  },
 		  {
 		  "name": "Anjouan", "id": "Anjouan"
-		  }
+		  },
+		  {"name":"Sri Lanka","id":"Sri Lanka", 
+			"locationID":[
+				{"name":"SRI LANKA - East","id":"SRI LANKA - East"},
+				{"name":"SRI LANKA - North","id":"SRI LANKA - North"},
+				{"name":"SRI LANKA - South","id":"SRI LANKA - South"},
+				{"name":"SRI LANKA - West","id":"SRI LANKA - West"}
+			]
+		  },
+		  {"name":"Oman","id":"Oman", 
+			"locationID":[
+				{ "name":"4h", "id":"4h", "locationID":[] },
+				{ "name":"As Sifah", "id":"As Sifah", "locationID":[] },
+
+				{ "name":"Ash Shuwayr", "id":"Ash Shuwayr", "locationID":[] },
+
+				{ "name":"Ashkharah", "id":"Ashkharah", "locationID":[] },
+				{ "name":"Azaiba", "id":"Azaiba", "locationID":[] },
+				{ "name":"Bandar al Jissah", "id":"Bandar al Jissah", "locationID":[] },
+				{ "name":"Bandar al Khayran", "id":"Bandar al Khayran", "locationID":[] },
+				{ "name":"Bandar al Rowda", "id":"Bandar al Rowda", "locationID":[] },
+				{ "name":"Barr al Hikman", "id":"Barr al Hikman", "locationID":[] },
+				{ "name":"Batinah coast", "id":"Batinah coast", "locationID":[] },
+				{ "name":"Bighalat", "id":"Bighalat", "locationID":[] },
+				{ "name":"Bimmah", "id":"Bimmah", "locationID":[] },
+				{ "name":"Bulaydah", "id":"Bulaydah", "locationID":[] },
+				{ "name":"Bustan", "id":"Bustan", "locationID":[] },
+				{ "name":"Capital Area Yacht Club", "id":"Capital Area Yacht Club", "locationID":[] },
+				{ "name":"Cat Island", "id":"Cat Island", "locationID":[] },
+				{ "name":"Dalkut", "id":"Dalkut", "locationID":[] },
+
+				{ "name":"Darsayt", "id":"Darsayt", "locationID":[] },
+
+				{ "name":"Daymaniyat Islands", "id":"Daymaniyat Islands", "locationID":[] },
+
+				{ "name":"Dhofar", "id":"Dhofar", "locationID":[] },
+
+				{ "name":"Dibab", "id":"Dibab", "locationID":[] },
+				{ "name":"Dorgahan", "id":"Dorgahan", "locationID":[] },
+
+				{ "name":"Duqm", "id":"Duqm", "locationID":[] },
+				{ "name":"Fahal Island", "id":"Fahal Island", "locationID":[] },
+				
+				{ "name":"Film", "id":"Film", "locationID":[] },
+
+				{ "name":"Fins", "id":"Fins", "locationID":[] },
+
+				{ "name":"Fujayrah", "id":"Fujayrah", "locationID":[] },
+
+				{ "name":"Ghalilah", "id":"Ghalilah", "locationID":[] },
+
+				{ "name":"Gulf of Masirah", "id":"Gulf of Masirah", "locationID":[] },
+
+				{ "name":"Gulf of Oman", "id":"Gulf of Oman", "locationID":[] },
+
+				{ "name":"Hadbaram", "id":"Hadbaram", "locationID":[] },
+
+				{ "name":"Hadbin", "id":"Hadbin", "locationID":[] },
+
+				{ "name":"Halaaniyaat Islands", "id":"Halaaniyaat Islands", "locationID":[] },
+
+				{ "name":"Hallaniyats", "id":"Hallaniyats", "locationID":[] },
+
+				{ "name":"Hamar an Nafur Island", "id":"Hamar an Nafur Island", "locationID":[] },
+
+				{ "name":"Hasik", "id":"Hasik", "locationID":[] },
+
+				{ "name":"Haynu Island", "id":"Haynu Island", "locationID":[] },
+
+				{ "name":"Hino Island", "id":"Hino Island", "locationID":[] },
+				{"name":"Kalbooh","id":"Kalbooh"},
+				{"name":"Khabbah","id":"Khabbah"},
+				{"name":"Khaluf","id":"Khaluf"},
+				{"name":"Khawr Masirah","id":"Khawr Masirah"},
+				{"name":"Khawr Murir","id":"Khawr Murir"},
+				{"name":"Khawr Rawri","id":"Khawr Rawri"},
+				{"name":"Khawr Yenkit","id":"Khawr Yenkit"},
+				{"name":"Khaysa","id":"Khaysa"},
+				{"name":"Khaysat ash Shaikh","id":"Khaysat ash Shaikh"},
+				{"name":"Khor Dirif","id":"Khor Dirif"},
+				{"name":"Khor Rouri","id":"Khor Rouri"},
+				{"name":"Khuwaymah","id":"Khuwaymah"},
+				{ "name":"Jabal Musayrah", "id":"Jabal Musayrah", "locationID":[] },
+				{ "name":"Lakbi", "id":"Lakbi", "locationID":[] },
+				{ "name":"Likbe", "id":"Likbe", "locationID":[] },
+				{ "name":"Mahawt Island", "id":"Mahawt Island", "locationID":[] },
+				{ "name":"Masirah Island", "id":"Masirah Island", "locationID":[] },
+				{ "name":"Nakdah", "id":"Nakdah", "locationID":[] },
+				{ "name":"Mina Qaboos", "id":"Mina Qaboos", "locationID":[] },
+
+				{ "name":"Mina al Fahal", "id":"Mina al Fahal", "locationID":[] },
+
+				{ "name":"Mina al Khaysa", "id":"Mina al Khaysa", "locationID":[] },
+
+				{ "name":"Mirbat", "id":"Mirbat", "locationID":[] },
+				{ "name":"Mughsayl", "id":"Mughsayl", "locationID":[] },
+
+				{ "name":"Musandam", "id":"Musandam", "locationID":[] },
+
+				{ "name":"Muscat", "id":"Muscat", "locationID":[] },
+
+				{ "name":"Muscat Island", "id":"Muscat Island", "locationID":[] },
+
+				{ "name":"Mutrah", "id":"Mutrah", "locationID":[] },
+				{ "name":"Offshore", "id":"Offshore", "locationID":[] },
+
+				{ "name":"Offshore Muscat", "id":"Offshore Muscat", "locationID":[] },
+				
+				{ "name":"Qalhat", "id":"Qalhat", "locationID":[] },
+
+				{ "name":"Qantab", "id":"Qantab", "locationID":[] },
+
+				{ "name":"Qaysad", "id":"Qaysad", "locationID":[] },
+
+				{ "name":"Quriyat", "id":"Quriyat", "locationID":[] },
+
+				{ "name":"Qurm", "id":"Qurm", "locationID":[] },
+
+				{ "name":"Raaha", "id":"Raaha", "locationID":[] },
+				
+				{ "name":"Ras Abana", "id":"Ras Abana", "locationID":[] },
+
+				{ "name":"Ras Abu Daud", "id":"Ras Abu Daud", "locationID":[] },
+
+				{ "name":"Ras Bintawt", "id":"Ras Bintawt", "locationID":[] },
+
+				{ "name":"Ras Fararah", "id":"Ras Fararah", "locationID":[] },
+
+				{ "name":"Ras Halat", "id":"Ras Halat", "locationID":[] },
+
+				{ "name":"Ras Hamar", "id":"Ras Hamar", "locationID":[] },
+
+				{ "name":"Ras Janjari", "id":"Ras Janjari", "locationID":[] },
+
+				{ "name":"Ras Khashayim", "id":"Ras Khashayim", "locationID":[] },
+
+				{ "name":"Ras Madrakah", "id":"Ras Madrakah", "locationID":[] },
+
+				{ "name":"Ras Markaz", "id":"Ras Markaz", "locationID":[] },
+
+				{ "name":"Ras Muntajib", "id":"Ras Muntajib", "locationID":[] },
+
+				{ "name":"Ras Nuss", "id":"Ras Nuss", "locationID":[] },
+
+				{ "name":"Ras Qarwaw", "id":"Ras Qarwaw", "locationID":[] },
+
+				{ "name":"Ras Raysut", "id":"Ras Raysut", "locationID":[] },
+
+				{ "name":"Ras Sajir", "id":"Ras Sajir", "locationID":[] },
+
+				{ "name":"Ras Saqlah", "id":"Ras Saqlah", "locationID":[] },
+
+				{ "name":"Ras Sarab", "id":"Ras Sarab", "locationID":[] },
+
+				{ "name":"Ras Sidrah", "id":"Ras Sidrah", "locationID":[] },
+
+				{ "name":"Ras al Aqit", "id":"Ras al Aqit", "locationID":[] },
+
+				{ "name":"Ras al Dil", "id":"Ras al Dil", "locationID":[] },
+
+				{ "name":"Ras al Gubbah", "id":"Ras al Gubbah", "locationID":[] },
+
+				{ "name":"Ras al Hadd", "id":"Ras al Hadd", "locationID":[] },
+
+				{ "name":"Ras al Hamra", "id":"Ras al Hamra", "locationID":[] },
+
+				{ "name":"Ras al Jifan", "id":"Ras al Jifan", "locationID":[] },
+
+				{ "name":"Ras al Junayz", "id":"Ras al Junayz", "locationID":[] },
+
+				{ "name":"Ras al Khamah", "id":"Ras al Khamah", "locationID":[] },
+
+				{ "name":"Ras al Nakharir", "id":"Ras al Nakharir", "locationID":[] },
+
+				{ "name":"Ras al Sarj", "id":"Ras al Sarj", "locationID":[] },
+
+				{ "name":"Ras ar Ruways", "id":"Ras ar Ruways", "locationID":[] },
+
+				{ "name":"Ras ash Shajar", "id":"Ras ash Shajar", "locationID":[] },
+
+				{ "name":"Raysut", "id":"Raysut", "locationID":[] },
+				{ "name":"Sadh", "id":"Sadh", "locationID":[] },
+
+				{ "name":"Salalah", "id":"Salalah", "locationID":[] },
+
+				{ "name":"Salutiyat", "id":"Salutiyat", "locationID":[] },
+				
+				{ "name":"Sanur", "id":"Sanur", "locationID":[] },
+
+				{ "name":"Sawda", "id":"Sawda", "locationID":[] },
+
+				{ "name":"Sawqirah", "id":"Sawqirah", "locationID":[] },
+
+				{ "name":"Seeb", "id":"Seeb", "locationID":[] },
+
+				{ "name":"Shanah", "id":"Shanah", "locationID":[] },
+
+				{ "name":"Sharbitat", "id":"Sharbitat", "locationID":[] },
+
+				{ "name":"Shina (Batinah)", "id":"Shina (Batinah)", "locationID":[] },
+
+				{ "name":"Shuayr", "id":"Shuayr", "locationID":[] },
+
+				{ "name":"Shuwaymiah", "id":"Shuwaymiah", "locationID":[] },
+
+				{ "name":"Shuwaymiyah", "id":"Shuwaymiyah", "locationID":[] },
+
+				{ "name":"Sidab", "id":"Sidab", "locationID":[] },
+
+				{ "name":"Sifah", "id":"Sifah", "locationID":[] },
+
+				{ "name":"Sirab", "id":"Sirab", "locationID":[] },
+
+				{ "name":"Sohar", "id":"Sohar", "locationID":[] },
+				{ "name":"Straits of Hormuz", "id":"Straits of Hormuz", "locationID":[] },
+				{ "name":"Sur", "id":"Sur", "locationID":[] },
+				{ "name":"Taqah", "id":"Taqah", "locationID":[] },
+
+				{ "name":"Tiwi", "id":"Tiwi", "locationID":[] },
+
+
+				{ "name":"Wadi Afal", "id":"Wadi Afal", "locationID":[] },
+
+				{ "name":"Wadi Baqlai", "id":"Wadi Baqlai", "locationID":[] },
+
+				{ "name":"Wadi Hinna", "id":"Wadi Hinna", "locationID":[] },
+
+				{ "name":"Wadi Thakaut", "id":"Wadi Thakaut", "locationID":[] },
+
+				{ "name":"Wahiba coast", "id":"Wahiba coast", "locationID":[] },
+				{ "name":"Yitti", "id":"Yitti", "locationID":[] }
+
+			]
+		  },
+		  {"name":"Yemen","id":"Yemen","locationID":[
+		  
+		  				{ "name":"Gulf of Aden", "id":"Gulf of Aden", "locationID":[] }
+		  
+		  ]}
+
 		],
-		"id": "3",
 		"defaultLatitude": -20.0,
 		"defaultLongitude": 80.0
     }
