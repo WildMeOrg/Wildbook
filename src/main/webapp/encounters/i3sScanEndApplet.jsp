@@ -66,6 +66,7 @@ context=ServletUtilities.getContext(request);
   boolean usaUser = false;
   String userName = "";
   Shepherd userShepherd = new Shepherd(context);
+  myShepherd.setAction("13sScanEndApplet.jsp");
   if (request.getUserPrincipal()!=null) {
     userName = request.getUserPrincipal().getName();
     userShepherd.beginDBTransaction();

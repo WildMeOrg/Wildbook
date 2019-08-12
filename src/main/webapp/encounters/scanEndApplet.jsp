@@ -52,6 +52,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
         }
       }
     }
+    userShepherd.rollbackDBTransaction();
+    userShepherd.closeDBTransaction();
   }	
   String encSubdir = Encounter.subdir(num);
 
