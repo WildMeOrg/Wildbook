@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import javax.jdo.Query;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -1042,7 +1043,8 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         String taskID = "_UNKNOWN_";
         if (task != null) taskID = task.getId();  //"should never happen"
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), myShepherd.getContext());
-        
+        String curvrankDailyTag = null;
+
         try {
             for (Annotation ann : qanns) {
                 if (validForIdentification(ann, myShepherd.getContext())) {
@@ -1060,6 +1062,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                 String iaClass = qanns.get(0).getIAClass();
 System.out.println("beginIdentifyAnnotations(): have to set tanns. Matching set being built from the first ann in the list.");
                 tanns = qanns.get(0).getMatchingSet(myShepherd, (task == null) ? null : task.getParameters());
+                curvrankDailyTag = qanns.get(0).getCurvrankDailyTag((task == null) ? null : task.getParameters());
             }
 
 System.out.println("- mark 2");
@@ -1080,6 +1083,11 @@ System.out.println("- mark 2");
                 System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
             } else {
                 System.out.println("                               ... qanns has: "+qanns.size()+" ... taans is null! Target is all annotations.");
+            }
+
+            if (curvrankDailyTag != null) {
+                if (queryConfigDict == null) queryConfigDict = new JSONObject();
+                queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
             }
 
             //this should attempt to repair missing Annotations
@@ -1453,6 +1461,20 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with n
         myShepherd.getPM().makePersistent(enc);
         if (occ != null) myShepherd.getPM().makePersistent(occ);
 System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
+        //this is to tell IA to update species on the newly-created annot on its side
+        String taxonomyString = enc.getTaxonomyString();
+        if (Util.stringExists(taxonomyString)) {
+            List<String> uuids = new ArrayList<String>();
+            List<String> species = new ArrayList<String>();
+            uuids.add(ann.getAcmId());
+            species.add(taxonomyString);
+            try {
+                iaUpdateSpecies(uuids, species, context);
+            } catch (Exception ex) {
+                System.out.println("ERROR: iaUpdateSpecies() failed! " + ex.toString());
+                ex.printStackTrace();
+            }
+        }
         return ann;
     }
 
@@ -2823,6 +2845,61 @@ System.out.println(">>>>>>>> sex -> " + rtn);
         return rtn.getJSONArray("response").optJSONObject(0);
     }
 
+    public static void iaUpdateSpecies(List<String> uuids, List<String> species, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (Util.collectionIsEmptyOrNull(uuids) || Util.collectionIsEmptyOrNull(species)) {
+            System.out.println("WARNING: iaUpdateSpecies() received empty uuids/species; ignoring");
+            return;
+        }
+        if (uuids.size() != species.size()) {
+            System.out.println("WARNING: iaUpdateSpecies() has mismatched uuids/species lengths! ignoring");
+            return;
+        }
+        JSONArray idList = new JSONArray();
+        JSONArray speciesList = new JSONArray();
+        for (int i = 0 ; i < uuids.size() ; i++) {
+            idList.put(toFancyUUID(uuids.get(i)));
+            speciesList.put(species.get(i).replaceAll(" ", "_").toLowerCase());
+        }
+        JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/species/json/?annot_uuid_list=" + idList.toString() + "&species_text_list=" + speciesList.toString()), null);
+    }
+
+//https://kaiju.dyn.wildme.io:5005/api/annot/species/json/?annot_uuid_list=[{%E2%80%9C__UUID__%E2%80%9C:%E2%80%9D079700f0-98ed-46ab-885a-29450bd63924%22},{%E2%80...........
+    public static List<String> iaGetSpecies(List<String> uuids, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (Util.collectionIsEmptyOrNull(uuids)) {
+            System.out.println("WARNING: iaGetSpecies() received empty uuids; ignoring");
+            return null;
+        }
+        //we have to split into smaller jobs due to GET url ... hence: recursion!
+        int maxSize = 100;
+        if (uuids.size() > maxSize) {
+            System.out.println("[INFO] iaGetSpecies() batching " + uuids.size() + " items into " + maxSize + "-sized batches");
+            List<String> all = new ArrayList<String>();
+            for (int i = 0 ; i < uuids.size() ; i += maxSize) {
+                int z = i + maxSize;
+                if (z > uuids.size()) z = uuids.size();
+                all.addAll(iaGetSpecies(uuids.subList(i, z), context));
+            }
+            return all;
+        }
+        JSONArray idList = new JSONArray();
+        for (int i = 0 ; i < uuids.size() ; i++) {
+            idList.put(toFancyUUID(uuids.get(i)));
+        }
+        JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/species/json/?annot_uuid_list="+ idList.toString()), null);
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not iaGetSpecies response");
+        List<String> spec = new ArrayList<String>();
+        JSONArray jarr = rtn.getJSONArray("response");
+        for (int i = 0 ; i < jarr.length() ; i++) {
+            if ((jarr.optString(i, null) == null) || jarr.getString(i).equals(IA_UNKNOWN_NAME)) {
+                spec.add(null);
+            } else {
+                spec.add(jarr.optString(i));
+            }
+        }
+        return spec;
+    }
+
+
 //http://104.42.42.134:5010/api/image/uri/original/json/?image_uuid_list=[{%22__UUID__%22:%2283e2439f-d112-1084-af4a-4fa9a5094e0d%22}]
     public static String iaFilepathFromImageUUID(String uuid, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL(context, "/api/image/uri/original/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
@@ -3793,5 +3870,68 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
     }
     
 
+    //note, this is (likely) mixed-case with space, so be warned.
+    public static Map<String,String> acmIdSpeciesMap(Shepherd myShepherd) {
+        String sql = "SELECT \"ANNOTATION\".\"ACMID\" as acmId, \"ENCOUNTER\".\"GENUS\" as genus, \"ENCOUNTER\".\"SPECIFICEPITHET\" as specificEpithet FROM \"ANNOTATION\" JOIN \"ENCOUNTER_ANNOTATIONS\" ON (\"ENCOUNTER_ANNOTATIONS\".\"ID_EID\" = \"ANNOTATION\".\"ID\") JOIN \"ENCOUNTER\" ON (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") WHERE \"ANNOTATION\".\"ACMID\" IS NOT NULL;";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        Map<String,String> rtn = new HashMap<String,String>();
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        while (it.hasNext()) {
+            Object[] row = (Object[]) it.next();
+            String acmId = (String)row[0];
+            String genus = (String)row[1];
+            String specificEpithet = (String)row[2];
+            rtn.put(acmId, Util.taxonomyString(genus, specificEpithet));
+        }
+        q.closeAll();
+        return rtn;
+    }
+
+    //returns map of acmId=>species where IA was set incorrectly
+    public static Map<String,String> iaSpeciesDiff(Shepherd myShepherd) {
+        String context = myShepherd.getContext();
+        Map<String,String> ourMap = acmIdSpeciesMap(myShepherd);
+        List<String> iaIds = org.ecocean.ia.plugin.WildbookIAM.iaAnnotationIds(context);
+        int orig = iaIds.size();
+        //now we need the intersection of ids in IA (iaIds) and what we have -- which ideally should be the same! "ha"
+        iaIds.retainAll(new ArrayList<String>(ourMap.keySet()));
+        System.out.println("[INFO] iaSpeciesDiff() locally reduced iaIds from " + orig + " to " + iaIds.size());
+        List<String> iaList = null;
+        try {
+            iaList = iaGetSpecies(iaIds, context);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        if (iaList == null) {
+            System.out.println("ERROR: iaSpeciesDiff() could not obtain iaList; failing");
+            return null;
+        }
+System.out.println("ourMap.size = " + ourMap.size());
+System.out.println("iaIds.size = " + iaIds.size());
+System.out.println("iaList.size = " + iaList.size());
+        if (iaIds.size() != iaList.size()) {
+            System.out.println("ERROR: iaSpeciesDiff() iaIds (" + iaIds.size() + ") differs in size from iaList (" + iaList.size() + "); failing");
+            return null;
+        }
+        Map<String,String> diff = new HashMap<String,String>();
+        for (int i = 0 ; i < iaIds.size() ; i++) {
+            String ours = ourMap.get(iaIds.get(i));
+            //TODO if this is null, i guess it means we have null species set *OR* we dont have that. should never be the latter?
+            //   ... either way, not going to tell IA to set to null, so....    (is this bad?)
+            if (ours == null) continue;
+
+            String ias = iaList.get(i);
+            ours = ours.replaceAll(" ", "_").toLowerCase();
+            if (ias == null) {
+                System.out.println("[INFO] iaSpeciesDiff() acmId=" + iaIds.get(i) + " got NULL from IA versus local " + ours);
+                diff.put(iaIds.get(i), ours);
+            } else if (!ours.equals(ias.replaceAll(" ", "_").toLowerCase())) {
+                System.out.println("[INFO] iaSpeciesDiff() acmId=" + iaIds.get(i) + " got " + ias + " from IA versus local " + ours);
+                diff.put(iaIds.get(i), ours);
+            }
+        }
+        return diff;
+    }
 
 }
