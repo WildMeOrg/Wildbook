@@ -24,6 +24,7 @@
              org.ecocean.CommonConfiguration,
              org.ecocean.Shepherd,
              org.ecocean.User,
+             org.ecocean.Role,  
              java.util.ArrayList,
              java.util.List,
              java.util.Properties,
@@ -50,7 +51,9 @@ boolean usaUser = false;
 try {
   if (request.getUserPrincipal()!=null) {	
     String userName = request.getUserPrincipal().getName();
+    myShepherd.beginDBTransaction();
     List<Role> roles = myShepherd.getAllRolesForUser(userName);
+    myShepherd.rollbackDBTransaction();
     for (Role role : roles) {
       if (role.getRolename().equals("spotasharkusa")) {
         usaUser = true;
@@ -171,8 +174,8 @@ try {
                       <%
 
 	                      if(request.getUserPrincipal()!=null){
-	                    	  myShepherd = new Shepherd(context);
-	                    	  myShepherd.setAction("header.jsp");
+	                    	  //Shepherd myShepherd = new Shepherd(context);
+	                    	  //myShepherd.setAction("header.jsp");
 
 	                          try{
 	                        	  myShepherd.beginDBTransaction();
@@ -193,18 +196,15 @@ try {
 		                      		<%
 	                          }
 	                          catch(Exception e){e.printStackTrace();}
-	                          finally{
-	                        	  myShepherd.rollbackDBTransaction();
-	                        	  myShepherd.closeDBTransaction();
-	                          }
-	                      }
-	                      else{
+	                      } else {
 	                      %>
 
 	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li>
 
 	                      <%
 	                      }
+                        myShepherd.rollbackDBTransaction();
+	                      myShepherd.closeDBTransaction();
 
                       %>
 
@@ -600,3 +600,5 @@ try {
         </script>
 
         <!-- ****/header**** -->
+
+
