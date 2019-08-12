@@ -64,24 +64,6 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 		String linkURLBase = CommonConfiguration.getURLLocation(request);
 
 
-		try {
-			// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
-			if (request.getUserPrincipal()!=null) {	
-				String userName = request.getUserPrincipal().getName();
-				List<Role> roles = myShepherd.getAllRolesForUser(userName);
-				for (Role role : roles) {
-					if (role.getRolename().equals("spotasharkusa")) {
-						usaUser = true;
-					}
-				}
-			}
-			if (usaUser) {
-				linkURLBase = "ncaquariums.wildbook.org";
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
 	
 
 		if(action!=null){

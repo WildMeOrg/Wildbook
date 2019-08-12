@@ -48,24 +48,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
 boolean usaUser = false;
 //String linkURLBase = CommonConfiguration.getURLLocation(request);
-try {
-  if (request.getUserPrincipal()!=null) {	
-    String userName = request.getUserPrincipal().getName();
-    myShepherd.beginDBTransaction();
-    List<Role> roles = myShepherd.getAllRolesForUser(userName);
-    myShepherd.rollbackDBTransaction();
-    for (Role role : roles) {
-      if (role.getRolename().equals("spotasharkusa")) {
-        usaUser = true;
-      }
-    }
-  }
-  if (usaUser) {
-    urlLoc = "ncaquariums.wildbook.org";
-  }
-} catch (Exception e) {
-  e.printStackTrace();
-}
+
 
 %>
 

@@ -31,13 +31,16 @@ org.ecocean.security.Collaboration" %>
 
 <%
 
-
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("encounterSpotTool.jsp");
 myShepherd.beginDBTransaction();
-int imageID = Integer.parseInt(request.getParameter("imageID"));
+String idInt = request.getParameter("imageID");
+if (idInt.contains(":")) {
+    idInt = idInt.split(":")[0];
+}
+int imageID = Integer.parseInt(idInt);
 String imgSrc="";
 String encNum="";
 boolean usaUser = false;
@@ -46,18 +49,6 @@ try{
 
 
 	// Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
-	if (request.getUserPrincipal()!=null) {	
-		String userName = request.getUserPrincipal().getName();
-		List<Role> roles = myShepherd.getAllRolesForUser(userName);
-		for (Role role : roles) {
-			if (role.getRolename().equals("spotasharkusa")) {
-				usaUser = true;
-			}
-		}
-	}
-  if (usaUser) {
-    linkURLBase = "ncaquariums.wildbook.org";
-  }
 
 	
 	MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
@@ -497,7 +488,7 @@ function updateSpotCounts() {
 }
 
 function spotsCancel() {
-	window.location = '//<%=linkURLBase%>/encounter.jsp?number=' + encounterNumber;
+	window.location = '//<%=linkURLBase%>/encounters/encounter.jsp?number=' + encounterNumber;
 	return;
 	$('#imageTools-wrapper').hide();
 	itool.wCanvas.removeEventListener('click', itool._myClick);

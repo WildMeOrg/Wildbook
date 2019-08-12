@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.List, java.util.concurrent.ThreadPoolExecutor" %>
 <%
 
 //String context="context0";
@@ -13,23 +13,7 @@ String context=ServletUtilities.getContext(request);
 
   boolean usaUser = false;
   String linkURLBase = CommonConfiguration.getURLLocation(request);
-  try {
-    // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
-    if (request.getUserPrincipal()!=null) {	
-      String userName = request.getUserPrincipal().getName();
-      List<Role> roles = myShepherd.getAllRolesForUser(userName);
-      for (Role role : roles) {
-        if (role.getRolename().equals("spotasharkusa")) {
-          usaUser = true;
-        }
-      }
-    }
-    if (usaUser) {
-      linkURLBase = "ncaquariums.wildbook.org";
-    }
-  } catch (Exception e) {
-    e.printStackTrace();
-  }
+
 
 //summon thee a gridManager!
   GridManager gm = GridManagerFactory.getGridManager();
