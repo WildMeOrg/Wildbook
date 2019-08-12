@@ -246,7 +246,7 @@
 			  },
 
 			{"name":"South Pacific","id":"South Pacific","locationID":[
-				{"name": "Tasman Sea", id: "Tasman Sea" },
+				{"name": "Tasman Sea", "id": "Tasman Sea" },
 				{ "name":"NewZealand", "id":"NewZealand", "locationID":[] }
 			]}
 			
@@ -260,10 +260,13 @@
 	{
 		"name": "Atlantic Ocean",
 		"locationID": [
-			 {
-			  "name": "Baltic Sea", "id": "Baltic Sea" },
+		
+				{ "name":"Azores", "id":"5", "locationID":[] },
 			 {
 			  "name": "Archipelago Sea", "id": "Archipelago Sea"  },
+			  
+			  {
+			  "name": "Baltic Sea", "id": "Baltic Sea" },
 			 {
 			  "name": "Bothnian Sea", "id": "Bothnian Sea" },
 			 {
@@ -846,12 +849,9 @@
 	] },
 	{"name":"Miscellaneous","id":"Miscellaneous","locationID":[
 
-		{ "name":"1", "id":"1", "locationID":[] },
-		{ "name":"2", "id":"2", "locationID":[] },
+
 		{ "name":"3", "id":"3", "locationID":[] },
-		{ "name":"4", "id":"4", "locationID":[] },
-		{ "name":"5", "id":"5", "locationID":[] },
-		{ "name":"6", "id":"6", "locationID":[] },
+
 
 		{ "name":"", "id":"", "locationID":[] },
 
@@ -861,15 +861,8 @@
 
 		{ "name":"United States", "id":"United States", "locationID":[] },
 
-		{ "name":"Study Site 1", "id":"Study Site 1", "locationID":[] },
+		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
 
-		{ "name":"Study Site 2", "id":"Study Site 2", "locationID":[] },
-
-		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] },
-
-		{ "name":"locationID", "id":"locationID", "locationID":[] },
-
-		{ "name":"null", "id":"null", "locationID":[] }
 
 	]}
   ]
