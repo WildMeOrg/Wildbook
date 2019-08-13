@@ -212,6 +212,7 @@ Our first phase of validation tests are running from now until October 6, 2019.
 
 <p>
 This validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones.
+Each validation study is focused on some aspect of Kitizen Science's data collection and processing methods. The current validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones. Later, we will be using smart phone photos to collect data for estimating cat populations, so knowing how good humans are at identifying individual cats from smart phone photos is important to knowing how accurate later conclusions will be.
 </p>
 
 <p>
