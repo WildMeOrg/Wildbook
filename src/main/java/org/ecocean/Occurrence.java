@@ -245,6 +245,20 @@ public class Occurrence implements java.io.Serializable {
   }
 
 
+    public double[] getComputedLatLon() {
+        return Util.getComputedLatLon(this.decimalLatitude, this.decimalLongitude, this.bearing, this.distance);
+    }
+    public Double getComputedLatitude() {
+        double[] cll = getComputedLatLon();
+        if (cll == null) return null;
+        return cll[0];
+    }
+    public Double getComputedLongitude() {
+        double[] cll = getComputedLatLon();
+        if (cll == null) return null;
+        return cll[1];
+    }
+
   public void setEncounters(ArrayList<Encounter> encounters){this.encounters=encounters;}
 
   public ArrayList<String> getMarkedIndividualNamesForThisOccurrence(){
