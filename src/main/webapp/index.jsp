@@ -642,7 +642,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead"><%=props.getProperty("contributors") %></p>
-                        <a href="#" title=""><%=props.getProperty("contributors") %></a>
+                        <a href="//dragonsearch.org/#contributors" title="Contributors"><%=props.getProperty("contributors") %></a>
                     </div>
                 </div>
             </article>
