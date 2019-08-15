@@ -42,6 +42,7 @@ public class SpotterConserveIO {
     private static final String PROP_USERID_CI = "channelIslandsUserId";
     private static final String PROP_ORGID_NEWUSER = "newUserOrgId";
     private static final String LOCATIONID_CI = "Santa Barbara Channel";
+    private static final String LOCATION_COUNTRY_USA = "United States of America";
     public static final String ENCOUNTER_STATE_REVIEW = "spotter_review";
     private static Double WATER_DISTANCE_RADIUS = 300.0D;
     public static String apiUsername = null;
@@ -242,6 +243,7 @@ Distance Category: "B"
         enc.setDecimalLatitude(resolveLatLon(occJson, "device_latitude", "latitude"));
         enc.setDecimalLongitude(resolveLatLon(occJson, "device_longitude", "longitude"));
         enc.setLocationID(LOCATIONID_CI);
+        enc.setCountry(LOCATION_COUNTRY_USA);
         User sub = ciToUser(allJson, myShepherd);
         enc.addSubmitter(sub);
         List<User> vols = ciGetVolunteerUsers(allJson, myShepherd);
