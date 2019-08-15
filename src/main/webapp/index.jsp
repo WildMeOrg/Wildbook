@@ -662,7 +662,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
                         <p class="lead">
-                            <i>&ldquo;“The more we learn about these amazing sharks, the better we can support their conservation here and around the world.”&rdquo;</i> </br>~ Hap Fatzinger, Director of the NC Aquarium at Fort Fisher</p>
+                            <i>&ldquo;The more we learn about these amazing sharks, the better we can support their conservation here and around the world.&rdquo;</i> </br>~ Hap Fatzinger, Director of the NC Aquarium at Fort Fisher</p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>
