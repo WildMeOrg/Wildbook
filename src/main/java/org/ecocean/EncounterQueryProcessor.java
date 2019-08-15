@@ -148,7 +148,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
     String[] locCodes=request.getParameterValues("locationCodeField");
-    if((locCodes!=null)&&(!locCodes[0].equals("None"))){
+    if((locCodes!=null)&&(!locCodes[0].equals(""))){
           prettyPrint.append("locationCodeField is one of the following: ");
           int kwLength=locCodes.length;
             String locIDFilter="(";
