@@ -344,6 +344,7 @@ public class CommonConfiguration {
     return getProperty("sizelim",context).trim();
   }
 
+    //you probably want to use getUploadTmpDirForUser() below....
     public static String getUploadTmpDir(String context) {
         String dir = getProperty("uploadTmpDir", context);
         if (dir == null) {
@@ -351,6 +352,22 @@ public class CommonConfiguration {
             System.out.println("WARNING: no uploadTmpDir property specified in CommonConfiguration; using " + dir + " as default; this may introduce insecurities.");
         }
         return dir.trim();
+    }
+    //this is a "personal" version of above, with some(?) support for anonymous user
+    public static String getUploadTmpDirForUser(HttpServletRequest request) {
+        String context = ServletUtilities.getContext(request);
+        String dir = getUploadTmpDir(context);
+        //so, Users without .username might (do) exist. but they cannot be logged in.
+        // thus, this should be fine. (otherwise we might want to use user.uuid or something.)
+        String username = org.ecocean.AccessControl.simpleUserString(request);
+        if (username != null) return dir + "/" + username;
+        /*
+            on one hand, i kind of dont like this... on the other, i even more dont like
+            the idea of any non-logged-in user sharing the same upload area with any other.
+            really, i think you probably should not really be using uploadTmpDir unless logged in!
+            #changemymind
+        */
+        return dir + "/anon_sess_" + request.getSession().getId();
     }
 
     public static String getImportDir(String context) {

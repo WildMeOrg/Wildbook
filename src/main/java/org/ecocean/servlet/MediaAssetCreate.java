@@ -171,7 +171,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
     - local (via CommonConfiguration tmp dir and "filename" value)
     - URL
 */
-        String uploadTmpDir = CommonConfiguration.getUploadTmpDir(context);
+        String uploadTmpDir = CommonConfiguration.getUploadTmpDirForUser(request);
         S3AssetStore sourceStoreS3 = null;
         String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
         if (s3key != null) {
