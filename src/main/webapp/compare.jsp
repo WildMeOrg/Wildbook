@@ -268,6 +268,8 @@ var codeVersion = 1; //really for localStorage
 
 var assets = <%= jall.toString() %>;
 $(document).ready(function() {
+        var docWidth = $(document).width();
+        if (docWidth < 550) $('body').addClass('narrow-page');
 	buildDeck();
 	startSize = deck.length;
 
@@ -610,6 +612,29 @@ td span.trial-date {
 	vertical-align: top;
 }
 
+.narrow-page .middle-controls {
+    width: 100% !important;
+}
+
+.zoom-reset {
+    display: none;
+}
+.narrow-page .zoom-reset {
+    display: block;
+    opacity: 0.7;
+}
+.narrow-page .compare-image-div-left,
+.narrow-page .compare-image-div-right {
+    margin: 0 !important;
+    position: relative;
+}
+.narrow-page .compare-image-div {
+    width: 100% !important;
+}
+.narrow-page .page-footer {
+    display: none;
+}
+
 .compare-image-zoom {
 	position: absolute;
 	right: 2px;
@@ -689,6 +714,9 @@ td span.trial-date {
 					<input type="button" value="[s]kip" onClick="return answerClick('skip');" />
 -->
 				</div>
+                                <div class="zoom-reset">
+					<input type="button" value="Reset zoom" onClick="$('.compare-image').panzoom('reset');" />
+                                </div>
 				<div id="deck-status"></div>
 			</div>
 
