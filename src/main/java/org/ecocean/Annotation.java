@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.codec.digest.DigestUtils;
+
 
 //import java.time.LocalDateTime;
 
@@ -807,6 +809,13 @@ System.out.println("[1] getMatchingSet params=" + params);
         if (locs.size() > 0) {
             Collections.sort(locs);
             tag += ";locs:" + String.join(",", locs);
+        }
+
+        int maxLength = 128;
+        if (tag.length() > maxLength) {
+            String orig = tag;
+            tag = DigestUtils.md5Hex(tag) + tag.substring(0, maxLength - 32);
+            System.out.println("INFO: getCurvrankDailyTag() using hashed " + tag + " for " + orig);
         }
 
         return tag;
