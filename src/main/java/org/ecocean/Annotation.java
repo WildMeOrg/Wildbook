@@ -626,6 +626,9 @@ System.out.println("[1] getMatchingSet params=" + params);
         String mySpecificEpithet = myEnc.getSpecificEpithet();
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
         	anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc, params);
+        } else if (!Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(), "allowIdentificationWithoutTaxonomy"))) {
+            System.out.println("INFO: No taxonomy found on encounter and IA property 'allowIdentificationWithoutTaxonomy' not set; empty matchingSet returned");
+            return anns;
         } else if (useClauses) {
             System.out.println("MATCHING ALL SPECIES : Filter for Annotation id="+this.id+" is using viewpoint neighbors and matching parts.");
             anns = getMatchingSetForAnnotationAllSpeciesUseClauses(myShepherd);
