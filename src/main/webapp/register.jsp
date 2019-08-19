@@ -75,6 +75,7 @@ String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("register.jsp");
 myShepherd.beginDBTransaction();
+request.setAttribute("pageTitle", "Kitizen Science &gt; Participate");
 boolean rollback = true;
 
   //setup our Properties object to hold all properties

@@ -132,7 +132,7 @@ if (pageTitle == null) pageTitle = CommonConfiguration.getHTMLTitle(context);
 
         <!-- ****header**** -->
         <header class="page-header clearfix">
-            <nav class="navbar navbar-default navbar-fixed-top">
+            <nav class="navbar navbar-default navbar-fixed-top" style="margin-top: -5px;">
               <div class="header-top-wrapper">
                 <div class="container">
                 <!-- wild-me-badge -->
