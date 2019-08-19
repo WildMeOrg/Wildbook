@@ -3590,7 +3590,7 @@ return Util.generateUUID();
             if (sciName == null) continue;
             String iaClass = IA.getProperty(context, "detectionClass" + i);
             if (iaClass == null) iaClass = sciName;  //tough love
-            map.put(iaClass, myShepherd.getOrCreateTaxonomy(sciName, true));
+            map.put(iaClass.trim(), myShepherd.getOrCreateTaxonomy(sciName, true));
             i++;
         }
         return map;
