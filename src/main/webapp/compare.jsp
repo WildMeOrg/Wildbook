@@ -735,6 +735,7 @@ td span.trial-date {
 		<div class="compare-ui">
 			<div style="text-align: center; color: #AAA;"><b id="click-mode-shift-false" class="click-mode">CLICK</b> to zoom in,
 				<b id="click-mode-shift-true">SHIFT-CLICK</b> to zoom out, <b>DRAG</b> to move/pan
+<p>Need a Refresher? <a href="register.jsp?instructions" target="_new">Instructions</a></p>
                         </div>
 
 		</div>
