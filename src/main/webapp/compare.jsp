@@ -341,11 +341,14 @@ $(document).ready(function() {
 
 	$('.compare-image-zoom').on('click', function(ev) {
 		var el = $(ev.target).parent().find('img');
+		el.panzoom('zoom');
+/*
 		if (ev.offsetX > 50) {
 			el.panzoom('zoom');
 		} else {
 			el.panzoom('zoom', true);
 		}
+*/
 	});
 
 
@@ -587,6 +590,9 @@ td span.trial-date {
 
 .compare-image-wrapper {
 	width: 100%;
+}
+.compare-image-wrapper img {
+    touch-action: none;
 }
 .compare-image-div {
 	min-height: 100px;
