@@ -619,7 +619,8 @@ function showUploadBox() {
             </div>
         </div>
     </div>
-
+    <br />
+    <p class="text-danger text-center"><b><%=props.getProperty("emphasize_required_data")%></b></p>
 </fieldset>
 
 <hr />
