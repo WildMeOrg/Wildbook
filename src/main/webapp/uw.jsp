@@ -75,10 +75,10 @@ String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("register.jsp");
 myShepherd.beginDBTransaction();
-request.setAttribute("pageTitle", "Kitizen Science &gt; Participate");
+boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"));
+request.setAttribute("pageTitle", "Kitizen Science &gt; Participate (UW)");
 boolean rollback = true;
 
-boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"));
   //setup our Properties object to hold all properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
@@ -209,7 +209,9 @@ if (session.getAttribute("error") != null) {
 
 <img src="images/participate_manatdesk.jpg" style="height: 300px; float: right; margin-top: -5em;" />
 <p>
-Our first phase of validation tests are running from now until October 6, 2019.
+<b>
+Our second phase of validation tests are for University of Washington students only ... (etc....)
+</b>
 </p>
 
 <p>
