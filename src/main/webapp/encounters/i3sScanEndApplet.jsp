@@ -28,16 +28,15 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
   //session.setMaxInactiveInterval(6000);
+  Shepherd myShepherd=new Shepherd(context);
   String num="";
   if(request.getParameter("number")!=null){
-	Shepherd myShepherd=new Shepherd(context);
-	myShepherd.setAction("scanEndApplet.jsp");
-	myShepherd.beginDBTransaction();
-	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
-  		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
-	}
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
+    myShepherd.setAction("scanEndApplet.jsp");
+    myShepherd.beginDBTransaction();
+    if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
+        num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+    }
+    myShepherd.rollbackDBTransaction();
   }	
   String encSubdir = Encounter.subdir(num);
   //Shepherd myShepherd = new Shepherd(context);
@@ -65,21 +64,20 @@ context=ServletUtilities.getContext(request);
     // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
   boolean usaUser = false;
   String userName = "";
-  Shepherd userShepherd = new Shepherd(context);
   myShepherd.setAction("13sScanEndApplet.jsp");
   if (request.getUserPrincipal()!=null) {
     userName = request.getUserPrincipal().getName();
-    userShepherd.beginDBTransaction();
-    List<Role> roles = userShepherd.getAllRolesForUser(userName);
+    myShepherd.beginDBTransaction();
+    List<Role> roles = myShepherd.getAllRolesForUser(userName);
     for (Role role : roles) {
       if (role.getRolename().equals("spotasharkusa")) {
         usaUser = true;
       }
     }
-    userShepherd.rollbackDBTransaction();
-    userShepherd.closeDBTransaction();
   }
 
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
   // Part Two hackety hack to switch URLs for US users
   String linkURLBase = CommonConfiguration.getURLLocation(request);
 
