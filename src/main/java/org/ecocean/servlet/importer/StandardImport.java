@@ -445,9 +445,8 @@ public class StandardImport extends HttpServlet {
     return (latOrLon!=null && latOrLon!=0.0);
   }
 
-/*
-  public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
-  	Occurrence occ = getCurrentOccurrence(oldOcc, row);
+  public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc, Shepherd myShepherd) {
+  	Occurrence occ = getCurrentOccurrence(oldOcc, row, myShepherd);
   	// would love to have a more concise way to write following couplets, c'est la vie
 
         occ.setObserver(getString(row, "Occurrence.observer"));
@@ -471,8 +470,10 @@ public class StandardImport extends HttpServlet {
             occ.setLatLonFromEncs(false);
             occ.setMillisFromEncounters();
         }
-*/
+        return occ;
+  }
 
+/*
   public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc, Shepherd myShepherd) {
   	
   	Occurrence occ = getCurrentOccurrence(oldOcc, row, myShepherd);
@@ -541,45 +542,16 @@ public class StandardImport extends HttpServlet {
     Double distance = getDouble(row, "Occurrence.distance");
     if (distance!=null) occ.setDistance(distance);
 
-    Double swellHeight = getDouble(row, "Occurrence.swellHeight");
-    if (swellHeight!=null) occ.setSwellHeight(swellHeight);
-    String seaState = getString(row, "Occurrence.seaState");
-    if (seaState==null) {
-      Integer intSeaState = getInteger(row, "Occurrence.seaState");
-      if (intSeaState!=null) seaState = intSeaState.toString();
-    }
-    if (seaState!=null) occ.setSeaState(seaState);
-    Double visibilityIndex = getDouble(row, "Occurrence.visibilityIndex");
-    if (visibilityIndex==null) {
-      Integer visIndexInt = getIntFromMap(row, "Occurrence.visibilityIndex");
-      if (visIndexInt!=null) visibilityIndex = visIndexInt.doubleValue();
-    }
-    if (visibilityIndex!=null) occ.setVisibilityIndex(visibilityIndex);
-
-    Double transectBearing = getDouble(row, "Occurrence.transectBearing");
-    if (transectBearing!=null) occ.setTransectBearing(transectBearing);
-    String transectName = getString(row, "Occurrence.transectName");
-    if (transectName!=null) occ.setTransectName(transectName);
-
-    String initialCue = getString(row, "Occurrence.initialCue");
-    String humanActivity = getString(row, "Occurrence.humanActivityNearby");
-    if (humanActivity!=null) occ.setHumanActivityNearby(humanActivity);
-    Double effortCode = getDouble(row, "Occurrence.effortCode");
-    if (effortCode!=null) occ.setEffortCode(effortCode);
-
     Taxonomy taxy = loadTaxonomy0(row, myShepherd);
     if (taxy!=null) occ.addTaxonomy(taxy);
 
     Taxonomy taxy1 = loadTaxonomy1(row, myShepherd);
     if (taxy1!=null) occ.addTaxonomy(taxy1);
 
-  	String surveyTrackVessel = getString(row, "SurveyTrack.vesselID");
-  	if (surveyTrackVessel!=null) occ.setSightingPlatform(surveyTrackVessel);
-
   	Long millis = getLong(row, "Encounter.dateInMilliseconds");
     if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
     if (millis==null) millis = getLong(row, "Occurrence.millis");
-  	if (millis!=null) occ.setDateTimeLong(millis);
+  	if (millis!=null) occ.setMillis(millis);
 
     String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
     if (occurrenceRemarks!=null) occ.addComments(occurrenceRemarks);
@@ -588,12 +560,13 @@ public class StandardImport extends HttpServlet {
       occ.addEncounter(enc);
       // overwrite=false on following fromEncs methods
       occ.setLatLonFromEncs(false);
-      occ.setSubmitterIDFromEncs(false);
+        occ.setSubmittersFromEncounters();
     }
 
   	return occ;
 
   }
+*/
 
   public Encounter loadEncounter(Row row, ArrayList<Annotation> annotations, String context, Shepherd myShepherd) {
 

@@ -1304,9 +1304,9 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
         if (indiv == null) {
             indiv = new MarkedIndividual(indivId, enc);
         } else {
-            indiv.addEncounter(enc, myShepherd.getContext());
+            indiv.addEncounter(enc);
         }
-        enc.setIndividualID(indivId);
+        enc.setIndividual(indiv);
         return indiv;
     }
 
