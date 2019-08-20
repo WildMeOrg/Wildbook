@@ -22,7 +22,7 @@
 
 
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.Query, org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration" %>
+         import="javax.jdo.Query, org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration,org.ecocean.security.HiddenEncReporter" %>
 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     
@@ -103,10 +103,8 @@
     rEncounters=new Vector(c);
 
     // 
-    //HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request);
-    //rEncounters = hiddenData.securityScrubbedResults(rEncounters);
-
-
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
+    rEncounters = hiddenData.securityScrubbedResults(rEncounters);
 
 
     acceptedEncounters.closeAll();

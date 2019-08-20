@@ -381,6 +381,25 @@ context=ServletUtilities.getContext(request);
 		<p><%=props.getProperty("observer") %>: 
                 <%=occ.getObserver()%></p>
 <% } %>
+<%
+if (!Util.collectionIsEmptyOrNull(occ.getSubmitters())) {
+    out.println("<p>" + props.getProperty("submittedBy") + ": ");
+    List<String> subs = new ArrayList<String>();
+    for (User sub : occ.getSubmitters()) {
+        subs.add(sub.getDisplayName());
+    }
+    out.println(String.join(", ", subs) + "</p>");
+}
+
+if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
+    out.println("<p>" + props.getProperty("contribBy") + ": ");
+    List<String> subs = new ArrayList<String>();
+    for (User sub : occ.getInformOthers()) {
+        subs.add(sub.getDisplayName());
+    }
+    out.println(String.join(", ", subs) + "</p>");
+}
+%>
     
 		<table id="encounter_report" style="width:100%;">
 			<tr>
@@ -420,7 +439,7 @@ context=ServletUtilities.getContext(request);
 		    
 		    <td class="lineitem">
 		    	<%if (enc.hasMarkedIndividual()) {%>
-		    	<a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
+		    	<a href="individuals.jsp?id=<%=enc.getIndividualID()%>"><%=enc.getIndividual().getDisplayName(request)%></a>
 		    	<%}else{%>
 		    		&nbsp;
 		    	<%}%>
@@ -548,7 +567,7 @@ context=ServletUtilities.getContext(request);
 						if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 						%>
 							<h2>
-								<img src="../images/lightning_dynamic_props.gif" />
+								<img src="images/lightning_dynamic_props.gif" />
 								<%=props.getProperty("dynamicProperties")%>
 								<button class="btn btn-md" type="button" name="button"
 									id="editDynamic">Edit</button>
@@ -560,7 +579,7 @@ context=ServletUtilities.getContext(request);
 						} else {
 						%>
 						<h2>
-							<img src="../images/lightning_dynamic_props.gif" />
+							<img src="images/lightning_dynamic_props.gif" />
 							<%=props.getProperty("dynamicProperties")%>
 						</h2>
 						<br/>
@@ -642,6 +661,8 @@ context=ServletUtilities.getContext(request);
 				</div>		
 			</div>				
 			<br/><br/>
+
+				<div style="margin-left: 10px; padding: 3px; border: solid #AAA 2px;" class="comments">Comments: <%=occ.getComments()%></div>
 			
 			<%
 	  		}

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.HiddenIndividualReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 
 
@@ -73,6 +73,9 @@
 	    MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
 	    rIndividuals = result.getResult();
 	
+		// viewOnly=true arg means this hiddenData relates to viewing the summary results
+		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true,myShepherd);
+		rIndividuals = hiddenData.viewableResults(rIndividuals, true, myShepherd);
 	
 	    if (rIndividuals.size() < listNum) {
 	      listNum = rIndividuals.size();
@@ -198,7 +201,14 @@
 	
 	
 		JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
+		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
+		JSONArray jsonobj = new JSONArray();
+		System.out.println("Starting to iterate over individuals");
+		for (MarkedIndividual mark: rIndividuals) {
+			jsonobj.put(mark.uiJson(request));
+		}
+		System.out.println("Done iterating over individuals");
+
 		String indsJson = jsonobj.toString();
 	
 	%>
@@ -259,8 +269,18 @@
 			key: 'individual',
 			label: '<%=props.getProperty("markedIndividual")%>',
 			value: _colIndividual,
-			sortValue: function(o) { return o.individualID.toLowerCase(); },
+			sortValue: function(o) { return o.displayName; },
 			//sortFunction: function(a,b) {},
+		},
+	
+		{
+			key: 'nickName',
+			label: '<%=props.getProperty("nickNameCol")%>',
+			value: _colNickname,
+			sortValue: function(o) { 
+				if(o.nickname !=null) {return o.nickname.toLowerCase();} 
+				else{return "";}
+			},
 		},
 	
 		{
@@ -277,7 +297,7 @@
 		{
 			key: 'sex',
 			label: '<%=props.getProperty("sex")%>',//'Sex',
-		},
+		},		
 		{
 			key: 'numberLocations',
 			label: '<%=props.getProperty("numLocationsSighted")%>',
@@ -573,10 +593,15 @@
 	
 	
 	function _colIndividual(o) {
-		var i = '<b>' + o.individualID + '</b>';
+		var i = '<b>' + o.displayName + '</b>';
 		var fi = o.dateFirstIdentified;
 		if (fi) i += '<br /><%=props.getProperty("firstIdentified") %> ' + fi;
 		return i;
+	}
+
+	function _colNickname(o) {
+		if (o.nickname == undefined) return '';
+		return o.nickname;
 	}
 	
 	
@@ -728,6 +753,8 @@
 <%
     }
     catch(Exception e){
+    	System.out.println("Exception on IndividualSearchResults!");
+    	e.printStackTrace();
     %>
     
     <p>Exception on page!</p>

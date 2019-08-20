@@ -102,6 +102,7 @@ public class EncounterSetTags extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<p><strong>Success!</strong> I have successfully set the following tag values:");
         out.println(sb.toString());
         out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
@@ -119,6 +120,7 @@ public class EncounterSetTags extends HttpServlet {
     else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to set the tag. I cannot find the encounter that you intended in the database.");
       out.println(ServletUtilities.getFooter(context));
 

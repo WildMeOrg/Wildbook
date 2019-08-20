@@ -141,14 +141,15 @@
     </class>
 
     <class name="MarkedIndividual" identity-type="application" table="MARKEDINDIVIDUAL">
-      <field name="individualID" primary-key="true">
-        <column length="100"/>
-      </field>
+      <field name="individualID" primary-key="true" />
+
+      	<field name="names" persistence-modifier="persistent" element-type="org.ecocean.MultiValue" default-fetch-group="true" />
+
       <field name="comments" persistence-modifier="persistent" default-fetch-group="false">
         <column jdbc-type="LONGVARCHAR"/>
       </field>
-      <field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Encounter"/>
+      <field name="encounters" persistence-modifier="persistent" default-fetch-group="true" mapped-by="individual" >
+        <collection element-type="org.ecocean.Encounter" />
         <join/>
       </field>
 
@@ -202,8 +203,30 @@
         <join/>
       </field>
 
+      <field name="behaviors" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.datacollection.Instant"/>
+        <join/>
+      </field>
+
+      <field name="taxonomies" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Taxonomy" dependent-element="false"/>
+        <join/><!--
+          <join column="OCCURRENCE_ID_OID" default-value="-1"/>
+          <element column="TAXONOMY_ID_EID"/>-->
+      </field>
+
       <field name="comments" persistence-modifier="persistent" default-fetch-group="false">
         <column jdbc-type="LONGVARCHAR"/>
+      </field>
+
+	<field name="submitters" persistence-modifier="persistent" default-fetch-group="true">
+		<collection element-type="org.ecocean.User" dependent-element="false" />
+		<join/>
+	</field>
+
+      <field name="informOthers" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.User" dependent-element="false"/>
+        <join/>
       </field>
 
       <field name="groupBehavior" persistence-modifier="persistent">
@@ -250,19 +273,15 @@
         <join/>
       </field>
 	  
-	          <field name="informOthers" persistence-modifier="persistent" default-fetch-group="true">
+      <field name="informOthers" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.User" dependent-element="false"/>
         <join/>
       </field>
-	  
-	  
+	  	  
       <field name="catalogNumber" primary-key="true">
         <column length="100"/>
       </field>
       <field name="otherCatalogNumbers" persistence-modifier="persistent" default-fetch-group="true">
-        <column length="1024" allows-null="true"/>
-      </field>
-      <field name="informothers" persistence-modifier="persistent" default-fetch-group="true">
         <column length="1024" allows-null="true"/>
       </field>
 
@@ -364,6 +383,11 @@
         <column length="256"/>
       </field>
 
+      <field name="groupRole" persistence-modifier="persistent">
+        <column length="256"/>
+      </field>
+
+
       <field name="livingStatus" persistence-modifier="persistent">
         <column length="256"/>
       </field>
@@ -410,7 +434,7 @@
       </field>
 
       <field name="tissueSamples" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.genetics.TissueSample" dependent-element="true"/>
+        <collection element-type="org.ecocean.genetics.TissueSample" dependent-element="false"/>
         <join/>
       </field>
 
@@ -425,17 +449,17 @@
       </field>
 
       <field name="measurements" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Measurement" dependent-element="true"/>
+        <collection element-type="org.ecocean.Measurement" dependent-element="false"/>
         <join/>
       </field>
 
       <field name="metalTags" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.tag.MetalTag" dependent-element="true"/>
+        <collection element-type="org.ecocean.tag.MetalTag" dependent-element="false"/>
         <join/>
       </field>
 
       <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Observation" dependent-element="true" />
+        <collection element-type="org.ecocean.Observation" dependent-element="false" />
         <join/>
       </field>
 
@@ -459,8 +483,23 @@
         <collection element-type="java.lang.String"/>
       </field>
 
+      <field name="isUsed">
+        <column default-value="false" />
+
+<!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here:
+      <column default-value="0" />
+-->
+      </field>
+
+
       <fetch-group name="count"/>
     </class>
+
+    <class name="LabeledKeyword" identity-type="application">
+      <inheritance strategy="new-table"/>
+    </class>
+
+
 
     <class name="Taxonomy" identity-type="application">
       <field name="id" primary-key="true">
@@ -520,6 +559,15 @@
             	</field>
 
       <field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" recursion-depth="3"/>
+
+      <field name="quality" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
+      <field name="distinctiveness" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
+
       <!--
 		<field name="annot_xtl" />
 		<field name="annot_ytl" />
@@ -730,6 +778,7 @@
       </field>
       <field name="salt" persistence-modifier="persistent">
         <column jdbc-type="LONGVARCHAR"/>
+      </field>
 
         <field name="userStatement">
           <column jdbc-type="LONGVARCHAR"/>
@@ -748,6 +797,14 @@
           <column jdbc-type="BIGINT" allows-null="true"/>
         </field>
 
+            	<field name="organizations" persistence-modifier="persistent" default-fetch-group="true" >
+                	<collection element-type="org.ecocean.Organization" dependent-element="false" />
+                	<join>
+				<column name="USER_ID" />
+			</join>
+			<element>
+				<column name="ORGANIZATION_ID" />
+			</element>
       </field>
     </class>
 
@@ -864,6 +921,39 @@
 			<column allows-null="true" />
 		</field>
 	</class>
+
+
+	<class name="MultiValue" identity-type="application">
+		<field name="id" primary-key="true" value-strategy="identity" persistence-modifier="persistent" />
+		<field name="valuesAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="values" />
+		</field>
+	</class>
+
+
+	<class name="Organization" identity-type="application">
+		<field name="id" primary-key="true">
+        		<column length="36"/>
+		</field>
+		<field name="created">
+			<index name="ORGANIZATION_CREATED_idx" />
+		</field>
+
+		<!-- this points up to the parent -->
+      		<field name="parent" persistence-modifier="persistent" element-type="org.ecocean.Organization" recursion-depth="3"/>
+
+		<!-- this uses parent to find child orgs -->
+            	<field name="children" persistence-modifier="persistent" default-fetch-group="false" mapped-by="parent" >
+                	<collection element-type="org.ecocean.Organization" dependent-element="false" />
+                	<join />
+            	</field>
+
+		<field name="members" persistent-modifier="persistent" mapped-by="organizations" default-fetch-group="true" >
+			<collection element-type="org.ecocean.User"/>
+			<join />
+		</field>
+	</class>
+
 
   </package>
 </jdo>

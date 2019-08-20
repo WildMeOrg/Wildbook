@@ -3,25 +3,27 @@ package org.ecocean;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
-import org.joda.time.DateTime;
-import java.text.SimpleDateFormat;
 
-import org.ecocean.media.AssetStoreType;
+import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
+
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
-
 import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
+import org.ecocean.datacollection.Instant;
+import org.joda.time.DateTime;
 
+import org.ecocean.media.AssetStoreType;
 
 /**
  * Whereas an Encounter is meant to represent one MarkedIndividual at one point in time and space, an Occurrence
@@ -34,8 +36,6 @@ import org.datanucleus.api.rest.orgjson.JSONException;
  */
 public class Occurrence implements java.io.Serializable {
 
-
-
   /**
    *
    */
@@ -47,7 +47,8 @@ public class Occurrence implements java.io.Serializable {
   // Old ID. Getters and setters now use ID from base class.
   //private String ID;
   private Integer individualCount;
-  private String groupBehavior;
+  private String groupBehavior;  // categorical
+  private List<Instant> behaviors; //more structured than above
   //additional comments added by researchers
   private String comments = "None";
   private String modified;
@@ -84,12 +85,17 @@ public class Occurrence implements java.io.Serializable {
   private String socialMediaQueryCommentID;
   private String socialMediaQueryCommentReplies;
 
+  private List<User> submitters;
+  private List<User> informOthers;
+
+  // Convention: getters/setters for Taxonomy objects use noun "Taxonomy".
+  // while convenience string-only methods with noun "Species"
   private List<Taxonomy> taxonomies;
   // this is helpful for sorting but isn't (for now) intended to be UI-facing
   // rather it's set from Encounters
   private Long millis;
 
-  
+
   //empty constructor used by the JDO enhancer
   public Occurrence(){}
 
@@ -143,7 +149,7 @@ public class Occurrence implements java.io.Serializable {
     for(int i=0;i<encounters.size();i++) {
       Encounter tempEnc=(Encounter)encounters.get(i);
       if(tempEnc.getEncounterNumber().equals(enc.getEncounterNumber())) {
-        isNew=false;
+        return false;
       }
     }
     if(isNew){
@@ -161,8 +167,25 @@ public class Occurrence implements java.io.Serializable {
   //  }
   //}
 
+  // like addEncounter but adds backwards link to this enc
+  public void addEncounterAndUpdateIt(Encounter enc){
+    addEncounter(enc);
+    enc.setOccurrenceID(this.getOccurrenceID());
+  }
+
+
   public ArrayList<Encounter> getEncounters(){
     return encounters;
+  }
+  public List<String> getEncounterIDs(){
+    List<String> res = new ArrayList<String>();
+    for (Encounter enc: encounters) {res.add(enc.getCatalogNumber());}
+    return res;
+  }
+  public List<String> getEncounterWebUrls(HttpServletRequest request){
+    List<String> res = new ArrayList<String>();
+    for (Encounter enc: encounters) {res.add(enc.getWebUrl(request));}
+    return res;
   }
 
   public boolean addAsset(MediaAsset ma){
@@ -183,7 +206,67 @@ public class Occurrence implements java.io.Serializable {
     return isNew;
 
   }
+/*
+  public void setSubmitterIDFromEncs(boolean overwrite) {
+    if (!overwrite && Util.stringExists(getSubmitterID())) return;
+    setSubmitterIDFromEncs();
+  }
+  public void setSubmitterIDFromEncs(){
+    for (Encounter enc: encounters) {
+      if (Util.stringExists(enc.getSubmitterID())) {
+        setSubmitterID(enc.getSubmitterID());
+        return;
+      }
+    }
+  }
+*/
 
+    //this is a bit of a hack for backward compatibility. you probably shouldnt use this.
+    public String getSubmitterID() {
+        System.out.println("WARNING: occ.getSubmitterID() is deprecated due to .submitters");
+        if (Util.collectionIsEmptyOrNull(submitters)) return null;
+        return submitters.get(0).getUsername();
+    }
+
+    public List<User> getSubmitters() {
+        return submitters;
+    }
+    public void setSubmitters(List<User> u) {
+        submitters = u;
+    }
+    public void setSubmitter(User u) {  //overwrites existing
+        if (u == null) return;
+        submitters = new ArrayList<User>();
+        submitters.add(u);
+    }
+    public void addSubmitter(User u) {
+        if (u == null) return;
+        if (submitters == null) submitters = new ArrayList<User>();
+        if (!submitters.contains(u)) submitters.add(u);
+    }
+    public void setSubmittersFromEncounters() {  //note: this overrides any previously set
+        if (encounters == null) return;
+        submitters = new ArrayList<User>();
+        for (Encounter enc : encounters) {
+            if (enc.getSubmitters() == null) continue;
+            for (User u : enc.getSubmitters()) {
+                if (!submitters.contains(u)) submitters.add(u);
+            }
+        }
+    }
+
+    public void addInformOther(User user) {
+        if (user == null) return;
+        if (informOthers == null) informOthers = new ArrayList<User>();
+        if (!informOthers.contains(user)) informOthers.add(user);
+    }
+    public List<User> getInformOthers() {
+        return informOthers;
+    }
+    public void setInformOthers(List<User> users) {
+        this.informOthers=users;
+    }
+    
   public void setAssets(List<MediaAsset> assets) {
     this.assets = assets;
   }
@@ -204,6 +287,8 @@ public class Occurrence implements java.io.Serializable {
     else{return encounters.size();}
   }
 
+  public void setEncounters(ArrayList<Encounter> encounters){this.encounters=encounters;}
+
   public int getNumberIndividualIDs(){
     return getIndividualIDs().size();
   }
@@ -217,9 +302,9 @@ public class Occurrence implements java.io.Serializable {
     }
     return indivIds;
   }
-  public boolean hasLatLon() {
-    return (decimalLongitude!=null && decimalLatitude!=null);
-  }
+
+
+
   public void setLatLonFromEncs(boolean overwrite) {
     if (!overwrite && hasLatLon()) return;
     setLatLonFromEncs();
@@ -233,7 +318,9 @@ public class Occurrence implements java.io.Serializable {
           setDecimalLatitude(Double.valueOf(lat));
           setDecimalLongitude(Double.valueOf(lon));
           return;
-        } catch (Exception e) {}
+        } catch (Exception e) {
+          System.out.println("Occurrence.setLatLonFromEncs could not parse values ("+lat+", "+lon+")");
+        }
       }
     }
   }
@@ -259,8 +346,6 @@ public class Occurrence implements java.io.Serializable {
         return cll[1];
     }
 
-  public void setEncounters(ArrayList<Encounter> encounters){this.encounters=encounters;}
-
   public ArrayList<String> getMarkedIndividualNamesForThisOccurrence(){
     ArrayList<String> names=new ArrayList<String>();
     try{
@@ -283,6 +368,13 @@ public class Occurrence implements java.io.Serializable {
     return occurrenceID;
   }
 
+  public static String getWebUrl(String occId, HttpServletRequest req) {
+    return (CommonConfiguration.getServerURL(req)+"/occurrence.jsp?number="+occId);
+  }
+  public String getWebUrl(HttpServletRequest req) {
+    return getWebUrl(getOccurrenceID(), req);
+  }
+  
   public String getOccurrenceID(){
     return occurrenceID;
   }
@@ -291,22 +383,15 @@ public class Occurrence implements java.io.Serializable {
     occurrenceID = id;
   }
   
-  public static String getWebUrl(String occId, HttpServletRequest req) {
-    return (CommonConfiguration.getServerURL(req)+"/occurrence.jsp?number="+occId);
-  }
-
-  public String getWebUrl(HttpServletRequest req) {
-    return getWebUrl(getOccurrenceID(), req);
-  }
-
   public Integer getIndividualCount(){return individualCount;}
   public void setIndividualCount(Integer count){
       if(count!=null){individualCount = count;}
       else{individualCount = null;}
    }
-   public void setIndividualCount() {
-     setIndividualCount(getNumberIndividualIDs());
-   }
+  public void setIndividualCount() {
+    setIndividualCount(getNumberIndividualIDs());
+  }
+
 
   public String getGroupBehavior(){return groupBehavior;}
   public void setGroupBehavior(String behavior){
@@ -317,6 +402,13 @@ public class Occurrence implements java.io.Serializable {
       this.groupBehavior=null;
     }
   }
+
+    public List<Instant> getBehaviors() {
+        return behaviors;
+    }
+    public void setBehaviors(List<Instant> bhvs) {
+        behaviors = bhvs;
+    }
 
   public ArrayList<SinglePhotoVideo> getAllRelatedMedia(){
     int numEncounters=encounters.size();
@@ -374,22 +466,6 @@ public class Occurrence implements java.io.Serializable {
       comments = newComments;
     }
   }
-
-	public void setDecimalLatitude(Double d) {
-		this.decimalLatitude = d;
-	}
-
-	public Double getDecimalLatitude() {
-		return this.decimalLatitude;
-	}
-
-	public void setDecimalLongitude(Double d) {
-		this.decimalLongitude = d;
-	}
-
-	public Double getDecimalLongitude() {
-		return this.decimalLongitude;
-	}
 
     public DateTime getDateTime() {
         return this.dateTime;
@@ -488,10 +564,6 @@ public class Occurrence implements java.io.Serializable {
     return null;
   }
 
-
-  public void setDateTimeLong(Long dateTimeLong) {
-    this.dateTime = new DateTime(dateTimeLong);
-  }
 
 	public Integer getGroupSize() {
 		return this.groupSize;
@@ -621,6 +693,12 @@ public class Occurrence implements java.io.Serializable {
     Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false);
     setTaxonomy(taxy);
   }
+  public boolean hasSpecies(String scientificName) {
+    for (Taxonomy taxy: taxonomies) {
+      if (scientificName.equals(taxy.getScientificName())) return true;
+    }
+    return false;
+  }
 
   public List<Taxonomy> getTaxonomies() {
     return this.taxonomies;
@@ -628,6 +706,21 @@ public class Occurrence implements java.io.Serializable {
   public void setTaxonomies(List<Taxonomy> taxonomies) {
     this.taxonomies = taxonomies;
   }
+  public void setTaxonomiesFromEncounters(Shepherd myShepherd) {
+    setTaxonomiesFromEncounters(myShepherd, true); // if we don't commit we risk creating multiple taxonomies with the same scientificName
+  }
+  public void setTaxonomiesFromEncounters(Shepherd myShepherd, boolean commit) {
+    boolean shepherdWasCommitting = myShepherd.isDBTransactionActive();
+    for (Encounter enc: encounters) {
+      String taxString = enc.getTaxonomyString();
+      // we need the manual hasSpecies check below to prevent duplicates with the same scientificName when commit=false
+      if (!Util.stringExists(taxString) || (commit==false && hasSpecies(taxString))) continue;
+      Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxString, commit);
+      addTaxonomy(taxy);
+    }
+    if (shepherdWasCommitting) myShepherd.beginDBTransaction();
+  }
+
   public Taxonomy getTaxonomy() { return getTaxonomy(0);}
   public Taxonomy getTaxonomy(int i) {
     if (taxonomies==null || taxonomies.size()<=i) return null;
@@ -739,6 +832,7 @@ public class Occurrence implements java.io.Serializable {
     dateTimeCreated = time;
   }
 
+
     public void setDateTimeCreated() {
         dateTimeCreated = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
     }
@@ -785,18 +879,18 @@ public class Occurrence implements java.io.Serializable {
      return allIDs;
    }
 
-	//convenience function to Collaboration permissions
-	public boolean canUserAccess(HttpServletRequest request) {
-		return Collaboration.canUserAccessOccurrence(this, request);
-	}
+  //convenience function to Collaboration permissions
+  public boolean canUserAccess(HttpServletRequest request) {
+    return Collaboration.canUserAccessOccurrence(this, request);
+  }
 
-  public JSONObject uiJson(HttpServletRequest request) throws JSONException {
-    JSONObject jobj = new JSONObject();
+  public org.json.JSONObject uiJson(HttpServletRequest request) throws org.json.JSONException {
+    org.json.JSONObject jobj = new org.json.JSONObject();
     jobj.put("individualCount", this.getNumberEncounters());
 
-    JSONObject encounterInfo = new JSONObject();
+    org.json.JSONObject encounterInfo = new org.json.JSONObject();
     for (Encounter enc : this.encounters) {
-      encounterInfo.put(enc.getOccurrenceID(), new JSONObject("{url: "+enc.getUrl(request)+"}"));
+      encounterInfo.put(enc.getOccurrenceID(), new org.json.JSONObject("{url: "+enc.getUrl(request)+"}"));
     }
     jobj.put("encounters", encounterInfo);
     jobj.put("assets", this.assets);
@@ -818,7 +912,7 @@ public class Occurrence implements java.io.Serializable {
     jobj.put("encounters", this.encounters);
     if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
         JSONArray jarr = new JSONArray();
-	///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+  ///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
         //but for *now* (see note way above) this is all we need for gallery/image display js:
         for (Encounter enc : this.getEncounters()) {
             JSONObject je = new JSONObject();
@@ -848,11 +942,13 @@ public class Occurrence implements java.io.Serializable {
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", occurrenceID)
+                .append("individualCount",individualCount)
+                .append("numEncounters", (encounters == null) ? 0 : encounters.size())
                 .toString();
     }
-    
-    public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
-      ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+
+    public ArrayList<JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
+      ArrayList<JSONObject> al=new ArrayList<JSONObject>();
       //boolean haveProfilePhoto=false;
       for (Encounter enc : this.getDateSortedEncounters(false)) {
         //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
@@ -866,24 +962,24 @@ public class Occurrence implements java.io.Serializable {
             if (ma != null) {
               //JSONObject j = new JSONObject();
               JSONObject j = ma.sanitizeJson(req, new JSONObject());
-              
-              
-              
+
+
+
               if (j!=null) {
-                
-                
+
+
                 //ok, we have a viable candidate
-                
+
                 //put ProfilePhotos at the beginning
                 if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
                 //otherwise, just add it to the bottom of the stack
                 else{
                   al.add(j);
                 }
-                
+
               }
-              
-              
+
+
             }
           }
       //}
@@ -891,18 +987,82 @@ public class Occurrence implements java.io.Serializable {
       return al;
 
     }
-    
 
+    public MediaAsset getRepresentativeMediaAsset() {
+        if (getNumberEncounters() < 0) return null;
+        MediaAsset rep = null;
+        for (Encounter enc : this.getEncounters()) {
+            if (enc.getMedia() == null) continue;
+            for (MediaAsset ma : enc.getMedia()) {
+                if (ma.hasKeyword("ProfilePhoto") || (rep == null)) rep = ma;
+            }
+        }
+        return rep;
+    }
 
-    public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
-      
-      ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
+    //this is called when a batch of encounters (which should be on this occurrence) were made from detection
+    // *as a group* ... see also Encounter.detectedAnnotation() for the one-at-a-time equivalent
+    public void fromDetection(Shepherd myShepherd, HttpServletRequest request) {
+        System.out.println(">>>>>> detection created " + this);
+    }
+
+    public JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
+
+      ArrayList<JSONObject> al=getExemplarImages(req);
       if(al.size()>0){return al.get(0);}
       return new JSONObject();
-      
+
 
     }
-    
+
+    public Double getDecimalLatitude() {
+      return decimalLatitude;
+    }
+    public void setDecimalLatitude(Double decimalLatitude) {
+      this.decimalLatitude = decimalLatitude;
+    }
+    public Double getDecimalLongitude() {
+      return decimalLongitude;
+    }
+    public boolean hasLatLon() {
+      return (decimalLongitude!=null && decimalLatitude!=null);
+    }
+    public void setDecimalLongitude(Double decimalLongitude) {
+      this.decimalLongitude = decimalLongitude;
+    }
+
+/*   from master, but hosed coz of diff fields
+    //this tries to be a way to get number even when individualCount is not set...
+    public Integer getGroupSizeCalculated() {
+        if (individualCount != null) return individualCount;
+        if ((numCalves == null) && (numJuveniles == null) && (numAdults == null)) return getNumberEncounters();  //meh?
+        int s = 0;
+        if (numCalves != null) s += numCalves;
+        if (numJuveniles != null) s += numJuveniles;
+        if (numAdults != null) s += numAdults;
+        /// not sure if we want to do something like:  if (getNumberEncounters() > s) return getNumberEncounters() ???
+        return s;
+    }
+*/
+
+/*
+    public Long getDateTimeLong() {
+      return dateTimeLong;
+    }
+    public void setDateTimeLong(Long dateTimeLong) {
+      this.dateTimeLong = dateTimeLong;
+    }
+    public void setDateFromEncounters() {
+      for (Encounter enc: encounters) {
+        Long millis = enc.getDateInMilliseconds();
+        if (millis!=null) {
+          setDateTimeLong(millis);
+          return;
+        }
+      }
+    }
+*/
+
     //social media registration fields for AI-created occurrences
     public String getSocialMediaSourceID(){return socialMediaSourceID;};
     public void setSocialMediaSourceID(String id){socialMediaSourceID=id;};
@@ -914,6 +1074,7 @@ public class Occurrence implements java.io.Serializable {
     
     public String getSocialMediaQueryCommentReplies(){return socialMediaQueryCommentReplies;};
     public void setSocialMediaQueryCommentReplies(String replies){socialMediaQueryCommentReplies=replies;};
+
 
     public boolean hasMediaFromAssetStoreType(AssetStoreType aType){
       if(getMediaAssetsOfType(aType).size()>0){return true;}
@@ -1023,5 +1184,22 @@ public class Occurrence implements java.io.Serializable {
         }
       }  
     } 
+    
+    public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+
+      if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
+          JSONArray jarr = new JSONArray();
+          boolean fullAccess = this.canUserAccess(request);
+          for (Encounter enc : this.getEncounters()) {
+              jarr.put(enc.sanitizeJson(request, new JSONObject()));
+          }
+          jobj.put("encounters", jarr);
+      }
+
+
+      jobj.put("_sanitized", true);
+
+      return jobj;
+  }
 
 }

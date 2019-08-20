@@ -28,6 +28,13 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 String langCode=ServletUtilities.getLanguageCode(request);
 
 //check for and inject a default user 'tomcat' if none exists
+// Make a properties object for lang support.
+Properties props = new Properties();
+// Grab the properties file with the correct language strings.
+props = ShepherdProperties.getProperties("index.properties", langCode,context);
+
+
+//check for and inject a default user 'tomcat' if none exists
 if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
   System.out.println("WARNING: index.jsp has determined that CommonConfiguration.isWildbookInitialized()==false!");
   %>
@@ -37,13 +44,8 @@ if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
   <%
   StartupWildbook.initializeWildbook(request, myShepherd);
 }
-// Make a properties object for lang support.
-Properties props = new Properties();
-// Grab the properties file with the correct language strings.
-props = ShepherdProperties.getProperties("index.properties", langCode,context);
 
 
-%>
 
 
 <style type="text/css">
@@ -304,10 +306,8 @@ int numEncounters=0;
 int numDataContributors=0;
 int numUsersWithRoles=0;
 int numUsers=0;
-
-QueryCache qc=QueryCacheFactory.getQueryCache(context);
-
 myShepherd.beginDBTransaction();
+QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
 //String url = "login.jsp";
 //response.sendRedirect(url);
@@ -358,7 +358,7 @@ finally{
             </a>
         </div>
 
-	</div>
+            </div>
 
 
 </section>
@@ -433,7 +433,7 @@ finally{
 
             <!-- Random user profile to select -->
             <%
-            myShepherd.beginDBTransaction();
+            //myShepherd.beginDBTransaction();
             try{
 								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
@@ -447,7 +447,7 @@ finally{
                     <div class="focusbox-inner opec">
                         <h2><%=props.getProperty("ourContributors") %></h2>
                         <div>
-                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
                             <p><%=featuredUser.getFullName() %>
                                 <%
                                 if(featuredUser.getAffiliation()!=null){
@@ -459,7 +459,7 @@ finally{
                             </p>
                             <p><%=featuredUser.getUserStatement() %></p>
                         </div>
-                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
+                        <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("showContributors") %></a>
                     </div>
                 </section>
             <%
@@ -469,7 +469,7 @@ finally{
             catch(Exception e){e.printStackTrace();}
             finally{
 
-            	myShepherd.rollbackDBTransaction();
+            	//myShepherd.rollbackDBTransaction();
             }
             %>
 
@@ -477,6 +477,9 @@ finally{
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
                     <h2><%=props.getProperty("latestEncs") %></h2>
+<!--
+                    <h2><%=props.getProperty("latestAnimalEncounters") %></h2>
+-->
                     <ul class="encounter-list list-unstyled">
 
                        <%
@@ -500,7 +503,7 @@ finally{
 	                                        %>
 	                                    </time>
 	                                </small>
-	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividualID() %></a></p>
+	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getDisplayName() %></a></p>
 
 
 	                            </li>
@@ -524,7 +527,7 @@ finally{
                     <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    myShepherd.beginDBTransaction();
+                    //myShepherd.beginDBTransaction();
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                             long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
@@ -551,7 +554,7 @@ finally{
 
 	                          %>
 	                                <li>
-	                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+	                                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
 	                                    <%
 	                                    if(thisUser.getAffiliation()!=null){
 	                                    %>
@@ -568,7 +571,7 @@ finally{
 	                   } //end while
                     }
                     catch(Exception e){e.printStackTrace();}
-                    finally{myShepherd.rollbackDBTransaction();}
+                    //finally{myShepherd.rollbackDBTransaction();}
 
                    %>
 
@@ -582,16 +585,20 @@ finally{
 
 <div class="container-fluid">
     <section class="container text-center  main-section">
-        <div class="row">
+       <div class="row">
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified giraffe</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedAnimals") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> citizen scientists</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> <%=props.getProperty("citizenScientists") %></i></p>
+            </section>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("researchVolunteers") %></i></p>
             </section>
         </div>
 
@@ -619,9 +626,7 @@ finally{
     <h2 class="section-header"><%= props.getProperty("gMapHeader") %></h2>
 
       <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
-
 </div>
-
 
 <jsp:include page="footer.jsp" flush="true"/>
 
@@ -634,6 +639,7 @@ google.maps.event.addDomListener(window, "resize", function() {
 </script>
 
 <%
+myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
 %>

@@ -127,7 +127,7 @@ public class RestKeyword extends HttpServlet {
                                   kw = new Keyword(name);
                                   myShepherd.getPM().makePersistent(kw);
                                   toAdd.add(kw);
-                                  newj.put(kw.getIndexname(), kw.getReadableName());
+                                  newj.put(kw.getIndexname(), kw.getDisplayName());
                               }
                               if (newj.length() > 0) jout.put("newKeywords", newj);
   System.out.println("INFO: RestKeyword new keywords = " + newj);
@@ -184,7 +184,9 @@ public class RestKeyword extends HttpServlet {
   System.out.println(ma + " ----------> " + newList);
                           JSONObject mj = new JSONObject();
                           for (Keyword k : newList) {
-                              mj.put(k.getIndexname(), k.getReadableName());
+                              mj.put(k.getIndexname(), k.getDisplayName());
+
+
                           }
                           if (newList.size() < 1) {
                               ma.setKeywords(null);
@@ -234,12 +236,12 @@ public class RestKeyword extends HttpServlet {
 
     // This gets the corresponding IA viewpoint for a kwName, taxonomy (opt null), and context
     // the properties keys are of the format:
-    //    viewpointModelTag_Scintificus_namus_Key_Word_Name=viewpointValueForIa
+    //    labelerModelTag_Scintificus_namus_Key_Word_Name=viewpointValueForIa
     public static String getViewpoint(String kwName, Taxonomy taxy, String context) {
       if (kwName==null) return null;
       // taxonomyStr is either "" or something like "_Tursiops_truncatus_"
       String taxonomyStr = (taxy==null) ? "" : "_"+taxy.getScientificName().replaceAll(" ","_")+"_";
-      String propKey = "viewpointModelTag"+taxonomyStr+kwName.replaceAll(" ","_");
+      String propKey = "labelerModelTag"+taxonomyStr+kwName.replaceAll(" ","_");
       return IA.getProperty(context, propKey);
     }
 
@@ -254,13 +256,13 @@ public class RestKeyword extends HttpServlet {
 
     // This gets the corresponding kwName for an iaViewpoint, taxonomy (opt null), and context
     // the properties keys are of the format:
-    //    viewpointModelTag_Scintificus_namus_iaViewpoint=kwName
+    //    labelerModelTag_Scintificus_namus_iaViewpoint=kwName
     public static String getKwNameFromIaViewpoint(String iaViewpoint, Taxonomy taxy, String context) {
       if (iaViewpoint==null) return null;
       String lower = iaViewpoint.toLowerCase();
       // taxonomyStr is either "" or something like "_Tursiops_truncatus_"
       String taxonomyStr = (taxy==null) ? "" : "_"+taxy.getScientificName().replaceAll(" ","_")+"_";
-      String propKey = "viewpointModelTag"+taxonomyStr+iaViewpoint.replaceAll(" ","_");
+      String propKey = "labelerModelTag"+taxonomyStr+iaViewpoint.replaceAll(" ","_");
       System.out.println("[INFO]: getKwNameFromIaViewpoint looking for propKey "+propKey);
       return IA.getProperty(context, propKey);
     }

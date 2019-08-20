@@ -39,7 +39,6 @@ context=ServletUtilities.getContext(request);
 
 
 
-  int numResults = 0;
 
 
   //Vector rEncounters = new Vector();
@@ -258,7 +257,7 @@ td.tdw:hover div {
     href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
      href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
@@ -369,6 +368,11 @@ var colDefn = [
 		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
 	},
+	{
+		key: 'occurrenceID',
+		label: '<%=encprops.getProperty("sightingID")%>',
+		value: _occurrenceID,
+	},
   {
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
@@ -385,13 +389,14 @@ var colDefn = [
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
-	{
-		key: 'verbatimLocality',
-		label: '<%=encprops.getProperty("location")%>',
-	},
+	// {
+	// 	key: 'verbatimLocality',
+	// 	label: '<%=encprops.getProperty("location")%>',
+	// },
 	{
 		key: 'locationID',
- 		label: '<%=encprops.getProperty("locationID")%>',
+		label: '<%=encprops.getProperty("locationID")%>',
+		value: _notUndefined('locationID'),
 	},
 	{
 		key: 'taxonomy',
@@ -401,17 +406,17 @@ var colDefn = [
 	{
 		key: 'submitterID',
 		label: '<%=encprops.getProperty("submitterName")%>',
-		value: _submitterID,
+		value: _notUndefined('submitterID'),
 	},
 	{
 		key: 'creationDate',
-		label: 'Created',
+		label: '<%=encprops.getProperty("created")%>',
 		value: _colCreationDate,
 		sortValue: _colCreationDateSort,
 	},
 	{
 		key: 'modified',
-		label: 'Edit Date',
+		label: '<%=encprops.getProperty("editDate")%>',
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
@@ -748,6 +753,23 @@ function fetchProgress(ev) {
 console.info(percent);
 }
 
+// a functor!
+function _notUndefined(fieldName) {
+  function _helperFunc(o) {	
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
+  }
+  return _helperFunc;
+}
+// non-functor version!
+function _notUndefinedValue(obj, fieldName) {
+  function _helperFunc(o) {	
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
+  }
+  return _helperFunc(obj);
+}
+
 
 function _colIndividual(o) {
 	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.individualID + '">' + o.individualID + '</a></b> ';
@@ -781,10 +803,15 @@ function _colNumberLocations(o) {
 
 
 function _colTaxonomy(o) {
-	var animal = 'n/a';
-	if (o.get('genus')) return o.get('genus');
-	if (o.get('specificEpithet')) return o.get('specificEpithet');
-	return 'n/a';
+	var genus = _notUndefinedValue(o, 'genus');
+	var species = _notUndefinedValue(o, 'specificEpithet');
+	//console.log('colTaxonomy got genus '+genus+' and species '+species+' for object '+JSON.stringify(o));
+	return genus+' '+species;
+}
+
+function _occurrenceID(o) {
+	if (!o.get('occurrenceID')) return '';
+	return o.get('occurrenceID');
 }
 
 
@@ -810,9 +837,10 @@ function _colModified(o) {
 }
 
 function _submitterID(o) {
-	var m = o.get('submitterName');
-	if (!m) m = o.get('submitterProject');
-	return m;
+	if (o['submitterID']      != undefined) return o['submitterID'];
+	if (o['submitterProject'] != undefined) return o['submitterProject'];
+	if (o['submitterName']    != undefined) return o['submitterName'];
+	return '';
 }
 
 function _textExtraction(n) {
@@ -831,7 +859,7 @@ var tableContents = document.createDocumentFragment();
 
 function xdoTable() {
 	resultsTable = new pageableTable({
-		columns: testColumns,
+		columns: colDefn,
 		tableElement: $('#results-table'),
 		sliderElement: $('#results-slider'),
 		tablesorterOpts: {
@@ -886,7 +914,7 @@ function _colIndLink(o) {
 	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
 //
 //
-	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
+	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + o.get("displayName") + '</a>';
 }
 
 
@@ -922,10 +950,6 @@ function _colEncDateSort(o) {
 //	return d.getTime();
 //}
 
-function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
-	return o.get('genus') + ' ' + o.get('specificEpithet');
-}
 
 function _colFileName(o) {
 	var mas = wildbook.encounterToMediaAssets(o);

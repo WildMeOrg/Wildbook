@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
+         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.*" %>
 
 
 
@@ -60,8 +60,10 @@
     request.setAttribute("gpsOnly", "yes");
     EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
     rEncounters = queryResult.getResult();
-    
 
+    // security
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request,myShepherd);
+    rEncounters = hiddenData.securityScrubbedResults(rEncounters);
     		
     		
   %>
@@ -177,7 +179,7 @@ if(rEncounters.size()>0){
  for(int y=0;y<havegpsSize;y++){
 	 Encounter thisEnc=(Encounter)rEncounters.get(y);
 		String encSubdir = thisEnc.subdir();
-
+		if((thisEnc.getDecimalLatitude()!=null)&&(thisEnc.getDecimalLongitude()!=null)){
  %>
           
           var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
@@ -219,7 +221,7 @@ google.maps.event.addListener(marker,'click', function() {
  		  map.fitBounds(bounds);       
  
  <%
- 
+ }
 	 }
 } 
 
@@ -258,7 +260,7 @@ var markerCluster = new MarkerClusterer(map, markers, options);
    <li><a class="active"><%=map_props.getProperty("mappedResults") %>
    </a></li>
    <li><a
-     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
+     href="../xcalendar/calendar.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
    </a></li>
       <li><a
      href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("analysis")%>

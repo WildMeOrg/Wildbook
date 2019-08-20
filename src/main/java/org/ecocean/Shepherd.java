@@ -106,6 +106,26 @@ public class Shepherd {
     }
   }
 
+  public Shepherd(HttpServletRequest req) {
+    this(ServletUtilities.getContext(req));
+  }
+
+  // static method so the programmer knows this is an *active* Shepherd
+  public static Shepherd newActiveShepherd(String context, String action) {
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction(action);
+    myShepherd.beginDBTransaction();
+    return myShepherd;
+  }
+  public static Shepherd newActiveShepherd(HttpServletRequest req, String action) {
+    return newActiveShepherd(ServletUtilities.getContext(req), action);
+  }
+  // handy with a newActiveShepherd
+  public void rollbackAndClose() {
+    rollbackDBTransaction();
+    closeDBTransaction();
+  }
+
     public String getContext() {
         return localContext;
     }
@@ -121,7 +141,6 @@ public class Shepherd {
   //public PersistenceManagerFactory getPMF() {
   //  return pmf;
   //}
-
 
   /**
    * Stores a new, unassigned encounter in the database for later retrieval and analysis.
@@ -147,6 +166,9 @@ public class Shepherd {
     }
     return (uniqueID);
   }
+  public String storeNewEncounter(Encounter enc) {
+    return storeNewEncounter(enc, Util.generateUUID());
+  }
 
   public String storeNewAnnotation(Annotation enc) {
     //enc.setOccurrenceID(uniqueID);
@@ -154,15 +176,17 @@ public class Shepherd {
     try {
       pm.makePersistent(enc);
       commitDBTransaction();
+      beginDBTransaction();
       //System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
     } catch (Exception e) {
       rollbackDBTransaction();
+      beginDBTransaction();
       System.out.println("I failed to create a new Annotation in Shepherd.storeNewAnnotation().");
       e.printStackTrace();
       return "fail";
     }
     return (enc.getId());
-}
+  }
 
   public String storeNewWorkspace(Workspace wSpace) {
     beginDBTransaction();
@@ -343,7 +367,24 @@ public class Shepherd {
     }
   }
   
-  
+  public List getAllCollaborations() {
+    Collection c;
+    try {
+      Extent allCollabs = pm.getExtent(Collaboration.class, true);
+      Query acceptedCollabs = pm.newQuery(allCollabs);
+      c = (Collection) (acceptedCollabs.execute());
+      List list = new ArrayList(c);
+      System.out.println("getAllCollaborations got "+list.size()+" collabs");
+      //Collections.reverse(list);
+      return list;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllCollaborations(). Returning a null collection.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+
 
 
   /**
@@ -359,6 +400,10 @@ public class Shepherd {
 
   public void throwAwayWorkspace(Workspace wSpace) {
     pm.deletePersistent(wSpace);
+  }
+
+  public void throwAwayCollaboration(Collaboration collab) {
+    pm.deletePersistent(collab);
   }
 
   public void throwAwayTissueSample(TissueSample genSample) {
@@ -398,6 +443,10 @@ public class Shepherd {
     pm.deletePersistent(ad);
   }
 
+  public void throwAwayAnnotation(Annotation ad) {
+    pm.deletePersistent(ad);
+  }
+
   public void throwAwayKeyword(Keyword word) {
     String indexname = word.getIndexname();
     pm.deletePersistent(word);
@@ -418,7 +467,7 @@ public class Shepherd {
 
   /**
    * Removes a marked individual from the database.
-   * ALL DATA FOR THE INDIVIDUAL WILL BE LOST!!!
+   * ALL DATA FOR THE INDIVIDUAL WILL BE LOST!!
    *
    * @param MarkedIndividual to delete from the database
    * @see MarkedIndividual
@@ -501,6 +550,7 @@ public class Shepherd {
     }
     return null;
   }
+
 
   // Returns all of a user's workspaces.
   public ArrayList<Workspace> getWorkspacesForUser(String owner) {
@@ -791,7 +841,54 @@ public class Shepherd {
     query.closeAll();
     return user;
   }
-  
+
+  public Organization getOrganizationByName(String name) {
+    Organization org= null;
+    String filter="SELECT FROM org.ecocean.Organization WHERE name == \""+name.trim()+"\"";   
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      org=(Organization)it.next();
+    }
+    query.closeAll();
+    return org;
+  }
+
+  public Organization getOrCreateOrganizationByName(String name) {
+    return getOrCreateOrganizationByName(name, true);
+  }
+
+
+  public Organization getOrCreateOrganizationByName(String name, boolean commit) {
+    Organization org = getOrganizationByName(name);
+    if (org == null) {
+      org = new Organization(name);
+      if (commit) storeNewOrganization(org);
+    }
+    return org;
+  }
+
+  public String storeNewOrganization(Organization org) {
+    //enc.setOccurrenceID(uniqueID);
+    //boolean transactionWasActive = isDBTransactionActive();
+    //beginDBTransaction();
+    try {
+      pm.makePersistent(org);
+      commitDBTransaction();
+      //System.out.println("I successfully persisted a new Taxonomy in Shepherd.storeNewAnnotation().");
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Taxonomy in Shepherd.storeNewAnnotation().");
+      e.printStackTrace();
+      return "fail";
+    } 
+    //finally {
+      //closeDBTransaction();
+    //}
+    //if (transactionWasActive) beginDBTransaction();
+    return (org.getId());
+  }
   
   public List<User> getUsersWithUsername() {
     return getUsersWithUsername("username ascending");
@@ -807,8 +904,23 @@ public class Shepherd {
     query.closeAll();
     return users;
   }
-  
 
+  // filters out social media- and other-app-based users (twitter, ConserveIO, etc)
+  public List<User> getNativeUsers() {
+    return getNativeUsers("username ascending NULLS LAST");
+  }
+  public List<User> getNativeUsers(String ordering) {
+    List<User> users=null;
+    String filter="SELECT FROM org.ecocean.User WHERE username != null ";
+    // bc of how sql's startsWith method works we need the null check below
+    filter += "&& (fullName == null || !fullName.startsWith('Conserve.IO User '))";   
+    Query query=getPM().newQuery(filter);
+    query.setOrdering(ordering);
+    Collection c = (Collection) (query.execute());
+    users=new ArrayList<User>(c);
+    query.closeAll();
+    return users;
+  }
   
   public User getUserByUUID(String uuid) {
     User user= null;
@@ -819,6 +931,20 @@ public class Shepherd {
       return null;
     }
     return user;
+  }
+  public String getUsername(HttpServletRequest request) {
+    String username=null;
+    try {
+      username = request.getUserPrincipal().toString();
+    } catch (Exception e) {
+      System.out.println("Shepherd.getUsername(HttpServletRequest) called with no user logged in");
+    }
+    return username;
+  }
+  public User getUser(HttpServletRequest request) {
+    String username = getUsername(request);
+    if (username == null) return null;
+    return getUser(username);
   }
 
   
@@ -1005,11 +1131,20 @@ public class Shepherd {
   }
   public Taxonomy getOrCreateTaxonomy(String scientificName, boolean commit) {
     Taxonomy taxy = getTaxonomy(scientificName);
-    if (taxy==null) taxy = new Taxonomy(scientificName);
-    if (commit) storeNewTaxonomy(taxy);
+    if (taxy==null) {
+      taxy = new Taxonomy(scientificName);
+      if (commit) storeNewTaxonomy(taxy);
+    }
     return taxy;
   }
   public Taxonomy getTaxonomy(String scientificName) {
+    if (scientificName == null) return null;
+    //lookout!  hactacular uuid-ahead!
+    if (scientificName.matches("^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$")) {
+        System.out.println("WARNING: Shepherd.getTaxonomy() assuming passed '" + scientificName + "' is UUID; hack is passing to getTaxonomyById()");
+        return getTaxonomyById(scientificName);
+    }
+
     List al = new ArrayList();
     try{
       String filter = "this.scientificName.toLowerCase() == \"" + scientificName.toLowerCase() + "\"";
@@ -1024,8 +1159,27 @@ public class Shepherd {
     catch(Exception e){e.printStackTrace();}
     return ((al.size()>0) ? ((Taxonomy) al.get(0)) : null);
   }
+    public Taxonomy getTaxonomy(int tsn) {
+        Query query = pm.newQuery("SELECT org.ecocean.Taxonomy WHERE itisTsn == " + tsn);
+        try {
+            Collection c = (Collection) query.execute();
+            Iterator it = c.iterator();
+            if (it.hasNext()) return (Taxonomy)it.next();
+        } catch (Exception ex) {}
+        return null;
+    }
+    //sadly, getTaxonomy(string) signatured already used above. :( so we have to go non-standard name here:
+    //  however, checkout the hack to look for a uuid above!
+    public Taxonomy getTaxonomyById(String id) {
+        try {
+            return (Taxonomy)(pm.getObjectById(pm.newObjectIdInstance(Taxonomy.class, id), true));
+        } catch (Exception ex) {}
+        return null;
+    }
+
   public String storeNewTaxonomy(Taxonomy enc) {
     //enc.setOccurrenceID(uniqueID);
+    boolean transactionWasActive = isDBTransactionActive();
     beginDBTransaction();
     try {
       pm.makePersistent(enc);
@@ -1037,6 +1191,7 @@ public class Shepherd {
       e.printStackTrace();
       return "fail";
     }
+    if (transactionWasActive) beginDBTransaction();
     return (enc.getId());
   }
 
@@ -1045,13 +1200,35 @@ public class Shepherd {
   public Keyword getKeyword(String readableName) {
 
     Iterator<Keyword> keywords = getAllKeywords();
-	while (keywords.hasNext()) {
+    while (keywords.hasNext()) {
       Keyword kw = keywords.next();
-      if((kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
+      if((kw.getReadableName() !=null && kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
   	}
   return null;
 
   }
+  public LabeledKeyword getLabeledKeyword(String label, String readableName) {
+    try {
+      String filter = "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \""+readableName+"\" && this.label == \""+label+"\"";
+      Query query = pm.newQuery(filter);
+      List<Keyword> ans = (List) query.execute();
+      if (ans!=null && ans.size()>0) return (LabeledKeyword) ans.get(0);
+      query.closeAll();
+    }
+    catch (Exception e) {
+      System.out.println("Exception on getLabeledKeyword("+label+", "+readableName+")!");
+      e.printStackTrace();
+    }
+    return null;
+  }
+  public LabeledKeyword getOrCreateLabeledKeyword(String label, String readableName, boolean commit) {
+    LabeledKeyword lkw = getLabeledKeyword(label, readableName);
+    if (lkw!=null) return lkw;
+    lkw = new LabeledKeyword(label, readableName);
+    if (commit) storeNewKeyword(lkw);
+    return lkw;
+  }
+
   public Keyword getOrCreateKeyword(String name) {
     Keyword kw = getKeyword(name);
     if (kw==null) {
@@ -1197,30 +1374,6 @@ public class Shepherd {
       Collection c = (Collection) (acceptedEncounters.execute());
       Iterator it = c.iterator();
       while(it.hasNext()){
-      GeneticAnalysis gen=(GeneticAnalysis)it.next();
-      acceptedEncounters.closeAll();
-        return gen;
-      }
-      acceptedEncounters.closeAll();
-    }
-    catch (Exception nsoe) {
-      nsoe.printStackTrace();
-      acceptedEncounters.closeAll();
-      return null;
-    }
-    return null;
-  }
-
-  public GeneticAnalysis getGeneticAnalysis(String sampleID, String encounterNumber, String analysisID) {
-    String filter = "this.analysisID == \""+analysisID+"\" && this.sampleID == \""+sampleID+"\" && this.correspondingEncounterNumber == \""+encounterNumber+"\"";
-
-    Extent encClass = pm.getExtent(GeneticAnalysis.class, true);
-      Query acceptedEncounters = pm.newQuery(encClass, filter);
-    try {
-
-      Collection c = (Collection) (acceptedEncounters.execute());
-      Iterator it = c.iterator();
-      while(it.hasNext()){
 		  GeneticAnalysis gen=(GeneticAnalysis)it.next();
 		  acceptedEncounters.closeAll();
         return gen;
@@ -1325,8 +1478,8 @@ public class Shepherd {
     }
     return true;
   }
-  public boolean isMarkedIndividual(MarkedIndividual ind) {
-    return (ind!=null && isMarkedIndividual(ind.getIndividualID()));
+  public boolean isMarkedIndividual(MarkedIndividual mark) {
+    return (mark!=null && isMarkedIndividual(mark.getIndividualID()));
   }
 
   public boolean isOccurrence(String name) {
@@ -1408,16 +1561,26 @@ public class Shepherd {
    * @see encounter, java.util.Iterator
    */
   public Iterator getUnassignedEncounters() {
-    String filter = "this.individualID == null";
+    String filter = "this.individual == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
 
+  public List<MediaAsset> getMediaAssetsFromStore(int assetStoreId) {
+    String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE this.assetStore == as && as.id == "+assetStoreId;
+    String vars = " VARIABLES org.ecocean.media.AssetStore as";
+    filter = filter+vars;
+    Query q = pm.newQuery(filter);
+    Collection results = (Collection) q.execute();
+    ArrayList<MediaAsset> al = new ArrayList(results);
+    return al;
+  }
+
   /*
   public Iterator getUnassignedEncountersIncludingUnapproved() {
-    String filter = "this.individualID == null";
+    String filter = "this.individual == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -1426,7 +1589,7 @@ public class Shepherd {
   */
 
   public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
-    String filter = "this.individualID == null && this.state != \"unidentifiable\"";
+    String filter = "this.individual == null && this.state != \"unidentifiable\"";
     //Extent encClass=pm.getExtent(encounter.class, true);
     orphanedEncounters.setFilter(filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -1478,17 +1641,6 @@ public class Shepherd {
     }
   }
 
-  public Iterator<Occurrence> getAllOccurrencesNoQuery() {
-    try {
-      Extent encClass = pm.getExtent(Occurrence.class, true);
-      Iterator it = encClass.iterator();
-      return it;
-    } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllOccurrencesNoQuery. Returning a null iterator.");
-      return null;
-    }
-  }
-
 
   public Iterator<Taxonomy> getAllTaxonomies() {
     try {
@@ -1496,12 +1648,13 @@ public class Shepherd {
       Iterator it = taxClass.iterator();
       return it;
     } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllTaxonomies. Returning a null iterator.");
+      System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
       return null;
     }
   }
   public int getNumTaxonomies() {
-    Iterator<Taxonomy> taxis = getAllTaxonomies();
+    Iterator taxis = getAllTaxonomies();
     return (Util.count(taxis));
   }
   public List<String> getAllTaxonomyNames() {
@@ -1533,7 +1686,6 @@ public class Shepherd {
       return null;
     }
   }
-
 
   public Iterator getAllAnnotationsNoQuery() {
     try {
@@ -1681,10 +1833,10 @@ public class Shepherd {
   public List getAllOccurrences(Query myQuery) {
     Collection c;
     try {
-      System.out.println("getAllOccurrences is called on query "+myQuery);
+      //System.out.println("getAllOccurrences is called on query "+myQuery);
       c = (Collection) (myQuery.execute());
       ArrayList list = new ArrayList(c);
-      System.out.println("getAllOccurrences got "+list.size()+" occurrences");
+      //System.out.println("getAllOccurrences got "+list.size()+" occurrences");
       //Collections.reverse(list);
       Iterator it = list.iterator();
       return list;
@@ -1694,6 +1846,19 @@ public class Shepherd {
       return null;
     }
   }
+
+  public Iterator<Occurrence> getAllOccurrencesNoQuery() {
+    try {
+      Extent encClass = pm.getExtent(Occurrence.class, true);
+      Iterator it = encClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
 
   public List<SinglePhotoVideo> getAllSinglePhotoVideo(Query acceptedEncounters) {
     Collection c;
@@ -1727,10 +1892,10 @@ public class Shepherd {
   public Iterator<Occurrence> getAllOccurrences(Query acceptedOccurrences, Map<String, Object> paramMap) {
     Collection c;
     try {
-      System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
+      //System.out.println("getAllOccurrences is called on query "+acceptedOccurrences+" and paramMap "+paramMap);
       c = (Collection) (acceptedOccurrences.executeWithMap(paramMap));
       ArrayList list = new ArrayList(c);
-      System.out.println("getAllOccurrences got "+list.size()+" occurrences");
+      //System.out.println("getAllOccurrences got "+list.size()+" occurrences");
       //Collections.reverse(list);
       Iterator it = list.iterator();
       return it;
@@ -1744,7 +1909,7 @@ public class Shepherd {
   public Iterator<Survey> getAllSurveys(Query acceptedSurveys, Map<String, Object> paramMap) {
     Collection c;
     try {
-      System.out.println("getAllOccurrences is called on query "+acceptedSurveys+" and paramMap "+paramMap);
+      System.out.println("getAllSurveys is called on query "+acceptedSurveys+" and paramMap "+paramMap);
       c = (Collection) (acceptedSurveys.executeWithMap(paramMap));
       ArrayList list = new ArrayList(c);
       System.out.println("getAllSurveys got "+list.size()+" surveys");
@@ -2103,16 +2268,6 @@ public class Shepherd {
   }
 
 
-  public Iterator<Occurrence> getAllOccurrencesForMarkedIndividual(Query query,String indie) {
-    //Query acceptedEncounters = pm.newQuery(encClass, filter2use);
-
-    Collection c = (Collection) (query.execute());
-    //System.out.println("getAllOccurrencesForMarkedIndividual size: "+c.size());
-    Iterator it = c.iterator();
-    //query.closeAll();
-    return it;
-  }
-
   public Occurrence getOccurrenceForEncounter(String encounterID){
     String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+"\"  VARIABLES org.ecocean.Encounter enc";
     Query query=getPM().newQuery(filter);
@@ -2215,14 +2370,16 @@ public class Shepherd {
 */
   }
 
-  public List<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
+  public List<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(MarkedIndividual indiv) {
     HashMap<String,Integer> hmap = new HashMap<String,Integer>();
-    //TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
-   //TreeMap<String, Integer> map=new TreeMap<String, Integer>(cmp);
    TreeMap<String, Integer> map=new TreeMap<String, Integer>();
-   String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
-   Query query=getPM().newQuery(filter);
-   Iterator<Occurrence> it=getAllOccurrencesForMarkedIndividual(query,indie);
+
+    String filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual == ind VARIABLES org.ecocean.Encounter enc";
+    Query query = getPM().newQuery(filter);
+    query.declareParameters("MarkedIndividual ind");
+    Collection c = (Collection)query.execute(indiv);
+    Iterator<Occurrence> it = c.iterator();
+
    if(it!=null){
       while(it.hasNext()){
          Occurrence oc=it.next();
@@ -2232,8 +2389,8 @@ public class Shepherd {
          int numEncounters=encounters.size();
          for(int i=0;i<numEncounters;i++){
            Encounter enc=encounters.get(i);
-           if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals(indie))){
-             MarkedIndividual indieEnc=this.getMarkedIndividual(enc.getIndividualID());
+           if ((enc.getIndividual() != null) && (!enc.getIndividual().equals(indiv))) {
+             MarkedIndividual indieEnc = enc.getIndividual();
              //check if we already have this Indie
              if(!hmap.containsKey(indieEnc.getIndividualID())){
                hmap.put(indieEnc.getIndividualID(), (new Integer(1)));
@@ -2354,7 +2511,7 @@ public class Shepherd {
     ArrayList<MediaAsset> myArray=new ArrayList<MediaAsset>(c);
     samples.closeAll();
     return myArray;
-  } 
+  }
 
   public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
 
@@ -2423,7 +2580,7 @@ public class Shepherd {
     return getAllMarkedIndividualsSightedAtLocationID(locationID).size();
   }
 
-  public ArrayList<Encounter> getAllEncountersForSpecies(String genus, String specificEpithet) {
+  public ArrayList<Encounter> getAllEncountersForSpecies(String genus, String specificEpithet) { 
     String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"'";
       Query samples = pm.newQuery(keywordQueryString);
     Collection c = (Collection) (samples.execute());
@@ -2444,6 +2601,7 @@ public class Shepherd {
   public ArrayList<Encounter> getEncountersArrayWithMillis(long millis) {
     String milliString = String.valueOf(millis);
     
+    // uhhhhhhhh
     String up = milliString.substring(0, milliString.length() - 6) + 999999;
     String down = milliString.substring(0, milliString.length() - 6) + 000000;
     
@@ -2468,6 +2626,31 @@ public class Shepherd {
     } else {
       return null;
     }
+  }
+
+  public List<Encounter> getEncountersSubmittedDuring(long start, long end) {
+    String startStr = String.valueOf(start);
+    String endStr   = String.valueOf(end);
+    //String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && dwcDateAddedLong >= "+startStr+" && dateInMilliseconds <= "+endStr+" ";
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && dwcDateAddedLong >= "+startStr+" && dwcDateAddedLong <= "+endStr+" ";
+    Query encQuery = pm.newQuery(keywordQueryString);
+    Collection col = null;
+    int colSize = -1;
+    try {
+      encQuery = pm.newQuery(keywordQueryString);
+      if (encQuery.execute() != null) {
+        col = (Collection) encQuery.execute();
+        colSize = col.size();        
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Exception on query : "+keywordQueryString);    
+      return null;
+    }
+    List<Encounter> encs = new ArrayList<Encounter>(col);
+    encQuery.closeAll();
+    System.out.println("getEncountersSubmittedDuring used query string "+keywordQueryString+"; returning "+encs.size()+ " (collection size "+colSize+")");
+    return encs;
   }
   
   public ArrayList<Encounter> getEncounterArrayWithShortDate(String sd) {
@@ -2614,10 +2797,10 @@ public class Shepherd {
     return it;
   }
 
-  public MarkedIndividual getMarkedIndividual(String name) {
+  public MarkedIndividual getMarkedIndividual(String id) {
     MarkedIndividual tempShark = null;
     try {
-      tempShark = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, name.trim()), true)));
+      tempShark = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, id.trim()), true)));
     } catch (Exception nsoe) {
       nsoe.printStackTrace();
       return null;
@@ -2625,6 +2808,26 @@ public class Shepherd {
     return tempShark;
   }
 
+  public MarkedIndividual getMarkedIndividualHard(Encounter enc) {
+    String num = enc.getCatalogNumber();
+    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && enc.catalogNumber == \""+num+"\"  VARIABLES org.ecocean.Encounter enc";
+    ArrayList al = new ArrayList();
+    try {
+      Extent indClass = pm.getExtent(MarkedIndividual.class, true);
+      Query acceptedInds = pm.newQuery(indClass, filter);
+      Collection c = (Collection) (acceptedInds.execute());
+      al = new ArrayList(c);
+      try {
+        acceptedInds.closeAll();
+      } catch (NullPointerException npe) {}
+    }
+    catch(Exception e){
+      System.out.println("Exception in getMarkedIndividualHard for enc "+num);
+      e.printStackTrace();
+    }
+    return ((al.size()>0) ? ((MarkedIndividual) al.get(0)) : null);
+  }
+  
   public Task getTask(String id) {
     Task theTask = null;
     try {
@@ -2646,12 +2849,48 @@ public class Shepherd {
     return indiv;
   }
 
+  public Keyword getKeywordById(String indexname) {
+    Keyword indiv = null;
+    try {
+      indiv = ((org.ecocean.Keyword) (pm.getObjectById(pm.newObjectIdInstance(Keyword.class, indexname.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return indiv;
+  }
+
+  public Keyword getKeywordByNameFast(String readableName) {
+    ArrayList al = new ArrayList();
+    try{
+      String filter = "this.readableName.toLowerCase() == \"" + readableName.toLowerCase() + "\"";
+      Extent keyClass = pm.getExtent(Keyword.class, true);
+      Query acceptedKeywords = pm.newQuery(keyClass, filter);
+      Collection c = (Collection) (acceptedKeywords.execute());
+      al = new ArrayList(c);
+      try {
+        acceptedKeywords.closeAll();
+      } catch (NullPointerException npe) {}
+    }
+    catch(Exception e){e.printStackTrace();}
+    return ((al.size()>0) ? ((Keyword) al.get(0)) : null);
+  }
+
+
+
+  public MarkedIndividual getMarkedIndividual(Encounter enc) {
+    if (enc==null) return null;
+    if (!Util.stringExists(enc.getIndividualID())) return null;
+    return (getMarkedIndividualQuiet(enc.getIndividualID()));
+  }
+
+
+ 
     //note, new indiv is *not* made persistent here!  so do that yourself if you want to. (shouldnt matter if not-new)
     public MarkedIndividual getOrCreateMarkedIndividual(String name, Encounter enc) {
         MarkedIndividual indiv = getMarkedIndividualQuiet(name);
         if (indiv != null) return indiv;
         indiv = new MarkedIndividual(name, enc);
-        enc.assignToMarkedIndividual(name);
+        enc.assignToMarkedIndividual(indiv);
         return indiv;
     }
 
@@ -2719,6 +2958,12 @@ public class Shepherd {
     return pl;
   }
 
+  public Occurrence getOccurrence(Encounter enc) {
+    if (enc==null) return null;
+    Occurrence occ = (getOccurrence(enc.getOccurrenceID()));
+    if (occ!=null) return occ;
+    return getOccurrenceForEncounter(enc.getCatalogNumber());
+  }
 
   /**
    * Returns all of the names of the sharks that can be used for training purporses - i.e. have more than one encounter - in a Vector format
@@ -2971,6 +3216,21 @@ public class Shepherd {
       return 0;
     }
   }
+  
+  public int getNumAssetStores() {
+    Extent encClass = pm.getExtent(AssetStore.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass);
+    try {
+      Collection c = (Collection) (acceptedEncounters.execute());
+      int num = c.size();
+      acceptedEncounters.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      acceptedEncounters.closeAll();
+      return 0;
+    }
+  }
 
   public int getNumApprovedEncounters() {
     pm.getFetchPlan().setGroup("count");
@@ -3171,6 +3431,12 @@ public class Shepherd {
     return e;
   }
 
+  public Encounter getEncounter(MediaAsset ma) {
+    if (ma==null || !ma.hasAnnotations()) return null;
+    Annotation ann = ma.getAnnotations().get(0);
+    return ann.findEncounter(this);
+  }
+
 
   /**
    * Opens the database up for information retrieval, storage, and removal
@@ -3196,6 +3462,10 @@ public class Shepherd {
       npe.printStackTrace();
     }
     //pmf=null;
+  }
+
+  public boolean isDBTransactionActive() {
+    return (pm!=null && !pm.isClosed() && pm.currentTransaction().isActive());
   }
 
   /**
@@ -3255,6 +3525,14 @@ public class Shepherd {
     commitDBTransaction();
   }
 
+  /**
+   * Since we call these together all over Wildbook
+   */
+  public void updateDBTransaction() {
+    commitDBTransaction();
+    beginDBTransaction();
+  }
+
 
   /**
    * Closes a PersistenceManager
@@ -3305,24 +3583,6 @@ public class Shepherd {
     }
   }
 
-
-  public Iterator<Keyword> getAllKeywords() {
-    Extent allKeywords = null;
-    Iterator it = null;
-    try {
-      allKeywords = pm.getExtent(Keyword.class, true);
-      Query acceptedKeywords = pm.newQuery(allKeywords);
-      acceptedKeywords.setOrdering("readableName descending");
-      Collection c = (Collection) (acceptedKeywords.execute());
-      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
-      acceptedKeywords.closeAll();
-      it = al.iterator();
-    } catch (javax.jdo.JDOException x) {
-      x.printStackTrace();
-      return null;
-    }
-    return it;
-  }
 
   public List<User> getAllUsers() {
     return getAllUsers("username ascending NULLS LAST");
@@ -3402,21 +3662,104 @@ public class Shepherd {
     return it;
   }
 
+  public Iterator<Keyword> getAllKeywords() {
+    Extent allKeywords = pm.getExtent(Keyword.class, true);
+    Query acceptedKeywords = pm.newQuery(allKeywords);
+    return getAllKeywords(acceptedKeywords);
+  }
+
+  public List<String> getAllKeywordLabels() {
+    Set<String> labels = new HashSet<String>();
+    for (LabeledKeyword lkw: getAllLabeledKeywords()) {
+      labels.add(lkw.getLabel());
+    }
+    return Util.asSortedList(labels);
+  }
+
+  public List<LabeledKeyword> getAllLabeledKeywords() {
+    try {
+      Extent extent = pm.getExtent(LabeledKeyword.class);
+      Query query = pm.newQuery(extent);
+      List<LabeledKeyword> ans = (List) query.execute();
+      return ans;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
   public Iterator<Keyword> getAllKeywords(Query acceptedKeywords) {
-    Extent allKeywords = null;
-    Iterator it = null;
+    List<Keyword> words = getSortedKeywordList(acceptedKeywords);
+    return ((words==null) ? null : words.iterator());
+  }
+
+  // allows keywords to be defined in properties file and appear at the top
+  // of the list of all keywords
+  public List<Keyword> getSortedKeywordList(Query acceptedKeywords) {
+    List<Keyword> allKeywords = getAllKeywordsList(acceptedKeywords);
+    List<String> propKeywordNames = CommonConfiguration.getIndexedPropertyValues("keyword",getContext());
+    List<Keyword> propKeywords = new ArrayList<Keyword>();
+
+    if((allKeywords!=null)&&(propKeywordNames!=null)) {
+      System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
+  
+      for (String propKwName: propKeywordNames) {
+        for (Keyword kw: allKeywords) {
+          if ((kw.getReadableName()!=null) && kw.getReadableName().equals(propKwName)) {
+            propKeywords.add(kw);
+            break;
+          }
+        }
+      }
+      System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
+      allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
+      propKeywords.addAll(allKeywords);
+      // propKeywords contains all keywords, but those defined in properties are first.
+    }
+    return propKeywords;
+
+  }
+
+  public List<Keyword> getAllKeywordsList(Query acceptedKeywords) {
+    // we find all keywords in the database and note which ones
+    // are also listed in the properties file
+    ArrayList<Keyword> al = new ArrayList<Keyword>();
     try {
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
-      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
-      it = al.iterator();
+      if(c!=null) al=new ArrayList<Keyword>(c);
+    } 
+    catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return null;
+    }
+    return al;
+  }
+
+  public Set<Keyword> getAllKeywordsSet(Query acceptedKeywords) {
+    HashSet<Keyword> al = null;
+    System.out.println("I started getAllKeywordsSet.");
+    try {
+      acceptedKeywords.setOrdering("readableName descending");
+      Collection c = (Collection) (acceptedKeywords.execute());
+      al=new HashSet<Keyword>(c);
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
     }
-    return it;
+    System.out.println("got a set of size "+(al!=null ? al.size() : "ERROR"));
+    return al;
   }
 
+  public Set<String> getAllKeywordNames(Query acceptedKeywords) {
+    Set<Keyword> keywords = getAllKeywordsSet(acceptedKeywords);
+    Set<String> kwNames = new HashSet<String>();
+    for (Keyword kword: keywords) {
+      kwNames.add(kword.getReadableName());
+    }
+    return kwNames;
+  }
 
   public int getNumKeywords() {
     Extent allWords = null;
@@ -3781,6 +4124,20 @@ public class Shepherd {
     return al;
   }
 
+  public List<Occurrence> getOccurrencesByIDSubstring(String altID) {
+    ArrayList al = new ArrayList();
+    try{
+      String filter = "this.occurrenceID.toLowerCase().indexOf('"+altID.toLowerCase()+"') != -1";
+      Extent encClass = pm.getExtent(Occurrence.class, true);
+      Query acceptedEncounters = pm.newQuery(encClass, filter);
+      Collection c = (Collection) (acceptedEncounters.execute());
+      al = new ArrayList(c);
+      acceptedEncounters.closeAll();
+    }
+    catch(Exception e){e.printStackTrace();}
+    return al;
+  }
+
   /**
    * Provides a case-insensitive way to retrieve a MarkedIndividual. It returns the first instance of such it finds.
    * @param myID The individual ID to return in any case.
@@ -3807,6 +4164,52 @@ public class Shepherd {
     return al;
   }
 
+  public List<Encounter> getEncountersByField(String fieldName, String fieldVal) {
+    String filter = "this."+fieldName+" == \""+fieldVal+"\"";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList al = new ArrayList(c);
+    acceptedEncounters.closeAll();
+    return al;
+  }
+
+  public List<Encounter> getEncountersByFieldSubstring(String fieldName, String fieldVal) {
+    String filter = "this."+fieldName+".indexOf('"+fieldVal+"') != -1";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList al = new ArrayList(c);
+    acceptedEncounters.closeAll();
+    return al;
+  }
+
+  public      Encounter  getEncounterByIndividualAndOccurrence(String indID, String occID) {
+    List<Encounter> encs = getEncountersByIndividualAndOccurrence(indID, occID);
+    if (encs.size()>0) return encs.get(0);
+    return null;
+  }
+  public List<Encounter> getEncountersByIndividualAndOccurrence(String indID, String occID) {
+    String filter = "this.individual.individualID == \""+indID+"\" && this.occurrenceID == \""+occID+"\"";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (acceptedEncounters.execute());
+    ArrayList al = new ArrayList(c);
+    acceptedEncounters.closeAll();
+    return al;
+  }
+
+  public Encounter resolveEncounterDuplicates(String indID, String occID) {
+    List<Encounter> encs = getEncountersByIndividualAndOccurrence(indID, occID);
+    if (encs.size()==0) return null;
+    if (encs.size()==1) return encs.get(0);
+    Encounter keeperEnc = Encounter.chooseFromDupes(encs);
+    for (Encounter otherEnc: encs) {
+      if (!otherEnc.getCatalogNumber().equals(keeperEnc.getCatalogNumber())) keeperEnc.mergeAndDelete(otherEnc, this);
+    }
+    return keeperEnc;
+  }
+  
   public List<MarkedIndividual> getMarkedIndividualsByNickname(String altID) {
     String filter = "this.nickName.toLowerCase() == \"" + altID.toLowerCase() + "\"";
     Extent encClass = pm.getExtent(MarkedIndividual.class, true);
@@ -3984,6 +4387,7 @@ public class Shepherd {
     return indexVals;
   }
 
+
   public List<String> getAllSpecificEpithets() {
       Query q = pm.newQuery(Encounter.class);
       q.setResult("distinct specificEpithet");
@@ -3995,31 +4399,29 @@ public class Shepherd {
   }
 
   public List<String> getAllBehaviors() {
+    System.out.println("getAllBehaviors!");
+    List<String> behaves = getDefinedBehaviors();
+    System.out.println("done with getDefinedBehaviors!");
+    behaves.addAll(getDBBehaviors());
+    return behaves;
+  }
 
+  public List<String> getDefinedBehaviors() {
+    System.out.println("getDefinedBehaviors!");
+    return CommonConfiguration.getIndexedPropertyValues("behavior", this.getContext());
+  }
+
+  public List<String> getDBBehaviors() {
+    System.out.println("getDBBehaviors!");
     Query q = pm.newQuery(Encounter.class);
     q.setResult("distinct behavior");
     q.setOrdering("behavior ascending");
     Collection results = (Collection) q.execute();
-    ArrayList al=new ArrayList(results);
-	    q.closeAll();
+    List al=new ArrayList(results);
+    q.closeAll();
     return al;
-
-
-    //temporary way
-    /**
-     * ArrayList<String> al=new ArrayList<String>();
-     Iterator allenc=getAllEncounters();
-     while(allenc.hasNext()){
-     Encounter enc=(Encounter)allenc.next();
-     if((enc.getBehavior()!=null)&&(!enc.getBehavior().equals(""))){
-     if(!al.contains(enc.getBehavior())){
-     al.add(enc.getBehavior());
-     }
-     }
-     }
-     return al;
-     */
   }
+
 
   public List<String> getAllVerbatimEventDates() {
     Query q = pm.newQuery(Encounter.class);
@@ -4041,19 +4443,10 @@ public class Shepherd {
     return al;
   }
   
-  public ArrayList<Survey> getAllSurveys() {
-    ArrayList<Survey> svs = new ArrayList<Survey>();
+  public Iterator<Survey> getAllSurveys() {
     Extent svyClass = pm.getExtent(Survey.class, true);
     Iterator svsIt = svyClass.iterator();
-    Survey sv = null;
-    while (svsIt.hasNext()) {
-      sv = (Survey) svsIt.next();
-      svs.add(sv);
-    }
-    if (!svs.isEmpty()) {
-      return svs;
-    }
-    return null;      
+    return svsIt;      
   }
 
   public List<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {
@@ -4276,10 +4669,22 @@ public class Shepherd {
 
   public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
     ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();
-    String filter = "SELECT FROM org.ecocean.Encounter WHERE individualID != null ORDER BY dwcDateAddedLong descending RANGE 1,"+(numToReturn+1);
-    Query q = pm.newQuery(filter);
+    String filter = "individual != null";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    q.setOrdering("dwcDateAddedLong descending");
     Collection c = (Collection) (q.execute());
-    matchingEncounters = new ArrayList<Encounter>(c);
+    if ((c != null) && (c.size() > 0)) {
+      int max = (numToReturn > c.size()) ? c.size() : numToReturn;
+      int numAdded=0;
+      while(numAdded<max){
+        ArrayList<Encounter> results=new ArrayList<Encounter>(c);
+        matchingEncounters.add(results.get(numAdded));
+        numAdded++;
+      }
+
+    }
+
     q.closeAll();
     return matchingEncounters;
   }

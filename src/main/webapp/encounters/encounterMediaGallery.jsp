@@ -28,6 +28,31 @@ java.util.*" %>
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
 
+  <%!
+
+  // if there is a MediaAsset with detection status not null and no annotation that is done
+  boolean shouldEvict(Annotation ann) {
+    // idstatus complete/pending means we're done with IA (or at least done evicting cache)
+    if (IBEISIA.STATUS_COMPLETE.equals(ann.getIdentificationStatus())) return false;
+    if (IBEISIA.STATUS_PENDING.equals(ann.getIdentificationStatus())) return false;
+    if (IBEISIA.STATUS_PROCESSING.equals(ann.getIdentificationStatus())) return false;
+    MediaAsset ma = ann.getMediaAsset();
+    if (ma == null) return false;
+    // detectionstatus null means we haven't done any IA
+    if (ma!=null && ma.getDetectionStatus() == null) return false;
+    System.out.println("   EMG: EVICTING cache! Ann.idStatus="+ann.getIdentificationStatus()+" and ma.detectionStatus="+ma.getDetectionStatus());
+    return true;
+  }
+
+  boolean shouldEvict(Encounter enc) {
+    for (Annotation ann: enc.getAnnotations()) {
+      if (shouldEvict(ann)) return true;
+    }
+    return false;
+  }
+
+  %>
+
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -79,9 +104,11 @@ List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
 	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
+  System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
   	int numEncs=encs.size();
+  System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
   %><script>
 
@@ -98,7 +125,19 @@ function forceLink(el) {
     List<String> maIds = new ArrayList<String>();
 
   for(int f=0;f<numEncs;f++){
+
 		  Encounter enc = encs.get(f);
+		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
+      if (shouldEvict(enc)) {
+        // I believe we need to evict the cache here so that we'll see detection results on the encounter page
+        org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+      }
+
+      if (!enc.canUserAccess(request)) {
+        System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
+        continue;
+      }
+
 		  ArrayList<Annotation> anns = enc.getAnnotations();
 		JSONObject iaTasks = new JSONObject();
 
@@ -106,17 +145,31 @@ function forceLink(el) {
 		    %> <script>console.log('no annotations found for encounter <%=encNum %>'); </script> <%
 		  }
 		  else {
+        System.out.println("EMG: got "+anns.size()+" anns");
+
 		  	for (Annotation ann: anns) {
+		  		System.out.println("    EMG: starting for ann "+ann);
+
+		  		if (ann == null) continue;
 		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+		      //System.out.println("    EMG: got tasks "+tasks);
+
 		      MediaAsset ma = ann.getMediaAsset();
+				if (ma == null) continue;
                         if ((ma.getAcmId() != null) && !maAcms.contains(ma.getAcmId())) maAcms.add(ma.getAcmId());
                         maIds.add(Integer.toString(ma.getId()));
+
+                        
+
 		      String filename = ma.getFilename();
-		      
+		      System.out.println("    EMG: got ma at "+filename);
+
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
 		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a><br>";
 		      }
+		      	System.out.println("    EMG: got indID element "+individualID);
+
 		      
 		      //Start caption render JSP side
 		      String[] capos=new String[1];
@@ -131,6 +184,8 @@ function forceLink(el) {
 		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
 */
 		      captionLinks.add(capos);
+		      System.out.println("    EMG: got capos "+capos[0]);
+
 		      //end caption render JSP side
 		      
 		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
@@ -138,6 +193,8 @@ function forceLink(el) {
 
 		  		
 		  		if (ma != null) {
+		  			System.out.println("    EMG: ma is not null");
+
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
@@ -157,7 +214,9 @@ function forceLink(el) {
                                                 ja.put("identificationStatus", ann.getIdentificationStatus());
                                                 j.put("annotation", ja);
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
+
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
+
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
 							//   also: prob should check *what* is detected. :) somewhere....
 							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
@@ -180,12 +239,19 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 							//note: this violates safeUrl / etc... use with caution in your branch?
 							j.put("url", ma.webURL().toString());
 						}
+						// Should fix oman images not appearing on import
+						j.put("url", ma.webURL().toString());
+
+            if (Util.stringExists(ma.getDetectionStatus())) {
+              j.put("detectionStatus",ma.getDetectionStatus());
+            } else {
+              System.out.println("DETECTION STATUS"+ma.getDetectionStatus()+" missing for ma "+ma);
+            }
+
 						all.put(j);
 					}
 		  		}
-		  	} //end loop on each annotation
-		  	
-		  	
+		  	}
 		  	// out.println("var assets = " + all.toString() + ";");
 		    //System.out.println("All media assets as an array: "+all.toString());
 
@@ -302,6 +368,16 @@ figcaption div {
     display: none;
 }
 
+
+/* removes the (at writing) incomplete labeled keyword adder */
+.iek-new-wrapper.labeled {
+  display: none;
+}
+
+.image-enhancer-keyword.labeled-keyword span.keyword-label, span.keyword-label {
+  font-weight: bold; 
+}
+
 .caption-youtube {
     padding: 1px 3px;
     background-color: rgba(255,200,200,0.5);
@@ -385,6 +461,64 @@ figcaption div {
     display:inline;
   }
 
+
+
+.ia-status-div {
+    height: 1.3em;
+    background-color: #EEE;
+    margin: 4px 10px;
+    border-radius: 5px;
+}
+
+.ia-status-div .ia-status {  /* this is the individual section (detection, identification) */
+    display: inline-block;
+    width: 45%;
+    margin: 0 2.5%;
+    cursor: pointer;
+    border-radius: 2px;
+    padding: 0 4px;
+    text-align: center;
+    font-size: 0.8em;
+}
+
+.ia-status-div .ia-status:hover {
+    color: #DD0 !important;
+}
+
+.ia-status-div .ia-state-unknown {
+    background-color: #888;
+    color: #FFF;
+}
+.ia-status-div .ia-state-complete {
+    background-color: #0C1;
+    color: #EFE;
+}
+.ia-status-div .ia-state-complete:before {
+    content: "\2713 ";
+}
+.ia-status-div .ia-state-error {
+    background-color: #B00;
+    color: #EFE;
+}
+.ia-status-div .ia-state-error:before {
+    content: "\2717 ";
+}
+.ia-status-div .ia-state-warn {
+    background-color: #F80;
+    color: #EFE;
+}
+.ia-status-div .ia-state-warn:before {
+    content: "\26A0 ";
+}
+
+.ia-status-div .ia-state-wait {
+    background-color: #333;
+    color: #EFE;
+}
+.ia-status-div .ia-state-wait:before {
+    content: "\231B ";
+}
+
 div.gallery-download {
     text-align: center;
     font-size: 0.8em;
@@ -408,7 +542,7 @@ div.gallery-download {
 <%
 if(request.getParameter("encounterNumber")!=null){
 %>
-	<h2><%=encprops.getProperty("gallery") %></h2>
+	<h2 onDblClick="activateAllIAStatus()"><%=encprops.getProperty("gallery") %></h2>
 <%
 }
 %>
@@ -422,7 +556,10 @@ if(request.getParameter("encounterNumber")!=null){
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
+  
+  console.log("Hey we're workin again!");
   var assets = <%=all.toString()%>;
+  // <% System.out.println(" Got all size = "+all.length()); %>
   var captions = <%=captions.toString()%>
   captions.forEach( function(elem) {
     console.log("caption here: "+elem);
@@ -457,12 +594,23 @@ if(request.getParameter("encounterNumber")!=null){
 
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
-    console.log("EMG asset "+index+" id: "+assetId);
+    console.log("   EMG asset "+index+" id: "+assetId);
+    <% System.out.println("    EMG: asset is forEach'd"); %>
     if (<%=isGrid%>) {
+    	    console.log("   EMG : isGrid true!");
+
+    	<% System.out.println("    EMG: calling grid version"); %>
+
       maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
     } else {
-      maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
+    	    	    console.log("   EMG : isGrid false!");
+
+    	    	<% System.out.println("    EMG: calling nongrid version"); %>
+      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
+
+      //maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
     }
+
 
 /*   now added to image hamburger menu
     var removeAssetLink = "<p id=\"remove"+assetId+"\" style=\"text-align:right\"> <a title=\"Remove above image from encounter\" href=\"\" onclick=\"removeAsset("+assetId+")\">Remove image from encounter</a></p>";
@@ -470,6 +618,13 @@ if(request.getParameter("encounterNumber")!=null){
     $('#enc-gallery').append(removeAssetLink);
 */
   });
+  // we need to add a phantom image for alignment if there are an odd number of them
+  console.log("we got some assets! length="+assets.length);
+  if ((assets.length % 2) != 0) {
+    var lastImageHeight = $("#enc-gallery figure").last().height();
+    console.log("odd number! encGallery is adding a phantom div with height "+lastImageHeight);
+    $("#enc-gallery").append("<div class='col-sm-6' style='visibility:hidden; height:"+lastImageHeight+"'>Look at this amazing div with all its wonderful contents</div>");
+  }
 
 
 
@@ -931,6 +1086,75 @@ function checkImageEnhancerResize() {
 }
 
 
+function updateLabeledKeywordLabel(el) {
+  var label = $(el).val();
+  $('select.value-selector').hide();
+  $('select.value-selector.'+label).show();
+}
+function updateLabeledKeywordValue(el) {
+  var jel = $(el);
+  var label = jel.data("kw-label");
+  var value = jel.val();
+  var wrapper = jel.closest('.image-enhancer-wrapper');
+  if (!wrapper.length) {
+    console.error("could not find MediaAsset id from closest wrapper");
+    return;
+  }
+  var mid = imageEnhancer.mediaAssetIdFromElement(wrapper);
+  if (!assetById(mid)) {
+    console.error("could not find MediaAsset byId(%o)", mid);
+    return;
+  }
+  console.log("updateLabeledKeywordValue got values %s, %s for media asset %s",label,value,mid);
+  var dataObj = {
+    "label": label,
+    "value": value,
+    "mid"  : mid
+  }
+  console.log("dataObj = %o",dataObj);
+
+  var urlWithArgs = wildbookGlobals.baseUrl + '/AddLabeledKeyword?label='+label+'&value='+value+'&mid='+mid;
+
+  $.ajax({
+    url: urlWithArgs,
+    //data: JSON.stringify(dataObj),
+    contentType: 'application/javascript',
+    success: function(d) {
+      console.info("Success on AddLabeledKeyword. d=%o",d);
+      if (d.success) {
+        if (d.newKeywords) {
+          for (var id in d.newKeywords) {
+            // wildbookGlobals.keywords[id] = d.newKeywords[id];
+          }
+        }
+        var mainMid = false;
+        if (d.results) {
+          for (var mid in d.results) {
+            wildbookGlobals.keywords[id] = d.newKeywords[id];
+            refreshKeywordsForMediaAsset(mid, d);
+          }
+        }
+      if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
+      } else {
+        var msg = d.error || 'ERROR could not make change';
+        $('.popup-content').append('<p class="error">' + msg + '</p>');
+      }
+    },
+    error: function(x,a,b) {
+      console.error('%o %o %o', x, a, b);
+      $('.popup-content').append('<p class="error">ERROR making change: ' + b + '</p>');
+    },
+    type: 'POST',
+    dataType: 'json'
+  });
+
+
+  return false;
+}
+
+
+
+
 var popupStartTime = 0;
 function addNewKeyword(el) {
 	console.warn(el);
@@ -989,7 +1213,7 @@ console.info(d);
 				var mainMid = false;
 				if (d.results) {
 					for (var mid in d.results) {
-                                            refreshKeywordsForMediaAsset(mid, d);
+            refreshKeywordsForMediaAsset(mid, d);
 					}
 				}
                                 if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
@@ -1027,6 +1251,7 @@ console.info(d);
 */
 
 function refreshKeywordsForMediaAsset(mid, data) {
+  console.log("refreshKeywordsForMediaAsset called on mid %s and data %o",mid,data);
     for (var i = 0 ; i < assets.length ; i++) {
         if (assets[i].id != mid) continue;
         //if (!assets[i].keywords) assets[i].keywords = [];
@@ -1034,7 +1259,9 @@ function refreshKeywordsForMediaAsset(mid, data) {
         for (var id in data.results[mid]) {
             assets[i].keywords.push({
                 indexname: id,
-                readableName: data.results[mid][id]
+                readableName: data.results[mid][id],
+                //displayName: data.results[mid][displayName],
+                //label: data.results[mid][label]
             });
         }
     }
@@ -1055,6 +1282,20 @@ function refreshAllKeywordPulldowns() {
     });
 }
 
+<%
+// alright folks, lets get our map of labels to values!
+Map<String, List<String>> labelsToValues = LabeledKeyword.labelUIMap(request);
+System.out.println("we got labelsToValues = "+labelsToValues);
+String labelsToValuesStr = labelsToValues.toString();
+labelsToValuesStr = labelsToValuesStr.replaceAll("=",":");
+System.out.println("the stringy version is "+labelsToValuesStr);
+
+JSONObject jobj = new JSONObject(labelsToValues);
+System.out.println("got jobj "+jobj);
+
+%>
+
+
 function imageLayerKeywords(el, opt) {
 	var mid;
 	if (opt && opt._mid) {  //hack!
@@ -1070,10 +1311,55 @@ console.info("############## mid=%s -> %o", mid, ma);
 	var thisHas = [];
 	var h = '<div class="image-enhancer-keyword-wrapper">';
 	for (var i = 0 ; i < ma.keywords.length ; i++) {
-		thisHas.push(ma.keywords[i].indexname);
+    var kw = ma.keywords[i];
+    thisHas.push(kw.indexname);
+    if (kw.label) {
+      console.info("Have labeled keyword %o", kw);
+      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" title="remove keyword">X</span></div>';
+    } else {
+      //h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
+
+    }
 //console.info('keyword = %o', ma.keywords[i]);
-		h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
 	}
+
+  // the labeledKeyword edit form comes from before
+
+  var labelsToValues = <%=jobj%>;
+  console.log("Labeled keywords %o", labelsToValues);
+  h += '<div class="labeled iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+  if (!$.isEmptyObject(labelsToValues)) {
+      //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
+    var hasSome = false;
+    var labelSelector = '<select onChange="return updateLabeledKeywordLabel(this);"  style="width: 100%" class="label-selector"><option value="">select label</option>';
+    var valueSelectors = '';
+    for (var label in labelsToValues) {
+      var valueSelector = '<select onChange="return updateLabeledKeywordValue(this);" style="width: 100%; display: none;" class="value-selector '+label+'" data-kw-label="'+label+'"><option value="">select value</option>';
+      var values = labelsToValues[label];
+      //console.log("in labelsToValues loop with label %s and values %s",label, values);
+      for (var i in values) {
+        var value = values[i];
+        //console.log("in labelsToValues loop with label %s and value %s",label, value);
+        //if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
+        valueSelector += '<option class="labeledKeywordValue '+label+'" value="' + value + '">' + value + '</option>';
+        hasSome = true;
+      }
+      valueSelector += '</select>';
+      valueSelectors += valueSelector
+      labelSelector += '<option value="' + label + '">' + label + '</option>';
+    }
+    labelSelector += '</select>';
+    if (hasSome) {
+      h += labelSelector;
+      h += valueSelectors;
+    }
+  } else {
+    console.log("your labels are empty dumbass");
+  }
+  h += '</div></div>';
+
+
 
 	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
 	if (wildbookGlobals.keywords) {
@@ -1159,28 +1445,129 @@ function inGalleryMode() {
 }
 
 
-function featureDblClick(ev) {
-    ev.preventDefault();
-    ev.stopPropagation();
-    console.log('-----------ev----------- %o', ev);
-    var fid = ev.currentTarget.id;
-    var mid = imageEnhancer.mediaAssetIdFromElement($(ev.currentTarget).parent().parent());
-    var ma = assetById(mid);
-    var h = '<div>';
-    h += '<p>Feature id: <b>' + fid + '</b></p>';
-    for (var i = 0 ; i < ma.features.length ; i++) {
-        if (ma.features[i].id == fid) {
-            h += '<xmp style="font-size: 0.8em; color: #777;">' + JSON.stringify(ma.features[i], null, 4) + '</xmp>';
-            break;
+//(for now?) this serves dual purpose:
+// 1. update asset.iaStatus hash object
+// 2. use that to update display of said info
+function updateIAStatus(asset) {
+    if (!asset) return;
+    console.info('updateIAStatus() iaStatus IN  => %s', JSON.stringify(asset.iaStatus));
+    if (asset.taskTree) {
+        asset.iaStatus.detection = _parseDetection(asset.taskTree);
+        asset.iaStatus.identification = _parseIdentification(asset.taskTree);
+    } else {
+        if (asset.features && asset.features[0] && asset.features[0].type) {
+            asset.iaStatus.detection.state = 'complete';
+            asset.iaStatus.detection.msg = 'OK: Detected annotation is present. (Detection task unavailable.)';
+        } else {
+            asset.iaStatus.detection.state = 'unknown';
+            asset.iaStatus.detection.msg = 'Seems to be no detected annotation or task. Identification still possible.';
+        }
+        asset.iaStatus.identification.state = 'unknown';
+        asset.iaStatus.identification.msg = 'Identification not yet started.';
+    }
+    console.info('updateIAStatus() iaStatus OUT => %s', JSON.stringify(asset.iaStatus));
+    var el = $('#ia-status-div-' + asset.id + '-' + asset.annotationId);
+    el.html('');
+    for (type in {detection: 0, identification: 0}) {
+        var state = asset.iaStatus[type].state || 'unknown';
+        var msg = asset.iaStatus[type].msg || 'unknown state';
+console.log('msg ----> %s  <--- %o', msg, asset.iaStatus[type]);
+        var h = '<div title="' + type + ': ' + msg + '" class="ia-status ia-state-' + state + '" id="ia-status-' + type + '">';
+        h += type;
+        h += '</div>';
+        el.append(h);
+    }
+}
+
+function _parseDetection(task) {
+    if (!task) return;
+    if (task.mediaAssetIds) { //we assume this *must* mean we are a detection task, and thats good enough.  :/
+        var rtn = { task: task };
+        if (!task.results) {
+            rtn.state = 'wait';
+            rtn.msg = 'Detection task found, but no results.  Possibly still processing?';
+        } else {
+            for (var i = 0 ; i < task.results.length ; i++) {
+                if (!task.results[i].status) continue;  //kinda cheap hack.. should probably investigate this TODO
+                //TODO actually check out what most recent has to say here....
+                rtn.state = 'complete';
+                rtn.msg = 'most recent result status _action=' + task.results[i].status._action;
+                break;
+            }
+        }
+        return rtn;
+
+    } else {
+        if (Array.isArray(task.children)) {
+            for (var i = 0 ; i < task.children.length ; i++) {
+                var rtn = _parseDetection(task.children[i]);
+                if (rtn) return rtn;
+            }
         }
     }
-    h += '<p>Annotation id: <b>' + ma.annotation.id + '</b></p>';
-    h += '<xmp style="font-size: 0.8em; color: #777;">' + JSON.stringify(ma.annotation, null, 4) + '</xmp>';
-    h += '<p>MediaAsset id: <b>' + mid + '</b></p>';
-    h += '<xmp style="font-size: 0.8em; color: #777;">' + JSON.stringify(ma, null, 4) + '</xmp>';
-    h += '</div>';
-    imageEnhancer.popup(h);
+    //if we fall thru, we must not have found any usable detection task
+    return {
+        state: 'unknown',
+        msg: 'Detection task not found. Identification still possible.'
+    };
 }
+
+function _parseIdentification(task) {
+    return { state: 'unknown', msg: 'Unknown, but has root task ' + task.id };
+}
+
+function activateAllIAStatus() {
+    $('.image-enhancer-wrapper').each(function(n, el) {
+        var mid = imageEnhancer.mediaAssetIdFromElement($(el));
+        displayIAStatus(assetById(mid));
+    });
+}
+
+//this should probably be moved to ia.IBEIS.js obviously?
+function displayIAStatus(asset) {
+    var jel = $('#image-enhancer-wrapper-' + asset.id + '-' + asset.annotationId);
+    var iadiv = $('<div id="ia-status-div-' + asset.id + '-' + asset.annotationId + '" class="ia-status-div" />');
+    jel.closest('figure').after(iadiv);
+    populateAssetIAStatus(asset, function() {
+console.info('got -> %o', asset.iaStatus);
+        updateIAStatus(asset);
+    });
+}
+
+function populateAssetIAStatus(asset, callback) {
+    asset.iaStatus = { detection: {}, identification: {}, shouldRunIdentification: true };
+    if (!asset || !asset.tasks || !Array.isArray(asset.tasks) || (asset.tasks.length < 1)) return;
+    //ordered by created, so last element is most recent
+    var recentTask = asset.tasks[asset.tasks.length - 1];
+    getTaskFullTree(recentTask.id, function(fullTask) {
+        asset.taskTree = fullTask;
+        //updateIAStatus(asset);
+        populateTaskResults(asset.taskTree, asset);  //this does updateIAStatus internally
+        if (typeof(callback) == 'function') callback(asset);
+    });
+}
+
+function getTaskFullTree(taskId, callback) {
+    jQuery.get(wildbookGlobals.baseUrl + '/ia?v2&includeChildren&taskId=' + taskId, function(rtn) {
+        var j = JSON.parse(rtn);
+        if (j && j.task) callback(j.task);
+    });
+}
+
+//note this will recurse down into children!
+function populateTaskResults(task, asset) {
+    jQuery.get(wildbookGlobals.baseUrl + '/iaLogs.jsp?taskId=' + task.id, function(rtn) {
+        task.results = JSON.parse(rtn);
+        console.log('----- results! %s => %s', task.id, rtn);
+        updateIAStatus(asset);
+    });
+    if (task.children) {
+        for (var i = 0 ; i < task.children.length ; i++) {
+            populateTaskResults(task.children[i], asset);
+        }
+    }
+}
+
 
 </script>
 <style>
@@ -1196,5 +1583,15 @@ function featureDblClick(ev) {
 		display: block;
 	}
 </style>
+<%
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+String pswipedir = urlLoc+"/photoswipe";
+%>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
+<!--  <p>Looking for photoswipe in <%=pswipedir%></p>-->
+<jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
+<script src='<%=pswipedir%>/photoswipe.js'></script>
+<script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
 
 <jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>

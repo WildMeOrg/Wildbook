@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,12 +36,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
+import org.ecocean.Util;
 import org.ecocean.User;
 import org.ecocean.CommonConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import com.google.gson.Gson;
 //import com.samsix.util.string.StringUtilities;
@@ -63,98 +63,80 @@ public class SiteSearch extends HttpServlet {
 
     @Override
     public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+        String context="context0";
+        context=ServletUtilities.getContext(request);
+        
         //set up for response
         response.setContentType("text/json");
         PrintWriter out = response.getWriter();
 
-        //term= is legacy "generic search", so it has its own behavior/results
-        if (request.getParameter("term") != null) {
-            out.println(termSearch(request.getParameter("term"), request));
+        String term = request.getParameter("term");
+        if (!Util.stringExists(term) || (term.length() < 2)) {
+            out.println("[]");
             return;
         }
 
-        //all newer types return as part of a bigger structure
-        JSONObject res = new JSONObject();
-
-        res.put("occBrowse", occBrowse(request.getParameter("occBrowse"), request));
-        out.println(res.toString());
-    }
-
-    private String termSearch(String term, HttpServletRequest request) {
-        if ((term == null) || term.equals("")) return "[]";
-
         String regex = ".*" + term.toLowerCase() + ".*";
 
-        ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+        ArrayList<Map<String, String>> list = new ArrayList<Map<String, String>>();
         String filter;
         
 
         //
         // Query on Individuals
         //
-        filter = "this.nickName.toLowerCase().matches('"
-                + regex
-                + "') || this.individualID.toLowerCase().matches('"
-                + regex
-                + "') || this.alternateid.toLowerCase().matches('"
-                + regex + "')"
-                
-                
-                ;
-        
-        Query query=null;;
-        String context="context0";
-        context=ServletUtilities.getContext(request);
+
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("SiteSearch.class");
         myShepherd.beginDBTransaction();
-        try{ 
-          query = myShepherd.getPM().newQuery(MarkedIndividual.class);
-          query.setFilter(filter);
-          query.setOrdering("individualID ascending");
+        
+        try {
+
+          List<MarkedIndividual> individuals = MarkedIndividual.findByNames(myShepherd, regex);
   
-          //
-          // Check to make sure our query is fine, log error if not.
-          //
-          if (logger.isDebugEnabled()) {
-              logger.debug(filter);
-              try {
-                  query.compile();
-              } catch (Throwable ex) {
-                  logger.error("Bad query", ex);
-              }
-          }
-  
-          @SuppressWarnings("unchecked")
-          List<MarkedIndividual> individuals = (List<MarkedIndividual>) query.execute();
-  
+          // this stores the hashmaps for each individual so we can sort by label later
+          Map<String,Map<String,String>> labelToHm = new HashMap<String,Map<String,String>>();
+    
           for (MarkedIndividual ind : individuals) {
-              HashMap<String, String> hm = new HashMap<String, String>();
-              if (StringUtils.isBlank(ind.getNickName())) {
-                  hm.put("label", ind.getIndividualID());
-              } else {
-                  hm.put("label", ind.getNickName() + " (" + ind.getIndividualID() + ")");
-              }
-              hm.put("value", ind.getIndividualID());
-              hm.put("type", "individual");
+                try {
+                  HashMap<String, String> hm = new HashMap<String, String>();
+                  String label = ind.getDisplayName(request);
+                  hm.put("label", label);
+                  hm.put("value", ind.getIndividualID());
+                  hm.put("type", "individual");
+      
+                  //
+                  // TODO: Read species from db. See SimpleIndividual
+                  //
+                  String gs = ind.getGenusSpeciesDeep();
+                  if (gs != null) {
+                    hm.put("species", gs);
+                  }
+                  if(ind.getNickName()!=null){
+                    hm.put("nickname", ind.getNickName());
+                  }
+                  labelToHm.put(label, hm);
+                  //list.add(hm);
+                }
+                catch(Exception f) {f.printStackTrace();}
+            }
   
-              //
-              // TODO: Read species from db. See SimpleIndividual
-              //
-              if(ind.getGenusSpecies()!=null){
-                hm.put("species", ind.getGenusSpecies());
-              }
+  
+            // now we sort the labels and add them in order
+            // this is a runtime hit and we should consider figuring out how to sort on labels 
+            List<String> sortedLabels = Util.asSortedList(labelToHm.keySet());
+            for (String label: sortedLabels) {
+              Map<String, String> hm = labelToHm.get(label);
               list.add(hm);
-          }
-          //query.closeAll();
+            }
         }
-        catch(Exception e){}
-        finally{
-          if(query!=null){query.closeAll();}
+        catch(Exception e) {
+          e.printStackTrace();
+        }
+        finally {
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
         }
-         
 
         /*
         //
@@ -213,32 +195,6 @@ public class SiteSearch extends HttpServlet {
         //
         // return our results
         //
-        return new Gson().toJson(list);
-    }
-
-
-    //giraffespotter-specific
-    private JSONArray occBrowse(String term, HttpServletRequest request) {
-        JSONArray rtn = new JSONArray();
-        if ((term == null) || term.equals("")) return rtn;
-
-        String context = ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("SiteSearch.class2");
-        myShepherd.beginDBTransaction();
-
-        String regex = "%" + term.toLowerCase() + "%";
-        //rtn.put(regex);
-        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT DISTINCT(\"BROWSETYPE\") FROM \"OCCURRENCE\" where LOWER(\"BROWSETYPE\") like ?");
-        List<String> btypes = (List<String>)q.execute(regex);
-        if (btypes != null) {
-            for (String b : btypes) {
-                rtn.put(b);
-            }
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-
-        return rtn;
+        out.println(new Gson().toJson(list));
     }
 }

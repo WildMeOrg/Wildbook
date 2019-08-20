@@ -15,7 +15,6 @@ import java.util.UUID;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
-
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
@@ -33,15 +32,15 @@ import net.jpountz.xxhash.XXHash32;
 
 //EXIF-related imports
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
@@ -49,14 +48,19 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
 
 import org.apache.commons.io.IOUtils;
+import org.joda.time.DateTime;
 
 
 
+// java sucks for making us add four import lines just to use a multimap. INELEGANT. NEXT!
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
+
+import org.apache.commons.io.IOUtils;
 
 //import javax.jdo.JDOException;
 //import javax.jdo.JDOHelper;
@@ -64,10 +68,6 @@ import javax.jdo.Query;
 //import javax.jdo.PersistenceManagerFactory;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-
-
-
-
 
 import org.ecocean.tag.MetalTag;
 import org.ecocean.*;
@@ -86,6 +86,8 @@ public class Util {
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
   private static final String VESSEL = "vessel";
   private static final String GENUS_SPECIES = "genusSpecies";
+
+    public static final double INVALID_LAT_LON = 999.0;  //sometimes you need a bad coordinate!
 
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
@@ -149,6 +151,11 @@ public class Util {
 	public static String generateUUID() {
 		return UUID.randomUUID().toString();
 	}
+
+  public static String prettyUUID(String uuid) {
+    if (!isUUID(uuid)) return uuid;
+    return(uuid.substring(0,8)+"...");
+  }
 
 	public static boolean isUUID(String s) {
                 if (s == null) return false;
@@ -414,9 +421,9 @@ public class Util {
     //got sick of having to concat these strings with a space in the middle.
     // TODO: someday make a Taxonomy class for storing/processing this stuff right! (or find the wheel someone already invented!!)
     public static String taxonomyString(String genus, String species) {
-        if ((genus != null) && (species != null)) return genus + " " + species;
-        if (genus != null) return genus;
-        if (species != null) return species;
+        if (stringExists(genus) && stringExists(species)) return genus + " " + species;
+        if (stringExists(genus)) return genus;
+        if (stringExists(species)) return species;
         return null;
     }
 
@@ -486,6 +493,21 @@ public class Util {
         return j;
     }
 
+    // note, this will (silently) *skip* non-string elements!  you have been warned.
+    public static List<String> jsonArrayToStringList(JSONArray arr) {
+        if (arr == null) return null;
+        List<String> rtn = new ArrayList<String>();
+        for (int i = 0 ; i < arr.length() ; i++) {
+            String val = arr.optString(i, null);
+            if (val != null) rtn.add(val);
+        }
+        return rtn;
+    }
+    public static boolean jsonArrayContains(JSONArray arr, String str) {
+        if ((str == null) || (arr == null)) return false;  //might be a matter of philosophical debate
+        return jsonArrayToStringList(arr).contains(str);
+    }
+
     public static org.datanucleus.api.rest.orgjson.JSONObject stringToDatanucleusJSONObject(String s) {
       org.datanucleus.api.rest.orgjson.JSONObject j = null;
       if (s == null) return j;
@@ -500,11 +522,11 @@ public class Util {
     //NEW
     
     //this basically just swallows exceptions in parsing and returns a null if failure
-    public static org.json.JSONArray stringToJSONArray(String s) {
-        org.json.JSONArray j = null;
+    public static JSONArray stringToJSONArray(String s) {
+        JSONArray j = null;
         if (s == null) return j;
         try {
-            j = new org.json.JSONArray(s);
+            j = new JSONArray(s);
         } catch (JSONException je) {
             System.out.println("error parsing json string (" + s + "): " + je.toString());
         }
@@ -629,17 +651,35 @@ public class Util {
     }
 
 
-    //   h/t  https://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
-    public static String validEmailRegexPattern() {
-        //return "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";  //THIS FAILED on sito.org+foo@gmail.com !!
-        return "^[_A-Za-z0-9-\\+\\.]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+    //see postgis/README.md for full details on these!  (including setup)
+    public static JSONArray overlappingWaterGeometries(Shepherd myShepherd, Double lat, Double lon, Double radius) {
+        if (!Util.isValidDecimalLatitude(lat) || !Util.isValidDecimalLongitude(lon)) return null;
+        if ((radius == null) || (radius < 0)) radius = 200.0D;   //this seems "close enough"... might be in meters?
+        String sql = "SELECT ST_AsGeoJSON(ST_Transform(geom, 4326)) FROM overlappingWaterGeometries(" + lat.toString() + ", " + lon.toString() + ", " + radius.toString() + ")";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        JSONArray rtn = new JSONArray();
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        while (it.hasNext()) {
+            String js = (String)it.next();
+            JSONObject geom = Util.stringToJSONObject(js);
+            if (geom != null) rtn.put(geom);
+        }
+        q.closeAll();
+        return rtn;
     }
 
-    public static boolean isValidEmailAddress(String email) {
-        if (email == null) return false;
-        java.util.regex.Pattern patt = java.util.regex.Pattern.compile(validEmailRegexPattern());
-        java.util.regex.Matcher matcher = patt.matcher(email);
-        return matcher.matches();
+    public static boolean nearWater(Shepherd myShepherd, Double lat, Double lon, Double radius) {
+        if (!Util.isValidDecimalLatitude(lat) || !Util.isValidDecimalLongitude(lon)) return false;
+        if ((radius == null) || (radius < 0)) radius = 200.0D;
+        String sql = "SELECT nearWater(" + lat.toString() + ", " + lon.toString() + ", " + radius.toString() + ")";
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        if (!it.hasNext()) return false;
+        Boolean rtn = (Boolean)it.next();
+        q.closeAll();
+        return rtn;
     }
 
     // e.g. you have collectionSize = 13 items you want displayed in sections with 3 per section.
@@ -656,6 +696,11 @@ public class Util {
       return (currentToString);
     }
 
+    public static String prettyTimeStamp() {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+      return sdf.format(new Date());
+    }
+
     public static boolean dateTimeIsOnlyDate(DateTime dt) {
       try {
         return (dt.millisOfDay().get()==0);
@@ -664,20 +709,34 @@ public class Util {
       }
     }
 
-    public static String capitolizeFirstLetterOnly(String str) {
-      String lower = str.toLowerCase();
-      if (lower.length()<=1) return (lower.toUpperCase());
-      return (lower.substring(0,1).toUpperCase() + lower.substring(1));
-    }
-
     public static String capitolizeFirstLetter(String str) {
+      if (str==null) return str;
       if (str.length()<=1) return (str.toUpperCase());
       return (str.substring(0,1).toUpperCase() + str.substring(1));
+
     }
 
+    public static String capitolizeFirstLetterOnly(String str) {
+      if (str==null) return str;
+      String lower = str.toLowerCase();
+      return capitolizeFirstLetter(lower);
+    }
 
     public static boolean requestHasVal(HttpServletRequest request, String paramName) {
       return ((request.getParameter(paramName)!=null) && (!request.getParameter(paramName).equals("")));
+    }
+
+    //   h/t  https://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
+    public static String validEmailRegexPattern() {
+        //return "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";  //THIS FAILED on sito.org+foo@gmail.com !!
+        return "^[_A-Za-z0-9-\\+\\.]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+    }
+
+    public static boolean isValidEmailAddress(String email) {
+        if (email == null) return false;
+        java.util.regex.Pattern patt = java.util.regex.Pattern.compile(validEmailRegexPattern());
+        java.util.regex.Matcher matcher = patt.matcher(email);
+        return matcher.matches();
     }
 
     public static String addToJDOFilter(String constraint, String filter, String origFilter) {
@@ -715,9 +774,23 @@ public class Util {
     }
 
     public static boolean stringExists(String str) {
-      return (str!=null && !str.equals(""));
+      return (str!=null && !str.equals("") && !str.toLowerCase().equals("none") && !str.toLowerCase().equals("unknown"));
     }
+    public static boolean stringsEqualish(String s1, String s2) {
+      if (!stringExists(s1)) {
+        if (!stringExists(s2)) return true;
+        return false;
+      }
+      if (stringExists(s2)) {
+        return s1.toLowerCase().trim().equals(s2.toLowerCase().trim());
+      }
+      return false;
 
+    }
+    public static boolean isEmpty(Collection c) {
+      return (c==null || c.size()==0);
+    }
+    
     //these two utility functions handle the case where the argument (Collection, and subclasses like Lists) is null!
     public static boolean collectionIsEmptyOrNull(Collection c) {
         return (collectionSize(c) == 0);
@@ -731,7 +804,6 @@ public class Util {
       return (props.getProperty(key) != null);
     }
 
-    // given "animalType"
     public static List<String> getIndexedPropertyValues(String key, Properties props) {
       List<String> values = new ArrayList<String>();
       for (int i=0; hasProperty((key+i), props); i++) {
@@ -740,14 +812,51 @@ public class Util {
       return values;
     }
 
-    public static void writeToFile(String data, String absolutePath) throws IOException {
-        File file = new File(absolutePath);
+
+    // convenience method for comparing string values
+    public static boolean shouldReplace(String val1, String val2) {
+      return (stringExists(val1) && !stringExists(val2));
+    }
+
+    // only if one of the Strings should replace the other, return that string
+    public static String betterValue(String val1, String val2) {
+      if (val1!=null && val2!=null && val1.trim().equals(val2.trim())) {
+        // return shorter string (less whitespace)
+        if (val1.length()<val2.length()) return val1;
+        else return val2;
+      }
+      if (!stringExists(val2)) return val1;
+      if (!stringExists(val1)) return val2;
+      return null;
+    }
+
+    public static boolean doubleExists(Double val) {
+      return (val!=null && val!=0.0);
+    }
+    public static boolean shouldReplace(Double val1, Double val2) {
+      return (doubleExists(val1) && !doubleExists(val2));
+    }
+    public static boolean intExists(int val) {
+      // this feels so wrong... so wrong!!!
+      return (val!=0 && val!=-1);
+    }
+    public static boolean integerExists(Integer val) {
+      return (val!=null && intExists(val));
+    }
+    
+    public static void writeToFile(String data, String absolutePath) throws FileNotFoundException {
+      File file=new File(absolutePath);
+      try{
         FileOutputStream fos=new FileOutputStream(file);
         OutputStreamWriter writer =new OutputStreamWriter(fos, StandardCharsets.UTF_8);
         writer.write(data);
         writer.flush();
         writer.close();
         fos.close();
+      }
+      catch(Exception e){
+        e.printStackTrace();
+      }
    }
 
     public static String readFromFile(String path) throws FileNotFoundException, IOException {
@@ -756,15 +865,37 @@ public class Util {
       return readData;
     }
 
-    public static String convertEpochTimeToHumanReadable (long epochTime){
-      Date date = new Date(epochTime);
-          DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-          format.setTimeZone(TimeZone.getTimeZone("Etc/GMT"));
-          String formatted = format.format(date);
-          formatted = format.format(date);
-          return formatted.toString();
+    public static <T> List<T> combineListsInPlace(List<T> list, List<T> otherList) {
+      if (list==null) {
+        list = otherList;
+        return list;
+      }
+      for (T item: otherList) {
+        if (!list.contains(item)) list.add(item);
+      }
+      return list;
+    }
+    // kinda annoying, just for cases where we've (erroneously IMO) typed things as specifically ArrayLists
+    public static <T> ArrayList<T> combineArrayListsInPlace(ArrayList<T> list, ArrayList<T> otherList) {
+      if (list==null) {
+        list = otherList;
+        return list;
+      }
+      for (T item: otherList) {
+        if (!list.contains(item)) list.add(item);
+      }
+      return list;
     }
 
+
+    public static boolean isValidDecimalLatitude(Double lat) {
+        if (lat == null) return false;
+        return ((lat >= -90.0) && (lat <= 90.0));
+    }
+    public static boolean isValidDecimalLongitude(Double lon) {
+        if (lon == null) return false;
+        return ((lon >= -180.0) && (lon <= 180.0));
+    }
 
     public static int count(Iterator it) {
       int num = 0;
@@ -794,13 +925,7 @@ public class Util {
     public static boolean booleanNotFalse(String value) {
         return requestParameterSet(value);
     }
-    
-    // convenience method for comparing string values
-    public static boolean shouldReplace(String val1, String val2) {
-      return (stringExists(val1) && !stringExists(val2));
-    }
-
-    
+        
     public static String basicSanitize(String input) {
       //String sanitized = null;
       //if (input!=null) {
@@ -819,6 +944,7 @@ public class Util {
     }
 
     public static String sanitizeUserInput(String input) {
+        if (input == null) return null;
       final String[] forbidden = {
         "'", "<%", "<s", "<i", "alert(", "prompt(", "confirm(",
          "\"", "</", "&#38;", "&#39;", "&#40;", "&#41;", "&#60;",
@@ -879,6 +1005,7 @@ public class Util {
   }
 
 
+
     //this is a fast hash
     //https://lz4.github.io/lz4-java/1.5.1/docs/net/jpountz/xxhash/package-summary.html
     public static final int XXHASH_SEED = 0x2170beef;  //just needs to be consistent
@@ -924,6 +1051,14 @@ public class Util {
         if (f == null) throw new IOException("fileContentHash() passed null file");
         return Long.toHexString(f.length()) + Integer.toHexString(xxhash(f));
     }
+
+  // h/t StackOverflow user erickson https://stackoverflow.com/questions/740299/how-do-i-sort-a-set-to-a-list-in-java
+  public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
+    List<T> list = new ArrayList<T>(c);
+    java.util.Collections.sort(list);
+    return list;
+  }
+
 }
 
 

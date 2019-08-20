@@ -52,7 +52,10 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.MailThreadExecutorService;
 import org.ecocean.Util;
 import org.ecocean.AccessControl;
+import org.ecocean.MarkedIndividual;
+import org.ecocean.Keyword;
 import org.ecocean.Encounter;
+import org.ecocean.Occurrence;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
 import org.ecocean.media.*;
@@ -63,7 +66,7 @@ import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
-import org.ecocean.MarkedIndividual;
+import org.ecocean.identity.IBEISIA;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -636,7 +639,9 @@ System.out.println("enc ?= " + enc.toString());
             String subN=getVal(fv, "submitterName");
             String subE=getVal(fv, "submitterEmail");
             String subO=getVal(fv, "submitterOrganization");
+            if (Util.stringExists(subO)) enc.setSubmitterOrganization(subO);
             String subP=getVal(fv, "submitterProject");
+            if (Util.stringExists(subP)) enc.setSubmitterOrganization(subP);
             //User user=null;
             List<User> submitters=new ArrayList<User>();
             if((subE!=null)&&(!subE.trim().equals(""))) {
@@ -1066,11 +1071,27 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
                 //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
                 //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
-                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), fakeParent);  //TODO are they *really* persisted for another thread (queue)
+
+                // might want to set detection status here (on the main thread)
+
+                for (MediaAsset ma: enc.getMedia()) {
+                    ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+                }
+
+                Task parentTask = null;  //this is *not* persisted, but only used so intakeMediaAssets will inherit its params
+                if (locCode != null) {
+                    parentTask = new Task();
+                    JSONObject tp = new JSONObject();
+                    JSONObject mf = new JSONObject();
+                    mf.put("locationId", locCode);
+                    tp.put("matchingSetFilter", mf);
+                    parentTask.setParameters(tp);
+                }
+                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask);  //TODO are they *really* persisted for another thread (queue)
                 myShepherd.storeNewTask(task);
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
-System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
                 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
             }
 
@@ -1113,13 +1134,15 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
             }
           
             // Email those assigned this location code
-            String informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
-            if (informMe != null) {
-              List<String> cOther = NotificationMailer.splitEmails(informMe);
-              for (String emailTo : cOther) {
-                NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
-                mailer.setUrlScheme(request.getScheme());
-                  es.execute(mailer);
+            if(enc.getLocationID()!=null) {
+              String informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
+              if (informMe != null) {
+                List<String> cOther = NotificationMailer.splitEmails(informMe);
+                for (String emailTo : cOther) {
+                  NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
+                  mailer.setUrlScheme(request.getScheme());
+                    es.execute(mailer);
+                }
               }
             }
           
