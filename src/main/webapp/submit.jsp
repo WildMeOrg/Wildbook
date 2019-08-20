@@ -1029,25 +1029,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
-          </div>
-        </div>
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
             <%
             List<String> behaviors = CommonConfiguration.getSequentialPropertyValues("behavior", context);
             if (behaviors.size()>0) {
