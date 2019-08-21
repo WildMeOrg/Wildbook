@@ -546,11 +546,6 @@
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
   </servlet>
   
-  <servlet>
-      <servlet-name>IndividualSetName</servlet-name>
-      <servlet-class>org.ecocean.servlet.IndividualSetName</servlet-class>
-  </servlet>
-
 
 <!--
 <servlet>
@@ -1167,11 +1162,6 @@
     <servlet-class>org.ecocean.servlet.TissueSampleSetMicrosatelliteMarkers</servlet-class>
   </servlet>
 
-
-    <servlet>
-      <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
-      <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
-  </servlet>
   <!--
 
   <servlet>
@@ -1201,11 +1191,6 @@
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet>
 -->
-
-  <servlet>
-    <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
-    <servlet-class>org.ecocean.servlet.TissueSampleSetMicrosatelliteMarkers</servlet-class>
-  </servlet>
 
     <servlet>
       <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
@@ -1673,11 +1658,6 @@
 	  <url-pattern>/SimpleCMROutput</url-pattern>
   </servlet-mapping>
   
-  <servlet-mapping>
-          <servlet-name>IndividualSetName</servlet-name>
-          <url-pattern>/IndividualSetName</url-pattern>
-  </servlet-mapping>
-
   <servlet-mapping>
 	  <servlet-name>MarkRecaptureEncounters</servlet-name>
 	  <url-pattern>/MarkRecaptureEncounters</url-pattern>
