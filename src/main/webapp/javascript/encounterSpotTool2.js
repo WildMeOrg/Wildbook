@@ -503,7 +503,7 @@ function save() {
 
 console.warn('sending data: %o', data); //return;
     $.ajax({
-        url: 'https://ncaquariums.wildbook.org/SubmitSpotsAndTransformImage',
+        url: 'https://spotashark.com/SubmitSpotsAndTransformImage',
         type: 'POST',
         data: JSON.stringify(data),
         complete: function(d) {
