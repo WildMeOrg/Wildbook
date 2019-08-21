@@ -29,7 +29,7 @@ var GeoJSON = function( geojson, options, map, bounds,aspect ){
 				bounds.extend(googleObj.getPosition());
 				map.fitBounds(bounds);
 				google.maps.event.addListener(googleObj,'click', function() {
-					(new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/individuals.jsp?number='+geojsonGeometry.individualID+'\">'+geojsonGeometry.individualID+'</a></strong><br /><table><tr><td><img class=\"lazyload\" align=\"top\" border=\"1\" width=\"100px\" height=\"75px\"  src=\"cust/mantamatcher/img/individual_placeholder_image.jpg\" data-src=\"'+geojsonGeometry.thumbUrl+'\"></td><td>Date: '+geojsonGeometry.date+'<br /><br /><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/encounters/encounter.jsp?number='+geojsonGeometry.catalogNumber+'\" >Go to encounter</a></td></tr></table>'})).open(map, this);		
+					(new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/individuals.jsp?number='+geojsonGeometry.individualID+'\">'+geojsonGeometry.individualDisplayName+'</a></strong><br /><table><tr><td><img class=\"lazyload\" align=\"top\" border=\"1\" width=\"100px\" height=\"75px\"  src=\"cust/mantamatcher/img/individual_placeholder_image.jpg\" data-src=\"'+geojsonGeometry.thumbUrl+'\"></td><td>Date: '+geojsonGeometry.date+'<br /><br /><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/encounters/encounter.jsp?number='+geojsonGeometry.catalogNumber+'\" >Go to encounter</a></td></tr></table>'})).open(map, this);		
 					
 				});
 
