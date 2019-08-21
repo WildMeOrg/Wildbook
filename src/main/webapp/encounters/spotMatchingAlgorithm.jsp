@@ -377,7 +377,7 @@ if (allSpotMAs != null) {
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
     <tr>
       <td class="para">
-        <form action="https://spotashark.com/EncounterAddSpotFile" method="post"
+        <form action="https://ncaquariums.wildbook.org/EncounterAddSpotFile" method="post"
               enctype="multipart/form-data" name="addSpotsFile"><input
           name="action" type="hidden" value="fileadder" id="action">
           <input name="number" type="hidden" value="<%=encNum%>" id="shark">
@@ -543,7 +543,7 @@ $(document).ready(function() {
   					<a href="http://www.blackwell-synergy.com/doi/abs/10.1111/j.1365-2664.2006.01273.x?journalCode=jpe">I3S</a> algorithms.
 
     				<div id="formDiv">
-      					<form name="formSharkGrid" id="formSharkGrid" method="post" action="https://spotashark.com/ScanTaskHandler">
+      					<form name="formSharkGrid" id="formSharkGrid" method="post" action="https://ncaquariums.wildbook.org/ScanTaskHandler">
       						<input name="action" type="hidden" id="action" value="addTask" /> 
       						<input name="encounterNumber" type="hidden" value="<%=encNum%>" />
         						<table width="200px">

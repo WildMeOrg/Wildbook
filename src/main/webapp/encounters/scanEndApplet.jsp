@@ -279,7 +279,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <%
 
-    String feedURL = "//" + "spotashark.com" + "/TrackerFeed?number=" + num;
+    String feedURL = "//" + "ncaquariums.wildbook.org" + "/TrackerFeed?number=" + num;
     String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
     //System.out.println("Base URL is: " + baseURL);
