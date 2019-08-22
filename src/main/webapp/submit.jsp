@@ -924,7 +924,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_indiv") %></label>
-            <div id="indiv-name-hint"></div>
+            <div id="indiv-name-hint">&nbsp;</div>
           </div>
           <div class="col-xs-6 col-lg-8">
 	        <input type="text" id="indiv-id" placeholder="type name to search known individuals" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="indiv-id" />
