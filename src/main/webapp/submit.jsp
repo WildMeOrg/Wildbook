@@ -582,6 +582,20 @@ function showUploadBox() {
     $("#submitupload").removeClass("hidden");
 }
 
+
+function setFormIndiv(indData) {
+    if (!indData) return;
+console.log('indiv data = %o', indData);
+    if (indData.sex) $('#encounterForm input[name="sex"][value="' + indData.sex + '"]').prop('checked', true);
+    if (indData.label) $('#indiv-name-hint').html('<i>' + indData.label + '</i>');
+    if (indData.species) {
+        var gs = indData.species.split(' ');  //this is cuz we need 3-part ones to be like "aaa bbb_ccc".  sigh!
+        var gsVal = gs[0];
+        if (gs.length > 1) gsVal += ' ' + gs[1];
+        if (gs.length > 2) gsVal += '_' + gs[2];
+        $('#genusSpecies').val(gsVal);
+    }
+}
 </script>
 
 
@@ -910,6 +924,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_indiv") %></label>
+            <div id="indiv-name-hint"></div>
           </div>
           <div class="col-xs-6 col-lg-8">
 	        <input type="text" id="indiv-id" placeholder="type name to search known individuals" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="indiv-id" />
@@ -1267,28 +1282,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 $(document).ready(function() {
 console.info('+++++++++++++++++++++++++++');
         $('#indiv-id').autocomplete({
-            //appendTo: $('#navbar-top'),
-/*
-            response: function(ev, ui) {
-                if (ui.content.length < 1) {
-                    $('#search-help').show();
-                } else {
-                    $('#search-help').hide();
-                }
-            },
-*/
-/*
             select: function(ev, ui) {
-                if (ui.item.type == "individual") {
-                    window.location.replace("<(urlLoc+"/individuals.jsp?number=")>" + ui.item.value);
-                }
-                else if (ui.item.type == "locationID") {
-                	window.location.replace("<(urlLoc+"/encounters/searchResultsAnalysis.jsp?locationCodeField=")>" + ui.item.value);
-                }
-                return false;
+                setFormIndiv(ui.item);
             },
-*/
-            //source: app.config.wildbook.proxyUrl + "/search"
             source: function( request, response ) {
                 $.ajax({
                     url: './SiteSearch',
@@ -1308,6 +1304,8 @@ console.info('+++++++++++++++++++++++++++');
                                 label = "";
                             }
                             return {label: label + item.label,
+                                    sex: item.sex,
+                                    species: item.species,
                                     value: item.value,
                                     type: item.type};
                             });

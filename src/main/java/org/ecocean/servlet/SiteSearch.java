@@ -115,6 +115,7 @@ public class SiteSearch extends HttpServlet {
                   if(ind.getNickName()!=null){
                     hm.put("nickname", ind.getNickName());
                   }
+                    hm.put("sex", ind.getSex());
                   labelToHm.put(label, hm);
                   //list.add(hm);
                 }
