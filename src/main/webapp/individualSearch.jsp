@@ -21,7 +21,7 @@ context=ServletUtilities.getContext(request);
     firstYear = myShepherd.getEarliestSightingYear();
     nowYear = myShepherd.getLastSightingYear()+1; // lol this was returning a result 2 off so i fixed it
     firstSubmissionYear=myShepherd.getFirstSubmissionYear();
-  } 
+  }
   catch (Exception e) {
     e.printStackTrace();
   }
@@ -32,7 +32,7 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
@@ -727,7 +727,7 @@ function FSControl(controlDiv, map) {
       <table width="720">
         <tr>
           <td width="670"><label><em>
-                    
+
             &nbsp;<%=props.getProperty("day")%>
           </em> <em> <select name="addedday1" id="addedday1">
             <option value="1" selected>1</option>
@@ -777,8 +777,8 @@ function FSControl(controlDiv, map) {
             <option value="12">12</option>
           </select> <%=props.getProperty("year")%>
           </em> <select name="addedyear1" id="addedyear1">
-            <% 
-            
+            <%
+
             int currentYear=cal.get(1)+2;
             for (int q = firstSubmissionYear; q <= currentYear; q++) { %>
             <option value="<%=q%>"
@@ -1719,7 +1719,7 @@ else {
 
 	<strong><%=props.getProperty("username")%></strong><br />
       <%
-      	List<String> users = myShepherd.getAllUsernames();
+      	List<String> users = myShepherd.getAllNativeUsernames();
       	users.remove(null);
       	Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
         int numUsers = users.size();
