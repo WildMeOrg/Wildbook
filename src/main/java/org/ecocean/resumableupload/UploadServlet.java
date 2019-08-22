@@ -46,20 +46,27 @@ public class UploadServlet extends HttpServlet {
 
 	// For user-facing web bulk upload.
 	public static String getSubdirForUpload(Shepherd myShepherd, HttpServletRequest request) {
+            return new File(CommonConfiguration.getUploadTmpDirForUser(request)).getName();
+/*
 		String subdir = ServletUtilities.getParameterOrAttribute("subdir",request);
 		if (subdir==null) {
 			System.out.println("No subidr is set for upload; setting subdir to username");
 			subdir = myShepherd.getUsername(request);
 		}
 		return subdir;
+*/
 	}
 	public static void setSubdirForUpload(String subdir, HttpServletRequest request) {
+            System.out.println("WARN: UploadServlet.setSubdirForUpload() has been deprecated.");
+            return;
+/*
 		if (subdir!=null) {
 			System.out.println("We got a subdir! I'm setting the session 'subdir' attribute to "+subdir);
 			request.getSession().setAttribute("subdir",subdir);
 		} else {
 			System.out.println("We did not get a subdir!");
 		}
+*/
 	}
 
 
@@ -240,11 +247,7 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
 	public static String getUploadDir(HttpServletRequest request) {
 			System.out.println("UploadServlet is calling getUploadDir on request (about to print): ");
 			ServletUtilities.printParams(request);
-			String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir", request);
-			System.out.println("UploadServlet got subdir "+subDir);
-			if (subDir==null) {subDir = "";}
-			else {subDir = "/"+subDir;}
-			String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request))+subDir;
+			String fullDir = CommonConfiguration.getUploadTmpDirForUser(request);
 			System.out.println("UploadServlet got uploadDir = "+fullDir);
 			ensureDirectoryExists(fullDir);
             return (fullDir);

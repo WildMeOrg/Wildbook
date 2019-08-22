@@ -652,12 +652,6 @@ public class StandardImport extends HttpServlet {
   	String specificEpithet = getString(row, "Encounter.specificEpithet");
   	if (specificEpithet!=null) enc.setSpecificEpithet(specificEpithet);
 
-  	String submitterOrganization = getString(row, "Encounter.submitterOrganization");
-  	if (submitterOrganization!=null) enc.setSubmitterOrganization(submitterOrganization);
-
-  	String submitterName = getString(row, "Encounter.submitterName");
-  	if (submitterName!=null) enc.setSubmitterName(submitterName);
-
   	String patterningCode = getString(row, "Encounter.patterningCode");
   	if (patterningCode!=null) enc.setPatterningCode(patterningCode);
 
@@ -812,6 +806,7 @@ public class StandardImport extends HttpServlet {
 
   	String scar = getIntAsString(row, "Encounter.distinguishingScar");
   	if (scar!=null) enc.setDistinguishingScar(scar);
+  
 
 
   	// SAMPLES
@@ -926,6 +921,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 //  	localPath = fixGlobiceFullPath(localPath)+"/";
 //  	localPath = localPath.replace(" ","\\ ");
   	String fullPath = photoDirectory+localPath;
+  	fullPath = fullPath.replaceAll("//","/"); 
   	System.out.println(fullPath);
   	// Globice fix!
   	// now fix spaces
@@ -1024,6 +1020,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	localPath = Util.windowsFileStringToLinux(localPath);
   	System.out.println("...localPath is: "+localPath);
   	String fullPath = photoDirectory+"/"+localPath;
+  	fullPath = fullPath.replaceAll("//","/"); 
   	System.out.println("...fullPath is: "+fullPath);
     String resolvedPath = resolveHumanEnteredFilename(fullPath);
     System.out.println("getMediaAsset resolvedPath is: "+resolvedPath);
@@ -1098,19 +1095,35 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     int maxAssets = getNumAssets(row);
-    int maxKeywords=4;
+    int maxKeywords=9;
     int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; // 
     // we have up to 4 keywords per row.
-    for (int i=n; i<=stopAtKeyword; i++) {
-      String kwColName = "Encounter.keyword"+i;
-      String kwName = getString(row, kwColName);
-      if (kwName==null) {
-        kwColName = "Encounter.keyword0"+i;
-        kwName = getString(row, kwColName);
+    
+    String kwsName = getString(row, "keywords");
+    //if keywords are just blobbed together with an underscore delimiter
+    if(kwsName!=null) {
+      StringTokenizer str=new StringTokenizer(kwsName,"_");
+      while(str.hasMoreTokens()) {
+        String kwString=str.nextToken();
+        if(kwString!=null && !kwString.trim().equals("")) {
+          Keyword kw = myShepherd.getOrCreateKeyword(kwString);
+          if (kw!=null) ans.add(kw);
+        }
+        
       }
-      if (kwName==null) continue;
-      Keyword kw = myShepherd.getOrCreateKeyword(kwName);
-      if (kw!=null) ans.add(kw);
+    }
+    else {
+      for (int i=n; i<=stopAtKeyword; i++) {
+        String kwColName = "Encounter.keyword"+i;
+        String kwName = getString(row, kwColName);
+        if (kwName==null) {
+          kwColName = "Encounter.keyword0"+i;
+          kwName = getString(row, kwColName);
+        }
+        if (kwName==null) continue;
+        Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+        if (kw!=null) ans.add(kw);
+      }
     }
     return ans;
   }
@@ -1286,6 +1299,14 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
   	if (nickname!=null) mark.setNickName(nickname);
+  	
+    //MarkedIndividual.timeOfBirth as long
+    Long tob = getLong(row, "MarkedIndividual.timeOfBirth");
+    if (tob!=null) mark.setTimeOfBirth(tob.longValue());
+    
+    //MarkedIndividual.timeOfDeath as long
+    Long tod = getLong(row, "MarkedIndividual.timeOfDeath");
+    if (tod!=null) mark.setTimeOfBirth(tod.longValue());
 
   	return mark;
 
