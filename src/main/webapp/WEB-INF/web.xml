@@ -527,7 +527,7 @@
 
   <servlet>
     <servlet-name>ResumableUpload</servlet-name>
-    <servlet-class>ec.com.mapache.ngflow.servlet.UploadServlet</servlet-class>
+    <servlet-class>org.ecocean.resumableupload.UploadServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ResumableUpload</servlet-name>
