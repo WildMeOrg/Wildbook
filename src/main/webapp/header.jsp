@@ -166,6 +166,11 @@ finally{
         width: 100%;
       }
 
+        ul.dropdown-menu {
+            max-height: 70vh;
+            overflow-y: scroll;
+        }
+
     </style>
 
     </head>
@@ -200,7 +205,7 @@ finally{
 		                  %>
 
 		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="<%=props.getProperty("yourAccount") %>" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
-		             				      <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
+		             				<li><a href="<%=urlLoc %>/logout.jsp" style="color: #444;" ><%=props.getProperty("logout") %></a></li>
 
 		                      		<%
 	                          }
@@ -393,7 +398,7 @@ finally{
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                         <%
                         if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
@@ -410,15 +415,14 @@ finally{
                           <li class="dropdown-header">Nav header</li>
                            -->
 
-                          <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("occurrences")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("search")%></a></li>
+                          <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
 
-                          <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
+                          <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
                         </ul>
                       </li>
                       <li class="dropdown">
@@ -450,23 +454,7 @@ finally{
                       <!-- start locationID sites -->
                        <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("sites") %> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-
-
-                        <!-- list sites by locationID -->
-                          <% boolean moreLocationIDs=true;
-                             int siteNum=0;
-                             while(moreLocationIDs) {
-                                 String currentLocationID = "locationID"+siteNum;
-                                 if (CommonConfiguration.getProperty(currentLocationID,context)!=null) { %>
-                                   <li><a href="<%=urlLoc %>/encounters/searchResultsAnalysis.jsp?locationCodeField=<%=CommonConfiguration.getProperty(currentLocationID,context) %>"><%=WordUtils.capitalize(CommonConfiguration.getProperty(currentLocationID,context)) %></a></li>
-                                 <% siteNum++;
-                                 } else {
-                                	 moreLocationIDs=false;
-                                 }
-                            } //end while %>
-
-                        </ul>
+                        <%=org.ecocean.LocationID.getBootstrapMenu(null, urlLoc)%>
                       </li>
                       <!-- end locationID sites -->
 
@@ -483,7 +471,9 @@ finally{
                            </ul>
                       </li>
 
-
+                      <li>
+                        <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
+                      </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
