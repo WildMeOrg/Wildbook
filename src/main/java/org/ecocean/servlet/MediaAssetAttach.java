@@ -53,7 +53,20 @@ public class MediaAssetAttach extends HttpServlet {
     String encID = args.optString("EncounterID");
     String maID = args.optString("MediaAssetID");
 
-    System.out.println("Servlet received maID="+maID+" and encID="+encID);
+    //resolve all asset ids into one list
+    List<String> maIds = new ArrayList<String>();
+    /*
+    ok, leaving this for prosperity. this FAILS on the .getString() for reasons i cant explain when passed an int (non-string)
+    however, the conditional still evaluates as TRUE !!!!   good luck on this one.
+        see also:   https://github.com/stleary/JSON-java/issues/472
+    if (args.optString("MediaAssetID", null) != null) maIds.add(args.getString("MediaAssetID"));
+    */
+    if (args.optString("MediaAssetID", null) != null) maIds.add(args.optString("MediaAssetID", null));
+    JSONArray jarr = args.optJSONArray("mediaAssetIds");
+    if (jarr != null) for (int i = 0 ; i < jarr.length() ; i++) {
+        String arrId = jarr.optString(i, null);
+        if ((arrId != null) && !maIds.contains(arrId)) maIds.add(arrId);
+    }
 
     if (encID == null || maID == null) {
       throw new IOException("MediaAssetAttach servlet requires both a \"MediaAssetID\" and an \"EncounterID\" argument. Servlet received maID="+maID+" and encID="+encID);
