@@ -298,7 +298,7 @@ public class LocationID {
         if (urlPrefix == null) urlPrefix = "./";   //probably not what you want
         JSONObject locJson = getLocationIDStructure(qualifier);
         String menu = "<ul class=\"dropdown-menu location-id-nested\">";
-        menu += getBootstrapList(locJson, urlPrefix, -1);  //-1 cuz the toplevel is essentially skipped
+        menu += getBootstrapList(locJson, urlPrefix, 0);
         menu += "</ul>";
         return menu;
     }
@@ -310,7 +310,7 @@ public class LocationID {
             String name = locJson.optString("name", id);
             String desc = locJson.optString("description", "");
             if (!desc.equals("")) desc = " title=\"" + desc + "\" ";
-            li = "<li><a style=\"padding-left: " + (2 * indent) + "em\" href=\"" + (urlPrefix == null ? "" : urlPrefix) + "/encounters/searchResultsAnalysis.jsp?locationCodeField=" + id + "\"" + desc + ">" + name + "</a></li>\n";
+            li = "<li><a style=\"padding-left: " + (1.3 * indent) + "em\" href=\"" + (urlPrefix == null ? "" : urlPrefix) + "/encounters/searchResultsAnalysis.jsp?locationCodeField=" + id + "\"" + desc + ">" + name + "</a></li>\n";
         }
 
         JSONArray subArr = locJson.optJSONArray("locationID");
