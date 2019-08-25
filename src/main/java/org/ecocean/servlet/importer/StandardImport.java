@@ -1052,7 +1052,9 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	    if(kws!=null)ma.setKeywords(kws);
 	  } 
 	  catch (java.io.IOException ioEx) {
+
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
+      ioEx.printStackTrace();
 	  	missingPhotos.add(fullPath);
 	  	foundPhotos.remove(fullPath);
                 return null;
@@ -1091,6 +1093,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         return null;
     }
 
+    /*
   private ArrayList<Keyword> getKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
 
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
@@ -1127,19 +1130,36 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
     return ans;
   }
+*/
 
   private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
-
-    String kwColName = "Encounter.keyword"+n;
-    String kwName = getString(row, kwColName);
-    if (kwName==null) {
-      kwColName = "Encounter.keyword0"+n;
-      kwName = getString(row, kwColName);
+    String kwsName = getString(row, "Encounter.mediaAsset"+n+".keywords");
+    //if keywords are just blobbed together with an underscore delimiter
+    if(kwsName!=null) {
+      StringTokenizer str=new StringTokenizer(kwsName,"_");
+      while(str.hasMoreTokens()) {
+        String kwString=str.nextToken();
+        if(kwString!=null && !kwString.trim().equals("")) {
+          Keyword kw = myShepherd.getOrCreateKeyword(kwString);
+          if (kw!=null) ans.add(kw);
+        }
+        
+      }
     }
-    if (kwName==null) return ans;
-    Keyword kw = myShepherd.getOrCreateKeyword(kwName);
-    if (kw!=null) ans.add(kw);
+    else {
+      String kwColName = "Encounter.keyword"+n;
+      String kwName = getString(row, kwColName);
+      if (kwName==null) {
+        kwColName = "Encounter.keyword0"+n;
+        kwName = getString(row, kwColName);
+      }
+      if (kwName==null) return ans;
+      Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+      if (kw!=null) ans.add(kw);
+    }
+    
+    
 
     return ans;
   }
