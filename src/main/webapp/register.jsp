@@ -79,6 +79,7 @@ request.setAttribute("pageTitle", "Kitizen Science &gt; Participate");
 boolean rollback = true;
 
 boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"));
+uwMode = true;
   //setup our Properties object to hold all properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
@@ -203,7 +204,12 @@ if (session.getAttribute("error") != null) {
 %>
 </div>
               
-<% if (mode < 0) { %>
+<% if (mode < 0) {
+    if (uwMode) {
+%>
+<h2>Intro text for UW</h2>
+
+<%  } else {  //not uwMode %>
 
 <div class="explanation-section">
 
@@ -227,7 +233,10 @@ first to see more about what this trial involves.
 Note: some mobile and tablet users are reporting that images aren't loading for them.  We're working on fixing that, but in the mean time, please try a desktop or laptop computer if you are having issues with photos loading.
 </p>
 
-<%  if (loggedIn) { %>
+<%
+    }
+
+  if (loggedIn) { %>
     <b>You are logged in already.  <a href="compare.jsp">Please proceed to study.</a></b>
 <% } else { %>
 
@@ -244,6 +253,16 @@ Note: some mobile and tablet users are reporting that images aren't loading for 
 
 <% }
 if (mode == 0) {
+    if (uwMode) {
+%>
+
+<div id="consent-section">
+<h2>UW FLAVOR CONSENT</h2>
+
+</div>
+
+<%
+    } else {  //not uwMode
 %>
 
 <div id="consent-section">
@@ -356,7 +375,10 @@ I consent to participate in this study.
 </div>
 
 
-<% }
+<%
+    }
+}
+
 if (mode == 1) {
     Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
 %>
