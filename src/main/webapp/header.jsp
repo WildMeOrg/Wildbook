@@ -24,6 +24,8 @@
              org.ecocean.CommonConfiguration,
              org.ecocean.Shepherd,
              org.ecocean.AccessControl,
+             org.ecocean.Util,
+             org.ecocean.SystemValue,
              org.ecocean.User,
              java.util.ArrayList,
              java.util.List,
@@ -42,6 +44,7 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
+boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"));
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 boolean isAnonymous = (AccessControl.simpleUserString(request) == null);
 String pageTitle = (String)request.getAttribute("pageTitle");
@@ -461,7 +464,7 @@ if (pageTitle == null) pageTitle = CommonConfiguration.getHTMLTitle(context);
                       </li>
 
                       <li>
-                        <a href="<%=urlLoc %>/donate.jsp">Donate</a>
+                        <a title="uwMode=<%=uwMode%>" href="<%=urlLoc %>/donate.jsp">Donate</a>
                       </li>
 
                       <li class="dropdown">
