@@ -168,7 +168,7 @@ finally{
 
         ul.dropdown-menu {
             max-height: 70vh;
-            overflow-y: scroll;
+            overflow-y: auto;
         }
 
     </style>
