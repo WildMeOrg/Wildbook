@@ -385,10 +385,15 @@ public class StandardImport extends HttpServlet {
     out.println("</ul>");
 
 
+    /*
     if (committing) {
         itask.setEncounters(encsCreated);
+        System.out.println("here1");
         myShepherd.getPM().makePersistent(itask);
+        System.out.println("here2");
+        myShepherd.updateDBTransaction();
     }
+    */
 
     List<String> usedColumns = new ArrayList<String>();
     for (String colName: colIndexMap.keySet()) {
@@ -416,6 +421,10 @@ public class StandardImport extends HttpServlet {
     out.println("<h2><strong> "+numAnnots+" </strong> annots</h2>");    
 
     out.println("<h2>Import completed successfully</h2>");    
+    
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+    
     //fs.close();
   }
 
