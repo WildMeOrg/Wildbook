@@ -104,11 +104,9 @@ List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
 	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
-  System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
   	int numEncs=encs.size();
-  System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
   %><script>
 
@@ -127,7 +125,6 @@ function forceLink(el) {
   for(int f=0;f<numEncs;f++){
 
 		  Encounter enc = encs.get(f);
-		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
       if (shouldEvict(enc)) {
         // I believe we need to evict the cache here so that we'll see detection results on the encounter page
         org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
@@ -145,15 +142,9 @@ function forceLink(el) {
 		    %> <script>console.log('no annotations found for encounter <%=encNum %>'); </script> <%
 		  }
 		  else {
-        System.out.println("EMG: got "+anns.size()+" anns");
-
 		  	for (Annotation ann: anns) {
-		  		System.out.println("    EMG: starting for ann "+ann);
-
 		  		if (ann == null) continue;
 		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
-		      //System.out.println("    EMG: got tasks "+tasks);
-
 		      MediaAsset ma = ann.getMediaAsset();
 				if (ma == null) continue;
                         if ((ma.getAcmId() != null) && !maAcms.contains(ma.getAcmId())) maAcms.add(ma.getAcmId());
@@ -162,14 +153,11 @@ function forceLink(el) {
                         
 
 		      String filename = ma.getFilename();
-		      System.out.println("    EMG: got ma at "+filename);
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
 		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a><br>";
 		      }
-		      	System.out.println("    EMG: got indID element "+individualID);
-
 		      
 		      //Start caption render JSP side
 		      String[] capos=new String[1];
@@ -184,8 +172,6 @@ function forceLink(el) {
 		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
 */
 		      captionLinks.add(capos);
-		      System.out.println("    EMG: got capos "+capos[0]);
-
 		      //end caption render JSP side
 		      
 		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
@@ -193,8 +179,6 @@ function forceLink(el) {
 
 		  		
 		  		if (ma != null) {
-		  			System.out.println("    EMG: ma is not null");
-
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
@@ -214,9 +198,7 @@ function forceLink(el) {
                                                 ja.put("identificationStatus", ann.getIdentificationStatus());
                                                 j.put("annotation", ja);
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
-
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
-
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
 							//   also: prob should check *what* is detected. :) somewhere....
 							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
@@ -241,13 +223,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 						}
 						// Should fix oman images not appearing on import
 						j.put("url", ma.webURL().toString());
-
-            if (Util.stringExists(ma.getDetectionStatus())) {
               j.put("detectionStatus",ma.getDetectionStatus());
-            } else {
-              System.out.println("DETECTION STATUS"+ma.getDetectionStatus()+" missing for ma "+ma);
-            }
-
 						all.put(j);
 					}
 		  		}
@@ -556,10 +532,7 @@ if(request.getParameter("encounterNumber")!=null){
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
-  
-  console.log("Hey we're workin again!");
   var assets = <%=all.toString()%>;
-  // <% System.out.println(" Got all size = "+all.length()); %>
   var captions = <%=captions.toString()%>
   captions.forEach( function(elem) {
     console.log("caption here: "+elem);
@@ -595,20 +568,11 @@ if(request.getParameter("encounterNumber")!=null){
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
     console.log("   EMG asset "+index+" id: "+assetId);
-    <% System.out.println("    EMG: asset is forEach'd"); %>
     if (<%=isGrid%>) {
-    	    console.log("   EMG : isGrid true!");
-
-    	<% System.out.println("    EMG: calling grid version"); %>
-
       maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
     } else {
-    	    	    console.log("   EMG : isGrid false!");
-
-    	    	<% System.out.println("    EMG: calling nongrid version"); %>
-      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
-
-      //maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
+      maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
+      //maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
     }
 
 
@@ -618,6 +582,7 @@ if(request.getParameter("encounterNumber")!=null){
     $('#enc-gallery').append(removeAssetLink);
 */
   });
+/*  xxxxx
   // we need to add a phantom image for alignment if there are an odd number of them
   console.log("we got some assets! length="+assets.length);
   if ((assets.length % 2) != 0) {
@@ -625,6 +590,7 @@ if(request.getParameter("encounterNumber")!=null){
     console.log("odd number! encGallery is adding a phantom div with height "+lastImageHeight);
     $("#enc-gallery").append("<div class='col-sm-6' style='visibility:hidden; height:"+lastImageHeight+"'>Look at this amazing div with all its wonderful contents</div>");
   }
+*/
 
 
 
@@ -1251,7 +1217,6 @@ console.info(d);
 */
 
 function refreshKeywordsForMediaAsset(mid, data) {
-  console.log("refreshKeywordsForMediaAsset called on mid %s and data %o",mid,data);
     for (var i = 0 ; i < assets.length ; i++) {
         if (assets[i].id != mid) continue;
         //if (!assets[i].keywords) assets[i].keywords = [];
@@ -1259,7 +1224,7 @@ function refreshKeywordsForMediaAsset(mid, data) {
         for (var id in data.results[mid]) {
             assets[i].keywords.push({
                 indexname: id,
-                readableName: data.results[mid][id],
+                readableName: data.results[mid][id]
                 //displayName: data.results[mid][displayName],
                 //label: data.results[mid][label]
             });
