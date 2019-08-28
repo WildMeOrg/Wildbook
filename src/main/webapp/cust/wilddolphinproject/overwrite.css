@@ -1,0 +1,19 @@
+.header-top-wrapper {
+	background: #5DBCD2;
+}
+
+.navbar-brand.wildbook {
+	background: url(flukebook_logo_black_noborder.svg) no-repeat;
+	background-size: 100% auto;
+	background-position: center;
+}
+
+.navbar-brand.wilddolphinproject {
+	display: inline !important; /* display: none by default; */
+	background: url(wild-dolphin-trimmed.png) no-repeat;
+	background-position: center;
+    background-size: 86%; /* custom value that looks nice next to flukebook logo */
+    width: 305px !important;
+    padding-left: 10px;
+    padding-right: 10px;
+}

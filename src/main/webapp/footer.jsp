@@ -78,7 +78,21 @@ myShepherd.rollbackAndClose();
                           <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" style="height: 150px;"/>
                         </a>
                       <%
-                    } else {
+
+                    } else if (ServletUtilities.useCustomStyle(request, "wild dolphin project")) {
+
+                      %>
+
+                        <img src="<%=urlLoc%>/images/partner-logos/wilddolphinproject-logo1.png" alt="Wild Dolphin Projec Logo" style="height:120px; margin-right:20px;" />
+
+
+                        <a href="http://www.wildbook.org" title="This site is Powered by Wildbook">
+                          <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" style="height: 150px;"/>
+                        </a>
+
+                      <%                    
+
+                    } else  {
                     %>
                     <a href="http://www.wildbook.org" title="This site is Powered by Wildbook" class="pull-right">
                       <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" class="pull-right" style="
