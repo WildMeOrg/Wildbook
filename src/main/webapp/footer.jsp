@@ -28,6 +28,7 @@ CommonConfiguration.ensureServerInfo(myShepherd, request);
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 myShepherd.setAction("footer.jsp");
+myShepherd.rollbackAndClose();
 
         %>
 
