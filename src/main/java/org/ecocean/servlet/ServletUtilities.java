@@ -884,7 +884,7 @@ public static boolean useCustomStyle(HttpServletRequest request, String orgName)
   if (organization!=null && organization.toLowerCase().equals(orgName.toLowerCase())) return true;
 
   // The checks further below will also return true _right after logging out_ so we need this step
-  if (Util.requestHasVal("logout")) return false;
+  if (Util.requestHasVal(request, "logout")) return false;
 
   // Shepherd handling w 'finally' to ensure we close the dbconnection after return.
   Shepherd myShepherd = Shepherd.newActiveShepherd(request, "ServletUtilities.useCustomStyle");
