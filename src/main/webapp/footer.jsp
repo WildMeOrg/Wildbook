@@ -67,8 +67,8 @@ myShepherd.rollbackAndClose();
                         <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" style="height: 150px;"/>
                       </a>
 
-                    <%} else if (ServletUtilities.useCustomStyle(request, "neaq")) {
-                      System.out.println("Footer is using custom NEAQ style!!");
+                    <%} else if (ServletUtilities.useCustomStyle(request, "narw")) {
+                      System.out.println("Footer is using custom NARW style!!");
                       %>
                         <img src="<%=urlLoc%>/images/partner-logos/NOAA_logo.svg" alt="NOAA logo" style="height:100px; margin-right:20px;" />
                         <img src="<%=urlLoc%>/images/partner-logos/new-england-aquarium.svg" alt="New England Aquarium logo" style="height:100px;margin-right:20px" />

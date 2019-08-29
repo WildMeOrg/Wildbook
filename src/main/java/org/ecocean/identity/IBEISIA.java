@@ -439,6 +439,16 @@ System.out.println("     gotta compute :(");
             System.out.println("[INFO] sendDetect() nms_thresh is null; DEFAULT will be used");
         }
 
+        String orienterAlgoKey = "orienter_algo"+taxonomyPropString;
+        String orienterAlgo = IA.getProperty(context, orienterAlgoKey);
+        if (orienterAlgo != null) {
+            System.out.println("[INFO] sendDetect() orienter_algo set to " + orienterAlgo);
+            map.put("orienter_algo", orienterAlgo);
+        } else {
+            System.out.println("[INFO] sendDetect() orienter_algo is null; DEFAULT will be used");
+        }
+
+
         String u = getDetectUrlByModelTag(context, modelTag);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
         URL url = new URL(u);
@@ -615,18 +625,18 @@ System.out.println("     gotta compute :(");
         if (Util.collectionIsEmptyOrNull(mas)) return null;
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.taxonomyFromMediaAssets");
-        myShepherd.beginDBTransaction();
-        for (MediaAsset ma : mas) {
-            Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
-            if (tax != null) {
-                myShepherd.rollbackDBTransaction();
-                myShepherd.closeDBTransaction();
-                return tax;
+        try {
+            myShepherd.beginDBTransaction();
+            for (MediaAsset ma : mas) {
+                Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
+                if (tax != null) {
+                    return tax;
+                }
             }
+            return null;
+        } finally {
+            myShepherd.rollbackAndClose();
         }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        return null;
     }
     
     public static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas, Shepherd myShepherd) {
