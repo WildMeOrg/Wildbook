@@ -142,7 +142,7 @@ public class RestKeyword extends HttpServlet {
                           }
                       }
   
-                      Taxonomy taxy = IBEISIA.taxonomyFromMediaAssets(context, mas); // keeps our logic consistent w/ IA stuff
+                      Taxonomy taxy = IBEISIA.taxonomyFromMediaAssets(context, mas, myShepherd); // keeps our logic consistent w/ IA stuff
 
   System.out.println("INFO: RestKeyword mas = " + mas.toString());
   System.out.println("INFO: RestKeyword toAdd = " + toAdd.toString());
