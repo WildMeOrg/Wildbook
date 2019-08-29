@@ -581,7 +581,11 @@ System.out.println(ft.getParameters());
     boolean admin = (user != null) && "admin".equals(user.getUsername());
     //String filter = "SELECT FROM org.ecocean.Occurrence WHERE source != null";
     String filter = "SELECT FROM org.ecocean.Occurrence WHERE source.matches('SpotterConserveIO:.*')";
-    if (!admin) filter += " && submitters.contains(u) && u.uuid == '" + user.getUUID() + "'";
+    if (admin && (request.getParameter("uuid") != null)) {
+        filter += " && submitters.contains(u) && u.uuid == '" + Util.basicSanitize(request.getParameter("uuid")) + "'";
+    } else if (!admin) {
+        filter += " && submitters.contains(u) && u.uuid == '" + user.getUUID() + "'";
+    }
     Query query = myShepherd.getPM().newQuery(filter);
     query.setOrdering("dateTimeCreated desc");
     Collection coll = (Collection) query.execute();
