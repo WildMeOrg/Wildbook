@@ -638,6 +638,17 @@ System.out.println("     gotta compute :(");
             myShepherd.rollbackAndClose();
         }
     }
+    
+    public static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas, Shepherd myShepherd) {
+      if (Util.collectionIsEmptyOrNull(mas)) return null;
+      for (MediaAsset ma : mas) {
+          Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
+          if (tax != null) {
+              return tax;
+          }
+      }
+      return null;
+  }
 
 
 

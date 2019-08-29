@@ -98,6 +98,9 @@ finally{
       if (ServletUtilities.useCustomStyle(request, "indocet")) {
         System.out.println("Using custom indocet style!!");
         %><link rel="stylesheet" href="<%=urlLoc %>/cust/indocet/overwrite.css" /><%
+      } else if (ServletUtilities.useCustomStyle(request, "wild dolphin project")) {
+        System.out.println("Using custom wild dolphin project style!!");
+         %><link rel="stylesheet" href="<%=urlLoc %>/cust/wilddolphinproject/overwrite.css" /><%
       }
       %>
       <!-- Icon font necessary for indocet style, but for consistency will be applied everywhere -->
@@ -341,6 +344,7 @@ finally{
                   </div>
                   <a class="navbar-brand wildbook" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                   <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand wilddolphinproject" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
 
                 </div>
               </div>
