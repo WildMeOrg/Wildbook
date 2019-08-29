@@ -392,6 +392,10 @@
 				/EncounterSetString = authc
 				/OrganizationEdit = authc, roles[admin]
 				/MergeIndividual = authc
+				
+				/UpdateStandard = authc, roles[admin]
+				/uploader.jsp = authc, roles[researcher]
+				
 
             </param-value>
         </init-param>

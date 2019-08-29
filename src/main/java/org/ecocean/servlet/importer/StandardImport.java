@@ -385,10 +385,15 @@ public class StandardImport extends HttpServlet {
     out.println("</ul>");
 
 
+    /*
     if (committing) {
         itask.setEncounters(encsCreated);
+        System.out.println("here1");
         myShepherd.getPM().makePersistent(itask);
+        System.out.println("here2");
+        myShepherd.updateDBTransaction();
     }
+    */
 
     List<String> usedColumns = new ArrayList<String>();
     for (String colName: colIndexMap.keySet()) {
@@ -416,6 +421,10 @@ public class StandardImport extends HttpServlet {
     out.println("<h2><strong> "+numAnnots+" </strong> annots</h2>");    
 
     out.println("<h2>Import completed successfully</h2>");    
+    
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+    
     //fs.close();
   }
 
@@ -1052,7 +1061,9 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	    if(kws!=null)ma.setKeywords(kws);
 	  } 
 	  catch (java.io.IOException ioEx) {
+
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
+      ioEx.printStackTrace();
 	  	missingPhotos.add(fullPath);
 	  	foundPhotos.remove(fullPath);
                 return null;
@@ -1091,6 +1102,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         return null;
     }
 
+    /*
   private ArrayList<Keyword> getKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
 
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
@@ -1127,19 +1139,36 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
     return ans;
   }
+*/
 
   private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
-
-    String kwColName = "Encounter.keyword"+n;
-    String kwName = getString(row, kwColName);
-    if (kwName==null) {
-      kwColName = "Encounter.keyword0"+n;
-      kwName = getString(row, kwColName);
+    String kwsName = getString(row, "Encounter.mediaAsset"+n+".keywords");
+    //if keywords are just blobbed together with an underscore delimiter
+    if(kwsName!=null) {
+      StringTokenizer str=new StringTokenizer(kwsName,"_");
+      while(str.hasMoreTokens()) {
+        String kwString=str.nextToken();
+        if(kwString!=null && !kwString.trim().equals("")) {
+          Keyword kw = myShepherd.getOrCreateKeyword(kwString);
+          if (kw!=null) ans.add(kw);
+        }
+        
+      }
     }
-    if (kwName==null) return ans;
-    Keyword kw = myShepherd.getOrCreateKeyword(kwName);
-    if (kw!=null) ans.add(kw);
+    else {
+      String kwColName = "Encounter.keyword"+n;
+      String kwName = getString(row, kwColName);
+      if (kwName==null) {
+        kwColName = "Encounter.keyword0"+n;
+        kwName = getString(row, kwColName);
+      }
+      if (kwName==null) return ans;
+      Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+      if (kw!=null) ans.add(kw);
+    }
+    
+    
 
     return ans;
   }
