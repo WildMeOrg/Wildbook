@@ -330,8 +330,8 @@ var testColumns = {
 	//thumb: { label: 'Thumb', val: _colThumb },
 	individualID: { label: 'ID', val: _colIndLink },
 	date: { label: 'Date', val: _colEncDate },
-	verbatimLocality: { label: 'Location' },
-	//locationID: { label: 'Location ID' },
+	//verbatimLocality: { label: 'Location' },
+	locationID: { label: 'Location ID' },
 	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
 	submitterID: { label: 'Submitter' },
 	creationDate: { label: 'Created', val: _colCreationDate },
@@ -372,14 +372,14 @@ var colDefn = [
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
-	{
-		key: 'verbatimLocality',
-		label: '<%=encprops.getProperty("location")%>',
-	},
 //	{
-//		key: 'locationID',
-// 		label: '<%=encprops.getProperty("locationID")%>',
+//		key: 'verbatimLocality',
+//		label: '<%=encprops.getProperty("location")%>',
 //	},
+	{
+		key: 'locationID',
+ 		label: '<%=encprops.getProperty("locationID")%>',
+	},
 	{
 		key: 'taxonomy',
 		label: '<%=encprops.getProperty("taxonomy")%>',
