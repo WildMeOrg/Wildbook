@@ -63,7 +63,7 @@ margin-bottom: 8px !important;
 <script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
   <script type="text/javascript">
   var map;
-  var mapZoom = 8;
+  var mapZoom = 3.5; 
   var center;
   var newCenter;	
 //Define the overlay, derived from google.maps.OverlayView
@@ -124,7 +124,7 @@ margin-bottom: 8px !important;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 		
     	if (center == null) {
-	    	center = new google.maps.LatLng(-32.000, 116.000);
+    		center = new google.maps.LatLng(-23.117, 132.1333);
     	} else {
     		center = map.getCenter();
     	}

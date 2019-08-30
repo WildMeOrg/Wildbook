@@ -337,7 +337,7 @@ td.measurement{
 
   var map;
   var marker;
-  var center = new google.maps.LatLng(0, 0);
+  //var center = new google.maps.LatLng(-23.117, 132.1333);
 
 
           function placeMarker(location) {
@@ -385,10 +385,10 @@ function setIndivAutocomplete(el) {
             function initialize() {
 	            //alert("Initializing map!");
 	              //var mapZoom = 1;
-	              var mapZoom = 1;
+	              var mapZoom = 3.1;
 
 	              //var center = new google.maps.LatLng(10.8, 160.8);
-	              var center = new google.maps.LatLng(0, 0);
+	                var center = new google.maps.LatLng(-23.117, 132.1333);
 
 
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
