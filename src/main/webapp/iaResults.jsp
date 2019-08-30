@@ -18,7 +18,7 @@ boolean individualScores = (scoreType==null || !"image".equals(scoreType));
 Integer nResults = null;
 String nResultsStr = request.getParameter("nResults");
 
-// some logic related to generating names for individuals 
+// some logic related to generating names for individuals
 Shepherd myShepherd = new Shepherd(request);
 myShepherd.setAction("matchResults nameKey getter");
 myShepherd.beginDBTransaction();
@@ -42,7 +42,7 @@ String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to kee
 if (request.getParameter("acmId") != null) {
 	String acmId = request.getParameter("acmId");
 	myShepherd = new Shepherd(context);
-	myShepherd.setAction("matchResults.jsp1");
+	myShepherd.setAction("iaResults.jsp1");
 	myShepherd.beginDBTransaction();
     ArrayList<Annotation> anns = null;
 	JSONObject rtn = new JSONObject("{\"success\": false}");
@@ -78,7 +78,7 @@ if (request.getParameter("acmId") != null) {
 		num = enc.getCatalogNumber();
 	}
 */
-	myShepherd.rollbackDBTransaction();
+	myShepherd.rollbackAndClose();
 	out.println(rtn.toString());
 	return;
 }
@@ -95,7 +95,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
         res.put("taskId", taskId);
 
 	myShepherd = new Shepherd(context);
-	myShepherd.setAction("matchResults.jsp1");
+	myShepherd.setAction("iaResults.jsp2");
 	myShepherd.beginDBTransaction();
 
 	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
@@ -177,7 +177,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		indiv.addEncounter(enc2);
 	}
 	myShepherd.getPM().makePersistent(indiv);
-	
+
 	myShepherd.commitDBTransaction();
 	myShepherd.closeDBTransaction();
 	res.put("success", true);
@@ -423,6 +423,20 @@ h4.intro.accordion .rotate-chevron.down {
 		margin-right: 40px;
 	}
 
+	div div li.noImageScoresMessage {
+		display: none;
+	}
+
+	div div div.imageScores li.noImageScoresMessage {
+		display: list-item;
+		font-weight: bold;
+	}
+
+	ul.advancedAlgoInfo li a {
+		text-decoration: underline;
+	}
+
+
 </style>
 
 
@@ -443,7 +457,7 @@ function toggleScoreType() {
 }
 
 var headerDefault = 'Select <b>correct match</b> from results below by <i>hovering</i> over result and checking the <i>checkbox</i>.';
-// we use the same space as 
+// we use the same space as
 
 function init2() {   //called from wildbook.init() when finished
 	$('.nav-bar-wrapper').append('<div id="encounter-info"><div class="enc-title" /></div></div>');
@@ -454,13 +468,13 @@ function init2() {   //called from wildbook.init() when finished
 	}
 
 	// If we don't have any ID task elements, it's reasonable to assume we are waiting for something.
-	// If we don't have anything but null task types after a while, lets just reload the page and get updated info. 
-	// We get to this condition when the page loads too fast and you have only __NULL__ type tasks, 
+	// If we don't have anything but null task types after a while, lets just reload the page and get updated info.
+	// We get to this condition when the page loads too fast and you have only __NULL__ type tasks,
 	// and no children to traverse.
-	
+
 	// removed below bc it was overwriting the scoreType settings
 	//$('.maincontent').html("<div id=\"initial-waiter\" class=\"waiting throbbing\"><p>processing request</p></div>");
-	
+
 	var reloadTimeout = setTimeout(function(){
 		var onlyNullTaskType = true;
 		for (var i = 0 ; i < taskIds.length ; i++) {
@@ -488,7 +502,7 @@ function init2() {   //called from wildbook.init() when finished
 $(document).ready(function() { wildbook.init(function() { init2(); }); });
 function parseTaskIds() {
 	var a = window.location.search.substring(1).split('&');
-	for (var i = 0 ; i < a.length ; i++) {
+	for (var i = 0; i < a.length ; i++) {
 		if (a[i].indexOf('taskId=') == 0) taskIds.push(a[i].substring(7));
 	}
 }
@@ -686,6 +700,34 @@ console.warn('manualCallback disabled currently (tid=%s)', tid); return;
 	//alert(m.jobId);
 }
 
+// basically a static method that displays more in-depth algorithm info e.g. disclaimers for the Deepsense algorithm
+function showAdvancedAlgInfo() {
+
+	// Deepsense
+	var deepsenseInfoSpan = grabAlgInfoSpan('deepsense');
+	var deepsenseMsg = '<br><ul class="advancedAlgoInfo">';
+	deepsenseMsg += '<li>The deepsense.ai algorithm for right whale matching works only on individuals in the <a href="http://rwcatalog.neaq.org">North Atlantic Right Whale Catalog</a> operated by the New England Aquarium. This is because it is a pre-trained algorithm that can only identify the whales in its training set.</li>'
+	deepsenseMsg += '<li>The matches on this page are preliminary and must be confirmed by the New England Aquarium before they are added to the NARWC.</li>'
+	// This noImageScoresMessage is shown/hidden with css using an imageScores class on the task container div
+	deepsenseMsg += '<li class="noImageScoresMessage">This algorithm does not return per-image match scores, so only name scores are displayed.</li>'
+	deepsenseMsg += '</ul>'
+	console.log("Showing AdvancedAlgInfo for deepsense with message: "+deepsenseMsg+" on object %o", deepsenseInfoSpan);
+	deepsenseInfoSpan.html(deepsenseMsg);
+
+}
+
+
+
+// this method only works *after* showTaskResult has returned the task data. Returns that div
+function grabAlgResultsDiv(algoName) {
+	return $('div.task-content.task-type-identification.'+algoName);
+}
+function grabAlgInfoSpan(algoName) {
+	return grabAlgResultsDiv(algoName).find('div.task-title.task-type-identification span.task-title-id span.advancedAlgoInfo');
+
+	// span.advancedAlgoInfo');
+}
+
 
 var RESMAX = <%=RESMAX%>;
 function showTaskResult(res, taskId) {
@@ -694,18 +736,23 @@ function showTaskResult(res, taskId) {
 			res.status._response.response.json_result.cm_dict) {
 		var algoInfo = (res.status._response.response.json_result.query_config_dict &&
 			res.status._response.response.json_result.query_config_dict.pipeline_root);
+		console.log("Algo info is "+algoInfo);
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
-		
+
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
 		console.warn('json_result --> %o %o', qannotId, res.status._response.response.json_result['cm_dict'][qannotId]);
 
 		//$('#task-' + res.taskId + ' .task-title-id').append(' (' + (isEdgeMatching ? 'edge matching' : 'pattern matching') + ')');
-                var algoDesc = '<span title="' + algoInfo + '">pattern (HotSpotter)</span>';
+								var algoDesc = 'match results'; // default display description if no algo info given
                 if (algoInfo == 'CurvRankFluke') {
                     algoDesc = 'trailing edge (CurvRank)';
                 } else if (algoInfo == 'OC_WDTW') {
                     algoDesc = 'trailing edge (OC/WDTW)';
+                } else if (algoInfo == 'Deepsense') {
+                    algoDesc = 'Deepsense AI\'s Right Whale Matcher';
                 }
+                algoDesc = '<span title="' + algoInfo + '">'+algoDesc+'</span>';
+
 console.log('algoDesc %o %s %s', res.status._response.response.json_result.query_config_dict, algoInfo, algoDesc);
 		var h = 'Matches based on <b>' + algoDesc + '</b>';
 		// I'd like to add an on-hover tooltip explaining the algorithm to users, but am unsure how to read a .properties file from here -Drew
@@ -714,14 +761,36 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			var d = new Date(res.timestamp);
 			h += '<span class="algoTimestamp">' + d.toLocaleString() + '</span>';
 		}
-                var dct = res.status._response.response.json_result.database_annot_uuid_list.length;
-                h += ' <span class="matchingSetSize">' + (dct ? '<i>against ' + dct + ' candidates</i>' : '') + '</span>';
+    var dct = res.status._response.response.json_result.database_annot_uuid_list.length;
+    h += ' <span class="matchingSetSize">' + (dct ? '<i>against ' + dct + ' candidates</i>' : '') + '</span>';
+
+    h += '<span class="advancedAlgoInfo"> </span>'
 
 		//h += '<span title="taskId=' + taskId + ' : qannotId=' + qannotId + '" class="algoInstructions">Hover mouse over listings below to <b>compare results</b> to target. Links to <b>encounters</b> and <b>individuals</b> given next to match score.</span>';
 		$('#task-' + res.taskId + ' .task-title-id').html(h);
+		var json_result = res.status._response.response.json_result;
+
+		// we can store the algo name here bc it's part of the json_result
+		var algo_name = json_result['query_config_dict']['pipeline_root'];
+		var task_grabber = "#task-"+res.taskId;
+		console.log("got algo_name %s, want to put this on div %s", algo_name, task_grabber);
+		// now save the algo name on the task div
+
+		if (!<%=individualScores%>) {
+			// The noImageScoresMessage is defined in showAdvancedAlgInfo and shown/hidden with css using the imageScores class on the task container div
+			console.log("hewwo image scores!");
+			$(task_grabber).addClass('imageScores')
+		}
+
+		$(task_grabber).data("algorithm", algo_name);
+
 		displayAnnot(res.taskId, qannotId, -1, -1, -1);
 
-		var sorted = score_sort(res.status._response.response.json_result['cm_dict'][qannotId]);
+		$(task_grabber).data("algorithm", algo_name);
+		$(task_grabber).addClass(algo_name)
+
+
+		var sorted = score_sort(json_result['cm_dict'][qannotId], json_result['query_config_dict']['pipeline_root']);
 		if (!sorted || (sorted.length < 1)) {
 			//$('#task-' + res.taskId + ' .waiting').remove();  //shouldnt be here (cuz got result)
 			//$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">results list was empty.</p>');
@@ -742,28 +811,41 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			var d = sorted[i].split(/\s/);
 			var acmId = d[0];
 			var database_annot_uuid = d[1];
+			var has_illustration = d[2];
+			console.log("has_illustration = "+has_illustration);
 
-			var illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
-			illustUrl += "&query_annot_uuid="+query_annot_uuid;
-			illustUrl += "&database_annot_uuid="+database_annot_uuid;
-			illustUrl += "&version="+version;
+			var illustUrl;
+			if (has_illustration) {
+				illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
+				illustUrl += "&query_annot_uuid="+query_annot_uuid;
+				illustUrl += "&database_annot_uuid="+database_annot_uuid;
+				illustUrl += "&version="+version;
+			} else {
+				illustUrl = false;
+			}
+
 			//console.log("ILLUSTRATION "+i+" "+illustUrl);
 
 			// no illustration for DTW
-			if (algoInfo == 'OC_WDTW') illustUrl = false;
+			//if (algoInfo == 'OC_WDTW') illustUrl = false;
 
-			displayAnnot(res.taskId, d[1], i, d[0] / 1000, illustUrl);
+			// var adjustedScore = d[0] / 1000
+			var adjustedScore = d[0]
+			displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
 			// ----- END Hotspotter IA Illustration-----
 		}
 		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
 		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
+
+		// Add disclaimers and other alg-specific info
+		showAdvancedAlgInfo();
 
 	} else {
 		$('#task-' + res.taskId).append('<p class="error">there was an error parsing results for task ' + res.taskId + '</p>');
 	}
 }
 
-// Fix the acmId ---> annotID situation here. 
+// Fix the acmId ---> annotID situation here.
 
 function displayAnnot(taskId, acmId, num, score, illustrationUrl) {
 console.info('%d ===> %s', num, acmId);
@@ -854,9 +936,9 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 		console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
-                    
+
 		    if (!indivId) {
-				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
+				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');
 		    }
 
                 }
@@ -1004,22 +1086,42 @@ function annotClick(ev) {
 // 	return sorta;
 // }
 
-function score_sort(cm_dict, topn) {
-console.warn('score_sort() cm_dict %o', cm_dict);
+function algHasNoImageScores(algo_name) {
+	return ("Deepsense" == algo_name);
+}
+
+
+function score_sort(cm_dict, algo_name) {
+console.warn('score_sort() cm_dict %o and algo_name %s', cm_dict, algo_name);
 //.score_list vs .annot_score_list ??? TODO are these the same? seem to be same values
 	if (!cm_dict.annot_score_list || !cm_dict.dannot_uuid_list) return;
 	var sorta = [];
 
 	// score_list could be either individual-scores or annotation-scores depending on the individualScores boolean global var
 	var score_list = {};
-	if (INDIVIDUAL_SCORES) score_list = cm_dict.score_list;
+	// to generalize this we can just make a list or func for algHasNoImageScores
+	var noImageScores = algHasNoImageScores(algo_name);
+	console.warn('score_sort() algHasNoImageScores ' + noImageScores);
+	if (INDIVIDUAL_SCORES || noImageScores) {
+		score_list = cm_dict.score_list;
+	}
 	else score_list = cm_dict.annot_score_list;
+
+	// this tells us which annotations have illustratsions
+	dannot_extern_list = cm_dict.dannot_extern_list
+
+	if (!INDIVIDUAL_SCORES && noImageScores) {
+		// display a message to the user that image scores are disabled for this alg
+		var message = "The "+algo_name+" algorithm does not return per-image match scores, so only name scores are displayed."
+		console.log("score_sort omitting image scores with message \"%s\"", message)
+		// to display this message: talk to Jon about where we should inject the algo_name into html
+	}
 
 	if (score_list.length < 1) return;
 	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
 	for (var i = 0 ; i < score_list.length ; i++) {
 		if (score_list[i] < 0) continue;
-		sorta.push(score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
+		sorta.push(score_list[i] + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__'] + ' ' + dannot_extern_list[i]);
 	}
 	sorta.sort(function(a,b) { return parseFloat(a) - parseFloat(b); }).reverse();
 	return sorta;
@@ -1229,7 +1331,7 @@ function negativeButtonClick(encId, oldDisplayName) {
 	// 	{
 	// 		text: "close",
 	// 		click: function() {$(this).dialog("close")}
-	// 	}    
+	// 	}
  //  ],
  //  modal: true,
 
