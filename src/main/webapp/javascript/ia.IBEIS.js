@@ -36,16 +36,19 @@ wildbook.IA.plugins.push({
             function(enh) {  //the menu text for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
                 var menuText = '';
-                if (iaStatus && iaStatus.status) {
+	        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
+                var ma = assetByAnnotationId(aid);
+		if (ma.annotation && !ma.annotation.matchAgainst) {
+		    menuText = '<span class="disabled" title="cannot match against this annotation">cannot start match</span>';
+		} else if (iaStatus && iaStatus.status) {
                     menuText += 'matching already initiated, status: <span title="task ' + iaStatus.taskId;
                     menuText += '" class="image-enhancer-menu-item-iastatus-';
                     menuText += iaStatus.status + '">' + iaStatus.statusText + '</span>';
                     // here we want to add another item to start another matching job?
                 } else {
-	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                    var ma = assetById(mid);
                     var requireSpecies = wildbook.IA.requireSpeciesForId();
-                    if (requireSpecies=="false"||ma.taxonomyString) {
+		    if (requireSpecies=="false"||ma.taxonomyString) {
                         menuText = 'start matching';
                         alreadyLinked = true;
                     } else {
@@ -56,12 +59,13 @@ wildbook.IA.plugins.push({
             },
             function(enh) {  //the menu action for an already-started job
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                if (iaStatus && iaStatus.taskId) {
+	        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
+                var ma = assetByAnnotationId(aid);
+		if (ma.annotation && !ma.annotation.matchAgainst) return false;
+		if (iaStatus && iaStatus.taskId) {
                     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 } else {
-	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                    var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-                    var ma = assetById(mid);
 console.log('xxxx mid=%o, aid=%o, ma=%o', mid, aid, ma);
                     var requireSpecies = wildbook.IA.requireSpeciesForId();
                     if (requireSpecies=="false"||ma.taxonomyString) {
@@ -78,11 +82,12 @@ console.log('xxxx mid=%o, aid=%o, ma=%o', mid, aid, ma);
         items.push([
             function(enh) {
                 var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
+	        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
+                var ma = assetByAnnotationId(aid);
                 var menuText = '';
-                if (iaStatus && iaStatus.status) { // corresponds to "matching already initiated" above
-
-                    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                    var ma = assetById(mid);
+		if (ma.annotation && !ma.annotation.matchAgainst) return false;
+		if (iaStatus && iaStatus.status) { // corresponds to "matching already initiated" above
                     var requireSpecies = wildbook.IA.requireSpeciesForId();
                     if (requireSpecies=="false"||ma.taxonomyString) {
 
@@ -102,6 +107,7 @@ console.log('xxxx mid=%o, aid=%o, ma=%o', mid, aid, ma);
                 var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
+		if (ma.annotation && !ma.annotation.matchAgainst) return false;
 console.log('xxxy mid=%o, aid=%o, ma=%o', mid, aid, ma);
                 var requireSpecies = wildbook.IA.requireSpeciesForId();
                 if (requireSpecies=="false"||ma.taxonomyString) {

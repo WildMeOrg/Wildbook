@@ -149,6 +149,7 @@ function forceLink(el) {
                                                 j.put("tasks", jt);
                                                 JSONObject ja = new JSONObject();
 						ja.put("id", ann.getId());
+                                                ja.put("matchAgainst", ann.getMatchAgainst());
                                                 //ja.put("acmId", ann.getAcmId());
                                                 ja.put("iaClass", ann.getIAClass());
                                                 ja.put("identificationStatus", ann.getIdentificationStatus());

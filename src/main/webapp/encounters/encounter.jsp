@@ -163,6 +163,10 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   <style type="text/css">
 
+.disabled {
+    opacity: 0.6;
+}
+
 .ia-match-filter-dialog {
     display: none;
     z-index: 3000;
