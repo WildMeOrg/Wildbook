@@ -84,7 +84,7 @@ public class LightRestServlet extends HttpServlet
 {
     private static final long serialVersionUID = -4445182084242929362L;
 
-    private static final String[] Encounter_Light_Str_Fields = {"catalogNumber","individualID","sex", "guid", "otherCatalogNumbers","verbatimLocality","locationID","submitterProject","genus","specificEpithet", "dwcDateAdded","modified"};
+    private static final String[] Encounter_Light_Str_Fields = {"catalogNumber","individualID","sex", "guid", "otherCatalogNumbers","verbatimLocality","locationID","submitterProject","genus","specificEpithet", "dwcDateAdded","modified","submitterID"};
     private static final String[] Encounter_Light_Int_Fields = {"year","month","day"};
 
     public static final NucleusLogger LOGGER_REST = NucleusLogger.getLoggerInstance("DataNucleus.REST");

@@ -797,7 +797,7 @@ function _colModified(o) {
 }
 
 function _submitterID(o) {
-	var m = o.get('submitterName');
+	var m = o.get('submitterID');
 	if (!m) m = o.get('submitterProject');
 	return m;
 }
