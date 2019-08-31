@@ -1,4 +1,4 @@
-SUBJECT: New DragonSearch submission: @ENCOUNTER_ID@
+SUBJECT: New DragonSearch Submission: @ENCOUNTER_ID@
 The DragonSearch library has received a new encounter submission. You can view it at:
 @ENCOUNTER_LINK@
 
