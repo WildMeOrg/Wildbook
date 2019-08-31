@@ -1178,7 +1178,11 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
           
             // Email those assigned this location code
             if(enc.getLocationID()!=null) {
-              String informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
+              String informMe=null;
+              try {
+                informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
+              }
+              catch(Exception ef) {ef.printStackTrace();}
               if (informMe != null) {
                 List<String> cOther = NotificationMailer.splitEmails(informMe);
                 for (String emailTo : cOther) {
