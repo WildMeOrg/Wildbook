@@ -283,19 +283,7 @@ td.tdw:hover div {
 
 	var needIAStatus = false;
 
-/*
 
-    <strong><%=encprops.getProperty("markedIndividual")%>
-    <strong><%=encprops.getProperty("number")%>
-    if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
-    	
-	    <strong><%=encprops.getProperty("taxonomy")%>
-	    <strong><%=encprops.getProperty("submitterName")%>
-	    <strong><%=encprops.getProperty("date")%>
-	    <strong><%=encprops.getProperty("location")%>
-	    <strong><%=encprops.getProperty("locationID")%>
-	    <strong><%=encprops.getProperty("occurrenceID")%>
-*/
 
 
 <%
@@ -387,7 +375,7 @@ var colDefn = [
 	},
 	{
 		key: 'submitterID',
-		label: '<%=encprops.getProperty("submitterName")%>',
+		label: 'Assigned To',
 		value: _submitterID,
 	},
 	{
