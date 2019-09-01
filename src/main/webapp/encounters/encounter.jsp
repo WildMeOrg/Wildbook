@@ -2612,7 +2612,7 @@ else {
      								<div>
                       <div class="row">
                         <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
-                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="height: 150px;border: 1px solid;" />
+                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="height: 150px;border: 1px solid;max-width: none;" />
                         </div>
                         <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
                           <%-- <p> --%>
