@@ -312,7 +312,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     
 <script type="text/javascript">
 //alert("Prepping map functions.");
-var center = new google.maps.LatLng(0, 0);
+var center = new google.maps.LatLng(-23.117, 132.1333);
 
 var map;
 
@@ -331,8 +331,9 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	var mapZoom = 1;
-	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+	//var mapZoom = 1;
+	var mapZoom = 3.1;
+	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3.1;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: mapZoom,
