@@ -1115,7 +1115,7 @@ if(enc.getLocation()!=null){
   });
 </script>
 
-<div>
+<div style="display: none;">
   <div class="highlight resultMessageDiv" id="depthErrorDiv"></div>
 
   <p class="editTextLocation"><strong><%=encprops.getProperty("setDepth")%></strong></p>
