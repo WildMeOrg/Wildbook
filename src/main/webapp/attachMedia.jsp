@@ -600,7 +600,7 @@ System.out.println(ft.getParameters());
 <h2>Listing of imported Ocean Alert data</h2>
 <table class="tablesorter" id="occs"><thead><tr>
 <%
-        List<String> heads = new ArrayList<String>(Arrays.asList(new String[]{"Type", "Trip #", "Occ ID", "Date/Time", "Species", "#Adult,Calv", "Lat", "Lon", "Bearing", "# Encs", "Photos", "Placeholder", "# Behav", "Modified"}));
+        List<String> heads = new ArrayList<String>(Arrays.asList(new String[]{"Type", "Trip #", "Sight", "Date/Time", "Species", "#Adult,Calv", "Lat", "Lon", "Bearing", "# Encs", "Photos", "Placeholder", "# Behav", "Modified"}));
         if (admin) heads.add("User(s)");
         for (String h : heads) {
             out.println("<th>" + h + "</th>");
@@ -682,7 +682,7 @@ if (showUpload) {
 <div id="upcontrols" style="padding: 20px;">
 	<!-- webkitdirectory directory -->
 	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
-    <div class="padding: 20px 0;">
+    <div style="padding: 20px 0;">
         <a class="button" id="upload-button">begin upload</a>
         <a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="return to listing for Sighting <%=occ.getOccurrenceID().substring(0,8)%>">cancel</a>
     </div>
