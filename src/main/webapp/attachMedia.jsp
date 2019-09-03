@@ -400,10 +400,12 @@ if (AccessControl.isAnonymous(request)) {
 
 } else if (Util.requestParameterSet(id)) {
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("attachMedia.jsp");
     myShepherd.beginDBTransaction();
     occ = myShepherd.getOccurrence(id);
     if (occ == null) {  //TODO also some security check that user can access this occurrence!!
         out.println("<h2>Invalid ID " + id + "</h2>");
+    	myShepherd.rollbackAndClose();
         return;
     }
     Map<String,String> tripInfo = getTripInfo(occ);
@@ -573,9 +575,11 @@ System.out.println(ft.getParameters());
 <%
     
     }  //end newEncounter option
-
+	myShepherd.commitDBTransaction();
+	myShepherd.closeDBTransaction();
 } else {
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("attachMedia.jsp2");
     myShepherd.beginDBTransaction();
     User user = AccessControl.getUser(request, myShepherd);
     boolean admin = (user != null) && "admin".equals(user.getUsername());
@@ -667,7 +671,7 @@ System.out.println(ft.getParameters());
         out.println("</tbody></table>");
     }
     query.closeAll();
-    myShepherd.rollbackDBTransaction();
+    myShepherd.rollbackAndClose();
 }
 
 if (showUpload) {
