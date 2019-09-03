@@ -3775,9 +3775,17 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
               while(hasMoreTax){
                 String currentGenuSpecies = "genusSpecies"+genusTaxNum;
                 if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                    String sciName = CommonConfiguration.getProperty(currentGenuSpecies,context);
+                    String selected = genusSpeciesFound.equals(sciName) ? "selected" : "";
+		    String commonValue = CommonConfiguration.getProperty("genusSpeciesCommon" + genusTaxNum, context);
+			if (commonValue == null) {
+				commonValue = "";
+			} else {
+				commonValue = " (" + commonValue + ")";
+			}
                   %>
 
-                  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                  <option <%=selected%> value="<%=sciName%>"><%=sciName.replaceAll("_"," ")%><%=commonValue%></option>
                   <%
                   genusTaxNum++;
                 }
