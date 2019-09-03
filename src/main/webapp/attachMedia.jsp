@@ -421,7 +421,7 @@ if (AccessControl.isAnonymous(request)) {
 </script>
 <div style="padding: 0 20px;">
 <a class="button" href="attachMedia.jsp">back to list</a>
-<h2>Occurrence <a href="occurrence.jsp?number=<%=occ.getOccurrenceID()%>">[<%=occ.getOccurrenceID().substring(0,8)%>]</a></h2>
+<h2>Sighting <a href="occurrence.jsp?number=<%=occ.getOccurrenceID()%>">[<%=occ.getOccurrenceID().substring(0,8)%>]</a></h2>
 <script>
     var occurrence = {
         id: '<%=occ.getOccurrenceID()%>',
@@ -560,7 +560,7 @@ System.out.println(ft.getParameters());
 
     out.println("<td>" + media.size() + " photos added</td>");  //TODO do something with media list!
     out.println("<td>" + phinfo + "</td>");
-    out.println("<td><a href=\"attachMedia.jsp?id=" + occ.getOccurrenceID() + "&toEncounter=" + enc.getCatalogNumber() + "\" class=\"button\">add photos here</a></td>");
+    out.println("<td><a href=\"attachMedia.jsp?id=" + occ.getOccurrenceID() + "&toEncounter=" + enc.getCatalogNumber() + "\" class=\"button\" style=\"padding: 1px 8px\">add photos here</a></td>");
     out.println("</tr>");
 }
 %>
@@ -680,7 +680,7 @@ if (showUpload) {
 	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
     <div class="padding: 20px 0;">
         <a class="button" id="upload-button">begin upload</a>
-        <a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="return to listing for Occ <%=occ.getOccurrenceID().substring(0,8)%>">cancel</a>
+        <a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="return to listing for Sighting <%=occ.getOccurrenceID().substring(0,8)%>">cancel</a>
     </div>
 
 </div>
