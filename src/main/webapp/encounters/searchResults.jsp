@@ -368,11 +368,13 @@ var colDefn = [
 		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
 	},
+/*
 	{
 		key: 'occurrenceID',
 		label: '<%=encprops.getProperty("sightingID")%>',
 		value: _occurrenceID,
 	},
+*/
   {
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
