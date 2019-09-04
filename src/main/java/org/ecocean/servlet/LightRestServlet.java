@@ -281,6 +281,9 @@ public class LightRestServlet extends HttpServlet
                     myShepherd.commitDBTransaction();
                     //ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "commit");
                     
+                } catch (Exception e) {
+                    System.out.println("Exception on lightRestServlet!");
+                    e.printStackTrace();
                 }
                 finally
                 {

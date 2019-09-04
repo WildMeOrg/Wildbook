@@ -364,6 +364,16 @@ figcaption div {
     display: none;
 }
 
+
+/* removes the (at writing) incomplete labeled keyword adder */
+.iek-new-wrapper.labeled {
+  display: none;
+}
+
+.image-enhancer-keyword.labeled-keyword span.keyword-label, span.keyword-label {
+  font-weight: bold; 
+}
+
 .caption-youtube {
     padding: 1px 3px;
     background-color: rgba(255,200,200,0.5);
@@ -1055,6 +1065,75 @@ function checkImageEnhancerResize() {
 }
 
 
+function updateLabeledKeywordLabel(el) {
+  var label = $(el).val();
+  $('select.value-selector').hide();
+  $('select.value-selector.'+label).show();
+}
+function updateLabeledKeywordValue(el) {
+  var jel = $(el);
+  var label = jel.data("kw-label");
+  var value = jel.val();
+  var wrapper = jel.closest('.image-enhancer-wrapper');
+  if (!wrapper.length) {
+    console.error("could not find MediaAsset id from closest wrapper");
+    return;
+  }
+  var mid = imageEnhancer.mediaAssetIdFromElement(wrapper);
+  if (!assetById(mid)) {
+    console.error("could not find MediaAsset byId(%o)", mid);
+    return;
+  }
+  console.log("updateLabeledKeywordValue got values %s, %s for media asset %s",label,value,mid);
+  var dataObj = {
+    "label": label,
+    "value": value,
+    "mid"  : mid
+  }
+  console.log("dataObj = %o",dataObj);
+
+  var urlWithArgs = wildbookGlobals.baseUrl + '/AddLabeledKeyword?label='+label+'&value='+value+'&mid='+mid;
+
+  $.ajax({
+    url: urlWithArgs,
+    //data: JSON.stringify(dataObj),
+    contentType: 'application/javascript',
+    success: function(d) {
+      console.info("Success on AddLabeledKeyword. d=%o",d);
+      if (d.success) {
+        if (d.newKeywords) {
+          for (var id in d.newKeywords) {
+            // wildbookGlobals.keywords[id] = d.newKeywords[id];
+          }
+        }
+        var mainMid = false;
+        if (d.results) {
+          for (var mid in d.results) {
+            wildbookGlobals.keywords[id] = d.newKeywords[id];
+            refreshKeywordsForMediaAsset(mid, d);
+          }
+        }
+      if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
+      } else {
+        var msg = d.error || 'ERROR could not make change';
+        $('.popup-content').append('<p class="error">' + msg + '</p>');
+      }
+    },
+    error: function(x,a,b) {
+      console.error('%o %o %o', x, a, b);
+      $('.popup-content').append('<p class="error">ERROR making change: ' + b + '</p>');
+    },
+    type: 'POST',
+    dataType: 'json'
+  });
+
+
+  return false;
+}
+
+
+
+
 var popupStartTime = 0;
 function addNewKeyword(el) {
 	console.warn(el);
@@ -1113,7 +1192,7 @@ console.info(d);
 				var mainMid = false;
 				if (d.results) {
 					for (var mid in d.results) {
-                                            refreshKeywordsForMediaAsset(mid, d);
+            refreshKeywordsForMediaAsset(mid, d);
 					}
 				}
                                 if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
@@ -1151,6 +1230,7 @@ console.info(d);
 */
 
 function refreshKeywordsForMediaAsset(mid, data) {
+  console.log("refreshKeywordsForMediaAsset called on mid %s and data %o",mid,data);
     for (var i = 0 ; i < assets.length ; i++) {
         if (assets[i].id != mid) continue;
         //if (!assets[i].keywords) assets[i].keywords = [];
@@ -1159,8 +1239,8 @@ function refreshKeywordsForMediaAsset(mid, data) {
             assets[i].keywords.push({
                 indexname: id,
                 readableName: data.results[mid][id],
-                displayName: data.results[mid][displayName],
-                label: data.results[mid][label]
+                //displayName: data.results[mid][displayName],
+                //label: data.results[mid][label]
             });
         }
     }
@@ -1181,6 +1261,20 @@ function refreshAllKeywordPulldowns() {
     });
 }
 
+<%
+// alright folks, lets get our map of labels to values!
+Map<String, List<String>> labelsToValues = LabeledKeyword.labelUIMap(request);
+System.out.println("we got labelsToValues = "+labelsToValues);
+String labelsToValuesStr = labelsToValues.toString();
+labelsToValuesStr = labelsToValuesStr.replaceAll("=",":");
+System.out.println("the stringy version is "+labelsToValuesStr);
+
+JSONObject jobj = new JSONObject(labelsToValues);
+System.out.println("got jobj "+jobj);
+
+%>
+
+
 function imageLayerKeywords(el, opt) {
 	var mid;
 	if (opt && opt._mid) {  //hack!
@@ -1196,10 +1290,55 @@ console.info("############## mid=%s -> %o", mid, ma);
 	var thisHas = [];
 	var h = '<div class="image-enhancer-keyword-wrapper">';
 	for (var i = 0 ; i < ma.keywords.length ; i++) {
-		thisHas.push(ma.keywords[i].indexname);
+    var kw = ma.keywords[i];
+    thisHas.push(kw.indexname);
+    if (kw.label) {
+      console.info("Have labeled keyword %o", kw);
+      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" title="remove keyword">X</span></div>';
+    } else {
+      //h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
+
+    }
 //console.info('keyword = %o', ma.keywords[i]);
-		h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
 	}
+
+  // the labeledKeyword edit form comes from before
+
+  var labelsToValues = <%=jobj%>;
+  console.log("Labeled keywords %o", labelsToValues);
+  h += '<div class="labeled iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+  if (!$.isEmptyObject(labelsToValues)) {
+      //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
+    var hasSome = false;
+    var labelSelector = '<select onChange="return updateLabeledKeywordLabel(this);"  style="width: 100%" class="label-selector"><option value="">select label</option>';
+    var valueSelectors = '';
+    for (var label in labelsToValues) {
+      var valueSelector = '<select onChange="return updateLabeledKeywordValue(this);" style="width: 100%; display: none;" class="value-selector '+label+'" data-kw-label="'+label+'"><option value="">select value</option>';
+      var values = labelsToValues[label];
+      //console.log("in labelsToValues loop with label %s and values %s",label, values);
+      for (var i in values) {
+        var value = values[i];
+        //console.log("in labelsToValues loop with label %s and value %s",label, value);
+        //if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
+        valueSelector += '<option class="labeledKeywordValue '+label+'" value="' + value + '">' + value + '</option>';
+        hasSome = true;
+      }
+      valueSelector += '</select>';
+      valueSelectors += valueSelector
+      labelSelector += '<option value="' + label + '">' + label + '</option>';
+    }
+    labelSelector += '</select>';
+    if (hasSome) {
+      h += labelSelector;
+      h += valueSelectors;
+    }
+  } else {
+    console.log("your labels are empty dumbass");
+  }
+  h += '</div></div>';
+
+
 
 	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
 	if (wildbookGlobals.keywords) {

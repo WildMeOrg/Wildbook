@@ -3,7 +3,7 @@
 javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
-		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
+		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, org.ecocean.security.HiddenEncReporter, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat" %>
 
 
@@ -103,6 +103,8 @@ context=ServletUtilities.getContext(request);
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 
+
+
 %>
 
 <%
@@ -122,15 +124,20 @@ if (request.getParameter("number")!=null) {
 
 }
 
-if (request.getParameter("id")!=null) {
+if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
                                   System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
     id = request.getParameter("id");
+    if (id==null) id = request.getParameter("number");
 	myShepherd.beginDBTransaction();
 	try {
 
 		MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
 		if (indie != null) {
 			Vector myEncs=indie.getEncounters();
+
+      HiddenEncReporter hiddenData = new HiddenEncReporter(myEncs, request, myShepherd);
+      myEncs = hiddenData.securityScrubbedResults(myEncs);
+
 			int numEncs=myEncs.size();
 
       // This is a big hack to make sure an encounter's annotations are loaded into the JDO cache
@@ -151,7 +158,9 @@ if (request.getParameter("id")!=null) {
       //System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
       //System.out.println("This marked individual has "+numAnns+" anotations");
 
-			boolean visible = indie.canUserAccess(request);
+			//boolean visible = indie.canUserAccess(request);
+      boolean visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
+      System.out.println("We got visible = "+visible);
 
       //String ipAddress = request.getHeader("X-FORWARDED-FOR");
       //if (ipAddress == null) ipAddress = request.getRemoteAddr();
@@ -433,8 +442,12 @@ $(document).ready(function() {
           <%
           MarkedIndividual sharky=myShepherd.getMarkedIndividual(id);
 
-          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
-          System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+" and names "+sharky.getNames());
+          // replace this with canUserViewIndividual?
+//          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
+          boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
+
+
+          System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {

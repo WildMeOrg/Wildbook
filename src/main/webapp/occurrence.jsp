@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, 
          com.google.gson.Gson,
+         org.ecocean.datacollection.Instant,
          org.ecocean.*,
          org.ecocean.tag.*,
          org.datanucleus.api.rest.orgjson.JSONObject
@@ -258,6 +259,15 @@ context=ServletUtilities.getContext(request);
 %>
 </p>
 
+<%
+if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
+    out.println("<p>" + props.getProperty("behaviors") + ":<ul>");
+    for (Instant behav : occ.getBehaviors()) {
+        out.println("<li>" + behav.getValue().toString().substring(0,19) + " <b>" + behav.getName() + "</b></li>");
+    }
+    out.println("</ul></p>");
+}
+%>
 		<p><%=props.getProperty("groupBehavior") %>: 
 			<%if(occ.getGroupBehavior()!=null){%>
 				<%=occ.getGroupBehavior() %>
@@ -364,10 +374,12 @@ context=ServletUtilities.getContext(request);
 <p>
     <%=props.getProperty("latitude")%> /
     <%=props.getProperty("longitude")%> /
-    <%=props.getProperty("bearing")%> :
+    <%=props.getProperty("bearing")%> /
+    <%=props.getProperty("distance")%> :
     <%=occ.getDecimalLatitude()%>,
-    <%=occ.getDecimalLongitude()%>
-    <%=occ.getBearing()%>m
+    <%=occ.getDecimalLongitude()%> /
+    <%=occ.getBearing()%> m /
+    <%=occ.getDistance()%> m
 </p>
 
 <%
