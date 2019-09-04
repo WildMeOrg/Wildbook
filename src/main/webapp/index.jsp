@@ -563,7 +563,7 @@ finally{
 	                                    <%
 	                                      }
 	                                    %>
-	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
+	                                    <p><a href="user.jsp?id=<%=thisUser.getUUID()%>" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
 	                                </li>
 
 	                           <%
