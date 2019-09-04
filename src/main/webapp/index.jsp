@@ -46,6 +46,7 @@ if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
 }
 
 
+%>
 
 
 <style type="text/css">
@@ -433,7 +434,7 @@ finally{
 
             <!-- Random user profile to select -->
             <%
-            //myShepherd.beginDBTransaction();
+            myShepherd.beginDBTransaction();
             try{
 								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
@@ -469,7 +470,7 @@ finally{
             catch(Exception e){e.printStackTrace();}
             finally{
 
-            	//myShepherd.rollbackDBTransaction();
+            	myShepherd.rollbackDBTransaction();
             }
             %>
 
@@ -527,7 +528,7 @@ finally{
                     <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    //myShepherd.beginDBTransaction();
+                    myShepherd.beginDBTransaction();
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                             long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
@@ -571,7 +572,7 @@ finally{
 	                   } //end while
                     }
                     catch(Exception e){e.printStackTrace();}
-                    //finally{myShepherd.rollbackDBTransaction();}
+                    finally{myShepherd.rollbackDBTransaction();}
 
                    %>
 
