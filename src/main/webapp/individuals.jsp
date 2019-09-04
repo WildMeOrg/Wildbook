@@ -772,7 +772,8 @@ if (sharky.getNames() != null) {
             if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
             String genusSpeciesFound=props.getProperty("notAvailable");
-            if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
+            String gs = sharky.getGenusSpeciesDeep();
+            if (gs != null) genusSpeciesFound = gs;
             %>
             <p>
               <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
