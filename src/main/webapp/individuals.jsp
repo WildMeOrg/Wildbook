@@ -92,9 +92,6 @@ context=ServletUtilities.getContext(request);
   String edit = props.getProperty("edit");
   String remove = props.getProperty("remove");
   String occurrenceNumber = props.getProperty("occurrenceNumber");
-  //System.out.println("We got occurrenceNumber = "+occurrenceNumber);
-  //System.out.println("We got sex = "+sex);
-
     //String id = null;
   String id = request.getParameter("number");
   Shepherd myShepherd = new Shepherd(context);
@@ -125,7 +122,6 @@ if (request.getParameter("number")!=null) {
 }
 
 if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
-                                  System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
     id = request.getParameter("id");
     if (id==null) id = request.getParameter("number");
 	myShepherd.beginDBTransaction();
@@ -154,33 +150,17 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
           }
         }
       }
-      System.out.println("");
-      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
-      System.out.println("This marked individual has "+numAnns+" anotations");
-
 			//boolean visible = indie.canUserAccess(request);
       boolean visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
-      System.out.println("We got visible = "+visible);
 
       String ipAddress = request.getHeader("X-FORWARDED-FOR");
       if (ipAddress == null) ipAddress = request.getRemoteAddr();
       if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
       String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
-      System.out.println("    From IP: "+ipAddress);
-      System.out.println("    "+currentTimeString);
-      System.out.println("    Individual: "+indie);
-      System.out.println("    is visible: "+visible);
-      System.out.println("    request.getAuthType(): "+request.getAuthType());
-      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
-      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
-      System.out.println("");
 
-
->>>>>>> master
 			if (!visible) {
 
         // remove any potentially-sensitive data, labeled with the secure-field class
-        System.out.println("Not visible! Printing stuff!");
         %>
         <script src="/javascript/hide-secure-fields.js"></script>
         <%
@@ -448,7 +428,6 @@ $(document).ready(function() {
           boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
 
 
-          System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
@@ -494,7 +473,6 @@ $(document).ready(function() {
           <%
           }
         }
-                  System.out.println("    |=-| INDIVIDUALS.JSP after nickname");
 
           %>
 
@@ -515,7 +493,6 @@ if (sharky.getNames() != null) {
 
     // if (allNames != null) out.println("<span title=\"id " + sharky.getId() + "\">" + allNames + "</span>");
 
-    System.out.println("displayName="+sharky.getDisplayName());
 
     %>
     <div class="namesection default">
@@ -537,7 +514,6 @@ if (sharky.getNames() != null) {
     </div><%
 
     // make UI for non-default names here
-    System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
     for (String nameKey: sharky.getNames().getKeys()) {
       if (MultiValue.isDefault(nameKey)) continue;
       if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
@@ -812,7 +788,6 @@ if (sharky.getNames() != null) {
           <a name="birthdate"></a>
           <%
             String timeOfBirth="";
-            //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
             if(sharky.getTimeOfBirth()>0){
             String timeOfBirthFormat="yyyy-MM-d";
             if(props.getProperty("birthdateJodaFormat")!=null){
