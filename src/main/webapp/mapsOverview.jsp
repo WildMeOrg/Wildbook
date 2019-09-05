@@ -40,12 +40,12 @@ Your corresponding imported app data can be found at the <a target="_new" href="
 </p>
 
 <div style="text-align: center;">
-<img style="width: 900px;" src="images/grab-listing-example.png" />
+<img style="width: 900px; border: solid 2px #CCC; margin-bottom: 10px;" src="images/grab-listing-example.png" />
 </div>
 
 <p>
 The number of <i>encounters</i> and attached <i>photos</i> are listed on the right.  To attach images to the data, click on the row
-you wish to affect and upload from the new screen that opens.
+you wish to affect and upload from the new page that opens.
 </p>
 
 <hr />
