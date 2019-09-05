@@ -166,7 +166,7 @@ function forceLink(el) {
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
-		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a><br>";
+		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName()+"</a><br>";
 		      }
 		      	System.out.println("    EMG: got indID element "+individualID);
 
