@@ -25,7 +25,7 @@ out.println("iaList.size = " + iaList.size());
 
 */
 
-Map<String,String> diff = IBEISIA.iaSpeciesDiff(myShepherd);
+Map<String,String> diff = IBEISIA.iaSpeciesDiff(myShepherd, true);
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 
