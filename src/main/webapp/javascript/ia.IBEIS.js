@@ -106,7 +106,7 @@ console.log('xxxx mid=%o, aid=%o, ma=%o', mid, aid, ma);
                 // } else {
                 var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
-                var ma = assetById(mid);
+                var ma = assetByAnnotationId(aid);
 		if (ma.annotation && !ma.annotation.matchAgainst) return false;
 console.log('xxxy mid=%o, aid=%o, ma=%o', mid, aid, ma);
                 var requireSpecies = wildbook.IA.requireSpeciesForId();
