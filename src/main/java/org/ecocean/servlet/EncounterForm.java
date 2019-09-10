@@ -1091,11 +1091,11 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
       //new additions for DarwinCore
       enc.setDWCGlobalUniqueIdentifier(guid);
-      enc.setDWCImageURL((request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID));
+      enc.setDWCImageURL(("//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID));
 
       //populate DarwinCore dates
 
-      DateTimeFormatter fmt = ISODateTimeFormat.date();
+      DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
       String strOutputDateTime = fmt.print(dt);
       enc.setDWCDateAdded(strOutputDateTime);
       enc.setDWCDateAdded(new Long(dt.toDateTime().getMillis()));
