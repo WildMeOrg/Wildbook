@@ -47,6 +47,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 
+String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
+if (pageTitle == null) {
+    pageTitle = CommonConfiguration.getHTMLTitle(context);
+} else {
+    pageTitle = CommonConfiguration.getHTMLTitle(context) + " | " + pageTitle;
+}
+
 String username = null;
 User user = null;
 String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
@@ -87,8 +94,7 @@ finally{
 
 <html>
     <head>
-      <title><%=CommonConfiguration.getHTMLTitle(context)%>
-      </title>
+      <title><%=pageTitle%></title>
       <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
       <meta charset="UTF-8">
