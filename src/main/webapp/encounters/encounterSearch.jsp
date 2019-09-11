@@ -546,7 +546,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 </td></tr><tr><td>
 
   <select name="country" id="country" multiple="multiple" size="5">
-  	<option value="None" selected="selected"></option>
+  	<option value="" selected="selected"></option>
   		<%
   		List<String> countries = (useCustomProperties)
   			? CommonConfiguration.getIndexedPropertyValues("country", request)

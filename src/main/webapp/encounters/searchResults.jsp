@@ -222,8 +222,6 @@ td.tdw:hover div {
 
 <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="../javascript/tablesorter/jquery.tablesorter.js"></script>
-
 <script src="../javascript/underscore-min.js"></script>
 <script src="../javascript/backbone-min.js"></script>
 <script src="../javascript/core.js"></script>
@@ -242,25 +240,32 @@ td.tdw:hover div {
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
 
+<% 
+
+String queryString="";
+if(request.getQueryString()!=null){queryString=request.getQueryString();}
+
+%>
+
 
 <ul id="tabmenu">
 
   <li><a class="active"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=encprops.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=queryString %>"><%=encprops.getProperty("export")%>
    </a></li>
 
 </ul>
@@ -397,8 +402,8 @@ var howMany = 10;
 var start = 0;
 var results = [];
 
-var sortCol = -1;
-var sortReverse = false;
+var sortCol = 7;
+var sortReverse = true;
 
 var counts = {
 	total: 0,
@@ -459,7 +464,7 @@ function doTable() {
 		data: searchResults,
 		perPage: howMany,
 		sliderElement: $('#results-slider'),
-		columns: colDefn,
+		columns: colDefn
 	});
 
 	$('#results-table').addClass('tablesorter').addClass('pageableTable');
@@ -491,7 +496,7 @@ function doTable() {
 	sTable.initValues();
 
 
-	newSlice(sortCol);
+	newSlice(sortCol, sortReverse);
 
 	$('#progress').hide();
 	sTable.sliderInit();
@@ -1134,11 +1139,11 @@ function _colCreationDate(o) {
 }
 
 function _colCreationDateSort(o) {
-	var m = o.get('dwcDateAdded');
+	var m = o.get('dwcDateAddedLong');
 	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) return 0;
-	return d.getTime();
+	//var d = wildbook.parseDate(m);
+	//if (!wildbook.isValidDate(d)) return 0;
+	return m;
 }
 
 

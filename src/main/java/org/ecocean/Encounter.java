@@ -1875,6 +1875,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public Long getDWCDateAddedLong(){
     return dwcDateAddedLong;
   }
+  
+  public Long getDwcDateAddedLong(){
+    return dwcDateAddedLong;
+  }
 
   public void setDWCDateAdded(String m_dateAdded) {
     dwcDateAdded = m_dateAdded;
