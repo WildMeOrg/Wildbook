@@ -658,7 +658,7 @@ function computeCounts() {
 
 	for (var i = 0 ; i < counts.total ; i++) {
 		var iid = searchResults[sTable.matchesFilter[i]].get('individualID');
-		if (iid == 'Unassigned') {
+		if (!iid) {
 			counts.unid++;
 		} else {
 			var k = iid + ':' + searchResults[sTable.matchesFilter[i]].get('year') + ':' + searchResults[sTable.matchesFilter[i]].get('month') + ':' + searchResults[sTable.matchesFilter[i]].get('day');

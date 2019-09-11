@@ -616,6 +616,7 @@ System.out.println("     gotta compute :(");
             Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
             if (tax != null) {
                 myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 return tax;
             }
         }
@@ -623,6 +624,17 @@ System.out.println("     gotta compute :(");
         myShepherd.closeDBTransaction();
         return null;
     }
+    
+    public static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas, Shepherd myShepherd) {
+      if (Util.collectionIsEmptyOrNull(mas)) return null;
+      for (MediaAsset ma : mas) {
+          Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
+          if (tax != null) {
+              return tax;
+          }
+      }
+      return null;
+  }
 
 
 

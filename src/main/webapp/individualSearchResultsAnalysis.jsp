@@ -50,6 +50,8 @@
 	SynchronizedSummaryStatistics[] measurementValuesResights=new SynchronizedSummaryStatistics[numMeasurementTypes];
 	String[] smallestIndies=new String[numMeasurementTypes];
 	String[] largestIndies=new String[numMeasurementTypes];
+	String[] smallestIndiesDisplayName=new String[numMeasurementTypes];
+	String[] largestIndiesDisplayName=new String[numMeasurementTypes];
 	for(int b=0;b<measurementValues.length;b++){
 		measurementValues[b]=new SynchronizedSummaryStatistics();
 		measurementValuesMales[b]=new SynchronizedSummaryStatistics();
@@ -150,6 +152,8 @@
 	 long maxTimeBetweenResights=0;
 	 String longestResightedIndividual="";
 	 String farthestTravelingIndividual="";
+	 String longestResightedIndividualDisplayName="";
+	 String farthestTravelingIndividualDisplayName="";
 	 
 
 	 
@@ -178,9 +182,11 @@
 					//smallest vs largest analysis
 					if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()<=measurementValues[b].getMin()){
 						smallestIndies[b]=thisEnc.getIndividualID();
+						smallestIndiesDisplayName[b]=thisEnc.getDisplayName();
 					}
 					else if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()>=measurementValues[b].getMax()){
 						largestIndies[b]=thisEnc.getIndividualID();
+						largestIndiesDisplayName[b]=thisEnc.getDisplayName();
 					}
 					
 					//males versus females analysis
@@ -272,12 +278,14 @@
 		 if (thisEnc.getMaxDistanceBetweenTwoSightings()>maxTravelDistance){
 			 maxTravelDistance=thisEnc.getMaxDistanceBetweenTwoSightings();
 			 farthestTravelingIndividual=thisEnc.getIndividualID();
+			 farthestTravelingIndividualDisplayName=thisEnc.getDisplayName();
 		 }
 		 
 		 //max time calc
 		 if (thisEnc.getMaxTimeBetweenTwoSightings()>maxTimeBetweenResights){
 			 maxTimeBetweenResights=thisEnc.getMaxTimeBetweenTwoSightings();
 			 longestResightedIndividual=thisEnc.getIndividualID();
+			 longestResightedIndividualDisplayName=thisEnc.getDisplayName();
 		 }
 		 
 		 //maxYearsBetweenSightings calc
@@ -582,7 +590,7 @@ if (request.getQueryString() != null) {
 
 if(maxTravelDistance>0){
 %>
-<p><%=encprops.getProperty("individualLargestDistance") %> <a href="individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividual %></a> (<%=df.format(maxTravelDistance/1000) %> km)</p>
+<p><%=encprops.getProperty("individualLargestDistance") %> <a href="individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividualDisplayName %></a> (<%=df.format(maxTravelDistance/1000) %> km)</p>
  <%
 }
 if(maxTimeBetweenResights>0){
@@ -590,7 +598,7 @@ if(maxTimeBetweenResights>0){
 	 //String longestResightedIndividual="";
 	 double bigTime=((double)maxTimeBetweenResights/1000/60/60/24/365);
 %>
-<p><%=encprops.getProperty("individualLongestTime") %> <a href="individuals.jsp?number=<%=longestResightedIndividual %>"><%=longestResightedIndividual %></a> (<%=df.format(bigTime) %> years)</p>
+<p><%=encprops.getProperty("individualLongestTime") %> <a href="individuals.jsp?number=<%=longestResightedIndividual %>"><%=longestResightedIndividualDisplayName %></a> (<%=df.format(bigTime) %> years)</p>
  <%
 }
 %>
@@ -609,8 +617,8 @@ if(maxTimeBetweenResights>0){
 				%>
 				&nbsp;<%=df.format(measurementValues[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValues[b].getStandardDeviation()) %>) N=<%=measurementValues[b].getN() %><br />
 				<ul>
-					<li><%=encprops.getProperty("largest") %> <%=df.format(measurementValues[b].getMax()) %> <%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<a href="individuals.jsp?number=<%=largestIndies[b] %>"><%=largestIndies[b] %></a>)</li>
-					<li><%=encprops.getProperty("smallest") %> <%=df.format(measurementValues[b].getMin()) %> <%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<a href="individuals.jsp?number=<%=smallestIndies[b] %>"><%=smallestIndies[b] %></a>)</li>
+					<li><%=encprops.getProperty("largest") %> <%=df.format(measurementValues[b].getMax()) %> <%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<a href="individuals.jsp?number=<%=largestIndies[b] %>"><%=largestIndiesDisplayName[b] %></a>)</li>
+					<li><%=encprops.getProperty("smallest") %> <%=df.format(measurementValues[b].getMin()) %> <%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<a href="individuals.jsp?number=<%=smallestIndies[b] %>"><%=smallestIndiesDisplayName[b] %></a>)</li>
 					<li><%=encprops.getProperty("meanMales") %> <%=df.format(measurementValuesMales[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesMales[b].getStandardDeviation()) %>) N=<%=measurementValuesMales[b].getN() %></li>
 					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(measurementValuesFemales[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesFemales[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales[b].getN() %></li>
 					<li><%=encprops.getProperty("meanNew") %> <%=df.format(measurementValuesNew[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesNew[b].getStandardDeviation()) %>) N=<%=measurementValuesNew[b].getN() %></li>

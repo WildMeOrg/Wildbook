@@ -174,7 +174,7 @@ String lastLatLong="";
 					              var encSex2 = '<%if(indieEnc.getSex()!=null){%>'+'<br/>' + '<%=props.getProperty("sex")%><%=indieEnc.getSex()%><%}%>';
 					              var encSize3 = '<%if(indieEnc.getSizeAsDouble()!=null){%>'+'<br/>Size:'+<%=indieEnc.getSize()%>+'m'+'<%}%><br/>';
 					              var encURL4 = '<br/><a target=\"_blank\" href=\"\/\/'+'<%=CommonConfiguration.getURLLocation(request)%>'+'/encounters/encounter.jsp?number='+'<%=indieEnc.getEncounterNumber()%>'+'\" >'+'<%=props.getProperty("gotoEncounter")%>'+'</a></td></tr></table>';
-					              var indyURL5 = '<strong><a target=\"_blank\" href=\"\/\/'+'<%=CommonConfiguration.getURLLocation(request)%>'+'/individuals.jsp?number='+'<%=indieEnc.getIndividualID()%>'+'\">'+'<%=indieEnc.getIndividualID()%>'+'</a></strong>';
+					              var indyURL5 = '<strong><a target=\"_blank\" href=\"\/\/'+'<%=CommonConfiguration.getURLLocation(request)%>'+'/individuals.jsp?number='+'<%=indieEnc.getIndividualID()%>'+'\">'+'<%=indieEnc.getIndividual().getDisplayName()%>'+'</a></strong>';
 					             
 					           	  var popWindow = encDate1 + encSex2 + encSize3 + encURL4 + indyURL5; 
 					           
@@ -246,7 +246,7 @@ String lastLatLong="";
 						String encSubdir = thisEnc.subdir();
 			%>
             google.maps.event.addListener(marker,'click', function() {
-                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.getIndividualID()%>\"><%=thisEnc.getIndividualID()%></a></strong><br /><table><tr><td><%=props.getProperty("date") %> <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br /><%=props.getProperty("sex") %> <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" ><%=props.getProperty("gotoEncounter") %></a></td></tr></table>'})).open(map, this);
+                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.getIndividualID()%>\"><%=thisEnc.getIndividual().getDisplayName()%></a></strong><br /><table><tr><td><%=props.getProperty("date") %> <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br /><%=props.getProperty("sex") %> <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" ><%=props.getProperty("gotoEncounter") %></a></td></tr></table>'})).open(map, this);
              });
           markers.push(marker);
           map.fitBounds(bounds);
