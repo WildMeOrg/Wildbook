@@ -118,6 +118,7 @@ if (logo == null) {
 
 /////// TODO when to show activity?  to who?  configure via commonConfig ???
 
+admin = false;  thisIsMe = false;   //disable for now!!
 if (thisIsMe || admin) {
     out.println("<h2>Activity</h2>");
 
