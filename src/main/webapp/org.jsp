@@ -1,20 +1,104 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-     import="org.ecocean.*,
+         import="org.ecocean.servlet.ServletUtilities,
+org.ecocean.*,
+javax.jdo.Query,
 java.util.List,
-java.util.Collection,
 java.util.ArrayList,
-org.ecocean.servlet.ServletUtilities,
-javax.jdo.*,
-org.ecocean.media.*
-              "
-%>
+java.util.Collection,
+org.json.JSONObject, org.json.JSONArray,
+org.ecocean.media.MediaAsset
+" %>
 <%
+
+
+////TODO i18n of all text here!!!!!!!!!!!!!!!
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 
 String oid = request.getParameter("id");
 String uid = request.getParameter("uid");
+User thisUser = AccessControl.getUser(request, myShepherd);
+
+%>
+<jsp:include page="header.jsp" flush="true"/>
+<style>
+.user-profile-image {
+    max-width: 200px;
+    max-height: 200px;
+}
+.user-profile-image-blank {
+    background-color: #9DF;
+    width: 200px;
+    height: 200px;
+}
+
+.user-org {
+    width: 150px;
+    height: 220px;
+    overflow: hidden;
+    display: inline-block;
+    margin: 8px;
+    cursor: pointer;
+}
+.org-logo {
+    max-width: 150px;
+    max-height: 150px;
+}
+.org-logo-blank {
+    background-color: #AEF;
+    width: 150px;
+    height: 150px;
+}
+
+.org-title {
+    text-align: center;
+    font-size: 1.1em;
+    line-height: 1em;
+    font-weight: bold;
+}
+
+
+.org-li {
+    width: 38%;
+    padding: 2px 6px;
+    margin: 3px 0;
+    background-color: #EEE;
+    cursor: pointer;
+}
+.org-li:hover {
+    background-color: #CCC;
+}
+
+.org-name {
+    font-weight: bold;
+}
+
+.org-ct {
+    float: right;
+    font-size: 0.8em;
+    color: white;
+    padding: 0 4px;
+    border-radius: 3px;
+    margin: 3px;
+}
+
+.org-memct {
+    background-color: #0AD;
+}
+.org-kidct {
+    background-color: #0DA;
+}
+
+.dim {
+    color: #BBB;
+}
+</style>
+
+<%
+
+JSONArray orgsArr = new JSONArray();
+boolean singleMode = false;
 
 if ((oid == null) && (uid == null)) {  //show all
     Query q = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Organization WHERE parent == null");
@@ -22,56 +106,24 @@ if ((oid == null) && (uid == null)) {  //show all
     Collection c = (Collection) (q.execute());
     List<Organization> orgs = new ArrayList<Organization>(c);
     q.closeAll();
-    if (orgs.size() < 1) {
-        out.println("<p>no Organizations</p>");
-    } else {
-        out.println("<ul>");
+    if (orgs.size() > 0) {
         for (Organization org : orgs) {
-            out.print("<li><a title=\"" + org.getId() + "\" href=\"org.jsp?id=" + org.getId() + "\">" + org.getName() + "</a> (");
-            out.println(org.numMembers() + " members, " + org.numChildren() + " sub-orgs)</li>");
+            JSONObject jo = org.toJSONObject(true);
+            jo.put("canManage", org.canManage(thisUser, myShepherd));
+            orgsArr.put(jo);
         }
-        out.println("</ul>");
     }
 
 } else if (oid != null) {
+    singleMode = true;
     Organization org = ((Organization) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Organization.class, oid), true)));
-    if (org == null) {
-        out.println("<p>unknown Organization id=" + oid + "</p>");
-    } else {
-        if (org.getLogo() != null) out.println("<img style=\"max-height: 200px; margin-right: 30%; float: right;\" src=\"" + org.getLogo().safeURL(request) + "\" />");
-        out.println("<h1>" + org.getName() + "</h1>");
-        if (org.getUrl() != null) {
-            out.println("<p>url: <b><a href=\"" + org.getUrl() + "\">" + org.getUrl() + "</a></b></p>");
-        } else {
-            out.println("<p>url: <i>none</i></p>");
-        }
-        out.println("<p>description: <b>" + org.getDescription() + "</b></p>");
-        out.println("<p>getIndividualNameKey: <b>" + org.getIndividualNameKey() + "</b></p>");
-        if (org.numMembers() < 1) {
-            out.println("<p><i>no members</i></p>");
-        } else {
-            out.println("<p><b>Members</b><ol>");
-            for (User member : org.getMembers()) {
-                out.println("<li><a href=\"org.jsp?uid=" + member.getUUID() + "\" title=\"" + member.getUUID() + " / " + member.getUsername() + "\">" + member.getFullName() + "</a></li>");
-            }
-            out.println("</ol></p>");
-        }
-
-        if (org.getParent() != null) {
-            out.println("<p>Parent org: <a href=\"org.jsp?id=" + org.getParent().getId() + "\" title=\"" + org.getParent().getId() + "\">" + org.getParent().getName() + "</a></p>");
-        }
-
-        if (org.numChildren() < 1) {
-            out.println("<p><i>no sub-orgs</i></p>");
-        } else {
-            out.println("<p><b>Sub-orgs</b><ol>");
-            for (Organization sub : org.getChildren()) {
-                out.println("<li><a href=\"org.jsp?id=" + sub.getId() + "\" title=\"" + sub.getId() + "\">" + sub.getName() + "</a></li>");
-            }
-            out.println("</ol></p>");
-        }
+    if (org != null) {
+        JSONObject jo = org.toJSONObject(true);
+        jo.put("canManage", org.canManage(thisUser, myShepherd));
+        orgsArr.put(jo);
     }
 
+/*
 } else if (uid != null) {
     User user = myShepherd.getUserByUUID(uid);
     if (user == null) {
@@ -90,7 +142,60 @@ if ((oid == null) && (uid == null)) {  //show all
             out.println("</ol></p>");
         }
     }
+
+*/
 }
 
 
 %>
+
+<script type="text/javascript">
+var orgs = <%=orgsArr.toString(4)%>;
+var singleMode = <%=singleMode%>;
+$(document).ready(function() {
+    displayOrgs();
+});
+
+function displayOrgs() {
+    if (!orgs || !orgs.length) {
+        $('.maincontent').append('<h2>No match</h2>');
+        return;
+    }
+
+    if (singleMode) {
+        $('.maincontent').append(singleFullEl(orgs[0]));
+    } else {
+        $('.maincontent').append(listOrgsEl(orgs));
+        $('.org-li').on('click', function(ev) { window.location.href = 'org.jsp?id=' + ev.currentTarget.id; });
+    }
+}
+    
+function singleFullEl(org) {
+    return '<xmp>' + JSON.stringify(org, 4) + '</xmp>';
+}
+
+function listOrgsEl(orgs) {
+    var l = '<div class="org-list">';
+    for (var i = 0 ; i < orgs.length ; i++) {
+        l += singleListEl(orgs[i]);
+    }
+    l += '</div>';
+    return l;
+}
+
+function singleListEl(org) {
+    var h = '<div id="' + org.id + '" class="org-li' + (org.canManage ? ' org-manage' : '') + '" title="created: ' + new Date(org.created).toLocaleString() + ' | modified: ' + new Date(org.modified).toLocaleString() + ' | id: ' + org.id+ '">';
+    h += '<span class="org-name">' + org.name + '</span>';
+    if (org.children && org.children.length) h += '<span class="org-ct org-kidct">' + org.children.length + ' sub</span>';
+    if (org.members && org.members.length) h += '<span class="org-ct org-memct">' + org.members.length + ' mem</span>';
+    h += '</div>';
+    return h;
+}
+
+</script>
+
+<div class="container maincontent">
+</div>
+
+<jsp:include page="footer.jsp" flush="true"/>
+
