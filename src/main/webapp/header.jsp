@@ -337,7 +337,7 @@ finally{
                             <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
                               <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
                               <input type="hidden" name="langCode" value="<%=langCode%>"/>
-                              <button type="submit" id="header-search-button"><span class="el el-lg el-search"></span></button>
+                              <span class="el el-lg el-search"></span>
                           </form>
                       </label>
                     </div>
