@@ -395,7 +395,6 @@
 				/AnnotationEdit = authc, roles[admin]
 				
 				/EncounterSetString = authc
-				/OrganizationEdit = authc, roles[admin]
 				/MergeIndividual = authc
 
             </param-value>

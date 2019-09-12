@@ -23,9 +23,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collection;
 import java.util.Iterator;
 
-//import javax.jdo.Query;
+import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -55,7 +56,59 @@ public class OrganizationEdit extends HttpServlet {
 
     @Override
     public void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        doPost(request, response);
+        //doPost(request, response);
+        String searchUser = request.getParameter("searchUser");
+        String searchOrg = request.getParameter("searchOrg");
+        JSONArray rtn = new JSONArray();
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.beginDBTransaction();
+
+        if (searchUser != null) {
+            String clean = Util.basicSanitize(searchUser).toLowerCase();
+            String jdo = "SELECT FROM org.ecocean.User WHERE username.toLowerCase().matches('.*" + clean + ".*') || fullName.toLowerCase().matches('.*" + clean + ".*')";
+System.out.println(jdo);
+            Query query = myShepherd.getPM().newQuery(jdo);
+            Collection c = (Collection)query.execute();
+            Iterator it = c.iterator();
+            while (it.hasNext()) {
+                User u = (User)it.next();
+                JSONObject uj = new JSONObject();
+                uj.put("id", u.getUUID());
+                uj.put("fullName", u.getFullName());
+                uj.put("username", u.getUsername());
+                rtn.put(uj);
+            }
+            query.closeAll();
+
+        } else if (searchOrg != null) {
+            String clean = Util.basicSanitize(searchOrg).toLowerCase();
+            String jdo = "SELECT FROM org.ecocean.Organization WHERE name.toLowerCase().matches('.*" + clean + ".*') || description.toLowerCase().matches('.*" + clean + ".*')";
+System.out.println(jdo);
+            Query query = myShepherd.getPM().newQuery(jdo);
+            Collection c = (Collection)query.execute();
+            Iterator it = c.iterator();
+            while (it.hasNext()) {
+                Organization o = (Organization)it.next();
+                JSONObject oj = new JSONObject();
+                oj.put("id", o.getId());
+                oj.put("name", o.getName());
+                rtn.put(oj);
+            }
+            query.closeAll();
+
+        } else {
+            myShepherd.rollbackAndClose();
+            response.sendError(401, "access denied");
+            return;
+        }
+
+
+        myShepherd.rollbackAndClose();
+        PrintWriter out = response.getWriter();
+        response.setContentType("text/json");
+        out.println(rtn.toString());
+        out.close();
     }
 
     @Override
@@ -119,7 +172,9 @@ public class OrganizationEdit extends HttpServlet {
                         newMembers.add(mem);
                     }
                 }
+System.out.println("BBBB: " + org.getMembers());
                 int added = org.addMembers(newMembers);
+System.out.println("CCCC: " + org.getMembers());
                 rtn.put("success", true);
                 rtn.put("message", "added " + added + " member(s) to " + org.toString());
 
