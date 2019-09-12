@@ -607,6 +607,13 @@ finally{
                 });
             }
         });
+        //prevent enter key on tyeahead
+        $('#search-site').keydown(function (e) {
+                	    if (e.keyCode == 13) {
+                	        e.preventDefault();
+                	        return false;
+                	    }
+        });
         </script>
 
         <!-- ****/header**** -->
