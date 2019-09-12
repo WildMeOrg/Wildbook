@@ -413,12 +413,18 @@ public class ServletUtilities {
       int numEncs = encounters.size();
       for (int y = 0; y < numEncs; y++) {
         Encounter enc = (Encounter) encounters.get(y);
+        // is it in my zone?
         if (enc.getLocationCode()!=null && request.isUserInRole(enc.getLocationCode())) {
+          return true;
+        }
+        // do i manage it? 
+        String sid = enc.getSubmitterID();
+        String up = request.getUserPrincipal().getName();
+        if (sid.equals(up)) {
           return true;
         }
       }
     }
-    //}
     return false;
   }
 
