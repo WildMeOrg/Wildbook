@@ -95,21 +95,23 @@ public class Organization implements java.io.Serializable {
     }
     public void addMember(User u) {
         if (u == null) return;
-        if (members == null) members = new ArrayList<User>();
-        if (!members.contains(u)) members.add(u);
+        List<User> updated = new ArrayList<User>(members);
+        if (!updated.contains(u)) updated.add(u);
+        this.members = updated;
         this.membersReciprocate(u);
         this.updateModified();
     }
     public int addMembers(List<User> ulist) {
         int ct = 0;
         if ((ulist == null) || (ulist.size() < 1)) return 0;
-        if (members == null) members = new ArrayList<User>();
+        List<User> updated = new ArrayList<User>(members);
         for (User mem : ulist) {
             if (!members.contains(mem)) {
-                members.add(mem);
+                updated.add(mem);
                 ct++;
             }
         }
+        this.members = updated;
         this.membersReciprocate(ulist);
         this.updateModified();
         return ct;
