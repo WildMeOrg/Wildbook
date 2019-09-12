@@ -814,10 +814,15 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
 
       if (fv.get("manualID") != null && fv.get("manualID").toString().length() > 0) {
             String indID = fv.get("manualID").toString();
-            MarkedIndividual ind = myShepherd.getMarkedIndividualQuiet(indID);
+
+            //Okay, we need to get this critter by DISPLAY NAME, not by yer name/uuid biz cause we dont have it!
+            MarkedIndividual ind = MarkedIndividual.withName(myShepherd, indID);
+
             if (ind==null) {
-                ind = new MarkedIndividual(enc);
-                ind.addName(request, indID); // we don't just create the individual using the encounter+indID bc this request might key the name off of the logged-in user
+                ind = new MarkedIndividual(indID, enc);
+
+                //ind.addName(request, indID); // we don't just create the individual using the encounter+indID bc this request might key the name off of the logged-in user
+
                 myShepherd.storeNewMarkedIndividual(ind);
                 ind.refreshNamesCache();
                 System.out.println("        ENCOUNTERFORM: created new individual "+indID);
