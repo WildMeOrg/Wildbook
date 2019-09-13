@@ -190,6 +190,10 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   <style type="text/css">
 
+.id-action {
+    display: none;
+}
+
 .disabled {
     opacity: 0.6;
 }
@@ -404,6 +408,7 @@ td.measurement{
 	</script>
 	
 <script>
+var lastIndivAutoData = {};
 function setIndivAutocomplete(el) {
     if (!el || !el.length) return;
     var args = {
@@ -411,12 +416,18 @@ function setIndivAutocomplete(el) {
             var taxString = $('#displayTax').text();
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if (taxString && (item.species != taxString)) return null;
+                //if (taxString && (item.species != taxString)) return null;
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
-                return { label: label, type: item.type, value: item.value };
+                lastIndivAutoData[item.value] = label;
+                return { label: label, type: item.type, value: label, id: item.value };
             });
             return res;
+        },
+        select: function(ev, ui) {
+            $('#individualAddEncounterInput').val(ui.item.id);
+            resetIdButtons();
+            return true;
         }
     };
     wildbook.makeAutocomplete(el[0], args);
@@ -1460,6 +1471,7 @@ if(enc.getLocation()!=null){
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
 	
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
+                    resetIdButtons();
 	          });
 	
 	          $("#closeEditIdentity").click(function() {
@@ -1573,21 +1585,60 @@ if(enc.getLocation()!=null){
  
 
                     <script type="text/javascript">
+function switchIdMode(bid) {
+    if (bid == '#Add') {
+        $('#matchType').val('Pattern match');
+        $('#individualNewAddEncounterInput').val('');
+    } else {
+        $('#matchType').val('Unmatched first encounter');
+        $('#individualAddEncounterInput').val('');
+        $('#individualAddEncounterInputDisplay').val('');
+    }
+    resetIdButtons();
+}
+function resetIdButtons() {
+console.info('resetIdButtons()');
+    $('.id-action').hide();
+    var newId = $('#individualNewAddEncounterInput').val();
+    var existId = $('#individualAddEncounterInput').val();
+console.log('newId=%s / existId=%s', newId, existId);
+    if (newId) {
+        $('#AddNew').show();
+    } else if (existId) {
+console.log('existId=%s', existId);
+        if (lastIndivAutoData[existId]) {
+            $('#Add').show();
+        } else {
+            console.warn('bad existId=%s; not in lastIndivAutoData %o', existId, lastIndivAutoData);
+        }
+    }
+}
+
                     $(document).ready(function() {
                     	
                     	
-                      $("#Add").click(function(event) {
+                      $(".id-action").click(function(event) {
                         event.preventDefault();
+                        var forceNew = false;
+                        var individual = $("#individualAddEncounterInput").val();
+                        if (!individual) {
+                            individual = $("#individualNewAddEncounterInput").val();
+                            forceNew = true;
+                        }
+                        if (!individual) return false;  //both blank, i guess
 
-                        $("#Add").hide();
+                        $(".id-action").hide();
 
                         var number = $("#individualAddEncounterNumber").val();
-                        var individual = $("#individualAddEncounterInput").val();
+                        var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
                         var matchType = $("#matchType").val();
                         var noemail = $( "input:checkbox:checked" ).val();
                         var action = $("#individualAddEncounterAction").val();
+                        var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
+                        console.info('sendData=%o', sendData);
 
-                        $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
+return false;
+                        $.post("../IndividualAddEncounter", sendData,
                         function(data) {
                         	
                          
@@ -1619,7 +1670,7 @@ if(enc.getLocation()!=null){
                         $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
                         $("#individualDiv").removeClass("has-success");
                         $("#individualDiv").removeClass("has-error");
-                        $("#Add").show();
+                        //$("#Add").show();
                         $("#setRemoveResultDiv").hide();
                       });
                     });
@@ -1633,18 +1684,18 @@ if(enc.getLocation()!=null){
 
 
 
-                    <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
 
                     <form name="add2shark" class="add2shark">
                       <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
                       <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
+                    <p class="add2shark"><strong><%=encprops.getProperty("addNewMarkedIndividual")%></strong></p>
                       <div class="form-group row" id="individualDiv">
                         <div class="col-sm-3">
-                          <label><%=encprops.getProperty("individual")%></label>
+                          <label><%=encprops.getProperty("newIndividual")%></label>
                         </div>
                         <div class="col-sm-5 col-xs-10">
-                          <input name="individual" type="text" class="form-control" id="individualAddEncounterInput"/>
-                          
+                          <input name="individualNew" type="text" class="form-control" id="individualNewAddEncounterInput"/>
+
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
                           <span class="form-control-feedback" id="individualError">X</span><br>
                           <%
@@ -1655,10 +1706,27 @@ if(enc.getLocation()!=null){
                           		$('individualAddEncounterInput').val('<%=nextID %>');
                           	}
 	                      </script>
-                          <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualAddEncounterInput').val('<%=nextID %>');$('#matchType').val('Unmatched first encounter').change();"><%=nextID  %></a></em></p>
+                          <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualNewAddEncounterInput').val('<%=nextID %>');$('#matchType').val('Unmatched first encounter').change(); switchIdMode('#AddNew');"><%=nextID  %></a></em></p>
 
                         </div>
+                        <input name="AddNew" type="button" id="AddNew" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
+                          
                       </div>
+
+                    <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
+
+                      <div class="form-group row" id="xmatchedByDiv">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("existingIndividual")%></label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <input name="individual" type="text" class="form-control" id="individualAddEncounterInputDisplay"/>
+                          <input style="margin-left: 220px;outline: blue 2px dashed;" name="individual" type="hidden" class="form-control" id="individualAddEncounterInput"/>
+                        </div>
+
+                        <input name="Add" type="button" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
+                      </div>
+
                       <div class="form-group row" id="matchedByDiv">
                         <div class="col-sm-3">
                           <label><%=encprops.getProperty("matchedBy")%>: </label>
@@ -1682,12 +1750,39 @@ if(enc.getLocation()!=null){
                     </form>
 					
 					<script type="text/javascript">
+
+function showHiddenId() {
+    $('#individualAddEncounterInput').prop('type', 'text');
+}
+function checkIdDisplay() {
+    var dispVal = $('#individualAddEncounterInputDisplay').val();
+    var idVal = $('#individualAddEncounterInput').val();
+    if (lastIndivAutoData[idVal] == dispVal) return;
+    $('#individualAddEncounterInput').val('');
+    resetIdButtons();
+}
 	                    $(document).ready(function() {
 	                    	
 	                    	//set autocomplete on #individualAddEncounterInput above
-	                    	setIndivAutocomplete($('#individualAddEncounterInput'));
+	                    	setIndivAutocomplete($('#individualAddEncounterInputDisplay'));
 	                    	
 	                    	
+    $('#individualAddEncounterInputDisplay').on('change', function(ev) {
+        checkIdDisplay();
+        resetIdButtons();
+    });
+    $('#individualAddEncounterInputDisplay').on('keyup keydown click', function(ev) {
+        switchIdMode('#Add');
+        checkIdDisplay();
+        resetIdButtons();
+        //$('#matchType').val('Pattern match');
+    });
+    $('#individualNewAddEncounterInput').on('keydown click', function() {
+        switchIdMode('#AddNew');
+        resetIdButtons();
+        //$('#individualAddEncounterInput').val('');
+        //$('#matchType').val('Unmatched first encounter');
+    });
 	                    	
 	                    });
                     </script>
