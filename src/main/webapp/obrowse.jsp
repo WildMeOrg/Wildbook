@@ -542,6 +542,8 @@ context=ServletUtilities.getContext(request);
 if (type == null) type = "Encounter";
 if (id == null && (acmid == null || !"Annotation".equals(type))) {
 	out.println(showForm());
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 	return;
 }
 
