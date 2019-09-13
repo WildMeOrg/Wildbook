@@ -67,7 +67,6 @@ public class OrganizationEdit extends HttpServlet {
         if (searchUser != null) {
             String clean = Util.basicSanitize(searchUser).toLowerCase();
             String jdo = "SELECT FROM org.ecocean.User WHERE username.toLowerCase().matches('.*" + clean + ".*') || fullName.toLowerCase().matches('.*" + clean + ".*')";
-System.out.println(jdo);
             Query query = myShepherd.getPM().newQuery(jdo);
             Collection c = (Collection)query.execute();
             Iterator it = c.iterator();
@@ -84,7 +83,6 @@ System.out.println(jdo);
         } else if (searchOrg != null) {
             String clean = Util.basicSanitize(searchOrg).toLowerCase();
             String jdo = "SELECT FROM org.ecocean.Organization WHERE name.toLowerCase().matches('.*" + clean + ".*') || description.toLowerCase().matches('.*" + clean + ".*')";
-System.out.println(jdo);
             Query query = myShepherd.getPM().newQuery(jdo);
             Collection c = (Collection)query.execute();
             Iterator it = c.iterator();
@@ -172,9 +170,7 @@ System.out.println(jdo);
                         newMembers.add(mem);
                     }
                 }
-System.out.println("BBBB: " + org.getMembers());
                 int added = org.addMembers(newMembers);
-System.out.println("CCCC: " + org.getMembers());
                 rtn.put("success", true);
                 rtn.put("message", "added " + added + " member(s) to " + org.toString());
 

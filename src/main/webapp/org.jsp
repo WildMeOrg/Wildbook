@@ -51,6 +51,10 @@ User thisUser = AccessControl.getUser(request, myShepherd);
     height: 150px;
 }
 
+.org-full {
+    position: relative;
+}
+
 .org-title {
     text-align: center;
     font-size: 1.1em;
@@ -58,6 +62,28 @@ User thisUser = AccessControl.getUser(request, myShepherd);
     font-weight: bold;
 }
 
+.edit-details {
+    font-size: 1.5em;
+    position: absolute;
+    top: 5px;
+    left: 60%;
+}
+
+.edit-details-form {
+    display: none;
+    padding: 8px;
+    background-color: #EFCDCD;
+    width: 40%;
+}
+.edit-details-form input {
+    display: block;
+}
+
+.edit-details-form textarea {
+    margin-top: 8px;
+    height: 4.5em;
+    width: 100%;
+}
 
 .org-desc {
     padding: 8px;
@@ -66,7 +92,6 @@ User thisUser = AccessControl.getUser(request, myShepherd);
 }
 
 .org-li {
-    width: 38%;
     padding: 2px 6px;
     margin: 3px 0;
     background-color: #EEE;
@@ -115,10 +140,9 @@ User thisUser = AccessControl.getUser(request, myShepherd);
 
 .org-user {
     padding: 3px;
-    width: 30%;
 }
 .org-user:hover {
-    background-color: #EEE;
+    background-color: #CCC;
 }
 
 .org-edit {
@@ -133,6 +157,13 @@ User thisUser = AccessControl.getUser(request, myShepherd);
 }
 .org-edit:hover {
     background-color: #AAA;
+}
+
+.org-members, .org-children, .org-parent {
+    width: 40%;
+    padding: 4px;
+    margin: 8px;
+    background-color: #EEE;
 }
 
 .dim {
@@ -165,6 +196,13 @@ if ((oid == null) && (uid == null)) {  //show all
     if (org != null) {
         JSONObject jo = org.toJSONObject(true);
         jo.put("canManage", org.canManage(thisUser, myShepherd));
+        Organization parent = org.getParent();
+        if (parent != null) {
+            JSONObject p = new JSONObject();
+            p.put("id", parent.getId());
+            p.put("name", parent.getName());
+            jo.put("parent", p);
+        }
         orgsArr.put(jo);
     }
 
@@ -209,19 +247,35 @@ function displayOrgs() {
 
     if (singleMode) {
         $('.maincontent').append(singleFullEl(orgs[0]));
-        if (orgs[0].canManage) enableEdit();
+        if (orgs[0].canManage) enableEdit(orgs[0]);
+        $('.maincontent').append('<div><a href="org.jsp"><b>List all organizations</b></a></div>');
     } else {
         $('.maincontent').append(listOrgsEl(orgs));
-        $('.org-li').on('click', function(ev) { window.location.href = 'org.jsp?id=' + ev.currentTarget.id; });
     }
+    $('.org-li').on('click', function(ev) { window.location.href = 'org.jsp?id=' + ev.currentTarget.id; });
 }
 
-function enableEdit() {
+function enableEdit(org) {
     $('.org-user').each(function(i,el) {
-        $(el).append('<div title="REMOVE from organization" class="org-edit org-remove">x</div>');
+        $(el).append('<div onClick="return removeUser(this);" title="REMOVE from organization" class="org-edit org-remove">x</div>');
     });
     $('.org-members').append('<div id="user-add-form"><input type="text" style="width: 20em;" id="org-add-user" placeholder="Search user to add" /><input type="button" value="Add user" onClick="return addUser();" /></div>');
     autoUser();
+
+    $('.org-children .org-li .org-ct').each(function(i,el) {
+        $(el).before('<div onClick="event.stopPropagation(); return removeSub(this);" title="REMOVE from organization" class="org-edit org-remove">x</div>');
+    });
+    $('.org-children').append('<div id="sub-add-form"><input type="text" style="width: 20em;" id="org-add-sub" placeholder="Search organization to add" /><input type="button" value="Add org" onClick="return addSub();" /></div>');
+    autoOrg();
+
+    $('.org-full').append('<div onClick="$(\'.edit-details-form\').toggle();" title="edit details of organization" class="org-edit edit-details">&#9998;</div>');
+    var h = '<div class="edit-details-form">';
+    h += '<input placeholder="Name" id="detail-name" value="' + (org.name || '') + '" />';
+    h += '<input placeholder="URL" id="detail-url" value="' + (org.url || '') + '" />';
+    h += '<textarea placeholder="Description" id="detail-description">' + (org.description || '') + '</textarea>';
+    h += '<input type="button" value="Save" onClick="return saveDetails();" />';
+    h += '</div>';
+    $('.org-children').before(h);
 }
 
 function singleFullEl(org) {
@@ -234,20 +288,30 @@ function singleFullEl(org) {
     if (org.logo && org.logo.url) h += '<img class="org-logo" src="' + org.logo.url + '" />';
     if (org.description) h += '<div class="org-desc">' + org.description + '</div>';
 
+    h += '<div class="org-children">';
     if (org.children && org.children.length) {
-        h += '<div class="org-children">';
+        h += '<i>Sub-organizations</i>';
         for (var i = 0 ; i < org.children.length ; i++) {
             h += singleListEl(org.children[i]);
         }
-        h += '</div>';
+    } else {
+        h += '<i>No sub-organizations</i>';
     }
+    h += '</div>';
+
+    if (org.parent) h += '<div class="org-parent"><i>Parent organization:</i>' + singleListEl(org.parent) + '</div>';
+
+    h += '<div class="org-members">';
     if (org.members && org.members.length) {
-        h += '<div class="org-members">';
+        h += '<i>Members</i>';
         for (var i = 0 ; i < org.members.length ; i++) {
             h += singleUserEl(org.members[i]);
         }
-        h += '</div>';
+    } else {
+        h += '<i>No members</i>';
     }
+    h += '</div>';
+
     h += '</div>';
     return h;
 }
@@ -305,6 +369,35 @@ function autoUser() {
 
 }
 
+function autoOrg() {
+    var orgId = $('.org-full').attr('id');
+    $('#org-add-sub').autocomplete({
+        source: function( request, response ) {
+            $.ajax({
+                url: wildbookGlobals.baseUrl + '/OrganizationEdit?searchOrg=' + request.term,
+                type: 'GET',
+                dataType: "json",
+                success: function( data ) {
+                        var valid = new Array();
+                        for (var i = 0 ; i < data.length ; i++) {
+                            if ($('.org-li#' + data[i].id).length) continue;  //this user is in group already
+                            if (orgId == data[i].id) continue;  //dont add ourselves
+                            //note, recursion will be caught by the servlet, not us
+                            valid.push(data[i]);
+                        }
+                        var res = $.map(valid, function(item) {
+                        var label = item.id.substr(0,8);
+                        if (item.name) label = item.name + ' (' + label + ')';
+                        return { label: label, value: item.id };
+                    });
+                    response(res);
+                }
+            });
+        }
+    });
+
+}
+
 
 
 function addUser() {
@@ -315,8 +408,11 @@ console.log("orgId=%s userId=%s", orgId, userId);
     $('#user-add-form').hide();
     addUserAjax(orgId, userId, function(rtn) {
 console.info('rtn = %o', rtn);
-        if (rtn.success) window.location.reload();
-        $('#user-add-form').html('<div class="error">' + rtn.error + '</div>').show();
+        if (rtn.success) {
+            window.location.reload();
+        } else {
+            $('#user-add-form').html('<div class="error">' + rtn.error + '</div>').show();
+        }
     });
     return true;
 }
@@ -334,6 +430,142 @@ function addUserAjax(orgId, userId, callback) {
         error: function(x) {
             var rtn = { success: false, _error: x, error: 'ERROR ' + x.status + ': ' + x.statusText };
             callback(rtn);
+        },
+        type: 'POST'
+    });
+}
+
+
+function removeUser(el) {
+    var par = el.parentElement;
+    var orgId = $('.org-full').attr('id');
+    var userId = el.parentElement.id;
+console.log("orgId=%s userId=%s", orgId, userId);
+    if (!orgId || !userId) return false;
+    par.innerHTML = '<i>processing...</i>';
+    removeUserAjax(orgId, userId, function(rtn) {
+        if (rtn.success) {
+            par.remove();
+        } else {
+            par.innerHTML = '<div class="error">' + rtn.error + '</div>';
+        }
+    });
+    return true;
+}
+
+function removeUserAjax(orgId, userId, callback) {
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/OrganizationEdit',
+        data: JSON.stringify({ id: orgId, removeUsers: [ userId ] }),
+        contentType: 'application/javascript',
+        dataType: 'json',
+        success: function(d) {
+            callback(d);
+        },
+        error: function(x) {
+            var rtn = { success: false, _error: x, error: 'ERROR ' + x.status + ': ' + x.statusText };
+            callback(rtn);
+        },
+        type: 'POST'
+    });
+}
+
+
+function addSub() {
+    var orgId = $('.org-full').attr('id');
+    var subId = $('#org-add-sub').val();
+console.log("orgId=%s subId=%s", orgId, subId);
+    if (!orgId || !subId) return false;
+    $('#sub-add-form').hide();
+    addSubAjax(orgId, subId, function(rtn) {
+console.info('rtn = %o', rtn);
+        if (rtn.success) {
+            window.location.reload();
+        } else {
+            $('#sub-add-form').html('<div class="error">' + rtn.error + '</div>').show();
+        }
+    });
+    return true;
+}
+
+function addSubAjax(orgId, subId, callback) {
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/OrganizationEdit',
+        data: JSON.stringify({ id: orgId, addChild: subId }),
+        contentType: 'application/javascript',
+        dataType: 'json',
+        success: function(d) {
+            callback(d);
+        },
+        error: function(x) {
+            var rtn = { success: false, _error: x, error: 'ERROR ' + x.status + ': ' + x.statusText };
+            callback(rtn);
+        },
+        type: 'POST'
+    });
+}
+
+function removeSub(el) {
+    var par = el.parentElement;
+    var orgId = $('.org-full').attr('id');
+    var subId = el.parentElement.id;
+console.log("orgId=%s subId=%s", orgId, subId);
+    if (!orgId || !subId) return false;
+    par.innerHTML = '<i>processing...</i>';
+    removeSubAjax(orgId, subId, function(rtn) {
+        if (rtn.success) {
+            par.remove();
+        } else {
+            par.innerHTML = '<div class="error">' + rtn.error + '</div>';
+        }
+    });
+    return true;
+}
+
+function removeSubAjax(orgId, subId, callback) {
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/OrganizationEdit',
+        data: JSON.stringify({ id: orgId, removeChild: subId }),
+        contentType: 'application/javascript',
+        dataType: 'json',
+        success: function(d) {
+            callback(d);
+        },
+        error: function(x) {
+            var rtn = { success: false, _error: x, error: 'ERROR ' + x.status + ': ' + x.statusText };
+            callback(rtn);
+        },
+        type: 'POST'
+    });
+}
+
+function saveDetails() {
+    var data = {
+        id: $('.org-full').attr('id'),
+        edit: {}
+    };
+    var name = $('#detail-name').val();
+    var url = $('#detail-url').val();
+    var desc = $('#detail-description').val();
+
+    if (name) data.edit.name = name;
+    if (url) data.edit.url = url;
+    if (desc) data.edit.description = desc;
+
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '/OrganizationEdit',
+        data: JSON.stringify(data),
+        contentType: 'application/javascript',
+        dataType: 'json',
+        success: function(d) {
+            if (d.success) {
+                window.location.reload();
+            } else {
+                $('.edit-details-form').html('<div class="error">' + d.error + '</div>');
+            }
+        },
+        error: function(x) {
+            $('.edit-details-form').html('<div class="error">ERROR ' + x.status + ': ' + x.statusText + '</div>');
         },
         type: 'POST'
     });
