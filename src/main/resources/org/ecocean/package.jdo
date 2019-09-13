@@ -798,7 +798,10 @@
         </field>
 
             	<field name="organizations" persistence-modifier="persistent" default-fetch-group="true" >
-                	<collection element-type="org.ecocean.Organization" dependent-element="false" />
+                	<collection element-type="org.ecocean.Organization" />
+			<order>
+				<extension vendor-name="datanucleus" key="list-ordering" value="id ASC" />
+			</order>
                 	<join>
 				<column name="USER_ID" />
 			</join>
@@ -948,9 +951,12 @@
                 	<join />
             	</field>
 
-		<field name="members" persistent-modifier="persistent" mapped-by="organizations" default-fetch-group="true" >
+		<field name="members" persistent-modifier="persistent" mapped-by="organizations" >
 			<collection element-type="org.ecocean.User"/>
-			<join />
+			<order>
+				<extension vendor-name="datanucleus" key="list-ordering" value="uuid ASC" />
+			</order>
+			<join/>
 		</field>
 	</class>
 
