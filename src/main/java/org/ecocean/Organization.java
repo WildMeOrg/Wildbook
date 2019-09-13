@@ -368,6 +368,19 @@ public class Organization implements java.io.Serializable {
         return j;
     }
 
+    //basically mean uuid-equivalent, so deal
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof Organization)) return false;
+        Organization two = (Organization)u2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (id == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return id.hashCode();
+    }
+
     public String toString() {
         return new ToStringBuilder(this)
                 .append(id)
