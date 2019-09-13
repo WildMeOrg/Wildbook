@@ -95,23 +95,21 @@ public class Organization implements java.io.Serializable {
     }
     public void addMember(User u) {
         if (u == null) return;
-        List<User> updated = new ArrayList<User>(members);
-        if (!updated.contains(u)) updated.add(u);
-        this.members = updated;
+        if (members == null) members = new ArrayList<User>();
+        if (!members.contains(u)) members.add(u);
         this.membersReciprocate(u);
         this.updateModified();
     }
     public int addMembers(List<User> ulist) {
         int ct = 0;
         if ((ulist == null) || (ulist.size() < 1)) return 0;
-        List<User> updated = new ArrayList<User>(members);
+        if (members == null) members = new ArrayList<User>();
         for (User mem : ulist) {
             if (!members.contains(mem)) {
-                updated.add(mem);
+                members.add(mem);
                 ct++;
             }
         }
-        this.members = updated;
         this.membersReciprocate(ulist);
         this.updateModified();
         return ct;
@@ -368,6 +366,19 @@ public class Organization implements java.io.Serializable {
         Organization parent = this.getParent();
         if (parent != null) j.put("parentId", parent.getId());
         return j;
+    }
+
+    //basically mean uuid-equivalent, so deal
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof Organization)) return false;
+        Organization two = (Organization)u2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (id == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return id.hashCode();
     }
 
     public String toString() {
