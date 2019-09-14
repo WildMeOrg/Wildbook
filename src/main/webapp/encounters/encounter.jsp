@@ -1745,8 +1745,7 @@ console.info('resetIdButtons()');
                           <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
                         </div>
                       </div>
-                        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark"/>
-                    </form>
+                      </form>
 					
 					<script type="text/javascript">
 
