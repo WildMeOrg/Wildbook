@@ -1601,11 +1601,11 @@ console.info('resetIdButtons()');
     $('.id-action').hide();
     var newId = $('#individualNewAddEncounterInput').val();
     var existId = $('#individualAddEncounterInput').val();
-console.log('newId=%s / existId=%s', newId, existId);
+//console.log('newId=%s / existId=%s', newId, existId);
     if (newId) {
         $('#AddNew').show();
     } else if (existId) {
-console.log('existId=%s', existId);
+//console.log('existId=%s', existId);
         if (lastIndivAutoData[existId]) {
             $('#Add').show();
         } else {
@@ -1637,7 +1637,6 @@ console.log('existId=%s', existId);
                         var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
                         console.info('sendData=%o', sendData);
 
-return false;
                         $.post("../IndividualAddEncounter", sendData,
                         function(data) {
                         	
