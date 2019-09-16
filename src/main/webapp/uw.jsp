@@ -73,7 +73,7 @@ label {
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("register.jsp");
+myShepherd.setAction("uw.jsp");
 myShepherd.beginDBTransaction();
 boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"));
 request.setAttribute("pageTitle", "Kitizen Science &gt; Participate (UW)");
@@ -210,13 +210,11 @@ if (session.getAttribute("error") != null) {
 <img src="images/participate_manatdesk.jpg" style="height: 300px; float: right; margin-top: -5em;" />
 <p>
 <b>
-Our second phase of validation tests are for University of Washington students only ... (etc....)
+The UW-only version of our first validation test is running from now until the end of December 8, 2019.
 </b>
-</p>
 
 <p>
-This validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones.
-Each validation study is focused on some aspect of Kitizen Science's data collection and processing methods. The current validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones. Later, we will be using smart phone photos to collect data for estimating cat populations, so knowing how good humans are at identifying individual cats from smart phone photos is important to knowing how accurate later conclusions will be.
+This validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones. Each validation study is focused on some aspect of Kitizen Science's data collection and processing methods. The current validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones. Later, we will be using smart phone photos to collect data for estimating cat populations, so knowing how good humans are at identifying individual cats from smart phone photos is important to knowing how accurate later conclusions will be.
 </p>
 
 <p>
@@ -229,7 +227,9 @@ first to see more about what this trial involves.
 Note: some mobile and tablet users are reporting that images aren't loading for them.  We're working on fixing that, but in the mean time, please try a desktop or laptop computer if you are having issues with photos loading.
 </p>
 
-<%  if (loggedIn) { %>
+<% if (!uwMode) { %>
+    <h2>Registration is currently unavailable.</h2>
+<% } else if (loggedIn) { %>
     <b>You are logged in already.  <a href="compare.jsp">Please proceed to study.</a></b>
 <% } else { %>
 

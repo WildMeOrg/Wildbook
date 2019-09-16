@@ -207,7 +207,7 @@ if (session.getAttribute("error") != null) {
 <% if (mode < 0) {
     if (uwMode) {
 %>
-<h2>Intro text for UW</h2>
+<h2>This phase is closed.</h2>
 
 <%  } else {  //not uwMode %>
 
@@ -236,7 +236,10 @@ Note: some mobile and tablet users are reporting that images aren't loading for 
 <%
     }
 
-  if (loggedIn) { %>
+    if (uwMode) {
+out.println("<!--  uwMode = true -->");
+
+  } else if (loggedIn) { %>
     <b>You are logged in already.  <a href="compare.jsp">Please proceed to study.</a></b>
 <% } else { %>
 
