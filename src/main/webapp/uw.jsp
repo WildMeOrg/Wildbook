@@ -10,7 +10,7 @@ org.ecocean.servlet.ReCAPTCHA,
 org.ecocean.*, java.util.Properties" %>
 <%!
 
-private static User registerUser(Shepherd myShepherd, String username, String email, String pw1, String pw2, boolean uwMode) throws java.io.IOException {
+private static User registerUser(Shepherd myShepherd, String username, String email, String pw1, String pw2) throws java.io.IOException {
     if (!Util.stringExists(username)) throw new IOException("Invalid username format");
     if (!Util.isValidEmailAddress(email)) throw new IOException("Invalid email format");
     if (!Util.stringExists(pw1) || !Util.stringExists(pw2) || !pw1.equals(pw2)) throw new IOException("Password invalid or do not match");
@@ -22,8 +22,8 @@ private static User registerUser(Shepherd myShepherd, String username, String em
     String hashPass = ServletUtilities.hashAndSaltPassword(pw1, salt);
     User user = new User(username, hashPass, salt);
     user.setEmailAddress(email);
-    if (uwMode) user.setAffiliation("U-W");
-    user.setNotes("<p data-time=\"" + System.currentTimeMillis() + "\">created via registration.</p>");
+    user.setAffiliation("U-W");
+    user.setNotes("<p data-time=\"" + System.currentTimeMillis() + "\">created via U-W registration.</p>");
     Role role = new Role(username, "subject");
     role.setContext(myShepherd.getContext());
     myShepherd.getPM().makePersistent(role);
@@ -74,7 +74,7 @@ label {
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("register.jsp");
+myShepherd.setAction("uw.jsp");
 myShepherd.beginDBTransaction();
 request.setAttribute("pageTitle", "Kitizen Science &gt; Participate");
 boolean rollback = true;
@@ -131,7 +131,7 @@ boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"
             errorMessage = "Please agree to terms and conditions";
         }
         if (ok) try {
-            user = registerUser(myShepherd, reg_username, reg_email, reg_password1, reg_password2, uwMode);
+            user = registerUser(myShepherd, reg_username, reg_email, reg_password1, reg_password2);
         } catch (java.io.IOException ex) {
             errorMessage = ex.getMessage();
         }
@@ -142,13 +142,13 @@ boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"
         } else {
             myShepherd.getPM().makePersistent(user);
             rollback = false;
-            System.out.println("[INFO] register.jsp created " + user);
+            System.out.println("[INFO] uw.jsp created " + user);
             session.setAttribute("user", user);
             mode = 2;
         }
 
     } else if (fromMode == 2) {
-        String[] fields = new String[]{"user_uuid", "cat_volunteer", "have_cats", "disability", "citsci", "age", "retired", "gender", "ethnicity", "education", "how_hear"};
+        String[] fields = new String[]{"user_uuid", "have_cats", "citsci", "imageid", "age", "retired", "gender", "ethnicity", "standing"};
         JSONObject resp = new JSONObject();
         List<String> errors = new ArrayList<String>();
         for (int i = 0 ; i < fields.length ; i++) {
@@ -221,7 +221,7 @@ This validation test is looking at how good humans are at by-eye photo identific
 
 <p>
 You can read the
-<a href="register.jsp?instructions">instructions page</a>
+<a href="uw.jsp?instructions">instructions page</a>
 first to see more about what this trial involves.
 </p>
 
@@ -253,7 +253,7 @@ if (mode == 0) {
 
 <div id="consent-section">
 <h2>
-UNIVERSITY OF WASHINGTON
+UNIVERSITY OF WASHINGTON -
 CONSENT FORM
 </h2>
 <h3>
@@ -276,7 +276,7 @@ The purpose of this study is to test student volunteers' abilities to make corre
 </p>
 
 <p>
-The purpose of this consent form is to give you the information you will need to help you decide whether to be in the study or not.  Please read the form carefully.  You may ask questions about the purpose of the research, what we would ask you to do, the possible risks and benefits, your rights as a volunteer, and anything else about the research or this form that is not clear.  When we have answered all your questions, you can decide if you want to be in the study or not.  This process is called “informed consent.”  You may save a copy of this form for your records.
+The purpose of this consent form is to give you the information you will need to help you decide whether to be in the study or not.  Please read the form carefully.  You may ask questions about the purpose of the research, what we would ask you to do, the possible risks and benefits, your rights as a volunteer, and anything else about the research or this form that is not clear.  When we have answered all your questions, you can decide if you want to be in the study or not.  This process is called "informed consent."  You may save a copy of this form for your records.
 </p>
 
 <h3>
@@ -472,173 +472,20 @@ function checkAccount() {
               
 <% }
 if (mode == 2) {
-
-    if (!uwMode) {
-%>
-<div id="survey-section">
-
-<script>
-//non-uw version
-var surveyRequired = [
-    'cat_volunteer',
-    'disability',
-    'have_cats',
-    'citsci',
-    'age',
-    'retired',
-    'ethnicity',
-    'gender',
-    'education',
-    'how_hear'
-];
-function checkSurvey() {
-    $('.required').removeClass('required');
-    var ok = true;
-    var msg = 'You must complete the form: ';
-    for (var i = 0 ; i < surveyRequired.length ; i++) {
-        var el = $('[name="' + surveyRequired[i] + '"]');
-        var numChecked = $('[name="' + surveyRequired[i] + '"]:checked').length;
-        if (surveyRequired[i] == 'age') {
-            numChecked = parseInt(el.val());
-        }
-        if (surveyRequired[i] == 'how_hear') {
-            numChecked = el.val().trim().length;
-        }
-
-        if (numChecked < 1) {
-            var q = el.parent().first()[0].firstChild.nodeValue;  //ugh!
-            el.parent().addClass('required');
-            ok = false;
-            msg += '\n- ' + q.trim();
-        }
-    }
-    if (!ok) {
-        window.scrollTo({top:250});
-        alert(msg);
-    }
-    return ok;
-}
-</script>
-
-<form onSubmit="return checkSurvey();" method="post">
-
-<h2>Survey</h2>
-<input type="hidden" name="user_uuid" value="<%
-    User regu = (User)session.getAttribute("user");
-    if (regu != null) out.print(regu.getUUID());
-%>" />
-
-<% if (regu != null) { %>
-<p><b style="font-size: 1.3em;">Your user <u><%=regu.getUsername()%></u> has been created.</b></p>
-<% } %>
-<p>
-We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
-</p>
-
-<p>
-Are you currently involved in volunteering with cats in some way?
-<br /><input id="cat_volunteer_yes" type="radio" value="Yes" name="cat_volunteer" /> <label for="cat_volunteer_yes">Yes</label>
-<br /><input id="cat_volunteer_no" type="radio" value="No" name="cat_volunteer" /> <label for="cat_volunteer_no">No</label>
-<br /><input id="cat_volunteer_past" type="radio" value="Not now, but in the past" name="cat_volunteer" /> <label for="cat_volunteer_past">Not now, but in the past</label>
-</p>
-
-<p>
-Do you have a disability or personal limitation (such as being a parent/caregiver) that prevents you from volunteering with cats in a typical offline setting like a shelter?
-<br /><input id="disability_no" type="radio" value="No" name="disability" /> <label for="disability_no">No</label>
-<br /><input id="disability_yes" type="radio" value="Yes" name="disability" /> <label for="disability_yes">Yes</label>
-<br /><input id="disability_sometimes" type="radio" value="Sometimes" name="disability" /> <label for="disability_sometimes">Sometimes</label>
-</p>
-
-<p>
-Do you currently have a cat/cats in your care?
-<br /><input id="have_cats_yes_pet" type="checkbox" value="Yes, a pet cat/cats" name="have_cats" /> <label for="have_cats_yes_pet">Yes, a pet cat/cats</label>
-<br /><input id="have_cats_yes_feral" type="checkbox" value="Yes, I care for feral/free-roaming cats" name="have_cats" /> <label for="have_cats_yes_feral">Yes, I care for feral/free-roaming cats</label>
-<br /><input id="have_cats_no" type="checkbox" value="No" name="have_cats" /> <label for="have_cats_no">No</label>
-</p>
-
-<p>
-Have you ever participated in an online citizen science project doing image identification or classification?
-<br /><input id="citsci_no" type="radio" value="No" name="citsci" /> <label for="citsci_no">No</label>
-<br /><input id="citsci_yes" type="radio" value="Yes" name="citsci" /> <label for="citsci_yes">Yes</label>
-</p>
-
-<p>
-What is your current age?
-<select class="top" name="age">
-    <option value="0">choose age</option>
-<%
-    for (int i = 18 ; i <= 100 ; i++) {
-        out.println("<option>" + i + "</option>\n");
-    }
-%>
-</select>
-</p>
-
-<p>
-Are you retired?
-<br /><input id="retired_no" type="radio" value="No" name="retired" /> <label for="retired_no">No</label>
-<br /><input id="retired_yes" type="radio" value="Yes" name="retired" /> <label for="retired_yes">Yes</label>
-</p>
-
-<p>
-What is your gender?
-<br /><input id="gender_woman" type="radio" value="Woman" name="gender" /> <label for="gender_woman">Woman</label>
-<br /><input id="gender_man" type="radio" value="Man" name="gender" /> <label for="gender_man">Man</label>
-<br /><input id="gender_other" type="radio" value="Other" name="gender" /> <label for="gender_other">Non-binary/Other</label>
-</p>
-
-<p>
-What is your race/ethnicity (select multiple if appropriate):
-<br /><input id="ethnicity_aian" type="checkbox" value="American Indian or Alaska Native" name="ethnicity" /> <label for="ethnicity_aian">American Indian or Alaska Native</label>
-<br /><input id="ethnicity_asian" type="checkbox" value="Asian" name="ethnicity" /> <label for="ethnicity_asian">Asian</label>
-<br /><input id="ethnicity_baa" type="checkbox" value="Black or African American" name="ethnicity" /> <label for="ethnicity_baa">Black or African American</label>
-<br /><input id="ethnicity_hisp" type="checkbox" value="Hispanic or Latino" name="ethnicity" /> <label for="ethnicity_hisp">Hispanic or Latino</label>
-<br /><input id="ethnicity_me" type="checkbox" value="Middle Eastern" name="ethnicity" /> <label for="ethnicity_me">Middle Eastern</label>
-<br /><input id="ethnicity_nhpi" type="checkbox" value="Native Hawaiian or Pacific Islander" name="ethnicity" /> <label for="ethnicity_nhpi">Native Hawaiian or Pacific Islander</label>
-<br /><input id="ethnicity_white" type="checkbox" value="White" name="ethnicity" /> <label for="ethnicity_white">White</label>
-</p>
-
-<p>
-Highest level of education:
-<br /><input id="education_less" type="radio" value="Less than high school" name="education" /> <label for="education_less">Less than high school</label>
-<br /><input id="education_hs" type="radio" value="High school" name="education" /> <label for="education_hs">High School</label>
-<br /><input id="education_some" type="radio" value="some college" name="education" /> <label for="education_some">Technical school, Associate's degree, or some college</label>
-<br /><input id="education_bach" type="radio" value="Bachelor's degree" name="education" /> <label for="education_bach">Bachelor's degree</label>
-<br /><input id="education_grad" type="radio" value="Graduate/professional degree" name="education" /> <label for="education_grad">Graduate/professional degree</label>
-</p>
-
-<p>
-How did you hear about Kitizen Science?
-<textarea style="width: 30em; height: 5em;" class="top" name="how_hear"></textarea>
-</p>
-
-<input type="hidden" name="fromMode" value="2" />
-
-
-<input type="submit" value="Submit survey" />
-
-</form>
-</div>
-
-
-<%
-    } else {   //uw version
 %>
 <div id="survey-section">
 
 <script>
 //uw version
 var surveyRequired = [
-    'cat_volunteer',
-    'disability',
     'have_cats',
     'citsci',
+    'imageid',
     'age',
     'retired',
     'ethnicity',
     'gender',
-    'education',
-    'how_hear'
+    'standing'
 ];
 function checkSurvey() {
     $('.required').removeClass('required');
@@ -751,9 +598,14 @@ What is your race/ethnicity (select multiple if appropriate):
 <br /><input id="ethnicity_white" type="checkbox" value="White" name="ethnicity" /> <label for="ethnicity_white">White</label>
 </p>
 
+<input type="hidden" name="fromMode" value="2" />
+
+<input type="submit" value="Submit survey" />
+
+</form>
+</div>
 
 <%
-    }
 
 } if (mode == 3) {
 %>
@@ -857,7 +709,7 @@ Note: some mobile and tablet users are reporting that images aren't loading for 
 if (rollback) {
     myShepherd.rollbackDBTransaction();
 } else {
-    System.out.println("register.jsp committing db transaction");
+    System.out.println("uw.jsp committing db transaction");
     myShepherd.commitDBTransaction();
 }
 
