@@ -8,10 +8,10 @@ $('#search').submit(function() {
         return !this.value ;
     })
     .prop('name', '');
-	console.log('');;
-	console.log('===============');;
-    alert("formNullRemover was called on elem id "+$(this).attr('id')+" and name "+$(this).attr('name'));
- 	console.log('');;
+	//console.log('');;
+	//console.log('===============');;
+    //alert("formNullRemover was called on elem id "+$(this).attr('id')+" and name "+$(this).attr('name'));
+ 	//console.log('');;
  	
  	  $(this)
  	    .find('select[name]')
@@ -21,10 +21,10 @@ $('#search').submit(function() {
  	        return !this.value ;
  	    })
  	    .prop('name', '');
- 		console.log('');;
- 		console.log('===============');;
- 	    alert("formNullRemover was called on elem id "+$(this).attr('id')+" and name "+$(this).attr('name'));
- 	 	console.log('');;
+ 		//console.log('');;
+ 		//console.log('===============');;
+ 	    //alert("formNullRemover was called on elem id "+$(this).attr('id')+" and name "+$(this).attr('name'));
+ 	 	//console.log('');;
  	 	
  	 	  $(this)
  	 	    .find('select[name=\"submitSearch\"]').prop('name', '');
