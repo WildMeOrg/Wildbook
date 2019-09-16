@@ -27,6 +27,7 @@ context=ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("compare.jsp");
 myShepherd.beginDBTransaction();
+boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"));
 
 
   //handle some cache-related security
@@ -35,6 +36,18 @@ myShepherd.beginDBTransaction();
   response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
+User thisUser = AccessControl.getUser(request, myShepherd);
+if (thisUser != null) {
+    System.out.println("USERCHECK: compare.jsp has uwMode=" + uwMode + " and thisUser=" + thisUser + " username=[" + thisUser.getUsername() + "] affiliation=[" + thisUser.getAffiliation() + "]");
+    boolean uwUser = "U-W".equals(thisUser.getAffiliation());
+    if ((uwUser && !uwMode) || (!uwUser && uwMode)) {
+        System.out.println("USERCHECK: compare.jsp has incompatible user/mode");
+        response.setContentType("text/html");
+        response.setStatus(401);
+        out.println("<h1>401 no access</h1>");
+        return;
+    }
+}
 	String username = null;
 	boolean showAdmin = false;
 	boolean canUserAdmin = false;

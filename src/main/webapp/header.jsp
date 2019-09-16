@@ -53,7 +53,9 @@ if (pageTitle == null) pageTitle = CommonConfiguration.getHTMLTitle(context);
 
 
 User thisUser = AccessControl.getUser(request, myShepherd);
-if (thisUser != null) {
+if (thisUser == null) {
+    System.out.println("USERCHECK: header has logged out user (no check)");
+} else {
     System.out.println("USERCHECK: header has uwMode=" + uwMode + " and thisUser=" + thisUser + " username=[" + thisUser.getUsername() + "] affiliation=[" + thisUser.getAffiliation() + "]");
     boolean uwUser = "U-W".equals(thisUser.getAffiliation());
     if ((uwUser && !uwMode) || (!uwUser && uwMode)) {
