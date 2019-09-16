@@ -63,10 +63,15 @@ label {
 }
 .big-button {
     background-color: #9dc327;
-    border-radius: 8px;
-    padding: 10px 20px;
-    color: white !important;
-    font-size: 1.2em;
+    border: 0;
+    color: #fff;
+    line-height: 2em;
+    padding: 7px 13px;
+    font-weight: 300;
+    vertical-align: middle;
+    margin-right: 10px;
+    margin-top: 15px;
+    text-decoration: none !important;
 }
 
 </style>
