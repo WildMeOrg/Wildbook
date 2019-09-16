@@ -10,7 +10,7 @@ org.ecocean.servlet.ReCAPTCHA,
 org.ecocean.*, java.util.Properties" %>
 <%!
 
-private static User registerUser(Shepherd myShepherd, String username, String email, String pw1, String pw2) throws java.io.IOException {
+private static User registerUser(Shepherd myShepherd, String username, String email, String pw1, String pw2, boolean uwMode) throws java.io.IOException {
     if (!Util.stringExists(username)) throw new IOException("Invalid username format");
     if (!Util.isValidEmailAddress(email)) throw new IOException("Invalid email format");
     if (!Util.stringExists(pw1) || !Util.stringExists(pw2) || !pw1.equals(pw2)) throw new IOException("Password invalid or do not match");
@@ -22,6 +22,7 @@ private static User registerUser(Shepherd myShepherd, String username, String em
     String hashPass = ServletUtilities.hashAndSaltPassword(pw1, salt);
     User user = new User(username, hashPass, salt);
     user.setEmailAddress(email);
+    if (uwMode) user.setAffiliation("U-W");
     user.setNotes("<p data-time=\"" + System.currentTimeMillis() + "\">created via registration.</p>");
     Role role = new Role(username, "subject");
     role.setContext(myShepherd.getContext());
@@ -73,12 +74,12 @@ label {
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("uw.jsp");
+myShepherd.setAction("register.jsp");
 myShepherd.beginDBTransaction();
-boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"));
-request.setAttribute("pageTitle", "Kitizen Science &gt; Participate (UW)");
+request.setAttribute("pageTitle", "Kitizen Science &gt; Participate");
 boolean rollback = true;
 
+boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"));
   //setup our Properties object to hold all properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
@@ -130,7 +131,7 @@ boolean rollback = true;
             errorMessage = "Please agree to terms and conditions";
         }
         if (ok) try {
-            user = registerUser(myShepherd, reg_username, reg_email, reg_password1, reg_password2);
+            user = registerUser(myShepherd, reg_username, reg_email, reg_password1, reg_password2, uwMode);
         } catch (java.io.IOException ex) {
             errorMessage = ex.getMessage();
         }
@@ -212,6 +213,7 @@ if (session.getAttribute("error") != null) {
 <b>
 The UW-only version of our first validation test is running from now until the end of December 8, 2019.
 </b>
+</p>
 
 <p>
 This validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones. Each validation study is focused on some aspect of Kitizen Science's data collection and processing methods. The current validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones. Later, we will be using smart phone photos to collect data for estimating cat populations, so knowing how good humans are at identifying individual cats from smart phone photos is important to knowing how accurate later conclusions will be.
@@ -226,6 +228,7 @@ first to see more about what this trial involves.
 <p class="mobile-note">
 Note: some mobile and tablet users are reporting that images aren't loading for them.  We're working on fixing that, but in the mean time, please try a desktop or laptop computer if you are having issues with photos loading.
 </p>
+
 
 <% if (!uwMode) { %>
     <h2>Registration is currently unavailable.</h2>
@@ -250,15 +253,18 @@ if (mode == 0) {
 
 <div id="consent-section">
 <h2>
-UNIVERSITY OF WASHINGTON -
+UNIVERSITY OF WASHINGTON
 CONSENT FORM
 </h2>
-
-<h3>Testing Volunteers' Ability to Identify Individual Cats from Photos</h3>
+<h3>
+Testing Volunteers' Ability to Identify Individual Cats from Photos 
+</h3>
 
 <p>
-<b>Researcher: Sabrina Aeluro, graduate student at the University of Washington<br />
-Study email: kitizenscience@gmail.com</b>
+<b>
+Researcher: Sabrina Aeluro, graduate student in the School of Environmental and Forest Sciences at the University of Washington<br />
+Study email: kitizenscience@gmail.com
+</b>
 </p>
 
 <h3>
@@ -266,7 +272,7 @@ Researcher's statement and purpose of study
 </h3>
 
 <p>
-The purpose of this study is to test volunteers' abilities to make correct photo identifications of free-roaming cats using an online citizen science platform.  The cat photos in this study are of outdoor cats in their normal environment, and no cats were harmed in the collection of these photos.  This study is open to all people over the age of 18 who are interested in cats.
+The purpose of this study is to test student volunteers' abilities to make correct photo identifications of free-roaming cats using an online citizen science platform.  The cat photos in this study are of outdoor cats in their normal environment, and no cats were harmed in the collection of these photos.  This study is open to all people over the age of 18 who are students at the University of Washington.
 </p>
 
 <p>
@@ -334,7 +340,7 @@ If you think you have been harmed from being in this research, contact Sabrina A
 </p>
 
 <h3>
-Subject's statement 
+Subject's statement	
 </h3>
 
 <p>
@@ -345,6 +351,7 @@ This study has been explained to me.  I volunteer to take part in this research.
 I consent to participate in this study.
 </p>
 
+</div>
 
 <div>
 <form method="post">
@@ -358,7 +365,10 @@ I consent to participate in this study.
 </div>
 
 
-<% }
+<%
+
+}
+
 if (mode == 1) {
     Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
 %>
@@ -462,10 +472,13 @@ function checkAccount() {
               
 <% }
 if (mode == 2) {
+
+    if (!uwMode) {
 %>
 <div id="survey-section">
 
 <script>
+//non-uw version
 var surveyRequired = [
     'cat_volunteer',
     'disability',
@@ -608,26 +621,141 @@ How did you hear about Kitizen Science?
 </div>
 
 
-<% /*
+<%
+    } else {   //uw version
+%>
+<div id="survey-section">
 
-Thanks!  Here's the survey page text for the UW-only registrants:
+<script>
+//uw version
+var surveyRequired = [
+    'cat_volunteer',
+    'disability',
+    'have_cats',
+    'citsci',
+    'age',
+    'retired',
+    'ethnicity',
+    'gender',
+    'education',
+    'how_hear'
+];
+function checkSurvey() {
+    $('.required').removeClass('required');
+    var ok = true;
+    var msg = 'You must complete the form: ';
+    for (var i = 0 ; i < surveyRequired.length ; i++) {
+        var el = $('[name="' + surveyRequired[i] + '"]');
+        var numChecked = $('[name="' + surveyRequired[i] + '"]:checked').length;
+        if (surveyRequired[i] == 'age') {
+            numChecked = parseInt(el.val());
+        }
+        if (surveyRequired[i] == 'how_hear') {
+            numChecked = el.val().trim().length;
+        }
 
-==
+        if (numChecked < 1) {
+            var q = el.parent().first()[0].firstChild.nodeValue;  //ugh!
+            el.parent().addClass('required');
+            ok = false;
+            msg += '\n- ' + q.trim();
+        }
+    }
+    if (!ok) {
+        window.scrollTo({top:250});
+        alert(msg);
+    }
+    return ok;
+}
+</script>
 
+<form onSubmit="return checkSurvey();" method="post">
+
+<h2>Survey</h2>
+<input type="hidden" name="user_uuid" value="<%
+    User regu = (User)session.getAttribute("user");
+    if (regu != null) out.print(regu.getUUID());
+%>" />
+
+<% if (regu != null) { %>
+<p><b style="font-size: 1.3em;">Your user <u><%=regu.getUsername()%></u> has been created.</b></p>
+<% } %>
+<p>
 We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
+</p>
 
-Do you currently have a cat/cats in your care? [Checkboxes, can select multiple: Yes, a pet cat/cats; Yes, I care for feral/free-roaming cats, No]
+<p>
+Do you currently have a cat/cats in your care?
+<br /><input id="have_cats_yes_pet" type="checkbox" value="Yes, a pet cat/cats" name="have_cats" /> <label for="have_cats_yes_pet">Yes, a pet cat/cats</label>
+<br /><input id="have_cats_yes_feral" type="checkbox" value="Yes, I care for feral/free-roaming cats" name="have_cats" /> <label for="have_cats_yes_feral">Yes, I care for feral/free-roaming cats</label>
+<br /><input id="have_cats_no" type="checkbox" value="No" name="have_cats" /> <label for="have_cats_no">No</label>
+</p>
 
-Have you ever participated in an online citizen science project doing image identification or classification? [Drop-down: Yes; No]
+<p>
+Have you ever participated in an online citizen science project doing image identification or classification?
+<br /><input id="citsci_no" type="radio" value="No" name="citsci" /> <label for="citsci_no">No</label>
+<br /><input id="citsci_yes" type="radio" value="Yes" name="citsci" /> <label for="citsci_yes">Yes</label>
+</p>
 
-Have you ever volunteered to do image identification or classification as part of research that is NOT online citizen science, such as viewing camera trap images for UW wildlife researchers? [Drop-down: Yes; No]
 
-What is your current standing in school? [Dropdown: Freshman; Sophomore; Junior; Senior; Master's Student; Doctoral Student]
+<p>
+Have you ever volunteered to do image identification or classification as part of research that is NOT online citizen science, such as viewing camera trap images for UW wildlife researchers?
+<br /><input id="imageid_no" type="radio" value="No" name="imageid" /> <label for="imageid_no">No</label>
+<br /><input id="imageid_yes" type="radio" value="Yes" name="imageid" /> <label for="imageid_yes">Yes</label>
+</p>
 
-*/ %>
 
-<% }
-if (mode == 3) {
+<p>
+What is your current standing in school?
+<br /><input id="standing_freshman" type="radio" value="Freshman" name="standing" /> <label for="standing_freshman">Freshman</label>
+<br /><input id="standing_sophomore" type="radio" value="Sophomore" name="standing" /> <label for="standing_sophomore">Sophomore</label>
+<br /><input id="standing_junior" type="radio" value="Junior" name="standing" /> <label for="standing_junior">Junior</label>
+<br /><input id="standing_senior" type="radio" value="Senior" name="standing" /> <label for="standing_senior">Senior</label>
+<br /><input id="standing_masters" type="radio" value="Master's Student" name="standing" /> <label for="standing_masters">Master's Student</label>
+<br /><input id="standing_doctoral" type="radio" value="Doctoral Student" name="standing" /> <label for="standing_doctoral">Doctoral Student</label>
+</p>
+
+<p>
+What is your current age?
+<select class="top" name="age">
+    <option value="0">choose age</option>
+<%
+    for (int i = 18 ; i <= 100 ; i++) {
+        out.println("<option>" + i + "</option>\n");
+    }
+%>
+</select>
+</p>
+
+<p>
+Are you retired?
+<br /><input id="retired_no" type="radio" value="No" name="retired" /> <label for="retired_no">No</label>
+<br /><input id="retired_yes" type="radio" value="Yes" name="retired" /> <label for="retired_yes">Yes</label>
+</p>
+
+<p>
+What is your gender?
+<br /><input id="gender_woman" type="radio" value="Woman" name="gender" /> <label for="gender_woman">Woman</label>
+<br /><input id="gender_man" type="radio" value="Man" name="gender" /> <label for="gender_man">Man</label>
+<br /><input id="gender_other" type="radio" value="Other" name="gender" /> <label for="gender_other">Non-binary/Other</label>
+</p>
+
+<p>
+What is your race/ethnicity (select multiple if appropriate):
+<br /><input id="ethnicity_aian" type="checkbox" value="American Indian or Alaska Native" name="ethnicity" /> <label for="ethnicity_aian">American Indian or Alaska Native</label>
+<br /><input id="ethnicity_asian" type="checkbox" value="Asian" name="ethnicity" /> <label for="ethnicity_asian">Asian</label>
+<br /><input id="ethnicity_baa" type="checkbox" value="Black or African American" name="ethnicity" /> <label for="ethnicity_baa">Black or African American</label>
+<br /><input id="ethnicity_hisp" type="checkbox" value="Hispanic or Latino" name="ethnicity" /> <label for="ethnicity_hisp">Hispanic or Latino</label>
+<br /><input id="ethnicity_me" type="checkbox" value="Middle Eastern" name="ethnicity" /> <label for="ethnicity_me">Middle Eastern</label>
+<br /><input id="ethnicity_nhpi" type="checkbox" value="Native Hawaiian or Pacific Islander" name="ethnicity" /> <label for="ethnicity_nhpi">Native Hawaiian or Pacific Islander</label>
+<br /><input id="ethnicity_white" type="checkbox" value="White" name="ethnicity" /> <label for="ethnicity_white">White</label>
+</p>
+
+
+<%
+    }
+
+} if (mode == 3) {
 %>
 <div id="instructions">
 
