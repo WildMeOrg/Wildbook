@@ -640,7 +640,10 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
 <%
 }
 
+String defaultCountry = CommonConfiguration.getProperty("defaultCountry", context);
+if (defaultCountry!=null) defaultCountry = defaultCountry.trim();
 if(CommonConfiguration.showProperty("showCountry",context)){
+
 
 %>
           <div class="form-group required">
@@ -650,22 +653,36 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="country" id="country" class="form-control">
-            <option value="" selected="selected"></option>
+
             <%
-            String[] locales = Locale.getISOCountries();
-			for (String countryCode : locales) {
-				Locale obj = new Locale("", countryCode);
-				String currentCountry = obj.getDisplayCountry();
-                %>
-			<option value="<%=currentCountry %>"><%=currentCountry%></option>
+            if (defaultCountry==null||"".equals(defaultCountry)) {
+            %>
+                <option value="" selected="selected"></option>
             <%
+            } else {
+              %>
+                <option value="<%=defaultCountry%>" selected="selected"><%=defaultCountry%></option>
+              <%
             }
-			%>
-   		</select>
+
+            String[] locales = Locale.getISOCountries();
+            for (String countryCode : locales) {
+                Locale obj = new Locale("", countryCode);
+                String currentCountry = obj.getDisplayCountry();
+                boolean isDefault = currentCountry.equals(defaultCountry.trim());
+                if (!isDefault) {
+                %>
+                  <option value="<%=currentCountry %>"><%=currentCountry%></option>
+                <%
+                } 
+            }
+                              %>
+                </select>
       </div>
     </div>
 
 <%
+
 }  //end if showCountry
 
 %>
