@@ -49,6 +49,18 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 boolean isAnonymous = (AccessControl.simpleUserString(request) == null);
 String pageTitle = (String)request.getAttribute("pageTitle");
 if (pageTitle == null) pageTitle = CommonConfiguration.getHTMLTitle(context);
+
+
+
+User thisUser = AccessControl.getUser(request, myShepherd);
+if (thisUser != null) {
+    System.out.println("USERCHECK: header has uwMode=" + uwMode + " and thisUser=" + thisUser + " username=[" + thisUser.getUsername() + "] affiliation=[" + thisUser.getAffiliation() + "]");
+    boolean uwUser = "U-W".equals(thisUser.getAffiliation());
+    if ((uwUser && !uwMode) || (!uwUser && uwMode)) {
+        System.out.println("USERCHECK: incompatible user/mode -- invalidating session");
+        session.invalidate();
+    }
+}
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
