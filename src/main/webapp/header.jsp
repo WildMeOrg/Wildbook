@@ -379,8 +379,8 @@ if (thisUser == null) {
             <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Cat Science <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a href="<%=urlLoc %>/why.jsp">Why Kitizen Science is needed</a></li>
-                        <li><a href="<%=urlLoc %>/how.jsp">How Kitizen Science works</a></li>
+                        <li><a href="<%=urlLoc %>/why.jsp">Why Kitizen Science is Needed</a></li>
+                        <li><a href="<%=urlLoc %>/how.jsp">How Kitizen Science Works</a></li>
                         <li><a href="<%=urlLoc %>/spayneuter.jsp">Spay/Neuter Evidence</a></li>
                     </ul>
             </li>
@@ -418,7 +418,7 @@ if (thisUser == null) {
                     <ul class="dropdown-menu" role="menu">
 <!-- TODO make this only show to non-logged in -->
 <% if (isAnonymous) { %>
-                        <li><a href="<%=urlLoc %>/register.jsp">Sign up</a></li>
+                        <li><a href="<%=urlLoc %>/register.jsp">Sign Up</a></li>
                         <li><a href="<%=urlLoc %>/compare.jsp">Login</a></li>
 <% } else { %>
                         <li><a href="<%=urlLoc %>/compare.jsp">Do a Matching Trial</a></li>
