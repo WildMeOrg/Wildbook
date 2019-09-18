@@ -211,7 +211,16 @@ if (session.getAttribute("error") != null) {
 <% if (mode < 0) {
     if (uwMode) {
 %>
-<h2>This phase is closed.</h2>
+
+<p>
+Our photo matching study is now closed to the general public.  (If you are part of our student test group, make sure to access your sign up page at the special website URL just for you.)
+</p>
+
+
+<p>
+Our second validation study, open to everyone, will begin in January 2020!
+</p>
+
 
 <%  } else {  //not uwMode %>
 
