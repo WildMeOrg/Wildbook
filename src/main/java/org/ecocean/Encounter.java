@@ -1410,6 +1410,12 @@ public class Encounter implements java.io.Serializable {
     return year;
   }
 
+  public boolean wasInPeriod(DateTime start, DateTime end) {
+    Long thisTime = getDateInMilliseconds();
+    if (thisTime==null) return false;
+    return (start.getMillis()<=thisTime && end.getMillis()>thisTime);
+  }
+
 
   /**
    * Returns the String holding specific location data used for searching
@@ -1973,6 +1979,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
 
   public Long getDWCDateAddedLong(){
+    return dwcDateAddedLong;
+  }
+  
+  public Long getDwcDateAddedLong(){
     return dwcDateAddedLong;
   }
 
@@ -3920,7 +3930,6 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       else{
         this.submitters=submitters;
       }
-      
     }
 
     
@@ -3945,4 +3954,12 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     } 
   }
     
+  public static List<String> getIndividualIDs(Collection<Encounter> encs) {
+    Set<String> idSet = new HashSet<String>();
+    for (Encounter enc: encs) {
+      if (enc.hasMarkedIndividual()) idSet.add(enc.getIndividualID());
+    }
+    return Util.asSortedList(idSet);
+  }
+
 }

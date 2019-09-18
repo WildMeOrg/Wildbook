@@ -177,6 +177,7 @@ public class MarkedIndividual implements java.io.Serializable {
         return getDisplayName(null);
     }
     public String getDisplayName(Object keyHint) {
+        if (names == null) return null;
         List<String> nameVals = getNamesList(keyHint);
         // default case: just return the first name for the keyhint.
         if (!Util.isEmpty(nameVals)) return nameVals.get(0);

@@ -132,7 +132,6 @@ public class StandardImport extends HttpServlet {
     //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
     String filename = request.getParameter("filename");
     
-    
     File dataFile = new File(filename);
     
     if (filename == null) {
@@ -141,7 +140,8 @@ public class StandardImport extends HttpServlet {
       return;
     }
     if(!dataFile.exists()){
-      out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+"</p>");
+      out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+". We found file = "+dataFile+"</p>");
+      out.println("<p>File.getAbsoluteFile = "+dataFile.getAbsoluteFile()+"</p>");
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       return;

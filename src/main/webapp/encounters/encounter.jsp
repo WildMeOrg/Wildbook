@@ -16,6 +16,7 @@
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
+         org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -23,6 +24,44 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <%!
+    //note: locIds is modified, such that it contains all the IDs we traversed
+    private static String traverseLocationIdTree(final JSONObject locIdTree, List<String> locIds, final String encLocationId, final Map<String,Long> locCount) {
+        String rtn = "";
+        if (locIdTree == null) return rtn;  //snh
+
+        boolean isRoot = locIdTree.optBoolean("_isRoot", false);
+        String id = locIdTree.optString("id", null);
+        if (!isRoot && (id == null)) throw new RuntimeException("LocationID tree is missing IDs in sub-tree: " + locIdTree);
+        if (id != null) {
+            if (!locIds.contains(id)) locIds.add(id);
+            boolean active = id.equals(encLocationId);
+            long ct = 0;
+            if (locCount.get(id) != null) ct = locCount.get(id);
+            String name = locIdTree.optString("name", id);
+            String desc = locIdTree.optString("description", null);
+            if (desc == null) {
+                desc = "";
+            } else {
+                desc = " title=\"" + desc.replaceAll("'", "\\'") + "\" ";
+            }
+            rtn += "<li class=\"item\">";
+            rtn += "<input id=\"mfl-" + id + "\" name=\"match-filter-location-id\" value=\"" + id + "\" type=\"checkbox\"" + (active ? " checked " : "") + " />";
+            rtn += "<label " + desc + (active ? "class=\"item-checked\"" : "") + " for=\"mfl-" + id + "\">" + name + " <span class=\"item-count\">" + ct + "</span></label>";
+        }
+
+        List<String> kidVals = new ArrayList<String>();
+        JSONArray kids = locIdTree.optJSONArray("locationID");
+        if (kids != null) for (int i = 0 ; i < kids.length() ; i++) {
+            JSONObject k = kids.optJSONObject(i);
+            if (k == null) continue;
+            String kval = traverseLocationIdTree(k, locIds, encLocationId, locCount);
+            if (!kval.equals("")) kidVals.add(kval);
+        }
+        if (kidVals.size() > 0) rtn += "<ul class=\"ul-secondary\">" + String.join("\n", kidVals) + "</ul>";
+
+        if (id != null) rtn += "</li>";
+        return rtn;
+    }
 
   //shepherd must have an open trasnaction when passed in
   public String getNextIndividualNumber(Encounter enc, Shepherd myShepherd, String context) {
@@ -178,6 +217,14 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   <style type="text/css">
 
+.id-action {
+    display: none;
+}
+
+.disabled {
+    opacity: 0.6;
+}
+
 .ia-match-filter-dialog {
     display: none;
     z-index: 3000;
@@ -188,10 +235,22 @@ String langCode=ServletUtilities.getLanguageCode(request);
     border: solid 5px #888;
     background-color: #CCC;
 }
+
+/* may the css gods help us.   h/t https://stackoverflow.com/a/7785711 */
+/*
+.ia-match-filter-dialog .option-cols ul.ul-secondary {
+    margin: 0;
+    -webkit-column-break-inside: avoid; /* Chrome, Safari */
+    page-break-inside: avoid;           /* Theoretically FF 20+ */
+    break-inside: avoid-column;         /* IE 11 */
+    display:table;                      /* Actually FF 20+ */
+}
+*/
+
 .ia-match-filter-dialog .option-cols {
-    -webkit-column-count: 5;
-    -moz-column-count: 5;
-    column-count: 5;
+    -webkit-column-count: 1;
+    -moz-column-count: 1;
+    column-count: 1;
 }
 .ia-match-filter-dialog .option-cols input {
     vertical-align: top;
@@ -211,6 +270,12 @@ String langCode=ServletUtilities.getLanguageCode(request);
 }
 .ia-match-filter-dialog .option-cols .item-checked label {
     font-weight: bold;
+}
+.ia-match-filter-dialog ul {
+    list-style-type: none;
+}
+label.item-checked {
+    font-weight: bold !important;
 }
 .ia-match-filter-dialog .item-count {
     font-size: 0.8em;
@@ -370,6 +435,7 @@ td.measurement{
 	</script>
 	
 <script>
+var lastIndivAutoData = {};
 function setIndivAutocomplete(el) {
     if (!el || !el.length) return;
     var args = {
@@ -377,12 +443,18 @@ function setIndivAutocomplete(el) {
             var taxString = $('#displayTax').text();
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if (taxString && (item.species != taxString)) return null;
+                //if (taxString && (item.species != taxString)) return null;
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
-                return { label: label, type: item.type, value: item.value };
+                lastIndivAutoData[item.value] = label;
+                return { label: label, type: item.type, value: label, id: item.value };
             });
             return res;
+        },
+        select: function(ev, ui) {
+            $('#individualAddEncounterInput').val(ui.item.id);
+            resetIdButtons();
+            return true;
         }
     };
     wildbook.makeAutocomplete(el[0], args);
@@ -892,7 +964,24 @@ if(enc.getLocation()!=null){
 
 <a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
-<em><%=encprops.getProperty("locationID") %></em><span> <span id="displayLocationID"><%=enc.getLocationCode()%></span></span>
+<em><%=encprops.getProperty("locationID") %></em>
+<span> 
+	<span id="displayLocationID">
+	<%
+    String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+    if(qualifier==null) {qualifier="default";}
+    else{qualifier=qualifier.replaceAll(".properties","");}
+	List<String> hier=LocationID.getIDForChildAndParents(enc.getLocationID(), null);
+	int sizeHier=hier.size();
+	String displayPath="";
+	for(int q=0;q<sizeHier;q++){
+		if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
+		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
+	}
+	%>
+		<%=displayPath %>	
+	</span>
+</span>
 
 <br>
 
@@ -1019,10 +1108,6 @@ if(enc.getLocation()!=null){
       $("#countryFormBtn").show();
     });
 
-    $('#ia-match-filter-location input').on('change', function(ev) {
-        iaMatchFilterLocationCountUpdate()
-    });
-    iaMatchFilterLocationCountUpdate();
   });
 </script>
 
@@ -1081,10 +1166,10 @@ if(enc.getLocation()!=null){
       var code = $("#selectCode").val();
 
       $.post("../EncounterSetLocationID", {"number": number, "code": code},
-      function() {
+      function(response) {
         $("#locationIDerrorDiv").hide();
         $("#locationIDcheck").show();
-        $("#displayLocationID").html(code);
+        $("#displayLocationID").html(response.name);
       })
       .fail(function(response) {
         $("#locationIDerror, #locationIDerrorDiv").show();
@@ -1107,36 +1192,11 @@ if(enc.getLocation()!=null){
     <input name="number" type="hidden" value="<%=num%>" id="locationIDnumber"/>
     <input name="action" type="hidden" value="addLocCode" />
 
-        <%
-        if(CommonConfiguration.getProperty("locationID0",context)==null){
-        %>
-        <div class="form-group row">
-          <div class="col-sm-5">
-            <input name="code" type="text" class="form-control" id="selectCode"/>
-          </div>
-          <div class="col-sm-3">
-            <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
-          </div>
-        </div>
-        <%
-        }
-        else{
-          //iterate and find the locationID options
-          %>
           <div class="form-group row">
             <div class="col-sm-5">
-              <select name="code" id="selectCode" class="form-control" size=="1">
-                <option value=""></option>
 
-                <%
-                List<String> locIDs = CommonConfiguration.getIndexedPropertyValues("locationID", request);
-                for (String locID: locIDs) {
-                  String selected = (enc.getLocationID()!=null && enc.getLocationID().equals(locID)) ? "selected=\"selected\"" : "";
-                  %><option <%=selected %> value="<%=locID%>"><%=locID%></option><%
-                }
-                %>
-
-              </select>
+              <%=LocationID.getHTMLSelector(false, enc.getLocationID(),qualifier,"selectCode","code","form-control") %>
+              
             </div>
             <div class="col-sm-3">
               <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
@@ -1144,9 +1204,7 @@ if(enc.getLocation()!=null){
               <span class="form-control-feedback" id="locationIDerror">X</span>
             </div>
           </div>
-      <%
-        }
-        %>
+
 
     </form>
 </div>
@@ -1529,6 +1587,7 @@ if(enc.getLocation()!=null){
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
 	
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
+                    resetIdButtons();
 	          });
 	
 	          $("#closeEditIdentity").click(function() {
@@ -1642,21 +1701,59 @@ if(enc.getLocation()!=null){
  
 
                     <script type="text/javascript">
+function switchIdMode(bid) {
+    if (bid == '#Add') {
+        $('#matchType').val('Pattern match');
+        $('#individualNewAddEncounterInput').val('');
+    } else {
+        $('#matchType').val('Unmatched first encounter');
+        $('#individualAddEncounterInput').val('');
+        $('#individualAddEncounterInputDisplay').val('');
+    }
+    resetIdButtons();
+}
+function resetIdButtons() {
+console.info('resetIdButtons()');
+    $('.id-action').hide();
+    var newId = $('#individualNewAddEncounterInput').val();
+    var existId = $('#individualAddEncounterInput').val();
+//console.log('newId=%s / existId=%s', newId, existId);
+    if (newId) {
+        $('#AddNew').show();
+    } else if (existId) {
+//console.log('existId=%s', existId);
+        if (lastIndivAutoData[existId]) {
+            $('#Add').show();
+        } else {
+            console.warn('bad existId=%s; not in lastIndivAutoData %o', existId, lastIndivAutoData);
+        }
+    }
+}
+
                     $(document).ready(function() {
                     	
                     	
-                      $("#Add").click(function(event) {
+                      $(".id-action").click(function(event) {
                         event.preventDefault();
+                        var forceNew = false;
+                        var individual = $("#individualAddEncounterInput").val();
+                        if (!individual) {
+                            individual = $("#individualNewAddEncounterInput").val();
+                            forceNew = true;
+                        }
+                        if (!individual) return false;  //both blank, i guess
 
-                        $("#Add").hide();
+                        $(".id-action").hide();
 
                         var number = $("#individualAddEncounterNumber").val();
-                        var individual = $("#individualAddEncounterInput").val();
+                        var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
                         var matchType = $("#matchType").val();
                         var noemail = $( "input:checkbox:checked" ).val();
                         var action = $("#individualAddEncounterAction").val();
+                        var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
+                        console.info('sendData=%o', sendData);
 
-                        $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
+                        $.post("../IndividualAddEncounter", sendData,
                         function(data) {
                         	
                          
@@ -1687,7 +1784,7 @@ if(enc.getLocation()!=null){
                         $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
                         $("#individualDiv").removeClass("has-success");
                         $("#individualDiv").removeClass("has-error");
-                        $("#Add").show();
+                        //$("#Add").show();
                         $("#setRemoveResultDiv").hide();
                       });
                     });
@@ -1701,18 +1798,18 @@ if(enc.getLocation()!=null){
 
 
 
-                    <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
 
                     <form name="add2shark" class="add2shark">
                       <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
                       <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
+                    <p class="add2shark"><strong><%=encprops.getProperty("addNewMarkedIndividual")%></strong></p>
                       <div class="form-group row" id="individualDiv">
                         <div class="col-sm-3">
-                          <label><%=encprops.getProperty("individual")%></label>
+                          <label><%=encprops.getProperty("newIndividual")%></label>
                         </div>
                         <div class="col-sm-5 col-xs-10">
-                          <input name="individual" type="text" class="form-control" id="individualAddEncounterInput"/>
-                          
+                          <input name="individualNew" type="text" class="form-control" id="individualNewAddEncounterInput"/>
+
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
                           <span class="form-control-feedback" id="individualError">X</span><br>
                           <%
@@ -1723,10 +1820,27 @@ if(enc.getLocation()!=null){
                           		$('individualAddEncounterInput').val('<%=nextID %>');
                           	}
 	                      </script>
-                          <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualAddEncounterInput').val('<%=nextID %>');$('#matchType').val('Unmatched first encounter').change();"><%=nextID  %></a></em></p>
+                          <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualNewAddEncounterInput').val('<%=nextID %>');$('#matchType').val('Unmatched first encounter').change(); switchIdMode('#AddNew');"><%=nextID  %></a></em></p>
 
                         </div>
+                        <input name="AddNew" type="button" id="AddNew" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
+                          
                       </div>
+
+                    <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
+
+                      <div class="form-group row" id="xmatchedByDiv">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("existingIndividual")%></label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <input name="individual" type="text" class="form-control" id="individualAddEncounterInputDisplay"/>
+                          <input style="margin-left: 220px;outline: blue 2px dashed;" name="individual" type="hidden" class="form-control" id="individualAddEncounterInput"/>
+                        </div>
+
+                        <input name="Add" type="button" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
+                      </div>
+
                       <div class="form-group row" id="matchedByDiv">
                         <div class="col-sm-3">
                           <label><%=encprops.getProperty("matchedBy")%>: </label>
@@ -1746,16 +1860,42 @@ if(enc.getLocation()!=null){
                           <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
                         </div>
                       </div>
-                        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark"/>
-                    </form>
+                      </form>
 					
 					<script type="text/javascript">
+
+function showHiddenId() {
+    $('#individualAddEncounterInput').prop('type', 'text');
+}
+function checkIdDisplay() {
+    var dispVal = $('#individualAddEncounterInputDisplay').val();
+    var idVal = $('#individualAddEncounterInput').val();
+    if (lastIndivAutoData[idVal] == dispVal) return;
+    $('#individualAddEncounterInput').val('');
+    resetIdButtons();
+}
 	                    $(document).ready(function() {
 	                    	
 	                    	//set autocomplete on #individualAddEncounterInput above
-	                    	setIndivAutocomplete($('#individualAddEncounterInput'));
+	                    	setIndivAutocomplete($('#individualAddEncounterInputDisplay'));
 	                    	
 	                    	
+    $('#individualAddEncounterInputDisplay').on('change', function(ev) {
+        checkIdDisplay();
+        resetIdButtons();
+    });
+    $('#individualAddEncounterInputDisplay').on('keyup keydown click', function(ev) {
+        switchIdMode('#Add');
+        checkIdDisplay();
+        resetIdButtons();
+        //$('#matchType').val('Pattern match');
+    });
+    $('#individualNewAddEncounterInput').on('keydown click', function() {
+        switchIdMode('#AddNew');
+        resetIdButtons();
+        //$('#individualAddEncounterInput').val('');
+        //$('#matchType').val('Unmatched first encounter');
+    });
 	                    	
 	                    });
                     </script>
@@ -6562,7 +6702,7 @@ function iaMatchFilterLocationCountUpdate() {
     var vals = [];
     $('#ia-match-filter-location input:checked').each(function(i,el) {
         vals.push(el.nextElementSibling.firstChild.nodeValue);
-        ct += parseInt($(el).parent().find('.item-count').text());
+        ct += parseInt($(el).parent().find('.item-count:first').text());
     });
     if ($('#match-filter-location-unlabeled').is(':checked')) ct += parseInt($('#match-filter-location-unlabeled').parent().find('.item-count').text());
     if (ct < 1) {
@@ -6572,6 +6712,26 @@ function iaMatchFilterLocationCountUpdate() {
     }
     return true;
 }
+function adjustLocationCheckboxes(el) {
+    $(el).parent().find('ul input').each(function(i, inp) {
+        inp.checked = el.checked;
+    });
+    return true;
+}
+
+$(document).ready(function() {
+    adjustLocationCheckboxes( $('.ul-root input:checked')[0] );  //this will check all below the default-checked one
+    iaMatchFilterLocationCountUpdate();
+    $('.ul-root input[type="checkbox"]').on('change', function(ev) {
+        adjustLocationCheckboxes(ev.target);
+        iaMatchFilterLocationCountUpdate();
+    });
+/*
+    $('#ia-match-filter-location input').on('change', function(ev) {
+        iaMatchFilterLocationCountUpdate()
+    });
+*/
+});
 </script>
 
 <div class="ia-match-filter-dialog">
@@ -6584,10 +6744,11 @@ function iaMatchFilterLocationCountUpdate() {
     <div id="ia-match-filter-location" class="option-cols">
 <%
 
+Map<String,Long> locCount = new HashMap<String,Long>();
+locCount.put(null, 0L);
 String sql = "SELECT \"LOCATIONID\" AS locId, COUNT(*) AS ct FROM \"ENCOUNTER\" GROUP BY locId ORDER BY locId";
 Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 List results = (List)q.execute();
-long nullCount = 0;
 int c = 0;
 Iterator it = results.iterator();
 while (it.hasNext()) {
@@ -6595,22 +6756,33 @@ while (it.hasNext()) {
     String locId = (String)row[0];
     long ct = (long)row[1];
     if (!Util.stringExists(locId) || locId.toLowerCase().equals("none")) {
-        nullCount += ct;
-        continue;
+        locCount.put(null, locCount.get(null) + ct);
+    } else {
+        locCount.put(locId, ct);
     }
-    String sel = (locId.equals(enc.getLocationID()) ? "checked" : "");
-    out.println("<div class=\"item item-" + sel + "\"><input id=\"mfl-" + c + "\" name=\"match-filter-location-id\" value=\"" + locId + "\" type=\"checkbox\"" + sel + " /><label for=\"mfl-" + c + "\">" + locId + " <span class=\"item-count\">" + ct + "</span></label></div>");
-    c++;
 }
 
+
+JSONObject locIdTree = LocationID.getLocationIDStructure(request);
+locIdTree.put("_isRoot", true);
+List<String> locIds = new ArrayList<String>();  //filled as we traverse
+String output = traverseLocationIdTree(locIdTree, locIds, enc.getLocationID(), locCount);
+out.println("<div class=\"ul-root\">" + output + "</div>");
+
+//this is a sanity check for missed locationIDs !!
+for (String l : locCount.keySet()) {
+    if (!locIds.contains(l) && (l != null)) System.out.println("WARNING: LocationID tree does not contain id=[" + l + "] which occurs in " + locCount.get(l) + " encounters");
+}
 %>
+
     </div>
     <div>
         <div style="margin-top: 10px; color: #660;" class="item">
             <input type="checkbox" id="match-filter-location-unlabeled" name="match-filter-location-id" value="__NULL__" onChange="iaMatchFilterLocationCountUpdate();" />
             <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
-            <span class="item-count"><%=nullCount%></span>
+            <span class="item-count"><%=locCount.get(null)%></span>
         </div>
+<!-- TODO maybe an option here to not recurse to children locations? -->
         <input type="button" value="<%=encprops.getProperty("selectAll")%>"
             onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
         <input type="button" value="<%=encprops.getProperty("selectNone")%>"

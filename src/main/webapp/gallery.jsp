@@ -101,11 +101,12 @@ Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 
 
 myShepherd.beginDBTransaction();
+int countAdoptable = 0;
 try{
 	
 	int count = myShepherd.getNumAdoptions();
 	int allSharks = myShepherd.getNumMarkedIndividuals();
-	int countAdoptable = allSharks - count;
+	countAdoptable = allSharks - count;
 	
 	if(request.getParameter("adoptableSharks")!=null){
 		//get current time minus two years
@@ -392,7 +393,7 @@ try{
 	          }
 	          pairMediaAssetID[j]=maJson.optString("id");
 	          pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
-	          pairName[j] = indie.getIndividualID();
+	          pairName[j] = indie.getDisplayName();
 	          pairNickname[j] = pairName[j];
 	          if (indie.getNickName()!=null  && !indie.getNickName().equals("Unassigned") && !indie.getNickName().equals("")) pairNickname[j] = indie.getNickName();
 	          %>
@@ -804,7 +805,7 @@ int numDataContributors=0;
               if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
             }
           }
-          ArrayList<JSONObject> al = indie.getExemplarImages(request);
+          ArrayList<JSONObject> al = indie.getExemplarImages(myShepherd, request);
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
@@ -862,7 +863,7 @@ int numDataContributors=0;
               </div>
               <%
               // display=none copies of the above for each additional image
-              ArrayList<JSONObject> al = pair[j].getExemplarImages(request);
+              ArrayList<JSONObject> al = pair[j].getExemplarImages(myShepherd, request);
               for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
                 JSONObject newMaJson = new JSONObject();
                 newMaJson = al.get(extraImgNo);

@@ -1020,12 +1020,13 @@ public class Shepherd {
 
   // filters out social media- and other-app-based users (twitter, ConserveIO, etc)
   public List<User> getNativeUsers() {
-    return getNativeUsers("username ascending");
+    return getNativeUsers("username ascending NULLS LAST");
   }
   public List<User> getNativeUsers(String ordering) {
     List<User> users=null;
     String filter="SELECT FROM org.ecocean.User WHERE username != null ";
-    filter += "&& !fullName.startsWith('Conserve.IO User ')";   
+    // bc of how sql's startsWith method works we need the null check below
+    filter += "&& (fullName == null || !fullName.startsWith('Conserve.IO User '))";   
     Query query=getPM().newQuery(filter);
     query.setOrdering(ordering);
     Collection c = (Collection) (query.execute());
@@ -3856,7 +3857,7 @@ public class Shepherd {
     int numUsers=users.size();
     for(int i=0;i<numUsers;i++){
       User user=users.get(i);
-      if(locationID!=null && doesUserHaveRole(user.getUsername(), locationID.trim(),context)){
+      if(locationID!=null && user.getUsername()!=null && doesUserHaveRole(user.getUsername(), locationID.trim(),context)){
         if((user.getReceiveEmails())&&(user.getEmailAddress()!=null)){addresses+=(user.getEmailAddress()+",");}
       }
     }

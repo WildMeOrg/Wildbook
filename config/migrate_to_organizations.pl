@@ -104,8 +104,8 @@ sub do_input {
 
         foreach my $uid (keys %{$data->{data}->{$key}->{members}}) {
             printf(qq'INSERT INTO "ORGANIZATION_MEMBERS" ("USER_ID", "ORGANIZATION_ID", "IDX") VALUES (%s, %s, %d);  -- %s\n',
-                $db->quote($uid), $db->quote($id), $ucount->{$uid}, $data->{data}->{$key}->{members}->{$uid});
-            $ucount->{$uid}++;
+                $db->quote($uid), $db->quote($id), $ucount->{$id}, $data->{data}->{$key}->{members}->{$uid});
+            $ucount->{$id}++;
         }
     }
     exit;

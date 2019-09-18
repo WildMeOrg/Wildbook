@@ -148,7 +148,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
     String[] locCodes=request.getParameterValues("locationCodeField");
-    if((locCodes!=null)&&(!locCodes[0].equals("None"))){
+    if((locCodes!=null)&&(!locCodes[0].equals(""))){
           prettyPrint.append("locationCodeField is one of the following: ");
           int kwLength=locCodes.length;
             String locIDFilter="(";
@@ -833,41 +833,46 @@ public class EncounterQueryProcessor extends QueryProcessor {
     int index=0;
     boolean multipleLabels = labels.size()>1;
 
-    // lkwFilter should look like:
-    // (annotations.contains(photo0) && photo0.features.contains(feat0) && feat0.asset.keywords.contains(word0) && 
-    //  word0.label == "label" && (word0.readableName == "val1" || word0.readableName == "val2"))
-    //  VARIABLES org.ecocean.Annotation photo0;org.ecocean.Keyword word0;org.ecocean.media.Feature feat0 
     String lkwFilter = "(";
     for (int labelN=0;labelN<labels.size();labelN++) {
       int kwNum = labelN + nUnlabeledKeywords;
+      int annotNum = nUnlabeledKeywords; // this way all labeledKeyword queries apply to the same annotation
       String label = labels.get(labelN);
 
       if (labelN==0) {
-        prettyPrint.append("Has a photo with the LabeledKeyword label \""+label+"\"");
+        prettyPrint.append("Encounter has a photo with the LabeledKeyword label \""+label+"\"");
       } else {
-        prettyPrint.append(",<br>\t AND a photo with the LabeledKeyword label \""+label+"\"");
+        prettyPrint.append(",<br>\t AND that photo has LabeledKeyword label \""+label+"\"");
         lkwFilter+= " && ";
       }
-      lkwFilter += "(";
 
       //------ start variables and declarations for this LKW
-      String annotVar = "photo"+kwNum;
-      lkwFilter += "annotations.contains("+annotVar+")";
-      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Annotation "+annotVar);
+      String annotVar = "photo"+annotNum;
+      // we only add the annotation the first time, so all subsequent keywords still apply to that first annotation
+      // bc if we search for "fluke photo, of quality 3-5" we are talking about one photo with two keywords, not two photos
+      if (labelN==0) {
+        lkwFilter += "annotations.contains("+annotVar+")";
+        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Annotation "+annotVar);
 
-      String featVar = "feat"+kwNum;
-      lkwFilter += " && "+annotVar+".features.contains("+featVar+")";
-      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.media.Feature "+featVar);
+      }
+
+      // only one feature per annotation, so only one feature for all keywords
+      String featVar = "feat"+annotNum;
+      if (labelN==0) { 
+        lkwFilter += " && ";
+        lkwFilter += annotVar+".features.contains("+featVar+")";
+        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.media.Feature "+featVar);
+      }
 
       String wordVar = "word"+kwNum;
-      lkwFilter += " && "+featVar+".asset.keywords.contains("+wordVar+")";
+      if (labelN==0) lkwFilter += " && ";
+      lkwFilter += featVar+".asset.keywords.contains("+wordVar+")";
       // TODO: is jdoql OK with typing wordVar as a LabeledKeyword even though features have a plain Keyword list?
       jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.LabeledKeyword "+wordVar);
       //------ done with variables and declarations for this LKW
 
       lkwFilter += " && "+wordVar+".label == "+Util.quote(label);
       // the filter is now done if we don't have any values defined --- so we're querying for an enc with this label on a keyword.
-
 
       String valueKey = "label"+labelN+".values";
       String[] values=request.getParameterValues(valueKey);
@@ -891,7 +896,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
       } else {
         System.out.println("EQP got null values for valueKey "+valueKey);
       }
-      lkwFilter+=")";
     }
     lkwFilter+=")";
 
@@ -900,10 +904,6 @@ public class EncounterQueryProcessor extends QueryProcessor {
       filter = filterWithCondition(filter, lkwFilter);
       prettyPrint.append("<br>");
     }
-
-
-
-
     // end labeled keyword filters
 
 

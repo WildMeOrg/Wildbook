@@ -335,7 +335,7 @@ h4.intro.accordion .rotate-chevron.down {
 			<span id='nextNameArea'>
 				<strong>Auto-naming:</strong>
 				Use next name <strong><%=nextNameKey%>: <%=nextName%></strong>?
-				<input type='checkbox' name='useNextName' value='nextName' checked>
+				<input type='checkbox' name='useNextName' value='nextName'>
 			</span>
 			<%
 		}

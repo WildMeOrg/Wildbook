@@ -619,7 +619,7 @@ function FSControl(controlDiv, map) {
       <%
         Shepherd inShepherd=new Shepherd("context0");
       //inShepherd.setAction("individualSearch.jsp2");
-        List<User> users = inShepherd.getAllUsers();
+        List<User> users = inShepherd.getNativeUsers();
         int numUsers = users.size();
 
       %>

@@ -77,6 +77,7 @@ java.util.Properties" %>
 		// Add some Occurrence and MarkedIndividual Stuff.
 		h+= "<p>OccurrenceID: <a href='occurrence.jsp?number="+enc.getOccurrenceID()+"'>"+enc.getOccurrenceID()+"</a></p>";
 		h+= "<p>IndividualID: <a href='obrowse.jsp?type=MarkedIndividual&id="+enc.getIndividualID()+"'>"+enc.getIndividualID()+"</a></p>";
+        h+= "<p>submitterID: "+enc.getSubmitterID()+"</p>";
 		h+= "<p>webUrl: <a href="+enc.getWebUrl(req)+">"+enc.getWebUrl(req)+"</a></p>";
 		return h + "</div>";
 	}
@@ -271,6 +272,10 @@ java.util.Properties" %>
 		h += "<li>detectionStatus: <b>" + ma.getDetectionStatus() + "</b></li>";
 		h += "<li>" + format("acmId", ma.getAcmId()) + "</li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
+        h += "<li>hasMetadata(): " + ma.hasMetadata() + "</li>";
+        Shepherd maShepherd = Shepherd.newActiveShepherd(req, "showMediaAsset");
+        h += "<li>hasFamily(): " + ma.hasFamily(new Shepherd(req)) + "</li>";
+        maShepherd.rollbackAndClose();
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
 			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
 		}
@@ -494,6 +499,8 @@ context=ServletUtilities.getContext(request);
 if (type == null) type = "Encounter";
 if (id == null && (acmid == null || !"Annotation".equals(type))) {
 	out.println(showForm());
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 	return;
 }
 boolean needForm = false;

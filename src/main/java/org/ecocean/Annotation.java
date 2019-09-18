@@ -30,6 +30,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.codec.digest.DigestUtils;
+
 
 //import java.time.LocalDateTime;
 
@@ -423,7 +425,8 @@ public class Annotation implements java.io.Serializable {
 
     public String getSpecies(Shepherd myShepherd) {
         Encounter enc = this.findEncounter(myShepherd);
-        return enc.getGenus()+" "+enc.getSpecificEpithet();
+        if (enc == null) return null;
+        return enc.getTaxonomyString();
     }
 
     public String getIAClass() {
@@ -634,6 +637,9 @@ System.out.println("[1] getMatchingSet params=" + params);
         if (Util.stringExists(mySpecificEpithet) && Util.stringExists(myGenus)) {
             System.out.println("MATCHING SPECIES "+mySpecificEpithet+" "+myGenus+" : Filter for Annotation id="+this.id+" is using viewpoint neighbors and matching parts.");
         	anns = getMatchingSetForTaxonomyExcludingAnnotation(myShepherd, myEnc, params);
+        } else if (!Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(), "allowIdentificationWithoutTaxonomy"))) {
+            System.out.println("INFO: No taxonomy found on encounter and IA property 'allowIdentificationWithoutTaxonomy' not set; empty matchingSet returned");
+            return anns;
         } else if (useClauses) {
             System.out.println("MATCHING ALL SPECIES : Filter for Annotation id="+this.id+" is using viewpoint neighbors and matching parts.");
             anns = getMatchingSetForAnnotationAllSpeciesUseClauses(myShepherd);
@@ -728,6 +734,7 @@ System.out.println("[1] getMatchingSet params=" + params);
     }
 
     //note, we are give *full* task.parameters; by convention, we only act on task.parameters.matchingSetFilter
+    // > > > ATTENTION!  if you change this method, please also adjust accordingly getCurvrankDailyTag() below!! < < <
     private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
         if (taskParams == null) return "";
         String userId = taskParams.optString("userId", null);
@@ -736,20 +743,30 @@ System.out.println("[1] getMatchingSet params=" + params);
         String f = "";
 
         // locationId=FOO and locationIds=[FOO,BAR]
-        if (j.optString("locationId", null) != null) f += " && enc.locationID == '" + Util.basicSanitize(j.getString("locationId")) + "' ";
+        boolean useNullLocation = false;
+        List<String> rawLocationIds = new ArrayList<String>();
+        String tmp = Util.basicSanitize(j.optString("locationId", null));
+        if (Util.stringExists(tmp)) rawLocationIds.add(tmp);
         JSONArray larr = j.optJSONArray("locationIds");
         if (larr != null) {
-            List<String> locs = new ArrayList<String>();
             for (int i = 0 ; i < larr.length() ; i++) {
-                String val = Util.basicSanitize(larr.optString(i));
-                if ("__NULL__".equals(val)) {
-                    locs.add("null");
-                } else if (Util.stringExists(val)) {
-                    locs.add("'" + val + "'");
+                tmp = Util.basicSanitize(larr.optString(i));
+                if ("__NULL__".equals(tmp)) {
+                    useNullLocation = true;
+                } else if (Util.stringExists(tmp) && !rawLocationIds.contains(tmp)) {
+                    rawLocationIds.add(tmp);
                 }
             }
-            if (locs.size() > 0) f += " && (enc.locationID == " + String.join(" || enc.locationID == ", locs) + ") ";
         }
+        //TODO we could have an option to skip expansion (i.e. not include children)
+        List<String> expandedLocationIds = LocationID.expandIDs(rawLocationIds);
+        String locFilter = "";
+        if (expandedLocationIds.size() > 0) locFilter += "enc.locationID == '" + String.join("' || enc.locationID == '", expandedLocationIds) + "'";
+        if (useNullLocation) {
+            if (!locFilter.equals("")) locFilter += " || ";
+            locFilter += "enc.locationID == null";
+        }
+        if (!locFilter.equals("")) f += " && (" + locFilter + ") ";
 
         // "owner" ... which requires we have userId in the taskParams
         JSONArray owner = j.optJSONArray("owner");
@@ -763,6 +780,56 @@ System.out.println("[1] getMatchingSet params=" + params);
         }
 
         return f;
+    }
+
+    /*
+        sorta weird to have this in here, but it is inherently linked with getMatchingSetXXX() above ...
+        this is a string that uniquely identifies the matchingSet, dependent of content (e.g. cant be based on content uuids)
+    */
+    public String getCurvrankDailyTag(JSONObject taskParams) {
+        if (taskParams == null) return null;
+        String userId = taskParams.optString("userId", null);
+        JSONObject j = taskParams.optJSONObject("matchingSetFilter");
+        if (j == null) return null;
+        String tag = "";
+
+        //currently we have only owner=me, which requires a userId
+        JSONArray owner = j.optJSONArray("owner");
+        boolean mineOnly = false;
+        if ((owner != null) && (userId != null)) {
+            for (int i = 0 ; i < owner.length() ; i++) {
+                if ("me".equals(owner.optString(i, null))) mineOnly = true;
+            }
+        }
+        if (mineOnly) {
+            tag += "user:" + userId;
+        } else {
+            tag += "user:ANY";
+        }
+
+        //now locations, which we want sorted and lowercase, to ensure consistency in multi-value names
+        List<String> locs = new ArrayList<String>();
+        if (j.optString("locationId", null) != null) locs.add(j.getString("locationId"));
+        JSONArray larr = j.optJSONArray("locationIds");
+        if (larr != null) {
+            for (int i = 0 ; i < larr.length() ; i++) {
+                String val = larr.optString(i, null);
+                if ((val != null) && !locs.contains(val)) locs.add(val);
+            }
+        }
+        if (locs.size() > 0) {
+            Collections.sort(locs);
+            tag += ";locs:" + String.join(",", locs);
+        }
+
+        int maxLength = 128;
+        if (tag.length() > maxLength) {
+            String orig = tag;
+            tag = DigestUtils.md5Hex(tag) + tag.substring(0, maxLength - 32);
+            System.out.println("INFO: getCurvrankDailyTag() using hashed " + tag + " for " + orig);
+        }
+
+        return tag;
     }
 
     public String findIndividualId(Shepherd myShepherd) {
