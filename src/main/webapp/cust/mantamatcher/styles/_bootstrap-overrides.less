@@ -46,14 +46,14 @@ label { font-weight: normal; }
   	display: inline;
   	background: url(../img/bass/bass_header.svg) no-repeat;
   	max-height: 200px;
-  	max-width: 50%;
+	max-width: 50%;
+	width: 15% !important;  
 	}
 
 @media (min-width: @screen-xs) {
 
 	.navbar-brand {
 		height: 80px;
-		width: auto;
 		/*
 		max-width: 330px;
 		*/
@@ -70,7 +70,6 @@ label { font-weight: normal; }
 	.navbar-brand {
 		display: block;
 		margin-top: -5px;
-		width: auto;
 		height: 80px;
 		max-height: 100px;
 		background: url(../img/bass/bass_header_small.svg) no-repeat;
@@ -83,14 +82,16 @@ label { font-weight: normal; }
 
 @media (max-width: @screen-xs) {
 	.navbar-brand {
+		/*
 		width: auto;	
-		padding-bottom: -5px;	
+		padding-bottom: -5px;
+		*/
+		display: none;	
 	}
 }
 
 @media (max-width: @screen-sm) {
 	.navbar-brand-container {
-		width: auto;
 		margin: auto;
 	}
 }
