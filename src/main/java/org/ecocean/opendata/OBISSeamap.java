@@ -38,6 +38,10 @@ public class OBISSeamap extends Share {
 
 
     public void generate() throws IOException {
+        generate(null, null);
+    }
+    //yeah, one is jdoql, one is sql.  sigh.
+    public void generate(String occurrence_jdoql, String encounter_sql) throws IOException {
         String outPath = getProperty("outputFile", null);
         if (outPath == null) throw new IllegalArgumentException("must have 'outputFile' set in properties file");
         BufferedWriter writer = new BufferedWriter(new FileWriter(outPath));
@@ -47,8 +51,8 @@ public class OBISSeamap extends Share {
         myShepherd.beginDBTransaction();
 
         // here we want to export all Occurrences (and their Encounters), and then Occurrence-less Encounters as well
-        String jdoql = "SELECT FROM org.ecocean.Occurrence";
-        Query query = myShepherd.getPM().newQuery(jdoql);
+        if (occurrence_jdoql == null) occurrence_jdoql = "SELECT FROM org.ecocean.Occurrence";
+        Query query = myShepherd.getPM().newQuery(occurrence_jdoql);
         Collection c = (Collection) (query.execute());
         List<Occurrence> occs = new ArrayList<Occurrence>(c);
         query.closeAll();
@@ -59,8 +63,8 @@ public class OBISSeamap extends Share {
         }
 
         // cant figure out how to do this via jdoql.  :/
-        String sql = "SELECT * FROM \"ENCOUNTER\" LEFT JOIN \"OCCURRENCE_ENCOUNTERS\" ON (\"ENCOUNTER\".\"CATALOGNUMBER\" = \"OCCURRENCE_ENCOUNTERS\".\"CATALOGNUMBER_EID\") WHERE \"OCCURRENCE_ENCOUNTERS\".\"OCCURRENCEID_OID\" IS NULL";
-        query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        if (encounter_sql == null) encounter_sql = "SELECT * FROM \"ENCOUNTER\" LEFT JOIN \"OCCURRENCE_ENCOUNTERS\" ON (\"ENCOUNTER\".\"CATALOGNUMBER\" = \"OCCURRENCE_ENCOUNTERS\".\"CATALOGNUMBER_EID\") WHERE \"OCCURRENCE_ENCOUNTERS\".\"OCCURRENCEID_OID\" IS NULL";
+        query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", encounter_sql);
         query.setClass(Encounter.class);
         c = (Collection) (query.execute());
         List<Encounter> encs = new ArrayList<Encounter>(c);
@@ -170,6 +174,8 @@ public class OBISSeamap extends Share {
         return rtn;
     }
 
+//header of field contents
+//GUID	DATE	OCCURRENCE_ID	DEC_LAT	DEC_LON	TAXONOMY	INDIV_ID	SEX	LIFE_STAGE	IMAGE_URL	CONTRIBUTERS	COPYRIGHT_INFO
     public String tabRow(Encounter enc, Shepherd myShepherd) {
         if (enc == null) return null;
         List<String> fields = new ArrayList<String>();
