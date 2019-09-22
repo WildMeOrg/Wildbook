@@ -282,6 +282,8 @@
 				/EncounterAddUser = authc, roles[researcher]
 				
 				/AnnotationEdit = authc, roles[admin]
+				
+				/gallery.jsp = authc, roles[researcher]
 
             </param-value>
         </init-param>
