@@ -62,8 +62,8 @@
 					{ "name":"Laguna Valentin", "id":"Laguna Valentin", "locationID":[] },
 					{ "name":"Manzanillo", "id":"Manzanillo", "locationID":[] },
 					{ "name":"Mexico (Pacific)-Unspecified", "id":"Mexico", "locationID":[] },
-					{ "name":"Mexico-BLA", "id":"Mexico", "locationID":[] },
-					{ "name":"Mexico-BLP", "id":"Mexico", "locationID":[] },
+					{ "name":"Mexico-BLA", "id":"Mexico-BLA", "locationID":[] },
+					{ "name":"Mexico-BLP", "id":"Mexico-BLP", "locationID":[] },
 					{ "name":"Morros", "id":"Morros", "locationID":[] },
 					{ "name":"PB", "id":"PB", "locationID":[] },
 					{ "name":"Playa Blanca", "id":"Playa Blanca", "locationID":[] },
@@ -96,7 +96,9 @@
 			] },
 
 			{ "name":"Costa Rica", "id":"Costa Rica", "locationID":[
-				{ "name":"Southern Costa Rica", "id":"Southern Costa Rica", "locationID":[] }
+				{ "name":"Golfo de Papagayo", "id":"Golfo de Papagayo", "locationID":[] },
+				{ "name":"Southern Costa Rica", "id":"Southern Costa Rica", "locationID":[] },
+				{ "name":"Ostional", "id":"Ostional", "locationID":[] }
 			] },
 			{ "name":"Guatemala", "id":"Guatemala", "locationID":[] },
 
@@ -399,8 +401,9 @@
 			  
 			  {
 			  "name": "7b", "id": "7b" },
-			  
 			  {
+			  "name": "7c", "id": "7c" },
+			   {
 			  "name": "7d", "id": "7d" },
 			   {
 			  "name": "8a", "id": "8a" }
