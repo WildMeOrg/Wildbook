@@ -3,6 +3,7 @@ package org.ecocean;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.io.File;
 
 import org.ecocean.movement.SurveyTrack;
 import org.joda.time.DateTime;
@@ -458,6 +459,10 @@ public class Survey implements java.io.Serializable{
       }
     }  
   } 
+
+
+    public void writeExcel(File xlsFile) throws java.io.IOException {
+    }
 
     public String toString() {
         return new ToStringBuilder(this)
