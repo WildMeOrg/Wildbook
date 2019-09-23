@@ -208,7 +208,7 @@ public class OBISSeamap extends Share {
         if ((mas == null) || (mas.size() < 1)) {
             fields.add("");
         } else {
-            ArrayList<MediaAsset> kids = mas.get(0).findChildrenByLabel(myShepherd, "_thumb");
+            ArrayList<MediaAsset> kids = mas.get(0).findChildrenByLabel(myShepherd, "_mid");
             if ((kids == null) || (kids.size() < 1)) {
                 fields.add("");
             } else {
@@ -229,7 +229,7 @@ public class OBISSeamap extends Share {
             }
             fields.add(String.join(", ", names));
         }
-        fields.add("[flukebook copyright?]");
+        fields.add(getProperty("copyright", null));
         return String.join("\t", fields) + "\n";
     }
 
