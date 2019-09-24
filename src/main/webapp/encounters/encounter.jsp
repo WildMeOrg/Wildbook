@@ -10,6 +10,7 @@
          com.drew.metadata.Tag,
          org.ecocean.*,
          org.ecocean.media.MediaAsset,
+         java.util.regex.Pattern,
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
@@ -74,28 +75,18 @@
         //set up the file input stream
         //props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
         props=ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
-
+		System.out.println("Trying to find locationID code");
         //let's see if the property is defined
         if (props.getProperty(lcode) != null) {
-          returnString = props.getProperty(lcode);
+          returnString = escapeSpecialRegexChars(props.getProperty(lcode));
 
+          String nextID=MultiValue.nextUnusedValueForKey("*",returnString, myShepherd, "%03d");
+          System.out.println("nextID: "+nextID);
 
-
-            //if (!myShepherd.isMarkedIndividual(compositeString)) {
-            List<MarkedIndividual> names=MarkedIndividual.findByNames(myShepherd, ".*"+returnString.toLowerCase()+"\\d+.*");
-            if(names!=null){
-            	int size=names.size();
-            	size++;
-            	String numberAsString=String.format ("%03d", size);
-            	return returnString+numberAsString;
-            }
-
-          }
-          return returnString;
-
-
+          return nextID;
+        }
       }
-      return returnString;
+		return returnString;
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -115,6 +106,11 @@
 			if (!accessKey.equals(p.optString("accessKey", null))) return false;
 		}
 		return true;
+	}
+	
+	private String escapeSpecialRegexChars(String str) {
+		Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
+	    return SPECIAL_REGEX_CHARS.matcher(str).replaceAll("\\\\$0");
 	}
 %>
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
