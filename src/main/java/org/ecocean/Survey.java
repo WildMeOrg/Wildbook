@@ -10,6 +10,8 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import jxl.write.*;
+import jxl.Workbook;
 
 import org.ecocean.movement.*;
 /**
@@ -461,7 +463,77 @@ public class Survey implements java.io.Serializable{
   } 
 
 
-    public void writeExcel(File xlsFile) throws java.io.IOException {
+    public void writeExcel(File xlsFile) throws java.io.IOException, jxl.write.WriteException {
+        WritableWorkbook workbook = Workbook.createWorkbook(xlsFile);
+        String sheetName = this.getID().substring(0,8);
+        WritableSheet sheetSurvey = workbook.createSheet("Survey " + sheetName, 0);
+        WritableSheet sheetTracks = workbook.createSheet("Tracks " + sheetName, 1);
+        WritableSheet sheetSightings = workbook.createSheet("Sightings " + sheetName, 2);
+        WritableSheet sheetPaths = workbook.createSheet("Paths " + sheetName, 3);
+        excelHeader(sheetSurvey, new String[]{"ID", "Date", "Created", "Comments", "Project", "Organization", "Start", "End", "Tracks"});
+        excelHeader(sheetTracks, new String[]{"ID", "Vessel", "Start", "End", "Duration", "Location ID", "Type", "Path", "Sightings"});
+        excelHeader(sheetSightings, new String[]{"ID"});
+        //excelHeader(sheetPaths, new String[]{"Track ID", "Path ID", "Points"});
+        sheetSurvey.addCell(new Label(0, 1, this.getID()));
+        sheetSurvey.addCell(new Label(1, 1, this.getDate()));
+        sheetSurvey.addCell(new Label(2, 1, this.getDateTimeCreated()));
+        sheetSurvey.addCell(new Label(3, 1, this.getComments()));
+        sheetSurvey.addCell(new Label(4, 1, this.getProjectName()));
+        sheetSurvey.addCell(new Label(5, 1, this.getOrganization()));
+        sheetSurvey.addCell(new Label(6, 1, this.getStartDateTime()));
+        sheetSurvey.addCell(new Label(7, 1, this.getEndDateTime()));
+        int tct = 0;
+        if (!Util.collectionIsEmptyOrNull(this.surveyTracks)) for (SurveyTrack trk : this.surveyTracks) {
+            sheetSurvey.addCell(new Label(8 + tct, 1, trk.getID()));
+            excelTrack(trk, tct, sheetTracks, sheetSightings, sheetPaths);
+            tct++;
+        }
+        int oct = 0;
+        if (!Util.collectionIsEmptyOrNull(this.observations)) for (Observation obs : this.observations) {
+            sheetSurvey.addCell(new Label(0, 4 + tct, new DateTime(obs.getDateAddedMilli()).toString()));
+            sheetSurvey.addCell(new Label(1, 4 + tct, obs.getName()));
+            sheetSurvey.addCell(new Label(2, 4 + tct, obs.getValue()));
+            oct++;
+        }
+        workbook.write();
+        workbook.close();
+    }
+
+    private void excelHeader(WritableSheet sheet, String[] headers) throws jxl.write.WriteException {
+        for (int i = 0 ; i < headers.length ; i++) {
+            sheet.addCell(new Label(i, 0, headers[i]));
+        }
+    }
+
+    private void excelTrack(SurveyTrack trk, int num, WritableSheet sTracks, WritableSheet sSightings, WritableSheet sPaths) throws jxl.write.WriteException {
+        sTracks.addCell(new Label(0, num + 1, trk.getID()));
+        sTracks.addCell(new Label(1, num + 1, trk.getVesselID()));
+        sTracks.addCell(new Label(2, num + 1, new DateTime(trk.getStartTime()).toString()));
+        sTracks.addCell(new Label(3, num + 1, new DateTime(trk.getEndTime()).toString()));
+        sTracks.addCell(new Label(4, num + 1, Long.toString(trk.getComputedDuration())));
+        sTracks.addCell(new Label(5, num + 1, trk.getLocationID()));
+        sTracks.addCell(new Label(6, num + 1, trk.getType()));
+        if (trk.getPath() != null) {
+            sTracks.addCell(new Label(7, num + 1, trk.getPath().getID()));
+            List<PointLocation> pts = trk.getPath().getPointLocationsSubsampled();
+            if (!Util.collectionIsEmptyOrNull(pts)) {
+                sPaths.addCell(new Label(num, 0, trk.getID()));
+                sPaths.addCell(new Label(num, 1, trk.getPath().getID()));
+                int pct = 0;
+                for (PointLocation pt : pts) {
+                    sPaths.addCell(new Label(num, pct + 2, Double.toString(pt.getLatitude()) + "," + Double.toString(pt.getLongitude())));
+                    pct++;
+                }
+            }
+        }
+
+        int occct = 0;
+        if (!Util.collectionIsEmptyOrNull(trk.getOccurrences())) for (Occurrence occ : trk.getOccurrences()) {
+            sTracks.addCell(new Label(7 + occct, num + 1, occ.getOccurrenceID()));
+            sSightings.addCell(new Label(0, 1 + occct, occ.getOccurrenceID()));
+            //TODO make this more content
+            occct++;
+        }
     }
 
     public String toString() {
