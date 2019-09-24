@@ -516,6 +516,9 @@ console.log('llList => %o', llList);
         llDiv.html(h);
     }
 
+    //exit out without putting HTML garbage in comments
+    return;
+    //from here down, ignored
     var fj = {};
     if (file.exifdata) for (var key in file.exifdata) {
         if (!key.toLowerCase().match('^(artist|copyright|imagedescription)$')) continue;
