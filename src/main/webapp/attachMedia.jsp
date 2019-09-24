@@ -598,6 +598,146 @@ System.out.println(ft.getParameters());
     } else {
 %>
 <h2>Listing of imported Ocean Alert data</h2>
+
+<script src="javascript/exif.js"></script>
+<script type="text/javascript">
+function folderToggle(el) {
+    if ($(el).is(':checked')) {
+        $('#file-chooser').attr('directory', '');
+        $('#file-chooser').attr('webkitdirectory', '');
+    } else {
+        $('#file-chooser').attr('directory', null);
+        $('#file-chooser').attr('webkitdirectory', null);
+    }
+    return true;
+}
+
+function filesChanged(inp) {
+    var maxSizeBytes = 3000000000;
+    var f = '';
+    if (inp.files && inp.files.length) {
+        var all = [];
+        for (var i = 0 ; i < inp.files.length ; i++) {
+            if (inp.files[i].size > maxSizeBytes) {
+                all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, xxxxMB max)</span>');
+            } else {
+                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+                EXIF.getData(inp.files[i], function() { gotExif(this); });
+            }
+        }
+        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
+    } else {
+        f = inp.value;
+    }
+    document.getElementById('input-file-list').innerHTML = f;
+}
+
+
+var dtList = [];
+var llList = [];
+//TODO Bearing, Altitude
+function gotExif(file) {
+    exifFindDateTimes(file.exifdata);
+console.log('dtList => %o', dtList);
+    var dtDiv = $('#dt-div');
+    if (!dtDiv.length) {
+        dtDiv = $('<div class="exif-derived" id="dt-div" />');
+        $('#datepicker').parent().append(dtDiv);
+    }
+    if (dtList.length > 0) {
+        dtList.sort();
+        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifDTSet(this);"><option value="">Select date/time</option>';
+        for (var i = 0 ; i < dtList.length ; i ++) {
+            h += '<option>' + dtList[i] + '</option>';
+        }
+        h += '</select>';
+        dtDiv.html(h);
+    }
+
+    exifFindLatLon(file.exifdata);
+console.log('llList => %o', llList);
+    var llDiv = $('#ll-div');
+    if (!llDiv.length) {
+        llDiv = $('<div class="exif-derived" id="ll-div" />');
+        $('#longitude').parent().parent().append(llDiv);
+    }
+    if (llList.length > 0) {
+        llList.sort();
+        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifLLSet(this);"><option value="">Select lat/lon</option>';
+        for (var i = 0 ; i < llList.length ; i ++) {
+            h += '<option>' + llList[i] + '</option>';
+        }
+        h += '</select>';
+        llDiv.html(h);
+    }
+}
+
+
+function exifFindDateTimes(exif) {
+    for (var key in exif) {
+        if (key.toLowerCase().indexOf('date') < 0) continue;
+        var clean = cleanupDateTime(exif[key]);
+        if (clean && (dtList.indexOf(clean) < 0)) dtList.push(clean);
+    }
+}
+
+function exifFindLatLon(exif) {
+    //unknown if these keys are "standard".  :(  doubt it.
+    var lat = cleanupLatLon(exif.GPSLatitudeRef, exif.GPSLatitude);
+    var lon = cleanupLatLon(exif.GPSLongitudeRef, exif.GPSLongitude);
+    if (!lat || !lon) return;
+    var clean = lat + ', ' + lon;
+    if (clean && (llList.indexOf(clean) < 0)) llList.push(clean);
+}
+
+function cleanupDateTime(dt) {
+    var f = dt.split(/\D+/);
+    if (f.length == 3) return f.join('-');
+    if ((f.length == 5) || (f.length == 6)) return f.slice(0,3).join('-') + ' ' + f.slice(3,6).join(':');
+    return null;
+}
+
+function cleanupLatLon(llDir, ll) {
+    var sign = ((llDir == 'W' || llDir == 'S') ? -1 : 1);
+    if (!ll || (ll.length != 3)) return null;
+    return Math.round(sign * dms2dd(ll[0], ll[1], ll[2]) * 1000000) / 1000000;
+}
+
+function dms2dd(d, m, s) {
+    return d + (m / 60) + (s / 3600);
+}
+
+function exifDTSet(el) {
+    $('#datepicker').val(el.value);
+}
+
+function exifLLSet(el) {
+    var ll = [ '', '' ];
+    if (el.value.indexOf(', ') >= 0) ll = el.value.split(', ');
+    $('#lat').val(ll[0]);
+    $('#longitude').val(ll[1]);
+    updateMap();
+}
+
+</script>
+
+<div id="file-activity"></div>
+<div id="updone"></div>
+<div id="upcontrols" style="padding: 20px;">
+	<!-- webkitdirectory directory -->
+	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
+
+        <div>
+            <input type="checkbox" onClick="return folderToggle(this);" /> <b>Use folders</b>
+        </div>
+
+    <div style="display: none;padding: 20px 0;">
+        <a class="button" id="upload-button">begin upload</a>
+        <a class="button" href="attachMedia.jsp?id=xxx" title="return to listing for Sighting xxxx">cancel</a>
+    </div>
+
+</div>
+
 <table class="tablesorter" id="occs"><thead><tr>
 <%
         List<String> heads = new ArrayList<String>(Arrays.asList(new String[]{"Type", "Trip #", "Sight", "Date/Time", "Species", "#Adult,Calv", "Lat", "Lon", "Bearing", "# Encs", "Photos", "Placeholder", "# Behav", "Modified"}));
@@ -681,7 +821,7 @@ if (showUpload) {
 <div id="updone"></div>
 <div id="upcontrols" style="padding: 20px;">
 	<!-- webkitdirectory directory -->
-	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
+	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" xonChange="return filesChanged(this)" /> 
     <div style="padding: 20px 0;">
         <a class="button" id="upload-button">begin upload</a>
         <a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="return to listing for Sighting <%=occ.getOccurrenceID().substring(0,8)%>">cancel</a>
