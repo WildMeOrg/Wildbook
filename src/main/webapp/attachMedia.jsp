@@ -171,6 +171,17 @@ div.file-item div {
     width: 150px;
 }
 
+
+#bulk-media-list,
+#app-data-list {
+    width: 48.5%;
+    padding: 5px;
+    display: inline-block;
+    margin: 2px;
+    background-color: #EEE;
+    vertical-align: top;
+}
+
 </style>
 
 <%@ page contentType="text/html; charset=utf-8" 
@@ -180,6 +191,7 @@ org.ecocean.datacollection.Instant,
 org.ecocean.media.MediaAsset,
 org.ecocean.media.Feature,
 org.json.JSONObject,
+org.json.JSONArray,
 java.util.Collection,
 java.util.Arrays,
 java.util.ArrayList,
@@ -291,7 +303,7 @@ $(document).ready(function() {
     $('#occs').tablesorter();
     //$('#occs tbody td:nth-child(3)').on('click', function(ev) {
     $('#occs tr').on('click', function(ev) {
-        var occId = ev.currentTarget.getAttribute('data-id');
+        var occId = ev.currentTarget.getAttribute('id');
         wildbook.openInTab('attachMedia.jsp?id=' + occId);
     });
 
@@ -674,7 +686,7 @@ function filesChanged2(inp) {
                 all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, xxxxMB max)</span>');
             } else {
                 mediaData[i].div = $('<div class="bulk-media" data-offset="' + i + '"><img /></div>');
-                $('#file-activity').append(mediaData[i].div);
+                $('#bulk-media-list').append(mediaData[i].div);
                 populateImage(mediaData[i]);
                 mediaData[i].div.append('<div style="bottom: 0;" class="bulk-info">' + inp.files[i].name + '</div>');
                 all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
@@ -694,6 +706,15 @@ function checkMediaDataComplete() {
         if (!mediaData[i] || !mediaData[i].complete) return;  //meh, not done
     }
 console.info('OFFSET... DONE mediaData!!!!!');
+    var sorted = $('.bulk-media');
+    sorted.sort(function(a, b) {
+        var sortA = a.getAttribute('data-sort') * 1;
+        var sortB = b.getAttribute('data-sort') * 1;
+        if (sortA > sortB) return 1;
+        if (sortA < sortB) return -1;
+        return 0;
+    });
+    $('#bulk-media-list').html(sorted);
     filterList();
 }
 
@@ -739,7 +760,7 @@ console.info("OFFSET = %o", file._offset);
     for (var i = 0 ; i < mediaData[file._offset].exifParsed.dt.length ; i++) {
         if (mediaData[file._offset].exifParsed.dt[i].length > d.length) d = mediaData[file._offset].exifParsed.dt[i];
     }
-    mediaData[file._offset].div.prop('data-sort', new Date(d).getTime());
+    mediaData[file._offset].div.attr('data-sort', new Date(d).getTime());
     mediaData[file._offset].div.append('<div style="bottom: 1.4em;" class="bulk-info">' + d + '</div>');
     mediaData[file._offset].complete = true;
     checkMediaDataComplete();
@@ -798,7 +819,10 @@ function exifLLSet(el) {
 
 </script>
 
-<div id="file-activity"></div>
+<div id="file-activity">
+    <div id="bulk-media-list"></div>
+    <div id="app-data-list"></div>
+</div>
 <div id="updone"></div>
 <div id="input-file-list"></div>
 <div id="upcontrols" style="padding: 20px;">
@@ -827,8 +851,11 @@ function exifLLSet(el) {
 </tr></thead>
 <tbody>
 <%
+        JSONObject forJS = new JSONObject();
         for (Object o : coll) {
             occ = (Occurrence) o;
+            JSONObject jsObj = new JSONObject();
+            jsObj.put("id", occ.getOccurrenceID());
 
             String rowClass = "date-" + occ.getDateTimeCreated().substring(0,10);
             List<Taxonomy> tax = occ.getTaxonomies(); //TODO also check encs???
@@ -842,7 +869,7 @@ function exifLLSet(el) {
                 rowClass += " tax-" + tn.replaceAll(" ", "-").toLowerCase();
             }
 
-            String row = "<tr class=\"" + rowClass + "\" data-id=\"" + occ.getOccurrenceID() + "\">";
+            String row = "<tr class=\"" + rowClass + "\" id=\"" + occ.getOccurrenceID() + "\">";
             Map<String,String> tripInfo = getTripInfo(occ);
             row += "<td>" + tripInfo.get("typeLabel") + "</td>";
             row += "<td class=\"td-int\">" + tripInfo.get("id") + "</td>";
@@ -864,20 +891,37 @@ function exifLLSet(el) {
             int numPlaceholders = 0;
             List<String> phlist = new ArrayList<String>();
             if (occ.getNumberEncounters() > 0) {
+                JSONArray jse = new JSONArray();
                 for (Encounter enc : occ.getEncounters()) {
-                    if (enc.getAnnotations() == null) continue;
+                    JSONObject jenc = new JSONObject();
+                    jenc.put("id", enc.getCatalogNumber());
+                    jenc.put("tax", enc.getTaxonomyString());
+                    jenc.put("dt", enc.getDate());
+//occ-enc
+                    if (enc.getAnnotations() == null) {
+                        jse.put(jenc);
+                        continue;
+                    }
+                    int encPhotos = 0;
+                    String encPh = "";
                     for (Annotation ann : enc.getAnnotations()) {
                         if (Util.collectionIsEmptyOrNull(ann.getFeatures())) continue;
                         Feature ft = ann.getFeatures().get(0);
                         if (ft.getMediaAsset() != null) {   //we do *not* check feature type in this case.  should we?
                             numPhotos++;
+                            encPhotos++;
                         } else if (ft.isType("org.ecocean.MediaAssetPlaceholder")) {
                             String phs = phString(ft.getParameters());
+                            encPh += phs + " ";
                             if (!phlist.contains(phs)) phlist.add(phs);
                             numPlaceholders++;
                         }
                     }
+                    jenc.put("numPhotos", encPhotos);
+                    if (!encPh.equals("")) jenc.put("ph", encPh);
+                    jse.put(jenc);
                 }
+                jsObj.put("encs", jse);
             }
 
             String phnote = "";
@@ -893,8 +937,10 @@ function exifLLSet(el) {
             row += (Util.stringExists(occ.getDWCDateLastModified()) ? "<td>" + occ.getDWCDateLastModified() + "</td>" : emptyTd());
             if (admin) row += submittersTd(occ);
             out.println(row + "</tr>");
+            forJS.put(occ.getOccurrenceID(), jsObj);
         }
         out.println("</tbody></table>");
+        out.println("<script>var appData = " + forJS.toString(4) + ";</script>");
     }
     query.closeAll();
     myShepherd.rollbackAndClose();
