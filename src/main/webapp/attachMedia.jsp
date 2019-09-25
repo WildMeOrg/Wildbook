@@ -84,7 +84,7 @@ div#file-activity {
 	border: solid 2px black;
 	padding: 8px;
 	margin: 20px;
-	height: 250px;
+	height: 450px;
 	overflow-y: scroll;
 }
 div.file-item {
@@ -147,19 +147,24 @@ div.file-item div {
     background-color: #DDD;
     width: 150px;
     position: relative;
+    min-height: 75px;
 }
 
-.bulk-media .label {
+.bulk-media .bulk-info {
     left: 0;
     overflow: hidden;
     width: 100%;
-    font-size: 0.8em;
+    font-size: 0.65em;
+    font-weight: bold;
     position: absolute;
     background-color: rgba(0,0,0,0.3);
     color: white;
+    padding: 0 2px;
 }
-.bulk-media .label:hover {
+.bulk-media .bulk-info:hover {
     width: auto;
+    z-index: 100;
+    background-color: #444;
 }
 
 .bulk-media img {
@@ -653,6 +658,7 @@ console.log('DONE with img=%o', img);
 
 var mediaData = [];
 function filesChanged2(inp) {
+    $('#upcontrols').hide();
     //filesChanged(inp);  //in uploader.js
     var maxSizeBytes = 3000000000;
     var f = '';
@@ -667,11 +673,11 @@ function filesChanged2(inp) {
                 mediaData[i].complete = true;
                 all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, xxxxMB max)</span>');
             } else {
-                mediaData[i].div = $('<div class="bulk-media"><img /></div>');
+                mediaData[i].div = $('<div class="bulk-media" data-offset="' + i + '"><img /></div>');
                 $('#file-activity').append(mediaData[i].div);
                 populateImage(mediaData[i]);
-                mediaData[i].div.append('<div style="bottom: 0;" class="label">' + inp.files[i].name + '</div>');
-                //all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+                mediaData[i].div.append('<div style="bottom: 0;" class="bulk-info">' + inp.files[i].name + '</div>');
+                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
                 EXIF.getData(inp.files[i], function() { gotExif(this); });
             }
         }
@@ -729,6 +735,12 @@ console.info("OFFSET = %o", file._offset);
         dt: exifFindDateTimes(file.exifdata),
         ll: exifFindLatLon(file.exifdata)
     };
+    var d = '?';
+    for (var i = 0 ; i < mediaData[file._offset].exifParsed.dt.length ; i++) {
+        if (mediaData[file._offset].exifParsed.dt[i].length > d.length) d = mediaData[file._offset].exifParsed.dt[i];
+    }
+    mediaData[file._offset].div.prop('data-sort', new Date(d).getTime());
+    mediaData[file._offset].div.append('<div style="bottom: 1.4em;" class="bulk-info">' + d + '</div>');
     mediaData[file._offset].complete = true;
     checkMediaDataComplete();
 }
@@ -788,9 +800,9 @@ function exifLLSet(el) {
 
 <div id="file-activity"></div>
 <div id="updone"></div>
+<div id="input-file-list"></div>
 <div id="upcontrols" style="padding: 20px;">
 	<!-- webkitdirectory directory -->
-        <div id="input-file-list"></div>
 	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged2(this)" /> 
 
         <div>
