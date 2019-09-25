@@ -139,6 +139,33 @@ div.file-item div {
     margin-top: 20px;
     font-size: 1.2em;
 }
+
+.bulk-media {
+    display: inline-block;
+    padding: 3px;
+    margin: 3px;
+    background-color: #DDD;
+    width: 150px;
+    position: relative;
+}
+
+.bulk-media .label {
+    left: 0;
+    overflow: hidden;
+    width: 100%;
+    font-size: 0.8em;
+    position: absolute;
+    background-color: rgba(0,0,0,0.3);
+    color: white;
+}
+.bulk-media .label:hover {
+    width: auto;
+}
+
+.bulk-media img {
+    width: 150px;
+}
+
 </style>
 
 <%@ page contentType="text/html; charset=utf-8" 
@@ -612,16 +639,39 @@ function folderToggle(el) {
     return true;
 }
 
-function filesChanged(inp) {
+function populateImage(md) {
+    if (!md.div || !md.file) return;
+    var img = $(md.div).find('img');
+    var reader = new FileReader();
+//console.log('populateImage() img => %o', img);
+    reader.onload = function() {
+console.log('DONE with img=%o', img);
+        img.prop('src', reader.result);
+    };
+    reader.readAsDataURL(md.file);
+}
+
+var mediaData = [];
+function filesChanged2(inp) {
+    //filesChanged(inp);  //in uploader.js
     var maxSizeBytes = 3000000000;
     var f = '';
     if (inp.files && inp.files.length) {
         var all = [];
+        mediaData[inp.files.length - 1] = false;  //set mediaData to length of # of files
         for (var i = 0 ; i < inp.files.length ; i++) {
+            inp.files[i]._offset = i;
+            mediaData[i] = { file: inp.files[i], complete: false };
             if (inp.files[i].size > maxSizeBytes) {
+                mediaData[i].error = 'too big';
+                mediaData[i].complete = true;
                 all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, xxxxMB max)</span>');
             } else {
-                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+                mediaData[i].div = $('<div class="bulk-media"><img /></div>');
+                $('#file-activity').append(mediaData[i].div);
+                populateImage(mediaData[i]);
+                mediaData[i].div.append('<div style="bottom: 0;" class="label">' + inp.files[i].name + '</div>');
+                //all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
                 EXIF.getData(inp.files[i], function() { gotExif(this); });
             }
         }
@@ -633,61 +683,76 @@ function filesChanged(inp) {
 }
 
 
-var dtList = [];
-var llList = [];
+function checkMediaDataComplete() {
+    for (var i = 0 ; i < mediaData.length ; i++) {
+        if (!mediaData[i] || !mediaData[i].complete) return;  //meh, not done
+    }
+console.info('OFFSET... DONE mediaData!!!!!');
+    filterList();
+}
+
+
+function filterList() {
+    var dates = [];
+    for (var i = 0 ; i < mediaData.length ; i++) {
+        if (!mediaData[i].exifParsed.dt) continue;
+        for (var j = 0 ; j < mediaData[i].exifParsed.dt.length ; j++) {
+            var dt = mediaData[i].exifParsed.dt[j].substr(0,10);
+            if (dates.indexOf(dt) < 0) dates.push(dt);
+        }
+    }
+console.info('dates => %o', dates);
+    $('#occs tbody tr').hide();
+    for (var i = 0 ; i < dates.length ; i++) {
+        $('tr.date-' + dates[i]).show();
+    }
+/*
+    $('#occs tbody tr').each(function(i, el) {
+        var dt = el.querySelector('td:nth-child(4)').innerText;
+        //var lat = el.querySelector('td:nth-child(7)').innerText;
+        //var lon = el.querySelector('td:nth-child(8)').innerText;
+//console.log('%o %o %o', dt, lat, lon);
+//console.log('%o', dt);
+        if (dates.indexOf(dt.substr(0,10)) < 0) {
+            $(el).hide();
+        } else {
+            $(el).show();
+        }
+    });
+*/
+}
+
 //TODO Bearing, Altitude
 function gotExif(file) {
-    exifFindDateTimes(file.exifdata);
-console.log('dtList => %o', dtList);
-    var dtDiv = $('#dt-div');
-    if (!dtDiv.length) {
-        dtDiv = $('<div class="exif-derived" id="dt-div" />');
-        $('#datepicker').parent().append(dtDiv);
-    }
-    if (dtList.length > 0) {
-        dtList.sort();
-        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifDTSet(this);"><option value="">Select date/time</option>';
-        for (var i = 0 ; i < dtList.length ; i ++) {
-            h += '<option>' + dtList[i] + '</option>';
-        }
-        h += '</select>';
-        dtDiv.html(h);
-    }
-
-    exifFindLatLon(file.exifdata);
-console.log('llList => %o', llList);
-    var llDiv = $('#ll-div');
-    if (!llDiv.length) {
-        llDiv = $('<div class="exif-derived" id="ll-div" />');
-        $('#longitude').parent().parent().append(llDiv);
-    }
-    if (llList.length > 0) {
-        llList.sort();
-        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifLLSet(this);"><option value="">Select lat/lon</option>';
-        for (var i = 0 ; i < llList.length ; i ++) {
-            h += '<option>' + llList[i] + '</option>';
-        }
-        h += '</select>';
-        llDiv.html(h);
-    }
+console.info("OFFSET = %o", file._offset);
+    mediaData[file._offset].exifParsed = {
+        dt: exifFindDateTimes(file.exifdata),
+        ll: exifFindLatLon(file.exifdata)
+    };
+    mediaData[file._offset].complete = true;
+    checkMediaDataComplete();
 }
 
 
 function exifFindDateTimes(exif) {
+    var dtList = [];
     for (var key in exif) {
         if (key.toLowerCase().indexOf('date') < 0) continue;
         var clean = cleanupDateTime(exif[key]);
         if (clean && (dtList.indexOf(clean) < 0)) dtList.push(clean);
     }
+    return dtList;
 }
 
 function exifFindLatLon(exif) {
+    var llList = [];
     //unknown if these keys are "standard".  :(  doubt it.
     var lat = cleanupLatLon(exif.GPSLatitudeRef, exif.GPSLatitude);
     var lon = cleanupLatLon(exif.GPSLongitudeRef, exif.GPSLongitude);
     if (!lat || !lon) return;
     var clean = lat + ', ' + lon;
     if (clean && (llList.indexOf(clean) < 0)) llList.push(clean);
+    return llList;
 }
 
 function cleanupDateTime(dt) {
@@ -725,7 +790,8 @@ function exifLLSet(el) {
 <div id="updone"></div>
 <div id="upcontrols" style="padding: 20px;">
 	<!-- webkitdirectory directory -->
-	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
+        <div id="input-file-list"></div>
+	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged2(this)" /> 
 
         <div>
             <input type="checkbox" onClick="return folderToggle(this);" /> <b>Use folders</b>
@@ -751,20 +817,28 @@ function exifLLSet(el) {
 <%
         for (Object o : coll) {
             occ = (Occurrence) o;
-            String row = "<tr data-id=\"" + occ.getOccurrenceID() + "\">";
+
+            String rowClass = "date-" + occ.getDateTimeCreated().substring(0,10);
+            List<Taxonomy> tax = occ.getTaxonomies(); //TODO also check encs???
+            List<String> tnames = new ArrayList<String>();
+            if (!Util.collectionIsEmptyOrNull(tax)) {
+                for (Taxonomy t : tax) {
+                    tnames.add(t.getScientificName());
+                }
+            }
+            for (String tn : tnames) {
+                rowClass += " tax-" + tn.replaceAll(" ", "-").toLowerCase();
+            }
+
+            String row = "<tr class=\"" + rowClass + "\" data-id=\"" + occ.getOccurrenceID() + "\">";
             Map<String,String> tripInfo = getTripInfo(occ);
             row += "<td>" + tripInfo.get("typeLabel") + "</td>";
             row += "<td class=\"td-int\">" + tripInfo.get("id") + "</td>";
             row += "<td class=\"td-occid\">" + occ.getOccurrenceID().substring(0,8) + "</td>";
             row += "<td>" + occ.getDateTimeCreated().substring(0,16) + "</td>";
-            List<Taxonomy> tax = occ.getTaxonomies(); //TODO also check encs???
-            if (Util.collectionIsEmptyOrNull(tax)) {
+            if (tnames.size() < 1) {
                 row += emptyTd();
             } else {
-                List<String> tnames = new ArrayList<String>();
-                for (Taxonomy t : tax) {
-                    tnames.add(t.getScientificName());
-                }
                 row += "<td>" + String.join(", ", tnames) + "</td>";
             }
             int numAdults = (occ.getNumAdults() == null) ? 0 : occ.getNumAdults();
