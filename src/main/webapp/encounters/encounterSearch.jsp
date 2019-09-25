@@ -929,13 +929,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </c:forEach>
 <tr><td></td></tr>
 </c:if>
-<tr><td>
-      <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
-            <label> 
-            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
-            </label>
-      </p>
-      </td></tr>
+
   
 </table>
 </p>
@@ -946,20 +940,86 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 
 <tr>
   <td>
-    <h4 class="intro search-collapse-header"><a
-      href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
-      Image Label Filters</a></h4>
+    <h4 class="intro search-collapse-header">
+    	<a href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      	<%=encprops.getProperty("imageFilters")%> 
+      	</a>
+    </h4>
+
 
     <div id="keywords" style="display:none; ">
     	<table id="labeled-kw-table">
-				<tr><strong>Image Label Filters</strong></tr>
-				<tr><td colspan="3"><p><em>Filter by Labeled Keywords on an Encounter's photos. Select labels and (optionally) values for Labeled Keywords below.</em>
-					<ul>
-						<li>If you select a label and no values, the search will include all possible values for that label.</li>
-						<li>If you select multiple values, the search will include results with that label and <em>any</em> of the selected values: the values are separated by OR in our query.</li>
-						<li>If you select multiple labels, the search will include results with <em>all</em> of the label queries: the labels are separated by AND in our query.</li>
-					</ul>
-				</p></tr>
+    	    		<tr>
+    			<td>
+      				<p><%=encprops.getProperty("hasPhoto")%> 
+	            		<label> 
+	            			<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+	            		</label>
+      				</p>
+      			</td>
+      		</tr>
+    		<tr><td><h5>Keywords</h5></td></tr>
+
+      
+
+			<tr>
+  				<td valign="top"><%=encprops.getProperty("hasKeywordPhotos")%><br/>
+				    <%
+				    Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
+				    Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
+				    Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
+				
+				    if (keys.hasNext()) {
+				    %>
+
+    				<select multiple size="10" name="keyword" id="keyword" >
+      					<option value="None"></option>
+				      <%
+				
+				        while(keys.hasNext()) {
+				          Keyword word = keys.next();
+					      %>
+					      <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
+					      </option>
+					      <%
+				        }
+				
+				      %>
+
+    				</select>
+    			</td>
+    		</tr>
+           	<tr>
+           		<td>
+      				<p>
+			            <label> 
+			            	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
+			            </label> <%=encprops.getProperty("orPhotoKeywords")%> 
+      				</p>
+      			</td>
+      		</tr>
+			    <%
+			    } 
+			    else {
+			    %>
+			
+			    	<tr><td><p><em><%=encprops.getProperty("noKeywords")%></em></p></td></tr>
+			    <%
+			    }
+			    %>
+
+			<tr><td><h5>Labeled Keywords</h5></td></tr>
+				<tr>
+					<td colspan="3">
+						<p><em>Filter by Labeled Keywords on an Encounter's photos. Select labels and (optionally) values for Labeled Keywords below.</em>
+							<ul>
+								<li>If you select a label and no values, the search will include all possible values for that label.</li>
+								<li>If you select multiple values, the search will include results with that label and <em>any</em> of the selected values: the values are separated by OR in our query.</li>
+								<li>If you select multiple labels, the search will include results with <em>all</em> of the label queries: the labels are separated by AND in our query.</li>
+							</ul>
+						</p>
+					</td>
+				</tr>
 				<tr><td>Encounter has keyword with label: </td><td id="lkw-value-instruction" style="display:none;">and value(s):</td></tr>
 				<% int kwNo=0; %>
 					<tr valign="top" class="labeled-kw-container labeled-kw <%=kwNo%>" data-lkw-no="<%=kwNo%>">
