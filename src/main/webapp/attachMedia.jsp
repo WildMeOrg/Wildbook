@@ -80,6 +80,7 @@ a.button:hover {
 /* for uploader */
 
 div#file-activity {
+        position: relative;
 	font-family: sans;
 	border: solid 2px black;
 	padding: 8px;
@@ -190,6 +191,26 @@ div.file-item div {
     border-radius: 4px;
     width: 100%;
     min-height: 4em;
+}
+
+
+#list-wait {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    background-color: rgba(255,255,100,0.2);
+    display: none;
+    z-index: 101;
+}
+#list-wait div {
+    transform: rotate(-23deg);
+    margin-top: 2em;
+    font-weight: bold;
+    color: #028;
+    font-size: 5em;
 }
 
 </style>
@@ -680,6 +701,7 @@ console.log('DONE with img=%o', img);
 
 var mediaData = [];
 function filesChanged2(inp) {
+    $('#list-wait').show();
     $('#upcontrols').hide();
     //filesChanged(inp);  //in uploader.js
     var maxSizeBytes = 3000000000;
@@ -752,6 +774,7 @@ console.info('OFFSET... DONE mediaData!!!!!');
             $('#app-data-list').append(h);
         }
     });
+    $('#list-wait').hide();
 }
 
 
@@ -856,6 +879,7 @@ function exifLLSet(el) {
 </script>
 
 <div id="file-activity">
+    <div id="list-wait"><div>PLEASE WAIT</div></div>
     <div id="bulk-media-list"></div>
     <div id="app-data-list"></div>
 </div>
