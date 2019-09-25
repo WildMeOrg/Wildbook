@@ -182,6 +182,16 @@ div.file-item div {
     vertical-align: top;
 }
 
+
+.app-data {
+    background-color: #FFD;
+    padding: 2px 8px;
+    margin: 5px 2px;
+    border-radius: 4px;
+    width: 100%;
+    min-height: 4em;
+}
+
 </style>
 
 <%@ page contentType="text/html; charset=utf-8" 
@@ -716,6 +726,32 @@ console.info('OFFSET... DONE mediaData!!!!!');
     });
     $('#bulk-media-list').html(sorted);
     filterList();
+    //$('#app-data-list').html('');
+    $('.bulk-active').each(function(i, el) {
+        var occId = el.id;
+        var occJel = $('#' + occId);
+        var occDt = occJel.find(':nth-child(4)').text();
+        var occTax = occJel.find(':nth-child(5)').text();
+        if (appData[occId] && appData[occId].encs && appData[occId].encs.length) {
+            for (var i = 0 ; i < appData[occId].encs.length ; i++) {
+                var h = '<div class="app-data app-data-enc" id="app-data-enc-' + appData[occId].encs[i].id + '" data-occ-id="' + occId + '">';
+                h += '<b>' + appData[occId].encs[i].id.substr(0,6) + '</b>';
+                h += '<div>' + appData[occId].encs[i].dt + '</div>';
+                h += '<div>#photos: ' + appData[occId].encs[i].numPhotos + '</div>';
+                h += '<div>' + appData[occId].encs[i].tax + '</div>';
+                h += '<div>' + appData[occId].encs[i].ph + '</div>';
+                h += '</div>';
+                $('#app-data-list').append(h);
+            }
+        } else {  //only the occ
+            var h = '<div class="app-data app-data-occ" id="app-data-occ-' + occId + '">';
+            h += '<b>' + occId.substr(0,6) + '</b>';
+            h += '<span>' + occDt + '</span>';
+            h += ' <i>' + occTax + '</i>';
+            h += '</div>';
+            $('#app-data-list').append(h);
+        }
+    });
 }
 
 
@@ -729,9 +765,9 @@ function filterList() {
         }
     }
 console.info('dates => %o', dates);
-    $('#occs tbody tr').hide();
+    $('#occs tbody tr').hide().removeClass('bulk-active');
     for (var i = 0 ; i < dates.length ; i++) {
-        $('tr.date-' + dates[i]).show();
+        $('tr.date-' + dates[i]).show().addClass('bulk-active');
     }
 /*
     $('#occs tbody tr').each(function(i, el) {
@@ -903,7 +939,7 @@ function exifLLSet(el) {
                         continue;
                     }
                     int encPhotos = 0;
-                    String encPh = "";
+                    List<String> encPh = new ArrayList<String>();
                     for (Annotation ann : enc.getAnnotations()) {
                         if (Util.collectionIsEmptyOrNull(ann.getFeatures())) continue;
                         Feature ft = ann.getFeatures().get(0);
@@ -912,13 +948,13 @@ function exifLLSet(el) {
                             encPhotos++;
                         } else if (ft.isType("org.ecocean.MediaAssetPlaceholder")) {
                             String phs = phString(ft.getParameters());
-                            encPh += phs + " ";
+                            if (!encPh.contains(phs)) encPh.add(phs);
                             if (!phlist.contains(phs)) phlist.add(phs);
                             numPlaceholders++;
                         }
                     }
                     jenc.put("numPhotos", encPhotos);
-                    if (!encPh.equals("")) jenc.put("ph", encPh);
+                    if (encPh.size() > 0) jenc.put("ph", String.join(" | ", encPh));
                     jse.put(jenc);
                 }
                 jsObj.put("encs", jse);
