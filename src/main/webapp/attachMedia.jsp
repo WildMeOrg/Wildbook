@@ -190,6 +190,20 @@ div.file-item div {
 }
 
 
+#prox-info {
+    display: none;
+    position: absolute;
+    right: 100px;
+    padding: 3px 6px;
+    width: 6.5em;
+    margin-top: -2.0em;
+    border-radius: 3px;
+    background-color: #888;
+    font-size: 0.9em;
+    text-align: right;
+    color: #EEE;
+}
+
 #bulk-media-list,
 #app-data-list {
     width: 48.5%;
@@ -762,6 +776,7 @@ System.out.println(ft.getParameters());
     } else {
 %>
 <h2>Listing of imported Ocean Alert data</h2>
+<div id="prox-info"></div>
 
 <script src="javascript/exif.js"></script>
 <script type="text/javascript">
@@ -845,9 +860,11 @@ console.info('OFFSET... DONE mediaData!!!!!');
         var occJel = $('#' + occId);
         var occDt = occJel.find(':nth-child(4)').text();
         var occTax = occJel.find(':nth-child(5)').text();
+        var occLat = parseFloat(occJel.find(':nth-child(7)').data('lat'));
+        var occLon = parseFloat(occJel.find(':nth-child(8)').data('lon'));
         if (appData[occId] && appData[occId].encs && appData[occId].encs.length) {
             for (var i = 0 ; i < appData[occId].encs.length ; i++) {
-                var h = '<div class="app-data app-data-enc" id="app-data-enc-' + appData[occId].encs[i].id + '" data-occ-id="' + occId + '">';
+                var h = '<div data-lat="' + occLat + '" data-lon="' + occLon + '" class="app-data app-data-enc" id="app-data-enc-' + appData[occId].encs[i].id + '" data-occ-id="' + occId + '">';
                 h += '<div class="app-hide" title="hide this item">X</div>';
                 h += '<a class="app-id" href="encounters/encounter.jsp?number=' + appData[occId].encs[i].id + '" target="_new">enc ' + appData[occId].encs[i].id.substr(0,6) + '</a>';
                 h += '<div class="app-date">' + appData[occId].encs[i].dt + '</div>';
@@ -859,7 +876,7 @@ console.info('OFFSET... DONE mediaData!!!!!');
                 appDataList.push(h);
             }
         } else {  //only the occ
-            var h = '<div class="app-data app-data-occ" id="app-data-occ-' + occId + '">';
+            var h = '<div data-lat="' + occLat + '" data-lon="' + occLon + '" class="app-data app-data-occ" id="app-data-occ-' + occId + '">';
             h += '<div class="app-hide" title="hide this item">X</div>';
             h += '<a target="_new" href="occurrence.jsp?number=' + occId + '" class="app-id">sight ' + occId.substr(0,6) + '</a>';
             h += '<div class="app-date">' + occDt + '</div>';
@@ -891,9 +908,19 @@ console.info('OFFSET... DONE mediaData!!!!!');
     });
     $('.app-data').droppable({
         hoverClass: 'app-data-hover',
+        out: function() { $('#prox-info').hide(); },
+        over: function(ev, ui) {
+            var offset = ui.draggable.data('offset');
+            if (!mediaData[offset] || !mediaData[offset].exifParsed || !mediaData[offset].exifParsed.ll || !mediaData[offset].exifParsed.ll.length) return;
+            var mediaLL = mediaData[offset].exifParsed.ll[0].split(', ');  //we just take the first one, fbow
+            var dataLat = ev.target.getAttribute('data-lat');
+            var dataLon = ev.target.getAttribute('data-lon');
+            var d = distance(mediaLL[0], mediaLL[1], dataLat, dataLon);
+            if (d > 0) $('#prox-info').html('proximity <b>' + Math.floor(d * 10000 + 0.5) + '</b>').show();
+//console.info('OVER => [%o,%o] vs [%o,%o] => %o  %o', mediaLL[0], mediaLL[1], dataLat, dataLon, d, d * 111320.0);
+        },
         drop: function(ev, ui) {
 //console.log('drop!!! %o   .... ui %o', ev, ui);
-            //ui.draggable.draggable('destroy').css({top: 'unset', left: 'unset'});
             ui.draggable.css({top: 'unset', left: 'unset'});
             $(ev.target).find('.app-attachments').append(ui.draggable);
             checkHiders();
@@ -1011,6 +1038,12 @@ function exifLLSet(el) {
     updateMap();
 }
 
+
+function distance(x1,y1, x2,y2) {
+    if (!x1 || !y1 || !x2 || !y2) return -1;  //yeah, going to assume we arent on 0.0 -- sorrynotsorry
+    return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+}
+
 </script>
 
 <div id="file-activity" style="display: none;">
@@ -1094,8 +1127,8 @@ or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your 
             int numAdults = (occ.getNumAdults() == null) ? 0 : occ.getNumAdults();
             int numCalves = (occ.getNumCalves() == null) ? 0 : occ.getNumCalves();
             row += "<td class=\"td-intx td-num-" + (numAdults + numCalves) + "\">" + numAdults + ", " + numCalves + "</td>";
-            row += "<td>" + niceLL(occ.getDecimalLatitude()) + "</td>";
-            row += "<td>" + niceLL(occ.getDecimalLongitude()) + "</td>";
+            row += "<td data-lat=\"" + occ.getDecimalLatitude() + "\">" + niceLL(occ.getDecimalLatitude()) + "</td>";
+            row += "<td data-lon=\"" + occ.getDecimalLongitude() + "\">" + niceLL(occ.getDecimalLongitude()) + "</td>";
             row += "<td>" + niceDouble(occ.getBearing()) + "</td>";
             row += "<td class=\"td-int td-num-" + occ.getNumberEncounters() + "\">" + occ.getNumberEncounters() + "</td>";
             int numPhotos = 0;
