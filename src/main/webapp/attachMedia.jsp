@@ -1082,13 +1082,15 @@ var pendingUpload = -1;
 function beginUpload() {
     saveData.offsets = [];
     $('.app-data').each(function(i, el) {
-        var attachments = [];
+        var attCt = 0;
         $(el).find('.bulk-media').each(function(j, attEl) {
             var offset = parseInt(attEl.getAttribute('data-offset'));
             saveData.offsets.push(offset);
             $(attEl).append('<div class="upload-status">&#x1f551;</div>');
+            attCt++;
         });
-        if (!attachments.length) return;  //dont care about this app-data
+        if (attCt < 1) return;  //dont care about this app-data
+        el.classList.add('has-attachments');
     });
 console.info('saveData.offsets %o', saveData.offsets);
     pendingUpload = saveData.offsets.length;
@@ -1186,7 +1188,45 @@ function macError(msg, xhr) {
 function macSuccess(data) {
     saveData.macResults = data;
     $('.app-data .upload-status').html('&#x2611;&#x2611;&#x2610;');
+    for (var i = 0 ; i < data.withoutSet.length ; i++) {
+        for (var j = 0 ; j < saveData.offsets.length ; j++) {
+            if (mediaData[saveData.offsets[j]].file.name == data.withoutSet[i].filename) {
+                mediaData[saveData.offsets[j]].mediaAssetId = data.withoutSet[i].id;
+            }
+        }
+    }
+
+    $('.has-attachments').each(function(i, el) {
+        var maIds = [];
+        $(el).find('.bulk-media').each(function(j, attEl) {
+            var offset = parseInt(attEl.getAttribute('data-offset'));
+            if (mediaData[offset].mediaAssetId) {
+                maIds.push(mediaData[offset].mediaAssetId);
+            } else {
+                alert('could not find MediaAsset id for offset=' + offset);
+                //console.error('could not find MediaAsset id for offset=' + offset);
+            }
+        });
+        if (el.id.startsWith('app-data-enc-')) {
+            attachToEncounter(el.id.substring(13), maIds);
+        } else if (el.id.startsWith('app-data-occ-')) {
+            attachToOccurrence(el.id.substring(13), maIds);
+        }
+    });
 }
+
+function attachToEncounter(encId, maIds) {
+    console.log('pretend we are attaching to ENC %s: %o', encId, maIds);
+    $('#app-data-enc-' + encId + ' .upload-status').html('&#x2611;&#x2611;&#x2611;');
+}
+
+//need to *create* an encounter(s?) under here
+// get some stuff (e.g. taxonomy) from tr td
+function attachToOccurrence(occId, maIds) {
+    console.log('need to CREATE encounter under occ %s and attach: %o', occId, maIds);
+    $('#app-data-occ-' + occId + ' .upload-status').html('&#x2611;&#x2611;&#x2611;');
+}
+
 </script>
 
 <div id="file-activity" style="display: none;">
