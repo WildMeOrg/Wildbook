@@ -308,7 +308,7 @@ a.app-id {
     left: 0;
     width: 100%;
     text-align: center;
-    font-size: 2.0em;
+    font-size: 1.8em;
     color: rgba(255,255,0, 0.7);
     font-weight: bold;
 }
@@ -1078,27 +1078,31 @@ function cancelUpload() {
 }
 
 var saveData = {};
+var pendingUpload = -1;
 function beginUpload() {
-    var allOffsets = [];
+    saveData.offsets = [];
     $('.app-data').each(function(i, el) {
         var attachments = [];
         $(el).find('.bulk-media').each(function(j, attEl) {
             var offset = parseInt(attEl.getAttribute('data-offset'));
-            allOffsets.push(offset);
+            saveData.offsets.push(offset);
             $(attEl).append('<div class="upload-status">&#x1f551;</div>');
         });
         if (!attachments.length) return;  //dont care about this app-data
     });
-console.info('allOffsets %o', allOffsets);
-    if (!allOffsets.length) return;  //snh
+console.info('saveData.offsets %o', saveData.offsets);
+    pendingUpload = saveData.offsets.length;
+    if (!pendingUpload) return;  //snh
+    $('#action-buttons').hide();
 
     for (var i = flow.files.length - 1 ; i >= 0 ; i--) {
-        if (allOffsets.indexOf(parseInt(flow.files[i].file._offset)) < 0) {
+        if (saveData.offsets.indexOf(parseInt(flow.files[i].file._offset)) < 0) {
             console.info('removing flow.fileObj [%s], unattached offset %o', flow.files[i].name, flow.files[i].file._offset);
             flow.files.splice(i, 1);
         }
     }
 
+    flow.upload();
     return false;
 		document.getElementById('upload-button').addEventListener('click', function(ev) {
 			var files = flow.files;
@@ -1133,17 +1137,56 @@ $(document).ready(function() {
 
     flow.on('fileSuccess', function(file,message){
         console.log('----------------- SUCCESS %o', file);
-        mediaData[file.file._offset].div.find('.upload-status').html('&#x2713;');
+        mediaData[file.file._offset].div.find('.upload-status').html('&#x2611;&#x2610;&#x2610;');
+        pendingUpload--;
+        checkUploadComplete();
     });
 
     flow.on('fileError', function(file, message){
         console.log('############# flow error %o %o', file, message);
         mediaData[file.file._offset].div.find('.upload-status').html('<span title="ERROR: ' + message + '" style="color: #F00;">&#x2715;</span>');
-                        //pendingUpload--;
+        pendingUpload--;
+        checkUploadComplete();
     });
+
 console.log('----------------------------------- flow init?');
 });
 
+
+function checkUploadComplete() {
+    if (pendingUpload > 0) return;
+    var macData = { skipIA: true, MediaAssetCreate: [ { assets: [] } ] };  //skip IA until after we attach etc
+    for (var i = 0 ; i < saveData.offsets.length ; i++) {
+        macData.MediaAssetCreate[0].assets.push({ filename: mediaData[saveData.offsets[i]].file.name });
+    }
+console.warn('checkUploadComplete() %o', macData);
+    $.ajax({
+        url: 'MediaAssetCreate',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        data: JSON.stringify(macData),
+        complete: function(xhr, status) {
+            if (status != 'success') {
+                macError('error: ' + status, xhr);
+            } else if (!xhr.responseJSON || !xhr.responseJSON.success) {
+                macError(xhr.responseJSON.error || 'unknown error', xhr);
+            } else {
+                macSuccess(xhr.responseJSON);
+            }
+        }
+    });
+}
+
+function macError(msg, xhr) {
+    alert(msg);
+    console.warn(xhr);
+}
+
+function macSuccess(data) {
+    saveData.macResults = data;
+    $('.app-data .upload-status').html('&#x2611;&#x2611;&#x2610;');
+}
 </script>
 
 <div id="file-activity" style="display: none;">
