@@ -806,6 +806,7 @@ console.log('DONE with img=%o', img);
 var mediaData = [];
 function filesChanged2(inp) {
     $('#file-activity').show();
+    $('#action-buttons').show();
     $('#list-wait').show();
     $('#upcontrols').hide();
     //filesChanged(inp);  //in uploader.js
@@ -920,6 +921,7 @@ console.info('OFFSET... DONE mediaData!!!!!');
 //console.info('OVER => [%o,%o] vs [%o,%o] => %o  %o', mediaLL[0], mediaLL[1], dataLat, dataLon, d, d * 111320.0);
         },
         drop: function(ev, ui) {
+            $('#prox-info').hide();
 //console.log('drop!!! %o   .... ui %o', ev, ui);
             ui.draggable.css({top: 'unset', left: 'unset'});
             $(ev.target).find('.app-attachments').append(ui.draggable);
@@ -931,13 +933,20 @@ console.info('OFFSET... DONE mediaData!!!!!');
 
 
 function checkHiders() {
+    var ct = 0;
     $('.app-data').each(function(i, el) {
         if ($(el).find('.bulk-media').length) {
             $(el).find('.app-hide').hide();
+            ct++;
         } else {
             $(el).find('.app-hide').show();
         }
     });
+    if (ct > 0) {
+        $('#upload-button').show();
+    } else {
+        $('#upload-button').hide();
+    }
 }
 
 function filterList() {
@@ -972,7 +981,6 @@ console.info('dates => %o', dates);
 
 //TODO Bearing, Altitude
 function gotExif(file) {
-console.info("OFFSET = %o", file._offset);
     mediaData[file._offset].exifParsed = {
         dt: exifFindDateTimes(file.exifdata),
         ll: exifFindLatLon(file.exifdata)
@@ -1044,6 +1052,23 @@ function distance(x1,y1, x2,y2) {
     return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
 }
 
+
+function cancelUpload() {
+    $('#file-activity').hide();
+    $('#bulk-media-list').html('');
+    $('#app-data-list').html('');
+    $('#upcontrols').show();
+    $('#action-buttons').hide();
+    $('#file-chooser').val('');
+    $('#upload-button').hide();
+    $('#occs tbody tr').show().removeClass('bulk-active');
+    return false;
+}
+
+function beginUpload() {
+    return false;
+}
+
 </script>
 
 <div id="file-activity" style="display: none;">
@@ -1067,12 +1092,11 @@ or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your 
             <input type="checkbox" onClick="return folderToggle(this);" /> <b>Use folders</b>
         </div>
     </div>
+</div>
 
-    <div style="display: none;padding: 20px 0;">
-        <a class="button" id="upload-button">begin upload</a>
-        <a class="button" href="attachMedia.jsp?id=xxx" title="return to listing for Sighting xxxx">cancel</a>
-    </div>
-
+<div id="action-buttons" style="display: none; padding: 30px; text-align: center;">
+    <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button">begin bulk upload</a>
+    <a class="button" onClick="return cancelUpload();" >cancel bulk upload</a>
 </div>
 
 <div style="text-align: center; background-color: #FFA; padding: 10px;">
