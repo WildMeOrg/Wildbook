@@ -50,10 +50,11 @@ int numAccess=0;
 
 int errors=0;
 
-boolean committing=false;
+boolean committing=true;
 
 List<String> acmIds = new ArrayList<String>();
 List<Integer> maIds = new ArrayList<Integer>();
+List<String> maAcmIds = new ArrayList<String>();
 int noAcmId =0;
 
 
@@ -70,7 +71,7 @@ try {
   <ul>
 <%
 
-  int printPeriod = 50;
+  int printPeriod = 10000;
   int count=0;
   int total=allEncs.size();
 
@@ -94,6 +95,8 @@ try {
     if (enc.getAnnotations()!=null) {
       for (Annotation ann: enc.getAnnotations()) {
         numAnnotations++;
+        if(ann.getMediaAsset()!=null && ann.getMediaAsset().getAcmId()!=null && !maAcmIds.contains(ann.getMediaAsset().getAcmId()))maAcmIds.add(ann.getMediaAsset().getAcmId());
+
         if (relevantAnnot(ann)) {
           maIds.add(ann.getMediaAsset().getId());
 
@@ -151,18 +154,11 @@ finally{
 <p>Done successfully: <%=numAnnotations %> annotations, of which <%=numNonTrivial%> are not trivial.</p>
 <p>Done successfully: <%=numSibs %> deleted sibling annotations</p>
 <p>Done successfully: <%=noAcmId %> annots without an acmIds</p>
-<p>Here are all (<%=acmIds.size()%>) of the deleted *annotation* acmIds:<ul  style="font-family: monospace;">
-  <%
-  for (String acmId: acmIds) {
-    %><li><%=acmId%></li><%
-  }
-  %>
-</ul></p>
 
-<p>And here are all (<%=maIds.size()%> non-unique) of the saved maIds:<ul  style="font-family: monospace;">
+<p>And here are all (<%=maAcmIds.size()%> non-unique) of the saved  MediaAsset AcmIds:<ul  style="font-family: monospace;">
   <%
-  for (Integer maId: new LinkedHashSet<Integer>(Util.asSortedList(maIds))) {
-    %><li><%=maId%></li><%
+  for (String maAcmId: new LinkedHashSet<String>(Util.asSortedList(maAcmIds))) {
+    %><li><%=maAcmId%></li><%
   }
   %>
 </ul></p>
