@@ -302,6 +302,17 @@ a.app-id {
     font-size: 5em;
 }
 
+.upload-status {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 2.0em;
+    color: rgba(255,255,0, 0.7);
+    font-weight: bold;
+}
+
 </style>
 
 <%@ page contentType="text/html; charset=utf-8" 
@@ -943,9 +954,9 @@ function checkHiders() {
         }
     });
     if (ct > 0) {
-        $('#upload-button').show();
+        $('#upload-button2').show();
     } else {
-        $('#upload-button').hide();
+        $('#upload-button2').hide();
     }
 }
 
@@ -1060,14 +1071,78 @@ function cancelUpload() {
     $('#upcontrols').show();
     $('#action-buttons').hide();
     $('#file-chooser').val('');
-    $('#upload-button').hide();
+    $('#upload-button2').hide();
     $('#occs tbody tr').show().removeClass('bulk-active');
+    saveData = {};
     return false;
 }
 
+var saveData = {};
 function beginUpload() {
+    var allOffsets = [];
+    $('.app-data').each(function(i, el) {
+        var attachments = [];
+        $(el).find('.bulk-media').each(function(j, attEl) {
+            var offset = parseInt(attEl.getAttribute('data-offset'));
+            allOffsets.push(offset);
+            $(attEl).append('<div class="upload-status">&#x1f551;</div>');
+        });
+        if (!attachments.length) return;  //dont care about this app-data
+    });
+console.info('allOffsets %o', allOffsets);
+    if (!allOffsets.length) return;  //snh
+
+    for (var i = flow.files.length - 1 ; i >= 0 ; i--) {
+        if (allOffsets.indexOf(parseInt(flow.files[i].file._offset)) < 0) {
+            console.info('removing flow.fileObj [%s], unattached offset %o', flow.files[i].name, flow.files[i].file._offset);
+            flow.files.splice(i, 1);
+        }
+    }
+
     return false;
+		document.getElementById('upload-button').addEventListener('click', function(ev) {
+			var files = flow.files;
+//console.log('files --> %o', files);
+                        pendingUpload = files.length;
+                        for (var i = 0 ; i < files.length ; i++) {
+//console.log('%d %o', i, files[i]);
+                            filenameToKey(files[i].name);
+                        }
+                        document.getElementById('upcontrols').style.display = 'none';
+			flow.upload();
+		}, false);
+
 }
+
+
+//these override some of what is definited in uploader.js... cuz we need to
+$(document).ready(function() {
+    //flow.assignBrowse(document.getElementById('file-chooser'));
+    //flow.assignDrop(document.getElementById('dropTarget'));
+
+    //these reset the events from uploader.js
+    flow.off('fileProgress');
+    flow.off('fileSuccess');
+    flow.off('fileError');
+
+    flow.on('fileProgress', function(file, chunk){
+        var p = file._prevUploadedSize / file.size;
+        mediaData[file.file._offset].div.find('.upload-status').html(Math.floor(p*100) + '%');
+        console.log('----------------- progress %o %o (%s)', file._prevUploadedSize, file, p);
+    });
+
+    flow.on('fileSuccess', function(file,message){
+        console.log('----------------- SUCCESS %o', file);
+        mediaData[file.file._offset].div.find('.upload-status').html('&#x2713;');
+    });
+
+    flow.on('fileError', function(file, message){
+        console.log('############# flow error %o %o', file, message);
+        mediaData[file.file._offset].div.find('.upload-status').html('<span title="ERROR: ' + message + '" style="color: #F00;">&#x2715;</span>');
+                        //pendingUpload--;
+    });
+console.log('----------------------------------- flow init?');
+});
 
 </script>
 
@@ -1095,7 +1170,8 @@ or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your 
 </div>
 
 <div id="action-buttons" style="display: none; padding: 30px; text-align: center;">
-    <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button">begin bulk upload</a>
+    <span id="upload-button"></span>
+    <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button2">begin bulk upload</a>
     <a class="button" onClick="return cancelUpload();" >cancel bulk upload</a>
 </div>
 
