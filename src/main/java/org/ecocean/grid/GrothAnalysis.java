@@ -3,25 +3,72 @@ package org.ecocean.grid;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 
-public class GrothAnalysis {
+import org.apache.commons.math.exception.MathIllegalArgumentException;
+import org.apache.commons.math3.analysis.differentiation.*;
+
+public class GrothAnalysis implements MultivariateDifferentiableVectorFunction {
   
   private static ArrayList<ScanWorkItem> matchedswis=new ArrayList<ScanWorkItem>();
   private static ArrayList<ScanWorkItem> nonmatchedswis=new ArrayList<ScanWorkItem>();
   
+  private int numComparisons = 200;
+  private int maxNumSpots = 30;
+  private String defaultSide = "left";
+
   public static void flush() {
     matchedswis=new ArrayList<ScanWorkItem>();
     nonmatchedswis=new ArrayList<ScanWorkItem>();
   }
   
+  public void setNumComparisonsEach(int numComparisons ) {
+    this.numComparisons = numComparisons;
+  }
+
+  public void setMaxSpots(int maxNumSpots) {
+    this.maxNumSpots = maxNumSpots;
+  }
   
+  public void setSide(String side) {
+    this.defaultSide = side;
+  }
+
   /*
-   * 
-   * 
-   */
+  * 
+  * 
+  */
+
+  public double[] value(double[] point) {
+    final double[] valArr = new double[0];
+    try {
+      Double val = getScoreDiffMatchesMinusNonmatches(numComparisons, point[0], point[1], point[2], point[3], point[4], defaultSide, maxNumSpots );
+      valArr[0] = val;
+      return valArr; 
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public DerivativeStructure[] value(DerivativeStructure[] point) throws MathIllegalArgumentException {
+    //final double[] params = new double[0];
+    //final DerivativeStructure[] vals = new DerivativeStructure[point.length];
+    
+    //DerivativeStructure vi = new DerivativeStructure(point.length, 1, f.value(observed.getX(), params));
+    //   // params[i] = point[i].getValue();
+    // }
+    DerivativeStructure[] dsArr = new DerivativeStructure[point.length];
+    for (int i=0;i<point.length;i++) {
+    //for (DerivativeStructure ds : point) {
+
+      //wat
+      dsArr[i] = point[i].multiply(point[i]);
+    }
+    return dsArr;
+  }
+
   public static Double getScoreDiffMatchesMinusNonmatches(int numComparisonsEach, double epsilon, double R, double Sizelim, double maxTriangleRotation, double C, String side, int maxNumSpots) throws Exception {
     
     Double totalMatchScores=0.0;
@@ -94,8 +141,7 @@ public class GrothAnalysis {
               thisAL.remove(el);
               i--;
             }
-          }
-          else if(side.equals("right")) {
+          }else if(side.equals("right")) {
             if(el.getRightSpots()==null || el.getRightSpots().size()==0 || el.getRightSpots().size()>maxNumSpots) {
               thisAL.remove(el);
               i--;
