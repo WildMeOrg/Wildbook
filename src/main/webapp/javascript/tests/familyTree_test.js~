@@ -1,5 +1,8 @@
-//TODO: Add jest
-setupTests() {
+QUnit.module('Family Tree');
+QUnit.moduleStart
+
+//TODO: Move this to a build blacklisted folder such that this is not bundled
+/*setupTests() {
   
 }
 
@@ -78,3 +81,4 @@ describe('colorGender() provides node stroke coloration for... ', () => {
 	expect(color).toEqual(dt.defGenderColor);
     });
 });
+*/

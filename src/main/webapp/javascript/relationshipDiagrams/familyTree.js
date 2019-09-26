@@ -105,6 +105,7 @@ class FamilyTree {
 	this.duration = 750;
 	this.popup = false;
 
+	//Zoom attirbutes
 	this.scale_extent = [0.1, 5];
 	this.scale_grad = 0.5;
 	this.start_scale = 1;
@@ -113,7 +114,9 @@ class FamilyTree {
 	this.isZoom = false;
 	
 	//Set upon data retrieval
-	this.num_nodes = null;
+	this.numNodes = null;
+	this.maxRadius = 40;
+	this.scalingFactor = 25; //TODO: Tune this value
 	this.radius = null;
 
 	this.tree = null;
@@ -233,16 +236,17 @@ class FamilyTree {
     }
 
     calcNodeSize(nodes) {
-	if (nodes) {
+	try {
 	    let defaultNodeLen = 10;
-	    this.num_nodes = nodes.length || defaultNodeLen; //Defaults to 10 
+	    let numNodes = nodes.length || defaultNodeLen; //Defaults to 10 
+	    let radius = this.maxRadius * Math.pow(Math.E, -1 * (numNodes / this.scalingFactor));
 
-	    this.max_radius = 40;
-	    this.scaling_factor = 25; //TODO: Tune this value
-	    this.radius = max_radius * Math.pow(Math.E, -1 * (this.num_nodes / scaling_factor));
-	    return this.radius;
+	    this.radius = radius
+	    return radius;
 	}
-	else alert('Social graph node entries are of non-list type.');
+	catch(error) {
+	    console.error(error);
+	}
     }
 
     addNewNodes(all_nodes, source) {
@@ -302,10 +306,15 @@ class FamilyTree {
     }
 
     colorGender(d) {
-	switch (d.gender.toUpperCase()) {
-	    case "FEMALE": return this.femaleColor;
-	    case "MALE": return this.maleColor;
-	    default: return this.defGenderColor; //Grey
+	try {
+	    switch (d.gender.toUpperCase()) {
+	        case "FEMALE": return this.femaleColor;
+	        case "MALE": return this.maleColor;
+	        default: return this.defGenderColor; //Grey
+	    }
+	}
+	catch(error) {
+	    console.error(error);
 	}
     }
 
