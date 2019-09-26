@@ -223,6 +223,7 @@ org.ecocean.media.MediaAsset,
 org.ecocean.media.Feature,
 org.json.JSONObject,
 org.json.JSONArray,
+org.joda.time.DateTime,
 java.util.Collection,
 java.util.Arrays,
 java.util.ArrayList,
@@ -658,8 +659,21 @@ System.out.println(ft.getParameters());
     myShepherd.beginDBTransaction();
     User user = AccessControl.getUser(request, myShepherd);
     boolean admin = (user != null) && "admin".equals(user.getUsername());
-    //String filter = "SELECT FROM org.ecocean.Occurrence WHERE source != null";
+    long pageMillis = 90L * 24L * 60L * 60L * 1000L;
+    DateTime dtStart = new DateTime(System.currentTimeMillis() - pageMillis);
+    DateTime dtEnd = new DateTime(System.currentTimeMillis() + 1000L);
+    try {
+        if (request.getParameter("dateStart") != null) dtStart = DateTime.parse(request.getParameter("dateStart"));
+        if (request.getParameter("dateEnd") != null) dtEnd = DateTime.parse(request.getParameter("dateEnd"));
+    } catch (IllegalArgumentException ex) {
+        System.out.println("WARNING: failed to parse args, using default dates -- " + ex.toString());
+    }
+    String dStart = dtStart.toString().substring(0,10);
+    String dEnd = dtEnd.toString().substring(0,10);
+//System.out.println("dtStart[" + dtStart + "] dtEnd[" + dtEnd + "]");
+    
     String filter = "SELECT FROM org.ecocean.Occurrence WHERE source.matches('SpotterConserveIO:.*')";
+    filter += " && dateTimeCreated >= '" + dStart + "T00:00' && dateTimeCreated <= '" + dEnd + "T23:59'";
     if (admin && (request.getParameter("uuid") != null)) {
         filter += " && submitters.contains(u) && u.uuid == '" + Util.basicSanitize(request.getParameter("uuid")) + "'";
     } else if (!admin) {
@@ -701,6 +715,7 @@ console.log('DONE with img=%o', img);
 
 var mediaData = [];
 function filesChanged2(inp) {
+    $('#file-activity').show();
     $('#list-wait').show();
     $('#upcontrols').hide();
     //filesChanged(inp);  //in uploader.js
@@ -878,7 +893,7 @@ function exifLLSet(el) {
 
 </script>
 
-<div id="file-activity">
+<div id="file-activity" style="display: none;">
     <div id="list-wait"><div>PLEASE WAIT</div></div>
     <div id="bulk-media-list"></div>
     <div id="app-data-list"></div>
@@ -886,12 +901,19 @@ function exifLLSet(el) {
 <div id="updone"></div>
 <div id="input-file-list"></div>
 <div id="upcontrols" style="padding: 20px;">
-	<!-- webkitdirectory directory -->
-	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged2(this)" /> 
+    <div style="display: inline-block; width: 60%; vertical-align: top;">
+You may <i>add images</i> to <b>individual sightings below</b>, one at a time, by clicking the corresponding row;<br />
+or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your image files
+<u>contain the appropriate EXIF data</u>.
+    </div>
 
+    <div style="display: inline-block; border: solid 3px #888; border-radius: 4px; padding: 8px 14px;">
+        <div style="font-size: 0.8em; margin-bottom: 8px;">BULK IMAGE UPLOAD</div>
+	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged2(this)" /> 
         <div>
             <input type="checkbox" onClick="return folderToggle(this);" /> <b>Use folders</b>
         </div>
+    </div>
 
     <div style="display: none;padding: 20px 0;">
         <a class="button" id="upload-button">begin upload</a>
@@ -900,6 +922,15 @@ function exifLLSet(el) {
 
 </div>
 
+<div style="text-align: center; background-color: #FFA; padding: 10px;">
+<%
+    DateTime dtPrevStart = dtStart.minus(pageMillis);
+    DateTime dtNextStart = dtStart.plus(pageMillis);
+    out.println(" <a class=\"button\" href=\"attachMedia.jsp?dateStart=" + dtPrevStart.toString().substring(0,10) + "&dateEnd=" + dtPrevStart.plus(pageMillis + 1000L).toString().substring(0,10) + "\">BACK</a> ");
+    out.println("<span style=\"margin: 0 15px;\">Date range: <b>" + dStart + " - " + dEnd + "</b></span>");
+    if (dtNextStart.getMillis() < System.currentTimeMillis()) out.println(" <a class=\"button\" href=\"attachMedia.jsp?dateStart=" + dtNextStart.toString().substring(0,10) + "&dateEnd=" + dtNextStart.plus(pageMillis + 1000L).toString().substring(0,10) + "\">NEXT</a> ");
+%>
+</div>
 <table class="tablesorter" id="occs"><thead><tr>
 <%
         List<String> heads = new ArrayList<String>(Arrays.asList(new String[]{"Type", "Trip #", "Sight", "Date/Time", "Species", "#Adult,Calv", "Lat", "Lon", "Bearing", "# Encs", "Photos", "Placeholder", "# Behav", "Modified"}));
