@@ -121,6 +121,14 @@ class FamilyTree {
 	this.svg = null;
 	this.tooltip = null;
 	this.root = null;
+
+	//CSS Attributes
+	this.collapsedNodeColor = '#d3d3d3';
+	this.nodeColor = '#fffff';
+	
+	this.maleColor = 'steelblue';
+	this.femaleColor = 'palevioletred';
+	this.defaultGenderColor = '#939393';
     }
 
     //TODO: Consider moving this outside the scope of the class.. The obj references are clunky
@@ -225,12 +233,16 @@ class FamilyTree {
     }
 
     calcNodeSize(nodes) {
-	this.num_nodes = nodes.length;
+	if (nodes) {
+	    let defaultNodeLen = 10;
+	    this.num_nodes = nodes.length || defaultNodeLen; //Defaults to 10 
 
-	let max_radius = 40;
-	let scaling_factor = 25; //TODO: Tune this value
-	this.radius = max_radius * Math.pow(Math.E, -1 * (this.num_nodes / scaling_factor));
-	console.log(this.radius); //TODO: Remove?
+	    this.max_radius = 40;
+	    this.scaling_factor = 25; //TODO: Tune this value
+	    this.radius = max_radius * Math.pow(Math.E, -1 * (this.num_nodes / scaling_factor));
+	    return this.radius;
+	}
+	else alert('Social graph node entries are of non-list type.');
     }
 
     addNewNodes(all_nodes, source) {
@@ -286,14 +298,14 @@ class FamilyTree {
     }
 
     colorCollapsed(d) {
-	return (d._children) ? "#d3d3d3" : "#fff";
+	return (d && d._children) ? this.collapsedNodeColor : this.nodeColor;
     }
 
     colorGender(d) {
 	switch (d.gender.toUpperCase()) {
-	    case "FEMALE": return "palevioletred";
-	    case "MALE": return "steelblue";
-	    default: return "#939393"; //Grey
+	    case "FEMALE": return this.femaleColor;
+	    case "MALE": return this.maleColor;
+	    default: return this.defGenderColor; //Grey
 	}
     }
 
