@@ -141,6 +141,20 @@ div.file-item div {
     font-size: 1.2em;
 }
 
+.ui-draggable {
+    cursor: move;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+.ui-draggable-dragging {
+    z-index: 10;
+    cursor: move;
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
 .bulk-media {
     display: inline-block;
     padding: 3px;
@@ -162,10 +176,13 @@ div.file-item div {
     color: white;
     padding: 0 2px;
 }
+
+.bulk-media.ui-draggable-dragging .bulk-info,
 .bulk-media .bulk-info:hover {
     width: auto;
     z-index: 100;
     background-color: #444;
+    outline: 2px solid black;
 }
 
 .bulk-media img {
@@ -184,7 +201,19 @@ div.file-item div {
 }
 
 
+.app-data-hover {
+    background-color: #CCF !important;
+}
+
+.app-attachments .bulk-media {
+    width: 100px;
+}
+.app-attachments .bulk-info {
+    font-size: 0.5em;
+}
+
 .app-data {
+    position: relative;
     background-color: #FFD;
     padding: 2px 8px;
     margin: 5px 2px;
@@ -193,6 +222,52 @@ div.file-item div {
     min-height: 4em;
 }
 
+a.app-id {
+    font-size: 0.9em;
+}
+
+.app-date {
+    position: absolute;
+    top: 0;
+    left: 15em;
+    font-weight: bold;
+    display: inline-block;
+    text-align: right;
+}
+
+.app-numph {
+    position: absolute;
+    top: 3.0em;
+    right: 4px;
+    padding: 0 6px;
+    border-radius: 3px;
+    display: inline-block;
+    background-color: #CCC;
+    color: #EEE;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.app-hide {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    padding: 0 6px;
+    border-radius: 3px;
+    display: inline-block;
+    background-color: #C00;
+    color: #FFF;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+}
+.app-hide:hover {
+    background-color: #CAA;
+}
+
+.app-note {
+    font-size: 0.8em;
+}
 
 #list-wait {
     position: absolute;
@@ -772,21 +847,40 @@ console.info('OFFSET... DONE mediaData!!!!!');
         if (appData[occId] && appData[occId].encs && appData[occId].encs.length) {
             for (var i = 0 ; i < appData[occId].encs.length ; i++) {
                 var h = '<div class="app-data app-data-enc" id="app-data-enc-' + appData[occId].encs[i].id + '" data-occ-id="' + occId + '">';
-                h += '<b>' + appData[occId].encs[i].id.substr(0,6) + '</b>';
-                h += '<div>' + appData[occId].encs[i].dt + '</div>';
-                h += '<div>#photos: ' + appData[occId].encs[i].numPhotos + '</div>';
-                h += '<div>' + appData[occId].encs[i].tax + '</div>';
-                h += '<div>' + appData[occId].encs[i].ph + '</div>';
+                h += '<div class="app-hide">X</div>';
+                h += '<a class="app-id" href="encounters/encounter.jsp?number=' + appData[occId].encs[i].id + '" target="_new">enc ' + appData[occId].encs[i].id.substr(0,6) + '</a>';
+                h += '<div class="app-date">' + appData[occId].encs[i].dt + '</div>';
+                h += '<div class="app-numph">&#x1f5c7; ' + appData[occId].encs[i].numPhotos + '</div>';
+                h += '<div class="app-tax">' + appData[occId].encs[i].tax + '</div>';
+                h += '<div class="app-note">&#x270e; ' + appData[occId].encs[i].ph + '</div>';
+                h += '<div class="app-attachments"></div>';
                 h += '</div>';
                 $('#app-data-list').append(h);
             }
         } else {  //only the occ
             var h = '<div class="app-data app-data-occ" id="app-data-occ-' + occId + '">';
-            h += '<b>' + occId.substr(0,6) + '</b>';
-            h += '<span>' + occDt + '</span>';
-            h += ' <i>' + occTax + '</i>';
+            h += '<div class="app-hide">X</div>';
+            h += '<a target="_new" href="occurrence.jsp?number=' + occId + '" class="app-id">sight ' + occId.substr(0,6) + '</a>';
+            h += '<div class="app-date">' + occDt + '</div>';
+            h += '<div class="app-tax">' + occTax + '</div>';
+            h += '<div class="app-attachments"></div>';
             h += '</div>';
             $('#app-data-list').append(h);
+        }
+    });
+    $('.app-hide').on('click', function(ev) {
+        $(ev.target.parentElement).hide();
+    });
+    $('.bulk-media').draggable({
+        containment: '#file-activity'
+    });
+    $('.app-data').droppable({
+        hoverClass: 'app-data-hover',
+        drop: function(ev, ui) {
+//console.log('drop!!! %o   .... ui %o', ev, ui);
+            //ui.draggable.draggable('destroy').css({top: 'unset', left: 'unset'});
+            ui.draggable.css({top: 'unset', left: 'unset'});
+            $(ev.target).find('.app-attachments').append(ui.draggable);
         }
     });
     $('#list-wait').hide();
