@@ -1096,6 +1096,7 @@ console.info('saveData.offsets %o', saveData.offsets);
     pendingUpload = saveData.offsets.length;
     if (!pendingUpload) return;  //snh
     $('#action-buttons').hide();
+    $('#list-wait').show();
 
     for (var i = flow.files.length - 1 ; i >= 0 ; i--) {
         if (saveData.offsets.indexOf(parseInt(flow.files[i].file._offset)) < 0) {
@@ -1106,18 +1107,6 @@ console.info('saveData.offsets %o', saveData.offsets);
 
     flow.upload();
     return false;
-		document.getElementById('upload-button').addEventListener('click', function(ev) {
-			var files = flow.files;
-//console.log('files --> %o', files);
-                        pendingUpload = files.length;
-                        for (var i = 0 ; i < files.length ; i++) {
-//console.log('%d %o', i, files[i]);
-                            filenameToKey(files[i].name);
-                        }
-                        document.getElementById('upcontrols').style.display = 'none';
-			flow.upload();
-		}, false);
-
 }
 
 
@@ -1185,6 +1174,7 @@ function macError(msg, xhr) {
     console.warn(xhr);
 }
 
+var pendingAttach = -1;
 function macSuccess(data) {
     saveData.macResults = data;
     $('.app-data .upload-status').html('&#x2611;&#x2611;&#x2610;');
@@ -1196,6 +1186,7 @@ function macSuccess(data) {
         }
     }
 
+    pendingAttach = $('.has-attachments').length;
     $('.has-attachments').each(function(i, el) {
         var maIds = [];
         $(el).find('.bulk-media').each(function(j, attEl) {
@@ -1218,6 +1209,8 @@ function macSuccess(data) {
 function attachToEncounter(encId, maIds) {
     console.log('pretend we are attaching to ENC %s: %o', encId, maIds);
     $('#app-data-enc-' + encId + ' .upload-status').html('&#x2611;&#x2611;&#x2611;');
+    pendingAttach--;
+    checkFinal();
 }
 
 //need to *create* an encounter(s?) under here
@@ -1225,7 +1218,15 @@ function attachToEncounter(encId, maIds) {
 function attachToOccurrence(occId, maIds) {
     console.log('need to CREATE encounter under occ %s and attach: %o', occId, maIds);
     $('#app-data-occ-' + occId + ' .upload-status').html('&#x2611;&#x2611;&#x2611;');
+    pendingAttach--;
+    checkFinal();
 }
+
+function checkFinal() {
+    if (pendingAttach) return;
+    $('#list-wait').hide();
+}
+
 
 </script>
 
