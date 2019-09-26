@@ -242,7 +242,7 @@ a.app-id {
     padding: 0 6px;
     border-radius: 3px;
     display: inline-block;
-    background-color: #CCC;
+    background-color: #AAA;
     color: #EEE;
     font-size: 0.9em;
     font-weight: bold;
@@ -847,10 +847,10 @@ console.info('OFFSET... DONE mediaData!!!!!');
         if (appData[occId] && appData[occId].encs && appData[occId].encs.length) {
             for (var i = 0 ; i < appData[occId].encs.length ; i++) {
                 var h = '<div class="app-data app-data-enc" id="app-data-enc-' + appData[occId].encs[i].id + '" data-occ-id="' + occId + '">';
-                h += '<div class="app-hide">X</div>';
+                h += '<div class="app-hide" title="hide this item">X</div>';
                 h += '<a class="app-id" href="encounters/encounter.jsp?number=' + appData[occId].encs[i].id + '" target="_new">enc ' + appData[occId].encs[i].id.substr(0,6) + '</a>';
                 h += '<div class="app-date">' + appData[occId].encs[i].dt + '</div>';
-                h += '<div class="app-numph">&#x1f5c7; ' + appData[occId].encs[i].numPhotos + '</div>';
+                if (appData[occId].encs[i].numPhotos) h += '<div title="has ' + appData[occId].encs[i].numPhotos + ' photo(s) attached already" class="app-numph">&#x1f5c7; ' + appData[occId].encs[i].numPhotos + '</div>';
                 h += '<div class="app-tax">' + appData[occId].encs[i].tax + '</div>';
                 h += '<div class="app-note">&#x270e; ' + appData[occId].encs[i].ph + '</div>';
                 h += '<div class="app-attachments"></div>';
@@ -859,7 +859,7 @@ console.info('OFFSET... DONE mediaData!!!!!');
             }
         } else {  //only the occ
             var h = '<div class="app-data app-data-occ" id="app-data-occ-' + occId + '">';
-            h += '<div class="app-hide">X</div>';
+            h += '<div class="app-hide" title="hide this item">X</div>';
             h += '<a target="_new" href="occurrence.jsp?number=' + occId + '" class="app-id">sight ' + occId.substr(0,6) + '</a>';
             h += '<div class="app-date">' + occDt + '</div>';
             h += '<div class="app-tax">' + occTax + '</div>';
@@ -881,11 +881,22 @@ console.info('OFFSET... DONE mediaData!!!!!');
             //ui.draggable.draggable('destroy').css({top: 'unset', left: 'unset'});
             ui.draggable.css({top: 'unset', left: 'unset'});
             $(ev.target).find('.app-attachments').append(ui.draggable);
+            checkHiders();
         }
     });
     $('#list-wait').hide();
 }
 
+
+function checkHiders() {
+    $('.app-data').each(function(i, el) {
+        if ($(el).find('.bulk-media').length) {
+            $(el).find('.app-hide').hide();
+        } else {
+            $(el).find('.app-hide').show();
+        }
+    });
+}
 
 function filterList() {
     var dates = [];
