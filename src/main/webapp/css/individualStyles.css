@@ -36,6 +36,20 @@
   -webkit-text-fill-color: white;
 }
 
+/*Social Graph*/
+.node {
+    cursor: pointer;
+}
+
+.node circle {
+    stroke-width: 3px;
+} 
+
+.node text {
+    font: 12px sans-serif;
+    text-anchor: middle;
+    pointer-events: none;
+}
 
 /*Edit forms*/
 label {
@@ -237,7 +251,7 @@ li.active{
 }
 
 #familyDiagram svg {
-  border: 1px solid #aaa;
+    border: 1px solid #aaa;
 }
 .individual rect {
   fill: #fff;
@@ -250,8 +264,22 @@ li.active{
 }
 .link {
   fill: none;
-  stroke: #ccc;
-  stroke-width: 1.5px;
+  stroke: #939393;
+  stroke-width: 1.3px;
+}
+
+div .tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 100px;					
+    height: 30px;					
+    padding: 2px;				
+    font: 12px sans-serif;
+    color: #ffffff;
+    background: #909090;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
 }
 
 /*Bubble Diagram Styles*/
@@ -301,9 +329,9 @@ button#zoomOut.btn.btn-default{
   margin-top: 0px;
 }*/
 
-.node circle {
+/*.node circle {
   stroke: none;
-}
+}*/
 
 
 /*Co-occurrence Table Style*/
