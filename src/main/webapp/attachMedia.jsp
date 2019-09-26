@@ -839,6 +839,7 @@ console.info('OFFSET... DONE mediaData!!!!!');
     $('#bulk-media-list').html(sorted);
     filterList();
     //$('#app-data-list').html('');
+    var appDataList = [];  //build this first, then sort it, then add to page
     $('.bulk-active').each(function(i, el) {
         var occId = el.id;
         var occJel = $('#' + occId);
@@ -855,7 +856,7 @@ console.info('OFFSET... DONE mediaData!!!!!');
                 h += '<div class="app-note">&#x270e; ' + appData[occId].encs[i].ph + '</div>';
                 h += '<div class="app-attachments"></div>';
                 h += '</div>';
-                $('#app-data-list').append(h);
+                appDataList.push(h);
             }
         } else {  //only the occ
             var h = '<div class="app-data app-data-occ" id="app-data-occ-' + occId + '">';
@@ -865,9 +866,23 @@ console.info('OFFSET... DONE mediaData!!!!!');
             h += '<div class="app-tax">' + occTax + '</div>';
             h += '<div class="app-attachments"></div>';
             h += '</div>';
-            $('#app-data-list').append(h);
+            appDataList.push(h);
         }
     });
+
+    appDataList.sort(function(a, b) {
+        var i = a.indexOf('"app-date">');
+        if (i < 0) return 0;
+        var sortA = a.substr(i + 11, 16);
+        i = b.indexOf('"app-date">');
+        if (i < 0) return 0;
+        var sortB = b.substr(i + 11, 16);
+        if (sortA > sortB) return 1;
+        if (sortA < sortB) return -1;
+        return 0;
+    });
+    $('#app-data-list').append(appDataList);
+
     $('.app-hide').on('click', function(ev) {
         $(ev.target.parentElement).hide();
     });
