@@ -168,11 +168,14 @@
 		    { "name":"Maldives", "id":"Maldives", "locationID":[
 
 				{ "name":"Ari", "id":"Ari", "locationID":[] },
+				{ "name":"Baa", "id":"Baa", "locationID":[] },
+				{ "name":"Dhaalu", "id":"Dhaalu", "locationID":[] },
 				{ "name":"Gaaf", "id":"Gaaf", "locationID":[] },
 				{ "name":"Haa", "id":"Haa", "locationID":[] },
 				{ "name":"Laamu", "id":"Laamu", "locationID":[] },
 				{ "name":"Meemu", "id":"Meemu", "locationID":[] },
 				{ "name":"Raa", "id":"Raa", "locationID":[] },
+				{ "name":"Thaa", "id":"Thaa", "locationID":[] },
 				{ "name":"Vaavu", "id":"Vaavu", "locationID":[] }
 
 		] },

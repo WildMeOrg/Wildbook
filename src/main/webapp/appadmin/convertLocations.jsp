@@ -20,7 +20,7 @@ myShepherd.setAction("convertLocations.jsp");
 String orgName = request.getParameter("orgName");
 String commit = request.getParameter("commit");
 String limitStr = request.getParameter("limit");
-String filter = "this.submitterOrganization == 'Olive Ridley Project' ";
+String filter = "this.submitterOrganization == 'Olive Ridley Project' && this.dwcDateAddedLong >= 1569024000000";
 if (orgName!=null) {
     filter = "this.submitterOrganization == '"+orgName+"' ";
 }
@@ -55,7 +55,7 @@ System.out.println("-----------------> Got "+encs.size()+" encs as candidates...
 <ul>    
 
 <%
-final String[] islandNamesArr = {"Vaavu", "Raa", "Meemu", "Laamu", "Haa", "Gaaf", "Ari"};
+final String[] islandNamesArr = {"Vaavu", "Raa", "Meemu", "Laamu", "Haa", "Gaaf", "Ari", "Baa", "Dhaalu", "Thaa"};
 List<String> islandNames = Arrays.asList(islandNamesArr);
 
 //int limit = 0;
@@ -77,11 +77,12 @@ try {
 
                     System.out.println("CONVERTING! encID = "+enc.getCatalogNumber());
 
-                    enc.setLocation(locId);
+                    if (!enc.setLocation().equals(enc.setLocationID())) {
+                        enc.setLocation(locId);
+                        enc.setLocationID(locId.split(" ")[0]);   
+                        System.out.println("CONVERTED? loc = "+enc.getLocation()+" locId = "+enc.getLocationID());
+                    }
 
-                    enc.setLocationID(locId.split(" ")[0]);   
-
-                    System.out.println("CONVERTED? loc = "+enc.getLocation()+" locId = "+enc.getLocationID());
                 }
             }
         } else {
