@@ -518,6 +518,7 @@ finally{
                                 <% if(CommonConfiguration.isCatalogEditable(context)) { %>
                                   <li class="divider"></li>
                                   <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
+                                  <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
                                 <%
                                 }
 
