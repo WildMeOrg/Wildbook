@@ -353,14 +353,19 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         }
         var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
         if(dateInMilliseconds > 0) {
-
+          //console.log("Trying millis...");
           date = dateInMilliseconds.toISOString().substring(0, 10);
-		  if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
-		  if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
-
-        } else {
+          if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
+          if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
+        } else if (jsonData.encounters[i].year) {
+          //console.log("Tryin plaintext...");
+          date = jsonData.encounters[i].year;
+          if (jsonData.encounters[i].month) { date+= "-"+jsonData.encounters[i].month;}
+          if (jsonData.encounters[i].day) { date+= "-"+jsonData.encounters[i].day;} 
+        } else {  
           date = dict['unknown'];
         }
+
         if(jsonData.encounters[i].verbatimLocality) {
           var location = jsonData.encounters[i].verbatimLocality;
         } else {
