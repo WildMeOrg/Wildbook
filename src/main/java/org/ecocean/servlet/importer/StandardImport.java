@@ -375,6 +375,14 @@ public class StandardImport extends HttpServlet {
       }
     }
     out.println("</ul>");
+
+    if (committing) {
+        itask.setEncounters(encsCreated);
+        myShepherd.getPM().makePersistent(itask);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+    }
+
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
 
@@ -384,11 +392,6 @@ public class StandardImport extends HttpServlet {
     }
     out.println("</ul>");
 
-
-    if (committing) {
-        itask.setEncounters(encsCreated);
-        myShepherd.getPM().makePersistent(itask);
-    }
 
     List<String> usedColumns = new ArrayList<String>();
     for (String colName: colIndexMap.keySet()) {
