@@ -2144,25 +2144,32 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return jobj;
   }
 
+  
+//Returns a somewhat rest-like JSON object containing the metadata
+ public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+   return uiJson(request, true);
+ }
   // Returns a somewhat rest-like JSON object containing the metadata
-  public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+  public JSONObject uiJson(HttpServletRequest request, boolean includeEncounters) throws JSONException {
     JSONObject jobj = new JSONObject();
     jobj.put("individualID", this.getIndividualID());
     jobj.put("id", this.getId());
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
-    jobj.put("nickname", this.nickName);
+    jobj.put("nickname", this.getNickName());
     jobj.put("numberEncounters", this.getNumEncounters());
     jobj.put("numberLocations", this.getNumberLocations());
     jobj.put("maxYearsBetweenResightings", getMaxNumYearsBetweenSightings());
     // note this does not re-compute thumbnail url (so we can get thumbnails on searchResults in a reasonable time)
     jobj.put("thumbnailUrl", this.thumbnailUrl);
 
-    Vector<String> encIDs = new Vector<String>();
-    for (Encounter enc : this.encounters) {
-      encIDs.add(enc.getCatalogNumber());
+    if(includeEncounters) {
+      Vector<String> encIDs = new Vector<String>();
+      for (Encounter enc : this.encounters) {
+        encIDs.add(enc.getCatalogNumber());
+      }
+      jobj.put("encounterIDs", encIDs.toArray());
     }
-    jobj.put("encounterIDs", encIDs.toArray());
     return sanitizeJson(request,decorateJson(request, jobj));
   }
 
