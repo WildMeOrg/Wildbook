@@ -1146,6 +1146,8 @@ console.log('----------------------------------- flow init?');
 
 function checkUploadComplete() {
     if (pendingUpload > 0) return;
+alert('bulk upload under development');
+return;
     var macData = { skipIA: true, MediaAssetCreate: [ { assets: [] } ] };  //skip IA until after we attach etc
     for (var i = 0 ; i < saveData.offsets.length ; i++) {
         macData.MediaAssetCreate[0].assets.push({ filename: mediaData[saveData.offsets[i]].file.name });
@@ -1255,7 +1257,7 @@ or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your 
 
 <div id="action-buttons" style="display: none; padding: 30px; text-align: center;">
     <span id="upload-button"></span>
-    <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button2">begin bulk upload</a>
+    <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button2">[NOT IMPLEMENTED] begin bulk upload</a>
     <a class="button" onClick="return cancelUpload();" >cancel bulk upload</a>
 </div>
 
