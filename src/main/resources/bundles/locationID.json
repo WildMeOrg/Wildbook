@@ -72,6 +72,12 @@
 			"id": "Tanzania",
 			"locationID": [
 				{
+					"name": "RNP",
+					"id": "RNP",
+					"description": "Ruaha National Park",
+					"defaultLatitude": -7.5, "defaultLongitude": 35.0
+				},
+				{
 					"name": "SGR",
 					"id": "SGR",
 					"description": "Selous Game Reserve",
