@@ -205,7 +205,7 @@
 		JSONArray jsonobj = new JSONArray();
 		System.out.println("Starting to iterate over individuals");
 		for (MarkedIndividual mark: rIndividuals) {
-			jsonobj.put(mark.uiJson(request));
+			jsonobj.put(mark.uiJson(request, false));
 		}
 		System.out.println("Done iterating over individuals");
 
