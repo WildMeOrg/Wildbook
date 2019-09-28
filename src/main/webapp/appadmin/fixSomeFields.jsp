@@ -25,55 +25,71 @@ Shepherd myShepherd=new Shepherd(context);
 
 
 <body>
-<ul>
+
 <%
 
 myShepherd.beginDBTransaction();
 
-int numFixes=0;
 
-<<<<<<< HEAD
+String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && encounters.contains(enc1515) &&( enc1515.submitterID == \"SDRP\" ) && ((enc.dwcDateAddedLong >= 1356998400000) && (enc.dwcDateAddedLong <= 1640995140000)) VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc1515";
+
+PersistenceManager pm=myShepherd.getPM();
+PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
+FetchPlan fp=pm.getFetchPlan();
+
+//Create a FetchGroup on the PMF called "TestGroup" for MyClass
+//FetchGroup grp = pm.getPersistenceManagerFactory().getFetchGroup(MarkedIndividual.class, "TestGroup");
+//grp.addMember("field1").addMember("field2");
+
+
 try {
+	
+	
+	//default fetch group query
+	long q1StartTime=System.currentTimeMillis();
+	Query q1=pm.newQuery(filter);
+	Collection c = (Collection) (q1.execute());
+	%>
+	<p>Completed default fetch group query in: <%=System.currentTimeMillis()-q1StartTime %></p>
+	<%
+	
+	//count (empty) fetch group
+	long q2StartTime=System.currentTimeMillis();
+	pm.getFetchPlan().setGroup("count");
+	Query q2=pm.newQuery(filter);
+	Collection c2 = (Collection) (q2.execute());
+	%>
+	<p>Completed 'count' fetch group query in: <%=System.currentTimeMillis()-q2StartTime %></p>
+	<%
+	
+	
+	//custom fetch group for individualSearchResults.jsp
+	// Create a FetchGroup on the PMF called "TestGroup" for MyClass
+	FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "individualSearchResults");
+	grp.addMember("individualID").addMember("sex").addMember("names").addMember("numberEncounters").addMember("numberLocations").addMember("maxYearsBetweenResightings").addMember("thumbnailUrl");
+			
+	long q3StartTime=System.currentTimeMillis();
+	pm.getFetchPlan().setGroup("individualSearchResults");
+	Query q3=pm.newQuery(filter);
+	Collection c3 = (Collection) (q3.execute());
+	%>
+	<p>Completed 'individualSearchResults' fetch group query in: <%=System.currentTimeMillis()-q3StartTime %></p>
+	<%		
 
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
-
-  Iterator allSpaces=myShepherd.getAllWorkspaces();
-
-  boolean committing=true;
-
-
-  while(allSpaces.hasNext()){
-
-    Workspace wSpace=(Workspace)allSpaces.next();
-
-    %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
-
-  	numFixes++;
-
-    if (committing) {
-      myShepherd.throwAwayWorkspace(wSpace);
-  		myShepherd.commitDBTransaction();
-  		myShepherd.beginDBTransaction();
-    }
-  }
+	
 }
 catch(Exception e){
-	myShepherd.rollbackDBTransaction();
+	e.printStackTrace();
 }
 finally{
+	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 
 }
 
 %>
 
-</ul>
-<<<<<<< HEAD
-<p>Done successfully: <%=numFixes %> workspaces deleted.</p>
-=======
-<p>Done successfully: <%=numFixes %></p>
 
->>>>>>> origin/crc
+
 </body>
 </html>
