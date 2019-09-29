@@ -2777,7 +2777,7 @@ else {
 
                         if(thisUser.getUserURL()!=null){
                             %>
-                            <p><strong><%=encprops.getProperty("webSite") %></strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
+                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
                             <%
                           }
 
