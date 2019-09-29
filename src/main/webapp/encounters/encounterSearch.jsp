@@ -52,8 +52,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
  if(!langCode.equals("en")){
  %>
 
-<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
-<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+<script src="../javascript/timepicker/datepicker-<%=langCode %>.js"></script>
+<script src="../javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
 
  <%
  }
