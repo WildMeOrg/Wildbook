@@ -21,7 +21,7 @@ context=ServletUtilities.getContext(request);
     firstYear = myShepherd.getEarliestSightingYear();
     nowYear = myShepherd.getLastSightingYear()+1; // lol this was returning a result 2 off so i fixed it
     firstSubmissionYear=myShepherd.getFirstSubmissionYear();
-  } 
+  }
   catch (Exception e) {
     e.printStackTrace();
   }
@@ -32,7 +32,7 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
@@ -76,6 +76,19 @@ context=ServletUtilities.getContext(request);
 <script type="text/javascript" src="javascript/geoxml3.js"></script>
 <script type="text/javascript" src="javascript/ProjectedOverlay.js"></script>
 
+<script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+
+ <%
+ if(!langCode.equals("en")){
+ %>
+
+<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
+<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+
+ <%
+ }
+ %>
+
   <!-- /STEP2 Place inside the head section -->
 
 
@@ -110,6 +123,71 @@ margin-bottom: 8px !important;
     sw_long_element.value = "";
 
   }
+
+
+  $( function() {
+	  $( "#datepicker1" ).datetimepicker({
+	      changeMonth: true,
+	      changeYear: true,
+	      dateFormat: 'yy-mm-dd',
+	      maxDate: '+1d',
+	      controlType: 'select',
+	      alwaysSetTime: false,
+	      showTimepicker: false,
+	      showSecond:false,
+	      showMillisec:false,
+	      showMicrosec:false,
+	      showTimezone:false
+	    });
+	    $( "#datepicker1" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+
+	    $( "#datepicker2" ).datetimepicker({
+	        changeMonth: true,
+	        changeYear: true,
+	        dateFormat: 'yy-mm-dd',
+	        maxDate: '+1d',
+	        controlType: 'select',
+	        alwaysSetTime: false,
+	        showTimepicker: false,
+	        showSecond:false,
+	        showMillisec:false,
+	        showMicrosec:false,
+	        showTimezone:false
+	      });
+	      $( "#datepicker2" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+
+	      //date added pickers
+	      $( "#dateaddedpicker1" ).datetimepicker({
+		      changeMonth: true,
+		      changeYear: true,
+		      dateFormat: 'yy-mm-dd',
+		      maxDate: '+1d',
+		      controlType: 'select',
+		      alwaysSetTime: false,
+		      showTimepicker: false,
+		      showSecond:false,
+		      showMillisec:false,
+		      showMicrosec:false,
+		      showTimezone:false
+		    });
+		    $( "#dateaddedpicker1" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+
+		    $( "#dateaddedpicker2" ).datetimepicker({
+		        changeMonth: true,
+		        changeYear: true,
+		        dateFormat: 'yy-mm-dd',
+		        maxDate: '+1d',
+		        controlType: 'select',
+		        alwaysSetTime: false,
+		        showTimepicker: false,
+		        showSecond:false,
+		        showMillisec:false,
+		        showMicrosec:false,
+		        showTimezone:false
+		      });
+		      $( "#dateaddedpicker2" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+
+  } );
 </script>
 
 <div class="container maincontent">
@@ -501,139 +579,15 @@ function FSControl(controlDiv, map) {
 
       <p><%=props.getProperty("dateInstructions") %></p>
       <strong><%=props.getProperty("sightingDates")%></strong><br/>
-      <table width="720">
+          <table width="720">
         <tr>
-          <td width="670"><label><em>
-            &nbsp;<%=props.getProperty("day")%>
-          </em> <em> <select name="day1" id="day1">
-            <option value="1" selected>1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="24">24</option>
-            <option value="25">25</option>
-            <option value="26">26</option>
-            <option value="27">27</option>
-            <option value="28">28</option>
-            <option value="29">29</option>
-            <option value="30">30</option>
-            <option value="31">31</option>
-          </select> <%=props.getProperty("month")%>
-          </em> <em> <select name="month1" id="month1">
-            <option value="1" selected>1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-          </select> <%=props.getProperty("year")%>
-          </em> <select name="year1" id="year1">
-            <% for (int q = firstYear; q <= nowYear; q++) { %>
-            <option value="<%=q%>"
+          <td width="720">
+	          <%=props.get("start") %>&nbsp;
+	          <input  class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="datepicker1" name="datepicker1" size="20" />
+	           &nbsp;<%=props.get("end") %>&nbsp;
+	          <input class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="datepicker2" name="datepicker2" size="20" />
 
-              <%
-                if (q == firstYear) {
-              %>
-                    selected
-              <%
-                }
-              %>
-              ><%=q%>
-            </option>
-
-            <% } %>
-          </select> &nbsp;to <em>&nbsp;<%=props.getProperty("day")%>
-          </em> <em> <select name="day2"
-                             id="day2">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="24">24</option>
-            <option value="25">25</option>
-            <option value="26">26</option>
-            <option value="27">27</option>
-            <option value="28">28</option>
-            <option value="29">29</option>
-            <option value="30">30</option>
-            <option value="31" selected>31</option>
-          </select> <%=props.getProperty("month")%>
-          </em> <em> <select name="month2" id="month2">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12" selected>12</option>
-          </select> <%=props.getProperty("year")%>
-          </em>
-            <select name="year2" id="year2">
-              <% for (int q = nowYear; q >= firstYear; q--) { %>
-              <option value="<%=q%>"
-
-                <%
-                  if (q == nowYear) {
-                %>
-                      selected
-                <%
-                  }
-                %>
-                ><%=q%>
-              </option>
-
-              <% } %>
-            </select>
-          </label></td>
+          </td>
         </tr>
       </table>
 
@@ -724,145 +678,17 @@ function FSControl(controlDiv, map) {
 
       <p><strong><%=props.getProperty("addedsightingDates")%></strong></p>
 
-      <table width="720">
+       <table width="720">
         <tr>
-          <td width="670"><label><em>
-                    
-            &nbsp;<%=props.getProperty("day")%>
-          </em> <em> <select name="addedday1" id="addedday1">
-            <option value="1" selected>1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="24">24</option>
-            <option value="25">25</option>
-            <option value="26">26</option>
-            <option value="27">27</option>
-            <option value="28">28</option>
-            <option value="29">29</option>
-            <option value="30">30</option>
-            <option value="31">31</option>
-          </select> <%=props.getProperty("month")%>
-          </em> <em> <select name="addedmonth1" id="addedmonth1">
-            <option value="1" selected>1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-          </select> <%=props.getProperty("year")%>
-          </em> <select name="addedyear1" id="addedyear1">
-            <% 
-            
-            int currentYear=cal.get(1)+2;
-            for (int q = firstSubmissionYear; q <= currentYear; q++) { %>
-            <option value="<%=q%>"
+          <td width="720">
+	          <%=props.get("start") %>&nbsp;
+	          <input  class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="dateaddedpicker1" name="dateaddedpicker1" size="20" />
+	           &nbsp;<%=props.get("end") %>&nbsp;
+	          <input class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="dateaddedpicker2" name="dateaddedpicker2" size="20" />
 
-              <%
-                if (q == firstSubmissionYear) {
-              %>
-                    selected
-              <%
-                }
-              %>
-              ><%=q%>
-            </option>
-
-            <% } %>
-          </select> &nbsp;to <em>&nbsp;<%=props.getProperty("day")%>
-          </em> <em> <select name="addedday2"
-                             id="addedday2">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14">14</option>
-            <option value="15">15</option>
-            <option value="16">16</option>
-            <option value="17">17</option>
-            <option value="18">18</option>
-            <option value="19">19</option>
-            <option value="20">20</option>
-            <option value="21">21</option>
-            <option value="22">22</option>
-            <option value="23">23</option>
-            <option value="24">24</option>
-            <option value="25">25</option>
-            <option value="26">26</option>
-            <option value="27">27</option>
-            <option value="28">28</option>
-            <option value="29">29</option>
-            <option value="30">30</option>
-            <option value="31" selected>31</option>
-          </select> <%=props.getProperty("month")%>
-          </em> <em> <select name="addedmonth2" id="addedmonth2">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12" selected>12</option>
-          </select> <%=props.getProperty("year")%>
-          </em>
-            <select name="addedyear2" id="addedyear2">
-              <% for (int q = currentYear; q >= firstSubmissionYear; q--) { %>
-              <option value="<%=q%>"
-
-                <%
-                  if (q == nowYear) {
-                %>
-                      selected
-                <%
-                  }
-                %>
-                ><%=q%>
-              </option>
-
-              <% } %>
-            </select>
-          </label></td>
+          </td>
         </tr>
-		</table>
+      </table>
       <script>
 	$( "#DOBstart" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
     $( "#DOBend" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
@@ -1719,7 +1545,7 @@ else {
 
 	<strong><%=props.getProperty("username")%></strong><br />
       <%
-      	List<String> users = myShepherd.getAllUsernames();
+      	List<String> users = myShepherd.getAllNativeUsernames();
       	users.remove(null);
       	Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
         int numUsers = users.size();
