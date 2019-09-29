@@ -258,7 +258,7 @@ public class LightRestServlet extends HttpServlet
                     Query query = myShepherd.getPM().newQuery("JDOQL", queryString);
                     if (fetchParam != null)
                     {
-                        query.getFetchPlan().addGroup(fetchParam);
+                        query.getFetchPlan().setGroup(fetchParam);
                     }
                     Object result = filterResult(query.execute());
         System.out.println("        LIGHTREST: executed query "+query);
@@ -389,7 +389,7 @@ public class LightRestServlet extends HttpServlet
                         //PersistenceManager pm = pmf.getPersistenceManager();
                         if (fetchParam != null)
                         {
-                          myShepherd.getPM().getFetchPlan().addGroup(fetchParam);
+                          myShepherd.getPM().getFetchPlan().setGroup(fetchParam);
                         }
                         try
                         {
@@ -472,7 +472,7 @@ public class LightRestServlet extends HttpServlet
                 //PersistenceManager pm = pmf.getPersistenceManager();
                 if (fetchParam != null)
                 {
-                    myShepherd.getPM().getFetchPlan().addGroup(fetchParam);
+                    myShepherd.getPM().getFetchPlan().setGroup(fetchParam);
                 }
                 try
                 {
