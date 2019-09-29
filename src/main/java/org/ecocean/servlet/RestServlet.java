@@ -361,7 +361,7 @@ public class RestServlet extends HttpServlet
                         PersistenceManager pm = pmf.getPersistenceManager();
                         if (fetchParam != null)
                         {
-                            pm.getFetchPlan().addGroup(fetchParam);
+                            pm.getFetchPlan().setGroup(fetchParam);
                         }
                         try
                         {
@@ -439,7 +439,7 @@ public class RestServlet extends HttpServlet
                 PersistenceManager pm = pmf.getPersistenceManager();
                 if (fetchParam != null)
                 {
-                    pm.getFetchPlan().addGroup(fetchParam);
+                  pm.getFetchPlan().setGroup(fetchParam);
                 }
                 try
                 {
