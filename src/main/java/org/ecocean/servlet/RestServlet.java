@@ -129,9 +129,13 @@ public class RestServlet extends HttpServlet
      */
     private String getNextTokenAfterSlash(HttpServletRequest req)
     {
+       try {
         String path = req.getRequestURI().substring(req.getContextPath().length() + req.getServletPath().length());
         StringTokenizer tokenizer = new StringTokenizer(path, "/");
         return tokenizer.nextToken();
+       }
+       catch(Exception e) {}
+       return null;
     }
 
     /**
@@ -210,20 +214,42 @@ public class RestServlet extends HttpServlet
         String servletID=Util.generateUUID();
         getPMF(req,servletID);
         // Retrieve any fetch group that needs applying to the fetch
-        String fetchParam = req.getParameter("fetch");
-
+        String[] fetchParams = req.getParameterValues("fetch");
+        
                 String encodings = req.getHeader("Accept-Encoding");
                 boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
 
+        
+        String queryString="";        
         try
         {
             String token = getNextTokenAfterSlash(req);
-            if (token.equalsIgnoreCase("query") || token.equalsIgnoreCase("jdoql"))
+            if (req.getParameter("query")!=null || token!=null && (token.equalsIgnoreCase("query") || token.equalsIgnoreCase("jdoql")))
             {
+                
+              if(req.getParameter("query")!=null) {
+                queryString = URLDecoder.decode(req.getParameter("query"), "UTF-8");
+              }
+              else {
                 // GET "/query?the_query_details" or GET "/jdoql?the_query_details" where "the_query_details" is "SELECT FROM ... WHERE ... ORDER BY ..."
-                String queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
+                queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
+              }  
+                
                 PersistenceManager pm = pmf.getPersistenceManager();
                 ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "new");
+                
+                if(fetchParams!=null) {
+                  int numParams=fetchParams.length;
+                  for(int g=0;g<numParams;g++) {
+                    if(g==0) {
+                      pm.getFetchPlan().setGroup(fetchParams[g]);
+                    }
+                    else {
+                      pm.getFetchPlan().addGroup(fetchParams[g]);
+                    }
+                    
+                  }
+                }
                 
                 
                 try
@@ -233,9 +259,17 @@ public class RestServlet extends HttpServlet
                     
 
                     Query query = pm.newQuery("JDOQL", queryString);
-                    if (fetchParam != null)
-                    {
-                        query.getFetchPlan().addGroup(fetchParam);
+                    if(fetchParams!=null) {
+                      int numParams=fetchParams.length;
+                      for(int g=0;g<numParams;g++) {
+                        if(g==0) {
+                          pm.getFetchPlan().setGroup(fetchParams[g]);
+                        }
+                        else {
+                          pm.getFetchPlan().addGroup(fetchParams[g]);
+                        }
+                        
+                      }
                     }
                     Object result = filterResult(query.execute());
                     if (result instanceof Collection)
@@ -352,16 +386,24 @@ public class RestServlet extends HttpServlet
                     try
                     {
                         // get the whole extent for this candidate
-                        String queryString = "SELECT FROM " + cmd.getFullClassName();
+                        queryString = "SELECT FROM " + cmd.getFullClassName();
                         if (req.getQueryString() != null)
                         {
                             // query by filter for this candidate
                             queryString += " WHERE " + URLDecoder.decode(req.getQueryString(), "UTF-8");
                         }
                         PersistenceManager pm = pmf.getPersistenceManager();
-                        if (fetchParam != null)
-                        {
-                            pm.getFetchPlan().setGroup(fetchParam);
+                        if(fetchParams!=null) {
+                          int numParams=fetchParams.length;
+                          for(int g=0;g<numParams;g++) {
+                            if(g==0) {
+                              pm.getFetchPlan().setGroup(fetchParams[g]);
+                            }
+                            else {
+                              pm.getFetchPlan().addGroup(fetchParams[g]);
+                            }
+                            
+                          }
                         }
                         try
                         {
@@ -437,9 +479,17 @@ public class RestServlet extends HttpServlet
 
                 // GET "/{candidateclass}/id" - Find object by id
                 PersistenceManager pm = pmf.getPersistenceManager();
-                if (fetchParam != null)
-                {
-                  pm.getFetchPlan().setGroup(fetchParam);
+                if(fetchParams!=null) {
+                  int numParams=fetchParams.length;
+                  for(int g=0;g<numParams;g++) {
+                    if(g==0) {
+                      pm.getFetchPlan().setGroup(fetchParams[g]);
+                    }
+                    else {
+                      pm.getFetchPlan().addGroup(fetchParams[g]);
+                    }
+                    
+                  }
                 }
                 try
                 {

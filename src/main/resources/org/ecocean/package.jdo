@@ -188,6 +188,12 @@
       <fetch-group name="allSharks_min">
         <field name="encounters"/>
       </fetch-group>
+	  
+	  
+	      <fetch-group name="indymin">
+        <field name="individualID"/>
+      </fetch-group>
+	 
       <fetch-group name="count"/>
 
     </class>
@@ -258,6 +264,13 @@
       </field>
 
       <fetch-group name="count"/>
+	 
+	  <fetch-group name="occurmin">
+        <field name="encounters"/>
+		<field name="occurrenceID"/>
+      </fetch-group>
+	 
+
 
     </class>
 
@@ -469,9 +482,12 @@
       
       <field name="digitalArchiveTag" persistence-modifier="persistent"></field>
 
-      <fetch-group name="allSharks_min">
-        <field name="approved"/>
+	
+      <fetch-group name="encmin">
+	  
+        <field name="individual"/>
       </fetch-group>
+	 
       <fetch-group name="count"/>
     </class>
 
