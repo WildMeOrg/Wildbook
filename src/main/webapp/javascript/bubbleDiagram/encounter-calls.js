@@ -93,7 +93,7 @@ var getData = function(individualID) {
     var occurrenceArray = [];
     var dataObject = {};
 
-     d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
+     d3.json(wildbookGlobals.baseUrl + "/api?fetch=occurmin&fetch=encmin&fetch=indymin&query="+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
       if(error) {
         console.log("error")
       }
