@@ -8,34 +8,34 @@ QUnit.begin(() => {
     ft = new FamilyTree(individualID);
 });
 
-QUnit.module('calcNode()', () => {
-    function checkRadius(test, radius, ft) {
-	test.ok(radius < ft.maxRadius);
-	test.ok(radius > 0);
+QUnit.module('calcNode()', {'beforeEach': () => ft.radius = null}, () => {
+    function checkRadius(test, ft) {
+	test.ok(ft.radius < ft.maxRadius);
+	test.ok(ft.radius > 0); //TODO: Consider shifting implementation to have min radius 
     }
 
     QUnit.test('Empty node lists', t => {
 	let nodes = [];
 	let radius = ft.calcNodeSize(nodes);
-	checkRadius(t, radius, ft);
+	checkRadius(t, ft);
     });
 
     QUnit.test('Lists of length 5', t => {
 	let nodes = {'length': 5};	
 	let radius = ft.calcNodeSize(nodes);
-	checkRadius(t, radius, ft);
+	checkRadius(t, ft);
     });
 
     QUnit.test('Large node lists of length 1000', t => {
 	let nodes = {'length': 1000};
 	let radius = ft.calcNodeSize(nodes);
-	checkRadius(t, radius, ft);
+	checkRadius(t, ft);
     });
 
     QUnit.test('Non-list entries', t => {
 	let nodes = null;
 	let radius = ft.calcNodeSize(nodes);
-	t.notOk(radius)
+	t.notOk(ft.radius)
     });
 });
 
@@ -81,3 +81,9 @@ QUnit.module('colorGender()', () => {
     });
 });
 
+/*QUnit.module('click()', () => {
+    QUnit.test('Toggle collapsed nodes', t => {
+	let d = {};
+	let 
+    });
+});*/

@@ -1,6 +1,6 @@
   //d3-transform
   (function() {
-    d3.svg.transform = function(chain) {
+    d3.transform = function(chain) {
       var transforms = [];
       if (chain !== undefined) { transforms.push(chain) }
 
@@ -51,7 +51,7 @@
   }(this, function (MicroPlugin) {
     var pi2 = Math.PI * 2;
 
-    d3.svg.BubbleChart = function (settings) {
+    d3.BubbleChart = function (settings) {
       var self = this;
       var defaultViewBoxSize = settings.size;
       var defaultInnerRadius = 125;
@@ -89,7 +89,7 @@
     };
 
 
-    $.extend(d3.svg.BubbleChart.prototype, {
+    $.extend(d3.BubbleChart.prototype, {
       getTransition: function() {
         return this.transition;
       },
@@ -270,7 +270,7 @@
 
       moveToCentral: function (node) {
         var self = this;
-        var toCentralPoint = d3.svg.transform()
+        var toCentralPoint = d3.transform()
           .translate(function (d) {
             var cx = node.select('circle').attr("cx");
             var dx = self.centralPoint - d.cx;
@@ -298,7 +298,7 @@
 
       moveToReflection: function (node, swapped) {
         var self = this;
-        var toReflectionPoint = d3.svg.transform()
+        var toReflectionPoint = d3.transform()
           .translate(function (d) {
             var dx = 2 * (self.centralPoint - d.cx);
             var dy = 2 * (self.centralPoint - d.cy);
@@ -361,14 +361,14 @@
       }
     });
 
-    MicroPlugin.mixin(d3.svg.BubbleChart);
+    MicroPlugin.mixin(d3.BubbleChart);
 
-    return d3.svg.BubbleChart;
+    return d3.BubbleChart;
   }));
 
 
   //lines
-  d3.svg.BubbleChart.define("lines", function (options) {
+  d3.BubbleChart.define("lines", function (options) {
     var self = this;
 
     self.setup = (function () {
