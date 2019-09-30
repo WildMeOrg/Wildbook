@@ -3199,7 +3199,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
             jobj.put("location", this.getLocation());
-            if(individual!=null){jobj.put("individualID", this.getIndividualID());}
+            if (this.individual!=null) jobj.put("individualID", this.getIndividual().getIndividualID());
             boolean fullAccess = this.canUserAccess(request);
 
             //these are for convenience, like .hasImages above (for use in table building e.g.)
@@ -3250,6 +3250,14 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 
             return jobj;
         }
+	
+  public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+
+    if (this.individual!=null) jobj.put("individualID", this.individual.getIndividualID());
+    if (this.individual!=null) jobj.put("displayName", this.individual.getDisplayName());
+    System.out.println("Calling Encounter.decorateJson");
+    return jobj;
+  }
 
         // this doesn't add any fields, and only removes fields that shouldn't be there
         public JSONObject sanitizeJsonNoAnnots(HttpServletRequest request, JSONObject jobj) throws JSONException {

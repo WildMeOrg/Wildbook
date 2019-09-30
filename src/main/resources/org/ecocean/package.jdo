@@ -266,7 +266,7 @@
       <fetch-group name="count"/>
 	 
 	  <fetch-group name="occurmin">
-        <field name="encounters"/>
+        <field name="encounters" />
 		<field name="occurrenceID"/>
       </fetch-group>
 	 
