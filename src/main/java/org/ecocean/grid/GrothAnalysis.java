@@ -15,6 +15,12 @@ public class GrothAnalysis implements MultivariateFunction {
   private static ArrayList<ScanWorkItem> matchedswis=new ArrayList<ScanWorkItem>();
   private static ArrayList<ScanWorkItem> nonmatchedswis=new ArrayList<ScanWorkItem>();
   
+  private static ArrayList<MatchObject> matches=new ArrayList<MatchObject>();
+  private static ArrayList<MatchObject> nonmatches=new ArrayList<MatchObject>();
+  
+  private static ArrayList<Double> matchScores=new ArrayList<Double>();
+  private static ArrayList<Double> nonmatchScores=new ArrayList<Double>();
+  
   private int numComparisons = 200;
   private int maxNumSpots = 30;
   private String defaultSide = "left";
@@ -77,7 +83,14 @@ public class GrothAnalysis implements MultivariateFunction {
     
     Double totalMatchScores=0.0;
     Double totalNonmatchScores=0.0;
-   
+    
+    //clear our match object results lists
+    matches=new ArrayList<MatchObject>();
+    nonmatches=new ArrayList<MatchObject>();
+    
+    //clear our resulting scores for new values
+    matchScores=new ArrayList<Double>();
+    nonmatchScores=new ArrayList<Double>();
     
     java.util.Properties props2 = new java.util.Properties();
     String secondRun = "true";
@@ -229,7 +242,9 @@ public class GrothAnalysis implements MultivariateFunction {
      swi.setProperties(props2);
      swi.run();
      MatchObject mo=swi.getResult();
+     matches.add(mo);
      double score=mo.getMatchValue() * mo.getAdjustedMatchValue();
+     matchScores.add(new Double(score));
      totalMatchScores+=score;
    }
    
@@ -239,7 +254,9 @@ public class GrothAnalysis implements MultivariateFunction {
      swi.setProperties(props2);
      swi.run();
      MatchObject mo=swi.getResult();
+     nonmatches.add(mo);
      double score=mo.getMatchValue() * mo.getAdjustedMatchValue();
+     nonmatchScores.add(new Double(score));
      totalNonmatchScores+=score;
    }
    
