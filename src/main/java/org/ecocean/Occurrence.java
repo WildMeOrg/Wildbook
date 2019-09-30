@@ -1216,7 +1216,7 @@ public class Occurrence implements java.io.Serializable {
           JSONArray jarr = new JSONArray();
           boolean fullAccess = this.canUserAccess(request);
           for (Encounter enc : this.getEncounters()) {
-              jarr.put(enc.sanitizeJson(request, new JSONObject()));
+              jarr.put( enc.decorateJson(request,         enc.sanitizeJsonNoAnnots(request, new JSONObject())       ) );
           }
           jobj.put("encounters", jarr);
       }

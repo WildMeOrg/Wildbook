@@ -215,6 +215,7 @@ public class RestServlet extends HttpServlet
         getPMF(req,servletID);
         // Retrieve any fetch group that needs applying to the fetch
         String[] fetchParams = req.getParameterValues("fetch");
+        String fetchDepth = req.getParameter("fetchDepth");
         
                 String encodings = req.getHeader("Accept-Encoding");
                 boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
@@ -243,12 +244,27 @@ public class RestServlet extends HttpServlet
                   for(int g=0;g<numParams;g++) {
                     if(g==0) {
                       pm.getFetchPlan().setGroup(fetchParams[g]);
+                      //System.out.println("Setting fetch group: "+fetchParams[g]);
                     }
                     else {
                       pm.getFetchPlan().addGroup(fetchParams[g]);
+                      //System.out.println("Adding fetch group: "+fetchParams[g]);
                     }
                     
                   }
+                  //check fetchDepth
+                  if(req.getParameter("fetchDepth")!=null) {
+                    try {
+                      int value=Integer.parseInt(req.getParameter("fetchDepth").trim());
+                      pm.getFetchPlan().setMaxFetchDepth(value);
+                      System.out.println("Setting fetch depth: "+value);
+                    }
+                    catch(Exception nfe) {
+                      nfe.printStackTrace();
+                    }
+                    
+                  }
+                  this.nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();
                 }
                 
                 
@@ -263,14 +279,18 @@ public class RestServlet extends HttpServlet
                       int numParams=fetchParams.length;
                       for(int g=0;g<numParams;g++) {
                         if(g==0) {
-                          pm.getFetchPlan().setGroup(fetchParams[g]);
+                          query.getFetchPlan().setGroup(fetchParams[g]);
                         }
                         else {
-                          pm.getFetchPlan().addGroup(fetchParams[g]);
+                          query.getFetchPlan().addGroup(fetchParams[g]);
                         }
                         
                       }
                     }
+                    
+                    System.out.println("Fetch plan class: "+query.getFetchPlan().getGroups().toString());
+                    
+                    
                     Object result = filterResult(query.execute());
                     if (result instanceof Collection)
                     {
@@ -988,47 +1008,52 @@ System.out.println(thisRequest);
             
             JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(obj, ec);
             
-            
-            //call decorateJson on object
             Method sj = null;
-            try {
-                sj = obj.getClass().getMethod("decorateJson", new Class[] { HttpServletRequest.class, JSONObject.class });
-            } 
-            catch (NoSuchMethodException nsm) { //do nothing
-                //System.out.println("i guess " + obj.getClass() + " does not have decorateJson() method");
+            //call decorateJson on object
+            if(req.getParameter("noDecorate")==null) {
+              
+              try {
+                  sj = obj.getClass().getMethod("decorateJson", new Class[] { HttpServletRequest.class, JSONObject.class });
+              } 
+              catch (NoSuchMethodException nsm) { //do nothing
+                  System.out.println("i guess " + obj.getClass() + " does not have decorateJson() method");
+              }
+              if (sj != null) {
+                  //System.out.println("trying decorateJson on "+obj.getClass());
+                  try {
+                      jobj = (JSONObject)sj.invoke(obj, req, jobj);
+                      System.out.println("decorateJson");
+                  } 
+                  catch (Exception ex) {
+                    ex.printStackTrace();
+                    System.out.println("got Exception trying to invoke decorateJson: " + ex.toString());
+                  }
+              }
             }
-            if (sj != null) {
-                //System.out.println("trying decorateJson on "+obj.getClass());
-                try {
-                    jobj = (JSONObject)sj.invoke(obj, req, jobj);
-                    //System.out.println("decorateJson result: " +jobj.toString());
-                } 
-                catch (Exception ex) {
-                  ex.printStackTrace();
-                  System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
-                }
-            }
+            
+            System.out.println(jobj.toString());
             
             //call sanitizeJson on object
-            sj = null;
-            try {
-                sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
-            } 
-            catch (NoSuchMethodException nsm) { //do nothing
-                System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+            if(req.getParameter("noSanitize")==null) {
+              sj = null;
+              try {
+                  sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
+              } 
+              catch (NoSuchMethodException nsm) { //do nothing
+                  System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+              }
+              if (sj != null) {
+                  //System.out.println("trying sanitizeJson on "+obj.getClass());
+                  try {
+                      jobj = (JSONObject)sj.invoke(obj, req, jobj);
+                      //System.out.println("sanitizeJson result: " +jobj.toString());
+                  } 
+                  catch (Exception ex) {
+                    ex.printStackTrace();
+                    System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
+                  }
+              }
             }
-            if (sj != null) {
-                //System.out.println("trying sanitizeJson on "+obj.getClass());
-                try {
-                    jobj = (JSONObject)sj.invoke(obj, req, jobj);
-                    //System.out.println("sanitizeJson result: " +jobj.toString());
-                } 
-                catch (Exception ex) {
-                  ex.printStackTrace();
-                  System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
-                }
-            }
-            
 
             
             
