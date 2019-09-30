@@ -680,6 +680,7 @@ try {
   <%
   }
 } catch(Exception e){
+	e.printStackTrace();
 	%>
 	<p>Exception on page!</p>
 	<p><%=e.getMessage() %></p>

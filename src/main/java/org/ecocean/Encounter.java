@@ -3198,45 +3198,15 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
         }
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-            jobj.put("location", this.getLocation());
-            if (this.individual!=null) jobj.put("individualID", this.getIndividual().getIndividualID());
-            boolean fullAccess = this.canUserAccess(request);
+            
+	          boolean fullAccess = this.canUserAccess(request);
+	        
 
-            //these are for convenience, like .hasImages above (for use in table building e.g.)
-            if ((this.getTissueSamples() != null) && (this.getTissueSamples().size() > 0)) jobj.put("hasTissueSamples", true);
-            if (this.hasMeasurements()) jobj.put("hasMeasurements", true);
-/*
-            String context="context0";
-            context = ServletUtilities.getContext(request);
-            Shepherd myShepherd = new Shepherd(context);
-            if ((myShepherd.getAllTissueSamplesForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getAllTissueSamplesForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasTissueSamples", true);
-            if ((myShepherd.getMeasurementsForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasMeasurements", true);
-*/
-
-            jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
-            //jobj.remove("images");  //TODO uncomment after debugging
-/*
-            if ((this.getImages() != null) && (this.getImages().size() > 0)) {
-                jobj.put("hasImages", true);
-                JSONArray jarr = new JSONArray();
-                for (SinglePhotoVideo spv : this.getImages()) {
-                    jarr.put(spv.sanitizeJson(request, fullAccess));
-                }
-                jobj.put("images", jarr);
+            if (fullAccess) {
+              if (this.individual!=null) jobj.put("individualID", this.individual.getIndividualID());
+              if (this.individual!=null) jobj.put("displayName", this.individual.getDisplayName());
+              return jobj;
             }
-*/
-            if ((this.getAnnotations() != null) && (this.getAnnotations().size() > 0)) {
-                jobj.put("hasAnnotations", true);
-                JSONArray jarr = new JSONArray();
-                for (Annotation ann : this.getAnnotations()) {
-                    jarr.put(ann.sanitizeJson(request, fullAccess));
-                }
-                jobj.put("annotations", jarr);
-            }
-
-            if (this.individual!=null) jobj.put("displayName",getDisplayName());
-
-            if (fullAccess) return jobj;
 
             jobj.remove("gpsLatitude");
             jobj.remove("location");
@@ -3251,32 +3221,40 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
             return jobj;
         }
 	
+	
+  public JSONObject decorateJsonNoAnnots(HttpServletRequest request, JSONObject jobj) throws JSONException {
+
+  
+  
+    jobj.put("location", this.getLocation());
+    
+  
+    //these are for convenience, like .hasImages above (for use in table building e.g.)
+    if ((this.getTissueSamples() != null) && (this.getTissueSamples().size() > 0)) jobj.put("hasTissueSamples", true);
+    if (this.hasMeasurements()) jobj.put("hasMeasurements", true);
+    
+    return jobj;
+  }
+	
   public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
-    if (this.individual!=null) jobj.put("individualID", this.individual.getIndividualID());
-    if (this.individual!=null) jobj.put("displayName", this.individual.getDisplayName());
-    System.out.println("Calling Encounter.decorateJson");
+    jobj=decorateJsonNoAnnots(request,jobj);
+
+    jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
+
+    boolean fullAccess = this.canUserAccess(request);
+    if ((this.getAnnotations() != null) && (this.getAnnotations().size() > 0)) {
+        jobj.put("hasAnnotations", true);
+        JSONArray jarr = new JSONArray();
+        for (Annotation ann : this.getAnnotations()) {
+            jarr.put(ann.sanitizeJson(request, fullAccess));
+        }
+        jobj.put("annotations", jarr);
+    }
+
     return jobj;
   }
 
-        // this doesn't add any fields, and only removes fields that shouldn't be there
-        public JSONObject sanitizeJsonNoAnnots(HttpServletRequest request, JSONObject jobj) throws JSONException {
-
-            boolean fullAccess = this.canUserAccess(request);
-            if (fullAccess) return jobj;
-
-            jobj.remove("gpsLatitude");
-            jobj.remove("location");
-            jobj.remove("gpsLongitude");
-            jobj.remove("verbatimLocality");
-            jobj.remove("locationID");
-            jobj.remove("gpsLongitude");
-            jobj.remove("genus");
-            jobj.remove("specificEpithet");
-            jobj.put("_sanitized", true);
-
-            return jobj;
-        }
 
 
         public JSONObject uiJson(HttpServletRequest request) throws JSONException {
