@@ -2120,7 +2120,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-            if (this.canUserAccess(request)) return jobj;
+	          jobj.put("displayName", this.getDisplayName());
+	          if (this.canUserAccess(request)) return jobj;
             jobj.remove("numberLocations");
             jobj.remove("sex");
             jobj.remove("numberEncounters");
@@ -2137,7 +2138,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   
   public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-    jobj.put("displayName", this.getDisplayName());
     jobj.remove("nickName");
     jobj.put("nickName", this.getNickName());
     //System.out.println("Put displayName in sanitizeJSON: "+jobj.get("displayName"));
