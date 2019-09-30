@@ -304,17 +304,7 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 
 <%
 	String encsJson = "false";
-/*
-	JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-	if (rEncounters instanceof Collection) {
-		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, jdopm.getExecutionContext());
-		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, ((JDOPersistenceManager)pm).getExecutionContext());
-		encsJson = jsonobj.toString();
-	} else {
-		JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(rEncounters, jdopm.getExecutionContext());
-		encsJson = jsonobj.toString();
-	}
-*/
+
 
 StringBuffer prettyPrint=new StringBuffer("");
 
@@ -714,6 +704,8 @@ $(document).ready( function() {
 				return xhr;
 			},
 */
+			fetch: "searchResults",
+			noDecorate: true,
 			jdoql: jdoql,
 			success: function() { searchResults = encs.models; doTable(); },
 		});
