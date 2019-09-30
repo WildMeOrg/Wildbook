@@ -4,10 +4,8 @@
 
 //Pull/parse live data
   //Switch all categorical data to enums
-//Add social symbols
 //Format text cleanly
-//Improve (smooth) zoom functionality (pan functionality seems good)
-  //Click on node to fix zoom
+//Click on node to fix zoom
 //Add functionality to ensure any graph or reasonable size may be visualized
 //Add functionality for two parents nodes (difficult)
 
@@ -48,6 +46,7 @@ const DATA = {
 		{
 		    "name": "Lion 7",
 		    "gender": "female",
+		    "role": "alpha",
 		    "children": [
 			{
 			    "name": "Lion 9",
@@ -125,6 +124,8 @@ class FamilyTree {
 	this.maleColor = "steelblue";
 	this.femaleColor = "palevioletred";
 	this.defGenderColor = "#939393";
+
+	this.alphaColor = "#757575";
     }
 
     //TODO: Consider moving this outside the scope of the class.. The obj references are clunky
@@ -132,10 +133,10 @@ class FamilyTree {
 	d3.json(wildbookGlobals.baseUrl + "/api/jdoql?" +
 		encodeURIComponent("SELECT FROM org.ecocean.social.Relationship WHERE (this.type == \"social grouping\") && " +
 				   "(this.markedIndividualName1 == \"" + this.id + "\" || this.markedIndividualName2 == \"" +
-				   this.id + "\")"), (error, json) => this.graphSocialData(error, json));
+				   this.id + "\")"), (error, json) => this.graphFamilyData(error, json));
     }
 
-    graphSocialData(error, json) {
+    graphFamilyData(error, json) {
 	if (error) {
 	    return console.error(error);
 	}
@@ -222,7 +223,7 @@ class FamilyTree {
 	try {
 	    let defaultNodeLen = 10;
 	    let numNodes = nodes.length || defaultNodeLen; //Defaults to 10 
-	    this.radius = this.maxRadius * Math.pow(Math.E, -1 * (numNodes / this.scalingFactor));
+	    this.radius = this.maxRadius * Math.pow(Math.E, -(numNodes / this.scalingFactor));
 	}
 	catch(error) {
 	    console.error(error);
@@ -274,11 +275,7 @@ class FamilyTree {
 	    .style("fill", d => this.colorCollapsed(d))
 	    .style("stroke", d => this.colorGender(d));
 
-	//TODO: Add in symbols
-	//nodeEnter.append("svg:image")
-	//    .attr("xlink:href", "http://lorempixel.com/200/200/")
-	//    .attr("width", 20)
-	//    .attr("height", 20)
+	this.applySymbols(nodeEnter);
     }
 
     colorCollapsed(d) {
@@ -297,6 +294,22 @@ class FamilyTree {
 	catch(error) {
 	    console.error(error);
 	}
+    }
+
+    applySymbols(nodeEnter) {
+	nodeEnter.append("path")
+	    .attr("class", "symb")
+	    .attr("d", d => {
+		return d3.symbol().type(d3.symbolCircle)
+		    .size((d.data.role && d.data.role.toUpperCase() == "ALPHA") ? 125 : 0)()
+	    })
+	    .attr("transform", d => {
+		let x = this.radius * Math.cos(Math.PI / 4);
+		let y = this.radius * Math.sin(Math.PI / 4);
+		return "translate(" + x + "," + -y + ")";
+	    })
+	    .style("fill", this.alphaColor)
+	    .style("fill-opacity", 1e-6);
     }
 
     //TODO: Stub function
@@ -326,6 +339,9 @@ class FamilyTree {
 	nodeUpdate.select("text")
 	    .style("fill-opacity", 1);
 
+	nodeUpdate.select("path.symb")
+	    .style("fill-opacity", 1);
+
 	return nodeUpdate;
     }
     
@@ -341,6 +357,9 @@ class FamilyTree {
 	    .attr("r", 1e-6);
 
 	nodeExit.select("text")
+	    .style("fill-opacity", 1e-6);
+
+	nodeExit.select("path.symb")
 	    .style("fill-opacity", 1e-6);
 
 	return nodeExit;

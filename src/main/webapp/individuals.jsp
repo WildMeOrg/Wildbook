@@ -306,6 +306,7 @@ input.nameKey, input.nameValue {
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
 <script src="javascript/bubbleDiagram/encounter-calls.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
+<script src="javascript/relationshipDiagrams/socialGraph.js"></script>
 
 
 <style>
@@ -1394,10 +1395,13 @@ if (sharky.getNames() != null) {
 
         <div role="navigation" id="socialNavigation">
           <ul class="nav nav-tabs">
-            <li id="familyDiagramTab"  class="active">
+            <li id="familyDiagramTab"  class="active socialVis">
               <a href="#familyDiagram">Familial Diagram</a>
             </li>
-            <li id="communityTableTab">
+	    <li id="socialDiagramTab" class="socialVis"> <%-- TODO: Consider merging this with the familyDiagram pane --%>
+	      <a href="#socialDiagram">Social Diagram</a>
+	    </li>
+            <li id="communityTableTab" class="socialVis">
               <a href="#communityTable"><%=props.getProperty("social")%> Table</a>
             </li>
           </ul>
@@ -1409,6 +1413,13 @@ if (sharky.getNames() != null) {
             setupFamilyTree("<%=individualID%>");
           </script>
         </div>
+
+	<%-- TODO: WIP social diagram --%>
+	<div id="socialDiagram">
+	  <script type="text/javascript">
+	    setupSocialGraph("<%=individualID%>");
+	  </script>
+	</div>
 
         <%
         if (!(isOwner && CommonConfiguration.isCatalogEditable(context))) {
