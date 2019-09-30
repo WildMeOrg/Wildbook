@@ -189,6 +189,7 @@ System.out.println("source config -> " + cfg.toString());
         HashMap<String,MediaAssetSet> sets = new HashMap<String,MediaAssetSet>();
         ArrayList<MediaAsset> haveNoSet = new ArrayList<MediaAsset>();
         URLAssetStore urlStore = URLAssetStore.find(myShepherd);   //this is only needed if we get passed params for url
+        JSONArray attachRtn = new JSONArray();
 
         for (int i = 0 ; i < jarr.length() ; i++) {
             JSONObject st = jarr.optJSONObject(i);
@@ -227,6 +228,7 @@ System.out.println("source config -> " + cfg.toString());
                 continue;
             }
 
+            List<MediaAsset> mas = new ArrayList<MediaAsset>();
             for (int j = 0 ; j < assets.length() ; j++) {
                 boolean success = true;
                 MediaAsset targetMA = null;
@@ -308,9 +310,59 @@ System.out.println("MediaAssetSet " + setId + " created " + targetMA);
 System.out.println("no MediaAssetSet; created " + targetMA);
                         haveNoSet.add(targetMA);
                     }
+                    mas.add(targetMA);
                 }
+
+            }
+
+            //this duplicates some of MediaAssetAttach, but lets us get done in one API call
+            //  TODO we dont sanity-check *ownership* of the encounter.... :/
+            JSONObject attEnc = st.optJSONObject("attachToEncounter");
+            JSONObject attOcc = st.optJSONObject("attachToOccurrence");
+            if (attEnc != null) {
+                JSONObject artn = new JSONObject();
+                Encounter enc = myShepherd.getEncounter(attEnc.optString("id", "__FAIL__"));
+                if (enc != null) {
+                    artn.put("id", enc.getCatalogNumber());
+                    artn.put("type", "Encounter");
+                    artn.put("assets", new JSONArray());
+                    for (MediaAsset ema : mas) {
+                        if (enc.hasTopLevelMediaAsset(ema.getId())) continue;
+                        enc.addMediaAsset(ema);
+                        artn.getJSONArray("assets").put(ema.getId());
+                    }
+                    System.out.println("MediaAssetCreate.attachToEncounter added " + artn.getJSONArray("assets").length() + " assets to Enc " + enc.getCatalogNumber());
+                }
+                attachRtn.put(artn);
+            } else if (attOcc != null) {  //this requires a little extra, to make the enc, minimum is taxonomy
+                String tax = attOcc.optString("taxonomy");
+                JSONObject artn = new JSONObject();
+                Occurrence occ = myShepherd.getOccurrence(attOcc.optString("id", "__FAIL__"));
+                if ((tax == null) || (occ == null)) {
+                    System.out.println("MediaAssetCreate.attachToOccurrence ERROR had invalid .taxonomy or bad id; skipping " + attOcc);
+                } else {
+                    ArrayList<Annotation> anns = new ArrayList<Annotation>();
+                    for (MediaAsset ema : mas) {
+                        Annotation ann = new Annotation(tax, ema);
+                        anns.add(ann);
+                        artn.getJSONArray("assets").put(ema.getId());
+                    }
+                    Encounter enc = new Encounter(anns);
+                    enc.setTaxonomyFromString(tax);
+                    enc.addComments("<p>created by MediaAssetCreate attaching to Occurrence " + occ.getOccurrenceID() + "</p>");
+                    occ.addEncounter(enc);
+                    artn.put("id", occ.getOccurrenceID());
+                    artn.put("encounterId", enc.getCatalogNumber());
+                    artn.put("type", "Occurrence");
+                    artn.put("assets", new JSONArray());
+                    myShepherd.getPM().makePersistent(enc);
+                    System.out.println("MediaAssetCreate.attachToOccurrence added Enc " + enc.getCatalogNumber() + " to Occ " + occ.getOccurrenceID());
+                }
+                attachRtn.put(artn);
             }
         }
+
+        if (attachRtn.length() > 0) rtn.put("attached", attachRtn);
 
         JSONObject js = new JSONObject();
         JSONArray allMAIds = new JSONArray();
