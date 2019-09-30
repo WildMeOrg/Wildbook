@@ -6,10 +6,11 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 
-import org.apache.commons.math.exception.MathIllegalArgumentException;
-import org.apache.commons.math3.analysis.differentiation.*;
+import org.apache.commons.math3.analysis.MultivariateFunction;
 
-public class GrothAnalysis implements MultivariateDifferentiableVectorFunction {
+// public class GrothAnalysis implements MultivariateDifferentiableVectorFunction {
+
+public class GrothAnalysis implements MultivariateFunction {
   
   private static ArrayList<ScanWorkItem> matchedswis=new ArrayList<ScanWorkItem>();
   private static ArrayList<ScanWorkItem> nonmatchedswis=new ArrayList<ScanWorkItem>();
@@ -40,34 +41,37 @@ public class GrothAnalysis implements MultivariateDifferentiableVectorFunction {
   * 
   */
 
-  public double[] value(double[] point) {
-    final double[] valArr = new double[0];
+  public double value(double[] point) {
+    //final double[] valArr = new double[0];
+    double val = -1;
+     //Parameter order: {epsilon, R, sizeLim, maxTriangleRotation, C}  
+    System.out.println("Epsilon: "+point[0]+"  R: "+point[1]+"  sizeLim: "+point[2]+"  maxTriangleRotation: "+point[3]+"  C: "+point[4]);
     try {
-      Double val = getScoreDiffMatchesMinusNonmatches(numComparisons, point[0], point[1], point[2], point[3], point[4], defaultSide, maxNumSpots );
-      valArr[0] = val;
-      return valArr; 
+      val = getScoreDiffMatchesMinusNonmatches(numComparisons, point[0], point[1], point[2], point[3], point[4], defaultSide, maxNumSpots );
+      //valArr[0] = val;
     } catch (Exception e) {
       e.printStackTrace();
     }
-    return null;
+    System.out.println("----> Current matches-nonmatches score: "+val);
+    return val;
   }
 
-  public DerivativeStructure[] value(DerivativeStructure[] point) throws MathIllegalArgumentException {
-    //final double[] params = new double[0];
-    //final DerivativeStructure[] vals = new DerivativeStructure[point.length];
+  // public DerivativeStructure[] value(DerivativeStructure[] point) throws MathIllegalArgumentException {
+  //   //final double[] params = new double[0];
+  //   //final DerivativeStructure[] vals = new DerivativeStructure[point.length];
     
-    //DerivativeStructure vi = new DerivativeStructure(point.length, 1, f.value(observed.getX(), params));
-    //   // params[i] = point[i].getValue();
-    // }
-    DerivativeStructure[] dsArr = new DerivativeStructure[point.length];
-    for (int i=0;i<point.length;i++) {
-    //for (DerivativeStructure ds : point) {
+  //   //DerivativeStructure vi = new DerivativeStructure(point.length, 1, f.value(observed.getX(), params));
+  //   //   // params[i] = point[i].getValue();
+  //   // }
+  //   DerivativeStructure[] dsArr = new DerivativeStructure[point.length];
+  //   for (int i=0;i<point.length;i++) {
+  //   //for (DerivativeStructure ds : point) {
 
-      //wat
-      dsArr[i] = point[i].multiply(point[i]);
-    }
-    return dsArr;
-  }
+  //     //wat
+  //     dsArr[i] = point[i].multiply(point[i]);
+  //   }
+  //   return dsArr;
+  // }
 
   public static Double getScoreDiffMatchesMinusNonmatches(int numComparisonsEach, double epsilon, double R, double Sizelim, double maxTriangleRotation, double C, String side, int maxNumSpots) throws Exception {
     
