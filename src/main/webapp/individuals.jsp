@@ -74,6 +74,7 @@ context=ServletUtilities.getContext(request);
 
   String sex = props.getProperty("sex");
   String location = props.getProperty("location");
+  String locationID = props.getProperty("locationID");
   String alternateID = props.getProperty("alternateID");
   String occurringWith = props.getProperty("occurringWith");
   String behavior = props.getProperty("behavior");
@@ -349,7 +350,7 @@ if (request.getParameter("number")!=null) {
 var tableDictionary = {}
 
 tableDictionary['sex'] = "<%= sex %>";
-tableDictionary['location'] = "<%= location %>";
+tableDictionary['location'] = "<%= locationID %>";
 tableDictionary['alternateID'] = "<%= alternateID %>";
 tableDictionary['occurringWith'] = "<%= occurringWith %>";
 tableDictionary['numencounters'] = "<%= numencounters%>";

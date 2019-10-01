@@ -343,8 +343,8 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         } else {
           date = dict['unknown'];
         }
-        if(jsonData.encounters[i].verbatimLocality) {
-          var location = jsonData.encounters[i].verbatimLocality;
+        if(jsonData.encounters[i].locationID) {
+          var location = jsonData.encounters[i].locationID;
         } else {
           var location = "";
         }
