@@ -97,6 +97,7 @@ public class IndividualAddEncounter extends HttpServlet {
                 addToMe = new MarkedIndividual(indivID, enc2add);
                 myShepherd.storeNewMarkedIndividual(addToMe);
                 enc2add.setIndividualID(indivID);
+                addToMe.refreshDependentProperties(context);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 myShepherd.rollbackDBTransaction();
