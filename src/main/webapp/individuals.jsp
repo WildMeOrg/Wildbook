@@ -299,12 +299,14 @@ input.nameKey, input.nameValue {
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
 <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="//d3js.org/d3.v4.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
 <script src="javascript/bubbleDiagram/encounter-calls.js"></script>
+<script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
 <script src="javascript/relationshipDiagrams/socialGraph.js"></script>
 
@@ -324,20 +326,28 @@ input.nameKey, input.nameValue {
 
     $("input.nameKey, input.nameValue").hide();
 
-  	// wildbook.init(function() { doTable(); });
-    $("#familyDiagramTab").click(function (e) {
-      e.preventDefault()
+    // wildbook.init(function() { doTable(); });
+    $("#familyDiagramTab").click(e => {
+      e.preventDefault();
+      $(".socialVis").hide();
       $("#familyDiagram").show();
-      $("#communityTable").hide();
+      $(".socialVisTab").removeClass("active");
       $("#familyDiagramTab").addClass("active");
-      $("#communityTableTab").removeClass("active");
     });
 
-    $("#communityTableTab").click(function (e) {
-      e.preventDefault()
-      $("#familyDiagram").hide();
+    $("#socialDiagramTab").click(e => {
+      e.preventDefault();
+      $(".socialVis").hide();
+      $("#socialDiagram").show();
+      $(".socialVisTab").removeClass("active");
+      $("#socialDiagramTab").addClass("active");
+    });
+
+    $("#communityTableTab").click(e => {
+      e.preventDefault();
+      $(".socialVis").hide();
       $("#communityTable").show();
-      $("#familyDiagramTab").removeClass("active");
+      $(".socialVisTab").removeClass("active");
       $("#communityTableTab").addClass("active");
     });
 
@@ -1395,19 +1405,19 @@ if (sharky.getNames() != null) {
 
         <div role="navigation" id="socialNavigation">
           <ul class="nav nav-tabs">
-            <li id="familyDiagramTab"  class="active socialVis">
+            <li id="familyDiagramTab"  class="active socialVisTab">
               <a href="#familyDiagram">Familial Diagram</a>
             </li>
-	    <li id="socialDiagramTab" class="socialVis"> <%-- TODO: Consider merging this with the familyDiagram pane --%>
+	    <li id="socialDiagramTab" class="socialVisTab"> <%-- TODO: Consider merging this with the familyDiagram pane --%>
 	      <a href="#socialDiagram">Social Diagram</a>
 	    </li>
-            <li id="communityTableTab" class="socialVis">
+            <li id="communityTableTab" class="socialVisTab">
               <a href="#communityTable"><%=props.getProperty("social")%> Table</a>
             </li>
           </ul>
         </div>
 
-        <div id="familyDiagram">
+        <div id="familyDiagram" class="socialVis">
           <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
             setupFamilyTree("<%=individualID%>");
@@ -1415,7 +1425,7 @@ if (sharky.getNames() != null) {
         </div>
 
 	<%-- TODO: WIP social diagram --%>
-	<div id="socialDiagram">
+	<div id="socialDiagram" class="socialVis">
 	  <script type="text/javascript">
 	    setupSocialGraph("<%=individualID%>");
 	  </script>
@@ -1506,7 +1516,7 @@ if (sharky.getNames() != null) {
           });
         </script>
 
-        <div id="communityTable" class="mygrid-wrapper-div">
+        <div id="communityTable" class="mygrid-wrapper-div socialVis">
           <table id="relationshipTable" class="table table-bordered table-sm table-striped">
               <thead id="relationshipHead"></thead>
               <tbody id="relationshipBody"></tbody>

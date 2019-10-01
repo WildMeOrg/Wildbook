@@ -41,10 +41,6 @@
     cursor: pointer;
 }
 
-.node circle {
-    stroke-width: 3px;
-} 
-
 .node text {
     font: 12px sans-serif;
     text-anchor: middle;
@@ -217,7 +213,7 @@ input.btn.btn-md#closeRelationshipForm:hover {
 }
 
 /*Hide Diagram Tab Content*/
-#communityTable, #cooccurrenceTable, #bioSamplesTable {
+#communityTable, #socialDiagram, #cooccurrenceTable, #bioSamplesTable {
   display: none;
 }
 
@@ -245,12 +241,7 @@ li.active{
 }
 
 /* Family Tree Styles */
-
-#familyDiagram {
-  text-align: center;
-}
-
-#familyDiagram svg {
+#familyDiagram svg, #socialDiagram svg {
     border: 1px solid #aaa;
 }
 .individual rect {

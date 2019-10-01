@@ -82,17 +82,12 @@ function setupFamilyTree(individualID) {
 class FamilyTree extends GraphAbstract {
     constructor(individualID) {
 	super(individualID); //Parent constructor
-
-	//G dimensions
-	this.gWidth = this.width - this.margin.right - this.margin.left,
-	this.gHeight = this.height - this.margin.top - this.margin.bottom;
-
+	
 	this.i = 0; //TODO: Rename	
 	
 	//Set upon data retrieval
 	this.tree;
 	this.root;
-	this.svg;
     }
 
     //TODO: Consider moving this outside the scope of the class.. The obj references are clunky
@@ -123,12 +118,12 @@ class FamilyTree extends GraphAbstract {
 	    this.svg = d3.select("#familyDiagram").append("svg")	        
 		.attr("width", this.width)
 		.attr("height", this.height)
-	    	.call(this.zoom.transform, d3.zoomIdentity.translate(this.margin.left, this.margin.top))
+//	    	.call(this.zoom.transform, d3.zoomIdentity.translate(this.margin.left, this.margin.top))
 		.call(this.zoom.on("zoom", () => {
 		    this.svg.attr("transform", d3.event.transform)
 		}))
 		.append("g")
-		.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+//		.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 	    
 	    //Define the tooltip div
 	    this.addTooltip("#familyDiagram");

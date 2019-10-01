@@ -1,0 +1,143 @@
+class GraphAbstract {
+    constructor(individualID) {
+	this.id = individualID;
+	
+	this.width = 960;
+	this.height = 500;
+
+	this.numNodes;
+	this.radius;
+	this.maxRadius = 40;
+	this.scalingFactor = 25; //TODO: Tune this value
+
+	this.maleColor = "steelblue";
+	this.femaleColor = "palevioletred";
+	this.defGenderColor = "#939393";
+
+	this.alphaColor = "#bf0000";
+    }
+
+    wheelDelta () {
+	return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1 ) / this.zoomFactor;
+    }
+
+    calcNodeSize(nodes) {
+	try {
+	    let defaultNodeLen = 10;
+	    let numNodes = nodes.length || defaultNodeLen; //Defaults to 10 
+	    this.radius = this.maxRadius * Math.pow(Math.E, -(numNodes / this.scalingFactor));
+	}
+	catch(error) {
+	    console.error(error);
+	}
+    }
+
+    handleMouseOver(d) {
+	if (!this.popup) {
+	    this.tooltip.transition()
+		.duration(200)
+		.style("opacity", .9);
+
+	    //TODO: Remove this hardcoding
+	    this.tooltip
+		.style("left", d3.event.layerX + 30 + "px")		
+		.style("top", d3.event.layerY - 20 + "px")
+		.html("<b>Encounters:</b>\n None");
+
+	    this.popup = true;
+	}
+    }	
+
+    handleMouseOut(d) {
+	this.popup = false;
+	this.tooltip.transition()		
+            .duration(200)		
+            .style("opacity", 0);
+    }
+
+    colorNewNodes(nodeEnter) {
+	//Color collapsed nodes
+	let circles = nodeEnter.append("circle")
+	    .attr("r", 1e-6)
+	    .style("fill", d => this.colorCollapsed(d))
+	    .style("stroke", d => this.colorGender(d));
+
+	this.applySymbols(nodeEnter);
+	return circles;
+    }
+
+    //TODO: Move this outside the generic class - it doesn't make much sense
+    colorCollapsed(d) {
+	return (d && d._children) ? this.collapsedNodeColor : this.nodeColor;
+    }
+
+    colorGender(d) {
+	try {
+	    let gender = d.data.gender || "def";
+	    switch (gender.toUpperCase()) {
+	        case "FEMALE": return this.femaleColor;
+	        case "MALE": return this.maleColor;
+	        default: return this.defGenderColor; //Grey
+	    }
+	}
+	catch(error) {
+	    console.error(error);
+	}
+    }
+
+    applySymbols(nodeEnter) {
+	nodeEnter.append("path")
+	    .attr("class", "symb")
+	    .attr("d", d => {
+		return d3.symbol().type(d3.symbolCircle)
+		    .size((d.data.role && d.data.role.toUpperCase() == "ALPHA") ? 125 : 0)()
+	    })
+	    .attr("transform", d => {
+		let x = this.radius * Math.cos(Math.PI / 4);
+		let y = this.radius * Math.sin(Math.PI / 4);
+		return "translate(" + x + "," + -y + ")";
+	    })
+	    .style("fill", this.alphaColor)
+	    .style("fill-opacity", 1e-6);
+    }
+
+    updateSymbols(nodeUpdate) {
+	nodeUpdate.select("path.symb")
+	    .attr("transform", d => {
+		let x = this.radius * Math.cos(Math.PI / 4);
+		let y = this.radius * Math.sin(Math.PI / 4);
+		return "translate(" + x + "," + -y + ")";
+	    })
+	    .style("fill-opacity", 1);
+    }
+
+    //TODO: Stub function
+    formatText(nodeEnter) {
+	//Style node text
+//	let boundedLength = 2 * this.radius * Math.cos(Math.PI / 4); //Necessary dimensions of bounding rectangle
+	nodeEnter.append("text")
+//	    .attr(d => d.x - (boundedLength / 2))
+//	    .attr(d => d.y - (boundedLength / 2))
+//	    .attr("width", boundedLength)
+//	    .attr("height", boundedLength)
+	    .attr("dy", ".5em") //Vertically centered
+	    .text(d => d.data.name)
+	    .style("fill-opacity", 1e-6);
+    }
+
+    //Toggle children on click.
+    click(d) {
+	if (d.children) { //Collapse child nodes
+	    d._children = d.children;
+	    d.children = null;
+	}
+	else {//Expand child nodes
+	    d.children = d._children;
+	    d._children = null;
+	}
+	
+	this.updateTree(d);
+    }
+
+}
+
