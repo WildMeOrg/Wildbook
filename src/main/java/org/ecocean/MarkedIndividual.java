@@ -128,7 +128,6 @@ public class MarkedIndividual implements java.io.Serializable {
     setTaxonomyFromEncounters();
     setSexFromEncounters();
     maxYearsBetweenResightings=0;
-    refreshDependentProperties(context);
   }
 
   /**
