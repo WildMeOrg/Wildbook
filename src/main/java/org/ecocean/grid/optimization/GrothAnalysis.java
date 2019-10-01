@@ -1,4 +1,6 @@
-package org.ecocean.grid;
+package org.ecocean.grid.optimization;
+
+import org.ecocean.grid.*;
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -24,6 +26,20 @@ public class GrothAnalysis implements MultivariateFunction {
   private int numComparisons = 200;
   private int maxNumSpots = 30;
   private String defaultSide = "left";
+  
+  private int targetScore = 100;
+  private double weightAmount = 0.1;
+  private boolean useWeights = false;
+
+  private double[] parameterScaling = new double[] {1.0, 1.0, 1.0, 1.0, 1.0};
+
+  public ArrayList<Double> getMatchScores() {
+    return matchScores;
+  }
+
+  public ArrayList<Double> getNonMatchScores() {
+    return nonmatchScores;
+  }
 
   public static void flush() {
     matchedswis=new ArrayList<ScanWorkItem>();
@@ -42,6 +58,10 @@ public class GrothAnalysis implements MultivariateFunction {
     this.defaultSide = side;
   }
 
+  protected void setParameterScales(double[] scales) {
+    this.parameterScaling = scales;
+  }
+
   /*
   * 
   * 
@@ -51,9 +71,16 @@ public class GrothAnalysis implements MultivariateFunction {
     //final double[] valArr = new double[0];
     double val = -1;
      //Parameter order: {epsilon, R, sizeLim, maxTriangleRotation, C}  
-    System.out.println("Epsilon: "+point[0]+"  R: "+point[1]+"  sizeLim: "+point[2]+"  maxTriangleRotation: "+point[3]+"  C: "+point[4]);
+     // okay, we need to undo parameter scaling for actually feeding params into the grid
+    double[] scaledPoint = new double[4];
+    for (int i=0;i<point.length;i++) {
+      scaledPoint[i] = point[i]*parameterScaling[i];
+    }
+    System.out.println("UNSCALED INPUT ==> Epsilon: "+point[0]+"  R: "+point[1]+"  sizeLim: "+point[2]+"  maxTriangleRotation: "+point[3]+"  C: "+point[4]);
+    System.out.println("  SCALED INPUT ==> Epsilon: "+scaledPoint[0]+"  R: "+scaledPoint[1]+"  sizeLim: "+scaledPoint[2]+"  maxTriangleRotation: "+scaledPoint[3]+"  C: "+scaledPoint[4]);
+
     try {
-      val = getScoreDiffMatchesMinusNonmatches(numComparisons, point[0], point[1], point[2], point[3], point[4], defaultSide, maxNumSpots );
+      val = getScoreDiffMatchesMinusNonmatches(numComparisons, scaledPoint[0], scaledPoint[1], scaledPoint[2], scaledPoint[3], scaledPoint[4], defaultSide, maxNumSpots, useWeights, targetScore, weightAmount );
       //valArr[0] = val;
     } catch (Exception e) {
       e.printStackTrace();
@@ -62,24 +89,8 @@ public class GrothAnalysis implements MultivariateFunction {
     return val;
   }
 
-  // public DerivativeStructure[] value(DerivativeStructure[] point) throws MathIllegalArgumentException {
-  //   //final double[] params = new double[0];
-  //   //final DerivativeStructure[] vals = new DerivativeStructure[point.length];
-    
-  //   //DerivativeStructure vi = new DerivativeStructure(point.length, 1, f.value(observed.getX(), params));
-  //   //   // params[i] = point[i].getValue();
-  //   // }
-  //   DerivativeStructure[] dsArr = new DerivativeStructure[point.length];
-  //   for (int i=0;i<point.length;i++) {
-  //   //for (DerivativeStructure ds : point) {
-
-  //     //wat
-  //     dsArr[i] = point[i].multiply(point[i]);
-  //   }
-  //   return dsArr;
-  // }
-
-  public static Double getScoreDiffMatchesMinusNonmatches(int numComparisonsEach, double epsilon, double R, double Sizelim, double maxTriangleRotation, double C, String side, int maxNumSpots) throws Exception {
+  public static Double getScoreDiffMatchesMinusNonmatches(int numComparisonsEach, double epsilon, double R, double Sizelim, double maxTriangleRotation,
+                                                          double C, String side, int maxNumSpots, boolean useWeights, int targetScore, double weightAmount) throws Exception {
     
     Double totalMatchScores=0.0;
     Double totalNonmatchScores=0.0;
@@ -244,6 +255,11 @@ public class GrothAnalysis implements MultivariateFunction {
      MatchObject mo=swi.getResult();
      matches.add(mo);
      double score=mo.getMatchValue() * mo.getAdjustedMatchValue();
+     
+     if (useWeights&&score<targetScore) {
+       score = score*(1.0-weightAmount);
+      }
+
      matchScores.add(new Double(score));
      totalMatchScores+=score;
    }
@@ -256,15 +272,28 @@ public class GrothAnalysis implements MultivariateFunction {
      MatchObject mo=swi.getResult();
      nonmatches.add(mo);
      double score=mo.getMatchValue() * mo.getAdjustedMatchValue();
+
+     if (useWeights&&score>targetScore) {
+      score = score*(1.0-weightAmount);
+     }
+
      nonmatchScores.add(new Double(score));
      totalNonmatchScores+=score;
    }
    
+   System.out.println("======> matchScores-matchScores: "+(totalMatchScores-totalNonmatchScores));
+   System.out.println("======> matchScores/matchScores: "+(totalMatchScores/totalNonmatchScores));
 
    return totalMatchScores-totalNonmatchScores;
     
     
   }
   
+  //When used, will penalize all non-match scores over the target score, and inflate match scores over it.
+  public void useWeightsForTargetScore(boolean use, int target, double weight) {
+    this.targetScore = target;
+    this.weightAmount = weight;
+    this.useWeights = use;
+  }
 
 }
