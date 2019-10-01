@@ -130,28 +130,33 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
           myShepherd.closeDBTransaction();
         }
 
+        //this does children assets in background
+        JSONArray ids = res.optJSONArray("allMediaAssetIds");
+        List<Integer> idInts = new ArrayList<Integer>();
+        for (int i = 0 ; i < ids.length() ; i++) {
+            int idInt = ids.optInt(i, -2);
+            if (idInt > 0) idInts.add(idInt);
+        }
+        MediaAsset.updateStandardChildrenBackground(context, idInts);
+
         //this has to be after commit (so queue can find them from different thread), so we do a little work here
-        if (!j.optBoolean("skipIA", false)) {
-            JSONArray ids = res.optJSONArray("allMediaAssetIds");
-            if ((ids != null) && (ids.length() > 0)) {
-                myShepherd = new Shepherd(context);
-                myShepherd.setAction("MediaAssetCreate.class_IA.intake");
-                myShepherd.beginDBTransaction();
-                List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
-                for (int i = 0 ; i < ids.length() ; i++) {
-                    int id = ids.optInt(i, -1);
-                    if (id < 0) continue;
-                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-                    if (ma != null) allMAs.add(ma);
-                }
-                if (allMAs.size() > 0) {
-                    Task task = IA.intakeMediaAssets(myShepherd, allMAs);
-                    myShepherd.storeNewTask(task);
-                    res.put("IATaskId", task.getId());
-                }
-                myShepherd.commitDBTransaction();
-                myShepherd.closeDBTransaction();
+        if (!j.optBoolean("skipIA", false) && (idInts.size() > 0)) {
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("MediaAssetCreate.class_IA.intake");
+            myShepherd.beginDBTransaction();
+            List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+            for (Integer id : idInts) {
+                if (id < 0) continue;
+                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                if (ma != null) allMAs.add(ma);
             }
+            if (allMAs.size() > 0) {
+                Task task = IA.intakeMediaAssets(myShepherd, allMAs);
+                myShepherd.storeNewTask(task);
+                res.put("IATaskId", task.getId());
+            }
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
         }
 
         out.println(res.toString());
@@ -301,7 +306,6 @@ System.out.println(i + ") params -> " + params.toString());
                     targetMA.addLabel("_original");
                     targetMA.setAccessControl(request);
                     MediaAssetFactory.save(targetMA, myShepherd);
-	            targetMA.updateStandardChildren(myShepherd);  //lets always do this (and can add flag to disable later if needed)
                     if (setId != null) {
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
                         sets.get(setId).addMediaAsset(targetMA);
