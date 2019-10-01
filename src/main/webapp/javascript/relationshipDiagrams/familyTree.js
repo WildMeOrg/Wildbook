@@ -82,17 +82,12 @@ function setupFamilyTree(individualID) {
 class FamilyTree extends GraphAbstract {
     constructor(individualID) {
 	super(individualID); //Parent constructor
-
-	//G dimensions
-	this.gWidth = this.width - this.margin.right - this.margin.left,
-	this.gHeight = this.height - this.margin.top - this.margin.bottom;
-
+	
 	this.i = 0; //TODO: Rename	
 	
 	//Set upon data retrieval
 	this.tree;
 	this.root;
-	this.svg;
     }
 
     //TODO: Consider moving this outside the scope of the class.. The obj references are clunky
@@ -256,7 +251,6 @@ class FamilyTree extends GraphAbstract {
     }
 
     removeStaleLinks(link, source) {
-	//Transition exiting nodes to the parent'ns new position.
 	link.exit().transition()
 	    .duration(this.duration)
 	    .attr("d", d => {
