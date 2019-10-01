@@ -66,6 +66,13 @@ QUnit.module('addTooltip()', () => {
     });
 });
 
+//TODO: Add functionality
+QUnit.module('handleMouseOver()', () => {
+    QUnit.test('', t => {
+	
+    });
+});
+
 QUnit.module('colorCollapsed()', () => {
     function validateColor(test, color, colorRef) {
 	test.strictEqual(color, colorRef);
@@ -108,3 +115,28 @@ QUnit.module('colorGender()', () => {
     });
 });
 
+let mockedClick;
+QUnit.module('click()', {
+    'before': () => mockedClick = ga.click.bind({'updateTree': d => true})
+}, () => {
+    QUnit.test('Collapsed node', t => {
+	let d = {'children': false, '_children': true};
+	mockedClick(d);
+	t.ok(d.children);
+	t.notOk(d._children);
+    });
+		 
+    QUnit.test('Non-collapsed node', t => {
+	let d = {'children': true, '_children': false};
+	mockedClick(d);
+	t.ok(d._children);
+	t.notOk(d.children);
+    });
+
+    QUnit.test('Child-less node', t => {
+	let d = {};
+	mockedClick(d);
+	t.notOk(d.children);
+	t.notOk(d._children);
+    });
+});
