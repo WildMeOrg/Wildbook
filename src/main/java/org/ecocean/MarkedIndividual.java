@@ -1877,6 +1877,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
     jobj.put("nickname", this.nickName);
+    jobj.put("numberLocations", this.numberLocations);
 
     Vector<String> encIDs = new Vector<String>();
     for (Encounter enc : this.encounters) {
