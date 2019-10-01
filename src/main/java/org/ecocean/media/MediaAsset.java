@@ -1192,12 +1192,15 @@ System.out.println(">> updateStandardChildren(): type = " + type);
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("updateStandardChildrenBackground:" + tid);
                 myShepherd.beginDBTransaction();
+                int ct = 0;
                 for (Integer id : ids) {
+                    ct++;
                     MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
                     if (ma == null) continue;
                     ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
-                    System.out.println("+ updateStandardChildrenBackground() [" + tid + "] completed " + kids.size() + " children for id=" + id);
+                    System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" + tid + "] completed " + kids.size() + " children for id=" + id);
                 }
+                myShepherd.commitDBTransaction();
                 myShepherd.closeDBTransaction();
             }
         };
