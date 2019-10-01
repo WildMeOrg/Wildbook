@@ -198,7 +198,13 @@
 	
 	
 		JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
+		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
+		JSONArray jsonobj = new JSONArray();
+		System.out.println("Starting to iterate over individuals");
+		for (MarkedIndividual mark: rIndividuals) {
+			jsonobj.put(mark.uiJson(request));
+		}
+		System.out.println("Done iterating over individuals");
 		String indsJson = jsonobj.toString();
 	
 	%>
