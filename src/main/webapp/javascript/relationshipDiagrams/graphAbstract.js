@@ -49,6 +49,7 @@ class GraphAbstract {
     }
 
     wheelDelta () {
+	console.log(d3.event);
 	return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1 ) / this.zoomFactor;
     }
 
