@@ -163,7 +163,7 @@ public class MarkedIndividual implements java.io.Serializable {
       if(isNew){
         encounters.add(newEncounter);
         numberEncounters++;
-        refreshDependentProperties(context);
+        refreshDependentProperties();
       }
       setTaxonomyFromEncounters();  //will only set if has no value
       setSexFromEncounters();       //likewise
