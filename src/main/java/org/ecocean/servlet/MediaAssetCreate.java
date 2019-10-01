@@ -335,12 +335,15 @@ System.out.println("no MediaAssetSet; created " + targetMA);
                 }
                 attachRtn.put(artn);
             } else if (attOcc != null) {  //this requires a little extra, to make the enc, minimum is taxonomy
-                String tax = attOcc.optString("taxonomy");
+                String tax = attOcc.optString("taxonomy", null);
                 JSONObject artn = new JSONObject();
                 Occurrence occ = myShepherd.getOccurrence(attOcc.optString("id", "__FAIL__"));
                 if ((tax == null) || (occ == null)) {
                     System.out.println("MediaAssetCreate.attachToOccurrence ERROR had invalid .taxonomy or bad id; skipping " + attOcc);
                 } else {
+                    artn.put("id", occ.getOccurrenceID());
+                    artn.put("assets", new JSONArray());
+                    artn.put("type", "Occurrence");
                     ArrayList<Annotation> anns = new ArrayList<Annotation>();
                     for (MediaAsset ema : mas) {
                         Annotation ann = new Annotation(tax, ema);
@@ -349,12 +352,10 @@ System.out.println("no MediaAssetSet; created " + targetMA);
                     }
                     Encounter enc = new Encounter(anns);
                     enc.setTaxonomyFromString(tax);
+                    enc.addSubmitter(AccessControl.getUser(request, myShepherd));
                     enc.addComments("<p>created by MediaAssetCreate attaching to Occurrence " + occ.getOccurrenceID() + "</p>");
                     occ.addEncounter(enc);
-                    artn.put("id", occ.getOccurrenceID());
                     artn.put("encounterId", enc.getCatalogNumber());
-                    artn.put("type", "Occurrence");
-                    artn.put("assets", new JSONArray());
                     myShepherd.getPM().makePersistent(enc);
                     System.out.println("MediaAssetCreate.attachToOccurrence added Enc " + enc.getCatalogNumber() + " to Occ " + occ.getOccurrenceID());
                 }
