@@ -23,6 +23,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.LocationID;
+import org.ecocean.MarkedIndividual;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -102,6 +103,13 @@ public class EncounterSetLocationID extends HttpServlet {
         changeMe.setLocationCode(request.getParameter("code").trim());
         changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed location code from " + oldCode + " to " + request.getParameter("code") + ".</p>");
 
+        //update numberLocations on  a dependent MarkedIndividual too
+        if(changeMe.getIndividual()!=null) {
+          MarkedIndividual indy=changeMe.getIndividual();
+          indy.refreshDependentProperties();
+        }
+        
+        
       } catch (Exception le) {
         locked = true;
         le.printStackTrace();
