@@ -788,20 +788,25 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
 
 
-    //alternateID and nickName are now handled here (and commented out below)
-    List<String> nameIds = new ArrayList<String>();
-    String altVal = request.getParameter("alternateIDField");
-    String nickVal = request.getParameter("nickNameField");
-    // adding the stars means we're looking for a substring not exact match
-    if (Util.stringExists(altVal)) nameIds.addAll(MarkedIndividual.findNameIds(".*" + altVal + ".*"));
-    if (Util.stringExists(nickVal)) nameIds.addAll(MarkedIndividual.findNameIds(".*" + nickVal + ".*"));
-    //filter for nick name------------------------------------------
-    if((request.getParameter("nickNameField")!=null)&&(!request.getParameter("nickNameField").equals(""))) {
-      String nickName=request.getParameter("nickNameField").replaceAll("%20", " ").trim().toLowerCase();
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(nickName.toLowerCase().indexOf('"+nickName+"') != -1)";}
+        //filter for alternate ID------------------------------------------
+        if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
+          String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim().toLowerCase();
+          if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(alternateid.toLowerCase().indexOf('"+altID+"') != -1 || (encounters.contains(enc99) && enc99.otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1))";}
+          else{filter+=" && (alternateid.toLowerCase().indexOf('"+altID+"') != -1 || (encounters.contains(enc99) && enc99.otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1))";}
+          if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc99")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc99";}
 
-      prettyPrint.append("nickName field contains \""+nickName+"\".<br />");
-    }
+          prettyPrint.append("alternateID field contains \""+altID+"\".<br />");
+        }
+
+
+
+        //filter for nick name------------------------------------------
+        if((request.getParameter("nickNameField")!=null)&&(!request.getParameter("nickNameField").equals(""))) {
+          String nickName=request.getParameter("nickNameField").replaceAll("%20", " ").trim().toLowerCase();
+          if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(nickName.toLowerCase().indexOf('"+nickName+"') != -1)";}
+
+          prettyPrint.append("nickName field contains \""+nickName+"\".<br />");
+        }
 
 
 
