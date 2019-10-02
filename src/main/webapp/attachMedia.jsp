@@ -1128,7 +1128,7 @@ $(document).ready(function() {
 
     flow.on('fileSuccess', function(file,message){
         console.log('----------------- SUCCESS %o', file);
-        mediaData[file.file._offset].div.find('.upload-status').html('&#x2611;&#x2610;&#x2610;');
+        mediaData[file.file._offset].div.find('.upload-status').html('&#x2611;&#x2610;');
         pendingUpload--;
         checkUploadComplete();
     });
@@ -1140,19 +1140,35 @@ $(document).ready(function() {
         checkUploadComplete();
     });
 
-console.log('----------------------------------- flow init?');
 });
 
 
 function checkUploadComplete() {
     if (pendingUpload > 0) return;
-alert('bulk upload under development');
-return;
-    var macData = { skipIA: true, MediaAssetCreate: [ { assets: [] } ] };  //skip IA until after we attach etc
-    for (var i = 0 ; i < saveData.offsets.length ; i++) {
-        macData.MediaAssetCreate[0].assets.push({ filename: mediaData[saveData.offsets[i]].file.name });
-    }
-console.warn('checkUploadComplete() %o', macData);
+    var macData = {
+        MediaAssetCreate: [],
+        skipIA: true  //for testing only
+    };
+    $('.has-attachments').each(function(i, el) {
+        var mac = { assets: [] };
+        $(el).find('.bulk-media').each(function(j, attEl) {
+            var offset = parseInt(attEl.getAttribute('data-offset'));
+            mac.assets.push({ filename: mediaData[offset].file.name });
+        });
+        if (el.id.startsWith('app-data-enc-')) {
+            mac.attachToEncounter = { id: el.id.substring(13) };
+        } else if (el.id.startsWith('app-data-occ-')) {
+            mac.attachToOccurrence = {
+                id: el.id.substring(13),
+                //TODO how to allow user to enter alternate?  how to make sure we have scientific name?  etc!
+                taxonomy: $(el).find('.app-tax').text() || 'unknown'
+            };
+        }
+        macData.MediaAssetCreate.push(mac);
+    });
+
+    saveData.macData = macData;
+console.info('checkUploadComplete() %o', macData);
     $.ajax({
         url: 'MediaAssetCreate',
         type: 'POST',
@@ -1161,7 +1177,7 @@ console.warn('checkUploadComplete() %o', macData);
         data: JSON.stringify(macData),
         complete: function(xhr, status) {
             if (status != 'success') {
-                macError('error: ' + status, xhr);
+                macError(status + ': ' + (xhr.status || '') + ' ' + (xhr.statusText || 'unknown problem'), xhr);
             } else if (!xhr.responseJSON || !xhr.responseJSON.success) {
                 macError(xhr.responseJSON.error || 'unknown error', xhr);
             } else {
@@ -1172,61 +1188,26 @@ console.warn('checkUploadComplete() %o', macData);
 }
 
 function macError(msg, xhr) {
-    alert(msg);
-    console.warn(xhr);
+    $('#list-wait').hide();
+    $('.app-data .upload-status').html('<span title="ERROR: ' + msg + '" style="color: #F00;">&#x2715;</span>');
+    console.warn('macError: %o', xhr);
+    imageEnhancer.popup('<p>There was a problem sending the data.</p><p class="error">' + msg + '</p>');
 }
 
-var pendingAttach = -1;
 function macSuccess(data) {
+    $('#list-wait').hide();
     saveData.macResults = data;
-    $('.app-data .upload-status').html('&#x2611;&#x2611;&#x2610;');
-    for (var i = 0 ; i < data.withoutSet.length ; i++) {
-        for (var j = 0 ; j < saveData.offsets.length ; j++) {
-            if (mediaData[saveData.offsets[j]].file.name == data.withoutSet[i].filename) {
-                mediaData[saveData.offsets[j]].mediaAssetId = data.withoutSet[i].id;
-            }
+    $('.app-data .upload-status').html('&#x2611;&#x2611;');
+    var h = '<b>Successfully created:</b><ul>';
+    for (var i = 0 ; i < data.attached.length ; i++) {
+        if (data.attached[i].type == 'Encounter') {
+            h += '<li><a target="_new" href="encounters/encounter.jsp?number=' + data.attached[i].id + '"><b>Encounter ' + data.attached[i].id.substr(0,6) + '</b></a> (attached: ' + data.attached[i].assets.length + ')</a></li>';
+        } else {
+            h += '<li><a target="_new" href="encounters/encounter.jsp?number=' + data.attached[i].encounterId + '"><b>Encounter ' + data.attached[i].encounterId.substr(0,6) + '</b></a> (on <a target="_new" href="occurrence.jsp?number=' + data.attached[i].id + '">Sight ' + data.attached[i].id.substr(0,6) + '</a>, attached: ' + data.attached[i].assets.length + ')</a></li>';
         }
     }
-
-    pendingAttach = $('.has-attachments').length;
-    $('.has-attachments').each(function(i, el) {
-        var maIds = [];
-        $(el).find('.bulk-media').each(function(j, attEl) {
-            var offset = parseInt(attEl.getAttribute('data-offset'));
-            if (mediaData[offset].mediaAssetId) {
-                maIds.push(mediaData[offset].mediaAssetId);
-            } else {
-                alert('could not find MediaAsset id for offset=' + offset);
-                //console.error('could not find MediaAsset id for offset=' + offset);
-            }
-        });
-        if (el.id.startsWith('app-data-enc-')) {
-            attachToEncounter(el.id.substring(13), maIds);
-        } else if (el.id.startsWith('app-data-occ-')) {
-            attachToOccurrence(el.id.substring(13), maIds);
-        }
-    });
-}
-
-function attachToEncounter(encId, maIds) {
-    console.log('pretend we are attaching to ENC %s: %o', encId, maIds);
-    $('#app-data-enc-' + encId + ' .upload-status').html('&#x2611;&#x2611;&#x2611;');
-    pendingAttach--;
-    checkFinal();
-}
-
-//need to *create* an encounter(s?) under here
-// get some stuff (e.g. taxonomy) from tr td
-function attachToOccurrence(occId, maIds) {
-    console.log('need to CREATE encounter under occ %s and attach: %o', occId, maIds);
-    $('#app-data-occ-' + occId + ' .upload-status').html('&#x2611;&#x2611;&#x2611;');
-    pendingAttach--;
-    checkFinal();
-}
-
-function checkFinal() {
-    if (pendingAttach) return;
-    $('#list-wait').hide();
+    h += '</ul>';
+    $('#input-file-list').html(h);
 }
 
 
@@ -1257,7 +1238,7 @@ or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your 
 
 <div id="action-buttons" style="display: none; padding: 30px; text-align: center;">
     <span id="upload-button"></span>
-    <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button2">[NOT IMPLEMENTED] begin bulk upload</a>
+    <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button2">begin bulk upload</a>
     <a class="button" onClick="return cancelUpload();" >cancel bulk upload</a>
 </div>
 
