@@ -955,9 +955,9 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
     }
 
         boolean restAccessCheck(Object obj, HttpServletRequest req, JSONObject jsonobj) {
-          System.out.println(jsonobj.toString());
-          System.out.println(obj);
-          System.out.println(obj.getClass());
+          //System.out.println(jsonobj.toString());
+          //System.out.println(obj);
+          //System.out.println(obj.getClass());
                       boolean ok = true;
                       Method restAccess = null;
                       try {
@@ -1016,31 +1016,31 @@ System.out.println(thisRequest);
                   sj = obj.getClass().getMethod("decorateJson", new Class[] { HttpServletRequest.class, JSONObject.class });
               } 
               catch (NoSuchMethodException nsm) { //do nothing
-                  System.out.println("i guess " + obj.getClass() + " does not have decorateJson() method");
+                  //System.out.println("i guess " + obj.getClass() + " does not have decorateJson() method");
               }
               if (sj != null) {
                   //System.out.println("trying decorateJson on "+obj.getClass());
                   try {
                       jobj = (JSONObject)sj.invoke(obj, req, jobj);
-                      System.out.println("decorateJson");
+                      //System.out.println("decorateJson");
                   } 
                   catch (Exception ex) {
                     ex.printStackTrace();
-                    System.out.println("got Exception trying to invoke decorateJson: " + ex.toString());
+                    //System.out.println("got Exception trying to invoke decorateJson: " + ex.toString());
                   }
               }
             }
             
-            System.out.println(jobj.toString());
+            //System.out.println(jobj.toString());
             
             //call sanitizeJson on object
-            if(req.getParameter("noSanitize")==null) {
+
               sj = null;
               try {
                   sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
               } 
               catch (NoSuchMethodException nsm) { //do nothing
-                  System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+                  //System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
               }
               if (sj != null) {
                   //System.out.println("trying sanitizeJson on "+obj.getClass());
@@ -1050,10 +1050,10 @@ System.out.println(thisRequest);
                   } 
                   catch (Exception ex) {
                     ex.printStackTrace();
-                    System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
+                    //System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
                   }
               }
-            }
+
 
             
             
@@ -1095,7 +1095,7 @@ System.out.println("- scrubJson reporting class=" + jobj.get("class").toString()
 */
 
         void tryCompress(HttpServletRequest req, HttpServletResponse resp, Object jo, boolean useComp) throws IOException, JSONException {
-System.out.println("??? TRY COMPRESS ??");
+//System.out.println("??? TRY COMPRESS ??");
             //String s = scrubJson(req, jo).toString();
             String s = jo.toString();
             if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
