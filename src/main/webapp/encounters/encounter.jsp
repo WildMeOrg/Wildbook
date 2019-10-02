@@ -201,6 +201,10 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   <style type="text/css">
 
+.disabled {
+    opacity: 0.6;
+}
+
 .ia-match-filter-dialog {
     display: none;
     z-index: 3000;
@@ -786,7 +790,7 @@ $(function() {
 <%-- START LOCATION --%>
 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
-	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/>
+	<img src="../images/2globe_128.gif" width="20px" height="20px" align="absmiddle"/>
   <%=encprops.getProperty("location") %>
   <button class="btn btn-md" type="button" name="button" id="editLocation">Edit</button>
   <button class="btn btn-md" type="button" name="button" id="closeEditLocation" style="display:none;">Close Edit</button>
@@ -2695,7 +2699,7 @@ else {
 
                         if(thisUser.getUserURL()!=null){
                             %>
-                            <p><strong><%=encprops.getProperty("webSite") %></strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
+                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
                             <%
                           }
 
@@ -5183,7 +5187,7 @@ if((tissueSamples!=null)&&(tissueSamples.size()>0)){
 for(int j=0;j<numTissueSamples;j++){
 	TissueSample thisSample=tissueSamples.get(j);
 	%>
-	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td>
+	<tr><td><span class="caption"><%=thisSample.getSampleID() %></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td>
 
 	<td><table>
 		<%
@@ -5194,7 +5198,7 @@ for(int j=0;j<numTissueSamples;j++){
 			if(ga.getAnalysisType().equals("MitochondrialDNA")){
 				MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
 				%>
-				<tr><td style="border-style: none;"><strong><span class="caption"><%=encprops.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %>
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=encprops.getProperty("haplotype") %></strong></span></strong> <span class="caption"><%=mito.getHaplotype() %> <a id="haplo<%=thisSample.getSampleID() %>" class="toggleBtn"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> <a onclick="return confirm('<%=encprops.getProperty("deleteHaplotype") %>');" href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a>
 				<%
 				if(!mito.getSuperHTMLString().equals("")){
 				%>
@@ -5205,9 +5209,8 @@ for(int j=0;j<numTissueSamples;j++){
 				<%
 				}
 				%>
-				</span></td>
-				<td style="border-style: none;">
-					<a id="haplo<%=mito.getAnalysisID() %>" class="toggleBtn"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				</span>
+					
 
 							<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -5215,14 +5218,14 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <!-- start haplotype popup -->
 <script type="text/javascript">
   $(document).ready(function() {
-    $("#haplo<%=mito.getAnalysisID() %>").click(function() {
-      $("#dialogHaplotype<%=mito.getAnalysisID() %>").toggle();
+    $("#haplo<%=thisSample.getSampleID() %>").click(function() {
+      $("#dialogHaplotype<%=thisSample.getSampleID() %>").toggle();
     });
   });
 </script>
 
-<div id="dialogHaplotype<%=mito.getAnalysisID() %>" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">
-<form id="setHaplotype<%=mito.getAnalysisID() %>" action="../TissueSampleSetHaplotype" method="post">
+<div id="dialogHaplotype<%=thisSample.getSampleID() %>" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">
+<form id="setHaplotype<%=thisSample.getSampleID() %>" action="../TissueSampleSetHaplotype" method="post">
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
   <tr>
@@ -5314,7 +5317,7 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
 }
 %>
 
-				</td><td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteHaplotype") %>');" href="../TissueSampleRemoveHaplotype?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr></li>
+				</td></tr></li>
 			<%
 			}
 			else if(ga.getAnalysisType().equals("SexAnalysis")){
@@ -5426,7 +5429,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 
 				</td>
-				<td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteGenetic") %>');" href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" /></a></td></tr>
+				<td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteGenetic") %>');" href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img style="border-style: none;width: 20px;height: 20px;" src="../images/cancel.gif" /></a></td></tr>
 			<%
 			}
 			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
@@ -5435,7 +5438,12 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 			%>
 			<tr>
 				<td style="border-style: none;">
-					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span>
+					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span>          
+					<a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+
+        <a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>">
+        <img style="border-style: none;width: 20px;height: 20px;" src="../images/cancel.gif" />
+      </a>
 					<%
 					if((enc.getIndividualID()!=null)&&(request.getUserPrincipal()!=null)){
 					%>
@@ -5460,16 +5468,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
 
-				</td>
-				<td style="border-style: none;">
-          <a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>">
-          <img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
-        </a>
-      </td>
-      <td style="border-style: none;">
-        <a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>">
-        <img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" />
-      </a>
+
 
 															<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -5479,7 +5478,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <script type="text/javascript">
   $(document).ready(function() {
     $("#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
-      $("#dialogMSMarkersSet").toggle();
+      $("#dialogMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").toggle();
     });
   });
 </script>
@@ -5817,8 +5816,12 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
     <script type="text/javascript">
       $(document).ready(function() {
         $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
-          $("#dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
-        });
+          var x = $("#dialogHaplotype<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>");
+          if (x.style.display === "none") {
+            x.style.display = "block";
+          } else {
+            x.style.display = "none";
+          }
       });
     </script>
 		<p>
@@ -5826,7 +5829,7 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
         <a class="addHaplotype<%=thisSample.getSampleID() %> toggleBtn">
         <img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png"/>
         </a>
-      <a class="toggleBtn addHaplotype<%=thisSample.getSampleID() %>"><%=encprops.getProperty("addHaplotype") %></a>
+      <a class="toggleBtn addHaplotype<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>"><%=encprops.getProperty("addHaplotype") %></a>
     </span>
   </p>
 		<%
@@ -6344,7 +6347,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 	</td>
 
 
-	<td><a id="sample" href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample&function=1"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a onclick="return confirm('<%=encprops.getProperty("deleteTissue") %>');" href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" /></a></td></tr>
+	<td><a id="sample" href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample&function=1"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a onclick="return confirm('<%=encprops.getProperty("deleteTissue") %>');" href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;width: 20px;height: 20px;" src="../images/cancel.gif" /></a></td></tr>
 	<%
 }
 %>

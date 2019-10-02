@@ -63,9 +63,9 @@ public class LocationID {
   /*
    * Force a reload of /bundles/locationID.json
    */
-  public static void reloadJSON(String filename) {
+  public static void reloadJSON(String qualifier) {
     jsonMaps=new ConcurrentHashMap<String,JSONObject>();
-    loadJSONData(filename);
+    loadJSONData(qualifier);
   }
   
   private static void loadJSONData(String qualifier) {

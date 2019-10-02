@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 
 public class ShepherdProperties {
 
-  public static final String[] overrideOrgsArr = {"indocet"};
+  public static final String[] overrideOrgsArr = {"indocet","NARW"};
   // set for easy .contains() checking
   public static final Set<String> overrideOrgs = new HashSet<>(Arrays.asList(overrideOrgsArr));
 

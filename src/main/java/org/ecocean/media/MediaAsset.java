@@ -1175,6 +1175,45 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         }
         return mas;
     }
+/*
+    >> EXPERIMENTAL <<
+    as above, but not only saves the children MediaAssets, but does so in the background.
+    this *requires* that the asset has been presisted, as it will re-read it from the db.  this is to insure that the .store
+    is also usable.
+    NOTE: it is better to send a huge list of ids here, than iterate over them one at a time, to create a sort of pseudo-queue
+    for large jobs, rather than multiple (simultaneous) threads..  ouch!
+*/
+    public static void updateStandardChildrenBackground(final String context, final List<Integer> ids) {
+        if ((ids == null) || (ids.size() < 1)) return;
+        final String tid = Util.generateUUID().substring(0,8);
+        System.out.println("updateStandardChildrenBackground() [" + tid + "] forking for " + ids.size() + " MediaAsset ids >>>>");
+        Runnable rn = new Runnable() {
+            public void run() {
+                Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("updateStandardChildrenBackground:" + tid);
+                myShepherd.beginDBTransaction();
+                int ct = 0;
+                for (Integer id : ids) {
+                    ct++;
+                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                    if (ma == null) continue;
+                    ArrayList<MediaAsset> kids = ma.updateStandardChildren(myShepherd);
+                    System.out.println("+ [" + ct + "] updateStandardChildrenBackground() [" + tid + "] completed " + kids.size() + " children for id=" + id);
+                }
+                myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
+            }
+        };
+        new Thread(rn).start();
+        System.out.println("updateStandardChildrenBackground() [" + tid + "] out of fork for ct=" + ids.size() + " <<<<");
+    }
+    //convenience, XXX  BUT see not above about sending multiple ids when possible!  XXX
+    public static void updateStandardChildrenBackground(final String context, int id) {
+        updateStandardChildrenBackground(context, new ArrayList<Integer>(id));
+    }
+    public void updateStandardChildrenBackground(String context) {  //convenience
+        updateStandardChildrenBackground(context, this.getId());
+    }
 
 
     public void setKeywords(ArrayList<Keyword> kws) {

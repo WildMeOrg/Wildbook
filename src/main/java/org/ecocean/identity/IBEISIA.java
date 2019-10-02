@@ -3917,13 +3917,23 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
     }
 
     //returns map of acmId=>species where IA was set incorrectly
-    public static Map<String,String> iaSpeciesDiff(Shepherd myShepherd) {
+    //  "cleanup" will set acmId=>_cleanup for IDs which are unknown to wb side
+    public static Map<String,String> iaSpeciesDiff(Shepherd myShepherd, boolean includeCleanup) {
         String context = myShepherd.getContext();
         Map<String,String> ourMap = acmIdSpeciesMap(myShepherd);
         List<String> iaIds = org.ecocean.ia.plugin.WildbookIAM.iaAnnotationIds(context);
         int orig = iaIds.size();
+        List<String> ourIds = new ArrayList<String>(ourMap.keySet());
+
+        List<String> needCleanup = null;
+        if (includeCleanup) {
+            needCleanup = new ArrayList<String>(iaIds);
+            needCleanup.removeAll(ourIds);
+            System.out.println("[INFO] iaSpeciesDiff() wanting cleanup of " + needCleanup.size() + " unknown ia ids");
+        }
+
         //now we need the intersection of ids in IA (iaIds) and what we have -- which ideally should be the same! "ha"
-        iaIds.retainAll(new ArrayList<String>(ourMap.keySet()));
+        iaIds.retainAll(ourIds);
         System.out.println("[INFO] iaSpeciesDiff() locally reduced iaIds from " + orig + " to " + iaIds.size());
         List<String> iaList = null;
         try {
@@ -3958,6 +3968,9 @@ System.out.println("iaList.size = " + iaList.size());
                 System.out.println("[INFO] iaSpeciesDiff() acmId=" + iaIds.get(i) + " got " + ias + " from IA versus local " + ours);
                 diff.put(iaIds.get(i), ours);
             }
+        }
+        if (!Util.collectionIsEmptyOrNull(needCleanup)) for (String id : needCleanup) {
+            diff.put(id, "_cleanup");
         }
         return diff;
     }

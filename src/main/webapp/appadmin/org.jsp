@@ -12,6 +12,8 @@ org.ecocean.media.*
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("org.jsp");
+myShepherd.beginDBTransaction();
 
 String oid = request.getParameter("id");
 String uid = request.getParameter("uid");
@@ -91,6 +93,6 @@ if ((oid == null) && (uid == null)) {  //show all
         }
     }
 }
-
+myShepherd.rollbackAndClose();
 
 %>

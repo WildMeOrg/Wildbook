@@ -137,7 +137,7 @@ function drawOccurrence(occ, occI) {
         });
         marker.setLabel(String.fromCharCode(65 + occI));
         google.maps.event.addListener(marker, 'click', function() {
-            var content = '<p><b><a href="../occurrence.jsp?number=' + occ.id + '">Occur ' + occ.id.substring(0,8) + '</a></b><br />';
+            var content = '<p><b><a href="../occurrence.jsp?number=' + occ.id + '">Sight ' + occ.id.substring(0,8) + '</a></b><br />';
             content += '<b>' + occ.dateTimeCreated + '</b></p>';
             content += '<p>Lat: <b>' + occ.lat + '</b><br />Lon: <b>' + occ.lon + '</b></p>';
             (new google.maps.InfoWindow({content: content })).open(map, this);

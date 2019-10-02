@@ -80,11 +80,12 @@ a.button:hover {
 /* for uploader */
 
 div#file-activity {
+        position: relative;
 	font-family: sans;
 	border: solid 2px black;
 	padding: 8px;
 	margin: 20px;
-	height: 250px;
+	height: 450px;
 	overflow-y: scroll;
 }
 div.file-item {
@@ -139,6 +140,179 @@ div.file-item div {
     margin-top: 20px;
     font-size: 1.2em;
 }
+
+.ui-draggable {
+    cursor: move;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+.ui-draggable-dragging {
+    z-index: 10;
+    cursor: move;
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.bulk-media {
+    display: inline-block;
+    padding: 3px;
+    margin: 3px;
+    background-color: #DDD;
+    width: 150px;
+    position: relative;
+    min-height: 75px;
+}
+
+.bulk-media .bulk-info {
+    left: 0;
+    overflow: hidden;
+    width: 100%;
+    font-size: 0.65em;
+    font-weight: bold;
+    position: absolute;
+    background-color: rgba(0,0,0,0.3);
+    color: white;
+    padding: 0 2px;
+}
+
+.bulk-media.ui-draggable-dragging .bulk-info,
+.bulk-media .bulk-info:hover {
+    width: auto;
+    z-index: 100;
+    background-color: #444;
+    outline: 2px solid black;
+}
+
+.bulk-media img {
+    width: 150px;
+}
+
+
+#prox-info {
+    display: none;
+    position: absolute;
+    right: 100px;
+    padding: 3px 6px;
+    width: 6.5em;
+    margin-top: -2.0em;
+    border-radius: 3px;
+    background-color: #888;
+    font-size: 0.9em;
+    text-align: right;
+    color: #EEE;
+}
+
+#bulk-media-list,
+#app-data-list {
+    width: 48.5%;
+    padding: 5px;
+    display: inline-block;
+    margin: 2px;
+    background-color: #EEE;
+    vertical-align: top;
+}
+
+
+.app-data-hover {
+    background-color: #CCF !important;
+}
+
+.app-attachments .bulk-media {
+    width: 100px;
+}
+.app-attachments .bulk-info {
+    font-size: 0.5em;
+}
+
+.app-data {
+    position: relative;
+    background-color: #FFD;
+    padding: 2px 8px;
+    margin: 5px 2px;
+    border-radius: 4px;
+    width: 100%;
+    min-height: 4em;
+}
+
+a.app-id {
+    font-size: 0.9em;
+}
+
+.app-date {
+    position: absolute;
+    top: 0;
+    left: 15em;
+    font-weight: bold;
+    display: inline-block;
+    text-align: right;
+}
+
+.app-numph {
+    position: absolute;
+    top: 3.0em;
+    right: 4px;
+    padding: 0 6px;
+    border-radius: 3px;
+    display: inline-block;
+    background-color: #AAA;
+    color: #EEE;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.app-hide {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    padding: 0 6px;
+    border-radius: 3px;
+    display: inline-block;
+    background-color: #C00;
+    color: #FFF;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+}
+.app-hide:hover {
+    background-color: #CAA;
+}
+
+.app-note {
+    font-size: 0.8em;
+}
+
+#list-wait {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    background-color: rgba(255,255,100,0.2);
+    display: none;
+    z-index: 101;
+}
+#list-wait div {
+    transform: rotate(-23deg);
+    margin-top: 2em;
+    font-weight: bold;
+    color: #028;
+    font-size: 5em;
+}
+
+.upload-status {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 1.8em;
+    color: rgba(255,255,0, 0.7);
+    font-weight: bold;
+}
+
 </style>
 
 <%@ page contentType="text/html; charset=utf-8" 
@@ -148,6 +322,8 @@ org.ecocean.datacollection.Instant,
 org.ecocean.media.MediaAsset,
 org.ecocean.media.Feature,
 org.json.JSONObject,
+org.json.JSONArray,
+org.joda.time.DateTime,
 java.util.Collection,
 java.util.Arrays,
 java.util.ArrayList,
@@ -259,7 +435,7 @@ $(document).ready(function() {
     $('#occs').tablesorter();
     //$('#occs tbody td:nth-child(3)').on('click', function(ev) {
     $('#occs tr').on('click', function(ev) {
-        var occId = ev.currentTarget.getAttribute('data-id');
+        var occId = ev.currentTarget.getAttribute('id');
         wildbook.openInTab('attachMedia.jsp?id=' + occId);
     });
 
@@ -400,10 +576,12 @@ if (AccessControl.isAnonymous(request)) {
 
 } else if (Util.requestParameterSet(id)) {
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("attachMedia.jsp");
     myShepherd.beginDBTransaction();
     occ = myShepherd.getOccurrence(id);
     if (occ == null) {  //TODO also some security check that user can access this occurrence!!
         out.println("<h2>Invalid ID " + id + "</h2>");
+    	myShepherd.rollbackAndClose();
         return;
     }
     Map<String,String> tripInfo = getTripInfo(occ);
@@ -421,7 +599,7 @@ if (AccessControl.isAnonymous(request)) {
 </script>
 <div style="padding: 0 20px;">
 <a class="button" href="attachMedia.jsp">back to list</a>
-<h2>Occurrence <a href="occurrence.jsp?number=<%=occ.getOccurrenceID()%>">[<%=occ.getOccurrenceID().substring(0,8)%>]</a></h2>
+<h2>Sighting <a href="occurrence.jsp?number=<%=occ.getOccurrenceID()%>">[<%=occ.getOccurrenceID().substring(0,8)%>]</a></h2>
 <script>
     var occurrence = {
         id: '<%=occ.getOccurrenceID()%>',
@@ -560,7 +738,7 @@ System.out.println(ft.getParameters());
 
     out.println("<td>" + media.size() + " photos added</td>");  //TODO do something with media list!
     out.println("<td>" + phinfo + "</td>");
-    out.println("<td><a href=\"attachMedia.jsp?id=" + occ.getOccurrenceID() + "&toEncounter=" + enc.getCatalogNumber() + "\" class=\"button\">add photos here</a></td>");
+    out.println("<td><a href=\"attachMedia.jsp?id=" + occ.getOccurrenceID() + "&toEncounter=" + enc.getCatalogNumber() + "\" class=\"button\" style=\"padding: 1px 8px\">add photos here</a></td>");
     out.println("</tr>");
 }
 %>
@@ -573,14 +751,29 @@ System.out.println(ft.getParameters());
 <%
     
     }  //end newEncounter option
-
+	myShepherd.commitDBTransaction();
+	myShepherd.closeDBTransaction();
 } else {
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("attachMedia.jsp2");
     myShepherd.beginDBTransaction();
     User user = AccessControl.getUser(request, myShepherd);
     boolean admin = (user != null) && "admin".equals(user.getUsername());
-    //String filter = "SELECT FROM org.ecocean.Occurrence WHERE source != null";
+    long pageMillis = 90L * 24L * 60L * 60L * 1000L;
+    DateTime dtStart = new DateTime(System.currentTimeMillis() - pageMillis);
+    DateTime dtEnd = new DateTime(System.currentTimeMillis() + 1000L);
+    try {
+        if (request.getParameter("dateStart") != null) dtStart = DateTime.parse(request.getParameter("dateStart"));
+        if (request.getParameter("dateEnd") != null) dtEnd = DateTime.parse(request.getParameter("dateEnd"));
+    } catch (IllegalArgumentException ex) {
+        System.out.println("WARNING: failed to parse args, using default dates -- " + ex.toString());
+    }
+    String dStart = dtStart.toString().substring(0,10);
+    String dEnd = dtEnd.toString().substring(0,10);
+//System.out.println("dtStart[" + dtStart + "] dtEnd[" + dtEnd + "]");
+    
     String filter = "SELECT FROM org.ecocean.Occurrence WHERE source.matches('SpotterConserveIO:.*')";
+    filter += " && dateTimeCreated >= '" + dStart + "T00:00' && dateTimeCreated <= '" + dEnd + "T23:59'";
     if (admin && (request.getParameter("uuid") != null)) {
         filter += " && submitters.contains(u) && u.uuid == '" + Util.basicSanitize(request.getParameter("uuid")) + "'";
     } else if (!admin) {
@@ -594,9 +787,473 @@ System.out.println(ft.getParameters());
     } else {
 %>
 <h2>Listing of imported Ocean Alert data</h2>
+<div id="prox-info"></div>
+
+<script src="javascript/exif.js"></script>
+<script type="text/javascript">
+function folderToggle(el) {
+    if ($(el).is(':checked')) {
+        $('#file-chooser').attr('directory', '');
+        $('#file-chooser').attr('webkitdirectory', '');
+    } else {
+        $('#file-chooser').attr('directory', null);
+        $('#file-chooser').attr('webkitdirectory', null);
+    }
+    return true;
+}
+
+function populateImage(md) {
+    if (!md.div || !md.file) return;
+    var img = $(md.div).find('img');
+    var reader = new FileReader();
+//console.log('populateImage() img => %o', img);
+    reader.onload = function() {
+console.log('DONE with img=%o', img);
+        img.prop('src', reader.result);
+    };
+    reader.readAsDataURL(md.file);
+}
+
+var mediaData = [];
+function filesChanged2(inp) {
+    $('#file-activity').show();
+    $('#action-buttons').show();
+    $('#list-wait').show();
+    $('#upcontrols').hide();
+    //filesChanged(inp);  //in uploader.js
+    var maxSizeBytes = 3000000000;
+    var f = '';
+    if (inp.files && inp.files.length) {
+        var all = [];
+        mediaData[inp.files.length - 1] = false;  //set mediaData to length of # of files
+        for (var i = 0 ; i < inp.files.length ; i++) {
+            inp.files[i]._offset = i;
+            mediaData[i] = { file: inp.files[i], complete: false };
+            if (inp.files[i].size > maxSizeBytes) {
+                mediaData[i].error = 'too big';
+                mediaData[i].complete = true;
+                all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, xxxxMB max)</span>');
+            } else {
+                mediaData[i].div = $('<div class="bulk-media" data-offset="' + i + '"><img /></div>');
+                $('#bulk-media-list').append(mediaData[i].div);
+                populateImage(mediaData[i]);
+                mediaData[i].div.append('<div style="bottom: 0;" class="bulk-info">' + inp.files[i].name + '</div>');
+                all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+                EXIF.getData(inp.files[i], function() { gotExif(this); });
+            }
+        }
+        f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
+    } else {
+        f = inp.value;
+    }
+    document.getElementById('input-file-list').innerHTML = f;
+}
+
+
+function checkMediaDataComplete() {
+    for (var i = 0 ; i < mediaData.length ; i++) {
+        if (!mediaData[i] || !mediaData[i].complete) return;  //meh, not done
+    }
+console.info('OFFSET... DONE mediaData!!!!!');
+    var sorted = $('.bulk-media');
+    sorted.sort(function(a, b) {
+        var sortA = a.getAttribute('data-sort') * 1;
+        var sortB = b.getAttribute('data-sort') * 1;
+        if (sortA > sortB) return 1;
+        if (sortA < sortB) return -1;
+        return 0;
+    });
+    $('#bulk-media-list').html(sorted);
+    filterList();
+    //$('#app-data-list').html('');
+    var appDataList = [];  //build this first, then sort it, then add to page
+    $('.bulk-active').each(function(i, el) {
+        var occId = el.id;
+        var occJel = $('#' + occId);
+        var occDt = occJel.find(':nth-child(4)').text();
+        var occTax = occJel.find(':nth-child(5)').text();
+        var occLat = parseFloat(occJel.find(':nth-child(7)').data('lat'));
+        var occLon = parseFloat(occJel.find(':nth-child(8)').data('lon'));
+        if (appData[occId] && appData[occId].encs && appData[occId].encs.length) {
+            for (var i = 0 ; i < appData[occId].encs.length ; i++) {
+                var h = '<div data-lat="' + occLat + '" data-lon="' + occLon + '" class="app-data app-data-enc" id="app-data-enc-' + appData[occId].encs[i].id + '" data-occ-id="' + occId + '">';
+                h += '<div class="app-hide" title="hide this item">X</div>';
+                h += '<a class="app-id" href="encounters/encounter.jsp?number=' + appData[occId].encs[i].id + '" target="_new">enc ' + appData[occId].encs[i].id.substr(0,6) + '</a>';
+                h += '<div class="app-date">' + appData[occId].encs[i].dt + '</div>';
+                if (appData[occId].encs[i].numPhotos) h += '<div title="has ' + appData[occId].encs[i].numPhotos + ' photo(s) attached already" class="app-numph">&#x1f5c7; ' + appData[occId].encs[i].numPhotos + '</div>';
+                h += '<div class="app-tax">' + appData[occId].encs[i].tax + '</div>';
+                h += '<div class="app-note">&#x270e; ' + appData[occId].encs[i].ph + '</div>';
+                h += '<div class="app-attachments"></div>';
+                h += '</div>';
+                appDataList.push(h);
+            }
+        } else {  //only the occ
+            var h = '<div data-lat="' + occLat + '" data-lon="' + occLon + '" class="app-data app-data-occ" id="app-data-occ-' + occId + '">';
+            h += '<div class="app-hide" title="hide this item">X</div>';
+            h += '<a target="_new" href="occurrence.jsp?number=' + occId + '" class="app-id">sight ' + occId.substr(0,6) + '</a>';
+            h += '<div class="app-date">' + occDt + '</div>';
+            h += '<div class="app-tax">' + occTax + '</div>';
+            h += '<div class="app-attachments"></div>';
+            h += '</div>';
+            appDataList.push(h);
+        }
+    });
+
+    appDataList.sort(function(a, b) {
+        var i = a.indexOf('"app-date">');
+        if (i < 0) return 0;
+        var sortA = a.substr(i + 11, 16);
+        i = b.indexOf('"app-date">');
+        if (i < 0) return 0;
+        var sortB = b.substr(i + 11, 16);
+        if (sortA > sortB) return 1;
+        if (sortA < sortB) return -1;
+        return 0;
+    });
+    $('#app-data-list').append(appDataList);
+
+    $('.app-hide').on('click', function(ev) {
+        $(ev.target.parentElement).hide();
+    });
+    $('.bulk-media').draggable({
+        containment: '#file-activity'
+    });
+    $('.app-data').droppable({
+        hoverClass: 'app-data-hover',
+        out: function() { $('#prox-info').hide(); },
+        over: function(ev, ui) {
+            var offset = ui.draggable.data('offset');
+            if (!mediaData[offset] || !mediaData[offset].exifParsed || !mediaData[offset].exifParsed.ll || !mediaData[offset].exifParsed.ll.length) return;
+            var mediaLL = mediaData[offset].exifParsed.ll[0].split(', ');  //we just take the first one, fbow
+            var dataLat = ev.target.getAttribute('data-lat');
+            var dataLon = ev.target.getAttribute('data-lon');
+            var d = distance(mediaLL[0], mediaLL[1], dataLat, dataLon);
+            if (d > 0) $('#prox-info').html('proximity <b>' + Math.floor(d * 10000 + 0.5) + '</b>').show();
+//console.info('OVER => [%o,%o] vs [%o,%o] => %o  %o', mediaLL[0], mediaLL[1], dataLat, dataLon, d, d * 111320.0);
+        },
+        drop: function(ev, ui) {
+            $('#prox-info').hide();
+//console.log('drop!!! %o   .... ui %o', ev, ui);
+            ui.draggable.css({top: 'unset', left: 'unset'});
+            $(ev.target).find('.app-attachments').append(ui.draggable);
+            checkHiders();
+        }
+    });
+    $('#list-wait').hide();
+}
+
+
+function checkHiders() {
+    var ct = 0;
+    $('.app-data').each(function(i, el) {
+        if ($(el).find('.bulk-media').length) {
+            $(el).find('.app-hide').hide();
+            ct++;
+        } else {
+            $(el).find('.app-hide').show();
+        }
+    });
+    if (ct > 0) {
+        $('#upload-button2').show();
+    } else {
+        $('#upload-button2').hide();
+    }
+}
+
+function filterList() {
+    var dates = [];
+    for (var i = 0 ; i < mediaData.length ; i++) {
+        if (!mediaData[i].exifParsed.dt) continue;
+        for (var j = 0 ; j < mediaData[i].exifParsed.dt.length ; j++) {
+            var dt = mediaData[i].exifParsed.dt[j].substr(0,10);
+            if (dates.indexOf(dt) < 0) dates.push(dt);
+        }
+    }
+console.info('dates => %o', dates);
+    $('#occs tbody tr').hide().removeClass('bulk-active');
+    for (var i = 0 ; i < dates.length ; i++) {
+        $('tr.date-' + dates[i]).show().addClass('bulk-active');
+    }
+/*
+    $('#occs tbody tr').each(function(i, el) {
+        var dt = el.querySelector('td:nth-child(4)').innerText;
+        //var lat = el.querySelector('td:nth-child(7)').innerText;
+        //var lon = el.querySelector('td:nth-child(8)').innerText;
+//console.log('%o %o %o', dt, lat, lon);
+//console.log('%o', dt);
+        if (dates.indexOf(dt.substr(0,10)) < 0) {
+            $(el).hide();
+        } else {
+            $(el).show();
+        }
+    });
+*/
+}
+
+//TODO Bearing, Altitude
+function gotExif(file) {
+    mediaData[file._offset].exifParsed = {
+        dt: exifFindDateTimes(file.exifdata),
+        ll: exifFindLatLon(file.exifdata)
+    };
+    var d = '?';
+    for (var i = 0 ; i < mediaData[file._offset].exifParsed.dt.length ; i++) {
+        if (mediaData[file._offset].exifParsed.dt[i].length > d.length) d = mediaData[file._offset].exifParsed.dt[i];
+    }
+    mediaData[file._offset].div.attr('data-sort', new Date(d).getTime());
+    mediaData[file._offset].div.append('<div style="bottom: 1.4em;" class="bulk-info">' + d + '</div>');
+    mediaData[file._offset].complete = true;
+    checkMediaDataComplete();
+}
+
+
+function exifFindDateTimes(exif) {
+    var dtList = [];
+    for (var key in exif) {
+        if (key.toLowerCase().indexOf('date') < 0) continue;
+        var clean = cleanupDateTime(exif[key]);
+        if (clean && (dtList.indexOf(clean) < 0)) dtList.push(clean);
+    }
+    return dtList;
+}
+
+function exifFindLatLon(exif) {
+    var llList = [];
+    //unknown if these keys are "standard".  :(  doubt it.
+    var lat = cleanupLatLon(exif.GPSLatitudeRef, exif.GPSLatitude);
+    var lon = cleanupLatLon(exif.GPSLongitudeRef, exif.GPSLongitude);
+    if (!lat || !lon) return;
+    var clean = lat + ', ' + lon;
+    if (clean && (llList.indexOf(clean) < 0)) llList.push(clean);
+    return llList;
+}
+
+function cleanupDateTime(dt) {
+    var f = dt.split(/\D+/);
+    if (f.length == 3) return f.join('-');
+    if ((f.length == 5) || (f.length == 6)) return f.slice(0,3).join('-') + ' ' + f.slice(3,6).join(':');
+    return null;
+}
+
+function cleanupLatLon(llDir, ll) {
+    var sign = ((llDir == 'W' || llDir == 'S') ? -1 : 1);
+    if (!ll || (ll.length != 3)) return null;
+    return Math.round(sign * dms2dd(ll[0], ll[1], ll[2]) * 1000000) / 1000000;
+}
+
+function dms2dd(d, m, s) {
+    return d + (m / 60) + (s / 3600);
+}
+
+function exifDTSet(el) {
+    $('#datepicker').val(el.value);
+}
+
+function exifLLSet(el) {
+    var ll = [ '', '' ];
+    if (el.value.indexOf(', ') >= 0) ll = el.value.split(', ');
+    $('#lat').val(ll[0]);
+    $('#longitude').val(ll[1]);
+    updateMap();
+}
+
+
+function distance(x1,y1, x2,y2) {
+    if (!x1 || !y1 || !x2 || !y2) return -1;  //yeah, going to assume we arent on 0.0 -- sorrynotsorry
+    return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+}
+
+
+function cancelUpload() {
+    $('#file-activity').hide();
+    $('#bulk-media-list').html('');
+    $('#app-data-list').html('');
+    $('#upcontrols').show();
+    $('#action-buttons').hide();
+    $('#file-chooser').val('');
+    $('#upload-button2').hide();
+    $('#occs tbody tr').show().removeClass('bulk-active');
+    saveData = {};
+    return false;
+}
+
+var saveData = {};
+var pendingUpload = -1;
+function beginUpload() {
+    saveData.offsets = [];
+    $('.app-data').each(function(i, el) {
+        var attCt = 0;
+        $(el).find('.bulk-media').each(function(j, attEl) {
+            var offset = parseInt(attEl.getAttribute('data-offset'));
+            saveData.offsets.push(offset);
+            $(attEl).append('<div class="upload-status">&#x1f551;</div>');
+            attCt++;
+        });
+        if (attCt < 1) return;  //dont care about this app-data
+        el.classList.add('has-attachments');
+    });
+console.info('saveData.offsets %o', saveData.offsets);
+    pendingUpload = saveData.offsets.length;
+    if (!pendingUpload) return;  //snh
+    $('#action-buttons').hide();
+    $('#list-wait').show();
+
+    for (var i = flow.files.length - 1 ; i >= 0 ; i--) {
+        if (saveData.offsets.indexOf(parseInt(flow.files[i].file._offset)) < 0) {
+            console.info('removing flow.fileObj [%s], unattached offset %o', flow.files[i].name, flow.files[i].file._offset);
+            flow.files.splice(i, 1);
+        }
+    }
+
+    flow.upload();
+    return false;
+}
+
+
+//these override some of what is definited in uploader.js... cuz we need to
+$(document).ready(function() {
+    //flow.assignBrowse(document.getElementById('file-chooser'));
+    //flow.assignDrop(document.getElementById('dropTarget'));
+
+    //these reset the events from uploader.js
+    flow.off('fileProgress');
+    flow.off('fileSuccess');
+    flow.off('fileError');
+
+    flow.on('fileProgress', function(file, chunk){
+        var p = file._prevUploadedSize / file.size;
+        mediaData[file.file._offset].div.find('.upload-status').html(Math.floor(p*100) + '%');
+        console.log('----------------- progress %o %o (%s)', file._prevUploadedSize, file, p);
+    });
+
+    flow.on('fileSuccess', function(file,message){
+        console.log('----------------- SUCCESS %o', file);
+        mediaData[file.file._offset].div.find('.upload-status').html('&#x2611;&#x2610;');
+        pendingUpload--;
+        checkUploadComplete();
+    });
+
+    flow.on('fileError', function(file, message){
+        console.log('############# flow error %o %o', file, message);
+        mediaData[file.file._offset].div.find('.upload-status').html('<span title="ERROR: ' + message + '" style="color: #F00;">&#x2715;</span>');
+        pendingUpload--;
+        checkUploadComplete();
+    });
+
+});
+
+
+function checkUploadComplete() {
+    if (pendingUpload > 0) return;
+    var macData = {
+        MediaAssetCreate: [],
+        skipIA: true  //for testing only
+    };
+    $('.has-attachments').each(function(i, el) {
+        var mac = { assets: [] };
+        $(el).find('.bulk-media').each(function(j, attEl) {
+            var offset = parseInt(attEl.getAttribute('data-offset'));
+            mac.assets.push({ filename: mediaData[offset].file.name });
+        });
+        if (el.id.startsWith('app-data-enc-')) {
+            mac.attachToEncounter = { id: el.id.substring(13) };
+        } else if (el.id.startsWith('app-data-occ-')) {
+            mac.attachToOccurrence = {
+                id: el.id.substring(13),
+                //TODO how to allow user to enter alternate?  how to make sure we have scientific name?  etc!
+                taxonomy: $(el).find('.app-tax').text() || 'unknown'
+            };
+        }
+        macData.MediaAssetCreate.push(mac);
+    });
+
+    saveData.macData = macData;
+console.info('checkUploadComplete() %o', macData);
+    $.ajax({
+        url: 'MediaAssetCreate',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        data: JSON.stringify(macData),
+        complete: function(xhr, status) {
+            if (status != 'success') {
+                macError(status + ': ' + (xhr.status || '') + ' ' + (xhr.statusText || 'unknown problem'), xhr);
+            } else if (!xhr.responseJSON || !xhr.responseJSON.success) {
+                macError(xhr.responseJSON.error || 'unknown error', xhr);
+            } else {
+                macSuccess(xhr.responseJSON);
+            }
+        }
+    });
+}
+
+function macError(msg, xhr) {
+    $('#list-wait').hide();
+    $('.app-data .upload-status').html('<span title="ERROR: ' + msg + '" style="color: #F00;">&#x2715;</span>');
+    console.warn('macError: %o', xhr);
+    imageEnhancer.popup('<p>There was a problem sending the data.</p><p class="error">' + msg + '</p>');
+}
+
+function macSuccess(data) {
+    $('#list-wait').hide();
+    saveData.macResults = data;
+    $('.app-data .upload-status').html('&#x2611;&#x2611;');
+    var h = '<b>Successfully created:</b><ul>';
+    for (var i = 0 ; i < data.attached.length ; i++) {
+        if (data.attached[i].type == 'Encounter') {
+            h += '<li><a target="_new" href="encounters/encounter.jsp?number=' + data.attached[i].id + '"><b>Encounter ' + data.attached[i].id.substr(0,6) + '</b></a> (attached: ' + data.attached[i].assets.length + ')</a></li>';
+        } else {
+            h += '<li><a target="_new" href="encounters/encounter.jsp?number=' + data.attached[i].encounterId + '"><b>Encounter ' + data.attached[i].encounterId.substr(0,6) + '</b></a> (on <a target="_new" href="occurrence.jsp?number=' + data.attached[i].id + '">Sight ' + data.attached[i].id.substr(0,6) + '</a>, attached: ' + data.attached[i].assets.length + ')</a></li>';
+        }
+    }
+    h += '</ul>';
+    $('#input-file-list').html(h);
+}
+
+
+</script>
+
+<div id="file-activity" style="display: none;">
+    <div id="list-wait"><div>PLEASE WAIT</div></div>
+    <div id="bulk-media-list"></div>
+    <div id="app-data-list"></div>
+</div>
+<div id="updone"></div>
+<div id="input-file-list"></div>
+<div id="upcontrols" style="padding: 20px;">
+    <div style="display: inline-block; width: 60%; vertical-align: top;">
+You may <i>add images</i> to <b>individual sightings below</b>, one at a time, by clicking the corresponding row;<br />
+or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your image files
+<u>contain the appropriate EXIF data</u>.
+    </div>
+
+    <div style="display: inline-block; border: solid 3px #888; border-radius: 4px; padding: 8px 14px;">
+        <div style="font-size: 0.8em; margin-bottom: 8px;">BULK IMAGE UPLOAD</div>
+	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged2(this)" /> 
+        <div>
+            <input type="checkbox" onClick="return folderToggle(this);" /> <b>Use folders</b>
+        </div>
+    </div>
+</div>
+
+<div id="action-buttons" style="display: none; padding: 30px; text-align: center;">
+    <span id="upload-button"></span>
+    <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button2">begin bulk upload</a>
+    <a class="button" onClick="return cancelUpload();" >cancel bulk upload</a>
+</div>
+
+<div style="text-align: center; background-color: #FFA; padding: 10px;">
+<%
+    DateTime dtPrevStart = dtStart.minus(pageMillis);
+    DateTime dtNextStart = dtStart.plus(pageMillis);
+    out.println(" <a class=\"button\" href=\"attachMedia.jsp?dateStart=" + dtPrevStart.toString().substring(0,10) + "&dateEnd=" + dtPrevStart.plus(pageMillis + 1000L).toString().substring(0,10) + "\">BACK</a> ");
+    out.println("<span style=\"margin: 0 15px;\">Date range: <b>" + dStart + " - " + dEnd + "</b></span>");
+    if (dtNextStart.getMillis() < System.currentTimeMillis()) out.println(" <a class=\"button\" href=\"attachMedia.jsp?dateStart=" + dtNextStart.toString().substring(0,10) + "&dateEnd=" + dtNextStart.plus(pageMillis + 1000L).toString().substring(0,10) + "\">NEXT</a> ");
+%>
+</div>
 <table class="tablesorter" id="occs"><thead><tr>
 <%
-        List<String> heads = new ArrayList<String>(Arrays.asList(new String[]{"Type", "Trip #", "Occ ID", "Date/Time", "Species", "#Adult,Calv", "Lat", "Lon", "Bearing", "# Encs", "Photos", "Placeholder", "# Behav", "Modified"}));
+        List<String> heads = new ArrayList<String>(Arrays.asList(new String[]{"Type", "Trip #", "Sight", "Date/Time", "Species", "#Adult,Calv", "Lat", "Lon", "Bearing", "# Encs", "Photos", "Placeholder", "# Behav", "Modified"}));
         if (admin) heads.add("User(s)");
         for (String h : heads) {
             out.println("<th>" + h + "</th>");
@@ -605,49 +1262,77 @@ System.out.println(ft.getParameters());
 </tr></thead>
 <tbody>
 <%
+        JSONObject forJS = new JSONObject();
         for (Object o : coll) {
             occ = (Occurrence) o;
-            String row = "<tr data-id=\"" + occ.getOccurrenceID() + "\">";
+            JSONObject jsObj = new JSONObject();
+            jsObj.put("id", occ.getOccurrenceID());
+
+            String rowClass = "date-" + occ.getDateTimeCreated().substring(0,10);
+            List<Taxonomy> tax = occ.getTaxonomies(); //TODO also check encs???
+            List<String> tnames = new ArrayList<String>();
+            if (!Util.collectionIsEmptyOrNull(tax)) {
+                for (Taxonomy t : tax) {
+                    tnames.add(t.getScientificName());
+                }
+            }
+            for (String tn : tnames) {
+                rowClass += " tax-" + tn.replaceAll(" ", "-").toLowerCase();
+            }
+
+            String row = "<tr class=\"" + rowClass + "\" id=\"" + occ.getOccurrenceID() + "\">";
             Map<String,String> tripInfo = getTripInfo(occ);
             row += "<td>" + tripInfo.get("typeLabel") + "</td>";
             row += "<td class=\"td-int\">" + tripInfo.get("id") + "</td>";
             row += "<td class=\"td-occid\">" + occ.getOccurrenceID().substring(0,8) + "</td>";
             row += "<td>" + occ.getDateTimeCreated().substring(0,16) + "</td>";
-            List<Taxonomy> tax = occ.getTaxonomies(); //TODO also check encs???
-            if (Util.collectionIsEmptyOrNull(tax)) {
+            if (tnames.size() < 1) {
                 row += emptyTd();
             } else {
-                List<String> tnames = new ArrayList<String>();
-                for (Taxonomy t : tax) {
-                    tnames.add(t.getScientificName());
-                }
                 row += "<td>" + String.join(", ", tnames) + "</td>";
             }
             int numAdults = (occ.getNumAdults() == null) ? 0 : occ.getNumAdults();
             int numCalves = (occ.getNumCalves() == null) ? 0 : occ.getNumCalves();
             row += "<td class=\"td-intx td-num-" + (numAdults + numCalves) + "\">" + numAdults + ", " + numCalves + "</td>";
-            row += "<td>" + niceLL(occ.getDecimalLatitude()) + "</td>";
-            row += "<td>" + niceLL(occ.getDecimalLongitude()) + "</td>";
+            row += "<td data-lat=\"" + occ.getDecimalLatitude() + "\">" + niceLL(occ.getDecimalLatitude()) + "</td>";
+            row += "<td data-lon=\"" + occ.getDecimalLongitude() + "\">" + niceLL(occ.getDecimalLongitude()) + "</td>";
             row += "<td>" + niceDouble(occ.getBearing()) + "</td>";
             row += "<td class=\"td-int td-num-" + occ.getNumberEncounters() + "\">" + occ.getNumberEncounters() + "</td>";
             int numPhotos = 0;
             int numPlaceholders = 0;
             List<String> phlist = new ArrayList<String>();
             if (occ.getNumberEncounters() > 0) {
+                JSONArray jse = new JSONArray();
                 for (Encounter enc : occ.getEncounters()) {
-                    if (enc.getAnnotations() == null) continue;
+                    JSONObject jenc = new JSONObject();
+                    jenc.put("id", enc.getCatalogNumber());
+                    jenc.put("tax", enc.getTaxonomyString());
+                    jenc.put("dt", enc.getDate());
+//occ-enc
+                    if (enc.getAnnotations() == null) {
+                        jse.put(jenc);
+                        continue;
+                    }
+                    int encPhotos = 0;
+                    List<String> encPh = new ArrayList<String>();
                     for (Annotation ann : enc.getAnnotations()) {
                         if (Util.collectionIsEmptyOrNull(ann.getFeatures())) continue;
                         Feature ft = ann.getFeatures().get(0);
                         if (ft.getMediaAsset() != null) {   //we do *not* check feature type in this case.  should we?
                             numPhotos++;
+                            encPhotos++;
                         } else if (ft.isType("org.ecocean.MediaAssetPlaceholder")) {
                             String phs = phString(ft.getParameters());
+                            if (!encPh.contains(phs)) encPh.add(phs);
                             if (!phlist.contains(phs)) phlist.add(phs);
                             numPlaceholders++;
                         }
                     }
+                    jenc.put("numPhotos", encPhotos);
+                    if (encPh.size() > 0) jenc.put("ph", String.join(" | ", encPh));
+                    jse.put(jenc);
                 }
+                jsObj.put("encs", jse);
             }
 
             String phnote = "";
@@ -663,11 +1348,13 @@ System.out.println(ft.getParameters());
             row += (Util.stringExists(occ.getDWCDateLastModified()) ? "<td>" + occ.getDWCDateLastModified() + "</td>" : emptyTd());
             if (admin) row += submittersTd(occ);
             out.println(row + "</tr>");
+            forJS.put(occ.getOccurrenceID(), jsObj);
         }
         out.println("</tbody></table>");
+        out.println("<script>var appData = " + forJS.toString(4) + ";</script>");
     }
     query.closeAll();
-    myShepherd.rollbackDBTransaction();
+    myShepherd.rollbackAndClose();
 }
 
 if (showUpload) {
@@ -677,10 +1364,10 @@ if (showUpload) {
 <div id="updone"></div>
 <div id="upcontrols" style="padding: 20px;">
 	<!-- webkitdirectory directory -->
-	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
-    <div class="padding: 20px 0;">
+	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" xonChange="return filesChanged(this)" /> 
+    <div style="padding: 20px 0;">
         <a class="button" id="upload-button">begin upload</a>
-        <a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="return to listing for Occ <%=occ.getOccurrenceID().substring(0,8)%>">cancel</a>
+        <a class="button" href="attachMedia.jsp?id=<%=occ.getOccurrenceID()%>" title="return to listing for Sighting <%=occ.getOccurrenceID().substring(0,8)%>">cancel</a>
     </div>
 
 </div>

@@ -93,8 +93,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
  if(!langCode.equals("en")){
  %>
 
-<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
-<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+<script src="../javascript/timepicker/datepicker-<%=langCode %>.js"></script>
+<script src="../javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
 
  <%
  }
@@ -546,7 +546,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 </td></tr><tr><td>
 
   <select name="country" id="country" multiple="multiple" size="5">
-  	<option value="None" selected="selected"></option>
+  	<option value="" selected="selected"></option>
   		<%
   		List<String> countries = (useCustomProperties)
   			? CommonConfiguration.getIndexedPropertyValues("country", request)

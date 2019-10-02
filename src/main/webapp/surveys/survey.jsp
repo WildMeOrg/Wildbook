@@ -201,14 +201,14 @@ if (sv!=null) {
 				<tr>
 					<td class="lineitem">
 						<%=trkID%>
-						<input name="Show Occurrence ID's" type="button" class="showOccIDs occID-<%=trkID%>" value="<%=props.getProperty("showOccurrences")%>" class="btn btn-sm" />
-						<input name="Hide Occurrence ID's" type="button" class="hideOccIDs occID-<%=trkID%>" value="<%=props.getProperty("hideOccurrences")%>" class="btn btn-sm" />
+						<input name="Show Sighting ID's" type="button" class="showOccIDs occID-<%=trkID%>" value="<%=props.getProperty("showOccurrences")%>" class="btn btn-sm" />
+						<input name="Hide Sighting ID's" type="button" class="hideOccIDs occID-<%=trkID%>" value="<%=props.getProperty("hideOccurrences")%>" class="btn btn-sm" />
 						<div class="occIDDiv">
 								<%
 								System.out.println("Hit Occs in table...");
 								if (occs!=null) {
 								%>
-									<label><small>Occurrence ID's:</small></label>
+									<label><small>Sighting ID's:</small></label>
 									<%
 									for (Occurrence occ : occs) {
 										String thisOccID = occ.getID();
@@ -249,12 +249,12 @@ if (sv!=null) {
 												</div>
 												<div class="col-sm-4">
 													<span class="input-group-btn">
-														<input name="Add Occurrence" style="margin-bottom:13px;margin-top:2px;" type="submit" id="addOccToTrackButton" value="<%=props.getProperty("addOcc")%>" class="btn btn-sm addOccButton" />
+														<input name="Add Sighting" style="margin-bottom:13px;margin-top:2px;" type="submit" id="addOccToTrackButton" value="<%=props.getProperty("addOcc")%>" class="btn btn-sm addOccButton" />
 													</span>
 												</div>
 											</div>
 										</div>
-										<span><small>Enter an existing Occurrence ID to add it to the selected survey track.</small></span>
+										<span><small>Enter an existing Sighting ID to add it to the selected survey track.</small></span>
 								</form>
 						</div>
 					</td>	

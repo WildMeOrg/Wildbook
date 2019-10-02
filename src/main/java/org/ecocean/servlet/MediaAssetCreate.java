@@ -130,28 +130,33 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
           myShepherd.closeDBTransaction();
         }
 
+        //this does children assets in background
+        JSONArray ids = res.optJSONArray("allMediaAssetIds");
+        List<Integer> idInts = new ArrayList<Integer>();
+        for (int i = 0 ; i < ids.length() ; i++) {
+            int idInt = ids.optInt(i, -2);
+            if (idInt > 0) idInts.add(idInt);
+        }
+        MediaAsset.updateStandardChildrenBackground(context, idInts);
+
         //this has to be after commit (so queue can find them from different thread), so we do a little work here
-        if (!j.optBoolean("skipIA", false)) {
-            JSONArray ids = res.optJSONArray("allMediaAssetIds");
-            if ((ids != null) && (ids.length() > 0)) {
-                myShepherd = new Shepherd(context);
-                myShepherd.setAction("MediaAssetCreate.class_IA.intake");
-                myShepherd.beginDBTransaction();
-                List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
-                for (int i = 0 ; i < ids.length() ; i++) {
-                    int id = ids.optInt(i, -1);
-                    if (id < 0) continue;
-                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-                    if (ma != null) allMAs.add(ma);
-                }
-                if (allMAs.size() > 0) {
-                    Task task = IA.intakeMediaAssets(myShepherd, allMAs);
-                    myShepherd.storeNewTask(task);
-                    res.put("IATaskId", task.getId());
-                }
-                myShepherd.commitDBTransaction();
-                myShepherd.closeDBTransaction();
+        if (!j.optBoolean("skipIA", false) && (idInts.size() > 0)) {
+            myShepherd = new Shepherd(context);
+            myShepherd.setAction("MediaAssetCreate.class_IA.intake");
+            myShepherd.beginDBTransaction();
+            List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+            for (Integer id : idInts) {
+                if (id < 0) continue;
+                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                if (ma != null) allMAs.add(ma);
             }
+            if (allMAs.size() > 0) {
+                Task task = IA.intakeMediaAssets(myShepherd, allMAs);
+                myShepherd.storeNewTask(task);
+                res.put("IATaskId", task.getId());
+            }
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
         }
 
         out.println(res.toString());
@@ -189,6 +194,7 @@ System.out.println("source config -> " + cfg.toString());
         HashMap<String,MediaAssetSet> sets = new HashMap<String,MediaAssetSet>();
         ArrayList<MediaAsset> haveNoSet = new ArrayList<MediaAsset>();
         URLAssetStore urlStore = URLAssetStore.find(myShepherd);   //this is only needed if we get passed params for url
+        JSONArray attachRtn = new JSONArray();
 
         for (int i = 0 ; i < jarr.length() ; i++) {
             JSONObject st = jarr.optJSONObject(i);
@@ -227,6 +233,7 @@ System.out.println("source config -> " + cfg.toString());
                 continue;
             }
 
+            List<MediaAsset> mas = new ArrayList<MediaAsset>();
             for (int j = 0 ; j < assets.length() ; j++) {
                 boolean success = true;
                 MediaAsset targetMA = null;
@@ -299,7 +306,6 @@ System.out.println(i + ") params -> " + params.toString());
                     targetMA.addLabel("_original");
                     targetMA.setAccessControl(request);
                     MediaAssetFactory.save(targetMA, myShepherd);
-	            targetMA.updateStandardChildren(myShepherd);  //lets always do this (and can add flag to disable later if needed)
                     if (setId != null) {
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
                         sets.get(setId).addMediaAsset(targetMA);
@@ -308,9 +314,60 @@ System.out.println("MediaAssetSet " + setId + " created " + targetMA);
 System.out.println("no MediaAssetSet; created " + targetMA);
                         haveNoSet.add(targetMA);
                     }
+                    mas.add(targetMA);
                 }
+
+            }
+
+            //this duplicates some of MediaAssetAttach, but lets us get done in one API call
+            //  TODO we dont sanity-check *ownership* of the encounter.... :/
+            JSONObject attEnc = st.optJSONObject("attachToEncounter");
+            JSONObject attOcc = st.optJSONObject("attachToOccurrence");
+            if (attEnc != null) {
+                JSONObject artn = new JSONObject();
+                Encounter enc = myShepherd.getEncounter(attEnc.optString("id", "__FAIL__"));
+                if (enc != null) {
+                    artn.put("id", enc.getCatalogNumber());
+                    artn.put("type", "Encounter");
+                    artn.put("assets", new JSONArray());
+                    for (MediaAsset ema : mas) {
+                        if (enc.hasTopLevelMediaAsset(ema.getId())) continue;
+                        enc.addMediaAsset(ema);
+                        artn.getJSONArray("assets").put(ema.getId());
+                    }
+                    System.out.println("MediaAssetCreate.attachToEncounter added " + artn.getJSONArray("assets").length() + " assets to Enc " + enc.getCatalogNumber());
+                }
+                attachRtn.put(artn);
+            } else if (attOcc != null) {  //this requires a little extra, to make the enc, minimum is taxonomy
+                String tax = attOcc.optString("taxonomy", null);
+                JSONObject artn = new JSONObject();
+                Occurrence occ = myShepherd.getOccurrence(attOcc.optString("id", "__FAIL__"));
+                if ((tax == null) || (occ == null)) {
+                    System.out.println("MediaAssetCreate.attachToOccurrence ERROR had invalid .taxonomy or bad id; skipping " + attOcc);
+                } else {
+                    artn.put("id", occ.getOccurrenceID());
+                    artn.put("assets", new JSONArray());
+                    artn.put("type", "Occurrence");
+                    ArrayList<Annotation> anns = new ArrayList<Annotation>();
+                    for (MediaAsset ema : mas) {
+                        Annotation ann = new Annotation(tax, ema);
+                        anns.add(ann);
+                        artn.getJSONArray("assets").put(ema.getId());
+                    }
+                    Encounter enc = new Encounter(anns);
+                    enc.setTaxonomyFromString(tax);
+                    enc.addSubmitter(AccessControl.getUser(request, myShepherd));
+                    enc.addComments("<p>created by MediaAssetCreate attaching to Occurrence " + occ.getOccurrenceID() + "</p>");
+                    occ.addEncounter(enc);
+                    artn.put("encounterId", enc.getCatalogNumber());
+                    myShepherd.getPM().makePersistent(enc);
+                    System.out.println("MediaAssetCreate.attachToOccurrence added Enc " + enc.getCatalogNumber() + " to Occ " + occ.getOccurrenceID());
+                }
+                attachRtn.put(artn);
             }
         }
+
+        if (attachRtn.length() > 0) rtn.put("attached", attachRtn);
 
         JSONObject js = new JSONObject();
         JSONArray allMAIds = new JSONArray();

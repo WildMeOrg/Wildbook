@@ -10,11 +10,16 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 
 String message="Successfuly reloaded JSON locationID graph for file: ";
 
-if(request.getParameter("filename")!=null){
-	message+=request.getParameter("filename").trim();
-	LocationID.reloadJSON(request.getParameter("filename").trim());
+if(request.getParameter("qualifier")!=null){
+	message+=request.getParameter("qualifier").trim();
+	LocationID.reloadJSON(request.getParameter("qualifier").trim());
+	message+="<br>"+LocationID.getLocationIDStructure(request.getParameter("qualifier")).toString();
 }
-else{message="The ?filename= parameter was not specified in the URL";}
+else{
+	LocationID.reloadJSON(null);
+	message+="<br>"+LocationID.getLocationIDStructure().toString();
+}
+
 
 
 

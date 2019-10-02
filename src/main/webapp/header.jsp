@@ -337,7 +337,7 @@ finally{
                             <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
                               <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
                               <input type="hidden" name="langCode" value="<%=langCode%>"/>
-                              <button type="submit" id="header-search-button"><span class="el el-lg el-search"></span></button>
+                              <span class="el el-lg el-search"></span>
                           </form>
                       </label>
                     </div>
@@ -548,6 +548,9 @@ finally{
                 if (ui.item.type == "individual") {
                     window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?id=") %>" + ui.item.value);
                 }
+                else if (ui.item.type == "encounter") {
+                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number=") %>" + ui.item.value);
+                }
                 else if (ui.item.type == "locationID") {
                 	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
                 }
@@ -574,6 +577,7 @@ finally{
                         var res = $.map(data, function(item) {
                             var label="";
                             var nickname="";
+                            var species="";
                             if ((item.type == "individual")&&(item.species!=null)) {
 //                                label = item.species + ": ";
                             }
@@ -584,10 +588,14 @@ finally{
                             }
 
                             if(item.nickname != null){
-                            	nickname = " ("+item.nickname+")";
+                            	nickname = " \""+item.nickname+"\"";
+                            }
+                            if(item.species != null){
+                            	species = " ("+item.species.substring(0,6)+".)";
+                            	
                             }
 
-                            return {label: label + item.label+nickname,
+                            return {label: label + item.label+nickname+species,
                                     value: item.value,
                                     type: item.type,
                                     nickname: nickname};
@@ -597,6 +605,13 @@ finally{
                     }
                 });
             }
+        });
+        //prevent enter key on tyeahead
+        $('#search-site').keydown(function (e) {
+                	    if (e.keyCode == 13) {
+                	        e.preventDefault();
+                	        return false;
+                	    }
         });
         </script>
 
