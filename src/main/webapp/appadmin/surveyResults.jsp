@@ -48,32 +48,41 @@ myShepherd.beginDBTransaction();
 //JSONObject key = SystemValue.getJSONObject(myShepherd, "trialKey");
 
 
-List<String> header = null;
 String jdoql = "SELECT FROM org.ecocean.SystemValue WHERE key.startsWith('survey_response_')";
 Query q = myShepherd.getPM().newQuery(jdoql);
 q.setOrdering("version");
 Collection all = (Collection) (q.execute());
+
+List<String> header = new ArrayList<String>();
+header.add("username");
+header.add("mode");
+
 for (Object o : all) {
     SystemValue sv = (SystemValue)o;
     JSONObject surv = sv.getValue().getJSONObject("value");
-    if (header == null) {
-        header = new ArrayList<String>();
-        header.add("username");
-        out.println("<th>username</th>");
-        Iterator it = surv.keys();
-        while (it.hasNext()) {
-            String key = (String)it.next();
-            header.add(key);
-            out.println("<th>" + key + "</th>");
-        }
-        out.println("</tr></thead><tbody>");
+    Iterator it = surv.keys();
+    while (it.hasNext()) {
+        String key = (String)it.next();
+        if (!header.contains(key)) header.add(key);
     }
+}
+
+
+for (String h : header) {
+    out.println("<th>" + h + "</th>");
+}
+out.println("</tr></thead><tbody>");
+
+for (Object o : all) {
+    SystemValue sv = (SystemValue)o;
+    JSONObject surv = sv.getValue().getJSONObject("value");
     out.println("<tr>");
     User user = myShepherd.getUserByUUID(surv.optString("user_uuid", "_NO_"));
     surv.put("username", (user == null) ? "???" : user.getUsername());
+    surv.put("mode", (((user != null) && "U-W".equals(user.getAffiliation())) ? "uw" : "pub"));
 
     for (String key : header) {
-        String value = surv.optString(key, "ERROR");
+        String value = surv.optString(key, "-");
         if (key.equals("ethnicity") || key.equals("have_cats")) {
             JSONArray varr = surv.optJSONArray(key);
             if (varr != null) {
