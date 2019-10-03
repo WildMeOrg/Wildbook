@@ -28,8 +28,13 @@ var GeoJSON = function( geojson, options, map, bounds,aspect ){
 				//reset bounds
 				bounds.extend(googleObj.getPosition());
 				map.fitBounds(bounds);
+				var idString='';
+				
+				if(geojsonGeometry.individualID){idString='<strong><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/individuals.jsp?number='+geojsonGeometry.individualID+'\">'+geojsonGeometry.individualDisplayName+'</a></strong><br />';}
+						
+				var contentString=idString+'<table><tr><td>Date: '+geojsonGeometry.date+'<br /><br /><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/encounters/encounter.jsp?number='+geojsonGeometry.catalogNumber+'\" >Go to encounter</a></td></tr></table>';
 				google.maps.event.addListener(googleObj,'click', function() {
-					(new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/individuals.jsp?number='+geojsonGeometry.individualID+'\">'+geojsonGeometry.individualDisplayName+'</a></strong><br /><table><tr><td><img class=\"lazyload\" align=\"top\" border=\"1\" width=\"100px\" height=\"75px\"  src=\"cust/mantamatcher/img/individual_placeholder_image.jpg\" data-src=\"'+geojsonGeometry.thumbUrl+'\"></td><td>Date: '+geojsonGeometry.date+'<br /><br /><a target=\"_blank\" href=\"http://'+geojsonGeometry.rootURL+'/encounters/encounter.jsp?number='+geojsonGeometry.catalogNumber+'\" >Go to encounter</a></td></tr></table>'})).open(map, this);		
+					(new google.maps.InfoWindow({content: contentString})).open(map, this);		
 					
 				});
 
@@ -210,6 +215,11 @@ var GeoJSON = function( geojson, options, map, bounds,aspect ){
 			default:
 				googleObj = _error("Invalid GeoJSON object: Geometry object must be one of \"Point\", \"LineString\", \"Polygon\" or \"MultiPolygon\".");
 		}
+		
+		var listener = google.maps.event.addListener(map, "idle", function() { 
+			  if (map.getZoom() <1) map.setZoom(1); 
+			  google.maps.event.removeListener(listener); 
+			});
 		
 		return googleObj;
 		

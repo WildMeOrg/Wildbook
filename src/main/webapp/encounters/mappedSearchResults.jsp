@@ -29,7 +29,7 @@
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("individualMappedSearchResults.jsp");
+    myShepherd.setAction("mappedSearchResults.jsp");
 
 	Random ran= new Random();
 
@@ -146,7 +146,7 @@
     <script type="text/javascript">
     
     var center = new google.maps.LatLng(0,0);
-    var mapZoom = 2;
+    var mapZoom = 3;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
     var bounds = new google.maps.LatLngBounds();
 
