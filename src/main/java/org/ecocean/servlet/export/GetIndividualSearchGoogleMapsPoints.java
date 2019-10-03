@@ -214,7 +214,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              point.put("individualDisplayName",ServletUtilities.handleNullString(enc.getIndividual().getDisplayName()));
              point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
              point.put("date",enc.getDate());
-             point.put("thumbUrl",enc.getThumbnailUrl(context));
+             //point.put("thumbUrl",enc.getThumbnailUrl(context));
              
              
              
