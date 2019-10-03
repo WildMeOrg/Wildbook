@@ -3,6 +3,8 @@ package org.ecocean.servlet.export;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -78,6 +80,16 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("GetIndividualSearchGoogleMapsPoints.class");
+    PersistenceManager pm=myShepherd.getPM();
+    PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
+    javax.jdo.FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "individualSearchResults");
+    grp.addMember("individualID").addMember("sex").addMember("names").addMember("encounters");
+    
+    javax.jdo.FetchGroup grp2 = pmf.getFetchGroup(Encounter.class, "encSearchResults");
+    grp2.addMember("sex").addMember("genus").addMember("specificEpithet").addMember("decimalLatitude").addMember("decimalLongitude").addMember("decimalLatitude").addMember("catalogNumber").addMember("year").addMember("hour").addMember("month").addMember("minutes").addMember("day");
+
+    myShepherd.getPM().getFetchPlan().setGroup("individualSearchResults");
+    myShepherd.getPM().getFetchPlan().addGroup("encSearchResults");
 
   Random ran= new Random();
 
@@ -198,11 +210,11 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              point.put("catalogNumber",enc.getCatalogNumber());
              point.put("encSubdir",enc.subdir());
              point.put("rootURL",CommonConfiguration.getURLLocation(request));
-             point.put("individualID",ServletUtilities.handleNullString(enc.getIndividualID()));
+             point.put("individualID",ServletUtilities.handleNullString(enc.getIndividual().getIndividualID()));
              point.put("individualDisplayName",ServletUtilities.handleNullString(enc.getIndividual().getDisplayName()));
              point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
              point.put("date",enc.getDate());
-             point.put("thumbUrl",enc.getThumbnailUrl(context));
+             //point.put("thumbUrl",enc.getThumbnailUrl(context));
              
              
              
