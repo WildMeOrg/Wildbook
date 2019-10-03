@@ -250,7 +250,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
           
           StringBuffer sumCoords=new StringBuffer("[ ");
           for(int p=0;p<movePathCoords.length;p++){
-            sumCoords.append((movePathCoords[p].toString()+", "));
+            if(movePathCoords[p]!=null)sumCoords.append((movePathCoords[p].toString()+", "));
           }
           sumCoords.append(" ]");
           JSONArray coord = new JSONArray(sumCoords.toString());
