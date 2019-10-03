@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.*" %>
+         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.*,javax.jdo.*" %>
 
 
 
@@ -26,27 +26,20 @@
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("mappedSearchResults.jsp");
 
+    PersistenceManager pm=myShepherd.getPM();
+    PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
+
+    
+    javax.jdo.FetchGroup grp2 = pmf.getFetchGroup(Encounter.class, "encSearchResults");
+    grp2.addMember("sex").addMember("genus").addMember("specificEpithet").addMember("decimalLatitude").addMember("decimalLongitude").addMember("decimalLatitude").addMember("catalogNumber").addMember("year").addMember("hour").addMember("month").addMember("minutes").addMember("day").addMember("individual").addMember("submitterID");
+    myShepherd.getPM().getFetchPlan().setGroup("encSearchResults");
+    
+    javax.jdo.FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "individualSearchResults");
+    grp.addMember("individualID").addMember("names");
+    myShepherd.getPM().getFetchPlan().addGroup("individualSearchResults");
 
 
 
-
-    //set up paging of results
-    int startNum = 1;
-    int endNum = 10;
-    try {
-
-      if (request.getParameter("startNum") != null) {
-        startNum = (new Integer(request.getParameter("startNum"))).intValue();
-      }
-      if (request.getParameter("endNum") != null) {
-      
-        endNum = (new Integer(request.getParameter("endNum"))).intValue();
-      }
-
-    } catch (NumberFormatException nfe) {
-      startNum = 1;
-      endNum = 10;
-    }
     int numResults = 0;
 
     //set up the vector for matching encounters
@@ -163,23 +156,25 @@
         <%
 
 //now remove encounters this user cannot see
+/*
 for (int i = rEncounters.size() - 1 ; i >= 0 ; i--) {
 	Encounter enc = (Encounter)rEncounters.get(i);
 	if (!enc.canUserAccess(request)) rEncounters.remove(i);
 }
+ */
 
 int rEncountersSize=rEncounters.size();
         int count = 0;
 
       
         
-      
-if(rEncounters.size()>0){
+        String haploColor="CC0000";
+if(rEncountersSize>0){
 	int havegpsSize=rEncounters.size();
  for(int y=0;y<havegpsSize;y++){
 	 Encounter thisEnc=(Encounter)rEncounters.get(y);
 		String encSubdir = thisEnc.subdir();
-		if((thisEnc.getDecimalLatitude()!=null)&&(thisEnc.getDecimalLongitude()!=null)){
+		if((thisEnc.getDecimalLatitude()!=null)&&(thisEnc.getDecimalLongitude()!=null)&&(thisEnc.getDecimalLatitudeAsDouble()>=-90.0)&&(thisEnc.getDecimalLatitudeAsDouble()<=90.0)&&(thisEnc.getDecimalLongitudeAsDouble()<=180.0)&&(thisEnc.getDecimalLongitudeAsDouble()>=-180.0)){
  %>
           
           var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
@@ -189,11 +184,7 @@ if(rEncounters.size()>0){
            
            //currently unused programatically
            String markerText="";
-           
-           String haploColor="CC0000";
-           if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   haploColor=map_props.getProperty("defaultMarkerColor");
-           }
+
 
            
            %>
@@ -209,10 +200,10 @@ google.maps.event.addListener(marker,'click', function() {
 	String individualLinkString="";
 	//if this is a MarkedIndividual, provide a link to it
 	if(thisEnc.getIndividualID()!=null){
-		individualLinkString="<strong><a target=\"_blank\" href=\"//"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.getIndividualID()+"\">"+thisEnc.getIndividual().getDisplayName()+"</a></strong><br />";
+		individualLinkString="<strong><a target=\"_blank\" href=\"//"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.getIndividual().getIndividualID()+"\">"+thisEnc.getIndividual().getDisplayName()+"</a></strong><br />";
 	}
 	%>
-	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td><img class=\"lazyload\" align=\"top\" border=\"1\" width=\"100px\" height=\"75px\"  src=\"../cust/mantamatcher/img/individual_placeholder_image.jpg\" data-src=\"<%=thisEnc.getThumbnailUrl(context) %>\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><br /><br /><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
 
 });
  
