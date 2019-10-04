@@ -202,32 +202,13 @@ public class EncounterQueryProcessor extends QueryProcessor {
     //------------------------------------------------------------------
     //individualID filters-------------------------------------------------
     //supports multiple individualID parameters as well as comma-separated lists of individualIDs within them
-    String[] individualID=request.getParameterValues("individualID");
-    if((individualID!=null)&&(!individualID[0].equals(""))&&(!individualID[0].equals("None"))){
-          prettyPrint.append("Individual ID is one of the following: ");
-          int kwLength=individualID.length;
-            String locIDFilter="(";
-            for(int kwIter=0;kwIter<kwLength;kwIter++) {
-              String kwParamMaster=individualID[kwIter].replaceAll("%20", " ").trim();
-              
-              StringTokenizer str=new StringTokenizer(kwParamMaster,",");
-              int numTokens=str.countTokens();
-              for(int k=0;k<numTokens;k++){
-                String kwParam=str.nextToken().trim();
-                if(!kwParam.equals("")){
-                  if(locIDFilter.equals("(")){
-                    locIDFilter+=" individual.individualID == \""+kwParam+"\"";
-                  }
-                  else{
-                    locIDFilter+=" || individual.individualID == \""+kwParam+"\"";
-                  }
-                  prettyPrint.append(kwParam+" ");
-                }
-              
-              }
-              
-            }
-            locIDFilter+=" )";
+    String individualID=request.getParameter("individualID");
+    if((individualID!=null)&&(!individualID.equals("None"))){
+          prettyPrint.append("Individual ID contains the following: ");
+          individualID=individualID.toLowerCase();
+
+            String locIDFilter=" individual.names.valuesAsString.toLowerCase().indexOf(\""+individualID+"\") != -1";
+
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
