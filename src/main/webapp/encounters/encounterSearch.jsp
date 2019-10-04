@@ -1112,12 +1112,10 @@ function addLabeledKeyword(el) {
               href="<%=CommonConfiguration.getWikiLocation(context)%>individualID"
               target="_blank"><img src="../images/information_icon_svg.gif"
                                    alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
-              <br />
-              
-              <%=encprops.getProperty("multipleIndividualID")%></em></p>
-        
-      
-        
+        	</em></p>
+
+
+
     </div>
   </td>
 </tr>
