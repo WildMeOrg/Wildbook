@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
+import javax.jdo.Query;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -12,10 +13,15 @@ import java.util.Random;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.json.*;
 import org.ecocean.*;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.HiddenEncReporter;
 import org.ecocean.security.HiddenIndividualReporter;
@@ -97,7 +103,9 @@ public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
   //set up the aspect styles
 
 
-
+  
+  
+  try {
 
     
     myShepherd.beginDBTransaction();
@@ -111,8 +119,15 @@ public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
       useLocales=true;
     }
     else{request.setAttribute("gpsOnly", "yes");}
-    EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
-    Vector rEncounters = queryResult.getResult();
+    
+    StringBuffer prettyPrint=new StringBuffer("");
+    Map<String,Object> paramMap = new HashMap<String, Object>();
+    String filter= EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+    Query q1=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (q1.execute());
+    Vector<Encounter> rEncounters=new Vector<Encounter>(c);
+    
+    
     
     // viewOnly=true arg means this hiddenData relates to viewing the summary results
     HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
@@ -121,52 +136,18 @@ public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
 
     int numEncs=rEncounters.size();
 
-   
- 
-    try {
+
 
       //let's start
       JSONObject indieMappedPoints     = new JSONObject();
       JSONArray featureList = new JSONArray();
       indieMappedPoints.put("type", "FeatureCollection");
-      //JSONArray  addresses = new JSONArray();
-      //JSONObject address;
       indieMappedPoints.put("features", featureList);
-      
 
-        
-
-        
         
         for(int yh=0;yh<numEncs;yh++){
           Encounter enc=(Encounter)rEncounters.get(yh);
-          
-          
-          //set up colors
-          String baseColor="C0C0C0";
-          String sexColor="C0C0C0";
-          String haploColor="C0C0C0";
-          String speciesColor="C0C0C0";
-          
-          //now check if we should show by sex
-          if(enc.getSex()!=null){
-            if(enc.getSex().equals("male")){
-              sexColor="0000FF";
-            }
-            else if(enc.getSex().equals("female")){
-              sexColor="FF00FF";
-            }
-          }
-            
-          //set the haplotype color
-          if((enc.getHaplotype()!=null)&&(haploprops.getProperty(enc.getHaplotype())!=null)){
-              if(!haploprops.getProperty(enc.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(enc.getHaplotype());}
-          }
-          //set the species color
-          if(enc.getGenus()!=null){
-            speciesColor=speciesTable.get(enc.getGenus()+" "+enc.getSpecificEpithet());
-          }
-          
+
           Double thisEncLat=null;
           Double thisEncLong=null;
        
@@ -187,15 +168,44 @@ public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
                           thisEncLong=(new Double(st.nextToken()))+ran.nextDouble()*0.02;;
 
                         }
-                      } catch (Exception e) {
+                   } 
+                   catch (Exception e) {
                         e.printStackTrace();
                         System.out.println("     I hit an error getting locales in individualMappedSearchResults.jsp.");
-                      }
+                   }
          }
 
             
           //if we have GPS data, let's create the object, otherwise cycle through in the loop
           if(thisEncLat!=null && thisEncLong!=null) {
+            
+            //set up colors
+            String baseColor="C0C0C0";
+            String sexColor="C0C0C0";
+            String haploColor="C0C0C0";
+            String speciesColor="C0C0C0";
+            
+            //now check if we should show by sex
+            if(enc.getSex()!=null){
+              if(enc.getSex().equals("male")){
+                sexColor="0000FF";
+              }
+              else if(enc.getSex().equals("female")){
+                sexColor="FF00FF";
+              }
+            }
+              
+            //set the haplotype color
+            if((enc.getHaplotype()!=null)&&(haploprops.getProperty(enc.getHaplotype())!=null)){
+                if(!haploprops.getProperty(enc.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(enc.getHaplotype());}
+            }
+            //set the species color
+            if(enc.getGenus()!=null){
+              speciesColor=speciesTable.get(enc.getGenus()+" "+enc.getSpecificEpithet());
+            }
+            
+            
+            
                JSONObject point = new JSONObject();
                point.put("type", "Point");
                
@@ -209,10 +219,6 @@ public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
                if(enc.getIndividual()!=null)point.put("individualDisplayName",ServletUtilities.handleNullString(enc.getIndividual().getDisplayName()));
                point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
                point.put("date",enc.getDate());
-               //point.put("thumbUrl",enc.getThumbnailUrl(context));
-               
-               
-               
                
                
                //end color
@@ -236,27 +242,23 @@ public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
         }
 
 
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
-
       //new compressed way
       response.setContentType("application/json");
       tryCompress(response, indieMappedPoints.toString(), useCompression);
       response.setHeader("Content-Type", "application/json");
       response.setStatus(200);
-      
-      //old way
-      //response.getWriter().write(indieMappedPoints.toString());
+
       
 
     }
     catch(Exception e) {
-      //out.println("<p><strong>Error encountered</strong></p>");
-      //out.println("<p>Please let the webmaster know you encountered an error at: IndividualSearchExportCapture servlet</p>");
       e.printStackTrace();
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+
     }
+  finally{
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+  }
     
     
   }
