@@ -58,7 +58,9 @@ if (thisUser == null) {
 } else {
     System.out.println("USERCHECK: header has uwMode=" + uwMode + " and thisUser=" + thisUser + " username=[" + thisUser.getUsername() + "] affiliation=[" + thisUser.getAffiliation() + "]");
     boolean uwUser = "U-W".equals(thisUser.getAffiliation());
-    if ((uwUser && !uwMode) || (!uwUser && uwMode)) {
+    if (thisUser.getUsername().equals("tomcat")) {
+        System.out.println("USERCHECK: tomcat always okay");
+    } else if ((uwUser && !uwMode) || (!uwUser && uwMode)) {
         System.out.println("USERCHECK: incompatible user/mode -- invalidating session");
         session.invalidate();
     }
