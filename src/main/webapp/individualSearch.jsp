@@ -1499,8 +1499,7 @@ else {
             				<img src="images/information_icon_svg.gif" alt="Help" width="15" height="15" border="0" align="absmiddle"/>
             			</a>
             		</span>
-              <br />
-              <%=props.getProperty("multipleIndividualID")%>
+
               </em>
               </p>
           </td>
@@ -1537,28 +1536,6 @@ else {
           </select> <%=props.getProperty("yearsApart")%>
           </td>
 
-        </tr>
-        <tr>
-          <td>
-            <p><strong><%=props.getProperty("alternateID")%>:</strong> <em> <input
-              name="alternateIDField" type="text" id="alternateIDField" size="25"
-              maxlength="100"> <span class="para"><a
-              href="<%=CommonConfiguration.getWikiLocation(context)%>alternateID"
-              target="_blank"><img src="images/information_icon_svg.gif"
-                                   alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
-              <br></em></p>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <p><strong><%=props.getProperty("nickName")%>:</strong> <em> <input
-              name="nickNameField" type="text" id="nickNameField" size="25"
-              maxlength="100"> <span class="para"><a
-              href="<%=CommonConfiguration.getWikiLocation(context)%>nickName"
-              target="_blank"><img src="images/information_icon_svg.gif"
-                                   alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
-              <br></em></p>
-          </td>
         </tr>
 
         <tr>

@@ -116,37 +116,19 @@ public class IndividualQueryProcessor {
     //------------------------------------------------------------------
     //individualID filters-------------------------------------------------
     //supports multiple individualID parameters as well as comma-separated lists of individualIDs within them
-    String[] individualID=request.getParameterValues("individualID");
-    if((individualID!=null)&&(!individualID[0].equals(""))&&(!individualID[0].equals("None"))){
-          prettyPrint.append("Individual ID is one of the following: ");
-          int kwLength=individualID.length;
-            String locIDFilter="(";
-            for(int kwIter=0;kwIter<kwLength;kwIter++) {
-              String kwParamMaster=individualID[kwIter].replaceAll("%20", " ").trim();
+    String individualID=request.getParameter("individualID");
+    if((individualID!=null)&&(!individualID.equals("None"))){
+          prettyPrint.append("Individual ID contains the following: ");
+          individualID=individualID.toLowerCase();
 
-              StringTokenizer str=new StringTokenizer(kwParamMaster,",");
-              int numTokens=str.countTokens();
-              for(int k=0;k<numTokens;k++){
-                String kwParam=str.nextToken().trim();
-                if(!kwParam.equals("")){
-                  if(locIDFilter.equals("(")){
-                    locIDFilter+=" individualID == \""+kwParam+"\"";
-                  }
-                  else{
-                    locIDFilter+=" || individualID == \""+kwParam+"\"";
-                  }
-                  prettyPrint.append(kwParam+" ");
-                }
+            String locIDFilter=" names.valuesAsString.toLowerCase().indexOf(\""+individualID+"\") != -1";
 
-              }
-
-            }
-            locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
     }
     //end individualID filters-----------------------------------------------
+    
 
 
 
@@ -895,7 +877,7 @@ public class IndividualQueryProcessor {
 
 
 
-
+/*
     //alternateID and nickName are now handled here (and commented out below)
     List<String> nameIds = new ArrayList<String>();
     String altVal = request.getParameter("alternateIDField");
@@ -911,19 +893,7 @@ public class IndividualQueryProcessor {
             filter += " && " + clause;
         }
     }
-
-    //filter for alternate ID------------------------------------------
-/*
-    if((request.getParameter("alternateIDField")!=null)&&(!request.getParameter("alternateIDField").equals(""))) {
-      String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim().toLowerCase();
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="(alternateid.toLowerCase().indexOf('"+altID+"') != -1 || (encounters.contains(enc99) && enc99.otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1))";}
-      else{filter+=" && (alternateid.toLowerCase().indexOf('"+altID+"') != -1 || (encounters.contains(enc99) && enc99.otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1))";}
-      if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc99")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc99";}
-
-      prettyPrint.append("alternateID field contains \""+altID+"\".<br />");
-    }
 */
-
 
 
 /*
