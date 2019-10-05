@@ -205,9 +205,8 @@ public class EncounterQueryProcessor extends QueryProcessor {
     String individualID=request.getParameter("individualID");
     if((individualID!=null)&&(!individualID.equals("None"))){
           prettyPrint.append("Individual ID contains the following: ");
-          individualID=individualID.toLowerCase();
 
-            String locIDFilter=" individual.names.valuesAsString.toLowerCase().indexOf(\""+individualID+"\") != -1";
+            String locIDFilter=" (individual.individualID == \""+individualID+"\" || individual.names.valuesAsString.toLowerCase().indexOf(\""+individualID.toLowerCase()+"\") != -1) ";
 
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
