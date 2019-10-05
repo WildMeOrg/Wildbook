@@ -114,7 +114,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
           prettyPrint.append("Individual ID contains the following: ");
           individualID=individualID.toLowerCase();
 
-            String locIDFilter=" names.valuesAsString.toLowerCase().indexOf(\""+individualID+"\") != -1";
+            String locIDFilter=" (individualID == \""+individualID+"\" || names.valuesAsString.toLowerCase().indexOf(\""+individualID+"\") != -1)";
 
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
