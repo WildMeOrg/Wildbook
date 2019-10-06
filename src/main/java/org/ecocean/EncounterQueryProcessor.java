@@ -203,7 +203,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
     //individualID filters-------------------------------------------------
     //supports multiple individualID parameters as well as comma-separated lists of individualIDs within them
     String individualID=request.getParameter("individualID");
-    if((individualID!=null)&&(!individualID.equals("None"))){
+    if((individualID!=null)&&(!individualID.equals("None"))&&(!individualID.trim().equals(""))){
           prettyPrint.append("Individual ID contains the following: ");
 
             String locIDFilter=" (individual.individualID == \""+individualID+"\" || individual.names.valuesAsString.toLowerCase().indexOf(\""+individualID.toLowerCase()+"\") != -1) ";
