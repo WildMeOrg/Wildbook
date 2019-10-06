@@ -924,17 +924,21 @@ System.out.println("url --> " + url);
 
         JSONArray rlist = res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").getJSONArray("review_pair_list");
         JSONObject rpair = null;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway._identificationHtmlFromResult");
+        myShepherd.beginDBTransaction();
         if (offset >= 0) {
             if (offset > rlist.length() - 1) offset = 0;
             rpair = rlist.optJSONObject(offset);
         } else {
-            Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("IAGateway._identificationHtmlFromResult");
+
             rpair = getAvailableIdentificationReviewPair(rlist, annId, context);
 System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + rpair);
         }
         if (rpair == null) {
             System.out.println("ERROR: could not determine rpair from " + rlist.toString());
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return "<div error-code=\"552\" class=\"response-error\" title=\"error 2\">unable to obtain identification interface</div>";
         }
 
@@ -946,11 +950,15 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
         if (quuid == null) {
             getOut = "<div error-code=\"553\" class=\"response-error\" title=\"error 3\">unable to obtain identification interface</div>";
             System.out.println("ERROR: could not determine query annotation uuid for _identificationHtmlFromResult: " + res);
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return getOut;
         }
         if ((res.getJSONObject("results").optJSONObject("cm_dict") == null) || (res.getJSONObject("results").getJSONObject("cm_dict").optJSONObject(quuid) == null)) {
             getOut = "<div error-code=\"554\" class=\"response-error\" title=\"error 4\">unable to obtain identification interface</div>";
             System.out.println("ERROR: could not determine cm_dict for quuid=" + quuid + " for _identificationHtmlFromResult: " + res);
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return getOut;
         }
         url += "cm_dict=" + res.getJSONObject("results").getJSONObject("cm_dict").getJSONObject(quuid).toString() + "&";
@@ -963,7 +971,7 @@ System.out.println("url --> " + url);
 //getOut = "(( " + url + " ))";
             URL u = new URL(url);
             JSONObject rtn = RestClient.get(u);
-            if (IBEISIA.iaCheckMissing(res.optJSONObject("response"), context)) {  //we had to send missing images/annots, so lets try again (note: only once)
+            if (IBEISIA.iaCheckMissing(res.optJSONObject("response"), context, myShepherd)) {  //we had to send missing images/annots, so lets try again (note: only once)
 System.out.println("trying again:\n" + u.toString());
                 rtn = RestClient.get(u);
             }
@@ -978,6 +986,10 @@ System.out.println("trying again:\n" + u.toString());
             }
         } catch (Exception ex) {
             getOut = "<div error-code=\"556\" class=\"response-error\">Error: " + ex.toString() + "</div>";
+        }
+        finally {
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
         }
 
         return getOut;
