@@ -677,7 +677,7 @@ System.out.println("[1] getMatchingSet params=" + params);
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection)query.execute();
         Iterator it = c.iterator();
-        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        ArrayList<Annotation> anns = new ArrayList<Annotation>(c.size());
         while (it.hasNext()) {
             Annotation ann = (Annotation)it.next();
             if (!IBEISIA.validForIdentification(ann)) continue;
