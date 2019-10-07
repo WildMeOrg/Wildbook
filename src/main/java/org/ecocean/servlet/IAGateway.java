@@ -487,7 +487,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
                 JSONObject jlog = new JSONObject("{\"_action\": \"identificationReviewPost\"}");
                 jlog.put("state", new JSONArray(new String[]{a1, a2, state}));
                 IBEISIA.log(taskId, a1, null, jlog, context);
-                checkIdentificationIterationStatus(a1, taskId, request);
+                checkIdentificationIterationStatus(a1, taskId, request, myShepherd);
             }
         }
         response.setContentType("text/plain");
@@ -758,16 +758,18 @@ System.out.println("anns -> " + anns);
                 newTask.setParameters(params);
                 newTask.addObject(anns.get(i));
                 myShepherd.storeNewTask(newTask);
+                myShepherd.beginDBTransaction();
                 subTasks.add(newTask);
             }
             myShepherd.storeNewTask(parentTask);
+            myShepherd.beginDBTransaction();
         } else {  //we just use the existing "parent" task
             subTasks.add(parentTask);
         }
         for (int i = 0 ; i < anns.size() ; i++) {
             Annotation ann = anns.get(i);
             JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
-            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, subTasks.get(i));
+            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, limitTargetSize, subTasks.get(i),myShepherd);
             taskList.put(taskRes);
         }
         if (limitTargetSize > -1) res.put("_limitTargetSize", limitTargetSize);
@@ -778,7 +780,7 @@ System.out.println("anns -> " + anns);
 
 
     private static JSONObject _sendIdentificationTask(Annotation ann, String context, String baseUrl, JSONObject queryConfigDict,
-                                               JSONObject userConfidence, int limitTargetSize, Task task) throws IOException {
+                                               JSONObject userConfidence, int limitTargetSize, Task task, Shepherd myShepherd) throws IOException {
 
         //String iaClass = ann.getIAClass();
         boolean success = true;
@@ -793,9 +795,11 @@ System.out.println("+ starting ident task " + annTaskId);
         JSONObject shortCut = IAQueryCache.tryTargetAnnotationsCache(context, ann, taskRes);
         if (shortCut != null) return shortCut;
 
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("IAGateway._sendIdentificationTask");
-        myShepherd.beginDBTransaction();
+        //Shepherd myShepherd = new Shepherd(context);
+        //myShepherd.setAction("IAGateway._sendIdentificationTask");
+        //myShepherd.beginDBTransaction();
+        
+        
         try {
             //TODO we might want to cache this examplars list (per species) yes?
 
@@ -835,7 +839,7 @@ System.out.println("+ starting ident task " + annTaskId);
         }
         finally{
           myShepherd.commitDBTransaction();
-          myShepherd.closeDBTransaction();
+          myShepherd.beginDBTransaction();
         }
 /* TODO ?????????
             if (!success) {
@@ -1056,16 +1060,16 @@ System.out.println("trying again:\n" + u.toString());
         really the question is: do we want the most recent ident result for this annot? or the result from this task?
         they most(?) often will be the same, yet can not be.  ???
     */
-    private void checkIdentificationIterationStatus(String annId, String taskId, HttpServletRequest request) throws IOException {
+    private void checkIdentificationIterationStatus(String annId, String taskId, HttpServletRequest request, Shepherd myShepherd) throws IOException {
         if (annId == null) return;
         String context = ServletUtilities.getContext(request);
         String baseUrl = null;
         try {
             baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
         } catch (java.net.URISyntaxException ex) {}
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("IAGateway.checkIdentificationIterationStatus");
-        myShepherd.beginDBTransaction();
+        //Shepherd myShepherd = new Shepherd(context);
+        //myShepherd.setAction("IAGateway.checkIdentificationIterationStatus");
+        //myShepherd.beginDBTransaction();
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", annId, myShepherd);
         if ((logs == null) || (logs.size() < 1)) {myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();return;}
         Collections.reverse(logs);  //getTaskResultsBase() needs to be timestamp ASC order, but this is not; sigh.
@@ -1098,7 +1102,7 @@ System.out.println(" - state(" + a1 + ", " + a2 + ") -> " + state);
             /////TODO fix how this opt gets set?  maybe???
             JSONObject opt = null;
             JSONObject queryConfigDict = IBEISIA.queryConfigDict(myShepherd, opt);
-            JSONObject rtn = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, -1, null);
+            JSONObject rtn = _sendIdentificationTask(ann, context, baseUrl, queryConfigDict, null, -1, null, myShepherd);
             /////// at this point, we can consider this current task done
             IBEISIA.setActiveTaskId(request, null);  //reset it so it can discovered when results come back
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
@@ -1276,8 +1280,9 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " + ex.toString());
-                myShepherd.rollbackDBTransaction();
+                
             }
+            
             myShepherd.closeDBTransaction();
 
         } else if ((jobj.optJSONObject("identify") != null) && (jobj.optString("taskId", null) != null)) {  //ditto about taskId
