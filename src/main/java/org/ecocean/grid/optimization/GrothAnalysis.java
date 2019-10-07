@@ -44,6 +44,10 @@ public class GrothAnalysis implements MultivariateFunction {
   public static void flush() {
     matchedswis=new ArrayList<ScanWorkItem>();
     nonmatchedswis=new ArrayList<ScanWorkItem>();
+    matchScores=new ArrayList<Double>();
+    nonmatchScores=new ArrayList<Double>();
+    matches=new ArrayList<MatchObject>();
+    nonmatches=new ArrayList<MatchObject>();
   }
   
   public void setNumComparisonsEach(int numComparisons ) {
@@ -72,12 +76,12 @@ public class GrothAnalysis implements MultivariateFunction {
     double val = -1;
      //Parameter order: {epsilon, R, sizeLim, maxTriangleRotation, C}  
      // okay, we need to undo parameter scaling for actually feeding params into the grid
-    double[] scaledPoint = new double[4];
-    for (int i=0;i<point.length;i++) {
+    double[] scaledPoint = new double[5];
+    for (int i=0;i<5;i++) {
       scaledPoint[i] = point[i]*parameterScaling[i];
     }
-    System.out.println("UNSCALED INPUT ==> Epsilon: "+point[0]+"  R: "+point[1]+"  sizeLim: "+point[2]+"  maxTriangleRotation: "+point[3]+"  C: "+point[4]);
-    System.out.println("  SCALED INPUT ==> Epsilon: "+scaledPoint[0]+"  R: "+scaledPoint[1]+"  sizeLim: "+scaledPoint[2]+"  maxTriangleRotation: "+scaledPoint[3]+"  C: "+scaledPoint[4]);
+    System.out.println("SCALED INPUT ==> Epsilon: "+point[0]+"  R: "+point[1]+"  sizeLim: "+point[2]+"  maxTriangleRotation: "+point[3]+"  C: "+point[4]);
+    System.out.println("DE-SCALED INPUT FRO GRID ==> Epsilon: "+scaledPoint[0]+"  R: "+scaledPoint[1]+"  sizeLim: "+scaledPoint[2]+"  maxTriangleRotation: "+scaledPoint[3]+"  C: "+scaledPoint[4]);
 
     try {
       val = getScoreDiffMatchesMinusNonmatches(numComparisons, scaledPoint[0], scaledPoint[1], scaledPoint[2], scaledPoint[3], scaledPoint[4], defaultSide, maxNumSpots, useWeights, targetScore, weightAmount );
