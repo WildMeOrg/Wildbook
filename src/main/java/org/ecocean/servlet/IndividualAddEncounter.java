@@ -76,267 +76,292 @@ public class IndividualAddEncounter extends HttpServlet {
     String responseJSON="";
     PrintWriter out = response.getWriter();
     boolean locked = false, isOwner = true;
-    boolean isAssigned = false;
+    
+    String failureMessage="<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT added to " + request.getParameter("individual") + ". Please try to add the encounter again after a few seconds.";
 
     String action = request.getParameter("action");
 
     //add encounter to a MarkedIndividual
 
     String indivID = request.getParameter("individual");
-    boolean forceNew = Util.booleanNotFalse(request.getParameter("forceNew"));
     if ((request.getParameter("number") != null) && (indivID != null) && (request.getParameter("matchType") != null)) {
-
-      String nickname = "";
-      myShepherd.beginDBTransaction();
-      Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
-      if (enc2add == null) throw new RuntimeException("invalid encounter id=" + request.getParameter("number"));
-      setDateLastModified(enc2add);
-     
-      boolean newIndy = false;
-      if (enc2add.getIndividualID()==null) {
-        MarkedIndividual addToMe = null;
-        //if forceNew=true, this means we make a new indiv, so there.  (indivId should be a name in this case, basically)
-        if (forceNew) {
-            System.out.println("IndividualAddEncounter: forceNew=true, attempting to make indiv '" + indivID + "'.");
-            try {
-                newIndy = true;
-                addToMe = new MarkedIndividual(indivID, enc2add);
-                myShepherd.storeNewMarkedIndividual(addToMe);
-                myShepherd.updateDBTransaction();
-                addToMe.refreshNamesCache();
-                addToMe.refreshDependentProperties();
-                //enc2add.setIndividualID(indivID);
-            } 
-            catch (Exception ex) {
-                ex.printStackTrace();
-                myShepherd.rollbackDBTransaction();
-                throw new RuntimeException("IndividualAddEncounter: unable to create new MarkedIndividual " + indivID);
-            }
-        } else {
-           System.out.println("IndividualAddEncounter: Retrieving an existing individual=" + indivID);
-            addToMe = myShepherd.getMarkedIndividual(indivID);
-            if (addToMe == null) throw new RuntimeException("invalid individual id=" + indivID);
-        }
-
-        try {
-
-
-          boolean sexMismatch = false;
-          //myShepherd.beginDBTransaction();
-          //if ((addToMe.getNickName() != null) && (!addToMe.getNickName().equals(""))) {
-          //  nickname = " ("+addToMe.getNickName() + ")";
-          //}
+    
+        String nickname = "";
+        myShepherd.beginDBTransaction();
+        Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
+        if (enc2add == null) throw new RuntimeException("invalid encounter id=" + request.getParameter("number"));
+        setDateLastModified(enc2add);
+       
+        boolean newIndy = false;
+        if (enc2add.getIndividualID()==null) {
           try {
-            if (!addToMe.getEncounters().contains(enc2add)) {
-              addToMe.addEncounter(enc2add);
-              System.out.println("Now adding the Encounter to the individual");
-            }
-            enc2add.setMatchedBy(request.getParameter("matchType"));
-            enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + request.getParameter("individual") + ".</p>");
-            addToMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + request.getParameter("number") + ".</p>");
-            
-            
-            
-            if ((addToMe.getSex()!=null)&&(enc2add.getSex()!=null)&&(!addToMe.getSex().equals(enc2add.getSex()))) {
-               //if (((addToMe.getSex().equals("Male")) & (enc2add.getSex().equals("Female"))) || ((addToMe.getSex().equals("Female")) & (enc2add.getSex().equals("Male")))) {
-                sexMismatch = true;
-              //}
-            }
-            else if ( ((addToMe.getSex()==null)||(addToMe.getSex().equals("unknown"))) &&(enc2add.getSex()!=null)) {
-              addToMe.setSex(enc2add.getSex());
-            }
-            responseJSON=RESTUtils.getJSONObjectFromPOJO(addToMe, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();
-            
-            
-            
-            try{
-              //let's do a YouTube post-back check
-              System.out.println("In IndividualAddEncounter trying to fire YouTube..");
-              if(enc2add.getOccurrenceID()!=null){
-                if(myShepherd.isOccurrence(enc2add.getOccurrenceID())){
-                  System.out.println("...In IndividualAddEncounter found an occurrence..");
-                  Occurrence occur=myShepherd.getOccurrence(enc2add.getOccurrenceID());
-                  //TBD-support more than just en language
-                  
-                  //determine language for response
-                  String ytRemarks=enc2add.getOccurrenceRemarks().trim().toLowerCase();
-                  int commentEnd=ytRemarks.indexOf("from youtube video:");
-                  if(commentEnd>0){
-                    ytRemarks=ytRemarks.substring(commentEnd);
-                  }
-                  String detectedLanguage="en";
-                  try{
-                    detectedLanguage= DetectTranslate.detectLanguage(ytRemarks);
-
-                    if(!detectedLanguage.toLowerCase().startsWith("en")){
-                      ytRemarks= DetectTranslate.translateToEnglish(ytRemarks);
+            MarkedIndividual addToMe = null;
+            //if we dont already have this individual, we now make it  TODO this may fail because of security (in the future) so we need to take that into consideration
+            if (!myShepherd.isMarkedIndividual(indivID)) {
+                try {
+                    newIndy = true;
+                    addToMe = new MarkedIndividual(indivID, enc2add);
+                    
+                    ArrayList<Encounter> conflictingEncs=new ArrayList<Encounter>();
+                    for(Annotation annot:enc2add.getAnnotations()) {
+                      conflictingEncs.addAll(Annotation.checkForConflictingIDsforAnnotation(annot, addToMe.getIndividualID(), myShepherd));
                     }
-                    if(detectedLanguage.startsWith("es")){detectedLanguage="es";}
-                    else{detectedLanguage="en";}
-                  }
-                  catch(Exception e){
-                    System.out.println("I hit an exception trying to detect language.");
-                    e.printStackTrace();
-                  }
-                  //end determine language for response
-
-                  
-                  
-                  Properties ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
-                  String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
-                  System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
-                  YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd, context);
+                    if(conflictingEncs.size()>0) {
+                      failureMessage="<p>The following Encounters contain the same annotation but have a different individualID. An annotation can only have one ID inherited from its Encounters. <ul>";
+                      for(Encounter enc:conflictingEncs) {
+                        failureMessage+="<li>"+enc.getEncounterNumber()+" ("+enc.getIndividual().getIndividualID()+")</li>";
+                      }
+                      failureMessage+="</ul></p>";
+                      throw new RuntimeException(failureMessage);
+                    }
+                        
+    
+                    myShepherd.storeNewMarkedIndividual(addToMe);
+                    myShepherd.updateDBTransaction();
+                    addToMe.refreshNamesCache();
+                    //enc2add.setIndividualID(indivID);
+                } 
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                    myShepherd.rollbackDBTransaction();
+                    locked=true;
+                    throw new Exception(failureMessage);
                 }
-              }
+            } 
+            else {
+               System.out.println("Retrieving an existing individual");
+               ArrayList<Encounter> conflictingEncs=new ArrayList<Encounter>();
+               for(Annotation annot:enc2add.getAnnotations()) {
+                 conflictingEncs.addAll(Annotation.checkForConflictingIDsforAnnotation(annot, addToMe.getIndividualID(), myShepherd));
+               }
+               if(conflictingEncs.size()>0) {
+                 failureMessage="<p>The following Encounters contain the same annotation but have a different individualID. An annotation can only have one ID inherited from its Encounters. <ul>";
+                 for(Encounter enc:conflictingEncs) {
+                   failureMessage+="<li>"+enc.getEncounterNumber()+" ("+enc.getIndividual().getIndividualID()+")</li>";
+                 }
+                 failureMessage+="</ul></p>";
+                 throw new Exception(failureMessage);
+               }
+                addToMe = myShepherd.getMarkedIndividual(indivID);
             }
-            catch(Exception e){e.printStackTrace();}
-            
-            
-            
-          } catch (Exception le) {
-            System.out.println("Hit locked exception on action: " + action);
-            le.printStackTrace();
-            locked = true;
-            myShepherd.rollbackDBTransaction();
-
-          }
-
-
-          if (!locked) {
-            
-            myShepherd.commitDBTransaction();
-
-            // Retrieve background service for processing emails
-            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-
-            myShepherd.beginDBTransaction();
-
-      			List<String> allAssociatedEmails = addToMe.getAllEmailsToUpdate();
-
-            //inform all encounter submitters for this Marked Individual about the modification to their animal
-
-            if (request.getParameter("noemail") == null) {
-
-              // Specify email template type.
-              String emailTemplate = "individualAddEncounter";
-              if (newIndy==true) {
-                emailTemplate = "individualCreate";
-              }
-              String emailTemplate2 = "individualUpdate";
-
-              
-              // Notify administrator address
-              Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, addToMe, enc2add);
-              String mailTo = CommonConfiguration.getAutoEmailAddress(context);
-              NotificationMailer mailer = new NotificationMailer(context, langCode, mailTo, emailTemplate, tagMap);
-              mailer.appendToSubject(" (sent to submitters)");
-      			  es.execute(mailer);
-
-      			  // Notify submitters, photographers, and informOthers values
-              Set<String> cSubmitters = new HashSet<>();
-              if (enc2add.getSubmitterEmails() != null)cSubmitters.addAll(enc2add.getSubmitterEmails());
-              if (enc2add.getPhotographerEmails() != null)cSubmitters.addAll(enc2add.getPhotographerEmails());
-              if (enc2add.getInformOthersEmails() != null)cSubmitters.addAll(enc2add.getInformOthersEmails());
-              //if (enc2add.getInformOthers() != null)
-                //cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getInformOthersEmails()));
-              
-              for (String emailTo : cSubmitters) {
-                if (!"".equals(emailTo)) {
-                  tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
-                  tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                  es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate, tagMap));
+    
+    
+    
+    
+              boolean sexMismatch = false;
+    
+              try {
+                if (!addToMe.getEncounters().contains(enc2add)) {
+                  addToMe.addEncounter(enc2add);
+                  System.out.println("Now adding the Encounter to the individual");
                 }
+                enc2add.setMatchedBy(request.getParameter("matchType"));
+                enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + request.getParameter("individual") + ".</p>");
+                addToMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + request.getParameter("number") + ".</p>");
+                
+                
+                
+                if ((addToMe.getSex()!=null)&&(enc2add.getSex()!=null)&&(!addToMe.getSex().equals(enc2add.getSex()))) {
+                   //if (((addToMe.getSex().equals("Male")) & (enc2add.getSex().equals("Female"))) || ((addToMe.getSex().equals("Female")) & (enc2add.getSex().equals("Male")))) {
+                    sexMismatch = true;
+                  //}
+                }
+                else if ( ((addToMe.getSex()==null)||(addToMe.getSex().equals("unknown"))) &&(enc2add.getSex()!=null)) {
+                  addToMe.setSex(enc2add.getSex());
+                }
+                responseJSON=RESTUtils.getJSONObjectFromPOJO(addToMe, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();
+                
+                
+                
+                try{
+                  //let's do a YouTube post-back check
+                  System.out.println("In IndividualAddEncounter trying to fire YouTube..");
+                  if(enc2add.getOccurrenceID()!=null){
+                    if(myShepherd.isOccurrence(enc2add.getOccurrenceID())){
+                      System.out.println("...In IndividualAddEncounter found an occurrence..");
+                      Occurrence occur=myShepherd.getOccurrence(enc2add.getOccurrenceID());
+                      //TBD-support more than just en language
+                      
+                      //determine language for response
+                      String ytRemarks=enc2add.getOccurrenceRemarks().trim().toLowerCase();
+                      int commentEnd=ytRemarks.indexOf("from youtube video:");
+                      if(commentEnd>0){
+                        ytRemarks=ytRemarks.substring(commentEnd);
+                      }
+                      String detectedLanguage="en";
+                      try{
+                        detectedLanguage= DetectTranslate.detectLanguage(ytRemarks);
+    
+                        if(!detectedLanguage.toLowerCase().startsWith("en")){
+                          ytRemarks= DetectTranslate.translateToEnglish(ytRemarks);
+                        }
+                        if(detectedLanguage.startsWith("es")){detectedLanguage="es";}
+                        else{detectedLanguage="en";}
+                      }
+                      catch(Exception e){
+                        System.out.println("I hit an exception trying to detect language.");
+                        e.printStackTrace();
+                      }
+                      //end determine language for response
+    
+                      
+                      
+                      Properties ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
+                      String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
+                      System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
+                      YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd, context);
+                    }
+                  }
+                }
+                catch(Exception e){e.printStackTrace();}
+                
+                
+                
+              } catch (Exception le) {
+                System.out.println("Hit locked exception on action: " + action);
+                le.printStackTrace();
+                locked = true;
+                myShepherd.rollbackDBTransaction();
+    
               }
-
-      			  // Notify other who need to know
-              Set<String> cOthers = new HashSet<>(allAssociatedEmails);
-              cOthers.removeAll(cSubmitters);
-              //System.out.println("cOthers size is: "+cOthers.size());
-              for (String emailTo : cOthers) {
-                tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
-                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                //System.out.println("Emailing cOthers member:" +emailTo);
-                es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate2, tagMap));
+    
+    
+              if (!locked) {
+                
+                myShepherd.commitDBTransaction();
+    
+                // Retrieve background service for processing emails
+                ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+    
+                myShepherd.beginDBTransaction();
+    
+          			List<String> allAssociatedEmails = addToMe.getAllEmailsToUpdate();
+    
+                //inform all encounter submitters for this Marked Individual about the modification to their animal
+    
+                if (request.getParameter("noemail") == null) {
+    
+                  // Specify email template type.
+                  String emailTemplate = "individualAddEncounter";
+                  if (newIndy==true) {
+                    emailTemplate = "individualCreate";
+                  }
+                  String emailTemplate2 = "individualUpdate";
+    
+                  
+                  // Notify administrator address
+                  Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, addToMe, enc2add);
+                  String mailTo = CommonConfiguration.getAutoEmailAddress(context);
+                  NotificationMailer mailer = new NotificationMailer(context, langCode, mailTo, emailTemplate, tagMap);
+                  mailer.appendToSubject(" (sent to submitters)");
+          			  es.execute(mailer);
+    
+          			  // Notify submitters, photographers, and informOthers values
+                  Set<String> cSubmitters = new HashSet<>();
+                  if (enc2add.getSubmitterEmails() != null)cSubmitters.addAll(enc2add.getSubmitterEmails());
+                  if (enc2add.getPhotographerEmails() != null)cSubmitters.addAll(enc2add.getPhotographerEmails());
+                  if (enc2add.getInformOthersEmails() != null)cSubmitters.addAll(enc2add.getInformOthersEmails());
+                  //if (enc2add.getInformOthers() != null)
+                    //cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getInformOthersEmails()));
+                  
+                  for (String emailTo : cSubmitters) {
+                    if (!"".equals(emailTo)) {
+                      tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
+                      tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                      es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate, tagMap));
+                    }
+                  }
+    
+          			  // Notify other who need to know
+                  Set<String> cOthers = new HashSet<>(allAssociatedEmails);
+                  cOthers.removeAll(cSubmitters);
+                  //System.out.println("cOthers size is: "+cOthers.size());
+                  for (String emailTo : cOthers) {
+                    tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
+                    tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                    //System.out.println("Emailing cOthers member:" +emailTo);
+                    es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate2, tagMap));
+                  }
+    
+                  // Notify adopters
+    	            Extent encClass = myShepherd.getPM().getExtent(Adoption.class, true);
+    	            Query query = myShepherd.getPM().newQuery(encClass);
+                  List<String> cAdopters = myShepherd.getAdopterEmailsForMarkedIndividual(query, ServletUtilities.handleNullString(addToMe.getIndividualID()));
+                  query.closeAll();
+                  cAdopters.removeAll(allAssociatedEmails);
+                  for (String emailTo : cAdopters) {
+                    tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
+                    tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                    tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, tagMap.get("@ENCOUNTER_LINK@"));
+                    es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate + "-adopter", tagMap));
+                  }
+    
+                  String rssTitle = request.getParameter("individual") + " Resight";
+                  String rssLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number");
+                  String rssDescription = request.getParameter("individual") + " was resighted on " + enc2add.getShortDate() + ".";
+                  //File rssFile = new File(getServletContext().getRealPath(("/"+context+"/rss.xml")));
+    
+                  //setup data dir
+                  String rootWebappPath = getServletContext().getRealPath("/");
+                  File webappsDir = new File(rootWebappPath).getParentFile();
+                  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+                  if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
+                  File rssFile = new File(shepherdDataDir,"rss.xml");
+    
+                  ServletUtilities.addRSSEntry(rssTitle, rssLink, rssDescription, rssFile);
+                  //File atomFile = new File(getServletContext().getRealPath(("/"+context+"/atom.xml")));
+                  File atomFile = new File(shepherdDataDir,"atom.xml");
+    
+                  
+                  ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile,context);
+                }
+    
+    
+                myShepherd.rollbackDBTransaction();
+    
+    
+                //print successful result notice
+                //out.println(ServletUtilities.getHeader(request));
+                //out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully added to " + request.getParameter("individual") + ".");
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.println(responseJSON);
+                
+                
+                //if (sexMismatch) {
+                //  out.println("<p><strong>Warning! There is conflict between the designated sex of the new encounter and the designated sex in previous records. You should resolve this conflict for consistency.</strong></p>");
+                //}
+                //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+                //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View individual " + request.getParameter("individual") + "</a></p>\n");
+                //out.println(ServletUtilities.getFooter(context));
+                //String message = "Encounter #" + request.getParameter("number") + " was added to " + request.getParameter("individual") + ".";
+    
+                /*
+                if (request.getParameter("noemail") == null) {
+                  ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
+                  ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
+                }
+                */
+                es.shutdown();
               }
-
-              // Notify adopters
-	            Extent encClass = myShepherd.getPM().getExtent(Adoption.class, true);
-	            Query query = myShepherd.getPM().newQuery(encClass);
-              List<String> cAdopters = myShepherd.getAdopterEmailsForMarkedIndividual(query, ServletUtilities.handleNullString(addToMe.getIndividualID()));
-              query.closeAll();
-              cAdopters.removeAll(allAssociatedEmails);
-              for (String emailTo : cAdopters) {
-                tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
-                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, tagMap.get("@ENCOUNTER_LINK@"));
-                es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate + "-adopter", tagMap));
+    
+              //if lock exception thrown
+              else {
+                //out.println(ServletUtilities.getHeader(request));
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.println(failureMessage);
+                //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+                //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View " + request.getParameter("individual") + "</a></p>\n");
+                //out.println(ServletUtilities.getFooter(context));
+    
               }
-
-              String rssTitle = request.getParameter("individual") + " Resight";
-              String rssLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number");
-              String rssDescription = request.getParameter("individual") + " was resighted on " + enc2add.getShortDate() + ".";
-              //File rssFile = new File(getServletContext().getRealPath(("/"+context+"/rss.xml")));
-
-              //setup data dir
-              String rootWebappPath = getServletContext().getRealPath("/");
-              File webappsDir = new File(rootWebappPath).getParentFile();
-              File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-              if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
-              File rssFile = new File(shepherdDataDir,"rss.xml");
-
-              ServletUtilities.addRSSEntry(rssTitle, rssLink, rssDescription, rssFile);
-              //File atomFile = new File(getServletContext().getRealPath(("/"+context+"/atom.xml")));
-              File atomFile = new File(shepherdDataDir,"atom.xml");
-
-              
-              ServletUtilities.addATOMEntry(rssTitle, rssLink, rssDescription, atomFile,context);
-            }
-
-
-            myShepherd.rollbackDBTransaction();
-
-
-            //print successful result notice
-            //out.println(ServletUtilities.getHeader(request));
-            //out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully added to " + request.getParameter("individual") + ".");
-            response.setStatus(HttpServletResponse.SC_OK);
-            out.println(responseJSON);
-            
-            
-            //if (sexMismatch) {
-            //  out.println("<p><strong>Warning! There is conflict between the designated sex of the new encounter and the designated sex in previous records. You should resolve this conflict for consistency.</strong></p>");
-            //}
-            //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View individual " + request.getParameter("individual") + "</a></p>\n");
-            //out.println(ServletUtilities.getFooter(context));
-            //String message = "Encounter #" + request.getParameter("number") + " was added to " + request.getParameter("individual") + ".";
-
-            /*
-            if (request.getParameter("noemail") == null) {
-              ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-              ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
-            }
-            */
-            es.shutdown();
-          }
-
-          //if lock exception thrown
-          else {
-            //out.println(ServletUtilities.getHeader(request));
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            out.println("<strong>Failure:</strong> Encounter #" + request.getParameter("number") + " was NOT added to " + request.getParameter("individual") + ". Another user is currently modifying this record in the database. Please try to add the encounter again after a few seconds.");
-            //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View " + request.getParameter("individual") + "</a></p>\n");
-            //out.println(ServletUtilities.getFooter(context));
-
-          }
-
+    
 
         } 
         catch (Exception e) {
 
           //out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Error:</strong> No such record exists in the database.");
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+          out.println(failureMessage);
           //out.println(ServletUtilities.getFooter(context));
           myShepherd.rollbackDBTransaction();
           e.printStackTrace();
@@ -344,6 +369,7 @@ public class IndividualAddEncounter extends HttpServlet {
         }
       } else {
         //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Error:</strong> You can't add this encounter to a marked individual when it's already assigned to another one.");
         //out.println(ServletUtilities.getFooter(context));
         myShepherd.rollbackDBTransaction();
