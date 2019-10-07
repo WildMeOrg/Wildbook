@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
+import javax.jdo.Query;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -12,17 +13,23 @@ import java.util.Random;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.json.*;
 import org.ecocean.*;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenEncReporter;
 import org.ecocean.security.HiddenIndividualReporter;
 
 import java.util.zip.*;
 import java.io.OutputStream;
 
-public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
+public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
 
   
   public void init(ServletConfig config) throws ServletException {
@@ -54,7 +61,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     
     Properties map_props = new Properties();
     //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
-    map_props=ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode);
+    map_props=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode);
     
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
@@ -78,26 +85,28 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("GetIndividualSearchGoogleMapsPoints.class");
+    myShepherd.setAction("GetEncounterSearchGoogleMapsPoints.class");
     PersistenceManager pm=myShepherd.getPM();
     PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
     javax.jdo.FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "individualSearchResults");
     grp.addMember("individualID").addMember("sex").addMember("names").addMember("encounters");
     
     javax.jdo.FetchGroup grp2 = pmf.getFetchGroup(Encounter.class, "encSearchResults");
-    grp2.addMember("sex").addMember("genus").addMember("specificEpithet").addMember("decimalLatitude").addMember("decimalLongitude").addMember("decimalLatitude").addMember("catalogNumber").addMember("year").addMember("hour").addMember("month").addMember("minutes").addMember("day");
+    grp2.addMember("tissueSamples").addMember("sex").addMember("individual").addMember("decimalLatitude").addMember("decimalLongitude").addMember("catalogNumber").addMember("year").addMember("hour").addMember("month").addMember("minutes").addMember("day");
 
-    myShepherd.getPM().getFetchPlan().setGroup("individualSearchResults");
-    myShepherd.getPM().getFetchPlan().addGroup("encSearchResults");
+
+    myShepherd.getPM().getFetchPlan().setGroup("encSearchResults");
+    myShepherd.getPM().getFetchPlan().addGroup("individualSearchResults");
 
   Random ran= new Random();
 
   //set up the aspect styles
 
 
+  
+  
+  try {
 
-    //set up the vector for matching indies
-    Vector rIndividuals = new Vector();
     
     myShepherd.beginDBTransaction();
 
@@ -110,68 +119,35 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
       useLocales=true;
     }
     else{request.setAttribute("gpsOnly", "yes");}
-    MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, order);
-    rIndividuals = queryResult.getResult();
+    
+    StringBuffer prettyPrint=new StringBuffer("");
+    Map<String,Object> paramMap = new HashMap<String, Object>();
+    String filter= EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+    Query q1=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (q1.execute());
+    Vector<Encounter> rEncounters=new Vector<Encounter>(c);
+    
+    
     
     // viewOnly=true arg means this hiddenData relates to viewing the summary results
-    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true, myShepherd);
-    rIndividuals = hiddenData.viewableResults(rIndividuals, true, myShepherd);
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
+    rEncounters = hiddenData.viewableResults(rEncounters, true, myShepherd);
 
 
-    int numIndividuals=rIndividuals.size();
+    int numEncs=rEncounters.size();
 
-   
- 
-    try {
+
 
       //let's start
       JSONObject indieMappedPoints     = new JSONObject();
       JSONArray featureList = new JSONArray();
       indieMappedPoints.put("type", "FeatureCollection");
-      //JSONArray  addresses = new JSONArray();
-      //JSONObject address;
       indieMappedPoints.put("features", featureList);
-      
-      
-      
-      for(int i=0;i<numIndividuals;i++) {
-        MarkedIndividual indie=(MarkedIndividual)rIndividuals.get(i);
-        
-        Vector rEncounters=indie.returnEncountersWithGPSData(useLocales,true,context); 
-        int numEncs=rEncounters.size();
-        int numEncsWithValidGPS=0;
-        
-        //set up move path
-        JSONArray[] movePathCoords=new JSONArray[numEncs];
-        
-        //set up colors
-        String baseColor="C0C0C0";
-        String sexColor="C0C0C0";
-        String haploColor="C0C0C0";
-        String speciesColor="C0C0C0";
-        
-        //now check if we should show by sex
-        if(indie.getSex()!=null){
-          if(indie.getSex().equals("male")){
-            sexColor="0000FF";
-          }
-          else if(indie.getSex().equals("female")){
-            sexColor="FF00FF";
-          }
-        }
-          
-        //set the haplotype color
-        if((indie.getHaplotype()!=null)&&(haploprops.getProperty(indie.getHaplotype())!=null)){
-            if(!haploprops.getProperty(indie.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(indie.getHaplotype());}
-        }
-        //set the species color
-        if(indie.getGenusSpecies()!=null){
-          speciesColor=speciesTable.get(indie.getGenusSpecies());
-        }
-        
+
         
         for(int yh=0;yh<numEncs;yh++){
           Encounter enc=(Encounter)rEncounters.get(yh);
+
           Double thisEncLat=null;
           Double thisEncLong=null;
        
@@ -192,34 +168,57 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
                           thisEncLong=(new Double(st.nextToken()))+ran.nextDouble()*0.02;;
 
                         }
-                      } catch (Exception e) {
+                   } 
+                   catch (Exception e) {
                         e.printStackTrace();
                         System.out.println("     I hit an error getting locales in individualMappedSearchResults.jsp.");
-                      }
+                   }
          }
 
             
           //if we have GPS data, let's create the object, otherwise cycle through in the loop
           if(thisEncLat!=null && thisEncLong!=null) {
-              numEncsWithValidGPS++;
+            
+            //set up colors
+            String baseColor="C0C0C0";
+            String sexColor="C0C0C0";
+            String haploColor="C0C0C0";
+            String speciesColor="C0C0C0";
+            
+            //now check if we should show by sex
+            if(enc.getSex()!=null){
+              if(enc.getSex().equals("male")){
+                sexColor="0000FF";
+              }
+              else if(enc.getSex().equals("female")){
+                sexColor="FF00FF";
+              }
+            }
+              
+            //set the haplotype color
+            if((enc.getHaplotype()!=null)&&(haploprops.getProperty(enc.getHaplotype())!=null)){
+                if(!haploprops.getProperty(enc.getHaplotype()).trim().equals("")){ haploColor = haploprops.getProperty(enc.getHaplotype());}
+            }
+            //set the species color
+            if(enc.getGenus()!=null){
+              speciesColor=speciesTable.get(enc.getGenus()+" "+enc.getSpecificEpithet());
+            }
+            
+            
+            
                JSONObject point = new JSONObject();
                point.put("type", "Point");
                
                // construct a JSONArray from a string; can also use an array or list
                JSONArray coord = new JSONArray("["+thisEncLong.toString()+","+thisEncLat.toString()+"]");
-               movePathCoords[yh]=coord;
                point.put("coordinates", coord);
                point.put("catalogNumber",enc.getCatalogNumber());
                point.put("encSubdir",enc.subdir());
                point.put("rootURL",CommonConfiguration.getURLLocation(request));
-               point.put("individualID",ServletUtilities.handleNullString(enc.getIndividual().getIndividualID()));
-               point.put("individualDisplayName",ServletUtilities.handleNullString(enc.getIndividual().getDisplayName()));
+               if(enc.getIndividual()!=null)point.put("individualID",ServletUtilities.handleNullString(enc.getIndividual().getIndividualID()));
+               if(enc.getIndividual()!=null)point.put("individualDisplayName",ServletUtilities.handleNullString(enc.getIndividual().getDisplayName()));
                point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
                point.put("date",enc.getDate());
-               //point.put("thumbUrl",enc.getThumbnailUrl(context));
-               
-               
-               
                
                
                //end color
@@ -241,67 +240,25 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
              
           
         }
-        
-        //let's do the move path, one per shark
-        if(numEncsWithValidGPS>1){
-          JSONObject lineString = new JSONObject();
-          lineString.put("type", "LineString");
-          JSONObject lsFeature = new JSONObject();
-          
-          StringBuffer sumCoords=new StringBuffer("[ ");
-          for(int p=0;p<movePathCoords.length;p++){
-            if(movePathCoords[p]!=null)sumCoords.append((movePathCoords[p].toString()+", "));
-          }
-          sumCoords.append(" ]");
-          JSONArray coord = new JSONArray(sumCoords.toString());
-          
-          
-          lineString.put("type", "LineString");
-          lineString.put("color",baseColor);
-          lineString.put("sexColor",sexColor);
-          lineString.put("haplotypeColor",haploColor);
-          lineString.put("speciesColor",speciesColor);
-          lineString.put("coordinates", coord);
-          
-          //set up feature
-          JSONObject props = new JSONObject();
-          lsFeature.put("properties", props);
-          lsFeature.put("geometry", lineString);
-          lsFeature.put("type", "Feature");
-          featureList.put(lsFeature);
-          
-          
-        }
-        
-    
-        
-        
-       
-        
-       } //end for
-   
 
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
 
       //new compressed way
       response.setContentType("application/json");
       tryCompress(response, indieMappedPoints.toString(), useCompression);
       response.setHeader("Content-Type", "application/json");
       response.setStatus(200);
-      
-      //old way
-      //response.getWriter().write(indieMappedPoints.toString());
+
       
 
     }
     catch(Exception e) {
-      //out.println("<p><strong>Error encountered</strong></p>");
-      //out.println("<p>Please let the webmaster know you encountered an error at: IndividualSearchExportCapture servlet</p>");
       e.printStackTrace();
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+
     }
+  finally{
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+  }
     
     
   }

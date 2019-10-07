@@ -284,6 +284,8 @@
 				
 				/StandardImport = authc, roles[admin]
 				
+				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
+
             </param-value>
         </init-param>
     </filter>
@@ -1087,6 +1089,11 @@
       <servlet-name>GetIndividualSearchGoogleMapsPoints</servlet-name>
       <servlet-class>org.ecocean.servlet.export.GetIndividualSearchGoogleMapsPoints</servlet-class>
   </servlet>
+  
+      <servlet>
+      <servlet-name>GetEncounterSearchGoogleMapsPoints</servlet-name>
+      <servlet-class>org.ecocean.servlet.export.GetEncounterSearchGoogleMapsPoints</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetTags</servlet-name>
@@ -1825,6 +1832,11 @@
         <servlet-mapping>
           <servlet-name>GetIndividualSearchGoogleMapsPoints</servlet-name>
           <url-pattern>/GetIndividualSearchGoogleMapsPoints</url-pattern>
+  </servlet-mapping>
+  
+          <servlet-mapping>
+          <servlet-name>GetEncounterSearchGoogleMapsPoints</servlet-name>
+          <url-pattern>/GetEncounterSearchGoogleMapsPoints</url-pattern>
   </servlet-mapping>
 
       <servlet-mapping>
