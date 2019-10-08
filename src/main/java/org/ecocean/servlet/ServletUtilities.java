@@ -880,7 +880,7 @@ public static String getRemoteHost(HttpServletRequest request) {
 public static boolean useCustomStyle(HttpServletRequest request, String orgName) {
   // check url for "organization=____" arg
   String organization = request.getParameter("organization");
-  String cookieOrg = getOrganazationCookie(request);
+  String cookieOrg = getOrganizationCookie(request);
 
   if (organization!=null && organization.toLowerCase().equals(orgName.toLowerCase())) {
     return true;
@@ -908,7 +908,7 @@ public static boolean useCustomStyle(HttpServletRequest request, String orgName)
   }
 }
 
-public static String getOrganazationCookie(HttpServletRequest request){
+public static String getOrganizationCookie(HttpServletRequest request){
   // Similar to langCode above, check for cookie to apply custom styles
   String context=ServletUtilities.getContext(request);
   Cookie[] cookies = request.getCookies();
