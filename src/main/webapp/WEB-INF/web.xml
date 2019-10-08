@@ -386,6 +386,7 @@
 				/sutime/** = authc
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
+
 				
 				/AnnotationEdit = authc, roles[admin]
 				
@@ -545,6 +546,7 @@
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
   </servlet>
+
 
 
 <!--
@@ -821,6 +823,7 @@
     <servlet-name>MediaAssetsForUser</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetsForUser</servlet-class>
   </servlet>
+  
   <servlet>
     <servlet-name>MediaAssetAttach</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetAttach</servlet-class>
@@ -1680,6 +1683,11 @@
 	  <servlet-name>SimpleCMROutput</servlet-name>
 	  <url-pattern>/SimpleCMROutput</url-pattern>
   </servlet-mapping>
+  
+  <servlet-mapping>
+          <servlet-name>IndividualSetName</servlet-name>
+          <url-pattern>/IndividualSetName</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
 	  <servlet-name>MarkRecaptureEncounters</servlet-name>
@@ -2322,10 +2330,7 @@
     <url-pattern>/IndividualSetNickName</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>IndividualSetName</servlet-name>
-    <url-pattern>/IndividualSetName</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>IndividualSetAlternateID</servlet-name>

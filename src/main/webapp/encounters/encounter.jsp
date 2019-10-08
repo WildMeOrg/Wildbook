@@ -10,6 +10,7 @@
          com.drew.metadata.Tag,
          org.ecocean.*,
          org.ecocean.media.MediaAsset,
+         java.util.regex.Pattern,
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
@@ -74,39 +75,18 @@
         //set up the file input stream
         //props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
         props=ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
-
+		System.out.println("Trying to find locationID code");
         //let's see if the property is defined
         if (props.getProperty(lcode) != null) {
-          returnString = props.getProperty(lcode);
+          returnString = escapeSpecialRegexChars(props.getProperty(lcode));
 
+          String nextID=MultiValue.nextUnusedValueForKey("*",returnString, myShepherd, "%03d");
+          System.out.println("nextID: "+nextID);
 
-          int startNum = 1;
-          boolean keepIterating = true;
-
-          //let's iterate through the potential individuals
-          while (keepIterating) {
-            String startNumString = Integer.toString(startNum);
-            if (startNumString.length() < 3) {
-              while (startNumString.length() < 3) {
-                startNumString = "0" + startNumString;
-              }
-            }
-            String compositeString = returnString + startNumString;
-            if (!myShepherd.isMarkedIndividual(compositeString)) {
-              keepIterating = false;
-              returnString = compositeString;
-            } else {
-              startNum++;
-            }
-
-          }
-          return returnString;
-
+          return nextID;
         }
-
-
       }
-      return returnString;
+		return returnString;
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -126,6 +106,11 @@
 			if (!accessKey.equals(p.optString("accessKey", null))) return false;
 		}
 		return true;
+	}
+	
+	private String escapeSpecialRegexChars(String str) {
+		Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
+	    return SPECIAL_REGEX_CHARS.matcher(str).replaceAll("\\\\$0");
 	}
 %>
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
@@ -183,7 +168,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   boolean proceed = true;
   boolean haveRendered = false;
 
-
+  
 
   Properties collabProps = new Properties();
   collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
@@ -200,6 +185,10 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   <style type="text/css">
+
+.id-action {
+    display: none;
+}
 
 .disabled {
     opacity: 0.6;
@@ -413,8 +402,9 @@ td.measurement{
           	    ne_long_element.value = location.lng();
 	}
 	</script>
-
+	
 <script>
+var lastIndivAutoData = {};
 function setIndivAutocomplete(el) {
     if (!el || !el.length) return;
     var args = {
@@ -422,12 +412,18 @@ function setIndivAutocomplete(el) {
             var taxString = $('#displayTax').text();
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if (taxString && (item.species != taxString)) return null;
+                //if (taxString && (item.species != taxString)) return null;
                 var label = item.label;
                 if (item.species) label += '   ( ' + item.species + ' )';
-                return { label: label, type: item.type, value: item.value };
+                lastIndivAutoData[item.value] = label;
+                return { label: label, type: item.type, value: label, id: item.value };
             });
             return res;
+        },
+        select: function(ev, ui) {
+            $('#individualAddEncounterInput').val(ui.item.id);
+            resetIdButtons();
+            return true;
         }
     };
     wildbook.makeAutocomplete(el[0], args);
@@ -846,7 +842,7 @@ if(enc.getLocation()!=null){
 <a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
 <em><%=encprops.getProperty("locationID") %></em>
-<span>
+<span> 
 	<span id="displayLocationID">
 	<%
     String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
@@ -860,7 +856,7 @@ if(enc.getLocation()!=null){
 		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
 	}
 	%>
-		<%=displayPath %>
+		<%=displayPath %>	
 	</span>
 </span>
 
@@ -1077,7 +1073,7 @@ if(enc.getLocation()!=null){
             <div class="col-sm-5">
 
               <%=LocationID.getHTMLSelector(false, enc.getLocationID(),qualifier,"selectCode","code","form-control") %>
-
+              
             </div>
             <div class="col-sm-3">
               <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
@@ -1274,7 +1270,7 @@ if(enc.getLocation()!=null){
 
 
       google.maps.event.addDomListener(window, 'load', initialize);
-
+      
       function emptyMarkers() {
 
     	    // Loop through markers and set map to null for each
@@ -1287,8 +1283,8 @@ if(enc.getLocation()!=null){
     	    markers = [];
 
     	}
-
-
+      
+      
     </script>
 
  	<%
@@ -1319,8 +1315,8 @@ if(enc.getLocation()!=null){
 
       <script type="text/javascript">
         $(document).ready(function() {
-
-          //form submission
+        	
+          //form submission	
           $("#setGPSbutton").click(function(event) {
             event.preventDefault();
 
@@ -1343,9 +1339,9 @@ if(enc.getLocation()!=null){
             $("#gpsErrorDiv").hide()
             $("#latCheck, #longCheck").hide();
           });
-
-
-
+          
+          
+          
           //validate GPS values
           $('#lat,#longitude').keyup(function() {
               if( ( $('#lat').val() == "") && ( $('#longitude').val() == "") ) {
@@ -1356,7 +1352,7 @@ if(enc.getLocation()!=null){
               else if( $('#lat').val() == "" || $('#longitude').val() == "" ) {
                   $("#setGPSbutton").attr("disabled","disabled");
                   //alert("here 2!");
-              }
+              }  
               else{
               	//alert("Trying to validate!");
               	var valid=validate_coords($('#lat').val(),$('#longitude').val());
@@ -1367,7 +1363,7 @@ if(enc.getLocation()!=null){
               	else{
                     $("#setGPSbutton").removeAttr("disabled");
                     emptyMarkers();
-                    var newLatLng = new google.maps.LatLng($('#lat').val(), $('#longitude').val());
+                    var newLatLng = new google.maps.LatLng($('#lat').val(), $('#longitude').val());   
                     var newMarker = new google.maps.Marker({
                  	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
                  	   position:newLatLng,
@@ -1377,13 +1373,13 @@ if(enc.getLocation()!=null){
               	}
               }
           });
-
-
+          
+          
         });
+        
 
-
-
-
+        
+        
       </script>
 
 
@@ -1417,9 +1413,9 @@ if(enc.getLocation()!=null){
               </div>
             </div>
           </form>
-
-
-
+          
+          
+          
 
           <br/>
           <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
@@ -1439,9 +1435,9 @@ if(enc.getLocation()!=null){
 	        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
 	        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
 	      </h2>
-
-
-
+	
+	
+	
 	        <script type="text/javascript">
 	        $(document).ready(function() {
 	          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
@@ -1449,38 +1445,39 @@ if(enc.getLocation()!=null){
 	          });
 	          $("#editIdentity").click(function() {
 	            $("#matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
-
+	
 	            $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn").show();
-
+	
 				<%
 				if(enc.getIndividualID()!=null){
 				%>
-					$(".add2shark").hide();
-					$(".removeFromShark").show();
+					$(".add2shark").hide();               
+					$(".removeFromShark").show();                   	                                      
 				<%
 				}
 				else{
 				%>
-					$(".add2shark").show();
-					$(".removeFromShark").hide();
+					$(".add2shark").show();               
+					$(".removeFromShark").hide(); 
 				<%
 				}
 				%>
-
-
+	            
+	            
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
-
+	
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
+                    resetIdButtons();
 	          });
-
+	
 	          $("#closeEditIdentity").click(function() {
 	            $(".editForm, .editText, .resultMessageDiv").hide();
 	          });
 	        });
 	        </script>
-
-
-	        <%
+	
+	
+	        <% 
         }
         else {
 	         %>
@@ -1490,11 +1487,11 @@ if(enc.getLocation()!=null){
          %>
 
 
-
-
+    					
+    						
     							<div>
     							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %>
+    								 <%=encprops.getProperty("identified_as") %> 
     								 <%
     								 String hrefVal="";
     								 String indyDisplayName="";
@@ -1506,18 +1503,18 @@ if(enc.getLocation()!=null){
                      					<a href="<%=hrefVal %>">
                      						<span id="displayIndividualID"><%=indyDisplayName %></span>
                      					</a>
-
+                     				
                      			</p>
-
+    							
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
                       <span><%=encprops.getProperty("matched_by") %>: <span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
                   </p>
 
-
+    							
 
           <%-- START MATCHED BY --%>
-
+    			
 
                     <script type="text/javascript">
                     $(document).ready(function() {
@@ -1572,51 +1569,89 @@ if(enc.getLocation()!=null){
                       </div>
                     </form>
     							</div>
-
+    						
       <%-- END MATCHED BY --%>
 
       <%-- START MANAGE IDENTITY --%>
 
      		<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
 
-
-
-
+ 
+ 					
+ 
 
                     <script type="text/javascript">
+function switchIdMode(bid) {
+    if (bid == '#Add') {
+        $('#matchType').val('Pattern match');
+        $('#individualNewAddEncounterInput').val('');
+    } else {
+        $('#matchType').val('Unmatched first encounter');
+        $('#individualAddEncounterInput').val('');
+        $('#individualAddEncounterInputDisplay').val('');
+    }
+    resetIdButtons();
+}
+function resetIdButtons() {
+console.info('resetIdButtons()');
+    $('.id-action').hide();
+    var newId = $('#individualNewAddEncounterInput').val();
+    var existId = $('#individualAddEncounterInput').val();
+//console.log('newId=%s / existId=%s', newId, existId);
+    if (newId) {
+        $('#AddNew').show();
+    } else if (existId) {
+//console.log('existId=%s', existId);
+        if (lastIndivAutoData[existId]) {
+            $('#Add').show();
+        } else {
+            console.warn('bad existId=%s; not in lastIndivAutoData %o', existId, lastIndivAutoData);
+        }
+    }
+}
+
                     $(document).ready(function() {
-
-
-                      $("#Add").click(function(event) {
+                    	
+                    	
+                      $(".id-action").click(function(event) {
                         event.preventDefault();
+                        var forceNew = false;
+                        var individual = $("#individualAddEncounterInput").val();
+                        if (!individual) {
+                            individual = $("#individualNewAddEncounterInput").val();
+                            forceNew = true;
+                        }
+                        if (!individual) return false;  //both blank, i guess
 
-                        $("#Add").hide();
+                        $(".id-action").hide();
 
                         var number = $("#individualAddEncounterNumber").val();
-                        var individual = $("#individualAddEncounterInput").val();
+                        var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
                         var matchType = $("#matchType").val();
                         var noemail = $( "input:checkbox:checked" ).val();
                         var action = $("#individualAddEncounterAction").val();
+                        var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
+                        console.info('sendData=%o', sendData);
 
-                        $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
+                        $.post("../IndividualAddEncounter", sendData,
                         function(data) {
-
-
+                        	
+                         
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
                           $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
-
+                          
                           $('#topid').prop('href', '../individuals.jsp?number=' + data.individualID);
                           $("#topid").html(individual);
-          				  $(".add2shark").hide();
-        				  $(".removeFromShark").show();
+          				  $(".add2shark").hide();               
+        				  $(".removeFromShark").show();      
                           //add topid update here
-
+                          
                           $("#displayMatchedBy").html(matchType);
                           $("#addSuccessDiv").html("<strong>Success:</strong> Encounter " + number + " was successfully added to " + individual + ".");
-
+                          
 
                         })
                         .fail(function(response) {
@@ -1630,7 +1665,7 @@ if(enc.getLocation()!=null){
                         $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
                         $("#individualDiv").removeClass("has-success");
                         $("#individualDiv").removeClass("has-error");
-                        $("#Add").show();
+                        //$("#Add").show();
                         $("#setRemoveResultDiv").hide();
                       });
                     });
@@ -1639,22 +1674,22 @@ if(enc.getLocation()!=null){
                     <div class="editText">
                       <h3><%=encprops.getProperty("manageIdentity")%></h3>
                          <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
-
+                   
                     </div>
 
 
 
-                    <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
 
                     <form name="add2shark" class="add2shark">
                       <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
                       <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
+                    <p class="add2shark"><strong><%=encprops.getProperty("addNewMarkedIndividual")%></strong></p>
                       <div class="form-group row" id="individualDiv">
                         <div class="col-sm-3">
-                          <label><%=encprops.getProperty("individual")%></label>
+                          <label><%=encprops.getProperty("newIndividual")%></label>
                         </div>
                         <div class="col-sm-5 col-xs-10">
-                          <input name="individual" type="text" class="form-control" id="individualAddEncounterInput"/>
+                          <input name="individualNew" type="text" class="form-control" id="individualNewAddEncounterInput"/>
 
                           <span class="form-control-feedback" id="individualCheck">&check;</span>
                           <span class="form-control-feedback" id="individualError">X</span><br>
@@ -1666,10 +1701,27 @@ if(enc.getLocation()!=null){
                           		$('individualAddEncounterInput').val('<%=nextID %>');
                           	}
 	                      </script>
-                          <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualAddEncounterInput').val('<%=nextID %>');$('#matchType').val('Unmatched first encounter').change();"><%=nextID  %></a></em></p>
+                          <p style="font-size: smaller;"><em>Next suggested new ID: <a onclick="$('#individualNewAddEncounterInput').val('<%=nextID %>');$('#matchType').val('Unmatched first encounter').change(); switchIdMode('#AddNew');"><%=nextID  %></a></em></p>
 
                         </div>
+                        <input name="AddNew" type="button" id="AddNew" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
+                          
                       </div>
+
+                    <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
+
+                      <div class="form-group row" id="xmatchedByDiv">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("existingIndividual")%></label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <input name="individual" type="text" class="form-control" id="individualAddEncounterInputDisplay"/>
+                          <input style="margin-left: 220px;outline: blue 2px dashed;" name="individual" type="hidden" class="form-control" id="individualAddEncounterInput"/>
+                        </div>
+
+                        <input name="Add" type="button" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
+                      </div>
+
                       <div class="form-group row" id="matchedByDiv">
                         <div class="col-sm-3">
                           <label><%=encprops.getProperty("matchedBy")%>: </label>
@@ -1689,25 +1741,51 @@ if(enc.getLocation()!=null){
                           <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
                         </div>
                       </div>
-                        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn add2shark"/>
-                    </form>
-
+                      </form>
+					
 					<script type="text/javascript">
+
+function showHiddenId() {
+    $('#individualAddEncounterInput').prop('type', 'text');
+}
+function checkIdDisplay() {
+    var dispVal = $('#individualAddEncounterInputDisplay').val();
+    var idVal = $('#individualAddEncounterInput').val();
+    if (lastIndivAutoData[idVal] == dispVal) return;
+    $('#individualAddEncounterInput').val('');
+    resetIdButtons();
+}
 	                    $(document).ready(function() {
-
+	                    	
 	                    	//set autocomplete on #individualAddEncounterInput above
-	                    	setIndivAutocomplete($('#individualAddEncounterInput'));
-
-
-
+	                    	setIndivAutocomplete($('#individualAddEncounterInputDisplay'));
+	                    	
+	                    	
+    $('#individualAddEncounterInputDisplay').on('change', function(ev) {
+        checkIdDisplay();
+        resetIdButtons();
+    });
+    $('#individualAddEncounterInputDisplay').on('keyup keydown click', function(ev) {
+        switchIdMode('#Add');
+        checkIdDisplay();
+        resetIdButtons();
+        //$('#matchType').val('Pattern match');
+    });
+    $('#individualNewAddEncounterInput').on('keydown click', function() {
+        switchIdMode('#AddNew');
+        resetIdButtons();
+        //$('#individualAddEncounterInput').val('');
+        //$('#matchType').val('Unmatched first encounter');
+    });
+	                    	
 	                    });
                     </script>
 
 
-
+       
              <script type="text/javascript">
                     $(document).ready(function() {
-
+                    
 
                       $("#individualRemoveEncounterBtn").click(function(event) {
                         event.preventDefault();
@@ -1728,18 +1806,18 @@ if(enc.getLocation()!=null){
                           $("#displayIndividualID").html("");
                           $("#individualAddEncounterInput").value="";
                           $("#topid").html("<%=encprops.getProperty("unassigned") %>");
-          					$(".add2shark").show();
-        					$(".removeFromShark").hide();
+          					$(".add2shark").show();               
+        					$(".removeFromShark").hide();  
                             $("#individualErrorDiv").hide();
                             $("#individualDiv").removeClass("has-success");
                             $("#individualCheck, #matchedByCheck, #individualResultsDiv").hide();
-
+                            
                             $("#displayIndividualID").html("");
                             //$('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
                             //$('#topid').prop('href', '../individuals.jsp?number=' + individual);
                             $("#topid").html("<%=encprops.getProperty("unassigned") %>");
                             $("#topid").removeAttr("href");
-
+                            
                         })
                         .fail(function(response) {
                           $("#setRemoveResultDiv").show();
@@ -1752,17 +1830,17 @@ if(enc.getLocation()!=null){
                       });
                     });
                     </script>
-
+                    
                     <div class="highlight resultMessageDiv removeFromShark" id="individualResultsDiv">
                       <span class="highlight" id="addErrorDiv"></span>
                       <span class="successHighlight" id="addSuccessDiv"></span>
                     </div>
-
+                    
 					<div id="setRemoveResultDiv" class="resultMessageDiv add2shark">
                       <span class="highlight" id="removeErrorDiv"></span>
                       <span class="successHighlight" id="removeSuccessDiv"></span>
                     </div>
-
+         
                     <form class="removeFromShark" id="removeShark" name="removeShark">
                       <div class="form-group row">
                         <div class="col-sm-12 col-xs-10">
@@ -2079,10 +2157,10 @@ if(enc.getLocation()!=null){
             var buttons = $("#editContactBtn, #closeEditContact").on("click", function(){
               buttons.toggle();
             });
-
+            
             $(".editUsers").hide();
             //$(".addUser").hide();
-
+            
             $("#editContactBtn").click(function() {
               $(".editUsers,.editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
 
@@ -2113,7 +2191,7 @@ if(enc.getLocation()!=null){
 
 	      <p class="para"><h4><%=encprops.getProperty("submitter") %></h4>
 	      <%
-	       if(enc.getSubmitters()!=null){
+	       if(enc.getSubmitters()!=null){   
 	    	   %>
 	    	   <table id="submitters" width="100%">
 	    	   <tbody>
@@ -2126,7 +2204,7 @@ if(enc.getLocation()!=null){
 				   <tr id="<%=user.getUUID() %>">
 					   <td>
 					   <%
-
+				    	   
 					   		String name=encprops.getProperty("noname");
 				    	   %>
 				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" id="<%=user.getUUID() %>">
@@ -2135,13 +2213,13 @@ if(enc.getLocation()!=null){
 				            %>
 				            <span id="displaySubmitName"><%=name %></span>
 				            <%
-
+				          
 				          if (isOwner) {
-
+				
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
 						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-
+		
 						                %>
 						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
 						                <%
@@ -2151,7 +2229,7 @@ if(enc.getLocation()!=null){
 					                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation() %></span>
 					                <%
 					                }
-
+				
 				         } //end if isOwner
 					         %>
 					         </p>
@@ -2172,16 +2250,16 @@ if(enc.getLocation()!=null){
 					         </td>
 				         </tr>
 				         <%
-			   	} //submitters for loop
-
+			   	} //submitters for loop     
+			   	
 			   	%>
 			   	</tbody>
 			   	</table>
 			   	<%
-
+			   	
 	 		} //end if submitters!=null
 			%>
-
+			
 			</p> <!--  End submitters paragraph -->
 			<%
 			if(isOwner){
@@ -2194,12 +2272,12 @@ if(enc.getLocation()!=null){
 			<%
 			}
 			%>
-
+		
 	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
-	       if(enc.getPhotographers()!=null){
+	       if(enc.getPhotographers()!=null){   
 	    	   %>
-
+	    	   
 	    	   <table id="photographers" width="100%">
 	    	   <tbody>
 	    	   <%
@@ -2211,7 +2289,7 @@ if(enc.getLocation()!=null){
 				   <tr id="<%=user.getUUID() %>">
 					   <td>
 					   <%
-
+				    	   
 				    	   String name=encprops.getProperty("noname");
 				    	   %>
 				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" id="<%=user.getUUID() %>">
@@ -2220,13 +2298,13 @@ if(enc.getLocation()!=null){
 				            %>
 				            <span id="displaySubmitName"><%=name%></span>
 				            <%
-
+				          
 				          if (isOwner) {
-
+				
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
 						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-
+		
 						                %>
 						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
 						                <%
@@ -2236,7 +2314,7 @@ if(enc.getLocation()!=null){
 					                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation() %></span>
 					                <%
 					                }
-
+				
 				         } //end if isOwner
 					         %>
 					         </p>
@@ -2248,7 +2326,7 @@ if(enc.getLocation()!=null){
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
 					         			<input type="hidden" name="type" value="photographer" />
-
+					         			
 					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("remove") %></button>
 					         		  </div>
 					         <%
@@ -2257,7 +2335,7 @@ if(enc.getLocation()!=null){
 					         </td>
 				         </tr>
 				         <%
-			   	} //photographers for loop
+			   	} //photographers for loop   
 			   	%>
 			   	</tbody>
 			   	</table>
@@ -2275,23 +2353,23 @@ if(enc.getLocation()!=null){
 			</div>
 		    <%
 			}
-		    %>
-
-
-
-
-
-
-
+		    %>          
+		                   
+		                  
+		                   
+		                   
+		                   
+		                   
+		                   
 							<%
 		                    if(isOwner){
-
+		           
 		                    %>
-
+		
 		                     	<p class="para"><h4><%=encprops.getProperty("inform_others") %></h4> <%
-	       						if(enc.getPhotographers()!=null){
+	       						if(enc.getPhotographers()!=null){   
 	    	   %>
-
+	    	   
 	    	   <table id="informOthers" width="100%">
 	    	   <tbody>
 	    	   <%
@@ -2303,7 +2381,7 @@ if(enc.getLocation()!=null){
 				   <tr id="<%=user.getUUID() %>">
 					   <td>
 					   <%
-
+				    	   
 				    	   String name=encprops.getProperty("noname");
 				    	   %>
 				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" id="<%=user.getUUID() %>">
@@ -2314,13 +2392,13 @@ if(enc.getLocation()!=null){
 				            	<span id="displaySubmitName"><%=name%></span>
 				            	<%
 			   				}
-
+				          
 				          if (isOwner) {
-
+				
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
 						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-
+		
 						                %>
 						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
 						                <%
@@ -2330,7 +2408,7 @@ if(enc.getLocation()!=null){
 					                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation() %></span>
 					                <%
 					                }
-
+				
 				         } //end if isOwner
 					         %>
 					         </p>
@@ -2342,7 +2420,7 @@ if(enc.getLocation()!=null){
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
 					         			<input type="hidden" name="type" value="informOther" />
-
+					         			
 					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("remove") %></button>
 					         		  </div>
 					         <%
@@ -2351,7 +2429,7 @@ if(enc.getLocation()!=null){
 					         </td>
 				         </tr>
 				         <%
-			   	} //informOthers for loop
+			   	} //informOthers for loop   
 			   	%>
 			   	</tbody>
 			   	</table>
@@ -2370,21 +2448,21 @@ if(enc.getLocation()!=null){
 			<%
 			}
 			%>
-
+		            
 		               		<%
 		                  	} //end if isOwner
-
+    	   		
 
                   	%>
                   	<br>
-                  	 <!--  remake for Users removal -->
+                  	 <!--  remake for Users removal -->         
 		         <script type="text/javascript">
                     $(document).ready(function() {
-
-
+                    	
+                    	
                       //$("button.editUsers").click(function(event) {
                       $("#submitters,#photographers,#informOthers").on('click', 'button.editUsers',function(event) {
-                    	//alert("Made it here");
+                    	//alert("Made it here");  
                         event.preventDefault();
 						if(confirm('<%=encprops.getProperty("sureDeleteUser") %>')){
 
@@ -2396,42 +2474,42 @@ if(enc.getLocation()!=null){
 	    					//alert("type:"+type);
 	    					var uuid = $(TheDiv).find("> input[name='uuid']").val();
 	    					//alert("uuid:"+uuid);
-
-
-
-	                        $.post("../EncounterRemoveUser",
+	
+	                        
+	
+	                        $.post("../EncounterRemoveUser", 
 	                        	{
-		                        	"encounter": '<%=enc.getCatalogNumber() %>',
-		                        	"type": type,
-		                        	"uuid": uuid,
+		                        	"encounter": '<%=enc.getCatalogNumber() %>', 
+		                        	"type": type, 
+		                        	"uuid": uuid, 
 	                        	},
 		                        function() {
 		                          //$("#individualErrorDiv").hide();
 		                          TheRow.hide();
-
-
+		                         
+		
 		                     }) //end post
 		                     .fail(function(response) {
 		                          alert("I could not remove this user. Please check the logs for errors.");
 		                        }); //end fail
-
+	                        
 		                      } //end if
-
-
-
+						
+                      	
+	                    	
                     	}); //end click function
                     });  //end document ready
-                    </script>
-
-                 <!--  remake for User addition -->
+                    </script>   
+                    
+                 <!--  remake for User addition -->         
 		         <script type="text/javascript">
                     $(document).ready(function() {
-
-
+                    	
+                    	
                       $("button.addUser").click(function(event) {
-                    	//alert("Made it here");
+                    	//alert("Made it here");  
                         event.preventDefault();
-
+						
 	                        var SendButton = $(event.target);
 	                        var elemID=event.target.id;
 	    					//var TheTable = SendButton.parents('table');
@@ -2440,21 +2518,21 @@ if(enc.getLocation()!=null){
 	    					//alert("type:"+type);
 	    					var email = $(TheDiv).find("> input[name='email']").val();
 	    					///alert("email:"+email);
-
-
-
-	                        $.post("../EncounterAddUser",
+	
+	                        
+	
+	                        $.post("../EncounterAddUser", 
 	                        	{
-		                        	"encounter": '<%=enc.getCatalogNumber() %>',
-		                        	"type": type,
-		                        	"email": email,
+		                        	"encounter": '<%=enc.getCatalogNumber() %>', 
+		                        	"type": type, 
+		                        	"email": email, 
 	                        	},
 		                        function(data) {
-
+		                          
 	                        		//add User row above
 	                        		var remove="<%=encprops.getProperty("remove") %>";
 	                        		var encounter="<%=enc.getCatalogNumber() %>";
-
+	                        		
 	                        		$("table#"+type+"s").find('> tbody:last-child')
 	                        			.append('<tr id=\"'+data.uuid+'\">'
 	                        			                            +'<td><p style=\"background-color: #B0C4DE;border-radius:5px;padding: 5px;\">'+email+'</p></td>'
@@ -2468,24 +2546,24 @@ if(enc.getLocation()!=null){
 	                        			                            +'</td>'
 	                        			        +'</tr>'
 	                        		);
-
-
-
-		                     }, 'json'
+	                        		
+		                         
+		
+		                     }, 'json' 
 	                         ) //end post
 		                     .fail(function(response) {
 		                          alert("I could not remove this user. Please check the logs for errors.");
 		                        }); //end fail
-
-
-
-
-
+	                        
+		                      
+						
+                      	
+	                    	
                     	}); //end click function
                     });  //end document ready
-                    </script>
-
-
+                    </script>      
+                  
+                   
         </div>
 <%-- END CONTACT INFORMATION --%>
 
@@ -2663,7 +2741,7 @@ else {
 
                          					if(thisUser.getUserImage()!=null){
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-
+                         						
                          					}
                          					%>
                      						<%
@@ -2742,7 +2820,7 @@ else {
         <select name="submitter" id="submitterSelect" class="form-control" size="1">
             <option value=""></option>
             <%
-            List<String> usernames=myShepherd.getAllNativeUsernames();
+            List<String> usernames=myShepherd.getAllUsernames();
             usernames.remove(null);
             Collections.sort(usernames,String.CASE_INSENSITIVE_ORDER);
             int numUsers=usernames.size();

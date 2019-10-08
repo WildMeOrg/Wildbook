@@ -104,7 +104,7 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
   padding-bottom: 2px;
 }
 
-#Add, #createSharkBtn {
+#Add, #AddNew, #createSharkBtn {
   margin-bottom: 0px;
   margin-top: 2px;
   padding-top: 0px;

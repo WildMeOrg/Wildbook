@@ -627,13 +627,13 @@ System.out.println("     gotta compute :(");
         if (Util.collectionIsEmptyOrNull(mas)) return null;
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.taxonomyFromMediaAssets");
-        try {
-            myShepherd.beginDBTransaction();
-            for (MediaAsset ma : mas) {
-                Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
-                if (tax != null) {
-                    return tax;
-                }
+        myShepherd.beginDBTransaction();
+        for (MediaAsset ma : mas) {
+            Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
+            if (tax != null) {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                return tax;
             }
             return null;
         } finally {
