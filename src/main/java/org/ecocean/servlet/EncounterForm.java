@@ -403,7 +403,8 @@ System.out.println("*** trying redirect?");
 
       //check for spamBots   TODO possibly move this to Util for general/global usage?
       boolean spamBot = false;
-            String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", "photographerPhone", "location", "comments", "behavior"};
+            String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", ""
+                + "Phone", "location", "comments", "behavior"};
       StringBuffer spamFields = new StringBuffer();
             for (int i = 0 ; i < spamFieldsToCheck.length ; i++) {
           spamFields.append(getVal(fv, spamFieldsToCheck[i]));
@@ -682,10 +683,12 @@ System.out.println("enc ?= " + enc.toString());
                 String tok=str.nextToken().trim();
                 if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
                   User user=myShepherd.getUserByEmailAddress(tok);
+                  if((numTokens==1)&&(photoN!=null)&&(user.getFullName()==null)){user.setFullName(photoN);}
                   photographers.add(user);
                 }
                 else {
                   User user=new User(tok,Util.generateUUID());
+                  if((numTokens==1)&&(photoN!=null)){user.setFullName(photoN);}
                   myShepherd.getPM().makePersistent(user);
                   myShepherd.commitDBTransaction();
                   myShepherd.beginDBTransaction();
@@ -1120,11 +1123,21 @@ System.out.println("depth --> " + fv.get("depth").toString());
                 for (MediaAsset ma: enc.getMedia()) {
                     ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
                 }
-                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia());  //TODO are they *really* persisted for another thread (queue)
+
+                Task parentTask = null;  //this is *not* persisted, but only used so intakeMediaAssets will inherit its params
+                if (locCode != null) {
+                    parentTask = new Task();
+                    JSONObject tp = new JSONObject();
+                    JSONObject mf = new JSONObject();
+                    mf.put("locationId", locCode);
+                    tp.put("matchingSetFilter", mf);
+                    parentTask.setParameters(tp);
+                }
+                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask);  //TODO are they *really* persisted for another thread (queue)
                 myShepherd.storeNewTask(task);
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
-System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
                 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
             }
 
@@ -1168,7 +1181,11 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
           
             // Email those assigned this location code
             if(enc.getLocationID()!=null) {
-              String informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
+              String informMe=null;
+              try {
+                informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
+              }
+              catch(Exception ef) {ef.printStackTrace();}
               if (informMe != null) {
                 List<String> cOther = NotificationMailer.splitEmails(informMe);
                 for (String emailTo : cOther) {

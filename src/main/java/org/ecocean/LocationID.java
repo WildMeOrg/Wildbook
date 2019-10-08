@@ -294,6 +294,34 @@ public class LocationID {
     catch(JSONException e) {}
   }
   
+    public static String getBootstrapMenu(String qualifier, String urlPrefix) {
+        if (urlPrefix == null) urlPrefix = "./";   //probably not what you want
+        JSONObject locJson = getLocationIDStructure(qualifier);
+        String menu = "<ul class=\"dropdown-menu location-id-nested\">";
+        menu += getBootstrapList(locJson, urlPrefix, 0);
+        menu += "</ul>";
+        return menu;
+    }
+    // for future reference, when feeling brave: https://stackoverflow.com/questions/18023493/bootstrap-dropdown-sub-menu-missing
+    public static String getBootstrapList(final JSONObject locJson, final String urlPrefix, int indent) {
+        String li = "";
+        String id = locJson.optString("id", null);
+        if (id != null) {
+            String name = locJson.optString("name", id);
+            String desc = locJson.optString("description", "");
+            if (!desc.equals("")) desc = " title=\"" + desc + "\" ";
+            li = "<li><a style=\"padding-left: " + (1.3 * indent) + "em\" href=\"" + (urlPrefix == null ? "" : urlPrefix) + "/encounters/searchResultsAnalysis.jsp?locationCodeField=" + id + "\"" + desc + ">" + name + "</a></li>\n";
+        }
+
+        JSONArray subArr = locJson.optJSONArray("locationID");
+        if (subArr != null) for (int i = 0 ; i < subArr.length() ; i++) {
+            JSONObject sub = subArr.optJSONObject(i);
+            if (sub == null) continue;
+            li += getBootstrapList(sub, urlPrefix, indent + 1);
+        }
+
+        return li;
+    }
 
     //this will take in a list of locationIDs and expand them to include any children they may have
     // it returns a list that does not have duplicates, so the input list can contain relatives and all should be fine

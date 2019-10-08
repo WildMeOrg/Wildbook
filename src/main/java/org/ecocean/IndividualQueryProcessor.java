@@ -109,36 +109,19 @@ public class IndividualQueryProcessor extends QueryProcessor {
     //------------------------------------------------------------------
     //individualID filters-------------------------------------------------
     //supports multiple individualID parameters as well as comma-separated lists of individualIDs within them
-    String[] individualID=request.getParameterValues("individualID");
-    if((individualID!=null)&&(!individualID[0].equals(""))&&(!individualID[0].equals("None"))){
-          prettyPrint.append("Individual ID is one of the following: ");
-          int kwLength=individualID.length;
-            String locIDFilter="(";
-            for(int kwIter=0;kwIter<kwLength;kwIter++) {
-              String kwParamMaster=individualID[kwIter].replaceAll("%20", " ").trim();
+    String individualID=request.getParameter("individualID");
+    if((individualID!=null)&&(!individualID.equals("None"))&&(!individualID.trim().equals(""))){
+          prettyPrint.append("Individual ID contains the following: ");
+          individualID=individualID.toLowerCase();
 
-              StringTokenizer str=new StringTokenizer(kwParamMaster,",");
-              int numTokens=str.countTokens();
-              for(int k=0;k<numTokens;k++){
-                String kwParam=str.nextToken().trim();
-                if(!kwParam.equals("")){
-                  if(locIDFilter.equals("(")){
-                    locIDFilter+=" individualID == \""+kwParam+"\"";
-                  }
-                  else{
-                    locIDFilter+=" || individualID == \""+kwParam+"\"";
-                  }
-                  prettyPrint.append(kwParam+" ");
-                }
+            String locIDFilter=" (individualID == \""+individualID+"\" || names.valuesAsString.toLowerCase().indexOf(\""+individualID+"\") != -1)";
 
-              }
-
-            }
-            locIDFilter+=" )";
-            filter=filterWithCondition(filter,locIDFilter);
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
     }
     //end individualID filters-----------------------------------------------
+    
 
 
 
@@ -788,7 +771,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
 
 
-
+/*
     //alternateID and nickName are now handled here (and commented out below)
     List<String> nameIds = new ArrayList<String>();
     String altVal = request.getParameter("alternateIDField");
@@ -803,7 +786,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
         
     }
 
-
+*/
 
 
 

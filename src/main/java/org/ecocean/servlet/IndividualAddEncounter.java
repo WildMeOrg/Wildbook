@@ -83,6 +83,7 @@ public class IndividualAddEncounter extends HttpServlet {
     //add encounter to a MarkedIndividual
 
     String indivID = request.getParameter("individual");
+    boolean forceNew = Util.booleanNotFalse(request.getParameter("forceNew"));
     if ((request.getParameter("number") != null) && (indivID != null) && (request.getParameter("matchType") != null)) {
 
       String nickname = "";
@@ -94,24 +95,27 @@ public class IndividualAddEncounter extends HttpServlet {
       boolean newIndy = false;
       if (enc2add.getIndividualID()==null) {
         MarkedIndividual addToMe = null;
-        //if we dont already have this individual, we now make it  TODO this may fail because of security (in the future) so we need to take that into consideration
-        if (!myShepherd.isMarkedIndividual(indivID)) {
+        //if forceNew=true, this means we make a new indiv, so there.  (indivId should be a name in this case, basically)
+        if (forceNew) {
+            System.out.println("IndividualAddEncounter: forceNew=true, attempting to make indiv '" + indivID + "'.");
             try {
                 newIndy = true;
                 addToMe = new MarkedIndividual(indivID, enc2add);
                 myShepherd.storeNewMarkedIndividual(addToMe);
                 myShepherd.updateDBTransaction();
                 addToMe.refreshNamesCache();
+                addToMe.refreshDependentProperties();
                 //enc2add.setIndividualID(indivID);
             } 
             catch (Exception ex) {
                 ex.printStackTrace();
                 myShepherd.rollbackDBTransaction();
-                throw new RuntimeException("unable to create new MarkedIndividual " + indivID);
+                throw new RuntimeException("IndividualAddEncounter: unable to create new MarkedIndividual " + indivID);
             }
         } else {
-           System.out.println("Retrieving an existing individual");
+           System.out.println("IndividualAddEncounter: Retrieving an existing individual=" + indivID);
             addToMe = myShepherd.getMarkedIndividual(indivID);
+            if (addToMe == null) throw new RuntimeException("invalid individual id=" + indivID);
         }
 
         try {
