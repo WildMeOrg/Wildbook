@@ -44,7 +44,7 @@ org.ecocean.AccessControl" %>
 <% if (loggedIn) { %>
 <p align="center"><a class="big-button" href="compare.jsp">Proceed to Study</a></p>
 <% } else { //is logged in %>
-<p align="center"><a class="big-button" href="register.jsp">Participate in Kitizen Science!</a></p>
+<p style="display: none;" align="center"><a class="big-button" href="register.jsp">Participate in Kitizen Science!</a></p>
 <% } %>
 
 
