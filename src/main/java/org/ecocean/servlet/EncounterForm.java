@@ -1013,11 +1013,19 @@ System.out.println("depth --> " + fv.get("depth").toString());
       if(CommonConfiguration.getProperty("encounterState0",context)!=null){
         enc.setState(CommonConfiguration.getProperty("encounterState0",context));
       }
+
       if (request.getRemoteUser() != null) {
         enc.setSubmitterID(request.getRemoteUser());
       } else {
         enc.setSubmitterID("N/A");
       }
+      
+      //hacky... if there is more demand for this we can define a list of orgs in properties and make it pretty
+      if (ServletUtilities.getOrganizationCookie(request).equals("Wild Dolphin Project")) {
+        enc.setSubmitterID("wdp");
+        enc.setSubmitterOrganization("Wild Dolphin Project");
+      }
+
       if (!getVal(fv, "locCode").equals("")) {
         enc.setLocationCode(locCode);
       }
