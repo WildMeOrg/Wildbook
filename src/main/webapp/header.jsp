@@ -613,6 +613,20 @@ finally{
                 	        return false;
                 	    }
         });
+
+
+        // if there is an organization param, set it as a cookie so you can get yer stylez without appending to all locations
+        let urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("organization")) {
+          let orgParam = urlParams.get("organization");
+          $.cookie("wildbookOrganization", orgParam, {
+              path    : '/',     
+              secure  : false, 
+              expires : 1
+          });
+        }
+
+
         </script>
 
         <!-- ****/header**** -->
