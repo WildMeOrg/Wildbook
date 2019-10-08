@@ -654,7 +654,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
             boolean success = true;
             try {
                 res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas,context));
-                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context);
+                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd);
                 res.put("sendDetect", sent);
                 String jobId = null;
                 if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))
