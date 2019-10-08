@@ -631,14 +631,12 @@ System.out.println("     gotta compute :(");
         for (MediaAsset ma : mas) {
             Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
             if (tax != null) {
-                myShepherd.rollbackDBTransaction();
-                myShepherd.closeDBTransaction();
+            	myShepherd.rollbackAndClose();
                 return tax;
             }
-            return null;
-        } finally {
-            myShepherd.rollbackAndClose();
-        }
+        } 
+       myShepherd.rollbackAndClose();
+       return null;
     }
     
     public static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas, Shepherd myShepherd) {
