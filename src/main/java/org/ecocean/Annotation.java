@@ -998,4 +998,16 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         }
         return all;
     }
+    
+    public static ArrayList<Encounter> checkForConflictingIDsforAnnotation(Annotation annot, String proposedIndividualIDForEncounter, Shepherd myShepherd){
+      ArrayList<Encounter> conflictingEncs=new ArrayList<Encounter>();
+      String filter="SELECT FROM org.ecocean.Encounter WHERE individual!=null && individual.individualID != \""+proposedIndividualIDForEncounter+"\" && annotations.contains(annot1) && annot1.acmId == \""+annot.getAcmId()+"\" VARIABLES org.ecocean.Annotation annot1";
+      Query q=myShepherd.getPM().newQuery(filter);
+      Collection c = (Collection) (q.execute());
+      conflictingEncs=new ArrayList<Encounter>(c);
+      q.closeAll();
+      return conflictingEncs;
+    }
+    
+    
 }
