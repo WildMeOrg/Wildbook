@@ -876,5 +876,55 @@ public static String getRemoteHost(HttpServletRequest request) {
 
     }
 
+// used to determine if we want to apply a custom UI style, e.g. for IndoCet or the New England Aquarium to a web page
+public static boolean useCustomStyle(HttpServletRequest request, String orgName) {
+  // check url for "organization=____" arg
+  String organization = request.getParameter("organization");
+  String cookieOrg = getOrganazationCookie(request);
+
+  if (organization!=null && organization.toLowerCase().equals(orgName.toLowerCase())) {
+    return true;
+  }
+
+  if (cookieOrg!=null && orgName.toLowerCase().equals(cookieOrg.toLowerCase())) {
+    return true;
+  } 
+
+  // The checks further below will also return true _right after logging out_ so we need this step
+  if (Util.requestHasVal(request, "logout")) return false;
+  // Shepherd handling w 'finally' to ensure we close the dbconnection after return.
+  Shepherd myShepherd = Shepherd.newActiveShepherd(request, "ServletUtilities.useCustomStyle");
+  try {
+    // check user affiliation
+    User user = myShepherd.getUser(request);
+    if (user==null) return false;
+    if (user.hasAffiliation(orgName)) return true;
+    // check organization object
+    Organization org = myShepherd.getOrganizationByName(orgName);
+    if (org==null) return false;
+    return org.hasMember(user);
+  } finally {
+    myShepherd.rollbackAndClose();
+  }
+}
+
+public static String getOrganazationCookie(HttpServletRequest request){
+  // Similar to langCode above, check for cookie to apply custom styles
+  String context=ServletUtilities.getContext(request);
+  Cookie[] cookies = request.getCookies();
+  if(cookies!=null){
+    for(Cookie cookie : cookies){
+      if("wildbookOrganization".equals(cookie.getName())){
+        // needed because of unicode in COOKIESPACE
+        String value = cookie.getValue().replaceAll("%20"," ");
+        return value;
+      }
+    }
+  }
+  return "";
+}
+
+
+
 
 }
