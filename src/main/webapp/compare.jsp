@@ -43,8 +43,10 @@ if (thisUser != null) {
     if ((uwUser && !uwMode) || (!uwUser && uwMode)) {
         System.out.println("USERCHECK: compare.jsp has incompatible user/mode");
         response.setContentType("text/html");
-        response.setStatus(401);
-        out.println("<h1>401 no access</h1>");
+        response.setStatus(200);
+        out.println("<link rel=\"stylesheet\" href=\"/cust/mantamatcher/css/manta.css\" />");
+        out.println("<div style=\"padding: 10%;\"><h2>The public trial of Kitizen Science has ended.</h2><a href=\"/\">Home page</a></div>");
+        session.invalidate();
         return;
     }
 }
