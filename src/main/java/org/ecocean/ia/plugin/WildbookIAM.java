@@ -265,7 +265,6 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
             int[] bbox = ann.getBbox();
             map.get("annot_bbox_list").add(bbox);
 //TODO both of these shepherd/db calls can probably be combined !!!  FIXME
-            map.get("annot_species_list").add(getIASpecies(ann, myShepherd));
             map.get("annot_theta_list").add(ann.getTheta());
 
             String sp = null;
@@ -304,7 +303,7 @@ System.out.println("INFO: created new AnnotationLite for " + ann.getAcmId());
 
         IA.log("INFO: WildbookIAM.sendAnnotations() is sending " + ct);
         if (ct < 1) return null;  //null for "none to send" ?  is this cool?
-System.out.println("sendAnnotations(): data -->\n" + map);
+//System.out.println("sendAnnotations(): data -->\n" + map);
         JSONObject rtn = RestClient.post(url, IBEISIA.hashMapToJSONObject(map));
 System.out.println("sendAnnotations() -> " + rtn);
         List<String> acmIds = acmIdsFromResponse(rtn);
