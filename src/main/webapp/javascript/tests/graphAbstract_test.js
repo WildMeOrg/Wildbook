@@ -81,6 +81,7 @@ QUnit.module('addTooltip()', () => {
 //TODO: Add functionality
 QUnit.module('handleMouseOver()', () => {
     QUnit.test('hover makes tooltip visible', t => {
+	ga.addTooltip("body");
 	t.equal($('.tooltip').css('opacity'), .9);
     });
 });
@@ -88,7 +89,8 @@ QUnit.module('handleMouseOver()', () => {
 //TODO: Add functionality
 QUnit.module('handleMouseOut()', () => {
     QUnit.test('', t => {
-	t.equal($('.tooltip').css('opacity'), .0);
+	ga.addTooltip("body");
+	t.equal($('.tooltip').css('opacity'), 0);
     });
 });
 
