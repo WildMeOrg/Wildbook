@@ -1,7 +1,7 @@
 class GraphAbstract {
     constructor(individualID) {
 	this.id = individualID;
-	
+	//THis will set the width of the space we are working in for the graph
 	this.width = 960;
 	this.height = 500;
 	this.margin = {top: 20, right: 120, bottom: 20, left: 120};
@@ -13,6 +13,9 @@ class GraphAbstract {
 	//Scaled node size
 	this.numNodes;
 	this.radius;
+	//TODO make an equation that better handles node size.
+	//This will be subject to change with an equation set up later
+	//to better handle extremerely large and small datasets
 	this.maxRadius = 40;
 	this.scalingFactor = 25; //TODO: Tune this value
 
@@ -111,6 +114,8 @@ class GraphAbstract {
     }
 
     colorGender(d) {
+		//this will asign a node to a certain color depending on if its gender is found 
+		// Also assiginging a default value of color assuming the found genders are not done.
 	try {
 	    let gender = d.data.gender || "def";
 	    switch (gender.toUpperCase()) {
@@ -123,7 +128,10 @@ class GraphAbstract {
 	    console.error(error);
 	}
     }
-
+	//orignally there is alwasys a symbol on the screen but it is set to hidden and only appears 
+	//if the specifc organism has that trait
+	//this function sets up that spot the symbol would appear assuming 
+	//the organism has that trait
     drawNodeSymbols(nodes, isHidden) {
 	nodes.append("path")
 	    .attr("class", "symb")
@@ -139,7 +147,7 @@ class GraphAbstract {
 	    .style("fill", this.alphaColor)
 	    .style("fill-opacity", () => isHidden ? 1e-6 : 1);
     }
-
+	//This will update the sybol assuming the boolean value of isHidden turns true and show the symbol
     updateSymbols(nodeUpdate, isHidden) {
 	nodeUpdate.select("path.symb")
 	    .attr("transform", d => {
