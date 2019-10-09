@@ -23,6 +23,16 @@ public class AnnotationLite {
     //private double theta;
     private Boolean validForIdentification = null;
 
+/*
+    note: taxonomyList is not atomic, and there is no concurrent list (impossible)
+      but hopefully this will suffice, since most of the *additive* behavior will be in the tomcat thread
+      and the list will only grow?
+
+    might be better to have something like ConcurrentHashMap with int as key, but then this is tricky to prevent
+    race conditions on what the "next" key would be during simultaneous inserts...  must be some kind of atomic
+    *and* concurrent increment out there....  perhaps:
+        https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/AtomicInteger.html
+*/
     private static List<String> taxonomyList = new ArrayList<String>();
     private static ConcurrentHashMap<String,AnnotationLite> cache = new ConcurrentHashMap<String,AnnotationLite>();
     
