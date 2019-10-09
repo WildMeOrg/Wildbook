@@ -9,6 +9,7 @@ import org.ecocean.ia.Task;
 import org.ecocean.RestClient;
 import org.ecocean.media.*;
 import org.ecocean.Annotation;
+import org.ecocean.AnnotationLite;
 import org.ecocean.acm.AcmUtil;
 import java.util.List;
 import java.util.HashMap;
@@ -241,6 +242,7 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
         List<Annotation> acmList = new ArrayList<Annotation>(); //for rectifyAnnotationIds below
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
+            AnnotationLite annl = AnnotationLite.getCache(ann.getAcmId());
             if (ann.getMediaAsset() == null) {
                 IA.log("WARNING: WildbookIAM.sendAnnotations() unable to find asset for " + ann + "; skipping!");
                 continue;
@@ -265,8 +267,37 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
 //TODO both of these shepherd/db calls can probably be combined !!!  FIXME
             map.get("annot_species_list").add(getIASpecies(ann, myShepherd));
             map.get("annot_theta_list").add(ann.getTheta());
-            String name = ann.findIndividualId(myShepherd);
-            map.get("annot_name_list").add((name == null) ? "____" : name);
+
+            String sp = null;
+            if ((annl != null) && (annl.getTaxonomy() != null)) {
+                map.get("annot_species_list").add(annl.getTaxonomy());
+            } else {
+                sp = getIASpecies(ann, myShepherd);
+System.out.println("WARNING: had to lookup species=" + sp);
+                map.get("annot_species_list").add(sp);
+            }
+            String name = null;
+            if ((annl != null) && (annl.getIndividualId() != null)) {
+                map.get("annot_name_list").add(annl.getIndividualId());
+            } else {
+                name = ann.findIndividualId(myShepherd);
+                if (name == null) name = "____";
+System.out.println("WARNING: had to lookup name=" + name);
+                map.get("annot_name_list").add(name);
+            }
+
+            if ((annl != null) && ((sp != null) || (name != null))) {  //had to lookup name, but was not set on annotlite
+                if (sp != null) annl.setTaxonomy(sp);
+                if (name != null) annl.setIndividualId(name);
+                AnnotationLite.setCache(ann.getAcmId(), annl);
+System.out.println("INFO: updated existing AnnotationLite for " + ann.getAcmId());
+
+            } else if (annl == null) {  //make one!
+                annl = new AnnotationLite(name, sp);
+                AnnotationLite.setCache(ann.getAcmId(), annl);
+System.out.println("INFO: created new AnnotationLite for " + ann.getAcmId());
+            }
+
             ct++;
         }
         //myShepherd.rollbackDBTransaction();

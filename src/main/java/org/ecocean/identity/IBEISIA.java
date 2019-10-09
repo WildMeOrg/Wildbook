@@ -2,6 +2,7 @@ package org.ecocean.identity;
 
 import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
+import org.ecocean.AnnotationLite;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
 import org.ecocean.ai.nlp.SUTime;
@@ -28,6 +29,7 @@ import org.ecocean.TwitterUtil;
 import org.ecocean.TwitterBot;
 
 import java.text.SimpleDateFormat;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -1086,6 +1088,11 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                 }
             }
 
+            //this voodoo via JH will insure that .acmId is on the MediaAssets which are loaded via getMatchingSet() below (for speed)
+            javax.jdo.FetchGroup grp = myShepherd.getPM().getPersistenceManagerFactory().getFetchGroup(MediaAsset.class, "BIA");
+            grp.addMember("acmId").addMember("store").addMember("id").addMember("parametersAsString").addMember("parameters").addMember("metadata").addMember("labels").addMember("userLatitude").addMember("userLongitude").addMember("userDateTime");
+            myShepherd.getPM().getFetchPlan().setGroup("BIA");
+
             if (tanns==null||tanns.isEmpty()) {
                 String iaClass = qanns.get(0).getIAClass();
 System.out.println("beginIdentifyAnnotations(): have to set tanns. Matching set being built from the first ann in the list.");
@@ -1123,8 +1130,12 @@ System.out.println("- mark 2");
             JSONObject identRtn = null;
             while (tryAgain) {
                 identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
-                System.out.println("identRtn contains ========> "+identRtn.toString());
-                if (identRtn!=null&&identRtn.getJSONObject("status")!=null&&!identRtn.getJSONObject("status").getString("message").equals("rejected")) {
+                System.out.println("identRtn contains ========> "+identRtn);
+                if (identRtn == null) {
+                    results.put("error", "identRtn == NULL");
+                    results.put("success", false);
+                    return results;
+                } else if (identRtn!=null&&identRtn.getJSONObject("status")!=null&&!identRtn.getJSONObject("status").getString("message").equals("rejected")) {
                     tryAgain = iaCheckMissing(identRtn, myShepherd.getContext(), myShepherd);
                 } else {
                     results.put("error", identRtn.get("status"));
@@ -3179,6 +3190,9 @@ System.out.println("queryConfigDict() get opt = " + opt);
     }
 
     private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
+        if (ann == null) return null;
+        AnnotationLite annl = AnnotationLite.getCache(ann.getAcmId());
+        if ((annl != null) && (annl.getIndividualId() != null)) return annl.getIndividualId();
         String id = cacheAnnotIndiv.get(ann.getId());
         if (id != null) return id;
         id = ann.findIndividualId(myShepherd);
@@ -3839,6 +3853,10 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
 
     public static boolean validForIdentification(Annotation ann, String context)  {
         if (ann == null) return false;
+        String acmId = ann.getAcmId();
+        if (acmId == null) return false;
+        AnnotationLite annl = AnnotationLite.getCache(acmId);
+        if ((annl != null) && (annl.getValidForIdentification() != null)) return annl.getValidForIdentification();
         //System.out.println("BBOX features -> " + ann.getFeatures()); //please leave this line in (ask jon... sigh)
         List<Feature> forceJdoToUnpackTheseFeatures = ann.getFeatures();
         String ungodlyHackString = "";
@@ -3846,12 +3864,15 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         int[] bbox = ann.getBbox();
         if (bbox == null) {
             System.out.println("NOTE: IBEISIA.validToSendToIA() failing " + ann.toString() + " - invalid bbox");
+            AnnotationLite.setCache(acmId, new AnnotationLite(false));
             return false;
         }
         if (context!=null&&!validIAClassForIdentification(ann, context)&&!ann.isTrivial()) {
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - annotation does not have valid Identification class.");
+            AnnotationLite.setCache(acmId, new AnnotationLite(false));
             return false;
         }
+        AnnotationLite.setCache(acmId, new AnnotationLite(true));
         return true;
     }
 
