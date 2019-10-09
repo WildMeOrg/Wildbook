@@ -12,6 +12,11 @@
 //Enforce pan boundaries
 
 //TODO: Delete data spec
+
+
+//mocked data to be pulled from wildbook later
+//includes nicknames, gender, role, children, etc
+//name would be the wildbook ID that is unanimous across platforms
 const DATA = {
     "name": "Lion 1",
     "gender": "female",
@@ -74,11 +79,14 @@ const DATA = {
     ]
 };
 
+//applies data to the tree
 function setupFamilyTree(individualID) {
     let ft = new FamilyTree(individualID);
     ft.applySocialData();
 }
+/*
 
+*/
 class FamilyTree extends GraphAbstract {
     constructor(individualID) {
 	super(individualID); //Parent constructor
@@ -115,6 +123,7 @@ class FamilyTree extends GraphAbstract {
 	    this.tree = d3.tree()
 		.size([this.gHeight, this.gWidth]);
 	    
+		//svg is the white box that displays our data within the page
 	    this.svg = d3.select("#familyDiagram").append("svg")	        
 		.attr("width", this.width)
 		.attr("height", this.height)
@@ -136,6 +145,7 @@ class FamilyTree extends GraphAbstract {
 	}
     }
 
+	//changes what is displayed on the tree diagram to the user
     updateTree(source) {
 	//Assign node values
 	let treeData = this.tree(this.root);
@@ -194,7 +204,7 @@ class FamilyTree extends GraphAbstract {
 	let nodeUpdate = updatedNodes.transition()
 	    .duration(this.duration)
 	    .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
-
+	//if node is collapsed, this is what happens
 	nodeUpdate.select("circle")
 	    .attr("r", this.radius)
 	    .style("fill", d => this.colorCollapsed(d)); //Updates color if collapsed
@@ -259,7 +269,7 @@ class FamilyTree extends GraphAbstract {
 	    })
 	    .remove();
     }
-
+	//if there is no family relationships in the entire database
     showIncompleteInformationMessage() {
 	$("#familyDiagram").html("<h4>There are currently no known familial relationships for this Marked Individual</h4>")
     };
