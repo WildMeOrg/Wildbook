@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.lang.Runnable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
+import java.io.IOException;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -137,6 +138,12 @@ public class StartupWildbook implements ServletContextListener {
         // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
         startIAQueues(context); //TODO this should get moved to plugins!!!!  FIXME
         TwitterBot.startServices(context);
+
+        try {
+            AnnotationLite.cacheRead(CommonConfiguration.getDataDirectory(sContext, context) + "/WEB-INF/AnnotationLiteCache.json");
+        } catch (IOException ex) {
+            System.out.println("WARNING: StartupWildbook.contextInitialized() could not read AnnotationLite cache json -> " + ex.toString());
+        }
     }
 
 
@@ -172,13 +179,13 @@ public class StartupWildbook implements ServletContextListener {
         Queue queue = null;
         try {
             queue = QueueUtil.getBest(context, "IA");
-        } catch (java.io.IOException ex) {
+        } catch (IOException ex) {
             System.out.println("+ ERROR: IA queue startup exception: " + ex.toString());
         }
         Queue queueCallback = null;
         try {
             queueCallback = QueueUtil.getBest(context, "IACallback");
-        } catch (java.io.IOException ex) {
+        } catch (IOException ex) {
             System.out.println("+ ERROR: IACallback queue startup exception: " + ex.toString());
         }
         if ((queue == null) || (queueCallback == null)) {
@@ -190,14 +197,14 @@ public class StartupWildbook implements ServletContextListener {
         try {
             queue.consume(qh);
             System.out.println("+ StartupWildbook.startIAQueues() queue.consume() started on " + queue.toString());
-        } catch (java.io.IOException iox) {
+        } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() queue.consume() FAILED on " + queue.toString() + ": " + iox.toString());
         }
         IACallbackMessageHandler qh2 = new IACallbackMessageHandler();
         try {
             queueCallback.consume(qh2);
             System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() started on " + queueCallback.toString());
-        } catch (java.io.IOException iox) {
+        } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() FAILED on " + queueCallback.toString() + ": " + iox.toString());
         }
     }
@@ -205,7 +212,14 @@ public class StartupWildbook implements ServletContextListener {
 
     public void contextDestroyed(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
+        String context = "context0";  ///HOW?? (see above) TODO FIXME
         System.out.println("* StartupWildbook destroyed called for: " + servletContextInfo(sContext));
+
+        try {
+            AnnotationLite.cacheWrite(CommonConfiguration.getDataDirectory(sContext, context) + "/WEB-INF/AnnotationLiteCache.json");
+        } catch (IOException ex) {
+            System.out.println("WARNING: StartupWildbook.contextDestroyed() could not write AnnotationLite cache json -> " + ex.toString());
+        }
         QueueUtil.cleanup();
         TwitterBot.cleanup();
     }
