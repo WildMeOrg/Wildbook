@@ -38,6 +38,18 @@ QUnit.module('calcNodeSize()', {'beforeEach': () => ga.radius = null}, () => {
 	let radius = ga.calcNodeSize(nodes);
 	checkRadius(t, ga);
     });
+	
+	QUnit.test('List of length 1', t => {
+	let nodes = {'length': 1};
+	let radius = ga.calcNodeSize(nodes);
+	checkRadius(t, ga);
+    });
+	
+	QUnit.test('List of length 0', t => {
+	let nodes = {'length': 0};
+	let radius = ga.calcNodeSize(nodes);
+	checkRadius(t, ga);
+    });
 
     QUnit.test('Lists of length 5', t => {
 	let nodes = {'length': 5};	
@@ -68,8 +80,15 @@ QUnit.module('addTooltip()', () => {
 
 //TODO: Add functionality
 QUnit.module('handleMouseOver()', () => {
+    QUnit.test('hover makes tooltip visible', t => {
+	t.equal($('.tooltip').css('opacity'), .9);
+    });
+});
+
+//TODO: Add functionality
+QUnit.module('handleMouseOut()', () => {
     QUnit.test('', t => {
-	
+	t.equal($('.tooltip').css('opacity'), .0);
     });
 });
 
