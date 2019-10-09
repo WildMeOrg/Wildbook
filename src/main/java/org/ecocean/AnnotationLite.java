@@ -137,7 +137,7 @@ public class AnnotationLite {
     }
 
     public String toString() {
-        return "[" + this.getTaxonomy() + ":" + this.getIndividualId() + "]";
+        return "[" + this.getTaxonomy() + ":" + this.getIndividualId() + ":" + this.getValidForIdentification() + "]";
     }
 
     public static JSONObject cacheToJSONObject() {
@@ -199,9 +199,15 @@ public class AnnotationLite {
                     System.out.println("WARNING: failed boolean at 0 on " + arr + " => " + ex.toString());
                 }
             }
-            String tId = arr.optString(1, null);  //could check that offset is legit
+            int tId = arr.optInt(1, -99);
             String iId = arr.optString(2, null);
-            AnnotationLite annl = new AnnotationLite(iId, tId);
+            AnnotationLite annl = new AnnotationLite();
+            if ((tId >= 0) && (tId < taxonomyList.size())) {
+                annl.setTaxonomyId(tId);
+            } else {
+                annl.setTaxonomyId(-1);
+            }
+            annl.setIndividualId(iId);
             annl.setValidForIdentification(valid);
             cache.put(key, annl);
         }
