@@ -214,7 +214,8 @@ public class IndividualAddEncounter extends HttpServlet {
       conflictingEncs.addAll(Annotation.checkForConflictingIDsforAnnotation(annot, addToMe.getIndividualID(), myShepherd));
     }
     if(conflictingEncs.size()>0) {
-      failureMessage.append("<p>The following Encounters contain the same annotation but have a different individualID. An annotation can only have one ID inherited from its Encounters. <ul>");
+      failureMessage=new StringBuilder("Failure: ");
+      failureMessage.append("<p>The following Encounters contain the same annotation but have a different individual ID. An annotation can only have one ID inherited from its Encounters. <ul>");
       for(Encounter enc:conflictingEncs) {
         failureMessage.append("<li>"+enc.getEncounterNumber()+" ("+enc.getIndividual().getIndividualID()+")</li>");
       }
