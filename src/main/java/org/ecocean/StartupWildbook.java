@@ -215,11 +215,13 @@ public class StartupWildbook implements ServletContextListener {
         String context = "context0";  ///HOW?? (see above) TODO FIXME
         System.out.println("* StartupWildbook destroyed called for: " + servletContextInfo(sContext));
 
+/*  apparently this is TOO LATE for this to work... sigh...
         try {
             AnnotationLite.cacheWrite(CommonConfiguration.getDataDirectory(sContext, context) + "/WEB-INF/AnnotationLiteCache.json");
         } catch (IOException ex) {
             System.out.println("WARNING: StartupWildbook.contextDestroyed() could not write AnnotationLite cache json -> " + ex.toString());
         }
+*/
         QueueUtil.cleanup();
         TwitterBot.cleanup();
     }
