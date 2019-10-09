@@ -45,7 +45,7 @@ if (thisUser != null) {
         response.setContentType("text/html");
         response.setStatus(200);
         out.println("<link rel=\"stylesheet\" href=\"/cust/mantamatcher/css/manta.css\" />");
-        out.println("<div style=\"padding: 10%;\"><h2>The public trial of Kitizen Science has ended.</h2><a href=\"/\">Home page</a></div>");
+        out.println("<div style=\"padding: 10%;\"><h2>Our photo matching study is now closed to the general public. Our second validation study will begin in January 2020!</h2><a href=\"/\">Home page</a></div>");
         session.invalidate();
         return;
     }
