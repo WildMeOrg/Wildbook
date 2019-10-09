@@ -1008,6 +1008,43 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
       q.closeAll();
       return conflictingEncs;
     }
-    
-    
+
+/*
+    these will update(/create) AnnotationLite.cache for this Annotation
+      note: use sparingly?  i.e. should only happen when (related) taxonomy or individual or validForIdentification changes
+*/
+    public void refreshLiteTaxonomy(String tax) {
+        if (this.acmId == null) return;
+        AnnotationLite annl = AnnotationLite.getCache(this.acmId);
+        if (annl == null) {
+            annl = new AnnotationLite(null, tax);    //indiv = null here, but it is new so its what we got. :/
+        } else {
+            annl.setTaxonomy(tax);
+        }
+Util.mark("Annotation.refreshLiteTaxonomy() refreshing " + this.acmId);
+        AnnotationLite.setCache(this.acmId, annl);
+    }
+    public void refreshLiteIndividual(String indiv) {
+        if (this.acmId == null) return;
+        AnnotationLite annl = AnnotationLite.getCache(this.acmId);
+        if (annl == null) {
+            annl = new AnnotationLite(indiv);
+        } else {
+            annl.setIndividualId(indiv);
+        }
+Util.mark("Annotation.refreshLiteIndividual() refreshing " + this.acmId);
+        AnnotationLite.setCache(this.acmId, annl);
+    }
+    public void refreshLiteValid(Boolean validForId) {
+        if (this.acmId == null) return;
+        AnnotationLite annl = AnnotationLite.getCache(this.acmId);
+        if (annl == null) {
+            annl = new AnnotationLite(validForId);
+        } else {
+            annl.setValidForIdentification(validForId);
+        }
+Util.mark("Annotation.refreshLiteValid() refreshing " + this.acmId);
+        AnnotationLite.setCache(this.acmId, annl);
+    }
+    //TODO ... other permutations?
 }

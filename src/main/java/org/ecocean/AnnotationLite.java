@@ -17,7 +17,7 @@ public class AnnotationLite {
         also note:  we dont (seem to) need imageId, bbox, or theta, as they are available via the ann already
     */
     //private String imageId;
-    private String individualId;
+    private String individualId = null;
     //private int[] bbox;
     private int taxonomyId = -1;
     //private double theta;
