@@ -110,7 +110,7 @@ public class IndividualAddEncounter extends HttpServlet {
               catch (Exception ex) {
                   ex.printStackTrace();
                   myShepherd.rollbackDBTransaction();
-                  throw new RuntimeException("IndividualAddEncounter: unable to create new MarkedIndividual " + indivID);
+                  throw new RuntimeException(failureMessage);
               }
           } 
           else {
@@ -153,9 +153,9 @@ public class IndividualAddEncounter extends HttpServlet {
 
             } 
             catch (Exception le) {
-              System.out.println("Hit locked exception on action: " + action);
               le.printStackTrace();
               myShepherd.rollbackDBTransaction();
+              throw new RuntimeException(failureMessage);
   
             }
 
@@ -176,7 +176,7 @@ public class IndividualAddEncounter extends HttpServlet {
         else {
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
-          out.println("<strong>Error:</strong> You can't add this encounter to a marked individual when it's already assigned to another one.");
+          out.println("<strong>Error:</strong> You can't add this encounter to a marked individual when it is already assigned to another one.");
 
           myShepherd.rollbackDBTransaction();
 
