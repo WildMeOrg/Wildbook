@@ -66,7 +66,7 @@ public class IndividualAddEncounter extends HttpServlet {
     response.setContentType("application/json");
     String responseJSON="";
     PrintWriter out = response.getWriter();
-    String failureMessage="<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT added to " + request.getParameter("individual") + ". Error unknown.";
+    StringBuilder failureMessage=new StringBuilder("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT added to " + request.getParameter("individual") + ". Error unknown.");
 
     String action = request.getParameter("action");
 
@@ -82,7 +82,7 @@ public class IndividualAddEncounter extends HttpServlet {
       try {  
       
         if (enc2add == null) {
-            failureMessage="<p>Invalid encounter id=" + request.getParameter("number")+"</p>";
+            failureMessage=new StringBuilder("<p>Invalid encounter id=" + request.getParameter("number")+"</p>");
             throw new RuntimeException("invalid encounter id=" + request.getParameter("number"));
         }
         setDateLastModified(enc2add);
@@ -110,14 +110,14 @@ public class IndividualAddEncounter extends HttpServlet {
               catch (Exception ex) {
                   ex.printStackTrace();
                   myShepherd.rollbackDBTransaction();
-                  throw new RuntimeException(failureMessage);
+                  throw new RuntimeException(failureMessage.toString());
               }
           } 
           else {
              System.out.println("IndividualAddEncounter: Retrieving an existing individual=" + indivID);
               addToMe = myShepherd.getMarkedIndividual(indivID);
               if (addToMe == null) {
-                failureMessage="<p>Invalid individual id=" + indivID+"</p>";
+                failureMessage=new StringBuilder("<p>Invalid individual id=" + indivID+"</p>");
                 throw new RuntimeException("invalid individual id=" + indivID);
               }
           }
@@ -155,7 +155,7 @@ public class IndividualAddEncounter extends HttpServlet {
             catch (Exception le) {
               le.printStackTrace();
               myShepherd.rollbackDBTransaction();
-              throw new RuntimeException(failureMessage);
+              throw new RuntimeException(failureMessage.toString());
   
             }
 
@@ -207,19 +207,19 @@ public class IndividualAddEncounter extends HttpServlet {
   
   
   
-  private void checkForDuplicateAnnotations(Encounter enc2add, String failureMessage, MarkedIndividual addToMe, Shepherd myShepherd) {
+  private void checkForDuplicateAnnotations(Encounter enc2add, StringBuilder failureMessage, MarkedIndividual addToMe, Shepherd myShepherd) {
     //check for duplicate individual IDs represented by another annotation with the same acmId
     ArrayList<Encounter> conflictingEncs=new ArrayList<Encounter>();
     for(Annotation annot:enc2add.getAnnotations()) {
       conflictingEncs.addAll(Annotation.checkForConflictingIDsforAnnotation(annot, addToMe.getIndividualID(), myShepherd));
     }
     if(conflictingEncs.size()>0) {
-      failureMessage="<p>The following Encounters contain the same annotation but have a different individualID. An annotation can only have one ID inherited from its Encounters. <ul>";
+      failureMessage.append("<p>The following Encounters contain the same annotation but have a different individualID. An annotation can only have one ID inherited from its Encounters. <ul>");
       for(Encounter enc:conflictingEncs) {
-        failureMessage+="<li>"+enc.getEncounterNumber()+" ("+enc.getIndividual().getIndividualID()+")</li>";
+        failureMessage.append("<li>"+enc.getEncounterNumber()+" ("+enc.getIndividual().getIndividualID()+")</li>");
       }
-      failureMessage+="</ul></p>";
-      throw new RuntimeException(failureMessage);
+      failureMessage.append("</ul></p>");
+      throw new RuntimeException(failureMessage.toString());
     }
   }
   
