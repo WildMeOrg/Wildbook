@@ -1655,9 +1655,11 @@ console.info('resetIdButtons()');
 
                         })
                         .fail(function(response) {
-                          $("#individualDiv").addClass("has-error");
-                          $("#individualError, #matchedByError, #individualErrorDiv").show();
-                          $("#individualErrorDiv").html(response.responseText);
+                        	$("#addSuccessDiv").hide();
+                          	$("#individualDiv").addClass("has-error");
+                          	$("#individualErrorDiv").html(response.responseText);
+                          	$("#individualError, #matchedByError, #individualErrorDiv, #individualResultsDiv").show();
+                          
                         });
                       });
 
@@ -1832,7 +1834,7 @@ function checkIdDisplay() {
                     </script>
                     
                     <div class="highlight resultMessageDiv removeFromShark" id="individualResultsDiv">
-                      <span class="highlight" id="addErrorDiv"></span>
+                      <span class="highlight" id="individualErrorDiv"></span>
                       <span class="successHighlight" id="addSuccessDiv"></span>
                     </div>
                     
