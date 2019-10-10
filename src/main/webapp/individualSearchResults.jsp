@@ -278,6 +278,7 @@
 		{
 			key: 'maxYearsBetweenResightings',
 			label: '<%=props.getProperty("maxYearsBetweenResights")%>',
+			value: _colYearsBetween,
 			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 		},
 		{
@@ -591,11 +592,13 @@
 		return o.numberEncounters;
 	}
 	
-	/*
+	
 	function _colYearsBetween(o) {
-		return o.get('maxYearsBetweenResightings');
+		if (o.maxYearsBetweenResightings == undefined) return '';
+		return o.maxYearsBetweenResightings;
+
 	}
-	*/
+	
 	
 	function _colNumberLocations(o) {
 		if (o.numberLocations == undefined) return '';
