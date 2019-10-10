@@ -647,8 +647,12 @@ try {
 								if(myShepherd.doesUserHaveRole(localUsername,roles.get(q),("context"+d))){
 									selected="selected=\"true\"";
 								}
-							}	    	
-							%><option value="<%=roles.get(q)%>" <%=selected%>><%=roles.get(q)%></option><%
+							}
+							
+							//now one last check: only let someone who has a role assign the role
+							if(request.isUserInRole(roles.get(q))){
+								%><option value="<%=roles.get(q)%>" <%=selected%>><%=roles.get(q)%></option><%
+							}
 						}%>          
     			</select>
     		</td>
