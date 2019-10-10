@@ -52,6 +52,7 @@ public class GrothParameterOptimizer {
 
     //This will magnify and rescale variable inputs and guess by multiplication/division if necessary 
     double[] parameterScaling = new double[] {1.0, 1.0, 1.0, 1.0, 1.0};
+    boolean scalingSet = false;
 
     GoalType goal = GoalType.MAXIMIZE;
     GrothAnalysis ga = new GrothAnalysis();
@@ -65,6 +66,14 @@ public class GrothParameterOptimizer {
 
     public void setParameterScaling(double[] scales) {
         // i hate that I need to feed this to both objects.. sloppy. sry yall
+        scalingSet = false;
+        ga.setScaling(false);
+        for (double s : scales) {
+            if (s!=1.0) {
+                scalingSet = true;
+                ga.setScaling(true);
+            }
+        } 
         ga.setParameterScales(scales);
         this.parameterScaling = scales;
 
@@ -72,11 +81,29 @@ public class GrothParameterOptimizer {
     }
 
     public void setInitialGuess(double[] guess) {
+        this.defaults = guess;
+    }
+
+    public double[] getParams() {
+        return defaults;
+    }
+
+    public double[] getScaledParams() {
         double[] scaledWeights = new double[5];
         for (int i=0;i<5;i++) {
-            scaledWeights[i] = (guess[i] / parameterScaling[i]);
+            if (parameterScaling[i]!=1.0) scalingSet=true;
+            scaledWeights[i] = (defaults[i] / parameterScaling[i]);
         }
-        this.defaults = scaledWeights;
+        return scaledWeights;
+    }
+
+    public double[] getScaledLastResults() {
+        double[] scaledWeights = new double[5];
+        for (int i=0;i<5;i++) {
+            if (parameterScaling[i]!=1.0) scalingSet=true;
+            scaledWeights[i] = (lastResults[i] / parameterScaling[i]);
+        }
+        return scaledWeights;
     }
 
     public void setGoalTypeAsMax() {
@@ -154,7 +181,7 @@ public class GrothParameterOptimizer {
             // these are your opts.. different implementations of the OptimizationData interface 
             // it's pretty difficult to acertain what the different optimizers want cuz they take as many as you like even if they do nothing
 
-            InitialGuess ig = new InitialGuess(defaults);
+            InitialGuess ig = new InitialGuess(getScaledParams());
 
             SimpleBounds sb = new SimpleBounds(lowerBounds, upperBounds);
             MaxEval me = new MaxEval(maxEval);
@@ -165,8 +192,8 @@ public class GrothParameterOptimizer {
             System.out.println("-of: "+of+"  -goal: "+goal+"  -mi: "+mi+"  -me: "+me);
 
             PointValuePair result = optimizer.optimize(of, goal, me, sb, mi, ig);
-            double[] resultArr = descaledResult(result.getPoint());
-            lastResults = descaledResult(result.getPoint());
+            double[] resultArr = descaleParams(result.getPoint());
+            lastResults = descaleParams(result.getPoint());
             System.out.println("------> Here are the default values: "+Arrays.toString(defaults));
 
             System.out.println("------> This also is the result of optimization: "+Arrays.toString(resultArr));
@@ -178,7 +205,7 @@ public class GrothParameterOptimizer {
         return lastResults;
     }
 
-    public double[] descaledResult(double[] scaledResult) {
+    public double[] descaleParams(double[] scaledResult) {
         double[] descaledResult = new double[5];
         for (int i=0;i<5;i++) {
             descaledResult[i] = (scaledResult[i]*parameterScaling[i]);
@@ -225,7 +252,7 @@ public class GrothParameterOptimizer {
     }
 
     public void writeResultsToFile() {
-        writeResultsToFile(defaults, 250);
+        writeResultsToFile(lastResults, 250);
     }
 
     public void writeResultsToFile(double[] params) {
@@ -233,17 +260,20 @@ public class GrothParameterOptimizer {
     }
 
     public void writeResultsToFile(int numPoints) {
-        writeResultsToFile(defaults, numPoints);
+        writeResultsToFile(lastResults, numPoints);
     }
 
     public void writeResultsToFile(double[] params, int numPoints) {
 
         System.out.println("[INFO] Trying to export results...");
 
+        //if (scalingSet==true) {
+        //    params = descaleParams(params);
+        //}
         try {
             ga.flush();
             ga.setNumComparisonsEach(numPoints);
-            Double finalScore = ga.value(params);
+            Double finalScore = ga.valueForCSV(params, numPoints);
         } catch (Exception e) {
             System.out.println("[WARN]: Could not get results for input to write to file.");
             e.printStackTrace();
@@ -257,8 +287,12 @@ public class GrothParameterOptimizer {
             }
             String[] prefixes = new String[] {"epsilon:", "R:", "sizeLim:", "maxTriangleRotation:", "C:"};
             String filename = "params-";
-            for (int i=0;i<lastResults.length;i++) {
-                filename += prefixes[i]+String.valueOf(lastResults[i]).substring(0,5)+"-";
+            for (int i=0;i<params.length;i++) {
+                String param = String.valueOf(params[i]);
+                if (param.length()>5) {
+                    param = param.substring(0,5);
+                }
+                filename += prefixes[i]+param+"-";
             }
             File f = new File("webapps/wildbook_data_dir/optimizerResults/", filename+".csv");
             f.getAbsolutePath();
@@ -267,6 +301,10 @@ public class GrothParameterOptimizer {
             }
             System.out.println("Isfile? "+f.isFile()+"  IsDirectory? "+f.isDirectory()+" ABS Path: "+f.getAbsolutePath());
             bw = new BufferedWriter(new FileWriter(f));
+
+            bw.write("MATCH,SCORE");
+            bw.newLine();
+
             for (Double d : ga.getMatchScores()) {
                 bw.write("M,"+String.valueOf(d));
                 bw.newLine();

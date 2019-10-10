@@ -32,6 +32,11 @@ public class GrothAnalysis implements MultivariateFunction {
   private boolean useWeights = false;
 
   private double[] parameterScaling = new double[] {1.0, 1.0, 1.0, 1.0, 1.0};
+  private boolean scalingSet = false; 
+
+  // We will just init these once during our first comparison
+  private static GridManager gm = null;
+  private static ConcurrentHashMap<String,EncounterLite> chm = null;
 
   public ArrayList<Double> getMatchScores() {
     return matchScores;
@@ -66,6 +71,14 @@ public class GrothAnalysis implements MultivariateFunction {
     this.parameterScaling = scales;
   }
 
+  public boolean getScaling() {
+    return scalingSet;
+  }
+
+  public void setScaling(boolean set) {
+    this.scalingSet = set; 
+  }
+
   /*
   * 
   * 
@@ -76,15 +89,31 @@ public class GrothAnalysis implements MultivariateFunction {
     double val = -1;
      //Parameter order: {epsilon, R, sizeLim, maxTriangleRotation, C}  
      // okay, we need to undo parameter scaling for actually feeding params into the grid
+
     double[] scaledPoint = new double[5];
-    for (int i=0;i<5;i++) {
-      scaledPoint[i] = point[i]*parameterScaling[i];
+    if (scalingSet==true) {
+      for (int i=0;i<5;i++) {
+        scaledPoint[i] = point[i]*parameterScaling[i];
+      }
     }
     System.out.println("SCALED INPUT ==> Epsilon: "+point[0]+"  R: "+point[1]+"  sizeLim: "+point[2]+"  maxTriangleRotation: "+point[3]+"  C: "+point[4]);
     System.out.println("DE-SCALED INPUT FRO GRID ==> Epsilon: "+scaledPoint[0]+"  R: "+scaledPoint[1]+"  sizeLim: "+scaledPoint[2]+"  maxTriangleRotation: "+scaledPoint[3]+"  C: "+scaledPoint[4]);
 
     try {
       val = getScoreDiffMatchesMinusNonmatches(numComparisons, scaledPoint[0], scaledPoint[1], scaledPoint[2], scaledPoint[3], scaledPoint[4], defaultSide, maxNumSpots, useWeights, targetScore, weightAmount );
+      //valArr[0] = val;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    System.out.println("----> Current matches-nonmatches score: "+val);
+    return val;
+  }
+
+  public double valueForCSV(double[] point, int numComparisons) {
+    System.out.println("VALUE: SCALED INPUT ==> Epsilon: "+point[0]+"  R: "+point[1]+"  sizeLim: "+point[2]+"  maxTriangleRotation: "+point[3]+"  C: "+point[4]);
+    double val = -1;
+    try {
+      val = getScoreDiffMatchesMinusNonmatches(numComparisons, point[0], point[1], point[2], point[3], point[4], defaultSide, maxNumSpots, false, targetScore, weightAmount );
       //valArr[0] = val;
     } catch (Exception e) {
       e.printStackTrace();
@@ -127,14 +156,15 @@ public class GrothAnalysis implements MultivariateFunction {
     
     
     if(matchedswis.size()==0 || nonmatchedswis.size()==0 ) {
+
       //get GridManager, for speed, we're only going to use data in the GM
-      GridManager gm = GridManagerFactory.getGridManager();
-      
-      ConcurrentHashMap<String,EncounterLite> chm=gm.getMatchGraph();
+      initGridManagerHashMap();
+
+      System.out.println("Finished init grid hashmap...");
+
       Enumeration<String> keys=chm.keys();
       
       HashMap<String,ArrayList<EncounterLite>> indyMap=new HashMap<String,ArrayList<EncounterLite>>();
-      
       
       while (keys.hasMoreElements()) {
   
@@ -207,42 +237,56 @@ public class GrothAnalysis implements MultivariateFunction {
      //OK, indyMap now has matched individuals from the chosen side, let's create our comparison set
      
      keys2=indyMap.keySet().iterator();
-     while(keys2.hasNext()) {
-       String myKey=keys2.next();
-       ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
-       
-       int numThisAL=thisAL.size();
-       for(int z=0;z<(numThisAL-1);z++) {
-         for(int z2=z+1;z2<numThisAL;z2++) {
-           
-           EncounterLite el1=thisAL.get(z);
-           EncounterLite el2=thisAL.get(z2);
-           
-           //populate the all list while at it
-           if(!allEncs.contains(el1)) {allEncs.add(el1);}
-           if(!allEncs.contains(el2)) {allEncs.add(el2);}
-           
-           
-           ScanWorkItem swi = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
-           matchedswis.add(swi);
-           
-         }
-       }
-     }
-     
-     //OK, indyMap now has non-matched individuals from the chosen side, let's create our comparison set
-  
-     for(int q=0;q<allEncs.size()-1;q++) {
-       for(int r=0;r<allEncs.size();r++) {
-         EncounterLite el1=allEncs.get(q);
-         EncounterLite el2=allEncs.get(r);
-         if(!el1.getEncounterNumber().equals(el2.getEncounterNumber())) {
-           ScanWorkItem swi = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
-           nonmatchedswis.add(swi);
-         }
+
+     try {
+       while(keys2.hasNext()) {
+         String myKey=keys2.next();
+         ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
          
+         int numThisAL=thisAL.size();
+         for(int z=0;z<(numThisAL-1);z++) {
+           for(int z2=z+1;z2<numThisAL;z2++) {
+             
+             EncounterLite el1=thisAL.get(z);
+             EncounterLite el2=thisAL.get(z2);
+             
+             //populate the all list while at it
+             if(!allEncs.contains(el1)) {allEncs.add(el1);}
+             if(!allEncs.contains(el2)) {allEncs.add(el2);}
+             
+             ScanWorkItem swi = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
+             matchedswis.add(swi);
+             if (matchedswis.size()>=numComparisonsEach) break;
+           }
+           if (matchedswis.size()>=numComparisonsEach) {
+            break;
+           }
+         }
        }
+       System.out.println("........................... finished matched map... All encs = "+allEncs.size());
+       
+       //OK, indyMap now has non-matched individuals from the chosen side, let's create our comparison set
+      
+
+       for(int q=0;q<(allEncs.size()-1);q++) {
+         System.out.println("....... q loop "+q);
+         for(int r=0;r<allEncs.size();r++) {
+           EncounterLite el1=allEncs.get(q);
+           EncounterLite el2=allEncs.get(r);
+           if(!el1.getEncounterNumber().equals(el2.getEncounterNumber())) {
+             ScanWorkItem swi = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
+             nonmatchedswis.add(swi);
+             if (nonmatchedswis.size()>=numComparisonsEach) break;
+           }
+         }
+         if (matchedswis.size()>=numComparisonsEach) {
+          break;
+         }
+        }
+     } catch (Exception e) {
+       e.printStackTrace();
      }
+
     }
    
    System.out.println("All right, I should have my full candidate set of matched="+matchedswis.size()+" and nonmatched="+nonmatchedswis.size()+" from side="+side);
@@ -291,6 +335,14 @@ public class GrothAnalysis implements MultivariateFunction {
    return totalMatchScores-totalNonmatchScores;
     
     
+  }
+
+  public static void initGridManagerHashMap() {
+    System.out.println("trying to init grid hashmap...");
+    if (gm==null||chm==null) {
+      gm = GridManagerFactory.getGridManager();
+      chm=gm.getMatchGraph();
+    }
   }
   
   //When used, will penalize all non-match scores over the target score, and inflate match scores over it.
