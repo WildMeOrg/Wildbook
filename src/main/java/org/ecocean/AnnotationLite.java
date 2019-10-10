@@ -1,6 +1,7 @@
 
 package org.ecocean;
 
+import javax.servlet.ServletContext;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -9,6 +10,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 import java.io.IOException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.lang.Runnable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledFuture;
 
 public class AnnotationLite {
     /*
@@ -35,7 +41,10 @@ public class AnnotationLite {
 */
     private static List<String> taxonomyList = new ArrayList<String>();
     private static ConcurrentHashMap<String,AnnotationLite> cache = new ConcurrentHashMap<String,AnnotationLite>();
-    
+    private static final String CACHE_FILEPATH = "WEB-INF/AnnotationLiteCache.json";  //will be relative to data_dir
+
+    private static ScheduledExecutorService runningSES = null;
+    private static ScheduledFuture runningSF = null;
 
     public AnnotationLite() {}
 
@@ -223,4 +232,60 @@ public class AnnotationLite {
         }
         System.out.println("INFO: AnnotationLite.cacheRead() from " + filepath + " complete with " + cache.size() + " objects in " + (System.currentTimeMillis() - t) + "ms");
     }
+
+
+    //this reads the cache from disk *and* starts a thread for saving upon shutdown, oy
+    public static void startup(final ServletContext sContext, final String context) {
+        try {
+            cacheRead(CommonConfiguration.getDataDirectory(sContext, context) + "/" + CACHE_FILEPATH);
+        } catch (IOException ex) {
+            System.out.println("WARNING: AnnotationLite.startup() could not read AnnotationLite cache json -> " + ex.toString());
+        }
+
+        runningSES = Executors.newScheduledThreadPool(1);
+        runningSF = runningSES.scheduleWithFixedDelay(new Runnable() {
+            public void run() {
+                //NOOP
+            }
+        },
+        10,  //initial delay
+        10,  //period delay *after* execution finishes
+        TimeUnit.SECONDS);
+        System.out.println("AnnotationLite.startup() ---- about to awaitTermination() ----");
+        try {
+            runningSES.awaitTermination(5000, TimeUnit.MILLISECONDS);
+        } catch (java.lang.InterruptedException ex) {
+            System.out.println("WARNING: AnnotationLite.startup() thread interrupted -- " + ex.toString());
+        }
+        System.out.println("==== AnnotationLite.startup() schedExec.shutdown() called, apparently");
+    }
+
+
+    //this is called during shutdown via StartupWildbook
+    public static void cleanup(ServletContext sContext, String context) {
+        long t = System.currentTimeMillis();
+        Util.mark("AnnotationLite.cleanup() begun", t);
+
+        try {
+            cacheWrite(CommonConfiguration.getDataDirectory(sContext, context) + "/" + CACHE_FILEPATH);
+        } catch (IOException ex) {
+            System.out.println("WARNING: AnnotationLite.cleanup() could not write cache json -> " + ex.toString());
+        }
+
+        runningSES.shutdown();
+        try {
+            if (runningSES.awaitTermination(20, TimeUnit.SECONDS)) {
+                runningSES.shutdownNow();
+                if (runningSES.awaitTermination(20, TimeUnit.SECONDS)) {
+                    System.out.println("!!! AnnotationLite.cleanup() -- ExecutorService did not terminate");
+                }
+            }
+        } catch (InterruptedException ie) {
+            runningSES.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        runningSF.cancel(true);
+        Util.mark("AnnotationLite.cleanup() complete", t);
+    }
+
 }

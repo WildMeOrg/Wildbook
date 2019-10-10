@@ -139,11 +139,7 @@ public class StartupWildbook implements ServletContextListener {
         startIAQueues(context); //TODO this should get moved to plugins!!!!  FIXME
         TwitterBot.startServices(context);
 
-        try {
-            AnnotationLite.cacheRead(CommonConfiguration.getDataDirectory(sContext, context) + "/WEB-INF/AnnotationLiteCache.json");
-        } catch (IOException ex) {
-            System.out.println("WARNING: StartupWildbook.contextInitialized() could not read AnnotationLite cache json -> " + ex.toString());
-        }
+        AnnotationLite.startup(sContext, context);
     }
 
 
@@ -215,13 +211,7 @@ public class StartupWildbook implements ServletContextListener {
         String context = "context0";  ///HOW?? (see above) TODO FIXME
         System.out.println("* StartupWildbook destroyed called for: " + servletContextInfo(sContext));
 
-/*  apparently this is TOO LATE for this to work... sigh...
-        try {
-            AnnotationLite.cacheWrite(CommonConfiguration.getDataDirectory(sContext, context) + "/WEB-INF/AnnotationLiteCache.json");
-        } catch (IOException ex) {
-            System.out.println("WARNING: StartupWildbook.contextDestroyed() could not write AnnotationLite cache json -> " + ex.toString());
-        }
-*/
+        AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         TwitterBot.cleanup();
     }
