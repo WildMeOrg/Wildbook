@@ -1250,6 +1250,7 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
     public static void processQueueMessage(String message) {
 //System.out.println("DEBUG: IAGateway.processQueueMessage -> " + message);
         if (message == null) return;
+if (message.startsWith("alite:")) { Util.mark("alite >>> " + org.ecocean.AnnotationLite.getCache(message.substring(6))); return; }
         JSONObject jobj = null;
         try {
             jobj = new JSONObject(message);
