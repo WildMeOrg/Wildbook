@@ -170,14 +170,21 @@
 				{ "name":"Ari", "id":"Ari", "locationID":[] },
 				{ "name":"Baa", "id":"Baa", "locationID":[] },
 				{ "name":"Dhaalu", "id":"Dhaalu", "locationID":[] },
+				{ "name":"Faafu", "id":"Faafu", "locationID":[] },
+				{ "name":"Fuamulaku", "id":"Fuamulaku", "locationID":[] },
 				{ "name":"Gaaf", "id":"Gaaf", "locationID":[] },
 				{ "name":"Haa", "id":"Haa", "locationID":[] },
 				{ "name":"Laamu", "id":"Laamu", "locationID":[] },
+				{ "name":"Lhaviyani", "id":"Lhaviyani", "locationID":[] },
 				{ "name":"Meemu", "id":"Meemu", "locationID":[] },
+				{ "name":"Noono", "id":"Noono", "locationID":[] },
+				{ "name":"North Male", "id":"North Male", "locationID":[] },
 				{ "name":"Raa", "id":"Raa", "locationID":[] },
+				{ "name":"South Male", "id":"Male", "locationID":[] },
+				{ "name":"Shaviyani", "id":"Shaviyani", "locationID":[] },
 				{ "name":"Thaa", "id":"Thaa", "locationID":[] },
 				{ "name":"Vaavu", "id":"Vaavu", "locationID":[] }
-
+				
 		] },
 		
 		 { "name":"Bangladesh", "id":"BANGLADESH - West", "locationID":[] },
