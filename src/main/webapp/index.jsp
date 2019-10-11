@@ -7,7 +7,10 @@
               java.util.Iterator,
               java.util.Properties,
               java.util.StringTokenizer,
-              org.ecocean.cache.*
+              org.ecocean.cache.*,
+              org.datanucleus.api.jdo.JDOPersistenceManager,
+              org.datanucleus.FetchGroup,
+              javax.jdo.*
               "
 %>
 
@@ -23,6 +26,13 @@ String context=ServletUtilities.getContext(request);
 Shepherd myShepherd=null;
 myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
+
+PersistenceManager pm=myShepherd.getPM();
+PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
+javax.jdo.FetchGroup grp = pmf.getFetchGroup(Encounter.class, "encounterIndex");
+grp.addMember("individual").addMember("submitterID").addMember("catalogNumber").addMember("dwcDateAddedLong");
+myShepherd.getPM().getFetchPlan().setGroup("encounterIndex");
+
 
 
 String langCode=ServletUtilities.getLanguageCode(request);
