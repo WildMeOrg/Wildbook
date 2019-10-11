@@ -403,7 +403,8 @@ System.out.println("*** trying redirect?");
 
       //check for spamBots   TODO possibly move this to Util for general/global usage?
       boolean spamBot = false;
-            String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", "photographerPhone", "location", "comments", "behavior"};
+            String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", ""
+                + "Phone", "location", "comments", "behavior"};
       StringBuffer spamFields = new StringBuffer();
             for (int i = 0 ; i < spamFieldsToCheck.length ; i++) {
           spamFields.append(getVal(fv, spamFieldsToCheck[i]));
@@ -682,10 +683,12 @@ System.out.println("enc ?= " + enc.toString());
                 String tok=str.nextToken().trim();
                 if(myShepherd.getUserByEmailAddress(tok.trim())!=null) {
                   User user=myShepherd.getUserByEmailAddress(tok);
+                  if((numTokens==1)&&(photoN!=null)&&(user.getFullName()==null)){user.setFullName(photoN);}
                   photographers.add(user);
                 }
                 else {
                   User user=new User(tok,Util.generateUUID());
+                  if((numTokens==1)&&(photoN!=null)){user.setFullName(photoN);}
                   myShepherd.getPM().makePersistent(user);
                   myShepherd.commitDBTransaction();
                   myShepherd.beginDBTransaction();

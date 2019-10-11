@@ -106,7 +106,7 @@ public class SiteSearch extends HttpServlet {
             if(ind.getNickName()!=null){
               hm.put("nickname", ind.getNickName());
             }
-            labelToHm.put(label, hm);
+            labelToHm.put((label+"-"+ind.getIndividualID()), hm);
           }
           else if(myShepherd.isEncounter(term.trim())) {
             HashMap<String, String> hm = new HashMap<String, String>();
@@ -168,7 +168,7 @@ public class SiteSearch extends HttpServlet {
                   if(ind.getNickName()!=null){
                     hm.put("nickname", ind.getNickName());
                   }
-                  labelToHm.put(label, hm);
+                  labelToHm.put((label+"-"+ind.getIndividualID()), hm);
                   //list.add(hm);
                 }
                 catch(Exception f) {f.printStackTrace();}
