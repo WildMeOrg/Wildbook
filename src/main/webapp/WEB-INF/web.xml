@@ -380,6 +380,7 @@
 				/OccurrenceSetObservation = authc, roles[researcher]
 				/EncounterSetObservation = authc, roles[researcher]
 				/EncounterVMData = authc, roles[researcher]
+				/encounters/encounterVM.jsp = authc, roles[researcher]
 
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
 				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
