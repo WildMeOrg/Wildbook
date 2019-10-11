@@ -1101,8 +1101,8 @@ Util.mark("identify process start", tt);
 
             //this voodoo via JH will insure that .acmId is on the MediaAssets which are loaded via getMatchingSet() below (for speed)
             javax.jdo.FetchGroup grp = myShepherd.getPM().getPersistenceManagerFactory().getFetchGroup(MediaAsset.class, "BIA");
-            grp.addMember("acmId").addMember("store").addMember("id").addMember("parametersAsString").addMember("parameters").addMember("metadata").addMember("labels").addMember("userLatitude").addMember("userLongitude").addMember("userDateTime");
-            myShepherd.getPM().getFetchPlan().setGroup("BIA");
+            grp.addMember("acmId").addMember("store").addMember("id").addMember("parametersAsString").addMember("parameters").addMember("metadata").addMember("labels").addMember("userLatitude").addMember("userLongitude").addMember("userDateTime").addMember("features");
+            myShepherd.getPM().getFetchPlan().addGroup("BIA");
 
 Util.mark("bia 2", tt);
             if (tanns==null||tanns.isEmpty()) {
