@@ -3702,7 +3702,7 @@ public class Shepherd {
     List<Keyword> propKeywords = new ArrayList<Keyword>();
 
     if((allKeywords!=null)&&(propKeywordNames!=null)) {
-      System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
+      //System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
   
       for (String propKwName: propKeywordNames) {
         for (Keyword kw: allKeywords) {
@@ -3712,7 +3712,7 @@ public class Shepherd {
           }
         }
       }
-      System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
+      //System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
       allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
       propKeywords.addAll(allKeywords);
       // propKeywords contains all keywords, but those defined in properties are first.
