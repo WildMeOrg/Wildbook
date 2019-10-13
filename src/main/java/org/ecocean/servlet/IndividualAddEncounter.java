@@ -98,7 +98,7 @@ public class IndividualAddEncounter extends HttpServlet {
                   addToMe = new MarkedIndividual(indivID, enc2add);
                   
                   //check for duplicate individual IDs represented by another annotation with the same acmId
-                  checkForDuplicateAnnotations(enc2add, failureMessage, addToMe, myShepherd);
+                  //checkForDuplicateAnnotations(enc2add, failureMessage, addToMe, myShepherd);
                   
                   
                   myShepherd.storeNewMarkedIndividual(addToMe);
