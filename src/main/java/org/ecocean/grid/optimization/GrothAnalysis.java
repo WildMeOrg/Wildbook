@@ -2,11 +2,11 @@ package org.ecocean.grid.optimization;
 
 import org.ecocean.grid.*;
 
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.ArrayList;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 import org.apache.commons.math3.analysis.MultivariateFunction;
 
@@ -351,5 +351,274 @@ public class GrothAnalysis implements MultivariateFunction {
     this.weightAmount = weight;
     this.useWeights = use;
   }
+  
+  /*
+   * @numMatchedComparisons The number of matched pairs you want to evaluate in this run.
+   * @numComparisonsEach The number of total comparisons you want numMatchedComparisons evaluated against.
+   * 
+   * @numProcessorsToUse The number of CPUs to use in parallel to accelerate this run. If left null, all processors available in the system will be used
+   */
+  public static Integer getMatchedRankSum(int numMatchedComparisons, int numComparisonsEach, double epsilon, double R, double Sizelim, double maxTriangleRotation,
+      double C, String side, int maxNumSpots, boolean useWeights, int targetScore, double weightAmount, Integer numProcessorsToUse) throws Exception {
+
+      int totalMatchRank=0;
+      
+      //check the number of processors and set up parallel execution queue
+      Runtime rt = Runtime.getRuntime();
+      int numProcessors = rt.availableProcessors();
+      if(numProcessorsToUse!=null){
+        numProcessors=numProcessorsToUse.intValue();
+      }                //set up our thread processor for each comparison thread
+      ArrayBlockingQueue abq = new ArrayBlockingQueue(1000);
+
+      
+      
+      //clear our match object results lists
+      matches=new ArrayList<MatchObject>();
+      nonmatches=new ArrayList<MatchObject>();
+      
+      //clear our resulting scores for new values
+      matchScores=new ArrayList<Double>();
+      nonmatchScores=new ArrayList<Double>();
+      
+      java.util.Properties props2 = new java.util.Properties();
+      String secondRun = "true";
+      String rightScan = "false";
+      if (side.equals("right")) {
+        rightScan = "true";
+      }
+      props2.setProperty("rightScan", rightScan);
+      
+      
+      //Modified Groth algorithm parameters
+      //pulled from the gridManager
+      props2.setProperty("epsilon", Double.toString(epsilon));
+      props2.setProperty("R", Double.toString(R));
+      props2.setProperty("Sizelim", Double.toString(Sizelim));
+      props2.setProperty("maxTriangleRotation", Double.toString(maxTriangleRotation));
+      props2.setProperty("C", Double.toString(C));
+      props2.setProperty("secondRun", secondRun);
+      
+      ArrayList<EncounterLite> allEncs=new ArrayList<EncounterLite>();
+      
+      if(matchedswis.size()==0 ) {
+      
+      //get GridManager, for speed, we're only going to use data in the GM
+      initGridManagerHashMap();
+      
+      System.out.println("Finished init grid hashmap...");
+      
+      Enumeration<String> keys=chm.keys();
+      
+      HashMap<String,ArrayList<EncounterLite>> indyMap=new HashMap<String,ArrayList<EncounterLite>>();
+      
+      while (keys.hasMoreElements()) {
+      
+        String kv=keys.nextElement();
+        EncounterLite el=chm.get(kv);
+        
+        String individualID=el.getBelongsToMarkedIndividual();
+        if((individualID!=null) && (!individualID.equals(""))) {
+          if(indyMap.get(individualID)!=null) {
+            ArrayList<EncounterLite> thisAL=indyMap.get(individualID);
+            thisAL.add(el);
+            indyMap.put(individualID,thisAL);
+        }
+        else {
+          ArrayList<EncounterLite> thisAL=new ArrayList<EncounterLite>();
+          thisAL.add(el);
+          indyMap.put(individualID,thisAL);
+        }
+        
+        }
+      
+      }  //end while
+      
+      
+      //filter out EncounterLite objects without the correct side
+      Iterator<String> keys2=indyMap.keySet().iterator();
+      while(keys2.hasNext()) {
+        String myKey=keys2.next();
+        ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
+        
+        for(int i=0;i<thisAL.size();i++) {
+          EncounterLite el=thisAL.get(i);
+          
+          if(side.equals("left")) {
+            if(el.getSpots()==null || el.getSpots().size()==0 || el.getSpots().size()>maxNumSpots) {
+              thisAL.remove(el);
+              i--;
+            }
+          }
+          else if(side.equals("right")) {
+            if(el.getRightSpots()==null || el.getRightSpots().size()==0 || el.getRightSpots().size()>maxNumSpots) {
+              thisAL.remove(el);
+              i--;
+            }
+          }
+        }
+      } //end while
+      
+      
+      //filter out any individuals with only one EncounterLite 
+      Iterator<String> keys3=indyMap.keySet().iterator();
+      ArrayList<String> keys2remove=new ArrayList<String>();
+      while(keys3.hasNext()) {
+        String myKey=keys3.next();
+        ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
+        if(thisAL.size()<=1) {keys2remove.add(myKey);}
+      }
+      
+      //remove the unneeded keys for only single EncounterLite individuals
+      for(int f=0;f<keys2remove.size();f++) {
+        indyMap.remove(keys2remove.get(f));
+      }
+      
+      
+      System.out.println("I now have this many MarkedIndividuals ("+indyMap.keySet().size()+") with >=2 patterns from side: "+side);
+      
+      
+      
+      
+      
+      //OK, indyMap now has matched individuals from the chosen side, let's create our comparison set
+      
+      keys2=indyMap.keySet().iterator();
+      
+
+      while(keys2.hasNext()) {
+        String myKey=keys2.next();
+        ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
+        
+        int numThisAL=thisAL.size();
+        for(int z=0;z<(numThisAL-1);z++) {
+          for(int z2=z+1;z2<numThisAL;z2++) {
+            
+            EncounterLite el1=thisAL.get(z);
+            EncounterLite el2=thisAL.get(z2);
+            
+            //populate the all list while at it
+            if(!allEncs.contains(el1)) {allEncs.add(el1);}
+            if(!allEncs.contains(el2)) {allEncs.add(el2);}
+            
+            ScanWorkItem swi = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
+            
+            if (matchedswis.size()<numMatchedComparisons) {matchedswis.add(swi);}
+          }
+
+        }
+      }
+      System.out.println("........................... finished matchedswis... = "+matchedswis.size());
+      
+      System.out.println("........................... finished matched map... All encs = "+allEncs.size());
+      
+      }
+      
+      //now let's iterate through our known matches and create ScanTasks to execute with known mismatches too
+      for(ScanWorkItem swi:matchedswis) {
+        
+        ArrayList<ScanWorkItem> al_swi=new ArrayList<ScanWorkItem>();
+        //al_swi.add(swi);
+        swi.run();
+        
+        //here's our reference EncounterLite to match against known non-matches
+        EncounterLite el1=swi.getNewEncounterLite();
+
+                
+        for(EncounterLite el2:allEncs) {
+            if(al_swi.size()<=(numComparisonsEach) && !el2.getBelongsToMarkedIndividual().equals(el1.getBelongsToMarkedIndividual())) {
+              ScanWorkItem swi2 = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
+              al_swi.add(swi2);
+            }
+        }
+        
+        
+        //OK, now let's match all of these!
+        
+        //thread pool handling comparison threads
+        //spawn the thread for each comparison
+        ThreadPoolExecutor threadHandler = new ThreadPoolExecutor(numProcessors, numProcessors, 0, TimeUnit.SECONDS, abq);
+        
+        
+        ArrayList<Double> results=new ArrayList<Double>();
+        int vectorSize = al_swi.size();
+        Vector<ScanWorkItemResult> workItemResults = new Vector<ScanWorkItemResult>();
+        for(ScanWorkItem matchme:al_swi) {
+          
+
+          matchme.setProperties(props2);
+          
+          
+          //matchme.run();
+          try{
+            threadHandler.submit(new AppletWorkItemThread(matchme, workItemResults));
+          }
+          catch(Exception e){
+            System.out.println("...a thread threw an error, so I'm gonna skip it...");
+          }
+          
+          
+        }
+        
+        //block until all threads are done
+        long vSize = vectorSize;
+        while (threadHandler.getCompletedTaskCount() < vSize) {}
+        
+        
+        threadHandler.shutdown();
+        
+        for(ScanWorkItemResult matchme:workItemResults) {
+          MatchObject mo=matchme.getResult();
+          Double score=mo.getMatchValue() * mo.getAdjustedMatchValue();
+          
+          if (useWeights&&score<targetScore) {
+            score = score*(1.0-weightAmount);
+          }
+          //System.out.println("Putting a score of "+score+" for "+matchme.+"("+matchme.getNewEncounterLite().getBelongsToMarkedIndividual()+") against "+matchme.getExistingEncNumber()+"("+matchme.getExistingEncounterLite().getBelongsToMarkedIndividual());
+          results.add(score);
+          
+          
+        }
+        
+        //add the swi's score
+        Double swiscore=swi.getResult().getMatchValue() * swi.getResult().getAdjustedMatchValue();
+        results.add(swiscore);
+        
+        //sort the results
+        Collections.sort(results,Collections.reverseOrder());
+        
+        
+        System.out.println("swiscore of "+swiscore+" should be reflected in results: "+results.toString());
+        
+        totalMatchRank+=results.indexOf(swiscore)+1;
+        System.out.println("======>======>Adding rank of: "+(results.indexOf(swiscore)+1));
+
+        
+
+        
+      }
+      
+      
+      
+      
+
+      
+      //System.out.println("======> matchScores-matchScores: "+(totalMatchScores-totalNonmatchScores));
+      //System.out.println("======> matchScores/matchScores: "+(totalMatchScores/totalNonmatchScores));
+      
+      System.out.println("======> total match rank for numComparisons "+numComparisonsEach+": "+totalMatchRank);
+      System.out.println("======> avg match rank for numComparisons "+numComparisonsEach+": "+totalMatchRank+"/"+matchedswis.size());
+      
+      return totalMatchRank;
+      }
+  
+
+
+
+
+      
+
+  
+  
 
 }
