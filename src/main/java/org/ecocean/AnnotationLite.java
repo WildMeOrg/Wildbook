@@ -148,6 +148,8 @@ public class AnnotationLite {
         return cache.get(id);
     }
     public static void setCache(String id, AnnotationLite annl) {
+System.out.println("ALSC[" + id + "]=" + annl);
+        if (id == null) return;
         cache.put(id, annl);
     }
 

@@ -265,7 +265,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
 long startTime = System.currentTimeMillis();
-Util.mark("sendIdentify-0", startTime);
+Util.mark("sendIdentify-0  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()), startTime);
 
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.sendIdentify");
@@ -326,13 +326,17 @@ System.out.println("--- sendIdentify() passed null tanns..... why???");
 System.out.println("     gotta compute :(");
             tanns = qanns.get(0).getMatchingSet(myShepherd);
         }
-Util.mark("sendIdentify-B", startTime);
+Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()), startTime);
 
+int ct = 0;
         if (tanns != null) for (Annotation ann : tanns) {
+Util.mark(ct + "]  sib-1 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
             if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
                 continue;
             }
+Util.mark("      sib-2 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
+ct++;
             tlist.add(toFancyUUID(ann.getAcmId()));
             String indivId = annotGetIndiv(ann, myShepherd);
 /*  see note above about names
@@ -3211,9 +3215,16 @@ System.out.println("queryConfigDict() get opt = " + opt);
         AnnotationLite annl = AnnotationLite.getCache(ann.getAcmId());
         if ((annl != null) && (annl.getIndividualId() != null)) return annl.getIndividualId();
         String id = cacheAnnotIndiv.get(ann.getId());
-        if (id != null) return id;
-        id = ann.findIndividualId(myShepherd);
-        cacheAnnotIndiv.put(ann.getId(), id);
+        if (id == null) {
+            id = ann.findIndividualId(myShepherd);
+            cacheAnnotIndiv.put(ann.getId(), id);
+        }
+        if (annl == null) {
+            annl = new AnnotationLite((id == null) ? "____" : id);
+        } else {
+            annl.setIndividualId((id == null) ? "____" : id);
+        }
+        AnnotationLite.setCache(ann.getAcmId(), annl);
         return id;
     }
 
@@ -3881,15 +3892,30 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         int[] bbox = ann.getBbox();
         if (bbox == null) {
             System.out.println("NOTE: IBEISIA.validToSendToIA() failing " + ann.toString() + " - invalid bbox");
-            AnnotationLite.setCache(acmId, new AnnotationLite(false));
+            if (annl == null) {
+                annl = new AnnotationLite(false);
+            } else {
+                annl.setValidForIdentification(false);
+            }
+            AnnotationLite.setCache(acmId, annl);
             return false;
         }
         if (context!=null&&!validIAClassForIdentification(ann, context)&&!ann.isTrivial()) {
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - annotation does not have valid Identification class.");
-            AnnotationLite.setCache(acmId, new AnnotationLite(false));
+            if (annl == null) {
+                annl = new AnnotationLite(false);
+            } else {
+                annl.setValidForIdentification(false);
+            }
+            AnnotationLite.setCache(acmId, annl);
             return false;
         }
-        AnnotationLite.setCache(acmId, new AnnotationLite(true));
+        if (annl == null) {
+            annl = new AnnotationLite(true);
+        } else {
+            annl.setValidForIdentification(true);
+        }
+        AnnotationLite.setCache(acmId, annl);
         return true;
     }
 
