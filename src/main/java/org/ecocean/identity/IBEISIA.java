@@ -2,6 +2,7 @@ package org.ecocean.identity;
 
 import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
+import org.ecocean.AnnotationLite;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
 import org.ecocean.ai.nlp.SUTime;
@@ -28,6 +29,7 @@ import org.ecocean.TwitterUtil;
 import org.ecocean.TwitterBot;
 
 import java.text.SimpleDateFormat;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -262,6 +264,8 @@ System.out.println("sendAnnotations(): sending " + ct);
         String u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
+long startTime = System.currentTimeMillis();
+Util.mark("sendIdentify-0", startTime);
 
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.sendIdentify");
@@ -281,6 +285,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
         //String species = null;
         String iaClass = null;
+Util.mark("sendIdentify-1", startTime);
         for (Annotation ann : qanns) {
             if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
@@ -305,6 +310,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 
             qnlist.add(IA_UNKNOWN_NAME);
         }
+Util.mark("sendIdentify-2", startTime);
         // Do we have a qaan? We need one, or load a failure response.
         if (qlist.isEmpty()) {
 	        JSONObject noQueryAnn = new JSONObject();
@@ -313,12 +319,14 @@ System.out.println("sendAnnotations(): sending " + ct);
             return noQueryAnn;
         }
 
+Util.mark("sendIdentify-A", startTime);
         boolean setExemplarCaches = false;
         if (tanns == null) {
 System.out.println("--- sendIdentify() passed null tanns..... why???");
 System.out.println("     gotta compute :(");
             tanns = qanns.get(0).getMatchingSet(myShepherd);
         }
+Util.mark("sendIdentify-B", startTime);
 
         if (tanns != null) for (Annotation ann : tanns) {
             if (!validForIdentification(ann, context)) {
@@ -345,6 +353,7 @@ System.out.println("     gotta compute :(");
         }
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
+Util.mark("sendIdentify-C", startTime);
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
         //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing..
@@ -361,6 +370,7 @@ System.out.println("     gotta compute :(");
         } else {
             map.put("database_annot_name_list", tnlist);
         }
+Util.mark("sendIdentify-D", startTime);
 
 
 		System.out.println("===================================== qlist & tlist =========================");
@@ -374,6 +384,7 @@ System.out.println("     gotta compute :(");
 		System.out.println(map);
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
+Util.mark("identify process pre-post end");
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
@@ -1060,6 +1071,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                                       JSONObject userConfidence, Shepherd myShepherd, Task task, String baseUrl) {
 
+long tt = System.currentTimeMillis();
         if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
@@ -1073,6 +1085,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), myShepherd.getContext());
         String curvrankDailyTag = null;
 
+Util.mark("identify process start", tt);
         try {
             for (Annotation ann : qanns) {
                 if (validForIdentification(ann, myShepherd.getContext())) {
@@ -1086,12 +1099,19 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                 }
             }
 
+            //this voodoo via JH will insure that .acmId is on the MediaAssets which are loaded via getMatchingSet() below (for speed)
+            javax.jdo.FetchGroup grp = myShepherd.getPM().getPersistenceManagerFactory().getFetchGroup(MediaAsset.class, "BIA");
+            grp.addMember("acmId").addMember("store").addMember("id").addMember("parametersAsString").addMember("parameters").addMember("metadata").addMember("labels").addMember("userLatitude").addMember("userLongitude").addMember("userDateTime").addMember("features");
+            myShepherd.getPM().getFetchPlan().addGroup("BIA");
+
+Util.mark("bia 2", tt);
             if (tanns==null||tanns.isEmpty()) {
                 String iaClass = qanns.get(0).getIAClass();
 System.out.println("beginIdentifyAnnotations(): have to set tanns. Matching set being built from the first ann in the list.");
                 tanns = qanns.get(0).getMatchingSet(myShepherd, (task == null) ? null : task.getParameters());
                 curvrankDailyTag = qanns.get(0).getCurvrankDailyTag((task == null) ? null : task.getParameters());
             }
+Util.mark("bia 3", tt);
 
 System.out.println("- mark 2");
             if (tanns!=null&&!tanns.isEmpty()) {
@@ -1103,9 +1123,12 @@ System.out.println("- mark 2");
                     if (ma != null) mas.add(ma);
                 }
             }
+Util.mark("bia 4", tt);
 
             results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
+Util.mark("bia 4A", tt);
             results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext(),myShepherd));
+Util.mark("bia 4B", tt);
 
             if (tanns!=null) {
                 System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
@@ -1118,13 +1141,18 @@ System.out.println("- mark 2");
                 queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
             }
 
+Util.mark("bia 4C", tt);
             //this should attempt to repair missing Annotations
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
                 identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
-                System.out.println("identRtn contains ========> "+identRtn.toString());
-                if (identRtn!=null&&identRtn.getJSONObject("status")!=null&&!identRtn.getJSONObject("status").getString("message").equals("rejected")) {
+                System.out.println("identRtn contains ========> "+identRtn);
+                if (identRtn == null) {
+                    results.put("error", "identRtn == NULL");
+                    results.put("success", false);
+                    return results;
+                } else if (identRtn!=null&&identRtn.getJSONObject("status")!=null&&!identRtn.getJSONObject("status").getString("message").equals("rejected")) {
                     tryAgain = iaCheckMissing(identRtn, myShepherd.getContext(), myShepherd);
                 } else {
                     results.put("error", identRtn.get("status"));
@@ -3179,6 +3207,9 @@ System.out.println("queryConfigDict() get opt = " + opt);
     }
 
     private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
+        if (ann == null) return null;
+        AnnotationLite annl = AnnotationLite.getCache(ann.getAcmId());
+        if ((annl != null) && (annl.getIndividualId() != null)) return annl.getIndividualId();
         String id = cacheAnnotIndiv.get(ann.getId());
         if (id != null) return id;
         id = ann.findIndividualId(myShepherd);
@@ -3839,6 +3870,10 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
 
     public static boolean validForIdentification(Annotation ann, String context)  {
         if (ann == null) return false;
+        String acmId = ann.getAcmId();
+        if (acmId == null) return false;
+        AnnotationLite annl = AnnotationLite.getCache(acmId);
+        if ((annl != null) && (annl.getValidForIdentification() != null)) return annl.getValidForIdentification();
         //System.out.println("BBOX features -> " + ann.getFeatures()); //please leave this line in (ask jon... sigh)
         List<Feature> forceJdoToUnpackTheseFeatures = ann.getFeatures();
         String ungodlyHackString = "";
@@ -3846,12 +3881,15 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         int[] bbox = ann.getBbox();
         if (bbox == null) {
             System.out.println("NOTE: IBEISIA.validToSendToIA() failing " + ann.toString() + " - invalid bbox");
+            AnnotationLite.setCache(acmId, new AnnotationLite(false));
             return false;
         }
         if (context!=null&&!validIAClassForIdentification(ann, context)&&!ann.isTrivial()) {
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - annotation does not have valid Identification class.");
+            AnnotationLite.setCache(acmId, new AnnotationLite(false));
             return false;
         }
+        AnnotationLite.setCache(acmId, new AnnotationLite(true));
         return true;
     }
 
