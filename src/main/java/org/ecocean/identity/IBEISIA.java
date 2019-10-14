@@ -328,15 +328,15 @@ System.out.println("     gotta compute :(");
         }
 Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()), startTime);
 
-int ct = 0;
+//int ct = 0;
         if (tanns != null) for (Annotation ann : tanns) {
-Util.mark(ct + "]  sib-1 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
+//Util.mark(ct + "]  sib-1 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
             if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
                 continue;
             }
-Util.mark("      sib-2 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
-ct++;
+//Util.mark("      sib-2 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
+//ct++;
             tlist.add(toFancyUUID(ann.getAcmId()));
             String indivId = annotGetIndiv(ann, myShepherd);
 /*  see note above about names
