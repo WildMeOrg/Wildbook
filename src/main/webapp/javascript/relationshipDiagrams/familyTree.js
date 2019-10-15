@@ -113,17 +113,21 @@ class FamilyTree extends GraphAbstract {
 	}
 	else if (json.length >= 1) {
 	    this.tree = d3.tree()
-		.size([this.gHeight, this.gWidth]);
+		.separation((a, b) => (a.parent === b.parent) ? 1 : 1.6);
+
+	    this.appendSvg("#familyDiagram");
 	    
-	    this.svg = d3.select("#familyDiagram").append("svg")	        
+//TODO - Fix shift?
+/*	    this.svg = d3.select("#familyDiagram").append("svg")	        
 		.attr("width", this.width)
 		.attr("height", this.height)
-	    	.call(this.zoom.transform, d3.zoomIdentity.translate(this.margin.left, this.margin.top))
+//	    	.call(this.zoom.transform, d3.zoomIdentity.translate(this.margin.left, this.margin.top))
 		.call(this.zoom.on("zoom", () => {
 		    this.svg.attr("transform", d3.event.transform)
 		}))
 		.append("g")
-		.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+//		.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+*/
 	    
 	    //Define the tooltip div
 	    this.addTooltip("#familyDiagram");
@@ -136,7 +140,7 @@ class FamilyTree extends GraphAbstract {
 	}
     }
 
-    updateTree(source) {
+    updateTree(source) {	
 	//Assign node values
 	let treeData = this.tree(this.root);
 	
@@ -145,6 +149,21 @@ class FamilyTree extends GraphAbstract {
 	    links = treeData.descendants().slice(1);
 
 	this.calcNodeSize(nodes);
+	this.calcNodeDepth(nodes);
+
+	//TODO: Test	
+	let nodeSize = (this.radius * 2) + this.nodeMargin;
+	treeData = this.tree.nodeSize([nodeSize, nodeSize])(this.root);
+
+	//Compute the new tree layout
+	nodes = treeData.descendants();
+	links = treeData.descendants().slice(1);
+	
+	// Normalize for fixed-depth.
+	nodes.forEach(d => {
+	    console.log(d);
+            d.y = d.depth * this.nodeSeparation;
+	});
 
 	//Get reference to all nodes
 	let allNodes = this.svg.selectAll("g.node")
@@ -192,7 +211,7 @@ class FamilyTree extends GraphAbstract {
     updateNodes(updatedNodes) {	
 	//Transition nodes to their new position.
 	let nodeUpdate = updatedNodes.transition()
-	    .duration(this.duration)
+	    .duration(this.transitionDuration)
 	    .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
 
 	nodeUpdate.select("circle")
@@ -210,7 +229,7 @@ class FamilyTree extends GraphAbstract {
     removeStaleNodes(removedNodes, source) {
 	//Transition exiting nodes to the parent's new position.
 	let nodeExit = removedNodes.exit().transition()
-	    .duration(this.duration)
+	    .duration(this.transitionDuration)
 	    .attr("transform", d => "translate(" + source.y + "," + source.x + ")")
 	    .remove();
 
@@ -246,13 +265,13 @@ class FamilyTree extends GraphAbstract {
     updateLinks(linkUpdate) {
 	//Transition links to their new position.
 	linkUpdate.transition()
-	    .duration(this.duration)
+	    .duration(this.transitionDuration)
 	    .attr("d", d => this.diagonal(d, d.parent));
     }
 
     removeStaleLinks(link, source) {
 	link.exit().transition()
-	    .duration(this.duration)
+	    .duration(this.transitionDuration)
 	    .attr("d", d => {
 		let o = {x: source.x, y: source.y};
 		return this.diagonal(o, o);

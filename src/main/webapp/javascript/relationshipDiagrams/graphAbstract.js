@@ -1,25 +1,40 @@
 class GraphAbstract {
     constructor(individualID) {
 	this.id = individualID;
-	
+
+	//SVG Attributes
+	this.svg;
 	this.width = 960;
 	this.height = 500;
 	this.margin = {top: 20, right: 120, bottom: 20, left: 120};
 
-	//G dimensions
+	//Top-level G Attrbiutes
 	this.gWidth = this.width - this.margin.right - this.margin.left,
 	this.gHeight = this.height - this.margin.top - this.margin.bottom;
 
-	//Scaled node size
+	//Node Attributes
 	this.numNodes;
 	this.radius;
-	this.maxRadius = 40;
+	this.maxRadius = 50;
 	this.scalingFactor = 25; //TODO: Tune this value
+	this.nodeMargin = 15;
+	this.nodeSeparation;
+	this.transitionDuration = 750;
 
-	//Pan Attributes
-	this.prevPos = [0, 0];
+	//Node Style Attributes
+	this.maleColor = "steelblue";
+	this.femaleColor = "palevioletred";
+	this.defGenderColor = "#757575";
+
+	this.alphaColor = "#bf0000";
+
+	this.defNodeColor = "#ffffff";
+	this.collapsedNodeColor = "#d3d3d3";	
 	
-	//Zoom attirbutes
+	this.defLinkColor = "#a6a6a6";
+	this.famLinkColor = "#000000";
+	
+	//Zoom Attributes
 	this.zoomFactor = 1000;
 	this.zoom = d3.zoom()
 	    .scaleExtent([0.5, 5])
@@ -29,23 +44,20 @@ class GraphAbstract {
 	    ])
 	    .wheelDelta(() => this.wheelDelta());
 
-	this.svg;
+	//Tooltip Attributes
 	this.tooltip;
 	this.popup = false;
-	this.duration = 750;
+	this.fadeDuration = 200;
+    }
 
-	this.maleColor = "steelblue";
-	this.femaleColor = "palevioletred";
-	this.defGenderColor = "#757575";
-
-	this.alphaColor = "#bf0000";
-
-	this.defLinkColor = "#a6a6a6";
-	this.famLinkColor = "#000000";
-
-	//Node style attributes
-	this.defNodeColor = "#ffffff";
-	this.collapsedNodeColor = "#d3d3d3";	
+    appendSvg(containerId) {
+	this.svg = d3.select(containerId).append("svg")
+	    .attr("width", this.width)
+	    .attr("height", this.height)
+	    .call(this.zoom.on("zoom", () => {
+		this.svg.attr("transform", d3.event.transform)
+	    }))
+	    .append("g");
     }
 
     wheelDelta () {
@@ -56,14 +68,23 @@ class GraphAbstract {
     calcNodeSize(nodes) {
 	try {
 	    let defaultNodeLen = 10;
-	    let numNodes = nodes.length || defaultNodeLen; //Defaults to 10 
+	    let numNodes = nodes.length || defaultNodeLen; 
 	    this.radius = this.maxRadius * Math.pow(Math.E, -(numNodes / this.scalingFactor));
+
+	    let margins = this.radius;
+	    
 	}
 	catch(error) {
 	    console.error(error);
 	}
     }
 
+    calcNodeDepth(nodes) {
+	let nodeDepth = nodes.map(d => d.depth);
+	let maxDepth = Math.max(...nodeDepth); //Spread array to extract max value
+	this.nodeSeparation = this.gWidth / maxDepth; //Set horizontal separation
+    }
+    
     addTooltip(selector) {
 	//Define the tooltip div
 	this.tooltip = d3.select(selector).append("div")
@@ -76,7 +97,7 @@ class GraphAbstract {
     handleMouseOver(d) {
 	if (!this.popup) {
 	    this.tooltip.transition()
-		.duration(200)
+		.duration(this.fadeDuration)
 		.style("opacity", .9);
 
 	    //TODO: Remove this hardcoding
@@ -92,14 +113,14 @@ class GraphAbstract {
     handleMouseOut(d) {
 	this.popup = false;
 	this.tooltip.transition()		
-            .duration(200)		
+            .duration(this.fadeDuration)		
             .style("opacity", 0);
     }
 
     drawNodeOutlines(nodes, isHidden) {
 	//Color collapsed nodes
 	return nodes.append("circle")
-	    .attr("r", () => isHidden ? 1e-6 : this.radius)
+	    .attr("r", () => isHidden ? 0 : this.radius)
 	    .style("fill", d => this.colorCollapsed(d))
 	    .style("stroke", d => this.colorGender(d))
 	    .style("stroke-width", 3);
@@ -137,7 +158,7 @@ class GraphAbstract {
 		return "translate(" + x + "," + -y + ")";
 	    })
 	    .style("fill", this.alphaColor)
-	    .style("fill-opacity", () => isHidden ? 1e-6 : 1);
+	    .style("fill-opacity", () => isHidden ? 0 : 1);
     }
 
     updateSymbols(nodeUpdate, isHidden) {
@@ -147,7 +168,7 @@ class GraphAbstract {
 		let y = this.radius * Math.sin(Math.PI / 4);
 		return "translate(" + x + "," + -y + ")";
 	    })
-	    .style("fill-opacity", () => isHidden ? 1e-6 : 1);
+	    .style("fill-opacity", () => isHidden ? 0 : 1);
     }
 
     //TODO: Stub function
@@ -158,10 +179,11 @@ class GraphAbstract {
 //	    .attr(d => d.x - (boundedLength / 2))
 //	    .attr(d => d.y - (boundedLength / 2))
 //	    .attr("width", boundedLength)
-//	    .attr("height", boundedLength)
+	//	    .attr("height", boundedLength)
+	    .attr("class", "text")
 	    .attr("dy", ".5em") //Vertically centered
 	    .text(d => d.data.name)
-	    .style("fill-opacity", () => isHidden ? 1e-6 : 1)
+	    .style("fill-opacity", () => isHidden ? 0 : 1)
 	    .style("font-weight", d => d.data.isFocus ? "bold" : "normal");
     }
 
@@ -175,7 +197,9 @@ class GraphAbstract {
 	    d.children = d._children;
 	    d._children = null;
 	}
-	
+
+	console.log(d.y);
+	if (isNaN(d.y)) d.y0 = d.y = 0; 
 	this.updateTree(d);
     }
 

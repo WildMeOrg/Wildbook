@@ -84,92 +84,22 @@ class SocialGraph extends GraphAbstract {
 	}
 
 	if (json.length >= 1) {
-	    this.svg = d3.select("#socialDiagram").append("svg")
-		.attr("width", this.width)
-		.attr("height", this.height)
-		.call(this.zoom.on("zoom", () => {
-		    this.svg.attr("transform", d3.event.transform)
-		}))
-		.append("g");
-
+	    this.appendSvg("#socialDiagram");
+	    
 	    //Calculate node radius
 	    this.calcNodeSize(this.nodes);
 	    
-	    let sim = d3.forceSimulation()
-		.force("link", d3.forceLink().id(d => d.id))
-		.force("charge", d3.forceManyBody())
-		.force("collision", d3.forceCollide().radius(this.radius * 2)) 
-		.force("center", d3.forceCenter(this.width/2, this.height/2));
+	    let forces = this.getForces();
+	    let [linkRef, nodeRef] = this.createGraph();
 	    
-	    let linkRef = this.svg
-		//.append("g")
-		//
-		.selectAll("line")
-		.data(this.links)
-		.enter().append("line")
-		.attr("stroke", d => {
-		    console.log(d);
-		    return (d.type === "familial") ? this.famLinkColor : this.defLinkColor;
-		})
-		.attr("stroke-width", 2);
-	    
-	    let nodeRef = this.svg
-		//.append("g")
-		//
-		.selectAll("g")
-		.data(this.nodes)
-		.enter().append("g")
-		.attr("class", "node")
-	    	.on("mouseover", d => this.handleMouseOver(d))					
-		.on("mouseout", d => this.handleMouseOut(d));
-
 	    let circles = this.drawNodeOutlines(nodeRef, false);
 	    this.drawNodeSymbols(nodeRef, false);
 	    this.addNodeText(nodeRef, false);
 
-	    //circles.attr("fill", d => this.color(d.group))
-	    circles.call(d3.drag()
-			 .on("start", d => this.dragStarted(d, sim))
-			 .on("drag", d => this.dragged(d, sim))
-			 .on("end", d => this.dragEnded(d, sim)));
-
+	    this.enableDrag(circles, forces);
 	    this.addTooltip("#socialDiagram");
 
-	    sim.nodes(this.nodes)
-		.on("tick", () => this.ticked(linkRef, nodeRef));
-
-	    sim.force("link")
-		.links(this.links);
+	    this.applyForces(forces, linkRef, nodeRef);
 	}
-    }
-
-    color(group) {
-	return d3.scaleOrdinal(d3.schemeCategory20)(group);
-    }
-
-    ticked(linkRef, nodeRef) {
-	linkRef.attr("x1", d => d.source.x)
-	    .attr("y1", d => d.source.y)
-	    .attr("x2", d => d.target.x)
-	    .attr("y2", d => d.target.y);
-
-	nodeRef.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
-    }
-
-    dragStarted(d, sim) {
-	if (!d3.event.active) sim.alphaTarget(0.3).restart();
-	d.fx = d3.event.x;
-	d.fy = d3.event.y;
-    }
-
-    dragged(d, sim) {
-	d.fx = d3.event.x;
-	d.fy = d3.event.y;
-    }
-
-    dragEnded(d, sim) {
-	if (!d3.event.active) sim.alphaTarget(0);
-	d.fx = null;
-	d.fy = null;
     }
 }
