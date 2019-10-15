@@ -31,6 +31,7 @@ public class SharkGridThreadExecutorService {
     try {
       if (threadPool == null) {
         GridManager gm = GridManagerFactory.getGridManager();
+        System.out.println("XXXXX!!!!!!: SharkGridThreadGM is: "+gm);
         //threadPool=new ThreadPoolExecutor(gm.getCreationDeletionThreadQueueSize(),gm.getCreationDeletionThreadQueueSize(),0,TimeUnit.SECONDS, (new ArrayBlockingQueue(100)));
         if(!gm.getCreationThread()) {
           threadPool = new SharkGridThreadPoolExecutor(gm.getCreationDeletionThreadQueueSize(), gm.getCreationDeletionThreadQueueSize());

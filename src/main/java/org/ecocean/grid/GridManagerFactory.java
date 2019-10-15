@@ -32,6 +32,7 @@ public class GridManagerFactory {
         gm = new GridManager();
 
       }
+      System.out.println("!!!!!GM is: "+gm);
       return gm;
     } catch (Exception jdo) {
       jdo.printStackTrace();
