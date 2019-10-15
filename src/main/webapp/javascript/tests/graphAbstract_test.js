@@ -115,6 +115,19 @@ QUnit.module('colorGender()', () => {
     });
 });
 
+let mockedNode;
+QUnit.module('addNodeText()', {'beforeEach': mockedNode = d3.select("body")}, () => {
+    QUnit.test('Add hidden text', t => {
+	let data = [{'data': {'name': 'a'}}];
+	let mockedDataNode = mockedNode.data(data).enter();
+	let isHidden = true;
+	ga.addNodeText(mockedDataNode, isHidden);
+	t.ok($('body.text'));
+	console.log($('body.text'));
+	t.ok($('body.text').css('fill-opacity') === 0); 
+    });
+});
+
 let mockedClick;
 QUnit.module('click()', {
     'before': () => mockedClick = ga.click.bind({'updateTree': d => true})

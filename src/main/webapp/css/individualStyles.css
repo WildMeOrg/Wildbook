@@ -244,6 +244,7 @@ li.active{
 #familyDiagram svg, #socialDiagram svg {
     border: 1px solid #aaa;
 }
+
 .individual rect {
   fill: #fff;
   stroke: steelblue;

@@ -304,7 +304,7 @@ input.nameKey, input.nameValue {
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
-<script src="javascript/bubbleDiagram/encounter-calls.js"></script>
+//<script src="javascript/bubbleDiagram/encounter-calls.js"></script>
 <script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
 <script src="javascript/relationshipDiagrams/socialGraph.js"></script>
@@ -1538,20 +1538,10 @@ if (sharky.getNames() != null) {
         <a name="cooccurrence"></a>
         <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
 
-
-        <script type="text/javascript">
-        // <% String individualID = sharky.getIndividualID();%>
-        $(document).ready(function() {
-
-          getData("<%=individualID%>");
-        });
-        </script>
-
         <%
           List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky);
 
         if(otherIndies.size()>0){
-
         //ok, let's iterate the social relationships
         %>
         <div class="cooccurrences">
@@ -1568,13 +1558,16 @@ if (sharky.getNames() != null) {
           </div>
 
           <div id="cooccurrenceDiagram">
-              <div class="bubbleChart">
-                <div id="buttons" class="btn-group btn-group-sm" role="group">
-                  <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-                  <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
-                  <button type="button" class="btn btn-default" id="reset">Reset</button>
-                </div>
+	    <div id="bubbleChart">
+              <script type="text/javascript">
+                setupOccurrenceGraph();
+              </script>
+              <div id="buttons" class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
+                <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+                <button type="button" class="btn btn-default" id="reset">Reset</button>
               </div>
+            </div>
           </div>
 
           <div id="cooccurrenceTable" class="table-responsive mygrid-wrapper-div">
