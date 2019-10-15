@@ -15,6 +15,8 @@ import org.ecocean.*;
 import org.ecocean.queue.*;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.IAPluginManager;
+import org.ecocean.grid.GridManager;
+import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.grid.MatchGraphCreationThread;
 //import org.ecocean.grid.ScanTaskCleanupThread;
 import org.ecocean.grid.SharkGridThreadExecutorService;
@@ -45,9 +47,13 @@ public class StartupWildbook implements ServletContextListener {
   public static void initializeWildbook(HttpServletRequest request, Shepherd myShepherd) {
 
 
+
+    
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
+    
+    
 
 
   }
@@ -119,6 +125,9 @@ public class StartupWildbook implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";  //TODO ??? how????
+        
+        GridManager gm = GridManagerFactory.getGridManager();
+        System.out.println("XXXXX!!!!!!: StartupWildbookGM is: "+gm);
         
         createMatchGraph();
         
