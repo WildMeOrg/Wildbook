@@ -1,3 +1,3 @@
 #!/bin/bash
 
-/home/julian/Wildbook/mavenBuild.sh && /home/julian/Wildbook/copyBuild.sh
+~/Wildbook/mavenBuild.sh && ~/Wildbook/copyBuild.sh
