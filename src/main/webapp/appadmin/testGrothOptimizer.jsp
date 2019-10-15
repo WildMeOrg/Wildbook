@@ -47,9 +47,9 @@ int numFixes=0;
 
 		gpo = new GrothParameterOptimizer();
                 
-                gpo.setMaxIter(10000);
+                gpo.setMaxIter(100);
 
-                gpo.setMaxEval(10000);
+                gpo.setMaxEval(100);
                 //gpo.setInitialGuess(new double[] {0.1, 50.0, 0.9999, 10.0, 0.99});
                 //double[] upperBounds = new double[] {0.15, 50.0, 0.9999, 30.0, 0.999};
                 //double[] lowerBounds = new double[] {0.0005, 5.0, 0.85, 5.0, 0.9};
@@ -63,11 +63,13 @@ int numFixes=0;
 
                 gpo.setUpperBounds(new double[] {0.15, 50.0, 0.9999, 30.0, 0.999});
                 gpo.setLowerBounds(new double[] {0.0005, 5.0, 0.85, 5.0, 0.9});
-
+                
                 gpo.setInitialGuess(new double[] {0.1, 50.0, 0.9999, 10.0, 0.99});
                 gpo.setBOBYQInterpolationPoints(14);
-                gpo.getGrothAnalysis().setNumComparisonsEach(150);
+                gpo.getGrothAnalysis().setNumComparisonsEach(100);
                 gpo.getGrothAnalysis().setMaxSpots(18);
+                gpo.getGrothAnalysis().useMatchedRanking(true);
+                gpo.getGrothAnalysis.setMatchedRankEvalsEach(10);
                 //gpo.getGrothAnalysis().useWeightsForTargetScore(true, 100, 0.1);
 
                 System.out.println("Trying to optimize parameters...");
@@ -75,14 +77,10 @@ int numFixes=0;
                 //is a double[] 
                 result = gpo.doOptimize();
 
-                gpo.writeResultsToFile(500);
+                //gpo.writeResultsToFile(500);
                         
 
                 System.out.println("Done optimizing????");
-
-                //[0.027136958452863274, 49.62808119472249, 0.9997387949817444, 11.56565714193762, 0.9741438603772029] from defaults
-                //======> matchScores-matchScores: 4263.196558171307
-                //======> matchScores/matchScores: 194.69580054560407
 
 	
 	} catch (Exception e) {

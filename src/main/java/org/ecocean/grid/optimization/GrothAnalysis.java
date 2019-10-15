@@ -30,6 +30,8 @@ public class GrothAnalysis implements MultivariateFunction {
   private int targetScore = 100;
   private double weightAmount = 0.1;
   private boolean useWeights = false;
+  private int matchedRankEvalsEach = 10;
+
 
   private double[] parameterScaling = new double[] {1.0, 1.0, 1.0, 1.0, 1.0};
   private boolean scalingSet = false; 
@@ -37,6 +39,8 @@ public class GrothAnalysis implements MultivariateFunction {
   // We will just init these once during our first comparison
   private static GridManager gm = null;
   private static ConcurrentHashMap<String,EncounterLite> chm = null;
+
+  private boolean useMatchedRanking = false;
 
   public ArrayList<Double> getMatchScores() {
     return matchScores;
@@ -55,6 +59,10 @@ public class GrothAnalysis implements MultivariateFunction {
     nonmatches=new ArrayList<MatchObject>();
   }
   
+  public void useMatchedRanking(boolean bool) {
+    this.useMatchedRanking = bool;
+  }
+
   public void setNumComparisonsEach(int numComparisons ) {
     this.numComparisons = numComparisons;
   }
@@ -79,6 +87,10 @@ public class GrothAnalysis implements MultivariateFunction {
     this.scalingSet = set; 
   }
 
+  public void setMatchedRankEvalsEach(int evals) {
+    this.matchedRankEvalsEach = evals;
+  }
+
   /*
   * 
   * 
@@ -100,7 +112,17 @@ public class GrothAnalysis implements MultivariateFunction {
     System.out.println("DE-SCALED INPUT FRO GRID ==> Epsilon: "+scaledPoint[0]+"  R: "+scaledPoint[1]+"  sizeLim: "+scaledPoint[2]+"  maxTriangleRotation: "+scaledPoint[3]+"  C: "+scaledPoint[4]);
 
     try {
-      val = getScoreDiffMatchesMinusNonmatches(numComparisons, scaledPoint[0], scaledPoint[1], scaledPoint[2], scaledPoint[3], scaledPoint[4], defaultSide, maxNumSpots, useWeights, targetScore, weightAmount );
+      if (!useMatchedRanking) {
+        val = getScoreDiffMatchesMinusNonmatches(numComparisons, scaledPoint[0], scaledPoint[1], scaledPoint[2], scaledPoint[3], scaledPoint[4], defaultSide, maxNumSpots, useWeights, targetScore, weightAmount );
+      } else {
+        // num match comparison is how many indys we compare, numEach is the number of indys we compare against, affecting total potential score
+        // numComparisons * numComparisonsEach = num evals
+        Integer rawVal = getMatchedRankSum(numComparisons, matchedRankEvalsEach, point[0], point[1], point[2], point[3],
+                                            point[4], defaultSide, maxNumSpots, useWeights, targetScore, weightAmount, 2);
+
+        val = new Double(rawVal);
+      }
+
       //valArr[0] = val;
     } catch (Exception e) {
       e.printStackTrace();
@@ -108,6 +130,11 @@ public class GrothAnalysis implements MultivariateFunction {
     System.out.println("----> Current matches-nonmatches score: "+val);
     return val;
   }
+
+
+  //public static Integer getMatchedRankSum(int numMatchedComparisons, int numComparisonsEach, double epsilon, double R, double Sizelim, double maxTriangleRotation,
+  //double C, String side, int maxNumSpots, boolean useWeights, int targetScore, double weightAmount, Integer numProcessorsToUse) throws Exception {
+
 
   public double valueForCSV(double[] point, int numComparisons) {
     System.out.println("VALUE: SCALED INPUT ==> Epsilon: "+point[0]+"  R: "+point[1]+"  sizeLim: "+point[2]+"  maxTriangleRotation: "+point[3]+"  C: "+point[4]);
