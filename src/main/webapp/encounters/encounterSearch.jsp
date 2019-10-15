@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
-<%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.Iterator, java.util.Locale" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
@@ -504,34 +504,51 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 </td></tr><tr><td>
   
-  <select name="country" id="country" multiple="multiple" size="5">
-  	<option value="None" selected="selected"></option>
+
+
   <%
-  			       boolean hasMoreCountries=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMoreCountries){
-  			       	  String currentCountry = "country"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMoreCountries=false;
-  			          }
-  			          
-			       }
-			       if(stageNum==0){%>
-			    	   <em><%=encprops.getProperty("noCountries")%></em>
-			       <% 
-			       }
-			       %>
+
+  String defaultCountry = CommonConfiguration.getProperty("defaultCountry", context);
+  if (defaultCountry!=null) defaultCountry = defaultCountry.trim();
+
+
+  %>
+            <div class="form-group required">
+
+
+        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+          <select name="country" id="country" class="form-control">
+
+              <%
+              if (defaultCountry==null||"".equals(defaultCountry)) {
+              %>
+                  <option value="" selected="selected"></option>
+              <%
+              } else {
+                %>
+                  <option value="<%=defaultCountry%>" selected="selected"><%=defaultCountry%></option>
+                <%
+              }
+
+              String[] locales = Locale.getISOCountries();
+              for (String countryCode : locales) {
+                  Locale obj = new Locale("", countryCode);
+                  String currentCountry = obj.getDisplayCountry();
+                  boolean isDefault = currentCountry.equals(defaultCountry.trim());
+                  if (!isDefault) {
+                  %>
+                    <option value="<%=currentCountry %>"><%=currentCountry%></option>
+                  <%
+                  } 
+              }
+                                %>
+                  </select>
+        </div>
+      </div>
+
+
 			       
 
-  </select>
   </td></tr></table>
 <%
 }
