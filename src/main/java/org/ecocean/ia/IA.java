@@ -220,6 +220,23 @@ System.out.println(i + " -> " + ma);
                 if (ann == null) continue;
                 anns.add(ann);
             }
+
+            // okay, if we are sending another ID job from the hburger menu, the media asset needs to be added to your top level 'root' task, 
+            // or else you will link to the original root task
+            List<MediaAsset> masForNewRoot = new ArrayList<>(); 
+            for (Annotation ann : anns) {
+                MediaAsset ma = ann.getMediaAsset();
+                if (ma!=null && !masForNewRoot.contains(ma)) {
+                    masForNewRoot.add(ma);
+                }
+            }
+            // i cant think of a scenario where we would get here and accidently double-add mas... but jic
+            for (MediaAsset ma : masForNewRoot) {
+                if (!topTask.getObjectMediaAssets().contains(ma)) {
+                    topTask.addObject(ma);       
+                }
+            }
+
             Task atask = intakeAnnotations(myShepherd, anns, topTask);
             System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
             topTask.addChild(atask);
