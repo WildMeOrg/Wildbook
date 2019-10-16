@@ -68,8 +68,13 @@ Shepherd myShepherd = new Shepherd("context0");
 myShepherd.beginDBTransaction();
 JSONObject key = SystemValue.getJSONObject(myShepherd, "trialKey");
 
+int idStart = 0;
+try {
+    idStart = Integer.parseInt(request.getParameter("idStart"));
+} catch (NumberFormatException ex) {}
 
-String jdoql = "SELECT FROM org.ecocean.CatTest";
+
+String jdoql = "SELECT FROM org.ecocean.CatTest WHERE id >= " + idStart;
 Query q = myShepherd.getPM().newQuery(jdoql);
 q.setOrdering("timestamp");
 Collection all = (Collection) (q.execute());
