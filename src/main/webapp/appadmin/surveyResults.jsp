@@ -86,7 +86,6 @@ for (Object o : all) {
     if ((filter != null) && !filter.equals(mode)) continue;
     out.println("<tr>");
 
-System.out.println(surv);
     for (String key : header) {
         String value = surv.optString(key, "-");
         if (key.equals("ethnicity") || key.equals("have_cats")) {
