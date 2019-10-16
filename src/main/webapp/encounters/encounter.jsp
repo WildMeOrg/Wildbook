@@ -6498,6 +6498,7 @@ console.log('SENDING ===> %o', data);
 console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
         wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
     });
+    iaMatchFilterAnnotationIds = [];  //clear it out in case user sends again from this page
     //TODO uncheck everything????
     $('.ia-match-filter-dialog').hide();
 }
