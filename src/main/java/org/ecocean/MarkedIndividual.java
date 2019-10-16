@@ -1877,7 +1877,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
     jobj.put("nickname", this.nickName);
-    jobj.put("numberEncounters", this.nickName);
+    jobj.put("numberEncounters", this.numberEncounters);
     jobj.put("numberLocations", this.numberLocations);
     jobj.put("maxYearsBetweenResightings", this.maxYearsBetweenResightings);
 
