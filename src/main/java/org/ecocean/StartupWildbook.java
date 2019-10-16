@@ -119,10 +119,14 @@ public class StartupWildbook implements ServletContextListener {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";  //TODO ??? how????
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " + servletContextInfo(sContext));
+/*   WARNING!  this bad hackery to try to work around "double deployment" ... yuck!
+     see:  https://octopus.com/blog/defining-tomcat-context-paths
+
         if (skipInit(sce, null)) {
             System.out.println("- SKIPPED initialization due to skipInit()");
             return;
         }
+*/
 
         //initialize the plugin (instances)
         IAPluginManager.initPlugins(context);
