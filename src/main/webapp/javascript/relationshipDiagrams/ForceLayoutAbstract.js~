@@ -1,4 +1,0 @@
-class ForceLayoutAbstract extends GraphAbstract {
-      constructor() {
-      }
-}

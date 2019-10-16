@@ -1,6 +1,6 @@
 class ForceLayoutAbstract extends GraphAbstract {
-    constructor(individualId) {
-	super(individualId);
+    constructor(individualId, focusedScale=1) {
+	super(individualId, focusedScale);
     }
 
     getForces() {
@@ -22,9 +22,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .selectAll("line")
 	    .data(this.links)
 	    .enter().append("line")
-	    .attr("stroke", d => 
-		  (d.type === "familial") ? this.famLinkColor : this.defLinkColor;
-		 )
+	    .attr("stroke", d => (d.type === "familial") ? this.famLinkColor : this.defLinkColor)
 	    .attr("stroke-width", 2);
     }
 
@@ -34,8 +32,8 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .data(this.nodes)
 	    .enter().append("g")
 	    .attr("class", "node")
-	    .on("mouseover", this.handleMouseOver)					
-	    .on("mouseout", this.handleMouseOut);
+	    .on("mouseover", d => this.handleMouseOver(d))					
+	    .on("mouseout", d => this.handleMouseOut(d));
     }
 
     enableDrag(circles, force) {
