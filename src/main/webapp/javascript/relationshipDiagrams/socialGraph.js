@@ -7,7 +7,7 @@ function setupSocialGraph(individualID) {
     sg.graphSocialData(false, [0,0]); //Dummied method
 }
 
-class SocialGraph extends GraphAbstract {
+class SocialGraph extends ForceLayoutAbstract {
     constructor(individualID) {
 	super(individualID);
 	
@@ -22,7 +22,7 @@ class SocialGraph extends GraphAbstract {
 		    "name": "Lion A",
 		    "gender": "female",
 		    "role": "alpha",
-		    "isFocus": true
+		    "isFocused": true
 		}
 	    },
 	    {
@@ -85,8 +85,7 @@ class SocialGraph extends GraphAbstract {
 
 	if (json.length >= 1) {
 	    this.appendSvg("#socialDiagram");
-	    
-	    //Calculate node radius
+	    this.addTooltip("#socialDiagram");	    
 	    this.calcNodeSize(this.nodes);
 	    
 	    let forces = this.getForces();
@@ -97,8 +96,6 @@ class SocialGraph extends GraphAbstract {
 	    this.addNodeText(nodeRef, false);
 
 	    this.enableDrag(circles, forces);
-	    this.addTooltip("#socialDiagram");
-
 	    this.applyForces(forces, linkRef, nodeRef);
 	}
     }

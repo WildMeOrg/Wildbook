@@ -1,5 +1,5 @@
 class GraphAbstract {
-    constructor(individualID) {
+    constructor(individualID, focusedScale=1) {
 	this.id = individualID;
 
 	//SVG Attributes
@@ -20,6 +20,11 @@ class GraphAbstract {
 	this.nodeMargin = 15;
 	this.nodeSeparation;
 	this.transitionDuration = 750;
+
+	this.strokeWidth = 3;
+	
+	this.fontSize = 12;
+	this.focusedScale = focusedScale;
 
 	//Node Style Attributes
 	this.maleColor = "steelblue";
@@ -45,7 +50,7 @@ class GraphAbstract {
 	    .wheelDelta(() => this.wheelDelta());
 
 	//Tooltip Attributes
-	this.tooltip;
+	//this.tooltip;
 	this.popup = false;
 	this.fadeDuration = 200;
     }
@@ -61,18 +66,16 @@ class GraphAbstract {
     }
 
     wheelDelta () {
-	console.log(d3.event);
 	return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1 ) / this.zoomFactor;
     }
 
     calcNodeSize(nodes) {
 	try {
-	    let defaultNodeLen = 10;
-	    let numNodes = nodes.length || defaultNodeLen; 
+	    let numNodes = nodes.length || 10; //Default node length is 10 
 	    this.radius = this.maxRadius * Math.pow(Math.E, -(numNodes / this.scalingFactor));
 
-	    let margins = this.radius;
-	    
+	    //TODO - Calculate margins?
+	    //let margins = this.radius;
 	}
 	catch(error) {
 	    console.error(error);
@@ -88,13 +91,12 @@ class GraphAbstract {
     addTooltip(selector) {
 	//Define the tooltip div
 	this.tooltip = d3.select(selector).append("div")
-	    .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
 	    .attr("class", "tooltip")				
 	    .style("opacity", 0);
-	return this.tooltip;
     }
 
     handleMouseOver(d) {
+	console.log("this", this);
 	if (!this.popup) {
 	    this.tooltip.transition()
 		.duration(this.fadeDuration)
@@ -120,10 +122,16 @@ class GraphAbstract {
     drawNodeOutlines(nodes, isHidden) {
 	//Color collapsed nodes
 	return nodes.append("circle")
-	    .attr("r", () => isHidden ? 0 : this.radius)
+	    .attr("r", d => this.radius * this.getSizeScalar(d, isHidden))
 	    .style("fill", d => this.colorCollapsed(d))
 	    .style("stroke", d => this.colorGender(d))
-	    .style("stroke-width", 3);
+	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d));
+    }
+
+    getSizeScalar(d, isHidden=false) {
+	if (isHidden) return 0;
+	else if (d.data.isFocused) return this.focusedScale;
+	else return 1;
     }
 
     //TODO: Move this outside the generic class - it doesn't make much sense
@@ -133,7 +141,7 @@ class GraphAbstract {
 
     colorGender(d) {
 	try {
-	    let gender = d.data.gender || "def";
+	    let gender = d.data.gender || "default";
 	    switch (gender.toUpperCase()) {
 	        case "FEMALE": return this.femaleColor;
 	        case "MALE": return this.maleColor;
@@ -150,12 +158,16 @@ class GraphAbstract {
 	    .attr("class", "symb")
 	    .attr("d", d => {
 		return d3.symbol().type(d3.symbolCircle)
-		    .size((d.data.role && d.data.role.toUpperCase() == "ALPHA") ? 125 : 0)()
+		    .size(() => {
+			if (d.data.role && d.data.role.toUpperCase() == "ALPHA")
+			    return 125 * this.getSizeScalar(d);
+			else return 0;
+		    })();
 	    })
 	    .attr("transform", d => {
-		let x = this.radius * Math.cos(Math.PI / 4);
-		let y = this.radius * Math.sin(Math.PI / 4);
-		return "translate(" + x + "," + -y + ")";
+		let radialPos = Math.cos(Math.PI / 4);
+		let pos = this.radius * this.getSizeScalar(d) * radialPos;
+		return "translate(" + pos + "," + -pos + ")";
 	    })
 	    .style("fill", this.alphaColor)
 	    .style("fill-opacity", () => isHidden ? 0 : 1);
@@ -164,9 +176,9 @@ class GraphAbstract {
     updateSymbols(nodeUpdate, isHidden) {
 	nodeUpdate.select("path.symb")
 	    .attr("transform", d => {
-		let x = this.radius * Math.cos(Math.PI / 4);
-		let y = this.radius * Math.sin(Math.PI / 4);
-		return "translate(" + x + "," + -y + ")";
+		let radialPos = Math.cos(Math.PI / 4);
+		let pos = this.radius * this.getSizeScalar(d) * radialPos;
+		return "translate(" + pos + "," + -pos + ")";
 	    })
 	    .style("fill-opacity", () => isHidden ? 0 : 1);
     }
@@ -183,8 +195,9 @@ class GraphAbstract {
 	    .attr("class", "text")
 	    .attr("dy", ".5em") //Vertically centered
 	    .text(d => d.data.name)
-	    .style("fill-opacity", () => isHidden ? 0 : 1)
-	    .style("font-weight", d => d.data.isFocus ? "bold" : "normal");
+	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d, isHidden)) + "px")
+//	    .style("fill-opacity", () => isHidden ? 0 : 1)
+	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
     }
 
     //Toggle children on click.
@@ -198,8 +211,7 @@ class GraphAbstract {
 	    d._children = null;
 	}
 
-	console.log(d.y);
-	if (isNaN(d.y)) d.y0 = d.y = 0; 
+	if (isNaN(d.y)) d.y0 = d.y = 0; //TODO - Remove?
 	this.updateTree(d);
     }
 

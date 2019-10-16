@@ -303,9 +303,9 @@ input.nameKey, input.nameValue {
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
-<script src="javascript/bubbleDiagram/bubble-chart.js"></script>
-//<script src="javascript/bubbleDiagram/encounter-calls.js"></script>
 <script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
+<script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
+<script src="javascript/bubbleDiagram/bubble-chart.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
 <script src="javascript/relationshipDiagrams/socialGraph.js"></script>
 
