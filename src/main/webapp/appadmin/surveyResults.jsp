@@ -53,6 +53,8 @@ Query q = myShepherd.getPM().newQuery(jdoql);
 q.setOrdering("version");
 Collection all = (Collection) (q.execute());
 
+String filter = request.getParameter("filter");
+
 List<String> header = new ArrayList<String>();
 header.add("username");
 header.add("mode");
@@ -76,11 +78,15 @@ out.println("</tr></thead><tbody>");
 for (Object o : all) {
     SystemValue sv = (SystemValue)o;
     JSONObject surv = sv.getValue().getJSONObject("value");
-    out.println("<tr>");
     User user = myShepherd.getUserByUUID(surv.optString("user_uuid", "_NO_"));
     surv.put("username", (user == null) ? "???" : user.getUsername());
-    surv.put("mode", (((user != null) && "U-W".equals(user.getAffiliation())) ? "uw" : "pub"));
+    String mode = "pub";
+    if ((user != null) && "U-W".equals(user.getAffiliation())) mode = "uw";
+    surv.put("mode", mode);
+    if ((filter != null) && !filter.equals(mode)) continue;
+    out.println("<tr>");
 
+System.out.println(surv);
     for (String key : header) {
         String value = surv.optString(key, "-");
         if (key.equals("ethnicity") || key.equals("have_cats")) {
