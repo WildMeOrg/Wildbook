@@ -23,7 +23,7 @@ String uid = request.getParameter("uid");
 User thisUser = AccessControl.getUser(request, myShepherd);
 
 %>
-<jsp:include page="header.jsp" flush="true"/>
+<jsp:include page="../header.jsp" flush="true"/>
 <style>
 .user-profile-image {
     max-width: 200px;
@@ -579,5 +579,5 @@ function saveDetails() {
 <div class="container maincontent">
 </div>
 
-<jsp:include page="footer.jsp" flush="true"/>
+<jsp:include page="../footer.jsp" flush="true"/>
 
