@@ -50,7 +50,6 @@ public class MatchGraphCreationThread implements Runnable, ISharkGridThread {
   public MatchGraphCreationThread(HttpServletRequest request) {
 
     gm = GridManagerFactory.getGridManager();
-    System.out.println("XXXXX!!!!!!: MatchGraphCreationThread is: "+gm);
     threadCreationObject = new Thread(this, ("MatchGraphCreationThread.class"));
     this.context=ServletUtilities.getContext(request);
 

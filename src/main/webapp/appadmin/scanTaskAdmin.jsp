@@ -13,7 +13,6 @@ String context=ServletUtilities.getContext(request);
 
 //summon thee a gridManager!
   GridManager gm = GridManagerFactory.getGridManager();
-  System.out.println("XXXXX!!!!!!: scanTaskAdmin GM is: "+gm);
   if (request.getParameter("numAllowedNodes") != null) {
     try {
       int newThrottle = (new Integer(request.getParameter("numAllowedNodes"))).intValue();
