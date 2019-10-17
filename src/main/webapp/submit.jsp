@@ -459,7 +459,7 @@ function showUploadBox() {
 <p>An encounter means all the photos of an individual seadragon from one dive. In other words, one fish, at one place, during one dive. Both left and right side photos of the same dragon should be included in one submission, as long as you are sure it’s the same fish. If in doubt, create a separate encounter.</p>
 <p>If you photographed more than one seadragon during a dive, you will want to upload the photos of each dragon as separate encounters. There is space to include additional comments for each encounter describing what that particular seadragon was doing or whether it had any special characteristics.
 </p>
-<p>If you’re looking at your photos and aren’t sure which seadragons are which, you can either upload all of your photos together or email us with a link to your shared photos and data. We will work to sort them out behind the scenes!”
+<p>If you’re looking at your photos and aren’t sure which seadragons are which, you can either upload all of your photos together or email us with a link to your shared photos and data. We will work to sort them out behind the scenes!
 </p>
 <h3><%=props.getProperty("submit_image")%></h3>
 <p><%=props.getProperty("submit_pleaseadd")%></p>
