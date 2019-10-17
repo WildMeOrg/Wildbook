@@ -14,8 +14,8 @@ import org.apache.commons.math3.analysis.MultivariateFunction;
 
 public class GrothAnalysis implements MultivariateFunction {
   
-  private static ArrayList<ScanWorkItem> matchedswis=new ArrayList<ScanWorkItem>();
-  private static ArrayList<ScanWorkItem> nonmatchedswis=new ArrayList<ScanWorkItem>();
+  private static ArrayList<ScanWorkItem> matchedComparisons=new ArrayList<ScanWorkItem>();
+  private static ArrayList<ScanWorkItem> unmatchedComparisons=new ArrayList<ScanWorkItem>();
   
   private static ArrayList<MatchObject> matches=new ArrayList<MatchObject>();
   private static ArrayList<MatchObject> nonmatches=new ArrayList<MatchObject>();
@@ -51,8 +51,8 @@ public class GrothAnalysis implements MultivariateFunction {
   }
 
   public static void flush() {
-    matchedswis=new ArrayList<ScanWorkItem>();
-    nonmatchedswis=new ArrayList<ScanWorkItem>();
+    matchedComparisons=new ArrayList<ScanWorkItem>();
+    unmatchedComparisons=new ArrayList<ScanWorkItem>();
     matchScores=new ArrayList<Double>();
     nonmatchScores=new ArrayList<Double>();
     matches=new ArrayList<MatchObject>();
@@ -182,7 +182,7 @@ public class GrothAnalysis implements MultivariateFunction {
     props2.setProperty("secondRun", secondRun);
     
     
-    if(matchedswis.size()==0 || nonmatchedswis.size()==0 ) {
+    if(matchedComparisons.size()==0 || unmatchedComparisons.size()==0 ) {
 
       //get GridManager, for speed, we're only going to use data in the GM
       initGridManagerHashMap();
@@ -282,10 +282,10 @@ public class GrothAnalysis implements MultivariateFunction {
              if(!allEncs.contains(el2)) {allEncs.add(el2);}
              
              ScanWorkItem swi = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
-             matchedswis.add(swi);
-             if (matchedswis.size()>=numComparisonsEach) break;
+             matchedComparisons.add(swi);
+             if (matchedComparisons.size()>=numComparisonsEach) break;
            }
-           if (matchedswis.size()>=numComparisonsEach) {
+           if (matchedComparisons.size()>=numComparisonsEach) {
             break;
            }
          }
@@ -302,11 +302,11 @@ public class GrothAnalysis implements MultivariateFunction {
            EncounterLite el2=allEncs.get(r);
            if(!el1.getEncounterNumber().equals(el2.getEncounterNumber())) {
              ScanWorkItem swi = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
-             nonmatchedswis.add(swi);
-             if (nonmatchedswis.size()>=numComparisonsEach) break;
+             unmatchedComparisons.add(swi);
+             if (unmatchedComparisons.size()>=numComparisonsEach) break;
            }
          }
-         if (matchedswis.size()>=numComparisonsEach) {
+         if (matchedComparisons.size()>=numComparisonsEach) {
           break;
          }
         }
@@ -316,15 +316,15 @@ public class GrothAnalysis implements MultivariateFunction {
 
     }
    
-   System.out.println("All right, I should have my full candidate set of matched="+matchedswis.size()+" and nonmatched="+nonmatchedswis.size()+" from side="+side);
+   System.out.println("All right, I should have my full candidate set of matched="+matchedComparisons.size()+" and nonmatched="+unmatchedComparisons.size()+" from side="+side);
    
-   if(numComparisonsEach>matchedswis.size()) {throw new Exception("numComparisonsEach is greater than available matches");}
-   if(numComparisonsEach>nonmatchedswis.size()) {throw new Exception("numComparisonsEach is greater than available nonmatches");}
+   if(numComparisonsEach>matchedComparisons.size()) {throw new Exception("numComparisonsEach is greater than available matches");}
+   if(numComparisonsEach>unmatchedComparisons.size()) {throw new Exception("numComparisonsEach is greater than available nonmatches");}
    
    
    //let's run the matches!
    for(int i=0;i<numComparisonsEach;i++) {
-     ScanWorkItem swi=matchedswis.get(i);
+     ScanWorkItem swi=matchedComparisons.get(i);
      swi.setProperties(props2);
      swi.run();
      MatchObject mo=swi.getResult();
@@ -341,7 +341,7 @@ public class GrothAnalysis implements MultivariateFunction {
    
    //let's run the nonmatches!
    for(int i=0;i<numComparisonsEach;i++) {
-     ScanWorkItem swi=nonmatchedswis.get(i);
+     ScanWorkItem swi=unmatchedComparisons.get(i);
      swi.setProperties(props2);
      swi.run();
      MatchObject mo=swi.getResult();
@@ -388,7 +388,14 @@ public class GrothAnalysis implements MultivariateFunction {
   public static Integer getMatchedRankSum(int numMatchedComparisons, int numComparisonsEach, double epsilon, double R, double Sizelim, double maxTriangleRotation,
       double C, String side, int maxNumSpots, boolean useWeights, int targetScore, double weightAmount, Integer numProcessorsToUse) throws Exception {
 
-      int totalMatchRank=0;
+      
+    //We'll return this value at the end of the method
+    //It's value should be in the range of numMatchedComparison (perfect rank 1 comparison for each match of numMatchedComparisons
+    //to perfect algorithm failure of numMatchedComparisons*numComparisonsEach (all true matches were ranked last)
+    int totalMatchRank=0;
+    
+    //this is a sanity check that should sum to numMatchedComparisons*numComparisonsEach at the end
+    int totalNumComparisonsRun=0;
       
       //check the number of processors and set up parallel execution queue
       Runtime rt = Runtime.getRuntime();
@@ -401,12 +408,12 @@ public class GrothAnalysis implements MultivariateFunction {
       
       
       //clear our match object results lists
-      matches=new ArrayList<MatchObject>();
-      nonmatches=new ArrayList<MatchObject>();
+      //matches=new ArrayList<MatchObject>();
+      //nonmatches=new ArrayList<MatchObject>();
       
       //clear our resulting scores for new values
-      matchScores=new ArrayList<Double>();
-      nonmatchScores=new ArrayList<Double>();
+      //matchScores=new ArrayList<Double>();
+      //nonmatchScores=new ArrayList<Double>();
       
       java.util.Properties props2 = new java.util.Properties();
       String secondRun = "true";
@@ -426,136 +433,148 @@ public class GrothAnalysis implements MultivariateFunction {
       props2.setProperty("C", Double.toString(C));
       props2.setProperty("secondRun", secondRun);
       
-      ArrayList<EncounterLite> allEncs=new ArrayList<EncounterLite>();
       
-      if(matchedswis.size()==0 ) {
+      //this will be an ArrayList of many EncounterLites that we can use to build false positive sets of size numComparisonsEach
+      ArrayList<EncounterLite> allEncounterLites=new ArrayList<EncounterLite>();
       
-      //get GridManager, for speed, we're only going to use data in the GM
-      initGridManagerHashMap();
-      
-      System.out.println("Finished init grid hashmap...");
-      
-      Enumeration<String> keys=chm.keys();
-      
-      HashMap<String,ArrayList<EncounterLite>> indyMap=new HashMap<String,ArrayList<EncounterLite>>();
-      
-      while (keys.hasMoreElements()) {
-      
-        String kv=keys.nextElement();
-        EncounterLite el=chm.get(kv);
+      if(matchedComparisons.size()==0 ) {
         
-        String individualID=el.getBelongsToMarkedIndividual();
-        if((individualID!=null) && (!individualID.equals(""))) {
-          if(indyMap.get(individualID)!=null) {
-            ArrayList<EncounterLite> thisAL=indyMap.get(individualID);
+        //inside here, we're building an ArrayList of ScanWorkItems that represents true matches of known MarkedIndividuals
+        
+      
+        //get GridManager, for speed, we're only going to use data in the GM
+        initGridManagerHashMap();
+        
+        System.out.println("Finished init grid hashmap...");
+        
+        Enumeration<String> keys=chm.keys();
+        
+        HashMap<String,ArrayList<EncounterLite>> indyMap=new HashMap<String,ArrayList<EncounterLite>>();
+        
+        while (keys.hasMoreElements()) {
+        
+          String kv=keys.nextElement();
+          EncounterLite el=chm.get(kv);
+          
+          String individualID=el.getBelongsToMarkedIndividual();
+          if((individualID!=null) && (!individualID.equals(""))) {
+            if(indyMap.get(individualID)!=null) {
+              ArrayList<EncounterLite> thisAL=indyMap.get(individualID);
+              thisAL.add(el);
+              indyMap.put(individualID,thisAL);
+          }
+          else {
+            ArrayList<EncounterLite> thisAL=new ArrayList<EncounterLite>();
             thisAL.add(el);
             indyMap.put(individualID,thisAL);
-        }
-        else {
-          ArrayList<EncounterLite> thisAL=new ArrayList<EncounterLite>();
-          thisAL.add(el);
-          indyMap.put(individualID,thisAL);
-        }
-        
-        }
-      
-      }  //end while
-      
-      
-      //filter out EncounterLite objects without the correct side
-      Iterator<String> keys2=indyMap.keySet().iterator();
-      while(keys2.hasNext()) {
-        String myKey=keys2.next();
-        ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
-        
-        for(int i=0;i<thisAL.size();i++) {
-          EncounterLite el=thisAL.get(i);
+          }
           
-          if(side.equals("left")) {
-            if(el.getSpots()==null || el.getSpots().size()==0 || el.getSpots().size()>maxNumSpots) {
-              thisAL.remove(el);
-              i--;
+          }
+        
+        }  //end while
+        
+        
+        //filter out EncounterLite objects without the correct side
+        Iterator<String> keys2=indyMap.keySet().iterator();
+        while(keys2.hasNext()) {
+          String myKey=keys2.next();
+          ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
+          
+          for(int i=0;i<thisAL.size();i++) {
+            EncounterLite el=thisAL.get(i);
+            
+            if(side.equals("left")) {
+              if(el.getSpots()==null || el.getSpots().size()==0 || el.getSpots().size()>maxNumSpots) {
+                thisAL.remove(el);
+                i--;
+              }
+            }
+            else if(side.equals("right")) {
+              if(el.getRightSpots()==null || el.getRightSpots().size()==0 || el.getRightSpots().size()>maxNumSpots) {
+                thisAL.remove(el);
+                i--;
+              }
             }
           }
-          else if(side.equals("right")) {
-            if(el.getRightSpots()==null || el.getRightSpots().size()==0 || el.getRightSpots().size()>maxNumSpots) {
-              thisAL.remove(el);
-              i--;
+        } //end while
+        
+        
+        //filter out any individuals with only one EncounterLite 
+        Iterator<String> keys3=indyMap.keySet().iterator();
+        ArrayList<String> keys2remove=new ArrayList<String>();
+        while(keys3.hasNext()) {
+          String myKey=keys3.next();
+          ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
+          if(thisAL.size()<=1) {keys2remove.add(myKey);}
+        }
+        
+        //remove the unneeded keys for only single EncounterLite individuals
+        for(int f=0;f<keys2remove.size();f++) {
+          indyMap.remove(keys2remove.get(f));
+        }
+        
+        
+        System.out.println("I now have this many MarkedIndividuals ("+indyMap.keySet().size()+") with >=2 patterns from side: "+side);
+        
+        
+        
+        
+        
+        //OK, indyMap now has matched individuals from the chosen side, let's create our comparison set
+        //of matchedComparisons until it is of size numMatchedComparisons
+        keys2=indyMap.keySet().iterator();
+        
+  
+        while(keys2.hasNext()) {
+          String myKey=keys2.next();
+          ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
+          
+          int numThisAL=thisAL.size();
+          for(int z=0;z<(numThisAL-1);z++) {
+            for(int z2=z+1;z2<numThisAL;z2++) {
+              
+              EncounterLite el1=thisAL.get(z);
+              EncounterLite el2=thisAL.get(z2);
+              
+              //populate the all list while at it
+              if(!allEncounterLites.contains(el1)) {allEncounterLites.add(el1);}
+              if(!allEncounterLites.contains(el2)) {allEncounterLites.add(el2);}
+              
+              ScanWorkItem swi = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
+              
+              if (matchedComparisons.size()<numMatchedComparisons) {matchedComparisons.add(swi);}
             }
+  
           }
         }
-      } //end while
-      
-      
-      //filter out any individuals with only one EncounterLite 
-      Iterator<String> keys3=indyMap.keySet().iterator();
-      ArrayList<String> keys2remove=new ArrayList<String>();
-      while(keys3.hasNext()) {
-        String myKey=keys3.next();
-        ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
-        if(thisAL.size()<=1) {keys2remove.add(myKey);}
-      }
-      
-      //remove the unneeded keys for only single EncounterLite individuals
-      for(int f=0;f<keys2remove.size();f++) {
-        indyMap.remove(keys2remove.get(f));
-      }
-      
-      
-      System.out.println("I now have this many MarkedIndividuals ("+indyMap.keySet().size()+") with >=2 patterns from side: "+side);
-      
-      
-      
-      
-      
-      //OK, indyMap now has matched individuals from the chosen side, let's create our comparison set
-      
-      keys2=indyMap.keySet().iterator();
-      
-
-      while(keys2.hasNext()) {
-        String myKey=keys2.next();
-        ArrayList<EncounterLite> thisAL=indyMap.get(myKey);
+        System.out.println("........................... finished building my matchedComparisons list... = "+matchedComparisons.size()+", which should equal: "+numMatchedComparisons);
         
-        int numThisAL=thisAL.size();
-        for(int z=0;z<(numThisAL-1);z++) {
-          for(int z2=z+1;z2<numThisAL;z2++) {
-            
-            EncounterLite el1=thisAL.get(z);
-            EncounterLite el2=thisAL.get(z2);
-            
-            //populate the all list while at it
-            if(!allEncs.contains(el1)) {allEncs.add(el1);}
-            if(!allEncs.contains(el2)) {allEncs.add(el2);}
-            
-            ScanWorkItem swi = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
-            
-            if (matchedswis.size()<numMatchedComparisons) {matchedswis.add(swi);}
-          }
-
-        }
-      }
-      System.out.println("........................... finished matchedswis... = "+matchedswis.size());
-      
-      System.out.println("........................... finished matched map... All encs = "+allEncs.size());
-      
-      }
-      
-      //now let's iterate through our known matches and create ScanTasks to execute with known mismatches too
-      for(ScanWorkItem swi:matchedswis) {
+        System.out.println("........................... finished matched map... All encs = "+allEncounterLites.size());
         
-        ArrayList<ScanWorkItem> al_swi=new ArrayList<ScanWorkItem>();
-        //al_swi.add(swi);
+      }
+      
+      //now let's iterate through our known matches that we want to sum the ranks for
+      //for each one we are going to:
+      //     1. run the ScanWorkItem of the matched result itself
+      //     2. build a set of mismatches to compare and rank it against, using one of the same EncounterLites of the matched ScanWorkItem.
+      for(ScanWorkItem swi:matchedComparisons) {
+        
+        ArrayList<ScanWorkItem> falsePositivesToCompareAgainst=new ArrayList<ScanWorkItem>();
+        
+        //first, run the match to ensure it gets its MatchObject internally embedded
+        //this MatchObject will have the score of the matched, which is our key to determining the rank of the match
         swi.run();
         
-        //here's our reference EncounterLite to match against known non-matches
+        //here's our reference EncounterLite from the matched pair to match against known non-matches
+        //essentially we're prentendin that we're trying to find this pattern in every comparison
+        //and then get the rank when it's compared against the true match, which was already scored above
         EncounterLite el1=swi.getNewEncounterLite();
 
                 
-        for(EncounterLite el2:allEncs) {
-            if(al_swi.size()<=(numComparisonsEach) && !el2.getBelongsToMarkedIndividual().equals(el1.getBelongsToMarkedIndividual())) {
+        for(EncounterLite el2:allEncounterLites) {
+            if(falsePositivesToCompareAgainst.size()<(numComparisonsEach-1) && !el2.getBelongsToMarkedIndividual().equals(el1.getBelongsToMarkedIndividual())) {
               ScanWorkItem swi2 = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
-              al_swi.add(swi2);
+              falsePositivesToCompareAgainst.add(swi2);
             }
         }
         
@@ -568,15 +587,15 @@ public class GrothAnalysis implements MultivariateFunction {
         
         
         ArrayList<Double> results=new ArrayList<Double>();
-        int vectorSize = al_swi.size();
+        int vectorSize = falsePositivesToCompareAgainst.size();
+        System.out.println("Sanity check: "+falsePositivesToCompareAgainst.size()+" should be = "+(numComparisonsEach-1));
         Vector<ScanWorkItemResult> workItemResults = new Vector<ScanWorkItemResult>();
-        for(ScanWorkItem matchme:al_swi) {
+        for(ScanWorkItem matchme:falsePositivesToCompareAgainst) {
           
 
           matchme.setProperties(props2);
           
-          
-          //matchme.run();
+
           try{
             threadHandler.submit(new AppletWorkItemThread(matchme, workItemResults));
           }
@@ -589,11 +608,14 @@ public class GrothAnalysis implements MultivariateFunction {
         
         //block until all threads are done
         long vSize = vectorSize;
+        //hang out until all threads are done
         while (threadHandler.getCompletedTaskCount() < vSize) {}
         
         
         threadHandler.shutdown();
         
+        
+        //let's build a list of all the scores from the matches
         for(ScanWorkItemResult matchme:workItemResults) {
           MatchObject mo=matchme.getResult();
           Double score=mo.getMatchValue() * mo.getAdjustedMatchValue();
@@ -603,23 +625,24 @@ public class GrothAnalysis implements MultivariateFunction {
           }
           //System.out.println("Putting a score of "+score+" for "+matchme.+"("+matchme.getNewEncounterLite().getBelongsToMarkedIndividual()+") against "+matchme.getExistingEncNumber()+"("+matchme.getExistingEncounterLite().getBelongsToMarkedIndividual());
           results.add(score);
-          
-          
+           
         }
         
-        //add the swi's score
+        //add the true positive's score
         Double swiscore=swi.getResult().getMatchValue() * swi.getResult().getAdjustedMatchValue();
         results.add(swiscore);
+        
+        totalNumComparisonsRun+=results.size();
         
         //sort the results
         Collections.sort(results,Collections.reverseOrder());
         
         
-        System.out.println("swiscore of "+swiscore+" should be reflected in results: "+results.toString());
+        System.out.println("======>======>true match score of "+swiscore+" should be reflected in results: "+results.toString());
         
         totalMatchRank+=results.indexOf(swiscore)+1;
         System.out.println("======>======>Adding rank of: "+(results.indexOf(swiscore)+1));
-
+  
         
 
         
@@ -633,9 +656,14 @@ public class GrothAnalysis implements MultivariateFunction {
       //System.out.println("======> matchScores-matchScores: "+(totalMatchScores-totalNonmatchScores));
       //System.out.println("======> matchScores/matchScores: "+(totalMatchScores/totalNonmatchScores));
       
-      System.out.println("======> total match rank for numComparisons "+numComparisonsEach+": "+totalMatchRank);
-      System.out.println("======> avg match rank for numComparisons "+numComparisonsEach+": "+totalMatchRank+"/"+matchedswis.size());
+      System.out.println("");
+      System.out.println("");
+      System.out.println("======> RUN COMPLETE!");    
+      System.out.println("======>Sanity check of intended num comparisons (numbers should be equals): "+totalNumComparisonsRun+" = "+(numComparisonsEach*numMatchedComparisons));
+      System.out.println("=>Returning total match rank for true positives = "+numMatchedComparisons+" in a field of "+numComparisonsEach+" total possible matches: "+totalMatchRank+ "(best="+numMatchedComparisons+",worst="+(numComparisonsEach*numMatchedComparisons)+")");
       
+      System.out.println("");
+      System.out.println("");
       return totalMatchRank;
       }
   

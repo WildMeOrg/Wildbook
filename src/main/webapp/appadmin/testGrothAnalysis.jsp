@@ -60,7 +60,7 @@ int numFixes=0;
 		}
 		
 		int numMatches=500;
-		int numMatchedComparisons=1000;
+		int numMatchedComparisons=5;
 		if(request.getParameter("numMatches")!=null){
 			try{
 				numMatches=(new Integer(request.getParameter("numMatches").trim())).intValue();
