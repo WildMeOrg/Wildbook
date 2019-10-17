@@ -621,10 +621,10 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numWeedy%></span>leafy seadragons identified</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numWeedy%></span>weedy seadragons identified</i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numLeafy%></span>weedy seadragons identified</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numLeafy%></span>leafy seadragons identified</i></p>
 			</section>
 
 			<section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
