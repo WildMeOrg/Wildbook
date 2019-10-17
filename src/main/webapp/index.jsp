@@ -651,12 +651,7 @@ finally{
     </section>
 </div>
 
-<div class="container main-section">
-    <h2 class="section-header"><%= props.getProperty("gMapHeader") %></h2>
 
-      <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
-
-</div>
 
 <%
 if(CommonConfiguration.allowAdoptions(context)){
