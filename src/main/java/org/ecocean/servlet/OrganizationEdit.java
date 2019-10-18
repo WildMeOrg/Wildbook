@@ -122,14 +122,13 @@ public class OrganizationEdit extends HttpServlet {
         User user = AccessControl.getUser(request, myShepherd);
 
         boolean isAdmin = false;
-        if (user != null) isAdmin = myShepherd.doesUserHaveRole(user.getUsername(), "admin", context);
+        if (user != null) isAdmin = myShepherd.doesUserHaveRole(user.getUsername(), "admin", context) || myShepherd.doesUserHaveRole(user.getUsername(), Organization.ROLE_ADMIN, context);;
 
         if (user == null) {
             rtn.put("error", "access denied");
             response.sendError(401, "access denied");
 
-        //only "admin" can create a new **top-level** org, otherwise user must create under an existing one
-        //we need to have some sort of OrgSuperUser Role i suppose?   TODO
+        //only admin can create a new **top-level** org, otherwise user must create under an existing one
         } else if ((org == null) && (orgId == null) && isAdmin && (jsonIn.optString("create", null) != null)) {
             Organization newOrg = new Organization(jsonIn.getString("create"));
             newOrg.addMember(user);

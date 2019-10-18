@@ -23,6 +23,8 @@ import javax.jdo.Query;
 */
 
 public class Organization implements java.io.Serializable {
+    public static final String ROLE_ADMIN = "orgSuper";  //this role (and "admin") can edit any org
+    public static final String ROLE_MANAGER = "orgAdmin";  //this role can edit orgs they are members of
 
     private String id = null;
     private String name = null;
@@ -277,12 +279,12 @@ public class Organization implements java.io.Serializable {
         return false;
     }
 
-    //  logic basically goes like this:  (1) "admin" role can touch any group; (2) "manager" role can affect any group *they are in*
+    //  logic basically goes like this:  (1) "admin" and ROLE_ADMIN role can touch any org; (2) ROLE_MANAGER role can affect any org *they are in*
     public boolean canManage(User user, Shepherd myShepherd) {
         if (user == null) return false;
-        if (user.hasRoleByName("admin", myShepherd)) return true;  //TODO maybe new role?  "orgadmin" ?
+        if (user.hasRoleByName("admin", myShepherd) || user.hasRoleByName(ROLE_ADMIN, myShepherd)) return true;
         if (!this.hasMember(user)) return false;  //TODO should this be .hasMemberDeep() ?
-        return user.hasRoleByName("manager", myShepherd);
+        return user.hasRoleByName(ROLE_MANAGER, myShepherd);
     }
 
     //do we recurse?  i think so... you would want a child org (member) to see what you named something
