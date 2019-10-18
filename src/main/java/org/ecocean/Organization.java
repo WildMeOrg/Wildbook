@@ -286,6 +286,11 @@ public class Organization implements java.io.Serializable {
         if (!this.hasMember(user)) return false;  //TODO should this be .hasMemberDeep() ?
         return user.hasRoleByName(ROLE_MANAGER, myShepherd);
     }
+    //this is for visibility of the org at all (for now all are assumed private; maybe later we can have a property on org?)
+    public boolean canView(User user, Shepherd myShepherd) {
+        if (this.canManage(user, myShepherd)) return true;
+        return this.hasMember(user);
+    }
 
     //do we recurse?  i think so... you would want a child org (member) to see what you named something
     public Set<String> getMultiValueKeys() {
