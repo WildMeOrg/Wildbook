@@ -303,8 +303,9 @@ console.log('is %o', ajax);
     utickLoop: function(res, dataFunc) {
         var data = {};
         if (dataFunc) data = dataFunc();
-console.warn('loop! res=%o, data=%o', res, data);
-        wildbook.utick(data, function(r) { wildbook.utickLoop(r, dataFunc); }, 10000);
+//console.warn('inside utickLoop()!!! res=%o, data=%o', res, data);
+        if (data && data._utickLoopHalt) return;  //breaks the loop!
+        wildbook.utick(data, function(r) { wildbook.utickLoop(r, dataFunc); }, 120000);
     }
 };
 

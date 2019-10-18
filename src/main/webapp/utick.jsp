@@ -29,7 +29,7 @@ try {
 } catch (org.json.JSONException ex) { }
 if (content == null) content = Util.stringToJSONObject(request.getParameter("content"));
 if (content == null) content = new JSONObject();
-System.out.println("content => " + content);
+//System.out.println("content => " + content);
 
 Long init = (Long)session.getAttribute("log.init");
 if (init == null) {

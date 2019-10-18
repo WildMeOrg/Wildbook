@@ -544,6 +544,30 @@ if (thisUser == null) {
         </header>
 
         <script>
+
+var utickState = {
+    pageId: wildbook.uuid(),
+    pageTick: 0,
+    keyActivity: false,
+    mouseButtonActivity: false,
+    mouseActivity: false
+};
+$(document).on('mousemove', function(ev) { utickState.mouseActivity = true; });
+$(document).on('mousedown', function(ev) { utickState.mouseButtonActivity = true; });
+$(document).on('keydown', function(ev) { utickState.keyActivity = true; });
+$(document).ready(function() {
+    console.info('initializing utickLoop');
+    wildbook.utickLoop(null, function() {
+        utickState.pageTick++;
+        var data = JSON.parse(JSON.stringify(utickState));
+        utickState.mouseActivity = false;
+        utickState.mouseButtonActivity = false;
+        utickState.keyActivity = false;
+        delete(utickState.note);
+        return data;
+    });
+});
+
         $('#search-site').autocomplete({
             appendTo: $('#navbar-top'),
             response: function(ev, ui) {
