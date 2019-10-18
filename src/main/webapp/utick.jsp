@@ -22,8 +22,14 @@ if (user == null) {
     return;
 }
 
-JSONObject content = Util.stringToJSONObject(request.getParameter("content"));  //can pass in arbitrary json
+//can pass in arbitrary json via post or ?content=
+JSONObject content = null;
+try {
+    content = ServletUtilities.jsonFromHttpServletRequest(request);
+} catch (org.json.JSONException ex) { }
+if (content == null) content = Util.stringToJSONObject(request.getParameter("content"));
 if (content == null) content = new JSONObject();
+System.out.println("content => " + content);
 
 Long init = (Long)session.getAttribute("log.init");
 if (init == null) {
@@ -38,6 +44,7 @@ content.put("ip", ServletUtilities.getRemoteHost(request));
 content.put("uri", request.getRequestURI());
 content.put("timeInit", init);
 
+System.out.println("[INFO] utick t=" + System.currentTimeMillis() + ", uid=" + user.getUUID() + ", uri=" + request.getRequestURI());
 String sql = "INSERT INTO volunteer_log (id, content) values (?, ?)";
 Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 q.execute(user.getUUID(), content.toString());

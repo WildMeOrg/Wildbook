@@ -280,6 +280,31 @@ console.log('is %o', ajax);
         };
 
         $(el).autocomplete(args);
+    },
+
+    //nextFunc & nextMillis are optional, but will call setTimeout() if *both* available (nextFunc gets passed xhr.responseJSON)
+    //  it is up to the user to insure nextFunc calls utick() if desired!  (to loop)
+    utick: function(content, nextFunc, nextMillis) {
+        $.ajax({
+            url: wildbookGlobals.baseUrl + '/utick.jsp',
+            data: JSON.stringify(content),
+            contentType: 'application/javascript',
+            dataType: 'json',
+            type: 'POST',
+            complete: function(xhr, status) {
+                console.info('utick returned status=%s, xhr=%o', status, xhr);
+                if (xhr && xhr.responseJSON && xhr.responseJSON.success) console.info('content = %o', xhr.responseJSON.content);
+                if (nextFunc && nextMillis) window.setTimeout(function() { nextFunc(xhr.responseJSON); }, nextMillis);
+            }
+        });
+    },
+
+    //usable for the above nextFunc (also can be used to kickoff as well)
+    utickLoop: function(res, dataFunc) {
+        var data = {};
+        if (dataFunc) data = dataFunc();
+console.warn('loop! res=%o, data=%o', res, data);
+        wildbook.utick(data, function(r) { wildbook.utickLoop(r, dataFunc); }, 10000);
     }
 };
 
