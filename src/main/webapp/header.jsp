@@ -568,6 +568,7 @@ $(document).ready(function() {
             utickState.active = false;
             utickState.inactiveTick++;
         }
+        utickState.uri = document.location.pathname + document.location.search;
         var data = JSON.parse(JSON.stringify(utickState));
         utickState.mouseActivity = false;
         utickState.mouseButtonActivity = false;

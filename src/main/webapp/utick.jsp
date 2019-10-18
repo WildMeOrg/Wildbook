@@ -6,6 +6,8 @@ org.json.JSONObject
 <%
 
 //   create table volunteer_log (id varchar(36) not null, timestamp bigint default extract(epoch from now()) * 1000, content text);
+// in order for the ability to *create* via jdo sql query, you need to add this line to jdoconfig.properties:
+//    datanucleus.query.sql.allowAll = true
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
@@ -41,10 +43,9 @@ if (init == null) {
 }
 
 content.put("ip", ServletUtilities.getRemoteHost(request));
-content.put("uri", request.getRequestURI());
 content.put("timeInit", init);
 
-System.out.println("[INFO] utick t=" + System.currentTimeMillis() + ", uid=" + user.getUUID() + ", uri=" + request.getRequestURI());
+System.out.println("[INFO] utick t=" + System.currentTimeMillis() + ", uid=" + user.getUUID() + ", uri=" + content.optString("uri", null));
 String sql = "INSERT INTO volunteer_log (id, content) values (?, ?)";
 Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 q.execute(user.getUUID(), content.toString());
