@@ -301,11 +301,17 @@ console.log('is %o', ajax);
 
     //usable for the above nextFunc (also can be used to kickoff as well)
     utickLoop: function(res, dataFunc) {
+        var pauseMillis = 60000;
         var data = {};
         if (dataFunc) data = dataFunc();
 //console.warn('inside utickLoop()!!! res=%o, data=%o', res, data);
         if (data && data._utickLoopHalt) return;  //breaks the loop!
-        wildbook.utick(data, function(r) { wildbook.utickLoop(r, dataFunc); }, 120000);
+        if (data && data._doNotSend) {
+            console.info('utickLoop: ._doNotSend is set, not sending utick');
+            window.setTimeout(function() { wildbook.utickLoop(null, dataFunc); }, pauseMillis);
+        } else {
+            wildbook.utick(data, function(r) { wildbook.utickLoop(r, dataFunc); }, pauseMillis);
+        }
     }
 };
 

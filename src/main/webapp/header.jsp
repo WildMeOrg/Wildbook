@@ -548,6 +548,8 @@ if (thisUser == null) {
 var utickState = {
     pageId: wildbook.uuid(),
     pageTick: 0,
+    inactiveTick: 0,
+    active: true,
     keyActivity: false,
     mouseButtonActivity: false,
     mouseActivity: false
@@ -559,11 +561,19 @@ $(document).ready(function() {
     console.info('initializing utickLoop');
     wildbook.utickLoop(null, function() {
         utickState.pageTick++;
+        if (utickState.mouseActivity || utickState.mouseButtonActivity || utickState.mouseActivity) {
+            utickState.active = true;
+            utickState.inactiveTick = 0;
+        } else {
+            utickState.active = false;
+            utickState.inactiveTick++;
+        }
         var data = JSON.parse(JSON.stringify(utickState));
         utickState.mouseActivity = false;
         utickState.mouseButtonActivity = false;
         utickState.keyActivity = false;
-        delete(utickState.note);
+        delete(utickState.data);
+        if (data.inactiveTick > 10) data._doNotSend = true;
         return data;
     });
 });
