@@ -28,7 +28,7 @@
                       </a>
                     </div>
                     <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
-                      <a target="_blank" href="http://www.lovelab.id.ucsb.edu">                      
+                      <a target="_blank" href="http://lovelab.msi.ucsb.edu/">                      
                         <img class="img-responsive" alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/love_lab_logo-little.png"/>
                       </a>
                     </div>
