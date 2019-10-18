@@ -196,13 +196,24 @@ function forceLink(el) {
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
+
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
                                                     if (!tasks.contains(t)) tasks.add(t);
+                                                    //System.out.println("Task ID: "+t.getId());
                                                 }
+
+                                                Collections.sort(tasks, new Comparator<Task>() {
+                                                    @Override public int compare(Task tsk1, Task tsk2) {
+                                                        return Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong()); // first asc
+                                                    }
+                                                });
+                                                Collections.reverse(tasks); // now desc, ez
+
                                                 JSONArray jt = new JSONArray();
                                                 for (Task t : tasks) {
                                                     jt.put(Util.toggleJSONObject(t.toJSONObject()));
                                                 }
+                                                //System.out.println("Root tasks returned...");
                                                 j.put("tasks", jt);
                                                 JSONObject ja = new JSONObject();
 						ja.put("id", ann.getId());
