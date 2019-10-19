@@ -46,10 +46,19 @@ int numFixes=0;
 	try {
 
 		gpo = new GrothParameterOptimizer();
-                
-                gpo.setMaxIter(100);
 
-                gpo.setMaxEval(100);
+                gpo.getGrothAnalysis().flush();
+
+                // for each ITERATION, the function is EVALUATED n (value below) times. 
+                gpo.setMaxIter(1);
+
+
+                //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                // the total number of times the optimizer will call the .value() method
+                // also, the max number of "moves" it will make 
+                gpo.setMaxEval(625);
+
+
                 //gpo.setInitialGuess(new double[] {0.1, 50.0, 0.9999, 10.0, 0.99});
                 //double[] upperBounds = new double[] {0.15, 50.0, 0.9999, 30.0, 0.999};
                 //double[] lowerBounds = new double[] {0.0005, 5.0, 0.85, 5.0, 0.9};
@@ -66,10 +75,19 @@ int numFixes=0;
                 
                 gpo.setInitialGuess(new double[] {0.1, 50.0, 0.9999, 10.0, 0.99});
                 gpo.setBOBYQInterpolationPoints(14);
-                gpo.getGrothAnalysis().setNumComparisonsEach(100);
-                gpo.getGrothAnalysis().setMaxSpots(18);
+
+                gpo.getGrothAnalysis().setMaxSpots(35);
                 gpo.getGrothAnalysis().useMatchedRanking(true);
-                gpo.getGrothAnalysis.setMatchedRankEvalsEach(10);
+                gpo.setGoalTypeAsMin();
+
+                //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                // comparisons per encounter for ranked matching function
+                gpo.getGrothAnalysis().setNumComparisonsEach(25);
+                // num comparisons for matched ranking function.. 
+                // evals per method call are matchedRankEvals * numComparisons each
+                gpo.getGrothAnalysis().setMatchedRankEvalsEach(25);
+                //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
                 //gpo.getGrothAnalysis().useWeightsForTargetScore(true, 100, 0.1);
 
                 System.out.println("Trying to optimize parameters...");
@@ -81,6 +99,8 @@ int numFixes=0;
                         
 
                 System.out.println("Done optimizing????");
+
+
 
 	
 	} catch (Exception e) {

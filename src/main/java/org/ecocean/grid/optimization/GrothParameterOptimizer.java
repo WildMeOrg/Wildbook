@@ -1,42 +1,25 @@
 package org.ecocean.grid.optimization;
 
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.json.*;
-
-import java.nio.file.*;
-
-import org.apache.commons.math3.*;
-import org.apache.commons.math3.optim.ConvergenceChecker;
-import org.apache.commons.math3.optim.SimpleValueChecker;
-import org.apache.commons.math3.optim.PointValuePair;
-import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
-import org.apache.commons.math3.optim.SimpleBounds;
-import org.apache.commons.math3.analysis.*;
 import org.apache.commons.math3.optim.InitialGuess;
 import org.apache.commons.math3.optim.MaxEval;
 import org.apache.commons.math3.optim.MaxIter;
-
-import org.ecocean.grid.optimization.*;
-
-import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.SimplexOptimizer;
-import org.datanucleus.enhancer.methods.WriteObject;
-import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.BOBYQAOptimizer;
-import org.apache.commons.math3.optim.nonlinear.scalar.gradient.NonLinearConjugateGradientOptimizer;
-import org.apache.commons.math3.optim.nonlinear.scalar.gradient.NonLinearConjugateGradientOptimizer.Formula;
-import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.NelderMeadSimplex;
-import org.apache.commons.math3.optim.nonlinear.scalar.MultivariateFunctionMappingAdapter;
+import org.apache.commons.math3.optim.PointValuePair;
+import org.apache.commons.math3.optim.SimpleBounds;
+import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
 import org.apache.commons.math3.optim.nonlinear.scalar.ObjectiveFunction;
+import org.apache.commons.math3.optim.nonlinear.scalar.noderiv.BOBYQAOptimizer;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class GrothParameterOptimizer {
 
@@ -167,6 +150,7 @@ public class GrothParameterOptimizer {
     public double[] doOptimize() {
         try {
 
+            ga.flush();
             //final ConvergenceChecker<PointValuePair> cchecker = new SimpleValueChecker(1e-10, 1e-10);
             //SimplexOptimizer optimizer = new SimplexOptimizer(cchecker);
 
@@ -194,6 +178,9 @@ public class GrothParameterOptimizer {
             PointValuePair result = optimizer.optimize(of, goal, me, sb, mi, ig);
             double[] resultArr = descaleParams(result.getPoint());
             lastResults = descaleParams(result.getPoint());
+
+            System.out.println("Actual eval scores (only match ranking): "+ga.getMatchRankScoresAsString());
+
             System.out.println("------> Here are the default values: "+Arrays.toString(defaults));
 
             System.out.println("------> This also is the result of optimization: "+Arrays.toString(resultArr));
