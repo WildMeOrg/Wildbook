@@ -636,27 +636,67 @@ try {
 	    for(int d=0;d<numContexts;d++) {
     	%>
     	<tr>
-    		<td>
-    			Roles for <%=ContextConfiguration.getNameForContext(("context"+d)) %>(multi-select): 
-          <select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5">
-            <option value=""></option>
-						<%
-						for(int q=0;q<numRoles;q++){
-							String selected="";
-							if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid").trim())!=null)){
-								if(myShepherd.doesUserHaveRole(localUsername,roles.get(q),("context"+d))){
-									selected="selected=\"true\"";
-								}
-							}
-							
-							//now one last check: only let someone who has a role assign the role
-							if(request.isUserInRole(roles.get(q))){
-								%><option value="<%=roles.get(q)%>" <%=selected%>><%=roles.get(q)%></option><%
-							}
-						}%>          
-    			</select>
+    		<td style="border-style: none;">
+    			Roles for <%=ContextConfiguration.getNameForContext(("context"+d)) %> (multi-select) 
     		</td>
     	</tr>
+    	<tr>
+    		<td style="border-style: none;">	
+	          <select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5">
+	            <option value=""></option>
+							<%
+							for(int q=0;q<numRoles;q++){
+								String selected="";
+								if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid").trim())!=null)){
+									if(myShepherd.doesUserHaveRole(localUsername,roles.get(q),("context"+d))){
+										selected="selected=\"true\"";
+									}
+								}
+								
+								//now one last check: only let someone who has a role assign the role
+								if(request.isUserInRole(roles.get(q))){
+									%><option value="<%=roles.get(q)%>" <%=selected%>><%=roles.get(q)%></option><%
+								}
+							}%>          
+	    			</select>
+    		</td>
+    	</tr>
+    	<tr><td style="border-style: none;">Organization Membership (multi-select) </td></tr>
+    	<tr>
+    		<td style="border-style: none;">
+    	
+    			<select multiple="multiple" name="organization" id="organization" size="5">
+		            <option value=""></option>
+	    	    	<%
+	    	    	
+		    		List<Organization> orgs=new ArrayList<Organization>();
+	    	    	User orgAdminUser=myShepherd.getUser(request);
+		    		if(request.isUserInRole("admin")){orgs=myShepherd.getAllOrganizations();}
+		    		else if(request.getRemoteUser()!=null && (myShepherd.getUser(request)!=null)){
+		    			orgs = myShepherd.getAllOrganizationsForUser(orgAdminUser);
+		    		}
+		    		int numOrgs=orgs.size();
+					for(Organization org:orgs){
+						String selected="";
+						if((request.getParameter("isEdit")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid").trim())!=null)){
+							User thisUser=myShepherd.getUserByUUID(request.getParameter("uuid"));
+							if(myShepherd.getAllOrganizationsForUser(thisUser).contains(org)){
+								selected="selected=\"true\"";
+							}
+						}
+						
+						%>
+						<option value="<%=org.getId() %>" <%=selected%>><%=org.getName()%></option>
+						<%
+					}
+					%>          
+	    		</select>
+
+    		</td>
+    	</tr>
+    	
+    	
+    	
     <%	
     }
     %>
