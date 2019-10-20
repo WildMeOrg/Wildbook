@@ -1,5 +1,11 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.List,org.ecocean.*, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+         import="org.ecocean.servlet.ServletUtilities,java.util.List,org.ecocean.*, 
+         java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, 
+         org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, 
+         org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager,
+         org.datanucleus.api.jdo.JDOPersistenceManager,org.datanucleus.FetchGroup,javax.jdo.*,
+         org.datanucleus.ExecutionContext, org.datanucleus.PersistenceNucleusContext,
+         org.datanucleus.api.jdo.JDOPersistenceManagerFactory" %>
 
   <%
 
@@ -20,15 +26,32 @@ int numRoleDefinitions=roleDefinitions.size();
 int numResults = 0;
 
 List<User> users = new ArrayList<User>();
+PersistenceManager pm=myShepherd.getPM();
+JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
+PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
+PersistenceNucleusContext nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();
+ExecutionContext ec = jdopm.getExecutionContext();
+
+
+
+//javax.jdo.FetchGroup grp = pmf.getFetchGroup(User.class, "users");
+//grp.addMember("username").addMember("lastLogin").addMember("emailAddress").addMember("fullName").addMember("affiliation");
+//javax.jdo.FetchGroup grp2 = pmf.getFetchGroup(Organization.class, "orgs");
+//grp2.addMember("name").addMember("description");
+
+//myShepherd.getPM().getFetchPlan().setGroup("orgs").addGroup("users");
+//pm.getFetchPlan().setMaxFetchDepth(-1);
 myShepherd.beginDBTransaction();
+
 
 //String currentEmail = request.getParameter("email")	;
 String currentUUID = request.getParameter("uuid")	;
 
 try {
-  String order ="username ASC NULLS LAST";	    
+  	
+	String order ="lastLogin DESC NULLS LAST";	    
 
-  users = myShepherd.getAllUsers();
+  	users = myShepherd.getAllUsers(order);
 	numResults=users.size();	
 
 	List<Role> allRoles=myShepherd.getAllRoles();
@@ -67,15 +90,19 @@ try {
 
 
     //Vector histories = new Vector();
-    int usersSize=users.size();
+    //int usersSize=users.size();
 
     int count = 0;
+    JSONArray jsonobj=new JSONArray();
+    for(User user:users){
+    	jsonobj.put(user.uiJson(request, false));
+    }
 
-		JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)users, jdopm.getExecutionContext());
+		
+		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)users, ec);
 		String indsJson = jsonobj.toString();
 		
-	   JSONArray rolesobj=	RESTUtils.getJSONArrayFromCollection((Collection)allRoles, jdopm.getExecutionContext());
+	   JSONArray rolesobj=	RESTUtils.getJSONArrayFromCollection((Collection)allRoles, ec);
 		String rolesJson = rolesobj.toString();
 	
 	
@@ -126,7 +153,7 @@ try {
 			key: 'lastLogin',
 			label: '<%=props.getProperty("lastLogin")%>',
 			value: _colLastLogin,
-			sortValue: function(o) {return o.lastLogin; }
+			sortValue: _colLastLoginSort
 		},
 		{
 			key: 'roles',
@@ -141,8 +168,8 @@ try {
 	var start = 0;
 	var results = [];
 	
-	var sortCol = -1;
-	var sortReverse = false;
+	var sortCol = 4;
+	var sortReverse = true;
 	
 	
 	var counts = {
@@ -412,6 +439,14 @@ try {
 		return s;
 	}
 	
+	function _colLastLoginSort(o) {
+		var m = o.lastLogin;
+		if (!m) return '';
+		var d = wildbook.parseDate(m);
+		if (!wildbook.isValidDate(d)) return '';
+		return d.getTime();
+	}
+	
 	
 	function _textExtraction(n) {
 		var s = $(n).text();
@@ -601,16 +636,16 @@ try {
     		%>
    	 		<input name="uuid" type="hidden" value="<%=uuid %>" id="uuid" />       												
    		
-        <td>Username: <input name="username" type="text" size="15" maxlength="90" value="<%=localUsername %>" ></input></td>
+        <td>Username: <input autocomplete="off" name="username" type="text" size="15" maxlength="90" value="<%=localUsername %>" ></input></td>
         
-        <td>Password: <input name="password" type="password" size="15" maxlength="90"></input></td>
-        <td>Confirm Password: <input name="password2" type="password" size="15" maxlength="90"></input></td>
+        <td>Password: <input name="password" type="password" size="15" maxlength="90" autocomplete="new-password"></input></td>
+        <td>Confirm Password: <input autocomplete="off" name="password2" type="password" size="15" maxlength="90"></input></td>
                 
     	</tr>
 
-      <tr><td colspan="3">Full name: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
+      <tr><td colspan="3">Full name: <input autocomplete="off" name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
 
-      <tr><td colspan="2">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+      <tr><td colspan="2">Email address: <input type="email" autocomplete="off" name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
         
       <tr><td colspan="3">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
         

@@ -3,6 +3,7 @@ package org.ecocean;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.Vector;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -11,6 +12,8 @@ import org.ecocean.SinglePhotoVideo;
 import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.datanucleus.api.rest.orgjson.JSONException;
+import org.datanucleus.api.rest.orgjson.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -467,6 +470,26 @@ public class User implements Serializable {
                 .append("username", username)
                 .append("fullName", fullName)
                 .toString();
+    }
+    
+    // Returns a somewhat rest-like JSON object containing the metadata
+    public JSONObject uiJson(HttpServletRequest request, boolean includeOrganizations) throws JSONException {
+      JSONObject jobj = new JSONObject();
+      jobj.put("uuid", this.getId());
+      jobj.put("emailAddress", this.getEmailAddress());
+      jobj.put("fullName", this.getFullName());
+      jobj.put("affiliation", this.getAffiliation());
+      jobj.put("lastLogin", Long.toString(this.getLastLogin()));
+      jobj.put("username", this.getUsername());
+
+      if(includeOrganizations) {
+        Vector<String> orgIDs = new Vector<String>();
+        for (Organization org : this.organizations) {
+          orgIDs.add(org.toJSONObject().toString());
+        }
+        jobj.put("organizations", orgIDs.toArray());
+      }
+      return jobj;
     }
 
 }
