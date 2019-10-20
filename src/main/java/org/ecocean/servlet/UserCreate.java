@@ -276,7 +276,13 @@ public class UserCreate extends HttpServlet {
           //possible set the orgAdmin could have set
           List<Organization> reqOrgs=new ArrayList<Organization>();
           if(myShepherd.getUser(request)!=null) {
-            reqOrgs=myShepherd.getAllOrganizationsForUser(myShepherd.getUser(request));
+            User user=myShepherd.getUser(request);
+            if(request.isUserInRole("admin")) {
+              reqOrgs=myShepherd.getAllOrganizations();
+            }
+            else {
+              reqOrgs=myShepherd.getAllOrganizationsForUser(user);
+            }
           }
           
           //whittle down to those entries where the User could have been added by reqUser but wasn't intentionally
