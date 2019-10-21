@@ -233,6 +233,7 @@ try {
 			var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
 			if (delta != 0) nudge(-delta);
 		});
+		nudge(-1);
 	
 	}
 	
@@ -267,27 +268,7 @@ try {
 	}
 	
 	
-	function xxxshow() {
-		$('#results-table td').html('');
-		for (var i = 0 ; i < results.length ; i++) {
-			//$('#results-table tbody tr')[i].title = searchResults[results[i]].individualID;
-			$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].uuid);
-			for (var c = 0 ; c < colDefn.length ; c++) {
-				$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
-			}
-		}
-	
-		if (results.length < howMany) {
-			$('#results-slider').hide();
-			for (var i = 0 ; i < (howMany - results.length) ; i++) {
-				$('#results-table tbody tr')[i + results.length].style.display = 'none';
-			}
-		} else {
-			$('#results-slider').show();
-		}
-	
-		sTable.sliderSet(100 - (start / (searchResults.length - howMany)) * 100);
-	}
+
 	
 	
 	
@@ -434,17 +415,18 @@ try {
 	
 	function _colLastLogin(o) {
 		if (!o.lastLogin) return '';
-		if (o.lastLogin == -1) return '';
-		var s = new Date(o.lastLogin).toString();
+		if (o.lastLogin === "-1") return '';
+		var s = new Date(parseInt(o.lastLogin)).toString();
 		return s;
 	}
 	
 	function _colLastLoginSort(o) {
 		var m = o.lastLogin;
 		if (!m) return '';
-		var d = wildbook.parseDate(m);
-		if (!wildbook.isValidDate(d)) return '';
-		return d.getTime();
+		//var d = wildbook.parseDate(m);
+		//if (!wildbook.isValidDate(d)) return '';
+		//return d.getTime();
+		return m;
 	}
 	
 	
