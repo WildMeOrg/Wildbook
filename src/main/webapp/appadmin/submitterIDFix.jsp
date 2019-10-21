@@ -32,6 +32,7 @@ for (Encounter enc : encs) {
         out.println("<b>user " + u + "</b> has <i>no username!</i> for " + enc.getCatalogNumber() + " (skipping)");
     } else {
         out.println(enc.getCatalogNumber() + " -> <i>" + u.getUsername() + "</i>");
+        System.out.println("submitterIDFix.jsp: " + enc.getCatalogNumber() + " -> " + u.getUsername());
         enc.setSubmitterID(u.getUsername());
     }
 }
