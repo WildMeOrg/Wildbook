@@ -55,37 +55,37 @@ int numFixes=0;
 
                 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
                 // the total number of times the optimizer will call the .value() method
-                // also, the max number of "moves" it will make 
-                gpo.setMaxEval(625);
+                // also, the max number of "moves" it will make throws an exception if exceeded, 
+                // so set to a number it would be unreasonable for it to go to
+                gpo.setMaxEval(200);
 
-
-                //gpo.setInitialGuess(new double[] {0.1, 50.0, 0.9999, 10.0, 0.99});
-                //double[] upperBounds = new double[] {0.15, 50.0, 0.9999, 30.0, 0.999};
-                //double[] lowerBounds = new double[] {0.0005, 5.0, 0.85, 5.0, 0.9};
-
-                //Parameter order: {epsilon, R, sizeLim, maxTriangleRotation, C} 
-                // I think that parameters >1 are not getting adjusted properly esp. R and rotation. 
-                // this kinda makes sense as we are not specifying 'steps'
-
-                // you have to do this first because i haven't made it so you don't have to do it first yet
                 gpo.setParameterScaling(new double[] {1.0, 100.0, 1.0, 100.0, 1.0});
 
                 gpo.setUpperBounds(new double[] {0.15, 50.0, 0.9999, 30.0, 0.999});
                 gpo.setLowerBounds(new double[] {0.0005, 5.0, 0.85, 5.0, 0.9});
                 
                 gpo.setInitialGuess(new double[] {0.1, 50.0, 0.9999, 10.0, 0.99});
+
+                // i'm still not 100% on how this works, but higher numbers up complexity and 
+                // it has to do with the number of places the optimizer will explore between value A and B.
+                // with a 5 variable function the range is 7-21
                 gpo.setBOBYQInterpolationPoints(14);
 
-                gpo.getGrothAnalysis().setMaxSpots(35);
+                gpo.getGrothAnalysis().setMaxSpots(32);
                 gpo.getGrothAnalysis().useMatchedRanking(true);
-                gpo.setGoalTypeAsMin();
+
+                gpo.getGrothAnalysis().normalizeTopN(true);
+                //gpo.getGrothAnalysis().numToNormalize(5);
+
+                // min for ranking eval, unless using normalized scores
+                gpo.setGoalTypeAsMax();
 
                 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                // comparisons per encounter for ranked matching function
-                gpo.getGrothAnalysis().setNumComparisonsEach(25);
+                // comparisons for ranked matching function
+                gpo.getGrothAnalysis().setNumComparisonsEach(50);
                 // num comparisons for matched ranking function.. 
                 // evals per method call are matchedRankEvals * numComparisons each
-                gpo.getGrothAnalysis().setMatchedRankEvalsEach(25);
+                gpo.getGrothAnalysis().setMatchedRankEvalsEach(20);
                 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
                 //gpo.getGrothAnalysis().useWeightsForTargetScore(true, 100, 0.1);
@@ -95,13 +95,12 @@ int numFixes=0;
                 //is a double[] 
                 result = gpo.doOptimize();
 
+                // *** This WILL work no matter how you optimize *** the int it takes is how many good & bad comparisons
+                // you want to end up in the csv file that goes to /wildbook_data_dir/optimization
                 //gpo.writeResultsToFile(500);
                         
 
                 System.out.println("Done optimizing????");
-
-
-
 	
 	} catch (Exception e) {
 

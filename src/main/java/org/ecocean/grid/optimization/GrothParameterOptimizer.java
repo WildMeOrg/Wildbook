@@ -150,7 +150,7 @@ public class GrothParameterOptimizer {
     public double[] doOptimize() {
         try {
 
-            ga.flush();
+            GrothAnalysis.flush();
             //final ConvergenceChecker<PointValuePair> cchecker = new SimpleValueChecker(1e-10, 1e-10);
             //SimplexOptimizer optimizer = new SimplexOptimizer(cchecker);
 

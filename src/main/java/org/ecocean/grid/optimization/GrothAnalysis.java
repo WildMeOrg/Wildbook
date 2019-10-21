@@ -22,7 +22,7 @@ import org.ecocean.grid.MatchObject;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.grid.ScanWorkItemResult;
 
-// public class GrothAnalysis implements MultivariateDifferentiableVectorFunction {
+//public class GrothAnalysis implements MultivariateDifferentiableVectorFunction {
 
 public class GrothAnalysis implements MultivariateFunction {
   
@@ -44,8 +44,12 @@ public class GrothAnalysis implements MultivariateFunction {
   private int targetScore = 100;
   private double weightAmount = 0.1;
   private boolean useWeights = false;
+
   private int matchedRankEvalsEach = 10;
 
+  private static boolean normalizeTopN = false; // use top ranking (top 1, top 5 ect) percentage for optimization return 
+  private static int numToNormalize = 5; // how many top ranking to look at
+  private static Double normalizedScores = 0.0;
 
   private double[] parameterScaling = new double[] {1.0, 1.0, 1.0, 1.0, 1.0};
   private boolean scalingSet = false; 
@@ -79,6 +83,14 @@ public class GrothAnalysis implements MultivariateFunction {
     nonmatchScores=new ArrayList<Double>();
     matches=new ArrayList<MatchObject>();
     nonmatches=new ArrayList<MatchObject>();
+  }
+
+  public static void normalizeTopN(boolean bool) {
+    normalizeTopN = bool;
+  }
+
+  public static void numToNormalize(int num) {
+    numToNormalize = num;
   }
   
   public void useMatchedRanking(boolean bool) {
@@ -145,9 +157,9 @@ public class GrothAnalysis implements MultivariateFunction {
         //Integer rawVal = getMatchedRankSum(numComparisons, matchedRankEvalsEach, point[0], point[1], point[2], point[3],
         //                                    point[4], defaultSide, maxNumSpots, useWeights, targetScore, weightAmount, null);
 
-        Integer rawVal = GrothAnalysis.getMatchedRankSum(numComparisons, matchedRankEvalsEach, scaledPoint[0], scaledPoint[1], scaledPoint[2], scaledPoint[3], scaledPoint[4], "left", maxNumSpots, false,1,0.0,null);
+        Double rawVal = GrothAnalysis.getMatchedRankSum(numComparisons, matchedRankEvalsEach, scaledPoint[0], scaledPoint[1], scaledPoint[2], scaledPoint[3], scaledPoint[4], "left", maxNumSpots, false,1,0.0,null);
 
-        val = new Double(rawVal);
+        //val = new Double(rawVal);
 
         System.out.println("======================================= Val DOUBLE for function call: "+val); 
         matchRankScores.add(val);
@@ -327,11 +339,11 @@ public class GrothAnalysis implements MultivariateFunction {
        //OK, indyMap now has non-matched individuals from the chosen side, let's create our comparison set
       
 
-       for(int q=0;q<(allEncs.size()-1);q++) {
-         System.out.println("....... q loop "+q);
-         for(int r=0;r<allEncs.size();r++) {
-           EncounterLite el1=allEncs.get(q);
-           EncounterLite el2=allEncs.get(r);
+       for(int q=0;q<(allEncs.size()-1);q++) {System.out.println("");
+         System.out.println("....... q loop "+q);System.out.println("");
+         for(int r=0;r<allEncs.size();r++) {System.out.println("");
+           EncounterLite el1=allEncs.get(q);System.out.println("");
+           EncounterLite el2=allEncs.get(r);System.out.println("");
            if(!el1.getEncounterNumber().equals(el2.getEncounterNumber())) {
              ScanWorkItem swi = new ScanWorkItem(el1, el2, (el1.getEncounterNumber()+"-"+el2.getEncounterNumber()), "GrothAnalysis", props2);
              unmatchedComparisons.add(swi);
@@ -417,13 +429,13 @@ public class GrothAnalysis implements MultivariateFunction {
    * 
    * @numProcessorsToUse The number of CPUs to use in parallel to accelerate this run. If left null, all processors available in the system will be used
    */
-  public static Integer getMatchedRankSum(int numMatchedComparisons, int numComparisonsEach, double epsilon, double R, double Sizelim, double maxTriangleRotation,
+  public static Double getMatchedRankSum(int numMatchedComparisons, int numComparisonsEach, double epsilon, double R, double Sizelim, double maxTriangleRotation,
       double C, String side, int maxNumSpots, boolean useWeights, int targetScore, double weightAmount, Integer numProcessorsToUse) throws Exception {
       
     //We'll return this value at the end of the method
     //It's value should be in the range of numMatchedComparison (perfect rank 1 comparison for each match of numMatchedComparisons
     //to perfect algorithm failure of numMatchedComparisons*numComparisonsEach (all true matches were ranked last)
-    int totalMatchRank=0;
+    Double totalMatchRank=0.0;
     
     //this is a sanity check that should sum to numMatchedComparisons*numComparisonsEach at the end
     int totalNumComparisonsRun=0;
@@ -628,7 +640,7 @@ public class GrothAnalysis implements MultivariateFunction {
           //System.out.println("Putting a score of "+score+" for "+matchme.+"("+matchme.getNewEncounterLite().getBelongsToMarkedIndividual()+") against "+matchme.getExistingEncNumber()+"("+matchme.getExistingEncounterLite().getBelongsToMarkedIndividual());
           results.add(score);
         }
-        //System.out.println("6) Iterating through "+allEncounterLitesUnmodifiable.size()+" encounterLites...");
+
         //add the true positive's score
         Double swiscore=swi.getResult().getMatchValue() * swi.getResult().getAdjustedMatchValue();
         results.add(swiscore);      
@@ -639,22 +651,53 @@ public class GrothAnalysis implements MultivariateFunction {
         
         System.out.println("======>======>true match score of "+swiscore+" should be reflected in results: "+results.toString());
   
-        if (swiscore==0.0) {
-          totalMatchRank += (results.size()-1);
-          System.out.println("======>======>Zero score for match! adding worst rank: "+(results.size()-1));
+        if (normalizeTopN) {
+          
+          System.out.println("Normalizing scores in top "+numToNormalize+" to  calculate score.");
+
+          //Double xMin = 0.0;
+          Double xMin = results.get(0);
+          for (Double result : results) {
+            if (result<xMin) {
+              xMin = result;
+              if (xMin==0.0) break;  
+            } 
+          }
+
+          Double xMax = results.get(0);
+          Double normalizedScore = 0.0;
+          //if (results.indexOf(swiscore)<numToNormalize) {
+          normalizedScore = ((swiscore-xMin) / (xMax-xMin));
+          normalizedScores+=normalizedScore;
+          //} else {
+          //  System.out.println("Score was out of bounds, discarded.");
+          //}
+          System.out.println("Normalization produced this score: "+normalizedScore);
+
         } else {
-          totalMatchRank+=results.indexOf(swiscore)+1;
-          System.out.println("======>======>Adding rank of: "+(results.indexOf(swiscore)+1));
+          if (swiscore==0.0) {
+            totalMatchRank += (results.size()-1);
+            System.out.println("======>======>Zero score for match! adding worst rank: "+(results.size()-1));
+          } else {
+            totalMatchRank+=results.indexOf(swiscore)+1;
+            System.out.println("======>======>Adding rank of: "+(results.indexOf(swiscore)+1));
+          }
         }
         //System.out.println("7) Iterating through "+allEncounterLitesUnmodifiable.size()+" encounterLites...");
       }
       System.out.println("");
       System.out.println("======> RUN COMPLETE!");    
       System.out.println("======>Sanity check of intended num comparisons (numbers should be equals): "+totalNumComparisonsRun+" = "+(numComparisonsEach*numMatchedComparisons));
+      
+      if (normalizeTopN) {
+        //System.out.println("Returning this total for normalized scores: "+normalizedScores);
+        System.out.println("Judging by average normalized score for each comparison: "+normalizedScores/numMatchedComparisons);
+        System.out.println("");
+        return (normalizedScores/numMatchedComparisons);
+      }
       System.out.println("=>Returning total match rank for true positives = "+numMatchedComparisons+" in a field of "+numComparisonsEach+" total possible matches: "+totalMatchRank+ "(best="+numMatchedComparisons+",worst="+(numComparisonsEach*numMatchedComparisons)+")");
       System.out.println("");
       return totalMatchRank;
       }
-  
 
 }
