@@ -1,13 +1,11 @@
 //TODO List
 
-//Add unique coloration for maternal vs paternal familial relationships
-//Should sibiling relationships be visualized with an edge?
 //Add "freeze" button to stop graph ticks
 
 function setupSocialGraph(individualID) {
     let focusedScale = 1.25;
     let sg = new SocialGraph(individualID, focusedScale);
-    sg.graphSocialData(false, [0,0]); //Dummied method
+    sg.applySocialData();
 }
 
 class SocialGraph extends ForceLayoutAbstract {
@@ -71,22 +69,31 @@ class SocialGraph extends ForceLayoutAbstract {
 	];
 
 	this.links = [
-	    {"source": 0, "target": 1, "type": "paternal"},
+	    {"source": 0, "target": 1, "type": "maternal"},
 	    {"source": 0, "target": 3, "type": "member"},
-	    {"source": 3, "target": 4, "type": "maternal"},
-	    {"source": 4, "target": 5, "type": "familial"},
+	    {"source": 3, "target": 4, "type": "familial"},
+	    {"source": 4, "target": 5, "type": "maternal"},
 	    {"source": 5, "target": 3, "type": "member"},
 	    {"source": 2, "target": 1, "type": "member"},
 	    {"source": 2, "target": 0, "type": "member"}
 	];
     }
 
+    applySocialData() {
+	let query = wildbookGlobals.baseUrl + "/api/jodql?" +
+	    encodeURIComponent("SELECT FROM org.ecocean.social.Relationship " +
+			       "WHERE (this.type == \"social grouping\") && " +
+			       "(this.markedIndividualName1 == \"" + this.id +
+			       "\" || this.markedIndividualName2 == \"" + this.id + "\")");
+
+	d3.json(query, (error, json) => this.graphSocialData(error, json));
+    }
+
     graphSocialData(error, json) {
 	if (error) {
 	    return console.error(error);
 	}
-
-	if (json.length >= 1) {
+	else if (json.length >= 1) {
 	    this.appendSvg("#socialDiagram");
 	    this.addTooltip("#socialDiagram");	    
 
@@ -103,5 +110,6 @@ class SocialGraph extends ForceLayoutAbstract {
 	    this.enableDrag(nodeRef, forces);
 	    this.applyForces(forces, linkRef, nodeRef);
 	}
+	else this.showTable("#communityTable", ".socialVis");
     }
 }

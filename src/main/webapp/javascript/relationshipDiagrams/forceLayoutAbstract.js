@@ -2,11 +2,13 @@ class ForceLayoutAbstract extends GraphAbstract {
     constructor(individualId, focusedScale=1) {
 	super(individualId, focusedScale);
 
+	//Assign a unique global id to each force layout graph
 	ForceLayoutAbstract.count = ForceLayoutAbstract.count + 1 || 0;
 	this.graphId = ForceLayoutAbstract.count;
-	console.log(this.graphId);
 	
-	this.linkWidth = 2;
+	this.linkWidth = 3;
+	this.maxLenScalar = 2.5;
+	
 	this.markerWidth = 6;
 	this.markerHeight = 6;
     }
@@ -21,8 +23,12 @@ class ForceLayoutAbstract extends GraphAbstract {
 	return d3.forceSimulation()
 	    .force("link", d3.forceLink().id(d => d.id))
 	    .force("charge", d3.forceManyBody())
-	    .force("collision", d3.forceCollide().radius(this.radius * 2)) 
+	    .force("collision", d3.forceCollide().radius(d => this.getLinkLen(d))) 
 	    .force("center", d3.forceCenter(this.width/2, this.height/2));
+    }
+
+    getLinkLen(d) {
+	return Math.min(this.radius * this.maxLenScalar, d.data.r * 2);
     }
 
     createGraph() {
@@ -55,12 +61,12 @@ class ForceLayoutAbstract extends GraphAbstract {
     defineArrows() {	
 	this.svg.append("defs")
 	    .selectAll("marker")
-	    .data(this.links)
+	    .data(this.links.filter(d => d.type != "member"))
 	    .enter()
 	    .append("marker")
 	    .attr("id", d => "arrow" + this.getLinkRef(d))
-	    .attr("viewBox", "0 -5 10 10")
-	    .attr("refX", d => this.getLinkTargetRadius(d))
+	    .attr("viewBox", "0 -5 14 14")
+	    .attr("refX", d => this.getLinkTarget(d).data.r)
 	    .attr("refY", 0)
 	    .attr("markerWidth", this.markerWidth)
 	    .attr("markerHeight", this.markerHeight)
@@ -70,16 +76,19 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .attr("fill", d => this.getLinkColor(d));
     }
 
-    getLinkTargetRadius(link) {
+    getLinkTarget(link) {
 	let targetId = link.target;
-	let target = this.nodes.find(node => node.id === targetId);
-	return target.data.r;
+	return this.nodes.find(node => node.id === targetId);
+    }
+
+    //Currently unused
+    getLinkSource(link) {
+	let srcId = link.source;
+	return this.nodes.find(node => node.id === srcId);
     }
     
     //TODO: Switch to enum
-    //TODO: Fix coloring
-    getLinkColor(d) {
-	console.log(d);
+    getLinkColor(d) {	
 	switch(d.type) {
 	case "familial":
 	    return this.famLinkColor;
@@ -127,7 +136,7 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     dragStarted(d, sim) {
-	if (!d3.event.active) sim.alphaTarget(0.3).restart();
+	if (!d3.event.active) sim.alphaTarget(0.5).restart();
 	d.fx = d3.event.x;
 	d.fy = d3.event.y;
     }
