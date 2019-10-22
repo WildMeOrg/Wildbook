@@ -2485,14 +2485,6 @@
     <url-pattern>/AddOccToTrack</url-pattern>
   </servlet-mapping>
   
-    <servlet>
-    <servlet-name>StandardImport</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.StandardImport</servlet-class>
-  </servlet>
-  
-    <servlet-mapping>
-      <servlet-name>StandardImport</servlet-name>
-      <url-pattern>/StandardImport</url-pattern>
-  </servlet-mapping>
+
 
 </web-app>
