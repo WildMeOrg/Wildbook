@@ -260,6 +260,19 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 						all.put(j);
 					}
 		  		}
+		  		
+		  		//insert old CR code
+
+				if ("true".equals(request.getParameter("isOwner")) && CommonConfiguration.isCatalogEditable(context)) {
+					File tryCR = new File(ma.localPath().toString().replaceFirst(".([^.]+)$", "_CR.$1"));
+					if (tryCR.exists()) {
+						String crimg = ma.getFilename().replaceFirst(".([^.]+)$", "_CR.$1");
+						%><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=enc.getCatalogNumber() %>&filename=<%=ma.getFilename() %>&mediaAssetId=<%=ma.getId() %>"><img src="<%=ma.webURL().toString().replaceFirst(".([^.]+)$", "_CR.$1") %>" /></a><div class="note"><%=encprops.getProperty("candidateRegion")%></div></div>
+						<%
+					} 
+				}
+		  		//end insert old CR code
+		  		
 		  	}
 		  	// out.println("var assets = " + all.toString() + ";");
 		    //System.out.println("All media assets as an array: "+all.toString());
@@ -401,6 +414,25 @@ figcaption div {
 .image-enhancer-wrapper div {
 	cursor: auto;
 }
+
+div.gallery-download {
+    text-align: center;
+    font-size: 0.8em;
+    margin-top: -2.5em;
+}
+
+.gallery-download a {
+    display: inline-block;
+    background-color: #DDD;
+    margin: 5px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+.gallery-download a:hover {
+    background-color: #CCA;
+}
+
 
 .image-enhancer-feature-zoom {
     width: 100%;
@@ -814,6 +846,11 @@ function doImageEnhancer(sel) {
             }],
 */
 	];
+        
+        opt.menu.push(['create optional feature region', function(enh) {
+            var mid = enh.imgEl.data('enh-mediaassetid');
+            window.location.href = 'encounterCR.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
+        }]);
 
         wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
 <%
