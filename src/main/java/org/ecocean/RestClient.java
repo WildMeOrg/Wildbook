@@ -318,9 +318,12 @@ System.out.println("TRYING anyMethodGeneric(" + method + ") url -> " + url);
         BufferedReader br = null;
         try {
             br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
-        } catch (IOException ioe) {
+        } catch (Exception ex) {
+            System.out.println("exception caught; responseCode=" + conn.getResponseCode());
             br = new BufferedReader(new InputStreamReader((conn.getErrorStream())));
+            ex.printStackTrace();
         }
+        if (br == null) throw new IOException("unable to read input stream; responseCode=" + conn.getResponseCode());
 
         String output;
         String jtext = "";
