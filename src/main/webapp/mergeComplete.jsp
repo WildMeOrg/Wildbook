@@ -10,7 +10,7 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("merge.jsp");
+myShepherd.setAction("mergeComplete.jsp");
 
 String oldNameA = request.getParameter("oldNameA");
 String oldNameB = request.getParameter("oldNameB");
