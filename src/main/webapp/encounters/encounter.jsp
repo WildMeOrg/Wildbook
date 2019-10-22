@@ -999,22 +999,12 @@ if(enc.getLocation()!=null){
           <option value=""></option>
 
           <%
-          if (useCustomProperties) {
             List<String> countries = CommonConfiguration.getIndexedPropertyValues("country",request);
             for (String country: countries) {
               %>
               <option value="<%=country%>"><%=country%></option>
               <%
             }
-          } else {
-            String[] locales = Locale.getISOCountries();
-            for (String countryCode : locales) {
-              Locale obj = new Locale("", countryCode);
-              %>
-              <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
-              <%
-            }
-          }
           %>
         </select>
       </div>
