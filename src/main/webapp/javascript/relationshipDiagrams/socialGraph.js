@@ -1,15 +1,18 @@
 //TODO List
 
+//Add unique coloration for maternal vs paternal familial relationships
+//Should sibiling relationships be visualized with an edge?
 //Add "freeze" button to stop graph ticks
 
 function setupSocialGraph(individualID) {
-    let sg = new SocialGraph(individualID);
+    let focusedScale = 1.25;
+    let sg = new SocialGraph(individualID, focusedScale);
     sg.graphSocialData(false, [0,0]); //Dummied method
 }
 
 class SocialGraph extends ForceLayoutAbstract {
-    constructor(individualID) {
-	super(individualID);
+    constructor(individualID, focusedScale) {
+	super(individualID, focusedScale);
 	
 	//TODO: Parse this data
 	//It would be really great if some clever heirarchical representation could be used
@@ -68,13 +71,13 @@ class SocialGraph extends ForceLayoutAbstract {
 	];
 
 	this.links = [
-	    {"source": 0, "target": 1, "type": "familial"},
+	    {"source": 0, "target": 1, "type": "paternal"},
 	    {"source": 0, "target": 3, "type": "member"},
-	    {"source": 0, "target": 5, "type": "familial"},
-	    {"source": 3, "target": 4, "type": "familial"},
-	    {"source": 4, "target": 5, "type": "member"},
+	    {"source": 3, "target": 4, "type": "maternal"},
+	    {"source": 4, "target": 5, "type": "familial"},
 	    {"source": 5, "target": 3, "type": "member"},
-	    {"source": 2, "target": 1, "type": "member"}
+	    {"source": 2, "target": 1, "type": "member"},
+	    {"source": 2, "target": 0, "type": "member"}
 	];
     }
 
@@ -86,16 +89,18 @@ class SocialGraph extends ForceLayoutAbstract {
 	if (json.length >= 1) {
 	    this.appendSvg("#socialDiagram");
 	    this.addTooltip("#socialDiagram");	    
+
 	    this.calcNodeSize(this.nodes);
+	    this.setNodeRadius();
 	    
 	    let forces = this.getForces();
 	    let [linkRef, nodeRef] = this.createGraph();
 	    
-	    let circles = this.drawNodeOutlines(nodeRef, false);
+	    this.drawNodeOutlines(nodeRef, false);
 	    this.drawNodeSymbols(nodeRef, false);
 	    this.addNodeText(nodeRef, false);
 
-	    this.enableDrag(circles, forces);
+	    this.enableDrag(nodeRef, forces);
 	    this.applyForces(forces, linkRef, nodeRef);
 	}
     }

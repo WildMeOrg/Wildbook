@@ -1,3 +1,5 @@
+//TODO: Enlarge node on hover
+
 class GraphAbstract {
     constructor(individualID, focusedScale=1) {
 	this.id = individualID;
@@ -15,15 +17,15 @@ class GraphAbstract {
 	//Node Attributes
 	this.numNodes;
 	this.radius;
-	this.maxRadius = 50;
-	this.scalingFactor = 25; //TODO: Tune this value
+	this.maxRadius = 60;
+	this.scalingFactor = 30; //TODO: Tune this value
 	this.nodeMargin = 15;
 	this.nodeSeparation;
 	this.transitionDuration = 750;
 
-	this.strokeWidth = 3;
+	this.strokeWidth = 3.5;
 	
-	this.fontSize = 12;
+	this.fontSize = 14;
 	this.focusedScale = focusedScale;
 
 	//Node Style Attributes
@@ -38,6 +40,8 @@ class GraphAbstract {
 	
 	this.defLinkColor = "#a6a6a6";
 	this.famLinkColor = "#000000";
+	this.maternalLinkColor = "#f198c5";
+	this.paternalLinkColor = "#696dc4";
 	
 	//Zoom Attributes
 	this.zoomFactor = 1000;
@@ -62,7 +66,8 @@ class GraphAbstract {
 	    .call(this.zoom.on("zoom", () => {
 		this.svg.attr("transform", d3.event.transform)
 	    }))
-	    .append("g");
+	    .append("g")
+	    .attr("class", "container");
     }
 
     wheelDelta () {
@@ -196,7 +201,6 @@ class GraphAbstract {
 	    .attr("dy", ".5em") //Vertically centered
 	    .text(d => d.data.name)
 	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d, isHidden)) + "px")
-//	    .style("fill-opacity", () => isHidden ? 0 : 1)
 	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
     }
 

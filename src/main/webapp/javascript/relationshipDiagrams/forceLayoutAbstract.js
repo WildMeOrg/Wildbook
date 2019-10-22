@@ -1,8 +1,22 @@
 class ForceLayoutAbstract extends GraphAbstract {
     constructor(individualId, focusedScale=1) {
 	super(individualId, focusedScale);
+
+	ForceLayoutAbstract.count = ForceLayoutAbstract.count + 1 || 0;
+	this.graphId = ForceLayoutAbstract.count;
+	console.log(this.graphId);
+	
+	this.linkWidth = 2;
+	this.markerWidth = 6;
+	this.markerHeight = 6;
     }
 
+    setNodeRadius() {
+	this.nodes.forEach(d => {
+	    d.data.r = this.radius * this.getSizeScalar(d);
+	});
+    }
+    
     getForces() {
 	return d3.forceSimulation()
 	    .force("link", d3.forceLink().id(d => d.id))
@@ -16,14 +30,66 @@ class ForceLayoutAbstract extends GraphAbstract {
 	let nodeRef = this.createNodes();
 	return [linkRef, nodeRef];
     }
-    
+
     createLinks() {
-	return this.svg
-	    .selectAll("line")
+	//Define arrow heads
+	this.defineArrows();
+
+	//Create line links w/ arrows
+	return this.svg.selectAll("line")
 	    .data(this.links)
-	    .enter().append("line")
-	    .attr("stroke", d => (d.type === "familial") ? this.famLinkColor : this.defLinkColor)
-	    .attr("stroke-width", 2);
+	    .enter()
+	    .append("line")
+	    .attr("stroke", d => this.getLinkColor(d))
+	    .attr("stroke-width", this.linkWidth)
+	    .attr("marker-end", d => {
+		return "url(#arrow" + this.getLinkRef(d) + ")"
+	    });
+    }
+
+    getLinkRef(d) {
+	return this.graphId + "-" + d.source + ":" + d.target; 
+    }
+
+    //TODO: Add support for unique colors
+    defineArrows() {	
+	this.svg.append("defs")
+	    .selectAll("marker")
+	    .data(this.links)
+	    .enter()
+	    .append("marker")
+	    .attr("id", d => "arrow" + this.getLinkRef(d))
+	    .attr("viewBox", "0 -5 10 10")
+	    .attr("refX", d => this.getLinkTargetRadius(d))
+	    .attr("refY", 0)
+	    .attr("markerWidth", this.markerWidth)
+	    .attr("markerHeight", this.markerHeight)
+	    .attr("orient", "auto")
+	    .append("path")
+	    .attr("d", "M0,-5L10,0L0,5")
+	    .attr("fill", d => this.getLinkColor(d));
+    }
+
+    getLinkTargetRadius(link) {
+	let targetId = link.target;
+	let target = this.nodes.find(node => node.id === targetId);
+	return target.data.r;
+    }
+    
+    //TODO: Switch to enum
+    //TODO: Fix coloring
+    getLinkColor(d) {
+	console.log(d);
+	switch(d.type) {
+	case "familial":
+	    return this.famLinkColor;
+	case "paternal":
+	    return this.paternalLinkColor;
+	case "maternal":
+	    return this.maternalLinkColor;
+	default:
+	    return this.defLinkColor;
+	}
     }
 
     createNodes() {
@@ -35,9 +101,8 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .on("mouseover", d => this.handleMouseOver(d))					
 	    .on("mouseout", d => this.handleMouseOut(d));
     }
-
+    
     enableDrag(circles, force) {
-	//circles.attr("fill", d => this.color(d.group))
 	circles.call(d3.drag()
 		     .on("start", d => this.dragStarted(d, force))
 		     .on("drag", d => this.dragged(d, force))
@@ -51,12 +116,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	forces.force("link")
 	    .links(this.links);
     }
-
     
-    color(group) {
-	return d3.scaleOrdinal(d3.schemeCategory20)(group);
-    }
-
     ticked(linkRef, nodeRef) {
 	linkRef.attr("x1", d => d.source.x)
 	    .attr("y1", d => d.source.y)
