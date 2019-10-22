@@ -16,7 +16,7 @@ const DATA = {
     "name": "Lion 1",
     "gender": "female",
     "role": "alpha",
-    "isFocus": true,
+    "isFocused": true,
     "children": [
 	{
 	    "name": "Lion 2",
@@ -75,13 +75,14 @@ const DATA = {
 };
 
 function setupFamilyTree(individualID) {
-    let ft = new FamilyTree(individualID);
+    let focusedScale = 1.25;
+    let ft = new FamilyTree(individualID, focusedScale);
     ft.applySocialData();
 }
 
 class FamilyTree extends GraphAbstract {
-    constructor(individualID) {
-	super(individualID); //Parent constructor
+    constructor(individualID, focusedScale) {
+	super(individualID, focusedScale); //Parent constructor
 	
 	this.i = 0; //TODO: Rename	
 	
@@ -113,28 +114,17 @@ class FamilyTree extends GraphAbstract {
 	}
 	else if (json.length >= 1) {
 	    this.tree = d3.tree()
-		.separation((a, b) => (a.parent === b.parent) ? 1 : 1.6);
+		.separation((a, b) => (a.parent === b.parent) ? 1 : 1.5);
 
 	    this.appendSvg("#familyDiagram");
-	    
-//TODO - Fix shift?
-/*	    this.svg = d3.select("#familyDiagram").append("svg")	        
-		.attr("width", this.width)
-		.attr("height", this.height)
-//	    	.call(this.zoom.transform, d3.zoomIdentity.translate(this.margin.left, this.margin.top))
-		.call(this.zoom.on("zoom", () => {
-		    this.svg.attr("transform", d3.event.transform)
-		}))
-		.append("g")
-//		.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-*/
+//	    this.svg.attr("transform", "translate(" + this.width/2 + "," + this.height/2 + ")");
 	    
 	    //Define the tooltip div
 	    this.addTooltip("#familyDiagram");
 	    
 	    this.root = d3.hierarchy(DATA, d => d.children); //TODO: Change to this.data when possible
 	    this.root.x0 = this.height / 2;
-	    this.root.y0 = 0;
+	    this.root.y0 = this.width / 2;
 
 	    this.updateTree(this.root);
 	}
@@ -155,25 +145,33 @@ class FamilyTree extends GraphAbstract {
 	let nodeSize = (this.radius * 2) + this.nodeMargin;
 	treeData = this.tree.nodeSize([nodeSize, nodeSize])(this.root);
 
+//	console.log(d3.select("#familyDiagram .container").node().getBBox());
+	
 	//Compute the new tree layout
 	nodes = treeData.descendants();
 	links = treeData.descendants().slice(1);
 	
 	// Normalize for fixed-depth.
 	nodes.forEach(d => {
-	    console.log(d);
+	    //console.log(d);
             d.y = d.depth * this.nodeSeparation;
 	});
 
 	//Get reference to all nodes
 	let allNodes = this.svg.selectAll("g.node")
 	    .data(nodes, d => d.id || (d.id = ++this.i));
-
+	
 	//Handle nodes
 	let updateNodes = this.addNewNodes(allNodes, source)
 	    .merge(allNodes);
 	this.updateNodes(updateNodes);
 	this.removeStaleNodes(allNodes, source);
+
+	console.log(d3.select("#familyDiagram .container").node().getBBox());
+	let box = d3.select("#familyDiagram .container").node().getBBox();
+	let xShift = (this.width - (box.x - box.width)) / 2;
+	let yShift = (this.height - (box.y - box.height)) / 2;
+	d3.select("#familyDiagram .container").attr("transform", "translate(" + xShift + "," + yShift + ")");
 	
 	//Get reference to all links
 	let link = this.svg.selectAll("path.link")
@@ -200,10 +198,11 @@ class FamilyTree extends GraphAbstract {
 	    .on("click", d => this.click(d))
 	    .on("mouseover", d => this.handleMouseOver(d))					
             .on("mouseout", d => this.handleMouseOut(d));
-	
-	this.drawNodeOutlines(nodeEnter, true);
-	this.drawNodeSymbols(nodeEnter, true);
-	this.addNodeText(nodeEnter, true);
+
+	let isHidden = true;
+	this.drawNodeOutlines(nodeEnter, isHidden);
+	this.drawNodeSymbols(nodeEnter, isHidden);
+	this.addNodeText(nodeEnter, isHidden);
 
 	return nodeEnter;
     }
@@ -214,12 +213,13 @@ class FamilyTree extends GraphAbstract {
 	    .duration(this.transitionDuration)
 	    .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
 
+	let isHidden = false;
 	nodeUpdate.select("circle")
-	    .attr("r", this.radius)
+	    .attr("r", d => this.radius * this.getSizeScalar(d, isHidden))
 	    .style("fill", d => this.colorCollapsed(d)); //Updates color if collapsed
 
 	nodeUpdate.select("text")
-	    .style("fill-opacity", 1);
+	    .style("font-size", d => this.fontSize * this.getSizeScalar(d, isHidden) + "px");
 
 	this.updateSymbols(nodeUpdate, false);
 	
@@ -235,10 +235,10 @@ class FamilyTree extends GraphAbstract {
 
 	//TODO: Consider better solution than shrinking for invisibility
 	nodeExit.select("circle")
-	    .attr("r", 1e-6);
+	    .attr("r", 0);
 
 	nodeExit.select("text")
-	    .style("fill-opacity", 1e-6);
+	    .style("font-size", "0px");
 
 	this.updateSymbols(nodeExit, true);
 

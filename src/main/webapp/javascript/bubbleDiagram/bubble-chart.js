@@ -3,13 +3,13 @@
 //TODO - Implement or delete zoom/reset buttons
 
 function setupOccurrenceGraph() { //TODO - look into individualID
-    let occurrences = new OccurrenceGraph(null); //TODO - Remove mock
+    let focusedScale = 1.75;
+    let occurrences = new OccurrenceGraph(null, focusedScale); //TODO - Remove mock
     occurrences.graphOccurenceData(false, null); //TODO: Remove mock
 }
 
 class OccurrenceGraph extends ForceLayoutAbstract {
-    constructor(individualId) {
-	let focusedScale = 1.75;
+    constructor(individualId, focusedScale) {
 	super(individualId, focusedScale);
 	
 	//TODO: Parse this data
@@ -69,10 +69,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	];
 
 	this.links = [
-	    {"source": 0, "target": 1, "type": "familial"},
+	    {"source": 0, "target": 1, "type": "maternal"},
 	    {"source": 0, "target": 2, "type": "member"},
 	    {"source": 0, "target": 3, "type": "familial"},
-	    {"source": 0, "target": 4, "type": "familial"},
+	    {"source": 0, "target": 4, "type": "paternal"},
 	    {"source": 0, "target": 5, "type": "member"},
 	];	
     }
@@ -84,8 +84,9 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	else { //if (json.length >= 1) { //TODO
 	    this.appendSvg("#bubbleChart");
 	    this.addTooltip("#bubbleChart");
-	    console.log("Tooltip", this.tooltip);
+
 	    this.calcNodeSize(this.nodes);
+	    this.setNodeRadius();
 	    
 	    let forces = this.getForces();
 	    let [linkRef, nodeRef] = this.createGraph();

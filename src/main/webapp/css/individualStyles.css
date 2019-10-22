@@ -242,7 +242,9 @@ li.active{
 
 /* Family Tree Styles */
 #familyDiagram svg, #socialDiagram svg {
-    border: 1px solid #aaa;
+    width: 100%;
+/*    border: 1px solid #aaa; TODO - Remove?*/
+    
 }
 
 .individual rect {
