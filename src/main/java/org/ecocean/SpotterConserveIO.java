@@ -1062,6 +1062,21 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
     }
 
 
+    //this assumes the user is Whale Alert (for now?)
+    public static boolean testLogin(String username, String password) {
+        try {
+            checkInit();
+            long since = (System.currentTimeMillis() - (7*24*60*60*1000)) / 1000l;
+            URL getUrl = new URL(apiUrlPrefix + "/project/" + PROJECT_ID_WA + "/trip_data/" + since + "/0");
+            String res = RestClient.get(getUrl, username, password);
+        } catch (Exception ex) {
+            System.out.println("SpotterConserveIO.testLogin() failed with " + ex.toString());
+            ex.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
     //TODO needs some better way to tell some of these... sigh
     public static String tripFlavor(JSONObject tripData) {
         if (tripData == null) return null;
