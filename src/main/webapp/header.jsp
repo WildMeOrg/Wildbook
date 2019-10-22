@@ -514,18 +514,30 @@ confShepherd.closeDBTransaction();
                     },
                     success: function( data ) {
                         var res = $.map(data, function(item) {
-                            var label;
+                            var label="";
+                            var nickname="";
+                            var species="";
                             if ((item.type == "individual")&&(item.species!=null)) {
 //                                label = item.species + ": ";
-                            } 
+                            }
                             else if (item.type == "user") {
                                 label = "User: ";
                             } else {
                                 label = "";
                             }
-                            return {label: label + item.label,
+
+                            if(item.nickname != null){
+                            	nickname = " \""+item.nickname+"\"";
+                            }
+                            if(item.species != null){
+                            	species = " ("+item.species.substring(0,6)+".)";
+                            	
+                            }
+
+                            return {label: label + item.label+nickname+species,
                                     value: item.value,
-                                    type: item.type};
+                                    type: item.type,
+                                    nickname: nickname};
                             });
 
                         response(res);
