@@ -71,8 +71,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	this.links = [
 	    {"source": 0, "target": 1, "type": "maternal"},
 	    {"source": 0, "target": 2, "type": "member"},
-	    {"source": 0, "target": 3, "type": "familial"},
-	    {"source": 0, "target": 4, "type": "paternal"},
+	    {"source": 0, "target": 3, "type": "maternal"},
+	    {"source": 0, "target": 4, "type": "maternal"},
 	    {"source": 0, "target": 5, "type": "member"},
 	];	
     }
@@ -91,11 +91,11 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    let forces = this.getForces();
 	    let [linkRef, nodeRef] = this.createGraph();
 	    
-	    let circles = this.drawNodeOutlines(nodeRef, false);
+	    this.drawNodeOutlines(nodeRef, false);
 	    this.drawNodeSymbols(nodeRef, false);
 	    this.addNodeText(nodeRef, false);
 
-	    this.enableDrag(circles, forces);
+	    this.enableDrag(nodeRef, forces);
 	    this.applyForces(forces, linkRef, nodeRef);	    
 	}
     }

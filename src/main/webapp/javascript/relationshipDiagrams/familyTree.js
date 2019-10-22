@@ -92,7 +92,7 @@ class FamilyTree extends GraphAbstract {
     }
 
     //TODO: Consider moving this outside the scope of the class.. The obj references are clunky
-    applySocialData(individualID, callback) {
+    applySocialData() {
 	d3.json(wildbookGlobals.baseUrl + "/api/jdoql?" +
 		encodeURIComponent("SELECT FROM org.ecocean.social.Relationship WHERE (this.type == \"social grouping\") && " +
 				   "(this.markedIndividualName1 == \"" + this.id + "\" || this.markedIndividualName2 == \"" +
@@ -102,15 +102,6 @@ class FamilyTree extends GraphAbstract {
     graphFamilyData(error, json) {
 	if (error) {
 	    return console.error(error);
-	}
-
-	//If there are no familial relationships, default to social relationships table
-	if (json.length < 1) { //TODO: Consider defaulting to this...
-	    $(".socialVis").hide();
-	    $("#communityTable").show();
-	    $(".socialVisTab").removeClass("active");
-	    $("#communityTableTab").addClass("active");
-	    this.showIncompleteInformationMessage();
 	}
 	else if (json.length >= 1) {
 	    this.tree = d3.tree()
@@ -128,6 +119,7 @@ class FamilyTree extends GraphAbstract {
 
 	    this.updateTree(this.root);
 	}
+	else this.showTable("#communityTable", ".socialVis");
     }
 
     updateTree(source) {	
@@ -279,7 +271,4 @@ class FamilyTree extends GraphAbstract {
 	    .remove();
     }
 
-    showIncompleteInformationMessage() {
-	$("#familyDiagram").html("<h4>There are currently no known familial relationships for this Marked Individual</h4>")
-    };
 }

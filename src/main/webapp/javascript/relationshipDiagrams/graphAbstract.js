@@ -17,8 +17,8 @@ class GraphAbstract {
 	//Node Attributes
 	this.numNodes;
 	this.radius;
-	this.maxRadius = 60;
-	this.scalingFactor = 30; //TODO: Tune this value
+	this.maxRadius = 50;
+	this.scalingFactor = 25; //TODO: Tune this value
 	this.nodeMargin = 15;
 	this.nodeSeparation;
 	this.transitionDuration = 750;
@@ -28,10 +28,12 @@ class GraphAbstract {
 	this.fontSize = 14;
 	this.focusedScale = focusedScale;
 
+	this.alphaSymbSize = 200; //TODO: Figure out the units on this...
+
 	//Node Style Attributes
 	this.maleColor = "steelblue";
 	this.femaleColor = "palevioletred";
-	this.defGenderColor = "#757575";
+	this.defGenderColor = "#845ec2";
 
 	this.alphaColor = "#bf0000";
 
@@ -39,9 +41,9 @@ class GraphAbstract {
 	this.collapsedNodeColor = "#d3d3d3";	
 	
 	this.defLinkColor = "#a6a6a6";
-	this.famLinkColor = "#000000";
-	this.maternalLinkColor = "#f198c5";
-	this.paternalLinkColor = "#696dc4";
+	this.famLinkColor = "#b59eda";
+	this.maternalLinkColor = "#f3acd0";
+	this.paternalLinkColor = "#8facc6";
 	
 	//Zoom Attributes
 	this.zoomFactor = 1000;
@@ -54,9 +56,24 @@ class GraphAbstract {
 	    .wheelDelta(() => this.wheelDelta());
 
 	//Tooltip Attributes
-	//this.tooltip;
 	this.popup = false;
 	this.fadeDuration = 200;
+    }
+
+    showTable(contentRef, tableRef) {
+	//Display tableRef, hide contentRef
+	$(contentRef).hide();
+	$(tableRef).show();
+	$(contentRef).removeClass("active");
+	$(tableRef).addClass("active");
+
+	//Report incomplete info
+	this.showIncompleteInformationMessage();
+    }
+
+    showIncompleteInformationMessage() {
+	$("#familyDiagram").html("<h4>There are currently no known relationships" +
+				 " for this Marked Individual</h4>")
     }
 
     appendSvg(containerId) {
@@ -70,7 +87,7 @@ class GraphAbstract {
 	    .attr("class", "container");
     }
 
-    wheelDelta () {
+    wheelDelta() {
 	return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1 ) / this.zoomFactor;
     }
 
@@ -165,7 +182,7 @@ class GraphAbstract {
 		return d3.symbol().type(d3.symbolCircle)
 		    .size(() => {
 			if (d.data.role && d.data.role.toUpperCase() == "ALPHA")
-			    return 125 * this.getSizeScalar(d);
+			    return this.alphaSymbSize * this.getSizeScalar(d);
 			else return 0;
 		    })();
 	    })
