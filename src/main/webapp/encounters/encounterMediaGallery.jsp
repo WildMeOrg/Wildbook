@@ -1011,6 +1011,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         fel.addClass('image-enhancer-feature-aoi');
         tooltip += '<br /><i style="color: #280; font-size: 0.8em;">Annotation of Interest</i>';
     }
+    if (feat.parameters.viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + feat.parameters.viewpoint + '</b></i>';
     if (focused) fel.addClass('image-enhancer-feature-focused');
     fel.prop('data-tooltip', tooltip);
     fel.css({
