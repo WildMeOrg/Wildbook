@@ -1,72 +1,68 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.*" %>
-
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,java.util.Random" %>
 
 
   <%
   String context="context0";
   context=ServletUtilities.getContext(request);
 
+    //let's load encounterSearch.properties
+    //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
     
     String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     
     Properties map_props = new Properties();
-    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
-    map_props=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode, context);
+    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
+    map_props = ShepherdProperties.getProperties("mappedSearchResults.properties", langCode,context);
+	  
 
     
-    
-
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
+	//haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
+	haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
+		
+
+    Properties localeprops = new Properties();
+    localeprops = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
+	
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("mappedSearchResults.jsp");
 
+	Random ran= new Random();
 
-
-
-
-    //set up paging of results
-    int startNum = 1;
-    int endNum = 10;
-    try {
-
-      if (request.getParameter("startNum") != null) {
-        startNum = (new Integer(request.getParameter("startNum"))).intValue();
-      }
-      if (request.getParameter("endNum") != null) {
-      
-        endNum = (new Integer(request.getParameter("endNum"))).intValue();
-      }
-
-    } catch (NumberFormatException nfe) {
-      startNum = 1;
-      endNum = 10;
+	//set up the aspect styles
+	String haplotypeStyle="";
+	String sexStyle="";
+	String generalStyle="";
+    if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("haplotype"))){
+    	haplotypeStyle="background-color:#D8D8D8";
     }
-    int numResults = 0;
+    else if((request.getParameter("showBy")!=null)&&(request.getParameter("showBy").trim().equals("sex"))){
+    	sexStyle="background-color:#D8D8D8";
+    }
+    else{
+    	generalStyle="background-color:#D8D8D8";
+    	//general comment
+    }
 
-    //set up the vector for matching encounters
-    Vector rEncounters = new Vector();
 
-    //kick off the transaction
-    myShepherd.beginDBTransaction();
 
-    //start the query and get the results
-    String order = "";
-    request.setAttribute("gpsOnly", "yes");
-    EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
-    rEncounters = queryResult.getResult();
 
-    // security
-    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request,myShepherd);
-    rEncounters = hiddenData.securityScrubbedResults(rEncounters);
-    		
-    		
-  %>
+    List<String> allHaplos2=new ArrayList<String>(); 
+    int numHaplos2 = 0;
+    allHaplos2=myShepherd.getAllHaplotypes(); 
+    numHaplos2=allHaplos2.size();
+    
+    List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
+    int numSpecies=allSpecies.size();
+   
+    List<String> allSpeciesColors=CommonConfiguration.getIndexedPropertyValues("genusSpeciesColor",context);
+    int numSpeciesColors=allSpeciesColors.size();
+%>
+
 
 
 
@@ -117,9 +113,11 @@
     border-bottom: 1px solid #8DBDD8;
   }
   
+  
+  
 </style>
   
-      <script>
+      <script type="text/javascript">
         function getQueryParameter(name) {
           name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
           var regexS = "[\\?&]" + name + "=([^&#]*)";
@@ -134,122 +132,337 @@
         //test comment
   </script>
   
+  
   <jsp:include page="../header.jsp" flush="true"/>
+  
 
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
- <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
- 
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+<script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
+<script type="text/javascript" src="../javascript/GeoJSON.js"></script>
+
 
 
     <script type="text/javascript">
+    
+    var center = new google.maps.LatLng(0,0);
+    var mapZoom = 3;
+    if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+    var bounds = new google.maps.LatLngBounds();
+
+    var iw = new google.maps.InfoWindow({
+		content:'Loading and rendering map data...',
+		position:center
+	});
+     
+    var map;
+    var bounds = new google.maps.LatLngBounds();
+    var currentFeature_or_Features;
+    var geoJSONResults;
+    //aspect options: sex, haplotype, none
+    var aspect="none";
+    
+    var filename = "//<%=CommonConfiguration.getURLLocation(request)%>/GetEncounterSearchGoogleMapsPoints?<%=request.getQueryString()%>";
+    var overlays = [];
+    var overlaysSet=false;
+    
+
+    
       function initialize() {
-        var center = new google.maps.LatLng(0,0);
-        var mapZoom = 3;
-    	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-    	var bounds = new google.maps.LatLngBounds();
+    	  
+    	  map = new google.maps.Map(document.getElementById('map_canvas'), {
+    	      zoom: mapZoom,
+    	      center: center,
+    	      mapTypeId: google.maps.MapTypeId.TERRAIN,
+    	      fullscreenControl: true
+    	    });
+    	  
 
-        var map = new google.maps.Map(document.getElementById('map_canvas'), {
-          zoom: mapZoom,
-          center: center,
-          mapTypeId: google.maps.MapTypeId.TERRAIN,
-          fullscreenControl: true
-        });
-        
-  	 
+    	  iw.open(map);
+    	  
         var markers = [];
- 
- 
-        
-        <%
+	var movePathCoordinates = [];
 
-//now remove encounters this user cannot see
-for (int i = rEncounters.size() - 1 ; i >= 0 ; i--) {
-	Encounter enc = (Encounter)rEncounters.get(i);
-	if (!enc.canUserAccess(request)) rEncounters.remove(i);
-}
+  
+ 	var maxZoomService = new google.maps.MaxZoomService();
+ 	maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
+ 		    if (response.status == google.maps.MaxZoomStatus.OK) {
+ 		    	if(response.zoom < map.getZoom()){
+ 		    		map.setZoom(response.zoom);
+ 		    	}
+ 		    }
+ 		    
+	});
 
-int rEncountersSize=rEncounters.size();
-        int count = 0;
+ 	
 
-      
-        
-      
-if(rEncounters.size()>0){
-	int havegpsSize=rEncounters.size();
- for(int y=0;y<havegpsSize;y++){
-	 Encounter thisEnc=(Encounter)rEncounters.get(y);
-		String encSubdir = thisEnc.subdir();
-		if((thisEnc.getDecimalLatitude()!=null)&&(thisEnc.getDecimalLongitude()!=null)){
- %>
-          
-          var latLng = new google.maps.LatLng(<%=thisEnc.getDecimalLatitude()%>, <%=thisEnc.getDecimalLongitude()%>);
-          bounds.extend(latLng);
-           <%
-           
-           
-           //currently unused programatically
-           String markerText="";
-           
-           String haploColor="CC0000";
-           if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   haploColor=map_props.getProperty("defaultMarkerColor");
-           }
-
-           
-           %>
-           var marker = new google.maps.Marker({
-        	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
-        	   position:latLng,
-        	   map:map
-        	});
-    	   		
-google.maps.event.addListener(marker,'click', function() {
-	
-	<%
-	String individualLinkString="";
-	//if this is a MarkedIndividual, provide a link to it
-	if(thisEnc.getIndividualID()!=null){
-		individualLinkString="<strong><a target=\"_blank\" href=\"//"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.getIndividualID()+"\">"+thisEnc.getIndividual().getDisplayName()+"</a></strong><br />";
-	}
-	%>
-	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td><img class=\"lazyload\" align=\"top\" border=\"1\" width=\"100px\" height=\"75px\"  src=\"../cust/mantamatcher/img/individual_placeholder_image.jpg\" data-src=\"<%=thisEnc.getThumbnailUrl(context) %>\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
-
-});
- 
-	
-          markers.push(marker);
- 		  map.fitBounds(bounds);       
- 
- <%
- }
-	 }
-} 
-
-myShepherd.rollbackDBTransaction();
- %>
- 
- var options = {
-         imagePath: '../javascript/markerclusterer/m',
-         maxZoom: 10
-     };
-
-var markerCluster = new MarkerClusterer(map, markers, options);
- 
- //markerClusterer = new MarkerClusterer(map, markers, {gridSize: 10});
-
+ 	
       }
       
+      
 
+      
+      
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
     
+    <script type="text/javascript">
+
+
+
+function loadEncounterMapData(localResults,aspect){
+	
+	//alert("Entering function loadEncounterMapData");
+	
+	  //for (var i = 0; i < results.length; i++) {
+		//    var geoJsonObject = results.features[i];
+		//    var geometry = geoJsonObject.geometry;
+	  //}
+	  
+	  //alert("Done iterating...");
+	  var googleOptions = {
+			  strokeColor: '#CCC',
+			  strokeWeight: 1
+			};
+	  //alert("Results: "+localResults);
+	  //alert("Aspect is: "+aspect);
+	  currentFeature_or_Features = new GeoJSON(jQuery.parseJSON(localResults), googleOptions, map, bounds,aspect);
+	  	if (currentFeature_or_Features.type && currentFeature_or_Features.type == "Error"){
+			alert("GeoJSON read error: "+ currentFeature_or_Features.message);
+			//return;
+		}
+	  	//alert("No error");
+		if (currentFeature_or_Features.length){
+			//alert("Iterating through detected features: "  +currentFeature_or_Features.length);
+			for (var i = 0; i < currentFeature_or_Features.length; i++){
+				if(currentFeature_or_Features[i].length){
+					for(var j = 0; j < currentFeature_or_Features[i].length; j++){
+						currentFeature_or_Features[i][j].setMap(map);
+						if(currentFeature_or_Features[i][j].geojsonProperties) {
+							setInfoWindow(currentFeature_or_Features[i][j]);
+						}
+					}
+				}
+				else{
+					
+					currentFeature_or_Features[i].setMap(map);
+				}
+				if (currentFeature_or_Features[i].geojsonProperties) {
+					setInfoWindow(currentFeature_or_Features[i]);
+				}
+			}
+			
+			//currentFeature_or_Features.setMap(map);
+		}else{
+			//alert("In the else statement...");
+			currentFeature_or_Features.setMap(map);
+			if (currentFeature_or_Features.geojsonProperties) {
+				setInfoWindow(currentFeature_or_Features);
+			}
+		}
+}
+
+
+function clearMap(){
+	if (!currentFeature_or_Features) {
+		//alert("There is nothing to clear!");
+		return;
+	}
+	if (currentFeature_or_Features.length){
+		//alert("Iterating and clearing map...");
+		for (var i = 0; i < currentFeature_or_Features.length; i++){
+			if(currentFeature_or_Features[i].length){
+				for(var j = 0; j < currentFeature_or_Features[i].length; j++){
+					currentFeature_or_Features[i][j].setMap(null);
+				}
+			}
+			else{
+				currentFeature_or_Features[i].setMap(null);
+			}
+		}
+	}else{
+		//alert("Clearing map...");
+		currentFeature_or_Features.setMap(null);
+	}
+	//if (infowindow.getMap()){
+	//	infowindow.close();
+	//}
+}
+
+function hideTable(myID) {
+    var lTable = document.getElementById(myID);
+    lTable.style.display = "none";
+}
+
+function showTable(myID) {
+    var lTable = document.getElementById(myID);
+    lTable.style.display = "table";
+}
+function useNoAspect(){
+	//alert("In useNoAspect");
+	if(aspect != "none"){
+		aspect="none";
+		hideTable("haplotable");
+		 <%
+		 if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
+		 %>
+		hideTable("speciestable");
+		<%
+		 }
+		 %>
+		clearMap();
+		loadEncounterMapData(geoJSONResults,aspect);
+
+	}
+}
+function useSexAspect(){
+	//alert("In useSexAspect");
+	hideTable("haplotable");
+	 <%
+	 if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
+	 %>
+	hideTable("speciestable");
+	<%
+	 }
+	%>
+	if(aspect != "sex"){
+		aspect="sex";
+		
+		
+		clearMap();
+		loadEncounterMapData(geoJSONResults,aspect);
+	
+	}
+}
+function useHaplotypeAspect(){
+	//alert("In useHaplotypeAspect");
+	 <%
+ 	if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
+ 	%>
+	hideTable("speciestable");
+	<%
+ 	}
+	%>
+	showTable("haplotable");
+	if(aspect != "haplotype"){
+		aspect="haplotype";
+
+		clearMap();
+		loadEncounterMapData(geoJSONResults,aspect);
+		
+		
+	}
+}
+
+function useSpeciesAspect(){
+	//alert("In useHaplotypeAspect");
+	 <%
+ if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
+ %>
+	hideTable("speciestable");
+	<%
+ }
+	%>
+	hideTable("haplotable");
+	 <%
+	 if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
+	 %>
+	showTable("speciestable");
+	<%
+	 }
+	 %>
+	if(aspect != "species"){
+		aspect="species";
+		clearMap();
+		loadEncounterMapData(geoJSONResults,aspect);
+	}
+}
+
+
+
+
+function setInfoWindow (feature) {
+	google.maps.event.addListener(feature, "click", function(event) {
+		var content = "<div id='infoBox'><strong>GeoJSON Feature Properties</strong><br />";
+		for (var j in this.geojsonProperties) {
+			content += j + ": " + this.geojsonProperties[j] + "<br />";
+		}
+		content += "</div>";
+		infowindow.setContent(content);
+		infowindow.position = event.latLng;
+		infowindow.open(map);
+	});
+}
+
+function setOverlays() {
+	  
+	  if(!overlaysSet){
+
+    	if(!geoJSONResults){
+			//read in the GeoJSON 
+			//alert("Reading GeoJSON...");
+			
+			//old way
+			//var xhr = new XMLHttpRequest();
+			//xhr.open('GET', filename, true);
+			//alert("Accessing: "+filename);
+			$.ajax({
+				dataType: "text",
+				url:filename,
+				success:function(result){
+					iw.close();
+					geoJSONResults=result;
+					//alert(geoJSONResults);
+					loadEncounterMapData(geoJSONResults,aspect);
+				}
+			}
+			);
+			
+			//OLD way
+			//xhr.onload = function() {
+			//	iw.close();
+			//	geoJSONResults=this.responseText;
+			//	loadEncounterMapData(geoJSONResults,aspect);
+			//};
+			//xhr.send();
+			
+			
+	  	}
+    	else{
+    		loadEncounterMapData(geoJSONResults,aspect);
+    	}
+    	
+		
+		//alert("done loading!!!");
+    	
+    	//google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
+         
+         
+		  overlaysSet=true;
+      }
+	    
+   }
+
+
+
+</script>
+
+
+
 <div class="container maincontent">
  
 
- 
        <h1 class="intro"><%=map_props.getProperty("title")%></h1>
-
+     
  
+
+<%
+String queryString = "";
+if (request.getQueryString() != null) {
+  queryString = request.getQueryString();
+}
+%>
+
  <ul id="tabmenu">
  
    <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
@@ -271,49 +484,108 @@ var markerCluster = new MarkerClusterer(map, markers, options);
  
  </ul>
 
- 
- 
- 
- 
- <br />
- 
- 
 
+
+
+ 
  
  <%
- 
- //read from the map_props property file the value determining how many entries to map. Thousands can cause map delay or failure from Google.
- int numberResultsToMap = -1;
-
- %>
-
- 
-  <p><%=map_props.getProperty("aspects") %>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <%
-  boolean hasMoreProps=true;
-  int propsNum=0;
-  while(hasMoreProps){
-	if((map_props.getProperty("displayAspectName"+propsNum)!=null)&&(map_props.getProperty("displayAspectFile"+propsNum)!=null)){
-		%>
-		<a href="<%=map_props.getProperty("displayAspectFile"+propsNum)%>?<%=request.getQueryString()%>"><%=map_props.getProperty("displayAspectName"+propsNum) %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		
-		<%
-		propsNum++;
-	}
-	else{hasMoreProps=false;}
-  }
-  %>
-</p>
- 
- <%
-   if (rEncounters.size() > 0) {
-     myShepherd.beginDBTransaction();
+   //if (rIndividuals.size() > 0) {
+     //myShepherd.beginDBTransaction();
      try {
  %>
+
+ 
+ <p>
+ <%=map_props.getProperty("aspects")%>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer; color:blue" onClick="useNoAspect(); return false;"><%=map_props.getProperty("displayAspectName0") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSexAspect(); return false;"><%=map_props.getProperty("displayAspectName2") %></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useHaplotypeAspect(); return false;"><%=map_props.getProperty("displayAspectName1") %></a>
+  <%
+ if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
+ %>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a style="cursor:pointer;color:blue" onClick="useSpeciesAspect(); return false;"><%=map_props.getProperty("displayAspectName3") %></a>
+ <%
+ }
+ %>
+ </p>
  
 <p><%=map_props.getProperty("mapNote")%></p>
+ 
+ <div id="map-container">
+ 
+ 
+<table cellpadding="3" width="100%">
+ <tr>
+ <td valign="top" width="90%">
+<div id="map_canvas" style="width: 100%; height: 500px; "> </div>
+ </td>
+ 
 
- <div id="map_canvas" style="width: 100%; height: 500px;"></div>
+ <td valign="top" width="10%">
+ <table id="haplotable" style="display:none">
+ <tr><th><%=map_props.getProperty("haplotypeColorKey") %></th></tr>
+                    <%
+                    String haploColor="CC0000";
+                   if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
+                	   haploColor=map_props.getProperty("defaultMarkerColor");
+                   }   
+                   for(int yy=0;yy<numHaplos2;yy++){
+                       String haplo=allHaplos2.get(yy);
+                       if((haploprops.getProperty(haplo)!=null)&&(!haploprops.getProperty(haplo).trim().equals(""))){
+                     	  haploColor = haploprops.getProperty(haplo);
+                        }
+					%>
+					<tr bgcolor="#<%=haploColor%>"><td><strong><%=haplo %></strong></td></tr>
+					<%
+                   }
+                   if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
+                	   haploColor=map_props.getProperty("defaultMarkerColor");
+                	   %>
+                	   <tr bgcolor="#<%=haploColor%>"><td><strong>Unknown</strong></td></tr>
+                	   <%
+                   }  
+                   
+                   %>
+ </table>
+ </td>
+ <%
+ if((CommonConfiguration.getProperty("showTaxonomy",context)!=null)&&(!CommonConfiguration.getProperty("showTaxonomy",context).equals("false"))){
+ %>
+  <td valign="top" width="10%">
+ <table id="speciestable" style="display:none">
+ <tr><th>Species Color Key</th></tr>
+                    <%
+                    String speciesColor="CC0000";
+                   if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
+                	  speciesColor=map_props.getProperty("defaultMarkerColor");
+                   }   
+                   for(int yy=0;yy<numSpecies;yy++){
+                       String specie=allSpecies.get(yy);
+                       if(numSpeciesColors>yy){
+                     	  speciesColor = allSpeciesColors.get(yy);
+                        }
+					%>
+					<tr bgcolor="#<%=speciesColor%>"><td><strong><%=specie %></strong></td></tr>
+					<%
+                   }
+                   if((map_props.getProperty("defaultMarkerColor")!=null)&&(!map_props.getProperty("defaultMarkerColor").trim().equals(""))){
+                	   speciesColor=map_props.getProperty("defaultMarkerColor");
+                	   %>
+                	   <tr bgcolor="#<%=speciesColor%>"><td><strong>Unknown</strong></td></tr>
+                	   <%
+                   }  
+                   
+                   %>
+ </table>
+ </td>
+<%
+ }
+%>
+ 
+ 
+ </tr>
+ </table>
+ 
+
+ </div>
  
 
  
@@ -324,43 +596,31 @@ var markerCluster = new MarkerClusterer(map, markers, options);
        e.printStackTrace();
      }
  
-   }
- else {
- %>
- <p><%=map_props.getProperty("noGPS")%></p>
- <%
- }  
+
 
  
  
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
-   rEncounters = null;
+   //rIndividuals = null;
    //haveGPSData = null;
  
 %>
- <table>
-  <tr>
-    <td align="left">
 
-      <p><strong><%=map_props.getProperty("queryDetails")%>
-      </strong></p>
-
-      <p class="caption"><strong><%=map_props.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", map_props.getProperty("location")).replaceAll("locationCodeField", map_props.getProperty("locationID")).replaceAll("verbatimEventDateField", map_props.getProperty("verbatimEventDate")).replaceAll("alternateIDField", map_props.getProperty("alternateID")).replaceAll("behaviorField", map_props.getProperty("behavior")).replaceAll("Sex", map_props.getProperty("sex")).replaceAll("nameField", map_props.getProperty("nameField")).replaceAll("selectLength", map_props.getProperty("selectLength")).replaceAll("numResights", map_props.getProperty("numResights")).replaceAll("vesselField", map_props.getProperty("vesselField"))%>
-      </p>
-
-      <p class="caption"><strong><%=map_props.getProperty("jdoql")%>
-      </strong><br/>
-        <%=queryResult.getJDOQLRepresentation()%>
-      </p>
-
-    </td>
-  </tr>
-</table>
- </div>
- <jsp:include page="../footer.jsp" flush="true"/>
+</div>
 
 
+<jsp:include page="../footer.jsp" flush="true"/>
+
+
+<script>
+
+
+$( window ).load(function() {
+	setTimeout(function () {
+        setOverlays();  
+    }, 1000);
+});
+
+</script>
 

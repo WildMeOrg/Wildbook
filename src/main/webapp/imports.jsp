@@ -4,6 +4,7 @@ org.joda.time.DateTime,
 org.ecocean.servlet.importer.ImportTask,
 org.ecocean.media.MediaAsset,
 javax.jdo.Query,
+org.json.JSONArray,
 java.util.List,
 java.util.Collection,
 java.util.ArrayList,
@@ -184,6 +185,7 @@ if (itask == null) {
     int numIA = 0;
     boolean foundChildren = false;
 
+    JSONArray jarr = new JSONArray();
     if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
         out.println("<tr>");
         out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
@@ -206,7 +208,7 @@ if (itask == null) {
             out.println("<td><a title=\"" + enc.getOccurrenceID() + "\" href=\"occurrence.jsp?number=" + enc.getOccurrenceID() + "\">" + (Util.isUUID(enc.getOccurrenceID()) ? enc.getOccurrenceID().substring(0,8) : enc.getOccurrenceID()) + "</a></td>");
         }
         if (enc.hasMarkedIndividual()) {
-            out.println("<td><a title=\"" + enc.getIndividualID() + "\" href=\"individuals.jsp?number=" + enc.getIndividualID() + "\">" + enc.getIndividualID() + "</a></td>");
+            out.println("<td><a title=\"" + enc.getIndividualID() + "\" href=\"individuals.jsp?number=" + enc.getIndividualID() + "\">" + enc.getIndividual().getDisplayName() + "</a></td>");
         } else {
             out.println("<td class=\"dim\">-</td>");
         }
@@ -219,6 +221,7 @@ if (itask == null) {
             for (MediaAsset ma : mas) {
                 if (!allAssets.contains(ma)) {
                     allAssets.add(ma);
+                    jarr.put(ma.getId());
                     if (ma.getDetectionStatus() != null) numIA++;
                 }
                 if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
@@ -233,6 +236,7 @@ if (itask == null) {
 </tbody></table>
 <p>
 Total images: <b><%=allAssets.size()%></b>
+<script>var allAssetIds = <%=jarr.toString(4)%>;</script>
 </p>
 
 <p>

@@ -677,7 +677,7 @@ System.out.println("[1] getMatchingSet params=" + params);
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection)query.execute();
         Iterator it = c.iterator();
-        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        ArrayList<Annotation> anns = new ArrayList<Annotation>(c.size());
         while (it.hasNext()) {
             Annotation ann = (Annotation)it.next();
             if (!IBEISIA.validForIdentification(ann)) continue;
@@ -998,4 +998,16 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         }
         return all;
     }
+    
+    public static ArrayList<Encounter> checkForConflictingIDsforAnnotation(Annotation annot, String proposedIndividualIDForEncounter, Shepherd myShepherd){
+      ArrayList<Encounter> conflictingEncs=new ArrayList<Encounter>();
+      String filter="SELECT FROM org.ecocean.Encounter WHERE individual!=null && individual.individualID != \""+proposedIndividualIDForEncounter+"\" && annotations.contains(annot1) && annot1.acmId == \""+annot.getAcmId()+"\" VARIABLES org.ecocean.Annotation annot1";
+      Query q=myShepherd.getPM().newQuery(filter);
+      Collection c = (Collection) (q.execute());
+      conflictingEncs=new ArrayList<Encounter>(c);
+      q.closeAll();
+      return conflictingEncs;
+    }
+    
+    
 }

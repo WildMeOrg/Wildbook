@@ -74,6 +74,7 @@
 
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
+				/appadmin/users.jsp = authc, roles[admin]
 				/appadmin/iaSpeciesDiff.jsp = = authcBasicWildbook,roles[rest]
 
 
@@ -380,14 +381,14 @@
 				/OccurrenceSetObservation = authc, roles[researcher]
 				/EncounterSetObservation = authc, roles[researcher]
 				/EncounterVMData = authc, roles[researcher]
+				/encounters/encounterVM.jsp = authc, roles[researcher]
 
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
 				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
 				/sutime/** = authc
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
-				
-				/IndividualSetName = authc, roles[researcher]
+
 				
 				/AnnotationEdit = authc, roles[admin]
 				
@@ -395,6 +396,9 @@
 				/OrganizationEdit = authc, roles[admin]
 				/MergeIndividual = authc
 
+				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
+				
+				/merge.jsp = authc, roles[researcher]
             </param-value>
         </init-param>
     </filter>
@@ -542,7 +546,7 @@
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
   </servlet>
-  
+
 <!--
 <servlet>
 <servlet-name>EncounterSetPatterningPassport</servlet-name>
@@ -1265,6 +1269,11 @@
     <servlet>
       <servlet-name>GetIndividualSearchGoogleMapsPoints</servlet-name>
       <servlet-class>org.ecocean.servlet.export.GetIndividualSearchGoogleMapsPoints</servlet-class>
+  </servlet>
+  
+      <servlet>
+      <servlet-name>GetEncounterSearchGoogleMapsPoints</servlet-name>
+      <servlet-class>org.ecocean.servlet.export.GetEncounterSearchGoogleMapsPoints</servlet-class>
   </servlet>
 
   <servlet>
@@ -2004,6 +2013,11 @@
         <servlet-mapping>
           <servlet-name>GetIndividualSearchGoogleMapsPoints</servlet-name>
           <url-pattern>/GetIndividualSearchGoogleMapsPoints</url-pattern>
+  </servlet-mapping>
+  
+          <servlet-mapping>
+          <servlet-name>GetEncounterSearchGoogleMapsPoints</servlet-name>
+          <url-pattern>/GetEncounterSearchGoogleMapsPoints</url-pattern>
   </servlet-mapping>
 
       <servlet-mapping>

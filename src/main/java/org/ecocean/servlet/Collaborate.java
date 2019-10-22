@@ -66,7 +66,7 @@ public class Collaborate extends HttpServlet {
 	rtn.put("success", false);
 
 	System.out.println("/Collaborate: beginning servlet doPost with username "+username+" and currentUsernam "+currentUsername);
-
+	myShepherd.beginDBTransaction();
 	if (request.getUserPrincipal() == null) {
 		rtn.put("message", props.getProperty("inviteResponseMessageAnon"));
 
@@ -110,7 +110,7 @@ public class Collaborate extends HttpServlet {
 	} else if ((username == null) || username.equals("")) {
 		rtn.put("message", props.getProperty("inviteResponseMessageNoUsername"));
 	} else if ((approve != null) && !approve.equals("")) { // this block contains all the approve/unapprove logic
-		myShepherd.beginDBTransaction();
+		
 		Collaboration collab = Collaboration.collaborationBetweenUsers(myShepherd, currentUsername, username);
 		System.out.println("/Collaborate: inside approve: approve = "+approve+" and collab = "+collab);
 		if (collab == null) {
@@ -126,7 +126,7 @@ public class Collaborate extends HttpServlet {
 			System.out.println("/Collaborate: new .getState() = "+collab.getState()+" for collab "+collab);
 			rtn.put("success", true);
 			myShepherd.updateDBTransaction();
-			myShepherd.commitDBTransaction();
+			//myShepherd.commitDBTransaction();
 		}
 	//plain old invite!
 	} else {
@@ -137,6 +137,7 @@ public class Collaborate extends HttpServlet {
 		} else {
 			collab = Collaboration.create(currentUsername, username);
 			myShepherd.storeNewCollaboration(collab);
+			myShepherd.updateDBTransaction();
 
 			//TODO move emailing to .create()  ??
 			User recip = myShepherd.getUser(username);
@@ -158,8 +159,8 @@ public class Collaborate extends HttpServlet {
 				}
 
 				tagMap.put("@SENDER@", currentUsername);
-				tagMap.put("@SENDER-EMAIL", requesterEmailString);
-				tagMap.put("@LINK@", String.format(request.getScheme()+"://%s/myAccount.jsp", CommonConfiguration.getURLLocation(request)));
+				tagMap.put("@SENDER-EMAIL@", requesterEmailString);
+				tagMap.put("@LINK@", String.format("//%s/myAccount.jsp", CommonConfiguration.getURLLocation(request)));
 				if (optionalMessage!=null) {
 					optionalMessage = props.getProperty("inviteEmailHasMessage")+" "+optionalMessage;
 				} else {
@@ -198,6 +199,9 @@ public class Collaborate extends HttpServlet {
 		out.println(ServletUtilities.getFooter(context));
 	}
 	System.out.println("/Collab: about to return "+rtn);
+	
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 
 	out.close();
   }

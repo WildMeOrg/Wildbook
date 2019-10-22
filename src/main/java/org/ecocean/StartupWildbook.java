@@ -219,10 +219,14 @@ public class StartupWildbook implements ServletContextListener {
 
     public static boolean skipInit(ServletContextEvent sce, String extra) {
         ServletContext sc = sce.getServletContext();
+/*   WARNING!  this bad hackery to try to work around "double deployment" ... yuck!
+     see:  https://octopus.com/blog/defining-tomcat-context-paths
+
         if ("".equals(sc.getContextPath())) {
             System.out.println("++ StartupWildbook.skipInit() skipping ROOT (empty string context path)");
             return true;
         }
+*/
         String fname = "/tmp/WB_SKIP_INIT" + ((extra == null) ? "" : "_" + extra);
         boolean skip = new File(fname).exists();
         System.out.println("++ StartupWildbook.skipInit() test on " + extra + " [" + fname + "] --> " + skip);
