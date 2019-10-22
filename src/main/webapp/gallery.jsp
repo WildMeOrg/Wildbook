@@ -392,7 +392,7 @@ try{
 	          }
 	          pairMediaAssetID[j]=maJson.optString("id");
 	          pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
-	          pairName[j] = indie.getIndividualID();
+	          pairName[j] = indie.getDisplayName();
 	          pairNickname[j] = pairName[j];
 	          if (indie.getNickName()!=null  && !indie.getNickName().equals("Unassigned") && !indie.getNickName().equals("")) pairNickname[j] = indie.getNickName();
 	          %>
