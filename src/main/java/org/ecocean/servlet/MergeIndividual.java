@@ -57,6 +57,8 @@ public class MergeIndividual extends HttpServlet {
         if (mark1==null) msg+="<br>could not find individual "+mark1;
         if (mark2==null) msg+="<br>could not find individual "+mark2;
         errorAndClose("msg", response);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return;
       }
 
