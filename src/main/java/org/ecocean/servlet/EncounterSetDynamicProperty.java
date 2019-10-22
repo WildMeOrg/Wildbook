@@ -117,6 +117,7 @@ public class EncounterSetDynamicProperty extends HttpServlet {
           out.println("<strong>Success:</strong> Encounter dynamic property " + name + " was removed. The old value was <i>" + oldValue + "</i>.");
 
         }
+        response.setStatus(HttpServletResponse.SC_OK);
 
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -131,8 +132,10 @@ public class EncounterSetDynamicProperty extends HttpServlet {
         out.println(ServletUtilities.getFooter(context));
         String message = "Encounter " + request.getParameter("number") + " dynamic property " + name + " has been updated from \"" + oldValue + "\" to \"" + newValue + "\".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
+      } 
+      else {
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure:</strong> Encounter dynamic property " + name + " was NOT updated because another user is currently modifying this reconrd. Please try to reset the value again in a few seconds.");
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -149,6 +152,7 @@ public class EncounterSetDynamicProperty extends HttpServlet {
       }
     } else {
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
       List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);

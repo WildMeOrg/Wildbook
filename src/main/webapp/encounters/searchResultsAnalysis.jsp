@@ -1,12 +1,15 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" %>
-<%@ page import="java.util.*" %>
-<%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, org.ecocean.security.Collaboration" %>
+
 <%
-  String context = ServletUtilities.getContext(request);
-  String langCode = ServletUtilities.getLanguageCode(request);
-  Properties encprops = ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
-  Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
+String context="context0";
+context=ServletUtilities.getContext(request);
+String langCode=ServletUtilities.getLanguageCode(request);
+Properties encprops = new Properties();
+//encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
+encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
+
+
 %>
 
 
@@ -126,16 +129,30 @@ td.tdw:hover div {
     
  <ul id="tabmenu">
  
-  <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("table")%></a></li>
-  <li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("matchingImages")%></a></li>
-  <li><a href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("mappedResults") %></a></li>
-  <li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("resultsCalendar")%></a></li>
-  <li><a class="active"><%=propsShared.getProperty("analysis")%></a></li>
-  <li><a href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("export")%></a></li>
+   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
+   </a></li>
+   <li><a
+     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>
+   </a></li>
+   <li><a
+     href="mappedSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("mappedResults") %>
+   </a></li>
+   <li><a
+     href="../xcalendar/calendar.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("resultsCalendar")%>
+   </a></li>
+   <li><a class="active"><%=encprops.getProperty("analysis")%>
+   </a></li>
+      <li><a
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+   </a></li>
  
  </ul>
     
 <%
+  
+  DecimalFormat df = new DecimalFormat("#.##");
+
+
     //get our Shepherd
     //Shepherd myShepherd = new Shepherd(context);
     //myShepherd.setAction("searchResultsAnalysis.jsp");

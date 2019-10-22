@@ -30,8 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.util.Locale;
 
 
 //Set alternateID for this encounter/sighting
@@ -46,9 +44,8 @@ public class EncounterRemoveTissueSample extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("EncounterRemoveTissueSample.class");
     //set up for response
@@ -56,16 +53,9 @@ public class EncounterRemoveTissueSample extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("encounter"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("encounter"));
-
     String sharky = "None";
+
+
     sharky = request.getParameter("encounter");
     myShepherd.beginDBTransaction();
     if ((myShepherd.isEncounter(sharky)) && (request.getParameter("sampleID") != null) && (!request.getParameter("sampleID").equals(""))) {
@@ -98,22 +88,34 @@ public class EncounterRemoveTissueSample extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         //myShepherd.closeDBTransaction();
-        actionResult.setMessageOverrideKey("removeTissueSample").setMessageParams(request.getParameter("encounter"), request.getParameter("sampleID"));
-      }
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Success!</strong> I have successfully removed tissue sample "+request.getParameter("sampleID")+" for encounter " + sharky + ".</p>");
+        response.setStatus(HttpServletResponse.SC_OK);
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+        } 
       else {
-        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user or is inaccessible. Please wait a few seconds before trying to modify this encounter again.");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
+        out.println(ServletUtilities.getFooter(context));
+
       }
     } 
     else {
       myShepherd.rollbackDBTransaction();
-      actionResult.setSucceeded(false);
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to remove the tissue sample. I cannot find the encounter that you intended it for in the database.");
+      out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
     myShepherd.closeDBTransaction();
   }
+
+
 }
+  
+  

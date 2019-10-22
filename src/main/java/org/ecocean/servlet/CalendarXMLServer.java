@@ -35,6 +35,7 @@ import java.util.Vector;
 import java.util.Iterator;
 
 import org.ecocean.*;
+import org.ecocean.security.HiddenEncReporter;
 
 
 /**
@@ -79,8 +80,13 @@ public class CalendarXMLServer extends HttpServlet {
 
     myShepherd.beginDBTransaction();
     
-    EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "individualID descending");
+    EncounterQueryResult queryResult=EncounterQueryProcessor.processQuery(myShepherd, request, "individual.individualID descending");
     rEncounters = queryResult.getResult();
+
+    HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
+    rEncounters = hiddenData.securityScrubbedResults(rEncounters);
+
+
     //rEncounters = EncounterQueryProcessor.processQuery(myShepherd, request, "individualID descending");
     
     
@@ -112,10 +118,10 @@ public class CalendarXMLServer extends HttpServlet {
               String thisEncounter=(String)matches.get(i);
               Encounter tempEnc=myShepherd.getEncounter(thisEncounter);
               if(tempEnc!=null){
-                if(tempEnc.getIndividualID()!=null){
+                if(tempEnc.getIndividual()!=null){
                 
                   String sex="-";
-                  MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.getIndividualID());
+                  MarkedIndividual sharky=tempEnc.getIndividual();
                   if((sharky.getSex()!=null)&&(!sharky.getSex().toLowerCase().equals("unknown"))) {
                     if(sharky.getSex().equals("male")){
                       sex="M";
@@ -126,12 +132,16 @@ public class CalendarXMLServer extends HttpServlet {
                   }
 
                   String individualID="-";
-                  if(tempEnc.getIndividualID()!=null)individualID=tempEnc.getIndividualID();
+                  String displayName="";
+                  if(tempEnc.getIndividual()!=null) {
+                    individualID=tempEnc.getIndividual().getIndividualID();
+                    displayName=tempEnc.getIndividual().getDisplayName();
+                  }
                   
                   String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
                   outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
                   outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</end_date>";
-                  outputXML+="<text><![CDATA["+individualID+"("+sex+")]]></text>";
+                  outputXML+="<text><![CDATA["+displayName+"("+sex+")]]></text>";
                   outputXML+="<details></details></event>";
                   out.println(outputXML);
                 } 

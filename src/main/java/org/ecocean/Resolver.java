@@ -226,7 +226,7 @@ needsReview = false;  // we are only full-auto now!
 
         MarkedIndividual indiv = new MarkedIndividual(Util.generateUUID(), encs.get(0));
         for (int i = 1 ; i < encs.size() ; i++) {
-            indiv.addEncounter(encs.get(i), "context0");
+            indiv.addEncounter(encs.get(i));
         }
 
         res.addResultObject(indiv);

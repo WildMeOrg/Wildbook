@@ -37,7 +37,7 @@ function collaborateMultiClick(el) {
 	var jel = $(el);
 	var users = jel.data('multiuser').split(',');
 	var p = popup();
-	var h = _collaborateMultiHtml(users);
+	var h = _collaborateMultiHtml(users, true);
 	p.append(h);
 	p.show();
 return;
@@ -68,20 +68,22 @@ return;
 
 
 
-function _collaborateMultiHtml(users) {
+function _collaborateMultiHtml(users, isLoggedIn) {
 	var cancelButton = '<input type="button" value="Cancel" onClick="$(\'.popup\').remove();" />';
 	if (inBlockedPage()) cancelButton = '<input type="button" value="Cancel" onClick="blockerCancel()" />';
 	var num = users.length;
 
 	var h = '';
-	if (num == 1) {
+	if (isLoggedIn && num == 1) {
 		var u = users[0].split(':');
 		var uclick = '<span class="user-bio-button" title="info on ' + u[1] + '" onClick="openUserBio(\'' + u[0] + '\')">' + u[1] + '</span>';
 		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, uclick) + '</b></p>';
+		h += '<p>' + wildbookGlobals.properties.lang.collaboration.invitePromptOneBody +'</p>';
+		console.log("we are in the inner loop with invitePromptOneBody = "+wildbookGlobals.properties.lang.collaboration.invitePromptOneBody);
 		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p></div>';
 		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + u[0] + '\');" /> ' + cancelButton + '</p>';
 
-	} else {
+	} else if(isLoggedIn) {
 		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptMultiple + ' ' + wildbookGlobals.properties.lang.collaboration.invitePromptMany + '</b></p><div id="collab-multi">';
 		for (var i = 0 ; i < num ; i++) {
 			var u = users[i].split(':');
@@ -90,6 +92,10 @@ function _collaborateMultiHtml(users) {
 		}
 		h += '<div><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></div></div>';
 		h += '</div><p id="collab-controls"><input type="button" value="Send" onClick="collaborateCallMulti();" /> ' + cancelButton + '</p>';
+	}
+	else{
+		h += '<div id="collab-response"><p><b>' +wildbookGlobals.properties.lang.collaboration.pleaseLogIn+ '</b></p>';
+		//h+='You don't have permission.';
 	}
 	return h;
 }
@@ -121,6 +127,8 @@ function _collaborateHtml(uid, name) {
 		var uclick = '<span class="user-bio-button" title="info on ' + allCollab[uid].name + '" onClick="openUserBio(\'' + uid + '\')">' + allCollab[uid].name + '</span>';
 		//h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, allCollab[uid].name) + '</b></p>';
 		h += '<div id="collab-response"><p><b>' + wildbookGlobals.properties.lang.collaboration.invitePromptOne.replace(/%s/g, uclick) + '</b></p>';
+		h += '<p>' + wildbookGlobals.properties.lang.collaboration.invitePromptOneBody +'</p>';
+		console.log("we are in the inner loop with invitePromptOneBody = "+wildbookGlobals.properties.lang.collaboration.invitePromptOneBody);
 		h += '<p><textarea id="collab-invite-message" placeholder="' + wildbookGlobals.properties.lang.collaboration.invitePromptOptionalMessage + '"></textarea></p></div>';
 		h += '<p id="collab-controls"><input type="button" value="Yes" onClick="collaborateCall(\'' + uid + '\');" /> ' + cancelButton + '</p>';
 

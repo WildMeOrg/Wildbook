@@ -40,8 +40,11 @@
 	background: url(../images/throbber.gif) no-repeat left top !important;
 }
 
+.accordion {
+	color: #fff;
+}
+
 .task-title {
-	background-color: #FAA;
 	margin: 15px 0;
 	clear: both;
 	padding: 8px;
@@ -49,7 +52,6 @@
         width: 100%;
 }
 .task-title-id {
-	color: #555;
 	font-size: 0.8em;
 }
 
@@ -345,5 +347,39 @@ tr.clickable:hover .link-button {
 	margin: 75px 0 -30px 70px;
 	height: 400px;
 }
+
+/* Results settings */
+button.scoreType.selected {
+	border-style: solid;
+	border-width: medium;
+	border-color: #aaa;
+}
+button.scoreType.selected:hover {
+	cursor: default;
+}
+span#scoreNumInput {
+	vertical-align: middle;
+	padding-top: 7px;
+}
+input#nResultsPicker {
+	width: 3em;
+}
+
+span#scoreNumSettings {
+	float: right;
+}
+
+/* Algorithm styles, pulled out from their inline originals */
+span.algoInstructions {
+	margin-left: 30px;
+	font-size: 1em;
+}
+span.algoTimestamp {
+	color: #FFF;
+	margin: 0 11px;
+	font-size: 1em;
+}
+
+
 
 

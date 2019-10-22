@@ -1,11 +1,9 @@
-
 <%@ page contentType="text/html; charset=utf-8"
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.Map,
-                 java.util.List,
+                 java.util.List,java.util.ArrayList,
                  java.util.Locale" %>
 
 
@@ -24,13 +22,15 @@
 <!-- add recaptcha -->
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
 
+<!-- https://github.com/exif-js/exif-js -->
+<script src="javascript/exif.js"></script>
+
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-Properties gProps=ShepherdProperties.getProperties("googleKeys.properties", "", context);
-String mapKey = gProps.getProperty("googleMapsKey");
+String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -50,6 +50,10 @@ String mapKey = gProps.getProperty("googleMapsKey");
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
+
+    boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
+
+
 %>
 
 <style type="text/css">
@@ -62,7 +66,12 @@ String mapKey = gProps.getProperty("googleMapsKey");
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
+    }
 
+	.required-missing {
+		outline: solid 4px rgba(255,0,0,0.5);
+		background-color: #FF0;
+	}
 
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
@@ -176,7 +185,8 @@ function sendSocialPhotosBackground() {
 		iframeUrl += '&fileUrl=' + escape($(el).val());
 	});
 
-console.log('iframeUrl %o', iframeUrl);
+console.log('iframeUrl %o (setting action to EncounterForm)', iframeUrl);
+    	$("#encounterForm").attr("action", "EncounterForm");
 	document.getElementById('social_files_iframe').src = iframeUrl;
 	return true;
 }
@@ -239,6 +249,26 @@ var center = new google.maps.LatLng(10.8, 160.8);
 var map;
 
 var marker;
+
+function updateMap() {
+    var latVal = $('#lat').val();
+    var lonVal = $('#longitude').val();
+    var pt = placeMarkerLatLon(latVal, lonVal);
+    if (pt) {
+        map.setCenter(pt);
+        map.setZoom(5);
+    }
+}
+
+function placeMarkerLatLon(lat, lon) {  //convenience
+    var latFloat = parseFloat(lat);
+    var lonFloat = parseFloat(lon);
+    if (isNaN(latFloat) || isNaN(lonFloat)) return;
+    var pt = new google.maps.LatLng(latFloat, lonFloat);
+    if (!pt) return;
+    placeMarker(pt);
+    return pt;
+}
 
 function placeMarker(location) {
     if(marker!=null){marker.setMap(null);}
@@ -436,6 +466,7 @@ function updateList(inp) {
                 all.push('<span class="error">' + inp.files[i].name + ' (' + Math.round(inp.files[i].size / (1024*1024)) + 'MB is too big, <%=maxSizeMB%>MB max)</span>');
             } else {
                 all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
+                EXIF.getData(inp.files[i], function() { gotExif(this); });
             }
         }
         f = '<b>' + inp.files.length + ' file' + ((inp.files.length == 1) ? '' : 's') + ':</b> ' + all.join(', ');
@@ -443,6 +474,110 @@ function updateList(inp) {
         f = inp.value;
     }
     document.getElementById('input-file-list').innerHTML = f;
+}
+
+
+var dtList = [];
+var llList = [];
+var commentJson = {};
+//TODO Bearing, Altitude
+function gotExif(file) {
+    exifFindDateTimes(file.exifdata);
+console.log('dtList => %o', dtList);
+    var dtDiv = $('#dt-div');
+    if (!dtDiv.length) {
+        dtDiv = $('<div class="exif-derived" id="dt-div" />');
+        $('#datepicker').parent().append(dtDiv);
+    }
+    if (dtList.length > 0) {
+        dtList.sort();
+        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifDTSet(this);"><option value="">Select date/time</option>';
+        for (var i = 0 ; i < dtList.length ; i ++) {
+            h += '<option>' + dtList[i] + '</option>';
+        }
+        h += '</select>';
+        dtDiv.html(h);
+    }
+
+    exifFindLatLon(file.exifdata);
+console.log('llList => %o', llList);
+    var llDiv = $('#ll-div');
+    if (!llDiv.length) {
+        llDiv = $('<div class="exif-derived" id="ll-div" />');
+        $('#longitude').parent().parent().append(llDiv);
+    }
+    if (llList.length > 0) {
+        llList.sort();
+        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifLLSet(this);"><option value="">Select lat/lon</option>';
+        for (var i = 0 ; i < llList.length ; i ++) {
+            h += '<option>' + llList[i] + '</option>';
+        }
+        h += '</select>';
+        llDiv.html(h);
+    }
+
+    var fj = {};
+    if (file.exifdata) for (var key in file.exifdata) {
+        if (!key.toLowerCase().match('^(artist|copyright|imagedescription)$')) continue;
+        fj[key] = file.exifdata[key];
+    }
+    if (Object.keys(fj).length) commentJson[file.name] = fj;
+    var h = '';
+    for (var fname in commentJson) {
+        h += '<p class="exif-comment" id="exif-' + fname + '">';
+        for (var k in commentJson[fname]) {
+            h += k + ': <b>' + commentJson[fname][k] + '</b><br />';
+        }
+        h += '</p>';
+    }
+    $('#comments').val(h);
+}
+
+
+function exifFindDateTimes(exif) {
+    for (var key in exif) {
+        if (key.toLowerCase().indexOf('date') < 0) continue;
+        var clean = cleanupDateTime(exif[key]);
+        if (clean && (dtList.indexOf(clean) < 0)) dtList.push(clean);
+    }
+}
+
+function exifFindLatLon(exif) {
+    //unknown if these keys are "standard".  :(  doubt it.
+    var lat = cleanupLatLon(exif.GPSLatitudeRef, exif.GPSLatitude);
+    var lon = cleanupLatLon(exif.GPSLongitudeRef, exif.GPSLongitude);
+    if (!lat || !lon) return;
+    var clean = lat + ', ' + lon;
+    if (clean && (llList.indexOf(clean) < 0)) llList.push(clean);
+}
+
+function cleanupDateTime(dt) {
+    var f = dt.split(/\D+/);
+    if (f.length == 3) return f.join('-');
+    if ((f.length == 5) || (f.length == 6)) return f.slice(0,3).join('-') + ' ' + f.slice(3,6).join(':');
+    return null;
+}
+
+function cleanupLatLon(llDir, ll) {
+    var sign = ((llDir == 'W' || llDir == 'S') ? -1 : 1);
+    if (!ll || (ll.length != 3)) return null;
+    return Math.round(sign * dms2dd(ll[0], ll[1], ll[2]) * 1000000) / 1000000;
+}
+
+function dms2dd(d, m, s) {
+    return d + (m / 60) + (s / 3600);
+}
+
+function exifDTSet(el) {
+    $('#datepicker').val(el.value);
+}
+
+function exifLLSet(el) {
+    var ll = [ '', '' ];
+    if (el.value.indexOf(', ') >= 0) ll = el.value.split(', ');
+    $('#lat').val(ll[0]);
+    $('#longitude').val(ll[1]);
+    updateMap();
 }
 
 function showUploadBox() {
@@ -545,45 +680,48 @@ if(CommonConfiguration.showReleaseDate(context)){
     </div>
 
 
-<%
+    <%
+    //let's pre-populate important info for logged in users
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
+    String project="";
+    Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("submit.jsp1");
+    myShepherd.beginDBTransaction();
+    String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+    if(qualifier==null) {qualifier="default";}
+    else{qualifier=qualifier.replaceAll(".properties","");}
+    if(request.getRemoteUser()!=null){
+        submitterName=request.getRemoteUser();
+
+        if(myShepherd.getUser(submitterName)!=null){
+            User user=myShepherd.getUser(submitterName);
+            if(user.getFullName()!=null){submitterName=user.getFullName();}
+            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+            if(user.getUserProject()!=null){project=user.getUserProject();}
+        }
+
+    }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+
 //add locationID to fields selectable
 
-
-if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("studySites") %></label>
+        <label class="control-label"><%=props.getProperty("locationID") %></label>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
-            <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreLocationsIDs=true;
-                         int locNum=0;
-
-                         while(hasMoreLocationsIDs){
-                               String currentLocationID = "locationID"+locNum;
-                               if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
-                                   %>
-
-                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
-                                   <%
-                                 locNum++;
-                            }
-                            else{
-                               hasMoreLocationsIDs=false;
-                            }
-
-                       }
-
-     %>
-      </select>
+          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
+              
       </div>
     </div>
 <%
-}
+
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
@@ -595,18 +733,15 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="country" id="country" class="form-control">
-            <option value="" selected="selected"></option>
-            <%
-            String[] locales = Locale.getISOCountries();
-			for (String countryCode : locales) {
-				Locale obj = new Locale("", countryCode);
-				String currentCountry = obj.getDisplayCountry();
-                %>
-			<option value="<%=currentCountry %>"><%=currentCountry%></option>
-            <%
-            }
-			%>
-   		</select>
+          <option value="" selected="selected"></option>
+          <% 
+            List<String> countries = (useCustomProperties)
+            ? CommonConfiguration.getIndexedPropertyValues("country", request)
+            : CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
+            for (String country: countries) {
+              %><option value="<%=country%>"><%=country%></option><%
+            }%>
+        </select>
       </div>
     </div>
 
@@ -670,28 +805,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 <hr />
 
 
-    <%
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation="";
-    String project="";
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-        Shepherd myShepherd=new Shepherd(context);
-        myShepherd.setAction("submit.jsp1");
-        myShepherd.beginDBTransaction();
-        if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-    }
-    %>
+
 
 
 
@@ -779,6 +893,52 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 
 
+<%
+
+if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+%>
+
+      <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("species") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <select class="form-control" name="genusSpecies" id="genusSpecies" onChange="$('.required-missing').removeClass('required-missing'); return true;">
+             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
+  <%
+
+  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+  					int numGenusSpeciesProps=species.size();
+  					String selected="";
+  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
+
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+                    	for(int q=0;q<numGenusSpeciesProps;q++){
+                           String currentGenuSpecies = "genusSpecies"+q;
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                               %>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                               <%
+
+                        }
+
+
+                   }
+                   }
+ %>
+  </select>
+    </div>
+        </div>
+
+        <%
+}
+
+%>
+
+
 
   <h4 class="accordion">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
@@ -813,50 +973,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         </fieldset>
         <hr>
         <fieldset>
-<%
-
-if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-%>
-
-      <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("species") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
-  <%
-
-  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
-  					int numGenusSpeciesProps=species.size();
-  					String selected="";
-  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
-
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-                    	for(int q=0;q<numGenusSpeciesProps;q++){
-                           String currentGenuSpecies = "genusSpecies"+q;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-
-                        }
-
-
-                   }
-                   }
- %>
-  </select>
-    </div>
-        </div>
-
-        <%
-}
-
-%>
 
   <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -870,8 +986,18 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             </select>
           </div>
         </div>
+        
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("manual_id") %></label>
+          </div>
 
-<!--
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="manualID" type="text" id="manualID" size="75">
+          </div>
+        </div>
+
+
 				<div class="form-group">
 					<div class="col-xs-6 col-md-4">
 						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
@@ -881,35 +1007,16 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
 					</div>
 				</div>
--->
 
-<%
-  if(CommonConfiguration.showProperty("showPatterningCode",context)){
-%>
-  <fieldset>
-    <div class="form-group" data-toggle="tooltip" title="<%=props.getProperty("patterningCode.tooltip")%>">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("patterningCode")%></label>
-      </div>
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("occurrence_id") %></label>
+          </div>
 
-      <div class="col-xs-6 col-lg-8">
-        <select class="form-control" name="patterningCode" id="patterningCode">
-          <option value="" selected="selected"> </option>
-<%
-    Map<String, String> mapPC = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
-    for (Map.Entry<String, String> item : mapPC.entrySet()) {
-%>
-          <option value="<%=item.getValue()%>"><%=props.getProperty(item.getKey())%></option>
-<%
-    }
-%>
-        </select>
-      </div>
-    </div>
-
-<%
-  }
-%>
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
+          </div>
+        </div>
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -920,6 +1027,27 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="behavior" type="text" id="behavior" size="75">
           </div>
         </div>
+
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
+          </div>
+        </div>
+
+
 
 
            <div class="form-group">
@@ -1151,6 +1279,14 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 function sendButtonClicked() {
 	console.log('sendButtonClicked()');
+	$('.required-missing').removeClass('required-missing')
+
+	if (!$('#genusSpecies').val()) {
+		$('#genusSpecies').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+		return false;
+	}
+
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
 

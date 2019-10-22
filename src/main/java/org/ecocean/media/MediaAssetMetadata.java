@@ -76,6 +76,11 @@ public class MediaAssetMetadata implements java.io.Serializable {
         return getData().getJSONObject("attributes");
     }
 
+    public void addDatum(String name, String value) {
+        if (getData() == null) data = new JSONObject();
+        data.put(name, value);
+    }
+
 
     //for now(?) this just searches down into exif structure, returns HashMap of key:values whose keys match regex
     //  key is "tree-like" as it recurses: "level1:level2:key" => "value" (to help prevent squashing)

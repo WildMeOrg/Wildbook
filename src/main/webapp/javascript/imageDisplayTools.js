@@ -152,8 +152,10 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
 }
 
 maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {
-  intoElem.append('<div class=\"col-md-4\"></div>');
-  intoElem = intoElem.find('div.col-md-4').last();
+      console.log("      MALIB! maJsonToFigureElemCaptionGrid called for maJson "+maJson);
+
+  intoElem.append('<div class=\"col-md-6\"></div>');
+  intoElem = intoElem.find('div.col-md-6').last();
   maLib.maJsonToFigureElemCaption(maJson, intoElem, caption, maCaptionFunction);
 }
 

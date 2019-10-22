@@ -559,10 +559,17 @@ public final class EmailTemplate {
    * @return number of successful messages sent
    */
   public boolean sendSingle(String from, Collection<String> to, Collection<String> cc, Collection<String> bcc, boolean html) {
+    //if from is missing, nothing to do here
     if (from == null || "".equals(from.trim()))
-      throw new IllegalArgumentException();
-    if (to == null || to.isEmpty())
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("from is null!");
+    //if to is missing, nothing to do here
+    if (to == null)
+      throw new IllegalArgumentException("to is null!");
+    //if to is empty, well there could be reasons for that and let's just exit quietly
+    if(to.isEmpty()) {
+      System.out.println("I was told to send emails but the to: list was empty.");
+      return false;
+    }
     ByteArrayOutputStream debugOS = null;
     PrintStream debugPS = null;
     try {

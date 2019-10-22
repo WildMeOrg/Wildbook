@@ -20,8 +20,6 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,17 +30,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Vector;
 
 //import com.poet.jdo.*;
 
 
 public class EncounterRemoveImage extends HttpServlet {
-  /** SLF4J logger instance for writing log entries. */
-  private static final Logger log = LoggerFactory.getLogger(EncounterRemoveImage.class);
+
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -55,10 +50,8 @@ public class EncounterRemoveImage extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context = ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-
+    String context="context0";
+    context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("EncounterRemoveImage.class");
     //set up for response
@@ -66,16 +59,6 @@ public class EncounterRemoveImage extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
     //boolean assigned=false;
-
-    // Prepare for user response.
-    String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
-
     String fileName = "None", encounterNumber = "None";
     //int positionInList = -1;
     String dcID="";
@@ -161,29 +144,46 @@ public class EncounterRemoveImage extends HttpServlet {
         if (!locked) {
           myShepherd.commitDBTransaction();
           myShepherd.closeDBTransaction();
-          actionResult.setMessageOverrideKey("removeImage").setMessageParams(encounterNumber);
-
+          out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Success!</strong> I have successfully removed the encounter image file. When returning to the encounter page, please make sure to refresh your browser to see the changes. Image changes will not be visible until you have done so.");
+          response.setStatus(HttpServletResponse.SC_OK);
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+          out.println(ServletUtilities.getFooter(context));
           String message = "An image file named " + fileName + " has been removed from encounter#" + encounterNumber + ".";
           ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
-        } else {
-          actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+        } 
+        else {
+
+          out.println(ServletUtilities.getHeader(request));
+          out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to remove this image again.");
+
+          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+          out.println(ServletUtilities.getFooter(context));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
-      } else {
+      } 
+      else {
         myShepherd.rollbackDBTransaction();
-        actionResult.setSucceeded(false).setMessageOverrideKey("removeImage-assigned").setMessageParams(encounterNumber);
+        myShepherd.closeDBTransaction();
+        out.println(ServletUtilities.getHeader(request));
+        out.println("<strong>Error:</strong> I was unable to remove your image file. For data protection, you must first remove the encounter from the marked individual it is assigned to.");
+        out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
-    } else {
+    } 
+    else {
       myShepherd.rollbackDBTransaction();
-      actionResult.setSucceeded(false);
+      myShepherd.closeDBTransaction();
+      out.println(ServletUtilities.getHeader(request));
+      out.println("<strong>Error:</strong> I was unable to remove your image file. I cannot find the encounter that you intended it for in the database. +++");
+      out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
     }
-
-    // Reply to user.
-    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
-    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-
     out.close();
-    myShepherd.closeDBTransaction();
   }
+
+
 }
 	
 	

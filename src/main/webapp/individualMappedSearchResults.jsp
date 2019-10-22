@@ -147,7 +147,7 @@
     <script type="text/javascript">
     
     var center = new google.maps.LatLng(0,0);
-    var mapZoom = 2;
+    var mapZoom = 3;
     if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
     var bounds = new google.maps.LatLngBounds();
 

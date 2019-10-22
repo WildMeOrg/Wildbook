@@ -765,5 +765,10 @@ public class GridManager {
     if(underway!=null)return underway.size();
     return 0;
   }
+  
+  public void resetMatchGraphWithInitialCapacity(int initialCapacity) {
+    matchGraph=null;
+    matchGraph=new ConcurrentHashMap<String, EncounterLite>(initialCapacity);
+  }
 
 }
