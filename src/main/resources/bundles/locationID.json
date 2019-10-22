@@ -940,7 +940,6 @@
 
 		{ "name":"Other", "id":"Other", "locationID":[] },
 
-		{ "name":"United States", "id":"United States", "locationID":[] },
 
 		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
 
