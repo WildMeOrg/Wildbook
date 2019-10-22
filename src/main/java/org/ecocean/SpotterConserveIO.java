@@ -702,6 +702,7 @@ System.out.println("waToUser -> " + jin);
         String orgId = props.getProperty(PROP_ORGID_NEWUSER);
         Organization org = Organization.load(orgId, myShepherd);
         if (org != null) user.addOrganization(org);
+        myShepherd.getPM().makePersistent(user);
         return user;
     }
 
