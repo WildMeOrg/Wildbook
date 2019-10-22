@@ -394,11 +394,12 @@
 				
 				/EncounterSetString = authc
 				/OrganizationEdit = authc, roles[admin]
-				/MergeIndividual = authc
+				/MergeIndividual = authc, roles[researcher]
 
 				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
 				
 				/merge.jsp = authc, roles[researcher]
+				/mergeComplete.jsp = authc, roles[researcher]
             </param-value>
         </init-param>
     </filter>
