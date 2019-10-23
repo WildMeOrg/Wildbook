@@ -1,6 +1,5 @@
 //TODO List
-
-//Add "freeze" button to stop graph ticks
+//Fix nodes on drag - https://bl.ocks.org/mbostock/3750558
 
 function setupSocialGraph(individualID) {
     let focusedScale = 1.25;
@@ -93,6 +92,7 @@ class SocialGraph extends ForceLayoutAbstract {
 	    console.log(this.parser.parseJSON(json));
 	    
 	    this.appendSvg("#socialDiagram");
+	    //this.addLegend("#socialDiagram");
 	    this.addTooltip("#socialDiagram");	    
 
 	    this.calcNodeSize(this.nodes);

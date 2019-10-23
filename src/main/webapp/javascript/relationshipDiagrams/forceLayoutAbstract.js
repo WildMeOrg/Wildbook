@@ -13,6 +13,14 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.markerHeight = 6;
     }
 
+    addLegend(containerId) {
+	d3.select(containerId + " svg").append("g")
+	    .attr("class", "legend")
+//	    .attr("transform", "translate(90%, 10%)")
+	    .style("font-size", "12px")
+	    .call(d3.legend);
+    }
+
     setNodeRadius() {
 	this.nodes.forEach(d => {
 	    d.data.r = this.radius * this.getSizeScalar(d);
@@ -112,10 +120,11 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
     
     enableDrag(circles, force) {
-	circles.call(d3.drag()
-		     .on("start", d => this.dragStarted(d, force))
-		     .on("drag", d => this.dragged(d, force))
-		     .on("end", d => this.dragEnded(d, force)));
+	circles.on('dblclick', d => this.releaseNode(d))
+	    .call(d3.drag()
+		  .on("start", d => this.dragStarted(d, force))
+		  .on("drag", d => this.dragged(d))
+		  .on("end", d => this.dragEnded(d, force)));
     }
 
     applyForces(forces, linkRef, nodeRef) {
@@ -141,13 +150,16 @@ class ForceLayoutAbstract extends GraphAbstract {
 	d.fy = d3.event.y;
     }
 
-    dragged(d, sim) {
+    dragged(d) {
 	d.fx = d3.event.x;
 	d.fy = d3.event.y;
     }
 
     dragEnded(d, sim) {
 	if (!d3.event.active) sim.alphaTarget(0);
+    }
+
+    releaseNode(d) {
 	d.fx = null;
 	d.fy = null;
     }
