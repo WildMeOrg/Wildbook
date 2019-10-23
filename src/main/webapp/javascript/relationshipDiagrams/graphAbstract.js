@@ -33,7 +33,7 @@ class GraphAbstract {
 	//Node Style Attributes
 	this.maleColor = "steelblue";
 	this.femaleColor = "palevioletred";
-	this.defGenderColor = "#845ec2";
+	this.defGenderColor = "#7f7f7f"; //"#7f7f7f";
 
 	this.alphaColor = "#bf0000";
 
@@ -41,7 +41,7 @@ class GraphAbstract {
 	this.collapsedNodeColor = "#d3d3d3";	
 	
 	this.defLinkColor = "#a6a6a6";
-	this.famLinkColor = "#b59eda";
+	this.famLinkColor = "#a6a6a6"; //"#b59eda";
 	this.maternalLinkColor = "#f3acd0";
 	this.paternalLinkColor = "#8facc6";
 	
