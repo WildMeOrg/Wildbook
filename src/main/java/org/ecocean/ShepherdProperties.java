@@ -128,7 +128,7 @@ public class ShepherdProperties {
     if (Util.stringExists(langCode) && !langCode.endsWith("/")) langCode += "/";
 
     // we load defaultProps from the (on git) webapps/wildbook location
-    String defaultPathStr = "webapps/wildbook/WEB-INF/classes/bundles/"+langCode+fileName;
+    String defaultPathStr = "webapps/mm/WEB-INF/classes/bundles/"+langCode+fileName;
     // defaultProps are selectively overwritten from the override dir. This way we can keep
     // security-sensitive prop off github in the shepherdDataDir. Only need to store the sensitive fields there
     // bc we fall-back to the defaultProps
@@ -140,7 +140,7 @@ public class ShepherdProperties {
     if (defaultProps==null) {
       // could not find props w this lang code, try english
       if (Util.stringExists(langCode) && !langCode.contains("en")) {
-        defaultPathStr = "webapps/wildbook/WEB-INF/classes/bundles/en/"+fileName;
+        defaultPathStr = "webapps/mm/WEB-INF/classes/bundles/en/"+fileName;
         System.out.printf("\t Weird Shepherd.properties non-english case reached with langCode %s. Trying again with path %s.\n",langCode,defaultPathStr);
         defaultProps = loadProperties(defaultPathStr);
       } else {
