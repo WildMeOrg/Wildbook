@@ -100,6 +100,7 @@ class FamilyTree extends GraphAbstract {
     }
 
     graphFamilyData(error, json) {
+	console.log("JSON", json);
 	if (error) {
 	    return console.error(error);
 	}

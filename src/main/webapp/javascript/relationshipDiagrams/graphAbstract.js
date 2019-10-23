@@ -25,7 +25,7 @@ class GraphAbstract {
 
 	this.strokeWidth = 3.5;
 	
-	this.fontSize = 14;
+	this.fontSize = 12;
 	this.focusedScale = focusedScale;
 
 	this.alphaSymbSize = 200; //TODO: Figure out the units on this...
@@ -58,6 +58,9 @@ class GraphAbstract {
 	//Tooltip Attributes
 	this.popup = false;
 	this.fadeDuration = 200;
+
+	//Json Parser Attributes
+	this.parser = new JSONParser();
     }
 
     showTable(contentRef, tableRef) {

@@ -12,9 +12,6 @@ class SocialGraph extends ForceLayoutAbstract {
     constructor(individualID, focusedScale) {
 	super(individualID, focusedScale);
 	
-	//TODO: Parse this data
-	//It would be really great if some clever heirarchical representation could be used
-	//to represent this - that way one format can be used for all graph DATA
 	this.nodes = [
 	    {
 		"id": 0,
@@ -80,12 +77,11 @@ class SocialGraph extends ForceLayoutAbstract {
     }
 
     applySocialData() {
-	let query = wildbookGlobals.baseUrl + "/api/jodql?" +
+	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
 	    encodeURIComponent("SELECT FROM org.ecocean.social.Relationship " +
 			       "WHERE (this.type == \"social grouping\") && " +
 			       "(this.markedIndividualName1 == \"" + this.id +
 			       "\" || this.markedIndividualName2 == \"" + this.id + "\")");
-
 	d3.json(query, (error, json) => this.graphSocialData(error, json));
     }
 
@@ -94,6 +90,8 @@ class SocialGraph extends ForceLayoutAbstract {
 	    return console.error(error);
 	}
 	else if (json.length >= 1) {
+	    console.log(this.parser.parseJSON(json));
+	    
 	    this.appendSvg("#socialDiagram");
 	    this.addTooltip("#socialDiagram");	    
 
