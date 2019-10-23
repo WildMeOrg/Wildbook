@@ -54,7 +54,7 @@ myShepherd.rollbackAndClose();
                   </div>
                   <div class="col-sm-6">
                     <p style="text-align:right;">
-                    <%if (ServletUtilities.useCustomStyle(request, "indocet")) {
+                    <%if (ServletUtilities.useCustomStyle(request, "IndoCet")) {
                       System.out.println("Footer is using custom Indocet style!!");
                     %>
                       <a href="https://www.ffem.fr" class="col-sm-4" title="Funded in part by FFEM">

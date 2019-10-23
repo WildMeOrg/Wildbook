@@ -101,7 +101,7 @@ finally{
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
 
       <%
-      if (ServletUtilities.useCustomStyle(request, "indocet")) {
+      if (ServletUtilities.useCustomStyle(request, "IndoCet")) {
         System.out.println("Using custom indocet style!!");
         %><link rel="stylesheet" href="<%=urlLoc %>/cust/indocet/overwrite.css" /><%
       } else if (ServletUtilities.useCustomStyle(request, "wild dolphin project")) {
@@ -602,7 +602,7 @@ finally{
                             }
                             if(item.species != null){
                             	species = " ("+item.species.substring(0,6)+".)";
-                            	
+
                             }
 
                             return {label: label + item.label+nickname+species,
@@ -630,8 +630,8 @@ finally{
         if (urlParams.has("organization")) {
           let orgParam = urlParams.get("organization");
           $.cookie("wildbookOrganization", orgParam, {
-              path    : '/',     
-              secure  : false, 
+              path    : '/',
+              secure  : false,
               expires : 1
           });
         }
