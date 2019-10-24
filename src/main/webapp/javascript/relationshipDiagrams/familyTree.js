@@ -200,6 +200,12 @@ class FamilyTree extends GraphAbstract {
 	return nodeEnter;
     }
 
+    //Fill node colors
+    colorNodes(d) {
+	return (d && d._children) ? this.collapsedNodeColor : this.defNodeColor;
+    }
+
+    
     updateNodes(updatedNodes) {	
 	//Transition nodes to their new position.
 	let nodeUpdate = updatedNodes.transition()

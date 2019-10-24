@@ -213,7 +213,7 @@ input.btn.btn-md#closeRelationshipForm:hover {
 }
 
 /*Hide Diagram Tab Content*/
-#communityTable, #socialDiagram, #cooccurrenceTable, #bioSamplesTable {
+#communityTable, #cooccurrenceTable, #bioSamplesTable {
   display: none;
 }
 

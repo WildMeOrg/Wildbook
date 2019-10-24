@@ -1,3 +1,9 @@
+//TODO
+//Fix multiplicative forces
+//Color locked nodes
+//Add support for family/non-family/all button toggle
+//Add support for x family member distance slider (?)
+
 class ForceLayoutAbstract extends GraphAbstract {
     constructor(individualId, focusedScale=1) {
 	super(individualId, focusedScale);
@@ -118,6 +124,11 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .on("mouseover", d => this.handleMouseOver(d))					
 	    .on("mouseout", d => this.handleMouseOut(d));
     }
+
+    //Overwrite parent function
+    colorNodes(d) {
+	return (d.fixed) ? this.collapsedNodeColor : this.defNodeColor;
+    }
     
     enableDrag(circles, force) {
 	circles.on('dblclick', d => this.releaseNode(d))
@@ -157,10 +168,12 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     dragEnded(d, sim) {
 	if (!d3.event.active) sim.alphaTarget(0);
+	d.fixed = true;
     }
 
     releaseNode(d) {
 	d.fx = null;
 	d.fy = null;
+	d.fixed = false;
     }
 }
