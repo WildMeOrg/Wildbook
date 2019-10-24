@@ -107,6 +107,19 @@ finally{
       } else if (ServletUtilities.useCustomStyle(request, "wild dolphin project")) {
         System.out.println("Using custom wild dolphin project style!!");
          %><link rel="stylesheet" href="<%=urlLoc %>/cust/wilddolphinproject/overwrite.css" /><%
+      } else if (ServletUtilities.useCustomStyle(request, "CARI'MAM Project")) {
+        System.out.println("Using custom CARI'MAM Project style!!");
+         %>
+          <style type="text/css">
+            a.navbar-brand.carimam {
+              display: inline !important; /* display: none by default; */
+              background: url(images/partner-logos/carimam/network-logo.png) no-repeat;
+              background-position: center;
+              background-size: 150px;
+              min-height: 100px;
+            }
+          </style>
+         <%
       }
       %>
       <!-- Icon font necessary for indocet style, but for consistency will be applied everywhere -->
@@ -350,6 +363,7 @@ finally{
                   </div>
                   <a class="navbar-brand wildbook" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                   <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand carimam" target="_blank" href="" style="display: none">Cari'Mam Project</a>
                   <a class="navbar-brand wilddolphinproject" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
 
                 </div>
