@@ -308,7 +308,7 @@ input.nameKey, input.nameValue {
 <script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
 <script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
-<script src="javascript/relationshipDiagrams/familyTree.js"></script>
+<%-- <script src="javascript/relationshipDiagrams/familyTree.js"></script> --%>
 <script src="javascript/relationshipDiagrams/socialGraph.js"></script>
 
 
@@ -328,13 +328,6 @@ input.nameKey, input.nameValue {
     $("input.nameKey, input.nameValue").hide();
 
     // wildbook.init(function() { doTable(); });
-    $("#familyDiagramTab").click(e => {
-      e.preventDefault();
-      $(".socialVis").hide();
-      $("#familyDiagram").show();
-      $(".socialVisTab").removeClass("active");
-      $("#familyDiagramTab").addClass("active");
-    });
 
     $("#socialDiagramTab").click(e => {
       e.preventDefault();
@@ -1408,10 +1401,7 @@ if (sharky.getNames() != null) {
 
         <div role="navigation" id="socialNavigation">
           <ul class="nav nav-tabs">
-            <li id="familyDiagramTab"  class="active socialVisTab">
-              <a href="#familyDiagram">Familial Diagram</a>
-            </li>
-	    <li id="socialDiagramTab" class="socialVisTab"> <%-- TODO: Consider merging this with the familyDiagram pane --%>
+	    <li id="socialDiagramTab" class="active socialVisTab"> 
 	      <a href="#socialDiagram">Social Diagram</a>
 	    </li>
             <li id="communityTableTab" class="socialVisTab">
@@ -1420,15 +1410,8 @@ if (sharky.getNames() != null) {
           </ul>
         </div>
 
-        <div id="familyDiagram" class="socialVis">
-          <% String individualID = sharky.getIndividualID();%>
-          <script type="text/javascript">
-            setupFamilyTree("<%=individualID%>");
-          </script>
-        </div>
-
-	<%-- TODO: WIP social diagram --%>
 	<div id="socialDiagram" class="socialVis">
+	  <% String individualID = sharky.getIndividualID();%>	
 	  <script type="text/javascript">
 	    setupSocialGraph("<%=individualID%>");
 	  </script>

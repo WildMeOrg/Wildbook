@@ -86,6 +86,7 @@ class GraphAbstract {
 	    .call(this.zoom.on("zoom", () => {
 		this.svg.attr("transform", d3.event.transform)
 	    }))
+	    .on("dblclick.zoom", null) //Disable double click zoom
 	    .append("g")
 	    .attr("class", "container");
     }
@@ -148,7 +149,7 @@ class GraphAbstract {
 	//Color collapsed nodes
 	return nodes.append("circle")
 	    .attr("r", d => this.radius * this.getSizeScalar(d, isHidden))
-	    .style("fill", d => this.colorCollapsed(d))
+	    .style("fill", d => this.colorNodes(d))
 	    .style("stroke", d => this.colorGender(d))
 	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d));
     }
@@ -159,9 +160,8 @@ class GraphAbstract {
 	else return 1;
     }
 
-    //TODO: Move this outside the generic class - it doesn't make much sense
-    colorCollapsed(d) {
-	return (d && d._children) ? this.collapsedNodeColor : this.defNodeColor;
+    colorNodes(d) {
+	return this.defNodeColor;
     }
 
     colorGender(d) {
