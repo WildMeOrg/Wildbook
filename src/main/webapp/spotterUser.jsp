@@ -7,28 +7,39 @@ org.ecocean.*
 <div class="container maincontent">
 <%
 
-String username = request.getParameter("username");
+String email = request.getParameter("email");
 
-if (username != null) {
+if (email != null) {
     String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("spotterUser.jsp");
     myShepherd.beginDBTransaction();
 
-    User user = myShepherd.getUser(username);
+    //unfortunately, i didnt squash case on generating this! so lets check both.  :(
+    User user = myShepherd.getUser(SpotterConserveIO.hashFromEmail(email.toLowerCase()));
+    if (user == null) user = myShepherd.getUser(SpotterConserveIO.hashFromEmail(email.toUpperCase()));
     if (user != null) {
+        boolean sentReset = false;
+        if (user.getEmailAddress() == null) {
+            sentReset = org.ecocean.servlet.UserResetPasswordSendEmail.sendPasswordResetEmail(context, user, email);
+        }
         myShepherd.rollbackAndClose();
 %>
-<h2>The user <b><%=username%></b> already exists.</h2>
-<p>You can <a href="login.jsp?username=<%=username%>">login here</a>.</p>
+<h2>A user for <b><%=email%></b> exists.</h2>
+<% if (sentReset) { %>
+<p>An email confirmation has been sent to this address.  Use it to <b>set a new password</b>.</p>
+<% } %>
+<p>You can <a href="login.jsp?email=<%=email%>">login here</a>.</p>
 <%
     } else {
         //SpotterConserveIO.init("context0");
         //SpotterConserveIO.testLogin("wildbook-test", "password-fail")
-        myShepherd.commitDBTransaction();
+        myShepherd.rollbackAndClose();
 
 %>
-hello???
+<h2>
+We are sorry, but we <b>do not</b> have an account associated with this email address.
+</h2>
 
 <%
     }
@@ -42,8 +53,7 @@ on Flukebook with your username and password.  (more info etc)
 </p>
 
 <form method="post">
-    <p><input name="username" /> <b>Whale Alert username</b></p>
-    <p><input type="password" name="password" /> <b>Whale Alert password</b></p>
+    <p><input name="email" /> <b>Whale Alert email address</b></p>
     <input type="submit" value="Create Account" />
     (agree to terms etc....)
 </form>
