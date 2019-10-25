@@ -44,7 +44,8 @@ import org.ecocean.*;
 		System.out.println("Starting LoginUser servlet...");
 		
 		//see /login.jsp for these form fields
-		String username = request.getParameter("username").trim();
+		String loginValue = request.getParameter("username").trim();
+                String username = null;  //this now gets set when we find the user via loginValue
 		String password = request.getParameter("password").trim();
 		
 		String salt="";
@@ -54,7 +55,8 @@ import org.ecocean.*;
 		myShepherd.beginDBTransaction();
 		
 		try {
-	    User user = myShepherd.getUser(username);
+	    User user = myShepherd.getUserByWhatever(loginValue);
+            username = user.getUsername();
 	    salt = user.getSalt();
 	    user.setAcceptedUserAgreement(true);
 	    myShepherd.commitDBTransaction();

@@ -119,6 +119,7 @@ public class UserResetPassword extends HttpServlet {
                     if (spotterEmail != null) {
                         myUser.setEmailAddress(spotterEmail);
                         myUser.setSocial("SpotterConserveIO", spotterEmail);  //this will save it even if they change in wildbook
+                        //TODO  add this user to some Roles ??????
                     }
                 }
 

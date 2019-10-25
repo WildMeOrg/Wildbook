@@ -31,6 +31,14 @@ context=ServletUtilities.getContext(request);
     response.sendRedirect(request.getParameter("reflect"));
   }
   ;
+
+    Shepherd myShepherd=new Shepherd("context0");
+    myShepherd.setAction("welcome.jsp");
+    myShepherd.beginDBTransaction();
+    User myUser = AccessControl.getUser(request, myShepherd);
+    String displayName = "";
+    if (myUser != null) displayName = myUser.getDisplayName();
+    if (displayName.length() > 50) displayName = displayName.substring(0,50);
 %>
 <jsp:include page="header.jsp" flush="true"/>
 
@@ -40,15 +48,12 @@ context=ServletUtilities.getContext(request);
           </h1>
 
 
-          <p><%=props.getProperty("loggedInAs")%> <strong><%=StringEscapeUtils.escapeHtml4(request.getRemoteUser())%>
+          <p><%=props.getProperty("loggedInAs")%> <strong><%=StringEscapeUtils.escapeHtml4(displayName)%>
           </strong>.
           </p>
 
           <p><%=props.getProperty("grantedRole")%><br />
 			<%
-			Shepherd myShepherd=new Shepherd("context0");
-			myShepherd.setAction("welcome.jsp");
-			myShepherd.beginDBTransaction();
 			%>
              <em><%=myShepherd.getAllRolesForUserAsString(request.getRemoteUser()).replaceAll("\r","<br />")%></em></p>
             
