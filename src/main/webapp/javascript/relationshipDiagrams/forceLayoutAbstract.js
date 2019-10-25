@@ -1,6 +1,5 @@
 //TODO
 //Fix multiplicative forces
-//Color locked nodes
 //Add support for family/non-family/all button toggle
 //Add support for x family member distance slider (?)
 
@@ -35,7 +34,7 @@ class ForceLayoutAbstract extends GraphAbstract {
     
     getForces() {
 	return d3.forceSimulation()
-	    .alphaMin(0.1)
+	    .alphaMin(0.05)
 //	    .alphaDecay(0.05)
 	    .force("link", d3.forceLink().id(d => d.id))
 	    .force("charge", d3.forceManyBody())
@@ -128,12 +127,16 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     
-    enableDrag(circles, force) {
-	circles.on('dblclick', (d, i, nodes) => this.releaseNode(d, nodes[i]))
+    enableDrag(circles, forces) {
+	circles
+	   /* .on('click', d => {
+	    if (d3.event.shiftKey) this.highlightFamily(d, forces);
+	})*/
+	    .on('dblclick', (d, i, nodes) => this.releaseNode(d, nodes[i]))
 	    .call(d3.drag()
-		  .on("start", d => this.dragStarted(d, force))
+		  .on("start", d => this.dragStarted(d, forces))
 		  .on("drag", d => this.dragged(d))
-		  .on("end", (d, i, nodes) => this.dragEnded(d, force, nodes[i])));
+		  .on("end", (d, i, nodes) => this.dragEnded(d, forces, nodes[i])));
     }
 
     dragStarted(d, force) {
@@ -182,4 +185,14 @@ class ForceLayoutAbstract extends GraphAbstract {
 	nodeRef.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
     }
 
+/*    highlightFamily(d, forces) {
+	console.log(d);
+	
+	let familyId = d.group;
+	let nodes = this.nodes.filter(node => node.group === familyId);
+
+	console.log(nodes);
+	
+	this.applyForces(forces, nodes);
+    }*/
 }
