@@ -31,14 +31,14 @@ class GraphAbstract {
 	this.alphaSymbSize = 200; //TODO: Figure out the units on this...
 
 	//Node Style Attributes
+	this.defGenderColor = "#7f7f7f"; 
 	this.maleColor = "steelblue";
 	this.femaleColor = "palevioletred";
-	this.defGenderColor = "#7f7f7f"; //"#7f7f7f";
 
 	this.alphaColor = "#bf0000";
 
 	this.defNodeColor = "#ffffff";
-	this.collapsedNodeColor = "#d3d3d3";	
+	this.fixedNodeColor = "#d3d3d3";	
 	
 	this.defLinkColor = "#a6a6a6";
 	this.famLinkColor = "#a6a6a6"; //"#b59eda";
@@ -108,11 +108,12 @@ class GraphAbstract {
 	}
     }
 
-    calcNodeDepth(nodes) {
+//TODO: Remove - no longer used
+/*    calcNodeDepth(nodes) {
 	let nodeDepth = nodes.map(d => d.depth);
 	let maxDepth = Math.max(...nodeDepth); //Spread array to extract max value
 	this.nodeSeparation = this.gWidth / maxDepth; //Set horizontal separation
-    }
+    }*/
     
     addTooltip(selector) {
 	//Define the tooltip div
@@ -122,7 +123,6 @@ class GraphAbstract {
     }
 
     handleMouseOver(d) {
-	console.log("this", this);
 	if (!this.popup) {
 	    this.tooltip.transition()
 		.duration(this.fadeDuration)
@@ -149,7 +149,7 @@ class GraphAbstract {
 	//Color collapsed nodes
 	return nodes.append("circle")
 	    .attr("r", d => this.radius * this.getSizeScalar(d, isHidden))
-	    .style("fill", d => this.colorNodes(d))
+	    .style("fill", this.defNodeColor)
 	    .style("stroke", d => this.colorGender(d))
 	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d));
     }
@@ -160,9 +160,10 @@ class GraphAbstract {
 	else return 1;
     }
 
-    colorNodes(d) {
-	return this.defNodeColor;
-    }
+//TODO - Remove
+/*    colorNodes(d) {
+	return (d.fixed) ? this.fixedNodeColor : this.defNodeColor;
+    }*/
 
     colorGender(d) {
 	try {
@@ -224,7 +225,8 @@ class GraphAbstract {
 	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
     }
 
-    //Toggle children on click.
+    //TODO - Remove
+    /*//Toggle children on click.
     click(d) {
 	if (d.children) { //Collapse child nodes
 	    d._children = d.children;
@@ -237,7 +239,7 @@ class GraphAbstract {
 
 	if (isNaN(d.y)) d.y0 = d.y = 0; //TODO - Remove?
 	this.updateTree(d);
-    }
+    }*/
 
 }
 
