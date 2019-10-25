@@ -32,7 +32,6 @@ class SocialGraph extends ForceLayoutAbstract {
 	    },
 	    {
 		"id": 2,
-		"group": 1,
 		"data": {
 		    "name": "Lion C",
 		    "gender": "male"
@@ -40,7 +39,7 @@ class SocialGraph extends ForceLayoutAbstract {
 	    },
 	    {
 		"id": 3,
-		"group": 2,
+		"group": 1,
 		"data": {
 		    "name": "Lion D",
 		    "gender": ""
@@ -48,7 +47,7 @@ class SocialGraph extends ForceLayoutAbstract {
 	    },
 	    {
 		"id": 4,
-		"group": 2,
+		"group": 1,
 		"data": {
 		    "name": "Lion E",
 		    "gender": "female"
@@ -56,7 +55,7 @@ class SocialGraph extends ForceLayoutAbstract {
 	    },
 	    {
 		"id": 5,
-		"group": 2,
+		"group": 1,
 		"data": {
 		    "name": "Lion F",
 		    "gender": "male"
@@ -65,10 +64,10 @@ class SocialGraph extends ForceLayoutAbstract {
 	];
 
 	this.links = [
-	    {"source": 0, "target": 1, "type": "maternal"},
+	    {"source": 0, "target": 1, "type": "maternal", "group": 0},
 	    {"source": 0, "target": 3, "type": "member"},
-	    {"source": 3, "target": 4, "type": "familial"},
-	    {"source": 4, "target": 5, "type": "maternal"},
+	    {"source": 3, "target": 4, "type": "familial", "group": 1},
+	    {"source": 4, "target": 5, "type": "maternal", "group": 1},
 	    {"source": 5, "target": 3, "type": "member"},
 	    {"source": 2, "target": 1, "type": "member"},
 	    {"source": 2, "target": 0, "type": "member"}
