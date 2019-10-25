@@ -67,7 +67,7 @@ if (session.getAttribute("error") != null) {
         </tr>
         <tr>
             <td><%=props.getProperty("password") %></td>
-            <td><input type="password" name="password" maxlength="50" /></td>
+            <td><input type="password" name="password" maxlength="150" /></td>
         </tr>
         <tr>
         <td colspan="2" align="left">

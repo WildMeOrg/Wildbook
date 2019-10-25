@@ -44,13 +44,15 @@ response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new
 response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
 response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
 response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+String dispUsername = request.getUserPrincipal().toString();
+if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 %>
 
 <jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
 
-	<h1 class="intro"><%=(props.getProperty("userAccount")+" "+request.getUserPrincipal()) %></h1>
+	<h1 class="intro"><%=(props.getProperty("userAccount") + " " + dispUsername) %></h1>
 
 	<p>
 

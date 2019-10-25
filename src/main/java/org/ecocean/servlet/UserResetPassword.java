@@ -110,6 +110,18 @@ public class UserResetPassword extends HttpServlet {
                 
                 //set the new password
                 myUser.setPassword(ServletUtilities.hashAndSaltPassword(password2, myUser.getSalt()));
+
+                //now we deal with some special cases for spotter users only
+                boolean doMore = false;
+                if (myUser.getEmailAddress() == null) {
+                    doMore = true;
+                    String spotterEmail = SystemValue.getString(myShepherd, "TMP_EMAIL_" + myUser.getUUID());
+                    if (spotterEmail != null) {
+                        myUser.setEmailAddress(spotterEmail);
+                        myUser.setSocial("SpotterConserveIO", spotterEmail);  //this will save it even if they change in wildbook
+                    }
+                }
+
                 myShepherd.commitDBTransaction();
                 
               //output success statement
@@ -117,7 +129,11 @@ public class UserResetPassword extends HttpServlet {
                 
                   out.println("<strong>Success:</strong> Password successfully reset.");
                 
-                out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/login.jsp" + "\">Return to login page" + "</a></p>\n");
+                if (doMore) {
+                    out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Continue setting up your account." + "</a></p>\n");
+                } else {
+                    out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/login.jsp" + "\">Return to login page" + "</a></p>\n");
+                }
                 out.println(ServletUtilities.getFooter(context));
               }
               else{

@@ -171,6 +171,7 @@ else{
           
           // Build the link and send email.
           final String npLink = String.format("%s/setNewPassword.jsp?username=%s&time=%s&OTP=%s", CommonConfiguration.getServerURL(context), myUser.getUsername(), time, otpString);
+System.out.println("pwlink: " + npLink);
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
           Map<String, String> tagMap = new HashMap<String, String>(){{
             put("@RESET_LINK@", npLink);

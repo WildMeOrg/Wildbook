@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,
+java.nio.file.Files,
 org.ecocean.*
 " %>
 <% request.setAttribute("pageTitle", "Account Creation"); %>
@@ -21,9 +22,11 @@ if (email != null) {
     if (user != null) {
         boolean sentReset = false;
         if (user.getEmailAddress() == null) {
+            SystemValue.set(myShepherd, "TMP_EMAIL_" + user.getUUID(), email);
             sentReset = org.ecocean.servlet.UserResetPasswordSendEmail.sendPasswordResetEmail(context, user, email);
         }
-        myShepherd.rollbackAndClose();
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
 %>
 <h2>A user for <b><%=email%></b> exists.</h2>
 <% if (sentReset) { %>
