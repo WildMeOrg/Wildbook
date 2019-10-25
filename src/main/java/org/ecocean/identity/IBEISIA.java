@@ -316,6 +316,9 @@ System.out.println("sendAnnotations(): sending " + ct);
 System.out.println("--- sendIdentify() passed null tanns..... why???");
 System.out.println("     gotta compute :(");
             tanns = qanns.get(0).getMatchingSet(myShepherd);
+            if (!queryAnnotationTaxonomyCheck(myShepherd, qanns.get(0), tanns)) {
+                return new JSONObject("{\"success\": false, \"error\": \"query annotation lacked taxonomy\"}");
+            }
         }
 
         if (tanns != null) for (Annotation ann : tanns) {
@@ -1074,6 +1077,9 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                 String iaClass = qanns.get(0).getIAClass();
 System.out.println("beginIdentifyAnnotations(): have to set tanns. Matching set being built from the first ann in the list.");
                 tanns = qanns.get(0).getMatchingSet(myShepherd, (task == null) ? null : task.getParameters());
+                if (!queryAnnotationTaxonomyCheck(myShepherd, qanns.get(0), tanns)) {
+                    return new JSONObject("{\"success\": false, \"error\": \"query annotation lacked taxonomy\"}");
+                }
                 curvrankDailyTag = qanns.get(0).getCurvrankDailyTag((task == null) ? null : task.getParameters());
             }
 
@@ -3945,5 +3951,21 @@ System.out.println("iaList.size = " + iaList.size());
         }
         return diff;
     }
+
+
+    //this will return true if this query/target annots combo is ok to continue with
+    // mostly this has to do with how to proceed when the query annot has no taxonomy
+    public static boolean queryAnnotationTaxonomyCheck(Shepherd myShepherd, Annotation qann, ArrayList<Annotation> tanns) {
+        boolean allow = Util.booleanNotFalse(IA.getProperty(myShepherd.getContext(), "allowIdentificationWithoutTaxonomy"));
+        if (allow) return true;  //easy, we dont care about taxonomy!
+        if (qann == null) {
+            System.out.println("WARNING: queryAnnotationTaxonomyCheck() failed due to null qann value");
+            return false;
+        }
+        if (Util.stringExists(qann.getSpecies(myShepherd))) return true;
+        System.out.println("WARNING: queryAnnotationTaxonomyCheck() is blocking ID from running on query annot " + qann + " against a target set of size=" + ((tanns == null) ? "<NULL>" : tanns.size()));
+        return false;
+    }
+
 
 }
