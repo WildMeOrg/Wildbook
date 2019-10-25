@@ -35,6 +35,8 @@ class ForceLayoutAbstract extends GraphAbstract {
     
     getForces() {
 	return d3.forceSimulation()
+	    .alphaMin(0.1)
+//	    .alphaDecay(0.05)
 	    .force("link", d3.forceLink().id(d => d.id))
 	    .force("charge", d3.forceManyBody())
 	    .force("collision", d3.forceCollide().radius(d => this.getLinkLen(d))) 
@@ -125,19 +127,44 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .on("mouseout", d => this.handleMouseOut(d));
     }
 
-    //Overwrite parent function
-    colorNodes(d) {
-	return (d.fixed) ? this.collapsedNodeColor : this.defNodeColor;
-    }
     
     enableDrag(circles, force) {
-	circles.on('dblclick', d => this.releaseNode(d))
+	circles.on('dblclick', (d, i, nodes) => this.releaseNode(d, nodes[i]))
 	    .call(d3.drag()
 		  .on("start", d => this.dragStarted(d, force))
 		  .on("drag", d => this.dragged(d))
-		  .on("end", d => this.dragEnded(d, force)));
+		  .on("end", (d, i, nodes) => this.dragEnded(d, force, nodes[i])));
     }
 
+    dragStarted(d, force) {
+	if (!d3.event.active) force.alphaTarget(0.5).restart();
+	d.fx = d3.event.x;
+	d.fy = d3.event.y;
+    }
+
+    dragged(d) {
+	d.fx = d3.event.x;
+	d.fy = d3.event.y;
+    }
+
+    dragEnded(d, force, node) {
+	if (!d3.event.active) force.alphaTarget(0);
+
+	console.log("D", node);
+	console.log(d3.select(node));
+	
+	//Color fixed node
+	d3.select(node).select("circle").style("fill", this.fixedNodeColor);
+    }
+
+    releaseNode(d, node) {
+	d.fx = null;
+	d.fy = null;
+
+	//Recolor node
+	d3.select(node).select("circle").style("fill", this.defNodeColor);
+    }
+    
     applyForces(forces, linkRef, nodeRef) {
 	forces.nodes(this.nodes)
 	    .on("tick", () => this.ticked(linkRef, nodeRef));
@@ -155,25 +182,4 @@ class ForceLayoutAbstract extends GraphAbstract {
 	nodeRef.attr("transform", d => "translate(" + d.x + "," + d.y + ")");
     }
 
-    dragStarted(d, sim) {
-	if (!d3.event.active) sim.alphaTarget(0.5).restart();
-	d.fx = d3.event.x;
-	d.fy = d3.event.y;
-    }
-
-    dragged(d) {
-	d.fx = d3.event.x;
-	d.fy = d3.event.y;
-    }
-
-    dragEnded(d, sim) {
-	if (!d3.event.active) sim.alphaTarget(0);
-	d.fixed = true;
-    }
-
-    releaseNode(d) {
-	d.fx = null;
-	d.fy = null;
-	d.fixed = false;
-    }
 }
