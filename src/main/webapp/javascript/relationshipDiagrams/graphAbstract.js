@@ -38,7 +38,7 @@ class GraphAbstract {
 	this.alphaColor = "#bf0000";
 
 	this.defNodeColor = "#ffffff";
-	this.fixedNodeColor = "#ffdfe5";	
+	this.fixedNodeColor = "#e0e0e0";	
 	
 	this.defLinkColor = "#a6a6a6";
 	this.famLinkColor = "#a6a6a6"; //"#b59eda";
@@ -108,13 +108,6 @@ class GraphAbstract {
 	}
     }
 
-//TODO: Remove - no longer used
-/*    calcNodeDepth(nodes) {
-	let nodeDepth = nodes.map(d => d.depth);
-	let maxDepth = Math.max(...nodeDepth); //Spread array to extract max value
-	this.nodeSeparation = this.gWidth / maxDepth; //Set horizontal separation
-    }*/
-    
     addTooltip(selector) {
 	//Define the tooltip div
 	this.tooltip = d3.select(selector).append("div")
@@ -145,33 +138,28 @@ class GraphAbstract {
             .style("opacity", 0);
     }
 
-    drawNodeOutlines(nodes, isHidden) {
+    drawNodeOutlines(nodes=this.nodes) {
 	//Color collapsed nodes
-	return nodes.append("circle")
-	    .attr("r", d => this.radius * this.getSizeScalar(d, isHidden))
+	nodes.append("circle")
+	    .attr("r", this.startingRadius)
 	    .style("fill", this.defNodeColor)
 	    .style("stroke", d => this.colorGender(d))
 	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d));
     }
 
-    getSizeScalar(d, isHidden=false) {
-	if (isHidden) return 0;
-	else if (d.data.isFocused) return this.focusedScale;
+    getSizeScalar(d) {
+	if (d.data.isFocused) return this.focusedScale;
 	else return 1;
     }
 
-//TODO - Remove
-/*    colorNodes(d) {
-	return (d.fixed) ? this.fixedNodeColor : this.defNodeColor;
-    }*/
-
     colorGender(d) {
+	console.log("D", d);
 	try {
 	    let gender = d.data.gender || "default";
 	    switch (gender.toUpperCase()) {
-	        case "FEMALE": return this.femaleColor;
-	        case "MALE": return this.maleColor;
-	        default: return this.defGenderColor; //Grey
+	        case "FEMALE": return this.femaleColor; //Pink
+	        case "MALE": return this.maleColor; //Blue
+	        default: return this.defGenderColor; //White
 	    }
 	}
 	catch(error) {
@@ -179,7 +167,7 @@ class GraphAbstract {
 	}
     }
 
-    drawNodeSymbols(nodes, isHidden) {
+    drawNodeSymbols(nodes=this.nodes) {
 	nodes.append("path")
 	    .attr("class", "symb")
 	    .attr("d", d => {
@@ -196,24 +184,14 @@ class GraphAbstract {
 		return "translate(" + pos + "," + -pos + ")";
 	    })
 	    .style("fill", this.alphaColor)
-	    .style("fill-opacity", () => isHidden ? 0 : 1);
-    }
-
-    updateSymbols(nodeUpdate, isHidden) {
-	nodeUpdate.select("path.symb")
-	    .attr("transform", d => {
-		let radialPos = Math.cos(Math.PI / 4);
-		let pos = this.radius * this.getSizeScalar(d) * radialPos;
-		return "translate(" + pos + "," + -pos + ")";
-	    })
-	    .style("fill-opacity", () => isHidden ? 0 : 1);
+	    .style("fill-opacity", 0);
     }
 
     //TODO: Stub function
-    addNodeText(nodeEnter, isHidden) {
+    addNodeText(nodes=this.nodes) {
 	//Style node text
 //	let boundedLength = 2 * this.radius * Math.cos(Math.PI / 4); //Necessary dimensions of bounding rectangle
-	nodeEnter.append("text")
+	nodes.append("text")
 //	    .attr(d => d.x - (boundedLength / 2))
 //	    .attr(d => d.y - (boundedLength / 2))
 //	    .attr("width", boundedLength)
@@ -221,25 +199,8 @@ class GraphAbstract {
 	    .attr("class", "text")
 	    .attr("dy", ".5em") //Vertically centered
 	    .text(d => d.data.name)
-	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d, isHidden)) + "px")
+	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
 	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
     }
-
-    //TODO - Remove
-    /*//Toggle children on click.
-    click(d) {
-	if (d.children) { //Collapse child nodes
-	    d._children = d.children;
-	    d.children = null;
-	}
-	else {//Expand child nodes
-	    d.children = d._children;
-	    d._children = null;
-	}
-
-	if (isNaN(d.y)) d.y0 = d.y = 0; //TODO - Remove?
-	this.updateTree(d);
-    }*/
-
 }
 

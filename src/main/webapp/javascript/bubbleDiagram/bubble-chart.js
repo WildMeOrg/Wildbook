@@ -15,7 +15,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	//TODO: Parse this data
 	//It would be really great if some clever heirarchical representation could be used
 	//to represent this - that way one format can be used for all graph DATA
-	this.nodes = [
+	this.nodeData = [
 	    {
 		"id": 0,
 		"group": 0,
@@ -44,7 +44,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    },
 	    {
 		"id": 3,
-		"group": 2,
+		"group": 0,
 		"data": {
 		    "name": "Lion D",
 		    "gender": ""
@@ -52,7 +52,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    },
 	    {
 		"id": 4,
-		"group": 2,
+		"group": 0,
 		"data": {
 		    "name": "Lion E",
 		    "gender": "female"
@@ -68,12 +68,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    }
 	];
 
-	this.links = [
-	    {"source": 0, "target": 1, "type": "maternal"},
-	    {"source": 0, "target": 2, "type": "member"},
-	    {"source": 0, "target": 3, "type": "maternal"},
-	    {"source": 0, "target": 4, "type": "maternal"},
-	    {"source": 0, "target": 5, "type": "member"},
+	this.linkData = [
+	    {"linkId": 0, "source": 0, "target": 1, "type": "maternal", "group": 0},
+	    {"linkId": 1, "source": 0, "target": 2, "type": "member", "group": -1},
+	    {"linkId": 2, "source": 0, "target": 3, "type": "maternal", "group": 0},
+	    {"linkId": 3, "source": 0, "target": 4, "type": "maternal", "group": 0},
+	    {"linkId": 4, "source": 0, "target": 5, "type": "member", "group": -1}
 	];	
     }
 
@@ -85,18 +85,11 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    this.appendSvg("#bubbleChart");
 	    this.addTooltip("#bubbleChart");
 
-	    this.calcNodeSize(this.nodes);
+	    this.calcNodeSize(this.nodeData);
 	    this.setNodeRadius();
 	    
-	    let forces = this.getForces();
-	    let [linkRef, nodeRef] = this.createGraph();
-	    
-	    this.drawNodeOutlines(nodeRef, false);
-	    this.drawNodeSymbols(nodeRef, false);
-	    this.addNodeText(nodeRef, false);
-
-	    this.enableDrag(nodeRef, forces);
-	    this.applyForces(forces, linkRef, nodeRef);	    
+	    this.setupGraph();
+	    this.updateGraph();
 	}
     }
 }
