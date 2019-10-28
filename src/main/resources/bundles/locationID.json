@@ -2,7 +2,21 @@
   "description": "Hierarchical Encounter.locationIDs in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
+  
+	{ "name":"Mozambique", "id":"Mozambique", "locationID":[] },
 
+	{ "name":"Costa Rica", "id":"Costa Rica", "locationID":[] },
+
+	{ "name":"Hawaii", "id":"Hawaii", "locationID":[] },
+
+	{ "name":"India", "id":"India", "locationID":[] },
+
+	{ "name":"Madagascar", "id":"Madagascar", "locationID":[] },
+
+
+	{ "name":"Red Sea", "id":"Red Sea", "locationID":[] },
+
+	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
 
 		{ "name":"Australia (East)", "id":"Australia (East)", "locationID":[] },
 
