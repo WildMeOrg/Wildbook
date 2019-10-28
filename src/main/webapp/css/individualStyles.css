@@ -240,28 +240,6 @@ li.active{
   background-image: none;
 }
 
-/* Family Tree Styles */
-#familyDiagram svg, #socialDiagram svg {
-    width: 100%;
-/*    border: 1px solid #aaa; TODO - Remove?*/
-    
-}
-
-.individual rect {
-  fill: #fff;
-  stroke: steelblue;
-  stroke-width: 1px;
-}
-.individual {
-  font: 14px sans-serif;
-  cursor: pointer;
-}
-.link {
-  fill: none;
-  stroke: #939393;
-  stroke-width: 1.3px;
-}
-
 div .tooltip {	
     position: absolute;			
     text-align: center;			
