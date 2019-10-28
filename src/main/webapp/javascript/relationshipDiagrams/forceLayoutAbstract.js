@@ -12,16 +12,23 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Assign a Unique Global Id to each Force Layout Graph
 	ForceLayoutAbstract.count = ForceLayoutAbstract.count + 1 || 0;
 	this.graphId = ForceLayoutAbstract.count;
-	
+
+	//Link Attributes
 	this.linkWidth = 3;
 	this.maxLenScalar = 2.5;
-	
+
+	//Link Marker Attributes
 	this.markerWidth = 6;
 	this.markerHeight = 6;
 
+	//Physics Attributes
 	this.alpha = 1;
+
+	//Transition Attributes
 	this.transitionDuration = 750; //Duration in Milliseconds
 	this.startingRadius = 0;
+
+	//Filter Attributes
 	this.filtered = false;
     }
 
@@ -35,6 +42,7 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     setForces() {
+	//Define the Graph's Forces
 	this.forces = d3.forceSimulation()
 //	    .alphaMin(0.05)
 //	    .alphaDecay(0.05)
@@ -45,7 +53,8 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     //TODO - Rework to style class..?
-    defineArrows() {	
+    defineArrows() {
+	//Define a Style Class for each End Marker
 	this.svg.append("defs")
 	    .selectAll("marker")
 	    .data(this.linkData.filter(d => d.type != "member")).enter()
@@ -64,8 +73,6 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     //Dynamic Render Methods
     updateGraph(linkData=this.linkData, nodeData=this.nodeData) {
-	console.log(linkData);
-	
 	//Update Render Data
 	this.updateLinks(linkData);
 	this.updateNodes(nodeData);
@@ -138,7 +145,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .duration(this.transitionDuration)
 	    .attr("r", d => this.radius * this.getSizeScalar(d));
 
-	//Grow Node Symbol
+	//Fade Node Symbol In
 	this.nodes.selectAll(".symb").transition()
 	    .duration(this.transitionDuration)
 	    .attr("fill-opacity", 1);
