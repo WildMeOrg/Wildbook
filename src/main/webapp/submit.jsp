@@ -3,7 +3,7 @@
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.List,java.util.ArrayList,
+                 java.util.List,java.util.ArrayList,java.util.Map,
                  java.util.Locale" %>
 
 
@@ -905,7 +905,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="genusSpecies" id="genusSpecies" onChange="$('.required-missing').removeClass('required-missing'); return true;">
+            <select class="form-control" name="genusSpecies" id="genusSpecies">
              	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
   <%
 
@@ -1017,6 +1017,36 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
           </div>
         </div>
+        
+        
+        <%
+  if(CommonConfiguration.showProperty("showPatterningCode",context)){
+%>
+  <fieldset>
+    <div class="form-group" data-toggle="tooltip" title="<%=props.getProperty("patterningCode.tooltip")%>">
+      <div class="col-xs-6 col-md-4">
+        <label class="control-label"><%=props.getProperty("patterningCode")%></label>
+      </div>
+
+      <div class="col-xs-6 col-lg-8">
+        <select class="form-control" name="patterningCode" id="patterningCode">
+          <option value="" selected="selected"> </option>
+<%
+    Map<String, String> mapPC = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
+    for (Map.Entry<String, String> item : mapPC.entrySet()) {
+%>
+          <option value="<%=item.getValue()%>"><%=props.getProperty(item.getKey())%></option>
+<%
+    }
+%>
+        </select>
+      </div>
+    </div>
+
+<%
+  }
+%>
+        
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1028,24 +1058,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
         </div>
 
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
-          </div>
 
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
-          </div>
-        </div>
-        <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
-          </div>
-        </div>
 
 
 
@@ -1281,11 +1294,11 @@ function sendButtonClicked() {
 	console.log('sendButtonClicked()');
 	$('.required-missing').removeClass('required-missing')
 
-	if (!$('#genusSpecies').val()) {
-		$('#genusSpecies').closest('.form-group').addClass('required-missing');
-		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
-		return false;
-	}
+	//if (!$('#genusSpecies').val()) {
+	//	$('#genusSpecies').closest('.form-group').addClass('required-missing');
+	//	window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+	//	return false;
+	//}
 
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
