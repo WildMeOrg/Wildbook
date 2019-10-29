@@ -56,6 +56,10 @@ confShepherd.closeDBTransaction();
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
 
       <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+      
+       <!-- Icon font necessary for indocet style, but for consistency will be applied everywhere -->
+      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
+      <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
     <%
@@ -275,10 +279,9 @@ confShepherd.closeDBTransaction();
                     
                     <div class="search-wrapper">
                       <label class="search-field-header">
-                            <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
-	                            <input type="text" id="search-site" placeholder="<%=props.getProperty("searchPlaceholder")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
-	                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
-	                            <input type="submit" value="search" />
+                            <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
+                              <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+                              <span class="el el-lg el-search"></span>
                           </form>
                       </label>
                     </div>
@@ -544,6 +547,13 @@ confShepherd.closeDBTransaction();
                     }
                 });
             }
+        });
+        //prevent enter key on tyeahead
+        $('#search-site').keydown(function (e) {
+                	    if (e.keyCode == 13) {
+                	        e.preventDefault();
+                	        return false;
+                	    }
         });
         </script>
         
