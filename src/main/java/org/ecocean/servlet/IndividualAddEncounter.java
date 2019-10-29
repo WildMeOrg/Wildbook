@@ -146,7 +146,8 @@ public class IndividualAddEncounter extends HttpServlet {
               else if ( ((addToMe.getSex()==null)||(addToMe.getSex().equals("unknown"))) &&(enc2add.getSex()!=null)) {
                 addToMe.setSex(enc2add.getSex());
               }
-              responseJSON=RESTUtils.getJSONObjectFromPOJO(addToMe, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();  
+              //responseJSON=RESTUtils.getJSONObjectFromPOJO(addToMe, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();  
+              responseJSON=addToMe.uiJson(request,false).toString();  
               
               //youTube postback check
               youTubePostback(enc2add, myShepherd, context);
