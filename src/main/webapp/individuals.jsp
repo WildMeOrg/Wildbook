@@ -757,7 +757,7 @@ if (sharky.getNames() != null) {
                     $("#sexCheck").show();
                     $("#displaySex").html(sex);
                     $("svg.bubbleChart").remove();
-                    getData(individual);
+                    getData(individual, null);
 
                   })
                   .fail(function(response) {
@@ -1526,7 +1526,7 @@ if (sharky.getNames() != null) {
         // <% String individualID = sharky.getIndividualID();%>
         $(document).ready(function() {
 
-          getData("<%=individualID%>");
+          getData("<%=individualID%>", "<%=sharky.getDisplayName() %>");
         });
         </script>
 
