@@ -31,12 +31,18 @@
   Properties props = ShepherdProperties.getProperties("header.properties", langCode, context);
   Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 
-Shepherd confShepherd = new Shepherd(context);
-confShepherd.setAction("header.jsp_confShepherd");
-CommonConfiguration.ensureServerInfo(confShepherd, request);
-confShepherd.closeDBTransaction();
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.beginDBTransaction();
+myShepherd.setAction("header.jsp_confShepherd");
+CommonConfiguration.ensureServerInfo(myShepherd, request);
+if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
+
+try{
 
   String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+  
+
+  
   %>
 
 <html lang="<%=langCode%>" >
@@ -128,10 +134,10 @@ confShepherd.closeDBTransaction();
                       <%
                       
 	                      if(request.getUserPrincipal()!=null){
-	                    	  Shepherd myShepherd = new Shepherd(context);
+	                    
 	                          
 	                          try{
-	                        	  myShepherd.beginDBTransaction();
+	                        	
 		                    	  String username = request.getUserPrincipal().toString();
 		                    	  User user = myShepherd.getUser(username);
 		                    	  String fullname=username;
@@ -149,10 +155,7 @@ confShepherd.closeDBTransaction();
 		                      		<%
 	                          }
 	                          catch(Exception e){e.printStackTrace();}
-	                          finally{
-	                        	  myShepherd.rollbackDBTransaction();
-	                        	  myShepherd.closeDBTransaction();
-	                          }
+	        
 	                      }
 	                      else{
 	                      %>
@@ -381,7 +384,7 @@ confShepherd.closeDBTransaction();
                         
                         <!-- list sites by locationID -->
                           <%
-                            Shepherd myShepherd = new Shepherd(context);
+                  
                             try {
                               java.util.List<String> locUsed = myShepherd.getAllLocationIDs();
                               Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
@@ -396,11 +399,7 @@ confShepherd.closeDBTransaction();
                             catch (Exception ex) {
                               ex.printStackTrace();
                             }
-                            finally {
-                                myShepherd.rollbackDBTransaction();
-                                myShepherd.closeDBTransaction();
-                                myShepherd = null;
-                            }
+
                           %>
                         </ul>
                       </li>
@@ -558,3 +557,11 @@ confShepherd.closeDBTransaction();
         </script>
         
         <!-- ****/header**** -->
+<%
+}
+catch(Exception e){e.printStackTrace();}
+finally{
+	myShepherd.rollbackAndClose();
+}
+
+%>
