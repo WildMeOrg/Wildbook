@@ -376,6 +376,9 @@
 				/MergeIndividual = authc
 
 				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
+				
+				/merge.jsp = authc, roles[researcher]
+				/mergeComplete.jsp = authc, roles[researcher]
 
             </param-value>
         </init-param>
