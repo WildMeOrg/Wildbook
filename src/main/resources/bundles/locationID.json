@@ -900,24 +900,7 @@
 			 {
 			  "name": "Hudson Bay", "id": "Hudson Bay" },
 			 {
-			  "name": "James Bay", "id": "James Bay" },
-			 {
-			  "name": "Kara Sea", "id": "Kara Sea" },
-			 {
-			  "name": "Kara Strait", "id": "Kara Strait" },
-			 {
-			  "name": "Laptev Sea", "id": "Laptev Sea" },
-			 {
-			  "name": "Lincoln Sea", "id": "Lincoln Sea" },
-			 {
-			  "name": "Prince Gustav Adolf Sea", "id": "Prince Gustav Adolf Sea" },
-			 {
-			  "name": "Pechora Sea", "id": "Pechora Sea" },
-			 {
-			  "name": "Wandel Sea", "id": "Wandel Sea" },
-			 {
-			  "name": "White Sea" , "id": "White Sea"
-			 }
+			  "name": "James Bay", "id": "James Bay" }
 		],
 		"id": "ArcticOcean",
 		"defaultLatitude": 90.0,
