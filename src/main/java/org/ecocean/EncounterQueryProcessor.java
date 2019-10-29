@@ -295,12 +295,12 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     
     //begin observation filters -----------------------------------------
+    try {
+
     boolean hasValue = false;
-    if (request.getParameter("numSearchedObs")!=null) {
-      if (request.getParameter("observationKey1")!=null&&!request.getParameter("observationKey1").equals("")) {
-        hasValue = true;
-      }
-    }  
+    if (request.getParameter("numSearchedObs")!=null&&request.getParameter("observationKey1")!=null&&!request.getParameter("observationKey1").equals("")) {
+      hasValue = true;
+    }
     Enumeration<String> allParams = request.getParameterNames();
     if (allParams!=null&&hasValue) {
       String keyID = "observationKey";
@@ -328,7 +328,7 @@ public class EncounterQueryProcessor {
           }
         }
       }  
-      for (int i=1;i<=numObsSearched;i++) {
+      for (int i=0;i<=numObsSearched;i++) {
         String num = String.valueOf(i);
         if (Util.basicSanitize(obKeys.get(num))!=null) {
           String thisKey = Util.basicSanitize(obKeys.get(num));
@@ -337,34 +337,40 @@ public class EncounterQueryProcessor {
           prettyPrint.append("<br/>");
           String qAsString = obQuery.toString().trim();
           System.out.println("Query As String"+qAsString);
+          //qAsString += "&&";
+          //parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "String name"+i);
           if (qAsString.length()>=2&&!qAsString.substring(qAsString.length()-2).equals("&&")) {
             obQuery.append("&&");
           }
-          obQuery.append("(observations.contains(observation"+num+") && ");
-          obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));        
+          obQuery.append(" observations.contains(observation"+num+") &&");
+          obQuery.append(" observation"+num+".name == "+Util.quote(thisKey.trim()));        
           if (obVals.get(num)!=null&&!obVals.get(num).trim().equals("")) {
             String thisVal = Util.basicSanitize(obVals.get(num));
             prettyPrint.append(" is ");
             prettyPrint.append(thisVal);              
             obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim())); 
+            //parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "String value"+i);
           }
-          obQuery.append(")");
+          //obQuery.append(")");
         }
         if (obQuery.length() > 0) {
           if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
             filter += " && ";
           }
           filter += obQuery.toString();
-          for (int j = 0; j < numObsSearched; j++) {
-            updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + j);
+
+          for (int j=0;j<=numObsSearched; j++) {
+            jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation"+i);
           }
+          System.out.println("Variables? "+jdoqlVariableDeclaration);
           System.out.println("ObQuery: "+obQuery);
           System.out.println("Filter? "+filter);
         }
       }  
     }
-    
-    //-------------------------------------------------------------------
+  } catch (Exception e) {
+    e.printStackTrace();
+  }
 
     //Tag Filters--------------------------------------------------------
 
@@ -1640,6 +1646,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
         sb.append(typeAndVariable);
       }
     }
+    System.out.println("UPDATING VARIABLES: "+sb.toString());
     return sb.toString();
   }
 
