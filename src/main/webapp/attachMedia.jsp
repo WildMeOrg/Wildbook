@@ -14,6 +14,22 @@ a.button:hover {
     text-decoration: none;
 }
 
+.busy {
+    position: absolute;
+    background-color: rgba(255,255,255,0.3);
+    background-image: url('images/image-processing.gif');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20%;
+    width: 100%;
+    height: 100%;
+}
+
+.small-button {
+    padding: 0 10px !important;
+    font-size: 0.9em;
+}
+
 #occs {
     margin: 20px;
 }
@@ -58,6 +74,10 @@ a.button:hover {
 }
 #occs tr:hover td {
     background-color: #BFF !important;
+}
+
+#occs tr.date-hidden {
+    display: none;
 }
 
 .occ-enc td {
@@ -431,16 +451,74 @@ boolean showUpload = false;
 <link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 
 <script>
+var showingHasAttached = true; //will toggle to false upon init
 $(document).ready(function() {
     $('#occs').tablesorter();
+    $('#controls-simple').show();
     //$('#occs tbody td:nth-child(3)').on('click', function(ev) {
-    $('#occs tr').on('click', function(ev) {
+    $('#occs tbody tr').on('click', function(ev) {
         var occId = ev.currentTarget.getAttribute('id');
         wildbook.openInTab('attachMedia.jsp?id=' + occId);
     });
 
+    var d = new Date();
+    d = new Date(d.getTime() - (6 * 30 * 24 * 60 * 60 * 1000));
+console.log(d);
+    filterDate(d.toISOString().substring(0,10));
+    toggleHasAttached();
+    $('#toggle-attached-button').show();
+    $('#date-filter-button').show();
+    $('#busy-simple').hide();
     uploaderInit(uploadFinished);
 });
+
+function busy(id, mode) {
+console.info('busy id=%s, mode=%o', id, mode);
+    if (mode === false) {
+        $('#' + id).hide();
+    } else {
+        $('#' + id).show();
+    }
+}
+
+function toggleHasAttached() {
+    showingHasAttached = !showingHasAttached;
+console.log(showingHasAttached);
+    if (!showingHasAttached) {
+        $('tr.date-visible .has-attached-' + showingHasAttached).each(function(i, el) {
+            $('#toggle-attached-button').val('show only data with images');
+            $(el.parentNode).show();
+        });
+    } else {
+        $('tr.date-visible .has-attached-' + !showingHasAttached).each(function(i, el) {
+            $('#toggle-attached-button').val('show only data with NO images');
+            $(el.parentNode).hide();
+        });
+    }
+}
+
+function ignoreHasAttached() {
+    $('tr.date-visible').show();
+}
+
+//dates should be YYYY-MM-DD
+//  endDate not yet implemented!  FIXME
+function filterDate(startDate, endDate) {
+    var back = new Date(new Date(startDate + 'T12:00').getTime() - (90 * 24 * 60 * 60 * 1000));
+$('#date-filter-info').html('data starts <b>' + startDate + '</b>');
+var bval = back.toISOString().substring(0,10);
+$('#date-filter-button').val('show from ' + bval).attr('onclick', "return filterDate('" + bval + "');");
+    $('#occs tbody tr').each(function(i, el) {
+        var rowDate = el.getAttribute('data-date');
+        if (rowDate >= startDate) {
+            el.classList.add('date-visible');
+            el.classList.remove('date-hidden');
+        } else {
+            el.classList.add('date-hidden');
+            el.classList.remove('date-visible');
+        }
+    });
+}
 
 function updateStatus(s) {
     document.getElementById('updone').innerHTML = s;
@@ -760,6 +838,7 @@ System.out.println(ft.getParameters());
     User user = AccessControl.getUser(request, myShepherd);
     boolean admin = (user != null) && "admin".equals(user.getUsername());
     long pageMillis = 90L * 24L * 60L * 60L * 1000L;
+/*
     DateTime dtStart = new DateTime(System.currentTimeMillis() - pageMillis);
     DateTime dtEnd = new DateTime(System.currentTimeMillis() + 1000L);
     try {
@@ -771,9 +850,10 @@ System.out.println(ft.getParameters());
     String dStart = dtStart.toString().substring(0,10);
     String dEnd = dtEnd.toString().substring(0,10);
 //System.out.println("dtStart[" + dtStart + "] dtEnd[" + dtEnd + "]");
+*/
     
     String filter = "SELECT FROM org.ecocean.Occurrence WHERE source.matches('SpotterConserveIO:.*')";
-    filter += " && dateTimeCreated >= '" + dStart + "T00:00' && dateTimeCreated <= '" + dEnd + "T23:59'";
+    //filter += " && dateTimeCreated >= '" + dStart + "T00:00' && dateTimeCreated <= '" + dEnd + "T23:59'";
     if (admin && (request.getParameter("uuid") != null)) {
         filter += " && submitters.contains(u) && u.uuid == '" + Util.basicSanitize(request.getParameter("uuid")) + "'";
     } else if (!admin) {
@@ -1221,12 +1301,22 @@ function macSuccess(data) {
 <div id="updone"></div>
 <div id="input-file-list"></div>
 <div id="upcontrols" style="padding: 20px;">
-    <div style="display: inline-block; width: 60%; vertical-align: top;">
-You may <i>add images</i> to <b>individual sightings below</b>, one at a time, by clicking the corresponding row;<br />
-or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your image files
-<u>contain the appropriate EXIF data</u>.
+    <div>
+        <p>
+            You may <i>add images</i> to <b>individual sightings below</b>, one at a time,
+            or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your image files
+            <u>contain the appropriate EXIF data</u>.
+        </p>
+        <div>
+            <input type="button" id="main-mode" value="switch to BULK mode" />
+        </div>
+    
     </div>
 
+</div>
+
+
+<div id="mode-bulk" style="display: none;">
     <div style="display: inline-block; border: solid 3px #888; border-radius: 4px; padding: 8px 14px;">
         <div style="font-size: 0.8em; margin-bottom: 8px;">BULK IMAGE UPLOAD</div>
 	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged2(this)" /> 
@@ -1234,22 +1324,32 @@ or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your 
             <input type="checkbox" onClick="return folderToggle(this);" /> <b>Use folders</b>
         </div>
     </div>
+    <div id="action-buttons" style="display: none; padding: 30px; text-align: center;">
+        <span id="upload-button"></span>
+        <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button2">begin bulk upload</a>
+        <a class="button" onClick="return cancelUpload();" >cancel bulk upload</a>
+    </div>
 </div>
 
-<div id="action-buttons" style="display: none; padding: 30px; text-align: center;">
-    <span id="upload-button"></span>
-    <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button2">begin bulk upload</a>
-    <a class="button" onClick="return cancelUpload();" >cancel bulk upload</a>
-</div>
-
-<div style="text-align: center; background-color: #FFA; padding: 10px;">
+<div style="text-align: center; background-color: #FFA; 10px; padding: 10px; position: relative; min-height: 100px;">
+    <div id="busy-simple" class="busy"><p><b>please wait</b></p></div>
+    <div style="display: none;" id="controls-simple">
+        <input type="button" class="small-button" value="show all data (with/without images)" onClick="return ignoreHasAttached()" />
+        <input type="button" class="small-button" value="" onClick="return toggleHasAttached()" style="display: none;" id="toggle-attached-button" />
+        <div style="display: inline-block; vertical-align: bottom;">
+            <div id="date-filter-info"></div>
+            <input id="date-filter-button" type="button" class="small-button" value="earlier" style="display: none; margin-top: 0;" />
+        </div>
 <%
+/*
     DateTime dtPrevStart = dtStart.minus(pageMillis);
     DateTime dtNextStart = dtStart.plus(pageMillis);
     out.println(" <a class=\"button\" href=\"attachMedia.jsp?dateStart=" + dtPrevStart.toString().substring(0,10) + "&dateEnd=" + dtPrevStart.plus(pageMillis + 1000L).toString().substring(0,10) + "\">BACK</a> ");
     out.println("<span style=\"margin: 0 15px;\">Date range: <b>" + dStart + " - " + dEnd + "</b></span>");
     if (dtNextStart.getMillis() < System.currentTimeMillis()) out.println(" <a class=\"button\" href=\"attachMedia.jsp?dateStart=" + dtNextStart.toString().substring(0,10) + "&dateEnd=" + dtNextStart.plus(pageMillis + 1000L).toString().substring(0,10) + "\">NEXT</a> ");
+*/
 %>
+    </div>
 </div>
 <table class="tablesorter" id="occs"><thead><tr>
 <%
@@ -1280,7 +1380,7 @@ or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your 
                 rowClass += " tax-" + tn.replaceAll(" ", "-").toLowerCase();
             }
 
-            String row = "<tr class=\"" + rowClass + "\" id=\"" + occ.getOccurrenceID() + "\">";
+            String row = "<tr data-date=\"" + occ.getDateTimeCreated().substring(0,10) + "\" class=\"" + rowClass + "\" id=\"" + occ.getOccurrenceID() + "\">";
             Map<String,String> tripInfo = getTripInfo(occ);
             row += "<td>" + tripInfo.get("typeLabel") + "</td>";
             row += "<td class=\"td-int\">" + tripInfo.get("id") + "</td>";
@@ -1341,7 +1441,7 @@ or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your 
                 //phnote = "<span class=\"hover-note\" title=\"" + phnote + "\">\u2731</span>";
                 phnote = " title=\"" + phnote + "\" ";
             }
-            row += "<td class=\"td-int td-num-" + numPhotos + "\">" + numPhotos + "</td>";
+            row += "<td class=\"has-attached-" + (numPhotos > 0) + " td-int td-num-" + numPhotos + "\">" + numPhotos + "</td>";
             row += "<td " + phnote + " class=\"td-int td-num-" + numPlaceholders + "\">" + numPlaceholders + "</td>";
             int numBehav = Util.collectionSize(occ.getBehaviors());
             row += "<td class=\"td-int td-num-" + numBehav + "\">" + numBehav + "</td>";
