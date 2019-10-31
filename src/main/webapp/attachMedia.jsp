@@ -14,6 +14,10 @@ a.button:hover {
     text-decoration: none;
 }
 
+.mode-header {
+    padding: 10px 20px;
+}
+
 .busy {
     position: absolute;
     background-color: rgba(255,255,255,0.3);
@@ -483,18 +487,17 @@ console.info('busy id=%s, mode=%o', id, mode);
 
 function toggleHasAttached() {
     showingHasAttached = !showingHasAttached;
-console.log(showingHasAttached);
-    if (!showingHasAttached) {
-        $('tr.date-visible .has-attached-' + showingHasAttached).each(function(i, el) {
-            $('#toggle-attached-button').val('show only data with images');
-            $(el.parentNode).show();
-        });
+    if (showingHasAttached) {
+        $('#toggle-attached-button').val('show only data with NO images');
     } else {
-        $('tr.date-visible .has-attached-' + !showingHasAttached).each(function(i, el) {
-            $('#toggle-attached-button').val('show only data with NO images');
-            $(el.parentNode).hide();
-        });
+        $('#toggle-attached-button').val('show only data with images');
     }
+    $('tr.date-visible .has-attached-' + showingHasAttached).each(function(i, el) {
+        $(el.parentNode).show();
+    });
+    $('tr.date-visible .has-attached-' + !showingHasAttached).each(function(i, el) {
+        $(el.parentNode).hide();
+    });
 }
 
 function ignoreHasAttached() {
@@ -518,6 +521,15 @@ $('#date-filter-button').val('show from ' + bval).attr('onclick', "return filter
             el.classList.remove('date-visible');
         }
     });
+}
+
+function switchModeSimple() {
+    $('#mode-bulk').hide();
+    $('#mode-simple').show();
+}
+function switchModeBulk() {
+    $('#mode-simple').hide();
+    $('#mode-bulk').show();
 }
 
 function updateStatus(s) {
@@ -1300,24 +1312,23 @@ function macSuccess(data) {
 </div>
 <div id="updone"></div>
 <div id="input-file-list"></div>
-<div id="upcontrols" style="padding: 20px;">
-    <div>
-        <p>
-            You may <i>add images</i> to <b>individual sightings below</b>, one at a time,
-            or <i>upload bulk images</i> to <b>multiple sightings to the right</b>, if your image files
-            <u>contain the appropriate EXIF data</u>.
-        </p>
-        <div>
-            <input type="button" id="main-mode" value="switch to BULK mode" />
-        </div>
-    
-    </div>
-
-</div>
 
 
 <div id="mode-bulk" style="display: none;">
-    <div style="display: inline-block; border: solid 3px #888; border-radius: 4px; padding: 8px 14px;">
+
+    <div class="mode-header">
+        <p style="font-size: 1.1em;">
+            Attach <i>multiple files</i> to corresponding data below.  (Images must have at least <i>accurate <b>date</b> values</i> in EXIF metadata.)
+        </p>
+
+        <p style="margin-left: 20px;">
+            Or you can <i>attach images one-at-a-time</i> to sightings with single mode.
+            <br /><input type="button" value="switch to SINGLE mode" onClick="return switchModeSimple()" />
+        </p>
+    
+    </div>
+
+    <div style="display: inline-block; margin: 0 10px; border: solid 3px #888; border-radius: 4px; padding: 8px 14px;">
         <div style="font-size: 0.8em; margin-bottom: 8px;">BULK IMAGE UPLOAD</div>
 	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged2(this)" /> 
         <div>
@@ -1330,6 +1341,22 @@ function macSuccess(data) {
         <a class="button" onClick="return cancelUpload();" >cancel bulk upload</a>
     </div>
 </div>
+
+
+<div id="mode-simple">
+
+    <div class="mode-header">
+        <p style="font-size: 1.1em;">
+            You may <i>add images</i> to <b>individual sightings below</b>, one at a time,
+        </p>
+
+        <p style="margin-left: 20px;">
+            Or you can <b>upload bulk images</b> to <i>multiple sightings</i>
+            (if your image files <u>contain the appropriate EXIF data</u>). 
+            <br /><input type="button" value="switch to BULK mode" onClick="return switchModeBulk()" />
+        </p>
+    
+    </div>
 
 <div style="text-align: center; background-color: #FFA; 10px; padding: 10px; position: relative; min-height: 100px;">
     <div id="busy-simple" class="busy"><p><b>please wait</b></p></div>
@@ -1450,7 +1477,7 @@ function macSuccess(data) {
             out.println(row + "</tr>");
             forJS.put(occ.getOccurrenceID(), jsObj);
         }
-        out.println("</tbody></table>");
+        out.println("</tbody></table></div>");  //the /div closes #mode-simple
         out.println("<script>var appData = " + forJS.toString(4) + ";</script>");
     }
     query.closeAll();
