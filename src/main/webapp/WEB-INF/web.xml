@@ -126,6 +126,7 @@
         [urls]
 
         /rest/** = authcBasicWildbook,roles[rest]
+        /LightRest/** = authcBasicWildbook,roles[rest-readonly]
         #/api/** = authcBasicWildbook,roles[rest-readonly]
 
         /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
