@@ -81,6 +81,7 @@ public class EncounterLite implements java.io.Serializable {
     }*/
 
 
+    /*
     if ((enc.getLeftReferenceSpots() != null) && (enc.getLeftReferenceSpots().size() == 3)) {
       //this.leftReferenceSpots=new superSpot[3];
       //superSpot[] existingRefs=enc.getLeftReferenceSpots();
@@ -97,6 +98,7 @@ public class EncounterLite implements java.io.Serializable {
       //leftReferenceSpots[2]=new superSpot(existingRefs[2].getTheSpot());
       //System.out.println("I found right reference spots!");
     }
+    */
 
     //get spots
     if (enc.getSpots() != null) {
