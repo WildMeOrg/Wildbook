@@ -525,6 +525,7 @@ try {
     //let's set up any pre-defined values if appropriate
     String localUsername="";
     String localAffiliation="";
+    String localTwitterHandle="";
     String localEmail="";
     String localFullName="";
     String profilePhotoURL="../images/empty_profile.jpg";
@@ -545,6 +546,9 @@ try {
     	}
     	if(thisUser.getEmailAddress()!=null){
     		localEmail=thisUser.getEmailAddress();
+    	}
+    	if(thisUser.getTwitterHandle()!=null){
+    		localTwitterHandle=thisUser.getTwitterHandle();
     	}
     	if(!thisUser.getReceiveEmails()){receiveEmails="";}
     	if(thisUser.getFullName()!=null){
@@ -629,6 +633,9 @@ try {
 
       <tr><td colspan="2">Email address: <input type="email" autocomplete="off" name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
         
+      <tr><td colspan="3">Twitter Handle: @<input name="twitterHandle" type="text" size="15" maxlength="90" value="<%=localTwitterHandle %>"></input></td></tr>
+       
+      
       <tr><td colspan="3">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
         
       <tr><td colspan="3">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>

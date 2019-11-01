@@ -19,7 +19,8 @@
 
 package org.ecocean.servlet;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
+//import org.apache.commons.lang3.StringEscapeUtils;
 import org.ecocean.*;
 
 import com.oreilly.servlet.multipart.FilePart;
@@ -93,6 +94,11 @@ public class UserCreate extends HttpServlet {
       String email=null;
       if((request.getParameter("emailAddress")!=null)&&(!request.getParameter("emailAddress").trim().equals(""))){
         email=request.getParameter("emailAddress").trim();
+      };
+      
+      String twitterHandle=null;
+      if((request.getParameter("twitterHandle")!=null)&&(!request.getParameter("twitterHandle").trim().equals(""))){
+        twitterHandle=request.getParameter("twitterHandle").trim();
       };
       
       String password="";
@@ -171,6 +177,12 @@ public class UserCreate extends HttpServlet {
             newUser.setAffiliation(request.getParameter("affiliation").trim());
           }
           else if(isEdit&&(request.getParameter("affiliation")!=null)&&(request.getParameter("affiliation").trim().equals(""))){newUser.setAffiliation(null);}
+          
+          if((request.getParameter("twitterHandle")!=null)&&(!request.getParameter("twitterHandle").trim().equals(""))){
+            newUser.setTwitterHandle(request.getParameter("twitterHandle").trim().replaceAll("@",""));
+          }
+          else if(isEdit&&(request.getParameter("twitterHandle")!=null)&&(request.getParameter("twitterHandle").trim().equals(""))){newUser.setTwitterHandle(null);}
+          
           
           if((request.getParameter("userProject")!=null)&&(!request.getParameter("userProject").trim().equals(""))){
             newUser.setUserProject(request.getParameter("userProject").trim());

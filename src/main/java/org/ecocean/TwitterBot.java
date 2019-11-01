@@ -546,6 +546,14 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
             //get Tweet comments for faster review on Encounter page
             enc.setOccurrenceRemarks(originTweet.getText());
             
+            //get the Wildbook User for this tweet and set them as owner
+            if(originTweet.getUser()!=null && originTweet.getUser().getScreenName()!=null) {
+              User wildbookUser=myShepherd.getUserByTwitterHandle(originTweet.getUser().getScreenName().replaceAll("@",""));
+              if(wildbookUser!=null && wildbookUser.getUsername()!=null) {
+                enc.setSubmitterID(wildbookUser.getUsername());
+              }
+            }
+            
             
 
         }
