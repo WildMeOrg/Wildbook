@@ -64,7 +64,7 @@ context=ServletUtilities.getContext(request);
 		}
 	} 
 	catch (Exception e) {
-		System.out.println("Error looking up nickname!!");
+		System.out.println("Error looking up nickname: "+sessionShark);
 		e.printStackTrace();
 	}
 
