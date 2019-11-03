@@ -167,7 +167,13 @@ public class IndividualAddEncounter extends HttpServlet {
         			
               //send emails if appropriate
               if (request.getParameter("noemail") == null) {
-                executeEmails(myShepherd, request,addToMe,newIndy, enc2add, context, langCode);
+                try {
+                  executeEmails(myShepherd, request,addToMe,newIndy, enc2add, context, langCode);
+                }
+                catch(Exception excepty) {
+                  excepty.printStackTrace();
+                  myShepherd.rollbackDBTransaction();
+                }
               }
 
   
@@ -348,10 +354,24 @@ public class IndividualAddEncounter extends HttpServlet {
 
           
           
-          Properties ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
-          String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
-          System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
-          YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd, context);
+          Properties ytProps=null;
+          try {
+            ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
+          }
+          catch(NullPointerException npe) {System.out.println("Exception: Could not find quest.properties for langCode="+detectedLanguage+". Falling back to en.");}
+          
+          if(ytProps==null) {
+            try {
+              ytProps=ShepherdProperties.getProperties("quest.properties", "en");
+            }
+            catch(NullPointerException npe2) {System.out.println("Exception: Could not find quest.properties for en.");}
+          }
+          
+          if(ytProps!=null) {
+            String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
+            System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
+            YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd, context);
+          }
         }
       }
     }
