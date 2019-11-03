@@ -111,7 +111,7 @@ try{
 		//get current time minus two years
 		Long twoYears=new Long("63072000000");
 		long currentDate=System.currentTimeMillis()-twoYears.longValue();
-	    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (enc.dateInMilliseconds >= "+currentDate+") && ((nickName == null)||(nickName == '')) VARIABLES org.ecocean.Encounter enc";
+	    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE names.valuesAsString.toLowerCase().indexOf(\"nickname\") == -1";
 	    Query query=myShepherd.getPM().newQuery(filter);
 	    query.setOrdering("numberEncounters descending");
 	    query.setRange(startNum, endNum);
