@@ -844,6 +844,11 @@
 				<column name="ORGANIZATION_ID" />
 			</element>
       </field>
+      
+      <field name="twitterHandle" column="twitterhandle" unique="true">
+        <column length="256" allows-null="true"/>
+      </field>
+      
     </class>
 
     <class name="Role" identity-type="datastore" table="USER_ROLES">

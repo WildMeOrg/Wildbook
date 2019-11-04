@@ -7,26 +7,8 @@
 		"locationID": [
 			 {
 			  "name": "Arafura Sea", "id": "6" },
-			 {
-			  "name": "Bali Sea", "id": "7" },
-			 {
-			  "name": "Banda Sea", "id": "Banda Sea" },
-			 {
-			  "name": "Bering Sea", "id": "Bering Sea" },
-			 {
-			  "name": "Bismarck Sea",  "id": "Bismarck Sea" },
-			 {
-			  "name": "Bohai Sea", "id": "Bohai Sea" },
-			 {
-			  "name": "Bohol Sea", "id": "Bohol Sea" },
-			 {
-			  "name": "Mindanao Sea", "id": "Mindanao Sea" },
-			 {
-			  "name": "Camotes Sea", "id": "Camotes Sea" },
-			 {
-			  "name": "Celebes Sea", "id": "Celebes Sea"  },
-			 {
-			  "name": "Ceram Sea", "id": "Ceram Sea" },
+
+		
 			 {
 			  "name": "Chilean Sea","id":"Chilean Sea" },
 			 {
@@ -900,24 +882,7 @@
 			 {
 			  "name": "Hudson Bay", "id": "Hudson Bay" },
 			 {
-			  "name": "James Bay", "id": "James Bay" },
-			 {
-			  "name": "Kara Sea", "id": "Kara Sea" },
-			 {
-			  "name": "Kara Strait", "id": "Kara Strait" },
-			 {
-			  "name": "Laptev Sea", "id": "Laptev Sea" },
-			 {
-			  "name": "Lincoln Sea", "id": "Lincoln Sea" },
-			 {
-			  "name": "Prince Gustav Adolf Sea", "id": "Prince Gustav Adolf Sea" },
-			 {
-			  "name": "Pechora Sea", "id": "Pechora Sea" },
-			 {
-			  "name": "Wandel Sea", "id": "Wandel Sea" },
-			 {
-			  "name": "White Sea" , "id": "White Sea"
-			 }
+			  "name": "James Bay", "id": "James Bay" }
 		],
 		"id": "ArcticOcean",
 		"defaultLatitude": 90.0,

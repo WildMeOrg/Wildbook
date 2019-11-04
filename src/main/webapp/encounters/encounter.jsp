@@ -1641,16 +1641,22 @@ console.info('resetIdButtons()');
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
-                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
                           
-                          $('#topid').prop('href', '../individuals.jsp?number=' + data.individualID);
-                          $("#topid").html(individual);
-          				  $(".add2shark").hide();               
+                          //change the display in the Encounter page nearby link
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
+                          $('#displayIndividualID').closest('a').text(data.displayName);
+                          
+                          //change the name in the topbar
+                          //$('#topid').text(data.displayName);
+                          //$("#topid").html(data.displayName);
+                          $("#topid").prop('href', '../individuals.jsp?number=' + data.individualID);
+                          $("#topid").text(data.displayName);
+          				  
+                          $(".add2shark").hide();               
         				  $(".removeFromShark").show();      
-                          //add topid update here
                           
                           $("#displayMatchedBy").html(matchType);
-                          $("#addSuccessDiv").html("<strong>Success:</strong> Encounter " + number + " was successfully added to " + individual + ".");
+                          $("#addSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successfulAdd") %> " + data.displayName + ".");
                           
 
                         })
@@ -1800,7 +1806,7 @@ function checkIdDisplay() {
                         $.post("../IndividualRemoveEncounter", {"number": number},
                         function(response) {
                           $("#setRemoveResultDiv").show();
-                          $("#removeSuccessDiv").html("<strong>Success:</strong> Encounter " + number + " was successfully removed from " + individual + ".");
+                          $("#removeSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successRemove") %>");
                           $("#removeErrorDiv").empty();
                           $("#removeShark").hide();
                           $("#removeLabel").hide();
@@ -1844,12 +1850,12 @@ function checkIdDisplay() {
                     </div>
          
                     <form class="removeFromShark" id="removeShark" name="removeShark">
-                      <div class="form-group row">
-                        <div class="col-sm-12 col-xs-10">
-                          <label id="removeLabel" class="highlight"><strong><%=encprops.getProperty("removeFromMarkedIndividual")%></strong></label>
+                      <div class="form-group row removeFromShark">
+                        <div class="col-sm-12 col-xs-10 removeFromShark">
+                          <label id="removeLabel" class="highlight removeFromShark"><strong><%=encprops.getProperty("removeFromMarkedIndividual")%></strong></label>
                           <input name="number" type="hidden" value="<%=num%>" id="individualRemoveEncounterNumber"/>
                           <input name="action" type="hidden" value="remove" />
-                          <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="individualRemoveEncounterBtn" class="btn btn-sm editFormBtn"/>
+                          <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="individualRemoveEncounterBtn" class="btn btn-sm editFormBtn removeFromShark"/>
                         </div>
                       </div>
                     </form>
@@ -3463,7 +3469,7 @@ else {
     <p>
     <%if(enc.getDateInMilliseconds()!=null){ %>
       <a
-        href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar2.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+        href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
       </a>
         <%
