@@ -11,6 +11,18 @@ function setupOccurrenceGraph() { //TODO - look into individualID
 class OccurrenceGraph extends ForceLayoutAbstract {
     constructor(individualId, focusedScale) {
 	super(individualId, focusedScale);
+
+	this.sliders = [
+	    {
+		"name": "Temporal Slider",
+		"type": "temporal"
+	    },
+	    {
+		"name": "Spatial Slider",
+		"type":  "spatial"
+	    }
+	];
+	this.filtered['occurrences'] = {};
 	
 	//TODO: Parse this data
 	//It would be really great if some clever heirarchical representation could be used
@@ -121,11 +133,76 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    this.appendSvg("#bubbleChart");
 	    this.addTooltip("#bubbleChart");
 
+	    this.getRangeSliderAttr();
+	    this.appendRangeSliders();
+	    
 	    this.calcNodeSize(this.nodeData);
 	    this.setNodeRadius();
 	    
 	    this.setupGraph();
 	    this.updateGraph();
 	}
+    }
+
+    getRangeSliderAttr() {
+	let distArr = [], timeArr = []
+	let focusedNode = this.nodeData.find(d => d.data.isFocused);
+	this.nodeData.forEach(d => {
+	    if (d.id !== focusedNode.id) {
+		let dist = this.calculateDist(focusedNode, d);
+		let time = this.calculateTime(focusedNode, d);
+		distArr.push(dist)
+		timeArr.push(time);
+	    }
+	});
+
+	this.sliders[0].max = Math.max(...timeArr);
+	this.sliders[0].middle = timeArr.reduce((a,b) => a + b, 0) / timeArr.length;
+
+	this.sliders[1].max = Math.max(...distArr);
+	this.sliders[1].middle = distArr.reduce((a,b) => a + b, 0) / distArr.length;
+    }
+
+    calculateDist(node1, node2) {
+	let node1Dist = Math.pow(Math.pow(node1.data.sightings.lat, 2) +
+				 Math.pow(node1.data.sightings.lon, 2), 0.5)
+	let node2Dist = Math.pow(Math.pow(node2.data.sightings.lat, 2) +
+				 Math.pow(node2.data.sightings.lon, 2), 0.5)
+	return Math.abs(node1Dist - node2Dist);
+    }
+
+    calculateTime(node1, node2) {
+	return Math.abs(node1.data.sightings.datetime_ms - node2.data.sightings.datetime_ms)
+    }
+
+    appendRangeSliders() {
+	let targetNode = $("#cooccurrenceSliders");
+	this.sliders.forEach(sliderObj => {
+		let sliderStr = "<label for='" + sliderObj.type + "'>" + sliderObj.name +
+		"</label> <div class='sliderWrapper'>" +
+		"<input type='range' min='1' max='" + sliderObj.max +
+		"' value='" + sliderObj.middle +
+		"' class='slider' id='" + sliderObj.type +
+		"' onchange='this.filterByOccurrence(this.value, " + sliderObj.type + ")'>" +
+		"</div>";
+	    console.log(sliderStr);
+	    targetNode.append(sliderStr);
+	});
+    }
+
+    filterByOccurrence(threshold, occType) {
+	let focusedNode = this.nodeData.find(d => d.data.isFocused);
+	if (occType === "spatial") {
+	    let nodeFilter = (d) => (this.calculateDist(focusedNode, d) < threshold)
+	    let linkFilter = (d) => (this.calculateDist(focusedNode, d.source) < threshold) &&
+		(this.calculateDist(focusedNode, d.target) < threshold)
+	}
+	else if (occType === "temporal") {
+	    let nodeFilter = (d) => (this.calculateTime(focusedNode, d) < threshold)
+	    let linkFilter = (d) => (this.calculateTime(focusedNode, d.source) < threshold) &&
+		(this.calculateTime(focusedNode, d.target) < threshold)
+	}
+
+	this.filterGraph(occType, nodeFilter, linkFilter, 'occurrences');
     }
 }

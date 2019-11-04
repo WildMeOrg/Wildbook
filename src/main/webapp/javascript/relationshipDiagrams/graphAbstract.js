@@ -153,7 +153,6 @@ class GraphAbstract {
     }
 
     colorGender(d) {
-	console.log("D", d);
 	try {
 	    let gender = d.data.gender || "default";
 	    switch (gender.toUpperCase()) {

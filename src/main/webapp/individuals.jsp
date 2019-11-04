@@ -308,8 +308,9 @@ input.nameKey, input.nameValue {
 <script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
 <script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
-<%-- <script src="javascript/relationshipDiagrams/familyTree.js"></script> --%>
 <script src="javascript/relationshipDiagrams/socialGraph.js"></script>
+<script src="javascript/bubbleDiagram/encounter-calls.js"></script>
+    
 
 
 <style>
@@ -321,13 +322,8 @@ input.nameKey, input.nameValue {
 
 
 <script type="text/javascript">
-
-
   $(document).ready( function() {
-
     $("input.nameKey, input.nameValue").hide();
-
-    // wildbook.init(function() { doTable(); });
 
     $("#socialDiagramTab").click(e => {
       e.preventDefault();
@@ -761,7 +757,7 @@ if (sharky.getNames() != null) {
                     $("#sexCheck").show();
                     $("#displaySex").html(sex);
                     $("svg.bubbleChart").remove();
-                    getData(individual);
+                      getData(individual, null);
 
                   })
                   .fail(function(response) {
@@ -1523,8 +1519,13 @@ if (sharky.getNames() != null) {
         <br>
         <%-- Cooccurrence table starts here --%>
         <a name="cooccurrence"></a>
-        <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
-
+	<p><strong><%=props.getProperty("cooccurrence")%></strong></p>
+	<script type="text/javascript">
+        <% String occurrenceIndividualID = sharky.getIndividualID();%>
+        $(document).ready(function() {
+            getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName() %>");
+        });
+        </script>
         <%
           List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky);
 
@@ -1555,6 +1556,7 @@ if (sharky.getNames() != null) {
                 <button type="button" class="btn btn-default" id="reset">Reset</button>
               </div>
             </div>
+	    <div id="cooccurrenceSliders">tmp</div>
           </div>
 
           <div id="cooccurrenceTable" class="table-responsive mygrid-wrapper-div">
