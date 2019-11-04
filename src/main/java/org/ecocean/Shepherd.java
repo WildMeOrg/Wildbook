@@ -867,6 +867,19 @@ public class Shepherd {
     query.closeAll();
     return org;
   }
+  
+  public Organization getOrganization(String uuid) {
+    Organization org= null;
+    String filter="SELECT FROM org.ecocean.Organization WHERE id == \""+uuid.trim()+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      org=(Organization)it.next();
+    }
+    query.closeAll();
+    return org;
+  }
 
   public Organization getOrCreateOrganizationByName(String name) {
     return getOrCreateOrganizationByName(name, true);
@@ -4245,6 +4258,19 @@ public class Shepherd {
     ArrayList al=new ArrayList(results);
 	    q.closeAll();
     return al;
+  }
+  
+  public List<String> getAllNativeUsernames() {
+    String filter="SELECT FROM org.ecocean.User WHERE username != null ";
+    // bc of how sql's startsWith method works we need the null check below
+    filter += "&& (fullName == null || !fullName.startsWith('Conserve.IO User '))";
+    Query query=getPM().newQuery(filter);
+    query.setResult("distinct username");
+    query.setOrdering("username ascending");
+    Collection c = (Collection) (query.execute());
+    ArrayList usernames=new ArrayList(c);
+    query.closeAll();
+    return usernames;
   }
 
   public List<String> getAllNativeUsernames() {

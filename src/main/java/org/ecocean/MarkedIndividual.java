@@ -2508,6 +2508,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             NAMES_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase());
             NAMES_KEY_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.getNameKeys()).toLowerCase());
         }
+        query.closeAll();
         return NAMES_CACHE;
     }
 
