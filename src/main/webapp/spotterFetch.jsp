@@ -57,12 +57,12 @@ private static String justSomeTrips(String[] tripIds, Shepherd myShepherd) {
         try {
             id = Integer.parseInt(tripIds[i]);
         } catch (NumberFormatException ex) {}
-        intIds.add(id);
         Occurrence occ = loadByTripId(myShepherd, id);
         if (occ != null) {
-            rtn += "<li class=\"exists\"><b>" + id + "</b> exists: <a href=\"occurrence.jsp?number=" + occ.getOccurrenceID() + "\">Occ " + occ.getOccurrenceID() + "</a></li>";
+            rtn += "<li class=\"exists\"><b>" + id + "</b> exists: <a href=\"occurrence.jsp?number=" + occ.getOccurrenceID() + "\">Occ " + occ.getOccurrenceID() + "</a> <i>(skipping)</i></li>";
         } else {
             rtn += "<li><b>" + id + "</b> does not exist</li>";
+            intIds.add(id);
         }
     }
     rtn += "</ul></p><p><b>Creation results:</b><ul>";
