@@ -929,13 +929,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </c:forEach>
 <tr><td></td></tr>
 </c:if>
-<tr><td>
-      <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
-            <label>
-            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
-            </label>
-      </p>
-      </td></tr>
+
 
 </table>
 </p>
@@ -948,10 +942,19 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   <td>
     <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
-      Image Label Filters</a></h4>
+      <%=encprops.getProperty("imageLabelFilters") %></a></h4>
 
     <div id="keywords" style="display:none; ">
     	<table id="labeled-kw-table">
+    		<tr>
+	    		<td>
+			      <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
+			            <label>
+			            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+			            </label>
+			      </p>
+			    </td>
+		      </tr>
 				<tr><td><strong><%=encprops.getProperty("imageLabelFilters") %></strong></td></tr>
 				<tr><td colspan="3"><p><em>Filter by Labeled Keywords on an Encounter's photos. Select labels and (optionally) values for Labeled Keywords below.</em>
 					<ul>

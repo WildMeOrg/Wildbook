@@ -4824,6 +4824,21 @@ public class Shepherd {
     queries.closeAll();
     return listy;
   }
+  
+  
+  public User getUserByTwitterHandle(String handle) {
+    User user= null;
+    String filter="SELECT FROM org.ecocean.User WHERE twitterHandle == \""+handle.trim()+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      user=(User)it.next();
+    }
+    query.closeAll();
+    return user;
+  }
+  
 
 
 } //end Shepherd class
