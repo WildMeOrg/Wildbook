@@ -263,7 +263,7 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
     
     handleFilter(groupNum) {
-	if (this.metaKey()) this.resetGraph(); //TODO - Fix meta read
+	if (this.shiftKey() && this.ctrlKey()) this.resetGraph(); 
 	else if (this.shiftKey()) { //Filter Inverse of Selected Family
 	    let filter = (d) => d.group === groupNum;
 	    this.filterGraph(groupNum, filter, filter, 'inverse_family');
@@ -309,34 +309,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.updateGraph(this.prevLinkData, this.prevNodeData);
     }
 
-    //Helper Methods
- /*   collapseNodes() {
-	this.startingRadius = 15;
-	this.targetNodes.data().forEach(d => d.collapsed = true);
-	
-	this.targetNodes.selectAll("text")
-	    .attr("fill-opacity", 0);
-
-	this.targetNodes.selectAll(".symb")
-	    .style("fill-opacity", 0);
-	    
-	this.targetNodes.selectAll("circle")
-	    .transition()
-	    .duration(this.transitionDuration)
-	    .attr("r", this.startingRadius)
-	    .style("fill", d => this.colorGender(d))
-	    .style("stroke-width", 0);
-    }*/
-
     //TODO - Rename
     isAssignedKeyBinding() {
-	return (this.metaKey() || this.shiftKey() || this.ctrlKey());
-    }
-
-    metaKey() {
-	console.log(d3.event.keyCode);
-	if (d3.event.sourceEvent) console.log(d3.event.sourceEvent.keyCode);
-	return (d3.event.metaKey || (d3.event.sourceEvent && d3.event.sourceEvent.metaKey));
+	return (this.shiftKey() || this.ctrlKey());
     }
     
     shiftKey() {
