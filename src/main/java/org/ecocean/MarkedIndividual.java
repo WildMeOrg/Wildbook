@@ -2154,6 +2154,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   public JSONObject uiJson(HttpServletRequest request, boolean includeEncounters) throws JSONException {
     JSONObject jobj = new JSONObject();
     jobj.put("individualID", this.getIndividualID());
+    jobj.put("displayName", this.getDisplayName());
     jobj.put("id", this.getId());
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
@@ -2507,6 +2508,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             NAMES_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase());
             NAMES_KEY_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.getNameKeys()).toLowerCase());
         }
+        query.closeAll();
         return NAMES_CACHE;
     }
 

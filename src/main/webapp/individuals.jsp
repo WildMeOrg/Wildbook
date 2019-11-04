@@ -748,7 +748,7 @@ if (sharky.getNames() != null) {
                   event.preventDefault();
                   $("#Add").hide();
 
-                  var individual = $("input[name='individual']").val();
+                  var individual = "<%=sharky.getIndividualID() %>";
                   var sex = $("#newSex").val();
 
                   $.post("IndividualSetSex", {"individual": individual, "selectSex": sex},
@@ -757,8 +757,7 @@ if (sharky.getNames() != null) {
                     $("#sexCheck").show();
                     $("#displaySex").html(sex);
                     $("svg.bubbleChart").remove();
-                      getData(individual, null);
-
+                    getData(individual, null);
                   })
                   .fail(function(response) {
                     $("#sexError, #sexErrorDiv").show();
@@ -1523,7 +1522,7 @@ if (sharky.getNames() != null) {
 	<script type="text/javascript">
         <% String occurrenceIndividualID = sharky.getIndividualID();%>
         $(document).ready(function() {
-            getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName() %>");
+          getData("<%=individualID%>", "<%=sharky.getDisplayName() %>");
         });
         </script>
         <%
