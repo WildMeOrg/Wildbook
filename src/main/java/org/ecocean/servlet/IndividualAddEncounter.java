@@ -95,13 +95,20 @@ public class IndividualAddEncounter extends HttpServlet {
               System.out.println("IndividualAddEncounter: forceNew=true, attempting to make indiv '" + indivID + "'.");
               try {
                   newIndy = true;
+                  
+
                   addToMe = new MarkedIndividual(indivID, enc2add);
                   
                   //check for duplicate individual IDs represented by another annotation with the same acmId
                   checkForDuplicateAnnotations(enc2add, failureMessage, addToMe, myShepherd);
                   
                   
+                  
+                  
+                  
                   myShepherd.storeNewMarkedIndividual(addToMe);
+                  myShepherd.updateDBTransaction();
+                  enc2add.setIndividual(addToMe);
                   myShepherd.updateDBTransaction();
                   addToMe.refreshNamesCache();
                   addToMe.refreshDependentProperties();
@@ -146,7 +153,8 @@ public class IndividualAddEncounter extends HttpServlet {
               else if ( ((addToMe.getSex()==null)||(addToMe.getSex().equals("unknown"))) &&(enc2add.getSex()!=null)) {
                 addToMe.setSex(enc2add.getSex());
               }
-              responseJSON=RESTUtils.getJSONObjectFromPOJO(addToMe, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();  
+              //responseJSON=RESTUtils.getJSONObjectFromPOJO(addToMe, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();  
+              responseJSON=addToMe.uiJson(request,false).toString();  
               
               //youTube postback check
               youTubePostback(enc2add, myShepherd, context);
@@ -166,7 +174,13 @@ public class IndividualAddEncounter extends HttpServlet {
         			
               //send emails if appropriate
               if (request.getParameter("noemail") == null) {
-                executeEmails(myShepherd, request,addToMe,newIndy, enc2add, context, langCode);
+                try {
+                  executeEmails(myShepherd, request,addToMe,newIndy, enc2add, context, langCode);
+                }
+                catch(Exception excepty) {
+                  excepty.printStackTrace();
+                  myShepherd.rollbackDBTransaction();
+                }
               }
 
   
@@ -213,11 +227,14 @@ public class IndividualAddEncounter extends HttpServlet {
     for(Annotation annot:enc2add.getAnnotations()) {
       conflictingEncs.addAll(Annotation.checkForConflictingIDsforAnnotation(annot, addToMe.getIndividualID(), myShepherd));
     }
+    conflictingEncs.remove(enc2add);
     if(conflictingEncs.size()>0) {
       failureMessage=new StringBuilder("Failure: ");
       failureMessage.append("<p>The following Encounters contain the same annotation but have a different individual ID. An annotation can only have one ID inherited from its Encounters. <ul>");
       for(Encounter enc:conflictingEncs) {
-        failureMessage.append("<li>"+enc.getEncounterNumber()+" ("+enc.getIndividual().getIndividualID()+")</li>");
+        //failureMessage.append("<li>"+enc.getEncounterNumber()+" ("+enc.getIndividual().getIndividualID()+")</li>");
+        failureMessage.append("<li>"+enc.getEncounterNumber()+"</li>");
+        
       }
       failureMessage.append("</ul></p>");
       throw new RuntimeException(failureMessage.toString());
@@ -347,10 +364,24 @@ public class IndividualAddEncounter extends HttpServlet {
 
           
           
-          Properties ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
-          String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
-          System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
-          YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd, context);
+          Properties ytProps=null;
+          try {
+            ytProps=ShepherdProperties.getProperties("quest.properties", detectedLanguage);
+          }
+          catch(NullPointerException npe) {System.out.println("Exception: Could not find quest.properties for langCode="+detectedLanguage+". Falling back to en.");}
+          
+          if(ytProps==null) {
+            try {
+              ytProps=ShepherdProperties.getProperties("quest.properties", "en");
+            }
+            catch(NullPointerException npe2) {System.out.println("Exception: Could not find quest.properties for en.");}
+          }
+          
+          if(ytProps!=null) {
+            String message=ytProps.getProperty("individualAddEncounter").replaceAll("%INDIVIDUAL%", enc2add.getIndividualID());
+            System.out.println("Will post back to YouTube OP this message if appropriate: "+message);
+            YouTube.postOccurrenceMessageToYouTubeIfAppropriate(message, occur, myShepherd, context);
+          }
         }
       }
     }

@@ -61,6 +61,7 @@ context=ServletUtilities.getContext(request);
     animatedcollapse.addDiv('genetics', 'fade=1')
 	animatedcollapse.addDiv('social', 'fade=1')
 	animatedcollapse.addDiv('patternrecognition', 'fade=1')
+	animatedcollapse.addDiv('keywords', 'fade=1')
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -899,16 +900,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:forEach>
 </c:if>
 
-<tr><td>
-      <p><strong><%=props.getProperty("hasPhoto")%> </strong>
-            <label>
-            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
-            </label>
-      </p>
-      </td></tr>
-
-
-
 
                 <%
 	        if(CommonConfiguration.showProperty("showTaxonomy",context)){
@@ -944,7 +935,32 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 		<%
 		}
 	%>
+	
+	</table>
+</p>
+</div>
+</td>
+</tr>
 
+
+<tr>
+  <td>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=props.getProperty("imageLabelFilters") %></a></h4>
+
+    <div id="keywords" style="display:none; ">
+    	<table id="labeled-kw-table">
+			<tr>
+			  <td>
+      			<p><strong><%=props.getProperty("hasPhoto") %></strong>
+            	<label>
+            		<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+            	</label>
+      			</p>
+      		  </td>
+      	</tr>
+      	<tr><td><strong><%=props.getProperty("keywordFilters") %></strong></td></tr>
         <%
           int totalKeywords = myShepherd.getNumKeywords();
         %>
