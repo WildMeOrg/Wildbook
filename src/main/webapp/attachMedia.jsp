@@ -18,6 +18,26 @@ a.button:hover {
     padding: 10px 20px;
 }
 
+
+#attached-data-list {
+    height: 70%;
+    overflow-y: scroll;
+    min-height: 5em;
+}
+
+.attli {
+    font-size: 0.8em;
+    padding: 1px 8px;
+    color: #444;
+}
+.attli:hover {
+    background-color: #CCC;
+}
+
+.attli .el {
+    color: #AAA;
+}
+
 .busy {
     position: absolute;
     background-color: rgba(255,255,255,0.3);
@@ -454,6 +474,11 @@ boolean showUpload = false;
 <script src="javascript/tablesorter/jquery.tablesorter.js"></script>
 <link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 
+<!--
+<script src="javascript/uint32.js"></script>
+<script src="javascript/xxhash.js"></script>
+-->
+
 <script>
 var showingHasAttached = true; //will toggle to false upon init
 $(document).ready(function() {
@@ -528,8 +553,38 @@ function switchModeSimple() {
     $('#mode-simple').show();
 }
 function switchModeBulk() {
+    populatePreviouslyAttached();
     $('#mode-simple').hide();
     $('#mode-bulk').show();
+}
+
+function populatePreviouslyAttached() {
+    var prev = {};
+    $('td.has-attached-true').each(function(i, el) {
+        var tr = el.parentNode;
+console.log(tr);
+        var d = tr.getAttribute('data-date');
+        if (!prev[d]) prev[d] = { i: 0, o: 0, e: 0, oid: [] };
+        prev[d].i += parseInt(tr.children[10].innerText);
+        prev[d].e += parseInt(tr.children[9].innerText);
+        prev[d].o++;
+        prev[d].oid.push('<a target="_new" href="occurrence.jsp?number=' + tr.id + '">' + tr.children[2].innerText + '</a>');
+    });
+console.log(prev);
+    var h = '';
+    var dates = Object.keys(prev);
+    dates.sort().reverse();
+console.log(dates);
+    for (var i = 0 ; i < dates.length ; i++) {
+        h += '<div class="attli">';
+        h += '<span class="el el-lg el-folder"></span> ';
+        h += '<b>' + dates[i] + '</b>: ';
+        h += prev[dates[i]].i + ' imgs; ';
+        h += prev[dates[i]].o + ' sghts; ';
+        h += '<i>' + prev[dates[i]].oid.join(',') + '</i>';
+        h += '</div>';
+    }
+    $('#attached-data-list').html(h);
 }
 
 function updateStatus(s) {
@@ -900,6 +955,11 @@ function populateImage(md) {
     var reader = new FileReader();
 //console.log('populateImage() img => %o', img);
     reader.onload = function() {
+/*
+        var x = XXH( reader.result, 0x2170BEEF );
+console.log("XX got me=> %o %o", x, x.toString(16));
+        md.xxhash = x.toString(16);
+*/
 console.log('DONE with img=%o', img);
         img.prop('src', reader.result);
     };
@@ -947,6 +1007,7 @@ function checkMediaDataComplete() {
         if (!mediaData[i] || !mediaData[i].complete) return;  //meh, not done
     }
 console.info('OFFSET... DONE mediaData!!!!!');
+    //checkXXHash();
     var sorted = $('.bulk-media');
     sorted.sort(function(a, b) {
         var sortA = a.getAttribute('data-sort') * 1;
@@ -1080,6 +1141,24 @@ console.info('dates => %o', dates);
         }
     });
 */
+}
+
+
+function checkXXHash() {
+    var xx = [];
+    for (var i = 0 ; i < mediaData.length ; i++) {
+        if (mediaData[i].xxhash) xx.push(mediaData[i].file.size.toString(16) + mediaData[i].xxhash);
+    }
+    if (!xx.length) return;
+console.log('==========> %o', xx);
+    $.ajax({
+        url: 'findXXHash.jsp?xxhash=' + xx.join('&xxhash='),
+        type: 'GET',
+        complete: function(x, s) {
+console.log('%o %o %o', x.responseJSON, x, s);
+        },
+        dataType: 'json'
+    });
 }
 
 //TODO Bearing, Altitude
@@ -1316,6 +1395,7 @@ function macSuccess(data) {
 
 <div id="mode-bulk" style="display: none;">
 
+  <div style="width: 40%; display: inline-block; vertical-align: top;">
     <div class="mode-header">
         <p style="font-size: 1.1em;">
             Attach <i>multiple files</i> to corresponding data below.  (Images must have at least <i>accurate <b>date</b> values</i> in EXIF metadata.)
@@ -1328,13 +1408,26 @@ function macSuccess(data) {
     
     </div>
 
-    <div style="display: inline-block; margin: 0 10px; border: solid 3px #888; border-radius: 4px; padding: 8px 14px;">
+
+    <div style="display: inline-block; margin: 0 30px; border: solid 3px #888; border-radius: 4px; padding: 8px 14px;">
         <div style="font-size: 0.8em; margin-bottom: 8px;">BULK IMAGE UPLOAD</div>
 	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged2(this)" /> 
         <div>
-            <input type="checkbox" onClick="return folderToggle(this);" /> <b>Use folders</b>
+            <input type="checkbox" onClick="return folderToggle(this);" /> <b>Use folders</b> (entire contents)
         </div>
     </div>
+  </div>
+
+    <div style="display: inline-block; width: 55%; height: 320px; vertical-align: top;">
+        <h2 style="margin-top: 0;">Previously attached data</h2>
+        <div id="attached-data-list">
+            <div class="attli">
+                <span class="el el-lg el-folder"></span> hello?
+            </div>
+        </div>
+    </div>
+<hr />
+
     <div id="action-buttons" style="display: none; padding: 30px; text-align: center;">
         <span id="upload-button"></span>
         <a class="button" style="display: none;" onClick="return beginUpload();" id="upload-button2">begin bulk upload</a>
