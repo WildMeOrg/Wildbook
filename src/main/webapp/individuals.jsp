@@ -748,7 +748,7 @@ if (sharky.getNames() != null) {
                   event.preventDefault();
                   $("#Add").hide();
 
-                  var individual = $("input[name='individual']").val();
+                  var individual = "<%=sharky.getIndividualID() %>";
                   var sex = $("#newSex").val();
 
                   $.post("IndividualSetSex", {"individual": individual, "selectSex": sex},
