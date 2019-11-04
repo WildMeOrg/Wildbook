@@ -29,11 +29,18 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.startingRadius = 0;
 
 	//Filter Attributes
-	this.filtered = false;
+	this.filtered = {
+	    'family': {},
+	    'inverse_family': {}
+	};
     }
 
     //Setup Methods
     setupGraph() {
+	//Establish Node/Link History
+	this.prevNodeData = this.nodeData;
+	this.prevLinkData = this.linkData;
+	
 	//Setup Force Simulation
 	this.setForces();
 
@@ -78,7 +85,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.updateNodes(nodeData);
 
 	//Update Render Physics
-	this.applyForces(linkData, nodeData);
+	this.applyForces(linkData);
 	this.enableNodeInteraction();
     }
 
@@ -117,15 +124,29 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
     
     updateNodes(nodeData=this.nodeData) {
-	console.log(nodeData);
-	
 	//Define Node Parent/Data
 	let nodes = this.svg.selectAll(".node")
 	    .data(nodeData, d => d.id);
-
-	//Remove Nodes
-	nodes.exit().remove();
 	
+	//Mark Removed Nodes as Collapsed
+	nodes.exit().data().forEach(d => d.collapsed = true);
+
+	//Hide Node Text
+	nodes.exit().selectAll("text")
+	    .attr("fill-opacity", 0);
+
+	//Hide Node Symbols
+	nodes.exit().selectAll(".symb")
+	    .style("fill-opacity", 0);
+
+	//Collapse Node Outlines
+	nodes.exit().selectAll("circle").transition()
+	    .duration(this.transitionDuration)
+	    .attr("r", this.startingRadius)
+	    .style("fill", d => this.colorGender(d))
+	    .style("stroke-width", 0);
+	
+	//Update New Nodes
 	this.nodes = nodes.enter().append("g")
 	    .attr("class", "node")
 	    .attr("fill-opacity", 0)
@@ -154,6 +175,12 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.nodes.transition()
 	    .duration(this.transitionDuration)
 	    .attr("fill-opacity", 1);
+
+	//Merge Exit Nodes such that Physics may be Applied
+	this.nodes = this.nodes.merge(nodes.exit())
+	
+	//Update Node Starting Radius
+	if (this.startingRadius === 0) this.startingRadius = 15;
     }
 
     //Static Render Methods
@@ -175,7 +202,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 
 	//Reset the Force Simulation
 	this.forces.alpha(this.alpha).restart();
-	this.alpha = 0.2; //Reduce Heat for Future Updates
+
+	//Reduce Heat for Future Updates
+	this.alpha = 0.2;
     }
     
     ticked(self) {
@@ -202,7 +231,7 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     dragStarted(d) {
-	if (!(this.isAssignedKeyBinding(d.collapsed) || d.collapsed)) {
+	if (!(this.isAssignedKeyBinding() || d.collapsed)) {
 	    if (!d3.event.active) this.forces.alphaTarget(0.5).restart();
 	    d.fx = d3.event.x;
 	    d.fy = d3.event.y;
@@ -234,39 +263,54 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
     
     handleFilter(groupNum) {
-	if (this.filtered) this.resetGraph();
-	else if (this.shiftKey()) this.filterGraph(groupNum, false);
-	else if (this.ctrlKey()) this.filterGraph(groupNum, true);
-    }
-
-    resetGraph() {
-	this.filtered = false;
-	if (this.targetNodes) this.targetNodes.remove();
-	this.targetNodes = null;
-	this.updateGraph();
-    }
-
-    filterGraph(groupNum, inverted) {
-	if (!this.filtered) {
-	    this.filtered = true;
-	    this.targetNodes = this.svg.selectAll(".node")
-		.filter(d => {
-		    if (!inverted) return d.group !== groupNum;
-		    else return d.group === groupNum;
-		});
-
-	    let linkData = this.linkData.filter(d => {
-		if (!inverted) return d.group === groupNum;
-		else return d.group !== groupNum;
-	    });
-	    
-	    this.updateGraph(linkData); //nodeData defaults to this.nodeData
-	    this.collapseNodes();
+	if (this.metaKey()) this.resetGraph(); //TODO - Fix meta read
+	else if (this.shiftKey()) { //Filter Inverse of Selected Family
+	    let filter = (d) => d.group === groupNum;
+	    this.filterGraph(groupNum, filter, filter, 'inverse_family');
+	}
+	else if (this.ctrlKey()) { //Filter Selected Family
+	    let nodeFilter = (d) => d.group !== groupNum;
+	    let linkFilter = (d) => (d.source.group !== groupNum &&
+				     d.target.group !== groupNum);
+	    this.filterGraph(groupNum, nodeFilter, linkFilter, 'family');
 	}
     }
 
+    resetGraph() {
+	for (filter in this.filtered) filter = {}
+	this.svg.selectAll(".node").filter(d => d.filtered).remove();
+	this.updateGraph();
+    }
+
+    filterGraph(groupNum, nodeFilter, linkFilter, filterType) {
+	let nodeData, linkData;
+	if (this.filtered[filterType][groupNum]) {
+	    this.filtered[filterType][groupNum] = false;
+	    this.nodeData.filter(d => !nodeFilter(d))
+		.forEach(d => d.filtered = false);
+	    
+	    this.prevNodeData = this.prevNodeData.concat(
+		this.nodeData.filter(d => !nodeFilter(d)));
+	    this.prevLinkData = this.prevLinkData.concat(
+		this.linkData.filter(d => !linkFilter(d) &&
+				     !(d.source.filtered || d.target.filtered)));
+
+	    this.svg.selectAll(".node").filter(d => !nodeFilter(d))
+		.remove();
+	}
+	else {
+	    this.filtered[filterType][groupNum] = true;
+	    this.nodeData.filter(d => !nodeFilter(d))
+		.forEach(d => d.filtered = true);
+	    
+	    this.prevNodeData = this.prevNodeData.filter(nodeFilter);
+	    this.prevLinkData = this.prevLinkData.filter(linkFilter);
+	}
+	this.updateGraph(this.prevLinkData, this.prevNodeData);
+    }
+
     //Helper Methods
-    collapseNodes() {
+ /*   collapseNodes() {
 	this.startingRadius = 15;
 	this.targetNodes.data().forEach(d => d.collapsed = true);
 	
@@ -282,13 +326,19 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .attr("r", this.startingRadius)
 	    .style("fill", d => this.colorGender(d))
 	    .style("stroke-width", 0);
-    }
+    }*/
 
     //TODO - Rename
     isAssignedKeyBinding() {
-	return (this.shiftKey() || this.ctrlKey());
+	return (this.metaKey() || this.shiftKey() || this.ctrlKey());
     }
 
+    metaKey() {
+	console.log(d3.event.keyCode);
+	if (d3.event.sourceEvent) console.log(d3.event.sourceEvent.keyCode);
+	return (d3.event.metaKey || (d3.event.sourceEvent && d3.event.sourceEvent.metaKey));
+    }
+    
     shiftKey() {
 	return (d3.event.shiftKey || (d3.event.sourceEvent && d3.event.sourceEvent.shiftKey));
     }

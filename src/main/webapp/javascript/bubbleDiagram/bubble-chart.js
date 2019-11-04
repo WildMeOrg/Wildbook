@@ -22,6 +22,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		"data": {
 		    "name": "Lion A",
 		    "gender": "female",
+		    "sightings": [
+			{
+			    "datetime_ms": 2000,
+			    "location": {"lat": 1, "lon": 0}
+			}
+		    ],
 		    "role": "alpha",
 		    "isFocused": true
 		}
@@ -31,7 +37,13 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		"group": 0,
 		"data": {
 		    "name": "Lion B",
-		    "gender": "female"
+		    "gender": "female",
+		    "sightings": [
+			{
+			    "datetime_ms": 2200,
+			    "location": {"lat": 2, "lon": 1}
+			}
+		    ]
 		}
 	    },
 	    {
@@ -39,7 +51,13 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		"group": 1,
 		"data": {
 		    "name": "Lion C",
-		    "gender": "male"
+		    "gender": "male",
+		    "sightings": [
+			{
+			    "datetime_ms": 1900,
+			    "location": {"lat": 2, "lon": 0}
+			}
+		    ]
 		}
 	    },
 	    {
@@ -47,7 +65,13 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		"group": 0,
 		"data": {
 		    "name": "Lion D",
-		    "gender": ""
+		    "gender": "",
+		    "sightings": [
+			{
+			    "datetime_ms": 2100,
+			    "location": {"lat": 1, "lon": 1}
+			}
+		    ],
 		}
 	    },
 	    {
@@ -55,7 +79,13 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		"group": 0,
 		"data": {
 		    "name": "Lion E",
-		    "gender": "female"
+		    "gender": "female",
+		    "sightings": [
+			{
+			    "datetime_ms": 1600,
+			    "location": {"lat": 0, "lon": 0}
+			}
+		    ],
 		}
 	    },
 	    {
@@ -63,7 +93,13 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		"group": 2,
 		"data": {
 		    "name": "Lion F",
-		    "gender": "male"
+		    "gender": "male",
+		    "sightings": [
+			{
+			    "datetime_ms": 2500,
+			    "location": {"lat": -1, "lon": 0}
+			}
+		    ],
 		}
 	    }
 	];
