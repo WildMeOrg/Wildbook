@@ -214,6 +214,21 @@ public class EncounterQueryProcessor extends QueryProcessor {
     }
     //end individualID filters-----------------------------------------------
     
+    //------------------------------------------------------------------
+    //individualIDExact filters-------------------------------------------------
+    //supports one individualID parameter as well as comma-separated lists of individualIDs within them
+    String individualIDExact=request.getParameter("individualIDExact");
+    if((individualIDExact!=null)&&(!individualIDExact.trim().equals(""))){
+          prettyPrint.append("Individual ID is exactly the following: ");
+
+            String locIDFilter=" individual.individualID == \""+individualIDExact.trim()+"\" ";
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end individualID filters-----------------------------------------------
+    
     
     
     

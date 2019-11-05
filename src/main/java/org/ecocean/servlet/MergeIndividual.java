@@ -57,6 +57,8 @@ public class MergeIndividual extends HttpServlet {
         if (mark1==null) msg+="<br>could not find individual "+mark1;
         if (mark2==null) msg+="<br>could not find individual "+mark2;
         errorAndClose("msg", response);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return;
       }
 
@@ -69,18 +71,21 @@ public class MergeIndividual extends HttpServlet {
       mark1.mergeIndividual(mark2, request, myShepherd);
       if (sex != null) mark1.setSex(sex);
       if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
-      if (throwaway) myShepherd.throwAwayMarkedIndividual(mark2);
+      if (throwaway) myShepherd.getPM().deletePersistent(mark2);
+      myShepherd.commitDBTransaction();
+      myShepherd.closeDBTransaction();
 
     }
     catch(Exception le){
       le.printStackTrace();
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
       errorAndClose("An exception occurred. Please contact the admins.", response);
       return;
     }
 
     if(!locked){
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        
         out.println("<strong>Success!</strong> I have successfully merged individuals "+id1+" and "+id2+".</p>");
         out.close();
         response.setStatus(HttpServletResponse.SC_OK);

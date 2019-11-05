@@ -54,7 +54,7 @@ myShepherd.rollbackAndClose();
                   </div>
                   <div class="col-sm-6">
                     <p style="text-align:right;">
-                    <%if (ServletUtilities.useCustomStyle(request, "indocet")) {
+                    <%if (ServletUtilities.useCustomStyle(request, "IndoCet")) {
                       System.out.println("Footer is using custom Indocet style!!");
                     %>
                       <a href="https://www.ffem.fr" class="col-sm-4" title="Funded in part by FFEM">
@@ -67,7 +67,19 @@ myShepherd.rollbackAndClose();
                         <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" style="height: 150px;"/>
                       </a>
 
-                    <%} else if (ServletUtilities.useCustomStyle(request, "NARW")) {
+                    <%} else if (ServletUtilities.useCustomStyle(request, "CARI'MAM Project")) {
+                      System.out.println("Footer is using custom NARW style!!");
+                      %>
+                        <img src="<%=urlLoc%>/images/partner-logos/carimam/CARIMAM_HD.png" alt="New England Aquarium logo" style="height:125px; " />
+                        <img src="<%=urlLoc%>/images/partner-logos/carimam/AGOA.jpg" alt="Agoa Sanctuary logo" style="height:100px; " />
+
+                        <a href="http://www.wildbook.org" title="This site is Powered by Wildbook">
+                          <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" style="height: 150px; margin-right: -45px;"/>
+                        </a>
+
+
+                      <%
+                    } else if (ServletUtilities.useCustomStyle(request, "NARW")) {
                       System.out.println("Footer is using custom NARW style!!");
                       %>
                         <img src="<%=urlLoc%>/images/partner-logos/NOAA_logo.svg" alt="NOAA logo" style="height:100px; margin-right:20px;" />

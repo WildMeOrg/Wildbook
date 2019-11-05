@@ -44,37 +44,10 @@ FetchPlan fp=pm.getFetchPlan();
 
 try {
 	
-	
-	//default fetch group query
-	long q1StartTime=System.currentTimeMillis();
-	Query q1=pm.newQuery(filter);
-	Collection c = (Collection) (q1.execute());
-	%>
-	<p>Completed default fetch group query in: <%=System.currentTimeMillis()-q1StartTime %></p>
-	<%
-	
-	//count (empty) fetch group
-	long q2StartTime=System.currentTimeMillis();
-	pm.getFetchPlan().setGroup("count");
-	Query q2=pm.newQuery(filter);
-	Collection c2 = (Collection) (q2.execute());
-	%>
-	<p>Completed 'count' fetch group query in: <%=System.currentTimeMillis()-q2StartTime %></p>
-	<%
-	
-	
-	//custom fetch group for individualSearchResults.jsp
-	// Create a FetchGroup on the PMF called "TestGroup" for MyClass
-	FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "individualSearchResults");
-	grp.addMember("individualID").addMember("sex").addMember("names").addMember("numberEncounters").addMember("numberLocations").addMember("maxYearsBetweenResightings").addMember("thumbnailUrl");
-			
-	long q3StartTime=System.currentTimeMillis();
-	pm.getFetchPlan().setGroup("individualSearchResults");
-	Query q3=pm.newQuery(filter);
-	Collection c3 = (Collection) (q3.execute());
-	%>
-	<p>Completed 'individualSearchResults' fetch group query in: <%=System.currentTimeMillis()-q3StartTime %></p>
-	<%		
+    Role newRole1=new Role("admin","orgAdmin");
+    newRole1.setContext("context0");
+    myShepherd.getPM().makePersistent(newRole1);
+    myShepherd.updateDBTransaction();
 
 	
 }

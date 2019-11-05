@@ -182,8 +182,13 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 			            for(int d=0;d<numContexts;d++){
 			            	if(myShepherd.doesUserHaveAnyRoleInContext(localUsername, context)){
 			            	%>
+			            	   <tr>
+    								<td style="border-style: none;">
+    									Roles for <%=ContextConfiguration.getNameForContext(("context"+d)) %> (multi-select) 
+    								</td>
+    							</tr>
 			            	<tr><td>            
-					            <%=props.getProperty("roles4") %> <%=ContextConfiguration.getNameForContext(("context"+d)) %> 
+					            
 					        	<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5" disabled="disabled">
 					        		<%
 									for(int q=0;q<numRoles;q++){
@@ -202,6 +207,31 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 				            }
 			            } // end for loop over contexts
 			            %>
+			            <tr><td style="border-style: none;">Organization Membership (multi-select) </td></tr>
+    				
+			            <tr>
+						  <td style="border-style: none;">
+			    	
+			    			<select multiple="multiple" name="organization" id="organization" size="5" disabled="disabled">
+					            <option value=""></option>
+				    	    	<%
+				    	    	
+					    		List<Organization> orgs=myShepherd.getAllOrganizationsForUser(thisUser);
+
+					    		int numOrgs=orgs.size();
+								for(Organization org:orgs){
+									String selected="";
+									
+									%>
+									<option value="<%=org.getId() %>" <%=selected%>><%=org.getName()%></option>
+									<%
+								}
+								%>          
+				    		</select>
+			
+			    		</td>
+						            </tr>
+			            
 		            </table></td>	
 	            </form>
             </tr>

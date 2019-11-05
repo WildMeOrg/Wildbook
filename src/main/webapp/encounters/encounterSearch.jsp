@@ -929,13 +929,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </c:forEach>
 <tr><td></td></tr>
 </c:if>
-<tr><td>
-      <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
-            <label>
-            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
-            </label>
-      </p>
-      </td></tr>
+
 
 </table>
 </p>
@@ -948,11 +942,20 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   <td>
     <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
-      Image Label Filters</a></h4>
+      <%=encprops.getProperty("imageLabelFilters") %></a></h4>
 
     <div id="keywords" style="display:none; ">
     	<table id="labeled-kw-table">
-				<tr><strong>Image Label Filters</strong></tr>
+    		<tr>
+	    		<td>
+			      <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
+			            <label>
+			            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+			            </label>
+			      </p>
+			    </td>
+		      </tr>
+				<tr><td><strong><%=encprops.getProperty("imageLabelFilters") %></strong></td></tr>
 				<tr><td colspan="3"><p><em>Filter by Labeled Keywords on an Encounter's photos. Select labels and (optionally) values for Labeled Keywords below.</em>
 					<ul>
 						<li>If you select a label and no values, the search will include all possible values for that label.</li>
@@ -982,6 +985,71 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 							<input type="button" class="new-lkw <%=kwNo%>" value="Add Keyword" onclick="addLabeledKeyword(this);" style="display:none">
 						</td>
 					</tr>
+					
+		<%
+          int totalKeywords = myShepherd.getNumKeywords();
+        %>
+        <tr><td><strong><%=encprops.getProperty("keywordFilters") %></strong></td></tr>
+        <tr>
+          <td><p><%=encprops.getProperty("hasKeywordPhotos")%>
+          </p>
+            <%
+
+              if (totalKeywords > 0) {
+            	  
+            	  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
+            	  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
+            	  
+              
+            %>
+
+            <select multiple name="keyword" id="keyword" size="10">
+              <option value="None"></option>
+              <%
+
+
+                Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
+                for (int n = 0; n < totalKeywords; n++) {
+                  Keyword word = keys.next();
+              %>
+              <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
+              </option>
+              <%
+                }
+
+              %>
+
+            </select>
+
+            </td>
+        </tr>
+
+            <tr><td>
+      <p>
+            <label>
+            	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
+            </label> <strong><%=encprops.getProperty("orPhotoKeywords")%> </strong>
+      </p>
+      </td></tr>
+
+
+            <%
+            
+            kwQuery.closeAll();
+            
+            } else {
+            %>
+
+            <p><em><%=encprops.getProperty("noKeywords")%>
+            </em></p></td>
+        </tr>
+
+            <%
+
+              }
+            %>
+					
+					
 			</table>
 		</div>
 	</td>

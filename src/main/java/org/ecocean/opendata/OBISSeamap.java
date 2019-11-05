@@ -3,6 +3,7 @@ package org.ecocean.opendata;
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Taxonomy;
 import org.ecocean.User;
 import org.ecocean.Util;
@@ -19,6 +20,9 @@ import java.io.IOException;
 import org.joda.time.DateTime;
 
 public class OBISSeamap extends Share {
+
+    //this is the default attribution
+    private static final String CONTRIBUTOR = "Flukebook.org";
 
     public OBISSeamap(final String context) {
         super(context);
@@ -179,7 +183,8 @@ public class OBISSeamap extends Share {
     public String tabRow(Encounter enc, Shepherd myShepherd) {
         if (enc == null) return null;
         List<String> fields = new ArrayList<String>();
-        fields.add(getGUID("E-" + enc.getCatalogNumber()));
+        //fields.add(getGUID("E-" + enc.getCatalogNumber()));  //decided now to have url/link be "guid" (via feedback from ei)
+        fields.add(Encounter.getWebUrl(enc.getCatalogNumber(), CommonConfiguration.getServerURL(myShepherd)));
         String d = enc.getDate();
         if (!Util.stringExists(d)) {
             log("cannot share " + enc + " due to invalid date!");
@@ -220,15 +225,7 @@ public class OBISSeamap extends Share {
                 }
             }
         }
-        if (Util.collectionIsEmptyOrNull(enc.getSubmitters())) {
-            fields.add("");
-        } else {
-            List<String> names = new ArrayList<String>();
-            for (User u : enc.getSubmitters()) {
-                if (u.getFullName() != null) names.add(u.getFullName());
-            }
-            fields.add(String.join(", ", names));
-        }
+        fields.add(CONTRIBUTOR);
         fields.add(getProperty("copyright", null));
         return String.join("\t", fields) + "\n";
     }

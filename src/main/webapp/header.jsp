@@ -101,12 +101,25 @@ finally{
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
 
       <%
-      if (ServletUtilities.useCustomStyle(request, "indocet")) {
+      if (ServletUtilities.useCustomStyle(request, "IndoCet")) {
         System.out.println("Using custom indocet style!!");
         %><link rel="stylesheet" href="<%=urlLoc %>/cust/indocet/overwrite.css" /><%
       } else if (ServletUtilities.useCustomStyle(request, "wild dolphin project")) {
         System.out.println("Using custom wild dolphin project style!!");
          %><link rel="stylesheet" href="<%=urlLoc %>/cust/wilddolphinproject/overwrite.css" /><%
+      } else if (ServletUtilities.useCustomStyle(request, "CARI'MAM Project")) {
+        System.out.println("Using custom CARI'MAM Project style!!");
+         %>
+          <style type="text/css">
+            a.navbar-brand.carimam {
+              display: inline !important; /* display: none by default; */
+              background: url(images/partner-logos/carimam/network-logo.png) no-repeat;
+              background-position: center;
+              background-size: 150px;
+              min-height: 100px;
+            }
+          </style>
+         <%
       }
       %>
       <!-- Icon font necessary for indocet style, but for consistency will be applied everywhere -->
@@ -350,6 +363,7 @@ finally{
                   </div>
                   <a class="navbar-brand wildbook" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                   <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand carimam" target="_blank" href="" style="display: none">Cari'Mam Project</a>
                   <a class="navbar-brand wilddolphinproject" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
 
                 </div>
@@ -471,13 +485,16 @@ finally{
                             if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) { %>
                               <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
                             <% }
+                            if(request.isUserInRole("orgAdmin")) { %>
+                            	<li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
+							<%
+                            }
                             if(request.isUserInRole("admin")) { %>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                               <li><a href="<%=urlLoc %>/reports.jsp"><%=props.getProperty("adminReports")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
 
-                                <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
-								<li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
+                                <li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
 
                                 <%
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
@@ -599,7 +616,7 @@ finally{
                             }
                             if(item.species != null){
                             	species = " ("+item.species.substring(0,6)+".)";
-                            	
+
                             }
 
                             return {label: label + item.label+nickname+species,
@@ -627,8 +644,8 @@ finally{
         if (urlParams.has("organization")) {
           let orgParam = urlParams.get("organization");
           $.cookie("wildbookOrganization", orgParam, {
-              path    : '/',     
-              secure  : false, 
+              path    : '/',
+              secure  : false,
               expires : 1
           });
         }
