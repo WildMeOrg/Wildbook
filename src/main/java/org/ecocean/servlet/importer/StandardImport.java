@@ -915,7 +915,10 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
       for (int i=0; i<annots.size(); i++) {
         String maName = "Encounter.mediaAsset"+i;
         String localPath = getString(row, maName);
-        if (localPath!=null) foundPhotos.add(photoDirectory+"/"+localPath);
+        if (localPath!=null) {
+          localPath = localPath.trim();
+          foundPhotos.add(photoDirectory+"/"+localPath);
+        }
       }
   	}
     return annots;
@@ -926,7 +929,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	ArrayList<Annotation> annots = new ArrayList<Annotation>();
   	String localPath = getString(row, "Encounter.mediaAsset0");
   	if (localPath==null) return annots;
-  	localPath = localPath.substring(0,localPath.length()-1); // removes trailing asterisk
+  	localPath = localPath.substring(0,localPath.length()-1).trim(); // removes trailing asterisk
 //  	localPath = fixGlobiceFullPath(localPath)+"/";
 //  	localPath = localPath.replace(" ","\\ ");
   	String fullPath = photoDirectory+localPath;
