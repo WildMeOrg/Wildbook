@@ -1,12 +1,11 @@
-//TODO List
-//Fix nodes on drag - https://bl.ocks.org/mbostock/3750558
-
+//Social graph global API (used in individuals.jsp)
 function setupSocialGraph(individualID) {
     let focusedScale = 1.25;
     let sg = new SocialGraph(individualID, focusedScale);
     sg.applySocialData();
 }
 
+//Tree-like graph displaying social and familial relationships for a species
 class SocialGraph extends ForceLayoutAbstract {
     constructor(individualID, focusedScale) {
 	super(individualID, focusedScale);
@@ -75,6 +74,7 @@ class SocialGraph extends ForceLayoutAbstract {
 	];
     }
 
+    //Wrapper function to gather species data from the Wildbook DB and generate a graph
     applySocialData() {
 	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
 	    encodeURIComponent("SELECT FROM org.ecocean.social.Relationship " +
@@ -84,6 +84,7 @@ class SocialGraph extends ForceLayoutAbstract {
 	d3.json(query, (error, json) => this.graphSocialData(error, json));
     }
 
+    //Generate a social graph
     graphSocialData(error, json) {
 	if (error) {
 	    return console.error(error);
@@ -92,7 +93,7 @@ class SocialGraph extends ForceLayoutAbstract {
 	    console.log(this.parser.parseJSON(json));
 	    
 	    this.appendSvg("#socialDiagram");
-	    //this.addLegend("#socialDiagram");
+	    this.addLegend("#socialDiagram");
 	    this.addTooltip("#socialDiagram");	    
 
 	    this.calcNodeSize(this.nodeData);

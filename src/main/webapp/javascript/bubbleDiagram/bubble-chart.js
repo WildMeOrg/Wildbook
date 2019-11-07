@@ -2,12 +2,14 @@
 //TODO - Consider renaming this file
 //TODO - Implement or delete zoom/reset buttons
 
-function setupOccurrenceGraph() { //TODO - look into individualID
+//Occurence graph global API (used in individuals.jsp)
+function setupOccurrenceGraph(individualID) { //TODO - look into individualID
     let focusedScale = 1.75;
-    let occurrences = new OccurrenceGraph(null, focusedScale); //TODO - Remove mock
-    occurrences.graphOccurenceData(false, null); //TODO: Remove mock
+    let occurrences = new OccurrenceGraph(individualID, focusedScale); //TODO - Remove mock
+    occurrences.graphOccurenceData(false, ['a', 'b']); //TODO: Remove mock
 }
 
+//Sparse-tree mapping co-occurrence relationships between a focused individual and its species
 class OccurrenceGraph extends ForceLayoutAbstract {
     constructor(individualId, focusedScale) {
 	super(individualId, focusedScale);
@@ -15,11 +17,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	//TODO - Remove ref, use key
 	this.sliders = {"temporal": {"ref": "temporal", "prev": 0},
 			"spatial": {"ref":  "spatial", "prev": 0}};
-	this.filtered['occurrences'] = {};
 	
 	//TODO: Parse this data
-	//It would be really great if some clever heirarchical representation could be used
-	//to represent this - that way one format can be used for all graph DATA
 	this.nodeData = [
 	    {
 		"id": 0,
@@ -118,11 +117,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	];	
     }
 
+    //Generate a co-occurrence graph
     graphOccurenceData(error, json) {
 	if (error) {
 	    return console.error(json);
 	}
-	else { //if (json.length >= 1) { //TODO
+	else if (json.length >= 1) { //if (json.length >= 1) { //TODO
 	    this.appendSvg("#bubbleChart");
 	    this.addTooltip("#bubbleChart");
 
@@ -135,22 +135,24 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    this.setupGraph();
 	    this.updateGraph();
 	}
+	else this.showTable("cooccurrenceTable", ""); //TODO - Fix
     }
 
+    //Calculate the maximum and average node differences for the spatial/temporal sliders
     getRangeSliderAttr() {
 	let distArr = [], timeArr = []
 	let focusedNode = this.nodeData.find(d => d.data.isFocused);
 	this.nodeData.forEach(d => {
 	    if (d.id !== focusedNode.id) {
-		let dist = this.getMin(focusedNode, d, "distance");
-		let time = this.getMin(focusedNode, d, "time");
+		let dist = this.getMin(focusedNode, d, "spatial");
+		let time = this.getMin(focusedNode, d, "temporal");
 		distArr.push(dist)
 		timeArr.push(time);
 	    }
 	});
 
-	console.log("DIST", distArr);
-	console.log("TIME", timeArr);
+	console.log("DIST", distArr); //TODO - delete
+	console.log("TIME", timeArr); //TODO - delete
 
 	this.sliders.temporal.max = Math.max(...timeArr);
 	this.sliders.temporal.mean = timeArr.reduce((a,b) => a + b, 0) / timeArr.length;
@@ -159,6 +161,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	this.sliders.spatial.mean = distArr.reduce((a,b) => a + b, 0) / distArr.length;
     }
 
+    //Wrapper for finding the minimum spatial/temporal differences between two nodes
     getMin(node1, node2, type) {
 	let node1Sightings = node1.data.sightings;
 	let node2Sightings = node2.data.sightings;
@@ -166,14 +169,15 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     }
 
     //TODO - Consider strip optimizations
+    //Find the minimum spatial/temporal difference between two node sightings
     getMinBruteForce(node1Sightings, node2Sightings, type) {
 	let val;
 	let min = Number.MAX_VALUE;
 	node1Sightings.forEach(node1 => {
 	    node2Sightings.forEach(node2 => {
-		if (type === "distance") 
+		if (type === "spatial") 
 		    val = this.calculateDist(node1.location, node2.location);
-		else if (type === "time")
+		else if (type === "temporal")
 		    val = this.calculateTime(node1.datetime_ms, node2.datetime_ms)
 
 		if (val < min) min = val;
@@ -181,44 +185,41 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	});
 	return min;
     }
-    
+
+    //Calculate the spatial difference between two node sighting locations
     calculateDist(node1Loc, node2Loc) {
 	return Math.pow(Math.pow(node1Loc.lon - node2Loc.lon, 2) -
 			Math.pow(node1Loc.lat - node2Loc.lat, 2), 0.5);
     }
 
+    //Calculate the temporal difference between two node sightings
     calculateTime(node1Time, node2Time) {
 	return Math.abs(node1Time - node2Time)
     }
 
+    //Update known range sliders (this.sliders) with contextual ranges/values
     updateRangeSliders() {
 	Object.values(this.sliders).forEach(slider => {
+	    console.log("MAX", slider.max) //TODO - Delete
 	    let sliderNode = $("#" + slider.ref);
 	    sliderNode.attr("max", slider.max);
-	    sliderNode.attr("value", slider.mean);
+	    sliderNode.attr("value", slider.max);
 	    sliderNode.change(() =>
 			      this.filterByOccurrence(this, sliderNode.val(), slider.ref));
 	});
     }
 
+    //Filter nodes by spatial/temporal differences, displaying those less than the set threshold 
     filterByOccurrence(self, threshold, occType) {
-	let nodeFilter, linkFilter, filterType;
 	let focusedNode = self.nodeData.find(d => d.data.isFocused);
-	if (occType === "spatial") {
-	    nodeFilter = (d) => (self.calculateDist(focusedNode, d) >= threshold)
-	    linkFilter = (d) => (self.calculateDist(focusedNode, d.source) >= threshold) &&
-		(self.calculateDist(focusedNode, d.target) >= threshold)
-	    filterType = (self.sliders.spatial.prev >= threshold) ? "add" : "remove";
-	    self.sliders.spatial.prev = threshold;
-	}
-	else if (occType === "temporal") {
-	     nodeFilter = (d) => (self.calculateTime(focusedNode, d) >= threshold)
-	     linkFilter = (d) => (self.calculateTime(focusedNode, d.source) >= threshold) &&
-		(self.calculateTime(focusedNode, d.target) >= threshold)
-	    filterType = (self.sliders.temporal.prev >= threshold) ? "add" : "remove";
-	    self.sliders.temporal.prev = threshold;
-	}
-
+	console.log(threshold); //TODO - Delete
+	
+	let nodeFilter = (d) => (self.getMin(focusedNode, d, occType) <= threshold)
+	let linkFilter = (d) => (self.getMin(focusedNode, d.source, occType) <= threshold) &&
+	    (self.getMin(focusedNode, d.target, occType) <= threshold)
+	let filterType = (threshold >= self.sliders[occType].prev) ? "restore" : "remove";
+	self.sliders[occType].prev = threshold;
+	
 	self.absoluteFilterGraph(nodeFilter, linkFilter, filterType);
     }
 }
