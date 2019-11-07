@@ -68,7 +68,7 @@ public class ApiAccess {
     //Shepherd myShepherd = new Shepherd(context);
 		ServletContext sc = session.getServletContext();
 		File afile = new File(sc.getRealPath("/") + "/WEB-INF/classes/apiaccess.xml");
-System.out.println("reading file??? " + afile.toString());
+//System.out.println("reading file??? " + afile.toString());
 
 		// h/t http://www.mkyong.com/java/how-to-read-xml-file-in-java-dom-parser/
 		try {
@@ -93,7 +93,7 @@ System.out.println("reading file??? " + afile.toString());
 		Iterator<?> keys = jsonobj.keys();
 		while (keys.hasNext()) {
 			String key = (String) keys.next();
-System.out.println(key);
+//System.out.println(key);
 			//we dont care what the value is, just if it is being set at all and shouldnt be
 			if (perm.containsKey(key) && (perm.get(key) == null)) {
 				err = "altering value for " + key + " disallowed by permissions: " + perm.toString();
@@ -128,7 +128,7 @@ System.out.println(key);
   		for (Role r : roleObjs) {
   			roles.add(r.getRolename());
   		}
-  		System.out.println("[class " + cname + "] roles for user '" + username + "': " + roles);
+  		//System.out.println("[class " + cname + "] roles for user '" + username + "': " + roles);
   
   		NodeList nlist = this.configDoc.getDocumentElement().getElementsByTagName("class");
   		if (nlist.getLength() < 1) {
@@ -175,7 +175,7 @@ System.out.println(key);
     }
     catch(Exception e) {e.printStackTrace();}
 
-System.out.println(perm);
+//System.out.println(perm);
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
 		return perm;

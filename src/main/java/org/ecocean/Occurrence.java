@@ -1212,17 +1212,22 @@ public class Occurrence implements java.io.Serializable {
     
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
+
+      jobj.put("_sanitized", true);
+
+      return jobj;
+  }
+    
+    public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+
       if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
           JSONArray jarr = new JSONArray();
           boolean fullAccess = this.canUserAccess(request);
           for (Encounter enc : this.getEncounters()) {
-              jarr.put(enc.sanitizeJson(request, new JSONObject()));
+              jarr.put(     enc.decorateJsonNoAnnots(request, enc.sanitizeJson(request, new JSONObject())     )  );
           }
           jobj.put("encounters", jarr);
       }
-
-
-      jobj.put("_sanitized", true);
 
       return jobj;
   }

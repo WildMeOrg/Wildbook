@@ -176,6 +176,7 @@ public class MarkedIndividual implements java.io.Serializable {
         return getDisplayName(null);
     }
     public String getDisplayName(Object keyHint) {
+        if (names == null) return null;
         List<String> nameVals = getNamesList(keyHint);
         // default case: just return the first name for the keyhint.
         if (!Util.isEmpty(nameVals)) return nameVals.get(0);
@@ -2120,7 +2121,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-            if (this.canUserAccess(request)) return jobj;
+	          jobj.put("displayName", this.getDisplayName());
+	          if (this.canUserAccess(request)) return jobj;
             jobj.remove("numberLocations");
             jobj.remove("sex");
             jobj.remove("numberEncounters");
@@ -2137,32 +2139,39 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   
   public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-    jobj.put("displayName", this.getDisplayName());
     jobj.remove("nickName");
     jobj.put("nickName", this.getNickName());
     //System.out.println("Put displayName in sanitizeJSON: "+jobj.get("displayName"));
     return jobj;
   }
 
+  
+//Returns a somewhat rest-like JSON object containing the metadata
+ public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+   return uiJson(request, true);
+ }
   // Returns a somewhat rest-like JSON object containing the metadata
-  public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+  public JSONObject uiJson(HttpServletRequest request, boolean includeEncounters) throws JSONException {
     JSONObject jobj = new JSONObject();
     jobj.put("individualID", this.getIndividualID());
+    jobj.put("displayName", this.getDisplayName());
     jobj.put("id", this.getId());
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
-    jobj.put("nickname", this.nickName);
+    jobj.put("nickname", this.getNickName());
     jobj.put("numberEncounters", this.getNumEncounters());
     jobj.put("numberLocations", this.getNumberLocations());
     jobj.put("maxYearsBetweenResightings", getMaxNumYearsBetweenSightings());
     // note this does not re-compute thumbnail url (so we can get thumbnails on searchResults in a reasonable time)
     jobj.put("thumbnailUrl", this.thumbnailUrl);
 
-    Vector<String> encIDs = new Vector<String>();
-    for (Encounter enc : this.encounters) {
-      encIDs.add(enc.getCatalogNumber());
+    if(includeEncounters) {
+      Vector<String> encIDs = new Vector<String>();
+      for (Encounter enc : this.encounters) {
+        encIDs.add(enc.getCatalogNumber());
+      }
+      jobj.put("encounterIDs", encIDs.toArray());
     }
-    jobj.put("encounterIDs", encIDs.toArray());
     return sanitizeJson(request,decorateJson(request, jobj));
   }
 
@@ -2499,6 +2508,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             NAMES_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase());
             NAMES_KEY_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.getNameKeys()).toLowerCase());
         }
+        query.closeAll();
         return NAMES_CACHE;
     }
 

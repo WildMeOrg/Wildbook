@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.HiddenIndividualReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.security.HiddenIndividualReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, 
+         org.datanucleus.api.jdo.JDOPersistenceManager,org.datanucleus.FetchGroup,javax.jdo.*" %>
 
 
 
@@ -18,43 +19,6 @@
     props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
 
 
-    int startNum = 1;
-    int endNum = 10;
-
-
-    try {
-
-      if (request.getParameter("startNum") != null) {
-        startNum = (new Integer(request.getParameter("startNum"))).intValue();
-      }
-      if (request.getParameter("endNum") != null) {
-        endNum = (new Integer(request.getParameter("endNum"))).intValue();
-      }
-
-    } catch (NumberFormatException nfe) {
-      startNum = 1;
-      endNum = 10;
-    }
-    int listNum = endNum;
-
-    int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
-    try {
-      month1 = (new Integer(request.getParameter("month1"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      month2 = (new Integer(request.getParameter("month2"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      year1 = (new Integer(request.getParameter("year1"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      year2 = (new Integer(request.getParameter("year2"))).intValue();
-    } catch (Exception nfe) {
-    }
-
 
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("individualSearchResults.jsp");
@@ -65,6 +29,13 @@
 
 
     Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
+    
+    PersistenceManager pm=myShepherd.getPM();
+    PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
+	javax.jdo.FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "individualSearchResults");
+	grp.addMember("individualID").addMember("sex").addMember("names").addMember("numberEncounters").addMember("numberLocations").addMember("maxYearsBetweenResightings").addMember("thumbnailUrl");
+
+	myShepherd.getPM().getFetchPlan().setGroup("individualSearchResults");
     myShepherd.beginDBTransaction();
     
     try{
@@ -76,10 +47,7 @@
 		// viewOnly=true arg means this hiddenData relates to viewing the summary results
 		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true,myShepherd);
 		rIndividuals = hiddenData.viewableResults(rIndividuals, true, myShepherd);
-	
-	    if (rIndividuals.size() < listNum) {
-	      listNum = rIndividuals.size();
-	    }
+
 	  %>
 	
 	<style type="text/css">
@@ -205,7 +173,7 @@
 		JSONArray jsonobj = new JSONArray();
 		System.out.println("Starting to iterate over individuals");
 		for (MarkedIndividual mark: rIndividuals) {
-			jsonobj.put(mark.uiJson(request));
+			jsonobj.put(mark.uiJson(request, false));
 		}
 		System.out.println("Done iterating over individuals");
 
@@ -697,13 +665,7 @@
 	
 	<%
 	  myShepherd.rollbackDBTransaction();
-	  startNum += 10;
-	  endNum += 10;
-	  if (endNum > numResults) {
-	    endNum = numResults;
-	  }
-	
-	
+
 	%>
 	
 	<p>

@@ -21,7 +21,7 @@ const DATA = {
     "name": "Lion 1",
     "gender": "female",
     "role": "alpha",
-    "isFocus": true,
+    "isFocused": true,
     "children": [
 	{
 	    "name": "Lion 2",
@@ -81,15 +81,16 @@ const DATA = {
 
 //applies data to the tree
 function setupFamilyTree(individualID) {
-    let ft = new FamilyTree(individualID);
+    let focusedScale = 1.25;
+    let ft = new FamilyTree(individualID, focusedScale);
     ft.applySocialData();
 }
 /*
 
 */
 class FamilyTree extends GraphAbstract {
-    constructor(individualID) {
-	super(individualID); //Parent constructor
+    constructor(individualID, focusedScale) {
+	super(individualID, focusedScale); //Parent constructor
 	
 	this.i = 0; //TODO: Rename	
 	
@@ -99,7 +100,7 @@ class FamilyTree extends GraphAbstract {
     }
 
     //TODO: Consider moving this outside the scope of the class.. The obj references are clunky
-    applySocialData(individualID, callback) {
+    applySocialData() {
 	d3.json(wildbookGlobals.baseUrl + "/api/jdoql?" +
 		encodeURIComponent("SELECT FROM org.ecocean.social.Relationship WHERE (this.type == \"social grouping\") && " +
 				   "(this.markedIndividualName1 == \"" + this.id + "\" || this.markedIndividualName2 == \"" +
@@ -107,20 +108,13 @@ class FamilyTree extends GraphAbstract {
     }
 
     graphFamilyData(error, json) {
+	console.log("JSON", json);
 	if (error) {
 	    return console.error(error);
 	}
-
-	//If there are no familial relationships, default to social relationships table
-	if (json.length < 1) { //TODO: Consider defaulting to this...
-	    $(".socialVis").hide();
-	    $("#communityTable").show();
-	    $(".socialVisTab").removeClass("active");
-	    $("#communityTableTab").addClass("active");
-	    this.showIncompleteInformationMessage();
-	}
 	else if (json.length >= 1) {
 	    this.tree = d3.tree()
+<<<<<<< HEAD
 		.size([this.gHeight, this.gWidth]);
 	    
 		//svg is the white box that displays our data within the page
@@ -133,20 +127,31 @@ class FamilyTree extends GraphAbstract {
 		}))
 		.append("g")
 		.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+=======
+		.separation((a, b) => (a.parent === b.parent) ? 1 : 1.5);
+
+	    this.appendSvg("#familyDiagram");
+//	    this.svg.attr("transform", "translate(" + this.width/2 + "," + this.height/2 + ")");
+>>>>>>> 84731a64afd5c51ba28a63fe69416e37bfc345a1
 	    
 	    //Define the tooltip div
 	    this.addTooltip("#familyDiagram");
 	    
 	    this.root = d3.hierarchy(DATA, d => d.children); //TODO: Change to this.data when possible
 	    this.root.x0 = this.height / 2;
-	    this.root.y0 = 0;
+	    this.root.y0 = this.width / 2;
 
 	    this.updateTree(this.root);
 	}
+	else this.showTable("#communityTable", ".socialVis");
     }
 
+<<<<<<< HEAD
 	//changes what is displayed on the tree diagram to the user
     updateTree(source) {
+=======
+    updateTree(source) {	
+>>>>>>> 84731a64afd5c51ba28a63fe69416e37bfc345a1
 	//Assign node values
 	let treeData = this.tree(this.root);
 	
@@ -155,16 +160,39 @@ class FamilyTree extends GraphAbstract {
 	    links = treeData.descendants().slice(1);
 
 	this.calcNodeSize(nodes);
+	this.calcNodeDepth(nodes);
+
+	//TODO: Test	
+	let nodeSize = (this.radius * 2) + this.nodeMargin;
+	treeData = this.tree.nodeSize([nodeSize, nodeSize])(this.root);
+
+//	console.log(d3.select("#familyDiagram .container").node().getBBox());
+	
+	//Compute the new tree layout
+	nodes = treeData.descendants();
+	links = treeData.descendants().slice(1);
+	
+	// Normalize for fixed-depth.
+	nodes.forEach(d => {
+	    //console.log(d);
+            d.y = d.depth * this.nodeSeparation;
+	});
 
 	//Get reference to all nodes
 	let allNodes = this.svg.selectAll("g.node")
 	    .data(nodes, d => d.id || (d.id = ++this.i));
-
+	
 	//Handle nodes
 	let updateNodes = this.addNewNodes(allNodes, source)
 	    .merge(allNodes);
 	this.updateNodes(updateNodes);
 	this.removeStaleNodes(allNodes, source);
+
+	console.log(d3.select("#familyDiagram .container").node().getBBox());
+	let box = d3.select("#familyDiagram .container").node().getBBox();
+	let xShift = (this.width - (box.x - box.width)) / 2;
+	let yShift = (this.height - (box.y - box.height)) / 2;
+	d3.select("#familyDiagram .container").attr("transform", "translate(" + xShift + "," + yShift + ")");
 	
 	//Get reference to all links
 	let link = this.svg.selectAll("path.link")
@@ -191,26 +219,38 @@ class FamilyTree extends GraphAbstract {
 	    .on("click", d => this.click(d))
 	    .on("mouseover", d => this.handleMouseOver(d))					
             .on("mouseout", d => this.handleMouseOut(d));
-	
-	this.drawNodeOutlines(nodeEnter, true);
-	this.drawNodeSymbols(nodeEnter, true);
-	this.addNodeText(nodeEnter, true);
+
+	let isHidden = true;
+	this.drawNodeOutlines(nodeEnter, isHidden);
+	this.drawNodeSymbols(nodeEnter, isHidden);
+	this.addNodeText(nodeEnter, isHidden);
 
 	return nodeEnter;
     }
 
+    //Fill node colors
+    colorNodes(d) {
+	return (d && d._children) ? this.collapsedNodeColor : this.defNodeColor;
+    }
+
+    
     updateNodes(updatedNodes) {	
 	//Transition nodes to their new position.
 	let nodeUpdate = updatedNodes.transition()
-	    .duration(this.duration)
+	    .duration(this.transitionDuration)
 	    .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
+<<<<<<< HEAD
 	//if node is collapsed, this is what happens
+=======
+
+	let isHidden = false;
+>>>>>>> 84731a64afd5c51ba28a63fe69416e37bfc345a1
 	nodeUpdate.select("circle")
-	    .attr("r", this.radius)
+	    .attr("r", d => this.radius * this.getSizeScalar(d, isHidden))
 	    .style("fill", d => this.colorCollapsed(d)); //Updates color if collapsed
 
 	nodeUpdate.select("text")
-	    .style("fill-opacity", 1);
+	    .style("font-size", d => this.fontSize * this.getSizeScalar(d, isHidden) + "px");
 
 	this.updateSymbols(nodeUpdate, false);
 	
@@ -220,16 +260,16 @@ class FamilyTree extends GraphAbstract {
     removeStaleNodes(removedNodes, source) {
 	//Transition exiting nodes to the parent's new position.
 	let nodeExit = removedNodes.exit().transition()
-	    .duration(this.duration)
+	    .duration(this.transitionDuration)
 	    .attr("transform", d => "translate(" + source.y + "," + source.x + ")")
 	    .remove();
 
 	//TODO: Consider better solution than shrinking for invisibility
 	nodeExit.select("circle")
-	    .attr("r", 1e-6);
+	    .attr("r", 0);
 
 	nodeExit.select("text")
-	    .style("fill-opacity", 1e-6);
+	    .style("font-size", "0px");
 
 	this.updateSymbols(nodeExit, true);
 
@@ -256,21 +296,25 @@ class FamilyTree extends GraphAbstract {
     updateLinks(linkUpdate) {
 	//Transition links to their new position.
 	linkUpdate.transition()
-	    .duration(this.duration)
+	    .duration(this.transitionDuration)
 	    .attr("d", d => this.diagonal(d, d.parent));
     }
 
     removeStaleLinks(link, source) {
 	link.exit().transition()
-	    .duration(this.duration)
+	    .duration(this.transitionDuration)
 	    .attr("d", d => {
 		let o = {x: source.x, y: source.y};
 		return this.diagonal(o, o);
 	    })
 	    .remove();
     }
+<<<<<<< HEAD
 	//if there is no family relationships in the entire database
     showIncompleteInformationMessage() {
 	$("#familyDiagram").html("<h4>There are currently no known familial relationships for this Marked Individual</h4>")
     };
+=======
+
+>>>>>>> 84731a64afd5c51ba28a63fe69416e37bfc345a1
 }

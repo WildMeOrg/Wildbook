@@ -213,7 +213,7 @@ input.btn.btn-md#closeRelationshipForm:hover {
 }
 
 /*Hide Diagram Tab Content*/
-#communityTable, #socialDiagram, #cooccurrenceTable, #bioSamplesTable {
+#communityTable, #cooccurrenceTable, #bioSamplesTable {
   display: none;
 }
 
@@ -238,25 +238,6 @@ li.active{
 /*Social Relationships Table Styles*/
 #relationshipTable th {
   background-image: none;
-}
-
-/* Family Tree Styles */
-#familyDiagram svg, #socialDiagram svg {
-    border: 1px solid #aaa;
-}
-.individual rect {
-  fill: #fff;
-  stroke: steelblue;
-  stroke-width: 1px;
-}
-.individual {
-  font: 14px sans-serif;
-  cursor: pointer;
-}
-.link {
-  fill: none;
-  stroke: #939393;
-  stroke-width: 1.3px;
 }
 
 div .tooltip {	
