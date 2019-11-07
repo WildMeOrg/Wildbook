@@ -1,5 +1,6 @@
 //TODO: Enlarge node on hover
 
+//Abstract class defining funcitonality for all d3 graph types
 class GraphAbstract {
     constructor(individualID, focusedScale=1) {
 	this.id = individualID;
