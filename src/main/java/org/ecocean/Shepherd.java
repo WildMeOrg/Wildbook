@@ -342,7 +342,7 @@ public class Shepherd {
     beginDBTransaction();
     try {
       pm.makePersistent(task);
-      commitDBTransaction();
+      updateDBTransaction();
       return true;
     } catch (Exception e) {
       rollbackDBTransaction();

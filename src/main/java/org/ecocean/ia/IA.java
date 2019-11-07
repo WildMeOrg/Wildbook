@@ -256,6 +256,8 @@ System.out.println(i + " -> " + ma);
             topTask.addChild(atask);
             myShepherd.getPM().refresh(topTask);
         }
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
     }
 
     //via IAGateway servlet, we handle the work
