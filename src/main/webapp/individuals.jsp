@@ -244,7 +244,7 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
 <script src="javascript/core.js"></script>
-<script src="javascript/classes/Base.js"></script>
+<script src="javascript/classes/Base.js"></script>    
 
 <link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 
@@ -1522,7 +1522,7 @@ if (sharky.getNames() != null) {
 	<script type="text/javascript">
         <% String occurrenceIndividualID = sharky.getIndividualID();%>
         $(document).ready(function() {
-          getData("<%=individualID%>", "<%=sharky.getDisplayName() %>");
+          getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName() %>");
         });
         </script>
         <%
@@ -1546,16 +1546,25 @@ if (sharky.getNames() != null) {
 
           <div id="cooccurrenceDiagram">
 	    <div id="bubbleChart">
-              <script type="text/javascript">
-                setupOccurrenceGraph();
-              </script>
               <div id="buttons" class="btn-group btn-group-sm" role="group">
                 <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
                 <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
                 <button type="button" class="btn btn-default" id="reset">Reset</button>
               </div>
             </div>
-	    <div id="cooccurrenceSliders">tmp</div>
+  	    <div id="cooccurrenceSliders">
+	      <label for="temporal">Temporal Slider</label>
+	      <div class="sliderWrapper">
+                <input type="range" min=0 class="slider" id="temporal">
+	      </div>
+	      <label for="spatial">Spatial Slider</label>
+	      <div class="sliderWrapper">
+		<input type="range" min=0 class="slider" id="spatial">
+	      </div>
+	    </div>
+	    <script type="text/javascript">
+              setupOccurrenceGraph(document);
+            </script>
           </div>
 
           <div id="cooccurrenceTable" class="table-responsive mygrid-wrapper-div">

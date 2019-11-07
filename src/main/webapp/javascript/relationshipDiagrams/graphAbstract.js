@@ -6,6 +6,7 @@ class GraphAbstract {
 
 	//SVG Attributes
 	this.svg;
+
 	this.width = 960;
 	this.height = 500;
 	this.margin = {top: 20, right: 120, bottom: 20, left: 120};
@@ -153,6 +154,8 @@ class GraphAbstract {
     }
 
     colorGender(d) {
+		//this will asign a node to a certain color depending on if its gender is found 
+		// Also assiginging a default value of color assuming the found genders are not done.
 	try {
 	    let gender = d.data.gender || "default";
 	    switch (gender.toUpperCase()) {

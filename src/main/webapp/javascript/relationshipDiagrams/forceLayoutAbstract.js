@@ -1,9 +1,7 @@
 //TODO
 //Fix center forces creating odd off-graph nodes
-//Add support for non-family button toggle
 //Add support for x family member distance slider (?)
 //Add support for smart initialization of node positions
-//Fix jerky drag/zoom during node updates -- Possibly fixed?
 
 class ForceLayoutAbstract extends GraphAbstract {
     constructor(individualId, focusedScale=1) {
@@ -282,9 +280,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.updateGraph();
     }
 
-    filterGraph(groupNum, nodeFilter, linkFilter, filterType) {
+    filterGraph(groupNum, nodeFilter, linkFilter, filterType, enableReverse=true) {
 	let nodeData, linkData;
-	if (this.filtered[filterType][groupNum]) {
+	if (this.filtered[filterType][groupNum] && enableReverse) {
 	    this.filtered[filterType][groupNum] = false;
 	    this.nodeData.filter(d => !nodeFilter(d))
 		.forEach(d => d.filtered = false);
@@ -300,6 +298,34 @@ class ForceLayoutAbstract extends GraphAbstract {
 	}
 	else {
 	    this.filtered[filterType][groupNum] = true;
+	    this.nodeData.filter(d => !nodeFilter(d))
+		.forEach(d => d.filtered = true);
+	    
+	    this.prevNodeData = this.prevNodeData.filter(nodeFilter);
+	    this.prevLinkData = this.prevLinkData.filter(linkFilter);
+	}
+	this.updateGraph(this.prevLinkData, this.prevNodeData);
+    }
+
+    absoluteFilterGraph(nodeFilter, linkFilter, filterType) {
+	console.log(this.nodes)
+	this.nodes.forEach(d => console.log(nodeFilter(d)));
+	
+	let nodeData, linkData;
+	if (filterType === "remove") {
+	    this.nodeData.filter(d => !nodeFilter(d))
+		.forEach(d => d.filtered = false);
+	    
+	    this.prevNodeData = this.prevNodeData.concat(
+		this.nodeData.filter(d => !nodeFilter(d)));
+	    this.prevLinkData = this.prevLinkData.concat(
+		this.linkData.filter(d => !linkFilter(d) &&
+				     !(d.source.filtered || d.target.filtered)));
+
+	    this.svg.selectAll(".node").filter(d => !nodeFilter(d))
+		.remove();
+	}
+	else if (filterType === "add") {
 	    this.nodeData.filter(d => !nodeFilter(d))
 		.forEach(d => d.filtered = true);
 	    

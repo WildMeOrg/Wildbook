@@ -91,8 +91,7 @@ var getSexHaploData = function(individualID, items) {
       result.sex = jsonData[i].sex;
       result.haplotype = jsonData[i].localHaplotypeReflection;
     }
-    makeCooccurrenceChart(items);
-    makeTable(items, "#coHead", "#coBody",null);
+    makeTable(items, "#coHead", "#coBody", null);
     $('#cooccurrenceTable tr').click(function() {
         selectedWhale = ($(this).attr("class"));
         goToWhaleURL(selectedWhale);
@@ -260,23 +259,38 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     
 };
 
-
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
-  var encounterData = [];
-  var occurringWith = "";
-  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE individualID == \"" + individualID + "\"" ), function(error, json) {
-      if(error) {
-        console.log("error")
-      }
-      jsonData = json[0];
-      for(var i=0; i < jsonData.encounters.length; i++) {
-    	  var occurringWith = "";
-        for(var j = 0; j < occurrenceObjectArray.length; j++) {
-          if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
-            if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
-            } else {
-               var occurringWith = occurrenceObjectArray[j].occurringWith;
-               console.log(occurringWith);
+    var encounterData = [];
+    var occurringWith = "";
+    d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE individualID == \"" + individualID + "\"" ), function(error, json) {
+	if(error) {
+            console.log("error")
+	}
+	jsonData = json[0];
+	for(var i=0; i < jsonData.encounters.length; i++) {
+    	    var occurringWith = "";
+            for(var j = 0; j < occurrenceObjectArray.length; j++) {
+		if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
+		    if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
+		    } else {
+			var occurringWith = occurrenceObjectArray[j].occurringWith;
+			console.log(occurringWith);
+		    }
+		}
+            }
+            var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
+            if(dateInMilliseconds > 0) {
+		//console.log("Trying millis...");
+		date = dateInMilliseconds.toISOString().substring(0, 10);
+		if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
+		if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
+            } else if (jsonData.encounters[i].year) {
+		//console.log("Tryin plaintext...");
+		date = jsonData.encounters[i].year;
+		if (jsonData.encounters[i].month) { date+= "-"+jsonData.encounters[i].month;}
+		if (jsonData.encounters[i].day) { date+= "-"+jsonData.encounters[i].day;} 
+            } else {  
+		date = dict['unknown'];
             }
 
             if(jsonData.encounters[i].verbatimLocality) {
@@ -325,7 +339,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 	});
     });
 }
-
+	    
 var goToEncounterURL = function(selectedWhale) {
     window.open(wildbookGlobals.baseUrl + "/encounters/encounter.jsp?number=" + selectedWhale);
 }

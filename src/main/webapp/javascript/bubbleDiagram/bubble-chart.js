@@ -12,16 +12,9 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     constructor(individualId, focusedScale) {
 	super(individualId, focusedScale);
 
-	this.sliders = [
-	    {
-		"name": "Temporal Slider",
-		"type": "temporal"
-	    },
-	    {
-		"name": "Spatial Slider",
-		"type":  "spatial"
-	    }
-	];
+	//TODO - Remove ref, use key
+	this.sliders = {"temporal": {"ref": "temporal", "prev": 0},
+			"spatial": {"ref":  "spatial", "prev": 0}};
 	this.filtered['occurrences'] = {};
 	
 	//TODO: Parse this data
@@ -134,7 +127,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    this.addTooltip("#bubbleChart");
 
 	    this.getRangeSliderAttr();
-	    this.appendRangeSliders();
+	    this.updateRangeSliders();
 	    
 	    this.calcNodeSize(this.nodeData);
 	    this.setNodeRadius();
@@ -149,60 +142,83 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let focusedNode = this.nodeData.find(d => d.data.isFocused);
 	this.nodeData.forEach(d => {
 	    if (d.id !== focusedNode.id) {
-		let dist = this.calculateDist(focusedNode, d);
-		let time = this.calculateTime(focusedNode, d);
+		let dist = this.getMin(focusedNode, d, "distance");
+		let time = this.getMin(focusedNode, d, "time");
 		distArr.push(dist)
 		timeArr.push(time);
 	    }
 	});
 
-	this.sliders[0].max = Math.max(...timeArr);
-	this.sliders[0].middle = timeArr.reduce((a,b) => a + b, 0) / timeArr.length;
+	console.log("DIST", distArr);
+	console.log("TIME", timeArr);
 
-	this.sliders[1].max = Math.max(...distArr);
-	this.sliders[1].middle = distArr.reduce((a,b) => a + b, 0) / distArr.length;
+	this.sliders.temporal.max = Math.max(...timeArr);
+	this.sliders.temporal.mean = timeArr.reduce((a,b) => a + b, 0) / timeArr.length;
+
+	this.sliders.spatial.max = Math.max(...distArr);
+	this.sliders.spatial.mean = distArr.reduce((a,b) => a + b, 0) / distArr.length;
     }
 
-    calculateDist(node1, node2) {
-	let node1Dist = Math.pow(Math.pow(node1.data.sightings.lat, 2) +
-				 Math.pow(node1.data.sightings.lon, 2), 0.5)
-	let node2Dist = Math.pow(Math.pow(node2.data.sightings.lat, 2) +
-				 Math.pow(node2.data.sightings.lon, 2), 0.5)
-	return Math.abs(node1Dist - node2Dist);
+    getMin(node1, node2, type) {
+	let node1Sightings = node1.data.sightings;
+	let node2Sightings = node2.data.sightings;
+	return this.getMinBruteForce(node1Sightings, node2Sightings, type);
     }
 
-    calculateTime(node1, node2) {
-	return Math.abs(node1.data.sightings.datetime_ms - node2.data.sightings.datetime_ms)
+    //TODO - Consider strip optimizations
+    getMinBruteForce(node1Sightings, node2Sightings, type) {
+	let val;
+	let min = Number.MAX_VALUE;
+	node1Sightings.forEach(node1 => {
+	    node2Sightings.forEach(node2 => {
+		if (type === "distance") 
+		    val = this.calculateDist(node1.location, node2.location);
+		else if (type === "time")
+		    val = this.calculateTime(node1.datetime_ms, node2.datetime_ms)
+
+		if (val < min) min = val;
+	    });
+	});
+	return min;
+    }
+    
+    calculateDist(node1Loc, node2Loc) {
+	return Math.pow(Math.pow(node1Loc.lon - node2Loc.lon, 2) -
+			Math.pow(node1Loc.lat - node2Loc.lat, 2), 0.5);
     }
 
-    appendRangeSliders() {
-	let targetNode = $("#cooccurrenceSliders");
-	this.sliders.forEach(sliderObj => {
-		let sliderStr = "<label for='" + sliderObj.type + "'>" + sliderObj.name +
-		"</label> <div class='sliderWrapper'>" +
-		"<input type='range' min='1' max='" + sliderObj.max +
-		"' value='" + sliderObj.middle +
-		"' class='slider' id='" + sliderObj.type +
-		"' onchange='this.filterByOccurrence(this.value, " + sliderObj.type + ")'>" +
-		"</div>";
-	    console.log(sliderStr);
-	    targetNode.append(sliderStr);
+    calculateTime(node1Time, node2Time) {
+	return Math.abs(node1Time - node2Time)
+    }
+
+    updateRangeSliders() {
+	Object.values(this.sliders).forEach(slider => {
+	    let sliderNode = $("#" + slider.ref);
+	    sliderNode.attr("max", slider.max);
+	    sliderNode.attr("value", slider.mean);
+	    sliderNode.change(() =>
+			      this.filterByOccurrence(this, sliderNode.val(), slider.ref));
 	});
     }
 
-    filterByOccurrence(threshold, occType) {
-	let focusedNode = this.nodeData.find(d => d.data.isFocused);
+    filterByOccurrence(self, threshold, occType) {
+	let nodeFilter, linkFilter, filterType;
+	let focusedNode = self.nodeData.find(d => d.data.isFocused);
 	if (occType === "spatial") {
-	    let nodeFilter = (d) => (this.calculateDist(focusedNode, d) < threshold)
-	    let linkFilter = (d) => (this.calculateDist(focusedNode, d.source) < threshold) &&
-		(this.calculateDist(focusedNode, d.target) < threshold)
+	    nodeFilter = (d) => (self.calculateDist(focusedNode, d) >= threshold)
+	    linkFilter = (d) => (self.calculateDist(focusedNode, d.source) >= threshold) &&
+		(self.calculateDist(focusedNode, d.target) >= threshold)
+	    filterType = (self.sliders.spatial.prev >= threshold) ? "add" : "remove";
+	    self.sliders.spatial.prev = threshold;
 	}
 	else if (occType === "temporal") {
-	    let nodeFilter = (d) => (this.calculateTime(focusedNode, d) < threshold)
-	    let linkFilter = (d) => (this.calculateTime(focusedNode, d.source) < threshold) &&
-		(this.calculateTime(focusedNode, d.target) < threshold)
+	     nodeFilter = (d) => (self.calculateTime(focusedNode, d) >= threshold)
+	     linkFilter = (d) => (self.calculateTime(focusedNode, d.source) >= threshold) &&
+		(self.calculateTime(focusedNode, d.target) >= threshold)
+	    filterType = (self.sliders.temporal.prev >= threshold) ? "add" : "remove";
+	    self.sliders.temporal.prev = threshold;
 	}
 
-	this.filterGraph(occType, nodeFilter, linkFilter, 'occurrences');
+	self.absoluteFilterGraph(nodeFilter, linkFilter, filterType);
     }
 }
