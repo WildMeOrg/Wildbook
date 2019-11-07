@@ -65,6 +65,7 @@ class GraphAbstract {
 	this.parser = new JSONParser();
     }
 
+    //Display data table relevant to graph
     showTable(contentRef, tableRef) {
 	//Display tableRef, hide contentRef
 	$(contentRef).hide();
@@ -76,11 +77,13 @@ class GraphAbstract {
 	this.showIncompleteInformationMessage();
     }
 
+    //Display message on missing data
     showIncompleteInformationMessage() {
 	$("#familyDiagram").html("<h4>There are currently no known relationships" +
 				 " for this Marked Individual</h4>")
     }
 
+    //Append top-level SVG containing all graphical elements
     appendSvg(containerId) {
 	this.svg = d3.select(containerId).append("svg")
 	    .attr("width", this.width)
@@ -94,7 +97,7 @@ class GraphAbstract {
     }
 
     //TODO - FIX
-    //Static Render Methods
+    //Append graph legend to top-level SVG
     addLegend(containerId) {
 	d3.select(containerId + " svg").append("g")
 	    .attr("class", "legend")
@@ -104,11 +107,12 @@ class GraphAbstract {
 	    .attr("fill", "red");
     }
 
-
+    //Modify zoom wheel delta to smooth zooming
     wheelDelta() {
 	return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1 ) / this.zoomFactor;
     }
 
+    //Calculate node size s.t. all nodes can fit in the contextual SVG
     calcNodeSize(nodes) {
 	try {
 	    let numNodes = nodes.length || 10; //Default node length is 10 
@@ -122,6 +126,7 @@ class GraphAbstract {
 	}
     }
 
+    //Append a tooltop to the top-level SVG, used to visualize node info on hover
     addTooltip(selector) {
 	//Define the tooltip div
 	this.tooltip = d3.select(selector).append("div")
@@ -129,29 +134,38 @@ class GraphAbstract {
 	    .style("opacity", 0);
     }
 
+    //Fade the tooltip into view when hovering over a given node
     handleMouseOver(d) {
 	if (!this.popup) {
+	    //Display opaque tooltip
 	    this.tooltip.transition()
 		.duration(this.fadeDuration)
 		.style("opacity", .9);
 
 	    //TODO: Remove this hardcoding
+	    //Place tooltip offset to the upper right of the hovered node
 	    this.tooltip
 		.style("left", d3.event.layerX + 30 + "px")		
 		.style("top", d3.event.layerY - 20 + "px")
 		.html("<b>Encounters:</b>\n None");
 
+	    //Prevent future mouseOver events
 	    this.popup = true;
 	}
     }	
 
+    //Fade the tooltip from view when no longer hovering over a node
     handleMouseOut(d) {
+	//Enable future mouseOver events
 	this.popup = false;
+
+	//Fade tooltip from view
 	this.tooltip.transition()		
             .duration(this.fadeDuration)		
             .style("opacity", 0);
     }
 
+    //Draw each node with prescribed radius, fill, and outline
     drawNodeOutlines(nodes=this.nodes) {
 	//Color collapsed nodes
 	nodes.append("circle")
@@ -161,14 +175,15 @@ class GraphAbstract {
 	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d));
     }
 
+    //Return a size multiple if the given node is focused, defaults to 1 
     getSizeScalar(d) {
 	if (d.data.isFocused) return this.focusedScale;
 	else return 1;
     }
 
+
+    //Return a color based upon the given node's geneder
     colorGender(d) {
-		//this will asign a node to a certain color depending on if its gender is found 
-		// Also assiginging a default value of color assuming the found genders are not done.
 	try {
 	    let gender = d.data.gender || "default";
 	    switch (gender.toUpperCase()) {
@@ -182,6 +197,7 @@ class GraphAbstract {
 	}
     }
 
+    //Draw alpha symbols for all given nodes which qualify
     drawNodeSymbols(nodes=this.nodes) {
 	nodes.append("path")
 	    .attr("class", "symb")
@@ -202,7 +218,7 @@ class GraphAbstract {
 	    .style("fill-opacity", 0);
     }
 
-    //TODO: Stub function
+    //Add text to the given nodes
     addNodeText(nodes=this.nodes) {
 	//Style node text
 //	let boundedLength = 2 * this.radius * Math.cos(Math.PI / 4); //Necessary dimensions of bounding rectangle
