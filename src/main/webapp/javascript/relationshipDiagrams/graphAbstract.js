@@ -39,7 +39,7 @@ class GraphAbstract {
 	this.alphaColor = "#bf0000";
 
 	this.defNodeColor = "#ffffff";
-	this.fixedNodeColor = "#e0e0e0";	
+	this.fixedNodeColor = "#cecece";	
 	
 	this.defLinkColor = "#a6a6a6";
 	this.famLinkColor = "#a6a6a6"; //"#b59eda";
@@ -91,6 +91,18 @@ class GraphAbstract {
 	    .append("g")
 	    .attr("class", "container");
     }
+
+    //TODO - FIX
+    //Static Render Methods
+    addLegend(containerId) {
+	d3.select(containerId + " svg").append("g")
+	    .attr("class", "legend")
+	    .attr("transform", "translate(90%, 10%)")
+	    .attr("height", "100px")
+	    .attr("width", "100px")
+	    .attr("fill", "red");
+    }
+
 
     wheelDelta() {
 	return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1 ) / this.zoomFactor;

@@ -181,15 +181,6 @@ class ForceLayoutAbstract extends GraphAbstract {
 	if (this.startingRadius === 0) this.startingRadius = 15;
     }
 
-    //Static Render Methods
-    addLegend(containerId) {
-	d3.select(containerId + " svg").append("g")
-	    .attr("class", "legend")
-//	    .attr("transform", "translate(90%, 10%)")
-	    .style("font-size", "12px")
-	    .call(d3.legend);
-    }
-
     //Physics Methods
     applyForces(linkData=this.linkData, nodeData=this.nodeData) {
 	//Apply Forces to Nodes and Links
@@ -307,30 +298,29 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.updateGraph(this.prevLinkData, this.prevNodeData);
     }
 
+    //TODO - Add support for saved local family filters
     absoluteFilterGraph(nodeFilter, linkFilter, filterType) {
-	console.log(this.nodes)
-	this.nodes.forEach(d => console.log(nodeFilter(d)));
+	console.log(this.nodeData) //TODO - Delete
+	this.nodeData.forEach(d => console.log(nodeFilter(d))); //TODO - Delete
 	
-	let nodeData, linkData;
-	if (filterType === "remove") {
-	    this.nodeData.filter(d => !nodeFilter(d))
+	if (filterType === "restore") {
+	    //Remove Collapsed Nodes from the Graph
+	    this.svg.selectAll(".node").filter(d => console.log(d) && nodeFilter(d) && d.filtered)
+		.remove();
+	    
+	    this.nodeData.filter(d => nodeFilter(d))
 		.forEach(d => d.filtered = false);
 	    
-	    this.prevNodeData = this.prevNodeData.concat(
-		this.nodeData.filter(d => !nodeFilter(d)));
-	    this.prevLinkData = this.prevLinkData.concat(
-		this.linkData.filter(d => !linkFilter(d) &&
-				     !(d.source.filtered || d.target.filtered)));
-
-	    this.svg.selectAll(".node").filter(d => !nodeFilter(d))
-		.remove();
+	    this.prevNodeData = this.nodeData.filter(d => !nodeFilter(d));
+	    this.prevLinkData = this.linkData.filter(d => !linkFilter(d) &&
+				     !(d.source.filtered || d.target.filtered));
 	}
-	else if (filterType === "add") {
+	else if (filterType === "remove") {
 	    this.nodeData.filter(d => !nodeFilter(d))
 		.forEach(d => d.filtered = true);
 	    
-	    this.prevNodeData = this.prevNodeData.filter(nodeFilter);
-	    this.prevLinkData = this.prevLinkData.filter(linkFilter);
+	    this.prevNodeData = this.nodeData.filter(nodeFilter);
+	    this.prevLinkData = this.linkData.filter(linkFilter);
 	}
 	this.updateGraph(this.prevLinkData, this.prevNodeData);
     }
