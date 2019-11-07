@@ -3,6 +3,7 @@
 //Add support for x family member distance slider (?)
 //Add support for smart initialization of node positions
 
+//Abstract class defining functionality for all d3 forceLayout types
 class ForceLayoutAbstract extends GraphAbstract {
     constructor(individualId, focusedScale=1) {
 	super(individualId, focusedScale);
@@ -33,7 +34,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 	};
     }
 
-    //Setup Methods
+    // Setup Methods //
+
+    //Perform all auxiliary functions necessary prior to graphing
     setupGraph() {
 	//Establish Node/Link History
 	this.prevNodeData = this.nodeData;
@@ -46,6 +49,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.defineArrows();
     }
 
+    //Initialize forces without data context
     setForces() {
 	//Define the Graph's Forces
 	this.forces = d3.forceSimulation()
@@ -58,6 +62,7 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     //TODO - Rework to style class..?
+    //Initialize unique arrow classes for each link category
     defineArrows() {
 	//Define a Style Class for each End Marker
 	this.svg.append("defs")
@@ -76,7 +81,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .attr("fill", d => this.getLinkColor(d));
     }
 
-    //Dynamic Render Methods
+    // Dynamic Render Methods //
+    
+    //Render a graph with updated data
     updateGraph(linkData=this.linkData, nodeData=this.nodeData) {
 	//Update Render Data
 	this.updateLinks(linkData);
@@ -87,6 +94,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.enableNodeInteraction();
     }
 
+    //Render links with updated data
     updateLinks(linkData=this.linkData) {
 	//Define Link Parent/Data
 	let links = this.svg.selectAll(".link")
@@ -120,7 +128,8 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .duration(this.transitionDuration)
 	    .attr("opacity", 1);
     }
-    
+
+    //Render nodes with updated data
     updateNodes(nodeData=this.nodeData) {
 	//Define Node Parent/Data
 	let nodes = this.svg.selectAll(".node")
@@ -181,7 +190,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 	if (this.startingRadius === 0) this.startingRadius = 15;
     }
 
-    //Physics Methods
+    // Physics Methods //
+
+    //Apply initialized forces to a data context
     applyForces(linkData=this.linkData, nodeData=this.nodeData) {
 	//Apply Forces to Nodes and Links
 	this.forces.nodes(nodeData)
@@ -195,7 +206,8 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Reduce Heat for Future Updates
 	this.alpha = 0.2;
     }
-    
+
+    //Update all link and node position based on force interactions
     ticked(self) {
 	try {
 	    self.links.attr("x1", d => d.source.x)
@@ -209,7 +221,8 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    console.log(error);
 	}
     }
-    
+
+    //Attach node listeners for click and drag operations
     enableNodeInteraction() {
 	this.nodes.on('dblclick', (d, i, nodeList) => this.releaseNode(d, nodeList[i]))
 	    .on('click', d => this.handleFilter(d.group))
@@ -219,6 +232,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 		  .on("end", (d, i, nodeList) => this.dragEnded(d, nodeList[i])));
     }
 
+    //Begin moving node on drag, allow for graph interactions
     dragStarted(d) {
 	if (!(this.isAssignedKeyBinding() || d.collapsed)) {
 	    if (!d3.event.active) this.forces.alphaTarget(0.5).restart();
@@ -227,6 +241,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	}
     }
 
+    //Update node movement on drag
     dragged(d) {
 	if (!(this.isAssignedKeyBinding() || d.collapsed)) {
 	    d.fx = d3.event.x;
@@ -234,6 +249,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	}
     }
 
+    //Resolve node movement on drag end, halt graph movements
     dragEnded(d, node) {
 	if (!(this.isAssignedKeyBinding() || d.collapsed)) {
 	    if (!d3.event.active) this.forces.alphaTarget(0);
@@ -243,6 +259,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	}
     }
 
+    //Release the targeted node from its locked position
     releaseNode(d, node) {
 	d.fx = null;
 	d.fy = null;
@@ -250,7 +267,8 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Recolor node
 	d3.select(node).select("circle").style("fill", this.defNodeColor);
     }
-    
+
+    //Handle all general forceLayout node/link filters
     handleFilter(groupNum) {
 	if (this.shiftKey() && this.ctrlKey()) this.resetGraph(); 
 	else if (this.shiftKey()) { //Filter Inverse of Selected Family
@@ -265,15 +283,17 @@ class ForceLayoutAbstract extends GraphAbstract {
 	}
     }
 
+    //Reset a graph s.t. all filtered nodes are unfiltered
     resetGraph() {
 	for (filter in this.filtered) filter = {}
 	this.svg.selectAll(".node").filter(d => d.filtered).remove();
 	this.updateGraph();
     }
 
-    filterGraph(groupNum, nodeFilter, linkFilter, filterType, enableReverse=true) {
+    //Apply reversible filters based upon groupNum
+    filterGraph(groupNum, nodeFilter, linkFilter, filterType) {
 	let nodeData, linkData;
-	if (this.filtered[filterType][groupNum] && enableReverse) {
+	if (this.filtered[filterType][groupNum]) {
 	    this.filtered[filterType][groupNum] = false;
 	    this.nodeData.filter(d => !nodeFilter(d))
 		.forEach(d => d.filtered = false);
@@ -299,67 +319,64 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     //TODO - Add support for saved local family filters
-    absoluteFilterGraph(nodeFilter, linkFilter, filterType) {
-	console.log(this.nodeData) //TODO - Delete
-	this.nodeData.forEach(d => console.log(nodeFilter(d))); //TODO - Delete
+    //Apply absolute filters (i.e. thresholding)
+    absoluteFilterGraph(nodeFilter, linkFilter) {
+	this.svg.selectAll(".node").filter(d => nodeFilter(d) && d.filtered)
+	    .remove();
 	
-	if (filterType === "restore") {
-	    //Remove Collapsed Nodes from the Graph
-	    this.svg.selectAll(".node").filter(d => console.log(d) && nodeFilter(d) && d.filtered)
-		.remove();
-	    
-	    this.nodeData.filter(d => nodeFilter(d))
-		.forEach(d => d.filtered = false);
-	    
-	    this.prevNodeData = this.nodeData.filter(d => !nodeFilter(d));
-	    this.prevLinkData = this.linkData.filter(d => !linkFilter(d) &&
-				     !(d.source.filtered || d.target.filtered));
-	}
-	else if (filterType === "remove") {
-	    this.nodeData.filter(d => !nodeFilter(d))
-		.forEach(d => d.filtered = true);
-	    
-	    this.prevNodeData = this.nodeData.filter(nodeFilter);
-	    this.prevLinkData = this.linkData.filter(linkFilter);
-	}
-	this.updateGraph(this.prevLinkData, this.prevNodeData);
+	this.nodeData.filter(d => nodeFilter(d))
+	    .forEach(d => d.filtered = false);
+
+	this.nodeData.filter(d => !nodeFilter(d))
+	    .forEach(d => d.filtered = true);
+
+	console.log(this.prevNodeData);
+	console.log(this.prevLinkData);
+	
+	this.updateGraph(this.linkData.filter(linkFilter), this.nodeData.filter(nodeFilter));
     }
 
-    //TODO - Rename
+    // Helper Functions //
+    
+    //Determine if key has other bound function
     isAssignedKeyBinding() {
 	return (this.shiftKey() || this.ctrlKey());
     }
-    
+
+    //Returns true if shift key is being held down
     shiftKey() {
 	return (d3.event.shiftKey || (d3.event.sourceEvent && d3.event.sourceEvent.shiftKey));
     }
 
+    //Returns true if ctrl key is being held down
     ctrlKey() {
 	return (d3.event.ctrlKey || (d3.event.sourceEvent && d3.event.sourceEvent.ctrlKey));
     }
-    
+
+    //Sets the radius attribute for a given node
     setNodeRadius() {
 	this.nodeData.forEach(d => {
 	    d.data.r = this.radius * this.getSizeScalar(d);
 	});
     }
 
+    //Returns the length of a given link
     getLinkLen(link) {
 	return Math.min(this.radius * this.maxLenScalar, link.data.r * 2);
     }
 
-    
+    //Returns the target node of a given link
     getLinkTarget(link) {
 	return this.nodeData.find(node => node.id === link.target);
     }
 
-    //Currently unused
+    //Returns the source node of a given link
     getLinkSource(link) {
 	let srcId = link.source;
 	return this.nodeData.find(node => node.id === srcId);
     }
 
-    //TODO: Switch to enum
+    //Returns the color for a given link
     getLinkColor(d) {	
 	switch(d.type) {
 	case "familial":

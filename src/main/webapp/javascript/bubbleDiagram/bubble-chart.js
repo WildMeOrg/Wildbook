@@ -1,7 +1,3 @@
-//TODO - Fix table, currently refs are broken
-//TODO - Consider renaming this file
-//TODO - Implement or delete zoom/reset buttons
-
 //Occurence graph global API (used in individuals.jsp)
 function setupOccurrenceGraph(individualID) { //TODO - look into individualID
     let focusedScale = 1.75;
@@ -15,8 +11,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	super(individualId, focusedScale);
 
 	//TODO - Remove ref, use key
-	this.sliders = {"temporal": {"ref": "temporal", "prev": 0},
-			"spatial": {"ref":  "spatial", "prev": 0}};
+	this.sliders = {"temporal": {"ref": "temporal"},
+			"spatial": {"ref": "spatial"}};
 	
 	//TODO: Parse this data
 	this.nodeData = [
@@ -200,26 +196,23 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     //Update known range sliders (this.sliders) with contextual ranges/values
     updateRangeSliders() {
 	Object.values(this.sliders).forEach(slider => {
-	    console.log("MAX", slider.max) //TODO - Delete
+	    //Update html slider attributes
 	    let sliderNode = $("#" + slider.ref);
 	    sliderNode.attr("max", slider.max);
-	    sliderNode.attr("value", slider.max);
+	    sliderNode.val(slider.max);
 	    sliderNode.change(() =>
-			      this.filterByOccurrence(this, sliderNode.val(), slider.ref));
+			      this.filterByOccurrence(this, parseInt(sliderNode.val()),
+						      slider.ref));
 	});
     }
 
     //Filter nodes by spatial/temporal differences, displaying those less than the set threshold 
     filterByOccurrence(self, threshold, occType) {
 	let focusedNode = self.nodeData.find(d => d.data.isFocused);
-	console.log(threshold); //TODO - Delete
-	
 	let nodeFilter = (d) => (self.getMin(focusedNode, d, occType) <= threshold)
 	let linkFilter = (d) => (self.getMin(focusedNode, d.source, occType) <= threshold) &&
 	    (self.getMin(focusedNode, d.target, occType) <= threshold)
-	let filterType = (threshold >= self.sliders[occType].prev) ? "restore" : "remove";
-	self.sliders[occType].prev = threshold;
 	
-	self.absoluteFilterGraph(nodeFilter, linkFilter, filterType);
+	self.absoluteFilterGraph(nodeFilter, linkFilter);
     }
 }
