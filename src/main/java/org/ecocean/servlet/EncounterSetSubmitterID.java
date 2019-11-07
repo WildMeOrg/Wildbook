@@ -22,6 +22,9 @@ package org.ecocean.servlet;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.grid.EncounterLite;
+import org.ecocean.grid.GridManager;
+import org.ecocean.grid.GridManagerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -94,6 +97,13 @@ public class EncounterSetSubmitterID extends HttpServlet {
       }
 
       if (!locked) {
+        
+        //reset the entry in the GridManager graph
+        if(CommonConfiguration.useSpotPatternRecognition(context) && (sharky.getSpots()!=null || sharky.getRightSpots()!=null)) {
+          GridManager gm = GridManagerFactory.getGridManager();
+          gm.addMatchGraphEntry(sharky.getCatalogNumber(), new EncounterLite(sharky));
+        }
+        
         myShepherd.commitDBTransaction();
         //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
