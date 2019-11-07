@@ -2,7 +2,10 @@ class JSONParser {
     constructor() {
 	this.currId = 0;
 	this.nodeMap = {};
+<<<<<<< HEAD
 	this.nodeDict = [];
+=======
+>>>>>>> 84731a64afd5c51ba28a63fe69416e37bfc345a1
     }
     
     //Creates a relational object from JSON data
@@ -26,6 +29,7 @@ class JSONParser {
 	    }
 	});
     }
+<<<<<<< HEAD
     //TODO:  query for all markedindivudial data and create a dictionary with the ids
     getNodeRefs(json) {
 	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
@@ -64,6 +68,10 @@ class JSONParser {
 
 	console.log("before print");
 	console.log(this.nodeDict);
+=======
+
+    getNodeRefs(json) {
+>>>>>>> 84731a64afd5c51ba28a63fe69416e37bfc345a1
 	
     }
 

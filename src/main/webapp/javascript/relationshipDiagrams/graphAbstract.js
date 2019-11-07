@@ -1,25 +1,53 @@
+//TODO: Enlarge node on hover
+
+//Abstract class defining funcitonality for all d3 graph types
 class GraphAbstract {
-    constructor(individualID) {
+    constructor(individualID, focusedScale=1) {
 	this.id = individualID;
-	
+
+	//SVG Attributes
+	this.svg;
+
 	this.width = 960;
 	this.height = 500;
 	this.margin = {top: 20, right: 120, bottom: 20, left: 120};
 
-	//G dimensions
+	//Top-level G Attrbiutes
 	this.gWidth = this.width - this.margin.right - this.margin.left,
 	this.gHeight = this.height - this.margin.top - this.margin.bottom;
 
-	//Scaled node size
+	//Node Attributes
 	this.numNodes;
 	this.radius;
-	this.maxRadius = 40;
+	this.maxRadius = 50;
 	this.scalingFactor = 25; //TODO: Tune this value
+	this.nodeMargin = 15;
+	this.nodeSeparation;
+	this.transitionDuration = 750;
 
-	//Pan Attributes
-	this.prevPos = [0, 0];
+	this.strokeWidth = 3.5;
 	
-	//Zoom attirbutes
+	this.fontSize = 12;
+	this.focusedScale = focusedScale;
+
+	this.alphaSymbSize = 200; //TODO: Figure out the units on this...
+
+	//Node Style Attributes
+	this.defGenderColor = "#7f7f7f"; 
+	this.maleColor = "steelblue";
+	this.femaleColor = "palevioletred";
+
+	this.alphaColor = "#bf0000";
+
+	this.defNodeColor = "#ffffff";
+	this.fixedNodeColor = "#cecece";	
+	
+	this.defLinkColor = "#a6a6a6";
+	this.famLinkColor = "#a6a6a6"; //"#b59eda";
+	this.maternalLinkColor = "#f3acd0";
+	this.paternalLinkColor = "#8facc6";
+	
+	//Zoom Attributes
 	this.zoomFactor = 1000;
 	this.zoom = d3.zoom()
 	    .scaleExtent([0.5, 5])
@@ -29,94 +57,139 @@ class GraphAbstract {
 	    ])
 	    .wheelDelta(() => this.wheelDelta());
 
-	this.svg;
-	this.tooltip;
+	//Tooltip Attributes
 	this.popup = false;
-	this.duration = 750;
+	this.fadeDuration = 200;
 
-	this.maleColor = "steelblue";
-	this.femaleColor = "palevioletred";
-	this.defGenderColor = "#757575";
-
-	this.alphaColor = "#bf0000";
-
-	this.defLinkColor = "#a6a6a6";
-	this.famLinkColor = "#000000";
-
-	//Node style attributes
-	this.defNodeColor = "#ffffff";
-	this.collapsedNodeColor = "#d3d3d3";	
+	//Json Parser Attributes
+	this.parser = new JSONParser();
     }
 
-    wheelDelta () {
-	console.log(d3.event);
+    //Display data table relevant to graph
+    showTable(contentRef, tableRef) {
+	//Display tableRef, hide contentRef
+	$(contentRef).hide();
+	$(tableRef).show();
+	$(contentRef).removeClass("active");
+	$(tableRef).addClass("active");
+
+	//Report incomplete info
+	this.showIncompleteInformationMessage();
+    }
+
+    //Display message on missing data
+    showIncompleteInformationMessage() {
+	$("#familyDiagram").html("<h4>There are currently no known relationships" +
+				 " for this Marked Individual</h4>")
+    }
+
+    //Append top-level SVG containing all graphical elements
+    appendSvg(containerId) {
+	this.svg = d3.select(containerId).append("svg")
+	    .attr("width", this.width)
+	    .attr("height", this.height)
+	    .call(this.zoom.on("zoom", () => {
+		this.svg.attr("transform", d3.event.transform)
+	    }))
+	    .on("dblclick.zoom", null) //Disable double click zoom
+	    .append("g")
+	    .attr("class", "container");
+    }
+
+    //TODO - FIX
+    //Append graph legend to top-level SVG
+    addLegend(containerId) {
+	d3.select(containerId + " svg").append("g")
+	    .attr("class", "legend")
+	    .attr("transform", "translate(90%, 10%)")
+	    .attr("height", "100px")
+	    .attr("width", "100px")
+	    .attr("fill", "red");
+    }
+
+    //Modify zoom wheel delta to smooth zooming
+    wheelDelta() {
 	return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1 ) / this.zoomFactor;
     }
 
+    //Calculate node size s.t. all nodes can fit in the contextual SVG
     calcNodeSize(nodes) {
 	try {
-	    let defaultNodeLen = 10;
-	    let numNodes = nodes.length || defaultNodeLen; //Defaults to 10 
+	    let numNodes = nodes.length || 10; //Default node length is 10 
 	    this.radius = this.maxRadius * Math.pow(Math.E, -(numNodes / this.scalingFactor));
+
+	    //TODO - Calculate margins?
+	    //let margins = this.radius;
 	}
 	catch(error) {
 	    console.error(error);
 	}
     }
 
+    //Append a tooltop to the top-level SVG, used to visualize node info on hover
     addTooltip(selector) {
 	//Define the tooltip div
 	this.tooltip = d3.select(selector).append("div")
-	    .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
 	    .attr("class", "tooltip")				
 	    .style("opacity", 0);
-	return this.tooltip;
     }
 
+    //Fade the tooltip into view when hovering over a given node
     handleMouseOver(d) {
 	if (!this.popup) {
+	    //Display opaque tooltip
 	    this.tooltip.transition()
-		.duration(200)
+		.duration(this.fadeDuration)
 		.style("opacity", .9);
 
 	    //TODO: Remove this hardcoding
+	    //Place tooltip offset to the upper right of the hovered node
 	    this.tooltip
 		.style("left", d3.event.layerX + 30 + "px")		
 		.style("top", d3.event.layerY - 20 + "px")
 		.html("<b>Encounters:</b>\n None");
 
+	    //Prevent future mouseOver events
 	    this.popup = true;
 	}
     }	
 
+    //Fade the tooltip from view when no longer hovering over a node
     handleMouseOut(d) {
+	//Enable future mouseOver events
 	this.popup = false;
+
+	//Fade tooltip from view
 	this.tooltip.transition()		
-            .duration(200)		
+            .duration(this.fadeDuration)		
             .style("opacity", 0);
     }
 
-    drawNodeOutlines(nodes, isHidden) {
+    //Draw each node with prescribed radius, fill, and outline
+    drawNodeOutlines(nodes=this.nodes) {
 	//Color collapsed nodes
-	return nodes.append("circle")
-	    .attr("r", () => isHidden ? 1e-6 : this.radius)
-	    .style("fill", d => this.colorCollapsed(d))
+	nodes.append("circle")
+	    .attr("r", this.startingRadius)
+	    .style("fill", this.defNodeColor)
 	    .style("stroke", d => this.colorGender(d))
-	    .style("stroke-width", 3);
+	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d));
     }
 
-    //TODO: Move this outside the generic class - it doesn't make much sense
-    colorCollapsed(d) {
-	return (d && d._children) ? this.collapsedNodeColor : this.defNodeColor;
+    //Return a size multiple if the given node is focused, defaults to 1 
+    getSizeScalar(d) {
+	if (d.data.isFocused) return this.focusedScale;
+	else return 1;
     }
 
+
+    //Return a color based upon the given node's geneder
     colorGender(d) {
 	try {
-	    let gender = d.data.gender || "def";
+	    let gender = d.data.gender || "default";
 	    switch (gender.toUpperCase()) {
-	        case "FEMALE": return this.femaleColor;
-	        case "MALE": return this.maleColor;
-	        default: return this.defGenderColor; //Grey
+	        case "FEMALE": return this.femaleColor; //Pink
+	        case "MALE": return this.maleColor; //Blue
+	        default: return this.defGenderColor; //White
 	    }
 	}
 	catch(error) {
@@ -124,60 +197,41 @@ class GraphAbstract {
 	}
     }
 
-    drawNodeSymbols(nodes, isHidden) {
+    //Draw alpha symbols for all given nodes which qualify
+    drawNodeSymbols(nodes=this.nodes) {
 	nodes.append("path")
 	    .attr("class", "symb")
 	    .attr("d", d => {
 		return d3.symbol().type(d3.symbolCircle)
-		    .size((d.data.role && d.data.role.toUpperCase() == "ALPHA") ? 125 : 0)()
+		    .size(() => {
+			if (d.data.role && d.data.role.toUpperCase() == "ALPHA")
+			    return this.alphaSymbSize * this.getSizeScalar(d);
+			else return 0;
+		    })();
 	    })
 	    .attr("transform", d => {
-		let x = this.radius * Math.cos(Math.PI / 4);
-		let y = this.radius * Math.sin(Math.PI / 4);
-		return "translate(" + x + "," + -y + ")";
+		let radialPos = Math.cos(Math.PI / 4);
+		let pos = this.radius * this.getSizeScalar(d) * radialPos;
+		return "translate(" + pos + "," + -pos + ")";
 	    })
 	    .style("fill", this.alphaColor)
-	    .style("fill-opacity", () => isHidden ? 1e-6 : 1);
+	    .style("fill-opacity", 0);
     }
 
-    updateSymbols(nodeUpdate, isHidden) {
-	nodeUpdate.select("path.symb")
-	    .attr("transform", d => {
-		let x = this.radius * Math.cos(Math.PI / 4);
-		let y = this.radius * Math.sin(Math.PI / 4);
-		return "translate(" + x + "," + -y + ")";
-	    })
-	    .style("fill-opacity", () => isHidden ? 1e-6 : 1);
-    }
-
-    //TODO: Stub function
-    addNodeText(nodeEnter, isHidden) {
+    //Add text to the given nodes
+    addNodeText(nodes=this.nodes) {
 	//Style node text
 //	let boundedLength = 2 * this.radius * Math.cos(Math.PI / 4); //Necessary dimensions of bounding rectangle
-	nodeEnter.append("text")
+	nodes.append("text")
 //	    .attr(d => d.x - (boundedLength / 2))
 //	    .attr(d => d.y - (boundedLength / 2))
 //	    .attr("width", boundedLength)
-//	    .attr("height", boundedLength)
+	//	    .attr("height", boundedLength)
+	    .attr("class", "text")
 	    .attr("dy", ".5em") //Vertically centered
 	    .text(d => d.data.name)
-	    .style("fill-opacity", () => isHidden ? 1e-6 : 1)
-	    .style("font-weight", d => d.data.isFocus ? "bold" : "normal");
+	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
+	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
     }
-
-    //Toggle children on click.
-    click(d) {
-	if (d.children) { //Collapse child nodes
-	    d._children = d.children;
-	    d.children = null;
-	}
-	else {//Expand child nodes
-	    d.children = d._children;
-	    d._children = null;
-	}
-	
-	this.updateTree(d);
-    }
-
 }
 

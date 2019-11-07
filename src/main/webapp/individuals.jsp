@@ -11,7 +11,8 @@ org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManage
 
 <%
 
-
+boolean isLoggedIn=false;
+if(request.getUserPrincipal()!=null)isLoggedIn=true;
 String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -200,7 +201,7 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 
 				if (possible.size() > 0) {
     			String arr = new Gson().toJson(possible);
-					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
 				} else {
 					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
 					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
@@ -243,7 +244,7 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
 <script src="javascript/core.js"></script>
-<script src="javascript/classes/Base.js"></script>
+<script src="javascript/classes/Base.js"></script>    
 
 <link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 
@@ -303,11 +304,13 @@ input.nameKey, input.nameValue {
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
-<script src="javascript/bubbleDiagram/bubble-chart.js"></script>
-<script src="javascript/bubbleDiagram/encounter-calls.js"></script>
+<script src="javascript/relationshipDiagrams/jsonParser.js"></script>
 <script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
-<script src="javascript/relationshipDiagrams/familyTree.js"></script>
+<script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
+<script src="javascript/bubbleDiagram/bubble-chart.js"></script>
 <script src="javascript/relationshipDiagrams/socialGraph.js"></script>
+<script src="javascript/bubbleDiagram/encounter-calls.js"></script>
+    
 
 
 <style>
@@ -319,20 +322,8 @@ input.nameKey, input.nameValue {
 
 
 <script type="text/javascript">
-
-
   $(document).ready( function() {
-
     $("input.nameKey, input.nameValue").hide();
-
-    // wildbook.init(function() { doTable(); });
-    $("#familyDiagramTab").click(e => {
-      e.preventDefault();
-      $(".socialVis").hide();
-      $("#familyDiagram").show();
-      $(".socialVisTab").removeClass("active");
-      $("#familyDiagramTab").addClass("active");
-    });
 
     $("#socialDiagramTab").click(e => {
       e.preventDefault();
@@ -546,30 +537,32 @@ if (sharky.getNames() != null) {
     </div><%
 
     // make UI for non-default names here
-    System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
-    for (String nameKey: sharky.getNames().getKeys()) {
-      if (MultiValue.isDefault(nameKey)) continue;
-      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
-      String nameLabel=nameKey;
-      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
-      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
-      String nameValue = sharky.getName(nameKey);
-
-      %>
-      <div class="namesection <%=nameKey%>">
-        <span class="nameKey" data-oldkey="<%=nameKey%>"><em><%=nameLabel%></em></span>
-        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%=nameKey%>" placeholder="<%=nameKey %>" >
-        <span id="nameColon">:</span>
-
-        <span class="nameValue <%=nameKey%>" data-oldvalue="<%=nameValue%>"><%=nameValue%></span>
-        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=nameValue%>" placeholder="<%=nameValue %>" >
-        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
-
-        <span class="nameCheck">&check;</span>
-        <span class="nameError">X</span>
-        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
-      </div><%
-    }
+    if ((sharky.getNames() != null) && (sharky.getNames().size() > 0) && (sharky.getNames().getKeys()!=null)){
+    	System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
+	    for (String nameKey: sharky.getNames().getKeys()) {
+	      if (MultiValue.isDefault(nameKey)) continue;
+	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
+	      String nameLabel=nameKey;
+	      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
+	      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
+	      String nameValue = sharky.getName(nameKey);
+	
+	      %>
+	      <div class="namesection <%=nameKey%>">
+	        <span class="nameKey" data-oldkey="<%=nameKey%>"><em><%=nameLabel%></em></span>
+	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%=nameKey%>" placeholder="<%=nameKey %>" >
+	        <span id="nameColon">:</span>
+	
+	        <span class="nameValue <%=nameKey%>" data-oldvalue="<%=nameValue%>"><%=nameValue%></span>
+	        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=nameValue%>" placeholder="<%=nameValue %>" >
+	        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+	
+	        <span class="nameCheck">&check;</span>
+	        <span class="nameError">X</span>
+	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+	      </div><%
+	    }
+	}
 
     // "add new name" Edit section
     %>
@@ -755,7 +748,7 @@ if (sharky.getNames() != null) {
                   event.preventDefault();
                   $("#Add").hide();
 
-                  var individual = $("input[name='individual']").val();
+                  var individual = "<%=sharky.getIndividualID() %>";
                   var sex = $("#newSex").val();
 
                   $.post("IndividualSetSex", {"individual": individual, "selectSex": sex},
@@ -764,8 +757,7 @@ if (sharky.getNames() != null) {
                     $("#sexCheck").show();
                     $("#displaySex").html(sex);
                     $("svg.bubbleChart").remove();
-                    getData(individual);
-
+                    getData(individual, null);
                   })
                   .fail(function(response) {
                     $("#sexError, #sexErrorDiv").show();
@@ -1044,7 +1036,7 @@ if (sharky.getNames() != null) {
         -1px 1px 0 #000,
         1px 1px 0 #000;
     ">
-    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
+    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualIDExact=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
 
 
     <div class="slider col-sm-6 center-slider">
@@ -1404,10 +1396,7 @@ if (sharky.getNames() != null) {
 
         <div role="navigation" id="socialNavigation">
           <ul class="nav nav-tabs">
-            <li id="familyDiagramTab"  class="active socialVisTab">
-              <a href="#familyDiagram">Familial Diagram</a>
-            </li>
-	    <li id="socialDiagramTab" class="socialVisTab"> <%-- TODO: Consider merging this with the familyDiagram pane --%>
+	    <li id="socialDiagramTab" class="active socialVisTab"> 
 	      <a href="#socialDiagram">Social Diagram</a>
 	    </li>
             <li id="communityTableTab" class="socialVisTab">
@@ -1416,15 +1405,8 @@ if (sharky.getNames() != null) {
           </ul>
         </div>
 
-        <div id="familyDiagram" class="socialVis">
-          <% String individualID = sharky.getIndividualID();%>
-          <script type="text/javascript">
-            setupFamilyTree("<%=individualID%>");
-          </script>
-        </div>
-
-	<%-- TODO: WIP social diagram --%>
 	<div id="socialDiagram" class="socialVis">
+	  <% String individualID = sharky.getIndividualID();%>	
 	  <script type="text/javascript">
 	    setupSocialGraph("<%=individualID%>");
 	  </script>
@@ -1536,22 +1518,17 @@ if (sharky.getNames() != null) {
         <br>
         <%-- Cooccurrence table starts here --%>
         <a name="cooccurrence"></a>
-        <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
-
-
-        <script type="text/javascript">
-        // <% String individualID = sharky.getIndividualID();%>
+	<p><strong><%=props.getProperty("cooccurrence")%></strong></p>
+	<script type="text/javascript">
+        <% String occurrenceIndividualID = sharky.getIndividualID();%>
         $(document).ready(function() {
-
-          getData("<%=individualID%>");
+          getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName() %>");
         });
         </script>
-
         <%
           List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky);
 
         if(otherIndies.size()>0){
-
         //ok, let's iterate the social relationships
         %>
         <div class="cooccurrences">
@@ -1568,13 +1545,26 @@ if (sharky.getNames() != null) {
           </div>
 
           <div id="cooccurrenceDiagram">
-              <div class="bubbleChart">
-                <div id="buttons" class="btn-group btn-group-sm" role="group">
-                  <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-                  <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
-                  <button type="button" class="btn btn-default" id="reset">Reset</button>
-                </div>
+	    <div id="bubbleChart">
+              <div id="buttons" class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
+                <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+                <button type="button" class="btn btn-default" id="reset">Reset</button>
               </div>
+            </div>
+  	    <div id="cooccurrenceSliders">
+	      <label for="temporal">Temporal Slider</label>
+	      <div class="sliderWrapper">
+                <input type="range" min=0 class="slider" id="temporal">
+	      </div>
+	      <label for="spatial">Spatial Slider</label>
+	      <div class="sliderWrapper">
+		<input type="range" min=0 class="slider" id="spatial">
+	      </div>
+	    </div>
+	    <script type="text/javascript">
+              setupOccurrenceGraph(document);
+            </script>
           </div>
 
           <div id="cooccurrenceTable" class="table-responsive mygrid-wrapper-div">

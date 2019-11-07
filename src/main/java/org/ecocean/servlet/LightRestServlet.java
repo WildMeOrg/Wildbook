@@ -86,6 +86,8 @@ public class LightRestServlet extends HttpServlet
 
     private static final String[] Encounter_Light_Str_Fields = {"catalogNumber","individualID","occurrenceID","sex","otherCatalogNumbers","verbatimLocality","locationID","submitterName","submitterProject","submitterID","submitterOrganization","genus","specificEpithet", "dwcDateAdded","modified"};
     private static final String[] Encounter_Light_Int_Fields = {"year","month","day"};
+    private static final String[] Encounter_Light_Long_Fields = {"dwcDateAddedLong"};
+    
 
     public static final NucleusLogger LOGGER_REST = NucleusLogger.getLoggerInstance("DataNucleus.REST");
 
@@ -256,7 +258,7 @@ public class LightRestServlet extends HttpServlet
                     Query query = myShepherd.getPM().newQuery("JDOQL", queryString);
                     if (fetchParam != null)
                     {
-                        query.getFetchPlan().addGroup(fetchParam);
+                        query.getFetchPlan().setGroup(fetchParam);
                     }
                     Object result = filterResult(query.execute());
         System.out.println("        LIGHTREST: executed query "+query);
@@ -387,7 +389,7 @@ public class LightRestServlet extends HttpServlet
                         //PersistenceManager pm = pmf.getPersistenceManager();
                         if (fetchParam != null)
                         {
-                          myShepherd.getPM().getFetchPlan().addGroup(fetchParam);
+                          myShepherd.getPM().getFetchPlan().setGroup(fetchParam);
                         }
                         try
                         {
@@ -470,7 +472,7 @@ public class LightRestServlet extends HttpServlet
                 //PersistenceManager pm = pmf.getPersistenceManager();
                 if (fetchParam != null)
                 {
-                    myShepherd.getPM().getFetchPlan().addGroup(fetchParam);
+                    myShepherd.getPM().getFetchPlan().setGroup(fetchParam);
                 }
                 try
                 {
@@ -1128,6 +1130,16 @@ System.out.println("??? TRY COMPRESS ??");
                     e.printStackTrace();
                 }
             }
+            for (String fieldName: Encounter_Light_Long_Fields) {
+              try {
+                  Method getter = Encounter.class.getMethod(getterName(fieldName));
+                  long val = ((Long) getter.invoke(enc)).longValue();
+                  jobj.put(fieldName, val);
+              } catch (Exception e) {
+                  System.out.println("Exception on LightRestServlet.getEncLightJson for fieldName "+fieldName);
+                  e.printStackTrace();
+              }
+          }
 
             // add the individual's display name if it has one
             if (enc.getIndividual()!=null && Util.stringExists(enc.getIndividual().getDisplayName())) {

@@ -29,61 +29,66 @@ boolean createEncounter = ((request.getParameter("createEncounter") != null) && 
 Shepherd myShepherd = new Shepherd("context0");
 myShepherd.setAction("ytExtract.jsp");
 myShepherd.beginDBTransaction();
-
-String id = request.getParameter("id");
-MediaAsset ma = MediaAssetFactory.load(Integer.parseInt(id), myShepherd);
-if (ma == null) {
-	rtn.put("error", "no MediaAsset with id=" + id);
-	out.println(rtn);
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
-	return;
-}
-rtn.put("assetId", id);
-
 try{
-	ArrayList<MediaAsset> frameMAs = YouTubeAssetStore.findFrames(ma, myShepherd);
+	String id = request.getParameter("id");
+	MediaAsset ma = MediaAssetFactory.load(Integer.parseInt(id), myShepherd);
+	if (ma == null) {
+		rtn.put("error", "no MediaAsset with id=" + id);
+		out.println(rtn);
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+	}
+	rtn.put("assetId", id);
 	
-	if ((frameMAs == null) || (frameMAs.size() < 1)) {
-		boolean ok = YouTubeAssetStore.extractFramesAndParse(myShepherd, ma, false);
-		if (!ok) {
-			rtn.put("error", "could not extract frames");
-			out.println(rtn);
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
-			return;
+	
+		ArrayList<MediaAsset> frameMAs = YouTubeAssetStore.findFrames(ma, myShepherd);
+		
+		if ((frameMAs == null) || (frameMAs.size() < 1)) {
+			boolean ok = YouTubeAssetStore.extractFramesAndParse(myShepherd, ma, false);
+			if (!ok) {
+				rtn.put("error", "could not extract frames");
+				out.println(rtn);
+				myShepherd.rollbackDBTransaction();
+				myShepherd.closeDBTransaction();
+				return;
+			}
+		
+			frameMAs = YouTubeAssetStore.findFrames(ma, myShepherd);
+		
+		} else {
+			rtn.put("info", "frames already existed; not remaking");
+			createEncounter = false;  //nope you dont get one!
 		}
-	
-		frameMAs = YouTubeAssetStore.findFrames(ma, myShepherd);
-	
-	} else {
-		rtn.put("info", "frames already existed; not remaking");
-		createEncounter = false;  //nope you dont get one!
-	}
-	
-	ArrayList<Annotation> anns = new ArrayList<Annotation>();
-	JSONArray fs = new JSONArray();
-	for (MediaAsset fma : frameMAs) {
-		fs.put(fma.getId());
-		if (createEncounter) anns.add(new Annotation(null, fma));
-	}
-	rtn.put("frameAssets", fs);
-	
-	if (createEncounter) {
-		Encounter enc = new Encounter(anns);
-		myShepherd.getPM().makePersistent(enc);
-		rtn.put("encounterId", enc.getCatalogNumber());
-	}
-	
-	rtn.put("success", true);
-	out.println(rtn);
-	
+		
+		ArrayList<Annotation> anns = new ArrayList<Annotation>();
+		JSONArray fs = new JSONArray();
+		for (MediaAsset fma : frameMAs) {
+			fs.put(fma.getId());
+			if (createEncounter) anns.add(new Annotation(null, fma));
+		}
+		rtn.put("frameAssets", fs);
+		
+		if (createEncounter) {
+			Encounter enc = new Encounter(anns);
+			myShepherd.getPM().makePersistent(enc);
+			rtn.put("encounterId", enc.getCatalogNumber());
+			myShepherd.updateDBTransaction();
+		}
+		
+		myShepherd.commitDBTransaction();
+		
+		rtn.put("success", true);
+		out.println(rtn);
+		
+		
 }
 catch(Exception e){
 	e.printStackTrace();
+	myShepherd.rollbackDBTransaction();
 }
 finally{
-	myShepherd.commitDBTransaction();
+	
 	myShepherd.closeDBTransaction();
 }
 
