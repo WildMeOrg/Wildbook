@@ -19,7 +19,7 @@ class SocialGraph extends GraphAbstract {
 		"id": 0,
 		"group": 0,
 		"data": {
-		    "name": "Lion A",
+		    "name": "MUFASA",
 		    "gender": "female",
 		    "role": "alpha",
 		    "isFocus": true
