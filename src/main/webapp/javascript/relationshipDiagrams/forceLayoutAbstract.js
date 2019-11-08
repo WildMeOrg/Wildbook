@@ -349,7 +349,6 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     //Returns the source node of a given link
     getLinkSource(link) {
-	let srcId = link.source;
-	return this.nodeData.find(node => node.id === srcId);
+	return this.nodeData.find(node => node.id === link.source);
     }
 }
