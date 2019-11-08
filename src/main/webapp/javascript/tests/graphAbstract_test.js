@@ -45,13 +45,18 @@ QUnit.module('addTooltip()', {'after': () => $('#test').empty() }, () => {
     });
 });
 
-//TODO - Needs work
-/*QUnit.module('drawNodeOutlines()', terracedTestEventHooks, () => {
+
+QUnit.module('drawNodeOutlines()', {'after': () => $('#test').empty() }, () => {
     QUnit.test('Create Node', t => {
-	ga.drawNodeOutlines("#test");
-	
+	let data = [{'data': {'name': 'a'}}];
+	let mockedNodes = d3.select('#test').append('g').data(data);
+	ga.drawNodeOutlines(mockedNodes);
+	t.equal($('#test circle').attr('r'), ga.startingRadius);
+	t.ok($('#test circle').css('fill'));
+	t.ok($('#test circle').css('stroke'));
+	t.ok($('#test circle').css('stroke-width'));
     });
-    });*/
+});
 
 QUnit.module('colorGender()', () => {
     function validateColor(test, color, colorRef) {
@@ -77,21 +82,25 @@ QUnit.module('colorGender()', () => {
     });
 });
 
-//TODO - drawNodeSymbols()
-
-//TODO - addNodeText()
-/*let mockedNode;
-QUnit.module('addNodeText()', {'beforeEach': mockedNode = d3.select('body')}, () => {
-    QUnit.test('Add hidden text', t => {
+QUnit.module('drawNodeSymbols()', {'after': $('#test').empty() }, () => {
+    QUnit.test('Add symbol', t => {
 	let data = [{'data': {'name': 'a'}}];
-	let mockedDataNode = mockedNode.data(data).enter();
-	let isHidden = true;
-	ga.addNodeText(mockedDataNode, isHidden);
-	t.ok($('body.text'));
-	console.log($('body.text'));
-	t.ok($('body.text').css('fill-opacity') === 0); 
+	let mockedNodes = d3.select('#test').append('g').data(data);
+	ga.drawNodeSymbols(mockedNodes);
+	t.ok($('.symb').attr('d'));
+	t.equal($('.symb').attr('fill'), this.alphaColor);
+	t.equal($('.symb').css('fill-opacity'), 0);	
     });
-});*/
+});
+
+QUnit.module('addNodeText()', {'after': $('#test').empty() }, () => {
+    QUnit.test('Add text', t => {
+	let data = [{'data': {'name': 'a'}}];
+	let mockedNodes = d3.select('#test').append('g').data(data);
+	ga.addNodeText(mockedNodes);
+	t.equal($('.text').text(), data[0].data.name);
+    });
+});
 
 QUnit.module('wheelDelta()', {'before': () => d3.event = {'deltaY': 0, 'deltaMode': 1}}, () => {
     QUnit.test('Zoom unchanged', t => {
@@ -218,29 +227,35 @@ QUnit.module('getSizeScalar()', () => {
     });
 });
 
-let handleMouseOverEventHooks = {
-    'before': () => {
+let handleMouseEventHooks = {
+    'beforeEach': () => {
 	ga.addTooltip('#test');
 	d3.event = {'layerX': 0, 'layerY': 0};
     },
-    'after': () => $('#test').empty()
+    'afterEach': () => $('#test').empty()
 }
-
-//TODO - Currently broken due to async issues
-/*QUnit.module('handleMouseOver()', handleMouseOverEventHooks, () => {
-    QUnit.test('Entering Node', t => {
+QUnit.module('handleMouseOver()', handleMouseEventHooks, () => {
+    QUnit.test('Entering node', t => {
 	ga.popup = false;
 	ga.handleMouseOver();
-	t.equal($('.tooltip').html(), '<b>Encounters:</b>\n None');
+	t.ok($('.tooltip').css('left'));
+	t.ok($('.tooltip').css('top'));
+	t.ok($('.tooltip').html());
 	t.ok(ga.popup);
     });
 
-    QUnit.test('Inside Node', t => {
+    QUnit.test('Inside node', t => {
 	ga.popup = true;
 	ga.handleMouseOver();
 	t.ok(ga.popup);
 	t.equal($('.tooltip').css('opacity'), 0)
     });
-});*/
+});
 
 //TODO - handleMouseOut()
+QUnit.module('handleMouseOut()', handleMouseEventHooks, () => {
+    QUnit.test('Exiting node', t => {
+	ga.handleMouseOut();
+	t.ok(!ga.popup);
+    });
+});
