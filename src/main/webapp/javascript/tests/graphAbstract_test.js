@@ -156,13 +156,13 @@ QUnit.module('calcNodeSize()', {'beforeEach': () => ga.radius = null}, () => {
 	checkRadius(t, ga);
     });
 
-    QUnit.test('List of length 5', t => {
+    QUnit.test('Reasonable node list (5)', t => {
 	let nodes = {'length': 5};	
 	let radius = ga.calcNodeSize(nodes);
 	checkRadius(t, ga);
     });
 
-    QUnit.test('Large node list of length 1000', t => {
+    QUnit.test('Large node list (1000)', t => {
 	let nodes = {'length': 1000};
 	let radius = ga.calcNodeSize(nodes);
 	checkRadius(t, ga);

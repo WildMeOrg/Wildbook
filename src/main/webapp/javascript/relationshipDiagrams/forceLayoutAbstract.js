@@ -275,13 +275,13 @@ class ForceLayoutAbstract extends GraphAbstract {
 	if (this.shiftKey() && this.ctrlKey()) this.resetGraph(); 
 	else if (this.shiftKey()) { //Filter Inverse of Selected Family
 	    let filter = (d) => d.group === groupNum;
-	    this.filterGraph(groupNum, filter, filter, 'inverse_family');
+	    this.filterGraph(groupNum, filter, filter, "inverse_family");
 	}
 	else if (this.ctrlKey()) { //Filter Selected Family
 	    let nodeFilter = (d) => d.group !== groupNum;
 	    let linkFilter = (d) => (d.source.group !== groupNum &&
 				     d.target.group !== groupNum);
-	    this.filterGraph(groupNum, nodeFilter, linkFilter, 'family');
+	    this.filterGraph(groupNum, nodeFilter, linkFilter, "family");
 	}
     }
 
