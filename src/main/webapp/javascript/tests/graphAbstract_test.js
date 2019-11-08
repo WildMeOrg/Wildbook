@@ -121,7 +121,19 @@ QUnit.module('incompleteInfoMessage()', {'after': () => $('#test').empty() }, ()
     });
 });
 
-//TODO - calcNodeSize()
+QUnit.module('setNodeRadius()', () => {
+    QUnit.test('Empyt node list', t => {
+	let nodes = [];
+	ga.setNodeRadius(nodes, nodes);
+	t.equal(nodes.length, 0);
+    });
+
+    QUnit.test('List of length 2', t => {
+	let nodes = [{'data': {} }, {'data': {} }];
+	ga.setNodeRadius(nodes, nodes);
+	nodes.forEach(d => t.equal(d.data.r, ga.radius));
+    });
+});
 
 QUnit.module('calcNodeSize()', {'beforeEach': () => ga.radius = null}, () => {
     function checkRadius(test, ga) {
@@ -129,19 +141,19 @@ QUnit.module('calcNodeSize()', {'beforeEach': () => ga.radius = null}, () => {
 	test.ok(ga.radius > 0); //TODO: Consider shifting implementation to have min radius 
     }
 
-    QUnit.test('Empty node lists', t => {
+    QUnit.test('Empty node list', t => {
 	let nodes = [];
 	let radius = ga.calcNodeSize(nodes);
 	checkRadius(t, ga);
     });
 
-    QUnit.test('Lists of length 5', t => {
+    QUnit.test('List of length 5', t => {
 	let nodes = {'length': 5};	
 	let radius = ga.calcNodeSize(nodes);
 	checkRadius(t, ga);
     });
 
-    QUnit.test('Large node lists of length 1000', t => {
+    QUnit.test('Large node list of length 1000', t => {
 	let nodes = {'length': 1000};
 	let radius = ga.calcNodeSize(nodes);
 	checkRadius(t, ga);
@@ -154,14 +166,80 @@ QUnit.module('calcNodeSize()', {'beforeEach': () => ga.radius = null}, () => {
     });
 });
 
-//TODO - getLinkColor()
+QUnit.module('getLinkColor()', () => {
+    QUnit.test('Familial link', t => {
+	let d = {'type': 'familial'};
+	let color = ga.getLinkColor(d);
+	t.equal(color, ga.famLinkColor);
+    });
+    
+    QUnit.test('Paternal link', t => {
+	let d = {'type': 'paternal'};
+	let color = ga.getLinkColor(d);
+	t.equal(color, ga.paternalLinkColor);
+    });
 
-//TODO - getSizeScalar()
+    QUnit.test('Maternal link', t => {
+	let d = {'type': 'maternal'};
+	let color = ga.getLinkColor(d);
+	t.equal(color, ga.maternalLinkColor);
+    });
 
-//TODO: Add functionality
-/*QUnit.module('handleMouseOver()', () => {
-    QUnit.test('', t => {
-	
+    QUnit.test('Default link', t => {
+	let d = {'type': 'default'};
+	let color = ga.getLinkColor(d);
+	t.equal(color, ga.defLinkColor);
+    });
+
+    QUnit.test('Null entry', t => {
+	let d = null;
+	let color = ga.getLinkColor(d);
+	t.equal(color, ga.defLinkColor);
+    });
+});
+
+QUnit.module('getSizeScalar()', () => {
+    QUnit.test('Focused node', t => {
+	let d = {'data': {'isFocused': true }};
+	let scalar = ga.getSizeScalar(d);
+	t.equal(scalar, ga.focusedScale);
+    });
+    
+    QUnit.test('Unfocused node', t => {
+	let d = {'data': {'isFocused': false }};
+	let scalar = ga.getSizeScalar(d);
+	t.equal(scalar, ga.focusedScale);
+    });
+    
+    QUnit.test('Null entry', t => {
+	let d = null;
+	let scalar = ga.getSizeScalar(d);
+	t.equal(scalar, ga.focusedScale);
+    });
+});
+
+let handleMouseOverEventHooks = {
+    'before': () => {
+	ga.addTooltip('#test');
+	d3.event = {'layerX': 0, 'layerY': 0};
+    },
+    'after': () => $('#test').empty()
+}
+
+//TODO - Currently broken due to async issues
+/*QUnit.module('handleMouseOver()', handleMouseOverEventHooks, () => {
+    QUnit.test('Entering Node', t => {
+	ga.popup = false;
+	ga.handleMouseOver();
+	t.equal($('.tooltip').html(), '<b>Encounters:</b>\n None');
+	t.ok(ga.popup);
+    });
+
+    QUnit.test('Inside Node', t => {
+	ga.popup = true;
+	ga.handleMouseOver();
+	t.ok(ga.popup);
+	t.equal($('.tooltip').css('opacity'), 0)
     });
 });*/
 

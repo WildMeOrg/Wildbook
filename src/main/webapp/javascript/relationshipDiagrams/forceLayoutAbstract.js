@@ -159,8 +159,8 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.nodes = nodes.enter().append("g")
 	    .attr("class", "node")
 	    .attr("fill-opacity", 0)
-	    .on("mouseover", d => this.handleMouseOver(d))					
-	    .on("mouseout", d => this.handleMouseOut(d))
+	    .on("mouseover", () => this.handleMouseOver())					
+	    .on("mouseout", () => this.handleMouseOut())
 
 	//Style nodes
 	this.drawNodeOutlines();

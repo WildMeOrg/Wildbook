@@ -60,6 +60,7 @@ class GraphAbstract {
 	//Tooltip Attributes
 	this.popup = false;
 	this.fadeDuration = 200;
+	this.tooltipOpacity = 0.9;
 
 	//Json Parser Attributes
 	this.parser = new JSONParser();
@@ -198,9 +199,9 @@ class GraphAbstract {
     }
 
     //Sets the radius attribute for a given node
-    setNodeRadius() {
-	this.calcNodeSize(this.nodes);
-	this.nodeData.forEach(d => {
+    setNodeRadius(nodeData=this.nodeData) {
+	this.calcNodeSize(nodeData);
+	nodeData.forEach(d => {
 	    d.data.r = this.radius * this.getSizeScalar(d);
 	});
     }
@@ -220,32 +221,34 @@ class GraphAbstract {
     }
 
     //Returns the color for a given link
-    getLinkColor(d) {	
-	switch(d.type) {
-	case "familial":
-	    return this.famLinkColor;
-	case "paternal":
-	    return this.paternalLinkColor;
-	case "maternal":
-	    return this.maternalLinkColor;
-	default:
-	    return this.defLinkColor;
+    getLinkColor(d) {
+	if (d) {
+	    switch(d.type) {
+	    case "familial":
+		return this.famLinkColor;
+	    case "paternal":
+		return this.paternalLinkColor;
+	    case "maternal":
+		return this.maternalLinkColor;
+	    }
 	}
+	
+	return this.defLinkColor;
     }
 
     //Return a size multiple if the given node is focused, defaults to 1 
     getSizeScalar(d) {
-	if (d.data.isFocused) return this.focusedScale;
+	if (d && d.data && d.data.isFocused) return this.focusedScale;
 	else return 1;
     }
 
-        //Fade the tooltip into view when hovering over a given node
-    handleMouseOver(d) {
+    //Fade the tooltip into view when hovering over a given node
+    handleMouseOver() {
 	if (!this.popup) {
 	    //Display opaque tooltip
 	    this.tooltip.transition()
 		.duration(this.fadeDuration)
-		.style("opacity", .9);
+		.style("opacity", this.tooltipOpacity);
 
 	    //TODO: Remove this hardcoding
 	    //Place tooltip offset to the upper right of the hovered node
@@ -260,7 +263,7 @@ class GraphAbstract {
     }	
 
     //Fade the tooltip from view when no longer hovering over a node
-    handleMouseOut(d) {
+    handleMouseOut() {
 	//Enable future mouseOver events
 	this.popup = false;
 
