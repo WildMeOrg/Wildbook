@@ -1,11 +1,9 @@
 class JSONParser {
     constructor() {
-	this.currId = 0;
-	this.nodeMap = {};
-<<<<<<< HEAD
-	this.nodeDict = [];
-=======
->>>>>>> 84731a64afd5c51ba28a63fe69416e37bfc345a1
+	this.currId = 0;//id that will increment with each relevant MARKEDINDIVIDUAL
+	this.nodeMap = {};//map of the MARKEDINDIVIDUALS to be displayed on the graph
+	this.nodeDict = {};//dictionary where each numerical id maps to individualID
+	this.dataDict = {};//maps individualID to the rest of the individual's data
     }
     
     //Creates a relational object from JSON data
@@ -29,50 +27,40 @@ class JSONParser {
 	    }
 	});
     }
-<<<<<<< HEAD
+
     //TODO:  query for all markedindivudial data and create a dictionary with the ids
     getNodeRefs(json) {
 	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
 	    encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual");//get all individuals
-	    d3.json(query, (error, json) => this.createDictionary(json));
+	    d3.json(query, (error, json) => this.createNodeDictionary(json));
     }
 
     //creates the dictionary
     //TODO: remove debugging stuff
-    createDictionary(json) {
+    createNodeDictionary(json) {
+
 	var sizeOfJSON = json.length;//number of MARKEDINDIVIDUALS
-	console.log("size of json is " + sizeOfJSON);
 	
 	if(sizeOfJSON >= 1){//if there is anything in the query result
-	    console.log(json);
-	    
+	    console.log(json);	    
 	    var nodeID;//to store the current id
-
 	    for (var i = 0; i < sizeOfJSON; i++) {//iterate over all MARKEDINDIVIDUALS
-
 		console.log("inside the loop that creates the dict");
-
 		nodeID = this.getId();//each MARKEDINDIVIDUAL has a unique id
-		
-		this.nodeDict.push({//creating a new dictionary pair with unique incrementing node id
-		    key: nodeID,
-		    value: json[i].individualID
-		});
-
+		var indID = json[i].individualID;//retrieve individualID
+		this.nodeDict[nodeID] = indID;//adding to dictionary of unique id and wildbook individualID
+		this.dataDict[json[i].individualID] = json[i];//adding to dictionary of data referencable by individualID
 	    }
 	}
 	else{
 	    console.log("there is no json data");//if there is nothing in the array
 	}
 	
-
-	console.log("before print");
+	//printing contents of dictionaries for testing
 	console.log(this.nodeDict);
-=======
-
-    getNodeRefs(json) {
->>>>>>> 84731a64afd5c51ba28a63fe69416e37bfc345a1
-	
+	console.log(this.dataDict);
+	var temp = this.nodeDict[10];
+	console.log(this.dataDict[temp].displayName);//to test dictionaries
     }
 
     getId() {
@@ -92,6 +80,22 @@ class JSONParser {
 
     getNodeMapId(nodeRef) {
 	return this.nodeMap[nodeRef];
+    }
+
+    addNodeDictId(nodeID, individualID){
+	this.nodeDict[nodeID] = individualID;
+    }
+
+    getNodeDictId(nodeID){
+	return this.nodeDict[nodeID];
+    }
+    
+    addDataDictId(individualID, individualData){
+	this.dataDict[individualID] = individualData;
+    }
+    
+    getDataDictId(individualID){
+	return this.dataDict[individualID];
     }
     
     parseLinks(json) {
