@@ -139,7 +139,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    this.setupGraph("#bubbleChart");
 	    this.updateGraph();
 	}
-	else this.showTable("cooccurrenceTable", ""); //TODO - Fix
+	else this.showTable("#cooccurrenceDiagram", "#cooccurrenceTable"); //TODO - Fix
     }
 
     //Calculate the maximum and average node differences for the spatial/temporal sliders
@@ -218,7 +218,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let linkFilter = (d) => (self.getMin(focusedNode, d.source, occType) <= threshold) &&
 	    (self.getMin(focusedNode, d.target, occType) <= threshold)
 	
-	self.absoluteFilterGraph(nodeFilter, linkFilter. occType);
+	self.absoluteFilterGraph(nodeFilter, linkFilter, occType);
     }
 
     //TODO - Add support for saved local family filters
@@ -238,6 +238,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    .forEach(d => d.filtered = true);
 
 	//Identify node data which should be rendered
+	console.log(linkFilter);
 	this.prevSliderData[occType].links = this.prevSliderData[type].links.filter(linkFilter)
 	this.prevSliderData[occType].nodes = this.prevSliderData[type].nodes.filter(nodeFilter)
 	
@@ -245,7 +246,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	console.log(this.prevLinkData);
 
 	//Update the graph with filtered data
-	this.updateGraph(this.prevLinkData, this.prevNodeData);
+	this.updateGraph(this.prevSliderData[occType].links, this.prevSliderData[occType].nodes);
     }
 }
 

@@ -66,18 +66,18 @@ class GraphAbstract {
     }
 
     
-    // @Render Methods //
+    // Render Methods //
     
     //Display data table relevant to graph
-    showTable(contentRef, tableRef) {
-	//Display tableRef and hide contentRef
-	$(contentRef).hide();
+    showTable(diagramRef, tableRef) {
+	//Display tableRef and hide diagramRef
+	$(diagramRef).hide();
 	$(tableRef).show();
-	$(contentRef).removeClass("active");
+	$(diagramRef).removeClass("active");
 	$(tableRef).addClass("active");
 
 	//Report incomplete information
-	this.showIncompleteInformationMessage();
+	this.incompleteInfoMessage(diagramRef);
     }
 
     //Perform all auxiliary functions necessary prior to graphing
@@ -94,14 +94,14 @@ class GraphAbstract {
     //Append top-level SVG containing all graphical elements
     addSvg(containerId) {
 	this.svg = d3.select(containerId).append("svg")
+	    .attr("class", "container")
 	    .attr("width", this.width)
 	    .attr("height", this.height)
 	    .call(this.zoom.on("zoom", () => {
 		this.svg.attr("transform", d3.event.transform)
 	    }))
 	    .on("dblclick.zoom", null) //Disable double click zoom
-	    .append("g")
-	    .attr("class", "container");
+	    .append("g");
     }
 
     //TODO - FIX
@@ -192,9 +192,9 @@ class GraphAbstract {
     }
     
     //Display message on missing data
-    showIncompleteInformationMessage() {
-	$("#familyDiagram").html("<h4>There are currently no known relationships" +
-				 " for this Marked Individual</h4>")
+    incompleteInfoMessage(diagramId) {
+	$(diagramId).html("<h4 id='incompleteInfoMsg'>There are currently no known " +
+			  "relationships for this Marked Individual</h4>")
     }
 
     //Sets the radius attribute for a given node

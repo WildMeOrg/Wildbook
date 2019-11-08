@@ -96,6 +96,6 @@ class SocialGraph extends ForceLayoutAbstract {
 	    this.setupGraph("#socialDiagram");
 	    this.updateGraph();	    
 	}
-	else this.showTable("#communityTable", ".socialVis");
+	else this.showTable("#socialDiagram", "#communityTable");
     }
 }
