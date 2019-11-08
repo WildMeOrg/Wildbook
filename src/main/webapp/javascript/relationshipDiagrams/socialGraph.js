@@ -91,15 +91,9 @@ class SocialGraph extends ForceLayoutAbstract {
 	}
 	else if (json.length >= 1) {
 	    console.log(this.parser.parseJSON(json));
-	    
-	    this.appendSvg("#socialDiagram");
-	    this.addLegend("#socialDiagram");
-	    this.addTooltip("#socialDiagram");	    
 
-	    this.calcNodeSize(this.nodeData);
-	    this.setNodeRadius();
-	    
-	    this.setupGraph();
+	    //Create graph w/ forces
+	    this.setupGraph("#socialDiagram");
 	    this.updateGraph();	    
 	}
 	else this.showTable("#communityTable", ".socialVis");

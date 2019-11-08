@@ -113,22 +113,30 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	];	
     }
 
+    setupGraph(containerId) {
+	super.setupGraph(containerId);
+
+	//Create range sliders
+	this.getRangeSliderAttr();
+	this.updateRangeSliders();
+
+	//Establish node/link history for each slider
+	this.prevSliderData = {}
+	Object.keys(this.sliders).forEach(type => {
+	    this.prevSliderData[type] = {}
+	    this.prevSliderData[type].nodes = this.nodeData;
+	    this.prevSliderData[type].links = this.linkData;
+	});					  
+    }
+
     //Generate a co-occurrence graph
     graphOccurenceData(error, json) {
 	if (error) {
 	    return console.error(json);
 	}
 	else if (json.length >= 1) { //if (json.length >= 1) { //TODO
-	    this.appendSvg("#bubbleChart");
-	    this.addTooltip("#bubbleChart");
-
-	    this.getRangeSliderAttr();
-	    this.updateRangeSliders();
-	    
-	    this.calcNodeSize(this.nodeData);
-	    this.setNodeRadius();
-	    
-	    this.setupGraph();
+	    //Create graph w/ forces
+	    this.setupGraph("#bubbleChart");
 	    this.updateGraph();
 	}
 	else this.showTable("cooccurrenceTable", ""); //TODO - Fix
@@ -146,9 +154,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		timeArr.push(time);
 	    }
 	});
-
-	console.log("DIST", distArr); //TODO - delete
-	console.log("TIME", timeArr); //TODO - delete
 
 	this.sliders.temporal.max = Math.max(...timeArr);
 	this.sliders.temporal.mean = timeArr.reduce((a,b) => a + b, 0) / timeArr.length;
@@ -206,13 +211,42 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	});
     }
 
-    //Filter nodes by spatial/temporal differences, displaying those less than the set threshold 
+    //Filter nodes by spatial/temporal differences, displaying those less than the set threshold
     filterByOccurrence(self, threshold, occType) {
 	let focusedNode = self.nodeData.find(d => d.data.isFocused);
 	let nodeFilter = (d) => (self.getMin(focusedNode, d, occType) <= threshold)
 	let linkFilter = (d) => (self.getMin(focusedNode, d.source, occType) <= threshold) &&
 	    (self.getMin(focusedNode, d.target, occType) <= threshold)
 	
-	self.absoluteFilterGraph(nodeFilter, linkFilter);
+	self.absoluteFilterGraph(nodeFilter, linkFilter. occType);
+    }
+
+    //TODO - Add support for saved local family filters
+    //Apply absolute filters (i.e. thresholding)
+    absoluteFilterGraph(nodeFilter, linkFilter, occType) {
+	//Switch slider context
+	let type = (occType === "spatial") ? "temporal" : "spatial";
+
+	//Remove any nodes who no longer qualify to be filtered
+	this.svg.selectAll(".node").filter(d => nodeFilter(d) && d.filtered)
+	    .remove();
+
+	//Mark nodes concerning whether they should be filtered
+	this.prevSliderData[type].nodes.filter(d => nodeFilter(d))
+	    .forEach(d => d.filtered = false);
+	this.prevSliderData[type].nodes.filter(d => !nodeFilter(d))
+	    .forEach(d => d.filtered = true);
+
+	//Identify node data which should be rendered
+	this.prevSliderData[occType].links = this.prevSliderData[type].links.filter(linkFilter)
+	this.prevSliderData[occType].nodes = this.prevSliderData[type].nodes.filter(nodeFilter)
+	
+	console.log(this.prevNodeData);
+	console.log(this.prevLinkData);
+
+	//Update the graph with filtered data
+	this.updateGraph(this.prevLinkData, this.prevNodeData);
     }
 }
+
+

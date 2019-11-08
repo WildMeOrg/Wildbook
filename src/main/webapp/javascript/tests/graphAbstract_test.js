@@ -58,22 +58,23 @@ QUnit.module('calcNodeSize()', {'beforeEach': () => ga.radius = null}, () => {
     });
 });
 
-QUnit.module('addTooltip()', () => {
+//TODO - Test
+/*QUnit.module('addTooltip()', () => {
     QUnit.test('Valid selector', t => {
 	ga.addTooltip("body");
 	t.ok(ga.tooltip);
 	t.equal($('.tooltip').css('opacity'), 0);
     });
-});
+});*/
 
 //TODO: Add functionality
-QUnit.module('handleMouseOver()', () => {
+/*QUnit.module('handleMouseOver()', () => {
     QUnit.test('', t => {
 	
     });
-});
+});*/
 
-QUnit.module('colorCollapsed()', () => {
+/*QUnit.module('colorCollapsed()', () => {
     function validateColor(test, color, colorRef) {
 	test.strictEqual(color, colorRef);
     }
@@ -89,7 +90,7 @@ QUnit.module('colorCollapsed()', () => {
 	let color = ga.colorCollapsed(d);
 	validateColor(t, color, ga.defNodeColor);
     });
-});
+});*/
 
 QUnit.module('colorGender()', () => {
     function validateColor(test, color, colorRef) {
@@ -125,31 +126,5 @@ QUnit.module('addNodeText()', {'beforeEach': mockedNode = d3.select("body")}, ()
 	t.ok($('body.text'));
 	console.log($('body.text'));
 	t.ok($('body.text').css('fill-opacity') === 0); 
-    });
-});
-
-let mockedClick;
-QUnit.module('click()', {
-    'before': () => mockedClick = ga.click.bind({'updateTree': d => true})
-}, () => {
-    QUnit.test('Collapsed node', t => {
-	let d = {'children': false, '_children': true};
-	mockedClick(d);
-	t.ok(d.children);
-	t.notOk(d._children);
-    });
-		 
-    QUnit.test('Non-collapsed node', t => {
-	let d = {'children': true, '_children': false};
-	mockedClick(d);
-	t.ok(d._children);
-	t.notOk(d.children);
-    });
-
-    QUnit.test('Child-less node', t => {
-	let d = {};
-	mockedClick(d);
-	t.notOk(d.children);
-	t.notOk(d._children);
     });
 });

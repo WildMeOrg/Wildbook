@@ -65,26 +65,34 @@ class GraphAbstract {
 	this.parser = new JSONParser();
     }
 
+    
+    // @Render Methods //
+    
     //Display data table relevant to graph
     showTable(contentRef, tableRef) {
-	//Display tableRef, hide contentRef
+	//Display tableRef and hide contentRef
 	$(contentRef).hide();
 	$(tableRef).show();
 	$(contentRef).removeClass("active");
 	$(tableRef).addClass("active");
 
-	//Report incomplete info
+	//Report incomplete information
 	this.showIncompleteInformationMessage();
     }
 
-    //Display message on missing data
-    showIncompleteInformationMessage() {
-	$("#familyDiagram").html("<h4>There are currently no known relationships" +
-				 " for this Marked Individual</h4>")
-    }
+    //Perform all auxiliary functions necessary prior to graphing
+    setupGraph(containerId) {
+	//Add default elements
+	this.addSvg(containerId);
+	this.addLegend(containerId);
+	this.addTooltip(containerId);
 
+	//Assess graphical sizings
+	this.setNodeRadius();
+    }
+    
     //Append top-level SVG containing all graphical elements
-    appendSvg(containerId) {
+    addSvg(containerId) {
 	this.svg = d3.select(containerId).append("svg")
 	    .attr("width", this.width)
 	    .attr("height", this.height)
@@ -107,26 +115,7 @@ class GraphAbstract {
 	    .attr("fill", "red");
     }
 
-    //Modify zoom wheel delta to smooth zooming
-    wheelDelta() {
-	return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1 ) / this.zoomFactor;
-    }
-
-    //Calculate node size s.t. all nodes can fit in the contextual SVG
-    calcNodeSize(nodes) {
-	try {
-	    let numNodes = nodes.length || 10; //Default node length is 10 
-	    this.radius = this.maxRadius * Math.pow(Math.E, -(numNodes / this.scalingFactor));
-
-	    //TODO - Calculate margins?
-	    //let margins = this.radius;
-	}
-	catch(error) {
-	    console.error(error);
-	}
-    }
-
-    //Append a tooltop to the top-level SVG, used to visualize node info on hover
+   //Append a tooltop to the top-level SVG, used to visualize node info on hover
     addTooltip(selector) {
 	//Define the tooltip div
 	this.tooltip = d3.select(selector).append("div")
@@ -134,53 +123,14 @@ class GraphAbstract {
 	    .style("opacity", 0);
     }
 
-    //Fade the tooltip into view when hovering over a given node
-    handleMouseOver(d) {
-	if (!this.popup) {
-	    //Display opaque tooltip
-	    this.tooltip.transition()
-		.duration(this.fadeDuration)
-		.style("opacity", .9);
-
-	    //TODO: Remove this hardcoding
-	    //Place tooltip offset to the upper right of the hovered node
-	    this.tooltip
-		.style("left", d3.event.layerX + 30 + "px")		
-		.style("top", d3.event.layerY - 20 + "px")
-		.html("<b>Encounters:</b>\n None");
-
-	    //Prevent future mouseOver events
-	    this.popup = true;
-	}
-    }	
-
-    //Fade the tooltip from view when no longer hovering over a node
-    handleMouseOut(d) {
-	//Enable future mouseOver events
-	this.popup = false;
-
-	//Fade tooltip from view
-	this.tooltip.transition()		
-            .duration(this.fadeDuration)		
-            .style("opacity", 0);
-    }
-
     //Draw each node with prescribed radius, fill, and outline
     drawNodeOutlines(nodes=this.nodes) {
-	//Color collapsed nodes
 	nodes.append("circle")
 	    .attr("r", this.startingRadius)
 	    .style("fill", this.defNodeColor)
 	    .style("stroke", d => this.colorGender(d))
 	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d));
     }
-
-    //Return a size multiple if the given node is focused, defaults to 1 
-    getSizeScalar(d) {
-	if (d.data.isFocused) return this.focusedScale;
-	else return 1;
-    }
-
 
     //Return a color based upon the given node's geneder
     colorGender(d) {
@@ -232,6 +182,92 @@ class GraphAbstract {
 	    .text(d => d.data.name)
 	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
 	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
+    }
+
+    // Helper Methods //
+
+    //Modify zoom wheel delta to smooth zooming
+    wheelDelta() {
+	return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1 ) / this.zoomFactor;
+    }
+    
+    //Display message on missing data
+    showIncompleteInformationMessage() {
+	$("#familyDiagram").html("<h4>There are currently no known relationships" +
+				 " for this Marked Individual</h4>")
+    }
+
+    //Sets the radius attribute for a given node
+    setNodeRadius() {
+	this.calcNodeSize(this.nodes);
+	this.nodeData.forEach(d => {
+	    d.data.r = this.radius * this.getSizeScalar(d);
+	});
+    }
+
+    //Calculate node size s.t. all nodes can fit in the contextual SVG
+    calcNodeSize(nodeData=this.nodeData) {
+	try {
+	    let numNodes = nodeData.length || 10; //Default node length is 10 
+	    this.radius = this.maxRadius * Math.pow(Math.E, -(numNodes / this.scalingFactor));
+
+	    //TODO - Calculate margins?
+	    //let margins = this.radius;
+	}
+	catch(error) {
+	    console.error(error);
+	}
+    }
+
+    //Returns the color for a given link
+    getLinkColor(d) {	
+	switch(d.type) {
+	case "familial":
+	    return this.famLinkColor;
+	case "paternal":
+	    return this.paternalLinkColor;
+	case "maternal":
+	    return this.maternalLinkColor;
+	default:
+	    return this.defLinkColor;
+	}
+    }
+
+    //Return a size multiple if the given node is focused, defaults to 1 
+    getSizeScalar(d) {
+	if (d.data.isFocused) return this.focusedScale;
+	else return 1;
+    }
+
+        //Fade the tooltip into view when hovering over a given node
+    handleMouseOver(d) {
+	if (!this.popup) {
+	    //Display opaque tooltip
+	    this.tooltip.transition()
+		.duration(this.fadeDuration)
+		.style("opacity", .9);
+
+	    //TODO: Remove this hardcoding
+	    //Place tooltip offset to the upper right of the hovered node
+	    this.tooltip
+		.style("left", d3.event.layerX + 30 + "px")		
+		.style("top", d3.event.layerY - 20 + "px")
+		.html("<b>Encounters:</b>\n None");
+
+	    //Prevent future mouseOver events
+	    this.popup = true;
+	}
+    }	
+
+    //Fade the tooltip from view when no longer hovering over a node
+    handleMouseOut(d) {
+	//Enable future mouseOver events
+	this.popup = false;
+
+	//Fade tooltip from view
+	this.tooltip.transition()		
+            .duration(this.fadeDuration)		
+            .style("opacity", 0);
     }
 }
 

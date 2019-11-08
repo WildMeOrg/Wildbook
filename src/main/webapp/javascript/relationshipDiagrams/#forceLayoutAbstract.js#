@@ -320,27 +320,6 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.updateGraph(this.prevLinkData, this.prevNodeData);
     }
 
-    //TODO - Add support for saved local family filters
-    //Apply absolute filters (i.e. thresholding)
-    absoluteFilterGraph(nodeFilter, linkFilter) {
-	this.svg.selectAll(".node").filter(d => nodeFilter(d) && d.filtered)
-	    .remove();
-	
-	this.prevNodeData.filter(d => nodeFilter(d))
-	    .forEach(d => d.filtered = false);
-
-	this.prevNodeData.filter(d => !nodeFilter(d))
-	    .forEach(d => d.filtered = true);
-
-	this.prevLinkData = this.prevLinkData.filter(linkFilter)
-	this.prevNodeData = this.prevNodeData.filter(nodeFilter)
-	
-	console.log(this.prevNodeData);
-	console.log(this.prevLinkData);
-	
-	this.updateGraph(this.prevLinkData, this.prevNodeData);
-    }
-
     // Helper Methods //
     
     //Determine if key has other bound function
