@@ -410,12 +410,16 @@
 		  }
 
 			  ]},
-			  {"name":"South Atlantic","id":"South Atlantic","locationID":[
 			  
-				{ "name":"Gabon", "id":"Gabon", "locationID":[] },
-				{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
-				{ "name":"Argentina", "id":"Argentina", "locationID":[] }
-			  ]},
+			  
+		  {"name":"South Atlantic","id":"South Atlantic","locationID":[
+		  
+			{ "name":"Argentina", "id":"Argentina", "locationID":[] },
+			{ "name":"Brazil", "id":"Brazil", "locationID":[] },
+			{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
+			{ "name":"Gabon", "id":"Gabon", "locationID":[] }
+			
+		  ]},
 			  
 			 {
 			  "name": "Wadden Sea", "id": "Wadden Sea" }
