@@ -19,7 +19,7 @@ String filename = request.getParameter("filename");
 
 // This file is for window-dressing at the bottom of the (java-servlet) uploader at WebImport.java
 
-String uploadAction = "upload?filename="+filename+"&commit=true";
+String uploadAction = "standard-upload?filename="+filename+"&commit=true&isUserUpload=true";
 %>
 <a href="<%=uploadAction%>"><button>Commit these results.</button></a></p>
 

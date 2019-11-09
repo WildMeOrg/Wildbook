@@ -33,6 +33,7 @@ int nImages = 0;
 
 try {
 	uploadDir = new File(dirName);
+	if (!uploadDir.isDirectory()) uploadDir.mkdirs();
 	contents = FileUtils.listFiles(uploadDir, null, true);
 } catch (Exception e) {
 	System.out.println("Exception! On ReviewDirectory.jsp!!!");
