@@ -341,75 +341,78 @@
 					{ "name":"Montauk NY", "id":"Montauk NY", "locationID":[] },
 					{ "name":"NY Bight", "id":"NY Bight", "locationID":[] },
 					{"name":"BOF-BOF","id":"BOF-BOF"},
+					{
+					  "name": "EAST-ESS" ,"id": "EAST-ESS" 
+					  },
+					  {
+					  "name": "GOM-GB" ,"id": "GOM-GB" 
+					  },
+					  {
+					  "name": "GOM-GMB" ,"id": "GOM-GB" 
+					  },
+					  {
+					  "name": "GOM-GOM" ,"id": "GOM-GOM"
+					  },
+					  {
+					  "name": "GSC-GSC" ,"id": "GSC-GSC" 
+					  },
+					  {
+					  "name": "JL-JL" ,"id": "JL-JL" 
+					  },
+					  {
+					  "name": "MIDA-DEL" ,"id": "MIDA-DEL" 
+					  },
+					  {
+					  "name": "MIDA-MD" ,"id": "MIDA-MD" 
+					  },
+					  {
+					  "name": "MIDA-NC" ,"id": "MIDA-NC" 
+					  },
+					  {
+					  "name": "MIDA-NJ" ,"id": "MIDA-NJ" 
+					  },
+					  {
+					  "name": "MIDA-NY" ,"id": "MIDA-NY" 
+					  },
+					  {
+					  "name": "MIDA-SC" ,"id": "MIDA-SC" 
+					  },
+					  {
+					  "name": "MIDA-SNE" ,"id": "MIDA-SNE"
+					  },
+					  {
+					  "name": "MIDA-VA" , "id": "MIDA-VA" 
+					  },
+					  {
+					  "name": "NE-CCB" ,"id": "NE-CCB" 
+					  },
+					  {
+					  "name": "NE-MB" ,"id": "NE-MB" 
+					  },
+					  {
+					  "name": "NRTH-CFG" ,"id": "NRTH-CFG" 
+					  },
+					  {
+					  "name": "NRTH-GSL" ,"id": "NRTH-GSL"
+					  },
+					  {
+					  "name": "NRTH-ICE", "id": "NRTH-ICE" 
+					  },
+					  {
+					  "name": "NRTH-NRTH", "id": "NRTH-NRTH"
+					  },
+					  
+					  {
+					  "name": "RB-RB", "id": "RB-RB"
+					  },
+					  
 							  {
-		  "name": "EAST-ESS" ,"id": "EAST-ESS" 
-		  },
-		  {
-		  "name": "GOM-GB" ,"id": "GOM-GB" 
-		  },
-		  {
-		  "name": "GOM-GOM" ,"id": "GOM-GOM"
-		  },
-		  {
-		  "name": "GSC-GSC" ,"id": "GSC-GSC" 
-		  },
-		  {
-		  "name": "JL-JL" ,"id": "JL-JL" 
-		  },
-		  {
-		  "name": "MIDA-DEL" ,"id": "MIDA-DEL" 
-		  },
-		  {
-		  "name": "MIDA-MD" ,"id": "MIDA-MD" 
-		  },
-		  {
-		  "name": "MIDA-NC" ,"id": "MIDA-NC" 
-		  },
-		  {
-		  "name": "MIDA-NJ" ,"id": "MIDA-NJ" 
-		  },
-		  {
-		  "name": "MIDA-NY" ,"id": "MIDA-NY" 
-		  },
-		  {
-		  "name": "MIDA-SC" ,"id": "MIDA-SC" 
-		  },
-		  {
-		  "name": "MIDA-SNE" ,"id": "MIDA-SNE"
-		  },
-		  {
-		  "name": "MIDA-VA" , "id": "MIDA-VA" 
-		  },
-		  {
-		  "name": "NE-CCB" ,"id": "NE-CCB" 
-		  },
-		  {
-		  "name": "NE-MB" ,"id": "NE-MB" 
-		  },
-		  {
-		  "name": "NRTH-CFG" ,"id": "NRTH-CFG" 
-		  },
-		  {
-		  "name": "NRTH-GSL" ,"id": "NRTH-GSL"
-		  },
-		  {
-		  "name": "NRTH-ICE", "id": "NRTH-ICE" 
-		  },
-		  {
-		  "name": "NRTH-NRTH", "id": "NRTH-NRTH"
-		  },
-		  
-		  {
-		  "name": "RB-RB", "id": "RB-RB"
-		  },
-		  
-		  		  {
-		  "name": "SEUS-FL", "id": "SEUS-FL"
-		  },
-		  
-		  		  {
-		  "name": "SEUS-GA", "id": "SEUS-GA"
-		  }
+					  "name": "SEUS-FL", "id": "SEUS-FL"
+					  },
+					  
+							  {
+					  "name": "SEUS-GA", "id": "SEUS-GA"
+					  }
 
 			  ]},
 			  
