@@ -240,8 +240,10 @@
 		"defaultLongitude": -160.0
     },
 	{
-		"name": "Atlantic Ocean",
+		"name": "Atlantic Ocean (North)",
 		"locationID": [
+		
+		
 		
 				{ "name":"Azores", "id":"5", "locationID":[] },
 			 {
@@ -411,15 +413,7 @@
 
 			  ]},
 			  
-			  
-		  {"name":"South Atlantic","id":"South Atlantic","locationID":[
-		  
-			{ "name":"Argentina", "id":"Argentina", "locationID":[] },
-			{ "name":"Brazil", "id":"Brazil", "locationID":[] },
-			{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
-			{ "name":"Gabon", "id":"Gabon", "locationID":[] }
 			
-		  ]},
 			  
 			 {
 			  "name": "Wadden Sea", "id": "Wadden Sea" }
@@ -428,6 +422,16 @@
 		"defaultLatitude": 0.0,
 		"defaultLongitude": -30.0
 	},
+	
+	{"name":"Atlantic Ocean (South)","id":"South Atlantic","locationID":[
+		  
+			{ "name":"Argentina", "id":"Argentina", "locationID":[] },
+			{ "name":"Brazil", "id":"Brazil", "locationID":[] },
+			{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
+			{ "name":"Gabon", "id":"Gabon", "locationID":[] }
+			
+	]},
+	
 	{
 		"name":"Indian Ocean", "id":"IndianOcean",
 		"locationID":[
