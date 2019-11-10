@@ -65,11 +65,11 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     //TODO - Rework to style class..?
     //Initialize unique arrow classes for each link category
-    defineArrows() {
+    defineArrows(svg=this.svg, linkData=this.linkData) {
 	//Define a style class for each end marker
-	this.svg.append("defs")
+	svg.append("defs")
 	    .selectAll("marker")
-	    .data(this.linkData.filter(d => d.type != "member")).enter()
+	    .data(linkData.filter(d => d.type != "member")).enter()
 	    .append("marker")
 	    .attr("id", d => "arrow" + d.linkId  + ":" + this.graphId)
 	    .attr("viewBox", "0 -5 14 14")
@@ -287,7 +287,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     //Reset a graph s.t. all filtered nodes are unfiltered
     resetGraph() {
-	for (filter in this.filtered) filter = {}
+	for (let filter in this.filtered) this.filtered[filter] = {};
 	this.svg.selectAll(".node").filter(d => d.filtered).remove();
 	this.updateGraph();
     }
