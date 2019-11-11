@@ -1,8 +1,7 @@
 class JSONParser {
     constructor() {
-	this.currId = 0;//id that will increment with each relevant MARKEDINDIVIDUAL
+	this.graphId = 0;//id that will increment with each relevant MARKEDINDIVIDUAL
 	this.nodeMap = {};//map of the MARKEDINDIVIDUALS to be displayed on the graph
-	this.nodeDict = {};//dictionary where each numerical id maps to individualID
 	this.dataDict = {};//maps individualID to the rest of the individual's data
     }
     
@@ -16,13 +15,17 @@ class JSONParser {
     parseNodes(json) {
 	let nodeRefs = this.getNodeRefs(json);
 	return json.map(entry => {
-	    let id = this.getId();
+	    let id = this.getGraphId();
+	    let nodeRef = json.markedIndividualName1;
+	    this.addNodeMapId(id, nodeRef);
 	    return {
 		"id": id,
 		//"group": //Not in use currently
 		"data": {
-		    "name": this.getName(id, json), //TODO
-		    "gender": "PLACEHOLDER" //TODO
+		    "name": this.getDisplayName(id),
+		    "gender": this.getGender(id),
+		    "genus": this.getGenus(id)
+		    
 		}
 	    }
 	});
@@ -42,13 +45,9 @@ class JSONParser {
 	var sizeOfJSON = json.length;//number of MARKEDINDIVIDUALS
 	
 	if(sizeOfJSON >= 1){//if there is anything in the query result
-	    console.log(json);	    
-	    var nodeID;//to store the current id
+	    console.log(json);
 	    for (var i = 0; i < sizeOfJSON; i++) {//iterate over all MARKEDINDIVIDUALS
 		console.log("inside the loop that creates the dict");
-		nodeID = this.getId();//each MARKEDINDIVIDUAL has a unique id
-		var indID = json[i].individualID;//retrieve individualID
-		this.nodeDict[nodeID] = indID;//adding to dictionary of unique id and wildbook individualID
 		this.dataDict[json[i].individualID] = json[i];//adding to dictionary of data referencable by individualID
 	    }
 	}
@@ -57,21 +56,23 @@ class JSONParser {
 	}
 	
 	//printing contents of dictionaries for testing
-	console.log(this.nodeDict);
 	console.log(this.dataDict);
-	var temp = this.nodeDict[10];
-	console.log(this.dataDict[temp].displayName);//to test dictionaries
     }
 
-    getId() {
-	return this.currId++;
+    getGraphId() {
+	return this.graphId++;
     }
 
-    //TODO: Get actual name
-    getName(id, json) {
-	let nodeRef = json.markedIndividualName1;
-	this.addNodeMapId(id, nodeRef);
-	return nodeRef;
+    getGender(id){
+	return this.dataDict[this.nodeMap[id]].sex;
+    }
+    
+    getGenus(id){
+	return this.dataDict[this.nodeMap[id]].genus;
+    }
+
+    getDisplayName(id){
+	return this.dataDict[this.nodeMap[id]].displayName;
     }
 
     addNodeMapId(id, nodeRef) {
@@ -82,14 +83,7 @@ class JSONParser {
 	return this.nodeMap[nodeRef];
     }
 
-    addNodeDictId(nodeID, individualID){
-	this.nodeDict[nodeID] = individualID;
-    }
-
-    getNodeDictId(nodeID){
-	return this.nodeDict[nodeID];
-    }
-    
+      
     addDataDictId(individualID, individualData){
 	this.dataDict[individualID] = individualData;
     }
