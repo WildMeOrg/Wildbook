@@ -91,8 +91,8 @@ class SocialGraph extends ForceLayoutAbstract {
 	}
 	else if (json.length >= 1) {
 	    //console.log(this.parser.parseJSON(json));
-
-	    this.parser.parseJSON(json);
+	    console.log(json)
+	    this.parser.parseJSON(this.id, json);
 	    
 	    this.appendSvg("#socialDiagram");
 	    this.addLegend("#socialDiagram");

@@ -8,13 +8,16 @@ class JSONParser {
     
     //Creates a relational object from JSON data
     parseJSON(iId, json) {
-	this.getNodeRefs(json);
-	let nodes = this.parseNodes(iId, json);
-	let links = this.parseLinks(json);
-	return [nodes, links];
+	this.getNodeRefs(json, () => this.parseJSONCallback(iId, json));
+    }
+
+    parseJSONCallback(iId, json) {
+	this.nodes = this.parseNodes(iId, json);
+	this.links = this.parseLinks(json);
     }
     
     parseNodes(iId, json) {
+	console.log("iId", JSON.stringify(iId));
 	var rId = this.getRelevantId();//numerical id that increments
 	this.addNodeMapId(iId, rId);
 
@@ -31,9 +34,6 @@ class JSONParser {
 	    }
 	}
 
-
-
-
 	//testing the nodeMap and the dataDict
 	console.log("here is the completed node map");
 	console.log(this.nodeMap);
@@ -44,7 +44,8 @@ class JSONParser {
 	for (let value in Object.values(this.dataDict)){
 	    console.log(value);
 	}
-	console.log(iId);
+	console.log(Object.entries(this.dataDict));
+	console.log(this.dataDict["\"5be19148-2128-4232-8775-70c21c6080d8\""]);
 	if(!this.dataDict[iId]){
 	    console.log("this.dataDict[iId] is undefined");
 	}else{
@@ -52,9 +53,10 @@ class JSONParser {
 	}
 	//end of testing the nodeMap and dataDict
 	
-	return json.map(entry => {
+	json.map(entry => {
 	    let gId = this.getGraphId();//this will need to be changed to the individuals id from the nodeMap
 	    console.log("we are mapping the return");
+	    console.log(this.nodeMap[gId]);
 	    return {
 		"id": gId,
 		//"group": //Not in use currently
@@ -69,16 +71,15 @@ class JSONParser {
     }
 
     //TODO:  query for all markedindivudial data and create a dictionary with the ids
-    getNodeRefs(json) {
+    getNodeRefs(json, callback) {
 	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
 	    encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual");//get all individuals
-	    d3.json(query, (error, json) => this.createNodeDictionary(json));
+	    d3.json(query, (error, json) => this.createNodeDictionary(json, callback));
     }
 
     //creates the dictionary
     //TODO: remove debugging stuff
-    createNodeDictionary(json) {
-
+    createNodeDictionary(json, callback) {
 	var sizeOfJSON = json.length;//number of MARKEDINDIVIDUALS
 	
 	if(sizeOfJSON >= 1){//if there is anything in the query result
@@ -94,6 +95,9 @@ class JSONParser {
 	
 	//printing contents of dictionaries for testing
 	console.log(this.dataDict);
+
+	//Return to main
+	callback();
     }
 
     getGraphId() {
