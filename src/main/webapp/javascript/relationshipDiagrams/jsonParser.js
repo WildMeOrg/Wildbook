@@ -3,28 +3,65 @@ class JSONParser {
 	this.graphId = 0;//id that will increment with each relevant MARKEDINDIVIDUAL
 	this.nodeMap = {};//map of the MARKEDINDIVIDUALS to be displayed on the graph
 	this.dataDict = {};//maps individualID to the rest of the individual's data
+	this.relevantId = 0;//only one of these id's is needed, will change later
     }
     
     //Creates a relational object from JSON data
-    parseJSON(json) {
-	let nodes = this.parseNodes(json);
+    parseJSON(iId, json) {
+	this.getNodeRefs(json);
+	let nodes = this.parseNodes(iId, json);
 	let links = this.parseLinks(json);
 	return [nodes, links];
     }
     
-    parseNodes(json) {
-	let nodeRefs = this.getNodeRefs(json);
+    parseNodes(iId, json) {
+	var rId = this.getRelevantId();//numerical id that increments
+	this.addNodeMapId(iId, rId);
+
+	//right now if there are relationships with duplicates they will overwrite in the dict
+	for(var i = 0; i < json.length; i++){
+	    let nameOne = json[i].markedIndividualName1;
+	    let nameTwo = json[i].markedIndividualName2;
+	    let relevantId = this.getRelevantId();
+	    if(nameOne != iId && nameTwo == iId){
+		this.addNodeMapId(nameOne, relevantId); 
+	    }
+	    else if(nameTwo != iId && nameOne == iId){
+		this.addNodeMapId(nameTwo, relevantId);
+	    }
+	}
+
+
+
+
+	//testing the nodeMap and the dataDict
+	console.log("here is the completed node map");
+	console.log(this.nodeMap);
+	console.log(this.dataDict);
+	for (let key in Object.keys(this.dataDict)){
+	    console.log(key);
+	}
+	for (let value in Object.values(this.dataDict)){
+	    console.log(value);
+	}
+	console.log(iId);
+	if(!this.dataDict[iId]){
+	    console.log("this.dataDict[iId] is undefined");
+	}else{
+	    console.log("somwthing else");
+	}
+	//end of testing the nodeMap and dataDict
+	
 	return json.map(entry => {
-	    let id = this.getGraphId();
-	    let nodeRef = json.markedIndividualName1;
-	    this.addNodeMapId(id, nodeRef);
+	    let gId = this.getGraphId();//this will need to be changed to the individuals id from the nodeMap
+	    console.log("we are mapping the return");
 	    return {
-		"id": id,
+		"id": gId,
 		//"group": //Not in use currently
 		"data": {
-		    "name": this.getDisplayName(id),
-		    "gender": this.getGender(id),
-		    "genus": this.getGenus(id)
+		    "name": this.dataDict[this.nodeMap[gId]].displayName,
+		    "gender": this.dataDict[this.nodeMap[gId]].sex,
+		    "genus": this.dataDict[this.nodeMap[gId]].genus
 		    
 		}
 	    }
@@ -63,6 +100,10 @@ class JSONParser {
 	return this.graphId++;
     }
 
+    getRelevantId() {
+	return this.relevantId++;
+    }
+
     getGender(id){
 	return this.dataDict[this.nodeMap[id]].sex;
     }
@@ -75,7 +116,7 @@ class JSONParser {
 	return this.dataDict[this.nodeMap[id]].displayName;
     }
 
-    addNodeMapId(id, nodeRef) {
+    addNodeMapId(nodeRef, id) {
 	this.nodeMap[nodeRef] = id;
     }
 
@@ -83,7 +124,6 @@ class JSONParser {
 	return this.nodeMap[nodeRef];
     }
 
-      
     addDataDictId(individualID, individualData){
 	this.dataDict[individualID] = individualData;
     }
