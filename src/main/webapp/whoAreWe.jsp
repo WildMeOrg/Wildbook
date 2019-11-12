@@ -21,7 +21,7 @@
 <div class="container maincontent">
 
 <h1>Who We Are</h1>
-<p>During our beta period, Kitizen Science is being developed as a Master's project lead by a cat lady in a Wildlife Science program, supported by a thesis committee of wildlife researchers and a nonprofit board  of  veterinarians.  (Read more about the importance of <a href="why.jsp">veterinarians and wildlife population ecologists working together</a> to address cat overpopulation.)</p>
+<p>During our beta period, Kitizen Science is being developed as a Master's project lead by a cat lady in a Wildlife Science program, supported by a thesis committee of wildlife researchers and a nonprofit board  of  veterinarians.  (Read more about the importance of <a href="http://www.kitizenscience.org/why.jsp">veterinarians and wildlife population ecologists working together</a> to address cat overpopulation.)</p>
 <p><strong>Follow us on social media: </strong></p>
 <p><a href="https://www.facebook.com/kitizenscience/" target="_blank">Facebook</a>, <a href="https://twitter.com/kitizenscience" target="_blank">Twitter</a>, <a href="https://www.instagram.com/kitizenscience/" target="_blank">Instagram</a>. </p>
 <p><strong>Join our mailing list for news and updates:</strong></p>
@@ -84,11 +84,15 @@
   </tr>
   <tr>
     <td colspan="2"><h2><br />
-    Nonprofit Board Members - More Coming Soon</h2></td>
+    Nonprofit Board Members</h2></td>
   </tr>
   <tr>
-    <td width="160" height="210" valign="top"><div align="left"><img src="images/about_jenbuchanan.jpg" width="150" height="200" align="top" /></div></td>
+    <td height="210" valign="top"><div align="left"><img src="images/about_jenbuchanan.jpg" width="150" height="200" align="top" /></div></td>
     <td height="210" valign="top"><strong>Dr. Jennifer Buchanan</strong> discovered her love for animals growing up on a cattle ranch in Southern Oregon.  After earning her Doctorate in Veterinary Medicine at Oregon State University in 2010, she jumped right into shelter medicine, taking a position at Seattle Humane Society.  During her time there she continued to evolve with the shelter and developed protocols and policies based on the newly published ASV guidelines. It was through this work that she became invested in community cat welfare and in 2015, she joined <a href="http://www.feralcatproject.org/" target="_blank">Feral Cat Spay/Neuter Project</a> as their Lead Veterinarian. She is currently pursuing her Master’s degree through the University of Florida. Dr. Buchanan is proud and excited to be a part of Kitizen Science because she recognizes the need for long term, sustainable and humane community cat management practices. By focusing on evidence-based studies and maintaining a balanced viewpoint she hopes to support high quality research that can be used to build bridges between all animal and ecological advocates. In addition to work and school, Jennifer enjoys hanging out with her kids (two and four-legged) in the forest behind her house and playing table-top games with her husband after the kids are in bed.</td>
+  </tr>
+  <tr>
+    <td width="160" height="210" valign="top"><div align="left"><img src="images/about_bradcrauer.jpg" width="150" height="200" align="top" /></div></td>
+    <td height="210" valign="top"><strong>Dr. Brad Crauer</strong>'s clinical interests include building bridges between private practice and shelter medicine, effective and efficient HQHVSN (High Quality High Volume Spay Neuter), epidemiology in a shelter setting, population management, growing knowledgeable and skilled practice ready veterinarians.  Dr. Crauer earned his Doctorate of Veterinary Medicine from Iowa State University in 1991, and has since worked in private practice, hurricane disaster response, served as the Chief Medical Officer of the Seattle Humane Society, and in-house veterinarian at the Wenatchee Valley Humane Society.  He is currently an Assistant Clinical Professor at <a href="https://www.vet.k-state.edu/" target="_blank">Kansas State University's College of Veterinary Medicine</a> where he teaches Animal Shelter Basics and the Shelter Medicine rotation and operates the Shelter Medicine Mobile Surgery Unit to bring affordable spay/neuter to regional shelters and rescues.</td>
   </tr>
   <tr>
     <td colspan="2"><h2><br />
