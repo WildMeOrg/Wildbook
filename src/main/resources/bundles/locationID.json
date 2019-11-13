@@ -142,7 +142,13 @@
 			  	{ "name":"2h", "id":"2h", "locationID":[] },
 				{ "name":"Bahamas-GBB", "id":"Bahamas-GBB", "locationID":[] },
 				{ "name":"Bahamas-LBB", "id":"Bahamas-LBB", "locationID":[] },
-				{ "name":"Dominica", "id":"Dominica", "locationID":[] },
+				{ "name":"Dominica", "id":"Dominica", "locationID":[
+					{"name": "Champagne Beach", "id": "Champagne Beach" },
+					{"name": "Londonderry Beach", "id": "Londonderry Beach" },
+					{"name": "Point Gunard", "id": "Point Gunard" },
+					{"name": "Rosalie", "id": "Rosalie" }
+
+				] },
 				{ "name":"Guadeloupe", "id":"Guadeloupe", "locationID":[] }
 			  ] 
 			  },
