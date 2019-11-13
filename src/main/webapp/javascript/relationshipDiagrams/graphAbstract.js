@@ -62,6 +62,19 @@ class GraphAbstract {
 	this.fadeDuration = 200;
 	this.tooltipOpacity = 0.9;
 
+	//Legend Attributes
+	this.legendMargin = {"top": 30, "right": 30, "bottom": 30, "left": 30}
+        this.legendDimensions = {"width": 380, "height": 200};
+	this.legendOffset = {"horiz": this.width - this.legendDimensions.width + this.legendMargin.right,
+			     "vert": this.legendMargin.top};
+	this.legendNodeColors = [this.maleColor, this.femaleColor, this.defGenderColor];
+	this.legendLinkColors = [this.paternalLinkColor, this.maternalLinkColor, this.famLinkColor];
+	this.legendLabels = ["Male Sex", "Female Sex", "Unknown Sex", "Organism",
+			     "Paternal Relationship", "Maternal Relationship",
+			     "Familal Relationship", "Member-Member Relationship"];
+	this.legendIcons = {"size": 15, "margin": 8, "mSize": 23};
+	this.legendRowsPerCol = 4;
+	
 	//Json Parser Attributes
 	this.parser = new JSONParser();
     }
@@ -107,15 +120,68 @@ class GraphAbstract {
 
     //TODO - FIX
     //Append graph legend to top-level SVG
-    addLegend(containerId) {
-	d3.select(containerId + " svg").append("g")
+    addLegend(containerId, rowsPerCol=4, rowSpacing=120) {
+	//Append the legend group
+	let legendRef = d3.select(containerId + " svg").append("g")
 	    .attr("class", "legend")
-	    .attr("transform", "translate(90%, 10%)")
-	    .attr("height", "100px")
-	    .attr("width", "100px")
-	    .attr("fill", "red");
-    }
+	    .attr("height", this.legendHeight)
+	    .attr("width", this.legendWidth)
+	    .attr("transform", "translate(" + this.legendOffset.horiz  + "," + this.legendOffset.vert + ")")
 
+	//TODO - Finish
+	//Apply background coloration
+	/*legendRef.append('rect')
+	    .attr("width", "100%")
+	    .attr("height", "100%")
+	    .attr("fill", "#eeeeee")
+	    .attr("opacity", 0.2)*/
+
+	//Initialize position references
+	let xIdx = 0, yIdx = 0;
+
+	//TODO - Consider adding strong repulsive force to legend
+	//Add legend gender color-key
+	legendRef.selectAll('rect')
+	    .data(this.legendNodeColors).enter()
+            .append('rect')
+            .attr('x', () => Math.floor(xIdx++ / rowsPerCol) * rowSpacing)
+            .attr('y', () => (yIdx++ % rowsPerCol) * this.legendIcons.mSize)
+            .attr('width', this.legendIcons.size)
+            .attr('height', this.legendIcons.size)
+            .attr('fill', d => d);
+
+	//Add organism circle example
+	legendRef.append('circle')
+            .attr('cx', (Math.floor(xIdx++ / rowsPerCol) * rowSpacing) + this.legendIcons.size / 2)
+            .attr('cy', ((yIdx++ % rowsPerCol) * this.legendIcons.mSize) + this.legendIcons.size / 2)
+            .attr('r', this.legendIcons.size / 2)
+            .attr('fill', this.defNodeColor)
+            .attr('stroke', this.defGenderColor);
+	
+	//Add familial relationship links
+	this.legendLinkColors.forEach(color => {
+	    let x = Math.floor(xIdx++ / rowsPerCol) * rowSpacing;
+	    let y = (yIdx++ % rowsPerCol) * this.legendIcons.mSize;
+	    	this.drawLegendArrow(legendRef, x, y, color);
+	});
+
+	//Add member-member relationship link
+	legendRef.append('line')
+	    .attr('x1', Math.floor(xIdx / rowsPerCol) * rowSpacing)
+	    .attr('x2', (Math.floor(xIdx++ / rowsPerCol) * rowSpacing) + this.legendIcons.size)
+	    .attr('y1', (yIdx % rowsPerCol) * this.legendIcons.mSize + (this.legendIcons.size / 2))
+	    .attr('y2', (yIdx++ % rowsPerCol) * this.legendIcons.mSize + (this.legendIcons.size / 2))
+	    .attr('stroke', this.defLinkColor);
+
+	//Add legend labels
+	legendRef.selectAll('text')
+            .data(this.legendLabels).enter()
+            .append('text')
+            .attr("x", (d, i) => (Math.floor(i / rowsPerCol) * rowSpacing) + this.legendIcons.mSize)
+            .attr("y", (d, i) => ((i % rowsPerCol) * this.legendIcons.mSize) + this.legendIcons.size)
+            .text(d => d);
+    }
+    
    //Append a tooltop to the top-level SVG, used to visualize node info on hover
     addTooltip(selector) {
 	//Define the tooltip div
@@ -272,5 +338,19 @@ class GraphAbstract {
             .duration(this.fadeDuration)		
             .style("opacity", 0);
     }
+
+    //Draws a simple arrow (used for the legend arrow icons)
+    drawLegendArrow(legendRef, x, y,color){
+	let yCenter = y + (this.legendIcons.size / 2)
+	legendRef.append('line').attr('x1', x).attr('x2', x + this.legendIcons.size)
+	    .attr('y1', yCenter).attr('y2', yCenter).attr('stroke', color)     
+
+	legendRef.append('line').attr('x1', x + (this.legendIcons.size * 3 / 4)).attr('x2', x + this.legendIcons.size)
+	    .attr('y1', yCenter - 5).attr('y2', yCenter).attr('stroke', color)
+	
+	legendRef.append('line').attr('x1', x + (this.legendIcons.size * 3 / 4)).attr('x2', x + this.legendIcons.size)
+	    .attr('y1', yCenter + 5).attr('y2', yCenter).attr('stroke', color)
+    }
+
 }
 
