@@ -1,4 +1,5 @@
-.settings/org.eclipse*
+.settings
+.factorypath
 *.DS_Store
 target
 bin

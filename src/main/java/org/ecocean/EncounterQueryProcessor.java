@@ -28,9 +28,11 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-public class EncounterQueryProcessor {
+public class EncounterQueryProcessor extends QueryProcessor {
 
   private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ";
+
+  public static final String[] SIMPLE_STRING_FIELDS = new String[]{"lifeStage","groupRole","submitterOrganization","submitterProject"};
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
@@ -87,9 +89,9 @@ public class EncounterQueryProcessor {
     if(request.getParameter("resightOnly")!=null) {
       //String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(individualID != null)";
+        filter+="(individual != null)";
       }
-      else{filter+=" && (individualID != null)";}
+      else{filter+=" && (individual != null)";}
       prettyPrint.append("Identified and resighted.<br />");
     }
     //end resighted filter--------------------------------------------------------------------------------------
@@ -97,9 +99,9 @@ public class EncounterQueryProcessor {
     //filter for unassigned encounters------------------------------------------
     if(request.getParameter("unassigned")!=null) {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(individualID == null)";
+        filter+="(individual == null)";
       }
-      else{filter+=" && (individualID == null)";}
+      else{filter+=" && (individual == null)";}
       prettyPrint.append("Unidentified.<br />");
     }
     //end unassigned filter--------------------------------------------------------------------------------------
@@ -146,7 +148,7 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
     String[] locCodes=request.getParameterValues("locationCodeField");
-    if((locCodes!=null)&&(!locCodes[0].equals("None"))){
+    if((locCodes!=null)&&(!locCodes[0].equals(""))){
           prettyPrint.append("locationCodeField is one of the following: ");
           int kwLength=locCodes.length;
             String locIDFilter="(";
@@ -200,32 +202,27 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //individualID filters-------------------------------------------------
     //supports multiple individualID parameters as well as comma-separated lists of individualIDs within them
-    String[] individualID=request.getParameterValues("individualID");
-    if((individualID!=null)&&(!individualID[0].equals(""))&&(!individualID[0].equals("None"))){
-          prettyPrint.append("Individual ID is one of the following: ");
-          int kwLength=individualID.length;
-            String locIDFilter="(";
-            for(int kwIter=0;kwIter<kwLength;kwIter++) {
-              String kwParamMaster=individualID[kwIter].replaceAll("%20", " ").trim();
-              
-              StringTokenizer str=new StringTokenizer(kwParamMaster,",");
-              int numTokens=str.countTokens();
-              for(int k=0;k<numTokens;k++){
-                String kwParam=str.nextToken().trim();
-                if(!kwParam.equals("")){
-                  if(locIDFilter.equals("(")){
-                    locIDFilter+=" individualID == \""+kwParam+"\"";
-                  }
-                  else{
-                    locIDFilter+=" || individualID == \""+kwParam+"\"";
-                  }
-                  prettyPrint.append(kwParam+" ");
-                }
-              
-              }
-              
-            }
-            locIDFilter+=" )";
+    String individualID=request.getParameter("individualID");
+    if((individualID!=null)&&(!individualID.equals("None"))&&(!individualID.trim().equals(""))){
+          prettyPrint.append("Individual ID contains the following: ");
+
+            String locIDFilter=" (individual.individualID == \""+individualID+"\" || individual.names.valuesAsString.toLowerCase().indexOf(\""+individualID.toLowerCase()+"\") != -1) ";
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
+            else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append("<br />");
+    }
+    //end individualID filters-----------------------------------------------
+    
+    //------------------------------------------------------------------
+    //individualIDExact filters-------------------------------------------------
+    //supports one individualID parameter as well as comma-separated lists of individualIDs within them
+    String individualIDExact=request.getParameter("individualIDExact");
+    if((individualIDExact!=null)&&(!individualIDExact.trim().equals(""))){
+          prettyPrint.append("Individual ID is exactly the following: ");
+
+            String locIDFilter=" individual.individualID == \""+individualIDExact.trim()+"\" ";
+
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
             prettyPrint.append("<br />");
@@ -750,6 +747,10 @@ public class EncounterQueryProcessor {
 
     //------------------------------------------------------------------
     //keyword filters-------------------------------------------------
+
+    // shared var between keywords and labeledKeywords
+    int nUnlabeledKeywords=0;
+
     myShepherd.beginDBTransaction();
     String[] keywords=request.getParameterValues("keyword");
     String photoKeywordOperator = "&&";
@@ -767,6 +768,7 @@ public class EncounterQueryProcessor {
         prettyPrint.append("All of these MediaAsset keywords are applied: ");
       }
           int kwLength=keywords.length;
+          nUnlabeledKeywords += kwLength;
 
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
               String locIDFilter="(";
@@ -817,6 +819,87 @@ public class EncounterQueryProcessor {
 
     //end photo keyword filters-----------------------------------------------
 
+
+
+    //------------------------------------------------------------------------
+    //labeled keyword filters-------------------------------------------------
+    List<String> labels = ServletUtilities.getIndexedParameters("label", request);
+    System.out.println("LKW filter got labels "+labels);
+    int index=0;
+    boolean multipleLabels = labels.size()>1;
+
+    String lkwFilter = "(";
+    for (int labelN=0;labelN<labels.size();labelN++) {
+      int kwNum = labelN + nUnlabeledKeywords;
+      int annotNum = nUnlabeledKeywords; // this way all labeledKeyword queries apply to the same annotation
+      String label = labels.get(labelN);
+
+      if (labelN==0) {
+        prettyPrint.append("Encounter has a photo with the LabeledKeyword label \""+label+"\"");
+      } else {
+        prettyPrint.append(",<br>\t AND that photo has LabeledKeyword label \""+label+"\"");
+        lkwFilter+= " && ";
+      }
+
+      //------ start variables and declarations for this LKW
+      String annotVar = "photo"+annotNum;
+      // we only add the annotation the first time, so all subsequent keywords still apply to that first annotation
+      // bc if we search for "fluke photo, of quality 3-5" we are talking about one photo with two keywords, not two photos
+      if (labelN==0) {
+        lkwFilter += "annotations.contains("+annotVar+")";
+        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Annotation "+annotVar);
+
+      }
+
+      // only one feature per annotation, so only one feature for all keywords
+      String featVar = "feat"+annotNum;
+      if (labelN==0) { 
+        lkwFilter += " && ";
+        lkwFilter += annotVar+".features.contains("+featVar+")";
+        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.media.Feature "+featVar);
+      }
+
+      String wordVar = "word"+kwNum;
+      if (labelN==0) lkwFilter += " && ";
+      lkwFilter += featVar+".asset.keywords.contains("+wordVar+")";
+      // TODO: is jdoql OK with typing wordVar as a LabeledKeyword even though features have a plain Keyword list?
+      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.LabeledKeyword "+wordVar);
+      //------ done with variables and declarations for this LKW
+
+      lkwFilter += " && "+wordVar+".label == "+Util.quote(label);
+      // the filter is now done if we don't have any values defined --- so we're querying for an enc with this label on a keyword.
+
+      String valueKey = "label"+labelN+".values";
+      String[] values=request.getParameterValues(valueKey);
+      if (values!=null) {
+        System.out.println("EQP got valueKey "+valueKey+" and values "+String.join(", ", values));
+        String valueFilter = "(";
+        for (int valueN=0;valueN<values.length;valueN++) {
+          if (valueN>0) valueFilter+=" || ";
+          valueFilter += wordVar+".readableName == "+Util.quote(values[valueN]);
+        }
+        valueFilter+=")";
+        if (!valueFilter.equals("()")) lkwFilter+=" && "+valueFilter;
+
+        if (values.length==1) {
+          prettyPrint.append(" with value \""+values[0]+"\"");
+        } else if (values.length>1) {
+          String allVals = String.join("\", OR \"", values);
+          allVals = "\""+allVals+"\"";
+          prettyPrint.append(" with value ("+allVals+")");
+        }
+      } else {
+        System.out.println("EQP got null values for valueKey "+valueKey);
+      }
+    }
+    lkwFilter+=")";
+
+    System.out.println("EQP got lkwFilter "+lkwFilter);
+    if (!lkwFilter.equals("()")) {
+      filter = filterWithCondition(filter, lkwFilter);
+      prettyPrint.append("<br>");
+    }
+    // end labeled keyword filters
 
 
     //------------------------------------------------------------------
@@ -1054,9 +1137,7 @@ public class EncounterQueryProcessor {
     //filter gpsOnly - return only Encounters with a defined location. This is mostly used for mapping JSP pages
     if(request.getAttribute("gpsOnly")!=null){
 
-      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="decimalLatitude >= -90 && decimalLatitude <= 90 && decimalLongitude <= 180 && decimalLongitude >= -180";}
-      else{filter+=" && decimalLatitude >= -90 && decimalLatitude <= 90 && decimalLongitude <= 180 && decimalLongitude >= -180";}
-      prettyPrint.append("Has GPS coordinates.<br />");
+      filter = filterWithGpsBox("decimalLatitude", "decimalLongitude", filter, request);
 
     }
     //end filter gpsOnly
@@ -1222,18 +1303,23 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     //filter for sex------------------------------------------
     if((request.getParameter("male")!=null)||(request.getParameter("female")!=null)||(request.getParameter("unknown")!=null)){
+      System.out.println("Filter at beginning of sex filtering: "+filter);
       if(request.getParameter("male")==null) {
-        filter+=" && !sex.startsWith('male')";
+        filter = filterWithCondition(filter, "!sex.startsWith('male')");
         prettyPrint.append("Sex is not male.<br />");
       }
+
       if(request.getParameter("female")==null) {
-        filter+=" && !sex.startsWith('female')";
+        filter = filterWithCondition(filter, "!sex.startsWith('female')");
         prettyPrint.append("Sex is not female.<br />");
       }
+
       if(request.getParameter("unknown")==null) {
-        filter+=" && !sex.startsWith('unknown') && sex != null";
+        filter = filterWithCondition(filter, "!sex.startsWith('unknown') && sex != null");
         prettyPrint.append("Sex is not unknown.<br />");
       }
+      System.out.println("Filter at end of sex filtering: "+filter);
+
     }
 
     //filter by sex--------------------------------------------------------------------------------------
@@ -1274,97 +1360,10 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       }
     }
 
+    // I choose to put this on one line out of pride alone -db
+    for (String fieldName : SIMPLE_STRING_FIELDS) filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
 
-
-
-    //end date filter ----------------------------------------
-
-    //------------------------------------------------------------------
-    //GPS filters-------------------------------------------------
-
-    if((request.getParameter("ne_lat")!=null)&&(!request.getParameter("ne_lat").equals(""))) {
-      if((request.getParameter("ne_long")!=null)&&(!request.getParameter("ne_long").equals(""))) {
-        if((request.getParameter("sw_lat")!=null)&&(!request.getParameter("sw_lat").equals(""))) {
-          if((request.getParameter("sw_long")!=null)&&(!request.getParameter("sw_long").equals(""))) {
-
-
-
-
-                try{
-
-                  String thisLocalFilter="(";
-
-                  double ne_lat=(new Double(request.getParameter("ne_lat"))).doubleValue();
-                  double ne_long = (new Double(request.getParameter("ne_long"))).doubleValue();
-                  double sw_lat = (new Double(request.getParameter("sw_lat"))).doubleValue();
-                  double sw_long=(new Double(request.getParameter("sw_long"))).doubleValue();
-
-                  //The latitude must be a number between -90 and 90 and the longitude between -180 and 180.
-                  
-                  
-                  if((sw_long>0)&&(ne_long<0)){
-                    //if(!((encLat<=ne_lat)&&(encLat>=sw_lat)&&((encLong<=ne_long)||(encLong>=sw_long)))){
-
-                      //process lats
-                      thisLocalFilter+="(decimalLatitude <= "+request.getParameter("ne_lat")+") && (decimalLatitude >= "+request.getParameter("sw_lat")+")";
-
-                      //process longs
-                      thisLocalFilter+=" && ((decimalLongitude <= "+request.getParameter("ne_long")+") || (decimalLongitude >= "+request.getParameter("sw_long")+"))";
-
-
-
-                    //}
-                  }
-                  else{
-                    //if(!((encLat<=ne_lat)&&(encLat>=sw_lat)&&(encLong<=ne_long)&&(encLong>=sw_long))){
-
-                    //process lats
-                    thisLocalFilter+="(decimalLatitude <= "+request.getParameter("ne_lat")+") && (decimalLatitude >= "+request.getParameter("sw_lat")+")";
-
-                    //process longs
-                    thisLocalFilter+=" && (decimalLongitude <= "+request.getParameter("ne_long")+") && (decimalLongitude >= "+request.getParameter("sw_long")+")";
-
-
-
-                    //}
-                  }
-
-                  thisLocalFilter+=" )";
-                  
-                  if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
-                    filter += " && ";
-                  }
-                  filter+=thisLocalFilter;
-                  //if(filter.equals("")){filter=thisLocalFilter;}
-                  //else if(){filter+=" && "+thisLocalFilter;}
-                  //else{filter+=" && "+thisLocalFilter;}
-
-                  prettyPrint.append("GPS Boundary NE: \""+request.getParameter("ne_lat")+", "+request.getParameter("ne_long")+"\".<br />");
-                  prettyPrint.append("GPS Boundary SW: \""+request.getParameter("sw_lat")+", "+request.getParameter("sw_long")+"\".<br />");
-
-
-
-                }
-
-                catch(Exception ee){
-
-                  System.out.println("Exception when trying to process lat and long data in EncounterQueryProcessor!");
-                  ee.printStackTrace();
-
-                }
-
-
-
-
-
-
-
-
-          }
-        }
-      }
-    }
-
+    filter = filterWithGpsBox("decimalLatitude","decimalLongitude", filter, request);
 
     //end GPS filters-----------------------------------------------
     
@@ -1613,35 +1612,5 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     }
     return tagFilter.toString();
   }
-
-  private static String updateJdoqlVariableDeclaration(String jdoqlVariableDeclaration, String typeAndVariable) {
-    StringBuilder sb = new StringBuilder(jdoqlVariableDeclaration);
-    if (jdoqlVariableDeclaration.length() == 0) {
-      sb.append(" VARIABLES ");
-      sb.append(typeAndVariable);
-    }
-    else {
-      if (!jdoqlVariableDeclaration.contains(typeAndVariable)) {
-        sb.append("; ");
-        sb.append(typeAndVariable);
-      }
-    }
-    return sb.toString();
-  }
-
-  private static String updateParametersDeclaration(
-      String parameterDeclaration, String typeAndVariable) {
-    StringBuilder sb = new StringBuilder(parameterDeclaration);
-    if (parameterDeclaration.length() == 0) {
-      sb.append(" PARAMETERS ");
-    }
-    else {
-      sb.append(", ");
-    }
-    sb.append(typeAndVariable);
-    return sb.toString();
-  }
-
-
 
 }

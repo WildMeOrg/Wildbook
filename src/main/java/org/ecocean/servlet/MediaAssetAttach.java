@@ -11,8 +11,8 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.ecocean.media.*;
+import java.util.List;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import java.io.*;
 
@@ -39,85 +39,116 @@ public class MediaAssetAttach extends HttpServlet {
 
     try {
       args = ServletUtilities.jsonFromHttpServletRequest(request);
-    }
-
-    catch (JSONException e){
+    } catch (JSONException e){
       // urgh... depending on if POSTing from Postman or $.ajax, parameters must be handled differently.
       args.put("attach",request.getParameter("attach"));
       args.put("detach",request.getParameter("detach"));
       args.put("EncounterID", request.getParameter("EncounterID"));
       args.put("MediaAssetID", request.getParameter("MediaAssetID"));
+      //leave this print in case of shenanigans even though we have alternate behavior
+      e.printStackTrace();
     }
 
     //String encID = request.getParameter("EncounterID");
     //String maID = request.getParameter("MediaAssetID");
     String encID = args.optString("EncounterID");
-    String maID = args.optString("MediaAssetID");
 
-    System.out.println("Servlet received maID="+maID+" and encID="+encID);
-
-    if (encID == null || maID == null) {
-      throw new IOException("MediaAssetAttach servlet requires both a \"MediaAssetID\" and an \"EncounterID\" argument. Servlet received maID="+maID+" and encID="+encID);
+    //resolve all asset ids into one list
+    List<String> maIds = new ArrayList<String>();
+    /*
+    ok, leaving this for prosperity. this FAILS on the .getString() for reasons i cant explain when passed an int (non-string)
+    however, the conditional still evaluates as TRUE !!!!   good luck on this one.
+        see also:   https://github.com/stleary/JSON-java/issues/472
+    if (args.optString("MediaAssetID", null) != null) maIds.add(args.getString("MediaAssetID"));
+    */
+    if (args.optString("MediaAssetID", null) != null) maIds.add(args.optString("MediaAssetID", null));
+    JSONArray jarr = args.optJSONArray("mediaAssetIds");
+    if (jarr != null) for (int i = 0 ; i < jarr.length() ; i++) {
+        String arrId = jarr.optString(i, null);
+        if ((arrId != null) && !maIds.contains(arrId)) maIds.add(arrId);
     }
 
-    String context = "context0";
-    context = ServletUtilities.getContext(request);
+    System.out.println("Servlet received maIds="+maIds+" and encID="+encID);
+
+    if (encID == null || maIds.size() < 1) {
+      throw new IOException("MediaAssetAttach servlet requires both a \"MediaAssetID\" and an \"EncounterID\" argument. Servlet received maIds="+maIds+" and encID="+encID);
+    }
+
+    res.put("maIds", new JSONArray(maIds));
+
+    String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("MediaAssetAttach.class");
     PrintWriter out = response.getWriter();
 
+    JSONArray alreadyAttachedIds = new JSONArray();
+    List<MediaAsset> alreadyAttached = new ArrayList<MediaAsset>();
+
     try {
-
       myShepherd.beginDBTransaction();
-
-    MediaAsset ma = myShepherd.getMediaAsset(maID);
-    if (ma == null) throw new ServletException("No MediaAsset with id "+maID+" found in database.");
 
     Encounter enc = myShepherd.getEncounter(encID);
     if (enc == null) throw new ServletException("No Encounter with id "+encID+" found in database.");
 
-    boolean alreadyAttached = enc.hasTopLevelMediaAsset(ma.getId());
-    res.put("alreadyAttached", alreadyAttached);
+        List<MediaAsset> mas = new ArrayList<MediaAsset>();
+        for (String maId : maIds) {
+            MediaAsset ma = myShepherd.getMediaAsset(maId);
+            if (ma == null) throw new ServletException("No MediaAsset with id "+maId+" found in database.");
+            if (enc.hasTopLevelMediaAsset(ma.getId())) {
+                alreadyAttachedIds.put(ma.getId());
+                alreadyAttached.add(ma);
+            } else {
+                mas.add(ma);
+            }
+        }
+
+    if (alreadyAttachedIds.length() > 0) res.put("alreadyAttached", alreadyAttachedIds);
 
     // ATTACH MEDIAASSET TO ENCOUNTER
     if (args.optString("attach")!=null && args.optString("attach").equals("true")) {
-      if (!alreadyAttached) {
-        enc.addMediaAsset(ma);
+        for (MediaAsset ma : mas) {
+            enc.addMediaAsset(ma);
+        }
         res.put("action","attach");
         res.put("success",true);
-      }
-      else {
-        throw new ServletException("Cannot attach MediaAsset "+maID+" to Encounter "+encID+". They were already attached.");
-      }
     }
 
     // DETACH MEDIAASSET FROM ENCOUNTER
     else if (args.optString("detach")!=null && args.optString("detach").equals("true")) {
-      if (alreadyAttached) {
-        enc.removeMediaAsset(ma);
-        String undoLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+maID;
-        String comments = "Detached MediaAsset " + maID + ". To undo this action, visit " + undoLink;
-        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + comments + " </p>");
+        boolean success = false;
+        for (MediaAsset ma : alreadyAttached) {
+System.out.println("DETACH: " + ma);
+            // Set match against to false on the annotation(s) from this asset that were associated with the encounter. 
+            for (Annotation ann : enc.getAnnotations()) {
+                if (ann.getMediaAsset().getId() != ma.getId()) continue;
+System.out.println("setting matchAgainst=F on " + ann);
+                ann.setMatchAgainst(false);
+            }
+            enc.removeMediaAsset(ma);
+ 
+            String undoLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+ma.getId();
+            String comments = "Detached MediaAsset " + ma.getId() + ". To undo this action, visit " + undoLink;
+            enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + comments + " </p>");
+            success = true;
+        }
         res.put("action","detach");
-        res.put("success",true);
-      }
-      else {
-        throw new ServletException("Cannot remove MediaAsset "+maID+" from Encounter "+encID+". They were not attached in the first place.");
-      }
+        res.put("success", success);
+
     } else {
       res.put("args.optString",false);
+        res.put("error", "unknown command");
+        res.put("success", false);
     }
     myShepherd.commitDBTransaction();
 
     // DETACH MEDIAASSET FROM ENCOUNTER
-  } catch (Exception e) {
-    e.printStackTrace(out);
-    myShepherd.rollbackDBTransaction();
-  }
+    } catch (Exception e) {
+      e.printStackTrace(out);
+      myShepherd.rollbackDBTransaction();
+    }
   finally {
     myShepherd.closeDBTransaction();
   }
-
   out.println(res.toString());
   out.close();
 

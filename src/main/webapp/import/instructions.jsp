@@ -2,6 +2,7 @@
          import="org.ecocean.servlet.ServletUtilities,
 	java.util.ArrayList,
 	java.util.List,
+        org.joda.time.DateTime,
 	java.util.Collection,
 	java.io.File,
 	org.ecocean.*,
@@ -34,12 +35,23 @@ String wbName = ContextConfiguration.getNameForContext(context);
 .import-header {
 	margin-top: 0px;
 }
+.warning {
+  border-radius: 5px;
+  background-color: lightgrey;
+  color: red;
+  padding: 5px;
+}
 </style>
 
 
 <div class="container maincontent">
 
   <h1 class="import-header">Bulk Import: Instructions</h1>
+
+  <p class="warning">
+    <strong>This feature is in Alpha.</strong> This means it is untested and unreleased. Please only use this tool if you are willing to help us test the UI and report bugs. Your data might not be imported correctly until we have done further testing and development.
+  </p>
+
   <p>The goal of this tool is to allow scientists to add large amounts of data to <%=wbName%> at once, such as an entire season's observations, while performing the data-blending and data-integrity checks themselves.</p>
   
   <p>To ensure data integrity, this process is split into several steps with review in-between.</p>
@@ -66,7 +78,22 @@ String wbName = ContextConfiguration.getNameForContext(context);
   <p>Most importantly, <strong>the <code>Encounter.mediaAsset</code> column(s) must contain the <em>exact</em> filename(s) of the photo(s)</strong> associated with each record. These are the names of the photos uploaded in the Photo Upload step, and this is how the computer identifies which photo goes where.</p>
 
   <p>
-  	<a href="WildbookStandardFormat.xlsx">Download the Wildbook Standard Format template here.</a> Descriptions of each class field are included. You can use this file for your upload after filling it out.
+
+<%
+String rootDir = getServletContext().getRealPath("/");
+File xlsFile = org.ecocean.servlet.importer.StandardImport.importXlsFile(rootDir);
+if (xlsFile == null) {
+%>
+    <b class="error">There was an error finding the latest <b>Wildbook Standard Format XLS</b> file.  Please contact your admin.</b>
+    </p><p>
+<% } else {
+        DateTime dt = new DateTime(xlsFile.lastModified());
+%>
+  	<a href="<%=xlsFile.getName()%>">Download the <b>Wildbook Standard Format XLS template</b> here.</a>
+        <i>("<%=xlsFile.getName()%>", updated <%=dt.toString().substring(0,10)%>)</i>
+<% } %>
+
+Descriptions of each class field are included. You can use this file for your upload after filling it out.
   </p>
 
   <p>When your data is prepared, get started on the Photo Upload page:</p>

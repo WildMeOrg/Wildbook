@@ -11,8 +11,8 @@ public class QueryCacheFactory {
     try {
       if (qc == null) {
 
-        qc = new QueryCache();
-        qc.loadQueries(context);
+        qc = new QueryCache(context);
+        qc.loadQueries();
 
       }
       

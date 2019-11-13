@@ -146,13 +146,23 @@ public class StartupWildbook implements ServletContextListener {
     private void startIAQueues(String context) {
         class IAMessageHandler extends QueueMessageHandler {
             public boolean handler(String msg) {
-                org.ecocean.servlet.IAGateway.processQueueMessage(msg);  //yeah we need to move this somewhere else...
+                try {
+                    org.ecocean.servlet.IAGateway.processQueueMessage(msg);  //yeah we need to move this somewhere else...
+                } catch (Exception ex) {
+                    System.out.println("WARNING: IAMessageHandler processQueueMessage() threw " + ex.toString());
+                    ex.printStackTrace();
+                }
                 return true;
             }
         }
         class IACallbackMessageHandler extends QueueMessageHandler {
             public boolean handler(String msg) {
-                org.ecocean.servlet.IAGateway.processCallbackQueueMessage(msg);  //yeah we need to move this somewhere else...
+                try {
+                    org.ecocean.servlet.IAGateway.processCallbackQueueMessage(msg);  //yeah we need to move this somewhere else...
+                } catch (Exception ex) {
+                    System.out.println("WARNING: IACallbackMessageHandler processCallbackQueueMessage() threw " + ex.toString());
+                    ex.printStackTrace();
+                }
                 return true;
             }
         }
@@ -212,10 +222,14 @@ public class StartupWildbook implements ServletContextListener {
 
     public static boolean skipInit(ServletContextEvent sce, String extra) {
         ServletContext sc = sce.getServletContext();
+/*   WARNING!  this bad hackery to try to work around "double deployment" ... yuck!
+     see:  https://octopus.com/blog/defining-tomcat-context-paths
+
         if ("".equals(sc.getContextPath())) {
             System.out.println("++ StartupWildbook.skipInit() skipping ROOT (empty string context path)");
             return true;
         }
+*/
         String fname = "/tmp/WB_SKIP_INIT" + ((extra == null) ? "" : "_" + extra);
         boolean skip = new File(fname).exists();
         System.out.println("++ StartupWildbook.skipInit() test on " + extra + " [" + fname + "] --> " + skip);

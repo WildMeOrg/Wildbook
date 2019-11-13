@@ -6,7 +6,7 @@ wildbook.IA.plugins.push({
     //var h = '<hr class="task-divider" />'
     var h = '';
 	    h += '<div class="task-content task-type-' + gt + '" id="task-' + task.id + '">';
-        h += '<div class="task-title task-type-' + gt + '" onDblClick="$(\'#task-debug-' + task.id + '\').show();"><span class="task-title-id"><b>Task ' + task.id + '</b></span></div>';
+        h += '<div class="task-title accordion task-type-' + gt + '" onDblClick="$(\'#task-debug-' + task.id + '\').show();"><span class="task-title-id"><b>Task ' + task.id + '</b></span></div>';
         h += '<div class="task-summary task-type-' + gt + '"><div class="summary-column col0" /><div class="summary-column col1" /><div class="summary-column col2" /></div>';
         h += '</div>';
         return h;
@@ -32,113 +32,16 @@ wildbook.IA.plugins.push({
         // items is an array of two-element arrays. In each tuple is 1. what to display, 2. the click action
         // first elem: executes function if function, or just displays if string
         var items = new Array(); 
+
+        //this is the "start (new) job"
         items.push([
-            function(enh) {  //the menu text for an already-started job
-                var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                var menuText = '';
-                if (iaStatus && iaStatus.status) {
-                    menuText += 'matching already initiated, status: <span title="task ' + iaStatus.taskId;
-                    menuText += '" class="image-enhancer-menu-item-iastatus-';
-                    menuText += iaStatus.status + '">' + iaStatus.statusText + '</span>';
-                    // here we want to add another item to start another matching job?
-                } else {
-	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                    var ma = assetById(mid);
-                    if (ma.taxonomyString) {
-                        menuText = 'start matching';
-                        alreadyLinked = true;
-                    } else {
-                        menuText = '<i class="error">you must have <b>genus and specific epithet</b> set to match</i>';
-                    }
-                }
-                return menuText;
-            },
-            function(enh) {  //the menu action for an already-started job
-                var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                if (iaStatus && iaStatus.taskId) {
-                    wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
-                } else {
-	            var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                    var ma = assetById(mid);
-                    if (ma.taxonomyString) {
-                        var data = {
-                            annotationIds: [ ma.annotation.id ]
-                        };
-                        imageEnhancer.popup('<h2>Starting matching....</h2>');
-                        wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
-                            if (textStatus == 'success') {
-                                if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success || !xhr.responseJSON.taskId) {
-                                    imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Invalid response</p>');
-                                    console.log(xhr);
-                                    return;
-                                }
-                                //i think we at least got a task sent off!
-                                imageEnhancer.popupClose();
-                                wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
-                            } else {
-                                imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Reported: <b class="error">' + textStatus + ' ' + xhr.status + ' / ' + xhr.statusText + '</b></p>');
-                                console.log(xhr);
-                            }
-                        });
-                    } else {
-                        imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before trying to run any matching attempts.');
-                        return;
-                    }
-                }
-            }
+            function(enh) { return wildbook.IA.getPluginByType('IBEIS')._iaMenuHelper(enh, 'textStart'); },
+            function(enh) { return wildbook.IA.getPluginByType('IBEIS')._iaMenuHelper(enh, 'funcStart'); }
         ]);
-
-        // this tuple is for the "start another match job" function (after one job has been started)
+        //this is the "start *another* job
         items.push([
-            function(enh) {
-                var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                var menuText = '';
-                if (iaStatus && iaStatus.status) { // corresponds to "matching already initiated" above
-
-                    var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                    var ma = assetById(mid);
-                    if (ma.taxonomyString) {
-                        menuText = 'start another matching job';
-                    } else {
-                        menuText = '<i class="error">you must have <b>genus and specific epithet</b> set to match</i>';
-                    }
-                }
-                return menuText;
-            },
-            function(enh) {  //the menu action for an already-started job
-                var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(enh);
-                // don't need this logic bc this button will always start a new job
-                // if (iaStatus && iaStatus.taskId) {
-                //     wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
-                // } else {
-                var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-                var ma = assetById(mid);
-                if (ma.taxonomyString) {
-                    var data = {
-                        annotationIds: [ ma.annotationId ]
-                    };
-                    imageEnhancer.popup('<h2>Starting matching....</h2>');
-                    wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
-                        if (textStatus == 'success') {
-                            if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success || !xhr.responseJSON.taskId) {
-                                imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Invalid response</p>');
-                                console.log(xhr);
-                                return;
-                            }
-                            //i think we at least got a task sent off!
-                            imageEnhancer.popupClose();
-                            wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
-                        } else {
-                            imageEnhancer.popup('<h2 class="error">Error starting matching</h2><p>Reported: <b class="error">' + textStatus + ' ' + xhr.status + ' / ' + xhr.statusText + '</b></p>');
-                            console.log(xhr);
-                        }
-                    });
-                } else {
-                    imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before trying to run any matching attempts.');
-                    return;
-                }
-                //} // end else
-            }
+            function(enh) { return wildbook.IA.getPluginByType('IBEIS')._iaMenuHelper(enh, 'textAnother'); },
+            function(enh) { return wildbook.IA.getPluginByType('IBEIS')._iaMenuHelper(enh, 'funcAnother'); }
         ]);
 
         //TODO could have conditional etc to turn on/off visual matcher i guess
@@ -164,15 +67,77 @@ wildbook.IA.plugins.push({
         return items;
     },
 
-    iaStatus: function(enh) {
+
+    //ok, this gets ugly.  you have been warned.
+    _iaMenuHelper: function(enh, mode) {
         var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-        var ma = assetById(mid);
+        var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
+        var ma = assetByAnnotationId(aid);
+        if (!mid || !aid || !ma) return false;
+        var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(ma);
+        var identActive = wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus);
+        var requireSpecies = !(wildbook.IA.requireSpeciesForId() == 'false');
+console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identActive=%o, requireSpecies=%o', mode, mid, aid, ma, iaStatus, identActive, requireSpecies);
+
+        if (identActive) {
+            if (mode == 'textStart') {
+                return 'match results';
+            } else if (mode == 'funcStart') {
+                registerTaskId(iaStatus.taskId);
+                wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
+                return;
+            }
+        }
+
+        //this should be the only thing we see until detection is done
+        if (!identActive && ma.detectionStatus && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
+            if (mode == 'textStart') {
+                return '<span class="disabled">Still waiting for detection. Refresh to see updates.</span>';
+            } else {
+                return false;
+            }
+        }
+
+        //this should also catch "run another match" case
+        if (ma.annotation && !ma.annotation.matchAgainst) {  //no matchAgainst, no nothing
+            if (mode == 'textStart') {
+                return '<span class="disabled" title="cannot match against this annotation">cannot start match</span>';
+            } else {
+                return false;
+            }
+        }
+
+        //we need to allow it to start (or re-start!)
+        if (!requireSpecies || ma.taxonomyString) {
+            if (!identActive && mode.endsWith('Another')) return false;
+            if (mode == 'textStart') {
+                return 'start match';
+            } else if (mode == 'textAnother') {
+                return 'start another match';
+            } else if (mode.startsWith('func')) {
+                wildbook.IA.getPluginByType('IBEIS').matchFilter(aid, ma);
+            }
+
+        } else {
+            if (mode == 'textStart') {
+                return '<i class="error">you must have <b>species</b> set to match</i>';
+            } else {
+                return false;
+            }
+        }
+        console.warn('_iaMenuHelper: fell thru!');
+        return false;
+    },
+
+
+    iaStatus: function(ma) {
         if (!ma || !ma.tasks || (ma.tasks.length < 1)) return null;
         if (!ma || !ma.detectionStatus) return null;
         var rtn = {
             status: ma.detectionStatus,
             statusText: ma.detectionStatus,
-            taskId: ma.tasks[ma.tasks.length - 1].id
+            task: ma.tasks[0],
+            taskId: ma.tasks[0].id
         };
         if (ma.annotation && ma.annotation.identificationStatus) {
             rtn.status = ma.annotation.identificationStatus;
@@ -183,6 +148,13 @@ wildbook.IA.plugins.push({
             rtn.statusText = 'active (see results)';
         }
         return rtn;
+    },
+
+    iaStatusIdentActive: function(ias) {
+        if (!ias || !ias.task) return false;
+        if (ias.task.parameters && ias.task.parameters.skipIdent) return false;  //detection-only job; not good enough
+console.warn('ias => %o', ias);
+        return true;
     },
 
     restCall: function(data, callback) {
@@ -204,6 +176,12 @@ wildbook.IA.plugins.push({
         });
     },
 
+    //this is now handled by a div in encounters.jsp
+    matchFilter: function(aid, ma) {
+        iaMatchFilterAnnotationIds.push(aid);
+        $('.ia-match-filter-dialog').show();
+    },
+
     //can assume task.parameters is set
     isMyTask: function(task) {
         for (var key in task.parameters) {
@@ -212,3 +190,14 @@ wildbook.IA.plugins.push({
         return false;
     }
 });
+
+
+
+/*
+    this is for our cypress auto-testing only!   it sets a dom element for the sake of retrieving taskId when new tab opens.
+*/
+function registerTaskId(taskId) {
+    $('#activeTaskId').remove();
+    $('body').append('<p id="activeTaskId" style="display: none;">' + taskId + '</p>');
+}
+

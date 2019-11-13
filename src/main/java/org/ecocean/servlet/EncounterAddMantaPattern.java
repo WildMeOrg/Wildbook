@@ -558,7 +558,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Confirmed:</strong> I have successfully added your mantamatcher data image file.");
             out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-            
+            response.setStatus(HttpServletResponse.SC_OK);
             out.println("<p><a href=\"" + request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
           }
@@ -576,14 +576,17 @@ System.out.println("looks like cr format and target format are the same! -> " + 
             out.println("<p><a href=\"" + request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
             out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
             out.println(ServletUtilities.getFooter(context));
+            response.setStatus(HttpServletResponse.SC_OK);
           }
         }
         else {
           out.println(ServletUtilities.getHeader(request));
           if (action.equals("imageadd")) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println("<strong>Step 2 Failed:</strong> I could not upload this patterning file. There may be a database error, or a incompatible image file format may have been uploaded.");
           }
           else {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println("<strong>Step 2 Failed:</strong> I could not remove this patterning file. There may be a database error.");
           }
           out.println("<p><a href=\"" + request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
@@ -596,6 +599,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
         out.println("<strong>Error:</strong> I was unable to execute this action. I cannot find the encounter that you intended it for in the database.");
         out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
         out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
     } 
     catch (IOException lEx) {
@@ -604,6 +608,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
       out.println("<strong>Error:</strong> I was unable to execute the action.");
       out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
       out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
     catch (InterruptedException ex) {
       ex.printStackTrace();
@@ -611,6 +616,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
       out.println("<strong>Error:</strong> Algorithm scanning process was unexpectedly interrupted.");
       out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
       out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
     finally {
       out.close();

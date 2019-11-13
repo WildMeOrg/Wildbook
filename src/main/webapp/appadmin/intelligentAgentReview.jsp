@@ -125,7 +125,7 @@ public static void annotateChildrenOfYouTubeMediaAssetWithDateLocation(MediaAsse
 			
 			//String idFilter="SELECT FROM org.ecocean.Encounter WHERE individualID != null && (occurrenceRemarks.indexOf('"+videoID+"') != -1)";
 			
-			Query idQ = myShepherd.getPM().newQuery("javax.jdo.query.SQL","select * from \"ENCOUNTER\" where \"OCCURRENCEREMARKS\" like \'%"+videoID+"%\' and \"INDIVIDUALID\" is not null;");
+			Query idQ = myShepherd.getPM().newQuery("javax.jdo.query.SQL","select * from \"ENCOUNTER\" where \"OCCURRENCEREMARKS\" like \'%"+videoID+"%\' and \"INDIVIDUAL\" is not null;");
 			idQ.setClass(Encounter.class);
 			
 			//Query idQ=myShepherd.getPM().newQuery(idFilter);
@@ -284,6 +284,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
 Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("intelligentAgentReview.jsp");
 
 %>
 
@@ -309,7 +310,7 @@ myShepherd.beginDBTransaction();
 try{
 	
     List<Encounter> encs=null;
-    String filter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ( submitterID == \"wildbookai\" ) && state == \"approved\" && individualID != null";  
+    String filter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ( submitterID == \"wildbookai\" ) && state == \"approved\" && individual.individualID != null";  
     Query query=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     encs=new ArrayList<Encounter>(c);
@@ -331,7 +332,7 @@ try{
     	int year=enc.getYear();
     	int month=enc.getMonth();
     	int day = enc.getDay();
-    	String localFilter="SELECT FROM org.ecocean.Encounter WHERE submitterID != \"wildbookai\" && individualID == \""+id+"\" ";  
+    	String localFilter="SELECT FROM org.ecocean.Encounter WHERE submitterID != \"wildbookai\" && individual.individualID == \""+id+"\" ";  
     	if(enc.getLocationID()!=null)localFilter+=" && locationID == \""+enc.getLocationID() + "\"";
         if(year>0)localFilter+=" && year == "+year;
     	if(month>-1)localFilter+=" && month == "+month;

@@ -10,6 +10,5 @@ INSERT INTO "FEATURETYPE" VALUES ('org.ecocean.dorsalEdge.edgeSpots', NULL);
 INSERT INTO "FEATURETYPE" VALUES ('org.ecocean.boundingBox', NULL);
 INSERT INTO "FEATURETYPE" VALUES ('org.ecocean.whaleshark.referenceSpots', NULL);
 INSERT INTO "FEATURETYPE" VALUES ('org.ecocean.whaleshark.spots', NULL);
-INSERT INTO "FEATURETYPE" VALUES ('org.ecocean.greynurseshark.referenceSpots', NULL);
-INSERT INTO "FEATURETYPE" VALUES ('org.ecocean.greynurseshark.spots', NULL);
+INSERT INTO "FEATURETYPE" VALUES ('org.ecocean.MediaAssetPlaceholder', NULL);
 
