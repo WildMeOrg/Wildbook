@@ -18,6 +18,7 @@ class JSONParser {
     
     parseNodes(iId, json) {
 	console.log("iId", JSON.stringify(iId));
+	
 	var rId = this.getRelevantId();//numerical id that increments
 	this.addNodeMapId(iId, rId);
 
@@ -38,36 +39,38 @@ class JSONParser {
 	console.log("here is the completed node map");
 	console.log(this.nodeMap);
 	console.log(this.dataDict);
-	for (let key in Object.keys(this.dataDict)){
-	    console.log(key);
-	}
-	for (let value in Object.values(this.dataDict)){
-	    console.log(value);
-	}
-	console.log(Object.entries(this.dataDict));
-	console.log(this.dataDict["\"5be19148-2128-4232-8775-70c21c6080d8\""]);
 	if(!this.dataDict[iId]){
 	    console.log("this.dataDict[iId] is undefined");
-	}else{
-	    console.log("somwthing else");
 	}
-	//end of testing the nodeMap and dataDict
+	console.log(this.dataDict[iId].displayName);
 	
-	json.map(entry => {
-	    let gId = this.getGraphId();//this will need to be changed to the individuals id from the nodeMap
+	/*json.map(entry => {
+	    let tempId = entry.MarkedIndividualName1;
+	    if(entry.markedIndividualName1 == iId){
+		tempId = entry.MarkedIndividualName2
+	    }
 	    console.log("we are mapping the return");
-	    console.log(this.nodeMap[gId]);
 	    return {
-		"id": gId,
+		"id": this.nodeMap[iId],
 		//"group": //Not in use currently
 		"data": {
-		    "name": this.dataDict[this.nodeMap[gId]].displayName,
-		    "gender": this.dataDict[this.nodeMap[gId]].sex,
-		    "genus": this.dataDict[this.nodeMap[gId]].genus
+		    "name": this.dataDict[tempId].displayName,
+		    "gender": this.dataDict[tempId].sex,
+		    "genus": this.dataDict[tempId].genus
 		    
 		}
 	    }
-	});
+	    });*/
+	var nodes = new Array();
+	
+	for(let key in this.nodeMap){
+	    console.log(key);
+	    nodes.push({"id": this.nodeMap[key], "data": {"name": this.dataDict[key].displayName, "gender": this.dataDict[key].sex, "genus": this.dataDict[key].genus}});
+	}
+	    
+	console.log(nodes);
+	
+	return nodes;
     }
 
     //TODO:  query for all markedindivudial data and create a dictionary with the ids
@@ -135,15 +138,20 @@ class JSONParser {
     getDataDictId(individualID){
 	return this.dataDict[individualID];
     }
+
+    getRelationType(entry){
+	return this.dataDict[entry].type;
+    }
     
     parseLinks(json) {
 	return json
 	    .filter(entry => {
+		console.log(entry);
 		let srcRef = entry.markedIndividualName1;
 		let targetRef = entry.markedIndividualName2;
-
+		console.log(srcRef);
 		return this.getNodeMapId(srcRef) &&
-		    this.getNodeMapId(targetref);
+		    this.getNodeMapId(targetRef);
 	    })
 	    .map(entry => {
 		let srcRef = entry.markedIndividualName1;
@@ -157,8 +165,5 @@ class JSONParser {
 	    });
     }
 
-    //TODO
-    getRelationType(entry) {
-	return "PLACEHOLDER"
-    }
-}
+    
+}//end
