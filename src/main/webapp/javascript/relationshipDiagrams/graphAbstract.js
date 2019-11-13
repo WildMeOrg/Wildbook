@@ -71,7 +71,7 @@ class GraphAbstract {
 	this.legendLinkColors = [this.paternalLinkColor, this.maternalLinkColor, this.famLinkColor];
 	this.legendLabels = ["Male Sex", "Female Sex", "Unknown Sex", "Organism",
 			     "Paternal Relationship", "Maternal Relationship",
-			     "Familal Relationship", "Member-Member Relationship"];
+			     "Familial Relationship", "Member-Member Relationship"];
 	this.legendIcons = {"size": 15, "margin": 8, "mSize": 23};
 	this.legendRowsPerCol = 4;
 	
