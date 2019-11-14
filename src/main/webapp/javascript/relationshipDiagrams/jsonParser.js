@@ -14,11 +14,15 @@ class JSONParser {
     parseJSONCallback(iId, json) {
 	this.nodes = this.parseNodes(iId, json);
 	this.links = this.parseLinks(json);
+	console.log("before print returned nodes and links");
+	console.log(this.nodes);
+	console.log(this.links);
+	console.log([this.nodes, this.links]);
+	console.log("after print nodes and links");
+	return [this.nodes, this.links];
     }
     
     parseNodes(iId, json) {
-	console.log("iId", JSON.stringify(iId));
-	
 	var rId = this.getRelevantId();//numerical id that increments
 	this.addNodeMapId(iId, rId);
 
@@ -35,14 +39,13 @@ class JSONParser {
 	    }
 	}
 
-	//testing the nodeMap and the dataDict
-	console.log("here is the completed node map");
+	/*console.log("here is the completed node map");
 	console.log(this.nodeMap);
 	console.log(this.dataDict);
 	if(!this.dataDict[iId]){
 	    console.log("this.dataDict[iId] is undefined");
 	}
-	console.log(this.dataDict[iId].displayName);
+	console.log(this.dataDict[iId].displayName);*/
 	
 	/*json.map(entry => {
 	    let tempId = entry.MarkedIndividualName1;
@@ -86,9 +89,7 @@ class JSONParser {
 	var sizeOfJSON = json.length;//number of MARKEDINDIVIDUALS
 	
 	if(sizeOfJSON >= 1){//if there is anything in the query result
-	    console.log(json);
 	    for (var i = 0; i < sizeOfJSON; i++) {//iterate over all MARKEDINDIVIDUALS
-		console.log("inside the loop that creates the dict");
 		this.dataDict[json[i].individualID] = json[i];//adding to dictionary of data referencable by individualID
 	    }
 	}
@@ -140,16 +141,17 @@ class JSONParser {
     }
 
     getRelationType(entry){
-	return this.dataDict[entry].type;
+	return entry.type;
     }
     
     parseLinks(json) {
-	return json
+	/*return json
 	    .filter(entry => {
 		console.log(entry);
 		let srcRef = entry.markedIndividualName1;
 		let targetRef = entry.markedIndividualName2;
 		console.log(srcRef);
+		console.log(targetRef);
 		return this.getNodeMapId(srcRef) &&
 		    this.getNodeMapId(targetRef);
 	    })
@@ -162,7 +164,21 @@ class JSONParser {
 		    "target": this.getNodeMapId(targetRef),
 		    "type": this.getRelationType(entry)
 		}
-	    });
+		});*/
+
+	var links = new Array();
+	for(var i = 0; i < json.length; i++) {
+	    console.log("in links creation loop");
+	    let sourceRef = json[i].markedIndividualName1;
+	    let targetRef = json[i].markedIndividualName2;
+	    let type = json[i].type;
+
+	    links.push({"sourceRef": sourceRef, "targetRef": targetRef, "type": type});
+	}
+
+	console.log(links);
+
+	return links;
     }
 
     
