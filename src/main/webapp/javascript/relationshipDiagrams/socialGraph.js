@@ -81,25 +81,23 @@ class SocialGraph extends ForceLayoutAbstract {
 			       "WHERE (this.type == \"social grouping\") && " +
 			       "(this.markedIndividualName1 == \"" + this.id +
 			       "\" || this.markedIndividualName2 == \"" + this.id + "\")");
-	d3.json(query, (error, json) => this.graphSocialData(error, json));
+	d3.json(query, (error, json) => {
+	    if(error){
+		console.error(error);
+	    }else{
+		this.parser.parseJSON(this.id, json, (nodes, links) => this.graphSocialData(nodes, links));
+	    }
+	});	
     }
 
     //Generate a social graph
-    graphSocialData(error, json) {
-	if (error) {
-	    return console.error(error);
-	}
-	else if (json.length >= 1) {
-	    console.log("before printing the results or parseJSON");
-	    var results = this.parser.parseJSON(this.id, json);
-	    if(results){
-		console.log(results);
-	    }
-	    else if(!results){
-		console.log("no results");
-	    }
-	    console.log("after printing the results of parseJSON");
-	    // this.parser.parseJSON(this.id, json);
+    graphSocialData(nodes, links) {
+	this.nodeData = nodes;
+	this.linkData = links;
+	if(nodes.length > 0) {
+	    console.log("printing nodes and links from graphSocialData to prove they are passed in correctly");
+	    console.log(this.nodeData);
+	    console.log(this.linkData);
 	    
 	    this.appendSvg("#socialDiagram");
 	    this.addLegend("#socialDiagram");

@@ -4,22 +4,21 @@ class JSONParser {
 	this.nodeMap = {};//map of the MARKEDINDIVIDUALS to be displayed on the graph
 	this.dataDict = {};//maps individualID to the rest of the individual's data
 	this.relevantId = 0;//only one of these id's is needed, will change later
+	this.linkId = 0;//id for the link
     }
     
     //Creates a relational object from JSON data
-    parseJSON(iId, json) {
-	this.getNodeRefs(json, () => this.parseJSONCallback(iId, json));
+    parseJSON(iId, json, graphCallback) {
+	this.getNodeRefs(json, () => this.parseJSONCallback(iId, json, graphCallback));
     }
 
-    parseJSONCallback(iId, json) {
-	this.nodes = this.parseNodes(iId, json);
-	this.links = this.parseLinks(json);
+    parseJSONCallback(iId, json, graphCallback) {
+	let nodes = this.parseNodes(iId, json);
+	let links = this.parseLinks(json);
 	console.log("before print returned nodes and links");
-	console.log(this.nodes);
-	console.log(this.links);
-	console.log([this.nodes, this.links]);
+	console.log([nodes, links]);
 	console.log("after print nodes and links");
-	return [this.nodes, this.links];
+	graphCallback(nodes, links);
     }
     
     parseNodes(iId, json) {
@@ -39,31 +38,6 @@ class JSONParser {
 	    }
 	}
 
-	/*console.log("here is the completed node map");
-	console.log(this.nodeMap);
-	console.log(this.dataDict);
-	if(!this.dataDict[iId]){
-	    console.log("this.dataDict[iId] is undefined");
-	}
-	console.log(this.dataDict[iId].displayName);*/
-	
-	/*json.map(entry => {
-	    let tempId = entry.MarkedIndividualName1;
-	    if(entry.markedIndividualName1 == iId){
-		tempId = entry.MarkedIndividualName2
-	    }
-	    console.log("we are mapping the return");
-	    return {
-		"id": this.nodeMap[iId],
-		//"group": //Not in use currently
-		"data": {
-		    "name": this.dataDict[tempId].displayName,
-		    "gender": this.dataDict[tempId].sex,
-		    "genus": this.dataDict[tempId].genus
-		    
-		}
-	    }
-	    });*/
 	var nodes = new Array();
 	
 	for(let key in this.nodeMap){
@@ -102,6 +76,10 @@ class JSONParser {
 
 	//Return to main
 	callback();
+    }
+
+    getLinkId(){
+	return this.linkId++;
     }
 
     getGraphId() {
@@ -145,35 +123,17 @@ class JSONParser {
     }
     
     parseLinks(json) {
-	/*return json
-	    .filter(entry => {
-		console.log(entry);
-		let srcRef = entry.markedIndividualName1;
-		let targetRef = entry.markedIndividualName2;
-		console.log(srcRef);
-		console.log(targetRef);
-		return this.getNodeMapId(srcRef) &&
-		    this.getNodeMapId(targetRef);
-	    })
-	    .map(entry => {
-		let srcRef = entry.markedIndividualName1;
-		let targetRef = entry.markedIndividualName2;
-		
-		return {
-		    "source": this.getNodeMapId(srcRef),
-		    "target": this.getNodeMapId(targetRef),
-		    "type": this.getRelationType(entry)
-		}
-		});*/
 
 	var links = new Array();
 	for(var i = 0; i < json.length; i++) {
 	    console.log("in links creation loop");
-	    let sourceRef = json[i].markedIndividualName1;
-	    let targetRef = json[i].markedIndividualName2;
+	    let linkId = this.getLinkId();
+	    let sourceRef = this.nodeMap[json[i].markedIndividualName1];
+	    let targetRef = this.nodeMap[json[i].markedIndividualName2];
+	    
 	    let type = json[i].type;
 
-	    links.push({"sourceRef": sourceRef, "targetRef": targetRef, "type": type});
+	    links.push({"linkId": linkId, "source": sourceRef, "target": targetRef, "type": type});
 	}
 
 	console.log(links);
