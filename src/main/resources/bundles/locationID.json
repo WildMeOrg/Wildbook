@@ -901,9 +901,15 @@
     },
 	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
 	
-	{ "name":"Australia", "id":"Australia", "locationID":[
-				{ "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] }
+	{ "name":"Test Sets", "id":"TestSets", "locationID":[
+				{ "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] },
+				{ "name":"SDRPTestSet", "id":"SDRPTestSet", "locationID":[] },
+				
+		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
 	] },
+	
+	
+	
 	{"name":"Miscellaneous","id":"Miscellaneous","locationID":[
 
 
@@ -914,13 +920,14 @@
 
 		{ "name":"None", "id":"None", "locationID":[] },
 
-		{ "name":"Other", "id":"Other", "locationID":[] },
+		{ "name":"Other", "id":"Other", "locationID":[] }
 
 
-		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
 
 
 	]}
+	
+	
   ]
 }
 
