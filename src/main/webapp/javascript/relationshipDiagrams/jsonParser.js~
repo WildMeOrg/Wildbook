@@ -1,4 +1,0 @@
-//Creates a relational object from JSON data
-function parseJSON(json) {
-    
-}
