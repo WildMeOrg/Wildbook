@@ -120,14 +120,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	this.getRangeSliderAttr();
 	this.updateRangeSliders();
 
-	//Establish node/link history for each slider
-	this.prevSliderData = {}
-	Object.keys(this.sliders).forEach(type => {
-	    this.prevSliderData[type] = {}
-	    this.prevSliderData[type].nodes = this.nodeData;
-	    this.prevSliderData[type].links = this.linkData;
-	});
-
 	//Initialize filter button functionalities
 	this.updateFilterButtons("#bubbleChart");
     }
@@ -137,12 +129,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	if (error) {
 	    return console.error(json);
 	}
-	else if (json.length >= 1) { //if (json.length >= 1) { //TODO
+	else if (json.length >= 1) { 
 	    //Create graph w/ forces
 	    this.setupGraph("#bubbleChart");
 	    this.updateGraph();
 	}
-	else this.showTable("#cooccurrenceDiagram", "#cooccurrenceTable"); //TODO - Fix
+	else this.showTable("#cooccurrenceDiagram", "#cooccurrenceTable");
     }
 
     //Calculate the maximum and average node differences for the spatial/temporal sliders
@@ -163,6 +155,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
 	this.sliders.spatial.max = Math.max(...distArr);
 	this.sliders.spatial.mean = distArr.reduce((a,b) => a + b, 0) / distArr.length;
+	console.log(distArr); //TODO - Remove
     }
 
     //Wrapper for finding the minimum spatial/temporal differences between two nodes
@@ -179,10 +172,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let min = Number.MAX_VALUE;
 	node1Sightings.forEach(node1 => {
 	    node2Sightings.forEach(node2 => {
-		if (type === "spatial") 
+		if (type === "spatial")
 		    val = this.calculateDist(node1.location, node2.location);
 		else if (type === "temporal")
-		    val = this.calculateTime(node1.datetime_ms, node2.datetime_ms)
+		    val = this.calculateTime(node1.datetime_ms, node2.datetime_ms);
 
 		if (val < min) min = val;
 	    });
@@ -192,8 +185,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
     //Calculate the spatial difference between two node sighting locations
     calculateDist(node1Loc, node2Loc) {
-	return Math.pow(Math.pow(node1Loc.lon - node2Loc.lon, 2) -
-			Math.pow(node1Loc.lat - node2Loc.lat, 2), 0.5);
+	return Math.pow(Math.abs(Math.pow(node1Loc.lon - node2Loc.lon, 2) -
+				 Math.pow(node1Loc.lat - node2Loc.lat, 2)), 0.5);
     }
 
     //Calculate the temporal difference between two node sightings
@@ -232,30 +225,41 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
     //TODO - Add support for saved local family filters
     //Apply absolute filters (i.e. thresholding)
-    absoluteFilterGraph(nodeFilter, linkFilter, occType) {
-	//Switch slider context
-	let type = (occType === "spatial") ? "temporal" : "spatial";
-
+    absoluteFilterGraph(nodeFilter, linkFilter, type) {
+	console.log("Type", type);
 	//Remove any nodes who no longer qualify to be filtered
-	this.svg.selectAll(".node").filter(d => nodeFilter(d) && d.filtered)
+	this.svg.selectAll(".node").filter(d => nodeFilter(d) && d.filtered === type)
 	    .remove();
-
-	//Mark nodes concerning whether they should be filtered
-	this.prevSliderData[type].nodes.filter(d => nodeFilter(d))
-	    .forEach(d => d.filtered = false);
-	this.prevSliderData[type].nodes.filter(d => !nodeFilter(d))
-	    .forEach(d => d.filtered = true);
-
-	//Identify node data which should be rendered
-	console.log(linkFilter);
-	this.prevSliderData[occType].links = this.prevSliderData[type].links.filter(linkFilter)
-	this.prevSliderData[occType].nodes = this.prevSliderData[type].nodes.filter(nodeFilter)
 	
-	console.log(this.prevNodeData);
-	console.log(this.prevLinkData);
+	//Mark nodes concerning whether they should be filtered
+	this.nodeData.filter(d => nodeFilter(d))
+	    .forEach(d => {
+		if (d.filtered === type) d.filtered = false;
+	    });
+	this.nodeData.filter(d => !nodeFilter(d))
+	    .forEach(d => {
+		if (!d.filtered) d.filtered = type;
+	    });
+	
+	//Mark links concerning whether they should be filtered
+	this.linkData.filter(d => linkFilter(d))
+	    .forEach(d => {
+		if (d.filtered === type) d.filtered = false;
+	    });
+	this.linkData.filter(d => !linkFilter(d))
+	    .forEach(d => {
+		if (!d.filtered) d.filtered = type;
+	    });
+	
+	//Identify node data which should be rendered
+	let linkData = this.linkData.filter(d => linkFilter(d) && !d.filtered)
+	let nodeData = this.nodeData.filter(d => nodeFilter(d) && !d.filtered)
 
+	console.log(linkData);
+	console.log(nodeData);
+	
 	//Update the graph with filtered data
-	this.updateGraph(this.prevSliderData[occType].links, this.prevSliderData[occType].nodes);
+	this.updateGraph(linkData, nodeData);
     }
 }
 

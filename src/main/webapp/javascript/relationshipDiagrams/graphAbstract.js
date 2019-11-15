@@ -8,7 +8,7 @@ class GraphAbstract {
 	//SVG Attributes
 	this.svg;
 
-	this.width = 1170;
+	this.width = 1150;
 	this.height = 500;
 	this.margin = {top: 20, right: 120, bottom: 20, left: 120};
 
@@ -40,7 +40,7 @@ class GraphAbstract {
 	this.alphaColor = "#bf0000";
 
 	this.defNodeColor = "#fff";
-	this.fixedNodeColor = "#ccc";	
+	this.fixedNodeColor = "#ddd";	
 	
 	this.defLinkColor = "#a6a6a6";
 	this.famLinkColor = "#a6a6a6"; //"#b59eda";
@@ -63,16 +63,17 @@ class GraphAbstract {
 	this.tooltipOpacity = 0.9;
 
 	//Legend Attributes
-	this.legendMargin = {"top": 30, "right": 30, "bottom": 30, "left": 30}
-        this.legendDimensions = {"width": 306.5, "height": 200};
+	this.legendMargin = {"top": 25, "right": 25, "bottom": 25, "left": 25}
+        this.legendDimensions = {"width": 285, "height": 200};
 	this.legendOffset = {"horiz": this.width - (this.legendDimensions.width + this.legendMargin.right),
 			     "vert": this.legendMargin.top};
 	this.legendNodeColors = [this.maleColor, this.femaleColor, this.defGenderColor];
 	this.legendLinkColors = [this.paternalLinkColor, this.maternalLinkColor, this.famLinkColor];
 	this.legendLabels = ["Male Sex", "Female Sex", "Unknown Sex", "Organism",
 			     "Paternal Relationship", "Maternal Relationship",
-			     "Familial Relationship", "Member-Member Relationship"];
+			     "Familial Relationship", "Member Relationship"];
 	this.legendIcons = {"size": 15, "margin": 8, "mSize": 23};
+	this.legendStrokeWidth = 2;
 	this.legendRowsPerCol = 4;
 	
 	//Json Parser Attributes
@@ -130,7 +131,7 @@ class GraphAbstract {
 
 	//TODO - Finish
 	//Apply background coloration
-	/*legendRef.append('rect')
+	/*legendRef.append("rect")
 	    .attr("width", "100%")
 	    .attr("height", "100%")
 	    .attr("fill", "#eeeeee")
@@ -141,22 +142,23 @@ class GraphAbstract {
 
 	//TODO - Consider adding strong repulsive force to legend
 	//Add legend gender color-key
-	legendRef.selectAll('rect')
+	legendRef.selectAll("rect")
 	    .data(this.legendNodeColors).enter()
-            .append('rect')
-            .attr('x', () => Math.floor(xIdx++ / rowsPerCol) * rowSpacing)
-            .attr('y', () => (yIdx++ % rowsPerCol) * this.legendIcons.mSize)
-            .attr('width', this.legendIcons.size)
-            .attr('height', this.legendIcons.size)
-            .attr('fill', d => d);
+            .append("rect")
+            .attr("x", () => Math.floor(xIdx++ / rowsPerCol) * rowSpacing)
+            .attr("y", () => (yIdx++ % rowsPerCol) * this.legendIcons.mSize)
+            .attr("width", this.legendIcons.size)
+            .attr("height", this.legendIcons.size)
+            .attr("fill", d => d);
 
 	//Add organism circle example
-	legendRef.append('circle')
-            .attr('cx', (Math.floor(xIdx++ / rowsPerCol) * rowSpacing) + this.legendIcons.size / 2)
-            .attr('cy', ((yIdx++ % rowsPerCol) * this.legendIcons.mSize) + this.legendIcons.size / 2)
-            .attr('r', this.legendIcons.size / 2)
-            .attr('fill', this.defNodeColor)
-            .attr('stroke', this.defGenderColor);
+	legendRef.append("circle")
+            .attr("cx", (Math.floor(xIdx++ / rowsPerCol) * rowSpacing) + this.legendIcons.size / 2)
+            .attr("cy", ((yIdx++ % rowsPerCol) * this.legendIcons.mSize) + this.legendIcons.size / 2)
+            .attr("r", this.legendIcons.size / 2)
+            .attr("fill", this.defNodeColor)
+            .attr("stroke", this.defGenderColor)
+	    .attr('stroke-width', this.legendStrokeWidth);
 	
 	//Add familial relationship links
 	this.legendLinkColors.forEach(color => {
@@ -166,17 +168,18 @@ class GraphAbstract {
 	});
 
 	//Add member-member relationship link
-	legendRef.append('line')
-	    .attr('x1', Math.floor(xIdx / rowsPerCol) * rowSpacing)
-	    .attr('x2', (Math.floor(xIdx++ / rowsPerCol) * rowSpacing) + this.legendIcons.size)
-	    .attr('y1', (yIdx % rowsPerCol) * this.legendIcons.mSize + (this.legendIcons.size / 2))
-	    .attr('y2', (yIdx++ % rowsPerCol) * this.legendIcons.mSize + (this.legendIcons.size / 2))
-	    .attr('stroke', this.defLinkColor);
+	legendRef.append("line")
+	    .attr("x1", Math.floor(xIdx / rowsPerCol) * rowSpacing)
+	    .attr("x2", (Math.floor(xIdx++ / rowsPerCol) * rowSpacing) + this.legendIcons.size)
+	    .attr("y1", (yIdx % rowsPerCol) * this.legendIcons.mSize + (this.legendIcons.size / 2))
+	    .attr("y2", (yIdx++ % rowsPerCol) * this.legendIcons.mSize + (this.legendIcons.size / 2))
+	    .attr("stroke", this.defLinkColor)
+	    .attr("stroke-width", this.legendStrokeWidth);
 
 	//Add legend labels
-	legendRef.selectAll('text')
+	legendRef.selectAll("text")
             .data(this.legendLabels).enter()
-            .append('text')
+            .append("text")
             .attr("x", (d, i) => (Math.floor(i / rowsPerCol) * rowSpacing) + this.legendIcons.mSize)
             .attr("y", (d, i) => ((i % rowsPerCol) * this.legendIcons.mSize) + this.legendIcons.size)
             .text(d => d);
@@ -341,15 +344,34 @@ class GraphAbstract {
 
     //Draws a simple arrow (used for the legend arrow icons)
     drawLegendArrow(legendRef, x, y,color){
+	//Calculate median line
 	let yCenter = y + (this.legendIcons.size / 2)
-	legendRef.append('line').attr('x1', x).attr('x2', x + this.legendIcons.size)
-	    .attr('y1', yCenter).attr('y2', yCenter).attr('stroke', color)     
 
-	legendRef.append('line').attr('x1', x + (this.legendIcons.size * 3 / 4)).attr('x2', x + this.legendIcons.size)
-	    .attr('y1', yCenter - 5).attr('y2', yCenter).attr('stroke', color)
-	
-	legendRef.append('line').attr('x1', x + (this.legendIcons.size * 3 / 4)).attr('x2', x + this.legendIcons.size)
-	    .attr('y1', yCenter + 5).attr('y2', yCenter).attr('stroke', color)
+	//Draw a horizontal line component
+	legendRef.append("line")
+	    .attr("x1", x)
+	    .attr("x2", x + this.legendIcons.size)
+	    .attr("y1", yCenter)
+	    .attr("y2", yCenter)
+	    .attr("stroke", color)
+	    .attr('stroke-width', this.legendStrokeWidth);
+
+	//Draw the top half of the chevron arrowhead
+	legendRef.append("line")
+	    .attr("x1", x + (this.legendIcons.size * 3 / 4))
+	    .attr("x2", x + this.legendIcons.size)
+	    .attr("y1", yCenter - 5)
+	    .attr("y2", yCenter).attr("stroke", color)
+	    .attr('stroke-width', this.legendStrokeWidth);
+
+	//Draw the bottom half of the chevron arrowhead
+	legendRef.append("line")
+	    .attr("x1", x + (this.legendIcons.size * 3 / 4))
+	    .attr("x2", x + this.legendIcons.size)
+	    .attr("y1", yCenter + 5)
+	    .attr("y2", yCenter)
+	    .attr("stroke", color)
+	    .attr('stroke-width', this.legendStrokeWidth);
     }
     
     //Abstract funciton serving to update known filter buttons with relevant filters
