@@ -126,7 +126,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    this.prevSliderData[type] = {}
 	    this.prevSliderData[type].nodes = this.nodeData;
 	    this.prevSliderData[type].links = this.linkData;
-	});					  
+	});
+
+	//Initialize filter button functionalities
+	this.updateFilterButtons("#bubbleChart");
     }
 
     //Generate a co-occurrence graph
@@ -197,7 +200,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     calculateTime(node1Time, node2Time) {
 	return Math.abs(node1Time - node2Time)
     }
-
+    
     //Update known range sliders (this.sliders) with contextual ranges/values
     updateRangeSliders() {
 	Object.values(this.sliders).forEach(slider => {
@@ -208,11 +211,17 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    sliderNode.change(() =>
 			      this.filterByOccurrence(this, parseInt(sliderNode.val()),
 						      slider.ref));
+
+	    //Update slider label value
+	    $("#" + slider.ref + "Val").text(slider.max)
 	});
     }
 
     //Filter nodes by spatial/temporal differences, displaying those less than the set threshold
     filterByOccurrence(self, threshold, occType) {
+	//Update slider label value
+	$("#" + occType + "Val").text(threshold)
+	
 	let focusedNode = self.nodeData.find(d => d.data.isFocused);
 	let nodeFilter = (d) => (self.getMin(focusedNode, d, occType) <= threshold)
 	let linkFilter = (d) => (self.getMin(focusedNode, d.source, occType) <= threshold) &&

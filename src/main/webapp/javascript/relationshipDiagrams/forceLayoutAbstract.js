@@ -49,6 +49,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 
 	//Setup link styling
 	this.defineArrows();
+
+	//Setup intial focused node
+	this.focusedNode = this.nodeData.filter(d => d.data.isFocused)[0];
     }
 
     //Initialize forces without data context
@@ -272,8 +275,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     //Handle all general forceLayout node/link filters
     handleFilter(groupNum) {
-	if (this.shiftKey() && this.ctrlKey()) this.resetGraph(); 
-	else if (this.shiftKey()) { //Filter Inverse of Selected Family
+	if (this.shiftKey()) { //Filter Inverse of Selected Family
 	    let filter = (d) => d.group === groupNum;
 	    this.filterGraph(groupNum, filter, filter, "inverse_family");
 	}
