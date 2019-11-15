@@ -175,16 +175,32 @@ class ForceLayoutAbstract extends GraphAbstract {
 
 	//Join w/ existing nodes
 	this.nodes = this.nodes.raise().merge(nodes);
-
+	
 	//Grow node radius
 	this.nodes.selectAll("circle").transition()
 	    .duration(this.transitionDuration)
-	    .attr("r", d => this.radius * this.getSizeScalar(d));
+	    .attr("r", d => this.radius * this.getSizeScalar(d))
+	    .style("stroke-width", d => {
+		let a = this.strokeWidth * this.getSizeScalar(d)
+		console.log(a);
+		return a + "px";
+	    });
+
+	//Grow node text
+	this.nodes.selectAll("text").transition()
+	    .duration(this.transitionDuration)
+	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
+	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
 
 	//Fade node symbol in
 	this.nodes.selectAll(".symb").transition()
 	    .duration(this.transitionDuration)
-	    .attr("fill-opacity", 1);
+	    .style("fill-opacity", 1)
+	    .attr("transform", d => {
+		let radialPos = Math.cos(Math.PI / 4);
+		let pos = this.radius * this.getSizeScalar(d) * radialPos;
+		return "translate(" + pos + "," + -pos + ")";
+	    });
 	
 	//Fade nodes in
 	this.nodes.transition()
@@ -233,16 +249,26 @@ class ForceLayoutAbstract extends GraphAbstract {
     //Attach node listeners for click and drag operations
     enableNodeInteraction() {
 	this.nodes.on('dblclick', (d, i, nodeList) => this.releaseNode(d, nodeList[i]))
-	    .on('click', d => {
-		console.log(d3.event); //TODO - Remove
-
-		//Handle filter events
-		this.handleFilter(d.group);
-	    })
+	    .on('click', d => this.focusNode(d))
 	    .call(d3.drag()
 		  .on("start", d => this.dragStarted(d))
 		  .on("drag", d => this.dragged(d))
 		  .on("end", (d, i, nodeList) => this.dragEnded(d, nodeList[i])));
+    }
+
+    focusNode(d) {
+	//Focus targeted node
+	if (this.ctrlKey()) {
+	    //Unfocus all nodes
+	    this.svg.selectAll(".node").each(d => d.data.isFocused = false);
+	    
+	    //Focus the target node
+	    d.data.isFocused = true;
+	    this.focusedNode = d;
+	    
+	    //Update the graph
+	    this.updateGraph();
+	}
     }
 
     //Begin moving node on drag, allow for graph interactions
@@ -281,6 +307,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	d3.select(node).select("circle").style("fill", this.defNodeColor);
     }
 
+    //TODO - Determine if this is a desired feature
     //Handle all general forceLayout node/link filters
     handleFilter(groupNum) {
 	if (this.shiftKey()) { //Filter Inverse of Selected Family

@@ -168,8 +168,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     //TODO - Consider strip optimizations
     //Find the minimum spatial/temporal difference between two node sightings
     getMinBruteForce(node1Sightings, node2Sightings, type) {
-	let val;
-	let min = Number.MAX_VALUE;
+	let val, min = Number.MAX_VALUE;
 	node1Sightings.forEach(node1 => {
 	    node2Sightings.forEach(node2 => {
 		if (type === "spatial")
@@ -255,9 +254,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let linkData = this.linkData.filter(d => linkFilter(d) && !d.filtered)
 	let nodeData = this.nodeData.filter(d => nodeFilter(d) && !d.filtered)
 
-	console.log(linkData);
-	console.log(nodeData);
-	
 	//Update the graph with filtered data
 	this.updateGraph(linkData, nodeData);
     }
