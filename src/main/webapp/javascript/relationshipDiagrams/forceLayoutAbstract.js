@@ -291,6 +291,8 @@ class ForceLayoutAbstract extends GraphAbstract {
     resetGraph() {
 	for (let filter in this.filtered) this.filtered[filter] = {};
 	this.svg.selectAll(".node").filter(d => d.filtered).remove();
+	this.prevNodeData = this.nodeData;
+	this.prevLinkData = this.linkData;
 	this.updateGraph();
     }
 

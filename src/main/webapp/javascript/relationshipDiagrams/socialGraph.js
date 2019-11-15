@@ -94,11 +94,8 @@ class SocialGraph extends ForceLayoutAbstract {
     graphSocialData(nodes, links) {
 	this.nodeData = nodes;
 	this.linkData = links;
-	if(nodes.length > 0) {
-	    this.appendSvg("#socialDiagram");
-	    this.addLegend("#socialDiagram");
-	    this.addTooltip("#socialDiagram");	    
 
+	if(nodes.length > 0) {
 	    //Create graph w/ forces
 	    this.setupGraph("#socialDiagram");
 	    this.updateFilterButtons("#socialDiagram");
