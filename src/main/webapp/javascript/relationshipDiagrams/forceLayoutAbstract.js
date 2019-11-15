@@ -157,6 +157,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .attr("r", this.startingRadius)
 	    .style("fill", d => this.colorGender(d))
 	    .style("stroke-width", 0);
+
+	//Mark added nodes as un-collapsed
+	nodes.enter().data().forEach(d => d.collapsed = false);
 	
 	//Update new nodes
 	this.nodes = nodes.enter().append("g")
@@ -230,7 +233,12 @@ class ForceLayoutAbstract extends GraphAbstract {
     //Attach node listeners for click and drag operations
     enableNodeInteraction() {
 	this.nodes.on('dblclick', (d, i, nodeList) => this.releaseNode(d, nodeList[i]))
-	    .on('click', d => this.handleFilter(d.group))
+	    .on('click', d => {
+		console.log(d3.event); //TODO - Remove
+
+		//Handle filter events
+		this.handleFilter(d.group);
+	    })
 	    .call(d3.drag()
 		  .on("start", d => this.dragStarted(d))
 		  .on("drag", d => this.dragged(d))

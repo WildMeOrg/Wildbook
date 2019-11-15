@@ -345,6 +345,7 @@ div .tooltip {
     color: #333;
     background: #fff;
     border: 2px solid #7997a1;
+    border-radius: 5px;
 }
 
 #reset:hover, #filterFamily:hover, #selectFamily:hover {
