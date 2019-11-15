@@ -200,6 +200,14 @@ class ForceLayoutAbstract extends GraphAbstract {
 		let radialPos = Math.cos(Math.PI / 4);
 		let pos = this.radius * this.getSizeScalar(d) * radialPos;
 		return "translate(" + pos + "," + -pos + ")";
+	    })
+	    .attr("d", d => {
+		return d3.symbol().type(d3.symbolCircle)
+		    .size(() => {
+			if (d.data.role && d.data.role.toUpperCase() == "ALPHA")
+			    return this.alphaSymbSize * this.getSizeScalar(d);
+			else return 0;
+		    })();
 	    });
 	
 	//Fade nodes in
