@@ -15,7 +15,7 @@ class SocialGraph extends ForceLayoutAbstract {
 		"id": 0,
 		"group": 0,
 		"data": {
-		    "name": "Lion A",
+		    "name": "MUFASA",
 		    "gender": "female",
 		    "role": "alpha",
 		    "isFocused": true
@@ -81,16 +81,23 @@ class SocialGraph extends ForceLayoutAbstract {
 			       "WHERE (this.type == \"social grouping\") && " +
 			       "(this.markedIndividualName1 == \"" + this.id +
 			       "\" || this.markedIndividualName2 == \"" + this.id + "\")");
-	d3.json(query, (error, json) => this.graphSocialData(error, json));
+	d3.json(query, (error, json) => {
+	    if(error){
+		console.error(error);
+	    }else{
+		this.parser.parseJSON(this.id, json, (nodes, links) => this.graphSocialData(nodes, links));
+	    }
+	});	
     }
 
     //Generate a social graph
-    graphSocialData(error, json) {
-	if (error) {
-	    return console.error(error);
-	}
-	else if (json.length >= 1) {
-	    console.log(this.parser.parseJSON(json));
+    graphSocialData(nodes, links) {
+	this.nodeData = nodes;
+	this.linkData = links;
+	if(nodes.length > 0) {
+	    this.appendSvg("#socialDiagram");
+	    this.addLegend("#socialDiagram");
+	    this.addTooltip("#socialDiagram");	    
 
 	    //Create graph w/ forces
 	    this.setupGraph("#socialDiagram");
