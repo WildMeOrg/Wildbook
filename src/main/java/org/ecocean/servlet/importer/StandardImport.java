@@ -1010,7 +1010,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
   public String getSpeciesString(Row row) {
   	String genus = getString(row, "Encounter.genus");
-  	String species = getString(row, "Encounter.species");
+  	String species = getString(row, "Encounter.specificEpithet");
 		String total = genus+" "+species;
 		if (total==null||total.equals(" ")) total = "unknown";
 		return total;
