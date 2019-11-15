@@ -64,7 +64,7 @@ class GraphAbstract {
 
 	//Legend Attributes
 	this.legendMargin = {"top": 25, "right": 25, "bottom": 25, "left": 25}
-        this.legendDimensions = {"width": 285, "height": 200};
+        this.legendDimensions = {"width": 265, "height": 200};
 	this.legendOffset = {"horiz": this.width - (this.legendDimensions.width + this.legendMargin.right),
 			     "vert": this.legendMargin.top};
 	this.legendNodeColors = [this.maleColor, this.femaleColor, this.defGenderColor];
@@ -377,7 +377,6 @@ class GraphAbstract {
     //Abstract funciton serving to update known filter buttons with relevant filters
     updateFilterButtons(parentRef) {
 	$(parentRef).find("#selectFamily").on("click", () => {
-	    console.log(this.focusedNode);
 	    let groupNum = this.focusedNode.group;
 	    let filter = (d) => d.group === groupNum;
 	    this.filterGraph(groupNum, filter, filter, "inverse_family");
