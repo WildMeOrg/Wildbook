@@ -1406,6 +1406,12 @@ if (sharky.getNames() != null) {
         </div>
 
 	<div id="socialDiagram" class="socialVis">
+	  <div id="buttons" class="btn-group btn-group-sm" role="group">
+	    <button type="button" id="selectFamily">Select Family</button>
+	    <button type="button" id="filterFamily">Filter Family</button>
+            <button type="button" id="reset">Reset</button>
+	  </div>
+
 	  <% String individualID = sharky.getIndividualID();%>	
 	  <script type="text/javascript">
 	    setupSocialGraph("<%=individualID%>");
@@ -1546,20 +1552,20 @@ if (sharky.getNames() != null) {
 
           <div id="cooccurrenceDiagram">
 	    <div id="bubbleChart">
-              <div id="buttons" class="btn-group btn-group-sm" role="group">
-                <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-                <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
-                <button type="button" class="btn btn-default" id="reset">Reset</button>
+	      <div id="buttons" class="btn-group btn-group-sm" role="group">
+		<button type="button" id="selectFamily">Select Family</button>
+		<button type="button" id="filterFamily">Filter Family</button>
+                <button type="button" id="reset">Reset</button>
               </div>
             </div>
   	    <div id="cooccurrenceSliders">
-	      <label for="temporal">Temporal Slider</label>
 	      <div class="sliderWrapper">
-                <input type="range" min=0 class="slider" id="temporal">
+		<label for="temporal">Temporal Slider - <span id="temporalVal"></span></label>
+                <input type="range" min=0 class="cooccurrenceSlider" id="temporal">
 	      </div>
-	      <label for="spatial">Spatial Slider</label>
 	      <div class="sliderWrapper">
-		<input type="range" min=0 class="slider" id="spatial">
+		<label for="spatial">Spatial Slider - <span id="spatialVal"></span></label>
+		<input type="range" min=0 class="cooccurrenceSlider" id="spatial">
 	      </div>
 	    </div>
 	    <script type="text/javascript">

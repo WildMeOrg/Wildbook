@@ -94,7 +94,8 @@ class SocialGraph extends ForceLayoutAbstract {
 
 	    //Create graph w/ forces
 	    this.setupGraph("#socialDiagram");
-	    this.updateGraph();	    
+	    this.updateFilterButtons("#socialDiagram");
+	    this.updateGraph();
 	}
 	else this.showTable("#socialDiagram", "#communityTable");
     }

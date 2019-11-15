@@ -262,6 +262,60 @@ div .tooltip {
   border-radius: 5px;
 }
 
+#cooccurrenceSliders {
+  display:flex;
+  flex-direction:row;
+  justify-content: space-around;
+}
+
+.sliderWrapper {
+  width: 40%;
+}
+
+#temporalVal, #spatialVal {
+    font-weight: 550;
+}
+
+.cooccurrenceSlider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 7px;
+  border-radius: 5px;  
+  background-color: #c9d5d9;
+  outline: none !important;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.cooccurrenceSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%; 
+  background: #7997A1;
+  outline: none !important;
+  cursor: pointer;
+}
+
+.cooccurrenceSlider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #7997A1;
+  outline: none !important;
+  cursor: pointer;
+}
+
+.cooccurrenceSlider:focus, .cooccurrenceSlider:active {
+    outline: none !important;
+}
+
+.cooccurrenceSlider::-moz-focus-inner {
+    border: 0;
+}
+
 .bubbleChart {
   width: auto;
   height: 350px;
@@ -281,9 +335,20 @@ div .tooltip {
   max-height: 350px;
 }
 
-#zoomIn, #zoomOut, #reset, #resetButton {
+#zoomIn, #zoomOut, #resetButton {
   background: #FFFFFF;
   color: navy;
+}
+
+#reset, #filterFamily, #selectFamily {
+    font-size: 15px;
+    color: #333;
+    background: #fff;
+    border: 2px solid #7997a1;
+}
+
+#reset:hover, #filterFamily:hover, #selectFamily:hover {
+    background: #ddd;
 }
 
 button#zoomIn.btn.btn-default{

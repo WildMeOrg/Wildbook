@@ -8,7 +8,7 @@ class GraphAbstract {
 	//SVG Attributes
 	this.svg;
 
-	this.width = 960;
+	this.width = 1170;
 	this.height = 500;
 	this.margin = {top: 20, right: 120, bottom: 20, left: 120};
 
@@ -64,8 +64,8 @@ class GraphAbstract {
 
 	//Legend Attributes
 	this.legendMargin = {"top": 30, "right": 30, "bottom": 30, "left": 30}
-        this.legendDimensions = {"width": 380, "height": 200};
-	this.legendOffset = {"horiz": this.width - this.legendDimensions.width + this.legendMargin.right,
+        this.legendDimensions = {"width": 306.5, "height": 200};
+	this.legendOffset = {"horiz": this.width - (this.legendDimensions.width + this.legendMargin.right),
 			     "vert": this.legendMargin.top};
 	this.legendNodeColors = [this.maleColor, this.femaleColor, this.defGenderColor];
 	this.legendLinkColors = [this.paternalLinkColor, this.maternalLinkColor, this.famLinkColor];
@@ -351,6 +351,25 @@ class GraphAbstract {
 	legendRef.append('line').attr('x1', x + (this.legendIcons.size * 3 / 4)).attr('x2', x + this.legendIcons.size)
 	    .attr('y1', yCenter + 5).attr('y2', yCenter).attr('stroke', color)
     }
+    
+    //Abstract funciton serving to update known filter buttons with relevant filters
+    updateFilterButtons(parentRef) {
+	$(parentRef).find("#selectFamily").on("click", () => {
+	    console.log(this.focusedNode);
+	    let groupNum = this.focusedNode.group;
+	    let filter = (d) => d.group === groupNum;
+	    this.filterGraph(groupNum, filter, filter, "inverse_family");
+	});
+	$(parentRef).find("#filterFamily").on("click", () => {
+	    console.log(this.focusedNode);
+	    let groupNum = this.focusedNode.group;
+	    let nodeFilter = (d) => d.group !== groupNum;
+	    let linkFilter = (d) => (d.source.group !== groupNum &&
+				     d.target.group !== groupNum);
+	    this.filterGraph(groupNum, nodeFilter, linkFilter, "family");
 
+	});
+	$(parentRef).find("#reset").on("click", () => this.resetGraph());
+    }
 }
 
