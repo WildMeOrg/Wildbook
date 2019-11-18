@@ -380,7 +380,6 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 	<div id = "confirm-negative-dialog" style="display: none" title = "Confirm no match?" >
-		Why the fuck is this
 	</div>
 
 
