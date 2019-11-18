@@ -43,6 +43,7 @@ org.json.JSONArray
     <th>trial id</th>
     <th>seq</th>
     <th>time</th>
+    <th>time delta</th>
     <th>timestamp</th>
     <th>username</th>
     <th>trial</th>
@@ -92,6 +93,7 @@ for (Object o : all) {
             start = pair.optLong("t", -1L);
             DateTime st = new DateTime(start);
             out.println("<td>" + st.toString().substring(0,19).replace("T", " ") + "</td>");
+            out.println("<td>0</td>");
             prev = start;
         } else {
             long t = pair.optLong("t", -2L);
@@ -99,6 +101,7 @@ for (Object o : all) {
             double min = Math.round(((t - start) / 60) / 10d) / 100d;
             double delta = Math.round((t - prev) / 100d) / 10d;
             out.println("<td>+ " + min + " min &nbsp; \u0394" + delta + "s</td>");
+            out.println("<td>" + delta + "</td>");
             prev = t;
         }
         out.println("<td>" + (pair.optLong("t", -3L) / 1000L) + "</td>");
