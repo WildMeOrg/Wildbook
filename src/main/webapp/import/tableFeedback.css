@@ -25,6 +25,10 @@ div.tableFeedbackWrapper th {
   color: #fff;
 }
 
+.tableFeedbackColumnHeader {
+  color: black;
+  text-decoration-color: black;
+}
 
 /* Rotate table headers */
 th.rotate {
