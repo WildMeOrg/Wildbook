@@ -41,8 +41,10 @@ class JSONParser {
 	var nodes = new Array();
 	
 	for(let key in this.nodeMap){
+	    var name = this.dataDict[key].displayName;
+	    name = name.substring(name.indexOf(" ") + 1);
 	    console.log(key);
-	    nodes.push({"id": this.nodeMap[key], "data": {"name": this.dataDict[key].displayName, "gender": this.dataDict[key].sex, "genus": this.dataDict[key].genus}});
+	    nodes.push({"id": this.nodeMap[key], "data": {"name": name, "gender": this.dataDict[key].sex, "genus": this.dataDict[key].genus, "dateFirstIdentified": this.dataDict[key].dateFirstIdentified, "numberEncounters": this.dataDict[key].numberEncounters, "timeOfBirth": this.dataDict[key].timeOfBirth}});
 	}
 	    
 	console.log(nodes);
