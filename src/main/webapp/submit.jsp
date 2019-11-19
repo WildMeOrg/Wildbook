@@ -527,7 +527,7 @@ console.log('llList => %o', llList);
         }
         h += '</p>';
     }
-    $('#comments').val(h);
+    //$('#comments').val(h);
 }
 
 
