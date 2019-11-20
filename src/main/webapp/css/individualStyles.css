@@ -350,6 +350,10 @@ div .tooltip {
 
 #reset:hover, #filterFamily:hover, #selectFamily:hover {
     background: #ddd;
+				   }
+
+#reset:active, #filterFamily:active, #selectFamily:active {
+    background: #ddd;
 }
 
 button#zoomIn.btn.btn-default{

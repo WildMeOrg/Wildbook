@@ -140,11 +140,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     //Calculate the maximum and average node differences for the spatial/temporal sliders
     getRangeSliderAttr() {
 	let distArr = [], timeArr = []
-	let focusedNode = this.nodeData.find(d => d.data.isFocused);
 	this.nodeData.forEach(d => {
-	    if (d.id !== focusedNode.id) {
-		let dist = this.getMin(focusedNode, d, "spatial");
-		let time = this.getMin(focusedNode, d, "temporal");
+	    if (d.id !== this.focusedNode.id) {
+		let dist = this.getMin(this.focusedNode, d, "spatial");
+		let time = this.getMin(this.focusedNode, d, "temporal");
 		distArr.push(dist)
 		timeArr.push(time);
 	    }
@@ -200,9 +199,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    let sliderNode = $("#" + slider.ref);
 	    sliderNode.attr("max", slider.max);
 	    sliderNode.val(slider.max);
-	    sliderNode.change(() =>
-			      this.filterByOccurrence(this, parseInt(sliderNode.val()),
-						      slider.ref));
+	    sliderNode.change(() => {
+		this.filterByOccurrence(this, parseInt(sliderNode.val()), slider.ref)
+	    });
+	    sliderNode.on("click", (e) => e.preventDefault()); //Prevent default scroll-to-focus
 
 	    //Update slider label value
 	    $("#" + slider.ref + "Val").text(slider.max)
@@ -225,37 +225,55 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     //TODO - Add support for saved local family filters
     //Apply absolute filters (i.e. thresholding)
     absoluteFilterGraph(nodeFilter, linkFilter, type) {
-	console.log("Type", type);
 	//Remove any nodes who no longer qualify to be filtered
 	this.svg.selectAll(".node").filter(d => nodeFilter(d) && d.filtered === type)
 	    .remove();
 	
 	//Mark nodes concerning whether they should be filtered
-	this.nodeData.filter(d => nodeFilter(d))
-	    .forEach(d => {
-		if (d.filtered === type) d.filtered = false;
-	    });
-	this.nodeData.filter(d => !nodeFilter(d))
-	    .forEach(d => {
-		if (!d.filtered) d.filtered = type;
-	    });
+	this.nodeData.forEach(d => {
+	    if (nodeFilter(d) && d.filtered === type) d.filtered = false;
+		else if (!nodeFilter(d) && (!d.filtered ||
+					    d.filtered === "family_filter")) d.filtered = type;
+	});
 	
 	//Mark links concerning whether they should be filtered
-	this.linkData.filter(d => linkFilter(d))
-	    .forEach(d => {
-		if (d.filtered === type) d.filtered = false;
-	    });
-	this.linkData.filter(d => !linkFilter(d))
-	    .forEach(d => {
-		if (!d.filtered) d.filtered = type;
-	    });
+	this.linkData.forEach(d => {
+	    if (linkFilter(d) && d.filtered === type) d.filtered = false;
+	    if (!linkFilter(d) && (!d.filtered ||
+				   d.filtered === "family_filter")) d.filtered = type;
+	});
 	
 	//Identify node data which should be rendered
-	let linkData = this.linkData.filter(d => linkFilter(d) && !d.filtered)
-	let nodeData = this.nodeData.filter(d => nodeFilter(d) && !d.filtered)
+	this.prevLinkData = this.linkData.filter(d => linkFilter(d) && !d.filtered
+						 && !(d.source.filtered || d.target.filtered));
+	this.prevNodeData = this.nodeData.filter(d => nodeFilter(d) && !d.filtered)
 
 	//Update the graph with filtered data
-	this.updateGraph(linkData, nodeData);
+	this.updateGraph(this.prevLinkData, this.prevNodeData);
+    }
+
+    //Swap node focus w/ contextual co-occurence slider updates
+    focusNode(d) {
+	if (super.focusNode(d)) {
+	    //Re-calculate slider values
+	    this.getRangeSliderAttr();
+
+	    //Reset graph - TODO fix this to only reset spatial/temporal
+	    this.resetGraph();
+	}
+    }
+
+    //Reset the graph s.t. no filters are applied
+    resetGraph() {
+	//Reset all filtered nodes
+	super.resetGraph();
+	
+	//Reset slider text and value
+	Object.values(this.sliders).forEach(slider => {
+	    $("#" + slider.ref + "Val").text(slider.max)
+	    $("#" + slider.ref).attr("max", slider.max);
+	    $("#" + slider.ref).val(slider.max)
+	});
     }
 }
 
