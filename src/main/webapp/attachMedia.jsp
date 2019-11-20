@@ -1129,7 +1129,6 @@ console.info('OFFSET... DONE mediaData!!!!!');
 //console.info('%d => %o', i, pos[i]);
             });
             sel.each(function(i, el) {
-                console.warn(el);
                 $('#bulk-media-drag-div').append(el);
             });
         }
@@ -1150,13 +1149,17 @@ console.info('OFFSET... DONE mediaData!!!!!');
         },
         drop: function(ev, ui) {
             $('#prox-info').hide();
-console.log('drop!!! %o   .... ui %o', ev, ui);
+//console.log('drop!!! %o   .... ui %o', ev, ui);
             ui.draggable.children().each(function(i, el) {
-console.info('%d: %o', i, el);
+//console.info('%d: %o', i, el);
                 $(el).css({position: 'relative', top: 'unset', left: 'unset'}).removeClass('ui-selected').removeClass('ui-selectee');
                 $(ev.target).find('.app-attachments').append(el);
             });
             checkHiders();
+            //this resets the selected stuff
+            $('.bulk-media.ui-selectee').css({ position: 'relative', top: 0, left: 0 });
+            sortBulkMedia('.bulk-media.ui-selectee');
+            $('#bulk-media-drag-div').css({left: 0, top: 0});
         }
     });
     $('#list-wait').hide();
