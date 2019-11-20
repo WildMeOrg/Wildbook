@@ -136,7 +136,7 @@ public class WriteOutScanTask extends HttpServlet {
           }
           
           if(resLocationID.size()>0) {
-            successfulLocationIDWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context,"LocationID");
+            successfulLocationIDWrite = writeResult(resLocationID, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context,"LocationID");
 
           }
           
