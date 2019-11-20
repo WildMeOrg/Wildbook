@@ -124,21 +124,22 @@ public class WriteOutScanTask extends HttpServlet {
         if((st2.getLocationIDFilters()!=null)&&(st2.getLocationIDFilters().size()>0)) {
           ArrayList<MatchObject> resLocationID = gm.getMatchObjectsForTask(taskID);
           ArrayList<String> locs=st2.getLocationIDFilters();
+          ArrayList<MatchObject> filtered=new ArrayList<MatchObject>();
           int resSize=resLocationID.size();
           for(int f=0;f<resSize;f++) {
             if(resLocationID.size()<25) {
               String moEncNum=resLocationID.get(f).getEncounterNumber();
               Encounter localEnc=myShepherd.getEncounter(moEncNum);
               if(localEnc!=null && localEnc.getLocationID()!=null && locs.contains(localEnc.getLocationID())) {
-                resLocationID.add(resLocationID.get(f));
+                filtered.add(resLocationID.get(f));
               }
             }
           }
           
-          if(resLocationID.size()>0) {
+          if(filtered.size()>0) {
             
             MatchObject[] resLoc = new MatchObject[0];
-            resLoc = resLocationID.toArray(resLoc);
+            resLoc = filtered.toArray(resLoc);
             successfulLocationIDWrite = writeResult(resLoc, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context,"LocationID");
 
           }
