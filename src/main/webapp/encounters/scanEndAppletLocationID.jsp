@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.grid.ScanTask,org.ecocean.servlet.ServletUtilities,org.dom4j.Document, java.util.ArrayList,org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 
 <%
 
@@ -37,6 +37,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
   //session.setMaxInactiveInterval(6000);
   String num="";
+  ArrayList<String> locationIDs=new ArrayList<String>();
   if(request.getParameter("number")!=null){
 	Shepherd myShepherd=new Shepherd(context);
 	myShepherd.setAction("scanEndApplet.jsp");
@@ -44,19 +45,22 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
   		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
 	}
+	
+	//get any scantask locationID lists
+	if(request.getParameter("taskID")!=null){
+		ScanTask st=myShepherd.getScanTask(request.getParameter("taskID").trim());
+		if(st.getLocationIDFilters()!=null){
+			locationIDs=st.getLocationIDFilters();
+		}
+	}
+	
+	
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
   }	
   String encSubdir = Encounter.subdir(num);
 
-	/*
-  Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("scanEndApplet.jsp");
-  if (request.getParameter("writeThis") == null) {
-    myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
-  }
-  */
-  //Shepherd altShepherd = new Shepherd(context);
+
   String sessionId = session.getId();
   boolean xmlOK = false;
   SAXReader xmlReader = new SAXReader();
@@ -245,10 +249,26 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <p>
 
-<h2>Modified Groth Scan Results Filtered to Location<a
-  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
-  target="_blank"><img src="../images/information_icon_svg.gif"
-                       alt="Help" border="0" align="absmiddle"></a></h2>
+<h2>Modified Groth Scan Results Filtered to Location IDs
+<a href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a></h2>
+         <%
+         if(locationIDs.size()>0){
+	     %>
+	         	<p>
+	         		<ul>
+	         		<%
+	         		for(String l:locationIDs){
+	         			%>
+	         			<li><%=l %></li>
+	         			<%
+	         		}
+	         		%>
+	         		</ul>
+	         	</p>
+	     <%
+         }
+         %>
+                       
 </p>
 <p>The following encounter(s) received the highest
   match values against a <%=side%>-side scan of encounter <a
