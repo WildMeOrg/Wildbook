@@ -1655,116 +1655,146 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return qualityMap.get(key);
   }
 
-
   // following 'get' functions swallow errors
-  public static Integer getInteger(Row row, int i) {
+  public Integer getInteger(Row row, int i) {
     try {
       double val = row.getCell(i).getNumericCellValue();
+      feedback.logParseValue(i, val, row);
       return new Integer( (int) val );
-    }
-    catch (Exception e){
+    } catch (Exception e){
       // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
+      //e.printStackTrace();
       try {
         String str = getString(row, i);
+
+        
+        System.out.println("Trying to get INTEGER????? ------> "+str);
+
         if (str==null) return null;
         try {
           Integer ans = Integer.parseInt(str);
+          feedback.logParseValue(i, ans, row);
           return ans;
-        } catch (Exception badParse) {
+        } catch (Exception pe) {
           str = str.substring(1);
           Integer ans2 = Integer.parseInt(str);
           System.out.println("      getInteger SUBSTRINGED and got ans "+ans2);
+          feedback.logParseValue(i, ans2, row);
           return ans2;
         }
-      }
-      catch (Exception ex) {}
+      } catch (Exception e2) {e2.printStackTrace();}
     }
+    feedback.logParseNoValue(i);
     return null;
   }
 
-  public static Long getLong(Row row, int i) {
+  public Long getLong(Row row, int i) {
     try {
       double val = row.getCell(i).getNumericCellValue();
+      feedback.logParseValue(i, val, row);
       return new Long( (long) val );
-    }
-    catch (Exception e){      
+    } catch (Exception e){
+      //e.printStackTrace();      
       try {
         String str = getString(row, i);
+        System.out.println("Did you get a long for this thing??? ----> "+str+" found on column "+i);
         if (str==null) return null;
         try {
           Long ans = Long.parseLong(str);
+          feedback.logParseValue(i, ans, row);
+          System.out.println("How about now????? ----> "+str);
           return ans;
-        } catch (Exception badParse) {
+        } catch (Exception pe) {
           str = str.substring(1);
           Long ans2 = Long.parseLong(str);
           System.out.println("      getLong SUBSTRINGED and got ans "+ans2);
+          feedback.logParseValue(i, ans2, row);
           return ans2;
         }
-      }
-      catch (Exception ex) {}
-}
+      } catch (Exception e2) {e2.printStackTrace();}
+    }
+    feedback.logParseNoValue(i);
     return null;
   }
-  public static Double getDouble(Row row, int i) {
+
+  public Double getDouble(Row row, int i) {
     try {
       double val = row.getCell(i).getNumericCellValue();
+      feedback.logParseValue(i, val, row);
       return new Double( val );
-    }
-    catch (Exception e){
+    } catch (Exception e){
+      //e.printStackTrace();
       // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
       try {
         String str = getString(row, i);
+
+        System.out.println("Trying to get a DOUBLE???? ----> "+str+" on column "+i);
+
         if (str==null) return null;
         System.out.println("EXCEL getDouble string conversion case reached with string "+str);
         try {
           Double ans = Double.parseDouble(str);
           System.out.println("      getDouble string conversion got ans "+ans);
+          feedback.logParseValue(i, ans, row);
           return ans;
-        } catch (Exception badParse) {
+        } catch (Exception pe) {
+          pe.printStackTrace();
           str = str.substring(1);
           Double ans2 = Double.parseDouble(str);
           System.out.println("      getDouble SUBSTRINGED and got ans "+ans2);
+          feedback.logParseValue(i, ans2, row);
           return ans2;
         }
       }
-      catch (Exception ex) {}
+      catch (Exception ex) {ex.printStackTrace();}
     }
+    feedback.logParseNoValue(i);
     return null;
   }
 
-  public static String getString(Row row, int i) {
+  public String getString(Row row, int i) {
+
+    System.out.println("tryingt to getString...");
+
     try {
       String str = row.getCell(i).getStringCellValue();
       if (str.equals("")) str = null;
+      feedback.logParseValue(i, str, row); //todo: figure out why this line breaks the import
       return str;
+    } catch (Exception e) {
+      System.out.println("The line that barfed was "+i);
+      e.printStackTrace();
     }
-    catch (Exception e) {}
+    feedback.logParseNoValue(i);
     return null;
   }
 
-
-
-  public static Boolean getBooleanFromString(Row row, int i) {
+  public Boolean getBooleanFromString(Row row, int i) {
     try {
       String boolStr = getString(row, i).trim().toLowerCase();
-      if (boolStr==null || boolStr.equals("")) return null;
-      else if (boolStr.equals("yes")) return new Boolean(true);
-      else if (boolStr.equals("no")) return new Boolean(false);
-    }
-    catch (Exception e) {}
+      if (boolStr==null || boolStr.equals("")) {
+        return null;
+      } else {
+        feedback.logParseValue(i, boolStr, row);
+      }
+      if (boolStr.equals("yes")) return new Boolean(true);
+      if (boolStr.equals("no")) return new Boolean(false);
+    } catch (Exception e) {}
+    feedback.logParseNoValue(i);
     return null;
   }
 
-  public static Date getDate(Row row, int i) {
+  public Date getDate(Row row, int i) {
     try {
       Date date = row.getCell(i).getDateCellValue();
+      feedback.logParseValue(i, date, row);
       return date;
-    }
-    catch (Exception e) {}
+    } catch (Exception e) {}
+    feedback.logParseNoValue(i);
     return null;
   }
 
-  public static DateTime getDateTime(Row row, int i) {
+  public DateTime getDateTime(Row row, int i) {
     Date date = getDate(row, i);
     if (date == null) return null;
     return new DateTime(date);
@@ -1795,15 +1825,19 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
   }
-  public static String getStringOrInt(Row row, int i) {
-    String ans = getString(row, i);
-    if (ans==null) {
-      Integer inty = getInteger(row,i);
-      if (inty!=null) ans = inty.toString();
-    }
+
+  public String getStringOrInt(Row row, int i) {
+    String ans = null;
+    try {
+      ans = getString(row, i);
+      if (ans==null) {
+        Integer inty = getInteger(row,i);
+        if (inty!=null) ans = String.valueOf(inty);
+      } 
+    } catch (IllegalStateException ise) {}
     return ans;
   }
-
+  
   public Organization getOrganization(Row row, Shepherd myShepherd) {
     String orgID = getString(row, "Encounter.submitterOrganization");
     if (orgID==null) return null;
@@ -1811,16 +1845,30 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return org;
   }
 
+  // public Integer getInteger(Row row, String colName) {
+  //   Integer ans = null;
+  //   if (colIndexMap.containsKey(colName)) {
+  //     int i = colIndexMap.get(colName);
+  //     if (isCellBlank(row, i)) {
+  //       feedback.logParseNoValue(i);
+  //       return null;
+  //     }  
+  //     ans = getInteger(row, i);
+  //     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
+  //   } else {      
+  //     if (verbose) missingColumns.add(colName);
+  //     return null;
+  //   }
+  //   return ans;
+  // }
+
+
   public Integer getInteger(Row row, String colName) {
-    if (colIndexMap.get(colName)!=null) {
-      int i = = colIndexMap.get(colName);  
-
-    }
-
   	if (!colIndexMap.containsKey(colName)) {
   		if (verbose) missingColumns.add(colName);
   		return null;
-  	}
+    }
+    System.out.println("getInteger colName = "+colName);
     Integer ans = getInteger(row, colIndexMap.get(colName));
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
@@ -1830,7 +1878,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	if (!colIndexMap.containsKey(colName)) {
   		if (verbose) missingColumns.add(colName);
   		return null;
-  	}
+    }
+    System.out.println("getLong colName = "+colName);
     Long ans = getLong(row, colIndexMap.get(colName));
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
@@ -1840,7 +1889,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	if (!colIndexMap.containsKey(colName)) {
   		if (verbose) missingColumns.add(colName);
   		return null;
-  	}
+    }
+    System.out.println("getDouble colName = "+colName);
     Double ans = getDouble(row, colIndexMap.get(colName));
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
@@ -1850,7 +1900,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	if (!colIndexMap.containsKey(colName)) {
   		if (verbose) missingColumns.add(colName);
   		return null;
-  	}
+    }
+    System.out.println("getDate colName = "+colName);
     Date ans = getDate(row, colIndexMap.get(colName));
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
@@ -1860,7 +1911,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	if (!colIndexMap.containsKey(colName)) {
   		if (verbose) missingColumns.add(colName);
   		return null;
-  	}
+    }
+    System.out.println("getDateTime colName = "+colName);
     DateTime ans = getDateTime(row, colIndexMap.get(colName));
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
@@ -1879,6 +1931,18 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return true;
 	}
 
+
+  public static boolean isBlank(Cell cell) {
+    return (
+       cell == null ||
+       cell.getCellType() == Cell.CELL_TYPE_BLANK ||
+      (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getStringCellValue().isEmpty())
+    );
+  }
+
+  public static boolean isCellBlank(Row row, int i) {
+    return (row==null || isBlank(row.getCell(i)));
+  }
 
 	// This would be cool to put in Encounter or something.
 	// tho I'm not immediately sure how we'd get the url context, or determine if we want to include /encounters/ or not
@@ -1943,8 +2007,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
     private class TabularFeedback {
 
-      Set<String> unusedColumns;
-      Set<String> missingColumns; // columns we look for but don't find
+      //Set<String> unusedColumns;
+      //Set<String> missingColumns; // columns we look for but don't find
       List<String> missingPhotos = new ArrayList<String>();
       List<String> foundPhotos = new ArrayList<String>();
   
@@ -1984,10 +2048,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   
       public void printRow() {
         System.out.println("Starting to printRow");
-        System.out.println("HERES YA CURRENTROW START!!!!");
         out.println(currentRow);
-        System.out.println(currentRow);
-        System.out.println("HERES YA CURRENTROW END!!!!");
+        //System.out.println(currentRow);
         System.out.println("Done with printRow");
       }
     
@@ -2018,16 +2080,18 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         out.println("</table></div>");
       }
   
-      // public void logParseValue(int colNum, Object value, Row row) {
-      //   System.out.println("TabularFeedback.logParseValue called on object: "+value+" and colNum "+colNum);
-      //   this.currentRow.logParseValue(colNum, value, row);
-      // }
+      public void logParseValue(int colNum, Object value, Row row) {
+        System.out.println("TabularFeedback.logParseValue called on object: "+value+" and colNum "+colNum);
+        this.currentRow.logParseValue(colNum, value, row);
+      }
+
       // public void logParseError(int colNum, Object value, Row row) {
       //   this.currentRow.logParseError(colNum, value, row);
       // }
-      // public void logParseNoValue(int colNum) {
-      //   this.currentRow.logParseNoValue(colNum);
-      // }
+
+      public void logParseNoValue(int colNum) {
+        this.currentRow.logParseNoValue(colNum);
+      }
   
       public String toString() {
         return "Tabular feedback with "+colNames.length+" columns, on row "+currentRow.num;
@@ -2061,7 +2125,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       }
   
       public void logParseValue(int colNum, Object value, Row row) {
-        System.out.println("RowFeedback.logParseValue on an object: "+value);
+        System.out.println("RowFeedback.logParseValue on an object: "+value+" with colNum "+colNum);
         if (value==null) { // a tad experimental here. this means we don't have to check the parseSuccess in each getWhatever method
           System.out.println("RowFeedback.logParseValue on a NULL object. Calling logParseError.");
           String valueString = getCellValueAsString(row, colNum);
@@ -2084,7 +2148,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     public String getStringNoLog(Row row, int i) {
       String str = null;
       try {
-        str = row.getCell(i).getStringCellValue();
+        str = row.getCell(i).getStringCellValue().trim();
         if (str.equals("")) return null;
       }
       catch (Exception e) {}
