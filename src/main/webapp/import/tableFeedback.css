@@ -28,6 +28,8 @@ div.tableFeedbackWrapper th {
 .tableFeedbackColumnHeader {
   color: black;
   text-decoration-color: black;
+  text-decoration: underline;
+  font-family: sans-serif;
 }
 
 /* Rotate table headers */
