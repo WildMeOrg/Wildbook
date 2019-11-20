@@ -1658,18 +1658,16 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   // following 'get' functions swallow errors
   public Integer getInteger(Row row, int i) {
     try {
-      double val = row.getCell(i).getNumericCellValue();
+      int val = (int) row.getCell(i).getNumericCellValue();
+      System.out.println("extracted int for line "+i);
       feedback.logParseValue(i, val, row);
-      return new Integer( (int) val );
+      return new Integer( val );
     } catch (Exception e){
       // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
       //e.printStackTrace();
       try {
-        String str = getString(row, i);
-
-        
+        String str = getString(row, i); 
         System.out.println("Trying to get INTEGER????? ------> "+str);
-
         if (str==null) return null;
         try {
           Integer ans = Integer.parseInt(str);
@@ -1690,9 +1688,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   public Long getLong(Row row, int i) {
     try {
-      double val = row.getCell(i).getNumericCellValue();
+      long val = (long) row.getCell(i).getNumericCellValue();
+      System.out.println("extracted long for line "+i);
       feedback.logParseValue(i, val, row);
-      return new Long( (long) val );
+      return new Long( val );
     } catch (Exception e){
       //e.printStackTrace();      
       try {
@@ -1720,10 +1719,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   public Double getDouble(Row row, int i) {
     try {
       double val = row.getCell(i).getNumericCellValue();
+      System.out.println("extracted double for line "+i);
       feedback.logParseValue(i, val, row);
       return new Double( val );
     } catch (Exception e){
-      //e.printStackTrace();
       // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
       try {
         String str = getString(row, i);
