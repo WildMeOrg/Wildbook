@@ -312,7 +312,7 @@ class GraphAbstract {
     }
 
     //Fade the tooltip into view when hovering over a given node
-    handleMouseOver() {
+    handleMouseOver(d) {
 	if (!this.popup) {
 	    //Display opaque tooltip
 	    this.tooltip.transition()
@@ -324,7 +324,8 @@ class GraphAbstract {
 	    this.tooltip
 		.style("left", d3.event.layerX + 30 + "px")		
 		.style("top", d3.event.layerY - 20 + "px")
-		.html("<b>Encounters:</b>\n None");
+	    //		.html("<b>Encounters:</b>\n None");
+		.html("<b>" + d.filtered + "</b>");
 
 	    //Prevent future mouseOver events
 	    this.popup = true;
