@@ -17,8 +17,8 @@
 
 <%
 String context=ServletUtilities.getContext(request);
-Shepherd myShepherd=new Shepherd(context);
-String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
+//Shepherd myShepherd=new Shepherd(context);
+String subdir = UploadServlet.getSubdirForUpload(request);
 UploadServlet.setSubdirForUpload(subdir, request);
 
 // this is being intentionlly set randomly ... but if you want to use it, override it in your live/deployed uploader.jsp to some string you can share
