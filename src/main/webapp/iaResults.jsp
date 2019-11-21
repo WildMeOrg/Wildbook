@@ -750,6 +750,10 @@ function showTaskResult(res, taskId) {
                     algoDesc = 'trailing edge (OC/WDTW)';
                 } else if (algoInfo == 'Deepsense') {
                     algoDesc = 'Deepsense AI\'s Right Whale Matcher';
+                } else if (algoInfo == 'CurvRankDorsal') {
+                    algoDesc = 'CurvRank dorsal fin trailing edge algorithm';
+                } else if (algoInfo == 'Finfindr') {
+                    algoDesc = 'finFindR dorsal fin trailing edge algorithm';
                 }
                 algoDesc = '<span title="' + algoInfo + '">'+algoDesc+'</span>';
 

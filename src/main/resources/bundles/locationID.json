@@ -240,8 +240,10 @@
 		"defaultLongitude": -160.0
     },
 	{
-		"name": "Atlantic Ocean",
+		"name": "Atlantic Ocean (North)",
 		"locationID": [
+		
+		
 		
 				{ "name":"Azores", "id":"5", "locationID":[] },
 			 {
@@ -339,83 +341,82 @@
 					{ "name":"Montauk NY", "id":"Montauk NY", "locationID":[] },
 					{ "name":"NY Bight", "id":"NY Bight", "locationID":[] },
 					{"name":"BOF-BOF","id":"BOF-BOF"},
+					{
+					  "name": "EAST-ESS" ,"id": "EAST-ESS" 
+					  },
+					  {
+					  "name": "GOM-GB" ,"id": "GOM-GB" 
+					  },
+					  {
+					  "name": "GOM-GMB" ,"id": "GOM-GB" 
+					  },
+					  {
+					  "name": "GOM-GOM" ,"id": "GOM-GOM"
+					  },
+					  {
+					  "name": "GSC-GSC" ,"id": "GSC-GSC" 
+					  },
+					  {
+					  "name": "JL-JL" ,"id": "JL-JL" 
+					  },
+					  {
+					  "name": "MIDA-DEL" ,"id": "MIDA-DEL" 
+					  },
+					  {
+					  "name": "MIDA-MD" ,"id": "MIDA-MD" 
+					  },
+					  {
+					  "name": "MIDA-NC" ,"id": "MIDA-NC" 
+					  },
+					  {
+					  "name": "MIDA-NJ" ,"id": "MIDA-NJ" 
+					  },
+					  {
+					  "name": "MIDA-NY" ,"id": "MIDA-NY" 
+					  },
+					  {
+					  "name": "MIDA-SC" ,"id": "MIDA-SC" 
+					  },
+					  {
+					  "name": "MIDA-SNE" ,"id": "MIDA-SNE"
+					  },
+					  {
+					  "name": "MIDA-VA" , "id": "MIDA-VA" 
+					  },
+					  {
+					  "name": "NE-CCB" ,"id": "NE-CCB" 
+					  },
+					  {
+					  "name": "NE-MB" ,"id": "NE-MB" 
+					  },
+					  {
+					  "name": "NRTH-CFG" ,"id": "NRTH-CFG" 
+					  },
+					  {
+					  "name": "NRTH-GSL" ,"id": "NRTH-GSL"
+					  },
+					  {
+					  "name": "NRTH-ICE", "id": "NRTH-ICE" 
+					  },
+					  {
+					  "name": "NRTH-NRTH", "id": "NRTH-NRTH"
+					  },
+					  
+					  {
+					  "name": "RB-RB", "id": "RB-RB"
+					  },
+					  
 							  {
-		  "name": "EAST-ESS" ,"id": "EAST-ESS" 
-		  },
-		  {
-		  "name": "GOM-GB" ,"id": "GOM-GB" 
-		  },
-		  {
-		  "name": "GOM-GOM" ,"id": "GOM-GOM"
-		  },
-		  {
-		  "name": "GSC-GSC" ,"id": "GSC-GSC" 
-		  },
-		  {
-		  "name": "JL-JL" ,"id": "JL-JL" 
-		  },
-		  {
-		  "name": "MIDA-DEL" ,"id": "MIDA-DEL" 
-		  },
-		  {
-		  "name": "MIDA-MD" ,"id": "MIDA-MD" 
-		  },
-		  {
-		  "name": "MIDA-NC" ,"id": "MIDA-NC" 
-		  },
-		  {
-		  "name": "MIDA-NJ" ,"id": "MIDA-NJ" 
-		  },
-		  {
-		  "name": "MIDA-NY" ,"id": "MIDA-NY" 
-		  },
-		  {
-		  "name": "MIDA-SC" ,"id": "MIDA-SC" 
-		  },
-		  {
-		  "name": "MIDA-SNE" ,"id": "MIDA-SNE"
-		  },
-		  {
-		  "name": "MIDA-VA" , "id": "MIDA-VA" 
-		  },
-		  {
-		  "name": "NE-CCB" ,"id": "NE-CCB" 
-		  },
-		  {
-		  "name": "NE-MB" ,"id": "NE-MB" 
-		  },
-		  {
-		  "name": "NRTH-CFG" ,"id": "NRTH-CFG" 
-		  },
-		  {
-		  "name": "NRTH-GSL" ,"id": "NRTH-GSL"
-		  },
-		  {
-		  "name": "NRTH-ICE", "id": "NRTH-ICE" 
-		  },
-		  {
-		  "name": "NRTH-NRTH", "id": "NRTH-NRTH"
-		  },
-		  
-		  {
-		  "name": "RB-RB", "id": "RB-RB"
-		  },
-		  
-		  		  {
-		  "name": "SEUS-FL", "id": "SEUS-FL"
-		  },
-		  
-		  		  {
-		  "name": "SEUS-GA", "id": "SEUS-GA"
-		  }
+					  "name": "SEUS-FL", "id": "SEUS-FL"
+					  },
+					  
+							  {
+					  "name": "SEUS-GA", "id": "SEUS-GA"
+					  }
 
 			  ]},
-			  {"name":"South Atlantic","id":"South Atlantic","locationID":[
 			  
-				{ "name":"Gabon", "id":"Gabon", "locationID":[] },
-				{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
-				{ "name":"Argentina", "id":"Argentina", "locationID":[] }
-			  ]},
+			
 			  
 			 {
 			  "name": "Wadden Sea", "id": "Wadden Sea" }
@@ -424,6 +425,16 @@
 		"defaultLatitude": 0.0,
 		"defaultLongitude": -30.0
 	},
+	
+	{"name":"Atlantic Ocean (South)","id":"South Atlantic","locationID":[
+		  
+			{ "name":"Argentina", "id":"Argentina", "locationID":[] },
+			{ "name":"Brazil", "id":"Brazil", "locationID":[] },
+			{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
+			{ "name":"Gabon", "id":"Gabon", "locationID":[] }
+			
+	]},
+	
 	{
 		"name":"Indian Ocean", "id":"IndianOcean",
 		"locationID":[
@@ -890,9 +901,15 @@
     },
 	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
 	
-	{ "name":"Australia", "id":"Australia", "locationID":[
-				{ "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] }
+	{ "name":"Test Sets", "id":"TestSets", "locationID":[
+				{ "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] },
+				{ "name":"SDRPTestSet", "id":"SDRPTestSet", "locationID":[] },
+				
+		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
 	] },
+	
+	
+	
 	{"name":"Miscellaneous","id":"Miscellaneous","locationID":[
 
 
@@ -903,13 +920,14 @@
 
 		{ "name":"None", "id":"None", "locationID":[] },
 
-		{ "name":"Other", "id":"Other", "locationID":[] },
+		{ "name":"Other", "id":"Other", "locationID":[] }
 
 
-		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
 
 
 	]}
+	
+	
   ]
 }
 

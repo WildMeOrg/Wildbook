@@ -104,7 +104,7 @@ finally{
       if (ServletUtilities.useCustomStyle(request, "IndoCet")) {
         System.out.println("Using custom indocet style!!");
         %><link rel="stylesheet" href="<%=urlLoc %>/cust/indocet/overwrite.css" /><%
-      } else if (ServletUtilities.useCustomStyle(request, "wild dolphin project")) {
+      } else if (ServletUtilities.useCustomStyle(request, "wild dolphin project") || ServletUtilities.useCustomStyle(request, "wdp")) {
         System.out.println("Using custom wild dolphin project style!!");
          %><link rel="stylesheet" href="<%=urlLoc %>/cust/wilddolphinproject/overwrite.css" /><%
       } else if (ServletUtilities.useCustomStyle(request, "CARI'MAM Project")) {
