@@ -61,15 +61,25 @@ td.cellFeedback:hover {
   cursor: cell;
 }
   
-td.cellFeedback.success, td.cellFeedback.blank {
-  background-color: rgba(0, 255, 0, 0.4);
+td.cellFeedback.success, .importFieldSuccess {
+  background-color: rgba(0, 255, 0, 0.4); /* found green for cells with values and success retrieving them */
 }
 
-td.cellFeedback.error {
-  background-color: rgba(255, 0, 0, 0.4);
+td.cellFeedback.error, .importFieldError {
+  background-color: rgba(255, 0, 0, 0.4); /* exception parsing */
 }
 
-td.cellFeedback.null {
-  background-color: rgba(128, 128, 128, 0.2); /* less intense than error b/c sometimes this is OK */
+td.cellFeedback.blank, .importFieldBlank {
+  background-color: rgba(102,204,255,0.4);    /* blue - fully processed but empty */
 }
 
+td.cellFeedback.null, .importFieldNull {
+  background-color: rgba(255, 200, 0, 0.4); /* yellow... can be okay but not preffered state for 'empty' */
+}
+
+.importFieldBlank, .importFieldError, .importFieldNull, .importFieldSuccess {
+  height: 20px;
+  width: 20px;
+  margin: 3px;
+  display: block;
+}

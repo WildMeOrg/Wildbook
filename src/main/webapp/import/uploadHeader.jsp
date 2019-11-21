@@ -38,3 +38,11 @@
 
         <h1 class="import-header">Bulk Data Import</h1>
         <p class="import-explanation"><%=message %></p>
+
+        <div id="importTableLegend">
+            <strong>The following colors indicate the state of an imported excel field:</strong>
+            <div class="importFieldSuccess" title="Success"></div><p> Green indicates that a value was found and extracted.</p>
+            <div class="importFieldBlank" title="Blank Field"></div><p> Blue indicates that a feild was found, but contained nothing.</p>
+            <div class="importFieldNull" title="Null Field"></div><p> Yellow indicates that a feild was not present, or that nothing could be determined about it.</p>
+            <div class="importFieldError" title="Error"></div><p> Red indicates that a feild was found and there was a problem getting it's value.</p>
+        </div> 

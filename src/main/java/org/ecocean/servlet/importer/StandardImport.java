@@ -1753,15 +1753,20 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   public String getString(Row row, int i) {
 
-    System.out.println("tryingt to getString...");
+    System.out.println("Calling getString on row "+i+" with cell "+row.getCell(i).toString());
 
     try {
-      String str = row.getCell(i).getStringCellValue();
-      if (str.equals("")) str = null;
+      Cell cell = row.getCell(i);
+      String str = null;
+      if (cell!=null) {
+        System.out.println("Current cell: "+cell.toString()+" Current row: "+cell.getRowIndex()+" Current col: "+cell.getColumnIndex());
+        str = cell.getStringCellValue();
+      }
+      if (str ==null || str.equals("")) str = null;
       feedback.logParseValue(i, str, row); //todo: figure out why this line breaks the import
       return str;
     } catch (Exception e) {
-      System.out.println("The line that barfed was "+i);
+      System.out.println("getString Exception on line "+i);
       e.printStackTrace();
     }
     feedback.logParseNoValue(i);
@@ -1806,20 +1811,25 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (verbose) missingColumns.add(colName);
       return null;
     }
+    System.out.println("getString colName = "+colName);
     String ans = getString(row, colIndexMap.get(colName));
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
   }
+
   public String getIntAsString(Row row, String colName) {
   	Integer i = getInteger(row,colName);
-  	if (i==null) return null;
+    if (i==null) return null;
+    System.out.println("getIntAsString colName = "+colName);
   	return i.toString();
   }
+
   public String getStringOrInt(Row row, String colName) {
     if (!colIndexMap.containsKey(colName)) {
       if (verbose) missingColumns.add(colName);
       return null;
     }
+    System.out.println("getStringOrInt colName = "+colName);
     String ans = getStringOrInt(row, colIndexMap.get(colName));
     if (ans!=null && unusedColumns!=null) unusedColumns.remove(colName);
     return ans;
@@ -2081,6 +2091,9 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   
       public void logParseValue(int colNum, Object value, Row row) {
         System.out.println("TabularFeedback.logParseValue called on object: "+value+" and colNum "+colNum);
+        if (value==null||String.valueOf(value)=="") {
+          this.currentRow.logParseNoValue(colNum);
+        }
         this.currentRow.logParseValue(colNum, value, row);
       }
 
@@ -2175,7 +2188,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         else valueStr = value.toString();
         this.success = success;
         this.isBlank = isBlank;
-        System.out.println("done creating cellFeedback. got valueStr "+valueStr);
+        System.out.println("new cellFeedback: got valueStr "+valueStr+" success: "+success+" and isBlank: "+isBlank);
       }
       public String html() { // here's where we add the excel value string on errors
         StringBuffer str = new StringBuffer();
@@ -2238,14 +2251,14 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
   return strCellValue;
 }
+
 public static String getCellValueAsString(Row row, int num) {
   if (row==null || row.getCell(num)==null) return "";
   return getCellValueAsString(row.getCell(num));
 }
 
 
-    // END FEEDBACK CLASSES
-
+  // END FEEDBACK CLASSES
   public String fileInDir(String filename, String directoryPath) {
     if (directoryPath.endsWith("/")) return (directoryPath+filename);
     return (directoryPath+"/"+filename); 
