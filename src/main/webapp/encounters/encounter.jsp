@@ -13,6 +13,7 @@
          java.util.regex.Pattern,
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
+        org.ecocean.servlet.importer.ImportTask,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
@@ -2993,6 +2994,17 @@ if (isOwner) {
 <!-- END DELETE ENCOUNTER FORM -->
 <%
 }
+
+Query itq = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getEncounterNumber() + "'");
+List ires = (List)itq.execute();
+if (ires.size() > 0) {
+    Iterator it = ires.iterator();
+    ImportTask itask = (ImportTask)it.next();
+%>
+    <a target="_new" href="../imports.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
+<%
+}
+//
 %>
 
 </td>

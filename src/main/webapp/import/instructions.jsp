@@ -15,12 +15,12 @@
 
 <%
 String context = ServletUtilities.getContext(request);
-Shepherd myShepherd=new Shepherd(context);
-myShepherd.setAction("import.jsp");
+//Shepherd myShepherd=new Shepherd(context);
+//myShepherd.setAction("instructions.jsp");
 String langCode=ServletUtilities.getLanguageCode(request);
-System.out.println("Starting import.jsp !");
+System.out.println("Starting instructions.jsp !");
 
-String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
+String subdir = UploadServlet.getSubdirForUpload(request);
 UploadServlet.setSubdirForUpload(subdir, request);
 
 String dirName = UploadServlet.getUploadDir(request);

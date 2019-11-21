@@ -14,9 +14,12 @@ java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("imports.jsp");
+myShepherd.beginDBTransaction();
 User user = AccessControl.getUser(request, myShepherd);
 if (user == null) {
     response.sendError(401, "access denied");
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
     return;
 }
 boolean adminMode = ("admin".equals(user.getUsername()));
@@ -88,6 +91,8 @@ if (taskId != null) {
     } catch (Exception ex) {}
     if ((itask == null) || !(adminMode || user.equals(itask.getCreator()))) {
         out.println("<h1 class=\"error\">taskId " + taskId + " is invalid</h1>");
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return;
     }
 }
@@ -261,4 +266,9 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
+
+<%
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+%>
 

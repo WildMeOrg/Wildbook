@@ -16,13 +16,13 @@
 <%
 
 String context=ServletUtilities.getContext(request);
-Shepherd myShepherd=new Shepherd(context);
+//Shepherd myShepherd=new Shepherd(context);
 
 
 // this is being intentionlly set randomly ... but if you want to use it, override it in your live/deployed uploader.jsp to some string you can share
 //   (this allows the session to be automatically consider non-bot, so the upload can happen)
 String password = "fhqwhgads";
-String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
+String subdir = UploadServlet.getSubdirForUpload(request);
 // stores subdir on session so it can go to the other import servlets
 UploadServlet.setSubdirForUpload(subdir, request);
 
