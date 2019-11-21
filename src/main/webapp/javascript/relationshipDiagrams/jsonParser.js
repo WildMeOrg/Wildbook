@@ -44,9 +44,9 @@ class JSONParser {
 	    var name = this.dataDict[key].displayName;
 	    name = name.substring(name.indexOf(" ") + 1);
 	    console.log(key);
-	    nodes.push({"id": this.nodeMap[key], "data": {"name": name, "gender": this.dataDict[key].sex, "genus": this.dataDict[key].genus, "dateFirstIdentified": this.dataDict[key].dateFirstIdentified, "numberEncounters": this.dataDict[key].numberEncounters, "timeOfBirth": this.dataDict[key].timeOfBirth}});
+	    nodes.push({"id": this.nodeMap[key], "data": {"name": name, "gender": this.dataDict[key].sex, "genus": this.dataDict[key].genus, "individualID": this.dataDict[key].individualID, "numberLocations": this.dataDict[key].numberLocations, "dateFirstIdentified": this.dataDict[key].dateFirstIdentified, "numberEncounters": this.dataDict[key].numberEncounters, "timeOfBirth": this.dataDict[key].timeOfBirth, "timeOfDeath": this.dataDict[key].timeOfDeath}});
 	}
-	    
+	console.log("changes have happened");    
 	console.log(nodes);
 	
 	return nodes;
