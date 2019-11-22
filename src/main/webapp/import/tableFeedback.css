@@ -9,6 +9,8 @@ table.tableFeedback, table.tableFeedback tr, table.tableFeedback tr th {
 }
 table.tableFeedback {
   background-color: #fff; /* so transparent colors on the table look good */
+  max-height: 70%;
+  min-height: 69%;
 }
 
 tr.header-row th:last-child {
@@ -83,3 +85,7 @@ td.cellFeedback.null, .importFieldNull {
   margin: 3px;
   display: block;
 }
+
+/* .tableTopScrollbar {
+
+} */

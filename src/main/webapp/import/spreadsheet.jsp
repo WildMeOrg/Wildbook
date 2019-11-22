@@ -52,6 +52,7 @@ function uploadFinished() {
 	var filename = document.getElementById('hiddenFilename').innerHTML;
 	// forward user to the review page
 	window.location.replace('standard-upload?filename='+filename+"&isUserUpload=true");
+	//window.location.replace('upload?filename='+filename+"&isUserUpload=true");
 }
 </script>
 <body onLoad="uploaderInit(uploadFinished)">
