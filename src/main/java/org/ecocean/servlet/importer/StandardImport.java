@@ -1236,25 +1236,27 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   	boolean newIndividual = false;
   	String individualID = getIndividualID(row);
-  	if (individualID==null) return null;
-
+  	if (individualID==null) {
+      return null;
+    }
     
+    // no
+    individualID = individualID.trim();
+
   	MarkedIndividual mark = individualCache.get(individualID);
     if (mark==null) mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
   	if (mark==null) { // new individual
 	    mark = new MarkedIndividual(enc);
 	    if(committing) {
 	      myShepherd.getPM().makePersistent(mark);
-	       myShepherd.commitDBTransaction();
-	       myShepherd.beginDBTransaction();
-                mark.refreshNamesCache();
-	       //out.println("persisting new individual");
-	   }
+	      myShepherd.commitDBTransaction();
+	      myShepherd.beginDBTransaction();
+        mark.refreshNamesCache();
+	      //out.println("persisting new individual");
+	    }
 	    newIndividual = true;
 	  }
-  	else {
-  	  //out.println("Found a pre-existing Individual: "+mark.toString());
-  	}
+  	
     // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
     Organization org = getOrganization(row, myShepherd);
     if (org!=null) mark.addName(individualID);
