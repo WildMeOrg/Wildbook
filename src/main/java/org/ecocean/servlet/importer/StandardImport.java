@@ -1505,26 +1505,29 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
   }
 
-  public String getString(Row row, int i) {
-
-    System.out.println("Calling getString on row "+i+" with cell "+row.getCell(i).toString());
-
+  public String getString(final Row row, final int i) {
+    System.out.println("Calling getString on row "+i+" with cell "+String.valueOf(row.getCell(i)));
+    final Cell cell = row.getCell(i);
+    String str = null;
     try {
-      Cell cell = row.getCell(i);
-      String str = null;
-      if (cell!=null) {
+      if (cell!=null&&cell.getCellType()==Cell.CELL_TYPE_STRING) {
         System.out.println("Current cell: "+cell.toString()+" Current row: "+cell.getRowIndex()+" Current col: "+cell.getColumnIndex());
         str = cell.getStringCellValue();
+      } else {
+        // not ideal, but maybe get something 
+        str = cell.toString();
       }
-      if (str ==null || str.equals("")) str = null;
-      feedback.logParseValue(i, str, row); //todo: figure out why this line breaks the import
-      return str;
     } catch (Exception e) {
-      System.out.println("getString Exception on line "+i);
+      // it should be basically impossible to get here. this is not a challenge.  
+      feedback.logParseError(i, cell.toString(), row);
       e.printStackTrace();
     }
-    feedback.logParseNoValue(i);
-    return null;
+    if ("".equals(str) || str == null) {
+      feedback.logParseNoValue(i);
+      return null;
+    }
+    feedback.logParseValue(i, str, row); //todo: figure out why this line breaks the import
+    return str;
   }
 
   public Boolean getBooleanFromString(Row row, int i) {
