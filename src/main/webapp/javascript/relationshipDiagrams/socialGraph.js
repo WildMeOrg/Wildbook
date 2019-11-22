@@ -92,14 +92,14 @@ class SocialGraph extends ForceLayoutAbstract {
 
     //Generate a social graph
     graphSocialData(nodes, links) {
-	this.nodeData = nodes;
-	this.linkData = links;
+	//this.nodeData = nodes;
+	//this.linkData = links;
 
 	if(nodes.length > 0) {
 	    //Create graph w/ forces
 	    this.setupGraph("#socialDiagram");
 	    this.updateFilterButtons("#socialDiagram");
-	    this.updateGraph();
+	    this.updateGraph(links, nodes);
 	}
 	else this.showTable("#socialDiagram", "#communityTable");
     }
