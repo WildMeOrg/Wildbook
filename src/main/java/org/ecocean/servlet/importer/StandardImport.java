@@ -145,15 +145,14 @@ public class StandardImport extends HttpServlet {
     
     if(astore!=null){
       System.out.println("astore is OK!");
-      out.println("Using AssetStore: "+astore.getId()+" of total "+myShepherd.getNumAssetStores());
+      System.out.println("Using AssetStore: "+astore.getId()+" of total "+myShepherd.getNumAssetStores());
     } else {
       System.out.println("astore is null...BOO!!");
-      out.println("<p>I could not find a default AssetStore. Please create one.</p>");
+      out.println("<p>I could not find a default AssetStore. Import cannot continue.</p>");
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       return;
     }
-
 
     User creator = AccessControl.getUser(request, myShepherd);
     ImportTask itask = new ImportTask(creator);
@@ -188,14 +187,11 @@ public class StandardImport extends HttpServlet {
       return;
     }
     
-    
-    
     String uploadDir = dataFile.getParentFile().getAbsolutePath();
 
     //String subdir = Util.safePath(request.getParameter("subdir"));
     //if (subdir != null) uploadDir += subdir;
     photoDirectory = uploadDir+"/";
-    
     
     boolean dataFound = dataFile.exists();
 
@@ -210,7 +206,7 @@ public class StandardImport extends HttpServlet {
     if (dataFound) {
       doImport(filename, dataFile, request, response, myShepherd);
     } else {
-      //TODO add better fail handling 
+      out.println("An error occurred and your data could not be read from the file system.");
       System.out.println("No datafile found, aborting.");
     }
 
@@ -222,289 +218,6 @@ public class StandardImport extends HttpServlet {
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
 
-    // generateChildrenAssets = Util.requestParameterSet(request.getParameter("generateChildrenAssets"));
-
-    // // out.println("<h2>File Overview: </h2>");
-    // // out.println("<ul>");
-    // // out.println("<li>Directory: "+photoDirectory+"</li>");
-    // // out.println("<li>Filename: "+filename+"</li>");
-    // //out.println("<li>File found = "+dataFound+"</li>");
-
-    // Workbook wb = null;
-    // try {
-    //   wb = WorkbookFactory.create(dataFile);
-    // } catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException invalidFormat) {
-    //   out.println("<err>InvalidFormatException on input file "+filename+". Only excel files supported.</err>");
-    //   return;
-    // } catch (Exception ex) {  //pokemon!
-    //   out.println("<err><b>" + filename + "</b> got error: <i>" + ex.toString() + "</i></err>");
-    //   System.out.println("=== if you see this exception, it may be something wrong with permissions ===");
-    //   ex.printStackTrace();
-    //   return;
-    // }
-    // int sheetNum = 0;
-    // try {
-    //     sheetNum = Integer.parseInt(request.getParameter("sheetNumber"));
-    //     if (sheetNum < 0) sheetNum = 0;
-    // } catch (NumberFormatException ex) {}
-    // int numSheets = wb.getNumberOfSheets();
-    // if (sheetNum >= numSheets) sheetNum = 0;
-
-    // Sheet sheet = wb.getSheetAt(sheetNum);
-    // int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
-
-    // List<Integer> skipRows = new ArrayList<Integer>();
-    // String[] skipRowParam = request.getParameterValues("skipRow");
-    // String skipDisplay = "";
-    // if ((skipRowParam != null) && (skipRowParam.length > 0)) {
-    //     for (int i = 0 ; i < skipRowParam.length ; i++) {
-    //         try {
-    //             int p = Integer.parseInt(skipRowParam[i]);
-    //             if ((p >= 0) && (p < physicalNumberOfRows)) {
-    //                 skipRows.add(p);
-    //                 skipDisplay += p + " ";
-    //             }
-    //         } catch (NumberFormatException ex) {}
-    //     }
-    // }
-
-    // int printPeriod = 100;
-    // try {
-    //     int pp = Integer.parseInt(request.getParameter("printPeriod"));
-    //     if (pp > 0) printPeriod = pp;
-    // } catch (NumberFormatException ex) {}
-
-    // if (committing) {
-    //     out.println("<li>ImportTask id = <b><a href=\"imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
-    // } else {
-    //     out.println("<li>ImportTask id = <b>" + itask.getId() + "</b></li>");
-    // }
-    // out.println("<li>Sheet number = " + sheetNum + " (of " + numSheets + ") <i>\"" + sheet.getSheetName() + "\"</i></li>");
-    // out.println("<li>Num Rows = "+physicalNumberOfRows+" <i>(echo every " + printPeriod + " rows)</i></li>");
-    // if (skipRows.size() > 0) out.println("<li>Skipping rows: " + skipDisplay + "</li>");
-    // int rows = sheet.getPhysicalNumberOfRows();; // No of rows
-    // Row firstRow = sheet.getRow(0);
-
-    // // below line is important for on-screen logging
-    // initColIndexVariables(firstRow);
-
-
-    // int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
-    // int lastColNum = firstRow.getLastCellNum();
-
-
-    // // ***************** Trying to start feedback
-    // out.println("<h2>Parsed Import Table</h2>"); 
-    // System.out.println("feedback headers = "+feedback.colNames);
-    // feedback.printStartTable();
-
-    // if (!isUserUpload) {
-    //   out.println("<li>Num Cols = "+cols+"</li>");
-    //   out.println("<li>Last col num = "+lastColNum+"</li>");
-    //   out.println("<li>generateChildrenAssets? = " + generateChildrenAssets + "</li>");
-    //   out.println("<li><em>committing = "+committing+"</em></li>");
-    //   //out.println("</ul>");
-    //   out.println("<h2>Column headings:</h2><ul>");
-    //   out.println("<li>number columns = "+colIndexMap.size()+"</li>");
-    //   for (String heading: colIndexMap.keySet()) out.println("<li>"+colIndexMap.get(heading)+": "+heading+"</li>");
-    //   out.println("</ul>");
-    // }
-
-    // LocalDateTime ldt = new LocalDateTime();
-    // String importComment = "<p style=\"import-comment\">import <i>" + itask.getId() + "</i> at " + ldt.toString() + "</p>";
-    // System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
-    // //if (committing) myShepherd.beginDBTransaction();
-    // //out.println("<h2>Beginning row loop:</h2>"); 
-    // //out.println("<ul>");
-    // // one encounter per-row. We keep these running.
-    // Occurrence occ = null;
-    // List<Encounter> encsCreated = new ArrayList<Encounter>();
-    // int maxRows = 50000;
-    // int offset = 0;
-    // for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
-    //     if (skipRows.contains(i)) {
-    //         System.out.println("INFO: skipping row " + i + " due to skipRow arg");
-    //         continue;
-    //     }
-
-    // 	MarkedIndividual mark = null;
-    // 	verbose = ((i%printPeriod) == 0);
-    //   try {
-
-    //     //if (committing) myShepherd.beginDBTransaction();
-    //     Row row = sheet.getRow(i);
-    //     if (isRowEmpty(row)) continue;
-
-    //     feedback.startRow(row, i);
-
-    //     //System.out.println("STANDARD IMPORT: processing row "+i+" with num asset stores: "+myShepherd.getNumAssetStores());
-
-    //     // here's the central logic
-    //     ArrayList<Annotation> annotations = loadAnnotations(row, astore, myShepherd);
-    //     numAnnots+=annotations.size();
-    //     Encounter enc = loadEncounter(row, annotations, context, myShepherd);
-    //     enc.addComments(importComment);
-    //     enc.setCatalogNumber(Util.generateUUID());
-    //     if(committing) {
-    //       myShepherd.getPM().makePersistent(enc);
-    //       myShepherd.commitDBTransaction();
-    //       myShepherd.beginDBTransaction();
-    //     }
-    //     occ = loadOccurrence(row, occ, enc, myShepherd);
-    //     occ.addComments(importComment);
-
-    //     encsCreated.add(enc);
-
-
-    //     mark = loadIndividual(row, enc, myShepherd,committing,individualCache);
-    //     if (mark!=null) individualCache.put(mark.getName(), mark);
-
-    //     if (committing) {
-
-    //       for (Annotation ann: annotations) {
-    //         try {
-    //           MediaAsset ma = ann.getMediaAsset();
-    //           if (ma!=null) {
-
-                
-
-    //             if(committing) {
-    //                 if (generateChildrenAssets) {
-    //                 	ArrayList<MediaAsset> kids = ma.findChildren(myShepherd);
-    //                 	if ((kids == null) || (kids.size() < 1)) {
-    //                     	ma.setMetadata();
-    //                     	ma.updateStandardChildren(myShepherd);
-    //                 	}
-    //             	}
-    //               myShepherd.getPM().makePersistent(ann);
-    //               myShepherd.commitDBTransaction();
-    //               myShepherd.beginDBTransaction();
-    //             }
-    //             // may want to skip below for runtime and fix later w script
-    //             // ma.updateStandardChildren(myShepherd);
-
-    //           }
-    //         }
-    //         catch (Exception e) {
-    //           System.out.println("EXCEPTION on annot/ma persisting!");
-    //           out.println("EXCEPTION on annot/ma persisting!");
-    //           e.printStackTrace();
-    //         }
-    //       }
-          
-          
-
-    //     	if (!myShepherd.isOccurrence(occ))       { 
-        	  
-    //     	  if(committing) {
-    //     	    myShepherd.getPM().makePersistent(occ);
-    //     	    myShepherd.commitDBTransaction();
-    //     	    myShepherd.beginDBTransaction();
-    //     	  }
-    //     	}
-        	
-    //     	/*
-    //     	if ((mark!=null)&&!myShepherd.isMarkedIndividual(mark)) {
-    //         mark.refreshDependentProperties();
-    //         myShepherd.getPM().makePersistent(mark);
-    //         if(committing) {
-    //           myShepherd.commitDBTransaction();
-    //           myShepherd.beginDBTransaction();
-    //         }
-    //       }
-    //       */
-        	
-    //       if(committing) {
-    //         myShepherd.commitDBTransaction();
-    //         myShepherd.beginDBTransaction();
-    //       }
-    //     }
-        
-    //     if (isUserUpload) {
-    //       feedback.printRow();
-    //     }
-
-    //     if (!isUserUpload) {
-    //       out.println("<li>Parsed row ("+i+")<ul>"
-    //       +"<li> Enc "+getEncounterDisplayString(enc)+" <ul>");
-    //       for (MediaAsset ma: enc.getMedia()) {
-    //         out.println("<li>"+ma.toString()+"</li>");
-    //       }
-    //       out.println("</ul></li>"
-    //       +"<li> individual "+mark+"</li>"
-    //       +"<li> occurrence "+occ+"</li>"
-    //       +"<li> dateInMillis "+enc.getDateInMilliseconds()+"</li>"
-    //       +"<li> sex "+enc.getSex()+"</li>"
-    //       +"<li> lifeStage "+enc.getLifeStage()+"</li>"
-    //       +"</ul></li>");
-    //     }
-
-    //   } catch (Exception e) {
-    //     out.println("Encountered an error while importing the file.");
-    //     e.printStackTrace(out);
-    //     //myShepherd.rollbackDBTransaction();
-    //     //myShepherd.beginDBTransaction();
-    //   }
-    // }
-    // //out.println("</ul>");
-
-    // if (committing) {
-    //     itask.setEncounters(encsCreated);
-    //     myShepherd.getPM().makePersistent(itask);
-    //     myShepherd.commitDBTransaction();
-    //     myShepherd.beginDBTransaction();
-    // }
-
-    // myShepherd.rollbackDBTransaction();
-    // myShepherd.closeDBTransaction();
-
-    // if (!isUserUpload) {
-    //   out.println("<h2><em>UNUSED</em> Column headings ("+unusedColumns.size()+"):</h2><ul>");
-    //   for (String heading: unusedColumns) {
-    //     out.println("<li>"+heading+"</li>");
-    //   }
-    //   out.println("</ul>");
-    //   List<String> usedColumns = new ArrayList<String>();
-    //   for (String colName: colIndexMap.keySet()) {
-    //     if (!unusedColumns.contains(colName)) usedColumns.add(colName);
-    //   }
-    //   out.println("<h2><em>USED</em> Column headings ("+usedColumns.size()+"):</h2><ul>");
-    //   for (String heading: usedColumns) {
-    //     out.println("<li>"+heading+"</li>");
-    //   }
-    //   out.println("</ul>");
-    // } 
-    
-    // if (isUserUpload) {
-    //   feedback.printMissingPhotos();
-    //   feedback.printFoundPhotos();
-    //   feedback.printEndTable();
-
-    //   out.println("<h2>File Overview: </h2>");
-    //   out.println("<ul>");
-    //   out.println("<li>Filename: "+filename+"</li>");
-    //   //out.println("<li>File found = "+dataFound+"</li>");
-    //   out.println("<li>Num Sheets = "+numSheets+"</li>");
-    //   out.println("<li>Num Rows = "+physicalNumberOfRows+"</li>");    
-    //   out.println("<li>Num Cols = "+cols+"</li>");
-    //   out.println("<li>Last col num = "+lastColNum+"</li>");
-    //   out.println("<li><em>committing = "+committing+"</em></li>");
-    //   out.println("</ul>");
-
-    // } else {
-    //   out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
-    //   out.println("<h2><strong> "+numAnnots+" </strong> annots</h2>");    
-    //   out.println("<h2>Import completed successfully</h2>");
-    // }
-    
-    // this.getServletContext().getRequestDispatcher("/import/uploadFooter.jsp").include(request, response);
-    // this.getServletContext().getRequestDispatcher("/footer.jsp").include(request, response);
-
-    // System.out.println("Is user upload? ---> "+isUserUpload);
-
-    // myShepherd.rollbackDBTransaction();
-    // myShepherd.closeDBTransaction();
-    //fs.close();
   }
 
   public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response, Shepherd myShepherd) {
@@ -536,16 +249,16 @@ public class StandardImport extends HttpServlet {
     initColIndexVariables(firstRow); // IMPORTANT: this initializes the TabularFeedback
 
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
-    int lastColNum = firstRow.getLastCellNum();
+    //int lastColNum = firstRow.getLastCellNum();
 
 
     int printPeriod = 1;
     if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>Parsed Import Table</h2>"); 
-    System.out.println("debug0");
+    //System.out.println("debug0");
     System.out.println("feedback headers = "+feedback.colNames);
     feedback.printStartTable();
-    System.out.println("debug1");
+    //System.out.println("debug1");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
     int maxRows = 50000;
@@ -562,7 +275,6 @@ public class StandardImport extends HttpServlet {
 
         feedback.startRow(row, i);
 
-        // here's the central logic
         ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd);
         Encounter enc = loadEncounter(row, annotations, context, myShepherd);
         occ = loadOccurrence(row, occ, enc, myShepherd);
@@ -1529,12 +1241,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     
   	MarkedIndividual mark = individualCache.get(individualID);
     if (mark==null) mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
-    //else {
-      //out.println("StandardImport got individual "+mark+" from individualCache");
-    //}
   	if (mark==null) { // new individual
 	    mark = new MarkedIndividual(enc);
-	    
 	    if(committing) {
 	      myShepherd.getPM().makePersistent(mark);
 	       myShepherd.commitDBTransaction();
@@ -1547,7 +1255,6 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	else {
   	  //out.println("Found a pre-existing Individual: "+mark.toString());
   	}
-
     // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
     Organization org = getOrganization(row, myShepherd);
     if (org!=null) mark.addName(individualID);
@@ -1562,7 +1269,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 	  if (!newIndividual) {
 	    mark.addEncounter(enc);
 	    enc.setIndividual(mark);
-	    out.println("loadIndividual notnew individual: "+mark.getDisplayName());
+	    System.out.println("loadIndividual notnew individual: "+mark.getDisplayName());
 	  }
 	  else {
 	    enc.setIndividual(mark);
@@ -1789,23 +1496,11 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         feedback.logParseValue(i, ans, row);
         return ans;
       } catch (Exception pe) {
-
-
         pe.printStackTrace();
-
         System.out.println("failed parsing double: "+str);
-
         if (!stringIsDouble(str)) System.out.println("I'm sooo sure this isn't a double.");
-        
         feedback.logParseError(i, originalString, row);
         return null;
-        // pe.printStackTrace();
-        // str = str.substring(1);
-        // Double ans2 = Double.parseDouble(str);
-        // System.out.println("      getDouble SUBSTRINGED and got ans "+ans2);
-        // feedback.logParseValue(i, ans2, row);
-        // return ans2;
-
       }
     }
   }
@@ -2196,8 +1891,6 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         return "Tabular feedback with "+colNames.length+" columns, on row "+currentRow.num;
       }
   
-  
-  
     }
   
     private class RowFeedback {
@@ -2267,7 +1960,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   
     // cannot put this inside CellFeedback bc java inner classes are not allowed static methods or vars (this is stupid).
     static String nullCellHtml() {
-      return "<td class=\"cellFeedback null\" title=\"The importer did not attempt to parse this cell. This is possible if it is a duplicate column or relies on another column that is not present. You may proceed if this cell OK to ignore.\"><span></span></td>";
+      return "<td class=\"cellFeedback null\" title=\"The importer was unable to retrieve this cell, or it did not exist. This is possible if it is a duplicate column, it relies on another column, or only some rows contain the cell. You may proceed if this cell OK to ignore.\"><span></span></td>";
     }
   
     class CellFeedback {
@@ -2305,7 +1998,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   
       public String titleStr() {
         if (isBlank) return "Cell was blank in excel file.";
-        if (!success) return "ERROR: The import was unable to parse this cell. Please verify that your value conforms to the Wildbook Standard Format and re-import.";
+        if (!success) return "ERROR: The import was unable to parse this cell. Please ensure that there are not letters or special characters in number fields (ex. lat/lon text or degree mark), formulas where there should be values or other data inconsistencies.";
         return "Successfully parsed value from excel file.";    
       }
   
