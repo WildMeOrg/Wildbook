@@ -1865,6 +1865,30 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return ans;
   }
 
+  // PARSING UTILITIES
+
+
+  private static boolean stringIsDouble(String str) {
+    if (str.contains(".")&&stringIsNumber(str)) {
+      return true;
+    }
+    return false;
+  }
+
+  private static boolean stringIsNumber(String str) {
+    if (str==null||str.trim().length()<1) return false;
+    str = str.trim();
+    if (str.matches(".*\\d.*")) {
+      return true;
+    }
+    return false;
+  }
+
+  private static String removeNonNumeric(String str) throws NullPointerException {
+    str = str.trim();
+    return str.replaceAll("[^\\d.]", "");
+  }
+
 
   // Apache POI, shame on you for making me write this. Shame! Shame! Shame! SHAME!
   // (as if I actually wrote this. thanks stackoverflow!)
@@ -1890,6 +1914,9 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   public static boolean isCellBlank(Row row, int i) {
     return (row==null || isBlank(row.getCell(i)));
   }
+
+
+  // PARSING UTILITIES
 
 	// This would be cool to put in Encounter or something.
 	// tho I'm not immediately sure how we'd get the url context, or determine if we want to include /encounters/ or not
