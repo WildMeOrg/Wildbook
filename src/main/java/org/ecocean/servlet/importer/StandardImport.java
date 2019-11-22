@@ -1758,38 +1758,51 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 
   public Double getDouble(Row row, int i) {
+    String originalString = null; // i'd like to make a copy of what actually resides in the field for feedback before i try to crush it into a double
     try {
+      // maybe things will just be perfect
       double val = row.getCell(i).getNumericCellValue();
       System.out.println("extracted double for line "+i);
       feedback.logParseValue(i, val, row);
       return new Double( val );
-    } catch (Exception e){
+    } catch (Exception e) {
       // case for when we have a weird String-Double, which looks like a double in the excel sheet, yet is cast as a String, AND has a leading apostrophe in its stored value that prevents us from parsing it as a number.
+      String str = null;
       try {
-        String str = getString(row, i);
-
-        System.out.println("Trying to get a DOUBLE???? ----> "+str+" on column "+i);
-
-        if (str==null) return null;
-        System.out.println("EXCEL getDouble string conversion case reached with string "+str);
-        try {
-          Double ans = Double.parseDouble(str);
-          System.out.println("      getDouble string conversion got ans "+ans);
-          feedback.logParseValue(i, ans, row);
-          return ans;
-        } catch (Exception pe) {
-          pe.printStackTrace();
-          str = str.substring(1);
-          Double ans2 = Double.parseDouble(str);
-          System.out.println("      getDouble SUBSTRINGED and got ans "+ans2);
-          feedback.logParseValue(i, ans2, row);
-          return ans2;
+        originalString = getString(row, i);
+        if (originalString==null||originalString.isEmpty()) {
+          feedback.logParseNoValue(i);
+          return null;
         }
+
+        System.out.println("Trying to get a DOUBLE, removing non numeric characters ----> "+str+" on column "+i);
+        str = removeNonNumeric(originalString);
+        System.out.println("now have this: "+str);
+
+        Double ans = Double.parseDouble(str);
+        System.out.println("      getDouble string conversion got ans "+ans);
+        feedback.logParseValue(i, ans, row);
+        return ans;
+      } catch (Exception pe) {
+
+
+        pe.printStackTrace();
+
+        System.out.println("failed parsing double: "+str);
+
+        if (!stringIsDouble(str)) System.out.println("I'm sooo sure this isn't a double.");
+        
+        feedback.logParseError(i, originalString, row);
+        return null;
+        // pe.printStackTrace();
+        // str = str.substring(1);
+        // Double ans2 = Double.parseDouble(str);
+        // System.out.println("      getDouble SUBSTRINGED and got ans "+ans2);
+        // feedback.logParseValue(i, ans2, row);
+        // return ans2;
+
       }
-      catch (Exception ex) {ex.printStackTrace();}
     }
-    feedback.logParseNoValue(i);
-    return null;
   }
 
   public String getString(Row row, int i) {
