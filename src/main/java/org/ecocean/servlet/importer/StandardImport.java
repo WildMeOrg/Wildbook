@@ -110,7 +110,7 @@ public class StandardImport extends HttpServlet {
 
     System.out.println("Is user upload? ---> "+isUserUpload);
     
-    // WHY ISN"T THE URL MAKING IT
+    // WHY ISN"T THE URL MAKING IT AAUUUGHGHHHHH
     if (isUserUpload) {
       uploadDirectory = UploadServlet.getUploadDir(request);
       System.out.println("IS USER UPLOAD! ---> uploadDirectory = "+uploadDirectory);
@@ -604,25 +604,30 @@ public class StandardImport extends HttpServlet {
     }
     feedback.printEndTable();
 
-    out.println("<h2>File Overview: </h2>");
+    out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
+
+    out.println("<h2>Import Overview: </h2>");
     out.println("<ul>");
-    out.println("<li>Filename: "+filename+"</li>");
-    out.println("<li>File found = "+dataFound+"</li>");
-    out.println("<li>Num Sheets = "+numSheets+"</li>");
-    out.println("<li>Num Rows = "+physicalNumberOfRows+"</li>");    
-    out.println("<li>Num Cols = "+cols+"</li>");
-    out.println("<li>Last col num = "+lastColNum+"</li>");
-    out.println("<li><em>committing = "+committing+"</em></li>");
+    out.println("<li>Excel File Name: "+filename+"</li>");
+    out.println("<li>Excel File Successfully Found = "+dataFound+"</li>");
+    out.println("<li>Excel Sheets in File = "+numSheets+"</li>");
+    out.println("<li>Excel Rows = "+physicalNumberOfRows+"</li>");    
+    out.println("<li>Excel Columns = "+cols+"</li>");
+    //out.println("<li>Last col num = "+lastColNum+"</li>");
+    out.println("<li><em>Trial Run: "+!committing+"</em></li>");
     out.println("</ul>");
 
+    out.println("</div>"); // close column
 
+    out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
 
-
-    out.println("<h2><em>UNUSED</em> Column headings ("+unusedColumns.size()+"):</h2><ul>");
+    out.println("<h2><em>NOT IMPORTED</em> Column types ("+unusedColumns.size()+"):</h2><ul>");
     for (String heading: unusedColumns) {
       out.println("<li>"+heading+"</li>");
     }
     out.println("</ul>");
+
+    out.println("</div>"); // close column
 
 
     // List<String> usedColumns = new ArrayList<String>();
@@ -2141,9 +2146,9 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         this.currentRow.logParseValue(colNum, value, row);
       }
 
-      // public void logParseError(int colNum, Object value, Row row) {
-      //   this.currentRow.logParseError(colNum, value, row);
-      // }
+      public void logParseError(int colNum, Object value, Row row) {
+        this.currentRow.logParseError(colNum, value, row);
+      }
 
       public void logParseNoValue(int colNum) {
         this.currentRow.logParseNoValue(colNum);
@@ -2189,8 +2194,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       public void logParseValue(int colNum, Object value, Row row) {
         System.out.println("RowFeedback.logParseValue on an object: "+value+" with colNum "+colNum);
         if (value==null) { // a tad experimental here. this means we don't have to check the parseSuccess in each getWhatever method
-          System.out.println("RowFeedback.logParseValue on a NULL object. Calling logParseError.");
+          System.out.println("RowFeedback.logParseValue on a NULL OBJECT: trying to recover a value, or log empty");
           String valueString = getCellValueAsString(row, colNum);
+          if (valueString==null||"".equals(valueString.trim())) {
+            logParseNoValue(colNum);
+            return;
+          } 
           logParseError(colNum, valueString, row);
           return;
         }
