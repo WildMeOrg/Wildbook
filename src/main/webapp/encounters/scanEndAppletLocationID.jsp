@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.grid.ScanTask,org.ecocean.servlet.ServletUtilities,org.dom4j.Document, java.util.ArrayList,org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="java.util.StringTokenizer,org.ecocean.grid.ScanTask,org.ecocean.servlet.ServletUtilities,org.dom4j.Document, java.util.ArrayList,org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 
 <%
 
@@ -72,6 +72,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   String Sizelim = "";
   String maxTriangleRotation = "";
   String side2 = "";
+
   
   String fileSider = "";
   File finalXMLFile;
@@ -215,15 +216,6 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   Element root;
 
 
-  /*
-  if (request.getParameter("writeThis") == null) {
-    initresults = myShepherd.matches;
-    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      side = "right";
-    }
-  }
-  */
-  //else {
 
 //read from the written XML here if flagged
     try {
@@ -237,7 +229,17 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       maxTriangleRotation = root.attributeValue("maxTriangleRotation");
       Sizelim = root.attributeValue("Sizelim");
       epsilon = root.attributeValue("epsilon");
-    } catch (Exception ioe) {
+      
+      if(locationIDs.size()==0 && root.attributeValue("locationID")!=null){
+    	  String locs=root.attributeValue("locationID").replaceAll("[","").replaceAll("]","");
+    	  StringTokenizer str=new StringTokenizer(locs,",");
+    	  while(str.hasMoreTokens()){
+    		  locationIDs.add(str.nextToken());
+    	  }
+      }
+      
+    } 
+	catch (Exception ioe) {
       System.out.println("Error accessing the stored scan XML data for encounter: " + num);
       ioe.printStackTrace();
       //initresults = myShepherd.matches;
