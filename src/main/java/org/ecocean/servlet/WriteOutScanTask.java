@@ -114,7 +114,7 @@ public class WriteOutScanTask extends HttpServlet {
         }
         
 
-        boolean successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context,"");
+        boolean successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context,"",null);
 
         boolean successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
 
@@ -149,7 +149,7 @@ public class WriteOutScanTask extends HttpServlet {
             resLoc = filtered.toArray(resLoc);
             Arrays.sort(resLoc, new MatchComparator());
             //System.out.println("resLoc="+resLoc.length+"; filtered="+filtered.size());
-            successfulLocationIDWrite = writeResult(resLoc, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context,"LocationID");
+            successfulLocationIDWrite = writeResult(resLoc, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context,"LocationID",locs);
 
           }
           
@@ -201,7 +201,7 @@ public class WriteOutScanTask extends HttpServlet {
 
   }
 
-  public boolean writeResult(MatchObject[] swirs, String num, String R, String epsilon, String Sizelim, String maxTriangleRotation, String C, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd, String context, String fileCustomizationString) {
+  public boolean writeResult(MatchObject[] swirs, String num, String R, String epsilon, String Sizelim, String maxTriangleRotation, String C, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd, String context, String fileCustomizationString, List<String> locationIDs) {
 
 
     try {
@@ -221,6 +221,7 @@ public class WriteOutScanTask extends HttpServlet {
       root.addAttribute("Sizelim", Sizelim);
       root.addAttribute("maxTriangleRotation", maxTriangleRotation);
       root.addAttribute("C", C);
+      if(locationIDs!=null && locationIDs.size()>0)root.addAttribute("locationID", locationIDs.toString());
       int numMatches=matches.length;
       
       //hard limit this to 100 matches...no human really goes beyond this...
