@@ -231,7 +231,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       epsilon = root.attributeValue("epsilon");
       
       if(locationIDs.size()==0 && root.attributeValue("locationID")!=null){
-    	  String locs=root.attributeValue("locationID").replaceAll("[","").replaceAll("]","");
+    	  String locs=root.attributeValue("locationID").replaceAll("\\[","").replaceAll("\\]","");
     	  StringTokenizer str=new StringTokenizer(locs,",");
     	  while(str.hasMoreTokens()){
     		  locationIDs.add(str.nextToken());
