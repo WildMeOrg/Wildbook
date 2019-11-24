@@ -903,7 +903,8 @@
 	
 	{ "name":"Test Sets", "id":"TestSets", "locationID":[
 				{ "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] },
-				{ "name":"SDRPTestSet", "id":"SDRPTestSet", "locationID":[] },
+				{ "name":"SDRPTestSet_Encounter", "id":"SDRPTestSet_Encounter", "locationID":[] },
+				{ "name":"SDRPTestSet_Catalog", "id":"SDRPTestSet_Catalog", "locationID":[] },
 				
 		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
 	] },
