@@ -133,6 +133,9 @@ public class SOCPROGExport extends HttpServlet{
         Label popLabel4 = new Label(5, 0, "ID");
         sheet.addCell(popLabel4);
         
+        Label popLabel5g = new Label(6, 0, "Verbatim Location");
+        sheet.addCell(popLabel5g);
+        
         
         //sheet 2 entries
         Label popLabel4a = new Label(0, 0, "ID");
@@ -263,6 +266,11 @@ public class SOCPROGExport extends HttpServlet{
                       Label popLabel4a2 = new Label(0, count, enc.getIndividual().getDefaultName());
                       sheet2.addCell(popLabel4a2);
                       
+                    }
+                    
+                    if(enc.getVerbatimLocality()!=null){
+                      Label popLabel5f = new Label(6, count, enc.getVerbatimLocality().replaceAll("[^a-zA-Z0-9]", ""));
+                      sheet.addCell(popLabel5f);
                     }
                     
                     
