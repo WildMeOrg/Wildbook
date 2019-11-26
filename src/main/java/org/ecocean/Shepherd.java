@@ -4617,7 +4617,7 @@ public class Shepherd {
     String filter = "individual != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
-    q.setRange(1, numToReturn+1);
+    q.setRange(0, numToReturn+1);
     q.setOrdering("year descending, month descending, day descending");
     Collection c = (Collection) (q.execute());
     if ((c != null) && (c.size() > 0)) {
