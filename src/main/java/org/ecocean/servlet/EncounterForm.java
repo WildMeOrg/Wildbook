@@ -1302,13 +1302,23 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
   }
 
 
+    //we have to assume that we may be passed either an ID (uuid) or a "name".  in both cases we see if
+    //  this is a known individual, and make one if not (unless it is an unknown uuid!)
     private MarkedIndividual assignMarkedIndividual(Shepherd myShepherd, Encounter enc, String indivId) {
         if (!Util.stringExists(indivId)) return null;
-        MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(indivId);
-        if (indiv == null) {
-            indiv = new MarkedIndividual(indivId, enc);
-        } else {
+        System.out.println("INFO: EncounterForm.assignMarkedIndividual() has indivId=" + indivId);
+        MarkedIndividual indiv = null;
+        if (Util.isUUID(indivId)) {
+            indiv = myShepherd.getMarkedIndividualQuiet(indivId);
+            if (indiv == null) return null;  //this is because we *will not* create a new individual with a "name" of a uuid
             indiv.addEncounter(enc);
+        } else {
+            indiv = MarkedIndividual.withName(myShepherd, indivId);
+            if (indiv == null) {
+                indiv = new MarkedIndividual(indivId, enc);
+            } else {
+                indiv.addEncounter(enc);
+            }
         }
         enc.setIndividual(indiv);
         return indiv;
