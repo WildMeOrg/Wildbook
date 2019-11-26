@@ -1569,7 +1569,7 @@ if (sharky.getNames() != null) {
 	      </div>
 	    </div>
 	    <script type="text/javascript">
-              setupOccurrenceGraph(document);
+              setupOccurrenceGraph("<%=occurrenceIndividualID%>")
             </script>
           </div>
 

@@ -37,8 +37,8 @@ class ForceLayoutAbstract extends GraphAbstract {
     // Setup Methods //
 
     //Perform all auxiliary functions necessary prior to graphing
-    setupGraph(containerId) {
-	super.setupGraph(containerId);
+    setupGraph(containerId, linkData, nodeData) {
+	super.setupGraph(containerId, linkData, nodeData);
 	
 	//Establish node/link history
 	this.prevNodeData = this.nodeData;

@@ -2,6 +2,7 @@
 function setupOccurrenceGraph(individualID) { //TODO - look into individualID
     let focusedScale = 1.75;
     let occurrences = new OccurrenceGraph(individualID, focusedScale); //TODO - Remove mock
+    console.log(individualID);
     occurrences.graphOccurenceData(false, ['a', 'b']); //TODO: Remove mock
 }
 
@@ -113,8 +114,20 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	];	
     }
 
-    setupGraph(containerId) {
-	super.setupGraph(containerId);
+    //Generate a co-occurrence graph
+    graphOccurenceData(error, json) {
+	if (error) return console.error(json);
+	else if (json.length >= 1) { 
+	    //Create graph w/ forces
+	    this.setupGraph("#bubbleChart", this.linkData, this.nodeData);
+	    this.updateGraph();
+	}
+	else this.showTable("#cooccurrenceDiagram", "#cooccurrenceTable");
+    }
+
+    //Perform all auxiliary functions necessary prior to graphing
+    setupGraph(containerId, linkData, nodeData) {
+	super.setupGraph(containerId, linkData, nodeData);
 
 	//Create range sliders
 	this.getRangeSliderAttr();
@@ -124,18 +137,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	this.updateFilterButtons("#bubbleChart");
     }
 
-    //Generate a co-occurrence graph
-    graphOccurenceData(error, json) {
-	if (error) {
-	    return console.error(json);
-	}
-	else if (json.length >= 1) { 
-	    //Create graph w/ forces
-	    this.setupGraph("#bubbleChart");
-	    this.updateGraph();
-	}
-	else this.showTable("#cooccurrenceDiagram", "#cooccurrenceTable");
-    }
 
     //Calculate the maximum and average node differences for the spatial/temporal sliders
     getRangeSliderAttr() {

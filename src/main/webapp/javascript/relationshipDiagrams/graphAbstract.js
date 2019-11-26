@@ -96,7 +96,11 @@ class GraphAbstract {
     }
 
     //Perform all auxiliary functions necessary prior to graphing
-    setupGraph(containerId) {
+    setupGraph(containerId, linkData, nodeData) {
+	//Establish link/node context
+	this.linkData = linkData;
+	this.nodeData = nodeData;
+
 	//Add default elements
 	this.addSvg(containerId);
 	this.addLegend(containerId);
