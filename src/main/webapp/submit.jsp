@@ -584,8 +584,13 @@ function showUploadBox() {
 
 
 function setFormIndiv(indData) {
-    if (!indData) return;
 console.log('indiv data = %o', indData);
+    if (!indData) {  //this UNsets various ui
+        $('#encounterForm input[name="sex"][value="unknown"]').prop('checked', true);
+        $('#indiv-name-hint').html('');
+        $('#genusSpecies').val('');
+        return;
+    }
     if (indData.sex) $('#encounterForm input[name="sex"][value="' + indData.sex + '"]').prop('checked', true);
     if (indData.label) $('#indiv-name-hint').html('<i>' + indData.label + '</i>');
     if (indData.species) {
@@ -1280,7 +1285,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 $(document).ready(function() {
-console.info('+++++++++++++++++++++++++++');
         $('#indiv-id').autocomplete({
             select: function(ev, ui) {
                 setFormIndiv(ui.item);
@@ -1314,6 +1318,22 @@ console.info('+++++++++++++++++++++++++++');
                     }
                 });
             }
+        }).on('change', function(ev) {
+            if (!ev.target.value || (ev.target.value.length == 36)) return;  //blank or uuid
+            $.ajax({
+                url: './SiteSearch',
+                dataType: "json",
+                data: { term: ev.target.value },
+                success: function( data ) {
+console.info('got %o', data);
+                    if (!data || (data.length != 1)) {
+                        console.warn('note: did not get a single match, so will create new individual.  result=%o', data);
+                        setFormIndiv();
+                        return;
+                    }
+                    setFormIndiv(data[0]);
+                }
+            });
         });
 });
 
