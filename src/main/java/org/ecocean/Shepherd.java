@@ -4276,7 +4276,7 @@ public class Shepherd {
 
   public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
     ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();
-    String filter = "individual != null";
+    String filter = "individualID != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
     q.setRange(1, numToReturn+1);
