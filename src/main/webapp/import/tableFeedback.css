@@ -86,6 +86,20 @@ td.cellFeedback.null, .importFieldNull {
   display: block;
 }
 
+  /*
+.boxed-list {
+  height: 500rem;
+  width: auto;
+  overflow: hidden;
+  overflow-y: scroll;
+  overflow-x: scroll;
+}
+  */
+
+.import-commiting {
+  color: darkred;
+}
+
 /* .tableTopScrollbar {
 
 } */
