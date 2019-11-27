@@ -1515,13 +1515,14 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (cell!=null&&cell.getCellType()==Cell.CELL_TYPE_STRING) {
         System.out.println("Current cell: "+cell.toString()+" Current row: "+cell.getRowIndex()+" Current col: "+cell.getColumnIndex());
         str = cell.getStringCellValue();
-      } else {
-        // not ideal, but maybe get something 
-        str = cell.toString();
       }
+      // not ideal, but maybe get something
+      if (str==null&&cell!=null) {
+        str = cell.toString();
+      } 
     } catch (Exception e) {
       // it should be basically impossible to get here. this is not a challenge.  
-      feedback.logParseError(i, cell.toString(), row);
+      feedback.logParseError(i, String.valueOf(cell), row);
       e.printStackTrace();
     }
     if ("".equals(str) || str == null) {
