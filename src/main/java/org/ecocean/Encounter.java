@@ -2038,6 +2038,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     if (newLocationID!=null) {
       this.locationID = newLocationID.trim();
     }
+    else {
+      this.locationID = null;
+    }
   }
 
   public Double getMaximumDepthInMeters() {
