@@ -18,40 +18,30 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-Shepherd myShepherd=new Shepherd(context);
-myShepherd.setAction("generateStandardChildren.jsp");
-String orgName = request.getParameter("orgName");
-String commit = request.getParameter("commit");
-String limitStr = request.getParameter("limit");
-String filter = "this.submitterOrganization == 'Olive Ridley Project' ";
-if (orgName!=null) {
-    filter = "this.submitterOrganization == '"+orgName+"' ";
-}
-Collection c = null;
-List<Encounter> encs = null;
+myShepherd.setAction("resendEncMedia.jsp");
+
+String encNum = request.getParameter("encNum");
+Encounter enc = null;
+//List<MediaAsset> mas = new ArrayList<>();
 try {
-    Extent encClass = myShepherd.getPM().getExtent(Encounter.class, true);
-    Query acceptedEncounters = myShepherd.getPM().newQuery(encClass, filter);
-    c = (Collection) (acceptedEncounters.execute());
-    encs = new ArrayList<>(c);          
-    //int size=c.size();
-    acceptedEncounters.closeAll();
+
+    if (encNum!=null) {
+        enc = myShepherd.getEncounter(encNum);
+        //mas = enc.getMedia();
+    } else {
+        System.out.println("Specify an encounter number to send media to detection please.");
+    }
         
 } catch (Exception e) {
     System.out.println("Exception retrieving encounters...");
     e.printStackTrace();
 } 
 
-System.out.println("-------------------> Specified organization is "+orgName+" commit="+commit);
-System.out.println("-----------------> Got "+encs.size()+" encs as candidates...");
-
-
 %>
 
 <html>
 <head>
-<title>Sending Organization Batch to Detection</title>
-
+<title>Sending Encounter Media to Detection</title>
 </head>
 
 <body>
@@ -61,39 +51,29 @@ System.out.println("-----------------> Got "+encs.size()+" encs as candidates...
 //int limit = 0;
 int count = 0;
 try {
-        System.out.println("COMMITING!");
-        System.out.println("limit = "+limitStr);
-        for (Encounter enc : encs) {
-            System.out.println(enc.getTaxonomyString().trim()+" == Chelonia mydas || Eretmochelys imbricata ???");
-            if (enc.getTaxonomyString().trim().equals("Chelonia mydas")||enc.getTaxonomyString  ().trim().equals("Eretmochelys imbricata")) {
-                System.out.println("count = "+count);
-                if (limitStr!=null&&count<Integer.valueOf(limitStr)) {
-                    if ("true".equals(commit)) {
-                        enc.refreshAssetFormats(myShepherd);
-                        for (MediaAsset ma: enc.getMedia()) {
-                            ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
-                        }
-                        Task parentTask = null;
-                        if (enc.getLocationID() != null) {
-                            parentTask = new Task();
-                            JSONObject tp = new JSONObject();
-                            JSONObject mf = new JSONObject();
-                            mf.put("locationId", enc.getLocationID());
-                            tp.put("matchingSetFilter", mf);
-                            parentTask.setParameters(tp);
-                        }
-                        Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask); 
-                    }
-                    count++;
-                    System.out.println("Sent encounter # "+enc.getCatalogNumber()+" to detection...");
-                } else {
-                    break;
-                }   
-            } else {
-                System.out.println("Invalid Species for detection: "+enc.getTaxonomyString());
-            }
-        }
-        myShepherd.commitDBTransaction();
+
+    enc.refreshAssetFormats(myShepherd);
+
+    for (MediaAsset ma: enc.getMedia()) {
+        ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+    }
+    
+    Task parentTask = null;
+    if (enc.getLocationID() != null) {
+    
+        parentTask = new Task();
+        JSONObject tp = new JSONObject();
+        JSONObject mf = new JSONObject();
+        mf.put("locationId", enc.getLocationID());
+        tp.put("matchingSetFilter", mf);
+        parentTask.setParameters(tp);
+    
+    }
+
+    Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask); 
+
+    myShepherd.commitDBTransaction();
+
 } catch (Exception e){
 	myShepherd.rollbackDBTransaction();
 	e.printStackTrace();
