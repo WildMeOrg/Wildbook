@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 
 //import java.time.LocalDateTime;
@@ -758,10 +759,28 @@ System.out.println("[1] getMatchingSet params=" + params);
                 }
             }
         }
+
         //TODO we could have an option to skip expansion (i.e. not include children)
         List<String> expandedLocationIds = LocationID.expandIDs(rawLocationIds);
         String locFilter = "";
-        if (expandedLocationIds.size() > 0) locFilter += "enc.locationID == '" + String.join("' || enc.locationID == '", expandedLocationIds) + "'";
+
+        if (expandedLocationIds.size() > 0) {
+            locFilter += "enc.locationID == ''";
+            // loc ID's were breaking for Hawaiian names with apostrophe(s) and stuff, so overkill now
+            List<String> unsavoryCharacters = Arrays.asList(new String[] {"'", ")", "(", "=", ":", ";", "\""});
+            for (int i=0;i<expandedLocationIds.size();i++) {
+                String expandedLoc = expandedLocationIds.get(i);
+                if (CollectionUtils.containsAny(Arrays.asList(expandedLoc.split("")),unsavoryCharacters)) {
+                    for (String badChar : unsavoryCharacters) {
+                        expandedLoc = expandedLoc.replace(badChar, ".*");
+                    } 
+                    locFilter += " || enc.locationID.matches(\'"+expandedLoc+"\') ";
+                } else {
+                    locFilter +=  " || enc.locationID == '"+expandedLoc+"'";
+                } 
+            }
+        }
+        
         if (useNullLocation) {
             if (!locFilter.equals("")) locFilter += " || ";
             locFilter += "enc.locationID == null";
