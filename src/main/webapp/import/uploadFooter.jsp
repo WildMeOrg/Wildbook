@@ -21,6 +21,7 @@ String filename = request.getParameter("filename");
 
 String uploadAction = "standard-upload?filename="+filename+"&commit=true&isUserUpload=true";
 %>
+<p>If you are adding many images and encounters (more than a couple hundred if each) this may take a while. You will be redirected when the process is finished.</p>
 <a href="<%=uploadAction%>"><button>Commit these results.</button></a></p>
 
 
