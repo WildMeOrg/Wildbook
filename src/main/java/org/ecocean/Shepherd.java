@@ -4551,6 +4551,24 @@ public class Shepherd {
     return occurrenceIDs;
 
   }
+  
+  public ArrayList<String> getLinkedLocationIDs(String locationID){
+    ArrayList<String> locationIDs=new ArrayList<String>();
+
+   String filter="SELECT distinct enc2.locationID FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && encounters.contains(enc2) && enc.locationID == \""+locationID+"\" && enc2.locationID != null && enc2.locationID != \""+locationID+"\"  VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2";
+
+    Query q = pm.newQuery (filter);
+
+    Collection results = (Collection) q.execute();
+    ArrayList al=new ArrayList(results);
+    q.closeAll();
+    int numResults=al.size();
+    for(int i=0;i<numResults;i++) {
+      locationIDs.add((String)al.get(i));
+    }
+    return locationIDs;
+
+  }
 
 
 
