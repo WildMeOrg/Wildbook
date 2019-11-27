@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.ecocean.*;
 import org.ecocean.grid.*;
 
+import java.util.ArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
 
 
@@ -218,6 +219,12 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 							}
 							else if(enc.getLocationID()!=null) {
 							  st.addLocationIDToFilter(enc.getLocationID());
+							  ArrayList<String> linkedLocs=myShepherd.getLinkedLocationIDs(enc.getLocationID());
+							  if(linkedLocs!=null) {
+							    for(String loc:linkedLocs) {
+							      st.addLocationIDToFilter(loc);
+							    }
+							  }
 							}
 							
 							if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
