@@ -15,6 +15,11 @@ Shepherd myShepherd=new Shepherd(context);
 
 String genus="";
 
+boolean resolveConflicts=false;
+if(request.getParameter("resolveConflicts")!=null){
+	resolveConflicts=true;
+}
+
 
 %>
 
@@ -59,19 +64,55 @@ else{
 		for(int i=0;i<numIndies;i++){
 			MarkedIndividual indy=indies.get(i);
 			String speciesString="";
-			boolean hasOtherSpecies=false;
+			ArrayList<String> specs=new ArrayList<String>();
 			List<Encounter> encs=indy.getEncounterList();
 			for(Encounter enc:encs){
-				if(enc.getGenus()!=null && !enc.getGenus().equals("Megaptera")){
-					hasOtherSpecies=true;
+				if(enc.getGenus()!=null && !specs.contains(enc.getGenus())){
+					specs.add(enc.getGenus());
 					speciesString+=enc.getGenus();
 				}
 			}
-			if(hasOtherSpecies){
+			if(specs.size()>1){
 				%>
 				<li><%=indy.getDefaultName() %>:<%=indy.getIndividualID() %>: <%=speciesString %></li>
 				<%
+				
+				if(resolveConflicts){
+					
+					//specs.(0) will stay with the existing individual
+					
+					//specs.(1+) goes to a new MarkedIndividual
+					MarkedIndividual newIndy=null;
+					Vector<Encounter> inspectThese=(Vector<Encounter>)indy.getEncounters();
+					for(Encounter enc:inspectThese){
+						
+						if(enc.getGenus()!=null && !enc.getGenus().equals(specs.get(0))){
+							if(newIndy==null){
+								indy.removeEncounter(enc);
+								newIndy=new MarkedIndividual(enc);
+								myShepherd.getPM().makePersistent(newIndy);
+								myShepherd.updateDBTransaction();
+								enc.setIndividual(newIndy);
+								if(indy.getDefaultName()!=null){
+									newIndy.addName(indy.getDefaultName());
+								}
+								myShepherd.updateDBTransaction();
+							}
+							else{
+								indy.removeEncounter(enc);
+								newIndy.addEncounter(enc);
+								enc.setIndividual(newIndy);
+								myShepherd.updateDBTransaction();
+							}
+						}
+					}
+					
+				} //end if resolveConflicts
+				
+				
 			}
+			
+
 		}
 	}
 	catch(Exception e){
