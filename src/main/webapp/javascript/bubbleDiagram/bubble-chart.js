@@ -3,13 +3,18 @@ function setupOccurrenceGraph(individualID) { //TODO - look into individualID
     let focusedScale = 1.75;
     let occurrences = new OccurrenceGraph(individualID, focusedScale); //TODO - Remove mock
     console.log(individualID);
+    occurrences.queryOccurrences();//gets ids of all cooccurring nodes
+    occurrences.getMarkedIndividuals();//for creating dict of markedIndividualData
     occurrences.graphOccurenceData(false, ['a', 'b']); //TODO: Remove mock
 }
 
 //Sparse-tree mapping co-occurrence relationships between a focused individual and its species
 class OccurrenceGraph extends ForceLayoutAbstract {
-    constructor(individualId, focusedScale) {
-	super(individualId, focusedScale);
+    constructor(individualID, focusedScale) {
+	super(individualID, focusedScale);
+	this.indId = individualID;
+	this.occurrenceIds = [];
+	this.dataDict = {};
 
 	//TODO - Remove ref, use key
 	this.sliders = {"temporal": {"ref": "temporal"},
@@ -114,6 +119,74 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	];	
     }
 
+    getMarkedIndividuals() {
+	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
+	    encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual");//get all individuals
+	    d3.json(query, (error, json) => this.createNodeDictionary(json));
+    }
+
+    createNodeDictionary(json){
+	var sizeOfJSON = json.length;//number of MARKEDINDIVIDUALS
+
+	if(sizeOfJSON >= 1){//if there is anything in the query result
+	    for (var i = 0; i < sizeOfJSON; i++) {//iterate over all MARKEDINDIVIDUALS
+		this.dataDict[json[i].individualID] = json[i];//adding to dictionary of data referencable by individualID
+	    }
+	}
+	else{
+	    console.log("there is no json data in the markedIndividual query");//if there is nothing in the array
+	}
+	console.log("here is the dataDict", this.dataDict);
+    }
+    
+    //query all occurrence data and get all co occurring nodes
+    queryOccurrences() {
+	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
+	    encodeURIComponent("SELECT FROM org.ecocean.Occurrence");//get all occurrences
+	    d3.json(query, (error, json) => this.getCoocurrences(json));
+    }
+
+    //goes through occurrence data and gets ids of all nodes that have co-occurred with this id
+    getCoocurrences(json){
+	let theirOccurrences = [];
+	var sizeOfJSON = json.length;
+	if(sizeOfJSON >= 1){//if there is anything in the query result
+	    for (var i = 0; i < sizeOfJSON; i++) {//iterate over all occurrences
+		for(var j = 0; j < json[i].encounters.length; j++){
+		    let ID = this.indId;
+		    let ocID = json[i].encounters[j].individualID;
+		    if(ID == ocID){
+			theirOccurrences.push(i);//pushing to an array that holds which occurrences this id is in
+		    }
+		}
+	    }
+	}
+	else{
+	    console.log("there is no json data");
+	}
+	
+	console.log("here is thereOccurrences");
+	console.log(theirOccurrences);
+
+	//now go through only the occurrences this id is in and add all ids to occurrenceIds
+	if(sizeOfJSON >= 1){
+	    for(var i = 0; i < sizeOfJSON; i++){
+		if(theirOccurrences.includes(i)){
+		    for(var j = 0; j < json[i].encounters.length; j++){
+			let ID = this.indId;
+			let ocID = json[i].encounters[j].individualID;                                                         if(ID != ocID && ocID != undefined){
+			    //push an individualID if it exists and is not the focus
+			    this.occurrenceIds.push(json[i].encounters[j].individualID);
+			}
+		    }
+		}
+	    }
+	}
+	console.log("logging occurrenceIds");
+	console.log(this.occurrenceIds);
+    }
+
+    
     //Generate a co-occurrence graph
     graphOccurenceData(error, json) {
 	if (error) return console.error(json);
