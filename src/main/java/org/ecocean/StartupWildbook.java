@@ -70,6 +70,9 @@ public class StartupWildbook implements ServletContextListener {
         Role newRole1=new Role("tomcat","admin");
         newRole1.setContext("context0");
         myShepherd.getPM().makePersistent(newRole1);
+        Role newRole1a=new Role("tomcat","orgAdmin");
+        newRole1a.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole1a);
         Role newRole2=new Role("tomcat","researcher");
         newRole2.setContext("context0");
         myShepherd.getPM().makePersistent(newRole2);
