@@ -1409,7 +1409,7 @@ if (sharky.getNames() != null) {
         <div id="familyDiagram">
           <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
-            setupFamilyTree("<%=individualID%>");
+            setupFamilyTree("<%=individualID%>","<%=sharky.getDisplayName() %>");
           </script>
         </div>
 

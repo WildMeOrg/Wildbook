@@ -80,17 +80,15 @@ public class RelationshipCreate extends HttpServlet {
        try{
           if((myShepherd.isMarkedIndividual(request.getParameter("markedIndividualName1")))&&(myShepherd.isMarkedIndividual(request.getParameter("markedIndividualName2")))){
             
-            
-            //if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"), false)){
-            //  rel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
-           // }
+            MarkedIndividual individual1=myShepherd.getMarkedIndividual(request.getParameter("markedIndividualName1"));
+            MarkedIndividual individual2=myShepherd.getMarkedIndividual(request.getParameter("markedIndividualName2"));
             
             if((request.getParameter("persistenceID")!=null)&&(!request.getParameter("persistenceID").equals(""))){  
               Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));           
               rel=(Relationship)myShepherd.getPM().getObjectById(identity);
             }
             else{
-              rel=new Relationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"));
+              rel=new Relationship(request.getParameter("type"), individual1, individual2);
               myShepherd.getPM().makePersistent(rel); 
               myShepherd.commitDBTransaction();
               myShepherd.beginDBTransaction();
