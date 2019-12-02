@@ -251,7 +251,7 @@ public class StandardImport extends HttpServlet {
     }
     sheet = wb.getSheetAt(0);
 
-    if (committing) out.println("<h4><strong class=\"import-commiting\">Committing: </strong> When this page is finished loading, your import is complete and you can find your data on Flukebook.</h4>");
+    //if (committing) out.println("<h4><strong class=\"import-commiting\">Committing: </strong> When this page has finished loading, your import is complete and you can find your data on Flukebook.</h4>");
 
     int numSheets = wb.getNumberOfSheets();
     int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
@@ -375,7 +375,7 @@ public class StandardImport extends HttpServlet {
     if (!committing) {
       feedback.printMissingPhotos();
       feedback.printFoundPhotos();
-      out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
+      //out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
       //out.println("<h2>Import completed successfully</h2>");    
     }
 
@@ -1854,11 +1854,13 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   
       public void printMissingPhotos() {
         //if (!isUserUpload) {
+          out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
           out.println("<h2><em>Missing photos</em>("+missingPhotos.size()+"):</h2><ul>");
           for (String photo: missingPhotos) {
             out.println("<li>"+photo+"</li>");
           }
           out.println("</ul>");
+          out.println("</div>");
         //} 
       }
   

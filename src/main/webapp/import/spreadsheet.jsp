@@ -119,6 +119,8 @@ div.file-item div {
 	<button id="upload-button">begin upload</button>
 <% System.out.println("Done with import/spreadsheet.jsp. About to print footer."); %>
 </div>
+
+</div>
 <jsp:include page="../footer.jsp" flush="true"/>
 </body>
 </html>

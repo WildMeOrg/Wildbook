@@ -1,0 +1,40 @@
+.import-explanation {
+}
+.import-header {
+	margin-top: 0px;
+}
+
+ol.filelist {
+    font-size: 0.9em;
+	/*
+	width: 40%;
+	overflow: auto;
+	min-height: 500px;
+	max-height: 600px;
+	max-height: 60%;
+	overflow-y: auto;
+	overflow-x: scroll;
+    display: inline-block;
+	*/
+    color: #666;
+    padding: 0 0 0 30px;
+}
+
+ol.filelist li {
+    background-color: #EEA;
+    margin: 3px 0;
+    padding: 0 12px;
+}
+
+#filename-boxed-list {
+	min-height: 400px;
+	max-height: 500px;
+	overflow: scroll;
+	overflow-x: hidden;
+}
+
+.new-upload-image {
+    background-color: lightpink;
+    color: darkred;
+    font-weight: bold;
+}
