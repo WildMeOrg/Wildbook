@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="java.util.StringTokenizer,org.ecocean.grid.ScanTask,org.ecocean.servlet.ServletUtilities,org.dom4j.Document, java.util.ArrayList,org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 
 <%
 
@@ -37,26 +37,30 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
   //session.setMaxInactiveInterval(6000);
   String num="";
+  ArrayList<String> locationIDs=new ArrayList<String>();
   if(request.getParameter("number")!=null){
 	Shepherd myShepherd=new Shepherd(context);
-	myShepherd.setAction("scanEndApplet.jsp");
+	myShepherd.setAction("scanEndAppletLocationID.jsp");
 	myShepherd.beginDBTransaction();
 	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
   		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
 	}
+	
+	//get any scantask locationID lists
+	if(request.getParameter("taskID")!=null){
+		ScanTask st=myShepherd.getScanTask(request.getParameter("taskID").trim());
+		if(st!=null && st.getLocationIDFilters()!=null){
+			locationIDs=st.getLocationIDFilters();
+		}
+	}
+	
+	
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
   }	
   String encSubdir = Encounter.subdir(num);
 
-	/*
-  Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("scanEndApplet.jsp");
-  if (request.getParameter("writeThis") == null) {
-    myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
-  }
-  */
-  //Shepherd altShepherd = new Shepherd(context);
+
   String sessionId = session.getId();
   boolean xmlOK = false;
   SAXReader xmlReader = new SAXReader();
@@ -68,6 +72,48 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   String Sizelim = "";
   String maxTriangleRotation = "";
   String side2 = "";
+
+  
+  String fileSider = "";
+  File finalXMLFile;
+  File grothXMLFile;
+  if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+    //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
+    finalXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightI3SScan.xml");
+    grothXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightScan.xml");
+
+
+    side2 = "right";
+    fileSider = "&rightSide=true";
+  } 
+  else {
+    //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
+    finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
+    grothXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
+  }
+  
+  
+  String side = "left";
+  if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+      //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml");
+      file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightLocationIDScan.xml");
+
+
+      side = "right";
+    } else {
+      //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml");
+      file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
+
+    }
+  
+	  if(!file.exists()){
+	         response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
+	         response.setHeader("Location", request.getRequestURI().replaceFirst("scanEndAppletLocationID", "scanEndApplet")+"?"+request.getQueryString());
+	         return;
+	  }
+  
+  
+  
 %>
 <jsp:include page="../header.jsp" flush="true"/>
 
@@ -134,39 +180,19 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     href="encounter.jsp?number=<%=num%>">Encounter
     <%=num%>
   </a></li>
-  
+  <li><a class="active">Locally Filtered Results (Modified Groth)</a></li>
 
   <%
-    String fileSider = "";
-    File finalXMLFile;
-    File locationIDXMLFile;
-    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightI3SScan.xml");
-      locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightLocationIDScan.xml");
-
-
-      side2 = "right";
-      fileSider = "&rightSide=true";
-    } else {
-      //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
-      locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
-    }
     
     
-    if (locationIDXMLFile.exists()) {
+    if (grothXMLFile.exists()) {
   %>
 
   <li><a
-    href="scanEndAppletLocationID.jsp?writeThis=true&number=<%=num%>&I3S=true<%=fileSider%>">Locally Filtered Results (Modified Groth)</a>
+    href="scanEndApplet.jsp?writeThis=true&number=<%=num%>&I3S=true<%=fileSider%>">Modified Groth (Full)</a>
   </li>
   <%
     }
-    %>
-    
-    <li><a class="active">Modified Groth (Full)</a></li>
-    <%
     
     if (finalXMLFile.exists()) {
   %>
@@ -188,31 +214,12 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   Vector initresults = new Vector();
   Document doc;
   Element root;
-  String side = "left";
 
-  /*
-  if (request.getParameter("writeThis") == null) {
-    initresults = myShepherd.matches;
-    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      side = "right";
-    }
-  }
-  */
-  //else {
+
 
 //read from the written XML here if flagged
     try {
-      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightScan.xml");
 
-
-        side = "right";
-      } else {
-        //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
-
-      }
       doc = xmlReader.read(file);
       root = doc.getRootElement();
       scanDate = root.attributeValue("scanDate");
@@ -222,7 +229,17 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       maxTriangleRotation = root.attributeValue("maxTriangleRotation");
       Sizelim = root.attributeValue("Sizelim");
       epsilon = root.attributeValue("epsilon");
-    } catch (Exception ioe) {
+      
+      if(locationIDs.size()==0 && root.attributeValue("locationID")!=null){
+    	  String locs=root.attributeValue("locationID").replaceAll("\\[","").replaceAll("\\]","");
+    	  StringTokenizer str=new StringTokenizer(locs,",");
+    	  while(str.hasMoreTokens()){
+    		  locationIDs.add(str.nextToken());
+    	  }
+      }
+      
+    } 
+	catch (Exception ioe) {
       System.out.println("Error accessing the stored scan XML data for encounter: " + num);
       ioe.printStackTrace();
       //initresults = myShepherd.matches;
@@ -248,10 +265,26 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <p>
 
-<h2>Modified Groth Scan Results <a
-  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
-  target="_blank"><img src="../images/information_icon_svg.gif"
-                       alt="Help" border="0" align="absmiddle"></a></h2>
+<h2>Modified Groth Scan Results Filtered to Location IDs
+<a href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a></h2>
+         <%
+         if(locationIDs.size()>0){
+	     %>
+	         	<p>Filtered for: 
+	         		<ul>
+	         		<%
+	         		for(String l:locationIDs){
+	         			%>
+	         			<li><strong><%=l %></strong></li>
+	         			<%
+	         		}
+	         		%>
+	         		</ul>
+	         	</p>
+	     <%
+         }
+         %>
+                       
 </p>
 <p>The following encounter(s) received the highest
   match values against a <%=side%>-side scan of encounter <a
@@ -280,9 +313,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //System.out.println("Base URL is: " + baseURL);
     if (xmlOK) {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        feedURL = baseURL + encSubdir + "/lastFullRightScan.xml?";
+        feedURL = baseURL + encSubdir + "/lastFullRightLocationIDScan.xml?";
       } else {
-        feedURL = baseURL + encSubdir + "/lastFullScan.xml?";
+        feedURL = baseURL + encSubdir + "/lastFullLocationIDScan.xml?";
       }
     }
     String rightSA = "";
