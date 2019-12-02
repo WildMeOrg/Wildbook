@@ -202,13 +202,15 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 	if (enc==null) {
 		rtn.put("error", "could not find Encounter "+encId+" in the database.");
 		out.println(rtn.toString());
-		myShepherd.rollbackAndloseDBTransaction();
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
 		return;
 	}
 	if (!Util.stringExists(nextName) || !Util.stringExists(nextNameKey)) {
 		rtn.put("error", "Was unable to decide on the next automatic name. Got key="+nextNameKey+" and val="+nextName);
 		out.println(rtn.toString());
-		myShepherd.rollbackAndloseDBTransaction();
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
 		return;
 	}
 	MarkedIndividual mark = enc.getIndividual();
