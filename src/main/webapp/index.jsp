@@ -84,9 +84,9 @@ try{
     numEncounters=myShepherd.getNumEncounters();
     //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
-    numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
-    numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
-    numUsersWithRoles = numUsers-numDataContributors;
+    //numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
+    //numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
+    //numUsersWithRoles = numUsers-numDataContributors;
 
 
 }
@@ -427,20 +427,17 @@ h2.vidcap {
 <div class="container-fluid">
     <section class="container text-center  main-section">
        <div class="row">
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedAnimals") %></i></p>
+       		<section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+                <p  class="brand-primary"><i><span class="massive">1.2M+</span> <%=props.getProperty("numPhotos") %></i></p>
             </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+                        <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
-
-                <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> <%=props.getProperty("citizenScientists") %></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedAnimals") %></i></p>
             </section>
-            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("researchVolunteers") %></i></p>
-            </section>
+           </section>
         </div>
 
         <hr/>
