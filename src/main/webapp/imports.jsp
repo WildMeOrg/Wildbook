@@ -54,6 +54,13 @@ boolean adminMode = ("admin".equals(user.getUsername()));
     color: #F20;
 }
 
+.smaller {
+    font-size: 0.84em;
+}
+.fname-toggle-true {
+    background-color: rgba(255,255,0,0.2);
+}
+
 a.button {
     font-weight: bold;
     font-size: 0.9em;
@@ -173,8 +180,8 @@ if (itask == null) {
 
     out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
     out.println("<table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
-    String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
-    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images"};
+    String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images", "Images"};
+    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images", "Images"};
     for (int i = 0 ; i < headers.length ; i++) {
         out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
     }
@@ -186,6 +193,8 @@ if (itask == null) {
     boolean foundChildren = false;
 
     JSONArray jarr = new JSONArray();
+    String fnameBlockPrev = "";
+    boolean fnameToggle = true;
     if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
         out.println("<tr>");
         out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
@@ -214,11 +223,14 @@ if (itask == null) {
         }
 
         ArrayList<MediaAsset> mas = enc.getMedia();
+        List<String> fnames = new ArrayList<String>();
         if (Util.collectionSize(mas) < 1) {
             out.println("<td class=\"dim\">0</td>");
+            out.println("<td class=\"dim\">-</td>");
         } else {
             out.println("<td>" + Util.collectionSize(mas) + "</td>");
             for (MediaAsset ma : mas) {
+                fnames.add("<span title=\"" + ma.getId() + "\">" + ma.getFilename() + "</span>");
                 if (!allAssets.contains(ma)) {
                     allAssets.add(ma);
                     jarr.put(ma.getId());
@@ -226,6 +238,10 @@ if (itask == null) {
                 }
                 if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
             }
+            String fnameBlock = String.join(", ", fnames);
+            if (!fnameBlock.equals(fnameBlockPrev)) fnameToggle = !fnameToggle;
+            out.println("<td class=\"fname-toggle-" + fnameToggle + " smaller\">" + fnameBlock + "</td>");
+            fnameBlockPrev = fnameBlock;
         }
 
         out.println("</tr>");
