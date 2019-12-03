@@ -65,6 +65,10 @@ if(request.getParameter("encounterNumber")!=null){
 	encNum=request.getParameter("encounterNumber");
 }
 
+// IMPORTANT! isOwner is set to false if any of the encs later are not owned by the user.
+// TODO would be to set it on a per-encounter level, but that involves some java-JS-fu I don't have time for
+boolean isOwner = true;
+
 boolean isGrid = (request.getParameter("grid")!=null);
 
 imageShepherd.beginDBTransaction();
@@ -107,7 +111,7 @@ try {
   System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
-  	int numEncs=encs.size();
+  int numEncs=encs.size();
   System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
   %><script>
@@ -127,7 +131,10 @@ function forceLink(el) {
   for(int f=0;f<numEncs;f++){
 
 		  Encounter enc = encs.get(f);
-		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
+
+      isOwner = isOwner && ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+
+		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber()+"; isOwner="+isOwner);
       if (shouldEvict(enc)) {
         // I believe we need to evict the cache here so that we'll see detection results on the encounter page
         org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
@@ -159,7 +166,7 @@ function forceLink(el) {
                         if ((ma.getAcmId() != null) && !maAcms.contains(ma.getAcmId())) maAcms.add(ma.getAcmId());
                         maIds.add(Integer.toString(ma.getId()));
 
-                        
+
 
 		      String filename = ma.getFilename();
 		      System.out.println("    EMG: got ma at "+filename);
@@ -170,25 +177,25 @@ function forceLink(el) {
 		      }
 		      	System.out.println("    EMG: got indID element "+individualID);
 
-		      
+
 		      //Start caption render JSP side
 		      String[] capos=new String[1];
 		      capos[0]="<p style=\"color: white;\"><em>"+filename+"</em><br>";
 		      capos[0]+=individualID;
-		      
+
 		      capos[0]+=encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a><br>";
 		      capos[0]+=encprops.getProperty("date")+" "+enc.getDate()+"<br>";
-		      
+
 		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
 		      captionLinks.add(capos);
 		      System.out.println("    EMG: got capos "+capos[0]);
 
 		      //end caption render JSP side
-		      
+
 		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
 		  		//if (!ann.isTrivial()) continue;  ///or not?
 
-		  		
+
 		  		if (ma != null) {
 		  			System.out.println("    EMG: ma is not null");
 
@@ -272,7 +279,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
     //this is kinda hacky cuz it is sql-specific
     if (maAcms.size() > 0) {
         String sql = "select \"MEDIAASSET\".\"ID\" as assetId, \"MEDIAASSET\".\"ACMID\" as assetAcmId, \"ENCOUNTER\".\"CATALOGNUMBER\" as encId, \"ENCOUNTER\".\"INDIVIDUALID\" as indivId from \"MEDIAASSET\" join \"MEDIAASSET_FEATURES\" on (\"ID\" = \"ID_OID\") join \"ANNOTATION_FEATURES\" using (\"ID_EID\") join \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") join \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") where \"MEDIAASSET\".\"ACMID\" in ('" + String.join("', '", maAcms) + "') AND \"MEDIAASSET\".\"ID\" not in (" + String.join(", ", maIds) + ");";
-// assetid |              assetacmid              |                encid                 | individ 
+// assetid |              assetacmid              |                encid                 | individ
         Query q = imageShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         List results = (List)q.execute();
         Iterator it = results.iterator();
@@ -383,7 +390,7 @@ figcaption div {
 }
 
 .image-enhancer-keyword.labeled-keyword span.keyword-label, span.keyword-label {
-  font-weight: bold; 
+  font-weight: bold;
 }
 
 .caption-youtube {
@@ -564,7 +571,7 @@ if(request.getParameter("encounterNumber")!=null){
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
-  
+
   console.log("Hey we're workin again!");
   var assets = <%=all.toString()%>;
   // <% System.out.println(" Got all size = "+all.length()); %>
@@ -718,13 +725,13 @@ console.log(ma);
         h += '<input type="button" value="swap Annots: ' + niceId(myFeat.annotationId) + ' ==&gt; [Enc ' + niceId(ma.features[i].encounterId)+ '] // ' + niceId(ma.features[i].annotationId) + ' ==&gt; [Enc ' + niceId(myFeat.encounterId) + ']" ';
         h += ' onClick="swapEncounters(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         if (myFeat.individualId && ma.features[i].individualId) {
-            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + niceId(ma.features[i].encounterId) + ')" '; 
+            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + niceId(ma.features[i].encounterId) + ')" ';
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         } else if (myFeat.individualId) {
-            h += '<input type="button" value="set name ' + myFeat.individualId + ' on [Enc ' + niceId(ma.features[i].encounterId) + '] (unset this)" '; 
+            h += '<input type="button" value="set name ' + myFeat.individualId + ' on [Enc ' + niceId(ma.features[i].encounterId) + '] (unset this)" ';
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         } else if (ma.features[i].individualId) {
-            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on the above Encounter (unset ' + niceId(ma.features[i].encounterId) + ')" '; 
+            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on the above Encounter (unset ' + niceId(ma.features[i].encounterId) + ')" ';
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         }
     }
@@ -768,7 +775,7 @@ jQuery(document).ready(function() {
         if (editMode == editModeWas) return;
         if (!editMode) {
             $('.edit-mode-ui').remove();
-            $('.image-enhancer-keyword-wrapper').show();
+            if (<%=isOwner%>) $('.image-enhancer-keyword-wrapper').show();
             return;
         }
         $('.image-enhancer-keyword-wrapper').hide();
@@ -839,7 +846,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 	<%
     }
 	%>
-	
+
 
 /*
         if (true) {
@@ -1245,6 +1252,7 @@ System.out.println("got jobj "+jobj);
 
 
 function imageLayerKeywords(el, opt) {
+  var isOwner = <%=isOwner%>;
 	var mid;
 	if (opt && opt._mid) {  //hack!
 		mid = opt._mid;
@@ -1273,66 +1281,69 @@ console.info("############## mid=%s -> %o", mid, ma);
 	}
 
   // the labeledKeyword edit form comes from before
-
+  // we want to only allow edit if the user has edit roles
   var labelsToValues = <%=jobj%>;
   console.log("Labeled keywords %o", labelsToValues);
-  h += '<div class="labeled iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
-  if (!$.isEmptyObject(labelsToValues)) {
-      //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
-    var hasSome = false;
-    var labelSelector = '<select onChange="return updateLabeledKeywordLabel(this);"  style="width: 100%" class="label-selector"><option value="">select label</option>';
-    var valueSelectors = '';
-    for (var label in labelsToValues) {
-      var valueSelector = '<select onChange="return updateLabeledKeywordValue(this);" style="width: 100%; display: none;" class="value-selector '+label+'" data-kw-label="'+label+'"><option value="">select value</option>';
-      var values = labelsToValues[label];
-      //console.log("in labelsToValues loop with label %s and values %s",label, values);
-      for (var i in values) {
-        var value = values[i];
-        //console.log("in labelsToValues loop with label %s and value %s",label, value);
-        //if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
-        valueSelector += '<option class="labeledKeywordValue '+label+'" value="' + value + '">' + value + '</option>';
+  if (isOwner) {
+    }
+      h += '<div class="labeled iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+    if (!$.isEmptyObject(labelsToValues)) {
+        //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
+      var hasSome = false;
+      var labelSelector = '<select onChange="return updateLabeledKeywordLabel(this);"  style="width: 100%" class="label-selector"><option value="">select label</option>';
+      var valueSelectors = '';
+      for (var label in labelsToValues) {
+        var valueSelector = '<select onChange="return updateLabeledKeywordValue(this);" style="width: 100%; display: none;" class="value-selector '+label+'" data-kw-label="'+label+'"><option value="">select value</option>';
+        var values = labelsToValues[label];
+        //console.log("in labelsToValues loop with label %s and values %s",label, values);
+        for (var i in values) {
+          var value = values[i];
+          //console.log("in labelsToValues loop with label %s and value %s",label, value);
+          //if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
+          valueSelector += '<option class="labeledKeywordValue '+label+'" value="' + value + '">' + value + '</option>';
+          hasSome = true;
+        }
+        valueSelector += '</select>';
+        valueSelectors += valueSelector
+        labelSelector += '<option value="' + label + '">' + label + '</option>';
+      }
+      labelSelector += '</select>';
+      if (hasSome) {
+        h += labelSelector;
+        h += valueSelectors;
+      }
+    } else {
+      console.log("your labels are empty");
+    }
+    h += '</div></div>';
+
+    h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
+    if (wildbookGlobals.keywords) {
+      var hasSome = false;
+      var mh = '<select onChange="return addNewKeyword(this);" style="width: 100%" class="keyword-selector"><option value="">select keyword</option>';
+      for (var j in wildbookGlobals.keywords) {
+        if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
+        mh += '<option value="' + j + '">' + wildbookGlobals.keywords[j] + '</option>';
         hasSome = true;
       }
-      valueSelector += '</select>';
-      valueSelectors += valueSelector
-      labelSelector += '<option value="' + label + '">' + label + '</option>';
+      mh += '</select>';
+      if (hasSome) h += mh;
     }
-    labelSelector += '</select>';
-    if (hasSome) {
-      h += labelSelector;
-      h += valueSelectors;
-    }
-  } else {
-    console.log("your labels are empty dumbass");
-  }
-  h += '</div></div>';
+    h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
+    h += '</div></div>';
+
+    h += '</div>';
+    el.append(h);
+    el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
+      ev.stopPropagation();
+    });
+    el.find('.iek-remove').on('click', function(ev) {
+      //ev.stopPropagation();
+      addNewKeyword(ev.target);
+    });
 
 
 
-	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
-	if (wildbookGlobals.keywords) {
-		var hasSome = false;
-		var mh = '<select onChange="return addNewKeyword(this);" style="width: 100%" class="keyword-selector"><option value="">select keyword</option>';
-		for (var j in wildbookGlobals.keywords) {
-			if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
-			mh += '<option value="' + j + '">' + wildbookGlobals.keywords[j] + '</option>';
-			hasSome = true;
-		}
-		mh += '</select>';
-		if (hasSome) h += mh;
-	}
-	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
-	h += '</div></div>';
-
-	h += '</div>';
-	el.append(h);
-	el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
-		ev.stopPropagation();
-	});
-	el.find('.iek-remove').on('click', function(ev) {
-		//ev.stopPropagation();
-		addNewKeyword(ev.target);
-	});
 }
 
 function imagePopupInfo(obj) {
