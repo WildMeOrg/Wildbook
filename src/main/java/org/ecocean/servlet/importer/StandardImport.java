@@ -1534,6 +1534,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         System.out.println("Current cell: "+cell.toString()+" Current row: "+cell.getRowIndex()+" Current col: "+cell.getColumnIndex());
         str = cell.getStringCellValue();
       }
+      if (cell!=null&&cell.getCellType()==Cell.CELL_TYPE_NUMERIC) {
+        str = String.valueOf(cell.getNumericCellValue());
+        if (str.endsWith(".0")) str = str.replace(".0", "");
+      }
       // not ideal, but maybe get something
       if (str==null&&cell!=null) {
         str = cell.toString();
