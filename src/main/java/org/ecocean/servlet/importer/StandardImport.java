@@ -346,7 +346,11 @@ public class StandardImport extends HttpServlet {
     out.println("<li><em>Trial Run: "+!committing+"</em></li>");
     out.println("</ul>");
 
+    String uName = request.getUserPrincipal().getName();
+    if (committing&&uName!=null) out.println("<p><a href=\"../encounters/searchResults.jsp?username="+uName+"\">Search encounters owned by current user \""+uName+"\"</a></p>");
+
     out.println("</div>"); // close column
+
 
     
     if (!committing) {
