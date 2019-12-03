@@ -33,6 +33,7 @@ int nImages = 0;
 
 try {
 	uploadDir = new File(dirName);
+	if (!uploadDir.isDirectory()) uploadDir.mkdirs();
 	contents = FileUtils.listFiles(uploadDir, null, true);
 } catch (Exception e) {
 	System.out.println("Exception! On ReviewDirectory.jsp!!!");
@@ -64,10 +65,16 @@ nImages = imageFiles.size();
 
 ol.filelist {
     font-size: 0.9em;
-    width: 40%;
-    max-height: 60%;
-    overflow-y: auto;
+	/*
+	width: 40%;
+	overflow: auto;
+	min-height: 500px;
+	max-height: 600px;
+	max-height: 60%;
+	overflow-y: auto;
+	overflow-x: scroll;
     display: inline-block;
+	*/
     color: #666;
     padding: 0 0 0 30px;
 }
@@ -76,6 +83,13 @@ ol.filelist li {
     background-color: #EEA;
     margin: 3px 0;
     padding: 0 12px;
+}
+
+#filename-boxed-list {
+	min-height: 400px;
+	max-height: 500px;
+	overflow: scroll;
+	overflow-x: hidden;
 }
 
 </style>
@@ -87,23 +101,26 @@ ol.filelist li {
   <p class="import-explanation">Please confirm that you have uploaded all the images in this import</p>
 
   <p class="info"><b><%=nImages %> images found:</b></p>
-    <ol class="filelist">
-  	<% 
-  	for (File photo: imageFiles) {
-  		%>
-  		<li><%=photo.getName()%></li>
-  		<%
-	}
-  	%>
 
-    </ol>
+	<div id="filename-boxed-list">
+    	<ol class="filelist">
+  		<% 
+  		for (File photo: imageFiles) {
+  			%>
+  			<li><%=photo.getName()%></li>
+  			<%
+		}
+  		%>
+
+    	</ol>
+	</div>
   <div>
 		<input style="background-color: #CCC;" onClick="document.location='photos.jsp';" type="submit" value="Go back and try again">
 		<input onClick="document.location.href='spreadsheet.jsp';" type="submit" value="Accept and move on">
   </div>
 
           
-</div>
+</div> <!-- container maincontent -->
 
 <jsp:include page="../footer.jsp" flush="true"/>
 
