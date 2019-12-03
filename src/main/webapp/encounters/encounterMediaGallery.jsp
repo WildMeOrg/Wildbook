@@ -1257,7 +1257,7 @@ console.info("############## mid=%s -> %o", mid, ma);
 
 	if (!ma.keywords) ma.keywords = [];
 	var thisHas = [];
-	var h = '<div class="image-enhancer-keyword-wrapper">';
+	var h = '<div class="image-enhancer-keyword-wrapper image-enhancer-keyword-wrapper-hover">';
 	for (var i = 0 ; i < ma.keywords.length ; i++) {
     var kw = ma.keywords[i];
     thisHas.push(kw.indexname);

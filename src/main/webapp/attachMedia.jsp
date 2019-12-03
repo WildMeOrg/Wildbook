@@ -120,6 +120,21 @@ a.button:hover {
     border-radius: 3px;
 }
 
+.contenthash-warning {
+    cursor: pointer;
+    border-radius: 3px;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: inline-block;
+    background-color: rgba(150,0,0,0.7);
+    color: #FF0;
+    width: 1.2em;
+    font-size: 1.4em;
+    line-height: 1.2em;
+    font-weight: bold;
+    text-align: center;
+}
 
 /* for uploader */
 
@@ -474,10 +489,8 @@ boolean showUpload = false;
 <script src="javascript/tablesorter/jquery.tablesorter.js"></script>
 <link rel="stylesheet" href="javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 
-<!--
 <script src="javascript/uint32.js"></script>
 <script src="javascript/xxhash.js"></script>
--->
 
 <script>
 var showingHasAttached = true; //will toggle to false upon init
@@ -955,15 +968,16 @@ function populateImage(md) {
     var reader = new FileReader();
 //console.log('populateImage() img => %o', img);
     reader.onload = function() {
-/*
-        var x = XXH( reader.result, 0x2170BEEF );
-console.log("XX got me=> %o %o", x, x.toString(16));
-        md.xxhash = x.toString(16);
-*/
+        var ch = contentHash(reader.result);
+        md.contentHash = ch;
+        //TODO could downsize the image here?  https://gist.github.com/MikeRogers0/6264546   https://stackoverflow.com/a/20965997
+        var u8 = new Uint8Array(reader.result);
+        var blob = new Blob( [ u8 ], { type: "image/jpeg" } );
+        var u = window.URL || window.webkitURL;
 console.log('DONE with img=%o', img);
-        img.prop('src', reader.result);
+        img.prop('src', u.createObjectURL(blob));
     };
-    reader.readAsDataURL(md.file);
+    reader.readAsArrayBuffer(md.file);
 }
 
 var mediaData = [];
@@ -1007,7 +1021,7 @@ function checkMediaDataComplete() {
         if (!mediaData[i] || !mediaData[i].complete) return;  //meh, not done
     }
 console.info('OFFSET... DONE mediaData!!!!!');
-    //checkXXHash();
+    checkContentHash();
     var sorted = $('.bulk-media');
     sorted.sort(function(a, b) {
         var sortA = a.getAttribute('data-sort') * 1;
@@ -1144,21 +1158,49 @@ console.info('dates => %o', dates);
 }
 
 
-function checkXXHash() {
-    var xx = [];
+function contentHash(arrbuff) {
+    if (!arrbuff) return false;
+    var xxh = XXH(arrbuff, 0x2170BEEF);
+    var ch = arrbuff.byteLength.toString(16) + xxh.toString(16);
+//console.log("xxh => %o %o ====> %o", xxh, xxh.toString(16), ch);
+    return ch;
+}
+
+function checkContentHash() {
+    var hashes = [];
     for (var i = 0 ; i < mediaData.length ; i++) {
-        if (mediaData[i].xxhash) xx.push(mediaData[i].file.size.toString(16) + mediaData[i].xxhash);
+        if (mediaData[i].contentHash) hashes.push(mediaData[i].contentHash);
     }
-    if (!xx.length) return;
-console.log('==========> %o', xx);
+    if (!hashes.length) return;
+console.log('hashes => %o', hashes);
     $.ajax({
-        url: 'findXXHash.jsp?xxhash=' + xx.join('&xxhash='),
+        url: 'findXXHash.jsp?hash=' + hashes.join('&hash='),
         type: 'GET',
         complete: function(x, s) {
-console.log('%o %o %o', x.responseJSON, x, s);
+console.log('findXXHash => %o %o %o', x.responseJSON, x, s);
+            if ((s != 'success') || !x || !x.responseJSON || !Array.isArray(x.responseJSON)) {
+                console.warn('error fetching XXHash data: %o', x);
+            } else {
+                for (var i = 0 ; i < x.responseJSON.length ; i++) {
+                    contentHashWarning(x.responseJSON[i]);
+                }
+            }
         },
         dataType: 'json'
     });
+}
+
+function contentHashWarning(d) {
+    if (!d || !d.contentHash) return;
+    for (var i = 0 ; i < mediaData.length ; i++) {
+        if (!mediaData[i].contentHash || (mediaData[i].contentHash != d.contentHash)) continue;
+        var t = $('<div class="contenthash-warning" title="tooltip">&#x26A0;</div>');
+        var dt = new Date(d.dateMillis);
+        t.tooltip({ content: 'Note: this image appears to have already been added as <b>' + d.filename + '</b> on <i>Enc ' + d.encounterId.substring(0,8) + '</i> from ' + dt.toISOString().substring(0,10) });
+        t.on('click', function() { wildbook.openInTab('encounters/encounter.jsp?number=' + d.encounterId); });
+        mediaData[i].div.append(t);
+        return;
+    }
 }
 
 //TODO Bearing, Altitude

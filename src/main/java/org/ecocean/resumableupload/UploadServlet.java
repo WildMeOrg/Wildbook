@@ -45,7 +45,7 @@ public class UploadServlet extends HttpServlet {
 
 
 	// For user-facing web bulk upload.
-	public static String getSubdirForUpload(Shepherd myShepherd, HttpServletRequest request) {
+	public static String getSubdirForUpload(HttpServletRequest request) {
             return new File(CommonConfiguration.getUploadTmpDirForUser(request)).getName();
 /*
 		String subdir = ServletUtilities.getParameterOrAttribute("subdir",request);
