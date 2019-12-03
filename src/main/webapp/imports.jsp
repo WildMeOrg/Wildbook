@@ -60,6 +60,10 @@ boolean adminMode = ("admin".equals(user.getUsername()));
 .fname-toggle-true {
     background-color: rgba(255,255,0,0.2);
 }
+.has-trivial {
+    font-style: oblique;
+    color: #A80;
+}
 
 a.button {
     font-weight: bold;
@@ -222,15 +226,20 @@ if (itask == null) {
             out.println("<td class=\"dim\">-</td>");
         }
 
-        ArrayList<MediaAsset> mas = enc.getMedia();
+        ArrayList<Annotation> anns = enc.getAnnotations();
+        String fnameBlock = "";
         List<String> fnames = new ArrayList<String>();
-        if (Util.collectionSize(mas) < 1) {
+        if (Util.collectionSize(anns) < 1) {
             out.println("<td class=\"dim\">0</td>");
             out.println("<td class=\"dim\">-</td>");
         } else {
-            out.println("<td>" + Util.collectionSize(mas) + "</td>");
-            for (MediaAsset ma : mas) {
-                fnames.add("<span title=\"" + ma.getId() + "\">" + ma.getFilename() + "</span>");
+            out.println("<td>" + Util.collectionSize(anns) + "</td>");
+            for (Annotation ann : anns) {
+                MediaAsset ma = ann.getMediaAsset();
+                if (ma == null) continue;
+                boolean isTroubleTrivial = ann.isTrivial();  // && (ma.getFeatures().size() != 1);
+                fnames.add("<span " + (isTroubleTrivial ? "class=\"has-trivial\"" : "") + " title=\"MediaAsset id " + ma.getId() + (isTroubleTrivial ? " | UNDETECTED" : "") + "\">" + ma.getFilename() + "</span>");
+                fnameBlock += ma.getFilename();
                 if (!allAssets.contains(ma)) {
                     allAssets.add(ma);
                     jarr.put(ma.getId());
@@ -238,9 +247,8 @@ if (itask == null) {
                 }
                 if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) foundChildren = true; //only need one
             }
-            String fnameBlock = String.join(", ", fnames);
             if (!fnameBlock.equals(fnameBlockPrev)) fnameToggle = !fnameToggle;
-            out.println("<td class=\"fname-toggle-" + fnameToggle + " smaller\">" + fnameBlock + "</td>");
+            out.println("<td class=\"fname-toggle-" + fnameToggle + " smaller\">" + String.join(", ", fnames) + "</td>");
             fnameBlockPrev = fnameBlock;
         }
 
