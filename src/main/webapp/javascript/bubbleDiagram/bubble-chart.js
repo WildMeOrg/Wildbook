@@ -233,15 +233,15 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	//Mark nodes concerning whether they should be filtered
 	this.nodeData.forEach(d => {
 	    if (nodeFilter(d) && d.filtered === type) d.filtered = false;
-		else if (!nodeFilter(d) && (!d.filtered ||
-					    d.filtered === "family_filter")) d.filtered = type;
+	    else if (!nodeFilter(d) && (!d.filtered || d.filtered === "family_filter"))
+		d.filtered = type;
 	});
 	
 	//Mark links concerning whether they should be filtered
 	this.linkData.forEach(d => {
 	    if (linkFilter(d) && d.filtered === type) d.filtered = false;
-	    if (!linkFilter(d) && (!d.filtered ||
-				   d.filtered === "family_filter")) d.filtered = type;
+	    else if (!linkFilter(d) && (!d.filtered || d.filtered === "family_filter"))
+		d.filtered = type;
 	});
 	
 	//Identify node data which should be rendered

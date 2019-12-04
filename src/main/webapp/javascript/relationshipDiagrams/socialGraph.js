@@ -83,14 +83,16 @@ class SocialGraph extends ForceLayoutAbstract {
 			       "\" || this.markedIndividualName2 == \"" + this.id + "\")");
 	d3.json(query, (error, json) => {
 	    if (error) console.error(error);
-	    else this.parser.parseJSON(this.id, json, (nodes, links) =>
-	    			       this.graphSocialData(nodes, links));
+	    else this.parser.parseJSON(this.id, json,
+				       (nodes, links) => this.graphSocialData(nodes, links));
 	});	
     }
 
     //Generate a social graph
     graphSocialData(nodes, links) {
-	if(nodes.length > 0) {
+	console.log(nodes);
+	console.log(links);
+	if (nodes.length > 0) {
 	    //Create graph w/ forces
 	    this.setupGraph("#socialDiagram", links, nodes);
 	    this.updateFilterButtons("#socialDiagram");
