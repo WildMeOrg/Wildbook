@@ -140,9 +140,6 @@ class ForceLayoutAbstract extends GraphAbstract {
 	let nodes = this.svg.selectAll(".node")
 	    .data(nodeData, d => d.id);
 	
-	//Mark removed nodes as collapsed
-	nodes.exit().data().forEach(d => d.collapsed = true);
-
 	//Hide node text
 	nodes.exit().selectAll("text")
 	    .attr("fill-opacity", 0);
@@ -156,10 +153,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .duration(this.transitionDuration)
 	    .attr("r", this.startingRadius)
 	    .style("fill", d => this.colorGender(d))
-	    .style("stroke-width", 0);
-
-	//Mark added nodes as un-collapsed
-	nodes.enter().data().forEach(d => d.collapsed = false);
+	    .style("stroke-width", 0)
 	
 	//Update new nodes
 	this.nodes = nodes.enter().append("g")
@@ -216,7 +210,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .attr("fill-opacity", 1);
 
 	//Merge exit nodes such that physics may be applied
-	this.nodes = this.nodes.merge(nodes.exit())
+	//this.nodes = this.nodes.merge(nodes.exit())
 	
 	//Update node starting radius
 	if (this.startingRadius === 0) this.startingRadius = 15;
@@ -319,21 +313,6 @@ class ForceLayoutAbstract extends GraphAbstract {
 	}
     }
 
-    //TODO - Determine if this is a desired feature
-    //Handle all general forceLayout node/link filters
-    handleFilter(groupNum) {
-	if (this.shiftKey()) { //Filter Inverse of Selected Family
-	    let filter = (d) => d.group === groupNum;
-	    this.filterGraph(groupNum, filter, filter, "inverse_family");
-	}
-	else if (this.ctrlKey()) { //Filter Selected Family
-	    let nodeFilter = (d) => d.group !== groupNum;
-	    let linkFilter = (d) => (d.source.group !== groupNum &&
-				     d.target.group !== groupNum);
-	    this.filterGraph(groupNum, nodeFilter, linkFilter, "family");
-	}
-    }
-
     //Reset the graph s.t. all filtered nodes are unfiltered
     resetGraph() {
 	for (let filter in this.filtered) this.filtered[filter] = {};
@@ -347,29 +326,30 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     //Apply reversible filters based upon groupNum
     filterGraph(groupNum, nodeFilter, linkFilter, filterType) {
-	let nodeData, linkData;
-	if (this.filtered[filterType][groupNum]) {
+	if (this.filtered[filterType][groupNum]) { //Reset filter
 	    this.filtered[filterType][groupNum] = false;
 
+	    //Remove any nodes who no longer qualify to be filtered
 	    this.svg.selectAll(".node").filter(d => {
 		return !nodeFilter(d) && (d.filtered === "family_filter")
 	    }).remove();
 	    
 	    //Mark nodes and links which are being unfiltered
-	    this.nodeData.filter(d => !nodeFilter(d) && d.filtered === "family_filter")
-		.forEach(d => d.filtered = false);
-	    this.linkData.filter(d => !linkFilter(d) && d.filtered === "family_filter")
-		.forEach(d => d.filtered = false);
+	    let nodeData = this.nodeData.filter(d => {
+		return !nodeFilter(d) && d.filtered === "family_filter";
+	    });
+	    nodeData.forEach(d => d.filtered = false);
 	    
-	    this.prevNodeData = this.getUniqueData(this.prevNodeData.concat(
-		this.nodeData.filter(d => !nodeFilter(d) && !d.filtered)
-	    ));
-	    this.prevLinkData = this.getUniqueData(this.prevLinkData.concat(
-		this.linkData.filter(d => !linkFilter(d) && !d.filtered &&
-				     !(d.source.filtered || d.target.filtered))
-	    ));
+	    let linkData = this.linkData.filter(d => {
+		return !linkFilter(d) && d.filtered === "family_filter" &&
+		    !d.source.filtered && !d.target.filtered;
+	    });
+	    linkData.forEach(d => d.filtered = false);
+	    
+	    this.prevNodeData = this.getUniqueNodeData(nodeData);
+	    this.prevLinkData = this.prevLinkData.concat(linkData);
 	}
-	else {
+	else { //Apply filter
 	    this.filtered[filterType][groupNum] = true;
 
 	    //Mark nodes and links which are being filtered
@@ -416,15 +396,15 @@ class ForceLayoutAbstract extends GraphAbstract {
 	return this.nodeData.find(node => node.id === link.source);
     }
 
-    getUniqueData(data) {
-	let a = data.concat();
-	for (let i = 0; i < a.length; ++i) {
-            for (let j = i + 1; j < a.length; ++j) {
-		if (a[i].id === a[j].id)
-                    a.splice(j--, 1);
+    getUniqueNodeData(nodeData) {
+	let d = nodeData.concat(this.prevNodeData);
+	for (let i = 0; i < d.length; ++i) {
+            for (let j = i + 1; j < d.length; ++j) {
+		if (d[i].id === d[j].id)
+                    d.splice(j--, 1);
             }
 	}
 
-	return a;
+	return d;
     }
 }

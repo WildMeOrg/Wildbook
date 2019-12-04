@@ -387,7 +387,6 @@ class GraphAbstract {
 	    this.filterGraph(groupNum, filter, filter, "inverse_family");
 	});
 	$(parentRef).find("#filterFamily").on("click", () => {
-	    console.log(this.focusedNode);
 	    let groupNum = this.focusedNode.group;
 	    let nodeFilter = (d) => d.group !== groupNum;
 	    let linkFilter = (d) => (d.source.group !== groupNum &&
