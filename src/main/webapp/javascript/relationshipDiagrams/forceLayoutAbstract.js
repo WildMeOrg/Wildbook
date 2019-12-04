@@ -41,7 +41,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	super.setupGraph(containerId, linkData, nodeData);
 	
 	//Establish node/link history
-	this.prevNodeData = this.nodeData;
+	//this.prevNodeData = this.nodeData;
 	this.prevLinkData = this.linkData;
 	
 	//Setup force simulation
@@ -135,85 +135,71 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     //Render nodes with updated data
-    updateNodes(nodeData=this.nodeData) {
-	//Define node parent/data
-	let nodes = this.svg.selectAll(".node")
-	    .data(nodeData, d => d.id);
-	
+    updateNodes(nodeData=this.nodeData) {	
+	//Collapse all filtered nodes
+	this.filterNodes();
+
+	//Update/unfilter all nodes
+	this.unfilterNodes();
+
+	//Center the focused node
+	if (this.focusedNode) this.centerNode(this.focusedNode);
+				
+	//Update node starting radius
+	if (this.startingRadius === 0) this.startingRadius = 15;
+    }
+
+    //Hide node text, symbols, and outlines for all filtered nodes
+    filterNodes(nodeData=this.nodeData) {
+	let filteredNodes = this.svg.selectAll(".node")
+	    .filter(d => d.filtered);
+
 	//Hide node text
-	nodes.exit().selectAll("text")
+	filteredNodes.selectAll("text")
 	    .attr("fill-opacity", 0);
 
 	//Hide node symbols
-	nodes.exit().selectAll(".symb")
+	filteredNodes.selectAll(".symb")
 	    .style("fill-opacity", 0);
 
 	//Collapse node outlines
-	nodes.exit().selectAll("circle").transition()
+	filteredNodes.selectAll("circle").transition()
 	    .duration(this.transitionDuration)
 	    .attr("r", this.startingRadius)
 	    .style("fill", d => this.colorGender(d))
 	    .style("stroke-width", 0)
+
+	return filteredNodes;
+    }
+
+    //Unfilter and update node characteristics
+    unfilterNodes(nodeData=this.nodeData) {
+	//Define node parent/data
+	let nodes = this.svg.selectAll(".node")
+	    .data(nodeData, d => d.id);
 	
 	//Update new nodes
-	this.nodes = nodes.enter().append("g")
+	let newNodes = nodes.enter().append("g")
 	    .attr("class", "node")
 	    .attr("fill-opacity", 0)
 	    .on("mouseover", d => this.handleMouseOver(d))					
 	    .on("mouseout", () => this.handleMouseOut())
 
-	//Style nodes
-	this.drawNodeOutlines();
-	this.drawNodeSymbols();
-	this.addNodeText();
-
 	//Join w/ existing nodes
-	this.nodes = this.nodes.raise().merge(nodes);
+	this.nodes = nodes.merge(newNodes)
+	let activeNodes = this.nodes.filter(d => !d.filtered);
 	
-	//Grow node radius
-	this.nodes.selectAll("circle").transition()
-	    .duration(this.transitionDuration)
-	    .attr("r", d => this.radius * this.getSizeScalar(d))
-	    .style("stroke-width", d => {
-		let a = this.strokeWidth * this.getSizeScalar(d)
-		console.log(a);
-		return a + "px";
-	    });
+	//Style nodes
+	this.updateNodeOutlines(newNodes, activeNodes);
+	this.updateNodeSymbols(newNodes, activeNodes);
+	this.updateNodeText(newNodes, activeNodes);
 
-	//Grow node text
-	this.nodes.selectAll("text").transition()
-	    .duration(this.transitionDuration)
-	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
-	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
-
-	//Fade node symbol in
-	this.nodes.selectAll(".symb").transition()
-	    .duration(this.transitionDuration)
-	    .style("fill-opacity", 1)
-	    .attr("transform", d => {
-		let radialPos = Math.cos(Math.PI / 4);
-		let pos = this.radius * this.getSizeScalar(d) * radialPos;
-		return "translate(" + pos + "," + -pos + ")";
-	    })
-	    .attr("d", d => {
-		return d3.symbol().type(d3.symbolCircle)
-		    .size(() => {
-			if (d.data.role && d.data.role.toUpperCase() == "ALPHA")
-			    return this.alphaSymbSize * this.getSizeScalar(d);
-			else return 0;
-		    })();
-	    });
-	
 	//Fade nodes in
-	this.nodes.transition()
+	activeNodes.transition()
 	    .duration(this.transitionDuration)
 	    .attr("fill-opacity", 1);
 
-	//Merge exit nodes such that physics may be applied
-	//this.nodes = this.nodes.merge(nodes.exit())
-	
-	//Update node starting radius
-	if (this.startingRadius === 0) this.startingRadius = 15;
+	return activeNodes;
     }
 
     // Physics Methods //
@@ -260,7 +246,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     focusNode(d) {
 	//Focus targeted node
-	if (this.ctrlKey() && !d.collapsed) {
+	if (this.ctrlKey() && !d.filtered) {
 	    //Unfocus all nodes
 	    this.svg.selectAll(".node").each(d => d.data.isFocused = false);
 	    
@@ -269,15 +255,22 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    this.focusedNode = d;
 	    
 	    //Update the graph
-	    this.updateGraph(this.prevLinkData, this.prevNodeData);
+	    this.updateGraph(this.prevLinkData); //this.prevNodeData);
 
 	    return true;
 	}
     }
 
+    centerNode(d) {
+	this.svg.transition()
+	    .duration(this.transitionDuration)
+	    .attr("transform", "translate(" + (this.width/2 - d.x) + "," +
+		  (this.height/2 - d.y) + ")scale(1)");
+    }
+
     //Begin moving node on drag, allow for graph interactions
     dragStarted(d) {
-	if (!(this.isAssignedKeyBinding() || d.collapsed)) {
+	if (!this.isAssignedKeyBinding() && !d.filtered) {
 	    if (!d3.event.active) this.forces.alphaTarget(0.5).restart();
 	    d.fx = d3.event.x;
 	    d.fy = d3.event.y;
@@ -286,7 +279,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     //Update node movement on drag
     dragged(d) {
-	if (!(this.isAssignedKeyBinding() || d.collapsed)) {
+	if (!this.isAssignedKeyBinding() && !d.filtered) {
 	    d.fx = d3.event.x;
 	    d.fy = d3.event.y;
 	}
@@ -294,7 +287,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     //Resolve node movement on drag end, halt graph movements
     dragEnded(d, node) {
-	if (!(this.isAssignedKeyBinding() || d.collapsed)) {
+	if (!this.isAssignedKeyBinding() && !d.filtered) {
 	    if (!d3.event.active) this.forces.alphaTarget(0);
 
 	    //Color fixed node
@@ -304,10 +297,10 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     //Release the targeted node from its locked position
     releaseNode(d, node) {
-	if (!d.collapsed) {
+	if (!d.filtered) {
 	    d.fx = null;
 	    d.fy = null;
-
+	    
 	    //Recolor node
 	    d3.select(node).select("circle").style("fill", this.defNodeColor);
 	}
@@ -318,8 +311,6 @@ class ForceLayoutAbstract extends GraphAbstract {
 	for (let filter in this.filtered) this.filtered[filter] = {};
 	this.svg.selectAll(".node").filter(d => d.filtered).remove();
 	this.nodeData.forEach(d => d.filtered = false);
-	this.linkData.forEach(d => d.filtered = false);
-	this.prevNodeData = this.nodeData;
 	this.prevLinkData = this.linkData;
 	this.updateGraph();
     }
@@ -335,18 +326,10 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    }).remove();
 	    
 	    //Mark nodes and links which are being unfiltered
-	    let nodeData = this.nodeData.filter(d => {
-		return !nodeFilter(d) && d.filtered === "family_filter";
-	    });
-	    nodeData.forEach(d => d.filtered = false);
+	    this.nodeData.filter(d => !nodeFilter(d) && d.filtered === "family_filter")
+		.forEach(d => d.filtered = false);
 	    
-	    let linkData = this.linkData.filter(d => {
-		return !linkFilter(d) && d.filtered === "family_filter" &&
-		    !d.source.filtered && !d.target.filtered;
-	    });
-	    linkData.forEach(d => d.filtered = false);
-	    
-	    this.prevNodeData = this.getUniqueNodeData(nodeData);
+	    let linkData = this.linkData.filter(d => !d.source.filtered && !d.target.filtered);
 	    this.prevLinkData = this.prevLinkData.concat(linkData);
 	}
 	else { //Apply filter
@@ -355,13 +338,12 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    //Mark nodes and links which are being filtered
 	    this.nodeData.filter(d => !nodeFilter(d) && !d.filtered)
 		.forEach(d => d.filtered = "family_filter");
-	    this.linkData.filter(d => !linkFilter(d) && !d.filtered)
-		.forEach(d => d.filtered = "family_filter");
 	    
-	    this.prevNodeData = this.prevNodeData.filter(nodeFilter);
-	    this.prevLinkData = this.prevLinkData.filter(linkFilter);
+	    this.prevLinkData = this.prevLinkData.filter(d => !d.source.filtered &&
+							 !d.target.filtered);
 	}
-	this.updateGraph(this.prevLinkData, this.prevNodeData);
+	
+	this.updateGraph(this.prevLinkData, this.nodeData);
     }
 
     // Helper Methods //
@@ -396,6 +378,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	return this.nodeData.find(node => node.id === link.source);
     }
 
+    //TODO - Remove?
     getUniqueNodeData(nodeData) {
 	let d = nodeData.concat(this.prevNodeData);
 	for (let i = 0; i < d.length; ++i) {

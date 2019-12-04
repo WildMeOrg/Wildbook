@@ -1,5 +1,3 @@
-//TODO: Enlarge node on hover
-
 //Abstract class defining funcitonality for all d3 graph types
 class GraphAbstract {
     constructor(individualID, focusedScale=1) {
@@ -198,12 +196,19 @@ class GraphAbstract {
     }
 
     //Draw each node with prescribed radius, fill, and outline
-    drawNodeOutlines(nodes=this.nodes) {
-	nodes.append("circle")
+    updateNodeOutlines(newNodes=this.nodes, activeNodes=this.nodes) {
+	//Create new node outlines
+	newNodes.append("circle")
 	    .attr("r", this.startingRadius)
 	    .style("fill", this.defNodeColor)
 	    .style("stroke", d => this.colorGender(d))
 	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d));
+
+	//Scale node radius and stroke width
+	activeNodes.selectAll("circle").transition()
+	    .duration(this.transitionDuration)
+	    .attr("r", d => this.radius * this.getSizeScalar(d))
+	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d) + "px");
     }
 
     //Return a color based upon the given node's geneder
@@ -222,9 +227,25 @@ class GraphAbstract {
     }
 
     //Draw alpha symbols for all given nodes which qualify
-    drawNodeSymbols(nodes=this.nodes) {
-	nodes.append("path")
+    updateNodeSymbols(newNodes=this.nodes, activeNodes=this.nodes) {
+	//Add new node symbols
+	newNodes.append("path")
 	    .attr("class", "symb")
+	    .attr("d", d => {
+		return d3.symbol().type(d3.symbolCircle)
+		    .size(() => {
+			if (d.data.role && d.data.role.toUpperCase() == "ALPHA")
+			    return this.alphaSymbSize * this.getSizeScalar(d);
+			else return 0;
+		    })();
+	    })
+	    .style("fill", this.alphaColor)
+	    .style("fill-opacity", 0);
+
+	//Update node symbols
+	activeNodes.selectAll(".symb").transition()
+	    .duration(this.transitionDuration)
+	    .style("fill-opacity", 1)
 	    .attr("d", d => {
 		return d3.symbol().type(d3.symbolCircle)
 		    .size(() => {
@@ -238,15 +259,13 @@ class GraphAbstract {
 		let pos = this.radius * this.getSizeScalar(d) * radialPos;
 		return "translate(" + pos + "," + -pos + ")";
 	    })
-	    .style("fill", this.alphaColor)
-	    .style("fill-opacity", 0);
     }
 
     //Add text to the given nodes
-    addNodeText(nodes=this.nodes) {
-	//Style node text
+    updateNodeText(newNodes=this.nodes, activeNodes=this.nodes) {
+	//Add new node text
 //	let boundedLength = 2 * this.radius * Math.cos(Math.PI / 4); //Necessary dimensions of bounding rectangle
-	nodes.append("text")
+	newNodes.append("text")
 //	    .attr(d => d.x - (boundedLength / 2))
 //	    .attr(d => d.y - (boundedLength / 2))
 //	    .attr("width", boundedLength)
@@ -254,6 +273,12 @@ class GraphAbstract {
 	    .attr("class", "text")
 	    .attr("dy", ".5em") //Vertically centered
 	    .text(d => d.data.name)
+	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
+	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
+
+	//Update node text
+	activeNodes.selectAll("text").transition()
+	    .duration(this.transitionDuration)
 	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
 	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
     }
@@ -385,6 +410,7 @@ class GraphAbstract {
 	    let groupNum = this.focusedNode.group;
 	    let filter = (d) => d.group === groupNum;
 	    this.filterGraph(groupNum, filter, filter, "inverse_family");
+	    return false; //Prevent default event
 	});
 	$(parentRef).find("#filterFamily").on("click", () => {
 	    let groupNum = this.focusedNode.group;
@@ -392,9 +418,9 @@ class GraphAbstract {
 	    let linkFilter = (d) => (d.source.group !== groupNum &&
 				     d.target.group !== groupNum);
 	    this.filterGraph(groupNum, nodeFilter, linkFilter, "family");
-
+	    return false; //Prevent default event
 	});
-	$(parentRef).find("#reset").on("click", () => this.resetGraph());
+	$(parentRef).find("#reset").on("click", () => this.resetGraph() && false);
     }
 }
 

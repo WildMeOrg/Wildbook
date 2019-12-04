@@ -90,8 +90,6 @@ class SocialGraph extends ForceLayoutAbstract {
 
     //Generate a social graph
     graphSocialData(nodes, links) {
-	console.log(nodes);
-	console.log(links);
 	if (nodes.length > 0) {
 	    //Create graph w/ forces
 	    this.setupGraph("#socialDiagram", links, nodes);
