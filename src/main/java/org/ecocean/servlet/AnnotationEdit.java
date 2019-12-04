@@ -94,6 +94,7 @@ public class AnnotationEdit extends HttpServlet {
             String assignIndivId = jsonIn.optString("assignIndividualId", null);
             String swapEncAnnotId = jsonIn.optString("swapEncounterId", null);  //this is an *annot* id but to swap between encounters
             boolean remove = jsonIn.optBoolean("remove", false);
+            boolean removeAnnotationFeature = jsonIn.optBoolean("removeAnnotationFeature", false);  //doesnt delete encounter
             if (swapId != null) {
                 Annotation swapAnnot = myShepherd.getAnnotation(swapId);
                 if (swapId.equals(annId) || (swapAnnot == null)) {
@@ -156,6 +157,35 @@ public class AnnotationEdit extends HttpServlet {
                     }
                 }
 
+            //this takes precedence over "remove", and leaves Encounter alive (but removes annot/feat)
+            } else if (removeAnnotationFeature) {
+                String fid = jsonIn.optString("featureId", "__FAIL__");
+                String eid = jsonIn.optString("encounterId", "__FAIL__");
+                try {
+                    Feature feat = (Feature) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Feature.class, fid), true));
+                    Encounter enc = myShepherd.getEncounter(eid);
+                    if ((feat == null) || (enc == null)) {
+                        rtn.put("error", "invalid ID; featureId=" + fid + ", encounterId=" + eid);
+                    } else if (!enc.getAnnotations().contains(annot)) {
+                        rtn.put("error", "Encounter does not contain this Annotation");
+                    } else if (!annot.getId().equals(feat.getAnnotation().getId())) {
+                        rtn.put("error", "Feature does not contain this Annotation");
+                    } else {  //good to go?
+                        MediaAsset ma = feat.getMediaAsset();
+                        if (ma != null) {
+                            ma.removeFeature(feat);
+                            myShepherd.getPM().makePersistent(ma);
+                        }
+                        enc.removeAnnotation(annot);
+                        myShepherd.getPM().deletePersistent(annot);
+                        myShepherd.getPM().deletePersistent(feat);
+                        System.out.println("INFO: AnnotationEdit.removeAnnotationFeature deleted [annot,feat]=[" + annot.getId() + "," + feat.getId() + "]");
+                        rtn.put("success", true);
+                    }
+                } catch (Exception ex) {
+                    rtn.put("error", "ERROR: " + ex.toString() + " with featureId=" + fid + " and encounterId=" + eid);
+                }
+
             } else if (remove) {
                 String fid = jsonIn.optString("featureId", "__FAIL__");
                 String eid = jsonIn.optString("encounterId", "__FAIL__");
@@ -195,7 +225,6 @@ public class AnnotationEdit extends HttpServlet {
                 } catch (Exception ex) {
                     rtn.put("error", "ERROR: " + ex.toString() + " with featureId=" + fid + " and encounterId=" + eid);
                 }
-                
             } else if (Util.stringExists(assignIndivId)) {
                 Encounter enc = annot.findEncounter(myShepherd);
                 if (enc.hasMarkedIndividual()) {
