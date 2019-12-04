@@ -2,7 +2,6 @@
 function setupOccurrenceGraph(individualID) { //TODO - look into individualID
     let focusedScale = 1.75;
     let occurrences = new OccurrenceGraph(individualID, focusedScale); //TODO - Remove mock
-    console.log(individualID);
     occurrences.graphOccurenceData(false, ['a', 'b']); //TODO: Remove mock
 }
 
@@ -143,31 +142,30 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let distArr = [], timeArr = []
 	this.nodeData.forEach(d => {
 	    if (d.id !== this.focusedNode.id) {
-		let dist = this.getMin(this.focusedNode, d, "spatial");
-		let time = this.getMin(this.focusedNode, d, "temporal");
+		let dist = this.getNodeMin(this.focusedNode, d, "spatial");
+		let time = this.getNodeMin(this.focusedNode, d, "temporal");
 		distArr.push(dist)
 		timeArr.push(time);
 	    }
 	});
 
-	this.sliders.temporal.max = Math.max(...timeArr);
+	this.sliders.temporal.max = Math.ceil(Math.max(...timeArr));
 	this.sliders.temporal.mean = timeArr.reduce((a,b) => a + b, 0) / timeArr.length;
 
 	this.sliders.spatial.max = Math.max(...distArr);
 	this.sliders.spatial.mean = distArr.reduce((a,b) => a + b, 0) / distArr.length;
-	console.log(distArr); //TODO - Remove
     }
 
     //Wrapper for finding the minimum spatial/temporal differences between two nodes
-    getMin(node1, node2, type) {
+    getNodeMin(node1, node2, type) {
 	let node1Sightings = node1.data.sightings;
 	let node2Sightings = node2.data.sightings;
-	return this.getMinBruteForce(node1Sightings, node2Sightings, type);
+	return this.getNodeMinBruteForce(node1Sightings, node2Sightings, type);
     }
 
     //TODO - Consider strip optimizations
     //Find the minimum spatial/temporal difference between two node sightings
-    getMinBruteForce(node1Sightings, node2Sightings, type) {
+    getNodeMinBruteForce(node1Sightings, node2Sightings, type) {
 	let val, min = Number.MAX_VALUE;
 	node1Sightings.forEach(node1 => {
 	    node2Sightings.forEach(node2 => {
@@ -211,14 +209,14 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     }
 
     //Filter nodes by spatial/temporal differences, displaying those less than the set threshold
-    filterByOccurrence(self, threshold, occType) {
+    filterByOccurrence(self, thresh, occType) {
 	//Update slider label value
-	$("#" + occType + "Val").text(threshold)
+	$("#" + occType + "Val").text(thresh)
 	
 	let focusedNode = self.nodeData.find(d => d.data.isFocused);
-	let nodeFilter = (d) => (self.getMin(focusedNode, d, occType) <= threshold)
-	let linkFilter = (d) => (self.getMin(focusedNode, d.source, occType) <= threshold) &&
-	    (self.getMin(focusedNode, d.target, occType) <= threshold)
+	let nodeFilter = (d) => (self.getNodeMin(focusedNode, d, occType) <= thresh)
+	let linkFilter = (d) => (self.getNodeMin(focusedNode, d.source, occType) <= thresh) &&
+	    (self.getNodeMin(focusedNode, d.target, occType) <= thresh)
 	
 	self.absoluteFilterGraph(nodeFilter, linkFilter, occType);
     }
@@ -236,21 +234,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    else if (!nodeFilter(d) && (!d.filtered || d.filtered === "family_filter"))
 		d.filtered = type;
 	});
-	
-	//Mark links concerning whether they should be filtered
-	this.linkData.forEach(d => {
-	    if (linkFilter(d) && d.filtered === type) d.filtered = false;
-	    else if (!linkFilter(d) && (!d.filtered || d.filtered === "family_filter"))
-		d.filtered = type;
-	});
-	
-	//Identify node data which should be rendered
-	this.prevLinkData = this.linkData.filter(d => linkFilter(d) && !d.filtered
-						 && !(d.source.filtered || d.target.filtered));
-	this.prevNodeData = this.nodeData.filter(d => nodeFilter(d) && !d.filtered)
+		
+	//Identify link data which should be rendered
+	this.prevLinkData = this.linkData.filter(d => !d.source.filtered && !d.target.filtered);
 
 	//Update the graph with filtered data
-	this.updateGraph(this.prevLinkData, this.prevNodeData);
+	this.updateGraph(this.prevLinkData, this.nodeData);
     }
 
     //Swap node focus w/ contextual co-occurence slider updates
@@ -259,8 +248,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    //Re-calculate slider values
 	    this.getRangeSliderAttr();
 
-	    //Reset graph - TODO fix this to only reset spatial/temporal
-	    this.resetGraph();
+	    //Reset sliders
+	    this.resetSliders();
 	}
     }
 
@@ -268,8 +257,13 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     resetGraph() {
 	//Reset all filtered nodes
 	super.resetGraph();
-	
-	//Reset slider text and value
+
+	//Reset sliders
+	this.resetSliders();
+    }
+
+    //Reset each slider's text and value
+    resetSliders() {
 	Object.values(this.sliders).forEach(slider => {
 	    $("#" + slider.ref + "Val").text(slider.max)
 	    $("#" + slider.ref).attr("max", slider.max);
