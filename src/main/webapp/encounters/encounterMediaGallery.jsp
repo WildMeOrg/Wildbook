@@ -636,6 +636,11 @@ function removeFeatAnnEnc(fid, aid, eid) {
     return annotEditAjax({ id: aid, featureId: fid, encounterId: eid, remove: true });
 }
 
+//this will *not* delete encounter (but will remove annot/feat)
+function removeFeatAnn(fid, aid, eid) {
+    return annotEditAjax({ id: aid, featureId: fid, encounterId: eid, removeAnnotationFeature: true });
+}
+
 function swapEncounters(aid1, aid2) {
     return annotEditAjax({ id: aid1, swapEncounterId: aid2 });
 }
@@ -648,7 +653,6 @@ function assignIndiv(annotId) {
     var indivId = $('#edit-assign-individ').val();
     return annotEditAjax({ id: annotId, assignIndividualId: indivId });
 }
-
 
 var editMode = false;
 function editClick(ev) {
@@ -673,6 +677,9 @@ console.log(ma);
     }
     h += '<div style="color: #A33; font-size: 1.3em;">Editing <b>Annot ' + niceId(myFeat.annotationId) + '</b> (on <b>Enc ' + niceId(myFeat.encounterId) + '</b>)</div>';
     for (var i = 0 ; i < ma.features.length ; i++) {
+        if (!ma.features[i].type && ma.features[i].encounterId && ma.features[i].annotationId) {
+            h += '<div style="margin-top: 10px; border-top: solid #444 3px;"><input style="background-color: #F30;" type="button" value="remove unity Feat ' + niceId(ma.features[i].id) + ' / trivial Ann ' + niceId(ma.features[i].annotationId) + ' from Enc ' + niceId(ma.features[i].encounterId) + '" onClick="return removeFeatAnn(\'' + ma.features[i].id + '\', \'' + ma.features[i].annotationId + '\', \'' + ma.features[i].encounterId + '\');" /></div>';
+        }
         if ((ma.features[i].id == annId) || !ma.features[i].encounterId) continue;
         h += '<input type="button" value="swap Annots: ' + niceId(myFeat.annotationId) + ' ==&gt; [Enc ' + niceId(ma.features[i].encounterId)+ '] // ' + niceId(ma.features[i].annotationId) + ' ==&gt; [Enc ' + niceId(myFeat.encounterId) + ']" ';
         h += ' onClick="swapEncounters(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
@@ -731,6 +738,14 @@ jQuery(document).ready(function() {
             return;
         }
         $('.image-enhancer-keyword-wrapper').hide();
+        var man = $('<div class="edit-mode-ui" style="position: absolute; left: 30px; top: -50px; font-size: 1.2em; background-color: #CCC; z-index: 2000; padding: 0 8px; cursor: pointer;">manual annot</div>');
+        man.on('click', function(ev) {
+            console.log(ev.target);
+            var mid = imageEnhancer.mediaAssetIdFromElement($(ev.target.parentNode));
+            wildbook.openInTab('../appadmin/manualAnnotation.jsp?viewpoint=CHANGEME&iaClass=CHANGEME&assetId=' + mid + '&encounterId=' + encounterNumber);
+            ev.stopPropagation();
+        });
+        $('.image-enhancer-wrapper').append(man);
         $('body').append('<div class="edit-mode-ui" style="position: fixed; left: 30px; top: 30px; font-size: 3em; color: rgba(255,255,20,0.8); z-index: 2000;"><b>EDIT MODE</b></div>');
 
         $('.image-enhancer-feature').append('<div class="edit-mode-ui" style="cursor: cell; padding: 0px 4px; font-size: 0.8em; font-weight: bold; position: absolute; left: 10px; top: 10px; background-color: rgba(255,255,255,0.7); display: inline-block;" xonClick="return editClick(this);" >EDIT</div>');
