@@ -64,7 +64,6 @@ String encNum="";
 if(request.getParameter("encounterNumber")!=null){
 	encNum=request.getParameter("encounterNumber");
 }
-
 // IMPORTANT! isOwner is set to false if any of the encs later are not owned by the user.
 // TODO would be to set it on a per-encounter level, but that involves some java-JS-fu I don't have time for
 boolean isOwner = true;
@@ -111,7 +110,7 @@ try {
   System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
-  int numEncs=encs.size();
+  	int numEncs=encs.size();
   System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
   %><script>
@@ -131,10 +130,8 @@ function forceLink(el) {
   for(int f=0;f<numEncs;f++){
 
 		  Encounter enc = encs.get(f);
-
       isOwner = isOwner && ServletUtilities.isUserAuthorizedForEncounter(enc, request);
-
-		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber()+"; isOwner="+isOwner);
+      System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber()+"; isOwner="+isOwner);
       if (shouldEvict(enc)) {
         // I believe we need to evict the cache here so that we'll see detection results on the encounter page
         org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
@@ -775,7 +772,7 @@ jQuery(document).ready(function() {
         if (editMode == editModeWas) return;
         if (!editMode) {
             $('.edit-mode-ui').remove();
-            if (<%=isOwner%>) $('.image-enhancer-keyword-wrapper').show();
+            $('.image-enhancer-keyword-wrapper').show();
             return;
         }
         $('.image-enhancer-keyword-wrapper').hide();
@@ -796,6 +793,8 @@ jQuery(document).ready(function() {
         });
     }
 <% } //end encounterGalleryDownloadLink %>
+
+  // This should disable keyword editing if you don't have permission
 });
 
 function doImageEnhancer(sel) {
@@ -877,6 +876,14 @@ console.info(' ===========>   %o %o', el, enh);
                 if (!wildbook.user.isAnonymous()) showDuplicates();
 	};
     imageEnhancer.applyTo(sel, opt);
+
+  // This should disable keyword editing if you don't have permission
+  var canEdit = <%=isOwner%>;
+  console.log("canEdit = "+canEdit);
+  if (!canEdit) {
+    $('.image-enhancer-keyword-wrapper-hover').removeClass('image-enhancer-keyword-wrapper-hover');
+  }
+
 }
 
 function showDuplicates() {
@@ -1252,7 +1259,6 @@ System.out.println("got jobj "+jobj);
 
 
 function imageLayerKeywords(el, opt) {
-  var isOwner = <%=isOwner%>;
 	var mid;
 	if (opt && opt._mid) {  //hack!
 		mid = opt._mid;
@@ -1281,69 +1287,66 @@ console.info("############## mid=%s -> %o", mid, ma);
 	}
 
   // the labeledKeyword edit form comes from before
-  // we want to only allow edit if the user has edit roles
+
   var labelsToValues = <%=jobj%>;
   console.log("Labeled keywords %o", labelsToValues);
-  if (isOwner) {
-    }
-      h += '<div class="labeled iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
-    if (!$.isEmptyObject(labelsToValues)) {
-        //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
-      var hasSome = false;
-      var labelSelector = '<select onChange="return updateLabeledKeywordLabel(this);"  style="width: 100%" class="label-selector"><option value="">select label</option>';
-      var valueSelectors = '';
-      for (var label in labelsToValues) {
-        var valueSelector = '<select onChange="return updateLabeledKeywordValue(this);" style="width: 100%; display: none;" class="value-selector '+label+'" data-kw-label="'+label+'"><option value="">select value</option>';
-        var values = labelsToValues[label];
-        //console.log("in labelsToValues loop with label %s and values %s",label, values);
-        for (var i in values) {
-          var value = values[i];
-          //console.log("in labelsToValues loop with label %s and value %s",label, value);
-          //if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
-          valueSelector += '<option class="labeledKeywordValue '+label+'" value="' + value + '">' + value + '</option>';
-          hasSome = true;
-        }
-        valueSelector += '</select>';
-        valueSelectors += valueSelector
-        labelSelector += '<option value="' + label + '">' + label + '</option>';
-      }
-      labelSelector += '</select>';
-      if (hasSome) {
-        h += labelSelector;
-        h += valueSelectors;
-      }
-    } else {
-      console.log("your labels are empty");
-    }
-    h += '</div></div>';
-
-    h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
-    if (wildbookGlobals.keywords) {
-      var hasSome = false;
-      var mh = '<select onChange="return addNewKeyword(this);" style="width: 100%" class="keyword-selector"><option value="">select keyword</option>';
-      for (var j in wildbookGlobals.keywords) {
-        if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
-        mh += '<option value="' + j + '">' + wildbookGlobals.keywords[j] + '</option>';
+  h += '<div class="labeled iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+  if (!$.isEmptyObject(labelsToValues)) {
+      //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
+    var hasSome = false;
+    var labelSelector = '<select onChange="return updateLabeledKeywordLabel(this);"  style="width: 100%" class="label-selector"><option value="">select label</option>';
+    var valueSelectors = '';
+    for (var label in labelsToValues) {
+      var valueSelector = '<select onChange="return updateLabeledKeywordValue(this);" style="width: 100%; display: none;" class="value-selector '+label+'" data-kw-label="'+label+'"><option value="">select value</option>';
+      var values = labelsToValues[label];
+      //console.log("in labelsToValues loop with label %s and values %s",label, values);
+      for (var i in values) {
+        var value = values[i];
+        //console.log("in labelsToValues loop with label %s and value %s",label, value);
+        //if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
+        valueSelector += '<option class="labeledKeywordValue '+label+'" value="' + value + '">' + value + '</option>';
         hasSome = true;
       }
-      mh += '</select>';
-      if (hasSome) h += mh;
+      valueSelector += '</select>';
+      valueSelectors += valueSelector
+      labelSelector += '<option value="' + label + '">' + label + '</option>';
     }
-    h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
-    h += '</div></div>';
-
-    h += '</div>';
-    el.append(h);
-    el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
-      ev.stopPropagation();
-    });
-    el.find('.iek-remove').on('click', function(ev) {
-      //ev.stopPropagation();
-      addNewKeyword(ev.target);
-    });
+    labelSelector += '</select>';
+    if (hasSome) {
+      h += labelSelector;
+      h += valueSelectors;
+    }
+  } else {
+    console.log("your labels are empty dumbass");
+  }
+  h += '</div></div>';
 
 
 
+	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
+	if (wildbookGlobals.keywords) {
+		var hasSome = false;
+		var mh = '<select onChange="return addNewKeyword(this);" style="width: 100%" class="keyword-selector"><option value="">select keyword</option>';
+		for (var j in wildbookGlobals.keywords) {
+			if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
+			mh += '<option value="' + j + '">' + wildbookGlobals.keywords[j] + '</option>';
+			hasSome = true;
+		}
+		mh += '</select>';
+		if (hasSome) h += mh;
+	}
+	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
+	h += '</div></div>';
+
+	h += '</div>';
+	el.append(h);
+	el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
+		ev.stopPropagation();
+	});
+	el.find('.iek-remove').on('click', function(ev) {
+		//ev.stopPropagation();
+		addNewKeyword(ev.target);
+	});
 }
 
 function imagePopupInfo(obj) {
