@@ -742,17 +742,28 @@ public class WebImport extends HttpServlet {
       feedback.addMissingPhoto(fullPath);
       return null;
     }
-	  File f = new File(resolvedPath);
 
-	  // create MediaAsset and return it
-	  JSONObject assetParams = astore.createParameters(f);
-	  assetParams.put("_localDirect", f.toString());
-	  MediaAsset ma = null;
+    System.out.println("Resolved path: "+resolvedPath);
+    System.out.println("Is there an AssetStore? --> "+astore);
+
+    MediaAsset ma = null;
 	  try {
+     File f = new File(resolvedPath);
+
+      if (!f.exists()) {
+        System.out.println("ABOVE FILE DID NOT EXIST!");
+        f.mkdirs();
+      }
+      // create MediaAsset and return it
+      System.out.println("What AssetStore? --> "+astore.getId());
+
+      JSONObject assetParams = astore.createParameters(f);
+      assetParams.put("_localDirect", f.toString());
 	  	ma = astore.copyIn(f, assetParams);
-	  } catch (java.io.IOException ioEx) {
+	  } catch (java.io.IOException ioe) {
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
-	  	feedback.addMissingPhoto(fullPath);
+      feedback.addMissingPhoto(fullPath);
+      ioe.printStackTrace();
 	  }
 
 	  // keywording
@@ -1219,29 +1230,8 @@ public class WebImport extends HttpServlet {
 
 
   private AssetStore  getAssetStore(Shepherd myShepherd) {
-
-    //return AssetStore.getDefault(myShepherd);
-    return AssetStore.get(myShepherd, 5);
-
-    // String assetStorePath="/var/lib/tomcat7/webapps/wildbook_data_dir";
-    // // TODO: fix this for flukebook
-    // // String assetStoreURL="http://flukebook.wildbook.org/wildbook_data_dir";
-    // String assetStoreURL="http://54.71.122.188/wildbook_data_dir";
-
-    // AssetStore as = new LocalAssetStore("Oman Import", new File(assetStorePath).toPath(), assetStoreURL, true);
-
-
-    // if (committing) {
-    //   myShepherd.beginDBTransaction();
-    //   myShepherd.getPM().makePersistent(as);
-    //   myShepherd.commitDBTransaction();
-    //   myShepherd.beginDBTransaction();
-    // }
-
-    // return as;
-    
+    return AssetStore.getDefault(myShepherd);    
   }
-
 
   private class TabularFeedback {
 
@@ -1380,7 +1370,7 @@ public class WebImport extends HttpServlet {
     return "<td class=\"cellFeedback null\" title=\"The importer did not attempt to parse this cell. This is possible if it is a duplicate column or relies on another column that is not present. You may proceed if this cell OK to ignore.\"><span></span></td>";
   }
 
-   class CellFeedback {
+  class CellFeedback {
 
     // These two booleans cover the 3 possible states of a cell:
     // 1: successful parse (T,F), 2:no value provided (T,T), 3: unsuccessful parse with a value provided (F,F).
