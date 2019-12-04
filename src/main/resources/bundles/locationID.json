@@ -41,7 +41,15 @@
 			  	{
 				  "name": "Gulf of Alaska", "id": "Gulf of Alaska" },
 				
-				{ "name":"California", "id":"California", "locationID":[] },
+				{ "name":"California", "id":"California", "locationID":[
+				
+					{ "name":"Catalina", "id":"Catalina", "locationID":[] },
+					{ "name":"Dana Point", "id":"Dana Point", "locationID":[] },
+					{ "name":"Long Beach", "id":"Long Beach", "locationID":[] },
+					{ "name":"Newport", "id":"Newport", "locationID":[] }
+				
+				
+				] },
 				{ "name":"Central Oregon", "id":"Central Oregon", "locationID":[] },
 				
 				{ "name":"Canada", "id":"Canada", "locationID":[] },
