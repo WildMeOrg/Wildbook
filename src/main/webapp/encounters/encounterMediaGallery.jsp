@@ -917,7 +917,7 @@ function showDuplicates() {
             for (encId in assetDup[assets[i].acmId]) {
                 h += '<div><a onClick="event.stopPropagation()" target="_new" href="encounter.jsp?number=' + encId + '" title="MediaAsset ';
                 h += assetDup[assets[i].acmId][encId].asset + '">Enc ';
-                h += encId.substring(0,8) + '</a>';
+                h += niceId(encId) + '</a>';
                 if (assetDup[assets[i].acmId][encId].indiv) h += ': <b>' + assetDup[assets[i].acmId][encId].indiv + '</b>';
                 h += '</div>';
             }
@@ -1016,7 +1016,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         tooltip = '<i>Unnamed individual</i>';
     }
     if (feat.encounterId) {
-        tooltip += '<br />Enc ' + feat.encounterId.substr(-8);
+        tooltip += '<br />Enc ' + niceId(feat.encounterId);
         fel.data('encounterId', feat.encounterId);
     }
     if (focused) tooltip = '<i style="color: #840;">this encounter</i>';
