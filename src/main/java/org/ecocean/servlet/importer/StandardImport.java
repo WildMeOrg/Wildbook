@@ -91,6 +91,11 @@ public class StandardImport extends HttpServlet {
 	Integer numMediaAssets;
   Integer numNameColumns;
 
+  // TODO: define these in a .properties file or something?
+  // keywordLabels are the hard-coded LabeledKeyword labels that will appear in column names
+  // e.g. mediaAsset3.feature
+  String[] keywordLabels = {"feature","flukeType","quality","distinctiveness"};
+
   Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
 
   Map<String,MarkedIndividual> individualCache = new HashMap<String,MarkedIndividual>();
@@ -1141,11 +1146,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       StringTokenizer str=new StringTokenizer(kwsName,"_");
       while(str.hasMoreTokens()) {
         String kwString=str.nextToken();
-        if(kwString!=null && !kwString.trim().equals("")) {
+        if(Util.stringExists(kwString)) {
           Keyword kw = myShepherd.getOrCreateKeyword(kwString);
           if (kw!=null) ans.add(kw);
         }
-
       }
     } else {
       String kwColName = "Encounter.keyword"+n;
@@ -1154,12 +1158,27 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         kwColName = "Encounter.keyword0"+n;
         kwName = getString(row, kwColName);
       }
-      if (kwName==null) return ans;
-      Keyword kw = myShepherd.getOrCreateKeyword(kwName);
-      if (kw!=null) ans.add(kw);
+      if (kwName!=null) {
+        Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+        if (kw!=null) ans.add(kw);
+      }
     }
-
+    ans.addAll(getLabeledKeywordsForAsset(row, n, myShepherd));
     return ans;
+  }
+
+  private List<Keyword> getLabeledKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
+    String colNamePrefix = "mediaAsset"+n+".";
+    List<Keyword> kws = new ArrayList<Keyword>();
+    for (String label: keywordLabels) {
+      String colName = colNamePrefix+label;
+      String value = getString(row, colName);
+      if (Util.stringExists(value)) {
+        LabeledKeyword lkw = myShepherd.getOrCreateLabeledKeyword(label, value, committing);
+        if (lkw!=null) kws.add(lkw);
+      }
+    }
+    return kws;
   }
 
   // private int getNumAssets(Row row) {
