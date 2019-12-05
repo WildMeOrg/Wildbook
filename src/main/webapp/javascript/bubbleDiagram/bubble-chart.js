@@ -13,8 +13,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     constructor(individualID, focusedScale) {
 	super(individualID, focusedScale);
 	this.indId = individualID;
-	this.occurrenceIds = [];
+	this.occurrenceIds = [];//the individualIDs of all cooccurring nodes
+	this.occurrenceNames = [];//the occurrenceIDs, used for getting geographic info from relevant encounters
 	this.dataDict = {};
+	this.node = [];
+	this.link = [];
+	this.graphID = 1;//numerical id for each node
 
 	//TODO - Remove ref, use key
 	this.sliders = {"temporal": {"ref": "temporal"},
@@ -174,7 +178,9 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		if(theirOccurrences.includes(i)){
 		    for(var j = 0; j < json[i].encounters.length; j++){
 			let ID = this.indId;
-			let ocID = json[i].encounters[j].individualID;                                                         if(ID != ocID && ocID != undefined){
+			let ocID = json[i].encounters[j].individualID;
+			this.occurrenceNames.push(json[i].occurrenceID);
+                        if(ID != ocID && ocID != undefined){
 			    //push an individualID if it exists and is not the focus
 			    this.occurrenceIds.push(json[i].encounters[j].individualID);
 			}
@@ -183,8 +189,73 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    }
 	}
 	console.log("logging occurrenceIds");
+	this.occurrenceIds = [...new Set(this.occurrenceIds)];
 	console.log(this.occurrenceIds);
+	console.log("logging occurrenceNames");
+	this.occurrenceNames = [...new Set(this.occurrenceNames)];
+	console.log(this.occurrenceNames);
+
+	this.pushNodes();
     }
+
+    //push json data for each node
+    pushNodes(){
+	var nodeDataNew = new Array();
+	//push for the focus node
+	for(var i = 0; i < this.dataDict[this.indId].encounters.length; i++){
+	    if(this.occurrenceNames.includes(this.dataDict[this.indId].encounters[i].occurrenceID)){
+		console.log("pushit");
+		nodeDataNew.push({
+		    "id": 0,
+		    "group": 0,
+		    "data": {
+		        "name": this.indId,
+		        "gender": this.dataDict[this.indId].sex,
+		        "sightings": [
+			    {
+			        "datetime_ms": this.dataDict[this.indId].encounters[i].dateInMilliseconds,
+			        "location": {"lat": this.dataDict[this.indId].encounters[i].decimalLatitude, "lon": this.dataDict[this.indId].encounters[i].decimalLongitude}
+			    }
+			],                                                                                                                                                                                                             }
+		});
+	    }
+	}
+
+	console.log("the dataDict", this.dataDict);
+	console.log("here is occurrenceIds", this.occurrenceIds);
+	
+	for (var i = 0; i < (this.occurrenceIds.length); i++){
+	    for (var j = 0; j < this.dataDict[this.occurrenceIds[i]].encounters.length; j++){
+		if(this.occurrenceNames.includes(this.dataDict[this.occurrenceIds[i]].encounters[j].occurrenceID)){
+		    console.log("pushit 2");
+		    nodeDataNew.push({
+		        "id": this.getGraphId(),
+		        "group": 0,
+		        "data": {
+			    "name": this.occurrenceIds[i],
+			    "gender": this.dataDict[this.occurrenceIds[i]].sex,
+			    "sightings": [
+			        {
+				    "datetime_ms": this.dataDict[this.occurrenceIds[i]].encounters[j].dateInMilliseconds,
+				    "location": {"lat": this.dataDict[this.occurrenceIds[i]].encounters[j].decimalLatitude, "lon": this.dataDict[this.occurrenceIds[i]].encounters[j].decimalLongitude}
+				}
+			    ],                                                                                                                                                                                                             }
+		    });
+		}
+	    }
+	}
+	this.node = [...new Set(nodeDataNew)]; 
+	console.log(this.node);
+    }
+    
+
+    getGraphId(){
+	return this.graphID++;
+    }
+		  
+
+	
+
 
     
     //Generate a co-occurrence graph
