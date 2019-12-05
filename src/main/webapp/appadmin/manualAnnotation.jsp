@@ -1,6 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
 org.ecocean.servlet.ServletUtilities,
+javax.jdo.Query,
+java.util.Iterator,
+java.util.List,
 org.json.JSONObject,
 org.ecocean.media.*
               "
@@ -133,6 +136,29 @@ String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.beginDBTransaction();
 
+
+String vlist = "<select name=\"viewpoint\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
+Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"VIEWPOINT\") as v from \"ANNOTATION\" order by v");
+List results = (List)q.execute();
+Iterator it = results.iterator();
+while (it.hasNext()) {
+    String v = (String)it.next();
+    if (!Util.stringExists(v)) continue;
+    vlist += "<option" + (v.equals(viewpoint) ? " selected" : "") + ">" + v + "</option>";
+}
+vlist += "</select>";
+
+String clist = "<select name=\"iaClass\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
+q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
+results = (List)q.execute();
+it = results.iterator();
+while (it.hasNext()) {
+    String v = (String)it.next();
+    if (!Util.stringExists(v)) continue;
+    clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
+}
+clist += "</select>";
+
 Feature ft = null;
 MediaAsset ma = null;
 int[] xywh = null;
@@ -196,7 +222,20 @@ double scale = imgHeight / ma.getHeight();
 
 %>
 
-<script>scale = <%=scale%>;</script>
+<script>scale = <%=scale%>;
+
+function pulldownUpdate(el) {
+//console.info('%o', el.name);
+    var u = window.location.href;
+    var m = u.match(new RegExp(el.name + '=\\w+'));
+    if (!m) return;
+console.log('m = %o', m);
+    u = u.substring(0,m.index) + el.name + '=' + el.value + u.substring(m.index + m[0].length);
+console.log(u);
+    window.location.href = u;
+}
+
+</script>
 
 <div id="img-wrapper">
     <div class="axis" id="x-axis"></div>
@@ -211,8 +250,8 @@ MediaAsset <b><a title="<%=ma.toString()%>" target="_new" href="../obrowse.jsp?t
 
 <p>
 matchAgainst = <b><%=matchAgainst%></b>;
-viewpoint = <b><%=viewpoint%></b>;
-iaClass = <b><%=iaClass%></b>
+viewpoint = <b><%=vlist%></b>;
+iaClass = <b><%=clist%></b>
 </p>
 
 <p>
