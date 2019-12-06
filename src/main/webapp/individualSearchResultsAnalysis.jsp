@@ -593,9 +593,14 @@ if (request.getQueryString() != null) {
 <li><%=encprops.getProperty("numberHaplotype") %> <%=numResultsWithHaplotype %></li>
 <li><%=encprops.getProperty("numberGeneticSex") %> <%=numResultsWithGeneticSex %></li>
 </ul>
-</p>
-<%
+    </p>
 
+//TODO - Format rIndividuals data and graph
+<script>
+  console.log("DATA", '<%=rIndividuals%>');
+</script>
+
+<%
 if(maxTravelDistance>0){
 %>
 <p><%=encprops.getProperty("individualLargestDistance") %> <a href="individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividualDisplayName %></a> (<%=df.format(maxTravelDistance/1000) %> km)</p>

@@ -307,7 +307,7 @@ input.nameKey, input.nameValue {
 <script src="javascript/relationshipDiagrams/jsonParser.js"></script>
 <script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
 <script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
-<script src="javascript/bubbleDiagram/bubble-chart.js"></script>
+<script src="javascript/bubbleDiagram/coOccurrenceGraph.js"></script>
 <script src="javascript/relationshipDiagrams/socialGraph.js"></script>
 <script src="javascript/bubbleDiagram/encounter-calls.js"></script>
     
@@ -1406,10 +1406,34 @@ if (sharky.getNames() != null) {
         </div>
 
 	<div id="socialDiagram" class="socialVis">
-	  <div id="buttons" class="btn-group btn-group-sm" role="group">
+	  <div id="graphFilters">
 	    <button type="button" id="selectFamily">Select Family</button>
 	    <button type="button" id="filterFamily">Filter Family</button>
-            <button type="button" id="reset">Reset</button>
+	    <button type="button" id="reset">Reset</button>
+            <div id="filterGender" class="filterOptions">
+	      <label>	  
+	        <input type="checkbox" id="maleBox">
+		<span>Male</span>
+	      </label>
+              <label>	  
+		<input type="checkbox" id="femaleBox">
+		<span>Female</span>
+	      </label>
+	      <label>	  
+		<input type="checkbox" id="unknownGenderBox">
+		<span>Unknown Gender</span>
+	      </label>
+	    </div>
+            <div id="filterSocialRole" class="filterOptions">
+	      <label>
+	        <input type="checkbox" id="alphaBox">
+		<span>Alpha</span>
+	      </label>
+	      <label>
+		<input type="checkbox" id="unknownRoleBox">
+		<span>Unknown Role</span>
+	      </label>
+	    </div>
 	  </div>
 
 	  <% String individualID = sharky.getIndividualID();%>	
@@ -1551,12 +1575,36 @@ if (sharky.getNames() != null) {
           </div>
 
           <div id="cooccurrenceDiagram">
-	    <div id="bubbleChart">
-	      <div id="buttons" class="btn-group btn-group-sm" role="group">
-		<button type="button" id="selectFamily">Select Family</button>
-		<button type="button" id="filterFamily">Filter Family</button>
-                <button type="button" id="reset">Reset</button>
-              </div>
+            <div id="bubbleChart">
+	      <div id="graphFilters">
+	        <button type="button" id="selectFamily">Select Family</button>
+	        <button type="button" id="filterFamily">Filter Family</button>
+	        <button type="button" id="reset">Reset</button>
+                <div id="filterGender" class="filterOptions">
+	          <label>	  
+	            <input type="checkbox" id="maleBox">
+		    <span>Male</span>
+	          </label>
+                  <label>	  
+		    <input type="checkbox" id="femaleBox">
+		    <span>Female</span>
+	          </label>
+	          <label>	  
+		    <input type="checkbox" id="unknownGenderBox">
+		    <span>Unknown Gender</span>
+	          </label>
+	        </div>
+                <div id="filterSocialRole" class="filterOptions">
+	          <label>
+	            <input type="checkbox" id="alphaBox">
+		    <span>Alpha</span>
+	          </label>
+	          <label>
+		    <input type="checkbox" id="unknownRoleBox">
+		    <span>Unknown Role</span>
+	          </label>
+	        </div>
+	      </div>
             </div>
   	    <div id="cooccurrenceSliders">
 	      <div class="sliderWrapper">

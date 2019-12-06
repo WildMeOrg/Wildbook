@@ -1,12 +1,10 @@
 //TODO
-//Fix center forces creating odd off-graph nodes
 //Add support for x family member distance slider (?)
-//Add support for smart initialization of node positions
 
 //Abstract class defining functionality for all d3 forceLayout types
 class ForceLayoutAbstract extends GraphAbstract {
-    constructor(individualId, focusedScale=1) {
-	super(individualId, focusedScale);
+    constructor(individualId, containerId, focusedScale=1) {
+	super(individualId, containerId, focusedScale);
 
 	//Assign a unique global id to each force layout graph
 	ForceLayoutAbstract.count = ForceLayoutAbstract.count + 1 || 0;
@@ -28,17 +26,14 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.startingRadius = 0;
 
 	//Filter attributes
-	this.filtered = {
-	    'family': {},
-	    'inverse_family': {}
-	};
+	this.filtered = {};
     }
 
     // Setup Methods //
 
     //Perform all auxiliary functions necessary prior to graphing
-    setupGraph(containerId, linkData, nodeData) {
-	super.setupGraph(containerId, linkData, nodeData);
+    setupGraph(linkData, nodeData) {
+	super.setupGraph(linkData, nodeData);
 	
 	//Establish node/link history
 	//this.prevNodeData = this.nodeData;
@@ -58,10 +53,8 @@ class ForceLayoutAbstract extends GraphAbstract {
     setForces() {
 	//Define the graph's forces
 	this.forces = d3.forceSimulation()
-//	    .alphaMin(0.05)
-//	    .alphaDecay(0.05)
 	    .force("link", d3.forceLink().id(d => d.id))
-	    .force("charge", d3.forceManyBody())
+	    .force("charge", d3.forceManyBody().strength(500)) //TODO - Tune this
 	    .force("collision", d3.forceCollide().radius(d => this.getLinkLen(d))) 
 	    .force("center", d3.forceCenter(this.width/2, this.height/2));
     }
@@ -255,15 +248,13 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    this.focusedNode = d;
 	    
 	    //Update the graph
-	    this.updateGraph(this.prevLinkData); //this.prevNodeData);
-
-	    return true;
+	    this.updateGraph(this.prevLinkData, this.nodeData);
 	}
     }
 
     centerNode(d) {
 	this.svg.transition()
-	    .duration(this.transitionDuration)
+	    .duration(this.transitionDuration + 250) //Delay slightly for stability
 	    .attr("transform", "translate(" + (this.width/2 - d.x) + "," +
 		  (this.height/2 - d.y) + ")scale(1)");
     }
@@ -308,25 +299,36 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     //Reset the graph s.t. all filtered nodes are unfiltered
     resetGraph() {
+	//Reset filters
 	for (let filter in this.filtered) this.filtered[filter] = {};
 	this.svg.selectAll(".node").filter(d => d.filtered).remove();
+
+	//Reset checkboxe filters
+	this.uncheckBoxFilters(this.containerId);
+	
+	//Reset data
 	this.nodeData.forEach(d => d.filtered = false);
 	this.prevLinkData = this.linkData;
+
+	//Update graph
 	this.updateGraph();
     }
 
     //Apply reversible filters based upon groupNum
-    filterGraph(groupNum, nodeFilter, linkFilter, filterType) {
+    filterGraph(groupNum, nodeFilter, linkFilter, filterType, validFilters) {
+	//Ensure filter exists
+	if (!this.filtered[filterType]) this.filtered[filterType] = {};
+	
 	if (this.filtered[filterType][groupNum]) { //Reset filter
 	    this.filtered[filterType][groupNum] = false;
 
 	    //Remove any nodes who no longer qualify to be filtered
 	    this.svg.selectAll(".node").filter(d => {
-		return !nodeFilter(d) && (d.filtered === "family_filter")
+		return !nodeFilter(d) && validFilters.includes(d.filtered);
 	    }).remove();
 	    
 	    //Mark nodes and links which are being unfiltered
-	    this.nodeData.filter(d => !nodeFilter(d) && d.filtered === "family_filter")
+	    this.nodeData.filter(d => !nodeFilter(d) && validFilters.includes(d.filtered))
 		.forEach(d => d.filtered = false);
 	    
 	    let linkData = this.linkData.filter(d => !d.source.filtered && !d.target.filtered);
@@ -337,8 +339,8 @@ class ForceLayoutAbstract extends GraphAbstract {
 
 	    //Mark nodes and links which are being filtered
 	    this.nodeData.filter(d => !nodeFilter(d) && !d.filtered)
-		.forEach(d => d.filtered = "family_filter");
-	    
+		.forEach(d => d.filtered = filterType);
+
 	    this.prevLinkData = this.prevLinkData.filter(d => !d.source.filtered &&
 							 !d.target.filtered);
 	}
@@ -346,6 +348,26 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.updateGraph(this.prevLinkData, this.nodeData);
     }
 
+    //TODO - Add support for saved local family filters
+    //Apply absolute filters (i.e. thresholding)
+    absoluteFilterGraph(nodeFilter, linkFilter, type, validFilters) {
+	//Remove any nodes who no longer qualify to be filtered
+	this.svg.selectAll(".node").filter(d => nodeFilter(d) &&
+					   validFilters.includes(d.filtered)).remove();
+	
+	//Mark nodes concerning whether they should be filtered
+	this.nodeData.forEach(d => {
+	    if (nodeFilter(d) && validFilters.includes(d.filtered)) d.filtered = false;
+	    else if (!nodeFilter(d) && !d.filtered) d.filtered = type;
+	});
+		
+	//Identify link data which should be rendered
+	this.prevLinkData = this.linkData.filter(d => !d.source.filtered && !d.target.filtered);
+
+	//Update the graph with filtered data
+	this.updateGraph(this.prevLinkData, this.nodeData);
+    }
+    
     // Helper Methods //
     
     //Determine if key has other bound function
@@ -376,18 +398,5 @@ class ForceLayoutAbstract extends GraphAbstract {
     //Returns the source node of a given link
     getLinkSource(link) {
 	return this.nodeData.find(node => node.id === link.source);
-    }
-
-    //TODO - Remove?
-    getUniqueNodeData(nodeData) {
-	let d = nodeData.concat(this.prevNodeData);
-	for (let i = 0; i < d.length; ++i) {
-            for (let j = i + 1; j < d.length; ++j) {
-		if (d[i].id === d[j].id)
-                    d.splice(j--, 1);
-            }
-	}
-
-	return d;
     }
 }

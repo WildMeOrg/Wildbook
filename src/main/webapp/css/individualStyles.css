@@ -340,20 +340,34 @@ div .tooltip {
   color: navy;
 }
 
-#reset, #filterFamily, #selectFamily {
+#graphFilters {
+    position: absolute;
+}
+
+#graphFilters button, .filterOptions label {
+    padding: 6px 12px;
+    margin: 12px 8px 0px 0px;
+
     font-size: 15px;
     color: #333;
+    text-align: center;
+    
     background: #fff;
     border: 2px solid #7997a1;
     border-radius: 5px;
 }
 
-#reset:hover, #filterFamily:hover, #selectFamily:hover {
-    background: #ddd;
-				   }
+.filterOptions label {
+    border-color: #808080;
+}
 
-.selected {
-    background: #ddd !important;
+.filterOptions label input {
+    position: absolute;
+    visibility: hidden;
+}
+
+#graphFilters button:hover, .filterOptions label:hover {
+    background: #ccc !important;
 }
 
 button#zoomIn.btn.btn-default{
