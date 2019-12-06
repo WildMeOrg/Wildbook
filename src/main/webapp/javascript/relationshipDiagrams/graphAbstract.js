@@ -1,7 +1,8 @@
 //Abstract class defining funcitonality for all d3 graph types
 class GraphAbstract {
-    constructor(individualID, focusedScale=1) {
+    constructor(individualID, containerId, focusedScale=1) {
 	this.id = individualID;
+	this.containerId = containerId;
 
 	//SVG Attributes
 	this.svg;
@@ -38,7 +39,7 @@ class GraphAbstract {
 	this.alphaColor = "#bf0000";
 
 	this.defNodeColor = "#fff";
-	this.fixedNodeColor = "#ddd";	
+	this.fixedNodeColor = "#ccc";	
 	
 	this.defLinkColor = "#a6a6a6";
 	this.famLinkColor = "#a6a6a6"; //"#b59eda";
@@ -73,6 +74,11 @@ class GraphAbstract {
 	this.legendIcons = {"size": 15, "margin": 8, "mSize": 23};
 	this.legendStrokeWidth = 2;
 	this.legendRowsPerCol = 4;
+
+	//Filter Attributes
+	this.validFamilyFilters = ["selectFamily", "filterFamily"]
+	this.validCheckFilters = ["male", "female", "unknownGender", "alpha", "unknownRole"];
+	this.validFilters = this.validFamilyFilters.concat(this.validCheckFilters);
 	
 	//Json Parser Attributes
 	this.parser = new JSONParser();
@@ -94,22 +100,28 @@ class GraphAbstract {
     }
 
     //Perform all auxiliary functions necessary prior to graphing
-    setupGraph(containerId, linkData, nodeData) {
+    setupGraph(linkData, nodeData) {
 	//Establish link/node context
 	this.linkData = linkData;
 	this.nodeData = nodeData;
 
+	console.log("LINK", this.linkData);
+	console.log("NODE", this.nodeData);
+	
 	//Add default elements
-	this.addSvg(containerId);
-	this.addLegend(containerId);
-	this.addTooltip(containerId);
+	this.addSvg();
+	this.addLegend();
+	this.addTooltip();
 
 	//Assess graphical sizings
 	this.setNodeRadius();
+
+	//Initialize filter button functionalities
+	this.updateFilterButtons();
     }
     
     //Append top-level SVG containing all graphical elements
-    addSvg(containerId) {
+    addSvg(containerId=this.containerId) {
 	this.svg = d3.select(containerId).append("svg")
 	    .attr("class", "container")
 	    .attr("width", this.width)
@@ -121,9 +133,8 @@ class GraphAbstract {
 	    .append("g");
     }
 
-    //TODO - FIX
     //Append graph legend to top-level SVG
-    addLegend(containerId, rowsPerCol=4, rowSpacing=120) {
+    addLegend(containerId=this.containerId, rowsPerCol=4, rowSpacing=120) {
 	//Append the legend group
 	let legendRef = d3.select(containerId + " svg").append("g")
 	    .attr("class", "legend")
@@ -299,6 +310,7 @@ class GraphAbstract {
     //Sets the radius attribute for a given node
     setNodeRadius(nodeData=this.nodeData) {
 	this.calcNodeSize(nodeData);
+	console.log(nodeData);
 	nodeData.forEach(d => {
 	    d.data.r = this.radius * this.getSizeScalar(d);
 	});
@@ -309,9 +321,6 @@ class GraphAbstract {
 	try {
 	    let numNodes = nodeData.length || 10; //Default node length is 10 
 	    this.radius = this.maxRadius * Math.pow(Math.E, -(numNodes / this.scalingFactor));
-
-	    //TODO - Calculate margins?
-	    //let margins = this.radius;
 	}
 	catch(error) {
 	    console.error(error);
@@ -405,22 +414,67 @@ class GraphAbstract {
     }
     
     //Abstract funciton serving to update known filter buttons with relevant filters
-    updateFilterButtons(parentRef) {
-	$(parentRef).find("#selectFamily").on("click", () => {
+    updateFilterButtons(containerId=this.containerId) {
+	//Select family filter
+	$(containerId).find("#selectFamily").on("click", () => {
 	    let groupNum = this.focusedNode.group;
 	    let filter = (d) => d.group === groupNum;
-	    this.filterGraph(groupNum, filter, filter, "inverse_family");
-	    return false; //Prevent default event
+	    this.filterGraph(groupNum, filter, filter, "selectFamily",
+			     this.validFamilyFilters);
 	});
-	$(parentRef).find("#filterFamily").on("click", () => {
+
+	//Filter family filter
+	$(containerId).find("#filterFamily").on("click", () => {
 	    let groupNum = this.focusedNode.group;
 	    let nodeFilter = (d) => d.group !== groupNum;
 	    let linkFilter = (d) => (d.source.group !== groupNum &&
 				     d.target.group !== groupNum);
-	    this.filterGraph(groupNum, nodeFilter, linkFilter, "family");
-	    return false; //Prevent default event
+	    this.filterGraph(groupNum, nodeFilter, linkFilter, "filterFamily",
+			     this.validFamilyFilters);
 	});
-	$(parentRef).find("#reset").on("click", () => this.resetGraph() && false);
+
+	//Reset filter
+	$(containerId).find("#reset").on("click", () => this.resetGraph() && false);
+
+	//Male filter
+	this.createCheckBoxFilter(containerId, "male",
+				  (d) => d.data.gender !== "male");
+
+	//Female filter
+	this.createCheckBoxFilter(containerId, "female",
+				  (d) => d.data.gender !== "female");
+
+	//Unknown gender filter
+	this.createCheckBoxFilter(containerId, "unknownGender",
+				  (d) => d.data.gender);
+
+	//Alpha role filter
+	this.createCheckBoxFilter(containerId, "alpha", (d) => d.data.role !== "alpha");
+
+	//Unknown role filter
+	this.createCheckBoxFilter(containerId, "unknownRole", (d) => d.data.role);
+    }
+
+    createCheckBoxFilter(containerId, filterRef, filter) {
+	$(containerId).find("#" + filterRef + "Box").on("click", (e) => {
+	    let nodeRef = $(containerId).find("#" + filterRef + "Box");
+	    if (nodeRef.is(":checked")) {
+		nodeRef.closest("label").css("background", this.fixedNodeColor);
+	    }
+	    else {
+		nodeRef.closest("label").css("background", this.defNodeColor);
+	    }
+
+	    this.filterGraph(0, filter, (d) => true, filterRef, this.validFilters);
+	});
+    }
+
+    uncheckBoxFilters(containerId) {
+	this.validCheckFilters.forEach(filterRef => {
+	    let nodeRef = $(containerId).find("#" + filterRef + "Box");
+	    nodeRef.closest("label").css("background", this.defNodeColor);
+	    nodeRef.prop("checked", false);
+	});
     }
 }
 
