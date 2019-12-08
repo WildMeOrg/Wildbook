@@ -30,7 +30,10 @@ String filename = request.getParameter("filename");
 Boolean isUserUpload = false;
 isUserUpload = Boolean.valueOf(request.getParameter("isUserUpload"));
 
-String uploadAction = "StandardImport?filename="+filename+"&commit=true&isUserUpload="+isUserUpload;
+String uploadAction = "../StandardImport?filename="+filename+"&commit=true&isUserUpload="+isUserUpload;
+if (isUserUpload) {
+	uploadAction = "standard-upload?filename="+filename+"&commit=true&isUserUpload="+isUserUpload;
+}
 
 if (!committing) {
 %>
