@@ -1029,6 +1029,9 @@ public class StandardImport extends HttpServlet {
 
       feedback.addMissingPhoto(localPath);
 
+      String kw = getString(row, "Encounter.keyword"+i);
+      feedback.logParseValue(i, kw, row);
+
       foundPhotos.remove(fullPath);
       return null;
     }
@@ -1052,6 +1055,7 @@ public class StandardImport extends HttpServlet {
 	  	ma = astore.copyIn(f, assetParams);
 	    // keywording
 
+      // TODO ensure keyword extraction for media assets where file is not found
 	    ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
 	    if(kws!=null)ma.setKeywords(kws);
 	  } catch (java.io.IOException ioEx) {
@@ -1138,10 +1142,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 */
 
-  private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
+  private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) { 
+    System.out.println("=============>  Trying to get keyword for MediaAsset "+n);
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     String kwsName = getString(row, "Encounter.mediaAsset"+n+".keywords");
     //if keywords are just blobbed together with an underscore delimiter
+    System.out.println("=============> blobbed list exists? "+kwsName);
     if(kwsName!=null) {
       StringTokenizer str=new StringTokenizer(kwsName,"_");
       while(str.hasMoreTokens()) {
