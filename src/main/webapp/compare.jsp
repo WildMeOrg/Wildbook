@@ -39,13 +39,14 @@ boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"
 User thisUser = AccessControl.getUser(request, myShepherd);
 if (thisUser != null) {
     System.out.println("USERCHECK: compare.jsp has uwMode=" + uwMode + " and thisUser=" + thisUser + " username=[" + thisUser.getUsername() + "] affiliation=[" + thisUser.getAffiliation() + "]");
-    boolean uwUser = "U-W".equals(thisUser.getAffiliation());
+    //boolean uwUser = "U-W".equals(thisUser.getAffiliation());
+    boolean uwUser = false;
     if ((uwUser && !uwMode) || (!uwUser && uwMode)) {
         System.out.println("USERCHECK: compare.jsp has incompatible user/mode");
         response.setContentType("text/html");
         response.setStatus(200);
         out.println("<link rel=\"stylesheet\" href=\"/cust/mantamatcher/css/manta.css\" />");
-        out.println("<div style=\"padding: 10%;\"><h2>Our photo matching study is now closed to the general public. Our second validation study will begin in January 2020!</h2><a href=\"/\">Home page</a></div>");
+        out.println("<div style=\"padding: 10%;\"><h2>Our photo matching study is now closed. Our second validation study will begin in January 2020!</h2><a href=\"/\">Home page</a></div>");
         session.invalidate();
         return;
     }

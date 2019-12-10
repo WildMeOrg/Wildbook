@@ -213,7 +213,7 @@ if (session.getAttribute("error") != null) {
 %>
 
 <p>
-Our photo matching study is now closed to the general public.  (If you are part of our student test group, make sure to access your sign up page at the special website URL just for you.)
+Our photo matching study is now closed.
 </p>
 
 
