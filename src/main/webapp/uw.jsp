@@ -216,7 +216,7 @@ if (session.getAttribute("error") != null) {
 <img src="images/participate_manatdesk.jpg" style="height: 300px; float: right; margin-top: -5em;" />
 <p>
 <b>
-The UW-only version of our first validation test is running from now until the end of December 8, 2019.
+The UW-only version of our first validation ended on December 8, 2019.
 </b>
 </p>
 
@@ -242,10 +242,12 @@ Note: some mobile and tablet users are reporting that images aren't loading for 
 <% } else { %>
 
 <p>
+<!--
     <form method="post">
     <input type="submit" value="Register to Participate" />
     <input type="hidden" name="fromMode" value="-1" />
     </form>
+-->
 </p>
 
 <% } %>
