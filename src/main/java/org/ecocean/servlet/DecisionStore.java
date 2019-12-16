@@ -1,4 +1,6 @@
 
+package org.ecocean.servlet;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
