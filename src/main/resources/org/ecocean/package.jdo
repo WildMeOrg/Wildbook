@@ -896,5 +896,22 @@
 		</field>
 	</class>
 
+	<class name="Decision" identity-type="application">
+		<field name="id" primary-key="true" value-strategy="identity"/>
+		<field name="user" persistence-modifier="persistent" element-type="org.ecocean.User">
+			<column allows-null="false" />
+		</field>
+		<field name="encounter" persistence-modifier="persistent" element-type="org.ecocean.Encounter">
+			<column allows-null="false" />
+		</field>
+		<field name="property">
+			<column allows-null="false" />
+		</field>
+		<field name="value">
+			<column allows-null="false" />
+		</field>
+		<field name="timestamp" />
+	</class>
+
   </package>
 </jdo>

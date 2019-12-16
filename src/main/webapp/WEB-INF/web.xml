@@ -887,6 +887,16 @@
 		<url-pattern>/NoteFieldEdit</url-pattern>
 	</servlet-mapping>
 
+	<servlet>
+		<servlet-name>DecisionStore</servlet-name>
+		<servlet-class>org.ecocean.servlet.DecisionStore</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>DecisionStore</servlet-name>
+		<url-pattern>/DecisionStore</url-pattern>
+	</servlet-mapping>
+
       <servlet>
     <servlet-name>SiteSearch</servlet-name>
     <servlet-class>org.ecocean.servlet.SiteSearch</servlet-class>
