@@ -18,6 +18,7 @@ import org.ecocean.Encounter;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.AccessControl;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 
 public class DecisionStore extends HttpServlet {
@@ -52,10 +53,27 @@ public class DecisionStore extends HttpServlet {
         String encId = jsonIn.optString("encId", "_FAIL_");
         String prop = jsonIn.optString("property", null);
         JSONObject value = jsonIn.optJSONObject("value");
+        JSONObject multiple = jsonIn.optJSONObject("multiple");  //special multiple prop/value set!
         Encounter enc = myShepherd.getEncounter(encId);
         //TODO we could make this check owner of Encounter(s) etc etc
         if (enc == null) {
             rtn.put("error", "invalid encId passed");
+        } else if (multiple != null) {  //this wins over single property/value type
+            JSONArray ids = new JSONArray();
+            for (Object kobj : multiple.keySet()) {
+                String key = (String)kobj;
+                JSONObject val = multiple.optJSONObject(key);
+                if (val == null) continue;
+                Decision dec = new Decision(user, enc, key, val);
+                myShepherd.getPM().makePersistent(dec);
+                ids.put(dec.getId());
+            }
+            if (ids.length() > 0) {
+                rtn.put("success", true);
+                rtn.put("decisionIds", ids);
+            } else {
+                rtn.put("error", "could not find values for multiple");
+            }
         } else if (prop == null) {
             //TODO could check property names?
             rtn.put("error", "invalid property passed");
