@@ -193,7 +193,7 @@
 
 				/BatchUpload/** = authc, roles[admin]
 				/appadmin/batch* = authc, roles[admin]
-				/EncounterSetSubmitterID = authc, roles[admin]
+				/EncounterSetSubmitterID = authc, roles[researcher]
 
 				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
 		        /GenePopExport = authc, roles[researcher]
