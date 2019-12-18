@@ -541,7 +541,7 @@ context=ServletUtilities.getContext(request);
 */
 
 if (type == null) type = "Encounter";
-if (id == null && (acmid == null || !"Annotation".equals(type))) {
+if (id == null && (acmid == null || (!"Annotation".equals(type) && !"MediaAsset".equals(type)))) {
 	out.println(showForm());
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
@@ -582,15 +582,40 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("MediaAsset")) {
-	try {
-		MediaAsset ma = ((MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
-		out.println("<p>safeURL(<i>request</i>): <b>" + ma.safeURL(request) + "</b></p>");
-		out.println(showMediaAsset(ma, request, myShepherd));
-	} catch (Exception ex) {
-		out.println("<p>ERROR: " + ex.toString() + "</p>");
-		ex.printStackTrace();
-		needForm = true;
+	if (id!=null&&acmid==null) {
+		try {
+			MediaAsset ma = ((MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
+			out.println("<p>safeURL(<i>request</i>): <b>" + ma.safeURL(request) + "</b></p>");
+			out.println(showMediaAsset(ma, request, myShepherd));
+		} catch (Exception ex) {
+			out.println("<p>ERROR: " + ex.toString() + "</p>");
+			ex.printStackTrace();
+			needForm = true;
+		}
 	}
+	if (id==null&&acmid!=null) {
+		try {
+			ArrayList<MediaAsset> anns = myShepherd.getMediaAssetsWithACMId(acmid);
+			if ((anns == null) || (anns.size() < 1)) {
+				out.println("none with acmid " + acmid);
+			} else {
+				out.println("found acmid " + acmid);
+				String allAnns = "";
+				for (int i=0; i<anns.size(); i++) {
+					allAnns += showMediaAsset(anns.get(i), request, myShepherd);
+				}
+				out.println(allAnns);
+			}
+		} catch (Exception e) {
+			out.println("<p>ERROR: " + e.toString() + "</p>");
+			needForm = true;
+		}
+		
+	}
+	
+
+	
+	
 
 } else if (type.equals("Annotation")) {
 	if (id!=null&&acmid==null) {
