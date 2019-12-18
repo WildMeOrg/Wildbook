@@ -88,7 +88,7 @@ public final class ImageProcessor implements Runnable {
     }
 
     //no need for action when passing a transform, as it can only be one
-    public ImageProcessor(String context, String imageSourcePath, String imageTargetPath, float w, float h, float[] transform, MediaAsset pma) {
+    public ImageProcessor(String context, String imageSourcePath, String imageTargetPath, float w, float h, float[] transform, String args, MediaAsset pma) {
         this.context = context;
         this.imageSourcePath = imageSourcePath;
         this.imageTargetPath = imageTargetPath;
@@ -96,7 +96,11 @@ public final class ImageProcessor implements Runnable {
         this.height = Math.round(h);
         this.transform = transform;
         this.parentMA = pma;
-        this.command = CommonConfiguration.getProperty("imageTransformCommand", this.context);
+        if ("featureHighlight".equals(args)) {
+            this.command = CommonConfiguration.getProperty("imageFeatureHighlightCommand", this.context);
+        } else {
+            this.command = CommonConfiguration.getProperty("imageTransformCommand", this.context);
+        }
     }
 
     //the crop-only version of transforming; only takes x,y,w,h

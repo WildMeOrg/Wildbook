@@ -191,7 +191,7 @@ public abstract class AssetStore implements java.io.Serializable {
     //  i am not making this an abstract now but rather subclass can override. maybe silly? future will decide
     //  also, order matters here!  should be from "best" to "worst" so that things can degrade nicely when better ones are not available
     public List<String> allChildTypes() {
-        return Arrays.asList(new String[]{"master", "mid", "watermark", "thumb"});
+        return Arrays.asList(new String[]{"master", "mid", "watermark", "thumb", "featureHighlight"});
     }
     //awkwardly named subset of the above which will be used to determine which should be derived with updateStandardChildren()
     public List<String> standardChildTypes() {
@@ -379,8 +379,13 @@ public abstract class AssetStore implements java.io.Serializable {
                 break;
 */
             case "feature":
+            case "featureHighlight":
                 needsTransform = true;
-                Feature ft = (Feature)opts.get("feature");
+                if (type.equals("featureHighlight")) args = type;
+                Feature ft = null;
+                try {
+                    ft = (Feature)opts.get("feature");
+                } catch (Exception ex) {}
                 if (ft == null) throw new IOException("updateChild() has 'feature' type without a Feature passed in via opts");
 
                 /*
@@ -402,12 +407,12 @@ System.out.println("updateChild() is trying feature! --> params = " + params);
                     }
                 }
 
-                if (Util.isIdentityMatrix(transformArray)) {
+                if (Util.isIdentityMatrix(transformArray) || type.equals("featureHighlight")) {
                     //lets set offsets only (ImageMagick shell script will basically ignore most of matrix)
                     transformArray[4] = (float)params.optDouble("x", 0);
                     transformArray[5] = (float)params.optDouble("y", 0);
                 }
-System.out.println("got transformArray -> " + transformArray);
+System.out.println("got transformArray -> " + new JSONArray(transformArray));
                 break;
             default:
                 throw new IOException("updateChild() type " + type + " unknown");
@@ -421,7 +426,7 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
 
         ImageProcessor iproc = null;
         if (needsTransform) {
-            iproc = new ImageProcessor("context0", sourceFile.toString(), targetFile.toString(), width, height, transformArray, parentMA);
+            iproc = new ImageProcessor("context0", sourceFile.toString(), targetFile.toString(), width, height, transformArray, args, parentMA);
         } else {
             iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), targetFile.toString(), args, parentMA);
         }
