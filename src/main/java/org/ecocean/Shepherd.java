@@ -4753,6 +4753,19 @@ public class Shepherd {
     }
     return null;
   }
+  
+  public ArrayList<MediaAsset> getMediaAssetsWithACMId(String acmId){
+    String filter = "this.acmId == \""+acmId+"\"";
+    Extent annClass = pm.getExtent(MediaAsset.class, true);
+    Query anns = pm.newQuery(annClass, filter);
+    Collection c = (Collection) (anns.execute());
+    ArrayList<MediaAsset> al = new ArrayList(c);
+    anns.closeAll();
+    if((al!=null)&&(al.size()>0)) {
+      return al;
+    }
+    return null;
+  }
 
   //used to describe where this Shepherd is and what it is supposed to be doing
   public void setAction(String newAction){
