@@ -49,7 +49,11 @@
 				
 				<field name="relatedComments" persistence-modifier="persistent" default-fetch-group="false">
 					<column jdbc-type="LONGVARCHAR" />
-				</field>				
+				</field>		
+
+             <field name="individual1" persistence-modifier="persistent" element-type="org.ecocean.MarkedIndividual" />
+			 <field name="individual2" persistence-modifier="persistent" element-type="org.ecocean.MarkedIndividual" />
+				
 				<fetch-group name="count" />
 		</class>
 

@@ -1037,7 +1037,7 @@ if (sharky.getNames() != null) {
         -1px 1px 0 #000,
         1px 1px 0 #000;
     ">
-    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
+    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualIDExact=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
 
 
     <div class="slider col-sm-6 center-slider">
@@ -1409,7 +1409,7 @@ if (sharky.getNames() != null) {
         <div id="familyDiagram">
           <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
-            setupFamilyTree("<%=individualID%>");
+            setupFamilyTree("<%=individualID%>","<%=sharky.getDisplayName() %>");
           </script>
         </div>
 

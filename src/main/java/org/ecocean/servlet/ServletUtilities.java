@@ -389,10 +389,23 @@ public class ServletUtilities {
       else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
         isOwner = true;
       }
-
+      // allow WDP edit stenella frontalis cit sci encounters  
+      // TODO make a mmore resonable way for researchers to ID and edit cit sci submissions 
+      if ("wdp".equals(request.getUserPrincipal().getName())) {
+        List<User> users = enc.getSubmitters();
+        boolean researcherSubmitted = false;      
+        for (User user : users) {
+          if (user.getUsername()!=null&&!"".equals(user.getUsername())) {
+            researcherSubmitted = true;
+          }
+        }
+        String genSpec = enc.getTaxonomyString();
+        if (!researcherSubmitted&&"Stenella frontalis".equals(genSpec)) {
+          isOwner = true;
+        }
+      }
       //whaleshark.org custom
-
-      else if (Collaboration.canEditEncounter(enc, request)) return true;
+      if (Collaboration.canEditEncounter(enc, request)) return true;
 
     }
     return isOwner;

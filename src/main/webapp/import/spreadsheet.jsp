@@ -17,8 +17,8 @@
 
 <%
 String context=ServletUtilities.getContext(request);
-Shepherd myShepherd=new Shepherd(context);
-String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
+//Shepherd myShepherd=new Shepherd(context);
+String subdir = UploadServlet.getSubdirForUpload(request);
 UploadServlet.setSubdirForUpload(subdir, request);
 
 // this is being intentionlly set randomly ... but if you want to use it, override it in your live/deployed uploader.jsp to some string you can share
@@ -51,7 +51,8 @@ function uploadFinished() {
 	document.getElementById('updone').innerHTML = '<i>upload finished, redirecting...</i>';
 	var filename = document.getElementById('hiddenFilename').innerHTML;
 	// forward user to the review page
-	window.location.replace('upload?filename='+filename);
+	window.location.replace('standard-upload?filename='+filename+"&isUserUpload=true");
+	//window.location.replace('upload?filename='+filename+"&isUserUpload=true");
 }
 </script>
 <body onLoad="uploaderInit(uploadFinished)">
@@ -117,6 +118,8 @@ div.file-item div {
 	<input type="file" id="file-chooser" accept=".xlsx" onChange="return filesChangedSetFilename(this)" /> 
 	<button id="upload-button">begin upload</button>
 <% System.out.println("Done with import/spreadsheet.jsp. About to print footer."); %>
+</div>
+
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
 </body>

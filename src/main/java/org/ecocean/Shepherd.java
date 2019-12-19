@@ -342,7 +342,7 @@ public class Shepherd {
     beginDBTransaction();
     try {
       pm.makePersistent(task);
-      commitDBTransaction();
+      updateDBTransaction();
       return true;
     } catch (Exception e) {
       rollbackDBTransaction();
@@ -867,6 +867,7 @@ public class Shepherd {
     query.closeAll();
     return org;
   }
+  
 
   public Organization getOrCreateOrganizationByName(String name) {
     return getOrCreateOrganizationByName(name, true);
@@ -3645,7 +3646,7 @@ public class Shepherd {
     List<Keyword> propKeywords = new ArrayList<Keyword>();
 
     if((allKeywords!=null)&&(propKeywordNames!=null)) {
-      System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
+      //System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
 
       for (String propKwName: propKeywordNames) {
         for (Keyword kw: allKeywords) {
@@ -3655,7 +3656,7 @@ public class Shepherd {
           }
         }
       }
-      System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
+      //System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
       allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
       propKeywords.addAll(allKeywords);
       // propKeywords contains all keywords, but those defined in properties are first.
@@ -4259,7 +4260,7 @@ public class Shepherd {
 	    q.closeAll();
     return al;
   }
-
+  
   public List<String> getAllNativeUsernames() {
     String filter="SELECT FROM org.ecocean.User WHERE username != null ";
     // bc of how sql's startsWith method works we need the null check below
@@ -4272,6 +4273,7 @@ public class Shepherd {
     query.closeAll();
     return usernames;
   }
+
 
   public List<String> getAllGeneticSexes() {
     Query q = pm.newQuery(SexAnalysis.class);
@@ -4562,6 +4564,24 @@ public class Shepherd {
     return occurrenceIDs;
 
   }
+  
+  public ArrayList<String> getLinkedLocationIDs(String locationID){
+    ArrayList<String> locationIDs=new ArrayList<String>();
+
+   String filter="SELECT distinct enc2.locationID FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && encounters.contains(enc2) && enc.locationID == \""+locationID+"\" && enc2.locationID != null && enc2.locationID != \""+locationID+"\"  VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2";
+
+    Query q = pm.newQuery (filter);
+
+    Collection results = (Collection) q.execute();
+    ArrayList al=new ArrayList(results);
+    q.closeAll();
+    int numResults=al.size();
+    for(int i=0;i<numResults;i++) {
+      locationIDs.add((String)al.get(i));
+    }
+    return locationIDs;
+
+  }
 
 
 
@@ -4628,7 +4648,7 @@ public class Shepherd {
     String filter = "individual != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
-    q.setRange(1, numToReturn+1);
+    q.setRange(0, numToReturn+1);
     q.setOrdering("year descending, month descending, day descending");
     Collection c = (Collection) (q.execute());
     if ((c != null) && (c.size() > 0)) {
@@ -4740,6 +4760,19 @@ public class Shepherd {
     Query anns = pm.newQuery(annClass, filter);
     Collection c = (Collection) (anns.execute());
     ArrayList<Annotation> al = new ArrayList(c);
+    anns.closeAll();
+    if((al!=null)&&(al.size()>0)) {
+      return al;
+    }
+    return null;
+  }
+  
+  public ArrayList<MediaAsset> getMediaAssetsWithACMId(String acmId){
+    String filter = "this.acmId == \""+acmId+"\"";
+    Extent annClass = pm.getExtent(MediaAsset.class, true);
+    Query anns = pm.newQuery(annClass, filter);
+    Collection c = (Collection) (anns.execute());
+    ArrayList<MediaAsset> al = new ArrayList(c);
     anns.closeAll();
     if((al!=null)&&(al.size()>0)) {
       return al;

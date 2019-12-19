@@ -16,13 +16,13 @@
 <%
 
 String context=ServletUtilities.getContext(request);
-Shepherd myShepherd=new Shepherd(context);
+//Shepherd myShepherd=new Shepherd(context);
 
 
 // this is being intentionlly set randomly ... but if you want to use it, override it in your live/deployed uploader.jsp to some string you can share
 //   (this allows the session to be automatically consider non-bot, so the upload can happen)
 String password = "fhqwhgads";
-String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
+String subdir = UploadServlet.getSubdirForUpload(request);
 // stores subdir on session so it can go to the other import servlets
 UploadServlet.setSubdirForUpload(subdir, request);
 
@@ -122,11 +122,16 @@ div.file-item div {
 <div id="upcontrols" style="padding: 20px;">
 	<input type="file" id="file-chooser" webkitdirectory directory multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
 	<button id="upload-button">begin upload</button>
+	<br>
+	<p><b>If you have selected a large number of photos they may take a while to load in the interface.<b> Once you have clicked the 'Begin Upload' button the images will be sent, and you will automatically
+	be taken to the next page when they are finished.</p>
 <% System.out.println("Done with photos.jsp. About to print footer."); %>
 </div>
+
+</div> <!-- container maincontent -->
+
 <jsp:include page="../footer.jsp" flush="true"/>
-</body>
-</html>
+
 
 
 
