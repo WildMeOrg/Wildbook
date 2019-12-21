@@ -913,8 +913,9 @@
 				{ "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] },
 				{ "name":"SDRPTestSet_Encounter", "id":"SDRPTestSet_Encounter", "locationID":[] },
 				{ "name":"SDRPTestSet_Catalog", "id":"SDRPTestSet_Catalog", "locationID":[] },
+				{ "name":"CRC2017Test", "id":"CRC2017Test", "locationID":[] },
 				
-		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
+				{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
 	] },
 	
 	
