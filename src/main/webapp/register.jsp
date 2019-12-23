@@ -889,7 +889,7 @@ $(document).ready(function() {
         $(el).append(h);
         $('.register-quiz-div select').on('change', function(ev) {
             quizUnset = 0;
-            $('.register-quiz-div-error').removeClass('register-quiz-div-error');
+            $(ev.target.parentElement).removeClass('register-quiz-div-error').removeClass('register-quiz-div-correct');
             $('.register-quiz-div select').each(function(i, el) {
                 if (!el.selectedIndex) quizUnset++;
             });
