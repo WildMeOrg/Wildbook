@@ -226,25 +226,19 @@ Our second validation study, open to everyone, will begin in January 2020!
 
 <div class="explanation-section">
 
-<img src="images/participate_manatdesk.jpg" style="height: 300px; float: right; margin-top: -5em;" />
+<img src="images/participate_manatdesk.jpg" width="324" height="300" hspace="10" vspace="10" align="right" />
+
 <p>
-Our first phase of validation tests are running from now until October 6, 2019.
+The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission later, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.
 </p>
 
 <p>
-This validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones.
-Each validation study is focused on some aspect of Kitizen Science's data collection and processing methods. The current validation test is looking at how good humans are at by-eye photo identifications of cats taken with smart phones. Later, we will be using smart phone photos to collect data for estimating cat populations, so knowing how good humans are at identifying individual cats from smart phone photos is important to knowing how accurate later conclusions will be.
+You can <a href="register.jsp?instructions">read the study instructions</a>
+before deciding whether you want to volunteer.
 </p>
 
-<p>
-You can read the
-<a href="register.jsp?instructions">instructions page</a>
-first to see more about what this trial involves.
-</p>
+<p>This study is open from January 6 to March 6, 2020.</p>
 
-<p class="mobile-note">
-Note: some mobile and tablet users are reporting that images aren't loading for them.  We're working on fixing that, but in the mean time, please try a desktop or laptop computer if you are having issues with photos loading.
-</p>
 
 <%
     }
