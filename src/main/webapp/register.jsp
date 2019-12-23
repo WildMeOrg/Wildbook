@@ -73,6 +73,27 @@ label {
     text-decoration: none !important;
 }
 
+.register-quiz-div {
+    text-align: center;
+    padding: 14px;
+    border-radius: 8px;
+}
+
+.register-quiz-div-error {
+    background-color: red;
+}
+.register-quiz-div-correct {
+    background-color: #9FA;
+}
+
+.register-quiz-div select {
+    margin: 0 6px;
+}
+
+#quiz-button {
+    display: none;
+}
+
 </style>
 <%
 
@@ -635,19 +656,153 @@ How did you hear about Kitizen Science?
 %>
 <div id="instructions">
 
-<h1>Instructions for Validation Study 1</h1><p>&nbsp;</p>
-<p>The first of our three validation tests is about determining how good humans are at identifying cats from photos by making matches between one cat photo and a library of cat photos.  Similar tests have been conducted on many types of animals since it's important for researchers to understand and plan for human error rates. </p>
-<p>This study is running from August 5 to October 6, 2019.  You can join at any time during that period.  You can complete all 50 matching trials, or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each matching trial will each take 30-60 minutes to complete, depending on your personal pace. You can complete a maximum of 2 matching trials per day.  Previous studies of photo identification in animals have suggested that observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time. </p>
-<p>
-Note: some mobile and tablet users are reporting that images aren't loading for them. We're working on fixing that, but in the mean time, please try a desktop or laptop computer if you are having issues with photos loading.
-</p>
+<h1>Instructions for the Online Workflow Study</h1>
 
-<h2>Enrollment process</h2><p>This study asks you to consent to participate as a research volunteer, register for the website, and answer some demographic questions.  We don't need to know your name, but you will need to register for the website with an email address. </p>
-<h2>Rules</h2><p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change ability to identify cats in photos, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own. </p>
-<h2>Trial instructions</h2><p>After logging in, you will be presented with matching trials.  Click to start a trial.  Once you complete a trial, you won't be presented with the same one again.   </p>
-<p>Once you start a trial, you will have a &quot;Cat to Match&quot; photo on the left side of the screen and a &quot;Cat Library&quot; on the right side, with the options to click &quot;yes&quot; or &quot;no&quot; and zoom on either photo.   </p>
-<p>During each individual trial, the Cat to Match photo will stay the same as you click through all of the Cat Library photos, and there may be one, multiple, or no matching cats in the library.  There is no &quot;I'm unsure&quot;  because we want you to make your best guess.  After clicking through all images in the Cat Library, the trial is complete, and you may do another trial or log off.  The Cat Library is the same in all trials and contains 120 photos. </p>
-<p>Most photos are taken at a distance, so make sure to click photos to zoom all the way in.  (Clicking on an image zooms in on it, and you are zoomed in all the way once clicking no longer increases the image size.)  These test photos were obtained in the same way that our project will gather data in the real world: by taking photos of free-roaming cats as they are seen walking through a neighborhood while not trespassing on private property.  That means some cats are harder to see than others, and you won't always get to see good details.</p>
+<p>The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission later, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.  You will receive a short survey via email after this study ends asking for your feedback and for you to rate aspects of the website.</p>
+<p>This study is open from <span class="style1">January 6 to March 6</span>, 2020.</p>
+<h2>Rules</h2><p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change your success at processing submissions, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own.</p>
+<p>There is a quiz at the end of this instruction page to ensure that you have read the instructions and understand what is being asked of you. </p>
+<h2>General instructions</h2><p>In this study, you will be presented with a cat photo submission and asked to do two things: to assign attributes to the cat in the photo (primary color/pattern, life stage, ear tip, collar, and sex if visible), and then to decide if the cat has a match in the system (you'll be presented with potential matches) or if they are a new cat to the system.</p>
+<p>We realize this instruction page is long, but we think that once you get the hang of things, processing cat submissions will be simple.</p>
+<p>There are XXX submissions in the system, and you'll be presented with one randomly.  You can complete all of them or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each submission will each take a few minutes to process once you become familiar with the workflow.  You can process a maximum of XXX submissions per day.  (Observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time.)</p>
+<p>Most photos are taken at a distance, so make sure to click photos to zoom all the way in.  (Clicking on an image zooms in on it, and you are zoomed in all the way once clicking no longer increases the image size.)  These test photos were obtained in the same way that our project will gather data in the real world: by taking photos of free-roaming cats as they are seen walking through neighborhoods while not trespassing on private property.  That means some cats are harder to see than others, and you won't always get to see good details.</p>
+<p>Note: All of the locations of cats in this trial have been edited so the cats could be grouped into a new area together.</p>
+<h2>Step 1: assigning cat attributes</h2>
+<p>For each submission, you start out by assigning attributes to a cat.  You may have one or several photos of the cat, and you may or may not be able to see the cat's whole body.  Base your attribute assignments only on what you are sure you can see.</p>
+<p>Some photos will have more than one cat, and the cat whose attributes you are assigning and searching for a matching cat will be highlighted in the photo. (<span class="style1">Detection verification in this study? If so, explainer text here.</span>)</p>
+<p>First, select a cat's primary color or pattern group.  These are our 8 categories:</p>
+<table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
+  <tr>
+    <td width="551" valign="top"><div align="center"><strong>Black</strong>:  all black or with a  small patch of white</div></td>
+    <td width="50" valign="top">&nbsp;</td>
+    <td width="498" valign="top"><div align="center"><strong>Black &amp; White</strong></div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/instructions_black.jpg" width="402" height="300" /></div></td>
+    <td width="50">&nbsp;</td>
+    <td><div align="center"><img src="images/instructions_bw.jpg" width="402" height="300" /></div></td>
+  </tr>
+  <tr>
+    <td height="50">&nbsp;</td>
+    <td width="50">&nbsp;</td>
+    <td height="50">&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top"><div align="center"><strong>Grey or Brown Tabby/Torbie</strong></div></td>
+    <td width="50" valign="top">&nbsp;</td>
+    <td valign="top"><div align="center"><strong>Tabby/Torbie &amp; White</strong></div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/instructions_tabby.jpg" width="402" height="300" /></div></td>
+    <td width="50">&nbsp;</td>
+    <td><div align="center"><img src="images/instructions_tabwhite.jpg" width="402" height="300" /></div></td>
+  </tr>
+  <tr>
+    <td height="50">&nbsp;</td>
+    <td width="50">&nbsp;</td>
+    <td height="50">&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top"><div align="center"><strong>Orange</strong>: Peach-orange through dark orange</div></td>
+    <td width="50" valign="top">&nbsp;</td>
+    <td valign="top"><div align="center"><strong>Dark Grey</strong></div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/instructions_orange.jpg" width="402" height="300" /></div></td>
+    <td width="50">&nbsp;</td>
+    <td><div align="center"><img src="images/instructions_grey.jpg" width="402" height="300" /></div></td>
+  </tr>
+  <tr>
+    <td height="50">&nbsp;</td>
+    <td width="50">&nbsp;</td>
+    <td height="50">&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top"><div align="center"><strong>Calico/Tortoiseshell</strong>: Including diluted/muted</div></td>
+    <td width="50" valign="top">&nbsp;</td>
+    <td valign="top"><div align="center"><strong>Beige/Cream/White</strong>: Including pointed/&quot;Siamese&quot;</div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/instructions_tortical.jpg" width="402" height="300" /></div></td>
+    <td width="50">&nbsp;</td>
+    <td><div align="center"><img src="images/instructions_light.jpg" width="402" height="300" /></div></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p>Second, select the cat's life stage (kitten or adult).</p>
+<table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
+  <tr>
+    <td width="551" valign="top"><div align="center"><strong>Kitten</strong>: Under about 6 months</div></td>
+    <td width="50" valign="top">&nbsp;</td>
+    <td width="498" valign="top"><div align="center"><strong>Adult</strong></div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/instructions_kitten.jpg" width="402" height="300" /></div></td>
+    <td width="50">&nbsp;</td>
+    <td><div align="center"><img src="images/instructions_adult.jpg" width="402" height="300" /></div></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p>Third, select whether the cat has an ear tip removed (a sign the cat has been surgically sterilized), and on which side.</p>
+<table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
+  <tr>
+    <td width="551" valign="top"><div align="center"><strong>Yes - Cat's Left</strong></div></td>
+    <td width="50" valign="top">&nbsp;</td>
+    <td width="498" valign="top"><div align="center"><strong>Yes - Cat's Right</strong></div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/instructions_tipleft.jpg" width="402" height="300" /></div></td>
+    <td width="50">&nbsp;</td>
+    <td><div align="center"><img src="images/instructions_tipright.jpg" width="402" height="300" /></div></td>
+  </tr>
+  <tr>
+    <td height="50">&nbsp;</td>
+    <td width="50">&nbsp;</td>
+    <td height="50">&nbsp;</td>
+  </tr>
+  <tr>
+    <td valign="top"><div align="center"><strong>No</strong></div></td>
+    <td width="50" valign="top">&nbsp;</td>
+    <td valign="top"><div align="center"></div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/instructions_untipped.jpg" width="402" height="300" /></div></td>
+    <td width="50">&nbsp;</td>
+    <td><div align="center"></div></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p>Fourth, select whether the cat is wearing a collar (yes, no, or unknown).</p>
+<table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
+  <tr>
+    <td width="551" valign="top"><div align="center"><strong>Yes</strong></div></td>
+    <td width="50" valign="top">&nbsp;</td>
+    <td width="498" valign="top"><div align="center"><strong>No</strong></div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/instructions_collar.jpg" width="402" height="300" /></div></td>
+    <td width="50">&nbsp;</td>
+    <td><div align="center"><img src="images/instructions_nocollar.jpg" width="402" height="300" /></div></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p>Lastly, select the cat's sex if it is obvious what the cat's sex is (male, female, or unknown).  A photo could contain an unsterilized male cat's rear end where you can see testicles, or a photo of an unsterilized female could show visible mammary gland development or depict a mother with her kittens.  Most cats will be labeled as unknown sex.</p>
+<table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
+  <tr>
+    <td width="551" valign="top"><div align="center"><strong>Male - Testicles visible</strong></div></td>
+    <td width="50" valign="top">&nbsp;</td>
+    <td width="498" valign="top"><div align="center"><strong> Female - Mammaries/kittens</strong></div></td>
+  </tr>
+  <tr>
+    <td><div align="center"><img src="images/instructions_male.jpg" width="402" height="300" /></div></td>
+    <td width="50">&nbsp;</td>
+    <td><div align="center"><img src="images/instructions_female.jpg" width="402" height="300" /></div></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<h2>Step 2: cat matching</h2>
+<p>After saving a cat's attributes, our system will look for likely potential matches based on those attributes, showing you cats that are most likely to be a match.  Some cat submissions will have a match in the system, and some won't.  You decide if one of the potential matches is the same cat, or click to decide that the submission is a new cat to the system without a match.</p>
+<p>&nbsp;</p>
 <h2>How to compare similar cats</h2><p>Even two similar-looking cats can be separated if you examine them closely.  Here are some details to look for when comparing two cats.</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
@@ -708,6 +863,137 @@ Note: some mobile and tablet users are reporting that images aren't loading for 
 </table>
 <p>&nbsp;</p>
 <h2>That's everything!</h2><p>We hope this is a fun and straightforward study.  If you have any questions, please email kitizenscience@gmail.com.</p>
+<p>&nbsp;</p>
+
+<div id="register-quiz">
+<script type="text/javascript">
+    var quizUnset = 99;
+$(document).ready(function() {
+    var quizq = [
+        [ 'Choose a color/pattern', 'Black', 'Black & White', 'Grey or Brown Tabby/Torbie', 'Tabby/Torbie & White', 'Orange', 'Dark Grey', 'Calico/Tortoiseshell', 'Beige/Cream/White' ],
+        ['Choose life stage', 'kitten', 'adult'],
+        ['Ear tip removed?', 'Yes - Left', 'Yes - Right', 'No'],
+        ['Wearing collar?', 'Yes', 'No', 'Unknown'],
+        ['Choose a sex', 'Male', 'Female', 'Unknown']
+    ];
+    $('.register-quiz-div').each(function(elI, el) {
+        var h = '';
+        for (var i = 0 ; i < quizq.length ; i++) {
+            h += '<select id="quiz-' + i + '">';
+            h += '<option value="">' + quizq[i][0] + '</option>';
+            for (var j = 1 ; j < quizq[i].length ; j++) {
+                h += '<option>' + quizq[i][j] + '</option>';
+            }
+            h += '</select>';
+        }
+        $(el).append(h);
+        $('.register-quiz-div select').on('change', function(ev) {
+            quizUnset = 0;
+            $('.register-quiz-div-error').removeClass('register-quiz-div-error');
+            $('.register-quiz-div select').each(function(i, el) {
+                if (!el.selectedIndex) quizUnset++;
+            });
+            $('#quiz-unanswered-count').text(quizUnset);
+            if (quizUnset < 17) {
+                $('#quiz-blocker').hide();
+                $('#quiz-button').show();
+            } else {
+                $('#quiz-blocker').show();
+                $('#quiz-button').hide();
+            }
+        });
+    });
+});
+
+function quizButton() {
+/*
+    if (quizUnset > 0) {
+        alert('You must answer all of the quiz questions.');
+        return false;
+    }
+*/
+    var qans = [
+        [1,1,1,1,1],
+        [2,2,2,2,2],
+        [1,1,1,1,1],
+        [1,1,1,1,1]
+    ];
+    var passedQuiz = true;
+    $('.register-quiz-div').each(function(qi, el) {
+        var wrong = 0;
+        $(el).find('select').each(function(seli, sel) {
+console.log('%d) %d: %d [%d]', qi, seli, sel.selectedIndex, qans[qi][seli]);
+            if (sel.selectedIndex != qans[qi][seli]) wrong++;
+        });
+        if (wrong > 0) {
+            $('#register-quiz-' + qi).addClass('register-quiz-div-error').removeClass('register-quiz-div-correct');
+            passedQuiz = false;
+        } else {
+            $('#register-quiz-' + qi).addClass('register-quiz-div-correct');
+        }
+    });
+    if (passedQuiz) {
+        /// ????
+    } else {
+        window.setTimeout(function() { alert('You have some quiz answers which are incorrect.  They are in RED.'); }, 200);
+    }
+    return false;
+}
+</script>
+
+<h2>Quiz</h2>
+<p>Please select cat attributes for each of these four sample cats. You can attempt to answer each quiz item as many times as you like, but you won't be able to move on until all questions have been answered correctly.</p>
+<table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
+  <tr>
+    <td><h2 align="center"><strong>Cat 1</strong></h2>
+      <p align="center"><img src="images/quizcat1.jpg" width="800" height="500" /></p>
+
+<div class="register-quiz-div" id="register-quiz-0"></div>
+
+  </tr>
+  <tr>
+    <td><div align="center"></div></td>
+  </tr>
+  <tr>
+    <td valign="top"><h2 align="center"><strong>Cat 2</strong></h2>
+      <p align="center"><img src="images/quizcat2.jpg" width="800" height="500" /></p>
+
+<div class="register-quiz-div" id="register-quiz-1"></div>
+
+  </tr>
+  <tr>
+    <td><div align="center"></div></td>
+  </tr>
+  <tr>
+    <td><h2 align="center"><strong>Cat 3</strong></h2>
+      <p align="center"><img src="images/quizcat3.jpg" width="800" height="500" /></p>
+
+<div class="register-quiz-div" id="register-quiz-2"></div>
+
+  </tr>
+  <tr>
+    <td valign="top"><div align="center"></div></td>
+  </tr>
+  <tr>
+    <td><h2 align="center"><strong>Cat 4</strong></h2>
+      <p align="center"><img src="images/quizcat4.jpg" width="800" height="500" /></p>
+
+<div class="register-quiz-div" id="register-quiz-3"></div>
+
+  </tr>
+</table>
+<p>&nbsp;</p>
+
+
+<div style="text-align: center;">
+    <div id="quiz-blocker">
+        <h2>Complete the quiz for all four cats above to continue.</h2>
+        <p>Questions remaining: <b id="quiz-unanswered-count">20</b></p>
+    </div>
+    <a id="quiz-button" class="big-button" href="#" onClick="return quizButton();">Check quiz answers</a>
+</div>
+
+</div><!-- end quiz -->
 
 <p>&nbsp;</p>
 
