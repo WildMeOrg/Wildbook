@@ -26,6 +26,7 @@ public class IAQueryCache {
         if ((qanns == null) || (qanns.size() < 1)) return -1;  //  :(
         //we want *non* excluding version of this:
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAQueryCache.builtTargetAnnotationsCache");
         ArrayList<Annotation> anns = qanns.get(0).getMatchingSetForTaxonomy(myShepherd, null);
         if (anns == null) return -2;
         JSONObject jdata = new JSONObject();
@@ -58,6 +59,7 @@ log("buildTargetAnnotationsCache() caching " + idArr.length() + " Annotations");
         CachedQuery q = qc.getQueryByName(qname);
         if (q == null) {
             Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("IAQueryCache.setTargetAnnotationsCache");
             myShepherd.beginDBTransaction();
             q = new CachedQuery(qname, jobj, true, myShepherd);
             qc.addCachedQuery(q);
@@ -108,6 +110,7 @@ log("!!!! tryTargetAnnotationsCache() using " + idArr.length() + " Annotations c
         //weed out sibling (including ourself!) annots
         List<String> famAnnotIds = new ArrayList<String>();
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAQueryCache.tryTargetAnnotationsCache");
         myShepherd.beginDBTransaction();
         Encounter enc = ann.findEncounter(myShepherd);
         if ((enc != null) && (enc.getAnnotations() != null)) {  //second part is impossible (flw)
@@ -159,6 +162,7 @@ log("!!!! tryTargetAnnotationsCache() using " + idArr.length() + " Annotations c
             return null;
         }
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAQueryCache.addTargetAnnotation");
         myShepherd.beginDBTransaction();
         String indivId = ann.findIndividualId(myShepherd);
         myShepherd.rollbackDBTransaction();
@@ -179,6 +183,7 @@ log("!!!! tryTargetAnnotationsCache() using " + idArr.length() + " Annotations c
     private static String generateQueryName(String context, Annotation ann, String type) {
         if (ann == null) return null;
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAQueryCache.generateQueryName");
         myShepherd.beginDBTransaction();
         Encounter enc = ann.findEncounter(myShepherd);
         myShepherd.rollbackDBTransaction();
