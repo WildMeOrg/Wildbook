@@ -50,6 +50,9 @@ and "MEDIAASSET"."DETECTIONSTATUS" is null
 
 */
 
+HashMap<String, MarkedIndividual> indies=new HashMap<String, MarkedIndividual>();
+
+
 String filter="SELECT FROM org.ecocean.Encounter WHERE genus == \"Physeter\" && dwcDateAddedLong >= 1575504000000";
 
 
@@ -103,6 +106,68 @@ try {
 					
 				}
 			}
+			
+			if(request.getParameter("fixDuplicateIndividuals")!=null && enc.getIndividual()!=null){
+				
+				MarkedIndividual indy=enc.getIndividual();
+				String displayName=indy.getDisplayName();
+				
+				//if we've never seen this whale before, let's add it to the hashmap
+				if(!indies.containsKey(displayName)){
+					indies.put(displayName, indy);
+				}
+				//if we have seen it before, we need to consolidate!
+				else if(indy.getEncounters().size()==1){
+					
+					MarkedIndividual masterIndy=indies.get(displayName);
+				      // here's where the magic happens
+				      masterIndy.mergeIndividual(indy, request, myShepherd);
+				
+				     myShepherd.getPM().deletePersistent(indy);
+				     myShepherd.updateDBTransaction();
+					
+				}
+				
+				
+			}
+			
+			//if there are past individuals outside this data set with the same species and display name
+			if(request.getParameter("reconcileWithPastIndividuals")!=null && enc.getIndividual()!=null){
+				
+				MarkedIndividual indy=enc.getIndividual();
+				String displayName=indy.getDisplayName().trim();
+				String regex = "(^|.*;)"+displayName+"(;.*|$)";
+			      //System.out.println("withName: "+genus+" "+specificEpithet);
+				List<MarkedIndividual> inds = MarkedIndividual.findByNames(myShepherd, regex, "Physeter", "macrocephalus");
+				inds.remove(indy);
+				
+				for(MarkedIndividual m:inds){
+					if(!m.getDisplayName().trim().equals(displayName)){
+						inds.remove(m);
+					}
+				}
+				
+				if(inds.size()>0){
+					%>
+					<p>Found duplicates(<%=inds.size() %>) for: <%=displayName %></p>
+					<%
+					
+					MarkedIndividual masterIndy=inds.get(0);
+				      // here's where the magic happens
+				      if(!masterIndy.getIndividualID().equals(indy.getIndividualID())){
+				      	masterIndy.mergeIndividual(indy, request, myShepherd);
+				
+				     	myShepherd.getPM().deletePersistent(indy);
+				     	myShepherd.updateDBTransaction();
+				      }
+					
+				}
+				
+			}
+			
+			
+			
+			
 			
 		}
 
