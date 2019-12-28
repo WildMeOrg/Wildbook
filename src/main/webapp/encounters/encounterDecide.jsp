@@ -61,6 +61,15 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
 .attribute-option:hover {
     background-color: #ACA;
 }
+.attribute-selected {
+    background-color: #6B6 !important;
+}
+.attribute-muted {
+    opacity: 0.4;
+}
+.attribute-muted:hover {
+    opacity: 1.0;
+}
 
 #colorPattern .attribute-option {
     width: 22%
@@ -99,7 +108,68 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
     background-color: #BBB;
 }
 
+#save-complete {
+    display: none;
+}
+
+#match-div {
+    display: none;
+}
 </style>
+
+<script type="text/javascript">
+var userData = {
+    colorPattern: false,
+    earTip: false,
+    lifeStage: false,
+    collar: false,
+    sex: false
+};
+$(document).ready(function() {
+    $('.attribute-option').on('click', function(ev) { clickAttributeOption(ev); });
+    $('#flag input').on('change', function() { updateData(); });
+});
+
+function clickAttributeOption(ev) {
+    console.log(ev);
+    $('#' + ev.currentTarget.parentElement.id + ' .attribute-selected').removeClass('attribute-selected');
+    $('#' + ev.currentTarget.parentElement.id + ' .attribute-option').addClass('attribute-muted');
+    ev.currentTarget.classList.add('attribute-selected');
+    ev.currentTarget.classList.remove('attribute-muted');
+    userData[ev.currentTarget.parentElement.id] = ev.currentTarget.id;
+    checkSaveStatus();
+}
+
+function updateData() {
+    delete(userData.flag);
+    $('#flag input:checked').each(function(i, el) {
+        if (!userData.flag) userData.flag = [];
+        userData.flag.push(el.id);
+    });
+}
+
+function checkSaveStatus() {
+    console.log(userData);
+    var complete = true;
+    for (var attr in userData) {
+        complete = complete && userData[attr];
+    }
+    if (complete) {
+        $('#save-incomplete').hide();
+        $('#save-complete').show();
+    }
+}
+
+function doSave() {
+    $('#save-div').hide();
+    enableMatch();
+}
+
+function enableMatch() {
+    $('#match-div').show();
+}
+</script>
+
 </head>
 <body>
 
@@ -249,6 +319,23 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
                 <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-quality" /><label for="flag-quality">Poor quality</label></div>
                 <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-other" /><label for="flag-other">Other problem</label></div>
             </div>
+        </div>
+
+        <div id="save-div" class="attribute">
+            <h2>Save / Complete</h2>
+            <p id="save-incomplete">
+Make selections for all the options above, and then save here.
+            </p>
+            <p id="save-complete">
+All required selections are made.  You may now save your answers. <br />
+<input type="button" value="Save" onClick="return doSave()" />
+            </p>
+        </div>
+
+        <div id="match-div" class="attribute">
+            <h2>Look for matching cat</h2>
+            <p>Instructions?  options?</p>
+            <input type="button" value="see 23 similar cats nearby" />
         </div>
 
     </div>
