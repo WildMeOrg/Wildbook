@@ -159,6 +159,14 @@ $(document).ready(function() {
     $('.enc-asset').panzoom().on('panzoomend', function(ev, panzoom, matrix, changed) {
         if (!changed) return $(ev.currentTarget).panzoom('zoom');
     });
+    $('.enc-asset').panzoom().on('panzoomchange', function(ev, panzoom, matrix, changed) {
+        $('body').css('overflow', 'auto');
+        //$('html').css('overflow', 'auto');
+    });
+    $('.enc-asset').panzoom().on('panzoomstart', function(ev, panzoom, matrix, changed) {
+        $('body').css('overflow', 'hidden');
+        //$('html').css('overflow', 'hidden');
+    });
     $('.enc-asset').on('dblclick', function(ev) {
         $(ev.currentTarget).panzoom('reset');
     });
@@ -223,7 +231,7 @@ function enableMatch() {
     ArrayList<MediaAsset> assets = enc.getMedia();
     if (!Util.collectionIsEmptyOrNull(assets)) for (MediaAsset ma : assets) {
 %>
-        <img class="enc-asset" src="<%=ma.safeURL(request)%>" />
+        <div class="enc-asset-wrapper"><img class="enc-asset" src="<%=ma.safeURL(request)%>" /></div>
 <%
     }
 %>
