@@ -53,10 +53,8 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
 */
 
 .column-images, .column-attributes {
-background-color: red;
     display: inline-block;
     width: 47%;
-    xpadding: 1%;
     vertical-align: top;
 }
 
@@ -67,7 +65,6 @@ background-color: red;
 @media screen and (max-width: 800px) {
     .column-images, .column-attributes {
         width: 100%;
-        background-color: blue;
     }
     .column-attributes {
         float: none;
