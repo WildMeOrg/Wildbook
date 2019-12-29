@@ -28,7 +28,7 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
 %>
 
 <jsp:include page="../header.jsp" flush="true" />
-
+<script src="../tools/panzoom/jquery.panzoom.min.js"></script>
 
 <style type="text/css">
 .attribute {
@@ -156,6 +156,13 @@ $(document).ready(function() {
     $('.attribute-option').on('click', function(ev) { clickAttributeOption(ev); });
     $('#flag input').on('change', function() { updateData(); });
     $('#width-info').html($(window).width());
+    $('.enc-asset').panzoom().on('panzoomend', function(ev, panzoom, matrix, changed) {
+        if (!changed) return $(ev.currentTarget).panzoom('zoom');
+    });
+    $('.enc-asset').on('dblclick', function(ev) {
+        $(ev.currentTarget).panzoom('reset');
+    });
+
 });
 
 function clickAttributeOption(ev) {
