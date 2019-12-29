@@ -347,6 +347,7 @@
 			  {"name":"U.S. Eastern Seaboard","id":"U.S. Eastern Seaboard","locationID":[
 			  
 					{ "name":"Montauk NY", "id":"Montauk NY", "locationID":[] },
+					{ "name":"Cape May, NJ", "id":"CapeMay", "locationID":[] },
 					{ "name":"NY Bight", "id":"NY Bight", "locationID":[] },
 					{"name":"BOF-BOF","id":"BOF-BOF"},
 					{
