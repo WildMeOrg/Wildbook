@@ -43,11 +43,35 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
     margin: 0;
 }
 
+/*
 .column-images, .column-attributes {
     display: inline-block;
     width: 47%;
     padding: 1%;
     vertical-align: top;
+}
+*/
+
+.column-images, .column-attributes {
+background-color: red;
+    display: inline-block;
+    width: 47%;
+    xpadding: 1%;
+    vertical-align: top;
+}
+
+.column-attributes {
+    float: right;
+}
+
+@media screen and (max-width: 800px) {
+    .column-images, .column-attributes {
+        width: 100%;
+        background-color: blue;
+    }
+    .column-attributes {
+        float: none;
+    }
 }
 
 .attribute-option {
@@ -82,6 +106,7 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
 }
 
 .attribute-option .attribute-title {
+    overflow: hidden;
     font-size: 0.8em;
     line-height: 1.2em;
     height: 2.5em;
@@ -98,14 +123,19 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
     display: block;
     text-align: left;
     padding-left: 20%;
+    margin-bottom: 5px;
 }
 #flag label {
     margin: 0 0 0 8px;
     width: 90%;
     font-weight: bold;
+    line-height: 1.1em;
 }
 #flag .input-wrapper:hover {
     background-color: #BBB;
+}
+#flag .input-wrapper input {
+    vertical-align: top;
 }
 
 #save-complete {
@@ -128,6 +158,7 @@ var userData = {
 $(document).ready(function() {
     $('.attribute-option').on('click', function(ev) { clickAttributeOption(ev); });
     $('#flag input').on('change', function() { updateData(); });
+    $('#width-info').html($(window).width());
 });
 
 function clickAttributeOption(ev) {
@@ -181,6 +212,7 @@ function enableMatch() {
 <p>Some instructions can go here.  This is editable.</p>
 </div>
 
+<b id="width-info"></b>
 <div>
     <div class="column-images">
 <%
