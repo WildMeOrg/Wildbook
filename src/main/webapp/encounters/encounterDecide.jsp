@@ -145,6 +145,7 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
 </style>
 
 <script type="text/javascript">
+var encounterId = '<%=enc.getCatalogNumber()%>';
 var userData = {
     colorPattern: false,
     earTip: false,
@@ -205,7 +206,26 @@ function checkSaveStatus() {
 
 function doSave() {
     $('#save-div').hide();
-    enableMatch();
+    var mdata = {};
+    for (var k in userData) {
+        mdata[k] = { value: userData[k] };
+    }
+    $.ajax({
+        url: '../DecisionStore',
+        data: JSON.stringify({ encounterId: encounterId, multiple: mdata }),
+        dataType: 'json',
+        complete: function(xhr) {
+            console.log(xhr);
+            if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
+                console.warn("responseJSON => %o", xhr.responseJSON);
+                alert('ERROR saving: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
+            } else {
+                enableMatch();
+            }
+        },
+        contentType: 'application/javascript',
+        type: 'POST'
+    });
 }
 
 function enableMatch() {
