@@ -57,7 +57,7 @@ public class DecisionStore extends HttpServlet {
         Encounter enc = myShepherd.getEncounter(encId);
         //TODO we could make this check owner of Encounter(s) etc etc
         if (enc == null) {
-            rtn.put("error", "invalid encId passed");
+            rtn.put("error", "invalid encounterId passed");
         } else if (multiple != null) {  //this wins over single property/value type
             JSONArray ids = new JSONArray();
             String multId = Util.generateUUID();
