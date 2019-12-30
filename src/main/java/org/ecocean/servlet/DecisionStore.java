@@ -50,7 +50,7 @@ public class DecisionStore extends HttpServlet {
         }
 
         JSONObject rtn = new JSONObject("{\"success\": false}");
-        String encId = jsonIn.optString("encId", "_FAIL_");
+        String encId = jsonIn.optString("encounterId", "_FAIL_");
         String prop = jsonIn.optString("property", null);
         JSONObject value = jsonIn.optJSONObject("value");
         JSONObject multiple = jsonIn.optJSONObject("multiple");  //special multiple prop/value set!
@@ -60,10 +60,12 @@ public class DecisionStore extends HttpServlet {
             rtn.put("error", "invalid encId passed");
         } else if (multiple != null) {  //this wins over single property/value type
             JSONArray ids = new JSONArray();
+            String multId = Util.generateUUID();
             for (Object kobj : multiple.keySet()) {
                 String key = (String)kobj;
                 JSONObject val = multiple.optJSONObject(key);
                 if (val == null) continue;
+                val.put("_multipleId", multId);
                 Decision dec = new Decision(user, enc, key, val);
                 myShepherd.getPM().makePersistent(dec);
                 ids.put(dec.getId());
