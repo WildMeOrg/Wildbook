@@ -92,13 +92,13 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
     opacity: 1.0;
 }
 
-#colorPattern .attribute-option {
+#earTip .attribute-option, #colorPattern .attribute-option {
     width: 22%
 }
 #lifeStage .attribute-option {
     width: 47%;
 }
-#earTip .attribute-option, #collar .attribute-option, #sex .attribute-option {
+#collar .attribute-option, #sex .attribute-option {
     width: 31%;
 }
 
@@ -335,6 +335,10 @@ function enableMatch() {
                 <div id="no" class="attribute-option">
                     <div class="attribute-title">No</div>
                     <img class="attribute-image" src="../images/instructions_untipped.jpg" />
+                </div>
+                <div id="unknown" class="attribute-option">
+                    <div class="attribute-title">Unknown</div>
+                    <img class="attribute-image" src="../images/unknown.png" />
                 </div>
             </div>
         </div>
