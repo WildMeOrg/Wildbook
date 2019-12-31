@@ -1,6 +1,41 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.ListIterator,java.util.Properties,
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.Iterator,java.util.Properties,
 org.ecocean.media.MediaAsset,
+org.json.JSONObject, org.json.JSONArray,
+javax.jdo.Query,
 java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
+<%!
+
+private static List<Encounter> findSimilar(Shepherd myShepherd, Encounter enc, User user, JSONObject userData) {
+    if ((enc == null) || (user == null) || (userData == null)) return null;
+    Double lat = enc.getDecimalLatitudeAsDouble();
+    Double lon = enc.getDecimalLongitudeAsDouble();
+    if ((lat == null) || (lon == null)) {
+        System.out.println("WARNING: findSimilar() has no lat/lon for " + enc);
+        return null;
+    }
+    List<Encounter> found = new ArrayList<Encounter>();
+    String sql = "SELECT \"CATALOGNUMBER\" as encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist FROM \"ENCOUNTER\" WHERE \"STATE\" = 'new' ORDER BY dist";
+System.out.println(sql);
+    Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+    List results = (List)q.execute();
+    Iterator it = results.iterator();
+    while (it.hasNext()) {
+        Object[] row = (Object[]) it.next();
+        String eid = (String)row[0];
+        Double dist = (Double)row[1];
+System.out.println(eid + " -> " + dist);
+    }
+/*
+    colorPattern: false,
+    earTip: false,
+    lifeStage: false,
+    collar: false,
+    sex: false
+*/
+    return found;
+}
+
+%>
 <%
 
 //setup our Properties object to hold all properties
@@ -24,7 +59,26 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
             return;
         }
 */
-
+        JSONObject similarUserData = Util.stringToJSONObject(request.getParameter("getSimilar"));
+        if (similarUserData != null) {
+            User user = AccessControl.getUser(request, myShepherd);
+            JSONObject rtn = new JSONObject();
+            if (user != null) rtn.put("userId", user.getUUID());
+            List<Encounter> found = findSimilar(myShepherd, enc, user, similarUserData);
+            JSONArray sim = new JSONArray();
+            if (found == null) {
+                rtn.put("success", false);
+            } else {
+                for (Encounter fenc : found) {
+                    sim.put(fenc.getCatalogNumber());
+                }
+                rtn.put("success", true);
+                rtn.put("similar", sim);
+            }
+            response.setHeader("Content-type", "application/javascript");
+            out.println(rtn.toString());
+            return;
+        }
 %>
 
 <jsp:include page="../header.jsp" flush="true" />
