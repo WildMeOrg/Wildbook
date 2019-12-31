@@ -27,7 +27,7 @@ context=ServletUtilities.getContext(request);
 
   session = request.getSession(true);
   session.putValue("logged", "true");
-  response.sendRedirect("compare.jsp");
+  response.sendRedirect("queue.jsp");
   if ((request.getParameter("reflect") != null)) {
     response.sendRedirect(request.getParameter("reflect"));
   }
