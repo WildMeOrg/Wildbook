@@ -5,7 +5,7 @@ javax.jdo.Query,
 java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
 <%!
 
-private static List<Encounter> findSimilar(Shepherd myShepherd, Encounter enc, User user, JSONObject userData) {
+private static JSONArray findSimilar(HttpServletRequest request, Shepherd myShepherd, Encounter enc, User user, JSONObject userData) {
     if ((enc == null) || (user == null) || (userData == null)) return null;
     Double lat = enc.getDecimalLatitudeAsDouble();
     Double lon = enc.getDecimalLongitudeAsDouble();
@@ -13,25 +13,65 @@ private static List<Encounter> findSimilar(Shepherd myShepherd, Encounter enc, U
         System.out.println("WARNING: findSimilar() has no lat/lon for " + enc);
         return null;
     }
-    List<Encounter> found = new ArrayList<Encounter>();
-    String sql = "SELECT \"CATALOGNUMBER\" as encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist FROM \"ENCOUNTER\" WHERE \"STATE\" = 'new' ORDER BY dist";
-System.out.println(sql);
+
+    List<String> props = new ArrayList<String>();
+    String colorPattern = userData.optString("colorPattern", null);
+    if (colorPattern != null) props.add("\"PATTERNINGCODE\" = '" + Util.sanitizeUserInput(colorPattern) + "'");
+    String earTip = userData.optString("earTip", null);
+    if (earTip != null) props.add("\"EARTIP\" = '" + Util.sanitizeUserInput(earTip) + "'");
+    String sex = userData.optString("sex", null);
+    if (sex != null) props.add("\"SEX\" = '" + Util.sanitizeUserInput(sex) + "'");
+    String collar = userData.optString("collar", null);
+    if (collar != null) props.add("\"COLLAR\" = '" + Util.sanitizeUserInput(collar) + "'");
+    String lifeStage = userData.optString("lifeStage", null);
+    if (lifeStage != null) props.add("\"lifeStage\" = '" + Util.sanitizeUserInput(lifeStage) + "'");
+    if (props.size() < 1) {
+        System.out.println("WARNING: findSimilar() has no props sql from userData " + userData.toString());
+        return null;
+    }
+    
+    //technically we dont need to exclude our enc, as we are not 'approved', but meh.
+    String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"STATE\" = 'approved' AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND ((" + String.join(") OR (", props) + ")) ORDER BY dist";
+System.out.println("findSimilar() SQL: " + sql);
+
+    JSONArray found = new JSONArray();
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
     List results = (List)q.execute();
     Iterator it = results.iterator();
+    String[] propMap = new String[]{"colorPattern", "earTip", "sex", "collar", "lifeStage"};
     while (it.hasNext()) {
+        JSONObject el = new JSONObject();
         Object[] row = (Object[]) it.next();
-        String eid = (String)row[0];
+        String encId = (String)row[0];
         Double dist = (Double)row[1];
-System.out.println(eid + " -> " + dist);
+        if (dist > 3000) continue;  //sanity perimeter
+        Encounter menc = myShepherd.getEncounter(encId);
+        if (menc == null) continue;
+        JSONObject propMatches = new JSONObject();
+        el.put("encounterId", encId);
+        el.put("distance", dist);
+System.out.println("findSimilar() -> " + el.toString());
+        for (int i = 0 ; i < propMap.length ; i++) {
+            String val = (String)row[i + 2];
+            String ud = userData.optString(propMap[i], null);
+            el.put(propMap[i], val);
+            propMatches.put(propMap[i], (val != null) && (ud != null) && ud.equals(val));
+        }
+        el.put("matches", propMatches);
+        JSONArray mas = new JSONArray();
+        if (!Util.collectionIsEmptyOrNull(menc.getAnnotations())) for (Annotation ann : menc.getAnnotations()) {
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma == null) continue;
+            JSONObject mj = new JSONObject();
+            mj.put("annotationId", ann.getId());
+            if (!ann.isTrivial()) mj.put("bbox", ann.getBbox());
+            mj.put("id", ma.getId());
+            mj.put("url", ma.safeURL(myShepherd, request));
+            mas.put(mj);
+        }
+        el.put("assets", mas);
+        found.put(el);
     }
-/*
-    colorPattern: false,
-    earTip: false,
-    lifeStage: false,
-    collar: false,
-    sex: false
-*/
     return found;
 }
 
@@ -63,15 +103,13 @@ System.out.println(eid + " -> " + dist);
         if (similarUserData != null) {
             User user = AccessControl.getUser(request, myShepherd);
             JSONObject rtn = new JSONObject();
+            rtn.put("userData", similarUserData);
             if (user != null) rtn.put("userId", user.getUUID());
-            List<Encounter> found = findSimilar(myShepherd, enc, user, similarUserData);
-            JSONArray sim = new JSONArray();
+            JSONArray found = findSimilar(request, myShepherd, enc, user, similarUserData);
+            JSONArray sim = found;
             if (found == null) {
                 rtn.put("success", false);
             } else {
-                for (Encounter fenc : found) {
-                    sim.put(fenc.getCatalogNumber());
-                }
                 rtn.put("success", true);
                 rtn.put("similar", sim);
             }
