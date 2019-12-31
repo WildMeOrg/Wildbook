@@ -1,4 +1,6 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,
+org.ecocean.*,
+org.apache.commons.lang3.StringEscapeUtils" %>
 <%
 
 //setup our Properties object to hold all properties
@@ -9,7 +11,7 @@ request.setAttribute("pageTitle", "Kitizen Science &gt; Queue");
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("queue.jsp");
 myShepherd.beginDBTransaction();
-boolean forceList = Util.requestParameterSet(request.getParameter("forceList"));
+boolean forceList = true; //Util.requestParameterSet(request.getParameter("forceList"));
 User user = AccessControl.getUser(request, myShepherd);
 /*
 if (user == null) {
@@ -21,15 +23,28 @@ if (user == null) {
 
 String[] validRoles = new String[]{"cat_walk_volunteer", "cat_mouse_volunteer", "super_volunteer", "admin"};
 List<Role> userRoles = myShepherd.getAllRolesForUserInContext(user.getUsername(), context);
+String maxRole = null;
+for (String vr : validRoles) {
+    for (Role role : userRoles) {
+        if (vr.equals(role.getRolename())) {
+            maxRole = vr;
+            break;
+        }
+    }
+}
 
 %>
 
 <jsp:include page="header.jsp" flush="true" />
 
 <div class="container maincontent">
+<p>main role: <b><%=maxRole%></b></p>
+
 
 </div>
 
 <jsp:include page="footer.jsp" flush="true" />
 
+<%
 myShepherd.rollbackDBTransaction();
+%>
