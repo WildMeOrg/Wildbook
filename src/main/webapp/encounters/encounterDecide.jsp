@@ -123,6 +123,7 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
     margin-bottom: 5px;
 }
 #flag label {
+    cursor: pointer;
     margin: 0 0 0 8px;
     width: 90%;
     font-weight: bold;
@@ -133,6 +134,17 @@ java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocea
 }
 #flag .input-wrapper input {
     vertical-align: top;
+}
+
+.option-checkbox {
+    transform: scale(1.5);
+    margin: 7px !important;
+}
+
+.flag-note {
+    display: block;
+    font-weight: normal;
+    font-size: 0.8em;
 }
 
 #save-complete {
@@ -155,6 +167,7 @@ var userData = {
 };
 $(document).ready(function() {
     $('.attribute-option').on('click', function(ev) { clickAttributeOption(ev); });
+    $('.attribute-option').append('<input type="checkbox" class="option-checkbox" />');
     $('#flag input').on('change', function() { updateData(); });
     $('#width-info').html($(window).width());
     $('.enc-asset').panzoom().on('panzoomend', function(ev, panzoom, matrix, changed) {
@@ -178,7 +191,9 @@ function clickAttributeOption(ev) {
     console.log(ev);
     $('#' + ev.currentTarget.parentElement.id + ' .attribute-selected').removeClass('attribute-selected');
     $('#' + ev.currentTarget.parentElement.id + ' .attribute-option').addClass('attribute-muted');
+    $('#' + ev.currentTarget.parentElement.id + ' .option-checkbox').prop('checked', false);
     ev.currentTarget.classList.add('attribute-selected');
+    $('#' + ev.currentTarget.parentElement.id + ' .attribute-selected .option-checkbox').prop('checked', true);
     ev.currentTarget.classList.remove('attribute-muted');
     userData[ev.currentTarget.parentElement.id] = ev.currentTarget.id;
     checkSaveStatus();
@@ -260,8 +275,12 @@ function enableMatch() {
     <div class="column-attributes">
 
         <div class="attribute">
-            <h2>Observed Behavior</h2>
-            <div class="note"><%=enc.getBehavior()%></div>
+            <h2>Flag Problems</h2>
+            <div id="flag">
+                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-missed" /><label for="flag-missed">Cat(s) not detected<span class="flag-note">Our system should detect and draw a box around all cats in this photo submission.  Submissions with multiple cats should have each cat detected, and the focal cat highlighted with a ticker box line.  Are there any undetected (unboxed) cats in these photos?</span></label></div>
+                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-sensitive" /><label for="flag-sensitive">Sensitive or private information<span class="flag-note">To respect the privacy of those in our communities, our system should detect and automatically blur human faces, street signs, house numbers, license plates, and company logos. Do the photos in this submission contain any unblurred private information?</span></label></div>
+                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-quality" /><label for="flag-quality">Poor quality<span class="flag-note">Low image quality, blurring, resolution, or other technical problems prevent some photos from being useful.</span></label></div>
+            </div>
         </div>
 
         <div class="attribute">
@@ -367,21 +386,6 @@ function enableMatch() {
                     <div class="attribute-title">Unknown</div>
                     <img class="attribute-image" src="../images/unknown.png" />
                 </div>
-            </div>
-        </div>
-
-        <div class="attribute">
-            <h2>Submitter</h2>
-            (name and other metadata? goes here)
-        </div>
-
-        <div class="attribute">
-            <h2>Flag Problems</h2>
-            <div id="flag">
-                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-missed" /><label for="flag-missed">Cat not selected</label></div>
-                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-sensitive" /><label for="flag-sensitive">Sensitive or private information</label></div>
-                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-quality" /><label for="flag-quality">Poor quality</label></div>
-                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-other" /><label for="flag-other">Other problem</label></div>
             </div>
         </div>
 
