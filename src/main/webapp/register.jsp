@@ -202,7 +202,10 @@ System.out.println("survey response: " + resp.toString());
         }
     }
 
-    if (instrOnly) mode = 3;
+    if (instrOnly) {
+        mode = 3;
+        out.println("<style>#register-quiz { display: none; }</style>");
+    }
 
 %>
 
@@ -913,10 +916,10 @@ function quizButton() {
     }
 */
     var qans = [
-        [1,1,1,1,1],
-        [2,2,2,2,2],
-        [1,1,1,1,1],
-        [1,1,1,1,1]
+        [6,2,3,2,3],
+        [4,2,3,1,3],
+        [2,2,2,2,3],
+        [5,1,3,2,3]
     ];
     var passedQuiz = true;
     $('.register-quiz-div').each(function(qi, el) {
