@@ -293,7 +293,7 @@ UNIVERSITY OF WASHINGTON -
 CONSENT FORM
 </h2>
 
-<h3>Testing Volunteers' Ability to Identify Individual Cats from Photos</h3>
+<h3>Testing the Photo Processing Workflow of an Online Citizen Science Project About Cats</h3>
 
 <p>
 <b>Researcher: Sabrina Aeluro, graduate student at the University of Washington<br />
@@ -305,7 +305,7 @@ Researcher's statement and purpose of study
 </h3>
 
 <p>
-The purpose of this study is to test volunteers' abilities to make correct photo identifications of free-roaming cats using an online citizen science platform.  The cat photos in this study are of outdoor cats in their normal environment, and no cats were harmed in the collection of these photos.  This study is open to all people over the age of 18 who are interested in cats.
+The purpose of this study is to test volunteers' abilities to process photos of cats using the online workflow of a new citizen science program.  The cat photos in this study are of outdoor cats in their normal environment, and no cats were harmed in the collection of these photos.  This study is open to all people over the age of 18 who are interested in cats.
 </p>
 
 <p>
@@ -317,7 +317,7 @@ Study procedures
 </h3>
 
 <p>
-After registering for the study website, this study starts with a short survey about volunteers' backgrounds and personal demographics, and then participants will be presented with photo matching trials.  Once a trial has started, volunteers will be shown two photos and asked to select whether the same cat is pictured in both photos.  Volunteers can do as many or as few matching trials as they like.
+After registering for an account on the Kitizen Science website (or logging into an existing account for previous volunteers), there is a short survey about a volunteer's background and personal demographics, followed by instructions about how to process cat photo submissions on the website.  After this sign up and brief training process, volunteers are presented with a cat photo submission to be processed.  Volunteers select the attributes of the cat in the photo: its primary color/pattern, its life stage, whether it has an ear tip removed, where it has a collar, and the sex (if the anatomy is visible).  After selecting the cat's attributes, volunteers look to see if there is a match for the cat already in the system by comparing it to similar cats or noting if the cat is new to the system.  Volunteers can process as many or as few photo submissions as they like.
 </p>
 
 <h3>
@@ -349,7 +349,7 @@ Confidentiality of research information
 </h3>
 
 <p>
-The study does not require the collection of any personally identifying information apart from an email address.  Your email address is confidential and will not be published as part of this research.  While efforts are taken to ensure the privacy and security of your responses, in the event of a data breach, your survey answers and photo matching data could be linked to you email address.
+The study does not require the collection of any personally identifying information apart from an email address.  Your email address is confidential and will not be published as part of this research.  While efforts are taken to ensure the privacy and security of your responses, in the event of a data breach, your survey answers and cat photo processing data could be linked to your email address.
 </p>
 
 <p>
@@ -563,7 +563,7 @@ function checkSurvey() {
 <p><b style="font-size: 1.3em;">Your user <u><%=regu.getUsername()%></u> has been created.</b></p>
 <% } %>
 <p>
-We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
+We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
 </p>
 
 <p>
@@ -588,7 +588,7 @@ Do you currently have a cat/cats in your care?
 </p>
 
 <p>
-Have you ever participated in an online citizen science project doing image identification or classification?
+Have you ever participated in an online citizen science project doing image identification or classification (NOT including our 2019 cat matching study)?
 <br /><input id="citsci_no" type="radio" value="No" name="citsci" /> <label for="citsci_no">No</label>
 <br /><input id="citsci_yes" type="radio" value="Yes" name="citsci" /> <label for="citsci_yes">Yes</label>
 </p>
