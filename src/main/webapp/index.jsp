@@ -57,7 +57,7 @@ Kitizen Science is currently in its beta stage in 2019 and 2020. We will be cond
 <div class="margin-top: 20px;">&nbsp;</div>
 
 <% if (loggedIn) { %>
-<p align="center"><a class="big-button" href="compare.jsp">Proceed to Study</a></p>
+<p align="center"><a class="big-button" href="queue.jsp">Proceed to Study</a></p>
 <% } else { //is logged in %>
 <p style="display: none;" align="center"><a class="big-button" href="register.jsp">Participate in Kitizen Science!</a></p>
 <% } %>

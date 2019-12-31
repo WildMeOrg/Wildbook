@@ -417,10 +417,10 @@ if (thisUser == null) {
 <!-- TODO make this only show to non-logged in -->
 <% if (isAnonymous) { %>
                         <li><a href="<%=urlLoc %>/register.jsp">Sign Up</a></li>
-                        <li><a href="<%=urlLoc %>/compare.jsp">Login</a></li>
+                        <li><a href="<%=urlLoc %>/queue.jsp">Login</a></li>
 <% } else { %>
-                        <li><a href="<%=urlLoc %>/uw.jsp?instructions">Instructions</a></li>
-                        <li><a href="<%=urlLoc %>/compare.jsp">Do a Matching Trial</a></li>
+                        <li><a href="<%=urlLoc %>/register.jsp?instructions">Instructions</a></li>
+                        <li><a href="<%=urlLoc %>/queue.jsp">Review Submissions</a></li>
                         <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 <% } %>
                     </ul>
