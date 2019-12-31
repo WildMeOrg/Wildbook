@@ -908,7 +908,7 @@ $(document).ready(function() {
     });
 });
 
-function quizButton() {
+function quizButton(faked) {
 /*
     if (quizUnset > 0) {
         alert('You must answer all of the quiz questions.');
@@ -935,8 +935,11 @@ console.log('%d) %d: %d [%d]', qi, seli, sel.selectedIndex, qans[qi][seli]);
             $('#register-quiz-' + qi).addClass('register-quiz-div-correct');
         }
     });
+    if (faked) passedQuiz = true;
     if (passedQuiz) {
-        /// ????
+        $('#proceed-div').show();
+        $('#quiz-blocker').hide();
+        $('#quiz-button').hide();
     } else {
         window.setTimeout(function() { alert('You have some quiz answers which are incorrect.  They are in RED.'); }, 200);
     }
