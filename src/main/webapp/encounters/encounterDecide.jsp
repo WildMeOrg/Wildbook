@@ -103,6 +103,7 @@ System.out.println("findSimilar() -> " + el.toString());
         if (similarUserData != null) {
             User user = AccessControl.getUser(request, myShepherd);
             JSONObject rtn = new JSONObject();
+            rtn.put("encounterId", enc.getCatalogNumber());
             rtn.put("userData", similarUserData);
             if (user != null) rtn.put("userId", user.getUUID());
             JSONArray found = findSimilar(request, myShepherd, enc, user, similarUserData);
