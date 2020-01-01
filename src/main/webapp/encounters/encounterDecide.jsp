@@ -250,6 +250,7 @@ System.out.println("findSimilar() -> " + el.toString());
 </style>
 
 <script type="text/javascript">
+var dataLocked = false;
 var encounterId = '<%=enc.getCatalogNumber()%>';
 var userData = {
     colorPattern: false,
@@ -281,6 +282,7 @@ $(document).ready(function() {
 });
 
 function clickAttributeOption(ev) {
+    if (dataLocked) return;
     console.log(ev);
     $('#' + ev.currentTarget.parentElement.id + ' .attribute-selected').removeClass('attribute-selected');
     $('#' + ev.currentTarget.parentElement.id + ' .attribute-option').addClass('attribute-muted');
@@ -328,6 +330,7 @@ function doSave() {
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR saving: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
             } else {
+                dataLocked = true;
                 enableMatch();
             }
         },
