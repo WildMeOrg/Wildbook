@@ -331,7 +331,7 @@ public class Encounter implements java.io.Serializable {
   private String sightNo = "";
   
     private String earTip = null;
-    private Boolean collar = null;
+    private String collar = null;
 
   //start constructors
 
@@ -2113,8 +2113,8 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
     public String getEarTip() { return earTip; }
     public void setEarTip(String e) { earTip = e; }
-    public Boolean getCollar() { return collar; }
-    public void setCollar(Boolean c) { collar = c; }
+    public String getCollar() { return collar; }
+    public void setCollar(String c) { collar = c; }
 
 
     //crawls thru assets and sets date.. in an ideal world would do some kinda avg or whatever if more than one  TODO?
