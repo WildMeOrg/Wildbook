@@ -18,7 +18,7 @@
          org.json.JSONObject,
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
-         java.io.File, java.text.DecimalFormat,
+         java.io.File, java.text.DecimalFormat, org.apache.commons.lang.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -6485,7 +6485,8 @@ function iaMatchFilterGo() {
     var data = {
         v2: true,
         taskParameters: {
-            matchingSetFilter: {}
+            matchingSetFilter: {},
+            matchingAlgorithms: []
         },
         annotationIds: iaMatchFilterAnnotationIds
     };
@@ -6493,11 +6494,54 @@ function iaMatchFilterGo() {
         'match-filter-location-id': 'locationIds',
         'match-filter-owner': 'owner'
     };
+    
+    var optArray=[];
+    
+    
+		<%
+		Properties iaprops = ShepherdProperties.getProperties("IA.properties", "", context);
+		
+		String IBEISIdentOptRoot="IBEISIdentOpt";
+		if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null){
+			String speciesIBEISIdentOptRoot=IBEISIdentOptRoot+"_"+enc.getGenus()+"_"+enc.getSpecificEpithet();
+			if(iaprops.getProperty(speciesIBEISIdentOptRoot+"0")!=null){
+				IBEISIdentOptRoot=speciesIBEISIdentOptRoot;
+				System.out.println("Setting IBEISIdentOptRoot in matching dialog to: "+IBEISIdentOptRoot);
+			}
+		}
+		int rootIter=0;
+		while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
+			
+			String val="HotSpotter";
+			String queryDict="";
+			try {
+			     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
+				%>
+				optArray.push(<%=jsonObject.toString()  %>);
+				<%
+			}
+			catch (Exception err){
+			     err.printStackTrace();
+			     val="HotSpotter";
+			}
+
+			rootIter++;
+		}
+		%>
+    
     $('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
         var key = keyMap[el.name] || '_UNKNOWN_';
         if (!data.taskParameters.matchingSetFilter[key]) data.taskParameters.matchingSetFilter[key] = [];
-        data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
+        
+        if(el.name=="match-filter-algorithm"){
+        	data.taskParameters.matchingAlgorithms.push(optArray[el.defaultValue]);
+        }
+        else{
+        	data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
+        }
+        
+        
     });
 console.log('SENDING ===> %o', data);
     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -6654,6 +6698,35 @@ $(".search-collapse-header").click(function(){
         <label for="match-filter-owner-none"><%=encprops.getProperty("matchFilterOwnershipNone")%></label>
     </div>
 -->
+
+<div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
+<%
+
+rootIter=0;
+while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
+	
+	String val="HotSpotter";
+	String queryDict="";
+	try {
+	     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
+	     queryDict=jsonObject.toString();
+	     val=(new JSONObject(jsonObject.getJSONObject("queryConfigDict").toString())).optString("pipeline_root");
+	}
+	catch (Exception err){
+	     err.printStackTrace();
+	     val="HotSpotter";
+	}
+	if(val==null || val.trim().equals("")){
+		val="HotSpotter";
+	}
+
+	out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + rootIter + "\" name=\"match-filter-algorithm\" value=\"" + rootIter+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + rootIter + "\">" + val + " </label></div>");
+	
+	rootIter++;
+}
+
+
+%>
 
 <div class="ia-match-filter-section">
     <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
