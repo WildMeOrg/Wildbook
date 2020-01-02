@@ -6600,6 +6600,15 @@ $(document).ready(function() {
   <div class="ia-match-filter-container" style="display: none">
     <div  style="width: 100%; max-height: 200px; overflow-y: scroll">
     <div id="ia-match-filter-location" class="option-cols">
+    
+    	<div>
+	    	<!-- TODO maybe an option here to not recurse to children locations? -->
+	        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
+	            onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
+	        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
+	            onClick="$('#ia-match-filter-location .item input').prop('checked', false); iaMatchFilterLocationCountUpdate();" />
+    	</div>
+    	<br>
 <%
 
 Map<String,Long> locCount = new HashMap<String,Long>();
@@ -6640,11 +6649,7 @@ for (String l : locCount.keySet()) {
             <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
             <span class="item-count"><%=locCount.get(null)%></span>
         </div>
-<!-- TODO maybe an option here to not recurse to children locations? -->
-        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
-            onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
-        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
-            onClick="$('#ia-match-filter-location .item input').prop('checked', false); iaMatchFilterLocationCountUpdate();" />
+
     </div>
 
   </div>
@@ -6710,7 +6715,13 @@ while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
 	try {
 	     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
 	     queryDict=jsonObject.toString();
-	     val=(new JSONObject(jsonObject.getJSONObject("queryConfigDict").toString())).optString("pipeline_root");
+	     
+	     if(iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter)!=null){
+	    	 val=iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter);
+	     }
+	     else{
+	     	val=(new JSONObject(jsonObject.getJSONObject("queryConfigDict").toString())).optString("pipeline_root");
+	     }
 	}
 	catch (Exception err){
 	     err.printStackTrace();
@@ -6719,6 +6730,7 @@ while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
 	if(val==null || val.trim().equals("")){
 		val="HotSpotter";
 	}
+	
 
 	out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + rootIter + "\" name=\"match-filter-algorithm\" value=\"" + rootIter+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + rootIter + "\">" + val + " </label></div>");
 	
