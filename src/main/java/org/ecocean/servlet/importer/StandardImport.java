@@ -98,7 +98,7 @@ public class StandardImport extends HttpServlet {
 
   Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
 
-  Map<String,MarkedIndividual> individualCache = new HashMap<String,MarkedIndividual>();
+  private Map<String,MarkedIndividual> individualCache = new HashMap<String,MarkedIndividual>();
 
   TabularFeedback feedback;
 
@@ -201,6 +201,8 @@ public class StandardImport extends HttpServlet {
 
     boolean dataFound = dataFile.exists();
 
+    individualCache = new HashMap<String,MarkedIndividual>();
+
     missingColumns = new HashSet<String>();
     missingPhotos = new ArrayList<String>();
 		foundPhotos = new ArrayList<String>();
@@ -296,7 +298,7 @@ public class StandardImport extends HttpServlet {
         ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd);
         Encounter enc = loadEncounter(row, annotations, context, myShepherd);
         occ = loadOccurrence(row, occ, enc, myShepherd);
-        mark = loadIndividual(row, enc, myShepherd, committing, individualCache);
+        mark = loadIndividual(row, enc, myShepherd, committing);
 
         if (committing) {
 
@@ -1306,7 +1308,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
 
 
-  public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing, Map<String,MarkedIndividual> individualCache) {
+  public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing) {
 
   	boolean newIndividual = false;
     // This also checks MarkedIndividual.name0.value
@@ -1318,43 +1320,70 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     // no
     individualID = individualID.trim();
 
-  	MarkedIndividual mark = individualCache.get(individualID);
-  	if (mark==null) { // new individual
-	    mark = new MarkedIndividual(enc);
-	    if(committing) {
-	      myShepherd.getPM().makePersistent(mark);
-	      myShepherd.commitDBTransaction();
-	      myShepherd.beginDBTransaction();
-        mark.refreshNamesCache();
-	      //out.println("persisting new individual");
-	    }
-	    newIndividual = true;
-	  }
+    MarkedIndividual mark = individualCache.get(individualID);
+
+    System.out.println("tried to retrieve indy "+mark+" from cache with id from excel "+individualID);
+
+    boolean inCache = true;
+    
+    if (mark==null) {
+
+      inCache = false;
+
+      /*
+      TODO
+      If there is more than one animal with this name and species... The one you get attached to is random! There is no way to really know!
+      This is not great, but should happen rarely if at all. In fact, it would be most likely to occur if this user had a botched old-world import.
+      If we can also check against the specified user's organization in the future, it will all but remove it as a possibility.
+      */
+      
+      if (!"".equals(enc.getGenus())&&!"".equals(enc.getSpecificEpithet())) {
+        mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(), enc.getSpecificEpithet());
+        System.out.println("adding enc to existing encounter for "+individualID+" with tax string "+enc.getTaxonomyString());
+      }
+
+      System.out.println("tried to retrieve indy "+mark+" from DB with tax string "+enc.getTaxonomyString());
+
+      if (mark==null) {
+        mark = new MarkedIndividual(enc);
+        if (committing) {
+          myShepherd.getPM().makePersistent(mark);
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+          mark.refreshNamesCache();
+          System.out.println("persisting new individual");
+        }
+        newIndividual = true;
+      }
+	  } 
 
     // names section
     // case 1: no name keys
     String nameKey0 = getString(row, "MarkedIndividual.name0.label");
     if (Util.stringExists(individualID) && !Util.stringExists(nameKey0)) {
-      mark.addName(individualID);
-    }
-    // case 2: we have numNameColumns name keys
-    else for (int i=0; i<getNumNameCols(); i++) {
+
+      if (!mark.hasName(individualID))mark.addName(individualID);
+      if (!inCache) individualCache.put(individualID, mark);
+      // case 2: we have numNameColumns name keys
+    } else for (int i=0; i<getNumNameCols(); i++) {
       String nameKey = getString(row, "MarkedIndividual.name"+i+".label");
       String nameVal = getString(row, "MarkedIndividual.name"+i+".value");
       // we add names with the default key if no key is provided
       if (Util.stringExists(nameVal)) {
-        if (Util.stringExists(nameKey)) mark.addName(nameKey, nameVal);
-        else mark.addName(nameVal);
+        if (!mark.hasName(nameVal)) {
+          if (Util.stringExists(nameKey)) {
+            mark.addName(nameKey, nameVal);
+          } else {
+            mark.addName(nameVal);
+          } 
+        }     
+        if (!inCache) individualCache.put(nameVal, mark);
       }
     }
-
-
 
     String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
     if (nickname!=null) mark.setNickName(nickname);
-
-
 
     // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
     Organization org = getOrganization(row, myShepherd);
@@ -1362,27 +1391,29 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     //else mark.addName(request, individualID);
     else mark.addName(individualID);
 
-	  if (mark==null) {
-      out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
-      return mark;
-    }
-
 	  if (!newIndividual) {
-	    mark.addEncounter(enc);
-	    enc.setIndividual(mark);
+      try {
+        enc.setIndividual(mark);
+        mark.addEncounter(enc);
+        if(committing) {
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
 	    System.out.println("loadIndividual notnew individual: "+mark.getDisplayName());
-	  }
-	  else {
+	  } else {
 	    enc.setIndividual(mark);
-	  }
-	  if(committing) {
-	    myShepherd.commitDBTransaction();
-	    myShepherd.beginDBTransaction();
-	  }
+    }
+    
+	  // if(committing) {
+	  //   myShepherd.commitDBTransaction();
+	  //   myShepherd.beginDBTransaction();
+	  // }
 
     //String alternateID = getString(row, "Encounter.alternateID");
     //if (alternateID!=null) mark.setAlternateID(alternateID);
-
 
     //MarkedIndividual.timeOfBirth as long
     Long tob = getLong(row, "MarkedIndividual.timeOfBirth");
