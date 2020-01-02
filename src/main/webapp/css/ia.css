@@ -195,7 +195,7 @@ span.illustrationLink a {
 	margin: 0 3px 0 10px;
 	background-color: #DDD;
 	overflow: hidden;
-	display: inline-block;
+	/* display: inline-block;  */
 	white-space: nowrap;
 	max-width: 6em;
 }

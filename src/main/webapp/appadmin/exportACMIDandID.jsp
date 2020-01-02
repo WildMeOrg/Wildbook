@@ -6,12 +6,16 @@ org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.media.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
+
+
+
 <%
 
 String context="context0";
 context=ServletUtilities.getContext(request);
 
 Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("exportACMIDandID.jsp");
 
 
 
@@ -31,7 +35,7 @@ Shepherd myShepherd=new Shepherd(context);
 myShepherd.beginDBTransaction();
 
 
-String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && encounters.contains(enc1515) &&( enc1515.submitterID == \"CRC\" ) VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc1515";
+String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc1515) && ( enc1515.submitterID != \"wgrp\" ) && ( enc1515.submitterID != \"fmtest\" ) && enc1515.genus == \"Megaptera\" VARIABLES org.ecocean.Encounter enc1515";
 
 
 //Create a FetchGroup on the PMF called "TestGroup" for MyClass
@@ -46,19 +50,31 @@ try {
     ArrayList<MarkedIndividual> list = new ArrayList<MarkedIndividual>(c);
 	q.closeAll();
 	
+	StringBuffer sb=new StringBuffer();
+	
+	
+	
 	for(MarkedIndividual indy:list){
 		List<Encounter> encs=indy.getEncounterList();
 		for(Encounter enc:encs){
 			List<MediaAsset> assets=enc.getMedia();
 			for(MediaAsset asset:assets){
 				if(asset.getAcmId()!=null){
-					%>
-					<%=asset.getAcmId() %>,<%=indy.getIndividualID() %><br>
-					<%
+
+					
+					sb.append(asset.getAcmId()+","+indy.getIndividualID()+"\n");
+					
+					
 				}
 			}
 		}
 	}
+	
+	Util.writeToFile(sb.toString(), "/tmp/exportACMIDs.csv");
+	
+	%>
+	<p>Exported file written to: /tmp/exportACMIDs.csv</p>
+	<%
 	
 }
 catch(Exception e){

@@ -1142,7 +1142,11 @@ Util.mark("bia 4B", tt);
 
             if (curvrankDailyTag != null) {
                 if (queryConfigDict == null) queryConfigDict = new JSONObject();
-                queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
+                
+                //from JP on 12/27/2019 - if we want to specify an unfiltered list, just omit the tag
+                if(!curvrankDailyTag.toLowerCase().equals("user:any")) {
+                  queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
+                }
             }
 
 Util.mark("bia 4C", tt);
