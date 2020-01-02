@@ -260,8 +260,14 @@ System.out.println("findSimilar() -> " + el.toString());
     left: 0;
     top: 0;
 }
-.match-item img {
+.match-asset-wrapper {
+    position: relative;
+    overflow: hidden;
     width: 300px;
+    height: 300px;
+}
+.match-asset {
+    position: absolute;
 }
 
 </style>
@@ -356,6 +362,7 @@ function doSave() {
     });
 }
 
+var matchData = null;
 function enableMatch() {
     $('.column-attributes').hide();
     $('.column-match').show();
@@ -374,25 +381,35 @@ console.log(url);
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR searching: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
             } else {
-                var h = '';
                 if (!xhr.responseJSON.similar || !xhr.responseJSON.similar.length) {
-                    h = '<b>No matches found</b>';
+                    $('#match-results').html('<b>No matches found</b>');
                 } else {
+                    matchData = xhr.responseJSON;
+                    matchData.assetData = {};
+                    var sort = {};
                     for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
-                        h += '<div class="match-item">';
+                        var score = matchScore(xhr.responseJSON.similar[i]);
+                        var h = '<div class="match-item">';
                         for (var j = 0 ; j < xhr.responseJSON.similar[i].assets.length ; j++) {
-                            h += '<img src="' + xhr.responseJSON.similar[i].assets[j].url + '" />';
+                            h += '<div class="match-asset-wrapper"><img onLoad="matchAssetLoaded(this);" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div>';
+                            matchData.assetData[xhr.responseJSON.similar[i].assets[j].id] = xhr.responseJSON.similar[i].assets[j];
                         }
                         h += '<div class="match-item-info">';
                         h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
                         h += '<div><b>' + (Math.round(xhr.responseJSON.similar[i].distance / 100) * 100) + 'm</b></div>';
-                        h += '<div>score: <b>' + matchScore(xhr.responseJSON.similar[i]) + '</b></div>';
+                        h += '<div>score: <b>' + score + '</b></div>';
                         if (xhr.responseJSON.similar[i].sex) h += '<div>sex: <b>' + xhr.responseJSON.similar[i].sex + '</b></div>';
                         if (xhr.responseJSON.similar[i].colorPattern) h += '<div>color: <b>' + xhr.responseJSON.similar[i].colorPattern + '</b></div>';
                         h += '</div></div>';
+                        if (!sort[score]) sort[score] = '';
+                        sort[score] += h;
+                    }
+                    var keys = Object.keys(sort).sort(function(a,b) {return a-b;}).reverse();
+                    $('#match-results').html('');
+                    for (var i = 0 ; i < keys.length ; i++) {
+                        $('#match-results').append(sort[keys[i]]);
                     }
                 }
-                $('#match-results').html(h);
             }
         },
         dataType: 'json',
@@ -411,6 +428,34 @@ function matchScore(mdata) {
     if (mdata.distance) score += (10 / mdata.distance);
     return Math.round(score * 100) / 100;
 }
+
+function matchAssetLoaded(el) {
+    var id = el.id.substr(12);
+    toggleZoom(id);
+}
+
+function toggleZoom(id) {
+console.log('asset id=%o', id);
+    if (!matchData || !matchData.assetData || !matchData.assetData[id] || !matchData.assetData[id].bbox) return;
+    var imgEl = document.getElementById('match-asset-' + id);
+    if (!imgEl) return;
+    if (!imgEl.style) imgEl.style = {};
+    var elWidth = imgEl.width;
+    var imgWidth = imgEl.naturalWidth;
+    console.log('elWidth=%o imgWidth=%o; ft.params => %o', elWidth, imgWidth, matchData.assetData[id].bbox);
+    if (imgWidth < 1) return;
+    var ratio = elWidth / imgWidth;
+    var scale = imgWidth / matchData.assetData[id].bbox[2];
+    console.log('ratio => %o; scale => %o', ratio, scale);
+    //imgEl.style.transformOrigin = '0 0';
+    imgEl.style.left = -(matchData.assetData[id].bbox[0] * scale * ratio) + 'px';
+    imgEl.style.top = -(matchData.assetData[id].bbox[1] * scale * ratio) + 'px';
+    //imgEl.style.left = -((matchData.assetData[id].bbox[0] + matchData.assetData[id].bbox[2]/2) * scale * ratio) + 'px';
+    //imgEl.style.top = -((matchData.assetData[id].bbox[1] + matchData.assetData[id].bbox[3]/2) * scale * ratio) + 'px';
+    imgEl.style.transform = 'scale(' + scale + ')';
+console.info(imgEl.style);
+}
+
 
 </script>
 
