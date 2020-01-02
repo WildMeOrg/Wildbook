@@ -24,7 +24,7 @@ private static JSONArray findSimilar(HttpServletRequest request, Shepherd myShep
     String collar = userData.optString("collar", null);
     if (collar != null) props.add("\"COLLAR\" = '" + Util.sanitizeUserInput(collar) + "'");
     String lifeStage = userData.optString("lifeStage", null);
-    if (lifeStage != null) props.add("\"lifeStage\" = '" + Util.sanitizeUserInput(lifeStage) + "'");
+    if (lifeStage != null) props.add("\"LIFESTAGE\" = '" + Util.sanitizeUserInput(lifeStage) + "'");
     if (props.size() < 1) {
         System.out.println("WARNING: findSimilar() has no props sql from userData " + userData.toString());
         return null;
@@ -136,23 +136,19 @@ System.out.println("findSimilar() -> " + el.toString());
     margin: 0;
 }
 
-/*
-.column-images, .column-attributes {
-    display: inline-block;
-    width: 47%;
-    padding: 1%;
-    vertical-align: top;
-}
-*/
 
-.column-images, .column-attributes {
+.column-images, .column-attributes, .column-match {
     display: inline-block;
     width: 47%;
     vertical-align: top;
 }
 
-.column-attributes {
+.column-attributes, .column-match {
     float: right;
+}
+
+.column-match {
+    display: none;
 }
 
 @media screen and (max-width: 800px) {
@@ -244,9 +240,30 @@ System.out.println("findSimilar() -> " + el.toString());
     display: none;
 }
 
-#match-div {
-    display: none;
+.match-summary-detail {
+    font-size: 0.8em;
+    border-radius: 3px;
+    background-color: #CCC;
+    padding: 0 5px;
+    margin: 0 4px;
 }
+
+.match-item {
+    padding-top: 10px;
+    border-top: 3px black solid;
+    position: relative;
+}
+.match-item-info {
+    background-color: rgba(255,255,200,0.7);
+    padding: 0 8px;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.match-item img {
+    width: 300px;
+}
+
 </style>
 
 <script type="text/javascript">
@@ -340,8 +357,61 @@ function doSave() {
 }
 
 function enableMatch() {
-    $('#match-div').show();
+    $('.column-attributes').hide();
+    $('.column-match').show();
+    var h = '';
+    for (var i in userData) {
+        h += '<span class="match-summary-detail">' + i + ': <b>' + userData[i] + '</b></span>';
+    }
+    $('#match-summary').html(h);
+    var url = 'encounterDecide.jsp?id=' + encounterId + '&getSimilar=' + encodeURI(JSON.stringify(userData));
+console.log(url);
+    $.ajax({
+        url: url,
+        complete: function(xhr) {
+            console.log(xhr);
+            if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
+                console.warn("responseJSON => %o", xhr.responseJSON);
+                alert('ERROR searching: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
+            } else {
+                var h = '';
+                if (!xhr.responseJSON.similar || !xhr.responseJSON.similar.length) {
+                    h = '<b>No matches found</b>';
+                } else {
+                    for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
+                        h += '<div class="match-item">';
+                        for (var j = 0 ; j < xhr.responseJSON.similar[i].assets.length ; j++) {
+                            h += '<img src="' + xhr.responseJSON.similar[i].assets[j].url + '" />';
+                        }
+                        h += '<div class="match-item-info">';
+                        h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
+                        h += '<div><b>' + (Math.round(xhr.responseJSON.similar[i].distance / 100) * 100) + 'm</b></div>';
+                        h += '<div>score: <b>' + matchScore(xhr.responseJSON.similar[i]) + '</b></div>';
+                        if (xhr.responseJSON.similar[i].sex) h += '<div>sex: <b>' + xhr.responseJSON.similar[i].sex + '</b></div>';
+                        if (xhr.responseJSON.similar[i].colorPattern) h += '<div>color: <b>' + xhr.responseJSON.similar[i].colorPattern + '</b></div>';
+                        h += '</div></div>';
+                    }
+                }
+                $('#match-results').html(h);
+            }
+        },
+        dataType: 'json',
+        type: 'GET'
+    });
 }
+
+
+function matchScore(mdata) {
+    var score = 1;
+    if (mdata.matches.earTip) score += 0.5;
+    if (mdata.matches.collar) score += 1.1;
+    if (mdata.matches.lifeStage) score += 0.7;
+    if (mdata.matches.colorPattern) score += 1.5;
+    if (mdata.matches.sex) score += 1.2;
+    if (mdata.distance) score += (10 / mdata.distance);
+    return Math.round(score * 100) / 100;
+}
+
 </script>
 
 </head>
@@ -499,14 +569,14 @@ All required selections are made.  You may now save your answers. <br />
 <input type="button" value="Save" onClick="return doSave()" />
             </p>
         </div>
-
-        <div id="match-div" class="attribute">
-            <h2>Look for matching cat</h2>
-            <p>Instructions?  options?</p>
-            <input type="button" value="see 23 similar cats nearby" />
-        </div>
-
     </div>
+
+    <div class="column-match">
+        <h2>Look for a matching cat</h2>
+        <p id="match-summary"></p>
+        <div id="match-results"><i>searching....</i></div>
+    </div>
+
 </div>
 
 
