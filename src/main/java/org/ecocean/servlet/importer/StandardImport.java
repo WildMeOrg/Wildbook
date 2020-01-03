@@ -122,7 +122,11 @@ public class StandardImport extends HttpServlet {
 
     isUserUpload = Boolean.valueOf(request.getParameter("isUserUpload"));
 
-    // WHY ISN"T THE URL MAKING IT AAUUUGHGHHHHH
+    String potentialName = request.getUserPrincipal().getName();
+    if (potentialName!=null&&!"".equals(potentialName)) {
+      defaultSubmitterID = potentialName;
+    }
+
     if (isUserUpload) {
       uploadDirectory = UploadServlet.getUploadDir(request);
       System.out.println("IS USER UPLOAD! ---> uploadDirectory = "+uploadDirectory);
@@ -317,7 +321,7 @@ public class StandardImport extends HttpServlet {
             }
           }
 
-          myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+          if (!myShepherd.isEncounter(enc.getCatalogNumber())) myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
           if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
           if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
           myShepherd.commitDBTransaction();
@@ -641,11 +645,21 @@ public class StandardImport extends HttpServlet {
   	String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
   	if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
 
-
-  	String submitterID = getString(row, "Encounter.submitterID");
-    // don't commit this line
-    if (submitterID==null) submitterID = defaultSubmitterID;
-  	if (submitterID!=null) enc.setSubmitterID(submitterID);
+    String submitterID = getString(row, "Encounter.submitterID");
+    //TODO flag submitter ID's not already in database, warn user 
+    if (submitterID==null||"".equals(submitterID)) {
+      submitterID = defaultSubmitterID;
+    }
+    if (!isUserInSystem(submitterID, myShepherd)) {
+      User newU = new User(Util.generateUUID());
+      newU.setUsername(submitterID);
+      newU.setNotes("This user autocreated by StandardImport. An admin can elevate it with a password and email.");
+      myShepherd.getPM().makePersistent(newU);
+      myShepherd.commitDBTransaction();
+      myShepherd.beginDBTransaction();
+      enc.addSubmitter(newU);
+    } 
+    enc.setSubmitterID(submitterID);
 
     String recordedBy = getString(row, "Encounter.recordedBy");
     if (recordedBy!=null) enc.setRecordedBy(recordedBy);
@@ -662,13 +676,8 @@ public class StandardImport extends HttpServlet {
     String researcherComments = getString(row, "Encounter.researcherComments");
     if (researcherComments!=null) enc.addComments(researcherComments);
 
-
   	String verbatimLocality = getString(row, "Encounter.verbatimLocality");
   	if (verbatimLocality!=null) enc.setVerbatimLocality(verbatimLocality);
-
-
-
-
 
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
@@ -856,6 +865,11 @@ public class StandardImport extends HttpServlet {
   	return enc;
   }
 
+  public boolean isUserInSystem(String name, Shepherd myShepherd) {
+    User u = myShepherd.getUser(name);
+    if (u!=null) return true;
+    return false;
+  }
 
   public Set<String> getColumnFieldsForClass(String className) {
   	Set<String> fieldNames = new HashSet<String>();
