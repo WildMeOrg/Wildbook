@@ -3,6 +3,7 @@
          org.joda.time.format.DateTimeFormatter,
          org.joda.time.LocalDateTime,
          java.util.Locale,
+        java.util.Map, java.util.HashMap,
          org.ecocean.servlet.ServletUtilities,
          com.drew.imaging.jpeg.JpegMetadataReader,
          com.drew.metadata.Directory,
@@ -14,7 +15,7 @@
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
-	 org.json.JSONObject,
+	 org.json.JSONObject, org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -162,6 +163,45 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   <style type="text/css">
+
+#kitsci-meta {
+    padding: 8px;
+    margin: 1em 0;
+    background-color: #DFD;
+}
+
+.prop-div {
+}
+
+.prop-val {
+    display: inline-block;
+    margin: 1px 4px;
+    background-color: #AAA;
+    border-radius: 4px;
+    padding: 0 10px;
+}
+
+.prop-val-val {
+    font-weight: bold;
+    color: #FFF;
+}
+
+.prop-val-ct {
+    margin: 0 3px;
+}
+
+.prop-val-pct {
+    font-size: 0.8em;
+    color: #444;
+}
+
+.kitsci-flags .prop-val {
+    background-color: #DA8;
+}
+
+.kitsci-flags .prop-val-val {
+    font-size: 1.3em;
+}
 
 .ia-match-filter-dialog {
     display: none;
@@ -706,6 +746,125 @@ $(function() {
 				<div class="container">
 					<div class="row">
 
+<%
+User thisUser = AccessControl.getUser(request, myShepherd);
+/*
+String[] validRoles = new String[]{"cat_walk_volunteer", "cat_mouse_volunteer", "super_volunteer", "admin"};
+List<Role> userRoles = myShepherd.getAllRolesForUserInContext(user.getUsername(), context);
+String maxRole = null;
+for (String vr : validRoles) {
+    for (Role role : userRoles) {
+        if (vr.equals(role.getRolename())) {
+            maxRole = vr;
+            break;
+        }
+    }
+}
+*/
+boolean isAdmin = (thisUser != null);  //faked for texting FIXME
+
+if (isAdmin) {
+    String jdoql = "SELECT FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "'";
+    Query query = myShepherd.getPM().newQuery(jdoql);
+    Collection col = (Collection)query.execute();
+    List<Decision> decs = new ArrayList<Decision>(col);
+    query.closeAll();
+
+/*
+sex: {"value":"male","_multipleId":"360589f2-31a9-4975-b5fc-80119fd0f638"}
+earTip: {"value":"yes-left","_multipleId":"28a8e42b-b3d7-4114-af63-3213bf6ef886"}
+collar: {"value":"no","_multipleId":"28a8e42b-b3d7-4114-af63-3213bf6ef886"}
+lifeStage: {"value":"kitten","_multipleId":"28a8e42b-b3d7-4114-af63-3213bf6ef886"}
+colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213bf6ef886"}
+*/
+    int countDec = 0;
+    int countFlag = 0;
+    Map<String,Map<String,Integer>> decMap = new HashMap<String,Map<String,Integer>>();
+    Map<String,Integer> flagMap = new HashMap<String,Integer>();
+    for (Decision dec : decs) {
+        JSONObject val = dec.getValue();
+        if ((val == null) || (dec.getProperty() == null)) continue;
+        if ("flag".equals(dec.getProperty())) {
+            JSONArray farr = val.optJSONArray("value");
+            if (farr == null) continue;
+            for (int fi = 0 ; fi < farr.length() ; fi++) {
+                String fval = farr.optString(fi, null);
+                if (fval == null) continue;
+                countFlag++;
+                if (flagMap.get(fval) == null) flagMap.put(fval, 0);
+                flagMap.put(fval, flagMap.get(fval) + 1);
+            }
+            continue;
+        }
+        if ("sex".equals(dec.getProperty())) countDec++;
+        if (decMap.get(dec.getProperty()) == null) decMap.put(dec.getProperty(), new HashMap<String, Integer>());
+        String propVal = val.optString("value", null);
+        if (propVal == null) return;
+        if (decMap.get(dec.getProperty()).get(propVal) == null) decMap.get(dec.getProperty()).put(propVal, 0);
+        decMap.get(dec.getProperty()).put(propVal, decMap.get(dec.getProperty()).get(propVal) + 1);
+    }
+%>
+
+<div id="kitsci-meta">
+    <div class="kitsci-volunteer">
+        <h2>Volunteer Summary</h2>
+        <div class="kitsci-decisions">
+<% if (countDec < 1) { %>
+    <h3>No volunteer decisions made</h3>
+<%
+    } else {
+        for (String prop : decMap.keySet()) {
+            out.println("<div class=\"prop-div\"><b>" + prop + "</b> ");
+            for (String val : decMap.get(prop).keySet()) {
+                int ct = decMap.get(prop).get(val);
+                String pct = "";
+                double p = new Double(ct) / new Double(countDec);
+                if (ct < countDec) pct = Math.round(p * 100d) + "%";
+                out.println("<div style=\"opacity: " + (0.25d + (p * 0.75d)) + "\" class=\"prop-val\"><span class=\"prop-val-val\">" + val + "</span> <b class=\"prop-val-ct\">" + ct + "</b> <span class=\"prop-val-pct\">" + pct + "</span></div>");
+            }
+            out.println("</div>");
+        }
+    }
+%>
+        </div>
+        <div class="kitsci-flags">
+<%
+        if (countFlag < 1) {
+            out.println("<h3>No flags</h3>");
+        } else {
+            out.println("<h3>Volunteer flags</h3>");
+            for (String val : flagMap.keySet()) {
+                int ct = flagMap.get(val);
+                String pct = "";
+                double p = new Double(ct) / new Double(countFlag);
+                if (ct < countFlag) pct = Math.round(p * 100d) + "%";
+                out.println("<div style=\"opacity: " + (0.25d + (p * 0.75d)) + "\" class=\"prop-val\"><span class=\"prop-val-val\">" + val.substring(5) + "</span> <b class=\"prop-val-ct\">" + ct + "</b> <span class=\"prop-val-pct\">" + pct + "</span></div>");
+            }
+        }
+%>
+        </div>
+    </div>
+
+    <div class="kitsci-attributes">
+        <h2>Current Attribute Values</h2>
+        <div class="kitsci-attribute">
+            Color/Pattern: <b><%=enc.getPatterningCode()%></b>
+        </div>
+        <div class="kitsci-attribute">
+            Sex: <b><%=enc.getSex()%></b>
+        </div>
+        <div class="kitsci-attribute">
+            Collar: <b><%=enc.getCollar()%></b>
+        </div>
+        <div class="kitsci-attribute">
+            Life stage: <b><%=enc.getLifeStage()%></b>
+        </div>
+        <div class="kitsci-attribute">
+            Ear tip: <b><%=enc.getEarTip()%></b>
+        </div>
+    </div>
+</div>
+<% }  //end isAdmin %>
 
             <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
@@ -2589,7 +2748,7 @@ else {
                          					%>
                                 			<%
 
-                         					User thisUser=aUserShepherd.getUser(username);
+                         					//User thisUser=aUserShepherd.getUser(username);
                                 			String profilePhotoURL="../images/empty_profile.jpg";
 
                          					if(thisUser.getUserImage()!=null){
