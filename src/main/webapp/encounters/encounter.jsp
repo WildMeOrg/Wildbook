@@ -171,6 +171,18 @@ String langCode=ServletUtilities.getLanguageCode(request);
 }
 
 .prop-div {
+    margin: 5px;
+    padding: 3px;
+}
+.prop-div:hover {
+    background-color: rgba(100,120,200,0.1);
+}
+
+.prop-div .prop-name {
+    width: 7em;
+    display: inline-block;
+    text-align: right;
+    margin: 0 8px 0 0;
 }
 
 .prop-val {
@@ -808,13 +820,14 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
 <div id="kitsci-meta">
     <div class="kitsci-volunteer">
         <h2>Volunteer Summary</h2>
+<p style="color: #888;">total volunteer decisions: <b><%=countDec%></b></p>
         <div class="kitsci-decisions">
 <% if (countDec < 1) { %>
     <h3>No volunteer decisions made</h3>
 <%
     } else {
         for (String prop : decMap.keySet()) {
-            out.println("<div class=\"prop-div\"><b>" + prop + "</b> ");
+            out.println("<div class=\"prop-div\"><b class=\"prop-name\">" + prop + "</b> ");
             for (String val : decMap.get(prop).keySet()) {
                 int ct = decMap.get(prop).get(val);
                 String pct = "";
