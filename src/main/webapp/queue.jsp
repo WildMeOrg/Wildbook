@@ -67,6 +67,9 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 
 <jsp:include page="header.jsp" flush="true" />
 <style>
+.row-state-approved {
+    display: none;
+}
 .col-flag {
     background-color: #FAA;
 }
@@ -82,6 +85,15 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
     height: 50px;
     float: right;
 }
+.th-0, .th-1 {
+    width: 8em;
+}
+.th-2, .th-3 {
+    width: 12em;
+}
+.th-4, .th-5 {
+    width: 4em;
+}
 </style>
 
 
@@ -95,13 +107,15 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 <table id="queue-table" xdata-page-size="6" data-height="650" data-toggle="table" data-pagination="false">
 <thead>
 <tr>
-<th data-sortable="true"><%=String.join("</th><th data-sortable=\"true\">", theads)%></th>
+<% for (int ci = 0 ; ci < theads.length ; ci++) { %>
+    <th class="th-<%=ci%>" data-sortable="true"><%=theads[ci]%></th>
+<% } %>
 </tr>
 </thead>
 <tbody>
 <%
     for (Encounter enc : encs) {
-        out.println("<tr>");
+        out.println("<tr class=\"row-state-" + enc.getState() + "\">");
         out.println("<td class=\"col-id\">");
         if (isAdmin) {
             out.println("<a href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\" target=\"new\">" + enc.getCatalogNumber().substring(0,8) + "</a>");
@@ -154,6 +168,15 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 
     <script src="javascript/bootstrap-table/bootstrap-table.min.js"></script>
     <link rel="stylesheet" href="javascript/bootstrap-table/bootstrap-table.min.css" />
+<script>
+$(document).ready(function() {
+    $('.col-flag').each(function(i, el) {
+        var jel = $(el);
+//console.log('%d %o %o %o', i, el, el.parentElement, jel.text());
+        if (jel.text() > 0) jel.parent().show();
+    });
+});
+</script>
 
 
 <jsp:include page="footer.jsp" flush="true" />
