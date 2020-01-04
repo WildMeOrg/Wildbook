@@ -64,7 +64,7 @@ context=ServletUtilities.getContext(request);
 		}
 	} 
 	catch (Exception e) {
-		System.out.println("Error looking up nickname!!");
+		System.out.println("Error looking up nickname: "+sessionShark);
 		e.printStackTrace();
 	}
 
@@ -100,13 +100,18 @@ context=ServletUtilities.getContext(request);
   <section class="centered">
     <h2>Thank you for your support!</h2>
     <h4>After filling out the financial information, you will be able to create your profile and choose your sharks nickname.</h4>
+    
+     <h3>Financial Information</h3>
+		<img src="cust/mantamatcher/img/circle-divider.png"/><br><br>
+ 
   </section>
 
 	<%-- BEGIN STRIPE FORM --%>
 	<form action="StripePayment" method="POST" id="payment-form" accept-charset="UTF-8">
+		
 		<div class="form-header">
-	    <h2>Financial Information</h2>
-			<img src="cust/mantamatcher/img/circle-divider.png"/>
+	    
+			
 	  </div>
 	  <span class="payment-errors"></span>
 		<div class="input-col-1">

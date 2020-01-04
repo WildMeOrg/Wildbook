@@ -144,6 +144,7 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
       else {
 
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user or is inaccessible. Please wait a few seconds before trying to modify this encounter again.");
 
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
@@ -154,6 +155,7 @@ public class TissueSampleSetMicrosatelliteMarkers extends HttpServlet {
     else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to set the microsatellite markers. I cannot find the encounter or tissue sample that you intended it for in the database.");
       out.println(ServletUtilities.getFooter(context));
 

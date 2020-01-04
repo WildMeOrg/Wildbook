@@ -37,9 +37,6 @@ public class SurveyQueryProcessor extends QueryProcessor {
 
     Shepherd myShepherd=new Shepherd(context);
     //myShepherd.setAction("SurveyQueryProcessor.class");
-    
-    ArrayList<Survey> svys = myShepherd.getAllSurveys();
-
     //filter for id------------------------------------------
     filter = QueryProcessor.filterWithBasicStringField(filter, "id", request, prettyPrint);
     System.out.println("           beginning filter = "+filter);
@@ -94,8 +91,8 @@ public class SurveyQueryProcessor extends QueryProcessor {
       System.out.println(" about to call myShepherd.getAllSurveys on query "+query);
       allSurveys=myShepherd.getAllSurveys(query, paramMap);
     } else {
-      System.out.println(" about to call myShepherd.getAllSurveysNoQuery() ");
-      allSurveys=myShepherd.getAllSurveysNoQuery();
+      System.out.println(" about to call myShepherd.getAllSurveys() ");
+      allSurveys=myShepherd.getAllSurveys();
     }
     System.out.println("               *still* has query "+query);
 

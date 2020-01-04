@@ -76,6 +76,11 @@ public class MediaAssetMetadata implements java.io.Serializable {
         return getData().getJSONObject("attributes");
     }
 
+    public void addDatum(String name, String value) {
+        if (getData() == null) data = new JSONObject();
+        data.put(name, value);
+    }
+
 
     //for now(?) this just searches down into exif structure, returns HashMap of key:values whose keys match regex
     //  key is "tree-like" as it recurses: "level1:level2:key" => "value" (to help prevent squashing)
@@ -246,6 +251,18 @@ GPS Altitude: "10 metres"
         System.out.println("WARNING: MediaAssetMetadata._parseAltitude() unable to make sense of units, i think: " + alt);
         return dbl;  //meh, whaddya going to do?
     }
+
+/*
+   exif orientation notes   :(
+ -> https://www.daveperrett.com/articles/2012/07/28/exif-orientation-handling-is-a-ghetto/
+  - http://sylvana.net/jpegcrop/exif_orientation.html
+  - https://www.howtogeek.com/254830/why-your-photos-dont-always-appear-correctly-rotated/
+  - https://www.impulseadventure.com/photo/exif-orientation.html
+
+    e.g.  https://iot.wildbook.org/obrowse.jsp?type=MediaAssetMetadata&id=253361
+    gives (only?)  Orientation: "Top, left side (Horizontal / normal)",  ??
+*/
+
 
 /*
     public String toString() {

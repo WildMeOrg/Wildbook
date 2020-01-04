@@ -35,12 +35,23 @@ String wbName = ContextConfiguration.getNameForContext(context);
 .import-header {
 	margin-top: 0px;
 }
+.warning {
+  border-radius: 5px;
+  background-color: lightgrey;
+  color: red;
+  padding: 5px;
+}
 </style>
 
 
 <div class="container maincontent">
 
   <h1 class="import-header">Bulk Import: Instructions</h1>
+
+  <p class="warning">
+    <strong>This feature is in Alpha.</strong> This means it is untested and unreleased. Please only use this tool if you are willing to help us test the UI and report bugs. Your data might not be imported correctly until we have done further testing and development.
+  </p>
+
   <p>The goal of this tool is to allow scientists to add large amounts of data to <%=wbName%> at once, such as an entire season's observations, while performing the data-blending and data-integrity checks themselves.</p>
   
   <p>To ensure data integrity, this process is split into several steps with review in-between.</p>

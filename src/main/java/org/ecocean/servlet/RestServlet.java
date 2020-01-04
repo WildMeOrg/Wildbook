@@ -129,9 +129,13 @@ public class RestServlet extends HttpServlet
      */
     private String getNextTokenAfterSlash(HttpServletRequest req)
     {
+       try {
         String path = req.getRequestURI().substring(req.getContextPath().length() + req.getServletPath().length());
         StringTokenizer tokenizer = new StringTokenizer(path, "/");
         return tokenizer.nextToken();
+       }
+       catch(Exception e) {}
+       return null;
     }
 
     /**
@@ -210,20 +214,58 @@ public class RestServlet extends HttpServlet
         String servletID=Util.generateUUID();
         getPMF(req,servletID);
         // Retrieve any fetch group that needs applying to the fetch
-        String fetchParam = req.getParameter("fetch");
-
+        String[] fetchParams = req.getParameterValues("fetch");
+        String fetchDepth = req.getParameter("fetchDepth");
+        
                 String encodings = req.getHeader("Accept-Encoding");
                 boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
 
+        
+        String queryString="";        
         try
         {
             String token = getNextTokenAfterSlash(req);
-            if (token.equalsIgnoreCase("query") || token.equalsIgnoreCase("jdoql"))
+            if (req.getParameter("query")!=null || token!=null && (token.equalsIgnoreCase("query") || token.equalsIgnoreCase("jdoql")))
             {
+                
+              if(req.getParameter("query")!=null) {
+                queryString = URLDecoder.decode(req.getParameter("query"), "UTF-8");
+              }
+              else {
                 // GET "/query?the_query_details" or GET "/jdoql?the_query_details" where "the_query_details" is "SELECT FROM ... WHERE ... ORDER BY ..."
-                String queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
+                queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
+              }  
+                
                 PersistenceManager pm = pmf.getPersistenceManager();
                 ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "new");
+                
+                if(fetchParams!=null) {
+                  int numParams=fetchParams.length;
+                  for(int g=0;g<numParams;g++) {
+                    if(g==0) {
+                      pm.getFetchPlan().setGroup(fetchParams[g]);
+                      //System.out.println("Setting fetch group: "+fetchParams[g]);
+                    }
+                    else {
+                      pm.getFetchPlan().addGroup(fetchParams[g]);
+                      //System.out.println("Adding fetch group: "+fetchParams[g]);
+                    }
+                    
+                  }
+                  //check fetchDepth
+                  if(req.getParameter("fetchDepth")!=null) {
+                    try {
+                      int value=Integer.parseInt(req.getParameter("fetchDepth").trim());
+                      pm.getFetchPlan().setMaxFetchDepth(value);
+                      System.out.println("Setting fetch depth: "+value);
+                    }
+                    catch(Exception nfe) {
+                      nfe.printStackTrace();
+                    }
+                    
+                  }
+                  this.nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();
+                }
                 
                 
                 try
@@ -233,10 +275,22 @@ public class RestServlet extends HttpServlet
                     
 
                     Query query = pm.newQuery("JDOQL", queryString);
-                    if (fetchParam != null)
-                    {
-                        query.getFetchPlan().addGroup(fetchParam);
+                    if(fetchParams!=null) {
+                      int numParams=fetchParams.length;
+                      for(int g=0;g<numParams;g++) {
+                        if(g==0) {
+                          query.getFetchPlan().setGroup(fetchParams[g]);
+                        }
+                        else {
+                          query.getFetchPlan().addGroup(fetchParams[g]);
+                        }
+                        
+                      }
                     }
+                    
+                    System.out.println("Fetch plan class: "+query.getFetchPlan().getGroups().toString());
+                    
+                    
                     Object result = filterResult(query.execute());
                     if (result instanceof Collection)
                     {
@@ -352,16 +406,24 @@ public class RestServlet extends HttpServlet
                     try
                     {
                         // get the whole extent for this candidate
-                        String queryString = "SELECT FROM " + cmd.getFullClassName();
+                        queryString = "SELECT FROM " + cmd.getFullClassName();
                         if (req.getQueryString() != null)
                         {
                             // query by filter for this candidate
                             queryString += " WHERE " + URLDecoder.decode(req.getQueryString(), "UTF-8");
                         }
                         PersistenceManager pm = pmf.getPersistenceManager();
-                        if (fetchParam != null)
-                        {
-                            pm.getFetchPlan().addGroup(fetchParam);
+                        if(fetchParams!=null) {
+                          int numParams=fetchParams.length;
+                          for(int g=0;g<numParams;g++) {
+                            if(g==0) {
+                              pm.getFetchPlan().setGroup(fetchParams[g]);
+                            }
+                            else {
+                              pm.getFetchPlan().addGroup(fetchParams[g]);
+                            }
+                            
+                          }
                         }
                         try
                         {
@@ -437,9 +499,17 @@ public class RestServlet extends HttpServlet
 
                 // GET "/{candidateclass}/id" - Find object by id
                 PersistenceManager pm = pmf.getPersistenceManager();
-                if (fetchParam != null)
-                {
-                    pm.getFetchPlan().addGroup(fetchParam);
+                if(fetchParams!=null) {
+                  int numParams=fetchParams.length;
+                  for(int g=0;g<numParams;g++) {
+                    if(g==0) {
+                      pm.getFetchPlan().setGroup(fetchParams[g]);
+                    }
+                    else {
+                      pm.getFetchPlan().addGroup(fetchParams[g]);
+                    }
+                    
+                  }
                 }
                 try
                 {
@@ -885,9 +955,9 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
     }
 
         boolean restAccessCheck(Object obj, HttpServletRequest req, JSONObject jsonobj) {
-          System.out.println(jsonobj.toString());
-          System.out.println(obj);
-          System.out.println(obj.getClass());
+          //System.out.println(jsonobj.toString());
+          //System.out.println(obj);
+          //System.out.println(obj.getClass());
                       boolean ok = true;
                       Method restAccess = null;
                       try {
@@ -935,23 +1005,58 @@ System.out.println(thisRequest);
 
 
         JSONObject convertToJson(HttpServletRequest req, Object obj, ExecutionContext ec) {
-//System.out.println("convertToJson(non-Collection) trying class=" + obj.getClass());
+            
             JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(obj, ec);
+            
             Method sj = null;
-            try {
-                sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
-            } catch (NoSuchMethodException nsm) { //do nothing
-//System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+            //call decorateJson on object
+            if(req.getParameter("noDecorate")==null) {
+              
+              try {
+                  sj = obj.getClass().getMethod("decorateJson", new Class[] { HttpServletRequest.class, JSONObject.class });
+              } 
+              catch (NoSuchMethodException nsm) { //do nothing
+                  //System.out.println("i guess " + obj.getClass() + " does not have decorateJson() method");
+              }
+              if (sj != null) {
+                  //System.out.println("trying decorateJson on "+obj.getClass());
+                  try {
+                      jobj = (JSONObject)sj.invoke(obj, req, jobj);
+                      //System.out.println("decorateJson");
+                  } 
+                  catch (Exception ex) {
+                    ex.printStackTrace();
+                    //System.out.println("got Exception trying to invoke decorateJson: " + ex.toString());
+                  }
+              }
             }
-            if (sj != null) {
-//System.out.println("trying sanitizeJson!");
-                try {
-                    jobj = (JSONObject)sj.invoke(obj, req, jobj);
-                } catch (Exception ex) {
-                  ex.printStackTrace();
-                  System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
-                }
-            }
+            
+            //System.out.println(jobj.toString());
+            
+            //call sanitizeJson on object
+
+              sj = null;
+              try {
+                  sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
+              } 
+              catch (NoSuchMethodException nsm) { //do nothing
+                  //System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+              }
+              if (sj != null) {
+                  //System.out.println("trying sanitizeJson on "+obj.getClass());
+                  try {
+                      jobj = (JSONObject)sj.invoke(obj, req, jobj);
+                      //System.out.println("sanitizeJson result: " +jobj.toString());
+                  } 
+                  catch (Exception ex) {
+                    ex.printStackTrace();
+                    //System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
+                  }
+              }
+
+
+            
+            
             return jobj;
         }
 
@@ -990,7 +1095,7 @@ System.out.println("- scrubJson reporting class=" + jobj.get("class").toString()
 */
 
         void tryCompress(HttpServletRequest req, HttpServletResponse resp, Object jo, boolean useComp) throws IOException, JSONException {
-System.out.println("??? TRY COMPRESS ??");
+//System.out.println("??? TRY COMPRESS ??");
             //String s = scrubJson(req, jo).toString();
             String s = jo.toString();
             if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter

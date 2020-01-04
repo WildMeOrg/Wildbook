@@ -68,7 +68,7 @@ public class ApiAccess {
     //Shepherd myShepherd = new Shepherd(context);
 		ServletContext sc = session.getServletContext();
 		File afile = new File(sc.getRealPath("/") + "/WEB-INF/classes/apiaccess.xml");
-System.out.println("reading file??? " + afile.toString());
+//System.out.println("reading file??? " + afile.toString());
 
 		// h/t http://www.mkyong.com/java/how-to-read-xml-file-in-java-dom-parser/
 		try {
@@ -93,7 +93,7 @@ System.out.println("reading file??? " + afile.toString());
 		Iterator<?> keys = jsonobj.keys();
 		while (keys.hasNext()) {
 			String key = (String) keys.next();
-System.out.println(key);
+//System.out.println(key);
 			//we dont care what the value is, just if it is being set at all and shouldnt be
 			if (perm.containsKey(key) && (perm.get(key) == null)) {
 				err = "altering value for " + key + " disallowed by permissions: " + perm.toString();
@@ -120,59 +120,62 @@ System.out.println(key);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("ApiAccess.class");
     myShepherd.beginDBTransaction();
-		String username = "";
-		if (request.getUserPrincipal() != null) username = request.getUserPrincipal().getName();
-		List<Role> roleObjs = myShepherd.getAllRolesForUserInContext(username, context);
-		List<String> roles = new ArrayList<String>();
-		for (Role r : roleObjs) {
-			roles.add(r.getRolename());
-		}
-		System.out.println("[class " + cname + "] roles for user '" + username + "': " + roles);
+    try {
+  		String username = "";
+  		if (request.getUserPrincipal() != null) username = request.getUserPrincipal().getName();
+  		List<Role> roleObjs = myShepherd.getAllRolesForUserInContext(username, context);
+  		List<String> roles = new ArrayList<String>();
+  		for (Role r : roleObjs) {
+  			roles.add(r.getRolename());
+  		}
+  		//System.out.println("[class " + cname + "] roles for user '" + username + "': " + roles);
+  
+  		NodeList nlist = this.configDoc.getDocumentElement().getElementsByTagName("class");
+  		if (nlist.getLength() < 1) {
+  		  myShepherd.rollbackDBTransaction();
+  		  myShepherd.closeDBTransaction();
+  		  return perm;
+  		}
+  
+  		for (int i = 0 ; i < nlist.getLength() ; i++) {
+  			Node n = nlist.item(i);
+  			if (n.getNodeType() == Node.ELEMENT_NODE) {
+  				Element el = (Element) n;
+  				if (el.getAttribute("name").equals(cname)) {
+  					Node p = el.getElementsByTagName("properties").item(0);
+  					if (p == null) {     
+  					  myShepherd.rollbackDBTransaction();
+  					  myShepherd.closeDBTransaction();
+  					  return perm;
+  					}
+  //System.out.println("ok in " + cname);
+  					Element propsEl = (Element) p;
+  					NodeList props = propsEl.getElementsByTagName("property");
+  					for (int j = 0 ; j < props.getLength() ; j++) {
+  						if (props.item(j).getNodeType() == Node.ELEMENT_NODE) {
+  							Element pel = (Element) props.item(j);
+  							String propName = pel.getAttribute("name");
+  							if (propName != null) {
+  ///////////// TODO for now we assume we ONLY have a sub element for <write> perm here so we skip a step
+  								NodeList proles = pel.getElementsByTagName("role");
+  								boolean allowed = false;
+  								for (int k = 0 ; k < proles.getLength() ; k++) {
+  									if (roles.contains(proles.item(k).getTextContent())) {
+  										allowed = true;
+  										k = proles.getLength() + 1;
+  									}
+  								}
+  								if (!allowed) perm.put(propName, "deny");
+  							}
+  						}
+  					}
+  				}
+  			}
+  		}
+    }
+    catch(Exception e) {e.printStackTrace();}
 
-		NodeList nlist = this.configDoc.getDocumentElement().getElementsByTagName("class");
-		if (nlist.getLength() < 1) {
-		  myShepherd.rollbackDBTransaction();
-		  myShepherd.closeDBTransaction();
-		  return perm;
-		}
-
-		for (int i = 0 ; i < nlist.getLength() ; i++) {
-			Node n = nlist.item(i);
-			if (n.getNodeType() == Node.ELEMENT_NODE) {
-				Element el = (Element) n;
-				if (el.getAttribute("name").equals(cname)) {
-					Node p = el.getElementsByTagName("properties").item(0);
-					if (p == null) {     
-					  myShepherd.rollbackDBTransaction();
-					  myShepherd.closeDBTransaction();
-					  return perm;
-					}
-//System.out.println("ok in " + cname);
-					Element propsEl = (Element) p;
-					NodeList props = propsEl.getElementsByTagName("property");
-					for (int j = 0 ; j < props.getLength() ; j++) {
-						if (props.item(j).getNodeType() == Node.ELEMENT_NODE) {
-							Element pel = (Element) props.item(j);
-							String propName = pel.getAttribute("name");
-							if (propName != null) {
-///////////// TODO for now we assume we ONLY have a sub element for <write> perm here so we skip a step
-								NodeList proles = pel.getElementsByTagName("role");
-								boolean allowed = false;
-								for (int k = 0 ; k < proles.getLength() ; k++) {
-									if (roles.contains(proles.item(k).getTextContent())) {
-										allowed = true;
-										k = proles.getLength() + 1;
-									}
-								}
-								if (!allowed) perm.put(propName, "deny");
-							}
-						}
-					}
-				}
-			}
-		}
-
-System.out.println(perm);
+//System.out.println(perm);
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
 		return perm;

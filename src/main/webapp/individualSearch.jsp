@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.util.Collections" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
 String context="context0";
@@ -10,29 +10,35 @@ context=ServletUtilities.getContext(request);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 
   GregorianCalendar cal = new GregorianCalendar();
-  int nowYear = cal.get(1);
+  int nowYear = cal.get(1)+1;
   int firstSubmissionYear=1980;
 
   int firstYear = 1980;
   myShepherd.beginDBTransaction();
+  boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
+
   try {
     firstYear = myShepherd.getEarliestSightingYear();
-    nowYear = myShepherd.getLastSightingYear();
+    nowYear = myShepherd.getLastSightingYear()+1; // lol this was returning a result 2 off so i fixed it
     firstSubmissionYear=myShepherd.getFirstSubmissionYear();
-  } 
+  }
   catch (Exception e) {
     e.printStackTrace();
   }
+
+  System.out.println("nowYear = "+nowYear);
 
 //let's load out properties
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
   props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
+
+
 
 %>
 
@@ -43,6 +49,7 @@ context=ServletUtilities.getContext(request);
   <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
 
   <script type="text/javascript">
+
     animatedcollapse.addDiv('location', 'fade=1')
     animatedcollapse.addDiv('map', 'fade=1')
     animatedcollapse.addDiv('date', 'fade=1')
@@ -54,6 +61,7 @@ context=ServletUtilities.getContext(request);
     animatedcollapse.addDiv('genetics', 'fade=1')
 	animatedcollapse.addDiv('social', 'fade=1')
 	animatedcollapse.addDiv('patternrecognition', 'fade=1')
+	animatedcollapse.addDiv('keywords', 'fade=1')
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -272,7 +280,7 @@ if(compareAgainst.getGeneticSex()!=null){
 </strong></em></p>
 
 
-<form action="<%=formAction %>" method="get" name="search" id="search">
+<form action="<%=formAction %>" method="get" name="individualSearch" id="search">
     <%
 	if(request.getParameter("individualDistanceSearch")!=null){
 	%>
@@ -285,9 +293,8 @@ if(compareAgainst.getGeneticSex()!=null){
 <tr>
   <td width="810px">
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a> <a
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><span class="el el-chevron-down"></span></a> <a
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
       color="#000000"><%=props.getProperty("locationFilter") %></font></a></h4>
   </td>
@@ -297,8 +304,8 @@ if(compareAgainst.getGeneticSex()!=null){
 
 <script type="text/javascript">
 //alert("Prepping map functions.");
-//var center = new google.maps.LatLng(0, 0);
-var center = new google.maps.LatLng(-23.117, 132.1333);
+var center = new google.maps.LatLng(0, 0);
+
 var map;
 
 var markers = [];
@@ -316,8 +323,8 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	var mapZoom = 3.1;
-	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3.1;}
+	var mapZoom = 1.5;
+	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: mapZoom,
@@ -511,9 +518,8 @@ function FSControl(controlDiv, map) {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("locationFilterText") %></font></a></h4>
 
     <div id="location" style="display:none; ">
@@ -537,35 +543,14 @@ function FSControl(controlDiv, map) {
         </em>)</p>
 
       <%
-        List<String> locIDs = myShepherd.getAllLocationIDs();
-        int totalLocIDs = locIDs.size();
+      String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+      if(qualifier==null) {qualifier="default";}
+      else{qualifier=qualifier.replaceAll(".properties","");}
+
+      %>
+		<%=LocationID.getHTMLSelector(true, "",qualifier,"locationCodeField","locationCodeField","") %>
 
 
-        if (totalLocIDs >= 1) {
-      %>
-
-      <select multiple size="10" name="locationCodeField" id="locationCodeField" size="10">
-        <option value="None"></option>
-        <%
-          for (int n = 0; n < totalLocIDs; n++) {
-            String word = locIDs.get(n);
-            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
-        %>
-        <option value="<%=word%>"><%=word%>
-        </option>
-        <%
-            }
-          }
-        %>
-      </select>
-      <%
-      } else {
-      %>
-      <p><em><%=props.getProperty("noLocationIDs")%>
-      </em></p>
-      <%
-        }
-      %>
     </div>
   </td>
 
@@ -574,9 +559,8 @@ function FSControl(controlDiv, map) {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
   </td>
 </tr>
@@ -584,6 +568,16 @@ function FSControl(controlDiv, map) {
 <tr>
   <td>
     <div id="date" style="display:none;">
+
+            <p><strong> Skip date filtering? </strong>            <label>
+              <input name="noDate" type="checkbox" id="noDate" value="noDate" checked />
+            </label>
+ <em>select this option if you are searching for encounters that don't have any date</em>
+          </p>
+
+
+
+
       <p><%=props.getProperty("dateInstructions") %></p>
       <strong><%=props.getProperty("sightingDates")%></strong><br/>
           <table width="720">
@@ -668,6 +662,21 @@ function FSControl(controlDiv, map) {
 	</tr>
 </table>
 
+
+<script type="text/javascript">
+    // when user clicks a date input, uncheck the "ignore date" checker
+    $('#day1, #month1, #year1, #day2, #month2, #year2').click(function() {
+      console.log("We're registering a date input!");
+      $('#noDate').prop('checked', false);
+    });
+
+    $('#day1').click(function() {
+      console.log("We're registering a date input!");
+      $('#noDate').prop('checked', false);
+    });
+
+</script>
+
       <p><strong><%=props.getProperty("addedsightingDates")%></strong></p>
 
        <table width="720">
@@ -697,9 +706,8 @@ function FSControl(controlDiv, map) {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("observationFilters") %></font></a></h4>
   </td>
 </tr>
@@ -754,7 +762,10 @@ function FSControl(controlDiv, map) {
 							</span>
             </em><br/>
               <%
-				List<String> behavs = myShepherd.getAllBehaviors();
+        List<String> behavs = (useCustomProperties)
+          ? CommonConfiguration.getIndexedPropertyValues("behavior", request)
+          : myShepherd.getAllBehaviors();
+        if (Util.isEmpty(behavs)) behavs = myShepherd.getAllLocationIDs(); // in case not custom-defined
 				int totalBehavs=behavs.size();
 
 
@@ -889,16 +900,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:forEach>
 </c:if>
 
-<tr><td>
-      <p><strong><%=props.getProperty("hasPhoto")%> </strong>
-            <label>
-            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
-            </label>
-      </p>
-      </td></tr>
-
-
-
 
                 <%
 	        if(CommonConfiguration.showProperty("showTaxonomy",context)){
@@ -934,7 +935,32 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 		<%
 		}
 	%>
+	
+	</table>
+</p>
+</div>
+</td>
+</tr>
 
+
+<tr>
+  <td>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=props.getProperty("imageLabelFilters") %></a></h4>
+
+    <div id="keywords" style="display:none; ">
+    	<table id="labeled-kw-table">
+			<tr>
+			  <td>
+      			<p><strong><%=props.getProperty("hasPhoto") %></strong>
+            	<label>
+            		<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+            	</label>
+      			</p>
+      		  </td>
+      	</tr>
+      	<tr><td><strong><%=props.getProperty("keywordFilters") %></strong></td></tr>
         <%
           int totalKeywords = myShepherd.getNumKeywords();
         %>
@@ -1011,9 +1037,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
   <tr>
     <td>
-      <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
-        src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+      <h4 class="intro search-collapse-header"><a
+        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
         color="#000000"><%=props.getProperty("tagsTitle") %></font></a></h4>
     </td>
   </tr>
@@ -1079,9 +1104,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:if>
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; ">
+    <h4 class="intro search-collapse-header">
     	<a href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none">
-    		<img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+    		<span class="el el-chevron-down"></span>
     		<font color="#000000"><%=props.getProperty("biologicalSamples") %></font>
     	</a>
     </h4>
@@ -1294,9 +1319,8 @@ else {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("identityFilters") %></font></a></h4>
   </td>
 </tr>
@@ -1317,8 +1341,7 @@ else {
             				<img src="images/information_icon_svg.gif" alt="Help" width="15" height="15" border="0" align="absmiddle"/>
             			</a>
             		</span>
-              <br />
-              <%=props.getProperty("multipleIndividualID")%>
+
               </em>
               </p>
           </td>
@@ -1356,28 +1379,6 @@ else {
           </td>
 
         </tr>
-        <tr>
-          <td>
-            <p><strong><%=props.getProperty("alternateID")%>:</strong> <em> <input
-              name="alternateIDField" type="text" id="alternateIDField" size="25"
-              maxlength="100"> <span class="para"><a
-              href="<%=CommonConfiguration.getWikiLocation(context)%>alternateID"
-              target="_blank"><img src="images/information_icon_svg.gif"
-                                   alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
-              <br></em></p>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <p><strong><%=props.getProperty("nickName")%>:</strong> <em> <input
-              name="nickNameField" type="text" id="nickNameField" size="25"
-              maxlength="100"> <span class="para"><a
-              href="<%=CommonConfiguration.getWikiLocation(context)%>nickName"
-              target="_blank"><img src="images/information_icon_svg.gif"
-                                   alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
-              <br></em></p>
-          </td>
-        </tr>
 
         <tr>
           <td>
@@ -1411,9 +1412,8 @@ else {
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("socialFilters") %></font></a></h4>
   </td>
 </tr>
@@ -1525,9 +1525,8 @@ else {
 <tr>
   <td>
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down"></span>
       <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
   </td>
 </tr>
@@ -1539,9 +1538,9 @@ else {
 
 	<strong><%=props.getProperty("username")%></strong><br />
       <%
-      	Shepherd inShepherd=new Shepherd("context0");
-      inShepherd.setAction("individualSearch.jsp2");
-        List<User> users = inShepherd.getUsersWithUsername("username ascending");
+      	List<String> users = myShepherd.getAllNativeUsernames();
+      	users.remove(null);
+      	Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
         int numUsers = users.size();
 
       %>
@@ -1550,11 +1549,7 @@ else {
         <option value="None"></option>
         <%
           for (int n = 0; n < numUsers; n++) {
-            String username = users.get(n).getUsername();
-            String userFullName=username;
-            if(users.get(n).getFullName()!=null){
-            	userFullName=users.get(n).getFullName();
-            }
+            String username = users.get(n);
 
         	%>
         	<option value="<%=username%>"><%=username%></option>
@@ -1562,11 +1557,7 @@ else {
           }
         %>
       </select>
-<%
-inShepherd.rollbackDBTransaction();
-inShepherd.closeDBTransaction();
 
-%>
 </div>
 </td>
 </tr>
@@ -1596,7 +1587,11 @@ inShepherd.closeDBTransaction();
 <br>
 </div>
 
+<script type="text/javascript" src="javascript/formNullRemover.js"></script>
+
 <jsp:include page="footer.jsp" flush="true"/>
+
+
 
 
 <%

@@ -134,14 +134,16 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     href="encounter.jsp?number=<%=num%>">Encounter
     <%=num%>
   </a></li>
-  <li><a class="active">Modified Groth</a></li>
+  
 
   <%
     String fileSider = "";
     File finalXMLFile;
+    File locationIDXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightI3SScan.xml");
+      locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightLocationIDScan.xml");
 
 
       side2 = "right";
@@ -149,7 +151,23 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     } else {
       //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
+      locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
     }
+    
+    
+    if (locationIDXMLFile.exists()) {
+  %>
+
+  <li><a
+    href="scanEndAppletLocationID.jsp?writeThis=true&number=<%=num%>&I3S=true<%=fileSider%>">Locally Filtered Results (Modified Groth)</a>
+  </li>
+  <%
+    }
+    %>
+    
+    <li><a class="active">Modified Groth (Full)</a></li>
+    <%
+    
     if (finalXMLFile.exists()) {
   %>
 
@@ -158,6 +176,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   </li>
   <%
     }
+    
+
 
   %>
 

@@ -2,12 +2,17 @@
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
 javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
-org.datanucleus.ExecutionContext,
-		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
+org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
+		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, org.ecocean.security.HiddenEncReporter, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat" %>
 
 
+<jsp:include page="header.jsp" flush="true"/>
+
 <%
+
+boolean isLoggedIn=false;
+if(request.getUserPrincipal()!=null)isLoggedIn=true;
 String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -92,24 +97,49 @@ context=ServletUtilities.getContext(request);
   //System.out.println("We got occurrenceNumber = "+occurrenceNumber);
   //System.out.println("We got sex = "+sex);
 
-  String name = "";
+    //String id = null;
+  String id = request.getParameter("number");
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individuals.jsp");
 
-
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+
+
+
 
 %>
 
 <%
 if (request.getParameter("number")!=null) {
-	name=request.getParameter("number").trim();
-	myShepherd.beginDBTransaction();
-	try{
+	String oldWorld = request.getParameter("number").trim();
+        //we also check individualID (uuid) too, just in case some href in jsp is still using number=
 
-		if(myShepherd.isMarkedIndividual(name)){
-			MarkedIndividual indie=myShepherd.getMarkedIndividual(name);
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"LEGACYINDIVIDUALID\" = ? OR \"ALTERNATEID\" LIKE ? OR \"INDIVIDUALID\" = ?");
+        List results = (List) q.execute(oldWorld, "%" + oldWorld + "%", oldWorld);
+        String tryId = null;
+        if (results.iterator().hasNext()) tryId = (String) results.iterator().next();
+        response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        response.setHeader("Location", "individuals.jsp?id=" + tryId);
+        response.flushBuffer();
+        // what was the below return meant to do? it breaks the page
+        // return;
+
+}
+
+if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
+                                  System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
+    id = request.getParameter("id");
+    if (id==null) id = request.getParameter("number");
+	myShepherd.beginDBTransaction();
+	try {
+
+		MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
+		if (indie != null) {
 			Vector myEncs=indie.getEncounters();
+
+      HiddenEncReporter hiddenData = new HiddenEncReporter(myEncs, request, myShepherd);
+      myEncs = hiddenData.securityScrubbedResults(myEncs);
+
 			int numEncs=myEncs.size();
 
       // This is a big hack to make sure an encounter's annotations are loaded into the JDO cache
@@ -130,7 +160,9 @@ if (request.getParameter("number")!=null) {
       System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
       System.out.println("This marked individual has "+numAnns+" anotations");
 
-			boolean visible = indie.canUserAccess(request);
+			//boolean visible = indie.canUserAccess(request);
+      boolean visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
+      System.out.println("We got visible = "+visible);
 
       String ipAddress = request.getHeader("X-FORWARDED-FOR");
       if (ipAddress == null) ipAddress = request.getRemoteAddr();
@@ -145,7 +177,14 @@ if (request.getParameter("number")!=null) {
       System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
       System.out.println("");
 
+
 			if (!visible) {
+
+        // remove any potentially-sensitive data, labeled with the secure-field class
+        System.out.println("Not visible! Printing stuff!");
+        %>
+        <script src="/javascript/hide-secure-fields.js"></script>
+        <%
   			ArrayList<String> uids = indie.getAllAssignedUsers();
 				ArrayList<String> possible = new ArrayList<String>();
 				for (String u : uids) {
@@ -154,7 +193,7 @@ if (request.getParameter("number")!=null) {
 					if ((c == null) || (c.getState() == null)) {
 						User user = myShepherd.getUser(u);
 						String fullName = u;
-						if (user.getFullName()!=null) fullName = user.getFullName();
+						if (user!=null && user.getFullName()!=null) fullName = user.getFullName();
 						possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
 					}
 				}
@@ -163,7 +202,7 @@ if (request.getParameter("number")!=null) {
 
 				if (possible.size() > 0) {
     			String arr = new Gson().toJson(possible);
-					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
 				} else {
 					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
 					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
@@ -179,8 +218,8 @@ if (request.getParameter("number")!=null) {
 		myShepherd.rollbackDBTransaction();
 	}
 }
+
 %>
-<jsp:include page="header.jsp" flush="true"/>
 
 
 
@@ -229,6 +268,24 @@ if (request.getParameter("number")!=null) {
     });
 </script>
 
+<script>
+function setIndivAutocomplete(el) {
+    if (!el || !el.length) return;
+    var args = {
+        resMap: function(data) {
+            var res = $.map(data, function(item) {
+                if (item.type != 'individual') return null;
+                var label = item.label;
+                if (item.species) label += '   ( ' + item.species + ' )';
+                return { label: label, type: item.type, value: item.value };
+            });
+            return res;
+        }
+    };
+    wildbook.makeAutocomplete(el[0], args);
+}
+</script>
+
 <style>
 .ptcol-maxYearsBetweenResightings {
 	width: 100px;
@@ -236,13 +293,12 @@ if (request.getParameter("number")!=null) {
 .ptcol-numberLocations {
 	width: 100px;
 }
+input.nameKey, input.nameValue {
+  display: none;
+}
 </style>
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
-
-  <link rel="stylesheet" href="css/createadoption.css">
-
-
 <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
@@ -254,11 +310,21 @@ if (request.getParameter("number")!=null) {
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
 
 
+<style>
+  input.nameValue, input.nameKey {
+    display: none;
+  }
+
+</style>
+
 
 <script type="text/javascript">
 
 
   $(document).ready( function() {
+
+    $("input.nameKey, input.nameValue").hide();
+
   	// wildbook.init(function() { doTable(); });
     $("#familyDiagramTab").click(function (e) {
       e.preventDefault()
@@ -310,36 +376,24 @@ if (request.getParameter("number")!=null) {
       $("#bioSamplesTableTab").removeClass("active");
       });
 
-      setTimeout(function() {
-      $('#encountTable tr').click(function() {
-        selectedWhale = ($(this).attr("class"));
-        goToEncounterURL(selectedWhale);
-      });
-
-      $('#cooccurrenceTable tr').click(function() {
-        selectedWhale = ($(this).attr("class"));
-        goToWhaleURL(selectedWhale);
-      });
-      $("#encountTable td:nth-child(1)").attr("class", "hide");
-      $("#encountTable th:nth-child(1)").attr("class", "hide");
-
-    }, 6000);
 
     var buttons = $("#edit, #closeEdit").on("click", function(){
         buttons.toggle();
     })
 
+    // edit button click area!!
     $("#edit").click(function() {
-      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError").hide();
-      $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID").show();
+      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue, .hidden").hide();
+      $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
     });
 
     $("#closeEdit").click(function() {
-      $(".editForm").hide();
+      $(".namebutton").css("visibility", "hidden");
+      $(".editForm, input.nameKey, input.nameValue, #defaultNameColon, input.namebutton, input.btn.deletename").hide();
       $(".clickDateText").hide();
-      $(".noEditText").show();
+      $(".noEditText, span.nameKey, span.nameValue").show();
     });
   });
 
@@ -377,25 +431,30 @@ $(document).ready(function() {
 </script>
 
 <%---------- Main Div ----------%>
-<div class="container maincontent">
+<div class="container maincontent secure-field">
   <%=blocker%>
   <%
   myShepherd.beginDBTransaction();
   try {
-    if (myShepherd.isMarkedIndividual(name)) { %>
+    if (myShepherd.isMarkedIndividual(id)) { %>
   <%-- Header Row --%>
-  <div class="row mainHeader" style="position:relative;">
+  <div class="row mainHeader secure-field" style="position:relative;">
     <div class="col-sm-6">
 
           <%
-          MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);
+          MarkedIndividual sharky=myShepherd.getMarkedIndividual(id);
 
-          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
+          // replace this with canUserViewIndividual?
+//          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
+          boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
+
+
+          System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
               String myNickname = "";
-              myNickname = sharky.getNickName();
+              myNickname = sharky.getDisplayName("Nickname");
             %>
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
@@ -419,7 +478,7 @@ $(document).ready(function() {
 
           } else {
             %>
-            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName()%>
             <%
             if(CommonConfiguration.allowAdoptions(context)){
                   %>
@@ -436,6 +495,8 @@ $(document).ready(function() {
           <%
           }
         }
+                  System.out.println("    |=-| INDIVIDUALS.JSP after nickname");
+
           %>
 
 
@@ -443,91 +504,231 @@ $(document).ready(function() {
       <%-- Descriptions --%>
       <div class="row">
         <div class="col-sm-6">
-            <p><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></p>
-            <%
+            <p><!--<%=markedIndividualTypeCaps%>--><%
+String allNames = null;
+if (sharky.getNames() != null) {
+    List<String> names = sharky.getNamesList();
+    if ((names != null) && (names.size() > 0)) allNames = String.join(", ", names);
+    String defaultName = sharky.getDefaultName();
 
-            if (CommonConfiguration.allowNicknames(context)) {
-              String myNickname = "";
-              if (sharky.getNickName() != null) {
-                myNickname = sharky.getNickName();
-              }
-              String myNicknamer = "";
-              if (sharky.getNickNamer() != null) {
-                myNicknamer = sharky.getNickNamer();
-              }
-              %>
 
-              <p class="noEditText"><%=nickname %>: <span id="displayNickname"><%=myNickname%></span></p>
 
-              <script type="text/javascript">
-                $(document).ready(function() {
 
-                  $("#Name").click(function(event) {
-                    event.preventDefault();
+    // if (allNames != null) out.println("<span title=\"id " + sharky.getId() + "\">" + allNames + "</span>");
 
-                    $("#Name").hide();
+    System.out.println("displayName="+sharky.getDisplayName());
 
-                    var individual = $("input[name='individual']").val();
-                    var nickname = $("#nickname").val();
-                    var namer = $("#namer").val();
+    %>
+    <div class="namesection default">
+      <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" data-oldkey="Default" value="Default" placeholder="Default" >
+      <span id="defaultNameColon">:</span>
+      <%
+      if(defaultName!=null){
+      %>
+      	<span class="nameValue default"><%=defaultName%></span>
+      <%
+      }
+      else{defaultName="";}
+      %>
+      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" data-oldvalue="<%=defaultName%>" value="<%=defaultName%>" placeholder="<%=defaultName %>" >
+      <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+      <span class="nameCheck">&check;</span>
+      <span class="nameError">X</span>
+      <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+    </div><%
 
-                    $.post("IndividualSetNickName", {"individual": individual, "nickname": nickname, "namer": namer},
-                    function() {
-                      $("#nicknameErrorDiv").hide();
-                      $("#nameDiv, #namerDiv").addClass("has-success");
-                      $("#nameCheck, #namerCheck").show();
+    // make UI for non-default names here
+    if ((sharky.getNames() != null) && (sharky.getNames().size() > 0) && (sharky.getNames().getKeys()!=null)){
+    	System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
+	    for (String nameKey: sharky.getNames().getKeys()) {
+	      if (MultiValue.isDefault(nameKey)) continue;
+	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
+	      String nameLabel=nameKey;
+	      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
+	      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
+	      String nameValue = sharky.getName(nameKey);
+	
+	      %>
+	      <div class="namesection <%=nameKey%>">
+	        <span class="nameKey" data-oldkey="<%=nameKey%>"><em><%=nameLabel%></em></span>
+	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%=nameKey%>" placeholder="<%=nameKey %>" >
+	        <span id="nameColon">:</span>
+	
+	        <span class="nameValue <%=nameKey%>" data-oldvalue="<%=nameValue%>"><%=nameValue%></span>
+	        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=nameValue%>" placeholder="<%=nameValue %>" >
+	        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+	
+	        <span class="nameCheck">&check;</span>
+	        <span class="nameError">X</span>
+	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+	      </div><%
+	    }
+	}
 
-                      $("#headerDisplayNickname, #displayNickname").html(nickname);
-                    })
-                    .fail(function(response) {
-                      $("#nameDiv, #namerDiv").addClass("has-error");
-                      $("#nameError, #namerError, #nicknameErrorDiv").show();
-                      $("#nicknameErrorDiv").html(response.responseText);
-                    });
-                  });
+    // "add new name" Edit section
+    %>
+    <div class="newnameButton">
+      <input id="newNameButton" class="btn btn-sm editFormBtn namebutton newname" type="submit" value="Add New Name">
+    </div>
 
-                  $("#nickname, #namer").click(function() {
-                    $("#nameError, #nameCheck, #namerCheck, #namerError, #nicknameErrorDiv").hide()
-                    $("#nameDiv, #namerDiv").removeClass("has-success");
-                    $("#nameDiv, #namerDiv").removeClass("has-error");
-                    $("#Name").show();
-                  });
-                });
-              </script>
+    <div class="namesection newname">
+      <span class="nameKey newname" data-oldkey=""><em></em></span>
+      <input class="form-control nameKey name" name="nameKey" type="text" id="nameKey" value="" placeholder="" >
+      <span id="nameColon">:</span>
 
-                <%-- Edit nickname form --%>
-                <p id="checkIndividualValue"></p>
-                <div class="highlight" id="nicknameErrorDiv"></div>
-                  <form name="nameShark" class="editForm">
-                    <input name="individual" type="hidden" value="<%=request.getParameter("number")%>">
-                      <div class="form-group has-feedback row" id="nameDiv">
-                        <div class="col-sm-4">
-                          <label><%=nickname %>:</label>
-                        </div>
-                        <div class="col-sm-7 editFormInput">
-                          <input class="form-control" name="nickname" type="text" id="nickname" value="<%=myNickname%>" placeholder="<%=nickname %>">
-                          <span class="form-control-feedback" id="nameCheck">&check;</span>
-                          <span class="form-control-feedback" id="nameError">X</span>
-                        </div>
-                      </div>
+      <span class="nameValue newname"></span>
+      <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" value="" placeholder="" >
+      <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+      
+      <span class="nameCheck">&check;</span>
+      <span class="nameError">X</span>
 
-                      <div class="form-group has-feedback row" id="namerDiv">
-                        <div class="col-sm-4">
-                          <label><%=nicknamer %>:</label>
-                        </div>
-                        <div class="col-sm-7 editFormInput">
-                          <input class="form-control" name="namer" type="text" id="namer" value="<%=myNicknamer%>" placeholder="<%=nicknamer %>">
-                          <span class="form-control-feedback" id="namerCheck">&check;</span>
-                          <span class="form-control-feedback" id="namerError">X</span>
-                        </div>
-                        <input class="btn btn-sm editFormBtn" type="submit" name="Name" id="Name" value="<%=update %>">
-                      </div>
-                  </form>
-                  <%-- End edit nickname form --%>
+    </div>
 
-              <%
-            }
-            %>
+    <style>
+      #defaultNameColon, .nameCheck, .nameError, .nameErrorDiv, div.newname, input.namebutton, input.btn.deletename {
+        display: none;
+      }
+      span.nameKey {
+        font-style: oblique;
+      }
+      input.form-control.name {
+        width: 25%
+      }
+      input.deletename {
+        background: red;
+      }
+      input.namebutton, input.deletename {
+        width: auto;
+        margin-right:0;
+        margin-top:0;
+      }
+      input.namebutton.newname {
+        width: auto;
+        margin-right:0;
+        margin-top:0;
+      }
+      .namesection .nameCheck {
+        color: green;
+      }
+      .namesection .nameError {
+        color: red;
+      }
+
+    </style>
+
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+
+      $("#newNameButton").click(function (event) {
+        console.log("newnamebutton clicked!");
+        $(this).hide();
+        $("div.newname").show();
+      });
+
+      $(".namebutton").click(function(event) {
+        event.preventDefault();
+
+        var nameKeySpan = $(this).siblings(".nameKey");
+        var nameValueSpan = $(this).siblings(".nameValue");
+
+        var oldKey = nameKeySpan.data("oldkey");
+        var oldVal = nameValueSpan.data("oldvalue");
+
+        var newKey = $(this).siblings("input.nameKey").val();
+        var newVal = $(this).siblings("input.nameValue").val();
+
+        console.log("namebutton was clicked with vars newKey="+newKey+", newValue="+newVal+", oldKey="+oldKey+", oldVal="+oldVal);
+
+        if (newKey===oldKey && newVal===oldVal) return;
+
+        var indID = "<%=id%>";
+        var rememberMe = this;
+
+        $.post("IndividualSetName", {"individualID": indID, "oldKey": oldKey, "oldValue": oldVal, "newKey": newKey, "newValue": newVal},
+        function() {
+          console.log("SUCCESSFUL callback on individualSetName. this = "+this);
+          // show success and checkbox
+          $(rememberMe).siblings("input.name").addClass("has-success");
+          $(rememberMe).siblings(".nameCheck, nameColon").show();
+          // update the values in the name elements
+          $(rememberMe).siblings(".nameKey").html(newKey);
+          $(rememberMe).siblings(".nameKey").data("oldkey",newKey);
+          $(rememberMe).siblings(".nameValue").html(newVal);
+          $(rememberMe).siblings(".nameKey").data("oldvalue",newvalue);
+        })
+        .fail(function(response) {
+          console.log("FAILED callback on individualSetName");
+          $(this).siblings("input.name").addClass("has-error");
+          $(this).siblings(".nameError").show();
+          $(this).siblings("div.nameError").html(response.responseText);
+        });
+      });
+
+      $("input.deletename").click(function(event) {
+        event.preventDefault();
+
+        var nameKeySpan = $(this).siblings(".nameKey");
+        var nameValueSpan = $(this).siblings(".nameValue");
+
+        var oldKey = nameKeySpan.data("oldkey");
+        var oldVal = nameValueSpan.data("oldvalue");
+        var indID = "<%=id%>";
+
+        var rememberMe = this;
+
+        var confirmDelete = confirm("Are you sure you want to remove the name \""+oldVal+"\" with label \""+oldKey+"\" from this individual?");
+
+        if (confirmDelete) {
+          $.post("IndividualSetName", {"individualID": indID, "oldKey": oldKey, "oldValue": oldVal, "delete": true},
+        function() {
+          console.log("SUCCESSFUL callback on individualSetName, delete case. this = "+this);
+          // show success and checkbox
+          $(rememberMe).siblings("input.name").addClass("has-success");
+          $(rememberMe).siblings(".nameValue, .namebutton, .deletename").addClass("hidden");
+          $(rememberMe).siblings(".nameCheck").show();
+          // update the values in the name elements
+          $(rememberMe).siblings(".nameKey").html(newKey);
+          $(rememberMe).siblings(".nameValue").html(newVal);
+          $(rememberMe).siblings(".hidden").hide();
+        })
+        .fail(function(response) {
+          console.log("FAILED callback on individualSetName, delete case");
+          $(this).siblings("input.name").addClass("has-error");
+          $(this).siblings(".nameError").show();
+          $(this).siblings("div.nameError").html(response.responseText);
+        });
+
+        }
+
+
+        console.log("namebutton was clicked with vars newKey="+newKey+", newValue="+newVal+", oldKey="+oldKey+", oldVal="+oldVal);
+
+        if (newKey===oldKey && newVal===oldVal) return;
+
+        var indID = "<%=id%>";
+        var rememberMe = this;
+
+      });
+
+      $("#nickname, #namer").click(function() {
+        $("#nameError, #nameCheck, #namerCheck, #namerError, #nicknameErrorDiv").hide()
+        $("#nameDiv, #namerDiv").removeClass("has-success");
+        $("#nameDiv, #namerDiv").removeClass("has-error");
+        $("#Name").show();
+      });
+    });
+  </script>
+
+
+
+    <%
+
+
+}
+            %></p>
+            
 
             <%
             String sexValue="";
@@ -548,7 +749,7 @@ $(document).ready(function() {
                   event.preventDefault();
                   $("#Add").hide();
 
-                  var individual = $("input[name='individual']").val();
+                  var individual = "<%=sharky.getIndividualID() %>";
                   var sex = $("#newSex").val();
 
                   $.post("IndividualSetSex", {"individual": individual, "selectSex": sex},
@@ -557,7 +758,7 @@ $(document).ready(function() {
                     $("#sexCheck").show();
                     $("#displaySex").html(sex);
                     $("svg.bubbleChart").remove();
-                    getData(individual);
+                    getData(individual, null);
 
                   })
                   .fail(function(response) {
@@ -761,9 +962,11 @@ $(document).ready(function() {
           <a name="alternateid"></a>
           <%
             String altID="";
+/*
             if(sharky.getAlternateID()!=null){
             altID=sharky.getAlternateID();
             }
+*/
 
             %>
             <p class="noEditText"><%=alternateID %>: <span id="displayAltID"><%=altID%></span></p>
@@ -835,19 +1038,13 @@ $(document).ready(function() {
         -1px 1px 0 #000,
         1px 1px 0 #000;
     ">
-    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
+    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualIDExact=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
 
 
     <div class="slider col-sm-6 center-slider">
       <%-- Get images for slider --%>
       <%
-///note this is very hacky... as jon about it
-for (Encounter enJ : sharky.getDateSortedEncounters()) {
-	for (org.ecocean.media.MediaAsset maJ : enJ.getMedia()) {
-		if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
-	}
-}
-      ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
+      ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(myShepherd, request);
       String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
@@ -892,7 +1089,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
       if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       %>
       <font size="-1"><a
-      href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
+      href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=id%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
       <%
       }
       %>
@@ -1175,6 +1372,18 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
             <input class="btn btn-md" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
             <input class="btn btn-md" type="button" id="closeRelationshipForm" value="Cancel">
           </form>
+          
+          		<script type="text/javascript">
+	                    $(document).ready(function() {
+	                    	
+	                    	//set autocomplete on #individualAddEncounterInput above
+	                    	setIndivAutocomplete($('#individual2'));
+	                    	
+	                    	
+	                    	
+	                    });
+                </script>
+          
         </div>
 
         <%
@@ -1201,7 +1410,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         <div id="familyDiagram">
           <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
-            setupFamilyTree("<%=individualID%>");
+            setupFamilyTree("<%=individualID%>","<%=sharky.getDisplayName() %>");
           </script>
         </div>
 
@@ -1229,9 +1438,9 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
             setTimeout(function() {
               var deletedMarkedIndividualName2 = "";
               var deletedType = "";
-              $(document).on('click', '.editRelationshipBtn', function () {
+              $(document).on('click', '.editRelationshipBtn', function (event) {
                 $("#setRelationshipResultDiv").hide();
-                var relationshipID = $(".editRelationshipBtn").val();
+                var relationshipID = event.target.value;
                 getRelationshipData(relationshipID);
 		$("#inputPersistenceID").val(relationshipID);
 		$("#individual1").val("<%=individualID%>");
@@ -1318,12 +1527,12 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         // <% String individualID = sharky.getIndividualID();%>
         $(document).ready(function() {
 
-          getData("<%=individualID%>");
+          getData("<%=individualID%>", "<%=sharky.getDisplayName() %>");
         });
         </script>
 
         <%
-          List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
+          List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky);
 
         if(otherIndies.size()>0){
 
@@ -1367,60 +1576,8 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         	<p class="para"><%=props.getProperty("noCooccurrences") %></p><br />
         <%
         }
-        //
 
 
-
-          if (isOwner) {
-        %>
-        <br />
-        <p>
-        <strong><img align="absmiddle" src="images/48px-Crystal_Clear_mimetype_binary.png" /> <%=additionalDataFiles %></strong>
-        <%if ((sharky.getDataFiles()!=null)&&(sharky.getDataFiles().size() > 0)) {%>
-        </p>
-        <table>
-          <%
-            Vector addtlFiles = sharky.getDataFiles();
-            for (int pdq = 0; pdq < addtlFiles.size(); pdq++) {
-              String file_name = (String) addtlFiles.get(pdq);
-          %>
-
-          <tr>
-            <td><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/individuals/<%=sharky.getName()%>/<%=file_name%>"><%=file_name%>
-            </a></td>
-            <td>&nbsp;&nbsp;&nbsp;[<a
-              href="IndividualRemoveDataFile?individual=<%=name%>&filename=<%=file_name%>"><%=delete %>
-            </a>]
-            </td>
-          </tr>
-
-          <%}%>
-        </table>
-        <%} else {%> <%=none %>
-        </p>
-        <%
-          }
-          if (CommonConfiguration.isCatalogEditable(context)) {
-        %>
-        <form action="IndividualAddFile" method="post"
-              enctype="multipart/form-data" name="addDataFiles"><input
-          name="action" type="hidden" value="fileadder" id="action"> <input
-          name="individual" type="hidden" value="<%=sharky.getName()%>"
-          id="individual">
-
-          <p><%=addDataFile %>:</p>
-
-          <p><input name="file2add" type="file" size="50"></p>
-
-          <p><input name="addtlFile" type="submit" id="addtlFile"
-                    value="<%=sendFile %>"></p></form>
-        <%
-          }
-
-
-
-
-          }
         %>
 
         </td>
@@ -1570,11 +1727,61 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
       <br>
       <div>
         <jsp:include page="individualMapEmbed.jsp" flush="true">
-          <jsp:param name="name" value="<%=name%>"/>
+          <jsp:param name="name" value="<%=id%>"/>
         </jsp:include>
       </div>
+      <br>
       <%-- End of Map --%>
+      <%
+      if (isOwner) {
+        %>
+        <br />
+        <p>
+        <strong><img align="absmiddle" src="images/48px-Crystal_Clear_mimetype_binary.png" /> <%=additionalDataFiles %></strong>
+        <%if ((sharky.getDataFiles()!=null)&&(sharky.getDataFiles().size() > 0)) {%>
+        </p>
+        <table>
+          <%
+            Vector addtlFiles = sharky.getDataFiles();
+            for (int pdq = 0; pdq < addtlFiles.size(); pdq++) {
+              String file_name = (String) addtlFiles.get(pdq);
+          %>
 
+          <tr>
+            <td><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/individuals/<%=sharky.getId()%>/<%=file_name%>"><%=file_name%>
+            </a></td>
+            <td>&nbsp;&nbsp;&nbsp;[<a
+              href="IndividualRemoveDataFile?individual=<%=id%>&filename=<%=file_name%>"><%=delete %>
+            </a>]
+            </td>
+          </tr>
+
+          <%}%>
+        </table>
+        <%} 
+        else {
+        	%> 
+        	<%=none %></p>
+        	<%
+          }
+        if (CommonConfiguration.isCatalogEditable(context)) {
+        %>
+        <form action="IndividualAddFile" method="post" enctype="multipart/form-data" name="addDataFiles">
+        	<input name="action" type="hidden" value="fileadder" id="action"> 
+          	<input name="individual" type="hidden" value="<%=sharky.getId()%>" id="individual">
+          	<p><%=addDataFile %>:</p>
+          	<p><input name="file2add" type="file" size="50"></p>
+          	<p><input name="addtlFile" type="submit" id="addtlFile" value="<%=sendFile %>"></p>
+         </form>
+         <br>
+        <%
+          }
+
+
+
+
+          }
+		%>
 
 
               <%-- Start Adoption --%>
@@ -1586,7 +1793,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
       <div style="width: 100%;">
 
           <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-            <jsp:param name="name" value="<%=name%>"/>
+            <jsp:param name="name" value="<%=id%>"/>
           </jsp:include>
                 </div>
 
@@ -1770,58 +1977,28 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
   else {
 
   //let's check if the entered name is actually an alternate ID
+/*  currently not supported (yet) due to indiv id stuff!  FIXME
   List<MarkedIndividual> al = myShepherd.getMarkedIndividualsByAlternateID(name);
   List<MarkedIndividual> al2 = myShepherd.getMarkedIndividualsByNickname(name);
   List<Encounter> al3 = myShepherd.getEncountersByAlternateID(name);
+*/
 
-  if (myShepherd.isEncounter(name)) {
+  if (myShepherd.isEncounter(id)) {
     %>
     <meta http-equiv="REFRESH"
-      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=id%>">
     </HEAD>
     <%
   }
-  else if(myShepherd.isOccurrence(name)) {
+  else if(myShepherd.isOccurrence(id)) {
     %>
-    <meta http-equiv="REFRESH"
-      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
-    </HEAD>
-    <%
-  }
-
-  else if (al.size() > 0) {
-    //just grab the first one
-    MarkedIndividual shr = al.get(0);
-    String realName = shr.getName();
-    %>
-
-    <meta http-equiv="REFRESH"
-      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
-    </HEAD>
-    <%
-  } else if (al2.size() > 0) {
-    //just grab the first one
-    MarkedIndividual shr = al2.get(0);
-    String realName = shr.getName();
-    %>
-
-    <meta http-equiv="REFRESH"
-      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
-    </HEAD>
-    <%
-  } else if (al3.size() > 0) {
-      //just grab the first one
-      Encounter shr = al3.get(0);
-      String realName = shr.getEncounterNumber();
-      %>
-
       <meta http-equiv="REFRESH"
-        content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=id%>">
       </HEAD>
       <%
   } else {
     %>
-    <p><%=matchingRecord %>: <strong><%=name%></strong></p>
+    <p><%=matchingRecord %>: <strong><%=id%></strong></p>
     <p>
       <%=tryAgain %>
     </p>
@@ -1829,7 +2006,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
     <p>
 
       <form action="individuals.jsp" method="get" name="sharks"><strong><%=record %>:</strong>
-      <input name="number" type="text" id="number" value=<%=name%>> <input
+      <input name="number" type="text" id="number" value=<%=id%>> <input
       name="sharky_button" type="submit" id="sharky_button"
       value="<%=getRecord %>"></form>
     </p>

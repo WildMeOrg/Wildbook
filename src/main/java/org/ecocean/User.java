@@ -2,11 +2,20 @@ package org.ecocean;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.io.Serializable;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.datanucleus.api.rest.orgjson.JSONException;
+import org.datanucleus.api.rest.orgjson.JSONObject;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * <code>User</code> stores information about a contact/user.
@@ -42,17 +51,24 @@ public class User implements Serializable {
 
   private long lastLogin=-1;
   
-  	private String username;
-  	private String password ;
-  	private String salt;
-  	private String uuid;
+	private String username;
+	private String password ;
+	private String salt;
+	private String uuid;
+	
+	//String currentContext;
   	
   	//String currentContext;
   	
   	
+    private List<Organization> organizations = null;
+
   	private boolean acceptedUserAgreement=false;
   
   private boolean receiveEmails=true; 
+
+  // turning this off means the user is greedy and mean: they never share data and nobody ever shares with them
+  private Boolean sharing=true;
 
 	private HashMap<String,String> social;
   	
@@ -127,8 +143,42 @@ public class User implements Serializable {
     public String getDisplayName() {
         if (fullName != null) return fullName;
         if (username != null) return username;
-        return uuid.substring(0,8);
+        return uuid;
     }
+
+  // this is handy for UI: does this user (belong to an organization that) use a custom .properties file?
+  public boolean hasCustomProperties() {
+    return ShepherdProperties.userHasOverrideString(this);
+  }
+  public static boolean hasCustomProperties(HttpServletRequest request, Shepherd myShepherd) {
+    if (request == null) return false;
+    Shepherd readOnlyShep = Shepherd.newActiveShepherd(request, "hasCustomProperties");
+    boolean ans = hasCustomProperties(readOnlyShep, request);
+    readOnlyShep.rollbackAndClose();
+    return ans;
+  }
+  public static boolean hasCustomProperties(Shepherd myShepherd, HttpServletRequest request) {
+    if (request == null) return false;
+    String manualOrg = request.getParameter("organization");
+    if (Util.stringExists(manualOrg)) {
+      if (ShepherdProperties.orgHasOverwrite(manualOrg)) return true;
+    }
+    User user = myShepherd.getUser(request);
+    if (user == null) return false;
+    return user.hasCustomProperties();
+  }
+  
+  public static boolean hasCustomProperties(HttpServletRequest request) {
+     Shepherd myShepherd = new Shepherd(request);
+     myShepherd.setAction("User.hasCustomProperties");
+     myShepherd.beginDBTransaction();
+     boolean hasIt=hasCustomProperties(request, myShepherd);
+     myShepherd.rollbackDBTransaction();
+     myShepherd.closeDBTransaction();
+     return hasIt;
+  }
+
+
 
   public String getEmailAddress ()
   {
@@ -190,6 +240,9 @@ public class User implements Serializable {
     else{this.affiliation=null;}
     RefreshDate();
   }
+  public boolean hasAffiliation (String affiliation) {
+    return (this.affiliation!=null && affiliation!=null && this.affiliation.toLowerCase().indexOf(affiliation.toLowerCase())>=0);
+  }
 
   public String getNotes ()
   {
@@ -206,7 +259,14 @@ public class User implements Serializable {
     return this.dateInMilliseconds;
   }
 
-
+  public boolean hasSharing() {
+    // if you haven't specified a sharing policy YOU'RE SHARING
+    if (sharing==null) return true;
+    return sharing;
+  }
+  public void setSharing(boolean sharing) {
+    this.sharing = sharing;
+  }
 
 
   	public long getUserID() {
@@ -309,7 +369,83 @@ public class User implements Serializable {
     //public String getCurrentContext(){return currentContext;}
     //public void setCurrentContext(String newContext){currentContext=newContext;}
 		
-		public String getUUID() {return uuid;}
+    public String getUUID() {return uuid;}
+    public String getId() { return uuid; }  //adding this "synonym"(?) for consistency
+
+    public boolean hasRoleByName(String name, Shepherd myShepherd) {
+        if (name == null) return false;
+        List<Role> roles = myShepherd.getAllRolesForUserInContext(this.username, myShepherd.getContext());
+        if (roles == null) return false;
+        for (Role r : roles) {
+            if (r.getRolename().equals(name)) return true;
+        }
+        return false;
+    }
+
+    //some glorious day this would be better to recurse thru some Organization Objects to get keys.  sigh, to dream.
+    public Set<String> getMultiValueKeys() {
+        Set<String> rtn = new HashSet<String>();
+        rtn.add("_userId_:" + uuid);  //kinda like "private" key?
+/*  these should migrate to Organizations!!
+        if (Util.stringExists(userProject)) rtn.add("_userProject_:" + userProject.toLowerCase());
+        if (Util.stringExists(affiliation)) rtn.add("_affiliation_:" + affiliation.toLowerCase());
+*/
+        //if the best context we have is a user, we add all the (toplevel) groups they are members of
+        if (organizations != null) {
+        }
+        return rtn;
+    }
+
+    public List<Organization> getOrganizations() {
+        return organizations;
+    }
+    // Use this method to find out what organization-wide nameKey a user would want, to use to generate new individual names.
+    public String getIndividualNameKey() {
+        for (Organization org: organizations) {
+          if (Util.stringExists(org.getIndividualNameKey())) return org.getIndividualNameKey();
+        }
+        return null;
+    }
+    public void setOrganizations(List<Organization> orgs) {
+        organizations = orgs;
+        this.organizationsReciprocate(orgs);
+    }
+    public void addOrganization(Organization org) {
+        if (org == null) return;
+        if (organizations == null) organizations = new ArrayList<Organization>();
+        if (!organizations.contains(org)) organizations.add(org);
+        this.organizationsReciprocate(org);
+    }
+    public void removeOrganization(Organization org) {
+        if ((org == null) || (organizations == null)) return;
+        if (org.getMembers() == null) return;
+        org.getMembers().remove(this);
+        org.updateModified();
+        organizations.remove(org);
+    }
+    //see also isMemberOfDeep()
+    public boolean isMemberOf(Organization org) {
+        if (org == null) return false;
+        return org.hasMember(this);
+    }
+    public boolean isMemberOfDeep(Organization org) {
+        if (org == null) return false;
+        return org.hasMemberDeep(this);
+    }
+    //this is to handle the bidirectional dn madness when *adding* orgs
+    //  (removing are handled internally above)
+    private void organizationsReciprocate(List<Organization> orgs) {
+        if (orgs == null) return;
+        for (Organization org : orgs) {
+            if ((org.getMembers() != null) && !org.getMembers().contains(this)) org.getMembers().add(this);
+        }
+    }
+    private void organizationsReciprocate(Organization org) {  //single version for convenience
+        if (org == null) return;
+        List<Organization> orgs = new ArrayList<Organization>();
+        orgs.add(org);
+        organizationsReciprocate(orgs);
+    }
 
     //basically mean uuid-equivalent, so deal
     public boolean equals(final Object u2) {
@@ -325,12 +461,35 @@ public class User implements Serializable {
     }
 
 
+
+
+
     public String toString() {
         return new ToStringBuilder(this)
                 .append("uuid", uuid)
                 .append("username", username)
                 .append("fullName", fullName)
                 .toString();
+    }
+    
+    // Returns a somewhat rest-like JSON object containing the metadata
+    public JSONObject uiJson(HttpServletRequest request, boolean includeOrganizations) throws JSONException {
+      JSONObject jobj = new JSONObject();
+      jobj.put("uuid", this.getId());
+      jobj.put("emailAddress", this.getEmailAddress());
+      jobj.put("fullName", this.getFullName());
+      jobj.put("affiliation", this.getAffiliation());
+      jobj.put("lastLogin", Long.toString(this.getLastLogin()));
+      jobj.put("username", this.getUsername());
+
+      if(includeOrganizations) {
+        Vector<String> orgIDs = new Vector<String>();
+        for (Organization org : this.organizations) {
+          orgIDs.add(org.toJSONObject().toString());
+        }
+        jobj.put("organizations", orgIDs.toArray());
+      }
+      return jobj;
     }
 
 }

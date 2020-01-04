@@ -192,7 +192,6 @@ public class UserCreate extends HttpServlet {
           
           
           //now handle roles
-          
           //if this is not a new user, we need to blow away all old roles
           List<Role> preexistingRoles=new ArrayList<Role>();
           if(!createThisUser){
@@ -235,6 +234,66 @@ public class UserCreate extends HttpServlet {
             }
           }
           //end role processing
+          
+          //now handle organizations
+
+          //current list of orgs for the user
+          List<Organization> preexistingOrgs=new ArrayList<Organization>();
+          if(!createThisUser){
+            preexistingOrgs=myShepherd.getAllOrganizationsForUser(newUser);
+          }
+          
+          
+          User reqUser=myShepherd.getUser(request);
+          
+          //handle org requests
+          String[] orgs=request.getParameterValues("organization");
+          ArrayList<Organization> selectedOrgs=new ArrayList<Organization>();
+          if(orgs!=null){
+            int numOrgs=orgs.length;
+            //System.out.println("numRoles in context"+d+" is: "+numRoles);
+            for(int i=0;i<numOrgs;i++){
+  
+              String thisOrg=orgs[i].trim();
+              if(!thisOrg.trim().equals("")){
+                if(myShepherd.getOrganization(thisOrg)!=null){
+                  Organization org = myShepherd.getOrganization(thisOrg);
+                  selectedOrgs.add(org);
+                  //OK - add to new organizations
+                  if(!preexistingOrgs.contains(org)) {
+                    org.addMember(newUser);
+                    myShepherd.commitDBTransaction();
+                    myShepherd.beginDBTransaction();
+                  }
+                }
+              }
+            }
+        } //end if orgs==null
+          
+        //OK - remove to no longer selected orgs by seeing what the requesting user could have requested but didn't.
+
+          
+          //possible set the orgAdmin could have set
+          List<Organization> reqOrgs=new ArrayList<Organization>();
+          if(myShepherd.getUser(request)!=null) {
+            User user=myShepherd.getUser(request);
+            if(request.isUserInRole("admin")) {
+              reqOrgs=myShepherd.getAllOrganizations();
+            }
+            else {
+              reqOrgs=myShepherd.getAllOrganizationsForUser(user);
+            }
+          }
+          
+          //whittle down to those entries where the User could have been added by reqUser but wasn't intentionally
+          reqOrgs.removeAll(selectedOrgs);
+          for(Organization rOrg:reqOrgs) {
+            //for each org the requesting user could have selected for this user but didn't, remove this user from that org
+            rOrg.removeMember(newUser);
+          }
+          
+          
+
           //output success statement
           out.println(ServletUtilities.getHeader(request));
           if(createThisUser){
@@ -263,6 +322,7 @@ public class UserCreate extends HttpServlet {
     else{
         //output failure statement
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure:</strong> User was NOT successfully created. Your passwords did not match.");
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
@@ -274,7 +334,8 @@ public class UserCreate extends HttpServlet {
 else{
   //output failure statement
   out.println(ServletUtilities.getHeader(request));
-  out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username, email, and/or password information I needed.");
+  response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+  out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username and password information I needed.");
   out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
   out.println(ServletUtilities.getFooter(context));
   
