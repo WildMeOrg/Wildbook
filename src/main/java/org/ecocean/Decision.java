@@ -59,6 +59,9 @@ public class Decision {
         }
     }
 
+    public long getTimestamp() {
+        return timestamp;
+    }
 
 
 /*
