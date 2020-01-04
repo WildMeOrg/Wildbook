@@ -43,6 +43,7 @@ if (maxRole == null) {
     return;
 }
 
+boolean isAdmin = true;   //!(maxRole.equals("cat_mouse_volunteer"));
 
 //String jdoql = "SELECT FROM org.ecocean.Encounter";
 String jdoql = "SELECT FROM org.ecocean.Encounter WHERE state=='new'";
@@ -59,9 +60,25 @@ if (maxRole.equals("cat_mouse_volunteer") && !forceList && (encs.size() > 0)) {
     return;
 }
 
+String[] theads = new String[]{"ID", "Sub Date", "Last Dec"};
+if (isAdmin) theads = new String[]{"ID", "Sub Date", "Last Dec", "State", "Dec Ct", "Flags"};
 %>
 
 <jsp:include page="header.jsp" flush="true" />
+<style>
+.col-fct-0, .col-dct-0 {
+    color: #BBB;
+}
+
+.col-id {
+    position: relative;
+}
+.col-id img {
+    height: 50px;
+    float: right;
+}
+</style>
+
 
 <div class="container maincontent">
 <p>main role: <b><%=maxRole%></b></p>
@@ -70,20 +87,63 @@ if (maxRole.equals("cat_mouse_volunteer") && !forceList && (encs.size() > 0)) {
     <h1>There are no submissions needing attention right now!</h1>
 
 <% } else { %>
-<table>
+<table id="queue-table" xdata-page-size="6" data-height="650" data-toggle="table" data-pagination="false">
+<thead>
+<tr>
+<th data-sortable="true"><%=String.join("</th><th data-sortable=\"true\">", theads)%></th>
+</tr>
+</thead>
+<tbody>
 <%
     for (Encounter enc : encs) {
         out.println("<tr>");
-        out.println("<td>" + enc.getCatalogNumber() + "</td>");
+        out.println("<td class=\"col-id\">");
+        if (isAdmin) {
+            out.println("<a href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\" target=\"new\">" + enc.getCatalogNumber().substring(0,8) + "</a>");
+        } else {
+            out.println("<a href=\"encounters/encounterDecide.jsp?id=" + enc.getCatalogNumber() + "\" target=\"new\">" + enc.getCatalogNumber().substring(0,8) + "</a>");
+        }
+/*
+        if (enc.getMedia().size() > 0) {
+            out.println("<img src=\"" + enc.getMedia().get(0).safeURL(request) + "\" />");
+        }
+*/
+        out.println("</td>");
         out.println("<td>" + enc.getDate() + "</td>");
+        //out.println("<td>" + enc.getTimestamp() + "</td>");
+        out.println("<td>-</td>");
+
+        if (isAdmin) {
+            out.println("<td class=\"col-state-" + enc.getState() + "\">" + enc.getState() + "</td>");
+            jdoql = "SELECT FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "'";
+            query = myShepherd.getPM().newQuery(jdoql);
+            col = (Collection)query.execute();
+            List<Decision> decs = new ArrayList<Decision>(col);
+            query.closeAll();
+            int dct = 0;
+            int fct = 0;
+            for (Decision dec : decs) {
+                if ("sex".equals(dec.getProperty())) dct++;
+                if ("flag".equals(dec.getProperty())) fct++;
+                //out.println("<b>" + dec.getProperty() + "</b> " + dec.getValue() + "</p>");
+            }
+            out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
+            out.println("<td class=\"col-fct-" + fct + "\">" + fct + "</td>");
+        }
+
         out.println("</tr>");
     }
 %>
+</tbody>
 </table>
 
 <% } //table %>
 
 </div>
+
+    <script src="javascript/bootstrap-table/bootstrap-table.min.js"></script>
+    <link rel="stylesheet" href="javascript/bootstrap-table/bootstrap-table.min.css" />
+
 
 <jsp:include page="footer.jsp" flush="true" />
 
