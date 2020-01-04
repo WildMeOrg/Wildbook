@@ -435,6 +435,22 @@ System.out.println("     gotta compute :(");
         } else {
             System.out.println("[INFO] sendDetect() nms_thresh is null; DEFAULT will be used");
         }
+
+	        String nms_aware = IA.getProperty(context, "nms_aware");
+        if (nms_aware != null) {
+            System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
+            map.put("nms_aware", nms_aware);
+        } else {
+            System.out.println("[INFO] sendDetect() nms_aware is null; DEFAULT will be used");
+        }
+
+        String nms = IA.getProperty(context, "nms");
+        if (nms != null) {
+            System.out.println("[INFO] sendDetect() nms set to " + nms);
+            map.put("nms", nms);
+        } else {
+            System.out.println("[INFO] sendDetect() nms is null; DEFAULT will be used");
+        }
         
         String u = getDetectUrlByModelTag(context, modelTag);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
