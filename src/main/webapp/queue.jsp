@@ -2,6 +2,7 @@
 org.ecocean.*,
 javax.jdo.Query,
 java.util.Collection,
+org.joda.time.DateTime,
 org.apache.commons.lang3.StringEscapeUtils" %>
 <%
 
@@ -45,10 +46,10 @@ if (maxRole == null) {
 
 boolean isAdmin = true;   //!(maxRole.equals("cat_mouse_volunteer"));
 
-//String jdoql = "SELECT FROM org.ecocean.Encounter";
-String jdoql = "SELECT FROM org.ecocean.Encounter WHERE state=='new'";
+String jdoql = "SELECT FROM org.ecocean.Encounter";
+//String jdoql = "SELECT FROM org.ecocean.Encounter WHERE state=='new'";
 Query query = myShepherd.getPM().newQuery(jdoql);
-query.setOrdering("dateInMilliseconds");
+query.setOrdering("state, dateInMilliseconds");
 Collection col = (Collection)query.execute();
 List<Encounter> encs = new ArrayList<Encounter>(col);
 query.closeAll();
@@ -60,14 +61,18 @@ if (maxRole.equals("cat_mouse_volunteer") && !forceList && (encs.size() > 0)) {
     return;
 }
 
-String[] theads = new String[]{"ID", "Sub Date", "Last Dec"};
-if (isAdmin) theads = new String[]{"ID", "Sub Date", "Last Dec", "State", "Dec Ct", "Flags"};
+String[] theads = new String[]{"ID", "Sub Date"};
+if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec Ct", "Flags"};
 %>
 
 <jsp:include page="header.jsp" flush="true" />
 <style>
-.col-fct-0, .col-dct-0 {
+.col-flag {
+    background-color: #FAA;
+}
+.col-fct-0, .col-dct-0, .col-muted {
     color: #BBB;
+    background-color: inherit;
 }
 
 .col-id {
@@ -109,12 +114,10 @@ if (isAdmin) theads = new String[]{"ID", "Sub Date", "Last Dec", "State", "Dec C
         }
 */
         out.println("</td>");
+        if (isAdmin) out.println("<td class=\"col-state-" + enc.getState() + "\">" + enc.getState() + "</td>");
         out.println("<td>" + enc.getDate() + "</td>");
-        //out.println("<td>" + enc.getTimestamp() + "</td>");
-        out.println("<td>-</td>");
 
         if (isAdmin) {
-            out.println("<td class=\"col-state-" + enc.getState() + "\">" + enc.getState() + "</td>");
             jdoql = "SELECT FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "'";
             query = myShepherd.getPM().newQuery(jdoql);
             col = (Collection)query.execute();
@@ -122,13 +125,21 @@ if (isAdmin) theads = new String[]{"ID", "Sub Date", "Last Dec", "State", "Dec C
             query.closeAll();
             int dct = 0;
             int fct = 0;
+            long lastT = 0L;
             for (Decision dec : decs) {
                 if ("sex".equals(dec.getProperty())) dct++;
                 if ("flag".equals(dec.getProperty())) fct++;
                 //out.println("<b>" + dec.getProperty() + "</b> " + dec.getValue() + "</p>");
+                if (dec.getTimestamp() > lastT) lastT = dec.getTimestamp();
+            }
+            if (lastT > 0L) {
+                //out.println("<td class=\"col-muted\">9999</td>");
+                out.println("<td class=\"col-date\">" + new DateTime(lastT).toLocalDate() + "</td>");
+            } else {
+                out.println("<td class=\"col-muted\">-</td>");
             }
             out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
-            out.println("<td class=\"col-fct-" + fct + "\">" + fct + "</td>");
+            out.println("<td class=\"col-flag col-fct-" + fct + "\">" + fct + "</td>");
         }
 
         out.println("</tr>");
