@@ -284,22 +284,30 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
     updateLinks(linkData=this.linkData) {	
 	//Add link labels
-	let linkText = this.svg.selectAll('.linkLabel')
+	let linkLabels = this.svg.selectAll('.linkLabel')
 	    .data(linkData, d => d.linkId);
 
-	linkText.exit()
+	linkLabels.exit()
 	    .transition().duration(this.transitionDuration)
 	    .attr("opacity", 0)
 	    .remove();
 	
-	this.linkText = linkText.enter().append("text")
+	this.linkLabels = linkLabels.enter().append("g")
 	    .attr("class", "linkLabel")
-	    .attr("opacity", 0.25)
-	    .text(d => d.count)
-	    .lower()
-	    .merge(linkText);
+	    .attr("opacity", 0)
+	    .lower();
+	
+	this.linkLabels.append("circle")
+	    .attr("r", 9)
+	    .style("fill", "white");
 
-	this.linkText.transition()
+	this.linkLabels.append("text")
+	    .attr("dy", "0.4em")
+	    .attr("dx", "-0.2em")
+	    .text(d => d.count)
+	    .attr("font-size", 12);
+
+	this.linkLabels.transition()
 	    .duration(this.transitionDuration)
 	    .attr("opacity", 1);
 
@@ -310,18 +318,15 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     ticked(self) {
 	super.ticked(self);
 
-	self.linkText.attr("x", d => this.centerLink(d, "x"))
-	    .attr("y", d => this.centerLink(d, "y"));
+	self.linkLabels.attr("transform", d => "translate(" + this.linearInterp(d, "x") +
+			     "," + this.linearInterp(d, "y") + ")");
     }
 
-    //TODO - Could be cleaner
-    centerLink(link, axis) {
+    linearInterp(link, axis) {
 	let src = link.source[axis];
 	let target = link.target[axis];
 	let diff = src - target;
-	
-	let pos = target + (diff * 0.4);
-	return pos;
+	return target + (diff * 0.4);
     }
 
 }

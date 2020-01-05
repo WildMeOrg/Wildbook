@@ -181,7 +181,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 
 	//Join w/ existing nodes
 	this.nodes = nodes.merge(newNodes)
-	let activeNodes = this.nodes.filter(d => !d.filtered);
+	let activeNodes = this.nodes.filter(d => !d.filtered); //TODO - Switch to newNodes
 	
 	//Style nodes
 	this.updateNodeOutlines(newNodes, activeNodes);
