@@ -289,28 +289,35 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
 	linkLabels.exit()
 	    .transition().duration(this.transitionDuration)
+	    .attrTween("transform", d => {
+		       return () => { "translate(" + this.linearInterp(d, "x") +
+				      "," + this.linearInterp(d, "y") + ")" }
+	    })
 	    .attr("opacity", 0)
 	    .remove();
 	
-	this.linkLabels = linkLabels.enter().append("g")
+	let newLabels = linkLabels.enter().append("g")
 	    .attr("class", "linkLabel")
 	    .attr("opacity", 0)
 	    .lower();
 	
-	this.linkLabels.append("circle")
+	newLabels.append("circle")
 	    .attr("r", 9)
 	    .style("fill", "white");
 
-	this.linkLabels.append("text")
+	newLabels.append("text")
 	    .attr("dy", "0.4em")
 	    .attr("dx", "-0.2em")
 	    .text(d => d.count)
-	    .attr("font-size", 12);
+	    .attr("font-size", 15)
+	    .attr("font-weight", "bold");
 
-	this.linkLabels.transition()
+	newLabels.transition()
 	    .duration(this.transitionDuration)
 	    .attr("opacity", 1);
 
+	this.linkLabels = newLabels.merge(linkLabels);
+	
 	//Add link edges
 	super.updateLinks(linkData);
     }

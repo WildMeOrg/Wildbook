@@ -68,12 +68,11 @@ class GraphAbstract {
 			     "vert": this.legendMargin.top};
 	this.legendNodeColors = [this.maleColor, this.femaleColor, this.defGenderColor];
 	this.legendLinkColors = [this.paternalLinkColor, this.maternalLinkColor, this.famLinkColor];
-	this.legendLabels = ["Male Sex", "Female Sex", "Unknown Sex", "Organism",
-			     "Paternal Relationship", "Maternal Relationship",
+	this.legendLabels = ["Male Sex", "Female Sex", "Unknown Sex", "Alpha Role",
+			     "Organism", "Paternal Relationship", "Maternal Relationship",
 			     "Familial Relationship", "Member Relationship"];
 	this.legendIcons = {"size": 15, "margin": 8, "mSize": 23};
 	this.legendStrokeWidth = 2;
-	this.legendRowsPerCol = 4;
 
 	//Filter Attributes
 	this.validFamilyFilters = ["selectFamily", "filterFamily"]
@@ -133,8 +132,9 @@ class GraphAbstract {
 	    .append("g");
     }
 
+    //TODO - Modularize
     //Append graph legend to top-level SVG
-    addLegend(containerId=this.containerId, rowsPerCol=4, rowSpacing=120) {
+    addLegend(containerId=this.containerId, rowsPerCol=5, rowSpacing=120) {
 	//Append the legend group
 	let legendRef = d3.select(containerId + " svg").append("g")
 	    .attr("class", "legend")
@@ -156,6 +156,13 @@ class GraphAbstract {
             .attr("height", this.legendIcons.size)
             .attr("fill", d => d);
 
+	//Add alpha symbol example
+	legendRef.append("circle")
+            .attr("cx", (Math.floor(xIdx++ / rowsPerCol) * rowSpacing) + this.legendIcons.size / 2)
+            .attr("cy", ((yIdx++ % rowsPerCol) * this.legendIcons.mSize) + this.legendIcons.size / 2)
+            .attr("r", this.legendIcons.size / 2)
+            .attr("fill", this.alphaColor)
+	
 	//Add organism circle example
 	legendRef.append("circle")
             .attr("cx", (Math.floor(xIdx++ / rowsPerCol) * rowSpacing) + this.legendIcons.size / 2)
@@ -229,7 +236,7 @@ class GraphAbstract {
 	}
     }
 
-    //Draw alpha symbols for all given nodes which qualify
+    //Draw alpha symbols for all given nodes with isAlpha attribute
     updateNodeSymbols(newNodes, activeNodes) {
 	//Add new node symbols
 	newNodes.append("path")
