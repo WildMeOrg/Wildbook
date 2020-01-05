@@ -290,8 +290,9 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	linkLabels.exit()
 	    .transition().duration(this.transitionDuration)
 	    .attrTween("transform", d => {
-		       return () => { "translate(" + this.linearInterp(d, "x") +
-				      "," + this.linearInterp(d, "y") + ")" }
+		let self = this;
+		return () => "translate(" + self.linearInterp(d, "x") +
+		    "," + self.linearInterp(d, "y") + ")"
 	    })
 	    .attr("opacity", 0)
 	    .remove();
