@@ -83,6 +83,8 @@ class ForceLayoutAbstract extends GraphAbstract {
     
     //Render a graph with updated data
     updateGraph(linkData=this.linkData, nodeData=this.nodeData) {
+	console.log(linkData);
+	
 	//Update render data
 	this.updateLinks(linkData);
 	this.updateNodes(nodeData);
@@ -100,15 +102,14 @@ class ForceLayoutAbstract extends GraphAbstract {
 
 	//Remove links w/ fade out
 	links.exit()
-	    .transition()
-	    .duration(this.transitionDuration)
+	    .transition().duration(this.transitionDuration)
 	    .attr("opacity", 0)
 	    .attrTween("x1", d => function() { return d.source.x; })
 	    .attrTween("x2", d => function() { return d.target.x; })
 	    .attrTween("y1", d => function() { return d.source.y; })
 	    .attrTween("y2", d => function() { return d.target.y; })
 	    .remove();
-
+	
 	//Define link attributes
 	this.links = links.enter().append("line")
 	    .attr("class", "link")
@@ -133,7 +134,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.filterNodes();
 
 	//Update/unfilter all nodes
-	this.unfilterNodes();
+	this.drawNodes();
 
 	//Center the focused node
 	if (this.focusedNode) this.centerNode(this.focusedNode);
@@ -166,7 +167,7 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     //Unfilter and update node characteristics
-    unfilterNodes(nodeData=this.nodeData) {
+    drawNodes(nodeData=this.nodeData) {
 	//Define node parent/data
 	let nodes = this.svg.selectAll(".node")
 	    .data(nodeData, d => d.id);
@@ -256,7 +257,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.svg.transition()
 	    .duration(this.transitionDuration + 250) //Delay slightly for stability
 	    .attr("transform", "translate(" + (this.width/2 - d.x) + "," +
-		  (this.height/2 - d.y) + ")scale(1)");
+		  (this.height/2 - d.y) + ")");
     }
 
     //Begin moving node on drag, allow for graph interactions
@@ -332,7 +333,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 		.forEach(d => d.filtered = false);
 	    
 	    let linkData = this.linkData.filter(d => !d.source.filtered && !d.target.filtered);
-	    this.prevLinkData = this.prevLinkData.concat(linkData);
+	    this.prevLinkData = this.getUnique(this.prevLinkData.concat(linkData));
 	}
 	else { //Apply filter
 	    this.filtered[filterType][groupNum] = true;
@@ -398,5 +399,12 @@ class ForceLayoutAbstract extends GraphAbstract {
     //Returns the source node of a given link
     getLinkSource(link) {
 	return this.nodeData.find(node => node.id === link.source);
+    }
+
+    //Remove duplicates from array
+    getUnique(arr) {
+	return arr.filter((el, pos, arr) => {
+	    return arr.indexOf(el) == pos;
+	});
     }
 }

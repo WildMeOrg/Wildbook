@@ -142,14 +142,6 @@ class GraphAbstract {
 	    .attr("width", this.legendWidth)
 	    .attr("transform", "translate(" + this.legendOffset.horiz  + "," + this.legendOffset.vert + ")")
 
-	//TODO - Finish
-	//Apply background coloration
-	/*legendRef.append("rect")
-	    .attr("width", "100%")
-	    .attr("height", "100%")
-	    .attr("fill", "#eeeeee")
-	    .attr("opacity", 0.2)*/
-
 	//Initialize position references
 	let xIdx = 0, yIdx = 0;
 
@@ -207,7 +199,7 @@ class GraphAbstract {
     }
 
     //Draw each node with prescribed radius, fill, and outline
-    updateNodeOutlines(newNodes=this.nodes, activeNodes=this.nodes) {
+    updateNodeOutlines(newNodes, activeNodes) {
 	//Create new node outlines
 	newNodes.append("circle")
 	    .attr("r", this.startingRadius)
@@ -238,7 +230,7 @@ class GraphAbstract {
     }
 
     //Draw alpha symbols for all given nodes which qualify
-    updateNodeSymbols(newNodes=this.nodes, activeNodes=this.nodes) {
+    updateNodeSymbols(newNodes, activeNodes) {
 	//Add new node symbols
 	newNodes.append("path")
 	    .attr("class", "symb")
@@ -273,7 +265,7 @@ class GraphAbstract {
     }
 
     //Add text to the given nodes
-    updateNodeText(newNodes=this.nodes, activeNodes=this.nodes) {
+    updateNodeText(newNodes, activeNodes) {
 	//Add new node text
 //	let boundedLength = 2 * this.radius * Math.cos(Math.PI / 4); //Necessary dimensions of bounding rectangle
 	newNodes.append("text")

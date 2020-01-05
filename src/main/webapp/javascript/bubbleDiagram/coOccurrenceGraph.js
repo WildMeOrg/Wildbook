@@ -98,6 +98,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 			{
 			    "datetime_ms": 2500,
 			    "location": {"lat": -1, "lon": 0}
+			},
+			{
+			    "datetime_ms": 2500, //Test duplicate
+			    "location": {"lat": -1, "lon": 0}
 			}
 		    ],
 		}
@@ -115,7 +119,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
     //Generate a co-occurrence graph
     graphOccurenceData(error, json) {
-	if (error) return console.error(json);
+	if (error) console.error(json);
 	else if (json.length >= 1) { 
 	    //Create graph w/ forces
 	    this.setupGraph(this.linkData, this.nodeData);
@@ -133,9 +137,21 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	this.updateRangeSliders();
     }
 
+    updateGraph(linkData=this.linkData, nodeData=this.nodeData) {
+	//Update link data
+	this.updateLinkThreshCount(this.focusedNode);
+	
+	super.updateGraph(linkData, nodeData);
+    }
 
     //Calculate the maximum and average node differences for the spatial/temporal sliders
     getRangeSliderAttr(refNode) {
+	let [distArr, timeArr] = this.analyzeNodeData(refNode);
+	this.sliders.temporal.max = Math.ceil(Math.max(...timeArr));
+	this.sliders.spatial.max = Math.ceil(Math.max(...distArr));
+    }
+
+    analyzeNodeData(refNode) {
 	let distArr = [], timeArr = []
 	this.nodeData.forEach(d => {
 	    if (d.id !== refNode.id) {
@@ -146,11 +162,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    }
 	});
 
-	this.sliders.temporal.max = Math.ceil(Math.max(...timeArr));
-	this.sliders.temporal.mean = timeArr.reduce((a,b) => a + b, 0) / timeArr.length;
-
-	this.sliders.spatial.max = Math.ceil(Math.max(...distArr));
-	this.sliders.spatial.mean = distArr.reduce((a,b) => a + b, 0) / distArr.length;
+	return [distArr, timeArr]
     }
 
     //Wrapper for finding the minimum spatial/temporal differences between two nodes
@@ -160,11 +172,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	return this.getNodeMinBruteForce(node1Sightings, node2Sightings, type);
     }
 
-    //TODO - Update thresh and mincount
+    //TODO - Update combine w/ thresh
     //TODO - Consider strip optimizations
     //Find the minimum spatial/temporal difference between two node sightings
-    getNodeMinBruteForce(node1Sightings, node2Sightings, type, thresh=0) {
-	let count = 0;
+    getNodeMinBruteForce(node1Sightings, node2Sightings, type) {
 	let val, min = Number.MAX_VALUE;
 	node1Sightings.forEach(node1 => {
 	    node2Sightings.forEach(node2 => {
@@ -174,13 +185,43 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		    val = this.calculateTime(node1.datetime_ms, node2.datetime_ms);
 
 		if (val < min) min = val;
-		if (val <= thresh) count++;
 	    });
 	});
 
 	return min;
     }
 
+    //TODO - Cleanup
+    updateLinkThreshCount(refNode) {
+	let spatialThresh = parseInt($("#spatial").val());
+	let temporalThresh = parseInt($("#temporal").val());
+	
+	this.linkData.forEach(link => {
+	    let linkTarget = link.target.id || link.target;
+	    let node = this.nodeData.find(node => node.id === linkTarget);
+	    let count = this.getLinkThreshCount(refNode, node, spatialThresh, temporalThresh);
+	    link.count = count;
+	});
+    }
+
+    //TODO - Cleanup
+    getLinkThreshCount(node1, node2, spatialThresh, temporalThresh) {
+	let node1Sightings = node1.data.sightings;
+	let node2Sightings = node2.data.sightings;
+
+	let count = 0;
+	node1Sightings.forEach(node1 => {
+	    node2Sightings.forEach(node2 => {
+		let spatialVal = this.calculateDist(node1.location, node2.location);
+		let temporalVal = this.calculateTime(node1.datetime_ms, node2.datetime_ms);
+
+		if (spatialVal <= spatialThresh && temporalVal <= temporalThresh) count++;
+	    });
+	});
+
+	return count;
+    }
+    
     //Calculate the spatial difference between two node sighting locations
     calculateDist(node1Loc, node2Loc) {
 	return Math.pow(Math.abs(Math.pow(node1Loc.lon - node2Loc.lon, 2) -
@@ -240,6 +281,49 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    $("#" + slider.ref).val(slider.max)
 	});
     }
+
+    updateLinks(linkData=this.linkData) {	
+	//Add link labels
+	let linkText = this.svg.selectAll('.linkLabel')
+	    .data(linkData, d => d.linkId);
+
+	linkText.exit()
+	    .transition().duration(this.transitionDuration)
+	    .attr("opacity", 0)
+	    .remove();
+	
+	this.linkText = linkText.enter().append("text")
+	    .attr("class", "linkLabel")
+	    .attr("opacity", 0.25)
+	    .text(d => d.count)
+	    .lower()
+	    .merge(linkText);
+
+	this.linkText.transition()
+	    .duration(this.transitionDuration)
+	    .attr("opacity", 1);
+
+	//Add link edges
+	super.updateLinks(linkData);
+    }
+
+    ticked(self) {
+	super.ticked(self);
+
+	self.linkText.attr("x", d => this.centerLink(d, "x"))
+	    .attr("y", d => this.centerLink(d, "y"));
+    }
+
+    //TODO - Could be cleaner
+    centerLink(link, axis) {
+	let src = link.source[axis];
+	let target = link.target[axis];
+	let diff = src - target;
+	
+	let pos = target + (diff * 0.4);
+	return pos;
+    }
+
 }
 
 
