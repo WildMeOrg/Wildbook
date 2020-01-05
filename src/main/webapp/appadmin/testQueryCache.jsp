@@ -10,6 +10,8 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 
 <%
 
+
+
 String context="context0";
 context=ServletUtilities.getContext(request);
 
@@ -38,7 +40,7 @@ QueryCache qc=QueryCacheFactory.getQueryCache(context);
 if(request.getParameter("delete")!=null){
 	%>
 
-	<p>OK, delete everything old...</p>
+	<p>OK, delete everything old2...</p>
 
 	<%
 	List<StoredQuery> st=myShepherd.getAllStoredQueries();
@@ -69,6 +71,8 @@ if(request.getParameter("delete")!=null){
 
 try{
 	
+
+	
 	if(qc.getQueryByName("numMarkedIndividuals")==null){
 		StoredQuery sq=new StoredQuery("numMarkedIndividuals", "SELECT FROM org.ecocean.MarkedIndividual");
 		sq.setExpirationTimeoutDuration(600000);
@@ -77,6 +81,7 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries();
 	}
+	
 	if(qc.getQueryByName("numEncounters")==null){
 		StoredQuery sq=new StoredQuery("numEncounters", "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null");
 		sq.setExpirationTimeoutDuration(600000);
@@ -115,7 +120,7 @@ try{
 
 	//dragondsearch custom counters
 	if(qc.getQueryByName("numLeafy")==null){
-		StoredQuery sq=new StoredQuery("numLeafy", "SELECT FROM org.ecocean.Encounter WHERE individualID != null && genus == 'Phycodurus' && specificEpithet == 'eques' ");
+		StoredQuery sq=new StoredQuery("numLeafy", "SELECT FROM org.ecocean.Encounter WHERE individual != null && genus == 'Phycodurus' && specificEpithet == 'eques' ");
 		sq.setExpirationTimeoutDuration(300000);
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
@@ -123,7 +128,7 @@ try{
 		qc.loadQueries();
 	}
 	if(qc.getQueryByName("numWeedy")==null){
-		StoredQuery sq=new StoredQuery("numWeedy", "SELECT FROM org.ecocean.Encounter WHERE individualID != null && genus == 'Phyllopteryx' && specificEpithet == 'taeniolatus' ");
+		StoredQuery sq=new StoredQuery("numWeedy", "SELECT FROM org.ecocean.Encounter WHERE individual != null && genus == 'Phyllopteryx' && specificEpithet == 'taeniolatus' ");
 		sq.setExpirationTimeoutDuration(300000);
 		myShepherd.getPM().makePersistent(sq);
 		myShepherd.commitDBTransaction();
@@ -148,6 +153,7 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries();
 	}
+	
 
 	Map<String,CachedQuery> queries=qc.cachedQueries();
 	Set<String> keys=queries.keySet();
