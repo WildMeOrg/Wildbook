@@ -42,6 +42,9 @@ props = ShepherdProperties.getProperties("header.properties", langCode, context)
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
+
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -294,7 +297,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     </ul>
 
 
-                    <style type="text/css">
+                   <style type="text/css">
                       #header-search-button, #header-search-button:hover {
                         color: inherit;
                         background-color: inherit;
@@ -312,8 +315,9 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     <div class="search-wrapper">
                       <label class="search-field-header">
                             <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
-                              <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
-                              <button type="submit" id="header-search-button"><span class="el el-lg el-search"></span></button>
+                              <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+                              <input type="hidden" name="langCode" value="<%=langCode%>"/>
+                              <span class="el el-lg el-search"></span>
                           </form>
                       </label>
                     </div>
@@ -525,8 +529,10 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             </nav>
         </header>
 
+
         <script>
         $('#search-site').autocomplete({
+            // sortResults: true, // they're already sorted
             appendTo: $('#navbar-top'),
             response: function(ev, ui) {
                 if (ui.content.length < 1) {
@@ -537,7 +543,10 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
             },
             select: function(ev, ui) {
                 if (ui.item.type == "individual") {
-                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
+                    window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?id=") %>" + ui.item.value);
+                }
+                else if (ui.item.type == "encounter") {
+                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number=") %>" + ui.item.value);
                 }
                 else if (ui.item.type == "locationID") {
                 	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
@@ -564,6 +573,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     success: function( data ) {
                         var res = $.map(data, function(item) {
                             var label="";
+                            var nickname="";
                             if ((item.type == "individual")&&(item.species!=null)) {
 //                                label = item.species + ": ";
                             }
@@ -572,9 +582,15 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             } else {
                                 label = "";
                             }
-                            return {label: label + item.label,
+                            
+                            if(item.nickname != null){
+                            	nickname = " ("+item.nickname+")";
+                            }
+                            
+                            return {label: label + item.label+nickname,
                                     value: item.value,
-                                    type: item.type};
+                                    type: item.type,
+                                    nickname: nickname};
                             });
 
                         response(res);
@@ -582,6 +598,27 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 });
             }
         });
+        //prevent enter key on tyeahead
+        $('#search-site').keydown(function (e) {
+                	    if (e.keyCode == 13) {
+                	        e.preventDefault();
+                	        return false;
+                	    }
+        });
+
+
+        // if there is an organization param, set it as a cookie so you can get yer stylez without appending to all locations
+        let urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("organization")) {
+          let orgParam = urlParams.get("organization");
+          $.cookie("wildbookOrganization", orgParam, {
+              path    : '/',     
+              secure  : false, 
+              expires : 1
+          });
+        }
+
+
         </script>
 
         <!-- ****/header**** -->
