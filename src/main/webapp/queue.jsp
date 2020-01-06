@@ -1,9 +1,63 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,
 org.ecocean.*,
 javax.jdo.Query,
+java.util.Map, java.util.HashMap,
+org.json.JSONObject, org.json.JSONArray,
+org.ecocean.servlet.export.ExportExcelFile,
 java.util.Collection,
 org.joda.time.DateTime,
 org.apache.commons.lang3.StringEscapeUtils" %>
+<%!
+
+private static void generateData(Shepherd myShepherd, File file, String dtype) throws java.io.IOException {
+    String jdoql = "SELECT FROM org.ecocean.Decision";
+    Query query = myShepherd.getPM().newQuery(jdoql);
+    query.setOrdering("timestamp");
+    Collection col = (Collection)query.execute();
+    List<Decision> decs = new ArrayList<Decision>(col);
+    query.closeAll();
+
+    List rows = new ArrayList<String[]>();
+    if ("match".equals(dtype)) {
+    } else {
+        String[] head = new String[]{"Enc ID", "Cat ID", "Timestamp", "Date/Time", "User ID", "Username", "sex", "colorPattern", "collar", "earTip", "lifeStage", "flag"};
+        rows.add(head);
+        Map<String,Integer> indMap = new HashMap<String,Integer>();
+        for (int i = 0 ; i < head.length ; i++) {
+            indMap.put(head[i], i);
+        }
+        Map<String,String[]> dataMap = new HashMap<String,String[]>();
+        for (Decision dec : decs) {
+            JSONObject d = dec.getValue();
+            if (d == null) continue;
+            String mid = d.optString("_multipleId", null);
+            if (mid == null) continue;
+            if (dataMap.get(mid) == null) dataMap.put(mid, new String[head.length]);
+            dataMap.get(mid)[0] = dec.getEncounter().getCatalogNumber();
+            dataMap.get(mid)[1] = dec.getEncounter().getIndividualID();
+            dataMap.get(mid)[2] = Long.toString(dec.getTimestamp());
+            dataMap.get(mid)[3] = new DateTime(dec.getTimestamp()).toString();
+            dataMap.get(mid)[4] = dec.getUser().getUUID();
+            dataMap.get(mid)[5] = dec.getUser().getUsername();
+            Integer valI = indMap.get(dec.getProperty());
+            String val = d.optString("value", null);
+            if ((val == null) && (d.optJSONArray("value") != null)) val = d.getJSONArray("value").join(", ");
+            if (valI == null) {
+                System.out.println("WARNING: queue.generateData() found bad property " + dec.getProperty() + " on Decision id=" + dec.getId());
+            } else {
+                dataMap.get(mid)[valI] = val;
+            }
+        }
+        for (String mid : dataMap.keySet()) {
+            rows.add(dataMap.get(mid));
+//System.out.println(String.join("|", dataMap.get(mid)));
+        }
+    }
+
+    ExportExcelFile.quickExcel(rows, file);
+}
+
+%>
 <%
 
 //setup our Properties object to hold all properties
@@ -45,6 +99,14 @@ if (maxRole == null) {
 }
 
 boolean isAdmin = true;   //!(maxRole.equals("cat_mouse_volunteer"));
+
+String dtype = request.getParameter("data");
+if (Util.requestParameterSet(dtype)) {
+    File xls = new File("/tmp/test.xls");
+    generateData(myShepherd, xls, dtype);
+    out.println("done: " + xls);
+    return;
+}
 
 String jdoql = "SELECT FROM org.ecocean.Encounter";
 //String jdoql = "SELECT FROM org.ecocean.Encounter WHERE state=='new'";
