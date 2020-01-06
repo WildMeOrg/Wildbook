@@ -260,6 +260,9 @@ System.out.println("findSimilar() -> " + el.toString());
     left: 0;
     top: 0;
 }
+.match-item:hover .match-item-info {
+    display: none;
+}
 .match-asset-wrapper {
     position: relative;
     overflow: hidden;
@@ -269,7 +272,34 @@ System.out.println("findSimilar() -> " + el.toString());
 .match-asset {
     position: absolute;
 }
-
+.match-choose {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 2px 8px;
+    background-color: #AAA;
+    border-radius: 5px;
+}
+.match-choose:hover {
+    background-color: #DDA;
+}
+.match-choose label {
+    font-weight: bold;
+    cursor: pointer;
+}
+#match-chosen-button {
+    display: none;
+}
+#match-controls {
+    padding: 10px;
+    background: #CCC;
+    position: fixed;
+    bottom: 10px;
+    border-radius: 10px;
+    width: 30%;
+    height: 150px;
+    z-index: 100;
+}
 </style>
 
 <script type="text/javascript">
@@ -290,6 +320,7 @@ $(document).ready(function() {
     $('.enc-asset').panzoom().on('panzoomend', function(ev, panzoom, matrix, changed) {
         if (!changed) return $(ev.currentTarget).panzoom('zoom');
     });
+/*
     $('.enc-asset').panzoom().on('panzoomchange', function(ev, panzoom, matrix, changed) {
         $('body').css('overflow', 'auto');
         //$('html').css('overflow', 'auto');
@@ -298,6 +329,7 @@ $(document).ready(function() {
         $('body').css('overflow', 'hidden');
         //$('html').css('overflow', 'hidden');
     });
+*/
     $('.enc-asset').on('dblclick', function(ev) {
         $(ev.currentTarget).panzoom('reset');
     });
@@ -390,6 +422,7 @@ console.log(url);
                     for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
                         var score = matchScore(xhr.responseJSON.similar[i]);
                         var h = '<div class="match-item">';
+                        h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="checkbox" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
                         for (var j = 0 ; j < xhr.responseJSON.similar[i].assets.length ; j++) {
                             h += '<div class="match-asset-wrapper"><img onLoad="matchAssetLoaded(this);" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].assets[j].id] = xhr.responseJSON.similar[i].assets[j];
@@ -409,6 +442,14 @@ console.log(url);
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
+                    $('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">No matches</label></div><input type="button" id="match-chosen-button" value="Save match choice" onClick="saveMatchChoice();" /></div>');
+                    $('.match-chosen-cat').on('click', function(ev) {
+                        var id = ev.target.id;
+console.log(id);
+                        $('.match-chosen-cat').prop('checked', false);
+                        $('#' + id).prop('checked', true);
+                        $('#match-chosen-button').show();
+                    });
                 }
             }
         },
@@ -417,6 +458,28 @@ console.log(url);
     });
 }
 
+function saveMatchChoice() {
+    var ch = $('.match-chosen-cat:checked').val();
+    if (!ch) return;
+    console.log('saving %s', ch);
+    $('#match-chosen-button').hide();
+    $.ajax({
+        url: '../DecisionStore',
+        data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch } }),
+        dataType: 'json',
+        complete: function(xhr) {
+            console.log(xhr);
+            if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
+                console.warn("responseJSON => %o", xhr.responseJSON);
+                alert('ERROR saving: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
+            } else {
+                window.location.href = '../queue.jsp';
+            }
+        },
+        contentType: 'application/javascript',
+        type: 'POST'
+    });
+}
 
 function matchScore(mdata) {
     var score = 1;
@@ -430,6 +493,10 @@ function matchScore(mdata) {
 }
 
 function matchAssetLoaded(el) {
+    $(el).panzoom().on('panzoomend', function(ev, panzoom, matrix, changed) {
+        if (!changed) return $(ev.currentTarget).panzoom('zoom');
+    });
+return;
     var id = el.id.substr(12);
     toggleZoom(id);
 }
