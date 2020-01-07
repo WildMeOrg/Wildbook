@@ -74,7 +74,7 @@
 
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
-				/appadmin/users.jsp = authc, roles[orgAdmin]
+				/appadmin/users.jsp = authc, roles[admin,orgAdmin]
 				/appadmin/iaSpeciesDiff.jsp = = authcBasicWildbook,roles[rest]
 
 
@@ -173,8 +173,8 @@
 		        # /SinglePhotoVideoAddKeyword = authc, roles[researcher]
 		         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 		         /EncounterSearchExportKML = authc, roles[researcher]
-		         /UserCreate = authc, roles[orgAdmin]
-				 /UserDelete = authc, roles[orgAdmin]
+		         /UserCreate = authc, roles[admin,orgAdmin]
+				 /UserDelete = authc, roles[admin,orgAdmin]
 				/ResetCommonConfiguration = authc, roles[admin]
 				/ResurrectDeletedEncounter = authc, roles[admin]
                	/UserResetAcceptedUserAgreement = authc, roles[admin]
@@ -404,6 +404,7 @@
 				
 				/merge.jsp = authc, roles[researcher]
 				/mergeComplete.jsp = authc, roles[researcher]
+				/AnnotationSetMatchAgainst = authc, roles[admin]
             </param-value>
         </init-param>
     </filter>
@@ -1913,10 +1914,17 @@
       <servlet-name>WebImport</servlet-name>
       <url-pattern>/WebImport</url-pattern>
   </servlet-mapping>
+
   <servlet-mapping>
       <servlet-name>WebImport</servlet-name>
       <url-pattern>/import/upload</url-pattern>
   </servlet-mapping>
+
+    <servlet-mapping>
+      <servlet-name>StandardImport</servlet-name>
+      <url-pattern>/import/standard-upload</url-pattern>
+  </servlet-mapping>
+
 
   <servlet-mapping>
       <servlet-name>FixStandardImport</servlet-name>
@@ -2489,6 +2497,16 @@
   <servlet-mapping>
     <servlet-name>AddOccToTrack</servlet-name>
     <url-pattern>/AddOccToTrack</url-pattern>
+  </servlet-mapping>
+  
+        <servlet>
+    <servlet-name>AnnotationSetMatchAgainst</servlet-name>
+    <servlet-class>org.ecocean.servlet.AnnotationSetMatchAgainst</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>AnnotationSetMatchAgainst</servlet-name>
+    <url-pattern>/AnnotationSetMatchAgainst</url-pattern>
   </servlet-mapping>
 
 </web-app>

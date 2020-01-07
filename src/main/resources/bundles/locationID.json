@@ -41,7 +41,15 @@
 			  	{
 				  "name": "Gulf of Alaska", "id": "Gulf of Alaska" },
 				
-				{ "name":"California", "id":"California", "locationID":[] },
+				{ "name":"California", "id":"California", "locationID":[
+				
+					{ "name":"Catalina", "id":"Catalina", "locationID":[] },
+					{ "name":"Dana Point", "id":"Dana Point", "locationID":[] },
+					{ "name":"Long Beach", "id":"Long Beach", "locationID":[] },
+					{ "name":"Newport", "id":"Newport", "locationID":[] }
+				
+				
+				] },
 				{ "name":"Central Oregon", "id":"Central Oregon", "locationID":[] },
 				
 				{ "name":"Canada", "id":"Canada", "locationID":[] },
@@ -339,6 +347,7 @@
 			  {"name":"U.S. Eastern Seaboard","id":"U.S. Eastern Seaboard","locationID":[
 			  
 					{ "name":"Montauk NY", "id":"Montauk NY", "locationID":[] },
+					{ "name":"Cape May, NJ", "id":"CapeMay", "locationID":[] },
 					{ "name":"NY Bight", "id":"NY Bight", "locationID":[] },
 					{"name":"BOF-BOF","id":"BOF-BOF"},
 					{
@@ -903,9 +912,11 @@
 	
 	{ "name":"Test Sets", "id":"TestSets", "locationID":[
 				{ "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] },
-				{ "name":"SDRPTestSet", "id":"SDRPTestSet", "locationID":[] },
+				{ "name":"SDRPTestSet_Encounter", "id":"SDRPTestSet_Encounter", "locationID":[] },
+				{ "name":"SDRPTestSet_Catalog", "id":"SDRPTestSet_Catalog", "locationID":[] },
+				{ "name":"CRC2017Test", "id":"CRC2017Test", "locationID":[] },
 				
-		{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
+				{ "name":"__TEST__", "id":"__TEST__", "locationID":[] }
 	] },
 	
 	

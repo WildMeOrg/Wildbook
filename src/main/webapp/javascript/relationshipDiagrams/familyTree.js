@@ -22,7 +22,7 @@ var children = [];
 var parents = [];
 var role;
 
-function setupFamilyTree(individualID) {
+function setupFamilyTree(individualID,displayName) {
 
   d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.social.Relationship WHERE (this.type == \"Familial\") && (this.markedIndividualName1 == \"" + individualID + "\" || this.markedIndividualName2 == \"" + individualID + "\")"), function(error, json){
 
@@ -86,8 +86,8 @@ function setupFamilyTree(individualID) {
       // be in both so we create proxy nodes for the root only.
       findChildren(json, individualID);
       findParents(json, individualID);
-      var ancestorRoot = rootProxy(json, individualID);
-      var descendantRoot = rootProxy(json, individualID);
+      var ancestorRoot = rootProxy(json, individualID,displayName);
+      var descendantRoot = rootProxy(json, individualID,displayName);
 
       // Start with only the first few generations of ancestors showing
       // ancestorRoot._parents.forEach(function(parents){
@@ -118,10 +118,10 @@ var showIncompleteInformationMessage = function() {
 var findChildren = function(root, individualID) {
   for (var i = 0; i < root.length; i++) {
     if ((root[i].markedIndividualName1 == individualID) && (root[i].markedIndividualRole1 == "mother")){
-      children.push({name: root[i].markedIndividualName2, role: root[i].markedIndividualRole2});
+      children.push({name: root[i].individual2.displayName, role: root[i].markedIndividualRole2});
       role = root[i].markedIndividualRole1;
     } else if ((root[i].markedIndividualName2 == individualID) && (root[i].markedIndividualRole2 == "mother")){
-      children.push({name: root[i].markedIndividualName1, role: root[i].markedIndividualRole1});
+      children.push({name: root[i].individual1.displayName, role: root[i].markedIndividualRole1});
       role = root[i].markedIndividualRole2;
     }
   }
@@ -131,19 +131,19 @@ var findChildren = function(root, individualID) {
 var findParents = function(root, individualID) {
   for (var i = 0; i < root.length; i++) {
     if ((root[i].markedIndividualName1 == individualID) && (root[i].markedIndividualRole1 == "calf")){
-      parents.push({name: root[i].markedIndividualName2, role: root[i].markedIndividualRole2});
+      parents.push({name: root[i].individual2.displayName, role: root[i].markedIndividualRole2});
       role = root[i].markedIndividualRole1;
     } else if ((root[i].markedIndividualName2 == individualID) && (root[i].markedIndividualRole2 == "calf")){
-      parents.push({name: root[i].markedIndividualName1, role: root[i].markedIndividualRole1});
+      parents.push({name: root[i].individual1.displayName, role: root[i].markedIndividualRole1});
       role = root[i].markedIndividualRole2;
     }
   }
   return parents;
 };
 
-var rootProxy = function(root, individualID){
+var rootProxy = function(root, individualID, displayName){
     return {
-    name: individualID,
+    name: displayName,
     id: individualID,
     x0: 0,
     y0: 0,

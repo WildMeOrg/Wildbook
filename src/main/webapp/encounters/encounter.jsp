@@ -13,12 +13,13 @@
          java.util.regex.Pattern,
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
+        org.ecocean.servlet.importer.ImportTask,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
-         java.io.File, java.text.DecimalFormat,
+         java.io.File, java.text.DecimalFormat, org.apache.commons.lang.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -2993,6 +2994,17 @@ if (isOwner) {
 <!-- END DELETE ENCOUNTER FORM -->
 <%
 }
+
+Query itq = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getEncounterNumber() + "'");
+List ires = (List)itq.execute();
+if (ires.size() > 0) {
+    Iterator it = ires.iterator();
+    ImportTask itask = (ImportTask)it.next();
+%>
+    <a target="_new" href="../imports.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
+<%
+}
+//
 %>
 
 </td>
@@ -6485,7 +6497,8 @@ function iaMatchFilterGo() {
     var data = {
         v2: true,
         taskParameters: {
-            matchingSetFilter: {}
+            matchingSetFilter: {},
+            matchingAlgorithms: []
         },
         annotationIds: iaMatchFilterAnnotationIds
     };
@@ -6493,11 +6506,54 @@ function iaMatchFilterGo() {
         'match-filter-location-id': 'locationIds',
         'match-filter-owner': 'owner'
     };
+    
+    var optArray=[];
+    
+    
+		<%
+		Properties iaprops = ShepherdProperties.getProperties("IA.properties", "", context);
+		
+		String IBEISIdentOptRoot="IBEISIdentOpt";
+		if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null){
+			String speciesIBEISIdentOptRoot=IBEISIdentOptRoot+"_"+enc.getGenus()+"_"+enc.getSpecificEpithet();
+			if(iaprops.getProperty(speciesIBEISIdentOptRoot+"0")!=null){
+				IBEISIdentOptRoot=speciesIBEISIdentOptRoot;
+				System.out.println("Setting IBEISIdentOptRoot in matching dialog to: "+IBEISIdentOptRoot);
+			}
+		}
+		int rootIter=0;
+		while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
+			
+			String val="HotSpotter";
+			String queryDict="";
+			try {
+			     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
+				%>
+				optArray.push(<%=jsonObject.toString()  %>);
+				<%
+			}
+			catch (Exception err){
+			     err.printStackTrace();
+			     val="HotSpotter";
+			}
+
+			rootIter++;
+		}
+		%>
+    
     $('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
         var key = keyMap[el.name] || '_UNKNOWN_';
         if (!data.taskParameters.matchingSetFilter[key]) data.taskParameters.matchingSetFilter[key] = [];
-        data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
+        
+        if(el.name=="match-filter-algorithm"){
+        	data.taskParameters.matchingAlgorithms.push(optArray[el.defaultValue]);
+        }
+        else{
+        	data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
+        }
+        
+        
     });
 console.log('SENDING ===> %o', data);
     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -6557,6 +6613,15 @@ $(document).ready(function() {
   <div class="ia-match-filter-container" style="display: none">
     <div  style="width: 100%; max-height: 200px; overflow-y: scroll">
     <div id="ia-match-filter-location" class="option-cols">
+    
+    	<div>
+	    	<!-- TODO maybe an option here to not recurse to children locations? -->
+	        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
+	            onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
+	        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
+	            onClick="$('#ia-match-filter-location .item input').prop('checked', false); iaMatchFilterLocationCountUpdate();" />
+    	</div>
+    	<br>
 <%
 
 Map<String,Long> locCount = new HashMap<String,Long>();
@@ -6597,11 +6662,7 @@ for (String l : locCount.keySet()) {
             <label for="match-filter-location-unabled"><%=encprops.getProperty("matchFilterLocationUnlabeled")%></label>
             <span class="item-count"><%=locCount.get(null)%></span>
         </div>
-<!-- TODO maybe an option here to not recurse to children locations? -->
-        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
-            onClick="$('#ia-match-filter-location .item input').prop('checked', true); iaMatchFilterLocationCountUpdate();" />
-        <input type="button" value="<%=encprops.getProperty("selectNone")%>"
-            onClick="$('#ia-match-filter-location .item input').prop('checked', false); iaMatchFilterLocationCountUpdate();" />
+
     </div>
 
   </div>
@@ -6655,6 +6716,42 @@ $(".search-collapse-header").click(function(){
         <label for="match-filter-owner-none"><%=encprops.getProperty("matchFilterOwnershipNone")%></label>
     </div>
 -->
+
+<div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
+<%
+
+rootIter=0;
+while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
+	
+	String val="HotSpotter";
+	String queryDict="";
+	try {
+	     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
+	     queryDict=jsonObject.toString();
+	     
+	     if(iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter)!=null){
+	    	 val=iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter);
+	     }
+	     else{
+	     	val=(new JSONObject(jsonObject.getJSONObject("queryConfigDict").toString())).optString("pipeline_root");
+	     }
+	}
+	catch (Exception err){
+	     err.printStackTrace();
+	     val="HotSpotter";
+	}
+	if(val==null || val.trim().equals("")){
+		val="HotSpotter";
+	}
+	
+
+	out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + rootIter + "\" name=\"match-filter-algorithm\" value=\"" + rootIter+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + rootIter + "\">" + val + " </label></div>");
+	
+	rootIter++;
+}
+
+
+%>
 
 <div class="ia-match-filter-section">
     <input type="button" value="<%=encprops.getProperty("doMatch")%>" onClick="iaMatchFilterGo()" />
