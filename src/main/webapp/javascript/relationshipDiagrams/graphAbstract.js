@@ -1,12 +1,17 @@
 //Abstract class defining funcitonality for all d3 graph types
-class GraphAbstract {
+class GraphAbstract { //See static attributes below class    
     constructor(individualID, containerId, focusedScale=1) {
 	this.id = individualID;
 	this.containerId = containerId;
 
+	//JSON Parser
+	this.parser = new JSONParser();
+	
+	//Unique global id
+	this.graphId = GraphAbstract.numGraphs++;
+
 	//SVG Attributes
 	this.svg;
-
 	this.width = 1150;
 	this.height = 500;
 	this.margin = {top: 20, right: 120, bottom: 20, left: 120};
@@ -26,7 +31,7 @@ class GraphAbstract {
 
 	this.strokeWidth = 3.5;
 	
-	this.fontSize = 12;
+	this.fontSize = 10;
 	this.focusedScale = focusedScale;
 
 	this.alphaSymbSize = 200; //TODO: Figure out the units on this...
@@ -77,10 +82,7 @@ class GraphAbstract {
 	//Filter Attributes
 	this.validFamilyFilters = ["selectFamily", "filterFamily"]
 	this.validCheckFilters = ["male", "female", "unknownGender", "alpha", "unknownRole"];
-	this.validFilters = this.validFamilyFilters.concat(this.validCheckFilters);
-	
-	//Json Parser Attributes
-	this.parser = new JSONParser();
+	this.validFilters = this.validFamilyFilters.concat(this.validCheckFilters);	
     }
 
     
@@ -104,9 +106,6 @@ class GraphAbstract {
 	this.linkData = linkData;
 	this.nodeData = nodeData;
 
-	console.log("LINK", this.linkData);
-	console.log("NODE", this.nodeData);
-	
 	//Add default elements
 	this.addSvg();
 	this.addLegend();
@@ -476,4 +475,7 @@ class GraphAbstract {
 	});
     }
 }
+
+//Static attributes
+GraphAbstract.numGraphs = 0;
 
