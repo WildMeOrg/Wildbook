@@ -165,6 +165,13 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 <div class="container maincontent">
 <p>main role: <b><%=maxRole%></b></p>
 
+<% if (isAdmin) { %>
+<p>
+<a href="queue.jsp?data=attributes" title="Download XLS with volunteer decisions on attributes">
+<button>Download Attributes XLS</button></a>
+</p>
+<% } %>
+
 <% if (encs.size() < 1) { %>
     <h1>There are no submissions needing attention right now!</h1>
 
