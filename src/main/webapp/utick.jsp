@@ -38,6 +38,7 @@ if (init == null) {
     init = System.currentTimeMillis();
     session.setAttribute("log.init", init);
     content.put("sessionInit", true);
+    content.put("userAgent", request.getHeader("User-Agent"));
 } else {
     content.put("timeSinceInit", System.currentTimeMillis() - init);
 }
