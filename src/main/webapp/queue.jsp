@@ -6,6 +6,7 @@ org.json.JSONObject, org.json.JSONArray,
 org.ecocean.servlet.export.ExportExcelFile,
 java.util.Collection,
 org.joda.time.DateTime,
+org.apache.commons.io.FileUtils,
 org.apache.commons.lang3.StringEscapeUtils" %>
 <%!
 
@@ -102,9 +103,11 @@ boolean isAdmin = true;   //!(maxRole.equals("cat_mouse_volunteer"));
 
 String dtype = request.getParameter("data");
 if (Util.requestParameterSet(dtype)) {
-    File xls = new File("/tmp/test.xls");
+    File xls = new File("/tmp/kitsci_export_" + Util.basicSanitize(dtype) + "_" + new DateTime().toLocalDate() + "_" + Util.generateUUID().substring(0,6) + ".xls");
     generateData(myShepherd, xls, dtype);
-    out.println("done: " + xls);
+    response.setHeader("Content-type", "application/vnd.ms-excel");
+    response.setHeader("Content-disposition", "attachment; filename=\"" + xls.getName() + "\"");
+    FileUtils.copyFile(xls, response.getOutputStream());
     return;
 }
 
