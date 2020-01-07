@@ -1461,12 +1461,70 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
 System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with no Encounter!]");
             return ann;
         }
+        
+        /*
+         * 
+         * DragonSearch CUstomization fir parts
+         * 
+         */
+        // if on, tries to decide if anns should be paired on an encounter under rigid conditions
+        Encounter enc = null;;
+        boolean allowToEncounter = true;
+        String sawp = IA.getProperty(myShepherd.getContext(), "singleAnimalWithParts");
+        if ("true".equals(String.valueOf(sawp).trim())) {
+            List<Annotation> anns = ann.getSiblings();
+            if (anns.size()==1) {
+                String sib = anns.get(0).getPartIfPresent();
+                String prt = ann.getPartIfPresent();
+                if ((sib!=""||prt!="")&&(sib.length()>0||prt.length()>0)) {
+                    System.out.println("[INFO]: This MediaAsset has a single animal, and single part annotation");
+                    double intersectionValue = Annotation.intersection(ann, anns.get(0));
+                    double minIntersection = 0.1;
+                    if (IA.getProperty(myShepherd.getContext(), "annotationPairingMinimumIntersection")!=null) {
+                        try {
+                            minIntersection = Double.valueOf(IA.getProperty(myShepherd.getContext(), "annotationPairingMinimumIntersection"));
+                        } catch (NumberFormatException nfe) {
+                            nfe.printStackTrace();
+                        }
+                    }
+                    if (intersectionValue>=minIntersection) {
+                        System.out.println("[INFO]: These annotations have "+intersectionValue+" intersection, exceeding minumum of "+minIntersection);
+                        allowToEncounter = false;
+                        enc = anns.get(0).findEncounter(myShepherd);
+                        System.out.println("[INFO]: Assuming detected animal and part annotation are the same animal...");
+                        enc.addAnnotation(ann);
+                    }
+                }
+            }
+        }
+
+        Occurrence occ = asset.getOccurrence();
+        if (occ != null) {
+            enc.setOccurrenceID(occ.getOccurrenceID());
+            occ.addEncounter(enc);
+        }
+        if (allowToEncounter) {
+            enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
+        }
+        /*
+         * 
+         * End DragonSearch Customization
+         * 
+         */
+        
+        
+        /*
+         * MASTER
+         * 
         Encounter enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
         Occurrence occ = asset.getOccurrence();
         if (occ != null) {
             enc.setOccurrenceID(occ.getOccurrenceID());
             occ.addEncounter(enc);
         }
+        */
+        
+        
         enc.detectedAnnotation(myShepherd, ann);  //this is a stub presently, so meh?
         myShepherd.getPM().makePersistent(ann);
         if (ann.getFeatures() != null) {
