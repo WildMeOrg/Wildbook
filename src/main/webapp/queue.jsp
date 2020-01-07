@@ -20,7 +20,32 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
 
     List rows = new ArrayList<String[]>();
     if ("match".equals(dtype)) {
-    } else {
+        String[] head = new String[]{"Enc ID", "Cat ID", "Timestamp", "Date/Time", "User ID", "Username", "Match Enc ID", "Match Cat ID"};
+        rows.add(head);
+        for (Decision dec : decs) {
+            if (!"match".equals(dec.getProperty())) continue;
+            JSONObject d = dec.getValue();
+            if (d == null) continue;
+            String eid = d.optString("id", null);
+            if (eid == null) continue;
+            Encounter menc = myShepherd.getEncounter(eid);
+            if (menc == null) {
+                System.out.println("WARNING queue.generateData() could not find Encounter for match id=" + menc);
+                continue;
+            }
+            String[] row = new String[head.length];
+            row[0] = dec.getEncounter().getCatalogNumber();
+            row[1] = dec.getEncounter().getIndividualID();
+            row[2] = Long.toString(dec.getTimestamp());
+            row[3] = new DateTime(dec.getTimestamp()).toString();
+            row[4] = dec.getUser().getUUID();
+            row[5] = dec.getUser().getUsername();
+            row[6] = menc.getCatalogNumber();
+            row[7] = menc.getIndividualID();
+            rows.add(row);
+        }
+
+    } else {  //attributes flavor
         String[] head = new String[]{"Enc ID", "Cat ID", "Timestamp", "Date/Time", "User ID", "Username", "sex", "colorPattern", "collar", "earTip", "lifeStage", "flag"};
         rows.add(head);
         Map<String,Integer> indMap = new HashMap<String,Integer>();
@@ -167,8 +192,12 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 
 <% if (isAdmin) { %>
 <p>
-<a href="queue.jsp?data=attributes" title="Download XLS with volunteer decisions on attributes">
-<button>Download Attributes XLS</button></a>
+    <a href="queue.jsp?data=attributes" title="Download XLS with volunteer decisions on attributes">
+        <button>Download Attributes XLS</button>
+    </a>
+    <a href="queue.jsp?data=match" title="Download XLS with volunteer cat ID matches">
+        <button>Download ID Match XLS</button>
+    </a>
 </p>
 <% } %>
 
