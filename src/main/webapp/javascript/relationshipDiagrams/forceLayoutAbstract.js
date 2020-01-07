@@ -6,10 +6,6 @@ class ForceLayoutAbstract extends GraphAbstract {
     constructor(individualId, containerId, focusedScale=1) {
 	super(individualId, containerId, focusedScale);
 
-	//Assign a unique global id to each force layout graph
-	ForceLayoutAbstract.count = ForceLayoutAbstract.count + 1 || 0;
-	this.graphId = ForceLayoutAbstract.count;
-
 	//Link attributes
 	this.linkWidth = 3;
 	this.maxLenScalar = 2.5;
@@ -65,7 +61,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Define a style class for each end marker
 	svg.append("defs")
 	    .selectAll("marker")
-	    .data(linkData.filter(d => d.type != "member")).enter()
+	    .data(linkData.filter(d => d.type != "member"), d => d.linkId).enter()
 	    .append("marker")
 	    .attr("id", d => "arrow" + d.linkId  + ":" + this.graphId)
 	    .attr("viewBox", "0 -5 14 14")
@@ -83,7 +79,8 @@ class ForceLayoutAbstract extends GraphAbstract {
     
     //Render a graph with updated data
     updateGraph(linkData=this.linkData, nodeData=this.nodeData) {
-	console.log(linkData);
+	//Update arrow offsets
+	this.updateArrows(linkData);
 	
 	//Update render data
 	this.updateLinks(linkData);
@@ -92,6 +89,17 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Update render physics
 	this.applyForces(linkData);
 	this.enableNodeInteraction();
+    }
+
+    //Update arrow positioning
+    updateArrows(linkData=this.linkData) {
+	this.svg.select("defs")
+	    .selectAll("marker").data(linkData.filter(d => d.type != "member"), d => d.linkId)
+	    .transition().duration(this.transitionDuration)
+	    .attr("refX", d => {
+		let node = this.getLinkTarget(d);
+		return this.radius * this.getSizeScalar(node);
+	    });
     }
 
     //Render links with updated data
@@ -387,13 +395,13 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     //Returns the length of a given link
-    getLinkLen(link) {
-	return Math.min(this.radius * this.maxLenScalar, link.data.r * 2);
+    getLinkLen(node) {
+	return this.radius * Math.min(this.maxLenScalar, this.getSizeScalar(node) * 2);
     }
 
     //Returns the target node of a given link
     getLinkTarget(link) {
-	return this.nodeData.find(node => node.id === link.target);
+	return this.nodeData.find(node => node.id === link.target.id || node.id === link.target);
     }
 
     //Returns the source node of a given link

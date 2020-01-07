@@ -1,8 +1,8 @@
 //Occurence graph global API (used in individuals.jsp)
 function setupOccurrenceGraph(individualID) { //TODO - look into individualID
     let focusedScale = 1.75;
-    let occurrences = new OccurrenceGraph(individualID, "#bubbleChart", focusedScale); //TODO - Remove mock
-    occurrences.graphOccurenceData(false, ['a', 'b']); //TODO: Remove mock
+    let occ = new OccurrenceGraph(individualID, "#bubbleChart", focusedScale); //TODO - Remove mock
+    occ.applyOccurrenceData();
 }
 
 //Sparse-tree mapping co-occurrence relationships between a focused individual and its species
@@ -117,13 +117,17 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	];	
     }
 
+    //Wrapper function to gather species data and generate a graph
+    applyOccurrenceData() {
+	this.parser.parseJSON(this.id, (nodes, links) => this.graphOccurrenceData(nodes, links), true);
+    }
+    
     //Generate a co-occurrence graph
-    graphOccurenceData(error, json) {
-	if (error) console.error(json);
-	else if (json.length >= 1) { 
+    graphOccurrenceData(nodes, links) {
+	if (nodes.length >= 1) { 
 	    //Create graph w/ forces
-	    this.setupGraph(this.linkData, this.nodeData);
-	    this.updateGraph();
+	    this.setupGraph(links, nodes);
+	    this.updateGraph(links, nodes);
 	}
 	else this.showTable("#cooccurrenceDiagram", "#cooccurrenceTable");
     }
