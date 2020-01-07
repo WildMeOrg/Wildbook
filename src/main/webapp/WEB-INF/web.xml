@@ -404,6 +404,7 @@
 				
 				/merge.jsp = authc, roles[researcher]
 				/mergeComplete.jsp = authc, roles[researcher]
+				/AnnotationSetMatchAgainst = authc, roles[admin]
             </param-value>
         </init-param>
     </filter>
@@ -2496,6 +2497,16 @@
   <servlet-mapping>
     <servlet-name>AddOccToTrack</servlet-name>
     <url-pattern>/AddOccToTrack</url-pattern>
+  </servlet-mapping>
+  
+        <servlet>
+    <servlet-name>AnnotationSetMatchAgainst</servlet-name>
+    <servlet-class>org.ecocean.servlet.AnnotationSetMatchAgainst</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>AnnotationSetMatchAgainst</servlet-name>
+    <url-pattern>/AnnotationSetMatchAgainst</url-pattern>
   </servlet-mapping>
 
 </web-app>
