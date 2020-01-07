@@ -146,8 +146,8 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                       <%
 
 	                      if(request.getUserPrincipal()!=null){
-	                    	  myShepherd = new Shepherd(context);
-	                    	  myShepherd.setAction("header.jsp");
+	                    	  //myShepherd = new Shepherd(context);
+	                    	  //myShepherd.setAction("header.jsp");
 
 	                          try{
 	                        	  myShepherd.beginDBTransaction();
@@ -168,10 +168,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 		                      		<%
 	                          }
 	                          catch(Exception e){e.printStackTrace();}
-	                          finally{
-	                        	  myShepherd.rollbackDBTransaction();
-	                        	  myShepherd.closeDBTransaction();
-	                          }
+
 	                      }
 	                      else{
 	                      %>
@@ -622,3 +619,10 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
         </script>
 
         <!-- ****/header**** -->
+        
+        <%
+        //close up the Shepherd
+  	  myShepherd.rollbackDBTransaction();
+  	  myShepherd.closeDBTransaction();
+  	  
+        %>
