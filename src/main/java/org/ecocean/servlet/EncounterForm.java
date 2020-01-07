@@ -1119,6 +1119,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
 
                 // LOCAL: don't send to IA if the animal is dead
+                /*
                 String lStatus = enc.getLivingStatus();
                 if ("alive".equals(lStatus)) {
                   try {
@@ -1130,6 +1131,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
                 } else {
                   System.out.println("[INFO]: Animal marked dead (RIP), skipping IA intake in EncounterForm"); 
                 }
+                */
 
 
                 // might want to set detection status here (on the main thread)
