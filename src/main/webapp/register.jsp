@@ -83,7 +83,11 @@ label {
     background-color: red;
 }
 .register-quiz-div-correct {
-    background-color: #9FA;
+    background-color: #bff223;
+}
+.register-select-error {
+    outline: solid 4px red;
+    background-color: #FBB;
 }
 
 .register-quiz-div select {
@@ -874,8 +878,8 @@ How did you hear about Kitizen Science?
 $(document).ready(function() {
     var quizq = [
         [ 'Choose a color/pattern', 'Black', 'Black & White', 'Grey or Brown Tabby/Torbie', 'Tabby/Torbie & White', 'Orange', 'Dark Grey', 'Calico/Tortoiseshell', 'Beige/Cream/White' ],
-        ['Choose life stage', 'kitten', 'adult'],
-        ['Ear tip removed?', 'Yes - Left', 'Yes - Right', 'No'],
+        ['Choose life stage', 'Adult', 'Kitten'],
+        ['Ear tip removed?', 'Yes - Cat\'s Left', 'Yes - Cat\'s Right', 'No'],
         ['Wearing collar?', 'Yes', 'No', 'Unknown'],
         ['Choose a sex', 'Male', 'Female', 'Unknown']
     ];
@@ -892,6 +896,8 @@ $(document).ready(function() {
         $(el).append(h);
         $('.register-quiz-div select').on('change', function(ev) {
             quizUnset = 0;
+            //$(ev.target.parentElement).find('select').removeClass('register-select-error');
+            ev.target.classList.remove('register-select-error');
             $(ev.target.parentElement).removeClass('register-quiz-div-error').removeClass('register-quiz-div-correct');
             $('.register-quiz-div select').each(function(i, el) {
                 if (!el.selectedIndex) quizUnset++;
@@ -916,20 +922,25 @@ function quizButton(faked) {
     }
 */
     var qans = [
-        [6,2,3,2,3],
-        [4,2,3,1,3],
-        [2,2,2,2,3],
-        [5,1,3,2,3]
+        [6,1,3,2,3],
+        [4,1,3,1,3],
+        [2,1,2,2,3],
+        [5,2,3,2,3]
     ];
     var passedQuiz = true;
+    $('.register-quiz-div input').removeClass('register-select-error');
     $('.register-quiz-div').each(function(qi, el) {
         var wrong = 0;
         $(el).find('select').each(function(seli, sel) {
 console.log('%d) %d: %d [%d]', qi, seli, sel.selectedIndex, qans[qi][seli]);
-            if (sel.selectedIndex != qans[qi][seli]) wrong++;
+            if (sel.selectedIndex != qans[qi][seli]) {
+                sel.classList.add('register-select-error');
+                wrong++;
+            }
         });
         if (wrong > 0) {
-            $('#register-quiz-' + qi).addClass('register-quiz-div-error').removeClass('register-quiz-div-correct');
+            //$('#register-quiz-' + qi).addClass('register-quiz-div-error').removeClass('register-quiz-div-correct');
+            $('#register-quiz-' + qi).removeClass('register-quiz-div-correct');
             passedQuiz = false;
         } else {
             $('#register-quiz-' + qi).addClass('register-quiz-div-correct');
