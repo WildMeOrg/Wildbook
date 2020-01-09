@@ -350,9 +350,6 @@ class GraphAbstract { //See static attributes below class
     //Fade the tooltip into view when hovering over a given node
     handleMouseOver(d) {
 	if (!this.popup) {
-	    console.log(d); //TODO - Remove
-	    console.log(this.linkData.filter(link => link.source.id === d.id || link.target.id === d.id))
-	    
 	    //Display opaque tooltip
 	    this.tooltip.transition()
 		.duration(this.fadeDuration)
