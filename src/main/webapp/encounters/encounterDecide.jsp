@@ -126,7 +126,6 @@ System.out.println("findSimilar() -> " + el.toString());
 <style type="text/css">
 .attribute {
     text-align: center;
-    border: solid 1px #444;
     background-color: #EFEFEF;
     padding: 7px;
     margin: 20px 0;
@@ -164,15 +163,15 @@ System.out.println("findSimilar() -> " + el.toString());
     display: inline-block;
     padding: 3px 8px;
     background-color: #DDD;
-    margin: 2px;
+    margin: 7px 2px;
     cursor: pointer;
     width: 100%;
 }
 .attribute-option:hover {
-    background-color: #ACA;
+    background-color: #bff223;
 }
 .attribute-selected {
-    background-color: #6B6 !important;
+    background-color: #bff223 !important;
 }
 .attribute-muted {
     opacity: 0.4;
@@ -181,10 +180,10 @@ System.out.println("findSimilar() -> " + el.toString());
     opacity: 1.0;
 }
 
-#earTip .attribute-option, #colorPattern .attribute-option {
+#colorPattern .attribute-option {
     width: 22%
 }
-#lifeStage .attribute-option {
+#earTip .attribute-option, #lifeStage .attribute-option {
     width: 47%;
 }
 #collar .attribute-option, #sex .attribute-option {
@@ -219,7 +218,7 @@ System.out.println("findSimilar() -> " + el.toString());
     line-height: 1.1em;
 }
 #flag .input-wrapper:hover {
-    background-color: #BBB;
+    background-color: #bff223;
 }
 #flag .input-wrapper input {
     vertical-align: top;
@@ -240,7 +239,13 @@ System.out.println("findSimilar() -> " + el.toString());
     display: none;
 }
 
+.button-disabled {
+    cursor: not-allowed !important;
+    background-color: #DDD !important;
+}
+
 .match-summary-detail {
+    white-space: nowrap;
     font-size: 0.8em;
     border-radius: 3px;
     background-color: #CCC;
@@ -291,6 +296,8 @@ System.out.println("findSimilar() -> " + el.toString());
     display: none;
 }
 #match-controls {
+    margin: -10px;
+    border: solid 1px black;
     padding: 10px;
     background: #CCC;
     position: fixed;
@@ -314,9 +321,8 @@ var userData = {
 };
 $(document).ready(function() {
     $('.attribute-option').on('click', function(ev) { clickAttributeOption(ev); });
-    $('.attribute-option').append('<input type="checkbox" class="option-checkbox" />');
+    $('.attribute-option').append('<input type="radio" class="option-checkbox" />');
     $('#flag input').on('change', function() { updateData(); });
-    $('#width-info').html($(window).width());
     $('.enc-asset').panzoom().on('panzoomend', function(ev, panzoom, matrix, changed) {
         if (!changed) return $(ev.currentTarget).panzoom('zoom');
     });
@@ -366,6 +372,7 @@ function checkSaveStatus() {
     if (complete) {
         $('#save-incomplete').hide();
         $('#save-complete').show();
+        $('#save-button').removeClass('button-disabled').attr('title', 'Save your answers').removeAttr('disabled');
     }
 }
 
@@ -398,6 +405,7 @@ var matchData = null;
 function enableMatch() {
     $('.column-attributes').hide();
     $('.column-match').show();
+    window.scrollTo(0,0);
     var h = '';
     for (var i in userData) {
         h += '<span class="match-summary-detail">' + i + ': <b>' + userData[i] + '</b></span>';
@@ -565,36 +573,36 @@ console.info(imgEl.style);
             <h2>Primary Color / Coat Pattern</h2>
             <div id="colorPattern" class="attribute-select">
                 <div id="black" class="attribute-option">
-                    <div class="attribute-title">Black</div>
                     <img class="attribute-image" src="../images/instructions_black.jpg" />
+                    <div class="attribute-title">Black</div>
                 </div>
                 <div id="black-white" class="attribute-option">
-                    <div class="attribute-title">Black &amp; White</div>
                     <img class="attribute-image" src="../images/instructions_bw.jpg" />
+                    <div class="attribute-title">Black &amp; White</div>
                 </div>
                 <div id="tabby-gb" class="attribute-option">
-                    <div class="attribute-title">Grey or Brown Tabby/Torbie</div>
                     <img class="attribute-image" src="../images/instructions_tabby.jpg" />
+                    <div class="attribute-title">Grey or Brown Tabby/Torbie</div>
                 </div>
                 <div id="tabby-w" class="attribute-option">
-                    <div class="attribute-title">Tabby/Torbie &amp; White</div>
                     <img class="attribute-image" src="../images/instructions_tabwhite.jpg" />
+                    <div class="attribute-title">Tabby/Torbie &amp; White</div>
                 </div>
                 <div id="orange" class="attribute-option">
-                    <div class="attribute-title">Orange</div>
                     <img class="attribute-image" src="../images/instructions_orange.jpg" />
+                    <div class="attribute-title">Orange</div>
                 </div>
                 <div id="grey" class="attribute-option">
-                    <div class="attribute-title">Dark Grey</div>
                     <img class="attribute-image" src="../images/instructions_grey.jpg" />
+                    <div class="attribute-title">Dark Grey</div>
                 </div>
                 <div id="calico" class="attribute-option">
-                    <div class="attribute-title">Calico / Tortoiseshell</div>
                     <img class="attribute-image" src="../images/instructions_tortical.jpg" />
+                    <div class="attribute-title">Calico / Tortoiseshell</div>
                 </div>
                 <div id="white" class="attribute-option">
-                    <div class="attribute-title">Beige / Cream / White</div>
                     <img class="attribute-image" src="../images/instructions_light.jpg" />
+                    <div class="attribute-title">Beige / Cream / White</div>
                 </div>
             </div>
         </div>
@@ -603,20 +611,20 @@ console.info(imgEl.style);
             <h2>Ear Tip</h2>
             <div id="earTip" class="attribute-select">
                 <div id="yes-left" class="attribute-option">
-                    <div class="attribute-title">Yes - Cat's Left</div>
                     <img class="attribute-image" src="../images/instructions_tipleft.jpg" />
+                    <div class="attribute-title">Yes - Cat's Left</div>
                 </div>
                 <div id="yes-right" class="attribute-option">
-                    <div class="attribute-title">Yes - Cat's Right</div>
                     <img class="attribute-image" src="../images/instructions_tipright.jpg" />
+                    <div class="attribute-title">Yes - Cat's Right</div>
                 </div>
                 <div id="no" class="attribute-option">
-                    <div class="attribute-title">No</div>
                     <img class="attribute-image" src="../images/instructions_untipped.jpg" />
+                    <div class="attribute-title">No</div>
                 </div>
                 <div id="unknown" class="attribute-option">
-                    <div class="attribute-title">Unknown</div>
                     <img class="attribute-image" src="../images/unknown.png" />
+                    <div class="attribute-title">Unknown</div>
                 </div>
             </div>
         </div>
@@ -625,12 +633,12 @@ console.info(imgEl.style);
             <h2>Life Stage</h2>
             <div id="lifeStage" class="attribute-select">
                 <div id="kitten" class="attribute-option">
-                    <div class="attribute-title">Kitten</div>
                     <img class="attribute-image" src="../images/instructions_kitten.jpg" />
+                    <div class="attribute-title">Kitten</div>
                 </div>
                 <div id="adult" class="attribute-option">
-                    <div class="attribute-title">Adult</div>
                     <img class="attribute-image" src="../images/instructions_adult.jpg" />
+                    <div class="attribute-title">Adult</div>
                 </div>
             </div>
         </div>
@@ -639,16 +647,16 @@ console.info(imgEl.style);
             <h2>Collar</h2>
             <div id="collar" class="attribute-select">
                 <div id="yes" class="attribute-option">
-                    <div class="attribute-title">Collar</div>
                     <img class="attribute-image" src="../images/instructions_collar.jpg" />
+                    <div class="attribute-title">Collar</div>
                 </div>
                 <div id="no" class="attribute-option">
-                    <div class="attribute-title">No Collar</div>
                     <img class="attribute-image" src="../images/instructions_nocollar.jpg" />
+                    <div class="attribute-title">No Collar</div>
                 </div>
                 <div id="unknown" class="attribute-option">
-                    <div class="attribute-title">Unknown</div>
                     <img class="attribute-image" src="../images/unknown.png" />
+                    <div class="attribute-title">Unknown</div>
                 </div>
             </div>
         </div>
@@ -657,16 +665,16 @@ console.info(imgEl.style);
             <h2>Sex</h2>
             <div id="sex" class="attribute-select">
                 <div id="male" class="attribute-option">
-                    <div class="attribute-title">Male</div>
                     <img class="attribute-image" src="../images/instructions_male.jpg" />
+                    <div class="attribute-title">Male</div>
                 </div>
                 <div id="female" class="attribute-option">
-                    <div class="attribute-title">Female</div>
                     <img class="attribute-image" src="../images/instructions_female.jpg" />
+                    <div class="attribute-title">Female</div>
                 </div>
                 <div id="unknown" class="attribute-option">
-                    <div class="attribute-title">Unknown</div>
                     <img class="attribute-image" src="../images/unknown.png" />
+                    <div class="attribute-title">Unknown</div>
                 </div>
             </div>
         </div>
@@ -678,8 +686,8 @@ Make selections for all the options above, and then save here.
             </p>
             <p id="save-complete">
 All required selections are made.  You may now save your answers. <br />
-<input type="button" value="Save" onClick="return doSave()" />
             </p>
+<input disabled title="You must complete all selections above before saving" class="button-disabled" id="save-button" type="button" value="Save" onClick="return doSave()" />
         </div>
     </div>
 

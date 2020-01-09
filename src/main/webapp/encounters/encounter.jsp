@@ -796,6 +796,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
     for (Decision dec : decs) {
         JSONObject val = dec.getValue();
         if ((val == null) || (dec.getProperty() == null)) continue;
+        if ("match".equals(dec.getProperty())) continue;  //just hide this
         if ("flag".equals(dec.getProperty())) {
             JSONArray farr = val.optJSONArray("value");
             if (farr == null) continue;
@@ -811,7 +812,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
         if ("sex".equals(dec.getProperty())) countDec++;
         if (decMap.get(dec.getProperty()) == null) decMap.put(dec.getProperty(), new HashMap<String, Integer>());
         String propVal = val.optString("value", null);
-        if (propVal == null) return;
+        if (propVal == null) continue;
         if (decMap.get(dec.getProperty()).get(propVal) == null) decMap.get(dec.getProperty()).put(propVal, 0);
         decMap.get(dec.getProperty()).put(propVal, decMap.get(dec.getProperty()).get(propVal) + 1);
     }
