@@ -5,6 +5,15 @@ javax.jdo.Query,
 java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
 <%!
 
+private static void addClause(List<String> props, String colName, String propVal) {
+    if ((propVal == null) || propVal.equals("unknown")) return;
+    props.add(
+        "\"" + colName + "\" = '" + Util.sanitizeUserInput(propVal) + "' OR " +
+        "\"" + colName + "\" = 'unknown' OR " +
+        "\"" + colName + "\" IS NULL"
+    );
+}
+
 private static JSONArray findSimilar(HttpServletRequest request, Shepherd myShepherd, Encounter enc, User user, JSONObject userData) {
     if ((enc == null) || (user == null) || (userData == null)) return null;
     Double lat = enc.getDecimalLatitudeAsDouble();
@@ -15,16 +24,11 @@ private static JSONArray findSimilar(HttpServletRequest request, Shepherd myShep
     }
 
     List<String> props = new ArrayList<String>();
-    String colorPattern = userData.optString("colorPattern", null);
-    if (colorPattern != null) props.add("\"PATTERNINGCODE\" = '" + Util.sanitizeUserInput(colorPattern) + "'");
-    String earTip = userData.optString("earTip", null);
-    if (earTip != null) props.add("\"EARTIP\" = '" + Util.sanitizeUserInput(earTip) + "'");
-    String sex = userData.optString("sex", null);
-    if (sex != null) props.add("\"SEX\" = '" + Util.sanitizeUserInput(sex) + "'");
-    String collar = userData.optString("collar", null);
-    if (collar != null) props.add("\"COLLAR\" = '" + Util.sanitizeUserInput(collar) + "'");
-    String lifeStage = userData.optString("lifeStage", null);
-    if (lifeStage != null) props.add("\"LIFESTAGE\" = '" + Util.sanitizeUserInput(lifeStage) + "'");
+    addClause(props, "PATTERNINGCODE", userData.optString("colorPattern", null));
+    addClause(props, "EARTIP", userData.optString("earTip", null));
+    addClause(props, "SEX", userData.optString("sex", null));
+    addClause(props, "COLLAR", userData.optString("collar", null));
+    addClause(props, "LIFESTAGE", userData.optString("lifeStage", null));
     if (props.size() < 1) {
         System.out.println("WARNING: findSimilar() has no props sql from userData " + userData.toString());
         return null;
@@ -32,7 +36,7 @@ private static JSONArray findSimilar(HttpServletRequest request, Shepherd myShep
     
     //technically we dont need to exclude our enc, as we are not 'approved', but meh.
     String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"STATE\" = 'approved' AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND ((" + String.join(") OR (", props) + ")) ORDER BY dist";
-System.out.println("findSimilar() SQL: " + sql);
+System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: " + sql);
 
     JSONArray found = new JSONArray();
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
@@ -254,25 +258,28 @@ System.out.println("findSimilar() -> " + el.toString());
 }
 
 .match-item {
-    padding-top: 10px;
+    padding: 10px;
     border-top: 3px black solid;
     position: relative;
 }
+.match-item:hover {
+    background-color: #bff223;
+}
+
 .match-item-info {
+    display: none;
     background-color: rgba(255,255,200,0.7);
     padding: 0 8px;
     position: absolute;
     left: 0;
     top: 0;
 }
-.match-item:hover .match-item-info {
-    display: none;
-}
 .match-asset-wrapper {
     position: relative;
     overflow: hidden;
     width: 300px;
-    height: 300px;
+    xheight: 300px;
+    margin-bottom: 5px;
 }
 .match-asset {
     position: absolute;
@@ -286,14 +293,11 @@ System.out.println("findSimilar() -> " + el.toString());
     border-radius: 5px;
 }
 .match-choose:hover {
-    background-color: #DDA;
+    background-color: #666;
 }
 .match-choose label {
     font-weight: bold;
     cursor: pointer;
-}
-#match-chosen-button {
-    display: none;
 }
 #match-controls {
     margin: -10px;
@@ -426,11 +430,13 @@ console.log(url);
                 } else {
                     matchData = xhr.responseJSON;
                     matchData.assetData = {};
+                    matchData.userPresented = {};
                     var sort = {};
                     for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
                         var score = matchScore(xhr.responseJSON.similar[i]);
+                        matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
                         var h = '<div class="match-item">';
-                        h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="checkbox" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
+                        h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
                         for (var j = 0 ; j < xhr.responseJSON.similar[i].assets.length ; j++) {
                             h += '<div class="match-asset-wrapper"><img onLoad="matchAssetLoaded(this);" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].assets[j].id] = xhr.responseJSON.similar[i].assets[j];
@@ -450,13 +456,13 @@ console.log(url);
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
-                    $('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">No matches</label></div><input type="button" id="match-chosen-button" value="Save match choice" onClick="saveMatchChoice();" /></div>');
+                    $('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
                     $('.match-chosen-cat').on('click', function(ev) {
                         var id = ev.target.id;
 console.log(id);
                         $('.match-chosen-cat').prop('checked', false);
                         $('#' + id).prop('checked', true);
-                        $('#match-chosen-button').show();
+                        $('#match-chosen-button').removeClass('button-disabled').removeAttr('disabled');
                     });
                 }
             }
@@ -473,7 +479,7 @@ function saveMatchChoice() {
     $('#match-chosen-button').hide();
     $.ajax({
         url: '../DecisionStore',
-        data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch } }),
+        data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch, presented: matchData.userPresented } }),
         dataType: 'json',
         complete: function(xhr) {
             console.log(xhr);
@@ -489,6 +495,7 @@ function saveMatchChoice() {
     });
 }
 
+//negative score will NOT be shown to user at all
 function matchScore(mdata) {
     var score = 1;
     if (mdata.matches.earTip) score += 0.5;
@@ -692,7 +699,7 @@ All required selections are made.  You may now save your answers. <br />
     </div>
 
     <div class="column-match">
-        <h2>Look for a matching cat</h2>
+        <h2><span onClick="$('.match-item-info').show();">Step 2:</span> Does this cat match another cat in our database?</h2>
         <p id="match-summary"></p>
         <div id="match-results"><i>searching....</i></div>
     </div>
