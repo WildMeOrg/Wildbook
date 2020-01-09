@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,
          javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,
-         org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SynchronizedSummaryStatistics,
+         org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SynchronizedSummaryStatistics, java.util.stream.Collectors,
          org.joda.time.DateTime,
 		org.joda.time.format.DateTimeFormatter,
 		org.joda.time.format.ISODateTimeFormat
@@ -9,8 +9,6 @@
 
 
   <%
-
-  
   //get our Shepherd
   String context="context0";
   context=ServletUtilities.getContext(request);
@@ -595,9 +593,55 @@ if (request.getQueryString() != null) {
 </ul>
     </p>
 
-//TODO - Format rIndividuals data and graph
+<link rel="stylesheet" type="text/css" href="css/individualStyles.css">
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script src="javascript/relationshipDiagrams/jsonParser.js"></script>
+<script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
+<script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
+<script src="javascript/relationshipDiagrams/socialGraph.js"></script>
+
+<div id="socialDiagram" class="socialVis">
+  <div id="graphFilters">
+    <button type="button" id="selectFamily">Select Family</button>
+    <button type="button" id="filterFamily">Filter Family</button>
+    <button type="button" id="reset">Reset</button>
+    <div id="filterGender" class="filterOptions">
+      <label>	  
+        <input type="checkbox" id="maleBox">
+        <span>Male</span>
+      </label>
+      <label>	  
+        <input type="checkbox" id="femaleBox">
+        <span>Female</span>
+      </label>
+      <label>	  
+        <input type="checkbox" id="unknownGenderBox">
+        <span>Unknown Gender</span>
+      </label>
+    </div>
+    <div id="filterSocialRole" class="filterOptions">
+      <label>
+        <input type="checkbox" id="alphaBox">
+        <span>Alpha</span>
+      </label>
+      <label>
+        <input type="checkbox" id="unknownRoleBox">
+        <span>Unknown Role</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<%
+  ArrayList<String> individualIds = new ArrayList<String>();
+  for (MarkedIndividual rIndividual : rIndividuals) {
+    individualIds.add(rIndividual.getIndividualID());
+  }
+%>
+
 <script>
-  console.log("DATA", '<%=rIndividuals%>');
+  let parser = new JSONParser('<%=individualIds%>');
+  setupSocialGraph(null, "#socialDiagram", parser);
 </script>
 
 <%

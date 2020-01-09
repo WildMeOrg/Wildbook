@@ -1,7 +1,7 @@
 //Occurence graph global API (used in individuals.jsp)
 function setupOccurrenceGraph(individualID) { //TODO - look into individualID
     let focusedScale = 1.75;
-    let occ = new OccurrenceGraph(individualID, "#bubbleChart", focusedScale); //TODO - Remove mock
+    let occ = new OccurrenceGraph(individualID, "#bubbleChart", focusedScale); 
     occ.applyOccurrenceData();
 }
 
@@ -12,109 +12,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
 	//TODO - Remove ref, use key
 	this.sliders = {"temporal": {"ref": "temporal"},
-			"spatial": {"ref": "spatial"}};
-	
-	//TODO: Parse this data
-	this.nodeData = [
-	    {
-		"id": 0,
-		"group": 0,
-		"data": {
-		    "name": "Lion A",
-		    "gender": "female",
-		    "sightings": [
-			{
-			    "datetime_ms": 2000,
-			    "location": {"lat": 1, "lon": 0}
-			}
-		    ],
-		    "role": "alpha",
-		    "isFocused": true
-		}
-	    },
-	    {
-		"id": 1,
-		"group": 0,
-		"data": {
-		    "name": "Lion B",
-		    "gender": "female",
-		    "sightings": [
-			{
-			    "datetime_ms": 2200,
-			    "location": {"lat": 2, "lon": 1}
-			}
-		    ]
-		}
-	    },
-	    {
-		"id": 2,
-		"group": 1,
-		"data": {
-		    "name": "Lion C",
-		    "gender": "male",
-		    "sightings": [
-			{
-			    "datetime_ms": 1900,
-			    "location": {"lat": 2, "lon": 0}
-			}
-		    ]
-		}
-	    },
-	    {
-		"id": 3,
-		"group": 0,
-		"data": {
-		    "name": "Lion D",
-		    "gender": "",
-		    "sightings": [
-			{
-			    "datetime_ms": 2100,
-			    "location": {"lat": 1, "lon": 1}
-			}
-		    ],
-		}
-	    },
-	    {
-		"id": 4,
-		"group": 0,
-		"data": {
-		    "name": "Lion E",
-		    "gender": "female",
-		    "sightings": [
-			{
-			    "datetime_ms": 1600,
-			    "location": {"lat": 0, "lon": 0}
-			}
-		    ],
-		}
-	    },
-	    {
-		"id": 5,
-		"group": 2,
-		"data": {
-		    "name": "Lion F",
-		    "gender": "male",
-		    "sightings": [
-			{
-			    "datetime_ms": 2500,
-			    "location": {"lat": -1, "lon": 0}
-			},
-			{
-			    "datetime_ms": 2500, //Test duplicate
-			    "location": {"lat": -1, "lon": 0}
-			}
-		    ],
-		}
-	    }
-	];
-
-	this.linkData = [
-	    {"linkId": 0, "source": 0, "target": 1, "type": "maternal", "group": 0},
-	    {"linkId": 1, "source": 0, "target": 2, "type": "member", "group": -1},
-	    {"linkId": 2, "source": 0, "target": 3, "type": "maternal", "group": 0},
-	    {"linkId": 3, "source": 0, "target": 4, "type": "maternal", "group": 0},
-	    {"linkId": 4, "source": 0, "target": 5, "type": "member", "group": -1}
-	];	
+			"spatial": {"ref": "spatial"}};	
     }
 
     //Wrapper function to gather species data and generate a graph
@@ -180,7 +78,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     //TODO - Consider strip optimizations
     //Find the minimum spatial/temporal difference between two node sightings
     getNodeMinBruteForce(node1Sightings, node2Sightings, type) {
-	let val, min = Number.MAX_VALUE;
+	let val, min = Number.MAX_SAFE_INTEGER;
 	node1Sightings.forEach(node1 => {
 	    node2Sightings.forEach(node2 => {
 		if (type === "spatial")
@@ -196,6 +94,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     }
 
     //TODO - Cleanup
+    //TODO - Consider switching where link/node filtration occurs
     updateLinkThreshCount(refNode) {
 	let spatialThresh = parseInt($("#spatial").val());
 	let temporalThresh = parseInt($("#temporal").val());
@@ -340,7 +239,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let diff = src - target;
 	return target + (diff * 0.4);
     }
-
 }
 
 
