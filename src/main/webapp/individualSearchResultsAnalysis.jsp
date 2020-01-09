@@ -593,57 +593,6 @@ if (request.getQueryString() != null) {
 </ul>
     </p>
 
-<link rel="stylesheet" type="text/css" href="css/individualStyles.css">
-<script src="//d3js.org/d3.v4.min.js"></script>
-<script src="javascript/relationshipDiagrams/jsonParser.js"></script>
-<script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
-<script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
-<script src="javascript/relationshipDiagrams/socialGraph.js"></script>
-
-<div id="socialDiagram" class="socialVis">
-  <div id="graphFilters">
-    <button type="button" id="selectFamily">Select Family</button>
-    <button type="button" id="filterFamily">Filter Family</button>
-    <button type="button" id="reset">Reset</button>
-    <div id="filterGender" class="filterOptions">
-      <label>	  
-        <input type="checkbox" id="maleBox">
-        <span>Male</span>
-      </label>
-      <label>	  
-        <input type="checkbox" id="femaleBox">
-        <span>Female</span>
-      </label>
-      <label>	  
-        <input type="checkbox" id="unknownGenderBox">
-        <span>Unknown Gender</span>
-      </label>
-    </div>
-    <div id="filterSocialRole" class="filterOptions">
-      <label>
-        <input type="checkbox" id="alphaBox">
-        <span>Alpha</span>
-      </label>
-      <label>
-        <input type="checkbox" id="unknownRoleBox">
-        <span>Unknown Role</span>
-      </label>
-    </div>
-  </div>
-</div>
-
-<%
-  ArrayList<String> individualIds = new ArrayList<String>();
-  for (MarkedIndividual rIndividual : rIndividuals) {
-    individualIds.add(rIndividual.getIndividualID());
-  }
-%>
-
-<script>
-  let parser = new JSONParser('<%=individualIds%>');
-  setupSocialGraph(null, "#socialDiagram", parser);
-</script>
-
 <%
 if(maxTravelDistance>0){
 %>
@@ -747,6 +696,57 @@ if(maxTimeBetweenResights>0){
  
 <p><strong><%=encprops.getProperty("charting") %></strong></p>
 
+<link rel="stylesheet" type="text/css" href="css/individualStyles.css">
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script src="javascript/relationshipDiagrams/jsonParser.js"></script>
+<script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
+<script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
+<script src="javascript/relationshipDiagrams/socialGraph.js"></script>
+
+<div id="socialDiagram" class="socialVis">
+  <div id="graphFilters">
+    <button type="button" id="selectFamily">Select Family</button>
+    <button type="button" id="filterFamily">Filter Family</button>
+    <button type="button" id="reset">Reset</button>
+    <div id="filterGender" class="filterOptions">
+      <label>	  
+        <input type="checkbox" id="maleBox">
+        <span>Male</span>
+      </label>
+      <label>	  
+        <input type="checkbox" id="femaleBox">
+        <span>Female</span>
+      </label>
+      <label>	  
+        <input type="checkbox" id="unknownGenderBox">
+        <span>Unknown Gender</span>
+      </label>
+    </div>
+    <div id="filterSocialRole" class="filterOptions">
+      <label>
+        <input type="checkbox" id="alphaBox">
+        <span>Alpha</span>
+      </label>
+      <label>
+        <input type="checkbox" id="unknownRoleBox">
+        <span>Unknown Role</span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<%
+  ArrayList<String> individualIds = new ArrayList<String>();
+  for (MarkedIndividual rIndividual : rIndividuals) {
+    individualIds.add(rIndividual.getIndividualID());
+  }
+%>
+
+<script>
+  let parser = new JSONParser('<%=individualIds%>', true);
+  setupSocialGraph(null, "#socialDiagram", parser);
+</script>
+	 
  <div id="chart_div"></div>
 
 <div id="sexchart_div"></div>

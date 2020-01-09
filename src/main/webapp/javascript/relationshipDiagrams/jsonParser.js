@@ -1,5 +1,5 @@
 class JSONParser {
-    constructor(selectedNodes=null) {
+    constructor(selectedNodes=null, disjointNodes=false) {
 	//Keep track of a unique id for each node and link
 	this.nodeId = 0;
 	this.linkId = 0;
@@ -10,6 +10,8 @@ class JSONParser {
 		selectedNodes = selectedNodes.substr(1, selectedNodes.length - 2).split(", ");
 	    this.selectedNodes = new Set(selectedNodes);
 	}
+
+	this.disjointNodes = disjointNodes;
     }
 
     //Parse links and nodes to generate a graph via graphCallback
@@ -37,7 +39,7 @@ class JSONParser {
     queryNodeData() {
 	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
 	    encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual"); //Get all individuals
-	return this.queryData("nodeData", query, this.storeQueryAsDict);
+	    return this.queryData("nodeData", query, this.storeQueryAsDict);
     }
 
     //Query and store all Relationship data
@@ -101,28 +103,30 @@ class JSONParser {
 	    let data = nodeData[key];
 	    let name = data.displayName;
 	    name = name.substring(name.indexOf(" ") + 1);
-	    
-	    nodes.push({
-		"id": data.id,
-		"individualId": key,
-		"group": data.group,
-		"data": {
-		    "name": name,
-		    "gender": data.sex,
-		    "genus": data.genus,
-		    "individualID": data.individualID,
-		    "numberLocations": data.numberLocations,
-		    "dateFirstIdentified": data.dateFirstIdentified,
-		    "numberEncounters": data.numberEncounters,
-		    "timeOfBirth": data.timeOfBirth,
-		    "timeOfDeath": data.timeOfDeath,
-		    "isDead": (data.timeOfDeath > 0) ? true : false,
-		    "isFocused": (data.individualID === iId)
-		} //TODO - role
-		//TODO - Add metric concerning how recently an animal has been sighted compared to others
-	    });
+
+	    if (this.disjointNodes || data.iIdLinked) {
+		nodes.push({
+		    "id": data.id,
+		    "individualId": key,
+		    "group": data.group,
+		    "data": {
+			"name": name,
+			"gender": data.sex,
+			"genus": data.genus,
+			"individualID": data.individualID,
+			"numberLocations": data.numberLocations,
+			"dateFirstIdentified": data.dateFirstIdentified,
+			"numberEncounters": data.numberEncounters,
+			"timeOfBirth": data.timeOfBirth,
+			"timeOfDeath": data.timeOfDeath,
+			"isDead": (data.timeOfDeath > 0) ? true : false,
+			"isFocused": (data.individualID === iId)
+		    } //TODO - role
+		    //TODO - Add metric concerning how recently an animal has been sighted compared to others
+		});
+	    }
 	});
-	
+
 	return nodes;
     }
 
@@ -136,14 +140,15 @@ class JSONParser {
 	    let startingNode = (iId) ? iId : Object.keys(relationships)[0];
 	    let relationStack = [{"name": startingNode, "group": groupNum}];
 
-	    while (relationStack.length > 0) { //Handle all nodes connected to "startingNode"
+	    while (relationStack.length > 0) { //Handle nodes connected to the "startingNode"
 		let link = relationStack.pop();
 		let name = link.name;
 		let group = link.group;
 		
 		//Update node id and group
+		let iIdLinked = (startingNode === iId);
 		if (!JSONParser.nodeData[name].id || link.type !== "member") {
-		    this.updateNodeData(name, group, this.getNodeId());
+		    this.updateNodeData(name, group, this.getNodeId(), iIdLinked);
 		}
 
 		//Check if other valid relationships exist
@@ -157,16 +162,16 @@ class JSONParser {
 	    }
 	}
 
-	//Update id and group attributes for all disconnected nodes 
+	//Update id and group attributes for all disconnected nodes
 	Object.keys(JSONParser.nodeData).forEach(key => {
 	    if (!JSONParser.nodeData[key].id) {
 		this.updateNodeData(key, ++groupNum, this.getNodeId());
 	    }
 	});
-	
+
 	JSONParser.isNodeDataProcessed = true;
     }
-
+	
     //Create a bi-directional dictionary of all node relationships
     mapRelationships() {
 	let relationships = {};
@@ -287,12 +292,15 @@ class JSONParser {
     }
 
     //Update node group and id attributes
-    updateNodeData(nodeRef, group, id) {
-	if (JSONParser.nodeData[nodeRef]) {
-	    JSONParser.nodeData[nodeRef].id = id;
-	    JSONParser.nodeData[nodeRef].group = group;
+    updateNodeData(nodeRef, group, id, iIdLinked) {
+	let node = JSONParser.nodeData[nodeRef];
+	if (node) {
+	    node.id = id;
+	    node.group = group;
+	    node.iIdLinked = iIdLinked;
 	}
-	else JSONParser.nodeData[nodeRef] = {"id": id, "group": group};
+	else node = {"id": id, "group": group};
+	JSONParser.nodeData[nodeRef] = node;
     }
 
     //Return node data filtered by selected nodes
