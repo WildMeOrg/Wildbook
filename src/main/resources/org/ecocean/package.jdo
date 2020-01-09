@@ -909,6 +909,7 @@
 		</field>
 		<field name="value">
 			<column allows-null="false" />
+        		<column jdbc-type="LONGVARCHAR"/>
 		</field>
 		<field name="timestamp" />
 	</class>
