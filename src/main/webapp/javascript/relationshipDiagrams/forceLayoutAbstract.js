@@ -3,8 +3,8 @@
 
 //Abstract class defining functionality for all d3 forceLayout types
 class ForceLayoutAbstract extends GraphAbstract {
-    constructor(individualId, containerId, focusedScale=1) {
-	super(individualId, containerId, focusedScale);
+    constructor(individualId, containerId, focusedScale=1, parser=null) {
+	super(individualId, containerId, focusedScale, parser);
 
 	//Link attributes
 	this.linkWidth = 3;
