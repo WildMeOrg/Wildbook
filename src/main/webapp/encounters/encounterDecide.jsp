@@ -163,7 +163,7 @@ System.out.println("findSimilar() -> " + el.toString());
     display: inline-block;
     padding: 3px 8px;
     background-color: #DDD;
-    margin: 4px 2px;
+    margin: 7px 2px;
     cursor: pointer;
     width: 100%;
 }
@@ -171,7 +171,7 @@ System.out.println("findSimilar() -> " + el.toString());
     background-color: #bff223;
 }
 .attribute-selected {
-    background-color: #6B6 !important;
+    background-color: #bff223 !important;
 }
 .attribute-muted {
     opacity: 0.4;
@@ -218,7 +218,7 @@ System.out.println("findSimilar() -> " + el.toString());
     line-height: 1.1em;
 }
 #flag .input-wrapper:hover {
-    background-color: #BBB;
+    background-color: #bff223;
 }
 #flag .input-wrapper input {
     vertical-align: top;
@@ -237,6 +237,11 @@ System.out.println("findSimilar() -> " + el.toString());
 
 #save-complete {
     display: none;
+}
+
+.button-disabled {
+    cursor: not-allowed !important;
+    background-color: #DDD !important;
 }
 
 .match-summary-detail {
@@ -291,6 +296,8 @@ System.out.println("findSimilar() -> " + el.toString());
     display: none;
 }
 #match-controls {
+    margin: -10px;
+    border: solid 1px black;
     padding: 10px;
     background: #CCC;
     position: fixed;
@@ -365,6 +372,7 @@ function checkSaveStatus() {
     if (complete) {
         $('#save-incomplete').hide();
         $('#save-complete').show();
+        $('#save-button').removeClass('button-disabled').attr('title', 'Save your answers').removeAttr('disabled');
     }
 }
 
@@ -678,8 +686,8 @@ Make selections for all the options above, and then save here.
             </p>
             <p id="save-complete">
 All required selections are made.  You may now save your answers. <br />
-<input type="button" value="Save" onClick="return doSave()" />
             </p>
+<input disabled title="You must complete all selections above before saving" class="button-disabled" id="save-button" type="button" value="Save" onClick="return doSave()" />
         </div>
     </div>
 
