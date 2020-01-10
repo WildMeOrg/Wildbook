@@ -315,11 +315,11 @@ System.out.println("findSimilar() -> " + el.toString());
     top: 0;
     right: 0;
     padding: 2px 8px;
-    background-color: #AAA;
+    background-color: #9dc327;
     border-radius: 5px;
 }
 .match-choose:hover {
-    background-color: #666;
+    background-color: #8db317;
 }
 .match-choose label {
     font-weight: bold;
@@ -443,6 +443,7 @@ var matchData = null;
 function enableMatch() {
     $('.column-attributes').hide();
     $('.column-match').show();
+    $('#subtitle').html('Step 2');
     window.scrollTo(0,0);
     var h = '';
     for (var i in userData) {
@@ -581,7 +582,7 @@ console.info(imgEl.style);
 <body>
 
 <div class="container maincontent">
-<h1>Submission <%=enc.getCatalogNumber().substring(0,8)%></h1>
+<h1>Submission <%=enc.getCatalogNumber().substring(0,8)%>: <span id="subtitle">Step 1</span></h1>
 
 <%= NoteField.buildHtmlDiv("59b4eb8f-b77f-4259-b939-5b7c38d4504c", request, myShepherd) %>
 <div class="org-ecocean-notefield-default" id="default-59b4eb8f-b77f-4259-b939-5b7c38d4504c">
