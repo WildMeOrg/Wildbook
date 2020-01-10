@@ -361,7 +361,7 @@ class GraphAbstract { //See static attributes below class
 		.style("left", d3.event.layerX + 30 + "px")		
 		.style("top", d3.event.layerY - 20 + "px")
 	    //		.html("<b>Encounters:</b>\n None");
-		.html("<b>" + d.group + "</b>");
+		.html("<b>" + "Last Seen:" + "</b>" + d.data.latestSighting);
 
 	    //Prevent future mouseOver events
 	    this.popup = true;
