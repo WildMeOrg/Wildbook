@@ -472,7 +472,9 @@ console.log(url);
                         var h = '<div class="match-item">';
                         h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
                         for (var j = 0 ; j < xhr.responseJSON.similar[i].assets.length ; j++) {
-                            h += '<div class="match-asset-wrapper"><img onLoad="matchAssetLoaded(this);" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div>';
+                            h += '<div class="match-asset-wrapper">';
+                            h += '<div class="zoom-hint" style="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
+                            h += '<img onLoad="matchAssetLoaded(this);" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].assets[j].id] = xhr.responseJSON.similar[i].assets[j];
                         }
                         h += '<div class="match-item-info">';
