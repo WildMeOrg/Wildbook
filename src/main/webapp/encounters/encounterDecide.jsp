@@ -259,7 +259,7 @@ System.out.println("findSimilar() -> " + el.toString());
 }
 
 .match-item {
-    padding: 10px;
+    padding: 50px 10px 10px 10px;
     border-top: 3px black solid;
     position: relative;
 }
@@ -278,7 +278,7 @@ System.out.println("findSimilar() -> " + el.toString());
 .match-asset-wrapper {
     position: relative;
     overflow: hidden;
-    width: 300px;
+    width: 500px;
     xheight: 300px;
     margin-bottom: 5px;
 }
@@ -333,8 +333,8 @@ System.out.println("findSimilar() -> " + el.toString());
     position: fixed;
     bottom: 10px;
     border-radius: 10px;
-    width: 30%;
-    height: 150px;
+    width: 15%;
+    right: 5%;
     z-index: 100;
 }
 </style>
@@ -474,7 +474,7 @@ console.log(url);
                         h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
                         for (var j = 0 ; j < xhr.responseJSON.similar[i].assets.length ; j++) {
                             h += '<div class="match-asset-wrapper">';
-                            h += '<div class="zoom-hint" style="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
+                            h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
                             h += '<img onLoad="matchAssetLoaded(this);" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].assets[j].id] = xhr.responseJSON.similar[i].assets[j];
                         }
@@ -586,7 +586,9 @@ console.info(imgEl.style);
 
 <%= NoteField.buildHtmlDiv("59b4eb8f-b77f-4259-b939-5b7c38d4504c", request, myShepherd) %>
 <div class="org-ecocean-notefield-default" id="default-59b4eb8f-b77f-4259-b939-5b7c38d4504c">
-<p>Some instructions can go here.  This is editable.</p>
+<p>
+There are two steps to processing each submission: selecting cat attributes, and then looking to see if the cat has a match in the database.
+</p>
 </div>
 
 <b id="width-info"></b>
@@ -736,7 +738,7 @@ All required selections are made.  You may now save your answers. <br />
     </div>
 
     <div class="column-match">
-        <h2><span onClick="$('.match-item-info').show();">Step 2:</span> Does this cat match another cat in our database?</h2>
+        <h2 style="font-size: 1.0em;"><span onClick="$('.match-item-info').show();">Step 2:</span> Does the cat on the left match another cat in the list below?</h2>
         <p id="match-summary"></p>
         <div id="match-results"><i>searching....</i></div>
     </div>
