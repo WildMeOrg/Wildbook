@@ -887,8 +887,12 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         List<Annotation> sibs = this.getSiblings();
         if ((sibs == null) || (sibs.size() < 1)) {  //no sibs, we make a new Encounter!
             Encounter enc = new Encounter(this);
+            if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
+              enc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
+            }
             //this taxonomy only works when its twitter-sourced data cuz otherwise this is just null 
             enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd, TwitterUtil.parentTweet(myShepherd, this.getMediaAsset())));
+
             return enc;
         }
         /*
@@ -949,6 +953,9 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.resetDateInMilliseconds();
             newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
             newEnc.setGenus(someEnc.getGenus());
+        }
+        if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
+          newEnc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
         }
         return newEnc;
 
