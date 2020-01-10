@@ -609,9 +609,9 @@ There are two steps to processing each submission: selecting cat attributes, and
         <div class="attribute">
             <h2>Flag Problems</h2>
             <div id="flag">
-                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-missed" /><label for="flag-missed">Cat(s) not detected<span class="flag-note">Our system should detect and draw a box around all cats in this photo submission.  Submissions with multiple cats should have each cat detected, and the focal cat highlighted with a ticker box line.  Are there any undetected (unboxed) cats in these photos?</span></label></div>
+                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-missed" /><label for="flag-missed">Cat(s) not detected<span class="flag-note">Our system should detect and draw a box around all cats in this photo submission.  Submissions with multiple cats should have each cat detected, and the focal cat highlighted with a thicker box line.  Are there any undetected (unboxed) cats in these photos?</span></label></div>
                 <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-sensitive" /><label for="flag-sensitive">Sensitive or private information<span class="flag-note">To respect the privacy of those in our communities, our system should detect and automatically blur human faces, street signs, house numbers, license plates, and company logos. Do the photos in this submission contain any unblurred private information?</span></label></div>
-                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-quality" /><label for="flag-quality">Very poor quality<span class="flag-note">Low image quality, blurring, resolution, or other technical problems prevent some photos from being useful.</span></label></div>
+                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-quality" /><label for="flag-quality">Very poor quality<span class="flag-note">Low image quality, blurring, resolution, or other technical problems prevent photos from being useful.</span></label></div>
             </div>
         </div>
 
