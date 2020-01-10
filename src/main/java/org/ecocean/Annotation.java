@@ -90,8 +90,6 @@ public class Annotation implements java.io.Serializable {
     private MediaAsset mediaAsset = null;
 ////// end of what will go away
 
-    private volatile int[] bbox;
-
     //the "trivial" Annotation - will have a single feature which references the total MediaAsset
     public Annotation(String species, MediaAsset ma) {
         this(species, ma.generateUnityFeature());
@@ -474,11 +472,6 @@ public class Annotation implements java.io.Serializable {
 
     //if this cannot determine a bounding box, then we return null
     public int[] getBbox() {
-
-        if (this.bbox !=null) {
-            //System.out.println("Returning existing bounding box.");
-            return bbox; 
-        }
         
         if (getMediaAsset() == null) return null;
         Feature found = null;
@@ -510,7 +503,6 @@ public class Annotation implements java.io.Serializable {
             return null;
         }
         //System.out.println("Set new Bounding box.");
-        this.bbox = bbox;
         return bbox;
     }
 
@@ -932,48 +924,18 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         }
 
         // do we have an an encounter from the sibling?
-        // The following goes hella deep in loops.. but most of the time loop 2 and 3 will actually only have 1 item
         if (someEnc!=null) {
-            ArrayList<Feature> myFeats = this.getFeatures();
             for (Annotation ann : sibs) {
-                //if iaClass is the same, it means same animal, same part ect.. gotta make a new encounter and totally bail on this
-
-                // TODO make this check less primitive.. could fail when we detect co occuring species.
-                if (ann.getIAClass()==this.getIAClass()) {break;}
-
-                ArrayList<Feature> sibFeats = ann.getFeatures();
-                try {
-                    for (Feature sibFeat : sibFeats) {
-                        JSONObject sibParams = sibFeat.getParameters();
-                        // made it this far.. if the bboxes of the features OVERLAP we can (well, we will) assume it is the same animal.
-                        int sibx = sibParams.getInt("x");
-                        int siby = sibParams.getInt("y");
-                        int sibWidth = sibParams.getInt("width");
-                        int sibHeight = sibParams.getInt("height");
-                        Rectangle sibRect = new Rectangle(sibx,siby,sibWidth,sibHeight);
-
-                        for (Feature myFeat : myFeats) {
-                            JSONObject myFeatParams = myFeat.getParameters();
-                            int myx = myFeatParams.getInt("x");
-                            int myy = myFeatParams.getInt("y");
-                            int myWidth = myFeatParams.getInt("width");
-                            int myHeight = myFeatParams.getInt("height");
-                            Rectangle myRect = new Rectangle(myx,myy,myWidth,myHeight);
-
-                            // MOMENT OF TRUTH
-                            if (myRect.intersects(sibRect)||myRect.contains(sibRect)) {
-                                someEnc.addAnnotation(this);
-                                someEnc.setDWCDateLastModified();
-                                return someEnc;
-                            }
-                        }
-                    }
-                } catch (NumberFormatException nfe) {
-                    nfe.printStackTrace();
-                } 
+                // TODO lets make this better at handling part designation
+                if (ann.getIAClass().equals(this.getIAClass())) {break;}
+                // if these two intersect and have a different detected class they are allowed to reside on the same encounter
+                if (this.intersects(ann)) {
+                    someEnc.addAnnotation(this);
+                    someEnc.setDWCDateLastModified();
+                    return someEnc;
+                }
             }
         }
-
 
         //if we fall thru, we have no trivial annot, so just get a new Encounter for this Annotation
         Encounter newEnc = null;
@@ -1068,5 +1030,32 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
             Collections.addAll(all, VALID_VIEWPOINTS[i]);
         }
         return all;
+    }
+
+    public boolean contains(Annotation ann) {
+        Rectangle myRect = getRect(this);
+        Rectangle queryRect = getRect(ann);
+        return myRect.contains(queryRect);
+    }
+
+    public boolean intersects(Annotation ann) {
+        Rectangle myRect = getRect(this);
+        Rectangle queryRect = getRect(ann);
+        return myRect.intersects(queryRect);
+    }
+
+    private Rectangle getRect(Annotation ann) {
+        try {
+            if (ann.getBbox()==null) return null;
+            int[] bBox = ann.getBbox();
+            int x = bBox[0];
+            int y = bBox[1];
+            int width = bBox[2];
+            int height = bBox[3];
+            return new Rectangle(x,y,width,height);
+        } catch (NumberFormatException nfe) {
+            nfe.printStackTrace();
+        }
+        return null;
     }
 }
