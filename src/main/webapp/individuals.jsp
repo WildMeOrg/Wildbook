@@ -1608,11 +1608,11 @@ if (sharky.getNames() != null) {
             </div>
   	    <div id="cooccurrenceSliders">
 	      <div class="sliderWrapper">
-		<label for="temporal">Temporal Slider - <span id="temporalVal"></span></label>
+		<label for="temporal">Temporal Slider (Milliseconds) - <span id="temporalVal"></span></label>
                 <input type="range" min=0 class="cooccurrenceSlider" id="temporal">
 	      </div>
 	      <div class="sliderWrapper">
-		<label for="spatial">Spatial Slider - <span id="spatialVal"></span></label>
+		<label for="spatial">Spatial Slider (Degrees) - <span id="spatialVal"></span></label>
 		<input type="range" min=0 class="cooccurrenceSlider" id="spatial">
 	      </div>
 	    </div>

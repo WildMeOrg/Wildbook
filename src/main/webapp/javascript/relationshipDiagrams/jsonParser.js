@@ -18,19 +18,14 @@ class JSONParser {
     parseJSON(iId, graphCallback, isCoOccurrence=false) {
 	this.queryNodeData().then(() => {
 	    this.queryRelationshipData().then(() => {
+		let nodes = this.parseNodes(iId);
+		let links = this.parseLinks();
+
 		if (isCoOccurrence) {
-		    this.queryCoOccurrenceData().then(() => {
-			let nodes = this.parseNodes(iId);
-			let links = this.parseLinks();
-			let [modLinks, modNodes] = this.modifyOccurrenceData(iId, links, nodes);
-			graphCallback(modNodes, modLinks);
-		    });
+		    [nodes, links] = this.modifyOccurrenceData(iId, nodes, links);
 		}
-		else {
-		    let nodes = this.parseNodes(iId);
-		    let links = this.parseLinks();
-		    graphCallback(nodes, links);
-		}
+		
+		graphCallback(nodes, links);
 	    });
 	}); 
     }
@@ -48,13 +43,6 @@ class JSONParser {
 	    encodeURIComponent("SELECT FROM org.ecocean.social.Relationship " +
 			       "WHERE (this.type == \"social grouping\")");
 	return this.queryData("relationshipData", query);
-    }
-
-    //Query and store all CoOccurrence data
-    queryCoOccurrenceData() {
-	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
-	    encodeURIComponent("SELECT FROM org.ecocean.Encounter");
-	return this.queryData("coOccurrenceData", query, this.storeQueryAsDict);
     }
 
     //Retrieve JSON data from the Wildbook DB
@@ -103,24 +91,24 @@ class JSONParser {
 	    let data = nodeData[key];
 	    let name = data.displayName;
 	    name = name.substring(name.indexOf(" ") + 1);
-
+	    
 	    if (this.disjointNodes || data.iIdLinked) {
 		nodes.push({
 		    "id": data.id,
-		    "individualId": key,
 		    "group": data.group,
 		    "data": {
 			"name": name,
 			"gender": data.sex,
-			"genus": data.genus,
-			"individualID": data.individualID,
-			"numberLocations": data.numberLocations,
+			"genus": data.genus, //TODO - Remove?
+			"individualID": key,
 			"dateFirstIdentified": data.dateFirstIdentified,
+			"latestSighting": data.dateTimeLatestSighting,
 			"numberEncounters": data.numberEncounters,
 			"timeOfBirth": data.timeOfBirth,
 			"timeOfDeath": data.timeOfDeath,
 			"isDead": (data.timeOfDeath > 0) ? true : false,
-			"isFocused": (data.individualID === iId)
+			"isFocused": (key === iId),
+			"encounters": data.encounters
 		    } //TODO - role
 		    //TODO - Add metric concerning how recently an animal has been sighted compared to others
 		});
@@ -224,13 +212,11 @@ class JSONParser {
     }
 
     //Modify node and link data to fit a coOccurrence graph format
-    modifyOccurrenceData(iId, links, nodes) {
+    modifyOccurrenceData(iId, nodes, links) {
 	//Add sightings data to each existing node
 	nodes.forEach(node => {
-	    let encounters = JSONParser.coOccurrenceData[node.individualId];
 	    node.data.sightings = [];
-
-	    if (!Array.isArray(encounters)) encounters = [encounters];
+	    let encounters = node.data.encounters;
 	    encounters.forEach(enc => {
 		let time = enc.dateInMilliseconds;
 		let lat = enc.decimalLatitude;
@@ -252,21 +238,24 @@ class JSONParser {
 	//Remove nodes with no valid sightings
 	let modifiedNodes = nodes.filter(node => node.data.sightings.length > 0);
 	let modifiedNodeMap = new Set(modifiedNodes.map(node => node.id));
-	
+
+	debugger;
 	//Record all links connected to the central focusedNode
 	let modifiedLinks = [], linkedNodes = new Set();
 	let focusedNodeId = this.getNodeDataById(iId).id;
 	links.forEach(link => {
-	    if ((link.source === focusedNodeId || link.target === focusedNodeId) &&
-		link.target !== link.source && modifiedNodeMap.has(link)) {
+	    let focusRef = (link.source === focusedNodeId) ? link.source : link.target;
+	    let nodeRef = (link.source === focusedNodeId) ? link.target : link.source;
+	    
+	    if (focusRef === focusedNodeId && modifiedNodeMap.has(nodeRef) &&
+		link.target !== link.source) {
 		
-		let nodeRef = (links.source === focusedNodeId) ? links.target : links.source;
 		linkedNodes.add(nodeRef);
 		modifiedLinks.push(link);
 	    }
 	});
 
-	//Create new connections for any links not connected to the focusedNode
+	//Create new links for any nodes not connected to the focusedNode
 	modifiedNodes.forEach(node => {
 	    if (!linkedNodes.has(node.id)) {
 		modifiedLinks.push({
@@ -278,7 +267,7 @@ class JSONParser {
 	    }
 	});
 	
-	return [modifiedLinks, modifiedNodes];
+	return [modifiedNodes, modifiedLinks];
     }
 
     //Return and post-increment the current link id
