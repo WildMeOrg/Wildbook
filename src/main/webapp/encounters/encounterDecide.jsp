@@ -185,7 +185,8 @@ System.out.println("findSimilar() -> " + el.toString());
 }
 
 #colorPattern .attribute-option {
-    width: 22%
+    width: 22%;
+    margin-bottom: 13px;
 }
 #earTip .attribute-option, #lifeStage .attribute-option {
     width: 47%;
@@ -211,7 +212,7 @@ System.out.println("findSimilar() -> " + el.toString());
 #flag .input-wrapper {
     display: block;
     text-align: left;
-    padding-left: 20%;
+    padding-left: 15px;
     margin-bottom: 5px;
 }
 #flag label {
@@ -281,6 +282,31 @@ System.out.println("findSimilar() -> " + el.toString());
     xheight: 300px;
     margin-bottom: 5px;
 }
+.zoom-hint {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: inline-block;
+    z-index: 100;
+    background-color: rgba(255,255,255,0.4);
+    border-radius: 10px;
+    padding: 10px;
+    pointer-events: none;
+}
+.zoom-hint .el-zoom-in {
+    pointer-events: none;
+    margin-bottom: 15px;
+    cursor: zoom-in;
+}
+.zoom-hint .el-zoom-out {
+    pointer-events: visible;
+    cursor: zoom-out;
+}
+
+.zoom-hint .el {
+    display: block;
+}
+
 .match-asset {
     position: absolute;
 }
@@ -340,11 +366,19 @@ $(document).ready(function() {
         //$('html').css('overflow', 'hidden');
     });
 */
+
+/*
     $('.enc-asset').on('dblclick', function(ev) {
         $(ev.currentTarget).panzoom('reset');
     });
+*/
 
 });
+
+function zoomOut(el, imgWrapperClass) {
+    event.stopPropagation();
+    $(el).closest(imgWrapperClass).find('img').panzoom('reset');
+}
 
 function clickAttributeOption(ev) {
     if (dataLocked) return;
@@ -559,7 +593,7 @@ console.info(imgEl.style);
     ArrayList<MediaAsset> assets = enc.getMedia();
     if (!Util.collectionIsEmptyOrNull(assets)) for (MediaAsset ma : assets) {
 %>
-        <div class="enc-asset-wrapper"><img class="enc-asset" src="<%=ma.safeURL(request)%>" /></div>
+        <div class="enc-asset-wrapper"><div class="zoom-hint"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, '.enc-asset-wrapper')" class="el el-lg el-zoom-out"></span></div><img class="enc-asset" src="<%=ma.safeURL(request)%>" /></div>
 <%
     }
 %>
@@ -572,7 +606,7 @@ console.info(imgEl.style);
             <div id="flag">
                 <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-missed" /><label for="flag-missed">Cat(s) not detected<span class="flag-note">Our system should detect and draw a box around all cats in this photo submission.  Submissions with multiple cats should have each cat detected, and the focal cat highlighted with a ticker box line.  Are there any undetected (unboxed) cats in these photos?</span></label></div>
                 <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-sensitive" /><label for="flag-sensitive">Sensitive or private information<span class="flag-note">To respect the privacy of those in our communities, our system should detect and automatically blur human faces, street signs, house numbers, license plates, and company logos. Do the photos in this submission contain any unblurred private information?</span></label></div>
-                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-quality" /><label for="flag-quality">Poor quality<span class="flag-note">Low image quality, blurring, resolution, or other technical problems prevent some photos from being useful.</span></label></div>
+                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-quality" /><label for="flag-quality">Very poor quality<span class="flag-note">Low image quality, blurring, resolution, or other technical problems prevent some photos from being useful.</span></label></div>
             </div>
         </div>
 
