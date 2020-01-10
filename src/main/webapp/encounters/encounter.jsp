@@ -166,8 +166,8 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 #kitsci-meta {
     padding: 8px;
-    margin: 1em 0;
-    background-color: #DFD;
+    margin: 1em 1em 0 -1em;
+    background-color: #EAEAEA;
 }
 
 .prop-div {
@@ -829,12 +829,19 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
     } else {
         for (String prop : decMap.keySet()) {
             out.println("<div class=\"prop-div\"><b class=\"prop-name\">" + prop + "</b> ");
+            Map<String,String> sorted = new HashMap<String,String>();
             for (String val : decMap.get(prop).keySet()) {
                 int ct = decMap.get(prop).get(val);
                 String pct = "";
                 double p = new Double(ct) / new Double(countDec);
                 if (ct < countDec) pct = Math.round(p * 100d) + "%";
-                out.println("<div style=\"opacity: " + (0.25d + (p * 0.75d)) + "\" class=\"prop-val\"><span class=\"prop-val-val\">" + val + "</span> <b class=\"prop-val-ct\">" + ct + "</b> <span class=\"prop-val-pct\">" + pct + "</span></div>");
+                sorted.put(p + "_" + val, "<div style=\"opacity: " + (0.25d + (p * 0.75d)) + "\" class=\"prop-val\"><span class=\"prop-val-val\">" + val + "</span> <b class=\"prop-val-ct\">" + ct + "</b> <span class=\"prop-val-pct\">" + pct + "</span></div>");
+            }
+            List<String> keys = new ArrayList<String>(sorted.keySet());
+            Collections.sort(keys);
+            Collections.reverse(keys);
+            for (String key : keys) {
+                out.println(sorted.get(key));
             }
             out.println("</div>");
         }
