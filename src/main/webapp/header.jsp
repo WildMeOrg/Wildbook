@@ -420,7 +420,7 @@ if (thisUser == null) {
                         <li><a href="<%=urlLoc %>/queue.jsp">Login</a></li>
 <% } else { %>
                         <li><a href="<%=urlLoc %>/register.jsp?instructions">Instructions</a></li>
-                        <li><a href="<%=urlLoc %>/queue.jsp">Review Submissions</a></li>
+                        <li><a href="<%=urlLoc %>/queue.jsp">Process Submissions</a></li>
                         <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 <% } %>
                     </ul>

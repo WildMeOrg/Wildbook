@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,java.util.Properties, org.ecocean.servlet.ServletUtilities" %>
+         import="org.ecocean.CommonConfiguration,java.util.Properties, org.ecocean.servlet.ServletUtilities, org.ecocean.NoteField, org.ecocean.Shepherd " %>
 <%
 
   //setup our Properties object to hold all properties
@@ -14,6 +14,7 @@
 
   
   String context=ServletUtilities.getContext(request);
+Shepherd myShepherd = new Shepherd(context);
         request.setAttribute("pageTitle", "Kitizen Science &gt; Spay/Neuter Evidence");
 
 %>
@@ -21,22 +22,58 @@
 <div class="container maincontent">
 
 <h1>Spay/Neuter Evidence</h1>
-<p><em><img src="images/evidence_catpapers.jpg" width="260" height="400" hspace="10" vspace="10" align="right" />First, a short definition of terms used on this page and elsewhere on the website.  There are a lot of names for programs that sterilize unowned outdoor cats (trap-neuter-return, shelter-neuter-return, return to field, community cat programs) and return them to where they were trapped.  Here, we use &quot;spay/neuter program&quot; as our most all-inclusive and neutral term.  There are also many names for unowned outdoor cats (feral cat, community cat, stray cat, working cat, barn cat).  We have chosen to use &quot;free-roaming cat&quot; as our most all-inclusive and neutral term. </em></p>
+<img src="images/evidence_catpapers.jpg" width="260" height="400" hspace="10" vspace="10" align="right" />
+
+<%= NoteField.buildHtmlDiv("0bf6f76b-0ef2-4358-8ecc-c19f13843de0", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-0bf6f76b-0ef2-4358-8ecc-c19f13843de0">
+<p><em>
+First, a short definition of terms used on this page and elsewhere on the website.  There are a lot of names for programs that sterilize unowned outdoor cats (trap-neuter-return, shelter-neuter-return, return to field, community cat programs) and return them to where they were trapped.  Here, we use &quot;spay/neuter program&quot; as our most all-inclusive and neutral term.  There are also many names for unowned outdoor cats (feral cat, community cat, stray cat, working cat, barn cat).  We have chosen to use &quot;free-roaming cat&quot; as our most all-inclusive and neutral term. </em></p>
+</div>
+
 <h2><a name="terminology" id="terminology"></a>Isn't there already proof that spay/neuter works? </h2>
+
+<%= NoteField.buildHtmlDiv("0bf6f76b-0ef2-4358-8ecc-c19f13843de1", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-0bf6f76b-0ef2-4358-8ecc-c19f13843de1">
 <p>In debates about whether or not spay/neuter programs &quot;work,&quot; people with different values and goals can disagree simply because they are looking at the question differently.  There are many ways to define <em>success</em>: cat population decreases, saving cats' lives in shelters, reducing cat complaints to animal control.  There are many <em>metrics</em> to measure: shelter statistics, free-roaming cat numbers, mathematical modeling outputs.  There are many ways to <em>design</em> research: controlled experiments, observational and case studies, and statistical modeling.  And finally, <em>time frames</em> can last from a short period to decades. </p>
 <p>This page contains is a list of all known original, peer-reviewed research articles about the impacts of spay/neuter programs in North America, currently totaling 36.  Our research list does not include public opinion surveys, review articles, letters to the editor, veterinary best practice guidelines, unpublished data and student theses, studies from other parts of the world, dog spay/neuter, or general research about free-roaming cat behavior and health.  The list also does not include studies solely about feline contraceptives and other means of cat reproductive control that are currently in development but not yet in widespread use.  (To read more about those exciting new areas of research, visit <a href="https://www.acc-d.org" target="_blank">the Alliance for Contraception in Cats &amp; Dogs</a>.) </p>
+</div>
+
 <h2><a name="whatcitsci" id="whatcitsci2"></a>The terminology of science </h2>
+
+<%= NoteField.buildHtmlDiv("0bf6f76b-0ef2-4358-8ecc-c19f13843de2", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-0bf6f76b-0ef2-4358-8ecc-c19f13843de2">
 <p>There can be a language barrier and learning curve when you first start to read scientific papers, because many of the words used in science also have popular meanings. Here are some definitions of key scientific terms we use on this website and in the articles in our collection. </p>
-<p><strong>Research</strong>: In casual usage, “research” is used to mean any act of gathering information to aid in decision-making, such as “researching vacation destinations.”  In a scientific context, research is a more formal and structured process.  The scientific method consists of identifying an issue to investigate, designing a study to collect data, analyzing the data, and drawing a conclusion based on the evidence.  This process can be decision-oriented, as in “actionable science” that applies scientific findings to decision-making in a management or policy realm.  On this web page, we group research into three basic designs: experimental, observational, and modeling.  All study designs are strengthened with the use of larger sample sizes and more replications to reduce variability. <strong><img src="images/evidence_controlledexperiment.jpg" width="300" height="300" hspace="10" vspace="10" align="left" /></strong></p>
+<p><strong>Research</strong>: In casual usage, “research” is used to mean any act of gathering information to aid in decision-making, such as “researching vacation destinations.”  In a scientific context, research is a more formal and structured process.  The scientific method consists of identifying an issue to investigate, designing a study to collect data, analyzing the data, and drawing a conclusion based on the evidence.  This process can be decision-oriented, as in “actionable science” that applies scientific findings to decision-making in a management or policy realm.  On this web page, we group research into three basic designs: experimental, observational, and modeling.  All study designs are strengthened with the use of larger sample sizes and more replications to reduce variability.
+</p>
+</div>
+
+<img src="images/evidence_controlledexperiment.jpg" width="300" height="300" hspace="10" vspace="10" align="left" />
+
+<%= NoteField.buildHtmlDiv("0bf6f76b-0ef2-4358-8ecc-c19f13843de3", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-0bf6f76b-0ef2-4358-8ecc-c19f13843de3">
 <p><strong>Experimental study</strong>: Experiments test whether an intentional intervention by the researcher affects subjects or areas compared to subjects or areas that do not receive the intervention.  These are known as “controls.”  For example, after spraying a fertilizer on your lawn for a month, it appears greener.  Does this prove that the fertilizer worked?  No, because you don't know what would have happened without the fertilizer.  Your lawn may be greener because it was a good month for rain.  A better plan would be a controlled experiment of spraying half of your lawn with fertilizer and leaving the other half alone.  Only by comparing treated animals, humans, or areas against a similar but untreated control group can you become more confident that it was your treatment that caused the difference.  The strongest experimental designs use randomization to determine which subjects get an intervention and which don't, ensuring that bias was not accidentally introduced in selection.  Controlled experiments can be difficult and expensive to conduct, but they allow us to draw the strongest conclusions. </p>
 <p><strong>Observational study</strong>: Observational studies are easier and less expensive to conduct than experiments.  (Think of the grass example above: an observational case study is like noting that your lawn became greener after applying fertilizer.)  In these studies, information about groups or areas is examined in detail.  These studies are often <em>retrospective</em>, meaning they analyze data about something that already happened.  Observational studies sometimes compare their group/area to another group/area, but this comparison is less rigorous than a controlled experiment.  (A friend who does not use fertilizer says she has not seen her lawn become greener this month.  But, the fertilizer is not the only difference between your two lawns.  Her soil type or shade coverage may be different.)  Observational studies can't draw as strong a conclusion as an experimental study, but they can be a valuable first step to provide background for designing an experiment, and their conclusions become stronger when repeated, especially in various contexts. </p>
-<p><strong><img src="images/evidence_catintotrap.jpg" width="492" height="250" hspace="10" vspace="10" align="right" />Modeling study</strong>: Mathematical modeling is used to make predictions about an outcome that is unknown by creating simulations based on information that is known.  You probably look at one form of modeling every day: the weather forecast.  Like weather forecasts, sometimes research models are excellent at making correct predictions, and sometimes they are not.  Models get better with the addition of more and context-specific field data.  Models give us an opportunity to simulate a wide range of events and make informed estimates about what could happen, allowing researchers to test far more ideas than would be practical or affordable to do in the real world.</p>
+</div>
+
+<img src="images/evidence_catintotrap.jpg" width="492" height="250" hspace="10" vspace="10" align="right" />
+
+<%= NoteField.buildHtmlDiv("0bf6f76b-0ef2-4358-8ecc-c19f13843de4", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-0bf6f76b-0ef2-4358-8ecc-c19f13843de4">
+<p>
+<strong>Modeling study</strong>: Mathematical modeling is used to make predictions about an outcome that is unknown by creating simulations based on information that is known.  You probably look at one form of modeling every day: the weather forecast.  Like weather forecasts, sometimes research models are excellent at making correct predictions, and sometimes they are not.  Models get better with the addition of more and context-specific field data.  Models give us an opportunity to simulate a wide range of events and make informed estimates about what could happen, allowing researchers to test far more ideas than would be practical or affordable to do in the real world.</p>
 <p><strong>Significant</strong>: In everyday usage, “significant” is used to suggest “important.”  In research, significance is a quantifiable measure telling the researcher that they can be fairly certain that the results are real and not the product of random chance.  It is often defined as when a statistical test has a p-value under 0.05.  The smaller a p-value is, the more certain we are.  This same approach can be used to distinguish whether two populations differ from each other, such as in testing whether your experimental and control groups' results are significantly different. </p>
 <p><strong>Peer review</strong>: A quality control step where other researchers in the same field (“peers”) read and critique your research article before it can be published.  This process is meant to find errors in your methods or thinking, ask for more details, suggest alternative explanations for your findings, and even sometimes decide that a study is not good enough to be formally published in an academic research journal. </p>
+</div>
+
 <h2><a name="infographics" id="infographics"></a>Summary and infographics</h2>
+
+<%= NoteField.buildHtmlDiv("0bf6f76b-0ef2-4358-8ecc-c19f13843de5", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-0bf6f76b-0ef2-4358-8ecc-c19f13843de5">
 <p>If you search online for &quot;spay neuter evidence&quot; or &quot;TNR evidence,&quot; depending on the values  of the website you happen to click, you will be presented with only half of the picture.  By contrast, our comprehensive reading list contains research with a variety of conclusions about the use of spay/neuter programs for cat management.  We want you to make your own critiques and conclusions to better understand the complexity of research on this important topic. </p>
 <p>We also want to highlight that there is not yet published research doing what Kitizen Science was founded to do: conduct <em>controlled field experiments</em> over the <em>long term</em> about the impact of spay/neuter programs on free-roaming cat <em>population sizes</em>.  Some studies have some of these pieces, but no one has yet put them all together yet. </p>
 <p>Here is a quick graphical summary of evidence about the impact of spay/neuter programs in North America, with American studies mapped:</p>
+</div>
+
 <p align="center"><img src="images/evidence_map.gif" width="600" height="490" hspace="10" vspace="10" align="middle" /></p>
 <p align="center"><img src="images/evidence_piecharts.gif" width="800" height="470" hspace="10" vspace="10" align="bottom" /></p>
 <p align="center">&nbsp;</p>
