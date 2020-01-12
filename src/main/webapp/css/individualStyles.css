@@ -243,8 +243,8 @@ li.active{
 div .tooltip {	
     position: absolute;			
     text-align: center;			
-    width: 100px;					
-    height: 30px;					
+/*    width: 100px;					*/
+/*    height: 30px;					*/
     padding: 2px;				
     font: 12px sans-serif;
     color: #ffffff;

@@ -84,7 +84,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		if (type === "spatial")
 		    val = this.calculateDist(node1.location, node2.location);
 		else if (type === "temporal")
-		    val = this.calculateTime(node1.datetime_ms, node2.datetime_ms);
+		    val = this.calculateTime(node1.datetime, node2.datetime);
 
 		if (val < min) min = val;
 	    });
@@ -116,7 +116,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	node1Sightings.forEach(node1 => {
 	    node2Sightings.forEach(node2 => {
 		let spatialVal = this.calculateDist(node1.location, node2.location);
-		let temporalVal = this.calculateTime(node1.datetime_ms, node2.datetime_ms);
+		let temporalVal = this.calculateTime(node1.datetime, node2.datetime);
 
 		if (spatialVal <= spatialThresh && temporalVal <= temporalThresh) count++;
 	    });
@@ -233,9 +233,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 			     "," + this.linearInterp(d, "y") + ")");
     }
 
+    //Calculates a point 40 percent between a given link's target and source nodes
     linearInterp(link, axis) {
-	let src = link.source[axis];
-	let target = link.target[axis];
+	debugger;
+	let srcId = link.source.data.individualID
+	let src = (srcId === this.id) ? link.source[axis] : link.target[axis];
+	let target = (srcId === this.id) ? link.target[axis] : link.source[axis];
 	let diff = src - target;
 	return target + (diff * 0.4);
     }

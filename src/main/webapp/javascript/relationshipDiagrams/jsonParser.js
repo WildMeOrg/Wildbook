@@ -101,7 +101,7 @@ class JSONParser {
 			"gender": data.sex,
 			"genus": data.genus, //TODO - Remove?
 			"individualID": key,
-			"dateFirstIdentified": data.dateFirstIdentified,
+			"firstSighting": data.dateFirstIdentified,
 			"latestSighting": data.dateTimeLatestSighting,
 			"numberEncounters": data.numberEncounters,
 			"timeOfBirth": data.timeOfBirth,
@@ -218,14 +218,15 @@ class JSONParser {
 	    node.data.sightings = [];
 	    let encounters = node.data.encounters;
 	    encounters.forEach(enc => {
-		let time = enc.dateInMilliseconds;
+		let millis = enc.dateInMilliseconds;
 		let lat = enc.decimalLatitude;
 		let lon = enc.decimalLongitude;
 		
 		if (typeof lat === "number" && typeof lon === "number" &&
-		    typeof time === "number") {
+		    typeof millis === "number") {
+		    let minutes = (millis / 1000) / 60;
 		    node.data.sightings.push({
-			"datetime_ms": time,
+			"datetime": minutes,
 			"location": {
 			    "lat": lat,
 			    "lon": lon
@@ -238,8 +239,7 @@ class JSONParser {
 	//Remove nodes with no valid sightings
 	let modifiedNodes = nodes.filter(node => node.data.sightings.length > 0);
 	let modifiedNodeMap = new Set(modifiedNodes.map(node => node.id));
-
-	debugger;
+	
 	//Record all links connected to the central focusedNode
 	let modifiedLinks = [], linkedNodes = new Set();
 	let focusedNodeId = this.getNodeDataById(iId).id;
