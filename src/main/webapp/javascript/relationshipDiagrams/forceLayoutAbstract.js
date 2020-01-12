@@ -50,9 +50,11 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Define the graph's forces
 	this.forces = d3.forceSimulation()
 	    .force("link", d3.forceLink().id(d => d.id))
-	    .force("charge", d3.forceManyBody().strength(500)) //TODO - Tune this
+	    .force("charge", d3.forceManyBody().strength(300)) //TODO - Tune this
 	    .force("collision", d3.forceCollide().radius(d => this.getLinkLen(d))) 
-	    .force("center", d3.forceCenter(this.width/2, this.height/2));
+	    .force("center", d3.forceCenter(this.width/2, this.height/2))
+	    .alphaDecay(0.05)
+	    .velocityDecay(0.8);
     }
 
     //TODO - Rework to style class..?
@@ -167,7 +169,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Collapse node outlines
 	filteredNodes.selectAll("circle").transition()
 	    .duration(this.transitionDuration)
-	    .attr("r", this.startingRadius)
+	    .attr("r", this.radius * 0.5)
 	    .style("fill", d => this.colorGender(d))
 	    .style("stroke-width", 0)
 
@@ -218,7 +220,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.forces.alpha(this.alpha).restart();
 
 	//Reduce heat for future updates
-	this.alpha = 0.2;
+	this.alpha = 0.75;
     }
 
     //Update all link and node position based on force interactions

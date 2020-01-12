@@ -31,7 +31,7 @@ class GraphAbstract { //See static attributes below class
 
 	this.strokeWidth = 3.5;
 	
-	this.fontSize = 10;
+	this.fontSize = 9;
 	this.focusedScale = focusedScale;
 
 	this.alphaSymbSize = 200; //TODO: Figure out the units on this...
@@ -225,9 +225,9 @@ class GraphAbstract { //See static attributes below class
 	try {
 	    let gender = d.data.gender || "default";
 	    switch (gender.toUpperCase()) {
-	        case "FEMALE": return this.femaleColor; //Pink
-	        case "MALE": return this.maleColor; //Blue
-	        default: return this.defGenderColor; //White
+	        case "FEMALE": return this.femaleColor; 
+	        case "MALE": return this.maleColor; 
+	        default: return this.defGenderColor; 
 	    }
 	}
 	catch(error) {
@@ -273,26 +273,41 @@ class GraphAbstract { //See static attributes below class
     //Add text to the given nodes
     updateNodeText(newNodes, activeNodes) {
 	//Add new node text
-//	let boundedLength = 2 * this.radius * Math.cos(Math.PI / 4); //Necessary dimensions of bounding rectangle
 	newNodes.append("text")
-//	    .attr(d => d.x - (boundedLength / 2))
-//	    .attr(d => d.y - (boundedLength / 2))
-//	    .attr("width", boundedLength)
-	//	    .attr("height", boundedLength)
 	    .attr("class", "text")
 	    .attr("dy", ".5em") //Vertically centered
-	    .text(d => d.data.name)
+	    .text(d => this.truncateText(d))
 	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
-	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
+	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal")
+	    .style("stroke-opacity", 0);
 
 	//Update node text
 	activeNodes.selectAll("text").transition()
 	    .duration(this.transitionDuration)
 	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
-	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal");
+	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal")
+	    .style("stroke-opacity", 1);
+
     }
 
     // Helper Methods //
+
+    //Truncate text to fit inside node
+    truncateText(d) {
+	let nodeLen = (this.getSizeScalar(d) * this.radius * 2) / 5;
+	let words = d.data.name.split(" ");
+
+	let text = "";
+	for (let word of words) {
+	    text += " " + word;
+	    if (text.length > nodeLen) {
+		text = text.slice(0, nodeLen - 3) + "...";
+		break;
+	    }
+	}
+
+	return text;
+    }
 
     //Modify zoom wheel delta to smooth zooming
     wheelDelta() {
@@ -308,7 +323,6 @@ class GraphAbstract { //See static attributes below class
     //Sets the radius attribute for a given node
     setNodeRadius(nodeData=this.nodeData) {
 	this.calcNodeSize(nodeData);
-	console.log(nodeData);
 	nodeData.forEach(d => {
 	    d.data.r = this.radius * this.getSizeScalar(d);
 	});
@@ -369,7 +383,7 @@ class GraphAbstract { //See static attributes below class
 
     //Generate a tooltip description for a given node 
     generateTooltipHtml(d) {
-	let tooltipHtml = "";
+	let tooltipHtml = "<b>Name: </b>" + d.data.name + "<br/>";
 	if (d.data.gender)
 	    tooltipHtml += "<b>Sex: </b>" + d.data.gender + "<br/>";
 	if (d.data.role)
