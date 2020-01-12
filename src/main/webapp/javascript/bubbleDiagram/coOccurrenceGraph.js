@@ -235,7 +235,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
     //Calculates a point 40 percent between a given link's target and source nodes
     linearInterp(link, axis) {
-	debugger;
 	let srcId = link.source.data.individualID
 	let src = (srcId === this.id) ? link.source[axis] : link.target[axis];
 	let target = (srcId === this.id) ? link.target[axis] : link.source[axis];
