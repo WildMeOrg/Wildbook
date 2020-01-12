@@ -354,19 +354,40 @@ class GraphAbstract { //See static attributes below class
 	    this.tooltip.transition()
 		.duration(this.fadeDuration)
 		.style("opacity", this.tooltipOpacity);
-
-	    //TODO: Remove this hardcoding
+	    
 	    //Place tooltip offset to the upper right of the hovered node
+	    let halfRadius = (this.radius * this.getSizeScalar(d)) / 2;
 	    this.tooltip
-		.style("left", d3.event.layerX + 30 + "px")		
-		.style("top", d3.event.layerY - 20 + "px")
-	    //		.html("<b>Encounters:</b>\n None");
-		.html("<b>" + "Last Seen:" + "</b>" + d.data.latestSighting);
+		.style("left", d3.event.layerX +  halfRadius + "px")	
+		       .style("top", d3.event.layerY - halfRadius + "px")
+		.html(this.generateTooltipHtml(d));
 
 	    //Prevent future mouseOver events
 	    this.popup = true;
 	}
-    }	
+    }
+
+    //Generate a tooltip description for a given node 
+    generateTooltipHtml(d) {
+	let tooltipHtml = "";
+	if (d.data.gender)
+	    tooltipHtml += "<b>Sex: </b>" + d.data.gender + "<br/>";
+	if (d.data.role)
+	    tooltipHtml += "<b>Role: </b>" + d.data.role + "<br/>";
+	if (d.data.isDead) {
+	    let livingStatus = (d.data.isDead ? "dead" : "alive");
+	    tooltipHtml += "<b>Living Status: </b>" +  livingStatus + "<br/>";
+	}
+	if (d.data.firstSighting)
+	    tooltipHtml += "<b>First Seen: </b>" + d.data.firstSighting + "<br/>";
+	if (d.data.latestSighting)
+	    tooltipHtml += "<b>Last Seen: </b>" + d.data.latestSighting + "<br/>";
+	if (d.data.timeOfBirth)
+	    tooltipHtml += "<b>Birth Date: </b>" + d.data.timeOfBirth + "<br/>";
+	if (d.data.timeOfDeath)
+	    tooltipHtml += "<b>Death Date: </b>" + d.data.timeOfDeath;
+	return tooltipHtml;
+    }
 
     //Fade the tooltip from view when no longer hovering over a node
     handleMouseOut() {
