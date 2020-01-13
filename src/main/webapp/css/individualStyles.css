@@ -47,6 +47,10 @@
     pointer-events: none;
 }
 
+.linkLabel text {
+    pointer-events: none;
+}
+
 /*Edit forms*/
 label {
   font-weight: lighter;

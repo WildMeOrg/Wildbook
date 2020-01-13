@@ -84,7 +84,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 		if (type === "spatial")
 		    val = this.calculateDist(node1.location, node2.location);
 		else if (type === "temporal")
-		    val = this.calculateTime(node1.datetime, node2.datetime);
+		    val = this.calculateTime(node1.time.datetime, node2.time.datetime);
 
 		if (val < min) min = val;
 	    });
@@ -116,7 +116,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	node1Sightings.forEach(node1 => {
 	    node2Sightings.forEach(node2 => {
 		let spatialVal = this.calculateDist(node1.location, node2.location);
-		let temporalVal = this.calculateTime(node1.datetime, node2.datetime);
+		let temporalVal = this.calculateTime(node1.time.datetime, node2.time.datetime);
 
 		if (spatialVal <= spatialThresh && temporalVal <= temporalThresh) count++;
 	    });
@@ -207,7 +207,9 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	
 	newLabels.append("circle")
 	    .attr("r", 9)
-	    .style("fill", "white");
+	    .style("fill", "white")
+	    .on("mouseover", d => this.handleMouseOver(d, "link"))				
+	    .on("mouseout", () => this.handleMouseOut());
 
 	newLabels.append("text")
 	    .attr("dy", "0.4em")

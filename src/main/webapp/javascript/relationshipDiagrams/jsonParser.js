@@ -226,7 +226,12 @@ class JSONParser {
 		    typeof millis === "number") {
 		    let minutes = (millis / 1000) / 60;
 		    node.data.sightings.push({
-			"datetime": minutes,
+			"time": {
+			    "datetime": minutes,
+			    "year": enc.year,
+			    "month": enc.month,
+			    "day": enc.day
+			},
 			"location": {
 			    "lat": lat,
 			    "lon": lon

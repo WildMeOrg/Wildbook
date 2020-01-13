@@ -294,7 +294,7 @@ class GraphAbstract { //See static attributes below class
 
     //Truncate text to fit inside node
     truncateText(d) {
-	let nodeLen = (this.getSizeScalar(d) * this.radius * 2) / 5;
+	let nodeLen = (this.radius * 2) / 5;
 	let words = d.data.name.split(" ");
 
 	let text = "";
@@ -361,28 +361,53 @@ class GraphAbstract { //See static attributes below class
 	else return 1;
     }
 
-    //Fade the tooltip into view when hovering over a given node
-    handleMouseOver(d) {
+    //Display the selected tooltip type
+    handleMouseOver(d, type) {
+	debugger;
 	if (!this.popup) {
+	    if (type === "node") this.displayNodeTooltip(d);
+	    else if (type === "link") this.displayLinkTooltip(d);
+
 	    //Display opaque tooltip
 	    this.tooltip.transition()
 		.duration(this.fadeDuration)
 		.style("opacity", this.tooltipOpacity);
 	    
-	    //Place tooltip offset to the upper right of the hovered node
-	    let halfRadius = (this.radius * this.getSizeScalar(d)) / 2;
-	    this.tooltip
-		.style("left", d3.event.layerX +  halfRadius + "px")	
-		       .style("top", d3.event.layerY - halfRadius + "px")
-		.html(this.generateTooltipHtml(d));
-
 	    //Prevent future mouseOver events
 	    this.popup = true;
 	}
     }
 
+    //Displays a node tooltip
+    displayNodeTooltip(d) {
+	//Place tooltip offset to the upper right of the hovered node
+	let text = this.generateNodeTooltipHtml(d);
+	if (text) {
+	    let halfRadius = (this.radius * this.getSizeScalar(d)) / 2;
+	    this.tooltip
+		.style("left", d3.event.layerX +  halfRadius + "px")	
+		.style("top", d3.event.layerY - halfRadius + "px")
+		.style("background-color", "#808080")
+		.html(text);
+	}
+    }
+    
+    //Displays a link tooltip
+    displayLinkTooltip(d) {
+	//Place tooltip on the hovered link
+	let text = this.generateLinkTooltipHtml(d);
+	console.log("LINK", d);
+	if (text) {
+	    this.tooltip
+		.style("left", d3.event.layerX +  "px")	
+		.style("top", d3.event.layerY + "px")
+		.style("background-color", "#7997a1")
+		.html(text);
+	}
+    }
+    
     //Generate a tooltip description for a given node 
-    generateTooltipHtml(d) {
+    generateNodeTooltipHtml(d) {
 	let tooltipHtml = "<b>Name: </b>" + d.data.name + "<br/>";
 	if (d.data.gender)
 	    tooltipHtml += "<b>Sex: </b>" + d.data.gender + "<br/>";
@@ -400,6 +425,20 @@ class GraphAbstract { //See static attributes below class
 	    tooltipHtml += "<b>Birth Date: </b>" + d.data.timeOfBirth + "<br/>";
 	if (d.data.timeOfDeath)
 	    tooltipHtml += "<b>Death Date: </b>" + d.data.timeOfDeath;
+	return tooltipHtml;
+    }
+
+    //Generate a tooltip description for a given link
+    generateLinkTooltipHtml(d) {
+	let tooltipHtml = "";
+	d.source.data.sightings.forEach(enc => {
+	    let time = enc.time;
+	    let loc = enc.location;
+	    tooltipHtml += "<b>Date: </b>" + time.day + "/" + time.month + "/" + time.year + " ";
+	    tooltipHtml += "<b>Longitude: </b>" + loc.lat + " ";
+	    tooltipHtml += "<b>Latitude: </b>" + loc.lon + "<br/>";
+	});
+	
 	return tooltipHtml;
     }
 
