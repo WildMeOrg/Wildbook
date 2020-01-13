@@ -186,9 +186,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 	let newNodes = nodes.enter().append("g")
 	    .attr("class", "node")
 	    .attr("fill-opacity", 0)
-	    .on("mouseover", d => this.handleMouseOver(d))					
-	    .on("mouseout", () => this.handleMouseOut())
-
+	    .on("mouseover", d => this.handleMouseOver(d, "node"))
+	    .on("mouseout", () => this.handleMouseOut());
+	
 	//Join w/ existing nodes
 	this.nodes = nodes.merge(newNodes)
 	let activeNodes = this.nodes.filter(d => !d.filtered); //TODO - Switch to newNodes
@@ -241,29 +241,38 @@ class ForceLayoutAbstract extends GraphAbstract {
     //Attach node listeners for click and drag operations
     enableNodeInteraction() {
 	this.nodes.on('dblclick', (d, i, nodeList) => this.releaseNode(d, nodeList[i]))
-	    .on('click', d => this.focusNode(d) && false) //Return false to prevent default
+	    .on('click', d => {
+		if (this.ctrlKey() && !d.filtered) this.focusNode(d);
+		else if (this.shiftKey() && !d.filtered) this.visitNodePage(d);
+	    })
 	    .call(d3.drag()
 		  .on('start', d => this.dragStarted(d))
 		  .on('drag', d => this.dragged(d))
 		  .on('end', (d, i, nodeList) => this.dragEnded(d, nodeList[i])));
     }
 
+    //Visit the relevant page for the selected node
+    visitNodePage(d) {
+	let nodeId = d.data.individualID;
+	let baseURL = "http://localhost:8080/wildbook/individuals.jsp?number=";
+	window.location.href = baseURL + nodeId;
+    }
+
+    //Focus the targeted node
     focusNode(d) {
-	//Focus targeted node
-	if (this.ctrlKey() && !d.filtered) {
-	    //Unfocus all nodes
-	    this.svg.selectAll(".node").each(d => d.data.isFocused = false);
-	    
-	    //Focus the target node
-	    d.data.isFocused = true;
-	    this.focusedNode = d;
-	    
-	    //Update the graph
-	    this.updateGraph(this.prevLinkData, this.nodeData);
-	}
+	//Unfocus all nodes
+	this.svg.selectAll(".node").each(d => d.data.isFocused = false);
+	
+	//Focus the target node
+	d.data.isFocused = true;
+	this.focusedNode = d;
+	
+	//Update the graph
+	this.updateGraph(this.prevLinkData, this.nodeData);
     }
 
     centerNode(d) {
+	debugger;
 	this.svg.transition()
 	    .duration(this.transitionDuration + 250) //Delay slightly for stability
 	    .attr("transform", "translate(" + (this.width/2 - d.x) + "," +
