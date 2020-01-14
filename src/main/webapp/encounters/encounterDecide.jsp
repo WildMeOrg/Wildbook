@@ -53,6 +53,7 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         if (menc == null) continue;
         JSONObject propMatches = new JSONObject();
         el.put("encounterId", encId);
+        el.put("name", menc.getIndividualID());
         el.put("distance", dist);
 System.out.println("findSimilar() -> " + el.toString());
         for (int i = 0 ; i < propMap.length ; i++) {
@@ -128,11 +129,13 @@ System.out.println("findSimilar() -> " + el.toString());
 <script src="../tools/panzoom/jquery.panzoom.min.js"></script>
 
 <style type="text/css">
+h1 { background: none !important; }
+
 .attribute {
     text-align: center;
     background-color: #EFEFEF;
     padding: 7px;
-    margin: 20px 0;
+    margin: 0 0 20px 0;
 }
 .attribute h2 {
     padding: 0;
@@ -267,6 +270,14 @@ System.out.println("findSimilar() -> " + el.toString());
     background-color: #bff223;
 }
 
+.match-name {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0 8px;
+    font-size: 1.3em;
+}
+
 .match-item-info {
     display: none;
     background-color: rgba(255,255,200,0.7);
@@ -305,6 +316,10 @@ System.out.println("findSimilar() -> " + el.toString());
 
 .zoom-hint .el {
     display: block;
+}
+
+.enc-asset-wrapper {
+    margin-bottom: 5px;
 }
 
 .match-asset {
@@ -443,7 +458,7 @@ var matchData = null;
 function enableMatch() {
     $('.column-attributes').hide();
     $('.column-match').show();
-    $('#subtitle').html('Step 2');
+    $('#subtitle').text('Step 2');
     window.scrollTo(0,0);
     var h = '';
     for (var i in userData) {
@@ -471,8 +486,11 @@ console.log(url);
                         var score = matchScore(xhr.responseJSON.similar[i]);
                         matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
                         var h = '<div class="match-item">';
+                        h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
                         h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
-                        for (var j = 0 ; j < xhr.responseJSON.similar[i].assets.length ; j++) {
+                        var numImages = xhr.responseJSON.similar[i].assets.length;
+                        if (numImages > 2) numImages = 2;
+                        for (var j = 0 ; j < numImages ; j++) {
                             h += '<div class="match-asset-wrapper">';
                             h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
                             h += '<img onLoad="matchAssetLoaded(this);" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div>';
@@ -609,7 +627,7 @@ There are two steps to processing each submission: selecting cat attributes, and
         <div class="attribute">
             <h2>Flag Problems</h2>
             <div id="flag">
-                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-missed" /><label for="flag-missed">Cat(s) not detected<span class="flag-note">Our system should detect and draw a box around all cats in this photo submission.  Submissions with multiple cats should have each cat detected, and the focal cat highlighted with a thicker box line.  Are there any undetected (unboxed) cats in these photos?</span></label></div>
+                <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-missed" /><label for="flag-detection">Some photos missing (this) cat<span class="flag-note">A submission may include some photos that do not have a cat in them, or multi-cat submissions that are split into multiple submissions to process may some have photos without the focal cat.  Do any photos not contain the focal cat?</span></label></div>
                 <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-sensitive" /><label for="flag-sensitive">Sensitive or private information<span class="flag-note">To respect the privacy of those in our communities, our system should detect and automatically blur human faces, street signs, house numbers, license plates, and company logos. Do the photos in this submission contain any unblurred private information?</span></label></div>
                 <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-quality" /><label for="flag-quality">Very poor quality<span class="flag-note">Low image quality, blurring, resolution, or other technical problems prevent photos from being useful.</span></label></div>
             </div>
@@ -738,7 +756,7 @@ All required selections are made.  You may now save your answers. <br />
     </div>
 
     <div class="column-match">
-        <h2 style="font-size: 1.0em;"><span onClick="$('.match-item-info').show();">Step 2:</span> Does the cat on the left match another cat in the list below?</h2>
+        <h2 style="font-size: 1.8em; margin-top: 0;"><span onClick="$('.match-item-info').show();">Step 2:</span> Does the cat on the left match<br />another cat in the list below?</h2>
         <p id="match-summary"></p>
         <div id="match-results"><i>searching....</i></div>
     </div>
