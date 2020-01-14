@@ -147,7 +147,14 @@ public class EncounterVMData extends HttpServlet {
       					e.put("id", cand.getCatalogNumber());
       					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
       					e.put("locationID", cand.getLocationID());
-      					e.put("individualID", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividualID())));
+      					if(cand.getIndividual()!=null) {
+      					  e.put("individualID", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividual().getIndividualID())));
+      					  e.put("individualID", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividual().getDisplayName())));
+      					}
+      					else {
+      					  e.put("individualID", null);
+      					  e.put("displayName",null);
+      					}
       					e.put("patterningCode", cand.getPatterningCode());
       					e.put("sex", cand.getSex());
       					e.put("mmaCompatible", cand.getMmaCompatible());
@@ -199,12 +206,15 @@ public class EncounterVMData extends HttpServlet {
       				rtn.put("patterningCode", enc.getPatterningCode());
       				rtn.put("sex", enc.getSex());
       				rtn.put("locationID", enc.getLocationID());
-      				rtn.put("individualID", ServletUtilities.handleNullString(enc.getIndividualID()));
       				if(enc.getIndividual()!=null) {
       				  rtn.put("displayName", ServletUtilities.handleNullString(enc.getIndividual().getDisplayName()));
+      				  rtn.put("individualID", ServletUtilities.handleNullString(enc.getIndividual().getIndividualID()));
+                
       				}
       				else {
       				  rtn.put("displayName",null);
+      				  rtn.put("individualID", null);
+                
       				}
       				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
       				rtn.put("mmaCompatible", enc.getMmaCompatible());
