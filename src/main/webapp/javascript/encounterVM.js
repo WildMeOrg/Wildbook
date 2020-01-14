@@ -67,6 +67,7 @@ function gotTarget(d) {
 	candidateCriteria.locationID = d.locationID;
 	candidateCriteria.sex = d.sex;
 	candidateCriteria.patterningCode = d.patterningCode;
+	candidateCriteria.displayName = d.displayName;
 	//candidateCriteria.mmaCompatible = d.mmaCompatible;
 
         for (var i = 0 ; i < encData.images.length ; i++) {
