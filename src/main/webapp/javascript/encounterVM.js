@@ -188,10 +188,10 @@ function candidateUse() {
 		h += '<input type="hidden" name="number" value="' + encounterNumber + '" />';
 		h += '<input type="hidden" name="candidate_number" value="' + currentCandidate.id + '" />';
 	} else if (nullIndividual(encData.individualID)) {
-		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchCandidate.replace('%s', currentCandidate.individualID) + '<p><div><input name="matchID" type="hidden" value="' + currentCandidate.individualID + '" /><input type="submit" value="OK" />';
+		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchCandidate.replace('%s', currentCandidate.displayName) + '<p><div><input name="matchID" type="hidden" value="' + currentCandidate.individualID + '" /><input type="submit" value="OK" />';
 		h += '<input type="hidden" name="number" value="' + encounterNumber + '" />';
 	} else if (nullIndividual(currentCandidate.individualID)) {
-		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchTarget.replace('%s', encData.individualID) + '<p><div><input name="matchID" type="hidden" value="' + encData.individualID + '" /><input type="submit" value="OK" />';
+		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchTarget.replace('%s', encData.displayName) + '<p><div><input name="matchID" type="hidden" value="' + encData.individualID + '" /><input type="submit" value="OK" />';
 		h += '<input type="hidden" name="number" value="' + currentCandidate.id + '" />';
 	} else {
 		h += '<p>' + wildbookGlobals.properties.lang.visualMatcher.matchConflict + '</p>';
@@ -204,7 +204,7 @@ function candidateUse() {
 
 function imgInfo(data, i) {
 	var info = data.id;
-	if (!nullIndividual(data.individualID)) info += ' (' + data.individualID + ')';
+	if (!nullIndividual(data.individualID)) info += ' (' + data.displayName + ')';
 	info += ': ';
 	if (data.locationID && (data.locationID != 'None') && (data.locationID != '')) info += data.locationID + ' ';
 

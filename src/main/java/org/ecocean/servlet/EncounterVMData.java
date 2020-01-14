@@ -57,8 +57,7 @@ public class EncounterVMData extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("EncounterVMData.class");
+
     boolean locked = false, isOwner = true;
 
 		HashMap rtn = new HashMap();
@@ -71,7 +70,8 @@ public class EncounterVMData extends HttpServlet {
 
 		} 
 		else if (request.getParameter("number") != null) {
-  		 
+	      Shepherd myShepherd = new Shepherd(context);
+	      myShepherd.setAction("EncounterVMData.class");
   			myShepherd.beginDBTransaction();
   			try{
       			Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
@@ -200,6 +200,12 @@ public class EncounterVMData extends HttpServlet {
       				rtn.put("sex", enc.getSex());
       				rtn.put("locationID", enc.getLocationID());
       				rtn.put("individualID", ServletUtilities.handleNullString(enc.getIndividualID()));
+      				if(enc.getIndividual()!=null) {
+      				  rtn.put("displayName", ServletUtilities.handleNullString(enc.getIndividual().getDisplayName()));
+      				}
+      				else {
+      				  rtn.put("displayName",null);
+      				}
       				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
       				rtn.put("mmaCompatible", enc.getMmaCompatible());
       				//if (!images.isEmpty()) rtn.put("images", images);
@@ -209,14 +215,15 @@ public class EncounterVMData extends HttpServlet {
   		catch(Exception e){
   		  e.printStackTrace();
   		}
-  		finally{myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();}
+  		finally{
+  		  myShepherd.rollbackDBTransaction();
+  		  myShepherd.closeDBTransaction();
+  		 }
 		} 
 		else {
 			rtn.put("error", "invalid Encounter number");
 		}
 
-		//myShepherd.commitDBTransaction();
-		//myShepherd.closeDBTransaction();
 
 		if (redirUrl != null) {
 			response.sendRedirect(redirUrl);
