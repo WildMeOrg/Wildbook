@@ -97,34 +97,37 @@ myShepherd.beginDBTransaction();
 //boolean forceList = Util.requestParameterSet(request.getParameter("forceList"));
 boolean forceList = true;
 User user = AccessControl.getUser(request, myShepherd);
-/*
 if (user == null) {
-    response.sendError(401, "access denied");
     myShepherd.rollbackDBTransaction();
+    response.sendRedirect("login.jsp");
     return;
 }
-*/
 
-String[] validRoles = new String[]{"cat_walk_volunteer", "cat_mouse_volunteer", "super_volunteer", "admin"};
+String[] validRoles = new String[]{"admin", "super_volunteer", "cat_mouse_volunteer", "cat_walk_volunteer"};
 List<Role> userRoles = myShepherd.getAllRolesForUserInContext(user.getUsername(), context);
+System.out.println(userRoles);
 String maxRole = null;
+foundMaxRole:
 for (String vr : validRoles) {
-    for (Role role : userRoles) {
-        if (vr.equals(role.getRolename())) {
+    for (Role r : userRoles) {
+        if (vr.equals(r.getRolename())) {
             maxRole = vr;
-            break;
+            break foundMaxRole;
         }
     }
 }
+System.out.println("INFO: queue.jsp maxRole=" + maxRole + " for " + user);
 
-maxRole = "cat_mouse_volunteer";  //faked for testing
+//maxRole = "cat_mouse_volunteer";  //faked for testing
+//TODO what to do about cat_walk_volunteer ???
 if (maxRole == null) {
-    response.sendError(401, "access denied - no valid role");
+    //response.sendError(401, "access denied - no valid role");
     myShepherd.rollbackDBTransaction();
+    response.sendRedirect("register.jsp");
     return;
 }
 
-boolean isAdmin = true;   //!(maxRole.equals("cat_mouse_volunteer"));
+boolean isAdmin = (maxRole.equals("super_volunteer") || maxRole.equals("admin"));
 
 String dtype = request.getParameter("data");
 if (Util.requestParameterSet(dtype)) {

@@ -53,6 +53,7 @@ if (pageTitle == null) pageTitle = CommonConfiguration.getHTMLTitle(context);
 
 
 User thisUser = AccessControl.getUser(request, myShepherd);
+/*
 if (thisUser == null) {
     System.out.println("USERCHECK: header has logged out user (no check)");
 } else {
@@ -65,6 +66,7 @@ if (thisUser == null) {
         session.invalidate();
     }
 }
+*/
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">

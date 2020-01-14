@@ -114,6 +114,8 @@ boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"
   String langCode=ServletUtilities.getLanguageCode(request);
   boolean loggedIn = !AccessControl.isAnonymous(request);
 
+//String[] validRoles = new String[]{"admin", "super_volunteer", "cat_mouse_volunteer", "cat_walk_volunteer"};
+//List<Role> userRoles = myShepherd.getAllRolesForUserInContext(user.getUsername(), context);
     String modeString = request.getParameter("mode");
     boolean instrOnly = Util.requestParameterSet(request.getParameter("instructions"));
     boolean passedQuiz = Util.requestParameterSet(request.getParameter("_passedQuiz_"));
