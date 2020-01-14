@@ -204,8 +204,8 @@ function candidateUse() {
 
 
 function imgInfo(data, i) {
-	var info = data.id;
-	if (!nullIndividual(data.individualID)) info += ' (' + data.displayName + ')';
+	var info = '';
+	if (!nullIndividual(data.individualID)) info += ' ' + data.displayName + ' ';
 	info += ': ';
 	if (data.locationID && (data.locationID != 'None') && (data.locationID != '')) info += data.locationID + ' ';
 

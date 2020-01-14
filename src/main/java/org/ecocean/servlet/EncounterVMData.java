@@ -95,23 +95,30 @@ public class EncounterVMData extends HttpServlet {
                 MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(matchID);
       					if (indiv == null) {  //must have sent a new one
       						indiv = new MarkedIndividual(matchID, enc);
+      						myShepherd.getPM().makePersistent(indiv);  
+      						
       						indiv.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + matchID + ".</p>");
       						indiv.setDateTimeCreated(ServletUtilities.getDate());
-      
-                                                      //candEnc should only ever get assigned for *new indiv* hence this code here
-            	                                        if ((candEnc != null) && ServletUtilities.isUserAuthorizedForEncounter(candEnc, request)) {
+      						myShepherd.updateDBTransaction();
+                  //candEnc should only ever get assigned for *new indiv* hence this code here
+            	    if ((candEnc != null) && ServletUtilities.isUserAuthorizedForEncounter(candEnc, request)) {
       					            candEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
       					            candEnc.setMatchedBy("Visual Matcher");
-                                                          indiv.addEncounter(candEnc);
-                                                      }
-      
-      						myShepherd.addMarkedIndividual(indiv);
-                } 
+                            indiv.addEncounter(candEnc);
+                  }
+            	                                      
+      						//myShepherd.addMarkedIndividual(indiv);
+                }
+      					else {
+      					  enc.setIndividual(indiv);
+      					}
+      					
+      					
       
       					//enc.assignToMarkedIndividual(matchID);
       					enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
       					enc.setMatchedBy("Visual Matcher");
-      					myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+      					//myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
       					myShepherd.commitDBTransaction();
       					//myShepherd.closeDBTransaction();
       					redirUrl = "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
