@@ -149,7 +149,7 @@ public class EncounterVMData extends HttpServlet {
       					e.put("locationID", cand.getLocationID());
       					if(cand.getIndividual()!=null) {
       					  e.put("individualID", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividual().getIndividualID())));
-      					  e.put("individualID", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividual().getDisplayName())));
+      					  e.put("displayName", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividual().getDisplayName())));
       					}
       					else {
       					  e.put("individualID", null);
