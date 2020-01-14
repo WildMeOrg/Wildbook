@@ -94,8 +94,6 @@ request.setAttribute("pageTitle", "Kitizen Science &gt; Queue");
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("queue.jsp");
 myShepherd.beginDBTransaction();
-//boolean forceList = Util.requestParameterSet(request.getParameter("forceList"));
-boolean forceList = true;
 User user = AccessControl.getUser(request, myShepherd);
 if (user == null) {
     myShepherd.rollbackDBTransaction();
@@ -127,6 +125,7 @@ if (maxRole == null) {
 }
 
 boolean isAdmin = (maxRole.equals("super_volunteer") || maxRole.equals("admin"));
+boolean forceList = Util.requestParameterSet(request.getParameter("forceList")) || isAdmin;
 
 String dtype = request.getParameter("data");
 if (Util.requestParameterSet(dtype)) {
@@ -139,14 +138,14 @@ if (Util.requestParameterSet(dtype)) {
 }
 
 String jdoql = "SELECT FROM org.ecocean.Encounter";
-//String jdoql = "SELECT FROM org.ecocean.Encounter WHERE state=='new'";
+//if (!isAdmin) jdoql = "SELECT FROM org.ecocean.Encounter WHERE state=='new'";  //FIXME this is for testing only
 Query query = myShepherd.getPM().newQuery(jdoql);
 query.setOrdering("state, dateInMilliseconds");
 Collection col = (Collection)query.execute();
 List<Encounter> encs = new ArrayList<Encounter>(col);
 query.closeAll();
 
-if (maxRole.equals("cat_mouse_volunteer") && !forceList && (encs.size() > 0)) {
+if (!forceList && (encs.size() > 0)) {
     String redir = "encounters/encounterDecide.jsp?id=" + encs.get(0).getCatalogNumber();
     myShepherd.rollbackDBTransaction();
     response.sendRedirect(redir);
@@ -190,7 +189,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 
 
 <div class="container maincontent">
-<p>main role: <b><%=maxRole%></b></p>
+<!-- main role: <%=maxRole%> -->
 
 <% if (isAdmin) { %>
 <p>
