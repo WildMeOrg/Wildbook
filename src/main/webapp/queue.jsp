@@ -105,7 +105,6 @@ if (user == null) {
 
 String[] validRoles = new String[]{"admin", "super_volunteer", "cat_mouse_volunteer", "cat_walk_volunteer"};
 List<Role> userRoles = myShepherd.getAllRolesForUserInContext(user.getUsername(), context);
-System.out.println(userRoles);
 String maxRole = null;
 foundMaxRole:
 for (String vr : validRoles) {

@@ -114,8 +114,18 @@ boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"
   String langCode=ServletUtilities.getLanguageCode(request);
   boolean loggedIn = !AccessControl.isAnonymous(request);
 
-//String[] validRoles = new String[]{"admin", "super_volunteer", "cat_mouse_volunteer", "cat_walk_volunteer"};
-//List<Role> userRoles = myShepherd.getAllRolesForUserInContext(user.getUsername(), context);
+User thisUser = AccessControl.getUser(request, myShepherd);
+boolean phase2User = false;
+if (thisUser != null) {
+    String[] validRoles = new String[]{"admin", "super_volunteer", "cat_mouse_volunteer", "cat_walk_volunteer"};
+    List<Role> userRoles = myShepherd.getAllRolesForUserInContext(thisUser.getUsername(), context);
+    for (String vr : validRoles) {
+        for (Role r : userRoles) {
+            if (vr.equals(r.getRolename())) phase2User = true;
+        }
+    }
+}
+
     String modeString = request.getParameter("mode");
     boolean instrOnly = Util.requestParameterSet(request.getParameter("instructions"));
     boolean passedQuiz = Util.requestParameterSet(request.getParameter("_passedQuiz_"));
@@ -271,11 +281,16 @@ before deciding whether you want to volunteer.
 <%
     }
 
-    if (uwMode) {
-out.println("<!--  uwMode = true -->");
-
-  } else if (loggedIn) { %>
+  if (loggedIn && phase2User) { %>
     <b>You are logged in already.  <a href="queue.jsp">Please proceed to study.</a></b>
+<% } else if (loggedIn) {  // NOT phase2... yet?  %>
+    <p>You are logged in, but <b>not yet registered for this study</b>.  Please continue to consent to this study.</p>
+
+    <form method="post">
+    <input type="submit" value="Continue" />
+    <input type="hidden" name="fromMode" value="-1" />
+    </form>
+
 <% } else { %>
 
 <p>
@@ -408,6 +423,18 @@ I consent to participate in this study.
 }
 
 if (mode == 1) {
+    if (loggedIn && !phase2User) {
+        System.out.println("INFO: legacy user consented; upgrading " + thisUser);
+        Role role = new Role(thisUser.getUsername(), "cat_mouse_volunteer");
+        role.setContext(myShepherd.getContext());
+        myShepherd.getPM().makePersistent(role);
+        myShepherd.commitDBTransaction();
+%>
+<script>window.location.href = 'queue.jsp';</script>
+<%
+        return;
+    }
+
     Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
 %>
 
