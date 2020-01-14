@@ -44,7 +44,7 @@ try {
 catch(Exception e){
   System.out.println("Exception on indocetCheck in footer.jsp:");
   e.printStackTrace();
-  myShepherd.closeDBTransaction();
+
 }
 finally{
   myShepherd.rollbackDBTransaction();

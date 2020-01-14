@@ -6794,6 +6794,8 @@ finally{
 
 </div>
 
+</div>
+
 <!--db: These are the necessary tools for photoswipe.-->
 <%
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
