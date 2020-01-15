@@ -135,18 +135,48 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     height: 400px;
 }
 .match-side-info {
-    height: 4em;
+    height: 9.1em;
     background-color: #DDD;
 }
 
-#match-controls {}
+#match-controls {
+    height: 5em;
+}
 #match-info {
     width: 70%;
     display: inline-block;
 }
 #match-controls input {
-    xdisplay: none;
+    position: absolute;
+    display: none;
 }
+#match-button-next {
+    right: 0px;
+}
+#match-button-prev {
+    left: 0px;
+}
+
+.match-side-attribute-label,
+.match-side-attribute-value {
+    line-height: 1.3em;
+    display: inline-block;
+    vertical-align: middle;
+}
+.match-side-attribute-value {
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 60%;
+}
+.match-side-attribute-label {
+    width: 39%;
+    font-weight: bold;
+    font-size: 0.8em;
+    text-align: right;
+    padding-right: 10px;
+}
+
 
 </style>
 
@@ -322,7 +352,7 @@ var xmlFile = subdirPrefix + '/<%=encSubdir%>/<%=file.getName()%>';
 var xmlData = null;
 var jsonData = [];
 var rightSide = <%=side2.equals("right")%>;
-var currentCompare = 0;
+var currentPair = 0;
 $(document).ready(function() {
     $.ajax({
         url: xmlFile,
@@ -369,15 +399,53 @@ function xmlAttributesToJson(el) {
 }
 
 function spotDisplayPair(mnum) {
+    currentPair = mnum;
     if (!jsonData[mnum] || !jsonData[mnum].encounters || (jsonData[mnum].encounters.length != 2)) return;
     for (var i = 0 ; i < 2 ; i++) {
-        spotDisplaySide(i, jsonData[mnum].encounters[i]);
+        spotDisplaySide(1 - i, jsonData[mnum].encounters[i]);
     }
+    if (mnum < 1) {
+        $('#match-button-prev').hide();
+    } else {
+        $('#match-button-prev').show();
+    }
+    if (mnum >= jsonData.length - 1) {
+        $('#match-button-next').hide();
+    } else {
+        $('#match-button-next').show();
+    }
+    $('#match-info').html('Match score: <b>' + jsonData[mnum].finalscore + '</b> (Match ' + (mnum+1) + ' of ' + jsonData.length + ')');
 }
 
+var attrOrder = ['number', 'date', 'sex', 'assignedToShark', 'size', 'location', 'locationID'];
+var attrLabel = {
+    number: 'Enc ID',
+    date: 'Date', 
+    sex: 'Sex',
+    assignedToShark: 'Assigned to',
+    size: 'Size',
+    location: 'Location',
+    locationID: 'Location ID'
+};
 function spotDisplaySide(side, data) {
 console.log('spotDisplaySide ==> %i %o', side, data);
     $('#match-side-' + side + ' img').prop('src', data.imgUrl);
+    var h = '<div class="match-side-attributes">';
+    for (var i = 0 ; i < attrOrder.length ; i++) {
+        var label = attrLabel[attrOrder[i]] || attrOrder[i];
+        var value = data[attrOrder[i]];
+        h += '<div><div class="match-side-attribute-label">' + label + '</div>';
+        h += '<div class="match-side-attribute-value">' + value + '</div></div>';
+    }
+    h += '</div>';
+    $('#match-side-' + side + ' .match-side-info').html(h);
+}
+
+function spotDisplayButton(delta) {
+    currentPair += delta;
+    if (currentPair < 0) currentPair = jsonData.length;
+    if (currentPair > jsonData.length - 1) currentPair = 0;
+    spotDisplayPair(currentPair);
 }
 
 </script>
@@ -393,8 +461,10 @@ console.log('spotDisplaySide ==> %i %o', side, data);
     </div>
     <div id="match-controls">
         <div id="match-info"></div>
-        <input id="match-button-prev" type="button" value="previous" onClick="return spotDisplayButton(-1)" />
-        <input id="match-button-next" type="button" value="next" onClick="return spotDisplayButton(1)" />
+        <div style="position: relative; display: inline-block; width: 20%; height: 3em;">
+            <input id="match-button-prev" type="button" value="previous" onClick="return spotDisplayButton(-1)" />
+            <input id="match-button-next" type="button" value="next" onClick="return spotDisplayButton(1)" />
+        </div>
     </div>
 </div>
 
