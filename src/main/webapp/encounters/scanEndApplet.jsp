@@ -123,7 +123,31 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     border: 1px solid black;
     padding: 5px;
 }
-  
+
+#spot-display {}
+.match-side {
+    text-align: center;
+    display: inline-block;
+    position: relative;
+    width: 49%;
+}
+.match-side img {
+    height: 400px;
+}
+.match-side-info {
+    height: 4em;
+    background-color: #DDD;
+}
+
+#match-controls {}
+#match-info {
+    width: 70%;
+    display: inline-block;
+}
+#match-controls input {
+    xdisplay: none;
+}
+
 </style>
 
 
@@ -270,7 +294,110 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       rightSA = "&filePrefix=extractRight";
     }
     //System.out.println("I made it to the Flash without exception.");
+/*
+<matchSet scanDate="Thu Jul 22 17:42:02 EDT 2010" R="8" epsilon="0.01" Sizelim="0.9" maxTriangleRotation="30" C="0.99">
+  <match points="162.0" adjustedpoints="0.34394904458598724" pointBreakdown="23 + 19 + 16 + 15 + 14 + 11 + 11 + 11 + 10 + 10 + 8 + 8 + 6 + " finalscore="55.719" logMStdDev="0.02923" evaluation="Moderate">
+    <encounter number="19520090917" date="18/5/2009, 14:00" sex="unsure" assignedToShark="Unassigned" size="7.0 meters" location="Ningaloo Marine Park (Northern)" locationID="1a1">
+      <spot x="173.0" y="106.00000000000001"/>
+      <spot x="170.0" y="315.0"/>
+      <spot x="88.0" y="190.0"/>
+      <spot x="92.0" y="244.00000000000003"/>
+      <spot x="253.0" y="91.0"/>
+      <spot x="195.0" y="194.0"/>
+      <spot x="327.0" y="227.0"/>
+      <spot x="195.0" y="256.0"/>
+      <spot x="88.0" y="145.0"/>
+      <spot x="108.0" y="327.0"/>
+      <spot x="282.0" y="297.0"/>
+      <spot x="81.0" y="101.0"/>
+      <spot x="339.0" y="170.0"/>
+    </encounter>
+    <encounter number="2272010153941"
+*/
   %>
+
+<script>
+var subdirPrefix = '/<%=shepherdDataDir.getName()%>/encounters';
+var xmlFile = subdirPrefix + '/<%=encSubdir%>/<%=file.getName()%>';
+var xmlData = null;
+var jsonData = [];
+var rightSide = <%=side2.equals("right")%>;
+var currentCompare = 0;
+$(document).ready(function() {
+    $.ajax({
+        url: xmlFile,
+        dataType: 'xml',
+        type: 'GET',
+        complete: function(xhr) {
+            console.info(xhr);
+            if (!xhr || (xhr.status != 200) || !xhr.responseXML) {
+                var errorMsg = 'Unknown error';
+                if (xhr) errorMsg = xhr.status + ' - ' + xhr.statusText
+                $('#spot-display').html('<h1 class="error">Unable to fetch data: ' + errorMsg + '</h1>');
+            } else {
+                xmlData = $(xhr.responseXML);
+                spotDisplayInit(xmlData);
+            }
+        }
+    });
+});
+
+function spotDisplayInit(xml) {
+    xmlData.find('match').each(function(i, el) {
+        var m = xmlAttributesToJson(el);
+        m.encounters = [];
+        for (var j = 0 ; j < el.children.length ; j++) {
+            var e = xmlAttributesToJson(el.children[j]);
+            e.imgUrl = subdirPrefix + '/' + e.number + '/extract' + (rightSide ? 'Right' : '') + e.number + '.jpg';
+            e.spots = [];
+            for (var i = 0 ; i < el.children[j].children.length ; i++) {
+                e.spots.push(xmlAttributesToJson(el.children[j].children[i]));
+            }
+            m.encounters.push(e);
+        }
+        jsonData.push(m);
+    });
+    spotDisplayPair(0);
+}
+
+function xmlAttributesToJson(el) {
+    var j = {};
+    for (var i = 0 ; i < el.attributes.length ; i++) {
+        j[el.attributes[i].name] = el.attributes[i].value;
+    }
+    return j;
+}
+
+function spotDisplayPair(mnum) {
+    if (!jsonData[mnum] || !jsonData[mnum].encounters || (jsonData[mnum].encounters.length != 2)) return;
+    for (var i = 0 ; i < 2 ; i++) {
+        spotDisplaySide(i, jsonData[mnum].encounters[i]);
+    }
+}
+
+function spotDisplaySide(side, data) {
+console.log('spotDisplaySide ==> %i %o', side, data);
+    $('#match-side-' + side + ' img').prop('src', data.imgUrl);
+}
+
+</script>
+    
+<div id="spot-display">
+    <div class="match-side" id="match-side-0">
+        <img />
+        <div class="match-side-info"></div>
+    </div>
+    <div class="match-side" id="match-side-1">
+        <img />
+        <div class="match-side-info"></div>
+    </div>
+    <div id="match-controls">
+        <div id="match-info"></div>
+        <input id="match-button-prev" type="button" value="previous" onClick="return spotDisplayButton(-1)" />
+        <input id="match-button-next" type="button" value="next" onClick="return spotDisplayButton(1)" />
+    </div>
+</div>
+
   <OBJECT id=sharkflash
           codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
           height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
