@@ -124,6 +124,28 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     padding: 5px;
 }
 
+.match-side-img-wrapper {
+    width: 1000px;
+    display: inline-block;
+    position: relative;
+    height: 400px;
+    cursor: crosshair;
+}
+
+.match-side-spot {
+    width: 9px;
+    height: 9px;
+    border-radius: 5px;
+    background-color: #888;
+    position: absolute;
+    border: solid 1px black;
+    transform: scale(1.5);
+}
+.match-spot-highlight {
+    border-color: yellow;
+    transform: scale(3.0);
+}
+
 #spot-display {}
 .match-side {
     text-align: center;
@@ -132,6 +154,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     width: 49%;
 }
 .match-side img {
+    position: absolute;
+    left: 0;
+    top: 0;
     height: 400px;
 }
 .match-side-info {
@@ -344,6 +369,13 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     </encounter>
     <encounter number="2272010153941"
 */
+
+java.util.Random rnd = new java.util.Random();
+out.println("<style>");
+for (int i = 0 ; i < 50 ; i++) {
+    out.println(".match-side-spot-" + i + " { background-color: rgb(" + rnd.nextInt(256) + "," + rnd.nextInt(256) + "," + rnd.nextInt(256) + "); }");
+}
+out.println("</style>");
   %>
 
 <script>
@@ -434,6 +466,7 @@ console.log('spotDisplaySide ==> %i %o', side, data);
     for (var i = 0 ; i < attrOrder.length ; i++) {
         var label = attrLabel[attrOrder[i]] || attrOrder[i];
         var value = data[attrOrder[i]];
+        if (i == 0) value = '<a target="_new" href="encounter.jsp?number=' + value + '">' + value + '</a>';
         h += '<div><div class="match-side-attribute-label">' + label + '</div>';
         h += '<div class="match-side-attribute-value">' + value + '</div></div>';
     }
@@ -448,15 +481,41 @@ function spotDisplayButton(delta) {
     spotDisplayPair(currentPair);
 }
 
+function matchImgDone(img, encI) {
+console.log('done %o %o', img, encI);
+    var ratio = img.clientWidth / img.naturalWidth;
+    var wrapper = $(img).parent();
+    wrapper.find('.match-side-spot').remove();
+    for (var i = 0 ; i < jsonData[currentPair].encounters[encI].spots.length ; i++) {
+        var sp = $('<div id="spot-' + encI + '-' + i + '" class="match-side-spot match-side-spot-' + i + '" />');
+        sp.css({
+            left: (jsonData[currentPair].encounters[encI].spots[i].x * ratio - 3) + 'px',
+            top: (jsonData[currentPair].encounters[encI].spots[i].y * ratio - 3) + 'px'
+        });
+        sp.on('mouseenter', function(ev) {
+            ev.target.classList.forEach(function(cl) {
+                if (cl.startsWith('match-side-spot-')) $('.' + cl).addClass('match-spot-highlight');
+            });
+        })
+        .on('mouseout', function(ev) {
+            $('.match-spot-highlight').removeClass('match-spot-highlight');
+        });
+        wrapper.append(sp);
+    }
+}
 </script>
     
 <div id="spot-display">
     <div class="match-side" id="match-side-0">
-        <img />
+        <div class="match-side-img-wrapper">
+            <img onLoad="return matchImgDone(this, 1)" />
+        </div>
         <div class="match-side-info"></div>
     </div>
     <div class="match-side" id="match-side-1">
-        <img />
+        <div class="match-side-img-wrapper">
+            <img onLoad="return matchImgDone(this, 0)" />
+        </div>
         <div class="match-side-info"></div>
     </div>
     <div id="match-controls">
@@ -468,7 +527,7 @@ function spotDisplayButton(delta) {
     </div>
 </div>
 
-  <OBJECT id=sharkflash
+   <OBJECT id=sharkflash
           codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
           height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
     <PARAM NAME="movie"
@@ -490,6 +549,7 @@ function spotDisplayButton(delta) {
       <table class="tablesorter" width="800px">
       <thead>
         <tr align="left" valign="top">
+          <th><strong>#</strong></th>
           <th><strong>Individual ID</strong></th>
           <th><strong> Encounter</strong></th>
           <th><strong>Fraction Matched Triangles </strong></th>
@@ -561,6 +621,7 @@ function spotDisplayButton(delta) {
           root = doc.getRootElement();
 
           Iterator matchsets = root.elementIterator("match");
+            int ct = 0;
           while (matchsets.hasNext()) {
             Element match = (Element) matchsets.next();
             List encounters = match.elements("encounter");
@@ -569,6 +630,7 @@ function spotDisplayButton(delta) {
         %>
         
         <tr align="left" valign="top">
+<td style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair"><%=(ct+1)%></td>
           <td>
             <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
             	<%=enc1.attributeValue("assignedToShark")%>
@@ -649,6 +711,7 @@ function spotDisplayButton(delta) {
         <%
 
 
+        ct++;
             }
           }
 
