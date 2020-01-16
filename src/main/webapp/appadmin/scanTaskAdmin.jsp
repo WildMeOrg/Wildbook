@@ -309,7 +309,7 @@ else{
     </td>
     <%
       String gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp";
-      if(scanEnc.getLocationID()!=null)  gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndAppletLocationID.jsp";
+      if(scanEnc.getLocationID()!=null)  gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp";
     //if (st.getUniqueNumber().equals("TuningTask")) {
       //  gotoURL = "endTuningTask.jsp";
       //}
