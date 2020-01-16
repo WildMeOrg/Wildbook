@@ -234,6 +234,7 @@ h1 { background: none !important; }
 
 .option-checkbox {
     transform: scale(1.5);
+    box-shadow: none;
     margin: 7px !important;
 }
 
@@ -624,7 +625,7 @@ There are two steps to processing each submission: selecting cat attributes, and
 
     <div class="column-attributes">
 
-        <div class="attribute">
+        <div class="attribute" style="display: none;">
             <h2>Flag Problems</h2>
             <div id="flag">
                 <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-missed" /><label for="flag-detection">Some photos missing (this) cat<span class="flag-note">A submission may include some photos that do not have a cat in them, or multi-cat submissions that are split into multiple submissions to process may some have photos without the focal cat.  Do any photos not contain the focal cat?</span></label></div>
