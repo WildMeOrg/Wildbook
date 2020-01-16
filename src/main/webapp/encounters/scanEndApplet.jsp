@@ -202,6 +202,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     padding-right: 10px;
 }
 
+.table-row-highlight {
+    background-color: #FF8;
+}
 
 </style>
 
@@ -391,8 +394,13 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 */
 
 java.util.Random rnd = new java.util.Random();
-out.println("<style>");
-for (int i = 0 ; i < 50 ; i++) {
+%>
+<style>
+    .match-side-spot-0 { background-color: #F00; border: dotted 1px #FF4; }
+    .match-side-spot-1 { background-color: #0F0; border: dotted 1px #FF4; }
+    .match-side-spot-2 { background-color: #00F; border: dotted 1px #FF4; }
+<%
+for (int i = 3 ; i < 50 ; i++) {
     out.println(".match-side-spot-" + i + " { background-color: rgb(" + rnd.nextInt(256) + "," + rnd.nextInt(256) + "," + rnd.nextInt(256) + "); }");
 }
 out.println("</style>");
@@ -451,8 +459,10 @@ function xmlAttributesToJson(el) {
 }
 
 function spotDisplayPair(mnum) {
-    currentPair = mnum;
     if (!jsonData[mnum] || !jsonData[mnum].encounters || (jsonData[mnum].encounters.length != 2)) return;
+    currentPair = mnum;
+    $('.table-row-highlight').removeClass('table-row-highlight');
+    $('#table-row-' + mnum).addClass('table-row-highlight');
     for (var i = 0 ; i < 2 ; i++) {
         spotDisplaySide(1 - i, jsonData[mnum].encounters[i]);
     }
@@ -507,7 +517,7 @@ console.log('done %o %o', img, encI);
     var wrapper = $(img).parent();
     wrapper.find('.match-side-spot').remove();
     for (var i = 0 ; i < jsonData[currentPair].encounters[encI].spots.length ; i++) {
-        var sp = $('<div id="spot-' + encI + '-' + i + '" class="match-side-spot match-side-spot-' + i + '" />');
+        var sp = $('<div title="spot ' + (i+1) + '" id="spot-' + encI + '-' + i + '" class="match-side-spot match-side-spot-' + i + '" />');
         sp.css({
             left: (jsonData[currentPair].encounters[encI].spots[i].x * ratio - 3) + 'px',
             top: (jsonData[currentPair].encounters[encI].spots[i].y * ratio - 3) + 'px'
@@ -547,21 +557,6 @@ console.log('done %o %o', img, encI);
     </div>
 </div>
 
-   <OBJECT id=sharkflash
-          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
-          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
-    <PARAM NAME="movie"
-           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
-    <PARAM NAME="qualidty" VALUE="high">
-    <PARAM NAME="scale" VALUE="exactfit">
-    <PARAM NAME="bgcolor" VALUE="#ddddff">
-    <EMBED
-      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
-      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
-      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
-      TYPE="application/x-shockwave-flash"
-      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
-  </OBJECT>
 </p>
   
       <a name="resultstable"/>
@@ -649,7 +644,7 @@ console.log('done %o %o', img, encI);
             Element enc2 = (Element) encounters.get(1);
         %>
         
-        <tr align="left" valign="top">
+        <tr id="table-row-<%=ct%>" align="left" valign="top">
 <td style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair"><%=(ct+1)%></td>
           <td>
             <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
