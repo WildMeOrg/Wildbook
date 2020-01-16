@@ -29,6 +29,33 @@ private static User registerUser(Shepherd myShepherd, String username, String em
     return user;
 }
 
+%><%
+String context = ServletUtilities.getContext(request);
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("register.jsp");
+myShepherd.beginDBTransaction();
+User thisUser = AccessControl.getUser(request, myShepherd);
+if (Util.requestParameterSet(request.getParameter("recordQuiz"))) {
+    if (thisUser == null) {
+        Object u = session.getAttribute("user");
+        if (u != null) thisUser = (User)u;
+    }
+    JSONObject rtn = new JSONObject();
+    if (thisUser == null) {
+        rtn.put("success", false);
+        rtn.put("error", "could not find user");
+    } else {
+        SystemValue.set(myShepherd, "quiz_completed_" + thisUser.getUUID(), System.currentTimeMillis());
+        rtn.put("success", true);
+        rtn.put("id", thisUser.getUUID());
+    }
+    response.setContentType("application/javascript");
+    System.out.println("INFO: recordQuiz for " + rtn);
+    out.println(rtn.toString());
+    myShepherd.commitDBTransaction();
+    return;
+}
+
 %>
 <style>
 .mobile-note {
@@ -98,13 +125,14 @@ label {
     display: none;
 }
 
+#proceed-div .big-button {
+    transform: scale(1.5);
+    display: inline-block;
+}
+
 </style>
 <%
 
-String context = ServletUtilities.getContext(request);
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("register.jsp");
-myShepherd.beginDBTransaction();
 request.setAttribute("pageTitle", "Kitizen Science &gt; Participate");
 boolean rollback = true;
 
@@ -114,7 +142,6 @@ boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"
   String langCode=ServletUtilities.getLanguageCode(request);
   boolean loggedIn = !AccessControl.isAnonymous(request);
 
-User thisUser = AccessControl.getUser(request, myShepherd);
 boolean phase2User = false;
 if (thisUser != null) {
     String[] validRoles = new String[]{"admin", "super_volunteer", "cat_mouse_volunteer", "cat_walk_volunteer"};
@@ -212,7 +239,7 @@ System.out.println("survey response: " + resp.toString());
             session.setAttribute("error", "<div class=\"error\">We have encountered an error in your survey response: <b>" + String.join(", ", errors) + "</b>");
             mode = 2;
         } else {
-            String key = "survey_response_" + request.getParameter("user_uuid");
+            String key = "survey_response_phase2_" + request.getParameter("user_uuid");
             SystemValue.set(myShepherd, key, resp);
             rollback = false;
             mode = 3;
@@ -422,24 +449,22 @@ I consent to participate in this study.
 
 }
 
-if (mode == 1) {
-    if (loggedIn && !phase2User) {
-        System.out.println("INFO: legacy user consented; upgrading " + thisUser);
-        Role role = new Role(thisUser.getUsername(), "cat_mouse_volunteer");
-        role.setContext(myShepherd.getContext());
-        myShepherd.getPM().makePersistent(role);
-        myShepherd.commitDBTransaction();
-%>
-<script>window.location.href = 'queue.jsp';</script>
-<%
-        return;
-    }
+if ((mode == 1) && loggedIn && !phase2User) {
+    System.out.println("INFO: legacy user consented; upgrading " + thisUser);
+    Role role = new Role(thisUser.getUsername(), "cat_mouse_volunteer");
+    role.setContext(myShepherd.getContext());
+    myShepherd.getPM().makePersistent(role);
+    rollback = false;
+    session.setAttribute("user", thisUser);
+    mode = 2;
+}
 
+if (mode == 1) {
     Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
 %>
 
 <div id="register-section">
-<h2>Register an account</h2>
+<h2>Register a new account</h2>
 
 <script>
 var regexUsername = new RegExp('^[a-z0-9]+$');
@@ -532,6 +557,10 @@ function checkAccount() {
 
 </form>
 
+<h2>Login to an existing account</h2>
+<p>Already have an account from a previous study on Kitizen Science?</p>
+
+<input type="button" value="Login" onClick="window.location.href='queue.jsp';" />
 
 </div>
               
@@ -592,9 +621,19 @@ function checkSurvey() {
     if (regu != null) out.print(regu.getUUID());
 %>" />
 
-<% if (regu != null) { %>
+<% if (regu != null) {
+
+    if (loggedIn) {  //guess this means legacyUser in-process
+%>
+<p><b style="font-size: 1.3em;">Updating account <u><%=regu.getUsername()%></u> for this study.</b></p>
+<%
+    } else {
+%>
 <p><b style="font-size: 1.3em;">Your user <u><%=regu.getUsername()%></u> has been created.</b></p>
-<% } %>
+<%
+    }
+}
+%>
 <p>
 We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
 </p>
@@ -977,9 +1016,22 @@ console.log('%d) %d: %d [%d]', qi, seli, sel.selectedIndex, qans[qi][seli]);
     });
     if (faked) passedQuiz = true;
     if (passedQuiz) {
-        $('#proceed-div').show();
         $('#quiz-blocker').hide();
         $('#quiz-button').hide();
+        $.ajax({
+            url: 'register.jsp?recordQuiz',
+            type: 'GET',
+            dataType: 'json',
+            complete: function(x) {
+                console.info('recordQuiz returned: %o', x);
+                if (!x || !x.responseJSON || !x.responseJSON.success) {
+                    alert('Sorry, there was an error with processing the quiz');
+                } else {
+                    $('#proceed-div').show();
+                }
+            }
+        });
+
     } else {
         window.setTimeout(function() { alert('You have some quiz answers which are incorrect.  They are in RED.'); }, 200);
     }
@@ -1048,11 +1100,11 @@ console.log('%d) %d: %d [%d]', qi, seli, sel.selectedIndex, qans[qi][seli]);
         if (loggedIn) {
 %>
 
-<p align="center" id="proceed-div"><a class="big-button" href="queue.jsp">Proceed to Study</a></p>
+<p align="center" id="proceed-div"><a class="big-button" href="queue.jsp">Congratulations!  You answered everything correctly.  Proceed to study.</a></p>
 
 <%      } else { //is logged in %>
 
-<p align="center" id="proceed-div"><a class="big-button" href="queue.jsp">Login to Proceed to Study</a></p>
+<p align="center" id="proceed-div"><a class="big-button" href="queue.jsp">Congratulations!  You answered everything correctly.  Login to proceed to study.</a></p>
 
 <%      } %>
 
