@@ -432,13 +432,17 @@ $(document).ready(function() {
     });
 });
 
+function hashDir(dir) {
+    if (dir.length != 36) return dir;
+    return dir.substr(0,1) + '/' + dir.substr(1,1) + '/' + dir;
+}
 function spotDisplayInit(xml) {
     xmlData.find('match').each(function(i, el) {
         var m = xmlAttributesToJson(el);
         m.encounters = [];
         for (var j = 0 ; j < el.children.length ; j++) {
             var e = xmlAttributesToJson(el.children[j]);
-            e.imgUrl = subdirPrefix + '/' + e.number + '/extract' + (rightSide ? 'Right' : '') + e.number + '.jpg';
+            e.imgUrl = subdirPrefix + '/' + hashDir(e.number) + '/extract' + (rightSide ? 'Right' : '') + e.number + '.jpg';
             e.spots = [];
             for (var i = 0 ; i < el.children[j].children.length ; i++) {
                 e.spots.push(xmlAttributesToJson(el.children[j].children[i]));
@@ -498,7 +502,7 @@ console.log('spotDisplaySide ==> %i %o', side, data);
         var value = data[attrOrder[i]];
         if (i == 0) value = '<a target="_new" href="encounter.jsp?number=' + value + '">' + value + '</a>';
         h += '<div><div class="match-side-attribute-label">' + label + '</div>';
-        h += '<div class="match-side-attribute-value">' + value + '</div></div>';
+        h += '<div class="match-side-attribute-value">' + value + '&nbsp;</div></div>';
     }
     h += '</div>';
     $('#match-side-' + side + ' .match-side-info').html(h);
