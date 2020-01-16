@@ -225,7 +225,7 @@
 				/EncounterSetSurveyAndTrack = authc, roles[researcher]
 				/OccurrenceSetSurveyAndTrack = authc, roles[researcher]
 				/EncounterSetGenusSpecies = authc, roles[researcher]
-				/RestKeyword = authc, roles[researcher]
+				/RestKeyword = authc, roles[admin]
 				/IndividualAddFile = authc, roles[researcher]
 				/Collaborate = authc
 				#/RemoveEmailAddress = authc, roles[admin]

@@ -131,6 +131,11 @@ System.out.println("findSimilar() -> " + el.toString());
 <style type="text/css">
 h1 { background: none !important; }
 
+.attribute-info {
+    font-size: 0.9em;
+    line-height: 1.3em;
+}
+
 .attribute {
     text-align: center;
     background-color: #EFEFEF;
@@ -233,7 +238,6 @@ h1 { background: none !important; }
 }
 
 .option-checkbox {
-    transform: scale(1.5);
     box-shadow: none;
     margin: 7px !important;
 }
@@ -490,6 +494,7 @@ console.log(url);
                         h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
                         h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
                         var numImages = xhr.responseJSON.similar[i].assets.length;
+//////////// TODO use keyword 'Comparison Photo' to decide!
                         if (numImages > 2) numImages = 2;
                         for (var j = 0 ; j < numImages ; j++) {
                             h += '<div class="match-asset-wrapper">';
@@ -674,6 +679,7 @@ There are two steps to processing each submission: selecting cat attributes, and
 
         <div class="attribute">
             <h2>Ear Tip</h2>
+            <p class="attribute-info">Zoom all the way in to check.  Ear tipping can be difficult to see, and it depends on the angle of the photo and the amount of ear tip removed.<br />When in doubt, select unknown.</p>
             <div id="earTip" class="attribute-select">
                 <div id="yes-left" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tipleft.jpg" />
@@ -699,11 +705,11 @@ There are two steps to processing each submission: selecting cat attributes, and
             <div id="lifeStage" class="attribute-select">
                 <div id="kitten" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_kitten.jpg" />
-                    <div class="attribute-title">Kitten</div>
+                    <div class="attribute-title">Kitten (Under 6 Months)</div>
                 </div>
                 <div id="adult" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_adult.jpg" />
-                    <div class="attribute-title">Adult</div>
+                    <div class="attribute-title">Adult (Over 6 Months)</div>
                 </div>
             </div>
         </div>
