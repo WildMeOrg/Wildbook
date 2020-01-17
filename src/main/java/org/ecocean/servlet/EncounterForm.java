@@ -405,7 +405,8 @@ System.out.println("*** trying redirect?");
 
       //check for spamBots   TODO possibly move this to Util for general/global usage?
       boolean spamBot = false;
-            String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", "photographerPhone", "location", "comments", "behavior"};
+            String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", ""
+                + "Phone", "location", "comments", "behavior"};
       StringBuffer spamFields = new StringBuffer();
             for (int i = 0 ; i < spamFieldsToCheck.length ; i++) {
           spamFields.append(getVal(fv, spamFieldsToCheck[i]));

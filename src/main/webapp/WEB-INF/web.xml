@@ -74,6 +74,7 @@
 
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
+				/appadmin/users.jsp = authc, roles[admin]
 				/appadmin/iaSpeciesDiff.jsp = = authcBasicWildbook,roles[rest]
 
 
@@ -99,11 +100,10 @@
 		/GenePopExport = authc, roles[researcher]
 
 		/IndividualSetNickName = authc, roles[researcher]
+		/IndividualSetName = authc, roles[researcher]
 
     	/match.jsp = authc
 
-
-    /dataSheet.jsp  authc
 
 		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
@@ -381,14 +381,14 @@
 				/OccurrenceSetObservation = authc, roles[researcher]
 				/EncounterSetObservation = authc, roles[researcher]
 				/EncounterVMData = authc, roles[researcher]
+				/encounters/encounterVM.jsp = authc, roles[researcher]
 
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
 				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
 				/sutime/** = authc
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
-				
-				/IndividualSetName = authc, roles[researcher]
+
 				
 				/AnnotationEdit = authc, roles[admin]
 				
@@ -988,6 +988,10 @@
         <servlet-name>EncounterSearchExportExcelFile</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportExcelFile</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>EncounterSearchExportMetadataExcel</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.EncounterSearchExportMetadataExcel</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterSetTapirLinkExposure</servlet-name>
@@ -1291,6 +1295,11 @@
     <servlet>
       <servlet-name>GetIndividualSearchGoogleMapsPoints</servlet-name>
       <servlet-class>org.ecocean.servlet.export.GetIndividualSearchGoogleMapsPoints</servlet-class>
+  </servlet>
+  
+      <servlet>
+      <servlet-name>GetEncounterSearchGoogleMapsPoints</servlet-name>
+      <servlet-class>org.ecocean.servlet.export.GetEncounterSearchGoogleMapsPoints</servlet-class>
   </servlet>
 
   <servlet>
@@ -1722,6 +1731,11 @@
 	  <url-pattern>/MarkRecaptureEncounters</url-pattern>
   </servlet-mapping>
 
+  <servlet-mapping>
+	  <servlet-name>MarkRecaptureEncounters</servlet-name>
+	  <url-pattern>/MarkRecaptureEncounters</url-pattern>
+  </servlet-mapping>
+
       <servlet-mapping>
         <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
@@ -2050,6 +2064,11 @@
           <servlet-name>GetIndividualSearchGoogleMapsPoints</servlet-name>
           <url-pattern>/GetIndividualSearchGoogleMapsPoints</url-pattern>
   </servlet-mapping>
+  
+          <servlet-mapping>
+          <servlet-name>GetEncounterSearchGoogleMapsPoints</servlet-name>
+          <url-pattern>/GetEncounterSearchGoogleMapsPoints</url-pattern>
+  </servlet-mapping>
 
       <servlet-mapping>
         <servlet-name>EncounterSearchExportKML</servlet-name>
@@ -2359,6 +2378,8 @@
     <url-pattern>/IndividualSetNickName</url-pattern>
   </servlet-mapping>
 
+
+
   <servlet-mapping>
     <servlet-name>IndividualSetName</servlet-name>
     <url-pattern>/IndividualSetName</url-pattern>
@@ -2516,6 +2537,16 @@
   <servlet-mapping>
     <servlet-name>AddOccToTrack</servlet-name>
     <url-pattern>/AddOccToTrack</url-pattern>
+  </servlet-mapping>
+  
+        <servlet>
+    <servlet-name>AnnotationSetMatchAgainst</servlet-name>
+    <servlet-class>org.ecocean.servlet.AnnotationSetMatchAgainst</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>AnnotationSetMatchAgainst</servlet-name>
+    <url-pattern>/AnnotationSetMatchAgainst</url-pattern>
   </servlet-mapping>
 
 </web-app>

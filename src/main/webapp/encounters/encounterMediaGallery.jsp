@@ -197,13 +197,24 @@ function forceLink(el) {
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
+
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
                                                     if (!tasks.contains(t)) tasks.add(t);
+                                                    //System.out.println("Task ID: "+t.getId());
                                                 }
+
+                                                Collections.sort(tasks, new Comparator<Task>() {
+                                                    @Override public int compare(Task tsk1, Task tsk2) {
+                                                        return Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong()); // first asc
+                                                    }
+                                                });
+                                                Collections.reverse(tasks); // now desc, ez
+
                                                 JSONArray jt = new JSONArray();
                                                 for (Task t : tasks) {
                                                     jt.put(Util.toggleJSONObject(t.toJSONObject()));
                                                 }
+                                                //System.out.println("Root tasks returned...");
                                                 j.put("tasks", jt);
                                                 JSONObject ja = new JSONObject();
 						ja.put("id", ann.getId());
@@ -966,7 +977,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
 
     var tooltip;
     if (feat.individualId) {
-        tooltip = 'Name: <b>' + feat.individualId + '</b>';
+        tooltip = 'Name: <b>' + feat.displayName + '</b>';
     } else {
         tooltip = '<i>Unnamed individual</i>';
     }
@@ -981,6 +992,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         fel.addClass('image-enhancer-feature-aoi');
         tooltip += '<br /><i style="color: #280; font-size: 0.8em;">Annotation of Interest</i>';
     }
+    if (feat.parameters.viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + feat.parameters.viewpoint + '</b></i>';
     if (focused) fel.addClass('image-enhancer-feature-focused');
     fel.prop('data-tooltip', tooltip);
     fel.css({

@@ -84,21 +84,23 @@
 	//retrieve dates from the URL
  int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
     try {
-      month1 = (new Integer(request.getParameter("month1"))).intValue();
-    } catch (NumberFormatException nfe) {
+        DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
+        DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
+        DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
+        
+        day1=date1.getDayOfMonth();
+        month1=date1.getMonthOfYear();
+        year1=date1.getYear();
+        
+        day2=date2.getDayOfMonth();
+        month2=date2.getMonthOfYear();
+        year2=date2.getYear();
+
+        
+    } 
+    catch (Exception nfe) {
     }
-    try {
-      month2 = (new Integer(request.getParameter("month2"))).intValue();
-    } catch (NumberFormatException nfe) {
-    }
-    try {
-      year1 = (new Integer(request.getParameter("year1"))).intValue();
-    } catch (NumberFormatException nfe) {
-    }
-    try {
-      year2 = (new Integer(request.getParameter("year2"))).intValue();
-    } catch (NumberFormatException nfe) {
-    }
+
 
 	
 	

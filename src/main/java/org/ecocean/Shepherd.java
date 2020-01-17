@@ -408,7 +408,7 @@ public class Shepherd {
     beginDBTransaction();
     try {
       pm.makePersistent(task);
-      commitDBTransaction();
+      updateDBTransaction();
       return true;
     } catch (Exception e) {
       rollbackDBTransaction();
@@ -958,6 +958,19 @@ public class Shepherd {
   public Organization getOrganizationByName(String name) {
     Organization org= null;
     String filter="SELECT FROM org.ecocean.Organization WHERE name == \""+name.trim()+"\"";   
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      org=(Organization)it.next();
+    }
+    query.closeAll();
+    return org;
+  }
+  
+  public Organization getOrganization(String uuid) {
+    Organization org= null;
+    String filter="SELECT FROM org.ecocean.Organization WHERE id == \""+uuid.trim()+"\"";
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     Iterator it = c.iterator();
@@ -2104,112 +2117,55 @@ public class Shepherd {
     System.out.println("getPatterningPassports. Returning a collection of length " + al.size() + ". " + num);
     return al;
 
-
-
-    /*
-    Collection c;
-    Extent encClass = this.getPM().getExtent(PatterningPassport.class, true);
-    Query query = this.getPM().newQuery(encClass);
-
-
+  }
+  
+  
+  public List<Organization> getAllParentOrganizations() {
+    ArrayList<Organization> al = new ArrayList<Organization>();
     try {
-      c = (Collection) (query.execute());
-      ArrayList list = new ArrayList(c);
-      ArrayList al = new ArrayList<PatterningPassport>(c);
-      System.out.println("getPatterningPassports. Returning a collection of length " + al.size() + ".");
-      System.out.println("... list.size() is " + list.size() + ".");
+      Query q = getPM().newQuery("SELECT FROM org.ecocean.Organization WHERE parent == null");
+      Collection results = (Collection) q.execute();
+      al = new ArrayList<Organization>(results);
+      q.closeAll();
+    } 
+    catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
       return al;
-    } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getPatterningPassports. Returning a null collection because I didn't have a transaction to use.");
-      npe.printStackTrace();
-      return null;
     }
-    */
-
+    return al;
   }
-  /*
-  public ArrayList<File> getAllPatterningPassportFiles() {
-    Iterator all_spv = getAllSinglePhotoVideosNoQuery();
-    Collection c = new ArrayList();
-    while(all_spv.hasNext())
-    {
-      SinglePhotoVideo spv = (SinglePhotoVideo)all_spv.next();
-      File ppFile = spv.getPatterningPassportFile();
-      c.add(ppFile);
-    }
-    ArrayList<File> list = new ArrayList<File>(c);
-    return list;
-
-  }
-  */
-
-  /*
-  public Iterator getAvailableScanWorkItems(Query query,int pageSize, long timeout) {
-    Collection c;
-    //Extent encClass = getPM().getExtent(ScanWorkItem.class, true);
-    //Query query = getPM().newQuery(encClass);
-    long timeDiff = System.currentTimeMillis() - timeout;
-    query.setFilter("!this.done && this.startTime < " + timeDiff);
-    query.setRange(0, pageSize);
+  
+  public List<Organization> getAllOrganizationsForUser(User user) {
+    ArrayList<Organization> al = new ArrayList<Organization>();
     try {
-      c = (Collection) (query.execute());
-      ArrayList list = new ArrayList(c);
-      Iterator it = list.iterator();
-      //query.closeAll();
-      return it;
-    } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
-      npe.printStackTrace();
-      return null;
+      Query q = getPM().newQuery("SELECT FROM org.ecocean.Organization WHERE members.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user");
+      Collection results = (Collection) q.execute();
+      al = new ArrayList<Organization>(results);
+      q.closeAll();
+    } 
+    catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return al;
     }
+    return al;
   }
-
-  public Iterator getAvailableScanWorkItems(Query query,int pageSize, String taskID, long timeout) {
-    Collection c;
-    //Extent encClass = getPM().getExtent(ScanWorkItem.class, true);
-    //Query query = getPM().newQuery(encClass);
-    long timeDiff = System.currentTimeMillis() - timeout;
-    String filter = "!this.done && this.taskID == \"" + taskID + "\" && this.startTime < " + timeDiff;
-    query.setFilter(filter);
-    query.setRange(0, pageSize);
+  
+  public List<Organization> getAllOrganizations() {
+    ArrayList<Organization> al = new ArrayList<Organization>();
     try {
-      c = (Collection) (query.execute());
-      ArrayList list = new ArrayList(c);
-      //Collections.reverse(list);
-      Iterator it = list.iterator();
-      return it;
-    } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllEncounters(Query). Returning a null collection.");
-      npe.printStackTrace();
-      return null;
+      Extent allOrgs = pm.getExtent(Organization.class, true);
+      Query q = pm.newQuery(allOrgs);
+      Collection results = (Collection) q.execute();
+      al = new ArrayList<Organization>(results);
+      q.closeAll();
+    } 
+    catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return al;
     }
+    return al;
   }
-*/
-  /*
-  public List getID4AvailableScanWorkItems(Query query, int pageSize, long timeout, boolean forceReturn) {
-    Collection c;
-    query.setResult("uniqueNum");
-    long timeDiff = System.currentTimeMillis() - timeout;
-    String filter = "";
-    if (forceReturn) {
-      filter = "this.done == false";
-    } else {
-      filter = "this.done == false && this.startTime < " + timeDiff;
-      query.setRange(0, pageSize);
-    }
-    query.setFilter(filter);
-    //query.setOrdering("createTime ascending");
-    try {
-      c = (Collection) (query.execute());
-      ArrayList list = new ArrayList(c);
-      return list;
-    } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getID4AvailableScanWorkItems. Returning a null collection.");
-      npe.printStackTrace();
-      return null;
-    }
-  }
-  */
+  
 
   public List getPairs(Query query, int pageSize) {
     Collection c;
@@ -2225,31 +2181,7 @@ public class Shepherd {
     }
   }
 
-  /*
-  public List getID4AvailableScanWorkItems(String taskID, Query query, int pageSize, long timeout, boolean forceReturn) {
-    Collection c;
-    query.setResult("uniqueNum");
-    long timeDiff = System.currentTimeMillis() - timeout;
-    String filter = "";
-    if (forceReturn) {
-      filter = "this.done == false && this.taskID == \"" + taskID + "\"";
-    } else {
-      filter = "this.done == false && this.taskID == \"" + taskID + "\" && this.startTime < " + timeDiff;
-      query.setRange(0, pageSize);
-    }
-    query.setFilter(filter);
-    //query.setOrdering("createTime ascending");
-    try {
-      c = (Collection) (query.execute());
-      ArrayList list = new ArrayList(c);
-      return list;
-    } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getID4AvailableScanWorkItems). Returning a null collection.");
-      npe.printStackTrace();
-      return null;
-    }
-  }
-  */
+
 
   public List<String> getAdopterEmailsForMarkedIndividual(Query query,String shark) {
     Collection c;
@@ -4553,6 +4485,19 @@ public class Shepherd {
 	    q.closeAll();
     return al;
   }
+  
+  public List<String> getAllNativeUsernames() {
+    String filter="SELECT FROM org.ecocean.User WHERE username != null ";
+    // bc of how sql's startsWith method works we need the null check below
+    filter += "&& (fullName == null || !fullName.startsWith('Conserve.IO User '))";
+    Query query=getPM().newQuery(filter);
+    query.setResult("distinct username");
+    query.setOrdering("username ascending");
+    Collection c = (Collection) (query.execute());
+    ArrayList usernames=new ArrayList(c);
+    query.closeAll();
+    return usernames;
+  }
 
   public List<String> getAllGeneticSexes() {
     Query q = pm.newQuery(SexAnalysis.class);
@@ -4843,6 +4788,24 @@ public class Shepherd {
     return occurrenceIDs;
 
   }
+  
+  public ArrayList<String> getLinkedLocationIDs(String locationID){
+    ArrayList<String> locationIDs=new ArrayList<String>();
+
+   String filter="SELECT distinct enc2.locationID FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && encounters.contains(enc2) && enc.locationID == \""+locationID+"\" && enc2.locationID != null && enc2.locationID != \""+locationID+"\"  VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2";
+
+    Query q = pm.newQuery (filter);
+
+    Collection results = (Collection) q.execute();
+    ArrayList al=new ArrayList(results);
+    q.closeAll();
+    int numResults=al.size();
+    for(int i=0;i<numResults;i++) {
+      locationIDs.add((String)al.get(i));
+    }
+    return locationIDs;
+
+  }
 
 
 
@@ -4901,7 +4864,8 @@ public class Shepherd {
     String filter = "individual != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
-    q.setOrdering("dwcDateAddedLong descending");
+    q.setRange(0, numToReturn+1);
+    q.setOrdering("year descending, month descending, day descending");
     Collection c = (Collection) (q.execute());
     if ((c != null) && (c.size() > 0)) {
       int max = (numToReturn > c.size()) ? c.size() : numToReturn;
@@ -5012,6 +4976,19 @@ public class Shepherd {
     Query anns = pm.newQuery(annClass, filter);
     Collection c = (Collection) (anns.execute());
     ArrayList<Annotation> al = new ArrayList(c);
+    anns.closeAll();
+    if((al!=null)&&(al.size()>0)) {
+      return al;
+    }
+    return null;
+  }
+  
+  public ArrayList<MediaAsset> getMediaAssetsWithACMId(String acmId){
+    String filter = "this.acmId == \""+acmId+"\"";
+    Extent annClass = pm.getExtent(MediaAsset.class, true);
+    Query anns = pm.newQuery(annClass, filter);
+    Collection c = (Collection) (anns.execute());
+    ArrayList<MediaAsset> al = new ArrayList(c);
     anns.closeAll();
     if((al!=null)&&(al.size()>0)) {
       return al;

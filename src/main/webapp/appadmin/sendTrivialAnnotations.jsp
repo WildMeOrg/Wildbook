@@ -62,11 +62,11 @@ System.out.println("-----------------> Got "+encs.size()+" encs as candidates...
 int count = 0;
 int countTrivial = 0;
 int countSent = 0;
+//List<Encounter>
 try {
     System.out.println("limit = "+limitStr);
+    System.out.println("Looking for trivial assets...");
     for (Encounter enc : encs) {
-
-        System.out.println("count = "+count);
 
         if (limitStr!=null&&count<Integer.valueOf(limitStr)) {
             
@@ -74,6 +74,7 @@ try {
                 List<Annotation> anns = ma.getAnnotations();
                 if (anns.size()<2 && anns.get(0).isTrivial()) {
                     countTrivial++;
+                    System.out.println("countTrivial = "+count);
                 } else {
                     countSent++;
                 }
@@ -81,20 +82,29 @@ try {
 
             if ("true".equals(commit)) {
                 enc.refreshAssetFormats(myShepherd);
+                
+                boolean hasTrivial = false;
+
                 for (MediaAsset ma: enc.getMedia()) {
-                    ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+                    List<Annotation> anns = ma.getAnnotations();
+                    if (anns.size()<2 && anns.get(0).isTrivial()) {
+                        ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+                        hasTrivial = true;
+                    }
                 }
-                Task parentTask = null;
-                if (enc.getLocationID() != null) {
-                    parentTask = new Task();
-                    JSONObject tp = new JSONObject();
-                    JSONObject mf = new JSONObject();
-                    mf.put("locationId", enc.getLocationID());
-                    tp.put("matchingSetFilter", mf);
-                    parentTask.setParameters(tp);
+                if (hasTrivial==true) {
+                    Task parentTask = null;
+                    if (enc.getLocationID() != null) {
+                        parentTask = new Task();
+                        JSONObject tp = new JSONObject();
+                        JSONObject mf = new JSONObject();
+                        mf.put("locationId", enc.getLocationID());
+                        tp.put("matchingSetFilter", mf);
+                        parentTask.setParameters(tp);
+                    }
+                    Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask); 
+                    System.out.println("Sent encounter # "+enc.getCatalogNumber()+" to detection...");
                 }
-                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask); 
-                System.out.println("Sent encounter # "+enc.getCatalogNumber()+" to detection...");
             }
             count++;
         } else {
@@ -109,7 +119,7 @@ try {
 	myShepherd.rollbackDBTransaction();
 	e.printStackTrace();
 }
-
+System.out.println("Done sending trivial assets.");
 myShepherd.closeDBTransaction();
 %>
 

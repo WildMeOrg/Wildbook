@@ -257,11 +257,11 @@ public class SOCPROGExport extends HttpServlet{
 
 
                     //
-                    if(enc.getIndividualID()!=null){
-                      Label popLabel4a1 = new Label(5, count, enc.getIndividualID().replaceAll("[^a-zA-Z0-9]", ""));
+                    if(enc.getIndividual()!=null){
+                      Label popLabel4a1 = new Label(5, count, enc.getIndividual().getDefaultName().replaceAll("[^a-zA-Z0-9]", ""));
                       sheet.addCell(popLabel4a1);
-
-                      Label popLabel4a2 = new Label(0, count, enc.getIndividualID());
+                      
+                      Label popLabel4a2 = new Label(0, count, enc.getIndividual().getDefaultName());
                       sheet2.addCell(popLabel4a2);
 
                     }

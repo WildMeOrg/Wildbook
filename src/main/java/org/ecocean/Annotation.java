@@ -681,7 +681,7 @@ System.out.println("[1] getMatchingSet params=" + params);
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection)query.execute();
         Iterator it = c.iterator();
-        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        ArrayList<Annotation> anns = new ArrayList<Annotation>(c.size());
         while (it.hasNext()) {
             Annotation ann = (Annotation)it.next();
             if (!IBEISIA.validForIdentification(ann, myShepherd.getContext())) continue;
@@ -888,8 +888,12 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         List<Annotation> sibs = this.getSiblings();
         if ((sibs == null) || (sibs.size() < 1)) {  //no sibs, we make a new Encounter!
             Encounter enc = new Encounter(this);
+            if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
+              enc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
+            }
             //this taxonomy only works when its twitter-sourced data cuz otherwise this is just null 
             enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd, TwitterUtil.parentTweet(myShepherd, this.getMediaAsset())));
+
             return enc;
         }
         /*
@@ -949,6 +953,9 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.resetDateInMilliseconds();
             newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
             newEnc.setGenus(someEnc.getGenus());
+        }
+        if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
+          newEnc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
         }
         return newEnc;
 
@@ -1031,6 +1038,18 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         }
         return all;
     }
+    
+    public static ArrayList<Encounter> checkForConflictingIDsforAnnotation(Annotation annot, String proposedIndividualIDForEncounter, Shepherd myShepherd){
+      ArrayList<Encounter> conflictingEncs=new ArrayList<Encounter>();
+      String filter="SELECT FROM org.ecocean.Encounter WHERE individual!=null && individual.individualID != \""+proposedIndividualIDForEncounter+"\" && annotations.contains(annot1) && annot1.acmId == \""+annot.getAcmId()+"\" VARIABLES org.ecocean.Annotation annot1";
+      Query q=myShepherd.getPM().newQuery(filter);
+      Collection c = (Collection) (q.execute());
+      conflictingEncs=new ArrayList<Encounter>(c);
+      q.closeAll();
+      return conflictingEncs;
+    }
+    
+    
 
     public boolean contains(Annotation ann) {
         Rectangle myRect = getRect(this);

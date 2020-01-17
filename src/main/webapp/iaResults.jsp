@@ -25,7 +25,8 @@ User user = myShepherd.getUser(request);
 String nextNameKey = (user!=null) ? user.getIndividualNameKey() : null;
 boolean usesAutoNames = Util.stringExists(nextNameKey);
 String nextName = (usesAutoNames) ? MultiValue.nextUnusedValueForKey(nextNameKey, myShepherd) : null;
-myShepherd.closeDBTransaction();
+myShepherd.rollbackAndClose();
+//myShepherd.closeDBTransaction();
 System.out.println("IARESULTS: New nameKey block got key, value "+nextNameKey+", "+nextName+" for user "+user);
 
 
@@ -105,7 +106,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	Encounter enc2 = null;
 	if (request.getParameter("enc2") != null) {
 		enc2 = myShepherd.getEncounter(request.getParameter("enc2"));
-		if (enc == null) {
+		if (enc2 == null) {
 			res.put("error", "no such encounter: " + request.getParameter("enc2"));
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();
@@ -127,10 +128,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			try {
 				// TODO: is this how we should create newIndiv?
 				MarkedIndividual newIndiv = new MarkedIndividual(indID, enc);
-				myShepherd.storeNewMarkedIndividual(newIndiv);
+				//myShepherd.storeNewMarkedIndividual(newIndiv);
+				myShepherd.getPM().makePersistent(newIndiv);
+				myShepherd.updateDBTransaction();
 				enc.setIndividual(newIndiv);
 				enc2.setIndividual(newIndiv);
 				newIndiv.addEncounter(enc2);
+				myShepherd.updateDBTransaction();
 				res.put("success", true);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -159,7 +163,9 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
         matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
         enc.setMatchedBy(matchMsg);  //(aka setIdentificationRemarks)
 
-
+        myShepherd.getPM().makePersistent(indiv);
+        myShepherd.updateDBTransaction();
+        
 	enc.setIndividual(indiv);
 
 	enc.setState("approved");
@@ -183,21 +189,30 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 	String encId = request.getParameter("encId");
 	myShepherd = new Shepherd(request);
 	myShepherd.setAction("iaResults.jsp - no match case");
+	myShepherd.beginDBTransaction();
 	JSONObject rtn = new JSONObject("{\"success\": false}");
 	Encounter enc = myShepherd.getEncounter(encId);
 	if (enc==null) {
 		rtn.put("error", "could not find Encounter "+encId+" in the database.");
 		out.println(rtn.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
 		return;
 	}
 	if (!Util.stringExists(nextName) || !Util.stringExists(nextNameKey)) {
 		rtn.put("error", "Was unable to decide on the next automatic name. Got key="+nextNameKey+" and val="+nextName);
 		out.println(rtn.toString());
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
 		return;
 	}
 	MarkedIndividual mark = enc.getIndividual();
 
-	if (mark==null) mark = new MarkedIndividual(enc);
+	if (mark==null) {
+		mark = new MarkedIndividual(enc);
+		myShepherd.getPM().makePersistent(mark);
+		myShepherd.updateDBTransaction();
+	}
 
 	mark.addName(nextNameKey, nextName);
 

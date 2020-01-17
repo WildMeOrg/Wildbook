@@ -15,13 +15,15 @@ org.ecocean.media.MediaAsset
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("org.jsp");
+myShepherd.beginDBTransaction();
 
 String oid = request.getParameter("id");
 String uid = request.getParameter("uid");
 User thisUser = AccessControl.getUser(request, myShepherd);
 
 %>
-<jsp:include page="header.jsp" flush="true"/>
+<jsp:include page="../header.jsp" flush="true"/>
 <style>
 .user-profile-image {
     max-width: 200px;
@@ -184,6 +186,7 @@ if ((oid == null) && (uid == null)) {  //show all
     q.closeAll();
     if (orgs.size() > 0) {
         for (Organization org : orgs) {
+            if (!org.canView(thisUser, myShepherd)) continue;
             JSONObject jo = org.toJSONObject(true);
             jo.put("canManage", org.canManage(thisUser, myShepherd));
             orgsArr.put(jo);
@@ -193,7 +196,7 @@ if ((oid == null) && (uid == null)) {  //show all
 } else if (oid != null) {
     singleMode = true;
     Organization org = ((Organization) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Organization.class, oid), true)));
-    if (org != null) {
+    if ((org != null) && org.canView(thisUser, myShepherd)) {
         JSONObject jo = org.toJSONObject(true);
         jo.put("canManage", org.canManage(thisUser, myShepherd));
         Organization parent = org.getParent();
@@ -228,7 +231,7 @@ if ((oid == null) && (uid == null)) {  //show all
 
 */
 }
-
+myShepherd.rollbackAndClose();
 
 %>
 
@@ -576,5 +579,5 @@ function saveDetails() {
 <div class="container maincontent">
 </div>
 
-<jsp:include page="footer.jsp" flush="true"/>
+<jsp:include page="../footer.jsp" flush="true"/>
 

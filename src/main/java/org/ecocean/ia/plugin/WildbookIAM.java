@@ -107,7 +107,7 @@ public class WildbookIAM extends IAPlugin {
                 try {
                     //think we can checkFirst on both of these -- no need to re-send anything during priming
                     sendMediaAssets(mas, true);
-                    sendAnnotations(sendAnns, true);
+                    sendAnnotations(sendAnns, true, myShepherd);
                 } catch (Exception ex) {
                     IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
                     ex.printStackTrace();
@@ -209,20 +209,23 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
         return allRtn;
     }
 
-    public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
         if (u == null) throw new MalformedURLException("WildbookIAM configuration value IBEISIARestUrlAddAnnotations is not set");
         URL url = new URL(u);
         int ct = 0;
         //may be different shepherd, but findIndividualId() below will only work if its all persisted anyway. :/
+        /*
         Shepherd myShepherd = null;
         try {
             myShepherd = new Shepherd(context);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         myShepherd.setAction("WildbookIAM.sendAnnotations");
         myShepherd.beginDBTransaction();
+        */
 
         //sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
         List<String> iaAnnotIds = new ArrayList<String>();
@@ -266,7 +269,7 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
             map.get("annot_name_list").add((name == null) ? "____" : name);
             ct++;
         }
-        myShepherd.rollbackDBTransaction();
+        //myShepherd.rollbackDBTransaction();
 
         IA.log("INFO: WildbookIAM.sendAnnotations() is sending " + ct);
         if (ct < 1) return null;  //null for "none to send" ?  is this cool?

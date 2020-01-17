@@ -249,6 +249,7 @@ public class Task implements java.io.Serializable {
     public static List<Task> getTasksFor(Annotation ann, Shepherd myShepherd) {
         String qstr = "SELECT FROM org.ecocean.ia.Task WHERE objectAnnotations.contains(obj) && obj.id == \"" + ann.getId() + "\" VARIABLES org.ecocean.Annotation obj";
         Query query = myShepherd.getPM().newQuery(qstr);
+        query.setIgnoreCache(true);
         query.setOrdering("created");
         return (List<Task>) query.execute();
     }
@@ -259,6 +260,7 @@ public class Task implements java.io.Serializable {
     public static List<Task> getTasksFor(MediaAsset ma, Shepherd myShepherd) {
         String qstr = "SELECT FROM org.ecocean.ia.Task WHERE objectMediaAssets.contains(obj) && obj.id == " + ma.getId() + " VARIABLES org.ecocean.media.MediaAsset obj";
         Query query = myShepherd.getPM().newQuery(qstr);
+        query.setIgnoreCache(true);
         query.setOrdering("created");
         return (List<Task>) query.execute();
     }

@@ -375,6 +375,14 @@ public class StandardImport extends HttpServlet {
       }
     }
     out.println("</ul>");
+
+    if (committing) {
+        itask.setEncounters(encsCreated);
+        myShepherd.getPM().makePersistent(itask);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+    }
+
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
 
@@ -384,11 +392,6 @@ public class StandardImport extends HttpServlet {
     }
     out.println("</ul>");
 
-
-    if (committing) {
-        itask.setEncounters(encsCreated);
-        myShepherd.getPM().makePersistent(itask);
-    }
 
     List<String> usedColumns = new ArrayList<String>();
     for (String colName: colIndexMap.keySet()) {
@@ -1007,7 +1010,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 
   public String getSpeciesString(Row row) {
   	String genus = getString(row, "Encounter.genus");
-  	String species = getString(row, "Encounter.species");
+  	String species = getString(row, "Encounter.specificEpithet");
 		String total = genus+" "+species;
 		if (total==null||total.equals(" ")) total = "unknown";
 		return total;

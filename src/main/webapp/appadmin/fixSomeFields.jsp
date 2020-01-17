@@ -27,27 +27,35 @@ Shepherd myShepherd=new Shepherd(context);
 <ul>
 <%
 
-try{
+myShepherd.beginDBTransaction();
 
-	Encounter enc = new Encounter("mortality", context, myShepherd);
+int numFixes=0;
 
-	DataSheet ds = new DataSheet(Util.generateUUID());
-	
-	System.out.println("++++++ New Enc: "+enc.toString());
+<<<<<<< HEAD
+try {
 
-	System.out.println("++++++ New DataSheet: "+ds.toString());
+	String rootDir = getServletContext().getRealPath("/");
+	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
 
-	System.out.println("++++++++++ Recording DataSheet???");
-	enc.record(ds);
+  Iterator allSpaces=myShepherd.getAllWorkspaces();
 
-	System.out.println("++++++++++ Add Config DataSheet???");
-	enc.addConfigDataSheet(context);
+  boolean committing=true;
 
-	System.out.println("++++++++++++++++++++++ Can I persist them independantly?");
 
-	myShepherd.storeNewEncounter(enc);
-	myShepherd.storeNewDataSheet(ds);
-	
+  while(allSpaces.hasNext()){
+
+    Workspace wSpace=(Workspace)allSpaces.next();
+
+    %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
+
+  	numFixes++;
+
+    if (committing) {
+      myShepherd.throwAwayWorkspace(wSpace);
+  		myShepherd.commitDBTransaction();
+  		myShepherd.beginDBTransaction();
+    }
+  }
 }
 catch(Exception e){
 	e.printStackTrace();

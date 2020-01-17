@@ -135,20 +135,31 @@ td, th {
   <%
     String fileSider = "";
     File finalXMLFile;
+    File locationIDXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightScan.xml");
+      locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightLocationIDScan.xml");
 
       side2 = "right";
       fileSider = "&rightSide=true";
     } else {
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
+      locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
 
+
+    }
+    if (locationIDXMLFile.exists()) {
+  %>
+  <li><a
+    href="scanEndAppletLocationID.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Locally Filtered Results (Modified Groth)</a></li>
+
+  <%
     }
     if (finalXMLFile.exists()) {
   %>
   <li><a
     href="scanEndApplet.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Modified
-    Groth</a></li>
+    Groth (Full)</a></li>
 
   <%
     }

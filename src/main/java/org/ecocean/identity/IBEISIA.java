@@ -191,7 +191,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
 
             //Annotation ann = new Annotation(ma, species);
 
-    public static JSONObject __sendAnnotations(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject __sendAnnotations(ArrayList<Annotation> anns, String context, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendAnnotations() called without IA primed");
         String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddAnnotations is not set");
@@ -205,9 +205,11 @@ System.out.println("sendMediaAssets(): sending " + ct);
         map.put("annot_bbox_list", new ArrayList<int[]>());
         map.put("annot_name_list", new ArrayList<String>());
 
+        /*
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.class_sendAnnotations");
         myShepherd.beginDBTransaction();
+        */
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
             if (!validForIdentification(ann,context)) {
@@ -236,8 +238,8 @@ System.out.println("sendMediaAssets(): sending " + ct);
             markSent(ann);
             ct++;
         }
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.commitDBTransaction();
+        //myShepherd.closeDBTransaction();
 
 System.out.println("sendAnnotations(): sending " + ct);
         if (ct < 1) return null;
@@ -247,7 +249,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         JSONObject res = null;
         while (tryAgain) {
             res = RestClient.post(url, hashMapToJSONObject(map));
-            tryAgain = iaCheckMissing(res, context);
+            tryAgain = iaCheckMissing(res, context, myShepherd);
         }
         return res;
     }
@@ -375,13 +377,12 @@ System.out.println("     gotta compute :(");
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
-
-    public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
 
         HashMap<String,Object> map = new HashMap<String,Object>();
-        Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
-        
+        Taxonomy taxy = taxonomyFromMediaAssets(context, mas, myShepherd);
+
         String viewpointModelTag = getViewpointTag(context, taxy);
         String labelerAlgo = getLabelerAlgo(context, taxy);
         if (viewpointModelTag != null) {
@@ -907,7 +908,7 @@ org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
 */
     //should return true if we attempted to add missing and caller should try again
 /////////////// HOPEFULLY THE NEED FOR THIS IS DEPRECATED NOW?
-    public static boolean iaCheckMissing(JSONObject res, String context) {
+    public static boolean iaCheckMissing(JSONObject res, String context, Shepherd myShepherd) {
 /////System.out.println("########## iaCheckMissing res -> " + res);
 //if (res != null) throw new RuntimeException("fubar!");
 	try {
@@ -932,10 +933,12 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
             JSONArray list = res.getJSONObject("response").getJSONArray("missing_annot_uuid_list");
             if (list.length() > 0) {
                 ArrayList<Annotation> anns = new ArrayList<Annotation>();
-                Shepherd myShepherd = new Shepherd(context);
+                
+                
+                /*Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("IBEISIA.iaCheckMissing");
                 myShepherd.beginDBTransaction();
-
+*/
                 try{
                   for (int i = 0 ; i < list.length() ; i++) {
                     String acmId = fromFancyUUID(list.getJSONObject(i));
@@ -948,12 +951,12 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
 System.out.println("**** attempting to make up for missing Annotation(s): " + anns.toString());
                 JSONObject srtn = null;
                 try {
-                    __sendAnnotations(anns, context);
+                    __sendAnnotations(anns, context, myShepherd);
                 } catch (Exception ex) { }
 System.out.println(" returned --> " + srtn);
                 if ((srtn != null) && (srtn.getJSONObject("status") != null) && srtn.getJSONObject("status").getBoolean("success")) tryAgain = true;  //it "worked"?
-                myShepherd.rollbackDBTransaction();
-                myShepherd.closeDBTransaction();
+                //myShepherd.rollbackDBTransaction();
+                //myShepherd.closeDBTransaction();
             }
         }
 System.out.println("iaCheckMissing -> " + tryAgain);
@@ -1106,7 +1109,7 @@ System.out.println("- mark 2");
             }
 
             results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
-            results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext()));
+            results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext(),myShepherd));
 
             if (tanns!=null) {
                 System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
@@ -1126,7 +1129,7 @@ System.out.println("- mark 2");
                 identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
                 System.out.println("identRtn contains ========> "+identRtn.toString());
                 if (identRtn!=null&&identRtn.getJSONObject("status")!=null&&!identRtn.getJSONObject("status").getString("message").equals("rejected")) {
-                    tryAgain = iaCheckMissing(identRtn, myShepherd.getContext());   
+                    tryAgain = iaCheckMissing(identRtn, myShepherd.getContext(), myShepherd);
                 } else {
                     results.put("error", identRtn.get("status"));
                     results.put("success", false);
@@ -1579,14 +1582,14 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
                         // yikes!
                         if (ftHeight==0||ftHeight==0||height==0||width==0) {continue;}
                         if ((width==ftWidth)&&(height==ftHeight)&&(ytl==ftYtl)&&(xtl==ftXtl)) {
-                            System.out.println("We have an Identicle detection feature! Skip this ann.");
+                            System.out.println("We have an Identical detection feature! Skip this ann.");
                             return true;
                         }
                     }
                 } catch (NullPointerException npe) {continue;}
             }
         }
-        System.out.println("---- Did not find an identicle feature.");
+        System.out.println("---- Did not find an identical feature.");
         return false;
     }
 
@@ -1658,6 +1661,8 @@ System.out.println("**** type ---------------> [" + type + "]");
 
 
         boolean skipIdent = Util.booleanNotFalse(IA.getProperty(context, "IBEISIADisableIdentification"));
+
+        //TODO break on import or re-run detect
 
         //now we pick up IA.intake(anns) from detection above (if applicable)
         //TODO should we cluster these based on MediaAsset instead? send them in groups to IA.intake()?
@@ -3077,7 +3082,7 @@ System.out.println(tanns);
 System.out.println(allAnns);
 */
             results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
-            results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext()));
+            results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext(), myShepherd));
 
             //this should attempt to repair missing Annotations
 
@@ -3903,10 +3908,9 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         //System.out.println("---------------------> sendMediaAssetsNew got: "+mas+" Using context: "+context);
         return plugin.sendMediaAssets(mas, true);
     }
-    public static JSONObject sendAnnotationsNew(ArrayList<Annotation> anns, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject sendAnnotationsNew(ArrayList<Annotation> anns, String context, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         WildbookIAM plugin = getPluginInstance(context);
-        //System.out.println("---------------------> sendAnnotationsNew got: "+anns+" Using context: "+context);
-        return plugin.sendAnnotations(anns, true);
+        return plugin.sendAnnotations(anns, true, myShepherd);
     }
     
 
