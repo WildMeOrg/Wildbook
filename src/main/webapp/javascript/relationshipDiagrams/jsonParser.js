@@ -26,15 +26,15 @@ class JSONParser {
 		}
 		
 		graphCallback(nodes, links);
-	    });
-	}); 
+	    }).catch(error => console.error(error));
+	}).catch(error => console.error(error)); 
     }
 
     //Query and store all Marked Individual data
     queryNodeData() {
 	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
 	    encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual"); //Get all individuals
-	    return this.queryData("nodeData", query, this.storeQueryAsDict);
+	return this.queryData("nodeData", query, this.storeQueryAsDict);
     }
 
     //Query and store all Relationship data
@@ -47,10 +47,11 @@ class JSONParser {
 
     //Retrieve JSON data from the Wildbook DB
     queryData(type, query, callback=false) {
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 	    if (!JSONParser[type]) { //Memoize the result
 		d3.json(query, (error, json) => {
-		    if (callback) callback(this, json, type, resolve);
+		    if (error) reject(error);
+		    else if (callback) callback(json, type, resolve);
 		    else {
 			JSONParser[type] = json;
 			resolve(); //Handle the encapsulating promise
@@ -62,7 +63,7 @@ class JSONParser {
     }
     
     //Convert JSON query result from an array to a dictionary
-    storeQueryAsDict(self, json, type, resolve) {
+    storeQueryAsDict(json, type, resolve) {
 	if (json.length >= 1) {
 	    JSONParser[type] = {};
 	    json.forEach(el => {
@@ -340,13 +341,18 @@ class JSONParser {
 
     //Returns the relationship type of a given link
     getRelationType(link){
-	let role1 = link.markedIndividualRole1;
-	let role2 = link.markedIndividualRole2;
+	if (link) { 
+	    let role1 = link.markedIndividualRole1;
+	    let role2 = link.markedIndividualRole2;
 
-	if (role1 === "mother" || role2 === "mother") return "maternal";
-	else if (role1 === "father" || role2 === "father") return "paternal"; //Not currently supported by WildMe
-	else if (role1 === "calf" || role2 === "calf") return "familial";
-	else return "member"
+	    if (role1 === "mother" || role2 === "mother") return "maternal";
+	    else if (role1 === "father" || role2 === "father") return "paternal"; //Not currently supported by WildMe
+	    else if (role1 === "calf" || role2 === "calf") return "familial";
+	    else return "member";
+	}
+	
+	console.error("Link relation not recognized: ", link);
+	return "member"; //Ensures the graph renders gracefully
     }
 }
 
