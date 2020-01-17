@@ -383,27 +383,6 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       rightSA = "&filePrefix=extractRight";
     }
-    //System.out.println("I made it to the Flash without exception.");
-/*
-<matchSet scanDate="Thu Jul 22 17:42:02 EDT 2010" R="8" epsilon="0.01" Sizelim="0.9" maxTriangleRotation="30" C="0.99">
-  <match points="162.0" adjustedpoints="0.34394904458598724" pointBreakdown="23 + 19 + 16 + 15 + 14 + 11 + 11 + 11 + 10 + 10 + 8 + 8 + 6 + " finalscore="55.719" logMStdDev="0.02923" evaluation="Moderate">
-    <encounter number="19520090917" date="18/5/2009, 14:00" sex="unsure" assignedToShark="Unassigned" size="7.0 meters" location="Ningaloo Marine Park (Northern)" locationID="1a1">
-      <spot x="173.0" y="106.00000000000001"/>
-      <spot x="170.0" y="315.0"/>
-      <spot x="88.0" y="190.0"/>
-      <spot x="92.0" y="244.00000000000003"/>
-      <spot x="253.0" y="91.0"/>
-      <spot x="195.0" y="194.0"/>
-      <spot x="327.0" y="227.0"/>
-      <spot x="195.0" y="256.0"/>
-      <spot x="88.0" y="145.0"/>
-      <spot x="108.0" y="327.0"/>
-      <spot x="282.0" y="297.0"/>
-      <spot x="81.0" y="101.0"/>
-      <spot x="339.0" y="170.0"/>
-    </encounter>
-    <encounter number="2272010153941"
-*/
 
 java.util.Random rnd = new java.util.Random();
 %>
