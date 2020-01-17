@@ -10,6 +10,10 @@ org.apache.commons.io.FileUtils,
 org.apache.commons.lang3.StringEscapeUtils" %>
 <%!
 
+private static Encounter getTruthEncounter(Shepherd myShepherd, String individualId) {
+    return myShepherd.getEncounter("0e159eb4-9293-4f4d-935b-f2f8871a2097");
+}
+
 private static void generateData(Shepherd myShepherd, File file, String dtype) throws java.io.IOException {
     String jdoql = "SELECT FROM org.ecocean.Decision";
     Query query = myShepherd.getPM().newQuery(jdoql);
@@ -46,12 +50,14 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
         }
 
     } else {  //attributes flavor
-        String[] head = new String[]{"Enc ID", "Cat ID", "Timestamp", "Date/Time", "User ID", "Username", "sex", "colorPattern", "collar", "earTip", "lifeStage", "flag"};
+        String[] head = new String[]{"Enc ID", "Cat ID", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern", "Color/Patt correct", "Life stage", "Life stage correct", "Sex", "Sex correct", "Sex unk ok", "Collar", "Collar correct", "Collar unk ok", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok"};
         rows.add(head);
+/*
         Map<String,Integer> indMap = new HashMap<String,Integer>();
         for (int i = 0 ; i < head.length ; i++) {
             indMap.put(head[i], i);
         }
+*/
         Map<String,String[]> dataMap = new HashMap<String,String[]>();
         for (Decision dec : decs) {
             JSONObject d = dec.getValue();
@@ -65,13 +71,35 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
             dataMap.get(mid)[3] = new DateTime(dec.getTimestamp()).toString();
             dataMap.get(mid)[4] = dec.getUser().getUUID();
             dataMap.get(mid)[5] = dec.getUser().getUsername();
-            Integer valI = indMap.get(dec.getProperty());
+
+            String prop = dec.getProperty();
+            if (prop == null) continue;
+            Encounter truthEnc = getTruthEncounter(myShepherd, dec.getEncounter().getIndividualID());
+            //Integer valI = indMap.get(dec.getProperty());
             String val = d.optString("value", null);
-            if ((val == null) && (d.optJSONArray("value") != null)) val = d.getJSONArray("value").join(", ");
-            if (valI == null) {
-                System.out.println("WARNING: queue.generateData() found bad property " + dec.getProperty() + " on Decision id=" + dec.getId());
+            //if ((val == null) && (d.optJSONArray("value") != null)) val = d.getJSONArray("value").join(", ");
+
+            if (prop.equals("colorPattern")) {
+                dataMap.get(mid)[6] = val;
+                dataMap.get(mid)[7] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getPatterningCode() != null) && truthEnc.getPatterningCode().equals(val)).toString();
+            } else if (prop.equals("lifeStage")) {
+                dataMap.get(mid)[8] = val;
+                dataMap.get(mid)[9] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getLifeStage() != null) && truthEnc.getLifeStage().equals(val)).toString();
+            } else if (prop.equals("sex")) {
+                dataMap.get(mid)[10] = val;
+                dataMap.get(mid)[11] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getSex() != null) && truthEnc.getSex().equals(val)).toString();
+                dataMap.get(mid)[12] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getSex() != null) && (truthEnc.getSex().equals(val) || val.equals("unknown"))).toString();
+            } else if (prop.equals("collar")) {
+                dataMap.get(mid)[13] = val;
+                dataMap.get(mid)[14] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getCollar() != null) && truthEnc.getCollar().equals(val)).toString();
+                dataMap.get(mid)[15] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getCollar() != null) && (truthEnc.getCollar().equals(val) || val.equals("unknown"))).toString();
+            } else if (prop.equals("earTip")) {
+                dataMap.get(mid)[16] = val;
+                dataMap.get(mid)[17] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && truthEnc.getEarTip().equals(val)).toString();
+                dataMap.get(mid)[18] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && !truthEnc.getEarTip().equals(val) && val.startsWith("yes")).toString();
+                dataMap.get(mid)[19] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && (truthEnc.getEarTip().equals(val) || val.equals("unknown"))).toString();
             } else {
-                dataMap.get(mid)[valI] = val;
+                System.out.println("WARNING: queue.generateData() found bad property " + dec.getProperty() + " on Decision id=" + dec.getId());
             }
         }
         for (String mid : dataMap.keySet()) {
