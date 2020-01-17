@@ -190,12 +190,12 @@ function toggleLocalMode(mode) {
         $('.tr-location-nonlocal').hide();
         $('#mode-button-local').hide();
         $('#mode-button-all').show();
+        spotDisplayPair(localOnly[0]);
     } else {
         $('.tr-location-nonlocal').show();
         $('#mode-message').html('Showing all matches');
         $('#mode-button-local').show();
         $('#mode-button-all').hide();
+        spotDisplayPair(0);
     }
-    pageOffset = 0;
-    spotDisplayPair(0);
 }
