@@ -61,11 +61,11 @@ public class GridManager {
   public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
   //Modified Groth algorithm parameters
-  private String epsilon = "0.01";
-  private String R = "50";
-  private String Sizelim = "0.9999";
-  private String maxTriangleRotation = "10";
-  private String C = "0.99";
+  private String epsilon = "0.008";
+  private String R = "49.8";
+  private String Sizelim = "0.998";
+  private String maxTriangleRotation = "12.33";
+  private String C = "0.998";
   private String secondRun = "true";
   
   private static ConcurrentHashMap<String,EncounterLite> matchGraph=new ConcurrentHashMap<String, EncounterLite>();
