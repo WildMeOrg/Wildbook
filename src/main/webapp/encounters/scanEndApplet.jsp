@@ -51,8 +51,10 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 	}
 
 	//get any scantask locationID lists
-	if(request.getParameter("taskID")!=null){
-		ScanTask st=myShepherd.getScanTask(request.getParameter("taskID").trim());
+        String taskID = request.getParameter("taskID");
+        if (taskID == null) taskID = "scan" + (Util.requestParameterSet("rightSide") ? "R" : "L") + num;
+	if(taskID != null) {
+		ScanTask st=myShepherd.getScanTask(taskID);
 		if(st!=null && st.getLocationIDFilters()!=null){
 			locationIDs=st.getLocationIDFilters();
 		}
