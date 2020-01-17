@@ -185,6 +185,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Update new nodes
 	let newNodes = nodes.enter().append("g")
 	    .attr("class", "node")
+	    .attr("id", d => "node_" + d.id)
 	    .attr("fill-opacity", 0)
 	    .on("mouseover", d => this.handleMouseOver(d, "node"))
 	    .on("mouseout", () => this.handleMouseOut());
@@ -272,11 +273,10 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     centerNode(d) {
-	debugger;
 	this.svg.transition()
 	    .duration(this.transitionDuration + 250) //Delay slightly for stability
-	    .attr("transform", "translate(" + (this.width/2 - d.x) + "," +
-		  (this.height/2 - d.y) + ")");
+	    .attr("transform", "translate(" + ((this.width/2) + d.x) + "," +
+		  ((this.height/2) - d.y) + ")");
     }
 
     //Begin moving node on drag, allow for graph interactions

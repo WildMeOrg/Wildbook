@@ -1,7 +1,7 @@
 //TODO: Blacklist this entire folder
 QUnit.module('Abstract Graph Interface');
 
-let ga;
+let ga, gaCopy;
 QUnit.begin(() => {
     let individualID = 'mock';
     ga = new GraphAbstract(individualID);
@@ -46,11 +46,11 @@ QUnit.module('addTooltip()', {'after': () => $('#test').empty() }, () => {
 });
 
 
-QUnit.module('drawNodeOutlines()', {'after': () => $('#test').empty() }, () => {
+QUnit.module('updateNodeOutlines()', {'after': () => $('#test').empty() }, () => {
     QUnit.test('Create Node', t => {
 	let data = [{'data': {'name': 'a'}}];
 	let mockedNodes = d3.select('#test').append('g').data(data);
-	ga.drawNodeOutlines(mockedNodes);
+	ga.updateNodeOutlines(mockedNodes, mockedNodes);
 	t.equal($('#test circle').attr('r'), ga.startingRadius);
 	t.ok($('#test circle').css('fill'));
 	t.ok($('#test circle').css('stroke'));
@@ -82,22 +82,22 @@ QUnit.module('colorGender()', () => {
     });
 });
 
-QUnit.module('drawNodeSymbols()', {'after': $('#test').empty() }, () => {
+QUnit.module('updateNodeSymbols()', {'after': $('#test').empty() }, () => {
     QUnit.test('Add symbol', t => {
 	let data = [{'data': {'name': 'a'}}];
 	let mockedNodes = d3.select('#test').append('g').data(data);
-	ga.drawNodeSymbols(mockedNodes);
+	ga.updateNodeSymbols(mockedNodes, mockedNodes);
 	t.ok($('.symb').attr('d'));
 	t.equal($('.symb').attr('fill'), this.alphaColor);
 	t.equal($('.symb').css('fill-opacity'), 0);	
     });
 });
 
-QUnit.module('addNodeText()', {'after': $('#test').empty() }, () => {
+QUnit.module('updateNodeText()', {'after': $('#test').empty() }, () => {
     QUnit.test('Add text', t => {
 	let data = [{'data': {'name': 'a'}}];
 	let mockedNodes = d3.select('#test').append('g').data(data);
-	ga.addNodeText(mockedNodes);
+	ga.updateNodeText(mockedNodes, mockedNodes);
 	t.equal($('.text').text(), data[0].data.name);
     });
 });
@@ -229,26 +229,64 @@ QUnit.module('getSizeScalar()', () => {
 
 let handleMouseEventHooks = {
     'beforeEach': () => {
-	ga.addTooltip('#test');
+	gaCopy = Object.assign(Object.create(Object.getPrototypeOf(ga)), ga);
+	gaCopy.addTooltip('#test');
+	gaCopy.displayNodeTooltip = (d) => gaCopy.tooltipType = "node";
+	gaCopy.displayLinkTooltip = (d) => gaCopy.tooltipType = "link"
 	d3.event = {'layerX': 0, 'layerY': 0};
     },
     'afterEach': () => $('#test').empty()
 }
 QUnit.module('handleMouseOver()', handleMouseEventHooks, () => {
     QUnit.test('Entering node', t => {
-	ga.popup = false;
-	ga.handleMouseOver();
-	t.ok($('.tooltip').css('left'));
-	t.ok($('.tooltip').css('top'));
-	t.ok($('.tooltip').html());
-	t.ok(ga.popup);
+	gaCopy.popup = false;
+	gaCopy.handleMouseOver({}, "node");
+	t.ok(gaCopy.popup);
     });
 
     QUnit.test('Inside node', t => {
-	ga.popup = true;
-	ga.handleMouseOver();
-	t.ok(ga.popup);
+	gaCopy.popup = true;
+	gaCopy.handleMouseOver({}, "node");
+	t.ok(gaCopy.popup);
 	t.equal($('.tooltip').css('opacity'), 0)
+    });
+    
+    QUnit.test('Entering link', t => {
+	gaCopy.popup = false;
+	gaCopy.handleMouseOver({}, "link");
+	t.ok(gaCopy.popup);
+    });
+
+    QUnit.test('Inside link', t => {
+	gaCopy.popup = true;
+	gaCopy.handleMouseOver({}, "link");
+	t.ok(gaCopy.popup);
+	t.equal($('.tooltip').css('opacity'), 0)
+    });
+});
+
+
+let displayNodeEventHooks = {
+    'beforeEach': () => {
+	gaCopy = Object.assign(Object.create(Object.getPrototypeOf(ga)), ga)
+	gaCopy.addTooltip('#test');
+	d3.event = {'layerX': 0, 'layerY': 0};
+    }
+}
+QUnit.module('displayNodeTooltip()', displayNodeEventHooks, () => {
+    QUnit.test('Valid Text', t => {
+	gaCopy.generateNodeTooltipHtml = (d) => true;
+	gaCopy.displayNodeTooltip({});
+	t.ok($('.tooltip').css('left'));
+	t.ok($('.tooltip').css('top'));
+	t.ok($('.tooltip').css('background-color'));
+	t.ok($('.tooltip').html());
+    });
+
+    QUnit.test('Invalid text', t => {
+	gaCopy.generateNodeTooltipHtml = (d) => false;
+	gaCopy.displayNodeTooltip({});
+	t.ok($('.tooltip').html() == "");
     });
 });
 

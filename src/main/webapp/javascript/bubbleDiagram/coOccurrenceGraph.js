@@ -22,6 +22,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     
     //Generate a co-occurrence graph
     graphOccurrenceData(nodes, links) {
+	console.log(nodes);
 	if (nodes.length >= 1) { 
 	    //Create graph w/ forces
 	    this.setupGraph(links, nodes);
@@ -96,12 +97,16 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     //TODO - Cleanup
     //TODO - Consider switching where link/node filtration occurs
     updateLinkThreshCount(refNode) {
+	let refId = refNode.id;
 	let spatialThresh = parseInt($("#spatial").val());
 	let temporalThresh = parseInt($("#temporal").val());
 	
 	this.linkData.forEach(link => {
-	    let linkTarget = link.target.id || link.target;
-	    let node = this.nodeData.find(node => node.id === linkTarget);
+	    let targetId = link.target.id || link.target;
+	    let sourceId = link.source.id || link.source;
+	    let linkId = (targetId === refId) ? sourceId : targetId;
+	    
+	    let node = this.nodeData.find(node => node.id === linkId);
 	    let count = this.getLinkThreshCount(refNode, node, spatialThresh, temporalThresh);
 	    link.count = count;
 	});
@@ -112,13 +117,17 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let node1Sightings = node1.data.sightings;
 	let node2Sightings = node2.data.sightings;
 
-	let count = 0;
+	let count = 0, idxSet = new Set();
 	node1Sightings.forEach(node1 => {
-	    node2Sightings.forEach(node2 => {
+	    node2Sightings.forEach((node2, idx) => {
 		let spatialVal = this.calculateDist(node1.location, node2.location);
 		let temporalVal = this.calculateTime(node1.time.datetime, node2.time.datetime);
 
-		if (spatialVal <= spatialThresh && temporalVal <= temporalThresh) count++;
+		if (spatialVal <= spatialThresh && temporalVal <= temporalThresh &&
+		    !idxSet.has(idx)) {
+		    idxSet.add(idx);
+		    count++;
+		}
 	    });
 	});
 
@@ -127,13 +136,19 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     
     //Calculate the spatial difference between two node sighting locations
     calculateDist(node1Loc, node2Loc) {
-	return Math.pow(Math.abs(Math.pow(node1Loc.lon - node2Loc.lon, 2) -
-				 Math.pow(node1Loc.lat - node2Loc.lat, 2)), 0.5);
+	if (node1Loc && node2Loc) {
+	    return Math.pow(Math.abs(Math.pow(node1Loc.lon - node2Loc.lon, 2) +
+				     Math.pow(node1Loc.lat - node2Loc.lat, 2)), 0.5);
+	}
+	return -1;
     }
 
     //Calculate the temporal difference between two node sightings
     calculateTime(node1Time, node2Time) {
-	return Math.abs(node1Time - node2Time)
+	if (typeof node1Time === "number" && typeof node2Time === "number") {
+	    return Math.abs(node1Time - node2Time)
+	}
+	return -1;
     }
     
     //Update known range sliders (this.sliders) with contextual ranges/values
@@ -230,18 +245,22 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
     ticked(self) {
 	super.ticked(self);
-
 	self.linkLabels.attr("transform", d => "translate(" + this.linearInterp(d, "x") +
 			     "," + this.linearInterp(d, "y") + ")");
     }
 
     //Calculates a point 40 percent between a given link's target and source nodes
     linearInterp(link, axis) {
-	let srcId = link.source.data.individualID
-	let src = (srcId === this.id) ? link.source[axis] : link.target[axis];
-	let target = (srcId === this.id) ? link.target[axis] : link.source[axis];
-	let diff = src - target;
-	return target + (diff * 0.4);
+	if (link) {
+	    let srcId = link.source.data.individualID
+	    let src = (srcId === this.id) ? link.source[axis] : link.target[axis];
+	    let target = (srcId === this.id) ? link.target[axis] : link.source[axis];
+	    let diff = src - target;
+	    return target + (diff * 0.4);
+	}
+
+	console.error("Invalid link interpolation: ", link);
+	return -1; //Likely cascades errors
     }
 }
 

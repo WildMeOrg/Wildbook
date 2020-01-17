@@ -43,8 +43,8 @@ class GraphAbstract { //See static attributes below class
 
 	this.alphaColor = "#bf0000";
 
-	this.defNodeColor = "#fff";
-	this.fixedNodeColor = "#ccc";	
+	this.defNodeColor = "#ffffff";
+	this.fixedNodeColor = "#cccccc";	
 	
 	this.defLinkColor = "#a6a6a6";
 	this.famLinkColor = "#a6a6a6"; //"#b59eda";
@@ -299,14 +299,14 @@ class GraphAbstract { //See static attributes below class
 
 	let text = "";
 	for (let word of words) {
-	    text += " " + word;
+	    text += word + " ";
 	    if (text.length > nodeLen) {
 		text = text.slice(0, nodeLen - 3) + "...";
 		break;
 	    }
 	}
 
-	return text;
+	return text.trim();
     }
 
     //Modify zoom wheel delta to smooth zooming
@@ -363,7 +363,6 @@ class GraphAbstract { //See static attributes below class
 
     //Display the selected tooltip type
     handleMouseOver(d, type) {
-	debugger;
 	if (!this.popup) {
 	    if (type === "node") this.displayNodeTooltip(d);
 	    else if (type === "link") this.displayLinkTooltip(d);
@@ -396,13 +395,13 @@ class GraphAbstract { //See static attributes below class
     displayLinkTooltip(d) {
 	//Place tooltip on the hovered link
 	let text = this.generateLinkTooltipHtml(d);
-	console.log("LINK", d);
+	
 	if (text) {
 	    this.tooltip
 		.style("left", d3.event.layerX +  "px")	
 		.style("top", d3.event.layerY + "px")
 		.style("background-color", "#7997a1")
-		.html(text);
+	.html(text);
 	}
     }
     
@@ -429,9 +428,11 @@ class GraphAbstract { //See static attributes below class
     }
 
     //Generate a tooltip description for a given link
-    generateLinkTooltipHtml(d) {
+    generateLinkTooltipHtml(link) {
+	let target = (link.target.data.individualID === this.id) ? "source" : "target";
+	
 	let tooltipHtml = "";
-	d.source.data.sightings.forEach(enc => {
+	link[target].data.sightings.forEach(enc => {
 	    let time = enc.time;
 	    let loc = enc.location;
 	    tooltipHtml += "<b>Date: </b>" + time.day + "/" + time.month + "/" + time.year + " ";
