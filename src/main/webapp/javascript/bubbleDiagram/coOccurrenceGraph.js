@@ -1,8 +1,8 @@
 //Occurence graph global API (used in individuals.jsp)
 function setupOccurrenceGraph(individualID) { //TODO - look into individualID
     let focusedScale = 1.75;
-    let occ = new OccurrenceGraph(individualID, "#bubbleChart", focusedScale); 
-    occ.applyOccurrenceData();
+    let occ = new OccurrenceGraph(individualID, "#bubbleChart", focusedScale);
+    setTimeout(() => occ.applyOccurrenceData(), 300); //TODO - Shift to some promise passing
 }
 
 //Sparse-tree mapping co-occurrence relationships between a focused individual and its species

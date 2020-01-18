@@ -390,6 +390,28 @@ class GraphAbstract { //See static attributes below class
 		.html(text);
 	}
     }
+
+    //Generate a tooltip description for a given node 
+    generateNodeTooltipHtml(d) {
+	let tooltipHtml = "<b>Name: </b>" + d.data.name + "<br/>";
+	if (d.data.gender)
+	    tooltipHtml += "<b>Sex: </b>" + d.data.gender + "<br/>";
+	if (d.data.role)
+	    tooltipHtml += "<b>Role: </b>" + d.data.role + "<br/>";
+	if (d.data.isDead !== null) {
+	    let livingStatus = (d.data.isDead ? "dead" : "alive");
+	    tooltipHtml += "<b>Living Status: </b>" +  livingStatus + "<br/>";
+	}
+	if (d.data.firstSighting)
+	    tooltipHtml += "<b>First Seen: </b>" + d.data.firstSighting + "<br/>";
+	if (d.data.latestSighting)
+	    tooltipHtml += "<b>Last Seen: </b>" + d.data.latestSighting + "<br/>";
+	if (d.data.timeOfBirth)
+	    tooltipHtml += "<b>Birth Date: </b>" + d.data.timeOfBirth + "<br/>";
+	if (d.data.timeOfDeath)
+	    tooltipHtml += "<b>Death Date: </b>" + d.data.timeOfDeath;
+	return tooltipHtml;
+    }
     
     //Displays a link tooltip
     displayLinkTooltip(d) {
@@ -405,28 +427,6 @@ class GraphAbstract { //See static attributes below class
 	}
     }
     
-    //Generate a tooltip description for a given node 
-    generateNodeTooltipHtml(d) {
-	let tooltipHtml = "<b>Name: </b>" + d.data.name + "<br/>";
-	if (d.data.gender)
-	    tooltipHtml += "<b>Sex: </b>" + d.data.gender + "<br/>";
-	if (d.data.role)
-	    tooltipHtml += "<b>Role: </b>" + d.data.role + "<br/>";
-	if (d.data.isDead) {
-	    let livingStatus = (d.data.isDead ? "dead" : "alive");
-	    tooltipHtml += "<b>Living Status: </b>" +  livingStatus + "<br/>";
-	}
-	if (d.data.firstSighting)
-	    tooltipHtml += "<b>First Seen: </b>" + d.data.firstSighting + "<br/>";
-	if (d.data.latestSighting)
-	    tooltipHtml += "<b>Last Seen: </b>" + d.data.latestSighting + "<br/>";
-	if (d.data.timeOfBirth)
-	    tooltipHtml += "<b>Birth Date: </b>" + d.data.timeOfBirth + "<br/>";
-	if (d.data.timeOfDeath)
-	    tooltipHtml += "<b>Death Date: </b>" + d.data.timeOfDeath;
-	return tooltipHtml;
-    }
-
     //Generate a tooltip description for a given link
     generateLinkTooltipHtml(link) {
 	let target = (link.target.data.individualID === this.id) ? "source" : "target";
@@ -435,9 +435,13 @@ class GraphAbstract { //See static attributes below class
 	link[target].data.sightings.forEach(enc => {
 	    let time = enc.time;
 	    let loc = enc.location;
-	    tooltipHtml += "<b>Date: </b>" + time.day + "/" + time.month + "/" + time.year + " ";
-	    tooltipHtml += "<b>Longitude: </b>" + loc.lat + " ";
-	    tooltipHtml += "<b>Latitude: </b>" + loc.lon + "<br/>";
+
+	    if (time)
+		tooltipHtml += "<b>Date: </b>" + time.day + "/" + time.month + "/" + time.year + " ";
+	    if (loc && typeof loc.lat == "number")
+		tooltipHtml += "<b>Longitude: </b>" + loc.lon + " ";
+	    if (loc && typeof loc.lat == "number")
+		tooltipHtml += "<b>Latitude: </b>" + loc.lat + "<br/>";
 	});
 	
 	return tooltipHtml;

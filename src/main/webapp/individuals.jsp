@@ -1558,7 +1558,8 @@ if (sharky.getNames() != null) {
         <%
           List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky);
 
-        if(otherIndies.size()>0){
+	//TODO - Fix coOccurrence vs encounter discrepancy
+        //if(true || otherIndies.size()>0){
         //ok, let's iterate the social relationships
         %>
         <div class="cooccurrences">
@@ -1580,6 +1581,7 @@ if (sharky.getNames() != null) {
 	        <button type="button" id="selectFamily">Select Family</button>
 	        <button type="button" id="filterFamily">Filter Family</button>
 	        <button type="button" id="reset">Reset</button>
+		
                 <div id="filterGender" class="filterOptions">
 	          <label>	  
 	            <input type="checkbox" id="maleBox">
@@ -1630,12 +1632,12 @@ if (sharky.getNames() != null) {
         </div>
 
         <%
-        }
-        else {
+        //}
+        //else {
         %>
-        	<p class="para"><%=props.getProperty("noCooccurrences") %></p><br />
+        <%--	<p class="para"><%=props.getProperty("noCooccurrences") %></p><br /> --%>
         <%
-        }
+        //}
 
 
         %>
