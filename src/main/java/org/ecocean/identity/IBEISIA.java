@@ -4133,7 +4133,7 @@ Util.mark("sendAnnotationsAsNeeded 1 ", tt);
         ArrayList<MediaAsset> masToSend = new ArrayList<MediaAsset>();
         //List<String> iaImageIds = plugin.iaImageIds();  //in a better world we would do this *after* we have built up masToSend
         HashSet<String> iaImageIds = null;
-        Util.mark("sendAnnotationsAsNeeded 2 ", tt);
+        Util.mark("sendAnnotationsAsNeeded 2-hs ", tt);
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
             MediaAsset ma = ann.getMediaAsset();
@@ -4146,7 +4146,7 @@ Util.mark("sendAnnotationsAsNeeded 1 ", tt);
             if (iaImageIds.contains(ma.getAcmId())) continue;
             masToSend.add(ma);
         }
-Util.mark("sendAnnotationsAsNeeded 3 ", tt);
+Util.mark("sendAnnotationsAsNeeded 3-hs ", tt);
         rtn.put("numAnnotsToSend", Util.collectionSize(annsToSend));
         rtn.put("numAssetsToSend", Util.collectionSize(masToSend));
         try {
