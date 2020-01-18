@@ -36,6 +36,18 @@ context=ServletUtilities.getContext(request);
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
 		
+
+		<p>
+		Araujo G, Ismail AR, McCann C, McCann D, Legaspi CG, Snow S, Labaja J, Manjaji-Matsumoto M, Ponzo A. (2020) Getting the most out of citizen science for endangered species such as Whale Shark. J Fish Biol. 2020 Jan 9. doi: 10.1111/jfb.14254.<br>
+		<a href="https://onlinelibrary.wiley.com/doi/pdf/10.1111/jfb.14254">Web link</a>
+		
+		</p>
+		
+		<p>
+		Araujo, G., Agustines, A., Tracey, B. et al. (2019) Photo-ID and telemetry highlight a global whale shark hotspot in Palawan, Philippines. Sci Rep 9, 17209 (2019) doi:10.1038/s41598-019-53718-w<br>
+		<a href="https://www.nature.com/articles/s41598-019-53718-w?proof=true&draft=marketing">Web link</a>
+		</p>
+		
 		<p>
 		McCoy E, Burce R, David D, Aca EQ, Hardy J, Labaja J, Snow SJ, Ponzo A and Araujo G (2018) Long-Term Photo-Identification Reveals the Population Dynamics and Strong Site Fidelity of Adult Whale Sharks to the Coastal Waters of Donsol, Philippines. Front. Mar. Sci. 5:271. doi: 10.3389/fmars.2018.00271<br>
 		<a href="https://www.frontiersin.org/articles/10.3389/fmars.2018.00271/full">Web link</a>
