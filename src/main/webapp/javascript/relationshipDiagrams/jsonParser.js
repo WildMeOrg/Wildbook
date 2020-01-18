@@ -294,7 +294,7 @@ class JSONParser {
 	    node.group = group;
 	    node.iIdLinked = iIdLinked;
 	}
-	else node = {"id": id, "group": group};
+	else node = {"id": id, "group": group, "iIdLinked": iIdLinked};
 	JSONParser.nodeData[nodeRef] = node;
     }
 
