@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -4032,16 +4033,22 @@ Util.mark("sendAnnotationsAsNeeded -in- ", tt);
         if (Util.collectionIsEmptyOrNull(anns)) return rtn;
         WildbookIAM plugin = getPluginInstance(myShepherd.getContext());
         ArrayList<Annotation> annsToSend = new ArrayList<Annotation>();
-        List<String> iaAnnotIds = plugin.iaAnnotationIds();
+        //List<String> iaAnnotIds = plugin.iaAnnotationIds();
+        HashSet<String> iaAnnotIds = new HashSet(plugin.iaAnnotationIds());
 Util.mark("sendAnnotationsAsNeeded 1 ", tt);
         ArrayList<MediaAsset> masToSend = new ArrayList<MediaAsset>();
-        List<String> iaImageIds = plugin.iaImageIds();  //in a better world we would do this *after* we have built up masToSend
-Util.mark("sendAnnotationsAsNeeded 2 ", tt);
+        //List<String> iaImageIds = plugin.iaImageIds();  //in a better world we would do this *after* we have built up masToSend
+        HashSet<String> iaImageIds = null;
+        Util.mark("sendAnnotationsAsNeeded 2 ", tt);
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
             MediaAsset ma = ann.getMediaAsset();
             if (ma == null) continue; //snh #bad
             annsToSend.add(ann);
+            
+            //get iaImageIds only if we need it
+            if(iaImageIds==null)iaImageIds=new HashSet(plugin.iaImageIds());
+            
             if (iaImageIds.contains(ma.getAcmId())) continue;
             masToSend.add(ma);
         }
