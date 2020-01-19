@@ -324,6 +324,8 @@
 			  "name": "Gulf of St. Lawrence", "id": "Gulf of St. Lawrence" },
 			 {
 			  "name": "Gulf of Venezuela", "id": "Gulf of Venezuela"  },
+			  
+			  		{ "name":"Gully MPA", "id":"3", "locationID":[] },
 			 {
 			  "name": "Irish Sea", "id": "Irish Sea" },
 			 {
@@ -923,8 +925,6 @@
 	
 	{"name":"Miscellaneous","id":"Miscellaneous","locationID":[
 
-
-		{ "name":"3", "id":"3", "locationID":[] },
 
 
 		{ "name":"", "id":"", "locationID":[] },
