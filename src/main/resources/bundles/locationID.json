@@ -4,15 +4,34 @@
   "locationID": [
 
 			 {
-			  "name": "1", "id": "1" },
-			 {
-			  "name": "1a", "id": "1a" },
-			 {
-			  "name": "1a1", "id": "1a1" },
-			  {
-			  "name": "1a2", "id": "1a2" },
-			  {
-			  "name": "1a4", "id": "1a3" },
+			  "name": "Australia", "id": "1", "locationID": [
+			  
+			  
+				{
+				  "name": "Ningaloo (non-specific)", "id": "1a" },
+				 {
+				  "name": "North Ningaloo", "id": "1a1" },
+				  {
+				  "name": "South Ningaloo", "id": "1a2" },
+				  
+				  {
+				  "name": "Shark Bay Region", "id": "1a3" },
+				  
+				  {
+				  "name": "North West shelf region", "id": "1a4" },
+				  
+				  {
+				  "name": "Australia (Pacific Ocean)", "id": "1b" },
+				  
+				{
+				  "name": "Qld", "id": "1b1" },
+				  
+				  {
+				  "name": "NSW", "id": "1b2" }
+			  
+			  
+			  ]},
+
 			  
 			  {
 			  "name": "ChristmasIsland", "id": "ChristmasIsland" },
