@@ -41,7 +41,14 @@ org.json.JSONArray
 </p>
 <table id="data">
 <thead><tr>
-<%
+<%!
+private static String cleanDate(Long ms) {
+    if ((ms == null) || (ms < 1L)) return "";
+    DateTime dt = new DateTime(ms);
+    return dt.toString().substring(0,16).replaceAll("T", " ");
+}
+
+%><%
 
 Shepherd myShepherd = new Shepherd("context0");
 myShepherd.beginDBTransaction();
@@ -60,6 +67,9 @@ header.add("username");
 header.add("uuid");
 header.add("email");
 header.add("trials");
+header.add("u-w");
+header.add("signup");
+header.add("last login");
 
 for (String h : header) {
     out.println("<th>" + h + "</th>");
@@ -80,6 +90,9 @@ for (Object o : all) {
     out.println("<td>" + user.getUUID() + "</td>");
     out.println("<td>" + user.getEmailAddress() + "</td>");
     out.println("<td>" + count + "</td>");
+    out.println("<td>" + ("U-W".equals(user.getAffiliation()) ? "Y" : "") + "</td>");
+    out.println("<td>" + cleanDate(user.getDateInMilliseconds()) + "</td>");
+    out.println("<td>" + cleanDate(user.getLastLogin()) + "</td>");
     out.println("</tr>");
 }
 q.closeAll();
