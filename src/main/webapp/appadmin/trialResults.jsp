@@ -46,6 +46,7 @@ org.json.JSONArray
     <th>time delta</th>
     <th>timestamp</th>
     <th>username</th>
+    <th>user uuid</th>
     <th>trial</th>
     <th>library</th>
     <th>match?</th>
@@ -86,6 +87,7 @@ for (Object o : all) {
     long prev = 0;
 
     for (int i = 0 ; i < res.length() ; i++) {
+        User u = myShepherd.getUser(ct.getUsername());
         out.println("<tr" + ((start < 1) ? " class=\"start\"" : "") + "><td>" + ct.getId() + "</td><td>" + (i + 1) + "</td>");
         JSONObject pair = res.optJSONObject(i);
         if (pair == null) throw new RuntimeException("non-JSONObject at i=" + i + " for CatTest id=" + ct.getId());
@@ -106,6 +108,7 @@ for (Object o : all) {
         }
         out.println("<td>" + (pair.optLong("t", -3L) / 1000L) + "</td>");
         out.println("<td>" + ct.getUsername() + "</td>");
+        out.println("<td>" + ((u == null) ? "?" : u.getUUID()) + "</td>");
         out.println("<td>" + ct.getTrial() + "</td>");
         String test = pair.getJSONObject("test").getString("indivId");
         out.println("<td>" + test + "</td>");
