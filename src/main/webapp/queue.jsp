@@ -50,7 +50,7 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
         }
 
     } else {  //attributes flavor
-        String[] head = new String[]{"Enc ID", "Cat ID", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern", "Color/Patt correct", "Life stage", "Life stage correct", "Sex", "Sex correct", "Sex unk ok", "Collar", "Collar correct", "Collar unk ok", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok"};
+        String[] head = new String[]{"Enc ID", "Cat ID", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern ans", "Color/Pattern", "Color/Patt correct", "Life Stage ans", "Life Stage", "Life Stage correct", "Sex ans", "Sex", "Sex correct", "Sex unk ok", "Collar ans", "Collar", "Collar correct", "Collar unk ok", "Ear Tip ans", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok"};
         rows.add(head);
 /*
         Map<String,Integer> indMap = new HashMap<String,Integer>();
@@ -80,24 +80,29 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
             //if ((val == null) && (d.optJSONArray("value") != null)) val = d.getJSONArray("value").join(", ");
 
             if (prop.equals("colorPattern")) {
-                dataMap.get(mid)[6] = val;
-                dataMap.get(mid)[7] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getPatterningCode() != null) && truthEnc.getPatterningCode().equals(val)).toString();
+                if (truthEnc != null) dataMap.get(mid)[6] = truthEnc.getPatterningCode();
+                dataMap.get(mid)[7] = val;
+                dataMap.get(mid)[8] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getPatterningCode() != null) && truthEnc.getPatterningCode().equals(val)).toString();
             } else if (prop.equals("lifeStage")) {
-                dataMap.get(mid)[8] = val;
-                dataMap.get(mid)[9] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getLifeStage() != null) && truthEnc.getLifeStage().equals(val)).toString();
-            } else if (prop.equals("sex")) {
+                if (truthEnc != null) dataMap.get(mid)[9] = truthEnc.getLifeStage();
                 dataMap.get(mid)[10] = val;
-                dataMap.get(mid)[11] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getSex() != null) && truthEnc.getSex().equals(val)).toString();
-                dataMap.get(mid)[12] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getSex() != null) && (truthEnc.getSex().equals(val) || val.equals("unknown"))).toString();
-            } else if (prop.equals("collar")) {
+                dataMap.get(mid)[11] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getLifeStage() != null) && truthEnc.getLifeStage().equals(val)).toString();
+            } else if (prop.equals("sex")) {
+                if (truthEnc != null) dataMap.get(mid)[12] = truthEnc.getSex();
                 dataMap.get(mid)[13] = val;
-                dataMap.get(mid)[14] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getCollar() != null) && truthEnc.getCollar().equals(val)).toString();
-                dataMap.get(mid)[15] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getCollar() != null) && (truthEnc.getCollar().equals(val) || val.equals("unknown"))).toString();
+                dataMap.get(mid)[14] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getSex() != null) && truthEnc.getSex().equals(val)).toString();
+                dataMap.get(mid)[15] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getSex() != null) && (truthEnc.getSex().equals(val) || val.equals("unknown"))).toString();
+            } else if (prop.equals("collar")) {
+                if (truthEnc != null) dataMap.get(mid)[16] = truthEnc.getCollar();
+                dataMap.get(mid)[17] = val;
+                dataMap.get(mid)[18] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getCollar() != null) && truthEnc.getCollar().equals(val)).toString();
+                dataMap.get(mid)[19] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getCollar() != null) && (truthEnc.getCollar().equals(val) || val.equals("unknown"))).toString();
             } else if (prop.equals("earTip")) {
-                dataMap.get(mid)[16] = val;
-                dataMap.get(mid)[17] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && truthEnc.getEarTip().equals(val)).toString();
-                dataMap.get(mid)[18] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && !truthEnc.getEarTip().equals(val) && val.startsWith("yes")).toString();
-                dataMap.get(mid)[19] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && (truthEnc.getEarTip().equals(val) || val.equals("unknown"))).toString();
+                if (truthEnc != null) dataMap.get(mid)[20] = truthEnc.getEarTip();
+                dataMap.get(mid)[21] = val;
+                dataMap.get(mid)[22] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && truthEnc.getEarTip().equals(val)).toString();
+                dataMap.get(mid)[23] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && truthEnc.getEarTip().startsWith("yes") && val.startsWith("yes")).toString();
+                dataMap.get(mid)[24] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && (truthEnc.getEarTip().equals(val) || val.equals("unknown") || (truthEnc.getEarTip().equals("unknown") && val.equals("no")))).toString();
             } else {
                 System.out.println("WARNING: queue.generateData() found bad property " + dec.getProperty() + " on Decision id=" + dec.getId());
             }
