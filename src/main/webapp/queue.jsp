@@ -24,7 +24,7 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
 
     List rows = new ArrayList<String[]>();
     if ("match".equals(dtype)) {
-        String[] head = new String[]{"Enc ID", "Cat ID", "Timestamp", "Date/Time", "User ID", "Username", "Match Enc ID", "Match Cat ID"};
+        String[] head = new String[]{"Enc ID", "Cat ID", "Timestamp", "Date/Time", "Time Attr (s)", "Time Match (s)", "User ID", "Username", "Match Enc ID", "Match Cat ID"};
         rows.add(head);
         for (Decision dec : decs) {
             if (!"match".equals(dec.getProperty())) continue;
@@ -32,20 +32,33 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
             if (d == null) continue;
             String eid = d.optString("id", null);
             if (eid == null) continue;
-            Encounter menc = myShepherd.getEncounter(eid);
-            if (menc == null) {
-                System.out.println("WARNING queue.generateData() could not find Encounter for match id=" + menc);
-                continue;
+            Encounter menc = null;
+            if (!eid.equals("no-match")) {
+                menc = myShepherd.getEncounter(eid);
+                if (menc == null) {
+                    System.out.println("WARNING queue.generateData() could not find Encounter id=" + eid + " for Decision id=" + dec.getId());
+                    continue;
+                }
             }
+            long initTime = d.optLong("initTime", -1l);
+            long attrSaveTime = d.optLong("attrSaveTime", -1l);
+            long matchSaveTime = d.optLong("matchSaveTime", -1l);
             String[] row = new String[head.length];
             row[0] = dec.getEncounter().getCatalogNumber();
             row[1] = dec.getEncounter().getIndividualID();
             row[2] = Long.toString(dec.getTimestamp());
             row[3] = new DateTime(dec.getTimestamp()).toString();
-            row[4] = dec.getUser().getUUID();
-            row[5] = dec.getUser().getUsername();
-            row[6] = menc.getCatalogNumber();
-            row[7] = menc.getIndividualID();
+            row[4] = ((initTime > 0l) && (attrSaveTime > 0l)) ? Integer.toString(Math.round((attrSaveTime - initTime) / 1000)) : "";
+            row[5] = ((attrSaveTime > 0l) && (matchSaveTime > 0l)) ? Integer.toString(Math.round((matchSaveTime - attrSaveTime) / 1000)) : "";
+            row[6] = dec.getUser().getUUID();
+            row[7] = dec.getUser().getUsername();
+            if (menc == null) {
+                row[8] = "";
+                row[9] = "no-match";
+            } else {
+                row[8] = menc.getCatalogNumber();
+                row[9] = menc.getIndividualID();
+            }
             rows.add(row);
         }
 
