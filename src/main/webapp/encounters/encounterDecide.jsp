@@ -370,6 +370,7 @@ var userData = {
     sex: false
 };
 $(document).ready(function() {
+    utickState.encounterDecide = { initTime: new Date().getTime(), clicks: [] };
     $('.attribute-option').on('click', function(ev) { clickAttributeOption(ev); });
     $('.attribute-option').append('<input type="radio" class="option-checkbox" />');
     $('#flag input').on('change', function() { updateData(); });
@@ -409,6 +410,13 @@ function clickAttributeOption(ev) {
     ev.currentTarget.classList.add('attribute-selected');
     $('#' + ev.currentTarget.parentElement.id + ' .attribute-selected .option-checkbox').prop('checked', true);
     ev.currentTarget.classList.remove('attribute-muted');
+/*
+    utickState.encounterDecide.clicks.push({
+        t: new Date().getTime(),
+        prop: ev.currentTarget.parentElement.id,
+        val: ev.currentTarget.id
+    });
+*/
     userData[ev.currentTarget.parentElement.id] = ev.currentTarget.id;
     checkSaveStatus();
 }
@@ -436,6 +444,7 @@ function checkSaveStatus() {
 
 function doSave() {
     $('#save-div').hide();
+    utickState.encounterDecide.attrSaveTime = new Date().getTime();
     var mdata = {};
     for (var k in userData) {
         mdata[k] = { value: userData[k] };
@@ -450,6 +459,7 @@ function doSave() {
                 console.warn("responseJSON => %o", xhr.responseJSON);
                 alert('ERROR saving: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
             } else {
+                utickState.encounterDecide.attrSavedTime = new Date().getTime();
                 dataLocked = true;
                 enableMatch();
             }
@@ -540,7 +550,7 @@ function saveMatchChoice() {
     $('#match-chosen-button').hide();
     $.ajax({
         url: '../DecisionStore',
-        data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch, presented: matchData.userPresented } }),
+        data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch, presented: matchData.userPresented, initTime: utickState.encounterDecide.initTime, attrSaveTime: utickState.encounterDecide.attrSaveTime, matchSaveTime: new Date().getTime() } }),
         dataType: 'json',
         complete: function(xhr) {
             console.log(xhr);
