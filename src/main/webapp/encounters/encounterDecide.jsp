@@ -691,11 +691,11 @@ There are two steps to processing each submission: selecting cat attributes, and
             <h2>Ear Tip</h2>
             <p class="attribute-info">Zoom all the way in to check.  Ear tipping can be difficult to see, and it depends on the angle of the photo and the amount of ear tip removed.<br />When in doubt, select unknown.</p>
             <div id="earTip" class="attribute-select">
-                <div id="yes-left" class="attribute-option">
+                <div id="yes_left" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tipleft.jpg" />
                     <div class="attribute-title">Yes - Cat's Left</div>
                 </div>
-                <div id="yes-right" class="attribute-option">
+                <div id="yes_right" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tipright.jpg" />
                     <div class="attribute-title">Yes - Cat's Right</div>
                 </div>
