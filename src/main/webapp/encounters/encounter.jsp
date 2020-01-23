@@ -720,7 +720,7 @@ $(function() {
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
 				if(enc.getIndividualID()!=null){
-					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
+					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getDisplayName()+"</a>";
 				}
     			%>
                	<h1 class="<%=classColor%>" id="headerText">
@@ -1618,7 +1618,7 @@ if(enc.getLocation()!=null){
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> 
                      <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%>">
-                     <span id="displayIndividualID"><%=ServletUtilities.handleNullString(enc.getIndividualID())%></span></a></p>
+                     <span id="displayIndividualID"><%=ServletUtilities.handleNullString(enc.getDisplayName())%></span></a></p>
     							
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">

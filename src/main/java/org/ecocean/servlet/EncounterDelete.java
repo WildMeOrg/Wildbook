@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
 //import java.util.Iterator;
-//import java.util.List;
+import java.util.List;
 import java.util.Map;
 //import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -163,6 +163,14 @@ public class EncounterDelete extends HttpServlet {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have removed encounter " + request.getParameter("number") + " from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter " + request.getParameter("number") + " to have it restored.");
+          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+          int allStatesSize=allStates.size();
+          if(allStatesSize>0){
+            for(int i=0;i<allStatesSize;i++){
+              String stateName=allStates.get(i);
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            }
+          }
           
           out.println(ServletUtilities.getFooter(context));
 
@@ -204,7 +212,7 @@ public class EncounterDelete extends HttpServlet {
             }
           }
           out.println(ServletUtilities.getFooter(context));
-
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
         }
         */
@@ -213,8 +221,8 @@ public class EncounterDelete extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("Encounter " + request.getParameter("number") + " is assigned to a Marked Individual and cannot be deleted until it has been removed from that individual.");
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
-        
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println(ServletUtilities.getFooter(context));
       }
       
@@ -226,6 +234,7 @@ public class EncounterDelete extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't know which encounter you're trying to remove.");
       out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
     }
 

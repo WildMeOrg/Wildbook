@@ -32,6 +32,11 @@
   -webkit-text-fill-color: #005589;
 }
 
+#markedIndividualHeader a{
+  -webkit-text-fill-color: white;
+}
+
+
 /*Edit forms*/
 label {
   font-weight: lighter;
@@ -48,6 +53,10 @@ input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-co
 .editForm {
   display: none;
   margin-bottom: 10px;
+}
+
+input.nameVale, input.nameKey {
+  display: none;
 }
 
 .clickDateText{
@@ -79,7 +88,7 @@ input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-co
 }
 
 .relationshipInput {
-  height: 30px;
+  
 }
 
 .requiredLabel {
@@ -335,7 +344,7 @@ th {
   display: none;
 }
 
-td {
+.maincontent td {
   font-family: sans-serif;
   font-size: 14px;
   vertical-align: middle;

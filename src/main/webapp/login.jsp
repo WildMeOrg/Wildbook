@@ -20,6 +20,7 @@ context=ServletUtilities.getContext(request);
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/login.properties"));
   props = ShepherdProperties.getProperties("login.properties", langCode,context);
 
+    request.setAttribute("pageTitle", "Login");
 
 %>
 

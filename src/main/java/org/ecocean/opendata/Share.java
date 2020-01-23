@@ -4,28 +4,16 @@
 
 package org.ecocean.opendata;
 
+import java.util.Properties;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 import org.ecocean.Shepherd;
 import org.ecocean.CommonConfiguration;
-import java.util.Properties;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.Util;
 import org.ecocean.User;
-/*
-import org.ecocean.Annotation;
-import org.ecocean.Taxonomy;
-import org.ecocean.media.MediaAsset;
-import org.ecocean.media.MediaAssetFactory;
-import org.ecocean.identity.IBEISIA;
-import org.ecocean.servlet.ServletUtilities;
-import java.util.List;
-import java.util.Arrays;
-import java.util.ArrayList;
-import org.json.JSONObject;
-import org.json.JSONArray;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.PrintWriter;
-*/
+import org.ecocean.Organization;
 
 public abstract class Share {
     private static final String PROP_FILE = "opendata.properties";
@@ -34,6 +22,8 @@ public abstract class Share {
 
     //we cache these (via init()) so that we dont have to read all the time (e.g. in isShareable())
     private User collaborationUser = null;
+    private boolean triedCollaborationUser = false;
+    private List<User> orgUsers = null;  //get the users within share organization
     private Boolean shareAll = null;
 
     protected String context = null;
@@ -81,12 +71,41 @@ public abstract class Share {
     }
 
     public User getCollaborationUser() {
-        if (collaborationUser != null) return collaborationUser;  //yes, it will check each time if (intentionally) null/unset. :/
+        if (collaborationUser != null) return collaborationUser;
+        if (triedCollaborationUser) return null;  //dont need to check
+        triedCollaborationUser = true;
         String uid = getProperty("collaborationUser", null);
         if (uid == null) return null;
         Shepherd myShepherd = new Shepherd(context);
         collaborationUser = myShepherd.getUserByUUID(uid);
         return collaborationUser;
+    }
+
+    public Organization getShareOrganization() {
+        if (orgUsers == null) orgUsers = new ArrayList<User>();  //means we at least tried once!  (see methods below)
+        String oid = getProperty("organizationId", null);
+        if (oid == null) return null;
+        Shepherd myShepherd = new Shepherd(context);
+        Organization org = Organization.load(oid, myShepherd);
+        if (org == null) return null;
+        if (org.getMembers() != null) orgUsers = org.getMembers();
+        return org;
+    }
+    public List<User> getShareOrganizationUsers() {  //note: this does NOT do deep traversal of members
+        if (orgUsers != null) return orgUsers;
+        Organization org = getShareOrganization();  //this will initialize orgUsers to empty ArrayList
+        if (org == null) return orgUsers;
+        if (org.getMembers() != null) orgUsers = org.getMembers();
+        return orgUsers;
+    }
+    public boolean isShareOrganizationUser(User user) {
+        if (user == null) return false;
+        return getShareOrganizationUsers().contains(user);
+    }
+    public boolean isShareOrganizationUser(List<User> users) {
+        if ((users == null) || (users.size() < 1)) return false;
+        if (getShareOrganizationUsers().size() < 1) return false;
+        return !Collections.disjoint(users, getShareOrganizationUsers());
     }
 
     public boolean getShareAll() {

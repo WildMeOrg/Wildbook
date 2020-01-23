@@ -69,6 +69,9 @@ public class ImportIA extends HttpServlet {
     //  mostly cuz this makes "co-occurring" Encounters where we probably dont want them
     boolean createOccurrences = Util.requestParameterSet(request.getParameter("createOccurrences"));
 
+    //whether to cluster all annots from an indiv into single encounters; usually related to above (default false)
+    boolean clusterEncounters = Util.requestParameterSet(request.getParameter("clusterEncounters"));
+
     out.println("<h1>Starting ImportIA servlet | import task=<a href=\"obrowse.jsp?type=ImportTask&id=" + itask.getId() + "\">" + itask.getId() + "</a></h1>");
     if (uid != null) {
         out.println("<p>submitter uid = <b>" + uid + "</b> (user => " + ((submitter == null) ? "<i>invalid ID</i>" : submitter.getDisplayName()) + ")</p>");
@@ -182,13 +185,23 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
     probably:  time + location, aka "Clumping" (sigh).... TODO FIXME ETC
 */
       for (String name : uniqueNames) {
-        if (IBEISIA.unknownName(name)) {   // we need one encounter per annot for unknown!
+        if (IBEISIA.unknownName(name) || !clusterEncounters) {   // we need one encounter per annot for unknown!
             for (Annotation ann : annotGroups.get(name)) {
                 if (hasEncounter.get(ann.getAcmId()) != null) {
                     log(itask, "!! ann.acmId=" + ann.getAcmId() + " already has enc.id=" + hasEncounter.get(ann.getAcmId()) + "; skipping");
                     continue;
                 }
                 Encounter enc = new Encounter(ann);
+                String sex = null;
+                try {
+                    sex = IBEISIA.iaSexFromAnnotUUID(ann.getAcmId(), context);
+                } catch (Exception ex) {}
+                Double age = null;
+                try {
+                    age = IBEISIA.iaAgeFromAnnotUUID(ann.getAcmId(), context);
+                } catch (Exception ex) {}
+                if (age != null) enc.setAge(age);
+                if (sex != null) enc.setSex(sex);
                 enc.setTaxonomy(IBEISIA.iaClassToTaxonomy(ann.getIAClass(), myShepherd));
                 enc.setMatchedBy("IBEIS IA");
                 enc.setState("approved");
@@ -260,21 +273,27 @@ out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
                 age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getAcmId(), context);
             } catch (Exception ex) {}
             if (age != null) enc.setAge(age);
+            if (sex != null) enc.setSex(sex);
             myShepherd.beginDBTransaction();
             myShepherd.storeNewEncounter(enc, Util.generateUUID());
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
 
-            enc.setIndividualID(name);
+            //enc.setIndividualID(name);
             if (myShepherd.isMarkedIndividual(name)) {
                 MarkedIndividual ind = myShepherd.getMarkedIndividual(name);
                 if ((ind.getSex() == null) && (sex != null)) ind.setSex(sex); //only if not set already
-                ind.addEncounter(enc, context);
+                ind.addEncounter(enc);
+                enc.setIndividual(ind);
             } else {
                 MarkedIndividual ind = new MarkedIndividual(name, enc);
                 if (sex != null) ind.setSex(sex);
                 myShepherd.storeNewMarkedIndividual(ind);
+
                 log(itask, "created new " + ind);
+
+                ind.refreshNamesCache();
+                
             }
 
             for (Annotation ann: annotGroups.get(name)) {

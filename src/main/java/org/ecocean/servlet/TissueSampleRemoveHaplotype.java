@@ -104,6 +104,7 @@ public class TissueSampleRemoveHaplotype extends HttpServlet {
     } else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to remove the haplotype. I cannot find the encounter that you intended it for in the database.");
       out.println(ServletUtilities.getFooter(context));
 
