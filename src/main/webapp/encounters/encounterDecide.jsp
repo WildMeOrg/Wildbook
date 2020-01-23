@@ -656,15 +656,15 @@ There are two steps to processing each submission: selecting cat attributes, and
                     <img class="attribute-image" src="../images/instructions_black.jpg" />
                     <div class="attribute-title">Black</div>
                 </div>
-                <div id="black-white" class="attribute-option">
+                <div id="bw" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_bw.jpg" />
                     <div class="attribute-title">Black &amp; White</div>
                 </div>
-                <div id="tabby-gb" class="attribute-option">
+                <div id="tabby_torbie" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tabby.jpg" />
                     <div class="attribute-title">Grey or Brown Tabby/Torbie</div>
                 </div>
-                <div id="tabby-w" class="attribute-option">
+                <div id="tab_torb_white" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tabwhite.jpg" />
                     <div class="attribute-title">Tabby/Torbie &amp; White</div>
                 </div>
@@ -676,11 +676,11 @@ There are two steps to processing each submission: selecting cat attributes, and
                     <img class="attribute-image" src="../images/instructions_grey.jpg" />
                     <div class="attribute-title">Dark Grey</div>
                 </div>
-                <div id="calico" class="attribute-option">
+                <div id="calico_torto" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tortical.jpg" />
                     <div class="attribute-title">Calico / Tortoiseshell</div>
                 </div>
-                <div id="white" class="attribute-option">
+                <div id="beige_cream_wh" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_light.jpg" />
                     <div class="attribute-title">Beige / Cream / White</div>
                 </div>
