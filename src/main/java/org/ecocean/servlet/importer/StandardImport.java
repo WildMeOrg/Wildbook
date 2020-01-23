@@ -669,6 +669,17 @@ public class StandardImport extends HttpServlet {
   	String occurrenceRemarks = getString(row, "Encounter.occurrenceRemarks");
   	if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
 
+  	String eventID = getString(row, "Encounter.eventID");
+  	if (eventID!=null) enc.setEventID(eventID);
+
+  	String earTip = getString(row, "Encounter.earTip");
+  	if (earTip!=null) enc.setEarTip(earTip);
+
+  	String collar = getString(row, "Encounter.collar");
+  	if (collar!=null) enc.setCollar(collar);
+
+  	String state = getString(row, "Encounter.state");
+  	if (state!=null) enc.setState(state);
 
   	String submitterID = getString(row, "Encounter.submitterID");
     // don't commit this line
@@ -876,7 +887,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
       enc.setDynamicProperty("caudal type",caudalType);
     }
 
-  	enc.setState("approved");
+  	if (enc.getState() == null) enc.setState("approved");
   	return enc;
   }
 
