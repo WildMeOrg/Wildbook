@@ -288,10 +288,12 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
     for (Encounter enc : encs) {
         out.println("<tr class=\"row-state-" + enc.getState() + "\">");
         out.println("<td class=\"col-id\">");
+        String ename = enc.getEventID();
+        if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
         if (isAdmin) {
-            out.println("<a href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\" target=\"new\">" + enc.getCatalogNumber().substring(0,8) + "</a>");
+            out.println("<a href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\" target=\"new\">" + ename + "</a>");
         } else {
-            out.println("<a href=\"encounters/encounterDecide.jsp?id=" + enc.getCatalogNumber() + "\" target=\"new\">" + enc.getCatalogNumber().substring(0,8) + "</a>");
+            out.println("<a href=\"encounters/encounterDecide.jsp?id=" + enc.getCatalogNumber() + "\" target=\"new\">" + ename + "</a>");
         }
 /*
         if (enc.getMedia().size() > 0) {
