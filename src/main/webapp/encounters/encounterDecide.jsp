@@ -35,7 +35,8 @@ private static JSONArray findSimilar(HttpServletRequest request, Shepherd myShep
     }
     
     //technically we dont need to exclude our enc, as we are not 'approved', but meh.
-    String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"STATE\" = 'approved' AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND ((" + String.join(") OR (", props) + ")) ORDER BY dist";
+    //String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"STATE\" = 'approved' AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND ((" + String.join(") OR (", props) + ")) ORDER BY dist";
+    String sql = "SELECT \"CATALOGNUMBER\" AS encId, ST_Distance(toMercatorGeometry(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\"),toMercatorGeometry(" + lat + ", " + lon + ")) AS dist, \"PATTERNINGCODE\", \"EARTIP\", \"SEX\", \"COLLAR\", \"LIFESTAGE\" FROM \"ENCOUNTER\" WHERE validLatLon(\"DECIMALLATITUDE\", \"DECIMALLONGITUDE\") AND \"CATALOGNUMBER\" != '" + enc.getCatalogNumber() + "' AND ((" + String.join(") OR (", props) + ")) ORDER BY dist";  //**any** state flavor
 System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: " + sql);
 
     JSONArray found = new JSONArray();
@@ -53,7 +54,10 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         if (menc == null) continue;
         JSONObject propMatches = new JSONObject();
         el.put("encounterId", encId);
-        el.put("name", menc.getIndividualID());
+        if (menc.getIndividual() != null) {
+            el.put("name", menc.getIndividual().getDisplayName());
+        }
+        el.put("encounterEventId", menc.getEventID());
         el.put("distance", dist);
 System.out.println("findSimilar() -> " + el.toString());
         for (int i = 0 ; i < propMap.length ; i++) {
@@ -374,7 +378,7 @@ $(document).ready(function() {
     $('.attribute-option').on('click', function(ev) { clickAttributeOption(ev); });
     $('.attribute-option').append('<input type="radio" class="option-checkbox" />');
     $('#flag input').on('change', function() { updateData(); });
-    $('.enc-asset').panzoom().on('panzoomend', function(ev, panzoom, matrix, changed) {
+    $('.enc-asset').panzoom({maxScale:9}).on('panzoomend', function(ev, panzoom, matrix, changed) {
         if (!changed) return $(ev.currentTarget).panzoom('zoom');
     });
 /*
@@ -501,7 +505,8 @@ console.log(url);
                         var score = matchScore(xhr.responseJSON.similar[i]);
                         matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
                         var h = '<div class="match-item">';
-                        h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
+                        h += '<div class="match-name">' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
+                        //h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
                         h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
                         var numImages = xhr.responseJSON.similar[i].assets.length;
 //////////// TODO use keyword 'Comparison Photo' to decide!
@@ -579,7 +584,7 @@ function matchScore(mdata) {
 }
 
 function matchAssetLoaded(el) {
-    $(el).panzoom().on('panzoomend', function(ev, panzoom, matrix, changed) {
+    $(el).panzoom({maxScale:9}).on('panzoomend', function(ev, panzoom, matrix, changed) {
         if (!changed) return $(ev.currentTarget).panzoom('zoom');
     });
 return;
@@ -616,7 +621,7 @@ console.info(imgEl.style);
 <body>
 
 <div class="container maincontent">
-<h1>Submission <%=enc.getCatalogNumber().substring(0,8)%>: <span id="subtitle">Step 1</span></h1>
+<h1>Submission <%=((enc.getEventID() == null) ? enc.getCatalogNumber().substring(0,8) : enc.getEventID())%>: <span id="subtitle">Step 1</span></h1>
 
 <%= NoteField.buildHtmlDiv("59b4eb8f-b77f-4259-b939-5b7c38d4504c", request, myShepherd) %>
 <div class="org-ecocean-notefield-default" id="default-59b4eb8f-b77f-4259-b939-5b7c38d4504c">
