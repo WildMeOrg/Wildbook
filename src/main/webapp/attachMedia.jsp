@@ -200,6 +200,21 @@ div.file-item div {
     font-size: 1.2em;
 }
 
+.ui-selected {
+    outline: solid #0AF 4px;
+    background-color: #0AF !important;
+}
+.selected-icon {
+    position: absolute;
+    left: 10px;
+    top: 0;
+    color: #0AF;
+    font-size: 1.7em;
+    display: none;
+}
+.ui-selected .selected-icon {
+    display: block;
+}
 .ui-draggable {
     cursor: move;
     cursor: grab;
@@ -271,8 +286,12 @@ div.file-item div {
     margin: 2px;
     background-color: #EEE;
     vertical-align: top;
+    height: 100%;
 }
 
+#bulk-media-drag-div {
+    position: relative;
+}
 
 .app-data-hover {
     background-color: #CCF !important;
@@ -1003,6 +1022,7 @@ function filesChanged2(inp) {
                 mediaData[i].div = $('<div class="bulk-media" data-offset="' + i + '"><img /></div>');
                 $('#bulk-media-list').append(mediaData[i].div);
                 populateImage(mediaData[i]);
+                mediaData[i].div.append('<b class="selected-icon">&#x2713;</b>');
                 mediaData[i].div.append('<div style="bottom: 0;" class="bulk-info">' + inp.files[i].name + '</div>');
                 all.push(inp.files[i].name + ' (' + Math.round(inp.files[i].size / 1024) + 'k)');
                 EXIF.getData(inp.files[i], function() { gotExif(this); });
@@ -1016,13 +1036,8 @@ function filesChanged2(inp) {
 }
 
 
-function checkMediaDataComplete() {
-    for (var i = 0 ; i < mediaData.length ; i++) {
-        if (!mediaData[i] || !mediaData[i].complete) return;  //meh, not done
-    }
-console.info('OFFSET... DONE mediaData!!!!!');
-    checkContentHash();
-    var sorted = $('.bulk-media');
+function sortBulkMedia(selector) {
+    var sorted = $(selector || '.bulk-media');
     sorted.sort(function(a, b) {
         var sortA = a.getAttribute('data-sort') * 1;
         var sortB = b.getAttribute('data-sort') * 1;
@@ -1030,7 +1045,17 @@ console.info('OFFSET... DONE mediaData!!!!!');
         if (sortA < sortB) return -1;
         return 0;
     });
-    $('#bulk-media-list').html(sorted);
+    $('#bulk-media-list').html($('#bulk-media-drag-div')).append(sorted);
+    $('#bulk-media-drag-div').draggable();
+}
+
+function checkMediaDataComplete() {
+    for (var i = 0 ; i < mediaData.length ; i++) {
+        if (!mediaData[i] || !mediaData[i].complete) return;  //meh, not done
+    }
+console.info('OFFSET... DONE mediaData!!!!!');
+    checkContentHash();
+    sortBulkMedia();
     filterList();
     //$('#app-data-list').html('');
     var appDataList = [];  //build this first, then sort it, then add to page
@@ -1082,9 +1107,33 @@ console.info('OFFSET... DONE mediaData!!!!!');
     $('.app-hide').on('click', function(ev) {
         $(ev.target.parentElement).hide();
     });
-    $('.bulk-media').draggable({
-        containment: '#file-activity'
+
+    $('#bulk-media-list').selectable({
+        filter: 'div.bulk-media',
+        stop: function(ev, ui) {
+//console.log(ev);
+            var sel = $('.ui-selected');
+            if (!sel.length) {  //resets when none selected
+                $('.bulk-media.ui-selectee').css({ position: 'relative', top: 0, left: 0 });
+                sortBulkMedia('.bulk-media.ui-selectee');
+                $('#bulk-media-drag-div').css({left: 0, top: 0});
+                return;
+            }
+            //freeze divs in place:
+            var pos = [];
+            $('.bulk-media.ui-selectee').each(function(i, el) {
+                pos.push($(el).position());
+            });
+            $('.bulk-media.ui-selectee').each(function(i, el) {
+                $(el).css({ position: 'absolute', top: pos[i].top, left: pos[i].left });
+//console.info('%d => %o', i, pos[i]);
+            });
+            sel.each(function(i, el) {
+                $('#bulk-media-drag-div').append(el);
+            });
+        }
     });
+
     $('.app-data').droppable({
         hoverClass: 'app-data-hover',
         out: function() { $('#prox-info').hide(); },
@@ -1101,9 +1150,16 @@ console.info('OFFSET... DONE mediaData!!!!!');
         drop: function(ev, ui) {
             $('#prox-info').hide();
 //console.log('drop!!! %o   .... ui %o', ev, ui);
-            ui.draggable.css({top: 'unset', left: 'unset'});
-            $(ev.target).find('.app-attachments').append(ui.draggable);
+            ui.draggable.children().each(function(i, el) {
+//console.info('%d: %o', i, el);
+                $(el).css({position: 'relative', top: 'unset', left: 'unset'}).removeClass('ui-selected').removeClass('ui-selectee');
+                $(ev.target).find('.app-attachments').append(el);
+            });
             checkHiders();
+            //this resets the selected stuff
+            $('.bulk-media.ui-selectee').css({ position: 'relative', top: 0, left: 0 });
+            sortBulkMedia('.bulk-media.ui-selectee');
+            $('#bulk-media-drag-div').css({left: 0, top: 0});
         }
     });
     $('#list-wait').hide();
@@ -1428,7 +1484,7 @@ function macSuccess(data) {
 
 <div id="file-activity" style="display: none;">
     <div id="list-wait"><div>PLEASE WAIT</div></div>
-    <div id="bulk-media-list"></div>
+    <div id="bulk-media-list"><div id="bulk-media-drag-div"></div></div>
     <div id="app-data-list"></div>
 </div>
 <div id="updone"></div>

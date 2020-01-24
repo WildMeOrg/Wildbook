@@ -646,7 +646,7 @@ public class StandardImport extends HttpServlet {
   	if (occurrenceRemarks!=null) enc.setOccurrenceRemarks(occurrenceRemarks);
 
     String submitterID = getString(row, "Encounter.submitterID");
-    //TODO flag submitter ID's not already in database, warn user 
+    //TODO flag submitter ID's not already in database, warn user
     if (submitterID==null||"".equals(submitterID)) {
       submitterID = defaultSubmitterID;
     }
@@ -658,7 +658,7 @@ public class StandardImport extends HttpServlet {
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
       enc.addSubmitter(newU);
-    } 
+    }
     enc.setSubmitterID(submitterID);
 
     String recordedBy = getString(row, "Encounter.recordedBy");
@@ -672,6 +672,9 @@ public class StandardImport extends HttpServlet {
 
     String groupRole = getString(row, "Encounter.groupRole");
     if (groupRole!=null) enc.setGroupRole(groupRole);
+
+    String fieldID = getString(row, "Encounter.fieldID");
+    if (fieldID!=null) enc.setFieldID(fieldID);
 
     String researcherComments = getString(row, "Encounter.researcherComments");
     if (researcherComments!=null) enc.addComments(researcherComments);
@@ -1158,7 +1161,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 */
 
-  private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) { 
+  private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
     System.out.println("=============>  Trying to get keyword for MediaAsset "+n);
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     String kwsName = getString(row, "Encounter.mediaAsset"+n+".keywords");
@@ -1339,7 +1342,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     System.out.println("tried to retrieve indy "+mark+" from cache with id from excel "+individualID);
 
     boolean inCache = true;
-    
+
     if (mark==null) {
 
       inCache = false;
@@ -1350,7 +1353,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       This is not great, but should happen rarely if at all. In fact, it would be most likely to occur if this user had a botched old-world import.
       If we can also check against the specified user's organization in the future, it will all but remove it as a possibility.
       */
-      
+
       if (!"".equals(enc.getGenus())&&!"".equals(enc.getSpecificEpithet())) {
         mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(), enc.getSpecificEpithet());
         System.out.println("adding enc to existing encounter for "+individualID+" with tax string "+enc.getTaxonomyString());
@@ -1369,7 +1372,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         }
         newIndividual = true;
       }
-	  } 
+	  }
 
     // names section
     // case 1: no name keys
@@ -1389,8 +1392,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
             mark.addName(nameKey, nameVal);
           } else {
             mark.addName(nameVal);
-          } 
-        }     
+          }
+        }
         if (!inCache) individualCache.put(nameVal, mark);
       }
     }
@@ -1420,7 +1423,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 	  } else {
 	    enc.setIndividual(mark);
     }
-    
+
 	  // if(committing) {
 	  //   myShepherd.commitDBTransaction();
 	  //   myShepherd.beginDBTransaction();
