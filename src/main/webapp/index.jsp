@@ -490,7 +490,7 @@ finally{
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest shark encounters</h2>
+                    <h2>Latest turtle encounters</h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
@@ -514,7 +514,7 @@ finally{
 	                                        %>
 	                                    </time>
 	                                </small>
-	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividualID() %></a></p>
+	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividual().getDisplayName() %></a></p>
 
 
 	                            </li>
