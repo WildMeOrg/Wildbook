@@ -795,7 +795,7 @@ function doImageEnhancer(sel) {
     var opt = {
     };
 
-    if (!wildbook.user.isAnonymous()) {
+    if (isAdmin) {
         opt.debug = false;
         opt.menu = [
            <%

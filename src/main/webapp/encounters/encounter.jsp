@@ -149,6 +149,10 @@ String langCode=ServletUtilities.getLanguageCode(request);
 //System.out.println("???? query=" + kwQuery);
   boolean proceed = true;
   boolean haveRendered = false;
+    User thisUser = AccessControl.getUser(request, myShepherd);
+
+    //boolean isAdmin = (thisUser != null);  //faked for texting FIXME
+    boolean isAdmin = request.isUserInRole("admin") || request.isUserInRole("super_volunteer");
 
   pageContext.setAttribute("set", encprops.getProperty("set"));
   
@@ -164,6 +168,9 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   <style type="text/css">
 
+<%
+    if (!isAdmin) out.println(".admin-only { display: none; }");
+%>
 #kitsci-meta {
     padding: 8px;
     margin: 1em 1em 0 -1em;
@@ -382,7 +389,7 @@ td.measurement{
 
 
 <script type="text/javascript">
-
+  var isAdmin = <%=isAdmin%>;
   var map;
   var marker;
   var center = new google.maps.LatLng(0, 0);
@@ -718,8 +725,9 @@ $(function() {
 
 								} //end while
 
-				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
-				if(enc.getIndividualID()!=null){
+				//String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
+				String individuo="<a id=\"topid\">" + enc.getCatalogNumber().substring(0,8) + "</a>";
+				if(isAdmin && enc.getIndividualID()!=null){
 					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getDisplayName()+"</a>";
 				}
     			%>
@@ -759,7 +767,6 @@ $(function() {
 					<div class="row">
 
 <%
-User thisUser = AccessControl.getUser(request, myShepherd);
 /*
 String[] validRoles = new String[]{"cat_walk_volunteer", "cat_mouse_volunteer", "super_volunteer", "admin"};
 List<Role> userRoles = myShepherd.getAllRolesForUserInContext(user.getUsername(), context);
@@ -773,7 +780,6 @@ for (String vr : validRoles) {
     }
 }
 */
-boolean isAdmin = (thisUser != null);  //faked for texting FIXME
 
 if (isAdmin) {
     String jdoql = "SELECT FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "'";
@@ -887,7 +893,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
 </div>
 <% }  //end isAdmin %>
 
-            <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
+            <div class="admin-only col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
 <%-- START LOCATION --%>
 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
@@ -3786,6 +3792,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
   <br /><br />
 
+<div class="admin-only">
 
 
 <%-- OBSERVATION ATTRIBUTES --%>
@@ -4968,6 +4975,7 @@ if(loggedIn){
 
 
 <hr />
+<div class="admin-only">
 <a name="tissueSamples"></a>
 <p class="para"><img align="absmiddle" src="../images/microscope.gif" />
     <strong><%=encprops.getProperty("tissueSamples") %></strong>
@@ -6602,6 +6610,7 @@ finally{
 %>
 
 
+</div><!-- end Attributes section-->
 </div>
 
 <!--db: These are the necessary tools for photoswipe.-->
