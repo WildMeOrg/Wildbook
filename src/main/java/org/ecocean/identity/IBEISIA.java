@@ -1462,6 +1462,11 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with n
             return ann;
         }
         Encounter enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
+
+        //this is kitsci specific, in order to set coat pattern/color from "species"
+        String pattCode = IA.getProperty(context, "patterningCode_" + jann.optString("class", "_FAIL_"));
+        if ((pattCode != null) && (enc.getPatterningCode() == null)) enc.setPatterningCode(pattCode);
+
         Occurrence occ = asset.getOccurrence();
         if (occ != null) {
             enc.setOccurrenceID(occ.getOccurrenceID());
