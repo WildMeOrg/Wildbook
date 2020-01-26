@@ -22,7 +22,15 @@ Wildbook&reg; is an open source software framework to support mark-recapture, mo
 <br />
 <h2>Support</h2>
 
-Please see <a href="https://www.wildbook.org">Wildbook.org</a> for documentation and support. Support resources include:
+Please see <a href="https://www.wildbook.org">Wildbook.org</a> for documentation. 
+
+Need direct help?
+
+Wild Me (wildme.org) engineering staff provide support for Wildbook. You can contact us at: support@wildme.org
+
+We provide support during regular office hours on Mondays and Tuesdays.
+
+Support resources include:
 <ul>
 <li><a href="https://www.wildbook.org/doku.php?id=documentation">User Manual</a></li>
 <li><a href="https://www.wildbook.org/doku.php?id=configuration">Configuration Guide</a></li>

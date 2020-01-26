@@ -19,6 +19,13 @@
 
 package org.ecocean;
 
+import java.util.Vector;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.datanucleus.api.rest.orgjson.JSONException;
+import org.datanucleus.api.rest.orgjson.JSONObject;
+
 /**
  * COmment
  *
@@ -163,6 +170,22 @@ public class Adoption implements java.io.Serializable {
 
   public void setAdoptionType(String at) {
     this.adoptionType = at;
+  }
+  
+  // Returns a somewhat rest-like JSON object containing the metadata
+  public JSONObject uiJson(HttpServletRequest request, boolean includeOrganizations) throws JSONException {
+    JSONObject jobj = new JSONObject();
+    jobj.put("id", this.getID());
+    jobj.put("stripeCustomerId", this.getStripeCustomerId());
+    jobj.put("adopterEmail", this.getAdopterEmail());
+    jobj.put("adopterName", this.getAdopterName());
+    jobj.put("adopterImage", this.getAdopterImage());
+    jobj.put("adoptionType", this.getAdoptionType());
+    jobj.put("encounter", this.getEncounter());
+    jobj.put("individual", this.getMarkedIndividual());
+    jobj.put("adoptionStartDate", this.getAdoptionStartDate());
+    jobj.put("adoptionEndDate", this.getAdoptionEndDate());
+    return jobj;
   }
 
 }
