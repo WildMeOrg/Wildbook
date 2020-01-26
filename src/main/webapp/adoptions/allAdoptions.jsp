@@ -22,23 +22,20 @@
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
-  //set up dateTime
-  DateTime dt = new DateTime();
-  DateTimeFormatter fmt = ISODateTimeFormat.date();
-  String strOutputDateTime = fmt.print(dt);
+
 
 
   String langCode=ServletUtilities.getLanguageCode(request);
   
   Properties props = new Properties();
-  props = ShepherdProperties.getProperties("adoptions.properties", langCode,context);
+  props = ShepherdProperties.getProperties("adoption.properties", langCode,context);
   
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("allAdoptions.jsp");
   List<Adoption> adoptions = new ArrayList<Adoption>();
 
-  String filter="SELECT FROM org.ecocean.Adoption where id!=null";
+  String filter="SELECT FROM org.ecocean.Adoption where id!=null ORDER BY adoptionStartDate";
   Query q=myShepherd.getPM().newQuery(filter);
   Collection results = (Collection) q.execute();
   adoptions=new ArrayList<Adoption>(results);
@@ -50,10 +47,17 @@ context=ServletUtilities.getContext(request);
   	jsonobj.put(adopt.uiJson(request, false));
   }
   String indsJson = jsonobj.toString();
+  System.out.println(indsJson);
 
 %>
 
     <jsp:include page="../header.jsp" flush="true" />
+    
+    
+    <script src="../javascript/underscore-min.js"></script>
+<script src="../javascript/backbone-min.js"></script>
+<script src="../javascript/core.js"></script>
+<script src="../javascript/classes/Base.js"></script>
     
     	<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 	
@@ -66,10 +70,13 @@ context=ServletUtilities.getContext(request);
 	
 
         <div class="container maincontent">
+
+      <h1 class="intro"><%=props.getProperty("title")%></h1>
         
 <script type="text/javascript">
 	
 	var searchResults = <%=indsJson%>;
+	console.log(searchResults);
 	var resultsTable;
 	
 	
@@ -211,7 +218,7 @@ context=ServletUtilities.getContext(request);
 	
 	function rowClick(el) {
 		console.log(el);
-		var w = window.open('adoption.jsp?isEdit=true&number=' + el.getAttribute('id'), '_self');
+		var w = window.open('adoption.jsp?isEdit=true&number=' + el.getAttribute('data-id'), '_self');
 		w.focus();
 		return false;
 	}
@@ -403,9 +410,7 @@ context=ServletUtilities.getContext(request);
 
 	function _colAdoptionStartDate(o) {
 		if (!o.adoptionStartDate) return '';
-		if (o.adoptionStartDate === "-1") return '';
-		var s = new Date(parseInt(o.adoptionStartDate)).toString();
-		return s;
+		return o.adoptionStartDate;
 	}
 	
 	function _colLastLoginSort(o) {
@@ -439,6 +444,8 @@ context=ServletUtilities.getContext(request);
 
 	
 	</script>
+	
+
 	
 	<p class="table-filter-text">
 		<input placeholder="<%=props.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
