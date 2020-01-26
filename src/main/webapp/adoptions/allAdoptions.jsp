@@ -34,6 +34,7 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("allAdoptions.jsp");
   List<Adoption> adoptions = new ArrayList<Adoption>();
+  myShepherd.beginDBTransaction();
 
   String filter="SELECT FROM org.ecocean.Adoption where id!=null ORDER BY adoptionStartDate";
   Query q=myShepherd.getPM().newQuery(filter);
@@ -55,9 +56,9 @@ context=ServletUtilities.getContext(request);
     
     
     <script src="../javascript/underscore-min.js"></script>
-<script src="../javascript/backbone-min.js"></script>
+<script src="../javascript/classes/Base.js"></script><script src="../javascript/backbone-min.js"></script>
 <script src="../javascript/core.js"></script>
-<script src="../javascript/classes/Base.js"></script>
+
     
     	<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 	
@@ -463,11 +464,8 @@ context=ServletUtilities.getContext(request);
 
 
           <%
-
-
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
-            myShepherd = null;
           %>
         
 
