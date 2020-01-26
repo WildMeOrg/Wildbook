@@ -47,7 +47,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
 %>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
     <head>
       <title><%=CommonConfiguration.getHTMLTitle(context)%>
       </title>
@@ -59,7 +59,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
             content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
       <link rel="shortcut icon"
-            href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+            href="//<%=urlLoc %>/images/favicon.ico"/>
       <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
 
