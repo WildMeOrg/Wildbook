@@ -1,4 +1,13 @@
+//Helper class purposed to query and parse JSON node/link data for social and coOccurrence graphs
 class JSONParser {
+   //TODO - Logically couple disjointNodes and iId	
+   /**
+    * Creates a JSONParse instance
+    * @param {selectedNodes} [string|iterable] - Nodes included when generating JSON data. When null, all nodes are included. 
+    *   Defaults to null.
+    * @param {disjointNodes} [boolean] - Whether nodes disconnected from the central node (iId) should be included when 
+    *   generating JSON data. Defaults to false  
+    */
     constructor(selectedNodes=null, disjointNodes=false) {
 	//Keep track of a unique id for each node and link
 	this.nodeId = 0;
@@ -14,14 +23,20 @@ class JSONParser {
 	this.disjointNodes = disjointNodes;
     }
 
-    //Parse links and nodes to generate a graph via graphCallback
+    //TODO - Turn iId into an optional parameter
+    /**
+     * Parse link and node data to generate a graph via {graphCallback}
+     * @param {iId} [string] - The id of the central node
+     * @param {graphCallback} [function] - Handles generated node and link data arrays
+     * @param {isCoOccurrence} [boolean] - Determines whether node/link data should feature additional coOccurrence modifications
+     */
     parseJSON(iId, graphCallback, isCoOccurrence=false) {
 	this.queryNodeData().then(() => {
 	    this.queryRelationshipData().then(() => {
 		let nodes = this.parseNodes(iId);
 		let links = this.parseLinks();
 
-		if (isCoOccurrence) {
+		if (isCoOccurrence) { //Extract temporal and latitude/longitude encounter data
 		    [nodes, links] = this.modifyOccurrenceData(iId, nodes, links);
 		}
 		
@@ -30,14 +45,20 @@ class JSONParser {
 	}).catch(error => console.error(error)); 
     }
 
-    //Query and store all Marked Individual data
+    /**
+     * Query wrapper for the storage of MarkedIndividual data
+     * @return {queryData} [array] - All MarkedIndividual data in the Wildbook DB
+     */
     queryNodeData() {
 	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
 	    encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual"); //Get all individuals
 	return this.queryData("nodeData", query, this.storeQueryAsDict);
     }
 
-    //Query and store all Relationship data
+    /**
+     * Query wrapper for the storage of Relationship data
+     * @returns {queryData} [array] - All Relationship data in the Wildbook DB
+     */
     queryRelationshipData() {
 	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
 	    encodeURIComponent("SELECT FROM org.ecocean.social.Relationship " +
@@ -45,8 +66,14 @@ class JSONParser {
 	return this.queryData("relationshipData", query);
     }
 
-    //Retrieve JSON data from the Wildbook DB
-    queryData(type, query, callback=false) {
+    /**
+     * Retrieve JSON data from the Wildbook DB
+     * @param {type} [string] - The static attribute key used to store the queried data
+     * @param {query} [string] - Determines the query ran
+     * @param {callback} [function] - If not null, passes query data into the specified {callback} function for 
+     *   further processing. Defaults to null 
+     */
+    queryData(type, query, callback=null) {
 	return new Promise((resolve, reject) => {
 	    if (!JSONParser[type]) { //Memoize the result
 		d3.json(query, (error, json) => {
@@ -62,7 +89,12 @@ class JSONParser {
 	});	
     }
     
-    //Convert JSON query result from an array to a dictionary
+    /**
+     * Convert JSON query result from an array to a dictionary
+     * @param {json} [array] - JSON data to be converted
+     * @param {type} [string] - The static attribute key used to store the queried data
+     * @param {resolve} [function] - Resolves the queryData promise
+     */
     storeQueryAsDict(json, type, resolve) {
 	if (json.length >= 1) {
 	    JSONParser[type] = {};
