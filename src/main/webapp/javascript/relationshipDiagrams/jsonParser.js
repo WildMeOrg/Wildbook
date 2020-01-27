@@ -112,7 +112,11 @@ class JSONParser {
 	resolve(); //Handle the encapsulating promise
     }
 
-    //Extract node data from the Marked Individual and Relationship queries
+    /**
+     * Extract node data from the MarkedIndividual and Relationship query data
+     * @param {iId} [string] - The id of the central node
+     * @return {nodes} - Extracted data relevant to graphing nodes
+     */
     parseNodes(iId) {
 	//Assign unique ids and groupings to the queried node data
 	if (!JSONParser.isNodeDataProcessed) this.processNodeData(iId);
@@ -125,6 +129,7 @@ class JSONParser {
 	    let name = data.displayName;
 	    name = name.substring(name.indexOf(" ") + 1);
 	    
+	    //Add node to list if disjoint nodes are allowed, or if a link exists to the central node {iId}
 	    if (this.disjointNodes || data.iIdLinked) {
 		nodes.push({
 		    "id": data.id,
@@ -151,8 +156,12 @@ class JSONParser {
 	return nodes;
     }
 
-    //Assign unique ids and label connected groups for all nodes
+    /**
+     * Assign unique ids and label connected groups for all nodes
+     * @param {iId} [string] - The id of the central node
+     */
     processNodeData(iId) {
+	//Generate a two way mapping of all node relationships
 	let relationships = this.mapRelationships();
 	
 	//Update id and group attributes for all nodes with some relationship
@@ -168,12 +177,13 @@ class JSONParser {
 		
 		//Update node id and group
 		let iIdLinked = (startingNode === iId);
-		if (!JSONParser.nodeData[name].id || link.type !== "member") {
+		    
+		//Update the node if it does not have an id, or has a familial relation
+		if (!JSONParser.nodeData[name].id || link.type !== "member") { 
 		    this.updateNodeData(name, group, this.getNodeId(), iIdLinked);
 		}
 
-		//Check if other valid relationships exist
-		if (relationships[name]) {
+		if (relationships[name]) { //Check if other valid relationships exist
 		    relationships[name].forEach(el => {
 			let currGroup = (el.type !== "member") ? group : ++groupNum;
 			relationStack.push({"name": el.name, "group": currGroup, "type": el.type});
@@ -193,10 +203,15 @@ class JSONParser {
 	JSONParser.isNodeDataProcessed = true;
     }
 	
-    //Create a bi-directional dictionary of all node relationships
+    /**
+     * Create a bi-directional dictionary of all node relationships
+     * @return {relationships} [dict] - A bi-directional dictionary of node relationships 
+     */
     mapRelationships() {
 	let relationships = {};
 	let relationshipData = JSONParser.relationshipData;
+	    
+	//Create a two way mapping for each relationship
 	relationshipData.forEach(el => {
 	    let name1 = el.markedIndividualName1;
 	    let name2 = el.markedIndividualName2;
@@ -215,7 +230,10 @@ class JSONParser {
 	return relationships;
     }
 
-    //Extract link data from the Marked Indvidiual and Relationship queries
+    /**
+     * Extract link data from the MarkedIndvidiual and Relationship query data
+     * @return {links} [array] - Extracted data relevant to graphing links
+     */
     parseLinks() {
 	let links = [];
 	let nodeData = this.getNodeData();
@@ -244,11 +262,20 @@ class JSONParser {
 	return links;
     }
 
-    //Modify node and link data to fit a coOccurrence graph format
+    /**
+     * Modify node and link data to fit a coOccurrence graph format
+     * @param {iId} [string] - The id of the central node
+     * @param {nodes} [array] - Data relevant to graphing nodes
+     * @param {links} [array] - Data relevant to graphing links
+     * @return {modifiedNodes} [array] - {nodes} data with added temporal/spatial occurrence information
+     * @return {modifiedLinks} [array] - Represents one link from each node to the {iId} central node
+     */
     modifyOccurrenceData(iId, nodes, links) {
 	//Add sightings data to each existing node
 	nodes.forEach(node => {
 	    node.data.sightings = [];
+		
+	    //Extract temporal/spatial encounter data
 	    let encounters = node.data.encounters;
 	    encounters.forEach(enc => {
 		let millis = enc.dateInMilliseconds;
@@ -308,17 +335,28 @@ class JSONParser {
 	return [modifiedNodes, modifiedLinks];
     }
 
-    //Return and post-increment the current link id
+    /**
+     * Return and post-increment the current link id
+     * @return {linkId} [int] - A unique id for links
+     */
     getLinkId(){
 	return this.linkId++;
     }
 
-    //Return and post-increment the current node id
+    /**
+     * Return and post-increment the current node id
+     * @return {nodeId} [int] - A unique id for nodes
+     */
     getNodeId() {
 	return this.nodeId++;
     }
 
-    //Update node group and id attributes
+    //TODO - Figure out the difference between id and noderef
+    //TODO - Finish commenting
+    /**
+     * Update node group and id attributes
+     * @param {nodeRef} [int] - A k
+     */
     updateNodeData(nodeRef, group, id, iIdLinked) {
 	let node = JSONParser.nodeData[nodeRef];
 	if (node) {
