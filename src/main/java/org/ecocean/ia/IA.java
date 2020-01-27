@@ -287,6 +287,8 @@ System.out.println(i + " -> " + ma);
         JSONObject rtn = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IA.handleGet");
+        myShepherd.beginDBTransaction();
         String taskId = request.getParameter("taskId");
 
         if (taskId != null) {
@@ -304,6 +306,8 @@ System.out.println(i + " -> " + ma);
         PrintWriter out = response.getWriter();
         out.println(rtn.toString());
         out.close();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return;
     }
 
