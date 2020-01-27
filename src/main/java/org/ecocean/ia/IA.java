@@ -295,6 +295,8 @@ System.out.println(i + " -> " + ma);
             Task task = Task.load(taskId, myShepherd);
             if (task == null) {
                 response.sendError(404, "Not found: taskId=" + taskId);
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 return;
             }
             rtn.put("success", true);
