@@ -351,11 +351,12 @@ class JSONParser {
 	return this.nodeId++;
     }
 
-    //TODO - Figure out the difference between id and noderef
-    //TODO - Finish commenting
     /**
      * Update node group and id attributes
-     * @param {nodeRef} [int] - A k
+     * @param {nodeRef} [string] - A unique string identifying the given node
+     * @param {group} [int] - A unique integer assigned to each grouping of connected, familial nodes
+     * @param {id} [int] - A unique id assigned to each graph node
+     * @param {iIdLinked} [boolean] - Whether the current node is linked to the {iId} central node
      */
     updateNodeData(nodeRef, group, id, iIdLinked) {
 	let node = JSONParser.nodeData[nodeRef];
@@ -368,14 +369,17 @@ class JSONParser {
 	JSONParser.nodeData[nodeRef] = node;
     }
 
-    //Return node data filtered by selected nodes
+    /**
+     * Return node data as filtered by selected nodes
+     * @return {nodeData} [array] - Any node data matching {selectedNodes} ids
+     */
     getNodeData() {
 	if (this.selectedNodes) {
 	    if (!this.nodeData) { //Memoize node data selection
 		this.nodeData = {};
 		Object.keys(JSONParser.nodeData).forEach(key => {
 		    let data = JSONParser.nodeData[key];
-		    if (this.selectedNodes.has(key)) {
+		    if (this.selectedNodes.has(key)) { //Filter out any keys not in {selectedNodes}
 			this.nodeData[key] = data;
 		    }
 		});
@@ -385,12 +389,19 @@ class JSONParser {
 	return JSONParser.nodeData;
     }
 
-    //Returns id referenced element from node data
+    /**
+     * Returns id referenced element from node data
+     * @param {id} [int] - A unique int identifying the given node
+     * @return {node} [obj] - The node data corresponding to the given node id
+     */
     getNodeDataById(id) {
 	return this.getNodeData()[id];
     }
 
-    //Returns relationship data filtered by selected nodes
+    /**
+     * Returns relationship data as filtered by selected nodes
+     * @return {relationshipData} [array] - Any links with both node references in {selectedNodes}
+     */
     getRelationshipData() { 
 	if (this.selectedNodes) {
 	    if (!this.relationshipData) { //Memoize relationship data selection
@@ -399,7 +410,8 @@ class JSONParser {
 		    let role1 = link.markedIndividualName1;
 		    let role2 = link.markedIndividualName2;
 
-		    if (this.selectedNodes.has(role1) && this.selectedNodes.has(role2)) {
+		    //Filter out any links referencing nodes outside of {selectedNodes}
+		    if (this.selectedNodes.has(role1) && this.selectedNodes.has(role2)) { 
 			this.relationshipData.push(link);
 		    }
 		});
@@ -409,7 +421,11 @@ class JSONParser {
 	return JSONParser.relationshipData;
     }
 
-    //Returns the relationship type of a given link
+    /**
+     * Returns the relationship type of a given link
+     * @param {link} [array] - A link object from {relationshipData}
+     * @return {type} [string] - Describes the type of {link} passed in
+     */
     getRelationType(link){
 	if (link) { 
 	    let role1 = link.markedIndividualRole1;
