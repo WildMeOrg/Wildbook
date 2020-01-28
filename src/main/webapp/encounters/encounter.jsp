@@ -602,6 +602,10 @@ var encounterNumber = '<%=num%>';
         			livingStatus = " (deceased)";
       			}
 
+String setState = Util.basicSanitize(request.getParameter("setState"));
+if (isAdmin && (setState != null) && (setState.equals("approved") || setState.startsWith("flag-"))) {
+    enc.setState(setState);
+}
 if (request.getParameter("refreshImages") != null) {
 	System.out.println("refreshing images!!! ==========");
 	//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
@@ -624,6 +628,15 @@ if (request.getParameter("refreshImages") != null) {
 
 <script type="text/javascript">
 
+
+function flag(type) {
+    $('.kitsci-actions button').hide();
+    window.location.href = 'encounter.jsp?number=' + encounterNumber + '&setState=flag-' + type;
+}
+function approve() {
+    $('.kitsci-actions button').hide();
+    window.location.href = 'encounter.jsp?number=' + encounterNumber + '&setState=approved';
+}
 
 
 $(function() {
@@ -889,6 +902,12 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
         <div class="kitsci-attribute">
             Ear tip: <b><%=enc.getEarTip()%></b>
         </div>
+    </div>
+
+    <div class="kitsci-actions">
+        <h2>Current state: <b><%=enc.getState()%></b></h2>
+        <button onclick="return flag('detection');">Flag detection</button>
+        <button onclick="return approve();">Approve</button>
     </div>
 </div>
 <% }  //end isAdmin %>
