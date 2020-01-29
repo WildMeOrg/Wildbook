@@ -1145,7 +1145,7 @@ Util.mark("bia 4B", tt);
                 if (queryConfigDict == null) queryConfigDict = new JSONObject();
                 
                 //from JP on 12/27/2019 - if we want to specify an unfiltered list, just omit the tag
-                if(!curvrankDailyTag.toLowerCase().equals("user:any")) {
+                if(!curvrankDailyTag.toLowerCase().equals("user:any") && !curvrankDailyTag.toLowerCase().equals("user:any;locs:")) {
                   queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
                 }
             }
@@ -1285,7 +1285,7 @@ Util.mark("OPT bia 4X", tt);
                 if (queryConfigDict == null) queryConfigDict = new JSONObject();
                 
                 //from JP on 12/27/2019 - if we want to specify an unfiltered list, just omit the tag
-                if(!curvrankDailyTag.toLowerCase().equals("user:any")) {
+                if(!curvrankDailyTag.toLowerCase().equals("user:any") && !curvrankDailyTag.toLowerCase().equals("user:any;locs:")) {
                   queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
                 }
             }
