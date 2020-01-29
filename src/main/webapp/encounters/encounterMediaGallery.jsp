@@ -677,6 +677,10 @@ function removeFeatAnnEnc(fid, aid, eid) {
     return annotEditAjax({ id: aid, featureId: fid, encounterId: eid, remove: true });
 }
 
+function removeFeatAnn(fid, aid, eid) {
+    return annotEditAjax({ id: aid, featureId: fid, encounterId: eid, remove: true, keepEncounter: true });
+}
+
 function swapEncounters(aid1, aid2) {
     return annotEditAjax({ id: aid1, swapEncounterId: aid2 });
 }
@@ -717,6 +721,10 @@ console.log(ma);
         if ((ma.features[i].id == annId) || !ma.features[i].encounterId) continue;
         h += '<input type="button" value="swap Annots: ' + niceId(myFeat.annotationId) + ' ==&gt; [Enc ' + niceId(ma.features[i].encounterId)+ '] // ' + niceId(ma.features[i].annotationId) + ' ==&gt; [Enc ' + niceId(myFeat.encounterId) + ']" ';
         h += ' onClick="swapEncounters(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
+        if (!ma.features[i].type && ma.features[i].annotationId && ma.features[i].encounterId) {
+            h += '<input type="button" value="remove TRIVIAL feat ' + niceId(ma.features[i].id) + ' / Ann ' + niceId(ma.features[i].annotationId) + '" '; 
+            h += ' onClick="return removeFeatAnn(\'' + ma.features[i].id + '\', \'' + ma.features[i].annotationId + '\', \'' + ma.features[i].encounterId + '\');" />';
+        }
         if (myFeat.individualId && ma.features[i].individualId) {
             h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + niceId(ma.features[i].encounterId) + ')" '; 
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';

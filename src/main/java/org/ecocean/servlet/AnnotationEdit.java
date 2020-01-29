@@ -164,10 +164,6 @@ public class AnnotationEdit extends HttpServlet {
                     Encounter enc = myShepherd.getEncounter(eid);
                     if ((feat == null) || (enc == null)) {
                         rtn.put("error", "invalid ID; featureId=" + fid + ", encounterId=" + eid);
-                    } else if (enc.hasMarkedIndividual()) {
-                        rtn.put("error", "Cannot remove Encounter which has a MarkedIndividual");
-                    } else if (enc.getAnnotations().size() != 1) {
-                        rtn.put("error", "Cannot remove Encounter which has more than one Annotation");
                     } else if (!enc.getAnnotations().contains(annot)) {
                         rtn.put("error", "Encounter does not contain this Annotation");
                     } else if (!annot.getId().equals(feat.getAnnotation().getId())) {
@@ -180,9 +176,15 @@ public class AnnotationEdit extends HttpServlet {
                         }
                         enc.removeAnnotation(annot);
                         String note = "";
-                        if (enc.getAnnotations().size() > 0) {
+                        if (jsonIn.optBoolean("keepEncounter", false)) {
+                            rtn.put("encounterDeleted", false);
+                            note = " note: Encounter kept due to keepEncounter=true";
+                        } else if (enc.getAnnotations().size() > 0) {
                             rtn.put("encounterDeleted", false);
                             note = " note: Encounter has other annots; not removed";
+                        } else if (enc.hasMarkedIndividual()) {
+                            rtn.put("encounterDeleted", false);
+                            note = " note: Cannot remove Encounter which has a MarkedIndividual";
                         } else {
                             myShepherd.getPM().deletePersistent(enc);
                             rtn.put("encounterDeleted", true);
