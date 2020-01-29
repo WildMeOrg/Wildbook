@@ -132,7 +132,6 @@ console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identAc
 
     iaStatus: function(ma) {
         if (!ma || !ma.tasks || (ma.tasks.length < 1)) return null;
-        if (!ma || !ma.detectionStatus) return null;
         var rtn = {
             status: ma.detectionStatus,
             statusText: ma.detectionStatus,
