@@ -167,6 +167,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   <style type="text/css">
+.declutter { display: none; }
 
 <%
     if (!isAdmin) out.println(".admin-only { display: none; }");
@@ -440,7 +441,7 @@ function setIndivAutocomplete(el) {
             function initialize() {
 	            //alert("Initializing map!");
 	              //var mapZoom = 1;
-	              var mapZoom = 1;
+	              var mapZoom = 11;
 
 	              //var center = new google.maps.LatLng(10.8, 160.8);
 	              var center = new google.maps.LatLng(0, 0);
@@ -458,7 +459,7 @@ function setIndivAutocomplete(el) {
 
 	        	if(marker!=null){
 					marker.setMap(map);
-					//map.setCenter(marker.position);
+					map.setCenter(marker.position);
 
 	 			//alert("Setting center!");
 				}
@@ -1920,7 +1921,7 @@ if(enc.getLocation()!=null){
               alternateID=enc.getAlternateID();
             }
             %>
-            <p>
+            <p class="declutter">
               <img align="absmiddle" src="../images/alternateid.gif">
               <%=encprops.getProperty("alternate_id")%>: <span id="displayAltID"><%=alternateID%></span>
             </p>
@@ -2197,7 +2198,7 @@ if(enc.getLocation()!=null){
 
 
 <%-- START CONTACT INFORMATION --%>
-        <div>
+        <div class="declutter">
 
 
           <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
@@ -2625,6 +2626,7 @@ if(enc.getLocation()!=null){
 
 
 <%-- START METADATA --%>
+<br />
 <table>
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
@@ -2771,7 +2773,7 @@ else {
  								if((CommonConfiguration.showUsersToPublic(context))||(request.getUserPrincipal()!=null)){
  								%>
 
-    							<table>
+    							<table class="declutter">
     								<tr>
     									<td>
      										<img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif" /> <%=encprops.getProperty("assigned_user")%>&nbsp;
@@ -2797,13 +2799,13 @@ else {
                          					//User thisUser=aUserShepherd.getUser(username);
                                 			String profilePhotoURL="../images/empty_profile.jpg";
 
-                         					if(thisUser.getUserImage()!=null){
+                         					if((thisUser != null) && (thisUser.getUserImage()!=null)){
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
                          					}
                          					%>
                      						<%
                          					String displayName="";
-                         					if(thisUser.getFullName()!=null){
+                         					if((thisUser != null) && (thisUser.getFullName()!=null)){
                          						displayName=thisUser.getFullName();
                          						%>
                          					<%
@@ -2819,26 +2821,26 @@ else {
                           <%-- <p> --%>
 
                         <%
-                        if(thisUser.getAffiliation()!=null){
+                        if((thisUser != null) && (thisUser.getAffiliation()!=null)){
                         %>
                         <p><strong><%=displayName %></strong></p>
                         <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
                         <%
                         }
 
-                        if(thisUser.getUserProject()!=null){
+                        if((thisUser != null) && (thisUser.getUserProject()!=null)){
                         %>
                         <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
                         <%
                         }
 
-                        if(thisUser.getUserURL()!=null){
+                        if((thisUser != null) && (thisUser.getUserURL()!=null)){
                             %>
                             <p><strong><%=encprops.getProperty("webSite") %></strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
                             <%
                           }
 
-                        if(thisUser.getUserStatement()!=null){
+                        if((thisUser != null) && (thisUser.getUserStatement()!=null)){
                             %>
                             <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
                             <%
@@ -3074,6 +3076,7 @@ if (isOwner) {
 %>
 
 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<div class="declutter">
 <h2>
   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" />
   <c:out value="${measurementTitle}"></c:out>
@@ -3223,6 +3226,7 @@ else {
     </table>
     </form>
 </div>
+</div>
 <!-- end measurements form -->
 
 <%
@@ -3230,7 +3234,7 @@ else {
 
 </c:if>
 
-<table>
+<table class="declutter">
 <tr>
 <td width="560px" style="vertical-align:top;background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;">
 
@@ -3766,7 +3770,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 		<%
 		if(isOwner){
 		%>
-	        <div id="add-image-zone" class="bc4">
+	        <div id="add-image-zone" class="bc4 declutter">
 
 	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
 
@@ -3805,11 +3809,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
 
-<br />
-
-
-
-  <br /><br />
+<div class="foo"></div>
 
 <div class="admin-only">
 
@@ -4108,7 +4108,7 @@ if(enc.getSex()!=null){sex=enc.getSex();}
 
 
 <!--  START SCARRING SECTION -->
-<p class="para"><%=encprops.getProperty("scarring") %>&nbsp;
+<p class="para declutter"><%=encprops.getProperty("scarring") %>&nbsp;
 
 <%
 String recordedScarring="";
@@ -4480,7 +4480,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 <!--  END LIFESTAGE SECTION -->
 
 <!-- START ADDITIONAL COMMENTS -->
-<p class="para"><%=encprops.getProperty("comments") %>
+<p class="declutter para"><%=encprops.getProperty("comments") %>
   <%
   %>
   <%
@@ -4552,6 +4552,7 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 
 <!-- START DYNAMIC PROPERTIES -->
+<div class="declutter">
 
 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
@@ -4664,6 +4665,7 @@ else{
 	    }
 
 %>
+</div><!-- end observation -->
 <div id="dialogDPAdd" title="<%=encprops.getProperty("addDynamicProperty")%>" class="editFormDynamic">
   <p class="editTextDynamic"><strong><%=encprops.getProperty("addDynamicProperty")%></strong></p>
     <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post" class="editFormDynamic">
@@ -4994,7 +4996,7 @@ if(loggedIn){
 
 
 <hr />
-<div class="admin-only">
+<div class="declutter xadmin-only">
 <a name="tissueSamples"></a>
 <p class="para"><img align="absmiddle" src="../images/microscope.gif" />
     <strong><%=encprops.getProperty("tissueSamples") %></strong>
