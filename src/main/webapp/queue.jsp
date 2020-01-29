@@ -227,9 +227,6 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 
 <jsp:include page="header.jsp" flush="true" />
 <style>
-.row-state-approved {
-    display: none;
-}
 .col-flag {
     background-color: #FAA;
 }
@@ -254,6 +251,30 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 .th-4, .th-5 {
     width: 4em;
 }
+
+#filter-tabs button {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin: 10px;
+}
+#filter-tabs button.tab-active {
+    background-color: #FFA;
+    color: black;
+    outline: 1px solid green;
+}
+
+/* default is off for all but pending currently */
+.row-state-incoming,
+.row-state-practice,
+.row-state-unapproved,
+.row-state-approved {
+    display: none;
+}
+
+#filter-info {
+    margin-left: 70px;
+}
+
 </style>
 
 
@@ -269,6 +290,13 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
         <button>Download ID Match XLS</button>
     </a>
 </p>
+<div id="filter-tabs">
+    <button id="filter-button-pending" onClick="return filter('pending');">pending</button>
+    <button id="filter-button-flagged" onClick="return filter('flagged');">flagged</button>
+    <button id="filter-button-incoming" onClick="return filter('incoming');">incoming</button>
+    <button id="filter-button-approved" onClick="return filter('approved');">approved</button>
+    <span id="filter-info"></span>
+</div>
 <% } %>
 
 <% if (encs.size() < 1) { %>
@@ -286,7 +314,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 <tbody>
 <%
     for (Encounter enc : encs) {
-        out.println("<tr class=\"row-state-" + enc.getState() + "\">");
+        out.println("<tr class=\"enc-row row-state-" + enc.getState() + "\">");
         out.println("<td class=\"col-id\">");
         String ename = enc.getEventID();
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
@@ -342,13 +370,44 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
     <script src="javascript/bootstrap-table/bootstrap-table.min.js"></script>
     <link rel="stylesheet" href="javascript/bootstrap-table/bootstrap-table.min.css" />
 <script>
+var currentActiveState = 'pending';
 $(document).ready(function() {
+    setActiveTab(currentActiveState);
+    $('#queue-table').on('post-body.bs.table', function() {
+        filter(currentActiveState);
+    });
+/*
     $('.col-flag').each(function(i, el) {
         var jel = $(el);
 //console.log('%d %o %o %o', i, el, el.parentElement, jel.text());
         if (jel.text() > 0) jel.parent().show();
     });
+*/
 });
+
+function setActiveTab(state) {
+    $('#filter-tabs .tab-active').removeClass('tab-active');
+    $('#filter-button-' + state).addClass('tab-active');
+    var ct = $('.enc-row:visible').length;
+    $('#filter-info').html('<b>' + ct + '</b> submission' + (ct == 1 ? '' : 's'));
+}
+
+function filter(state) {
+    currentActiveState = state;
+    $('.enc-row').hide();
+    $('.row-state-' + state).show();
+
+    if (state == 'flagged') {  //special case to find also *any* with flags
+        $('.col-flag').each(function(i, el) {
+            var jel = $(el);
+//console.log('%d %o %o %o', i, el, el.parentElement, jel.text());
+            if (jel.text() > 0) jel.parent().show();
+        });
+    }
+
+    setActiveTab(state);
+}
+
 </script>
 
 
