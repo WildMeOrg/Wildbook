@@ -102,7 +102,7 @@
 			] },
 			{ "name":"Guatemala", "id":"Guatemala", "locationID":[] },
 
-            { "name":"US - East Coast", "id":"Guatemala", "locationID":[
+            { "name":"US - West Coast", "id":"US - West Coast", "locationID":[
 				{ "name":"Northern Baja California", "id":"Northern Baja California", "locationID":[] },
 
 				{ "name":"Northern California", "id":"Northern California", "locationID":[] },
@@ -125,10 +125,14 @@
 
 			  ]},
 
+			{"name":"North Pacific","id":"North Pacific","locationID":[
+				{"name": "Japan", "id": "Japan" }
+			] },
+
 			{"name":"South Pacific","id":"South Pacific","locationID":[
 				{"name": "Tasman Sea", "id": "Tasman Sea" },
 				{ "name":"NewZealand", "id":"NewZealand", "locationID":[] }
-			]}		  
+			]}
 		],
 		"id": "PacificOcean",
 		"defaultLatitutde": 0.0,
@@ -158,6 +162,10 @@
 				{ "name":"Gabon", "id":"Gabon", "locationID":[] },
 				{ "name":"Falkland Islands", "id":"Falkland Islands", "locationID":[] },
 				{ "name":"Argentina", "id":"Argentina", "locationID":[] }
+			  ]}, 
+
+			  { "name":"US - East Coast", "id":"US - East Coast", "locationID":[ 
+				{ "name":"Florida", "id":"Florida", "locationID":[] }
 			  ]}
 			  
 		],
