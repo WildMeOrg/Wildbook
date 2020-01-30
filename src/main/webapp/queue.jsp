@@ -264,7 +264,9 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 }
 
 /* default is off for all but pending currently */
-.row-state-incoming,
+.row-state-pending,
+.row-state-processing,
+.row-state-finished,
 .row-state-practice,
 .row-state-unapproved,
 .row-state-approved {
@@ -273,6 +275,12 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 
 #filter-info {
     margin-left: 70px;
+}
+
+#filter-tabs .fct {
+    font-size: 0.85em;
+    opacity: 0.6;
+    margin-left: 10px;
 }
 
 </style>
@@ -291,10 +299,11 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
     </a>
 </p>
 <div id="filter-tabs">
-    <button id="filter-button-pending" onClick="return filter('pending');">pending</button>
-    <button id="filter-button-flagged" onClick="return filter('flagged');">flagged</button>
-    <button id="filter-button-incoming" onClick="return filter('incoming');">incoming</button>
-    <button id="filter-button-approved" onClick="return filter('approved');">approved</button>
+    <button id="filter-button-incoming" onClick="return filter('incoming');">incoming<span class="fct"></span></button>
+    <button id="filter-button-pending" onClick="return filter('pending');">pending<span class="fct"></span></button>
+    <button id="filter-button-processing" onClick="return filter('processing');">processing<span class="fct"></span></button>
+    <button id="filter-button-finished" onClick="return filter('finished');">finished<span class="fct"></span></button>
+    <button id="filter-button-flagged" onClick="return filter('flagged');">flagged<span class="fct"></span></button>
     <span id="filter-info"></span>
 </div>
 <% } %>
@@ -354,7 +363,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
                 out.println("<td class=\"col-muted\">-</td>");
             }
             out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
-            out.println("<td class=\"col-flag col-fct-" + fct + "\">" + fct + "</td>");
+            out.println("<td class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
         }
 
         out.println("</tr>");
@@ -370,7 +379,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
     <script src="javascript/bootstrap-table/bootstrap-table.min.js"></script>
     <link rel="stylesheet" href="javascript/bootstrap-table/bootstrap-table.min.css" />
 <script>
-var currentActiveState = 'pending';
+var currentActiveState = 'incoming';
 $(document).ready(function() {
     setActiveTab(currentActiveState);
     $('#queue-table').on('post-body.bs.table', function() {
@@ -383,13 +392,20 @@ $(document).ready(function() {
         if (jel.text() > 0) jel.parent().show();
     });
 */
+
+    $('#filter-tabs button').each(function(i,el) {
+        var state = el.id.substring(14);
+        var ct = $('.enc-row.row-state-' + state).length;
+        if (state == 'flagged') ct = $('.is-flagged').length;
+        $(el).find('.fct').html(ct);
+    });
 });
 
 function setActiveTab(state) {
     $('#filter-tabs .tab-active').removeClass('tab-active');
     $('#filter-button-' + state).addClass('tab-active');
     var ct = $('.enc-row:visible').length;
-    $('#filter-info').html('<b>' + ct + '</b> submission' + (ct == 1 ? '' : 's'));
+    $('#filter-info').html('<b>' + ct + '</b> <i>' + state + '</i> submission' + (ct == 1 ? '' : 's'));
 }
 
 function filter(state) {
@@ -398,11 +414,16 @@ function filter(state) {
     $('.row-state-' + state).show();
 
     if (state == 'flagged') {  //special case to find also *any* with flags
+        $('.is-flagged').each(function(i, el) {
+            $(el).parent().show();
+        });
+/*
         $('.col-flag').each(function(i, el) {
             var jel = $(el);
 //console.log('%d %o %o %o', i, el, el.parentElement, jel.text());
             if (jel.text() > 0) jel.parent().show();
         });
+*/
     }
 
     setActiveTab(state);
