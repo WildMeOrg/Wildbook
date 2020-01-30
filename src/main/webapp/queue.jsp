@@ -265,6 +265,8 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 
 /* default is off for all but pending currently */
 .row-state-pending,
+.row-state-rejected,
+.row-state-disputed,
 .row-state-processing,
 .row-state-finished,
 .row-state-practice,
@@ -304,6 +306,8 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
     <button id="filter-button-processing" onClick="return filter('processing');">processing<span class="fct"></span></button>
     <button id="filter-button-finished" onClick="return filter('finished');">finished<span class="fct"></span></button>
     <button id="filter-button-flagged" onClick="return filter('flagged');">flagged<span class="fct"></span></button>
+    <button id="filter-button-disputed" onClick="return filter('disputed');">disputed<span class="fct"></span></button>
+    <button id="filter-button-rejected" onClick="return filter('rejected');">rejected<span class="fct"></span></button>
     <span id="filter-info"></span>
 </div>
 <% } %>
