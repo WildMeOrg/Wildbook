@@ -140,12 +140,6 @@
         <artifactId>scribe</artifactId>
         <version>1.3.7</version>
     </dependency>
-    
-    <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
-        <version>3.8.1</version>
-    </dependency>
 
 <dependency>
 	<groupId>com.amazonaws</groupId>
@@ -231,16 +225,22 @@
     </dependency>
     
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-collections4</artifactId>
-      <version>4.1</version>
-    </dependency>
-    
-    <dependency>
     	<groupId>commons-collections</groupId>
     	<artifactId>commons-collections</artifactId>
     	<version>3.2.2</version>
-	</dependency>
+  </dependency>
+  
+  <dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-collections4</artifactId>
+    <version>4.4</version>
+</dependency>
+  
+  <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.8.1</version>
+  </dependency>
 
     <dependency>
     <groupId>org.apache.commons</groupId>
