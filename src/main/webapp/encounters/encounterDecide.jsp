@@ -474,6 +474,11 @@ function doSave() {
 }
 
 var matchData = null;
+var attributeReadable = {
+    colorPattern: 'color/pattern',
+    earTip: 'ear tip',
+    lifeStage: 'life stage'
+};
 function enableMatch() {
     $('.column-attributes').hide();
     $('.column-match').show();
@@ -481,7 +486,7 @@ function enableMatch() {
     window.scrollTo(0,0);
     var h = '';
     for (var i in userData) {
-        h += '<span class="match-summary-detail">' + i + ': <b>' + userData[i] + '</b></span>';
+        h += '<span class="match-summary-detail">' + (attributeReadable[i] || i) + ': <b>' + userData[i] + '</b></span>';
     }
     $('#match-summary').html(h);
     var url = 'encounterDecide.jsp?id=' + encounterId + '&getSimilar=' + encodeURI(JSON.stringify(userData));
