@@ -81,7 +81,6 @@ try {
             }
 
             if ("true".equals(commit)) {
-                enc.refreshAssetFormats(myShepherd);
                 
                 boolean hasTrivial = false;
 
@@ -93,6 +92,7 @@ try {
                     }
                 }
                 if (hasTrivial==true) {
+                    enc.refreshAssetFormats(myShepherd);
                     Task parentTask = null;
                     if (enc.getLocationID() != null) {
                         parentTask = new Task();
@@ -100,9 +100,11 @@ try {
                         JSONObject mf = new JSONObject();
                         mf.put("locationId", enc.getLocationID());
                         tp.put("matchingSetFilter", mf);
+                        tp.put("skipIdent", true);
                         parentTask.setParameters(tp);
                     }
                     Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask); 
+                    //TimeUnit.SECONDS.sleep(1); // just a little breathing room
                     System.out.println("Sent encounter # "+enc.getCatalogNumber()+" to detection...");
                 }
             }
