@@ -81,7 +81,7 @@ console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identAc
 
 	if (identActive && (ma.detectionStatus == 'complete') && ma.annotation && !ma.annotation.identificationStatus) {
             if (mode == 'textStart') {
-                return '<span class="disabled">no head detected; cannot match</span>';
+                return '<span class="disabled">no matchable detection</span>';
             } else if (mode == 'funcStart') {
                 //registerTaskId(iaStatus.taskId);
                 //wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
