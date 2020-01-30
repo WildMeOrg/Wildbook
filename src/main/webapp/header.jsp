@@ -348,7 +348,7 @@ if (thisUser == null) {
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand" xtarget="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                 </div>
               </div>
 
