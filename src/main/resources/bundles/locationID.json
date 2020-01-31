@@ -143,7 +143,9 @@
 		"locationID": [
 			 {
 			  "name": "Caribbean Sea","id":"CaribbeanSea","locationID":[
-			  	{ "name":"2h", "id":"2h", "locationID":[] },
+
+				  { "name":"2h", "id":"2h", "locationID":[] },
+				  
 				{ "name":"Bahamas-GBB", "id":"Bahamas-GBB", "locationID":[] },
 				{ "name":"Bahamas-LBB", "id":"Bahamas-LBB", "locationID":[] },
 				{ "name":"Dominica", "id":"Dominica", "locationID":[
@@ -153,7 +155,8 @@
 					{"name": "Rosalie", "id": "Rosalie" }
 
 				] },
-				{ "name":"Guadeloupe", "id":"Guadeloupe", "locationID":[] }
+				{ "name":"Guadeloupe", "id":"Guadeloupe", "locationID":[] },
+				{ "name":"Panama", "id":"Panama", "locationID":[] }
 			  ] 
 			  },
 			
