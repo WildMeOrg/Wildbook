@@ -530,6 +530,34 @@ class GraphAbstract { //See static attributes below class
 
 	//Unknown role filter
 	this.createCheckBoxFilter(containerId, "unknownRole", (d) => d.data.role);
+
+	//zoom in
+	$(containerId).find("#ocZoomIn").on("click", () => this.zoomIn());
+
+
+	//zoom out
+	$(containerId).find("#ocZoomOut").on("click", () => this.zoomOut());
+
+
+	//zoom in
+	$(containerId).find("#reZoomIn").on("click", () => this.zoomIn());
+
+
+	//zoom out
+	$(containerId).find("#reZoomOut").on("click", () => this.zoomOut());
+    }
+
+    //Zoom in when button is pressed
+    zoomIn(){
+	console.log("in zoomIn()");
+	this.zoom.scaleBy(this.svg.transition().duration(750), 1.3);
+    }
+
+
+    //zoom out when button is pressed
+    zoomOut(){
+	console.log("in zoomOut()");
+	this.zoom.scaleBy(this.svg.transition().duration(750), 1 / 1.3);
     }
 
     createCheckBoxFilter(containerId, filterRef, filter) {
