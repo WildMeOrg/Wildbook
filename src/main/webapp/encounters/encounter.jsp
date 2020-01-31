@@ -560,6 +560,7 @@ var encounterNumber = '<%=num%>';
 
 			<%
   			myShepherd.beginDBTransaction();
+                        boolean commitTransaction = false;
 
   			if (myShepherd.isEncounter(num)) {
     			try {
@@ -604,8 +605,9 @@ var encounterNumber = '<%=num%>';
       			}
 
 String setState = Util.basicSanitize(request.getParameter("setState"));
-if (isAdmin && (setState != null) && (setState.equals("approved") || setState.startsWith("flag-"))) {
+if (isAdmin && (setState != null) && (setState.equals("processing") || setState.equals("finished") || setState.startsWith("flag-"))) {
     enc.setState(setState);
+    commitTransaction = true;
 }
 if (request.getParameter("refreshImages") != null) {
 	System.out.println("refreshing images!!! ==========");
@@ -634,9 +636,9 @@ function flag(type) {
     $('.kitsci-actions button').hide();
     window.location.href = 'encounter.jsp?number=' + encounterNumber + '&setState=flag-' + type;
 }
-function approve() {
+function setState(state) {
     $('.kitsci-actions button').hide();
-    window.location.href = 'encounter.jsp?number=' + encounterNumber + '&setState=approved';
+    window.location.href = 'encounter.jsp?number=' + encounterNumber + '&setState=' + state;
 }
 
 
@@ -908,7 +910,8 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
     <div class="kitsci-actions">
         <h2>Current state: <b><%=enc.getState()%></b></h2>
         <button onclick="return flag('detection');">Flag detection</button>
-        <button onclick="return approve();">Approve</button>
+        <button onclick="return setState('processing');">set Processing</button>
+        <button onclick="return setState('finished');">set Finished</button>
     </div>
 </div>
 <% }  //end isAdmin %>
@@ -6607,7 +6610,11 @@ catch(Exception e){
 <%
 }
 finally{
-	myShepherd.rollbackDBTransaction();
+        if (commitTransaction) {
+	    myShepherd.commitDBTransaction();
+        } else {
+	    myShepherd.rollbackDBTransaction();
+        }
 	myShepherd.closeDBTransaction();
 	//kwQuery=null;
 	myShepherd=null;
@@ -6615,7 +6622,11 @@ finally{
 
 	}  //end if this is an encounter
     else {
-  		myShepherd.rollbackDBTransaction();
+                if (commitTransaction) {
+  		    myShepherd.commitDBTransaction();
+                } else {
+  		    myShepherd.rollbackDBTransaction();
+                }
   		myShepherd.closeDBTransaction();
 		%>
 		<p class="para">There is no corresponding encounter number in the database. Please double-check the encounter number and try again.</p>
