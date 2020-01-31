@@ -605,7 +605,7 @@ var encounterNumber = '<%=num%>';
       			}
 
 String setState = Util.basicSanitize(request.getParameter("setState"));
-if (isAdmin && (setState != null) && (setState.equals("processing") || setState.equals("finished") || setState.startsWith("flag-"))) {
+if (isAdmin && (setState != null) && (setState.equals("processing") || setState.equals("finished") || setState.equals("pending"))) {
     enc.setState(setState);
     commitTransaction = true;
 }
@@ -634,8 +634,24 @@ if (request.getParameter("refreshImages") != null) {
 
 function flag(type) {
     $('.kitsci-actions button').hide();
-    window.location.href = 'encounter.jsp?number=' + encounterNumber + '&setState=flag-' + type;
+    $.ajax({
+        url: '../DecisionStore',
+        data: JSON.stringify({ property: 'flag', value: { value: ['flag-' + type], via: 'encounter.jsp' }, encounterId: encounterNumber }),
+        dataType: 'json',
+        complete: function(xhr) {
+            console.log(xhr);
+            if (!xhr || !xhr.responseJSON || !xhr.responseJSON.success) {
+                console.warn("responseJSON => %o", xhr.responseJSON);
+                alert('ERROR setting: ' + ((xhr && xhr.responseJSON && xhr.responseJSON.error) || 'Unknown problem'));
+            } else {
+                window.location.href = 'encounter.jsp?number=' + encounterNumber + '&setState=pending';
+            }
+        },
+        contentType: 'application/javascript',
+        type: 'POST'
+    });
 }
+
 function setState(state) {
     $('.kitsci-actions button').hide();
     window.location.href = 'encounter.jsp?number=' + encounterNumber + '&setState=' + state;
@@ -875,7 +891,7 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
         if (countFlag < 1) {
             out.println("<h3>No flags</h3>");
         } else {
-            out.println("<h3>Volunteer flags</h3>");
+            out.println("<h3>Flags</h3>");
             for (String val : flagMap.keySet()) {
                 int ct = flagMap.get(val);
                 String pct = "";
