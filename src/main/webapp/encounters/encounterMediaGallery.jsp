@@ -429,7 +429,7 @@ figcaption div {
     cursor: pointer !important;
 }
 .image-enhancer-feature-focused {
-    outline: dashed rgba(50,250,50,0.7) 4px;
+    outline: dashed rgba(191, 242, 35, 0.7) 4px;
 }
 
 .image-enhancer-feature-aoi {
