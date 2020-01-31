@@ -276,7 +276,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 }
 
 #filter-info {
-    margin-left: 70px;
+    margin-left: 20px;
 }
 
 #filter-tabs .fct {
