@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,
+java.util.Iterator,
 org.ecocean.*,
 javax.jdo.Query,
 java.util.Map, java.util.HashMap,
@@ -207,12 +208,28 @@ if (Util.requestParameterSet(dtype)) {
 }
 
 String jdoql = "SELECT FROM org.ecocean.Encounter";
-//if (!isAdmin) jdoql = "SELECT FROM org.ecocean.Encounter WHERE state=='new'";  //FIXME this is for testing only
+if (!isAdmin) jdoql = "SELECT FROM org.ecocean.Encounter WHERE state=='processing'";
 Query query = myShepherd.getPM().newQuery(jdoql);
 query.setOrdering("state, dateInMilliseconds");
 Collection col = (Collection)query.execute();
 List<Encounter> encs = new ArrayList<Encounter>(col);
 query.closeAll();
+
+if (!isAdmin) {   //filter out ones we made decision on
+    Iterator it = encs.iterator();
+    while (it.hasNext()) {
+        Encounter e = (Encounter)it.next();
+        jdoql = "SELECT FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + e.getCatalogNumber() + "' && user.uuid=='" + user.getUUID() + "'";
+        query = myShepherd.getPM().newQuery(jdoql);
+        col = (Collection)query.execute();
+        //List<Decision> decs = new ArrayList<Decision>(col);
+        int decCt = col.size();
+        query.closeAll();
+        if (decCt > 0) it.remove();
+    }
+}
+
+System.out.println("queue.jsp: found " + encs.size() + " encs for user " + user);
 
 if (!forceList && (encs.size() > 0)) {
     String redir = "encounters/encounterDecide.jsp?id=" + encs.get(0).getCatalogNumber();
