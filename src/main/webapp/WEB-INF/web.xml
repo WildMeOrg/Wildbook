@@ -1731,11 +1731,6 @@
 	  <url-pattern>/MarkRecaptureEncounters</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-	  <servlet-name>MarkRecaptureEncounters</servlet-name>
-	  <url-pattern>/MarkRecaptureEncounters</url-pattern>
-  </servlet-mapping>
-
       <servlet-mapping>
         <servlet-name>TissueSampleRemoveHaplotype</servlet-name>
         <url-pattern>/TissueSampleRemoveHaplotype</url-pattern>
