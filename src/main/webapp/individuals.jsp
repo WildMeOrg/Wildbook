@@ -125,10 +125,11 @@ if (request.getParameter("number")!=null) {
 
 }
 
-if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
-                                  System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
-    id = request.getParameter("id");
-    if (id==null) id = request.getParameter("number");
+id = request.getParameter("id");
+if (id==null) id = request.getParameter("number");
+if (id!=null&&!"".equals(id)&&myShepherd.isMarkedIndividual(id)) {
+System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
+
 	myShepherd.beginDBTransaction();
 	try {
 
