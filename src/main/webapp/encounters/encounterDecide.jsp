@@ -534,7 +534,7 @@ console.log(url);
                         var score = matchScore(xhr.responseJSON.similar[i]);
                         matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
                         var h = '<div class="match-item">';
-                        h += '<div class="match-name"><a title="More images of this cat" target="_new" href="thumbnailSearchResults.jsp?individualIDExact=' + xhr.responseJSON.similar[i].individualId + '">More photos ' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</a></div>';
+                        h += '<div class="match-name"><a title="More images of this cat" target="_new" href="thumbnailSearchResults.jsp?individualIDExact=' + xhr.responseJSON.similar[i].individualId + '&subject=' + xhr.responseJSON.similar[i].encounterId + '">More photos ' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</a></div>';
                         //h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
                         h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
                         var numImages = xhr.responseJSON.similar[i].assets.length;

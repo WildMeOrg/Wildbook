@@ -63,7 +63,8 @@ f<%@ page contentType="text/html; charset=utf-8"
 
     //if (request.getParameter("noQuery") == null) {
 
-    String queryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap) + " ORDER BY annotations.size()";
+    String subjectId = Util.basicSanitize(request.getParameter("subject"));
+    String queryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap) + ((subjectId == null) ? "" : " && catalogNumber != '" + subjectId + "'") + " ORDER BY annotations.size()";
 
   %>
  <jsp:include page="../header.jsp" flush="true"/>
