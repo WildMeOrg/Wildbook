@@ -1190,7 +1190,7 @@ long tt = System.currentTimeMillis();
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), myShepherd.getContext());
         String curvrankDailyTag = null;
 
-Util.mark("OPTIMIZED identify process start", tt);
+//Util.mark("OPTIMIZED identify process start", tt);
         try {
             for (Annotation ann : qanns) {
                 if (validForIdentification(ann, myShepherd.getContext())) {
@@ -1211,14 +1211,14 @@ Util.mark("OPTIMIZED identify process start", tt);
             grp.addMember("acmId").addMember("store").addMember("id").addMember("parametersAsString").addMember("parameters").addMember("metadata").addMember("labels").addMember("userLatitude").addMember("userLongitude").addMember("userDateTime").addMember("features");
             myShepherd.getPM().getFetchPlan().addGroup("BIA");
 
-Util.mark("OPT bia 2", tt);
+//Util.mark("OPT bia 2", tt);
             if (tanns==null||tanns.isEmpty()) {
                 String iaClass = qanns.get(0).getIAClass();
 System.out.println("beginIdentifyAnnotations(): have to set tanns. Matching set being built from the first ann in the list.");
                 tanns = qanns.get(0).getMatchingSet(myShepherd, (task == null) ? null : task.getParameters());
                 curvrankDailyTag = qanns.get(0).getCurvrankDailyTag((task == null) ? null : task.getParameters());
             }
-Util.mark("OPT bia 3", tt);
+//Util.mark("OPT bia 3", tt);
 
 System.out.println("- mark 2");
             if (tanns!=null&&!tanns.isEmpty()) {
@@ -1232,7 +1232,7 @@ System.out.println("- mark 2");
 */
                 }
             }
-Util.mark("OPT bia 4", tt);
+//Util.mark("OPT bia 4", tt);
 
 /*
             results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
@@ -1241,7 +1241,7 @@ Util.mark("bia 4A", tt);
 Util.mark("bia 4B", tt);
 */
             results.put("sendAnnotationsAsNeeded", sendAnnotationsAsNeeded(allAnns, myShepherd));
-Util.mark("OPT bia 4X", tt);
+//Util.mark("OPT bia 4X", tt);
 
             if (tanns!=null) {
                 System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
@@ -1258,7 +1258,7 @@ Util.mark("OPT bia 4X", tt);
                 }
             }
 
-Util.mark("bia 4C", tt);
+//Util.mark("bia 4C", tt);
             //this should attempt to repair missing Annotations
             boolean tryAgain = true;
             JSONObject identRtn = null;
@@ -4101,7 +4101,7 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
 
     public static JSONObject sendAnnotationsAsNeeded(ArrayList<Annotation> anns, Shepherd myShepherd) {
 long tt = System.currentTimeMillis();
-Util.mark("sendAnnotationsAsNeeded -in- ", tt);
+//Util.mark("sendAnnotationsAsNeeded -in- ", tt);
         JSONObject rtn = new JSONObject();
         rtn.put("numAnnotsTotal", Util.collectionSize(anns));
         if (Util.collectionIsEmptyOrNull(anns)) return rtn;
@@ -4109,11 +4109,11 @@ Util.mark("sendAnnotationsAsNeeded -in- ", tt);
         ArrayList<Annotation> annsToSend = new ArrayList<Annotation>();
         //List<String> iaAnnotIds = plugin.iaAnnotationIds();
         HashSet<String> iaAnnotIds = new HashSet(plugin.iaAnnotationIds());
-Util.mark("sendAnnotationsAsNeeded 1 ", tt);
+//Util.mark("sendAnnotationsAsNeeded 1 ", tt);
         ArrayList<MediaAsset> masToSend = new ArrayList<MediaAsset>();
         //List<String> iaImageIds = plugin.iaImageIds();  //in a better world we would do this *after* we have built up masToSend
         HashSet<String> iaImageIds = null;
-        Util.mark("sendAnnotationsAsNeeded 2-hs ", tt);
+        //Util.mark("sendAnnotationsAsNeeded 2-hs ", tt);
         for (Annotation ann : anns) {
             if (iaAnnotIds.contains(ann.getAcmId())) continue;
             MediaAsset ma = ann.getMediaAsset();
@@ -4126,17 +4126,17 @@ Util.mark("sendAnnotationsAsNeeded 1 ", tt);
             if (iaImageIds.contains(ma.getAcmId())) continue;
             masToSend.add(ma);
         }
-Util.mark("sendAnnotationsAsNeeded 3-hs ", tt);
+//Util.mark("sendAnnotationsAsNeeded 3-hs ", tt);
         rtn.put("numAnnotsToSend", Util.collectionSize(annsToSend));
         rtn.put("numAssetsToSend", Util.collectionSize(masToSend));
         try {
             if (!Util.collectionIsEmptyOrNull(masToSend)) rtn.put("sendMediaAssets", plugin.sendMediaAssets(masToSend, false));
-Util.mark("sendAnnotationsAsNeeded 4 ", tt);
+//Util.mark("sendAnnotationsAsNeeded 4 ", tt);
             if (!Util.collectionIsEmptyOrNull(annsToSend)) rtn.put("sendAnnotations", plugin.sendAnnotations(annsToSend, false, myShepherd));
         } catch (Exception ex) {
             rtn.put("sendAnnotMAException", ex.toString());
         }
-Util.mark("sendAnnotationsAsNeeded -out- ", tt);
+//Util.mark("sendAnnotationsAsNeeded -out- ", tt);
         return rtn;
     }
 
