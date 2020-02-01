@@ -534,7 +534,7 @@ console.log(url);
                         var score = matchScore(xhr.responseJSON.similar[i]);
                         matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
                         var h = '<div class="match-item">';
-                        h += '<div class="match-name"><a title="more on this cat" target="_new" href="../individuals.jsp?id=' + xhr.responseJSON.similar[i].individualId + '">' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</a></div>';
+                        h += '<div class="match-name"><a title="More images of this cat" target="_new" href="thumbnailSearchResults.jsp?individualIDExact=' + xhr.responseJSON.similar[i].individualId + '">More photos ' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</a></div>';
                         //h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
                         h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
                         var numImages = xhr.responseJSON.similar[i].assets.length;
@@ -659,31 +659,6 @@ console.log('CLICK IMG %o', ev);
 */
 	imgEl.show();
 }
-
-function XXXtoggleZoom(id) {
-console.log('asset id=%o', id);
-    var nudge = 20;
-    if (!matchData || !matchData.assetData || !matchData.assetData[id] || !matchData.assetData[id].bbox) return;
-    var imgEl = document.getElementById('match-asset-' + id);
-    if (!imgEl) return;
-    if (!imgEl.style) imgEl.style = {};
-    var elWidth = imgEl.width;
-    var imgWidth = imgEl.naturalWidth;
-    console.log('elWidth=%o imgWidth=%o; ft.params => %o', elWidth, imgWidth, matchData.assetData[id].bbox);
-    if (imgWidth < 1) return;
-    var ratio = elWidth / imgWidth;
-    var scale = imgWidth / (matchData.assetData[id].bbox[2] + nudge*2);
-    if (scale > 5) scale = 5;
-    console.log('ratio => %o; scale => %o', ratio, scale);
-    imgEl.style.transformOrigin = '40% 40%';
-    imgEl.style.left = -((matchData.assetData[id].bbox[0] - nudge) * ratio) + 'px';
-    imgEl.style.top = -((matchData.assetData[id].bbox[1] - nudge) * ratio) + 'px';
-    //imgEl.style.left = -((matchData.assetData[id].bbox[0] + matchData.assetData[id].bbox[2]/2) * scale * ratio) + 'px';
-    //imgEl.style.top = -((matchData.assetData[id].bbox[1] + matchData.assetData[id].bbox[3]/2) * scale * ratio) + 'px';
-    imgEl.style.transform = 'scale(' + scale + ')';
-console.info(imgEl.style);
-}
-
 
 </script>
 

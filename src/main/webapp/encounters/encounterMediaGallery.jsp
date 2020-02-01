@@ -173,13 +173,15 @@ function forceLink(el) {
 		      
 		      //Start caption render JSP side
 		      String[] capos=new String[1];
+/*
 		      capos[0]="<p style=\"color: white;\"><em>"+filename+"</em><br>";
 		      capos[0]+=individualID;
 		      
 		      capos[0]+=encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a><br>";
 		      capos[0]+=encprops.getProperty("date")+" "+enc.getDate()+"<br>";
 		      
-		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
+*/
+		      capos[0] = "<p>" + encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
 		      captionLinks.add(capos);
 		      System.out.println("    EMG: got capos "+capos[0]);
 
@@ -248,8 +250,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
 							//note: this violates safeUrl / etc... use with caution in your branch?
 							j.put("url", ma.webURL().toString());
 						}
-						// Should fix oman images not appearing on import
-						j.put("url", ma.webURL().toString());
+						j.put("url", ma.safeURL(request));
 
             if (Util.stringExists(ma.getDetectionStatus())) {
               j.put("detectionStatus",ma.getDetectionStatus());
