@@ -55,7 +55,8 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         JSONObject propMatches = new JSONObject();
         el.put("encounterId", encId);
         if (menc.getIndividual() != null) {
-            el.put("name", menc.getIndividual().getDisplayName());
+            el.put("individualId", menc.getIndividual().getId());
+            //el.put("name", menc.getIndividual().getDisplayName());
         }
         el.put("encounterEventId", menc.getEventID());
         el.put("distance", dist);
@@ -287,6 +288,10 @@ h1 { background: none !important; }
     font-size: 1.3em;
 }
 
+.match-name a:hover {
+    color: #000;
+}
+
 .match-item-info {
     display: none;
     background-color: rgba(255,255,200,0.7);
@@ -297,10 +302,25 @@ h1 { background: none !important; }
 }
 .match-asset-wrapper {
     position: relative;
-    overflow: hidden;
-    width: 500px;
-    xheight: 300px;
+    xoverflow: hidden;
+    xwidth: 500px;
+    xheight: 500px;
     margin-bottom: 5px;
+}
+
+.match-asset-img-wrapper {
+    width: 500px;
+    height: 400px;
+    background-color: #AAA;
+    position: relative;
+    overflow:hidden;
+}
+
+.match-asset-img {
+    position: absolute;
+    //transform-origin: 0 0 !important;
+    max-width: none !important;
+    display: none;
 }
 .zoom-hint {
     position: absolute;
@@ -402,7 +422,10 @@ $(document).ready(function() {
 
 function zoomOut(el, imgWrapperClass) {
     event.stopPropagation();
-    $(el).closest(imgWrapperClass).find('img').panzoom('reset');
+    var iEl = $(el).closest(imgWrapperClass).find('img');
+    iEl.attr('style', null).show().css('width', '100%');
+    iEl.panzoom('reset');
+    //$(el).closest(imgWrapperClass).find('img').css('transform-origin', '50% 50% !important').panzoom('reset');
 }
 
 function clickAttributeOption(ev) {
@@ -506,11 +529,12 @@ console.log(url);
                     matchData.assetData = {};
                     matchData.userPresented = {};
                     var sort = {};
-                    for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
+                    //for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
+                    for (var i = 0 ; i < 10 ; i++) {
                         var score = matchScore(xhr.responseJSON.similar[i]);
                         matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
                         var h = '<div class="match-item">';
-                        h += '<div class="match-name">' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
+                        h += '<div class="match-name"><a title="more on this cat" target="_new" href="../individuals.jsp?id=' + xhr.responseJSON.similar[i].individualId + '">' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</a></div>';
                         //h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
                         h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
                         var numImages = xhr.responseJSON.similar[i].assets.length;
@@ -519,7 +543,7 @@ console.log(url);
                         for (var j = 0 ; j < numImages ; j++) {
                             h += '<div class="match-asset-wrapper">';
                             h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
-                            h += '<img onLoad="matchAssetLoaded(this);" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div>';
+                            h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this);" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].assets[j].id] = xhr.responseJSON.similar[i].assets[j];
                         }
                         h += '<div class="match-item-info">';
@@ -592,13 +616,53 @@ function matchAssetLoaded(el) {
     $(el).panzoom({maxScale:9}).on('panzoomend', function(ev, panzoom, matrix, changed) {
         if (!changed) return $(ev.currentTarget).panzoom('zoom');
     });
-return;
     var id = el.id.substr(12);
     toggleZoom(id);
 }
 
 function toggleZoom(id) {
 console.log('asset id=%o', id);
+    var padding = 400;
+    var imgEl = $('#match-asset-' + id);
+    if (!imgEl.length) return;
+    if (!matchData || !matchData.assetData || !matchData.assetData[id] || !matchData.assetData[id].bbox) {
+        imgEl.css('width', '100%');
+        imgEl.show();
+        return;
+    }
+    var wrapper = imgEl.parent();
+    var iw = imgEl[0].naturalWidth;
+    var ih = imgEl[0].naturalHeight;
+    var ww = wrapper.width();
+    var wh = wrapper.height();
+    var ratio = ww / (matchData.assetData[id].bbox[2] + padding);
+    if ((wh / (matchData.assetData[id].bbox[3] + padding)) < ratio) ratio = wh / (matchData.assetData[id].bbox[3] + padding);
+console.log('img=%dx%d / wrapper=%dx%d / box=%dx%d', iw, ih, ww, wh, matchData.assetData[id].bbox[2], matchData.assetData[id].bbox[3]);
+console.log('%.f', ratio);
+	var dx = (ww / 2) - ((matchData.assetData[id].bbox[2] + padding) * ratio / 2);
+	var dy = (wh / 2) - ((matchData.assetData[id].bbox[3] + padding) * ratio / 2);
+console.log('dx, dy %f, %f', dx, dy);
+	var css = {
+                transformOrigin: '0 0',
+		transform: 'scale(' + ratio + ')',
+		left: (dx - ratio * matchData.assetData[id].bbox[0] + padding/2*ratio) + 'px',
+		top: (dy - ratio * matchData.assetData[id].bbox[1] + padding/2*ratio) + 'px'
+	};
+console.log('css = %o', css);
+	imgEl.css(css);
+/*
+        imgEl.on('click', function(ev) {
+console.log('CLICK IMG %o', ev);
+            ev.target.style.transformOrigin = '50% 50%';
+            ev.target.style.width = '100%';
+        });
+*/
+	imgEl.show();
+}
+
+function XXXtoggleZoom(id) {
+console.log('asset id=%o', id);
+    var nudge = 20;
     if (!matchData || !matchData.assetData || !matchData.assetData[id] || !matchData.assetData[id].bbox) return;
     var imgEl = document.getElementById('match-asset-' + id);
     if (!imgEl) return;
@@ -608,11 +672,12 @@ console.log('asset id=%o', id);
     console.log('elWidth=%o imgWidth=%o; ft.params => %o', elWidth, imgWidth, matchData.assetData[id].bbox);
     if (imgWidth < 1) return;
     var ratio = elWidth / imgWidth;
-    var scale = imgWidth / matchData.assetData[id].bbox[2];
+    var scale = imgWidth / (matchData.assetData[id].bbox[2] + nudge*2);
+    if (scale > 5) scale = 5;
     console.log('ratio => %o; scale => %o', ratio, scale);
-    //imgEl.style.transformOrigin = '0 0';
-    imgEl.style.left = -(matchData.assetData[id].bbox[0] * scale * ratio) + 'px';
-    imgEl.style.top = -(matchData.assetData[id].bbox[1] * scale * ratio) + 'px';
+    imgEl.style.transformOrigin = '40% 40%';
+    imgEl.style.left = -((matchData.assetData[id].bbox[0] - nudge) * ratio) + 'px';
+    imgEl.style.top = -((matchData.assetData[id].bbox[1] - nudge) * ratio) + 'px';
     //imgEl.style.left = -((matchData.assetData[id].bbox[0] + matchData.assetData[id].bbox[2]/2) * scale * ratio) + 'px';
     //imgEl.style.top = -((matchData.assetData[id].bbox[1] + matchData.assetData[id].bbox[3]/2) * scale * ratio) + 'px';
     imgEl.style.transform = 'scale(' + scale + ')';
