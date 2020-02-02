@@ -57,6 +57,7 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         if (menc.getIndividual() != null) {
             el.put("individualId", menc.getIndividual().getId());
             //el.put("name", menc.getIndividual().getDisplayName());
+            el.put("matchPhoto", getMatchPhoto(request, myShepherd, menc.getIndividual()));
         }
         el.put("encounterEventId", menc.getEventID());
         el.put("distance", dist);
@@ -84,6 +85,36 @@ System.out.println("findSimilar() -> " + el.toString());
     }
     return found;
 }
+
+private static JSONObject getMatchPhoto(HttpServletRequest request, Shepherd myShepherd, MarkedIndividual indiv) {
+    if (indiv == null) return null;
+    Annotation backup = null;
+    Annotation found = null;
+    foundOne: for (Encounter enc : indiv.getEncounters()) {
+        if (Util.collectionIsEmptyOrNull(enc.getAnnotations())) continue;
+        for (Annotation ann : enc.getAnnotations()) {
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma == null) continue;
+            if (backup == null) backup = ann;
+            if (ma.hasKeyword("MatchPhoto")) {
+                found = ann;
+                break foundOne;
+            }
+        }
+    }
+System.out.println("getMatchPhoto(" + indiv + ") -> found = " + found);
+System.out.println("getMatchPhoto(" + indiv + ") -> backup = " + backup);
+    if ((backup == null) && (found == null)) return null;
+    if (found == null) found = backup;
+    MediaAsset ma = found.getMediaAsset();
+    JSONObject rtn = new JSONObject();
+    rtn.put("annotationId", found.getId());
+    rtn.put("mediaAssetId", ma.getId());
+    if (!found.isTrivial()) rtn.put("bbox", found.getBbox());
+    rtn.put("url", ma.safeURL(myShepherd, request));
+    return rtn;
+}
+
 
 %>
 <%
@@ -531,8 +562,9 @@ console.log(url);
                     var sort = {};
                     //for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
                     for (var i = 0 ; i < 10 ; i++) {
-                        var score = matchScore(xhr.responseJSON.similar[i]);
+                        var score = matchScore(xhr.responseJSON.similar[i], userData);
                         matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
+                        if (score < 0) continue;
                         var h = '<div class="match-item">';
                         h += '<div class="match-name"><a title="More images of this cat" target="_new" href="thumbnailSearchResults.jsp?individualIDExact=' + xhr.responseJSON.similar[i].individualId + '&subject=' + xhr.responseJSON.similar[i].encounterId + '">More photos ' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</a></div>';
                         //h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
@@ -601,7 +633,8 @@ function saveMatchChoice() {
 }
 
 //negative score will NOT be shown to user at all
-function matchScore(mdata) {
+function matchScore(mdata, udata) {
+    if (udata.colorPattern != mdata.colorPattern) return -1;  //dealbreaker
     var score = 1;
     if (mdata.matches.earTip) score += 0.5;
     if (mdata.matches.collar) score += 1.1;
