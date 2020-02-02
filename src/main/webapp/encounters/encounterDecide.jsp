@@ -109,7 +109,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> backup = " + backup);
     MediaAsset ma = found.getMediaAsset();
     JSONObject rtn = new JSONObject();
     rtn.put("annotationId", found.getId());
-    rtn.put("mediaAssetId", ma.getId());
+    rtn.put("id", ma.getId());
     if (!found.isTrivial()) rtn.put("bbox", found.getBbox());
     rtn.put("url", ma.safeURL(myShepherd, request));
     return rtn;
@@ -566,11 +566,11 @@ console.log(url);
                         matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
                         if (score < 0) continue;
                         var h = '<div class="match-item">';
-                        h += '<div class="match-name"><a title="More images of this cat" target="_new" href="thumbnailSearchResults.jsp?individualIDExact=' + xhr.responseJSON.similar[i].individualId + '&subject=' + xhr.responseJSON.similar[i].encounterId + '">More photos ' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</a></div>';
+                        h += '<div class="match-name"><a title="More images of this cat" target="_new" href="thumbnailSearchResults.jsp?individualIDExact=' + xhr.responseJSON.similar[i].individualId + '&subject=' + encounterId + '" title="Enc ' + xhr.responseJSON.similar[i].encounterId + '">More photos ' + xhr.responseJSON.similar[i].individualId.substr(0,8) + '</a></div>';
                         //h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
                         h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
+/*
                         var numImages = xhr.responseJSON.similar[i].assets.length;
-//////////// TODO use keyword 'Comparison Photo' to decide!
                         if (numImages > 2) numImages = 2;
                         for (var j = 0 ; j < numImages ; j++) {
                             h += '<div class="match-asset-wrapper">';
@@ -578,6 +578,12 @@ console.log(url);
                             h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this);" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].assets[j].id] = xhr.responseJSON.similar[i].assets[j];
                         }
+*/
+                        h += '<div class="match-asset-wrapper">';
+                        h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
+                        h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this);" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
+                        matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
+
                         h += '<div class="match-item-info">';
                         h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
                         h += '<div><b>' + (Math.round(xhr.responseJSON.similar[i].distance / 100) * 100) + 'm</b></div>';
