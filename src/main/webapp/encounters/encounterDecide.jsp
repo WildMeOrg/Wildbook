@@ -560,11 +560,14 @@ console.log(url);
                     matchData.assetData = {};
                     matchData.userPresented = {};
                     var sort = {};
-                    //for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
-                    for (var i = 0 ; i < 10 ; i++) {
+                    var seen = {};
+                    for (var i = 0 ; i < xhr.responseJSON.similar.length ; i++) {
+                        if (!xhr.responseJSON.similar[i].individualId) continue;
+                        if (seen[xhr.responseJSON.similar[i].individualId]) continue;
                         var score = matchScore(xhr.responseJSON.similar[i], userData);
                         matchData.userPresented[xhr.responseJSON.similar[i].encounterId] = score;
                         if (score < 0) continue;
+                        seen[xhr.responseJSON.similar[i].individualId] = true;
                         var h = '<div class="match-item">';
                         h += '<div class="match-name"><a title="More images of this cat" target="_new" href="thumbnailSearchResults.jsp?individualIDExact=' + xhr.responseJSON.similar[i].individualId + '&subject=' + encounterId + '" title="Enc ' + xhr.responseJSON.similar[i].encounterId + '">More photos ' + xhr.responseJSON.similar[i].individualId.substr(0,8) + '</a></div>';
                         //h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
@@ -640,7 +643,7 @@ function saveMatchChoice() {
 
 //negative score will NOT be shown to user at all
 function matchScore(mdata, udata) {
-    if (udata.colorPattern != mdata.colorPattern) return -1;  //dealbreaker
+    //if (udata.colorPattern != mdata.colorPattern) return -1;  //dealbreaker
     var score = 1;
     if (mdata.matches.earTip) score += 0.5;
     if (mdata.matches.collar) score += 1.1;
