@@ -300,12 +300,13 @@ Our second validation study, open to everyone, will begin in January 2020!
 The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission later, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.
 </p>
 
-<p>
+<p style="display: none;" blocked>
 You can <a href="register.jsp?instructions">read the study instructions</a>
 before deciding whether you want to volunteer.
 </p>
 
-<p>This study is open from January 6 to March 6, 2020.</p>
+<p><b>This study is not yet open.</b></p>
+<p style="display: none;" blocked>This study is open from February _ to March _, 2020.</p>
 
 
 <%
@@ -324,7 +325,7 @@ before deciding whether you want to volunteer.
 <% } else { %>
 
 <p>
-    <form method="post">
+    <form method="post" style="display: none;" blocked>
     <input type="submit" value="Register to Participate" />
     <input type="hidden" name="fromMode" value="-1" />
     </form>
@@ -738,17 +739,17 @@ How did you hear about Kitizen Science?
 <h1>Instructions for the Online Workflow Study</h1>
 
 <p>The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission later, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.  You will receive a short survey via email after this study ends asking for your feedback and for you to rate aspects of the website.</p>
-<p>This study is open from <span class="style1">January 6 to March 6</span>, 2020.</p>
+<p>This study is open from <span class="style1">February _ to March _</span>, 2020.</p>
 <h2>Rules</h2><p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change your success at processing submissions, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own.</p>
-<p class="quiz-note">There is a quiz at the end of this instruction page to ensure that you have read the instructions and understand what is being asked of you. </p>
+<p xclass="quiz-note">There is a quiz at the end of this instruction page to ensure that you have read the instructions and understand what is being asked of you. </p>
 <h2>General instructions</h2><p>In this study, you will be presented with a cat photo submission and asked to do two things: to assign attributes to the cat in the photo (primary color/pattern, life stage, ear tip, collar, and sex if visible), and then to decide if the cat has a match in the system (you'll be presented with potential matches) or if they are a new cat to the system.</p>
 <p>We realize this instruction page is long, but we think that once you get the hang of things, processing cat submissions will be simple.</p>
-<p>There are XXX submissions in the system, and you'll be presented with one randomly.  You can complete all of them or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each submission will each take a few minutes to process once you become familiar with the workflow.  You can process a maximum of XXX submissions per day.  (Observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time.)</p>
-<p>Most photos are taken at a distance, so make sure to click photos to zoom all the way in.  (Clicking on an image zooms in on it, and you are zoomed in all the way once clicking no longer increases the image size.)  These test photos were obtained in the same way that our project will gather data in the real world: by taking photos of free-roaming cats as they are seen walking through neighborhoods while not trespassing on private property.  That means some cats are harder to see than others, and you won't always get to see good details.</p>
+<p>There are 168 submissions in the system, and you'll be presented with one randomly. You can complete all of them or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible. We estimate each submission will each take a few minutes to process once you become familiar with the workflow. You can process a maximum of 24 submissions per day. (Observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time.)</p>
+<p>Most photos are taken at a distance, so make sure to click photos to zoom all the way in. (Clicking on an image zooms in on it, and you are zoomed in all the way once clicking no longer increases the image size.) These test photos were obtained in the same way that our project will gather data in the real world. That means some cats are harder to see than others, and you won't always get to see good details.</p>
 <p>Note: All of the locations of cats in this trial have been edited so the cats could be grouped into a new area together.</p>
 <h2>Step 1: assigning cat attributes</h2>
-<p>For each submission, you start out by assigning attributes to a cat.  You may have one or several photos of the cat, and you may or may not be able to see the cat's whole body.  Base your attribute assignments only on what you are sure you can see.</p>
-<p>Some photos will have more than one cat, and the cat whose attributes you are assigning and searching for a matching cat will be highlighted in the photo. (<span class="style1">Detection verification in this study? If so, explainer text here.</span>)</p>
+<p>For each submission, you start out by assigning attributes to a cat. You may have one, two, or three photos of the cat, and you may or may not be able to see the cat's whole body. Base your attribute assignments only on what you are sure you can see.</p>
+<p>Some photos will have more than one cat. The focal cat whose attributes you are assigning and matching will be highlighted with a box drawn in a dashed green line.</p>
 <p>First, select a cat's primary color or pattern group.  These are our 8 categories:</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
