@@ -520,6 +520,9 @@ if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonCo
 }
 %>
 
+</main>
+</main>
+
 <jsp:include page="footer.jsp" flush="true"/>
 
 
