@@ -169,6 +169,14 @@ String langCode=ServletUtilities.getLanguageCode(request);
   <style type="text/css">
 .declutter { display: none; }
 
+button:hover {
+    opacity: 0.7;
+}
+
+.button-smaller {
+    padding: 2px 10px;
+    font-size: 0.9em;
+}
 <%
     if (!isAdmin) out.println(".admin-only { display: none; }");
 %>
@@ -925,10 +933,12 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
 
     <div class="kitsci-actions">
         <h2>Current state: <b><%=enc.getState()%></b></h2>
-        <button onclick="return flag('detection-multicat-fail');">Flag Multi-cat Detection Fail</button>
-        <button onclick="return flag('detection-multicat-false');">Flag False Multi-cat</button>
-        <button onclick="return flag('detection-fail');">Flag Detection Fail</button>
-        <button onclick="return flag('detection-box-redraw');">Flag Box Re-draw</button>
+        <button class="button-smaller" onclick="return flag('detection-multicat-fail');">Flag Multi-cat Detection Fail</button>
+        <button class="button-smaller" onclick="return flag('detection-multicat-false');">Flag False Multi-cat</button>
+        <button class="button-smaller" onclick="return flag('detection-fail');">Flag Detection Fail</button>
+        <button class="button-smaller" onclick="return flag('detection-box-redraw');">Flag Box Re-draw</button>
+        <button class="button-smaller" onclick="return flag('detection-privacy');">Private info needs blurring (face, signs, etc)</button>
+        <br />
         <button onclick="return setState('processing');">Advance to Processing</button>
     </div>
 </div>
