@@ -36,11 +36,14 @@ var imgData = {};
 function imgLoaded(el) {
     var id = el.id.substring(4);
 console.log('asset id=%o', id);
-    var padding = 100;
     var imgEl = $(el);
     if (!imgEl.length) return;
     if (!imgData[id] || !imgData[id].bbox) {
-        imgEl.css('width', '100%');
+        imgEl.css({
+            width: '100%',
+            top: 0,
+            left: 0
+        });
         imgEl.show();
         imgEl.panzoom({maxScale:9}).on('panzoomend', function(ev, panzoom, matrix, changed) {
             if (!changed) return $(ev.currentTarget).panzoom('zoom');
@@ -54,6 +57,7 @@ console.log('asset id=%o', id);
     var ih = imgEl[0].naturalHeight;
     var ww = wrapper.width();
     var wh = wrapper.height();
+    var padding = ww * 0.15;
     for (var i = 0 ; i < imgData[id].bbox.length ; i++) {
         imgData[id].bbox[i] *= iw / ow;
     }
@@ -83,6 +87,8 @@ console.log('CLICK IMG %o', ev);
 
         var box = $('<div class="gallery-box" />');
         box.css({
+            transform: 'scale(1.9)',
+            opacity: 0.5,
             left: ((ww - imgData[id].bbox[2]) / 2) + 'px',
             top: ((wh - imgData[id].bbox[3]) / 2) + 'px',
             width: imgData[id].bbox[2] + 'px',
@@ -97,7 +103,7 @@ console.log('CLICK IMG %o', ev);
 <style>
 .img-wrapper {
     width: 48%;
-    height: 350px;
+    height: 650px;
     display: inline-block;
     margin: 10px 4px;
     position: relative;
@@ -117,7 +123,7 @@ console.log('CLICK IMG %o', ev);
 <jsp:include page="header.jsp" flush="true" />
 <script src="tools/panzoom/jquery.panzoom.min.js"></script>
 
-<div class="container maincontent">
+<div style="text-align: center;" class="maincontent">
 <div style="margin-top: 30px;"></div>
 <%
 if (!Util.collectionIsEmptyOrNull(indiv.getEncounters())) for (Encounter enc : indiv.getEncounters()) {
