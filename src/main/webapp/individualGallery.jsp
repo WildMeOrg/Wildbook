@@ -13,6 +13,7 @@ myShepherd.setAction("individualGallery.jsp");
 myShepherd.beginDBTransaction();
 
 String id = request.getParameter("id");
+String skipEncId = request.getParameter("subject");
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -120,6 +121,7 @@ console.log('CLICK IMG %o', ev);
 <div style="margin-top: 30px;"></div>
 <%
 if (!Util.collectionIsEmptyOrNull(indiv.getEncounters())) for (Encounter enc : indiv.getEncounters()) {
+    if ((skipEncId != null) && skipEncId.equals(enc.getCatalogNumber())) continue;
     if (!Util.collectionIsEmptyOrNull(enc.getAnnotations())) for (Annotation ann : enc.getAnnotations()) {
         MediaAsset ma = ann.getMediaAsset();
         if (ma == null) continue;
