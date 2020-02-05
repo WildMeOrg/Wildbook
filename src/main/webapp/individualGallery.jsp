@@ -39,6 +39,7 @@ if (indiv == null) {
 <script type="text/javascript">
 
 var imgData = {};
+var zscale = 1;
 
 function imgLoaded(el) {
     var id = el.id.substring(4);
@@ -75,33 +76,67 @@ console.log('%.f', ratio);
 	var dx = (ww / 2) - ((imgData[id].bbox[2] + padding) * ratio / 2);
 	var dy = (wh / 2) - ((imgData[id].bbox[3] + padding) * ratio / 2);
 console.log('dx, dy %f, %f', dx, dy);
-	var css = {
-                transformOrigin: '0 0',
-		transform: 'scale(' + ratio + ')',
-		left: (dx - ratio * imgData[id].bbox[0] + padding/2*ratio) + 'px',
-		top: (dy - ratio * imgData[id].bbox[1] + padding/2*ratio) + 'px'
-	};
-console.log('css = %o', css);
-	imgEl.css(css);
-/*
-        imgEl.on('click', function(ev) {
-console.log('CLICK IMG %o', ev);
-            ev.target.style.transformOrigin = '50% 50%';
-            ev.target.style.width = '100%';
+
+        imgEl.css({
+            width: '100%',
+            top: 0,
+            left: 0
         });
-*/
+
+imgEl.panzoom({maxScale:20})
+    .on('zoomstart panzoomstart panstart', function(ev) {
+//console.log('start----- %o', ev);
+        $('#wrapper-' + ev.target.id.substring(4) + ' .canvas-box').hide();
+    })
+    .on('zoomend panzoomend', function(ev, panzoom, matrix, changed) {
+        adjustBox(ev.target.id.substring(4));
+        if (!changed) {
+            var rtn = $(ev.currentTarget).panzoom('zoom');
+            adjustBox(ev.target.id.substring(4));
+            return rtn;
+        }
+    });
+
+zscale = ww / ow;
+var px = -(imgData[id].bbox[0] * zscale) + (ww / 2) - (imgData[id].bbox[2] * zscale / 2);
+var py = -(imgData[id].bbox[1] * zscale) + (wh / 2) - (imgData[id].bbox[3] * zscale / 2);
+
+var zz = 6;//ww / imgData[id].bbox[2];
+console.info('px, py = %f,%f', px, py);
+imgEl.panzoom('pan', zz * px, zz * py);
+imgEl.panzoom('zoom', zz);
+
 	imgEl.show();
 
-        var box = $('<div class="gallery-box" />');
+        var box = $('<canvas width="' + ow + '" height="' + oh + '" class="canvas-box"></canvas>');
         box.css({
-            transform: 'scale(1.9)',
-            opacity: 0.5,
-            left: ((ww - imgData[id].bbox[2]) / 2) + 'px',
-            top: ((wh - imgData[id].bbox[3]) / 2) + 'px',
-            width: imgData[id].bbox[2] + 'px',
-            height: imgData[id].bbox[3] + 'px'
+            transformOrigin: '50% 50%',
+            xopacity: 0.5,
+            xleft: imgData[id].bbox[0] * zscale + 'px',
+            xtop: imgData[id].bbox[1] * zscale + 'px',
+            left: 0, top: 0,
+            width: '100%',
+            xheight: wh + 'px'
         });
+        var ctx = box[0].getContext('2d');
+        ctx.strokeStyle = '#bff223';
+        ctx.lineWidth = 5;
+        ctx.setLineDash([10, 4]);
+        ctx.beginPath();
+console.log('zscale = %f', zscale);
+        //ctx.rect(imgData[id].bbox[0] * zscale, imgData[id].bbox[1] * zscale, imgData[id].bbox[2] * zscale, imgData[id].bbox[3] * zscale);
+        ctx.rect(imgData[id].bbox[0], imgData[id].bbox[1], imgData[id].bbox[2], imgData[id].bbox[3]);
+        ctx.stroke();
         wrapper.append(box);
+        adjustBox(id);
+}
+
+
+function adjustBox(id) {
+    window.setTimeout(function() {
+        var matrix = $('#img-' + id).css('transform');
+        $('#wrapper-' + id + ' .canvas-box').css('transform', matrix).show();
+    }, 300);
 }
 
 
@@ -123,8 +158,17 @@ console.log('CLICK IMG %o', ev);
     display: none;
 }
 .gallery-box {
+    pointer-events: none;
     position: absolute;
     outline: solid 2px #bff223;
+}
+.gallery-box-wrapper {
+    pointer-events: none;
+    position: absolute;
+}
+.canvas-box {
+    pointer-events: none;
+    position: absolute;
 }
 .img-info {
     position: absolute;
