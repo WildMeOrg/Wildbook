@@ -7,11 +7,18 @@ java.util.ArrayList,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%
 
+if (AccessControl.isAnonymous(request)) {
+    response.sendError(401, "Denied");
+    return;
+}
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("individualGallery.jsp");
 myShepherd.beginDBTransaction();
 
+User user = myShepherd.getUser(request);
+
+boolean admin = (user.hasRoleByName("admin", myShepherd) || user.hasRoleByName("super_volunteer", myShepherd));
 String id = request.getParameter("id");
 String skipEncId = request.getParameter("subject");
   //handle some cache-related security
@@ -119,6 +126,15 @@ console.log('CLICK IMG %o', ev);
     position: absolute;
     outline: solid 2px #bff223;
 }
+.img-info {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    display: inline-block;
+    background-color: rgba(255,255,0,0.7);
+    border-radius: 4px;
+    padding: 2px 10px;
+}
 </style>
 <jsp:include page="header.jsp" flush="true" />
 <script src="tools/panzoom/jquery.panzoom.min.js"></script>
@@ -146,6 +162,13 @@ if (!Util.collectionIsEmptyOrNull(indiv.getEncounters())) for (Encounter enc : i
 
 <div id="wrapper-<%=ma.getId()%>" class="img-wrapper">
     <img id="img-<%=ma.getId()%>" class="gallery-img" src="<%=url%>" onLoad="imgLoaded(this);" />
+
+<% if (admin) { %>
+    <div class="img-info"
+        onClick="wildbook.openInTab('encounters/encounter.jsp?number=<%=enc.getCatalogNumber()%>');" title="open this encounter" style="cursor: pointer;"
+><%=(ma.hasKeyword("MatchPhoto") ? "<b>Match Photo</b>" : "&#x2b08;")%></div>
+<% } %>
+
 </div>
 
 
