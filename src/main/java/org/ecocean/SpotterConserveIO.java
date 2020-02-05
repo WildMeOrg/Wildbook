@@ -1051,11 +1051,11 @@ ITIS Species TSN: "552298",
     //note: since is seconds (int), NOT millis (long) !!!
     public static JSONObject ciGetTripListSince(int since) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
 System.out.println(">>> ciGetTripListSince grabbing since " + new DateTime(new Long(since) * 1000));
-        return apiGet("/project/" + PROJECT_ID_CI + "/trip_data/" + since + "/0");
+        return apiGet("/project/" + PROJECT_ID_CI + "/trip_data/" + since + "/" + (int)(System.currentTimeMillis() / 1000));
     }
     public static JSONObject waGetTripListSince(int since) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
 System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new Long(since) * 1000));
-        return apiGet("/project/" + PROJECT_ID_WA + "/trip_data/" + since + "/0");
+        return apiGet("/project/" + PROJECT_ID_WA + "/trip_data/" + since + "/" + (int)(System.currentTimeMillis() / 1000));
     }
 
 
@@ -1064,7 +1064,7 @@ System.out.println(">>> waGetTripListSince grabbing since " + new DateTime(new L
         try {
             checkInit();
             long since = (System.currentTimeMillis() - (7*24*60*60*1000)) / 1000l;
-            URL getUrl = new URL(apiUrlPrefix + "/project/" + PROJECT_ID_WA + "/trip_data/" + since + "/0");
+            URL getUrl = new URL(apiUrlPrefix + "/project/" + PROJECT_ID_WA + "/trip_data/" + since + "/" + (int)(System.currentTimeMillis() / 1000));
             String res = RestClient.get(getUrl, username, password);
         } catch (Exception ex) {
             System.out.println("SpotterConserveIO.testLogin() failed with " + ex.toString());
