@@ -414,10 +414,11 @@ function setIndivAutocomplete(el) {
     var args = {
         resMap: function(data) {
             var taxString = $('#displayTax').text();
+console.log('taxString = %o', taxString);
             var res = $.map(data, function(item) {
                 if (item.type != 'individual') return null;
-                if (taxString && (item.species != taxString)) return null;
-                var label = item.label;
+                //if (taxString && (item.species != taxString)) return null;
+                var label = item.label + ' [' + item.value.substring(0,6) + ']';
                 if (item.species) label += '   ( ' + item.species + ' )';
                 return { label: label, type: item.type, value: item.value };
             });

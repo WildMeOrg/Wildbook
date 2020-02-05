@@ -1312,12 +1312,17 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
             indiv = myShepherd.getMarkedIndividualQuiet(indivId);
             if (indiv == null) return null;  //this is because we *will not* create a new individual with a "name" of a uuid
             indiv.addEncounter(enc);
+            System.out.println("INFO: EncounterForm added " + enc + " to " + indiv);
         } else {
             indiv = MarkedIndividual.withName(myShepherd, indivId);
             if (indiv == null) {
                 indiv = new MarkedIndividual(indivId, enc);
+                myShepherd.storeNewMarkedIndividual(indiv);
+                indiv.refreshNamesCache();
+                System.out.println("INFO: EncounterForm used " + enc + " to CREATE " + indiv);
             } else {
                 indiv.addEncounter(enc);
+                System.out.println("INFO: EncounterForm added " + enc + " to " + indiv);
             }
         }
         enc.setIndividual(indiv);
