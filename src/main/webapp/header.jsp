@@ -48,6 +48,18 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 <html>
     <head>
+
+      <!-- Global site tag (gtag.js) - Google Analytics -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-11"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-30944767-11');
+      </script>
+
+
       <title><%=CommonConfiguration.getHTMLTitle(context)%>
       </title>
       <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
