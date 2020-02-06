@@ -117,7 +117,6 @@ myShepherd.rollbackAndClose();
                 </div>
               </div>
             </div>
-
         </footer>
         <!-- /footer -->
     </body>
