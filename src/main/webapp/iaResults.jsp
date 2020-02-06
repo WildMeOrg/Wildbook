@@ -165,14 +165,14 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	}
 
 
-        String matchMsg = enc.getMatchedBy();
-        if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
-        matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-        enc.setMatchedBy(matchMsg);  //(aka setIdentificationRemarks)
+	String matchMsg = enc.getMatchedBy();
+	if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
+	matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
+	enc.setMatchedBy(matchMsg);  //(aka setIdentificationRemarks)
 
-        myShepherd.getPM().makePersistent(indiv);
-        myShepherd.updateDBTransaction();
-        
+	myShepherd.getPM().makePersistent(indiv);
+	myShepherd.updateDBTransaction();
+	
 	enc.setIndividual(indiv);
 
 	enc.setState("approved");
@@ -960,7 +960,7 @@ console.info('annotCheckbox taskId %s => %o .... queryAnnotation => %o', taskId,
 	} else if (jel.data('individ')) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', null, \'' + taskId + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
 	} else if (queryAnnotation.indivId) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', null, \'' + taskId + '\');" type="button" value="Use individual ' +jel.data('displayname');+ ' for unnamed match below" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', null, \'' + taskId + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
 	} else {
                 //disable onChange for now -- as autocomplete will trigger!
 		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
