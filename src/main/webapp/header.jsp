@@ -89,12 +89,15 @@ finally{
       
       <!-- Global site tag (gtag.js) - Google Analytics -->
       <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-5"></script>
+
       <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
 
+
         gtag('config', 'UA-30944767-5');
+
       </script>
 
       <title><%=pageTitle%></title>
