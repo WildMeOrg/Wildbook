@@ -44,6 +44,8 @@ myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
+
+myShepherd.closeDBTransaction();
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -139,13 +141,13 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                       <%
 
 	                      if(request.getUserPrincipal()!=null){
-	                    	  myShepherd = new Shepherd(context);
-	                    	  myShepherd.setAction("header.jsp");
+	                    	  Shepherd myShepherd2 = new Shepherd(context);
+	                    	  myShepherd2.setAction("header.jsp_usernames");
 
 	                          try{
-	                        	  myShepherd.beginDBTransaction();
+	                        	  myShepherd2.beginDBTransaction();
 		                    	  String username = request.getUserPrincipal().toString();
-		                    	  User user = myShepherd.getUser(username);
+		                    	  User user = myShepherd2.getUser(username);
 		                    	  String fullname=username;
 		                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
 		                    	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
@@ -162,8 +164,8 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 	                          }
 	                          catch(Exception e){e.printStackTrace();}
 	                          finally{
-	                        	  myShepherd.rollbackDBTransaction();
-	                        	  myShepherd.closeDBTransaction();
+	                        	  myShepherd2.rollbackDBTransaction();
+	                        	  myShepherd2.closeDBTransaction();
 	                          }
 	                      }
 	                      else{

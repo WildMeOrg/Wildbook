@@ -79,6 +79,7 @@ if (request.getParameter("acmId") != null) {
 	}
 */
 	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 	out.println(rtn.toString());
 	return;
 }
@@ -93,9 +94,10 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
         res.put("taskId", taskId);
 
 	myShepherd = new Shepherd(context);
-	myShepherd.setAction("matchResults.jsp1");
+	myShepherd.setAction("iaResults.jsp1");
 	myShepherd.beginDBTransaction();
 	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
+	myShepherd.getPM().refresh(enc);
 	if (enc == null) {
 		res.put("error", "no such encounter: " + request.getParameter("number"));
 		out.println(res.toString());
