@@ -65,17 +65,20 @@ console.log('asset id=%o', id);
     var ih = imgEl[0].naturalHeight;
     var ww = wrapper.width();
     var wh = wrapper.height();
-    var padding = ww * 0.15;
     for (var i = 0 ; i < imgData[id].bbox.length ; i++) {
         imgData[id].bbox[i] *= iw / ow;
     }
+    //var padding = ww * 0.05;
+    var padding = imgData[id].bbox[2] * 0.3;
     var ratio = ww / (imgData[id].bbox[2] + padding);
     if ((wh / (imgData[id].bbox[3] + padding)) < ratio) ratio = wh / (imgData[id].bbox[3] + padding);
-console.log('img=%dx%d / wrapper=%dx%d / box=%dx%d', iw, ih, ww, wh, imgData[id].bbox[2], imgData[id].bbox[3]);
+console.log('img=%dx%d / wrapper=%dx%d / box=%dx%d / padding=%d', iw, ih, ww, wh, imgData[id].bbox[2], imgData[id].bbox[3], padding);
 console.log('%.f', ratio);
+/*
 	var dx = (ww / 2) - ((imgData[id].bbox[2] + padding) * ratio / 2);
 	var dy = (wh / 2) - ((imgData[id].bbox[3] + padding) * ratio / 2);
 console.log('dx, dy %f, %f', dx, dy);
+*/
 
         imgEl.css({
             width: '100%',
@@ -98,11 +101,13 @@ imgEl.panzoom({maxScale:20})
     });
 
 zscale = ww / ow;
+var yscale = wh / oh;
 var px = -(imgData[id].bbox[0] * zscale) + (ww / 2) - (imgData[id].bbox[2] * zscale / 2);
-var py = -(imgData[id].bbox[1] * zscale) + (wh / 2) - (imgData[id].bbox[3] * zscale / 2);
+var py = -(imgData[id].bbox[1] * yscale) + (wh / 2) - (imgData[id].bbox[3] * yscale / 2);
 
-var zz = 6;//ww / imgData[id].bbox[2];
-console.info('px, py = %f,%f', px, py);
+var zz = ww / imgData[id].bbox[2];
+if (zz < 1) zz = 1;
+console.info('[ zz = %f ]  px, py = %f,%f (zscale %f, yscale %f)', zz, px, py, zscale, yscale);
 imgEl.panzoom('pan', zz * px, zz * py);
 imgEl.panzoom('zoom', zz);
 
@@ -123,10 +128,10 @@ imgEl.panzoom('zoom', zz);
         ctx.lineWidth = 5;
         ctx.setLineDash([10, 4]);
         ctx.beginPath();
-console.log('zscale = %f', zscale);
         //ctx.rect(imgData[id].bbox[0] * zscale, imgData[id].bbox[1] * zscale, imgData[id].bbox[2] * zscale, imgData[id].bbox[3] * zscale);
-        ctx.rect(imgData[id].bbox[0], imgData[id].bbox[1], imgData[id].bbox[2], imgData[id].bbox[3]);
+        ctx.rect(imgData[id].bbox[0] - (padding/2), imgData[id].bbox[1] - (padding/2), imgData[id].bbox[2] + padding, imgData[id].bbox[3] + padding);
         ctx.stroke();
+        box.hide();
         wrapper.append(box);
         adjustBox(id);
 }
