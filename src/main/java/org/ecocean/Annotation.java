@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
 import java.io.IOException;
+import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -88,7 +89,6 @@ public class Annotation implements java.io.Serializable {
 
     private MediaAsset mediaAsset = null;
 ////// end of what will go away
-
 
     //the "trivial" Annotation - will have a single feature which references the total MediaAsset
     public Annotation(String species, MediaAsset ma) {
@@ -472,6 +472,7 @@ public class Annotation implements java.io.Serializable {
 
     //if this cannot determine a bounding box, then we return null
     public int[] getBbox() {
+        
         if (getMediaAsset() == null) return null;
         Feature found = null;
         for (Feature ft : getFeatures()) {
@@ -501,6 +502,7 @@ public class Annotation implements java.io.Serializable {
             System.out.println("WARNING: Annotation.getBbox() found invalid width/height for id=" + this.getId());
             return null;
         }
+        //System.out.println("Set new Bounding box.");
         return bbox;
     }
 
@@ -885,8 +887,12 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         List<Annotation> sibs = this.getSiblings();
         if ((sibs == null) || (sibs.size() < 1)) {  //no sibs, we make a new Encounter!
             Encounter enc = new Encounter(this);
+            if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
+              enc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
+            }
             //this taxonomy only works when its twitter-sourced data cuz otherwise this is just null 
             enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd, TwitterUtil.parentTweet(myShepherd, this.getMediaAsset())));
+
             return enc;
         }
         /*
@@ -920,6 +926,21 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             }
             if (someEnc == null) someEnc = enc;  //use the first one we find to base new one (below) off of, if necessary
         }
+
+        // do we have an an encounter from the sibling?
+        if (someEnc!=null) {
+            for (Annotation ann : sibs) {
+                // TODO lets make this better at handling part designation
+                if (ann.getIAClass().equals(this.getIAClass())) {break;}
+                // if these two intersect and have a different detected class they are allowed to reside on the same encounter
+                if (this.intersects(ann)) {
+                    someEnc.addAnnotation(this);
+                    someEnc.setDWCDateLastModified();
+                    return someEnc;
+                }
+            }
+        }
+
         //if we fall thru, we have no trivial annot, so just get a new Encounter for this Annotation
         Encounter newEnc = null;
         if (someEnc == null) {
@@ -932,6 +953,9 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.resetDateInMilliseconds();
             newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
             newEnc.setGenus(someEnc.getGenus());
+        }
+        if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
+          newEnc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
         }
         return newEnc;
 
@@ -1028,6 +1052,7 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
       return conflictingEncs;
     }
 
+
 /*
     these will update(/create) AnnotationLite.cache for this Annotation
       note: use sparingly?  i.e. should only happen when (related) taxonomy or individual or validForIdentification changes
@@ -1066,4 +1091,35 @@ Util.mark("Annotation.refreshLiteValid() refreshing " + this.acmId);
         AnnotationLite.setCache(this.acmId, annl);
     }
     //TODO ... other permutations?
+
+    
+    
+
+    public boolean contains(Annotation ann) {
+        Rectangle myRect = getRect(this);
+        Rectangle queryRect = getRect(ann);
+        return myRect.contains(queryRect);
+    }
+
+    public boolean intersects(Annotation ann) {
+        Rectangle myRect = getRect(this);
+        Rectangle queryRect = getRect(ann);
+        return myRect.intersects(queryRect);
+    }
+
+    private Rectangle getRect(Annotation ann) {
+        try {
+            if (ann.getBbox()==null) return null;
+            int[] bBox = ann.getBbox();
+            int x = bBox[0];
+            int y = bBox[1];
+            int width = bBox[2];
+            int height = bBox[3];
+            return new Rectangle(x,y,width,height);
+        } catch (NumberFormatException nfe) {
+            nfe.printStackTrace();
+        }
+        return null;
+    }
+
 }

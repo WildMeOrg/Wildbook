@@ -6720,12 +6720,20 @@ $(".search-collapse-header").click(function(){
     </div>
 -->
 
-<div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
 <%
 
 rootIter=0;
 while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
 
+	
+	if(rootIter==0){
+		%>
+		<div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
+		
+		<%
+	}
+	
+	
 	String val="HotSpotter";
 	String queryDict="";
 	try {

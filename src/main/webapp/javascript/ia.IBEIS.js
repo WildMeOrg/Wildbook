@@ -79,7 +79,15 @@ wildbook.IA.plugins.push({
         var requireSpecies = !(wildbook.IA.requireSpeciesForId() == 'false');
 console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identActive=%o, requireSpecies=%o', mode, mid, aid, ma, iaStatus, identActive, requireSpecies);
 
-        if (identActive) {
+	if (identActive && (ma.detectionStatus == 'complete') && ma.annotation && !ma.annotation.identificationStatus) {
+            if (mode == 'textStart') {
+                return '<span class="disabled">no matchable detection</span>';
+            } else if (mode == 'funcStart') {
+                //registerTaskId(iaStatus.taskId);
+                //wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
+                return;
+            }
+	} else if (identActive) {
             if (mode == 'textStart') {
                 return 'match results';
             } else if (mode == 'funcStart') {

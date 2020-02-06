@@ -492,7 +492,6 @@ try {
 	    boolean includeZeroYears = true;
 	    numResults = count;
 	  %>
-	</table>
 
 	
 	<p>
