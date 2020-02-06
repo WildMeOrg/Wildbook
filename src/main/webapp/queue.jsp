@@ -337,7 +337,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 <thead>
 <tr>
 <% for (int ci = 0 ; ci < theads.length ; ci++) { %>
-    <th class="th-<%=ci%>" data-sortable="true"><%=theads[ci]%></th>
+    <th <%=(ci == 0 ? "data-sorter=\"ahrefSort\"" : "")%> class="th-<%=ci%>" data-sortable="true"><%=theads[ci]%></th>
 <% } %>
 </tr>
 </thead>
@@ -345,9 +345,9 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 <%
     for (Encounter enc : encs) {
         out.println("<tr class=\"enc-row row-state-" + enc.getState() + "\">");
-        out.println("<td class=\"col-id\">");
         String ename = enc.getEventID();
         if (ename == null) ename = enc.getCatalogNumber().substring(0,8);
+        out.println("<td class=\"col-id\">");
         if (isAdmin) {
             out.println("<a href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\" target=\"new\">" + ename + "</a>");
         } else {
@@ -400,6 +400,11 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
     <script src="javascript/bootstrap-table/bootstrap-table.min.js"></script>
     <link rel="stylesheet" href="javascript/bootstrap-table/bootstrap-table.min.css" />
 <script>
+function ahrefSort(a, b) {
+    var valA = $(a).text();
+    var valB = $(b).text();
+    return valA.localeCompare(valB);
+}
 var currentActiveState = 'incoming';
 $(document).ready(function() {
     setActiveTab(currentActiveState);
