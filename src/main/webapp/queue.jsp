@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException,
 java.util.Iterator,
 org.ecocean.*,
+org.ecocean.media.MediaAsset,
 javax.jdo.Query,
 java.util.Map, java.util.HashMap,
 org.json.JSONObject, org.json.JSONArray,
@@ -13,6 +14,31 @@ org.apache.commons.lang3.StringEscapeUtils" %>
 
 private static Encounter getTruthEncounter(Shepherd myShepherd, String individualId) {
     return myShepherd.getEncounter("0e159eb4-9293-4f4d-935b-f2f8871a2097");
+}
+
+private static List<Annotation> getMatchPhotoAnnotations(Shepherd myShepherd, MarkedIndividual indiv) {
+    List<Annotation> rtn = new ArrayList<Annotation>();
+    if (indiv == null) return rtn;
+    for (Encounter enc : indiv.getEncounters()) {
+        if (Util.collectionIsEmptyOrNull(enc.getAnnotations())) continue;
+        for (Annotation ann : enc.getAnnotations()) {
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma == null) continue;
+            //if (backup == null) backup = ann;
+            if (ma.hasKeyword("MatchPhoto")) rtn.add(ann);
+        }
+    }
+    //logic here is that if we have > 1 annot, and one of them has >= 1 sibling annot, that indiv gets to use that asset
+    if (rtn.size() > 1) {
+        Iterator it = rtn.iterator();
+        while (it.hasNext()) {
+            Annotation ann = (Annotation)it.next();
+            int sibCt = Util.collectionSize(ann.getSiblings());
+            if ((sibCt < 1) || (rtn.size() < 2)) continue;
+            it.remove();
+        }
+    }
+    return rtn;
 }
 
 private static void generateData(Shepherd myShepherd, File file, String dtype) throws java.io.IOException {
@@ -239,11 +265,20 @@ if (!forceList && (encs.size() > 0)) {
 }
 
 String[] theads = new String[]{"ID", "Sub Date"};
-if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec Ct", "Flags"};
+if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date", "Last Dec", "Dec Ct", "Flags"};
 %>
 
 <jsp:include page="header.jsp" flush="true" />
 <style>
+.col-matchphoto-0 {
+    background-color: #FFA;
+}
+.col-matchphoto-2,
+.col-matchphoto-3,
+.col-matchphoto-4,
+.col-matchphoto-5 {
+    background-color: #DDD;
+}
 .col-flag {
     background-color: #FAA;
 }
@@ -337,7 +372,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
 <thead>
 <tr>
 <% for (int ci = 0 ; ci < theads.length ; ci++) { %>
-    <th <%=(ci == 0 ? "data-sorter=\"ahrefSort\"" : "")%> class="th-<%=ci%>" data-sortable="true"><%=theads[ci]%></th>
+    <th <%=((ci == 0 || ci == 2 || ci == 3) ? "data-sorter=\"ahrefSort\"" : "")%> class="th-<%=ci%>" data-sortable="true"><%=theads[ci]%></th>
 <% } %>
 </tr>
 </thead>
@@ -359,7 +394,21 @@ if (isAdmin) theads = new String[]{"ID", "State", "Sub Date", "Last Dec", "Dec C
         }
 */
         out.println("</td>");
-        if (isAdmin) out.println("<td class=\"col-state-" + enc.getState() + "\">" + enc.getState() + "</td>");
+        if (isAdmin) {
+            int ct = -1;
+            String indivId = null;
+            String indivName = null;
+            String matchphotoNote = "-";
+            if (enc.hasMarkedIndividual()) {
+                indivName = enc.getDisplayName();
+                if (indivName == null) indivName = enc.getIndividual().getId().substring(0,6);
+                indivId = enc.getIndividual().getId();
+                ct = Util.collectionSize(getMatchPhotoAnnotations(myShepherd, enc.getIndividual()));
+            }
+%><td class="col-state-<%=enc.getState()%>"><%=enc.getState()%></td>
+<td><a target="_new" <%=((indivId == null) ? "" : "href=\"individuals.jsp?number=" + indivId + "\"")%>><%=indivName%></a></td>
+<td class="col-matchphoto-<%=ct%>"><a target="_new" <%=((ct < 0) ? "" : "href=\"individualGallery.jsp?id=" + indivId + "\"")%>><%=((ct < 0) ? "-" : ct)%></a></td><%
+        }
         out.println("<td>" + enc.getDate() + "</td>");
 
         if (isAdmin) {
