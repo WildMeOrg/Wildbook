@@ -998,7 +998,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         tooltip = '<i>Unnamed individual</i>';
     }
     if (feat.encounterId) {
-        tooltip += '<br />Enc ' + feat.encounterId.substr(-8);
+        tooltip += '<br />Enc ' + feat.encounterId.substr(0,8);
         fel.data('encounterId', feat.encounterId);
     }
     if (focused) tooltip = '<i style="color: #840;">this encounter</i>';
