@@ -116,6 +116,8 @@ class GraphAbstract { //See static attributes below class
 
 	//Initialize filter button functionalities
 	this.updateFilterButtons();
+
+	this.addHideButton();
     }
     
     //Append top-level SVG containing all graphical elements
@@ -546,6 +548,33 @@ class GraphAbstract { //See static attributes below class
 	});
     }
 
+    addHideButton(){
+	var shown = true;
+        let hidebutton = document.createElement("button");
+        hidebutton.innerText = 'Show';
+	    console.log(this.containerId);
+        $(this.containerId).append(hidebutton);
+        hidebutton.addEventListener("click",() => {
+            if (shown)
+            {
+                hidebutton.innerText = "Hide";
+		let legends = document.getElementsByClassName('legend');
+		if(legends.length==0){
+                this.addLegend();
+		}else{
+			legends[0].style.opacity = "0";
+		}
+            }
+            else
+            {
+                hidebutton.innerText = "Show";
+		let legend = document.getElementsByClassName('legend')[0];
+		legend.style.opacity = "1";
+            }
+	    shown = !shown;
+        });
+    }
+		
     uncheckBoxFilters(containerId) {
 	this.validCheckFilters.forEach(filterRef => {
 	    let nodeRef = $(containerId).find("#" + filterRef + "Box");
