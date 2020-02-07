@@ -783,6 +783,14 @@ jQuery(document).ready(function() {
         $('.image-enhancer-keyword-wrapper').hide();
         $('body').append('<div class="edit-mode-ui" style="position: fixed; left: 30px; top: 30px; font-size: 3em; color: rgba(255,255,20,0.8); z-index: 2000;"><b>EDIT MODE</b></div>');
 
+        $('.image-enhancer-wrapper').each(function(i, el) {
+            var jel = $(el);
+            var mid = imageEnhancer.mediaAssetIdFromElement(jel);
+	    var ma = assetById(mid);
+            jel.append('<div class="edit-mode-ui"><a target="_new" href="../appadmin/manualAnnotation.jsp?assetId=' + mid + '&encounterId=' + encounterNumber + '&removeTrivial=' + (ma.features && (ma.features.length == 1) && !ma.features[0].type) + '" onclick="event.stopPropagation();">ADD annot</div>');
+        });
+
+
         $('.image-enhancer-feature').append('<div class="edit-mode-ui" style="cursor: cell; padding: 0px 4px; font-size: 0.8em; font-weight: bold; position: absolute; left: 10px; top: 10px; background-color: rgba(255,255,255,0.7); display: inline-block;" xonClick="return editClick(this);" >EDIT</div>');
         $('.image-enhancer-feature .edit-mode-ui').on('click', function(ev) { editClick(ev); return false;});
     });
