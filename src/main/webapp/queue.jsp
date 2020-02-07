@@ -372,7 +372,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 <thead>
 <tr>
 <% for (int ci = 0 ; ci < theads.length ; ci++) { %>
-    <th <%=((ci == 0 || ci == 2 || ci == 3) ? "data-sorter=\"ahrefSort\"" : "")%> class="th-<%=ci%>" data-sortable="true"><%=theads[ci]%></th>
+    <th <%=((ci == 0 || ci == 2 || ci == 3 || ci == 7) ? "data-sorter=\"ahrefSort\"" : "")%> class="th-<%=ci%>" data-sortable="true"><%=theads[ci]%></th>
 <% } %>
 </tr>
 </thead>
@@ -420,10 +420,24 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
             int dct = 0;
             int fct = 0;
             long lastT = 0L;
+            Map<String,Integer> fmap = new HashMap<String,Integer>();
             for (Decision dec : decs) {
                 if ("sex".equals(dec.getProperty())) dct++;
-                if ("flag".equals(dec.getProperty())) fct++;
-                //out.println("<b>" + dec.getProperty() + "</b> " + dec.getValue() + "</p>");
+                if ("flag".equals(dec.getProperty())) {
+                    fct++;
+                    if (dec.getValue() != null) {
+                        JSONArray vals = dec.getValue().optJSONArray("value");
+                        if (vals != null) {
+                            for (int i = 0 ; i < vals.length() ; i++) {
+                                String fval = vals.optString(i, null);
+                                if (fval != null) {
+                                    if (fmap.get(fval) == null) fmap.put(fval, 0);
+                                    fmap.put(fval, fmap.get(fval) + 1);
+                                }
+                            }
+                        }
+                    }
+                }
                 if (dec.getTimestamp() > lastT) lastT = dec.getTimestamp();
             }
             if (lastT > 0L) {
@@ -433,7 +447,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
                 out.println("<td class=\"col-muted\">-</td>");
             }
             out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
-            out.println("<td class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
+            out.println("<td " + ((fct == 0) ? "" : " title=\"" + String.join(" | ", fmap.keySet()) + "\"") + " class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
         }
 
         out.println("</tr>");
@@ -451,7 +465,9 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 <script>
 function ahrefSort(a, b) {
     var valA = $(a).text();
+    if (!valA.length) valA = a;
     var valB = $(b).text();
+    if (!valB.length) valB = b;
     return valA.localeCompare(valB);
 }
 var currentActiveState = 'incoming';
