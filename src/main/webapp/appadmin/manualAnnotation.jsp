@@ -4,7 +4,7 @@ org.ecocean.servlet.ServletUtilities,
 org.json.JSONObject,
 org.ecocean.media.*
               "
-%><% int imgHeight = 500; %>
+%><% int imgHeight = 2000; %>
 <html>
 <head><title>Manual Annotation</title>
 <script src="../tools/jquery/js/jquery.min.js"></script>
@@ -20,7 +20,7 @@ body {
 #img-wrapper {
     overflow: hidden;
     height: <%=imgHeight%>px;
-    float: right;
+    xfloat: right;
     position: relative;
 }
 img.asset {
@@ -122,6 +122,8 @@ try {
 String iaClass = request.getParameter("iaClass");
 String maparam = request.getParameter("matchAgainst");
 boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
+String rtparam = request.getParameter("removeTrivial");
+boolean removeTrivial = (rtparam == null) || Util.booleanNotFalse(rtparam);
 String encounterId = request.getParameter("encounterId");
 ///skipping this for now cuz i dont want to deal with altering the *annot* once we change a feature (i.e. acmId etc so IA thinks is new)
 String featureId = null;///request.getParameter("featureId");
@@ -198,12 +200,6 @@ double scale = imgHeight / ma.getHeight();
 
 <script>scale = <%=scale%>;</script>
 
-<div id="img-wrapper">
-    <div class="axis" id="x-axis"></div>
-    <div class="axis" id="y-axis"></div>
-    <img class="asset" src="<%=ma.webURL()%>" />
-    <div style="left: <%=(xywh[0] * scale)%>px; top: <%=(xywh[1] * scale)%>px; width: <%=(xywh[2] * scale)%>px; height: <%=(xywh[3] * scale)%>px;" id="bbox"></div>
-</div>
 
 <p>
 MediaAsset <b><a title="<%=ma.toString()%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
@@ -233,6 +229,9 @@ attaching to <b><a target="_new" href="../obrowse.jsp?type=Encounter&id=<%=enc.g
 <% } %>
 </p>
 
+<p>
+will <%=(removeTrivial ? "<b>remove</b>" : "<i>not</i> remove")%> trivial Annotation
+</p>
 <%
 if (save) {
     if (ft != null) {
@@ -269,6 +268,26 @@ if (save) {
     System.out.println("manualAnnotation: added " + ann + " and " + ft + " to enc=" + encMsg);
     myShepherd.getPM().makePersistent(ft);
     myShepherd.getPM().makePersistent(ann);
+
+    if (removeTrivial) {
+        //note this will only remove (at most) ONE
+        Annotation foundTrivial = null;
+        for (Annotation a : ma.getAnnotations()) {
+            if (a.isTrivial()) foundTrivial = a;
+        }
+        if (foundTrivial == null) {
+            System.out.println("manualAnnotation: removeTrivial=true, but no trivial annot on " + ma);
+        } else {
+            foundTrivial.detachFromMediaAsset();
+            if (enc == null) {
+                System.out.println("manualAnnotation: removeTrivial detached " + foundTrivial + " (and Feature) from " + ma);
+            } else {
+                enc.removeAnnotation(foundTrivial);
+                System.out.println("manualAnnotation: removeTrivial detached " + foundTrivial + " (and Feature) from " + ma + " and " + enc);
+            }
+        }
+    }
+
     myShepherd.commitDBTransaction();
 %><hr />
 
@@ -284,6 +303,14 @@ and
 %>
 
 <h2><a href="manualAnnotation.jsp?<%=request.getQueryString()%>&save">SAVE</a></h2>
+
+
+<div id="img-wrapper">
+    <div class="axis" id="x-axis"></div>
+    <div class="axis" id="y-axis"></div>
+    <img class="asset" src="<%=ma.webURL()%>" />
+    <div style="left: <%=(xywh[0] * scale)%>px; top: <%=(xywh[1] * scale)%>px; width: <%=(xywh[2] * scale)%>px; height: <%=(xywh[3] * scale)%>px;" id="bbox"></div>
+</div>
 
 <% } %>
 
