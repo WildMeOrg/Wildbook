@@ -615,7 +615,7 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
       myShepherd.setAction("TwitterBot.setLocationIDFromTweet");
       myShepherd.beginDBTransaction();
       List<String> locIDs=myShepherd.getAllLocationIDs();
-      myShepherd.closeDBTransaction();
+      myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       for (String tag : tags) {
         try{
