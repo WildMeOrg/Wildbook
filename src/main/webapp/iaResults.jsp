@@ -28,7 +28,7 @@ boolean usesAutoNames = Util.stringExists(nextNameKey);
 String nextName = (usesAutoNames) ? MultiValue.nextUnusedValueForKey(nextNameKey, myShepherd) : null;
 myShepherd.rollbackAndClose();
 //myShepherd.closeDBTransaction();
-System.out.println("IARESULTS: New nameKey block got key, value "+nextNameKey+", "+nextName+" for user "+user);
+//System.out.println("IARESULTS: New nameKey block got key, value "+nextNameKey+", "+nextName+" for user "+user);
 
 
 try {
@@ -93,7 +93,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	res.put("encounterId", request.getParameter("number"));
 	res.put("encounterId2", request.getParameter("enc2"));
 	res.put("individualId", request.getParameter("individualID"));
-        res.put("taskId", taskId);
+    res.put("taskId", taskId);
 
 	myShepherd = new Shepherd(context);
 	myShepherd.setAction("matchResults.jsp1");
@@ -111,6 +111,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	Encounter enc2 = null;
 	if (request.getParameter("enc2") != null) {
 		enc2 = myShepherd.getEncounter(request.getParameter("enc2"));
+		myShepherd.getPM().refresh(enc2);
 		if (enc2 == null) {
 			res.put("error", "no such encounter: " + request.getParameter("enc2"));
 			out.println(res.toString());
@@ -126,22 +127,99 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	   use an *existing* indiv in those cases (but allow a new one in the other)
 	*/
 
-	String indID = request.getParameter("individualID");
-	if (indID!=null) indID = indID.trim();
-	MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(indID);
-	if ((indiv == null) && (enc != null) && (enc2 != null)) {
-		if (Util.stringExists(indID)) {
+	// once you assign an id to one, it will still ask for input on another.
+
+	String indyUUID = null;
+	MarkedIndividual indiv = null;
+	MarkedIndividual indiv2 = null;
+	String displayName = null;
+	try {
+
+		displayName = request.getParameter("individualID");
+		if (displayName!=null) displayName = displayName.trim();
+		// from query enc
+		indiv = myShepherd.getMarkedIndividual(enc);
+		// from target enc
+		indiv2 = myShepherd.getMarkedIndividual(enc2);
+		indyUUID = request.getParameter("newIndividualUUID");
+		//should take care of getting an indy stashed in the URL params
+		if (indiv==null) {
+			indiv = myShepherd.getMarkedIndividualQuiet(indyUUID);
+		}
+
+		System.out.println("got ID: "+indyUUID+" from header set previous match");
+
+		System.out.println("did you get indiv? "+indiv+" did you get indiv2? "+indiv2);
+
+		// if both have an id, throw an error. any deecision to override would be arbitrary
+		// should get to MERGE option instead of getting here anyway
+		if (indiv!=null&&indiv2!=null) {
+			res.put("error", "Both encounters already have an ID. You must remove one or reassign from the Encounter page.");
+			out.println(res.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+		}
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+
+	// allow flow either way if one or the other has an ID
+	if ((indiv == null || indiv2 == null) && (enc != null) && (enc2 != null)) {
+
+		System.out.println("indiv OR indiv2 is null, and two viable enc have been selected!");
+
+		if (Util.stringExists(displayName)) {
 			try {
-				// TODO: is this how we should create newIndiv?
-				MarkedIndividual newIndiv = new MarkedIndividual(indID, enc);
-				//myShepherd.storeNewMarkedIndividual(newIndiv);
-				myShepherd.getPM().makePersistent(newIndiv);
-				myShepherd.updateDBTransaction();
-				enc.setIndividual(newIndiv);
-				enc2.setIndividual(newIndiv);
-				newIndiv.addEncounter(enc2);
-				myShepherd.updateDBTransaction();
+
+				// if there is a newIndividualID set in the URL, lets get it.
+				// getting the indy using it will be easier than trying to get around caching of the retrieved encounters
+				//if (indyUUID!=null&&!"".equals(indyUUID)) {
+				//	
+				//} 
+				
+				// neither have an individual
+				if (indiv==null&&indiv2==null) {
+					System.out.println("CASE 1: both indy null");
+					indiv = new MarkedIndividual(displayName, enc);
+					res.put("newIndividualUUID", indiv.getId());
+					res.put("individualName", displayName);
+					myShepherd.getPM().makePersistent(indiv);
+					myShepherd.updateDBTransaction();
+					enc.setIndividual(indiv);
+					enc2.setIndividual(indiv);
+					indiv.addEncounter(enc2);
+					myShepherd.updateDBTransaction();
+				}
+
+				// query enc has indy, or already stashed in URL params
+				if (indiv!=null&&indiv2==null) {
+					System.out.println("CASE 2: query enc indy is null");
+					enc2.setIndividual(indiv);
+					indiv.addEncounter(enc2);
+					res.put("individualName", indiv.getDisplayName());
+					myShepherd.updateDBTransaction();
+				} 	
+
+				// target enc has indy
+				if (indiv==null&&indiv2!=null) {
+					System.out.println("CASE 3: target enc indy is null");
+					enc.setIndividual(indiv2);					
+					indiv2.addEncounter(enc);
+					res.put("individualName", indiv2.getDisplayName());
+					myShepherd.updateDBTransaction();
+				} 
+
+				enc.setState("approved");
+				enc2.setState("approved");
+
+				String matchMsg = enc.getMatchedBy();
+				if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
+				matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
+				enc.setMatchedBy(matchMsg); 
+				enc2.setMatchedBy(matchMsg);
+
 				res.put("success", true);
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 				res.put("error", "Please enter a different Individual ID.");
@@ -154,39 +232,22 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 		return;
-	}
+	} 
 
-	if (indiv == null) {
-		res.put("error", "Unknown individual " + request.getParameter("individualID"));
+	if (indiv == null && indiv2 == null) {
+		res.put("error", "No valid record could be found or created for name: " + displayName);
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 		return;
 	}
 
-
-	String matchMsg = enc.getMatchedBy();
-	if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
-	matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-	enc.setMatchedBy(matchMsg);  //(aka setIdentificationRemarks)
-
-	myShepherd.getPM().makePersistent(indiv);
-	myShepherd.updateDBTransaction();
-	
-	enc.setIndividual(indiv);
-
-	enc.setState("approved");
-	indiv.addEncounter(enc);
-	if (enc2 != null) {
-		enc2.setIndividual(indiv);
-		enc2.setState("approved");
-		indiv.addEncounter(enc2);
+	if (myShepherd.getPM().currentTransaction().isActive()) {
+		myShepherd.commitDBTransaction();
+		myShepherd.closeDBTransaction();
 	}
-	myShepherd.getPM().makePersistent(indiv);
-	
-	myShepherd.commitDBTransaction();
-	myShepherd.closeDBTransaction();
-	res.put("success", true);
+
+	res.put("error", "Unknown error setting individual " + displayName);
 	out.println(res.toString());
 	return;
 }
@@ -865,15 +926,20 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 var indivId = ft.individualId;
                 var displayName = ft.displayName;
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
+
+				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
+				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
+					console.log("Did you get in the display name finder block??? Ye!");
+					displayName = $('.enc-title .indiv-link').text();
+				}
                 if (encId) {
-                		console.log("Main asset encId = "+encId);
+                	console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
                     
-		    if (!indivId) {
-				$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
-		    }
-
+					if (!indivId) {
+						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
+					}
                 }
                 if (indivId) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
@@ -939,11 +1005,11 @@ console.info('qdata[%s] = %o', taskId, qdata);
 function annotCheckbox(el) {
 	var jel = $(el);
 	var taskId = jel.closest('.task-content').attr('id').substring(5);
-  var task = getCachedTask(taskId);
-  var queryAnnotation = jel.closest('.task-content').data();
-console.info('annotCheckbox taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAnnotation);
+    var task = getCachedTask(taskId);
+    var queryAnnotation = jel.closest('.task-content').data();
+    console.info('annotCheckbox taskId %s => %o .... queryAnnotation => %o', taskId, task, queryAnnotation);
 	annotCheckboxReset();
-  if (!taskId || !task) return;
+  	if (!taskId || !task) return;
 	if (!el.checked) return;
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
 	jel.parent().addClass('annot-summary-checked');
@@ -958,9 +1024,9 @@ console.info('annotCheckbox taskId %s => %o .... queryAnnotation => %o', taskId,
 		var link = "merge.jsp?individualA="+jel.data('individ')+"&individualB="+queryAnnotation.indivId;
 		h = 'These encounters are already assigned to two <b>different individuals</b>.  <a href="'+link+'" class="button" > Merge Individuals</a>';
 	} else if (jel.data('individ')) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', null, \'' + taskId + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
 	} else if (queryAnnotation.indivId) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', null, \'' + taskId + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
 	} else {
                 //disable onChange for now -- as autocomplete will trigger!
 		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
@@ -1163,6 +1229,7 @@ console.warn(inds);
 }
 
 
+// sends everything to java on the page and returns JSON with encounter and indy ID
 function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 	var msgTarget = '#enc-action';  //'#approval-buttons';
 	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s', indivID, encID, encID2, taskId);
@@ -1178,16 +1245,20 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
-console.warn(d);
+			console.warn(d);
 			if (d.success) {
 				jQuery(msgTarget).html('<i><b>Update successful</b></i>');
-				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + indivID + '</a>';
+				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + d.individualName + '</a>';
 				if (encID2) {
 					$(".enc-title .indiv-link").remove();
 					$(".enc-title #enc-action").remove();
-					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + indivID + '</a></span>');
+					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + d.individualName + '</a></span>');
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
-					$("#encnum"+encID2).append(indivLink);
+					
+					// updates encounters in results list with name and link to indy
+					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter  
+					$("#encnum"+d.encounterId2).append(indivLink); // likely, should be newly matched target encounter(s)
+
 				}
 			} else {
 				console.warn('error returned: %o', d);
