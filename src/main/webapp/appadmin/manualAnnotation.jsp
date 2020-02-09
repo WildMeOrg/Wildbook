@@ -125,8 +125,7 @@ boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
 String rtparam = request.getParameter("removeTrivial");
 boolean removeTrivial = (rtparam == null) || Util.booleanNotFalse(rtparam);
 String encounterId = request.getParameter("encounterId");
-///skipping this for now cuz i dont want to deal with altering the *annot* once we change a feature (i.e. acmId etc so IA thinks is new)
-String featureId = null;///request.getParameter("featureId");
+String featureId = request.getParameter("featureId");
 String viewpoint = request.getParameter("viewpoint");
 boolean save = Util.requestParameterSet(request.getParameter("save"));
 boolean cloneEncounter = Util.requestParameterSet(request.getParameter("cloneEncounter"));
@@ -147,7 +146,9 @@ if (featureId != null) {
         out.println("<p class=\"error\">Invalid <b>featureId=" + featureId + "</b></p>");
         return;
     }
+    removeTrivial = false;
     ma = ft.getMediaAsset();
+    ft.getParametersAsString();
     if (ft.getParameters() != null) {
         xywh = new int[4];
         xywh[0] = (int)Math.round(ft.getParameters().optDouble("x", 10.0));
@@ -234,11 +235,6 @@ will <%=(removeTrivial ? "<b>remove</b>" : "<i>not</i> remove")%> trivial Annota
 </p>
 <%
 if (save) {
-    if (ft != null) {
-        out.println("saved(not) " + ft);
-        return;
-    }
-
     FeatureType.initAll(myShepherd);
     JSONObject fparams = new JSONObject();
     fparams.put("x", xywh[0]);
@@ -246,6 +242,23 @@ if (save) {
     fparams.put("width", xywh[2]);
     fparams.put("height", xywh[3]);
     fparams.put("_manualAnnotation", System.currentTimeMillis());
+
+    if (ft != null) {
+        JSONObject rev = ft.getParameters();
+        if (rev == null) rev = new JSONObject();
+        //Annotation ann = ft.getAnnotation();
+        Annotation ann = myShepherd.getAnnotation(ft.getAnnotation().getId());
+        rev.put("_annotationAcmId", ann.getAcmId());
+        fparams.put("_previousRevision", rev);
+        ft.setParametersAsString(fparams.toString());
+        ft.setRevision();
+        ann.setAcmId(null);
+        out.println("<p>Altered <a href=\"../obrowse.jsp?type=Feature&id=" + ft.getId() + "\">Feature " + ft.getId() + "</a> (MediaAsset " + ma.getId() + " acmId reset null)</p>");
+        System.out.println("manualAnnotation: altered " + ft);
+
+    } else {
+
+    FeatureType.initAll(myShepherd);
     ft = new Feature("org.ecocean.boundingBox", fparams);
     ma.addFeature(ft);
     Annotation ann = new Annotation(null, ft, iaClass);
@@ -298,6 +311,8 @@ and
 </p>
 
 <%
+}  //non-Feature-mod
+
 } else {
     myShepherd.rollbackDBTransaction();
 %>
