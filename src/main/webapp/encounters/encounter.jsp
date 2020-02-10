@@ -6734,7 +6734,7 @@ while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
 	    	 val=iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter);
 	     }
 	     else{
-	     	val=(new JSONObject(jsonObject.getJSONObject("queryConfigDict").toString())).optString("pipeline_root");
+	     	if (jsonObject.optJSONObject("queryConfigDict") != null) val=(new JSONObject(jsonObject.getJSONObject("queryConfigDict").toString())).optString("pipeline_root");
 	     }
 	}
 	catch (Exception err){
