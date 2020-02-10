@@ -125,8 +125,7 @@ div.file-item div {
 <% System.out.println("Done with photos.jsp. About to print footer."); %>
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-</body>
-</html>
+
 
 
 
