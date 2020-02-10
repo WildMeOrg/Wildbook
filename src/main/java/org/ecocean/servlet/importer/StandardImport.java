@@ -91,6 +91,11 @@ public class StandardImport extends HttpServlet {
   // need to initialize (initColIndexVariables()), this is useful to have everywhere
   int numCols;
 
+  // indexes of columns determined to have no values for quick skipping
+  List<Integer> skipCols = new ArrayList<Integer>();
+
+  Sheet sheet = null;
+
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
@@ -514,7 +519,7 @@ public class StandardImport extends HttpServlet {
       out.println("<err>ioException on input file "+filename+". Printing error to java server logs.");
       ioEx.printStackTrace();
     }
-    Sheet sheet = wb.getSheetAt(0);
+    sheet = wb.getSheetAt(0);
 
 
     int numSheets = wb.getNumberOfSheets();
@@ -1351,17 +1356,30 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
-
-    String kwColName = "Encounter.keyword"+n;
-    String kwName = getString(row, kwColName);
-    if (kwName==null) {
-      kwColName = "Encounter.keyword0"+n;
-      kwName = getString(row, kwColName);
+    String kwsName = getString(row, "Encounter.mediaAsset"+n+".keywords");
+    //if keywords are just blobbed together with an underscore delimiter
+    if(kwsName!=null) {
+      StringTokenizer str=new StringTokenizer(kwsName,"_");
+      while(str.hasMoreTokens()) {
+        String kwString=str.nextToken();
+        if(kwString!=null && !kwString.trim().equals("")) {
+          Keyword kw = myShepherd.getOrCreateKeyword(kwString);
+          if (kw!=null) ans.add(kw);
+        }
+        
+      }
+    } else {
+      String kwColName = "Encounter.keyword"+n;
+      String kwName = getString(row, kwColName);
+      if (kwName==null) {
+        kwColName = "Encounter.keyword0"+n;
+        kwName = getString(row, kwColName);
+      }
+      if (kwName==null) return ans;
+      Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+      if (kw!=null) ans.add(kw);
     }
-    if (kwName==null) return ans;
-    Keyword kw = myShepherd.getOrCreateKeyword(kwName);
-    if (kw!=null) ans.add(kw);
-
+    
     return ans;
   }
 
@@ -1543,24 +1561,71 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
 
   private void initColIndexVariables(Row firstRow) {
-  	colIndexMap = makeColIndexMap(firstRow);
+    colIndexMap = makeColIndexMap(firstRow);
+    
   	unusedColumns = new HashSet<String>();
     //Set<String> col = colIndexMap.keySet();
   	// have to manually copy-in like this because keySet returns a POINTER (!!!)
   	for (String colName: colIndexMap.keySet()) {
       // length restriction removes colnames like "F21"
-  		if (colName!=null && colName.length()>3)unusedColumns.add(colName);
+  		if (colName!=null && colName.length()>3) {
+        unusedColumns.add(colName);
+      } 
   	}
   }
 
   // Returns a map from each column header to the integer col number
-  public static Map<String,Integer> makeColIndexMap(Row firstRow) {
+
+  // i need to ensure we have all unused columns added to visible list
+  private Map<String,Integer> makeColIndexMap(Row firstRow) {
   	Map<String,Integer> colMap = new HashMap<String, Integer>();
-  	for (int i=0; i<firstRow.getLastCellNum(); i++) {
-  		String colName = getString(firstRow, i);
+    numCols = firstRow.getLastCellNum();
+    String[] headers = new String[numCols];
+    System.out.println("We're making colIndexMap!");
+  	for (int i=0; i<numCols; i++) {
+      String colName = getStringNoLog(firstRow, i);
+      System.out.println("Are there any values in this colum? "+i);
+      if (colName==null || colName.length()<4 || !anyValuesInColumn(i)) {
+        System.out.println("skipCols adding column named: "+colName+" with index "+i);
+        skipCols.add(i);
+        continue;
+      }
+      System.out.println("yes, "+colName+" has at least one value"); 
+      headers[i] = colName;
   		colMap.put(colName, i);
-  	}
+    }
+
+    feedback = new TabularFeedback(headers);
+    System.out.println("headers = "+headers);
+    System.out.println("feedback headers = "+feedback.colNames);
   	return colMap;
+  }
+
+  private boolean anyValuesInColumn(int colIndex) {
+    int numRows = sheet.getLastRowNum();
+    System.out.println("gimme that rowNum: "+numRows);
+    for (int i=1; i<=numRows; i++) {
+      System.out.println("checking row "+i+" for value presence");
+      try {
+        //String anyVal = sheet.getRow(i).getCell(colIndex).toString();
+
+        Row row = sheet.getRow(i);
+        //System.out.println("get ROW? "+row);
+        Cell cell = row.getCell(colIndex);
+        System.out.println("get CELL? "+cell);
+        if (cell!=null) {
+          String anyVal = cell.toString();
+          System.out.println("get anyVal "+anyVal);
+          if (anyVal!=null&&anyVal.length()>0&&!"".equals(anyVal)) {
+            System.out.println("hey, anyValue! look at you. ---> "+anyVal);
+            return true;
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+    return false;
   }
 
   public String getOccurrenceID(Row row) {
@@ -2045,6 +2110,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         System.out.println("colNames isNull "+isNull);
         System.out.println("starting to print table. num colNames="+colNames.length+" and the array itself = "+colNames);
         for (int i=0;i<colNames.length;i++) {
+          if (skipCols.contains(i)) continue; 
           out.println("<th class=\"rotate\"><div><span class=\"tableFeedbackColumnHeader\">"+colNames[i]+"</span></div></th>");
         }
         System.out.println("done printing start table");
@@ -2093,7 +2159,13 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         StringBuffer str = new StringBuffer();
         str.append("<tr>");
         str.append("<td>"+num+"</td>");
-        for (CellFeedback cell: cells) {
+
+        for (int i=0;i<cells.length; i++) {
+          if (skipCols.contains(i)) {
+            System.out.println("skipping this col for feedback, index "+i+" was present in skipCols");
+            continue; 
+          }
+          CellFeedback cell = cells[i];
           if (cell==null) str.append(nullCellHtml());
           else str.append(cell.html());
         }
