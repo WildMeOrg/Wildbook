@@ -17,9 +17,9 @@ class SocialGraph extends ForceLayoutAbstract {
 	super(individualID, containerId, focusedScale, parser);
     }
 
-   /**
-    * Wrapper function to gather species data from the Wildbook DB and generate a graph
-    */
+    /**
+     * Wrapper function to gather species data from the Wildbook DB and generate a graph
+     */
     applySocialData() {
 	this.parser.parseJSON(this.id, (nodes, links) => this.graphSocialData(nodes, links));
     }
