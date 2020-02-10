@@ -27,7 +27,11 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     // Setup Methods //
 
-    //Perform all auxiliary functions necessary prior to graphing
+    /**
+     * Perform all auxiliary functions necessary prior to graphing
+     * @param {linkData} [obj list] - A list of link objects describing Relationship data to display
+     * @param {nodeData} [obj list] - A list of node objects describing MarkedIndividual data to display
+     */
     setupGraph(linkData, nodeData) {
 	super.setupGraph(linkData, nodeData);
 	
@@ -45,7 +49,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.focusedNode = this.nodeData.filter(d => d.data.isFocused)[0];
     }
 
-    //Initialize forces without data context
+    /**
+     * Initialize forces without data context
+     */
     setForces() {
 	//Define the graph's forces
 	this.forces = d3.forceSimulation()
@@ -58,7 +64,11 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     //TODO - Rework to style class..?
-    //Initialize unique arrow classes for each link category
+    /**
+     * Initialize unique arrow classes for each link category
+     * @param {svg} [Svg] - The Svg where arrow definitions will be stored 
+     * @param {linkData} [Link list] - A list of link objects describing Relationship data to display
+     */
     defineArrows(svg=this.svg, linkData=this.linkData) {
 	//Define a style class for each end marker
 	svg.append("defs")
@@ -79,7 +89,11 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     // Render Methods //
     
-    //Render a graph with updated data
+    /**
+     * Render a graph with updated data
+     * @param {linkData} [Link list] - A list of link objects describing Relationship data to display
+     * @param {nodeData} [Node list] - A list of link objects describing Relationship data to display
+     */
     updateGraph(linkData=this.linkData, nodeData=this.nodeData) {
 	//Update arrow offsets
 	this.updateArrows(linkData);
@@ -93,7 +107,10 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.enableNodeInteraction();
     }
 
-    //Update arrow positioning
+    /**
+     * Update arrow positioning
+     * @param {linkData} [Link list] - A list of link objects describing Relationship data to display
+     */
     updateArrows(linkData=this.linkData) {
 	this.svg.select("defs")
 	    .selectAll("marker").data(linkData.filter(d => d.type != "member"), d => d.linkId)
@@ -104,7 +121,10 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    });
     }
 
-    //Render links with updated data
+    /**
+     * Render links with updated data
+     * @param {linkData} [Link list] - A list of link objects describing Relationship data to display
+     */
     updateLinks(linkData=this.linkData) {
 	//Define link parent/data
 	let links = this.svg.selectAll(".link")
@@ -138,7 +158,10 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    .attr("opacity", 1);
     }
 
-    //Render nodes with updated data
+    /**
+     * Render nodes with updated data
+     * @param {nodeData} [Node list] - A list of node objects describing MarkedIndividual data to display
+     */
     updateNodes(nodeData=this.nodeData) {	
 	//Collapse all filtered nodes
 	this.filterNodes();
@@ -153,7 +176,11 @@ class ForceLayoutAbstract extends GraphAbstract {
 	if (this.startingRadius === 0) this.startingRadius = 15;
     }
 
-    //Hide node text, symbols, and outlines for all filtered nodes
+    /**
+     * Hide node text, symbols, and outlines for all filtered nodes
+     * @param {nodeData} [Node list] - A list of node objects describing MarkedIndividual data to display
+     * @return {filteredNodes} [Node list] - The list of nodes which have been filtered and qualify to be drawn collapsed
+     */
     filterNodes(nodeData=this.nodeData) {
 	let filteredNodes = this.svg.selectAll(".node")
 	    .filter(d => d.filtered);
@@ -176,7 +203,11 @@ class ForceLayoutAbstract extends GraphAbstract {
 	return filteredNodes;
     }
 
-    //Unfilter and update node characteristics
+    /**
+     * Unfilter and update node characteristics
+     * @param {nodeData} [Node list] - A list of node objects describing MarkedIndividual data to display
+     * @return {activeNodes} [Node list] - The list of nodes which have not been filtered and qualify to be drawn expanded
+     */
     drawNodes(nodeData=this.nodeData) {
 	//Define node parent/data
 	let nodes = this.svg.selectAll(".node")
@@ -209,7 +240,11 @@ class ForceLayoutAbstract extends GraphAbstract {
 
     // Physics Methods //
 
-    //Apply initialized forces to a data context
+    /**
+     * Apply initialized forces to a data context
+     * @param {links} [obj list] - A list of link objects describing Relationship data to display
+     * @param {nodeData} [Node list] - A list of node objects describing MarkedIndividual data to display
+     */
     applyForces(linkData=this.linkData, nodeData=this.nodeData) {
 	//Apply forces to nodes and links
 	this.forces.nodes(nodeData)
@@ -224,7 +259,10 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.alpha = 0.75;
     }
 
-    //Update all link and node position based on force interactions
+    /**
+     * Update all link and node position based on force interactions
+     * @param {self} [ForceLayoutAbstract] - The contextual this of the current ForceLayoutAbstract (passed in for use in lambdas)
+     */
     ticked(self) {
 	try {
 	    self.links.attr("x1", d => d.source.x)
@@ -239,7 +277,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 	}
     }
 
-    //Attach node listeners for click and drag operations
+    /**
+     * Attach node listeners for click and drag operations
+     */	
     enableNodeInteraction() {
 	this.nodes.on('dblclick', (d, i, nodeList) => this.releaseNode(d, nodeList[i]))
 	    .on('click', d => {
@@ -252,47 +292,63 @@ class ForceLayoutAbstract extends GraphAbstract {
 		  .on('end', (d, i, nodeList) => this.dragEnded(d, nodeList[i])));
     }
 
-    //Visit the relevant page for the selected node
-    visitNodePage(d) {
-	let nodeId = d.data.individualID;
+    /**
+     * Visit the relevant page for the selected node
+     * @param {node} [Node] - The node whose page should be visited
+     */
+    visitNodePage(node) {
+	let nodeId = node.data.individualID;
 	let baseURL = "http://localhost:8080/wildbook/individuals.jsp?number=";
 	window.location.href = baseURL + nodeId;
     }
 
-    //Focus the targeted node
-    focusNode(d) {
+    /**
+     * Focus the targeted node
+     * @param {node} [Node] - The node which should be targeted
+     */
+    focusNode(node) {
 	//Unfocus all nodes
 	this.svg.selectAll(".node").each(d => d.data.isFocused = false);
 	
 	//Focus the target node
-	d.data.isFocused = true;
-	this.focusedNode = d;
+	node.data.isFocused = true;
+	this.focusedNode = node;
 	
 	//Update the graph
 	this.updateGraph(this.prevLinkData, this.nodeData);
     }
 
-    centerNode(d) {
+    /**
+     * Center the given node
+     * @param {node} [Node] - The node for which the graph should be centered around
+     */
+    centerNode(node) {
 	this.svg.transition()
 	    .duration(this.transitionDuration + 250) //Delay slightly for stability
-	    .attr("transform", "translate(" + ((this.width/2) + d.x) + "," +
-		  ((this.height/2) - d.y) + ")");
+	    .attr("transform", "translate(" + ((this.width/2) + node.x) + "," +
+		  ((this.height/2) - node.y) + ")");
     }
 
-    //Begin moving node on drag, allow for graph interactions
-    dragStarted(d) {
-	if (!this.isAssignedKeyBinding() && !d.filtered) {
+    /**
+     * Begin moving node on drag, allow for graph interactions
+     * @param {node} [Node] - The node which the drag event is being applied to
+     */
+    dragStarted(node) {
+	if (!this.isAssignedKeyBinding() && !node.filtered) {
 	    if (!d3.event.active) this.forces.alphaTarget(0.5).restart();
-	    d.fx = d3.event.x;
-	    d.fy = d3.event.y;
+	    node.fx = d3.event.x;
+	    node.fy = d3.event.y;
 	}
     }
 
-    //Update node movement on drag
-    dragged(d) {
-	if (!this.isAssignedKeyBinding() && !d.filtered) {
-	    d.fx = d3.event.x;
-	    d.fy = d3.event.y;
+    /**
+     * Update node movement on drag
+     * @param {node} [Node] - The node which the drag event is being applied to
+     */
+    dragged(node) {
+	if (!this.isAssignedKeyBinding() && !node.filtered) {
+	    node.fx = d3.event.x;
+	    node.fy = d3.event.y;
 	}
     }
 
