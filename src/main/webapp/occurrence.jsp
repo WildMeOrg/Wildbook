@@ -18,6 +18,8 @@ private static String niceNull(Integer val) {
 
 <%
 
+boolean isLoggedIn=false;
+if(request.getUserPrincipal()!=null)isLoggedIn=true;
 String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -106,7 +108,7 @@ context=ServletUtilities.getContext(request);
 	
 				if (possible.size() > 0) {
 	   			String arr = new Gson().toJson(possible);
-					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
 				} else {
 					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
 					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";

@@ -86,14 +86,15 @@ console.log('encToString = %o', encToString);
   return id;
 }
 
-var getData = function(individualID) {
+
+var getData = function(individualID, displayName) {
     var occurrenceObjectArray = [];
     var items = [];
     var encounterArray = [];
     var occurrenceArray = [];
     var dataObject = {};
 
-     d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
+     d3.json(wildbookGlobals.baseUrl + "/api?query="+encodeURIComponent("SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc"), function(error, json) {
       if(error) {
         console.log("error")
       }
@@ -106,11 +107,11 @@ var getData = function(individualID) {
         for(var j=0; j < encounterSize; j++) {
           //console.info('[%d] %o %o', j, thisOcc.encounters, thisOcc.encounters[j]);
           var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
-
+          //console.log("thisEncIndID="+thisEncIndID);
           
           //var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
           //console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
-          if (!thisEncIndID) continue;  //unknown indiv -> false
+          if (!thisEncIndID || (thisEncIndID==displayName)) continue;  //unknown indiv -> false
           if(encounterArray.includes(thisEncIndID)) {
           } else {
             encounterArray.push(thisEncIndID);
@@ -150,7 +151,7 @@ var getData = function(individualID) {
   };
 
 var getSexHaploData = function(individualID, items) {
-  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?"+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && occur.encounters.contains(enc) && occur.encounters.contains(enc2) && enc2.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2;org.ecocean.Occurrence occur"), function(error, json) {
+  d3.json(wildbookGlobals.baseUrl + "/api?query="+encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && occur.encounters.contains(enc) && occur.encounters.contains(enc2) && enc2.individual.individualID == \"" + individualID + "\" VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2;org.ecocean.Occurrence occur"), function(error, json) {
     if(error) {
       console.log("error")
     }
@@ -348,19 +349,25 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
             if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
             } else {
                var occurringWith = occurrenceObjectArray[j].occurringWith;
+               console.log(occurringWith);
             }
           }
         }
         var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
         if(dateInMilliseconds > 0) {
-
+          //console.log("Trying millis...");
           date = dateInMilliseconds.toISOString().substring(0, 10);
-		  if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
-		  if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
-
-        } else {
+          if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
+          if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
+        } else if (jsonData.encounters[i].year) {
+          //console.log("Tryin plaintext...");
+          date = jsonData.encounters[i].year;
+          if (jsonData.encounters[i].month) { date+= "-"+jsonData.encounters[i].month;}
+          if (jsonData.encounters[i].day) { date+= "-"+jsonData.encounters[i].day;} 
+        } else {  
           date = dict['unknown'];
         }
+
         if(jsonData.encounters[i].verbatimLocality) {
           var location = jsonData.encounters[i].verbatimLocality;
         } else {

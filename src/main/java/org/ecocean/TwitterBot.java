@@ -85,6 +85,8 @@ public class TwitterBot {
         TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
         if (tas == null) {
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- no TwitterAssetStore found! Probably should fix this if you are using Twitter. :)");
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return;
         }
         Task task = new Task();
@@ -111,6 +113,8 @@ public class TwitterBot {
         } else {
             ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " already stored, so skipping");
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return;
             //entities = (load the children from retrieved tweetMA)
         }
@@ -502,47 +506,56 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
     private static void updateEncounter(MediaAsset tweetMA, ArrayList<Annotation> anns, Shepherd myShepherd, String rootDir) {
         Status originTweet = TwitterUtil.toStatus(tweetMA);
         if ((originTweet == null) || (anns == null)) return;
-        Encounter enc = null;
-        for (Annotation ann : anns) {
-            Encounter e = ann.findEncounter(myShepherd);
-            if (e != null) enc = e;
-        }
-        if (enc == null) return;
+
         String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
-        System.out.println("INFO: TwitterBot.updateEncounter() using tx=" + tx + " for " + enc);
-        enc.setTaxonomyFromString(tx);
-        enc.setState("unapproved");        
         
         //use NLP to get Date/Location if available in Tweet
         String newDetectedDate=ParseDateLocation.parseDate(rootDir, myShepherd.getContext(), originTweet);
         
-        if(newDetectedDate!=null){
-          DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
-          DateTime dt=parser3.parseDateTime(newDetectedDate);
-          if(newDetectedDate.length()==10){
-            enc.setYear(dt.getYear());
-            enc.setMonth(dt.getMonthOfYear());
-            enc.setDay(dt.getDayOfMonth());
-            enc.setHour(-1);
-          }
-          else if(newDetectedDate.length()==7){
-            enc.setYear(dt.getYear());
-            enc.setMonth(dt.getMonthOfYear());
-            enc.setDay(-1);
+        
+        for (Annotation ann : anns) {
+          
+            Encounter enc = ann.findEncounter(myShepherd);
+            if (enc == null) continue;
+            System.out.println("INFO: TwitterBot.updateEncounter() using tx=" + tx + " for " + enc);
+            enc.setTaxonomyFromString(tx);
+            enc.setState("unapproved");        
             
-          }
-          else if(newDetectedDate.length()==4){
-            enc.setYear(dt.getYear());
-            enc.setMonth(-1);
+           
+            if(newDetectedDate!=null){
+              DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
+              DateTime dt=parser3.parseDateTime(newDetectedDate);
+              if(newDetectedDate.length()==10){
+                enc.setYear(dt.getYear());
+                enc.setMonth(dt.getMonthOfYear());
+                enc.setDay(dt.getDayOfMonth());
+                enc.setHour(-1);
+              }
+              else if(newDetectedDate.length()==7){
+                enc.setYear(dt.getYear());
+                enc.setMonth(dt.getMonthOfYear());
+                enc.setDay(-1);
+                
+              }
+              else if(newDetectedDate.length()==4){
+                enc.setYear(dt.getYear());
+                enc.setMonth(-1);
+                
+              }
+            }
             
-          }
+            //location?
+            setLocationIDFromTweet(enc, originTweet, myShepherd.getContext());
+            
+            //get Tweet comments for faster review on Encounter page
+            enc.setOccurrenceRemarks(originTweet.getText());
+            
+            
+
         }
         
-        //location?
-        setLocationIDFromTweet(enc, originTweet, myShepherd.getContext());
         
-        //get Tweet comments for faster review on Encounter page
-        enc.setOccurrenceRemarks(originTweet.getText());
+
         
         
     }
@@ -594,7 +607,7 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
       myShepherd.setAction("TwitterBot.setLocationIDFromTweet");
       myShepherd.beginDBTransaction();
       List<String> locIDs=myShepherd.getAllLocationIDs();
-      myShepherd.closeDBTransaction();
+      myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       for (String tag : tags) {
         try{

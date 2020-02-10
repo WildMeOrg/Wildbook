@@ -11,7 +11,8 @@ org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManage
 
 <%
 
-
+boolean isLoggedIn=false;
+if(request.getUserPrincipal()!=null)isLoggedIn=true;
 String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -181,7 +182,7 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 
 				if (possible.size() > 0) {
     			String arr = new Gson().toJson(possible);
-					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
 				} else {
 					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
 					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
@@ -514,29 +515,32 @@ if (sharky.getNames() != null) {
     </div><%
 
     // make UI for non-default names here
-    for (String nameKey: sharky.getNames().getKeys()) {
-      if (MultiValue.isDefault(nameKey)) continue;
-      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
-      String nameLabel=nameKey;
-      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
-      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
-      String nameValue = sharky.getName(nameKey);
-
-      %>
-      <div class="namesection <%=nameKey%>">
-        <span class="nameKey" data-oldkey="<%=nameKey%>"><em><%=nameLabel%></em></span>
-        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%=nameKey%>" placeholder="<%=nameKey %>" >
-        <span id="nameColon">:</span>
-
-        <span class="nameValue <%=nameKey%>" data-oldvalue="<%=nameValue%>"><%=nameValue%></span>
-        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=nameValue%>" placeholder="<%=nameValue %>" >
-        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
-
-        <span class="nameCheck">&check;</span>
-        <span class="nameError">X</span>
-        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
-      </div><%
-    }
+    if ((sharky.getNames() != null) && (sharky.getNames().size() > 0) && (sharky.getNames().getKeys()!=null)){
+    	System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
+	    for (String nameKey: sharky.getNames().getKeys()) {
+	      if (MultiValue.isDefault(nameKey)) continue;
+	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
+	      String nameLabel=nameKey;
+	      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
+	      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
+	      String nameValue = sharky.getName(nameKey);
+	
+	      %>
+	      <div class="namesection <%=nameKey%>">
+	        <span class="nameKey" data-oldkey="<%=nameKey%>"><em><%=nameLabel%></em></span>
+	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%=nameKey%>" placeholder="<%=nameKey %>" >
+	        <span id="nameColon">:</span>
+	
+	        <span class="nameValue <%=nameKey%>" data-oldvalue="<%=nameValue%>"><%=nameValue%></span>
+	        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=nameValue%>" placeholder="<%=nameValue %>" >
+	        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+	
+	        <span class="nameCheck">&check;</span>
+	        <span class="nameError">X</span>
+	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+	      </div><%
+	    }
+	}
 
     // "add new name" Edit section
     %>
@@ -722,7 +726,7 @@ if (sharky.getNames() != null) {
                   event.preventDefault();
                   $("#Add").hide();
 
-                  var individual = $("input[name='individual']").val();
+                  var individual = "<%=sharky.getIndividualID() %>";
                   var sex = $("#newSex").val();
 
                   $.post("IndividualSetSex", {"individual": individual, "selectSex": sex},
@@ -731,7 +735,7 @@ if (sharky.getNames() != null) {
                     $("#sexCheck").show();
                     $("#displaySex").html(sex);
                     $("svg.bubbleChart").remove();
-                    getData(individual);
+                    getData(individual, null);
 
                   })
                   .fail(function(response) {
@@ -1011,7 +1015,7 @@ if (sharky.getNames() != null) {
         -1px 1px 0 #000,
         1px 1px 0 #000;
     ">
-    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
+    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualIDExact=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
 
 
     <div class="slider col-sm-6 center-slider">
@@ -1383,7 +1387,7 @@ if (sharky.getNames() != null) {
         <div id="familyDiagram">
           <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
-            setupFamilyTree("<%=individualID%>");
+            setupFamilyTree("<%=individualID%>","<%=sharky.getDisplayName() %>");
           </script>
         </div>
 
@@ -1500,7 +1504,7 @@ if (sharky.getNames() != null) {
         // <% String individualID = sharky.getIndividualID();%>
         $(document).ready(function() {
 
-          getData("<%=individualID%>");
+          getData("<%=individualID%>", "<%=sharky.getDisplayName() %>");
         });
         </script>
 

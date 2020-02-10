@@ -622,7 +622,9 @@ public class StandardImport extends HttpServlet {
     if (millis==null) millis = getLong(row, "Occurrence.dateInMilliseconds");
     if (millis==null) millis = getLong(row, "Occurrence.millis");
     boolean hasTimeCategories = (year!=null || month!=null || day!=null || hour!=null || minutes!=null);
-    if (millis!=null) {
+
+    //added sanity check for millis between 1900 and 2100.. some excel was giving 0 for millis and making date stuff wierd
+    if (millis!=null&&millis>-2208988800000L&&millis<4102444800000L) {
       if (hasTimeCategories) enc.setDateInMillisOnly(millis); // does not overwrite day/month/etc
       else enc.setDateInMilliseconds(millis);
     } 

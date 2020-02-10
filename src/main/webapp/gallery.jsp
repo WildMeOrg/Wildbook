@@ -111,7 +111,7 @@ try{
 		//get current time minus two years
 		Long twoYears=new Long("63072000000");
 		long currentDate=System.currentTimeMillis()-twoYears.longValue();
-	    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (enc.dateInMilliseconds >= "+currentDate+") && ((nickName == null)||(nickName == '')) VARIABLES org.ecocean.Encounter enc";
+	    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE names.valuesAsString.toLowerCase().indexOf(\"nickname\") == -1";
 	    Query query=myShepherd.getPM().newQuery(filter);
 	    query.setOrdering("numberEncounters descending");
 	    query.setRange(startNum, endNum);
@@ -369,6 +369,7 @@ try{
 	
 	        String[] pairUrl = new String[2];
 	        String[] pairName = new String[2];
+	        String[] pairIndividualID = new String[2];
 	        String[] pairNickname = new String[2];
 	        String[] pairCopyright = new String[2];
 	        String[] pairMediaAssetID = new String[2];
@@ -393,7 +394,9 @@ try{
 	          pairMediaAssetID[j]=maJson.optString("id");
 	          pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
 	          pairName[j] = indie.getDisplayName();
-	          pairNickname[j] = pairName[j];
+	          pairIndividualID[j] = indie.getIndividualID();
+	          pairNickname[j] = indie.getNickName();
+	          if(pairNickname[j]==null)pairNickname[j]="";
 	          if (indie.getNickName()!=null  && !indie.getNickName().equals("Unassigned") && !indie.getNickName().equals("")) pairNickname[j] = indie.getNickName();
 	          %>
 	          <div class="col-xs-6">
@@ -449,10 +452,8 @@ try{
 	
 	                String copyright = newMaJson.optString("photographer");
 	                if ((copyright!=null)&&!copyright.equals("")) {
-	                  copyright =  "&copy; " +copyright+" / WWF";
-	                } else {
-	                  copyright = "&copy; WWF";
-	                }
+	                  copyright =  "&copy; " +copyright;
+	                } 
 	
 	
 	
@@ -516,11 +517,11 @@ try{
 	                  <%
 	                  if(CommonConfiguration.allowAdoptions(context)){
 	                  %>
-	                    <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
+	                    <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairIndividualID[j]%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
 	                  <%
 	                  }
 	                  %>  
-	                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>"><button class="large adopt"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>
+	                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairIndividualID[j]%>"><button class="large adopt"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>
 	                  </div>
 	                </td>
 	              </tr></table>
