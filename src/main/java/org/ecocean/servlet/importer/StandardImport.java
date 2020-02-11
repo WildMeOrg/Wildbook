@@ -1348,13 +1348,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   }
 
   private boolean anyValuesInColumn(int colIndex) {
-    int numRows = sheet.getLastRowNum();
-    System.out.println("gimme that rowNum: "+numRows);
+    int numRows = sheet.getPhysicalNumberOfRows();
+    System.out.println("physical number rows in sheet: "+sheet.getPhysicalNumberOfRows());
     for (int i=1; i<=numRows; i++) {
       System.out.println("checking row "+i+" for value presence");
       try {
         //String anyVal = sheet.getRow(i).getCell(colIndex).toString();
-
         Row row = sheet.getRow(i);
         //System.out.println("get ROW? "+row);
         Cell cell = row.getCell(colIndex);
