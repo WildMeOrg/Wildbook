@@ -40,6 +40,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -50,8 +51,9 @@ public class StandardImport extends HttpServlet {
 	// variables shared by any single import instance
 
 	Map<String,Integer> colIndexMap = new HashMap<String, Integer>();
-	Set<String> unusedColumns;
+  Set<String> unusedColumns;
 	Set<String> missingColumns; // columns we look for but don't find
+  List<String> invalidColumns = new ArrayList<String>();
 	List<String> missingPhotos = new ArrayList<String>();
 	List<String> foundPhotos = new ArrayList<String>();
 	int numFolderRows = 0;
@@ -107,8 +109,6 @@ public class StandardImport extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
     
     isUserUpload = Boolean.valueOf(request.getParameter("isUserUpload"));
-
-    System.out.println("Is user upload? ---> "+isUserUpload);
     
     // WHY ISN"T THE URL MAKING IT AAUUUGHGHHHHH
     if (isUserUpload) {
@@ -204,13 +204,24 @@ public class StandardImport extends HttpServlet {
       System.out.println("No datafile found, aborting.");
     }
 
-    this.getServletContext().getRequestDispatcher("/import/uploadFooter.jsp").include(request, response);
-    this.getServletContext().getRequestDispatcher("/footer.jsp").include(request, response);
+    ServletContext sc = getServletContext();
+    try {
+    // eh?
+    System.out.println("Trying to take you to the results...");
+      //sc.getRequestDispatcher("/import/results.jsp").forward(request, response);
+      sc.getRequestDispatcher("/import/uploadFooter.jsp").include(request, response);
+      sc.getRequestDispatcher("/footer.jsp").include(request, response);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      System.out.println("Forwarding, I hope...");
+      myShepherd.closeDBTransaction();
+    }
 
-    System.out.println("Is user upload? ---> "+isUserUpload);
+    System.out.println("Did redirect succeed???");
 
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
+    //myShepherd.rollbackDBTransaction();
+
 
   }
 
@@ -234,6 +245,7 @@ public class StandardImport extends HttpServlet {
     }
     sheet = wb.getSheetAt(0);
 
+    if (committing) out.println("<h4><strong class=\"import-commiting\">Committing: </strong> When this page is finished loading, your import is complete and you can find your data on Flukebook.</h4>");
 
     int numSheets = wb.getNumberOfSheets();
     int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
@@ -248,10 +260,10 @@ public class StandardImport extends HttpServlet {
 
     int printPeriod = 1;
     if (committing) myShepherd.beginDBTransaction();
-    out.println("<h2>Parsed Import Table</h2>"); 
+    outPrnt("<h2>Parsed Import Table</h2>"); 
     //System.out.println("debug0");
     System.out.println("feedback headers = "+feedback.colNames);
-    feedback.printStartTable();
+    if (!committing) feedback.printStartTable();
     //System.out.println("debug1");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
@@ -267,7 +279,7 @@ public class StandardImport extends HttpServlet {
         Row row = sheet.getRow(i);
         if (isRowEmpty(row)) continue;
 
-        feedback.startRow(row, i);
+        if (!committing) feedback.startRow(row, i);
 
         ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd);
         Encounter enc = loadEncounter(row, annotations, context, myShepherd);
@@ -297,7 +309,7 @@ public class StandardImport extends HttpServlet {
           myShepherd.commitDBTransaction();
         }
 
-        if (verbose) {
+        if (verbose&&!committing) {
           feedback.printRow();
           //   out.println("<td> Enc "+getEncounterDisplayString(enc)+"</td>"
           //   +"<td> individual "+mark+"</td>"
@@ -314,10 +326,9 @@ public class StandardImport extends HttpServlet {
         myShepherd.rollbackDBTransaction();
       }
     }
-    feedback.printEndTable();
+    if (!committing) feedback.printEndTable();
 
     out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
-
     out.println("<h2>Import Overview: </h2>");
     out.println("<ul>");
     out.println("<li>Excel File Name: "+filename+"</li>");
@@ -331,15 +342,17 @@ public class StandardImport extends HttpServlet {
 
     out.println("</div>"); // close column
 
-    out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
-
-    out.println("<h2><em>NOT IMPORTED</em> Column types ("+unusedColumns.size()+"):</h2><ul>");
-    for (String heading: unusedColumns) {
-      out.println("<li>"+heading+"</li>");
+    
+    if (!committing) {
+      out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
+      out.println("<h2><em>NOT IMPORTED</em> Column types ("+unusedColumns.size()+"):</h2><ul>");
+      for (String heading: unusedColumns) {
+        out.println("<li>"+heading+"</li>");
+      }
+      out.println("</ul>");
+      out.println("</div>"); // close column
     }
-    out.println("</ul>");
 
-    out.println("</div>"); // close column
 
 
     // List<String> usedColumns = new ArrayList<String>();
@@ -352,14 +365,17 @@ public class StandardImport extends HttpServlet {
     // }
     // out.println("</ul>");
 
-    feedback.printMissingPhotos();
 
-    feedback.printFoundPhotos();
+    if (!committing) {
+      feedback.printMissingPhotos();
+      feedback.printFoundPhotos();
+      out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
+      //out.println("<h2>Import completed successfully</h2>");    
+    }
 
 
-    out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
 
-    out.println("<h2>Import completed successfully</h2>");    
+
     //fs.close();
 
 
@@ -769,7 +785,7 @@ public class StandardImport extends HttpServlet {
     if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "MicrosatelliteMarkersAnalysis.analysisID");
     // same for sex analysis
     if (tissueSampleID==null) tissueSampleID = getStringOrInt(row, "SexAnalysis.processingLabTaskID");
-System.out.println("tissueSampleID=(" + tissueSampleID + ")");
+    System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	if (tissueSampleID!=null) {
       sample = myShepherd.getTissueSample(tissueSampleID, encID);
   		if (sample==null) sample = new TissueSample(enc.getCatalogNumber(), tissueSampleID);
@@ -866,7 +882,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   	}
     return annots;
   }
-
+// TODO add column to point to an image directory
 //   // for when the provided image filename is actually a folder of images
 //   private ArrayList<Annotation> loadAnnotationsFolderRow(Row row, AssetStore astore, Shepherd myShepherd) {
 //   	ArrayList<Annotation> annots = new ArrayList<Annotation>();
@@ -949,6 +965,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   // }
 
 
+  // TODO add column to point to an image directory
   // // most rows have a single image, but some have an image folder
   // private boolean isFolderRow(Row row) {
   // 	String path = getString(row, "Encounter.mediaAsset0");
@@ -976,7 +993,7 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
   public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd) {
     String localPath = getString(row, "Encounter.mediaAsset"+i);
   	if (localPath==null) return null;
-  	localPath = Util.windowsFileStringToLinux(localPath);
+  	localPath = Util.windowsFileStringToLinux(localPath).trim();
   	//System.out.println("...localPath is: "+localPath);
   	String fullPath = photoDirectory+"/"+localPath;
   	fullPath = fullPath.replaceAll("//","/"); 
@@ -1004,15 +1021,20 @@ System.out.println("tissueSampleID=(" + tissueSampleID + ")");
 	  assetParams.put("_localDirect", f.toString());
 	  MediaAsset ma = null;
 	  try {
+
 	  	ma = astore.copyIn(f, assetParams);
 	    // keywording
 
 	    ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
 	    if(kws!=null)ma.setKeywords(kws);
-	  } 
-	  catch (java.io.IOException ioEx) {
+	  } catch (java.io.IOException ioEx) {
+
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
-	  	missingPhotos.add(fullPath);
+      ioEx.printStackTrace();
+      
+      feedback.addMissingPhoto(localPath);
+      feedback.logParseError(i, localPath, row);
+
 	  	foundPhotos.remove(fullPath);
                 return null;
 	  }
@@ -1782,8 +1804,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       }
   
       public void startRow(Row row, int i) {
-        currentRow = new RowFeedback(row, i);
-        System.out.println("StartRow called for i="+i);
+        if (!committing) {
+          currentRow = new RowFeedback(row, i);
+          System.out.println("StartRow called for i="+i);
+        }
       }
   
       public void addMissingPhoto(String localPath) {
@@ -1795,18 +1819,18 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       }
   
       public void printMissingPhotos() {
-        if (!isUserUpload) {
+        //if (!isUserUpload) {
           out.println("<h2><em>Missing photos</em>("+missingPhotos.size()+"):</h2><ul>");
           for (String photo: missingPhotos) {
             out.println("<li>"+photo+"</li>");
           }
           out.println("</ul>");
-        } 
+        //} 
       }
   
       public void printRow() {
         System.out.println("Starting to printRow");
-        out.println(currentRow);
+        if (!committing) out.println(currentRow);
         //System.out.println(currentRow);
         System.out.println("Done with printRow");
       }
@@ -1840,23 +1864,32 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       }
   
       public void logParseValue(int colNum, Object value, Row row) {
-        System.out.println("TabularFeedback.logParseValue called on object: "+value+" and colNum "+colNum);
-        if (value==null||String.valueOf(value)=="") {
-          this.currentRow.logParseNoValue(colNum);
+        if (!committing) {
+          System.out.println("TabularFeedback.logParseValue called on object: "+value+" and colNum "+colNum);
+          if (value==null||String.valueOf(value)=="") {
+            this.currentRow.logParseNoValue(colNum);
+          }
+          this.currentRow.logParseValue(colNum, value, row);
         }
-        this.currentRow.logParseValue(colNum, value, row);
       }
 
       public void logParseError(int colNum, Object value, Row row) {
-        this.currentRow.logParseError(colNum, value, row);
+        if (!committing) {
+          this.currentRow.logParseError(colNum, value, row);
+        }
       }
 
       public void logParseNoValue(int colNum) {
-        this.currentRow.logParseNoValue(colNum);
+        if (!committing) {
+          this.currentRow.logParseNoValue(colNum);
+        }
       }
   
       public String toString() {
-        return "Tabular feedback with "+colNames.length+" columns, on row "+currentRow.num;
+        if (!committing) {
+          return "Tabular feedback with "+colNames.length+" columns, on row "+currentRow.num;
+        }
+        return "";
       }
   
     }
@@ -1891,26 +1924,33 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       }
   
       public void logParseValue(int colNum, Object value, Row row) {
-        System.out.println("RowFeedback.logParseValue on an object: "+value+" with colNum "+colNum);
-        if (value==null) { // a tad experimental here. this means we don't have to check the parseSuccess in each getWhatever method
-          System.out.println("RowFeedback.logParseValue on a NULL OBJECT: trying to recover a value, or log empty");
-          String valueString = getCellValueAsString(row, colNum);
-          if (valueString==null||"".equals(valueString.trim())) {
-            logParseNoValue(colNum);
+        if (!committing) {
+          System.out.println("RowFeedback.logParseValue on an object: "+value+" with colNum "+colNum);
+          if (value==null) { // a tad experimental here. this means we don't have to check the parseSuccess in each getWhatever method
+            System.out.println("RowFeedback.logParseValue on a NULL OBJECT: trying to recover a value, or log empty");
+            String valueString = getCellValueAsString(row, colNum);
+            if (valueString==null||"".equals(valueString.trim())) {
+              logParseNoValue(colNum);
+              return;
+            } 
+            logParseError(colNum, valueString, row);
             return;
-          } 
-          logParseError(colNum, valueString, row);
-          return;
+          }
+          this.cells[colNum] = new CellFeedback(value, true, false);
         }
-        this.cells[colNum] = new CellFeedback(value, true, false);
       }
 
 
       public void logParseError(int colNum, Object value, Row row) {
-        this.cells[colNum] = new CellFeedback(value, false, false);
+        if (!committing) {
+          this.cells[colNum] = new CellFeedback(value, false, false);
+        }
       }
+
       public void logParseNoValue(int colNum) {
-        this.cells[colNum] = new CellFeedback(null, true, true);
+        if (!committing) {
+          this.cells[colNum] = new CellFeedback(null, true, true);
+        }
       }
 
     }
@@ -2020,6 +2060,10 @@ public static String getCellValueAsString(Row row, int num) {
   public String fileInDir(String filename, String directoryPath) {
     if (directoryPath.endsWith("/")) return (directoryPath+filename);
     return (directoryPath+"/"+filename); 
+  }
+
+  private void outPrnt(String str) {
+    if (!committing&&str!=null) out.println(str); 
   }
 
 }
