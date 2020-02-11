@@ -6,7 +6,12 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import java.net.*;
 
+import java.text.SimpleDateFormat;
+import org.apache.poi.ss.usermodel.DateUtil;
+
 import org.ecocean.grid.*;
+
+import org.ecocean.resumableupload.UploadServlet;
 
 import java.io.*;
 import java.util.*;
@@ -48,6 +53,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class StandardImport extends HttpServlet {
 
+  Boolean isUserUpload = false;
 	// variables shared by any single import instance
 
 	Map<String,Integer> colIndexMap = new HashMap<String, Integer>();
@@ -1126,11 +1132,11 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return ans;
   }
 
-  // private int getNumAssets(Row row) {
-  //   int n=0;
-  //   while(getString(row,"Encounter.mediaAsset"+n)!=null) {n++;}
-  //   return n;
-  // }
+  private int getNumAssets(Row row) {
+    int n=0;
+    while(getString(row,"Encounter.mediaAsset"+n)!=null) {n++;}
+    return n;
+  }
 
   // Checks common human errors in inputing filenames
   // and returns the most similar filename that actually exists on the server
