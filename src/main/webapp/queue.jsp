@@ -137,7 +137,7 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
 
             String prop = dec.getProperty();
             if (prop == null) continue;
-            Encounter truthEnc = getTruthEncounter(myShepherd, dec.getEncounter().getIndividualID());
+            Encounter truthEnc =  dec.getEncounter();   //getTruthEncounter(myShepherd, dec.getEncounter().getIndividualID());
             //Integer valI = indMap.get(dec.getProperty());
             String val = d.optString("value", null);
             //if ((val == null) && (d.optJSONArray("value") != null)) val = d.getJSONArray("value").join(", ");
