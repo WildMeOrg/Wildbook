@@ -85,6 +85,8 @@ public class TwitterBot {
         TwitterAssetStore tas = TwitterAssetStore.find(myShepherd);
         if (tas == null) {
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- no TwitterAssetStore found! Probably should fix this if you are using Twitter. :)");
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return;
         }
         Task task = new Task();
@@ -111,6 +113,8 @@ public class TwitterBot {
         } else {
             ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " already stored, so skipping");
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return;
             //entities = (load the children from retrieved tweetMA)
         }
@@ -603,7 +607,7 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
       myShepherd.setAction("TwitterBot.setLocationIDFromTweet");
       myShepherd.beginDBTransaction();
       List<String> locIDs=myShepherd.getAllLocationIDs();
-      myShepherd.closeDBTransaction();
+      myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       for (String tag : tags) {
         try{
