@@ -445,7 +445,8 @@ $(document).ready(function() {
 
           // replace this with canUserViewIndividual?
 //          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
-          boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
+          //boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
+        boolean isOwner = request.isUserInRole("admin") || request.isUserInRole("super_volunteer");
 
 
           System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
@@ -477,7 +478,7 @@ $(document).ready(function() {
 
           } else {
             %>
-            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName()%>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=(isOwner ? sharky.getDisplayName() : sharky.getId().substring(0,8))%>
             <%
             if(CommonConfiguration.allowAdoptions(context)){
                   %>
@@ -524,7 +525,7 @@ if (sharky.getNames() != null) {
       <%
       if(defaultName!=null){
       %>
-      	<span class="nameValue default"><%=defaultName%></span>
+      	<span class="owner-only nameValue default"><%=defaultName%></span>
       <%
       }
       else{defaultName="";}
@@ -585,6 +586,9 @@ if (sharky.getNames() != null) {
     </div>
 
     <style>
+<% if (!isOwner) { %>
+    .owner-only { display: none; }
+<% } %>
       #defaultNameColon, .nameCheck, .nameError, .nameErrorDiv, div.newname, input.namebutton, input.btn.deletename {
         display: none;
       }
