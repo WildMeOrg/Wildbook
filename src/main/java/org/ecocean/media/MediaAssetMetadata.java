@@ -253,6 +253,18 @@ GPS Altitude: "10 metres"
     }
 
 /*
+   exif orientation notes   :(
+ -> https://www.daveperrett.com/articles/2012/07/28/exif-orientation-handling-is-a-ghetto/
+  - http://sylvana.net/jpegcrop/exif_orientation.html
+  - https://www.howtogeek.com/254830/why-your-photos-dont-always-appear-correctly-rotated/
+  - https://www.impulseadventure.com/photo/exif-orientation.html
+
+    e.g.  https://iot.wildbook.org/obrowse.jsp?type=MediaAssetMetadata&id=253361
+    gives (only?)  Orientation: "Top, left side (Horizontal / normal)",  ??
+*/
+
+
+/*
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)

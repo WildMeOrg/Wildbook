@@ -1395,6 +1395,7 @@ public class Encounter implements java.io.Serializable {
     public void setIndividual(MarkedIndividual indiv) {
         if(indiv==null) {this.individual=null;}
         else{this.individual = indiv;}
+        this.refreshAnnotationLiteIndividual();
     }
 
     public MarkedIndividual getIndividual() {
@@ -2091,6 +2092,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     if (newLocationID!=null) {
       this.locationID = newLocationID.trim();
     }
+    else {
+      this.locationID = null;
+    }
   }
 
   public Double getMaximumDepthInMeters() {
@@ -2360,13 +2364,16 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setGenus(String newGenus) {
     if(newGenus!=null){genus = newGenus;}
 	  else{genus=null;}
+    this.refreshAnnotationLiteTaxonomy();
   }
   // we need these methods because our side-effected setGenus will silently break an import (!!!!!) in an edge case I cannot identify
   public void setGenusOnly(String genus) {
     this.genus = genus;
+    this.refreshAnnotationLiteTaxonomy();
   }
   public void setSpeciesOnly(String species) {
     this.specificEpithet = species;
+    this.refreshAnnotationLiteTaxonomy();
   }
 
   public String getSpecificEpithet() {
@@ -2376,6 +2383,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setSpecificEpithet(String newEpithet) {
     if(newEpithet!=null){specificEpithet = newEpithet;}
 	  else{specificEpithet=null;}
+    this.refreshAnnotationLiteTaxonomy();
   }
 
   public String getTaxonomyString() {
@@ -2403,6 +2411,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
             this.genus = gs[0];
             this.specificEpithet = gs[1];
         }
+        this.refreshAnnotationLiteTaxonomy();
     }
     public void setTaxonomyFromString(String s) {  //basically scientific name (will get split on space)
         String[] gs = Util.stringToGenusSpecificEpithet(s);
@@ -2414,6 +2423,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
             this.genus = gs[0];
             this.specificEpithet = gs[1];
         }
+        this.refreshAnnotationLiteTaxonomy();
     }
     public void setTaxonomyFromIAClass(String iaClass, Shepherd myShepherd) {
         setTaxonomy(IBEISIA.iaClassToTaxonomy(iaClass, myShepherd));
@@ -3907,5 +3917,21 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     }
     return Util.asSortedList(idSet);
   }
+
+    public void refreshAnnotationLiteTaxonomy() {
+        if (!this.hasAnnotations()) return;
+        String tax = this.getTaxonomyString();
+        for (Annotation ann : this.annotations) {
+            ann.refreshLiteTaxonomy(tax);
+        }
+    }
+    public void refreshAnnotationLiteIndividual() {
+        if (!this.hasAnnotations()) return;
+        String indivId = "____";
+        if (this.individual != null) indivId = this.individual.getIndividualID();
+        for (Annotation ann : this.annotations) {
+            ann.refreshLiteIndividual(indivId);
+        }
+    }
 
 }
