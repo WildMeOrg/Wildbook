@@ -11,11 +11,10 @@
         String commitStr = request.getParameter("commit");
         boolean committing = (commitStr!=null);
         String message = "";
+        message =  "<h1 class=\"import-header\">Bulk Data Import</h1>";
         if (!committing) {
-        	message = "<strong>REVIEW ONLY: </strong> To ensure data integrity, this is a dry run of your import that will not modify the Flukebook database. When you are satisfied with the results printed on this page, commit your import with the button at the bottom of the page.";
- 		} else {
- 			message = "<h4><strong class=\"import-commiting\">Committing.</strong> When this page is done, your import is complete and you can find your data on Flukebook.</h4>";
-	 	}
+        	message += "<strong>REVIEW ONLY: </strong> To ensure data integrity, this is a dry run of your import that will not modify the Flukebook database. When you are satisfied with the results printed on this page, commit your import with the button at the bottom of the page.";
+ 		} 
         %>
 
         <style>
@@ -36,7 +35,6 @@
                 <button>Forward</button>
             </div> -->
 
-        <h1 class="import-header">Bulk Data Import</h1>
         <p class="import-explanation"><%=message %></p>
 
         <%
