@@ -174,7 +174,10 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			// getting the indy using it will be easier than trying to get around caching of the retrieved encounters
 			//if (indyUUID!=null&&!"".equals(indyUUID)) {
 			//	
-			//} 
+			//}
+ 
+			enc.setState("approved");
+			enc2.setState("approved");
 			
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
@@ -212,8 +215,6 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				myShepherd.updateDBTransaction();
 			} 
 
-			enc.setState("approved");
-			enc2.setState("approved");
 
 			String matchMsg = enc.getMatchedBy();
 			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
@@ -224,6 +225,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			res.put("success", true);
 			
 		} catch (Exception e) {
+			enc.setState("unapproved");
+			enc2.setState("unapproved");
 			e.printStackTrace();
 			res.put("error", "Please enter a different Individual ID.");
 		}
