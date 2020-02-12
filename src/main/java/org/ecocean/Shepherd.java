@@ -342,7 +342,7 @@ public class Shepherd {
     beginDBTransaction();
     try {
       pm.makePersistent(task);
-      commitDBTransaction();
+      updateDBTransaction();
       return true;
     } catch (Exception e) {
       rollbackDBTransaction();
@@ -4551,6 +4551,24 @@ public class Shepherd {
     return occurrenceIDs;
 
   }
+  
+  public ArrayList<String> getLinkedLocationIDs(String locationID){
+    ArrayList<String> locationIDs=new ArrayList<String>();
+
+   String filter="SELECT distinct enc2.locationID FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && encounters.contains(enc2) && enc.locationID == \""+locationID+"\" && enc2.locationID != null && enc2.locationID != \""+locationID+"\"  VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2";
+
+    Query q = pm.newQuery (filter);
+
+    Collection results = (Collection) q.execute();
+    ArrayList al=new ArrayList(results);
+    q.closeAll();
+    int numResults=al.size();
+    for(int i=0;i<numResults;i++) {
+      locationIDs.add((String)al.get(i));
+    }
+    return locationIDs;
+
+  }
 
 
 
@@ -4617,7 +4635,7 @@ public class Shepherd {
     String filter = "individual != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
-    q.setRange(1, numToReturn+1);
+    q.setRange(0, numToReturn+1);
     q.setOrdering("year descending, month descending, day descending");
     Collection c = (Collection) (q.execute());
     if ((c != null) && (c.size() > 0)) {
@@ -4729,6 +4747,19 @@ public class Shepherd {
     Query anns = pm.newQuery(annClass, filter);
     Collection c = (Collection) (anns.execute());
     ArrayList<Annotation> al = new ArrayList(c);
+    anns.closeAll();
+    if((al!=null)&&(al.size()>0)) {
+      return al;
+    }
+    return null;
+  }
+  
+  public ArrayList<MediaAsset> getMediaAssetsWithACMId(String acmId){
+    String filter = "this.acmId == \""+acmId+"\"";
+    Extent annClass = pm.getExtent(MediaAsset.class, true);
+    Query anns = pm.newQuery(annClass, filter);
+    Collection c = (Collection) (anns.execute());
+    ArrayList<MediaAsset> al = new ArrayList(c);
     anns.closeAll();
     if((al!=null)&&(al.size()>0)) {
       return al;

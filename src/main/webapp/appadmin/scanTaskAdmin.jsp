@@ -300,19 +300,27 @@ else{
     <td><%=st.getSubmitter()%>
     </td>
     <%
-      String gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
-      //if (st.getUniqueNumber().equals("TuningTask")) {
+      String gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp";
+      if(scanEnc.getLocationID()!=null)  gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp";
+    //if (st.getUniqueNumber().equals("TuningTask")) {
       //  gotoURL = "endTuningTask.jsp";
       //}
     %>
 
     <td>
       <form name="scanNumJoin<%=scanNum%>" method="get"
-            action="<%=gotoURL%>"><input name="rightSide" type="hidden"
-                                         id="rightSide" value="<%=sideAddition%>"><input
+            action="<%=gotoURL%>">
+            
+            
+            <input name="rightSide" type="hidden" id="rightSide" value="<%=sideAddition%>">
+                 
+                 <input name="taskID" type="hidden" id="taskID" value="<%=st.getUniqueNumber() %>">                        
+                                         
+                                         <input
         name="writeThis" type="hidden" id="writeThis" value="true"><input
         name="number" type="hidden" id="number"
-        value="<%=st.getUniqueNumber().substring(5)%>"><input
+        value="<%=st.getUniqueNumber().substring(5)%>">
+        <input
         name="viewresult" type="submit" id="viewresult" value="View"></form>
     </td>
     <td>

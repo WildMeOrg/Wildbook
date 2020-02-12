@@ -2447,9 +2447,9 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         System.out.println("findByNames: "+genus+" "+specificEpithet);
         String taxonomyStringFilter="";
         if((genus!=null)&&(specificEpithet!=null)) {
-          taxonomyStringFilter=" && enc.genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc";
+          taxonomyStringFilter=" && enc.genus == '"+genus+"' && enc.specificEpithet == '"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc";
         }
-        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE (names.id == " + String.join(" || names.id == ", nameIds)+")"+taxonomyStringFilter;
+        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (names.id == " + String.join(" || names.id == ", nameIds)+")"+taxonomyStringFilter;
         System.out.println("findByNames jdoql: "+jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
         Collection c = (Collection) (query.execute());

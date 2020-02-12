@@ -22,6 +22,7 @@
 
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("occurrenceExportSearchResults.jsp");
 
     //set up the vector for matching encounters
     Vector rOccurrences = new Vector();
