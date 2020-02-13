@@ -90,6 +90,7 @@ System.out.println("findSimilar() -> " + el.toString());
 
 private static JSONObject getMatchPhoto(HttpServletRequest request, Shepherd myShepherd, MarkedIndividual indiv) {
     if (indiv == null) return null;
+    Integer matchAssetId = SystemValue.getInteger(myShepherd, "MatchPhoto_" + indiv.getId());
     Annotation backup = null;
     Annotation found = null;
     foundOne: for (Encounter enc : indiv.getEncounters()) {
@@ -98,7 +99,8 @@ private static JSONObject getMatchPhoto(HttpServletRequest request, Shepherd myS
             MediaAsset ma = ann.getMediaAsset();
             if (ma == null) continue;
             if (backup == null) backup = ann;
-            if (ma.hasKeyword("MatchPhoto")) {
+            if ( ((matchAssetId != null) && (matchAssetId == ma.getId())) ||
+                 ((matchAssetId == null) && ma.hasKeyword("MatchPhoto")) ) {
                 found = ann;
                 break foundOne;
             }

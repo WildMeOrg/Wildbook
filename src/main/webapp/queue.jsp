@@ -19,13 +19,18 @@ private static Encounter getTruthEncounter(Shepherd myShepherd, String individua
 private static List<Annotation> getMatchPhotoAnnotations(Shepherd myShepherd, MarkedIndividual indiv) {
     List<Annotation> rtn = new ArrayList<Annotation>();
     if (indiv == null) return rtn;
+    Integer assetId = SystemValue.getInteger(myShepherd, "MatchPhoto_" + indiv.getId());
     for (Encounter enc : indiv.getEncounters()) {
         if (Util.collectionIsEmptyOrNull(enc.getAnnotations())) continue;
         for (Annotation ann : enc.getAnnotations()) {
             MediaAsset ma = ann.getMediaAsset();
             if (ma == null) continue;
             //if (backup == null) backup = ann;
-            if (ma.hasKeyword("MatchPhoto")) rtn.add(ann);
+            if ((assetId != null) && (ma.getId() == assetId)) {
+                rtn.add(ann);
+            } else if ((assetId == null) && ma.hasKeyword("MatchPhoto")) {
+                rtn.add(ann);
+            }
         }
     }
     //logic here is that if we have > 1 annot, and one of them has >= 1 sibling annot, that indiv gets to use that asset
