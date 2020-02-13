@@ -34,6 +34,17 @@ if (indiv == null) {
 }
 
 
+int matchPhoto = -1;
+try {
+    matchPhoto = Integer.parseInt(request.getParameter("matchPhotoAssetId"));
+} catch (Exception ex) {}
+
+if (admin && (matchPhoto > 0)) {
+    SystemValue.set(myShepherd, "MatchPhoto_" + id, matchPhoto);
+    out.println("{\"success\": true, \"assetId\": " + matchPhoto + "}");
+    myShepherd.commitDBTransaction();
+    return;
+}
 
 %>
 <script type="text/javascript">

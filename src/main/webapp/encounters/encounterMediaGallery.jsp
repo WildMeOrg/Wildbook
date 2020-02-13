@@ -831,6 +831,15 @@ function doImageEnhancer(sel) {
             ['replace this image', function(enh) {
             }],
 */
+            ['make MatchPhoto', function(enh) {
+		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                var ma = assetById(mid);
+                var indivId = false;
+                for (var i = 0 ; i < ma.features.length ; i++) {
+                    if (ma.features[i].annotationId == ma.annotation.id) indivId = ma.features[i].individualId;
+                }
+                if (indivId && ma) $.get('../individualGallery.jsp?id=' + indivId + '&matchPhotoAssetId=' + mid);
+            }],
 	];
 
         wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
