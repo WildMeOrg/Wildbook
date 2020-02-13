@@ -43,8 +43,11 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
     List results = (List)q.execute();
     Iterator it = results.iterator();
     String[] propMap = new String[]{"colorPattern", "earTip", "sex", "collar", "lifeStage"};
+    boolean putQuery = false;
     while (it.hasNext()) {
         JSONObject el = new JSONObject();
+        if (!putQuery) el.put("query", sql);
+        putQuery = true;
         Object[] row = (Object[]) it.next();
         String encId = (String)row[0];
         Double dist = (Double)row[1];
