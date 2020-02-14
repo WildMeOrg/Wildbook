@@ -162,68 +162,66 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	// allow flow either way if one or the other has an ID
 	if ((indiv == null || indiv2 == null) && (enc != null) && (enc2 != null)) {
 
-		System.out.println("indiv OR indiv2 is null, and two viable enc have been selected!");
+			try {
 
-		try {
+				// if there is a newIndividualID set in the URL, lets get it.
+				// getting the indy using it will be easier than trying to get around caching of the retrieved encounters
+				//if (indyUUID!=null&&!"".equals(indyUUID)) {
+				//	
+				//} 				
+				// neither have an individual
+				if (indiv==null&&indiv2==null) {
+				    if (Util.stringExists(displayName)) {
+						System.out.println("CASE 1: both indy null");
+						indiv = new MarkedIndividual(displayName, enc);
+						res.put("newIndividualUUID", indiv.getId());
+						res.put("individualName", displayName);
+						myShepherd.getPM().makePersistent(indiv);
+						myShepherd.updateDBTransaction();
+						enc.setIndividual(indiv);
+						enc2.setIndividual(indiv);
+						indiv.addEncounter(enc2);
+						myShepherd.updateDBTransaction();
+					} else {
+						res.put("error", "Please enter a new Individual ID for both encounters.");
+					}
+				}
 
-			// if there is a newIndividualID set in the URL, lets get it.
-			// getting the indy using it will be easier than trying to get around caching of the retrieved encounters
-			//if (indyUUID!=null&&!"".equals(indyUUID)) {
-			//	
-			//} 
-			
-			// neither have an individual
-			if (indiv==null&&indiv2==null) {
-				if (Util.stringExists(displayName)) {
-					System.out.println("CASE 1: both indy null");
-					indiv = new MarkedIndividual(displayName, enc);
-					res.put("newIndividualUUID", indiv.getId());
-					res.put("individualName", displayName);
-					myShepherd.getPM().makePersistent(indiv);
-					myShepherd.updateDBTransaction();
-					enc.setIndividual(indiv);
+				// query enc has indy, or already stashed in URL params
+				if (indiv!=null&&indiv2==null) {
+					System.out.println("CASE 2: query enc indy is null");
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
+					res.put("individualName", indiv.getDisplayName());
+					System.out.println("individualName for response is "+indiv.getDisplayName());
 					myShepherd.updateDBTransaction();
-				} else {
-					res.put("error", "Please enter a new Individual ID for both encounters.");
-				}
+				} 	
+
+				// target enc has indy
+				if (indiv==null&&indiv2!=null) {
+					System.out.println("CASE 3: target enc indy is null");
+					enc.setIndividual(indiv2);					
+					indiv2.addEncounter(enc);
+					res.put("individualName", indiv2.getDisplayName());
+					System.out.println("individualName for response is "+indiv2.getDisplayName());
+					myShepherd.updateDBTransaction();
+				} 
+
+				enc.setState("approved");
+				enc2.setState("approved");
+
+				String matchMsg = enc.getMatchedBy();
+				if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
+				matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
+				enc.setMatchedBy(matchMsg); 
+				enc2.setMatchedBy(matchMsg);
+
+				res.put("success", true);
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				res.put("error", "Please enter a different Individual ID.");
 			}
-
-			// query enc has indy, or already stashed in URL params
-			if (indiv!=null&&indiv2==null) {
-				System.out.println("CASE 2: query enc indy is null");
-				enc2.setIndividual(indiv);
-				indiv.addEncounter(enc2);
-				res.put("individualName", indiv.getDisplayName());
-				myShepherd.updateDBTransaction();
-			} 	
-
-			// target enc has indy
-			if (indiv==null&&indiv2!=null) {
-				System.out.println("CASE 3: target enc indy is null");
-				enc.setIndividual(indiv2);					
-				indiv2.addEncounter(enc);
-				res.put("individualName", indiv2.getDisplayName());
-				myShepherd.updateDBTransaction();
-			} 
-
-			enc.setState("approved");
-			enc2.setState("approved");
-
-			String matchMsg = enc.getMatchedBy();
-			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
-			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-			enc.setMatchedBy(matchMsg); 
-			enc2.setMatchedBy(matchMsg);
-
-			res.put("success", true);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			res.put("error", "Please enter a different Individual ID.");
-		}
-
 		//indiv.addComment(????)
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
@@ -899,6 +897,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 var encDisplay = encId;
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
                 var indivId = ft.individualId;
+		console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
 
@@ -921,7 +920,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>');
                 }
                 if (encId || indivId) {
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+console.log("XX %o", displayName);
+            $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
@@ -1242,7 +1242,6 @@ function encDisplayString(encId) {
 
 
 function negativeButtonClick(encId, oldDisplayName) {
-	console.log("NEGATIVE button CLICK GODDAMNIT");
 	var confirmMsg = 'Confirm no match?\n\n';
 	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
 	if (oldDisplayName != ("")) {
@@ -1251,7 +1250,6 @@ function negativeButtonClick(encId, oldDisplayName) {
 		confirmMsg+= 'A new individual will be created with the next <%=nextNameKey%> name and applied to encounter '+encDisplayString(encId);
 	}
 	confirmMsg+= ' to record your decision.';
-	console.log("NEGATIVE button CLICK GODDAMNIT the SECOND TIME");
 
 	// $('#confirm-negative-dialog').show();
 	// $('#confirm-negative-dialog').dialog({
@@ -1288,9 +1286,6 @@ function negativeButtonClick(encId, oldDisplayName) {
 	// 	// modal: true
 	// });
 	// $('#confirm-negative-dialog').show();
-
-
-	console.log("NEGATIVE button CLICK GODDAMNIT the THIRD TIME");
 
 	if (confirm(confirmMsg)) {
 		$.ajax({
