@@ -35,11 +35,6 @@
 			"defaultLatitude": 17.638133, "defaultLongitude": 9.766846
 		},
 		{
-			"name": "Namibia",
-			"id": "Namibia",
-			"defaultLatitude": -22, "defaultLongitude": 17
-		},
-		{
 			"name": "Chad",
 			"id": "Chad",
 			"locationID": [
