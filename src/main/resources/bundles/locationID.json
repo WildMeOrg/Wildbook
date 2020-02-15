@@ -337,8 +337,7 @@
 			 {
 			  "name": "North Sea", "id": "North Sea" },
 			  
-			  {
-			  "name": "NorfolkCanyon", "id": "NorfolkCanyon" },
+			  
 			 {
 			  "name": "Norwegian Sea", "id": "Norwegian Sea" },
 			 {
@@ -349,6 +348,12 @@
 			  "name": "Sea of the Hebrides", "id": "Sea of the Hebrides" },
 			  
 			  {"name":"U.S. Eastern Seaboard","id":"U.S. Eastern Seaboard","locationID":[
+			  
+					{
+					"name": "NorfolkCanyon", "id": "NorfolkCanyon" },
+					
+					{
+					"name": "NC-OUTERBANKS", "id": "NC-OUTERBANKS" },
 			  
 					{ "name":"Montauk NY", "id":"Montauk NY", "locationID":[] },
 					{ "name":"Cape May, NJ", "id":"CapeMay", "locationID":[] },
