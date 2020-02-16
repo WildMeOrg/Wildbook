@@ -228,6 +228,28 @@ if (maxRole == null) {
 boolean isAdmin = (maxRole.equals("super_volunteer") || maxRole.equals("admin"));
 boolean forceList = Util.requestParameterSet(request.getParameter("forceList")) || isAdmin;
 
+if (isAdmin && (request.getParameter("MatchPhoto") != null)) {
+    String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE seriesCode=='phase2'";
+    Query query = myShepherd.getPM().newQuery(jdoql);
+    Collection col = (Collection)query.execute();
+    List<MarkedIndividual> indivs = new ArrayList<MarkedIndividual>(col);
+    query.closeAll();
+
+    for (MarkedIndividual indiv : indivs) {
+        List<Annotation> mps = getMatchPhotoAnnotations(myShepherd, indiv);
+        //Integer assetId = SystemValue.getInteger(myShepherd, "MatchPhoto_" + indiv.getId());
+%>
+<div>
+    <a target="_new" href="individuals.jsp?number=<%=indiv.getId()%>"><%=indiv.getDisplayName()%></a> has
+    <a <%=(Util.collectionIsEmptyOrNull(mps) ? " style=\"background-color: #FF0;\" " : "")%> target="_new" href="individualGallery.jsp?id=<%=indiv.getId()%>"><%=(Util.collectionIsEmptyOrNull(mps) ? "<b>NO MatchPhoto</b>" : "<b>" + Util.collectionSize(mps) + "</b> MatchPhoto")%></a>
+</div>
+<%
+    }
+
+    myShepherd.rollbackDBTransaction();
+    return;
+}
+
 String dtype = request.getParameter("data");
 if (Util.requestParameterSet(dtype)) {
     File xls = new File("/tmp/kitsci_export_" + Util.basicSanitize(dtype) + "_" + new DateTime().toLocalDate() + "_" + Util.generateUUID().substring(0,6) + ".xls");
@@ -355,6 +377,9 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
     </a>
     <a href="queue.jsp?data=match" title="Download XLS with volunteer cat ID matches">
         <button>Download ID Match XLS</button>
+    </a>
+    <a href="queue.jsp?MatchPhoto" title="See status of MatchPhoto">
+        <button>List cats with MatchPhoto status</button>
     </a>
 </p>
 <div id="filter-tabs">
