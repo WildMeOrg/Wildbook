@@ -200,6 +200,8 @@ function adjustBox(id) {
 <script src="tools/panzoom/jquery.panzoom.min.js"></script>
 
 <div style="text-align: center;" class="maincontent">
+<h2>Gallery for Individual <%=indiv.getDisplayName()%></h2>
+
 <div style="margin-top: 30px;"></div>
 <%
 if (!Util.collectionIsEmptyOrNull(indiv.getEncounters())) for (Encounter enc : indiv.getEncounters()) {
