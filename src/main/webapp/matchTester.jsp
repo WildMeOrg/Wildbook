@@ -178,9 +178,14 @@ function getMatches(userData) {
                     var okeys = Object.keys(ordering);
                     okeys.sort(function(a,b) { return (a - b); }).reverse();
                     $('#match-results').html('<p id="sql">SQL: <b>' + matchData.similar[0].query+ '</b></p>');
+                    var catSeen = {};
+                    var ct = 1;
                     for (var i = 0 ; i < okeys.length ; i++) {
+                        if (catSeen[matchData.similar[ordering[okeys[i]]].individualId]) continue;
+                        catSeen[matchData.similar[ordering[okeys[i]]].individualId] = true;
                         console.log('%o %o %o', i, okeys[i], ordering[okeys[i]]);
-                        displayMatch(i, matchData.similar[ordering[okeys[i]]]);
+                        displayMatch(ct, matchData.similar[ordering[okeys[i]]]);
+                        ct++;
                     }
                 }
             }
@@ -193,6 +198,7 @@ function getMatches(userData) {
 function displayMatch(ct, m) {
     var h = '<div class="match-result">';
     h += '<div class="match-bit match-bit-score">' + (ct+1) + ') <b>' + m.score + '</b></div> ';
+    h += '<div class="match-bit">indiv: <a target="_new" href="individuals.jsp?number=' + m.individualId + '"><b>' + m.individualId.substr(0,6) + '</b></a></div>';
     for (var bit in m) {
         if (['score', 'assets', 'matchPhoto', 'individualId','query'].includes(bit)) continue;
         var val = m[bit];
