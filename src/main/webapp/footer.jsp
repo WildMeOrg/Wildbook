@@ -5,8 +5,6 @@
       org.ecocean.ContextConfiguration,
       org.ecocean.ShepherdProperties,
       org.ecocean.servlet.ServletUtilities,
-      org.ecocean.Shepherd,
-      org.ecocean.User,
       java.util.ArrayList,
       java.util.List,
       java.util.Properties,
@@ -20,15 +18,11 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
-Shepherd myShepherd = new Shepherd(context);
 
-// 'sets serverInfo if necessary
-CommonConfiguration.ensureServerInfo(myShepherd, request);
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
-myShepherd.setAction("footer.jsp");
-myShepherd.rollbackAndClose();
+
 
         %>
 
