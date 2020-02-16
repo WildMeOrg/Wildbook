@@ -2732,11 +2732,7 @@ else {
     									<td>
      										<img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif" /> <%=encprops.getProperty("assigned_user")%>&nbsp;
      									</td>
-        								<%
-      									%>
 
-      									<%
-      									%>
      								</tr>
      								<tr>
      									<td>
@@ -2765,54 +2761,54 @@ else {
                          					}
                                 			%>
 
-     								<div>
-                      <div class="row">
-                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
-                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="border: 1px solid;" />
-                        </div>
-                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
-                          <%-- <p> --%>
-
-                        <%
-                        if(thisUser.getAffiliation()!=null){
-                        %>
-                        <p><strong><%=displayName %></strong></p>
-                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
-                        <%
-                        }
-
-                        if(thisUser.getUserProject()!=null){
-                        %>
-                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
-                        <%
-                        }
-
-                        if(thisUser.getUserURL()!=null){
-                            %>
-                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
-                            <%
-                          }
-
-                        if(thisUser.getUserStatement()!=null){
-                            %>
-                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
-                            <%
-                          }
-                        %>
-                        </div>
-                      </div>
-
-                  </div>
-
-<%
-                         	}
-
-
-                      	else{
-                      	%>
-                      	&nbsp;
-                      	<%
-                      	}
+					     				<div>
+					                      <div class="row">
+					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
+					                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="border: 1px solid;" />
+					                        </div>
+					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
+					                          <%-- <p> --%>
+					
+					                        <%
+					                        if(thisUser.getAffiliation()!=null){
+					                        %>
+					                        <p><strong><%=displayName %></strong></p>
+					                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
+					                        <%
+					                        }
+					
+					                        if(thisUser.getUserProject()!=null){
+					                        %>
+					                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
+					                        <%
+					                        }
+					
+					                        if(thisUser.getUserURL()!=null){
+					                            %>
+					                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
+					                            <%
+					                          }
+					
+					                        if(thisUser.getUserStatement()!=null){
+					                            %>
+					                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
+					                            <%
+					                          }
+					                        %>
+					                        </div>
+					                      </div>
+					
+					                  </div>
+					
+					<%
+					                         	}
+					
+					
+					                      	else{
+					                      	%>
+					                      	&nbsp;
+					                      	<%
+					                      	}
 
                       	}
                          				//insert here
@@ -3000,6 +2996,7 @@ if (isOwner) {
 
 Query itq = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getEncounterNumber() + "'");
 List ires = (List)itq.execute();
+
 if (ires.size() > 0) {
     Iterator it = ires.iterator();
     ImportTask itask = (ImportTask)it.next();
@@ -3007,7 +3004,7 @@ if (ires.size() > 0) {
     <a target="_new" href="../imports.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
 <%
 }
-//
+itq.closeAll();
 %>
 
 </td>
