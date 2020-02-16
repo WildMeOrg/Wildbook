@@ -42,6 +42,24 @@ body {
     padding: 5px;
 }
 
+.match-result {
+    position: relative;
+    height:50px;
+}
+.match-result:hover {
+    background-color: #eee;
+}
+.match-photo {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 45px;
+}
+.match-photo:hover {
+    height: 1024px;
+    z-index: 50;
+}
+
 .match-bit {
     font-size: 0.8em;
     display: inline-block;
@@ -182,6 +200,7 @@ function displayMatch(ct, m) {
         if (bit == 'matches') val = JSON.stringify(val);
         h += '<div class="match-bit match-bit-' + bit + '">' + bit + ': <b>' + val + '</b></div>';
     }
+    if (m.matchPhoto) h += '<img class="match-photo" src="' + m.matchPhoto.url + '" />';
     h += '</div>';
     $('#match-results').append(h);
 }
