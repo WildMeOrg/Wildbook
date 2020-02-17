@@ -48,9 +48,10 @@ public class ExportExcelFile extends HttpServlet{
     String[] headers = request.getParameterValues("headers");
     String[] columns = request.getParameterValues("columns");
     boolean _ibeisHack = (request.getParameter("_ibeisHack") != null);
-
-    Collection c = (Collection) myShepherd.getPM().newQuery(query).execute();
+    Query q=myShepherd.getPM().newQuery(query);
+    Collection c = (Collection) q.execute();
     Vector v = new Vector(c);
+    q.closeAll();
     //Class cls = v.get(0).getClass();
 
     String filename = request.getParameter("filename");
