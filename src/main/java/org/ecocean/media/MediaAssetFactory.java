@@ -46,6 +46,7 @@ public class MediaAssetFactory {
         Query query = myShepherd.getPM().newQuery(MediaAsset.class);
         query.setFilter("uuid=='" + uuid + "'");
         List results = (List)query.execute();
+        query.closeAll();
         //uuid column is constrained unique, so should always get 0 or 1
         if (results.size() < 1) return null;
         return (MediaAsset)results.get(0);
@@ -58,6 +59,7 @@ public class MediaAssetFactory {
         query.setFilter("acmId=='" + id + "'");
         query.setOrdering("revision");
         List results = (List)query.execute();
+        query.closeAll();
         if (results.size() < 1) return null;
         return (MediaAsset)results.get(0);
     }
