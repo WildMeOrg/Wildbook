@@ -347,6 +347,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
             vals.removeAll(rtn);  //weed out duplicates
             rtn.addAll(vals);
         }
+        q.closeAll();
         return rtn;
     }
 
