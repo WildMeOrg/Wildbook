@@ -6629,7 +6629,7 @@ Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 List results = (List)q.execute();
 int c = 0;
 Iterator it = results.iterator();
-q.closeAll();
+
 while (it.hasNext()) {
     Object[] row = (Object[]) it.next();
     String locId = (String)row[0];
@@ -6640,6 +6640,7 @@ while (it.hasNext()) {
         locCount.put(locId, ct);
     }
 }
+q.closeAll();
 
 
 JSONObject locIdTree = LocationID.getLocationIDStructure(request);
