@@ -70,6 +70,7 @@ console.log('asset id=%o', id);
         return;
     }
     var wrapper = imgEl.parent();
+    wrapper.css('background-color', '#FFF');
     var ow = imgData[id].origWidth;
     var oh = imgData[id].origHeight;
     var iw = imgEl[0].naturalWidth;
