@@ -711,6 +711,7 @@ console.log('asset id=%o', id);
         return;
     }
     var wrapper = imgEl.parent();
+    wrapper.css('background-color', '#FFF');
     var iw = imgEl[0].naturalWidth;
     var ih = imgEl[0].naturalHeight;
     var ww = wrapper.width();
@@ -805,7 +806,7 @@ var yscale = wh / oh;
 var px = -(imgInfo.bbox[0] * zscale) + (ww / 2) - (imgInfo.bbox[2] * zscale / 2);
 var py = -(imgInfo.bbox[1] * yscale) + (wh / 2) - (imgInfo.bbox[3] * yscale / 2);
 
-var zz = ww / imgInfo.bbox[2];
+var zz = 3 * ww / imgInfo.bbox[2];
 if (zz < 1) zz = 1;
 console.info('[ zz = %f ]  px, py = %f,%f (zscale %f, yscale %f)', zz, px, py, zscale, yscale);
 imgEl.panzoom('pan', zz * px, zz * py);
