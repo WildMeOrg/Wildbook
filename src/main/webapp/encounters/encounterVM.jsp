@@ -27,60 +27,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
-<%!
-
-  //shepherd must have an open trasnaction when passed in
-  public String getNextIndividualNumber(Encounter enc, Shepherd myShepherd) {
-    String returnString = "";
-    try {
-      String lcode = enc.getLocationCode();
-      if ((lcode != null) && (!lcode.equals(""))) {
-
-        //let's see if we can find a string in the mapping properties file
-        Properties props = new Properties();
-        //set up the file input stream
-        props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
-
-        //let's see if the property is defined
-        if (props.getProperty(lcode) != null) {
-          returnString = props.getProperty(lcode);
-
-
-          int startNum = 1;
-          boolean keepIterating = true;
-
-          //let's iterate through the potential individuals
-          while (keepIterating) {
-            String startNumString = Integer.toString(startNum);
-            if (startNumString.length() < 3) {
-              while (startNumString.length() < 3) {
-                startNumString = "0" + startNumString;
-              }
-            }
-            String compositeString = returnString + startNumString;
-            if (!myShepherd.isMarkedIndividual(compositeString)) {
-              keepIterating = false;
-              returnString = compositeString;
-            } else {
-              startNum++;
-            }
-
-          }
-          return returnString;
-
-        }
-
-
-      }
-      return returnString;
-    } 
-    catch (Exception e) {
-      e.printStackTrace();
-      return returnString;
-    }
-  }
-
-%>
 
 <%
   String context="context0";
@@ -121,6 +67,7 @@
   pageContext.setAttribute("num", num);
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("encounterVM.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   boolean proceed = true;

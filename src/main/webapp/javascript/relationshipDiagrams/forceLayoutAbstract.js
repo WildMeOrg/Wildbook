@@ -3,8 +3,8 @@
 
 //Abstract class defining functionality for all d3 forceLayout types
 class ForceLayoutAbstract extends GraphAbstract {
-    constructor(individualId, containerId, focusedScale=1, parser=null) {
-	super(individualId, containerId, focusedScale, parser);
+    constructor(individualId, containerId, globals, focusedScale=1, parser=null) {
+	super(individualId, containerId, globals, focusedScale, parser);
 
 	//Link attributes
 	this.linkWidth = 3;
@@ -57,7 +57,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.forces = d3.forceSimulation()
 	    .force("link", d3.forceLink().id(d => d.id))
 	    .force("charge", d3.forceManyBody().strength(300)) //TODO - Tune this
-	    .force("collision", d3.forceCollide().radius(d => this.getLinkLen(d))) 
+	    .force("collision", d3.forceCollide().radius(d => this.getNodeMargin(d))) 
 	    .force("center", d3.forceCenter(this.width/2, this.height/2))
 	    .alphaDecay(0.05)
 	    .velocityDecay(0.8);
@@ -325,8 +325,8 @@ class ForceLayoutAbstract extends GraphAbstract {
     centerNode(node) {
 	this.svg.transition()
 	    .duration(this.transitionDuration + 250) //Delay slightly for stability
-	    .attr("transform", "translate(" + ((this.width/2) + node.x) + "," +
-		  ((this.height/2) - node.y) + ")");
+	    .attr("transform", "translate(" + ((this.width/2) - node.x) + "," +
+		  ((this.height/2) - node.y) + ")scale(1)");
     }
 
     /**
@@ -352,9 +352,13 @@ class ForceLayoutAbstract extends GraphAbstract {
 	}
     }
 
-    //Resolve node movement on drag end, halt graph movements
-    dragEnded(d, node) {
-	if (!this.isAssignedKeyBinding() && !d.filtered) {
+    /**
+     * Resolve node movement on drag end, halt graph movements
+     * @param {nodeData} [NodeData] - The contextual node drag is being applied to
+     * @param {node} [Node] - D3.js's SVG instance of the NodeData object
+     */
+    dragEnded(nodeData, node) {
+	if (!this.isAssignedKeyBinding() && !nodeData.filtered) {
 	    if (!d3.event.active) this.forces.alphaTarget(0);
 
 	    //Color fixed node
@@ -362,18 +366,24 @@ class ForceLayoutAbstract extends GraphAbstract {
 	}
     }
 
-    //Release the targeted node from its locked position
-    releaseNode(d, node) {
-	if (!d.filtered) {
-	    d.fx = null;
-	    d.fy = null;
+    /**
+     * Release the targeted node from its locked position
+     * @param {nodeData} [NodeData] - The contextual node drag is being applied to
+     * @param {node} [Node] - D3.js's SVG instance of the NodeData object
+     */
+    releaseNode(nodeData, node) {
+	if (!nodeData.filtered) {
+	    nodeData.fx = null;
+	    nodeData.fy = null;
 	    
 	    //Recolor node
 	    d3.select(node).select("circle").style("fill", this.defNodeColor);
 	}
     }
 
-    //Reset the graph s.t. all filtered nodes are unfiltered
+    /**
+     * Reset the graph s.t. all filtered nodes are unfiltered
+     */
     resetGraph() {
 	//Reset filters
 	for (let filter in this.filtered) this.filtered[filter] = {};
@@ -390,7 +400,13 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.updateGraph();
     }
 
-    //Apply reversible filters based upon groupNum
+    /**
+     * Apply reversible filters based upon groupNum
+     * @param {nodeFilter} [lambda] - Determines which nodes should be filtered
+     * @param {linkFilter} [lambda] - Determines which links should be filtered
+     * @param {type} [string] - The type of absolute filter being applied
+     * @param {validFilters} [string list] - Specifies filters which this filter may override
+     */
     filterGraph(groupNum, nodeFilter, linkFilter, filterType, validFilters) {
 	//Ensure filter exists
 	if (!this.filtered[filterType]) this.filtered[filterType] = {};
@@ -425,7 +441,13 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     //TODO - Add support for saved local family filters
-    //Apply absolute filters (i.e. thresholding)
+    /**
+     * Apply absolute filters (i.e. thresholding)
+     * @param {nodeFilter} [lambda] - Determines which nodes should be filtered
+     * @param {linkFilter} [lambda] - Determines which links should be filtered
+     * @param {type} [string] - The type of absolute filter being applied
+     * @param {validFilters} [string list] - Specifies filters which this filter may override
+     */
     absoluteFilterGraph(nodeFilter, linkFilter, type, validFilters) {
 	//Remove any nodes who no longer qualify to be filtered
 	this.svg.selectAll(".node").filter(d => nodeFilter(d) &&
@@ -446,37 +468,62 @@ class ForceLayoutAbstract extends GraphAbstract {
     
     // Helper Methods //
     
-    //Determine if key has other bound function
+    /**
+     * Determine if a key with bound functions is being pressed down
+     * @return {isAssignedKey} [boolean] - Whether an assigned key is down
+     */
     isAssignedKeyBinding() {
 	return (this.shiftKey() || this.ctrlKey());
     }
 
-    //Returns true if shift key is being held down
+    /**
+     * Returns true if shift key is being held down
+     * @return {shiftDown} [boolean] - Whether the shift key is down
+     */
     shiftKey() {
 	return (d3.event.shiftKey || (d3.event.sourceEvent && d3.event.sourceEvent.shiftKey));
     }
 
-    //Returns true if ctrl key is being held down
+    /**
+     * Returns true if ctrl key is being held down
+     * @return {ctrlDown} [boolean] - Whether the ctrl key is down
+     */
     ctrlKey() {
 	return (d3.event.ctrlKey || (d3.event.sourceEvent && d3.event.sourceEvent.ctrlKey));
     }
 
-    //Returns the length of a given link
-    getLinkLen(node) {
-	return this.radius * Math.min(this.maxLenScalar, this.getSizeScalar(node) * 2);
+    /**
+     * Returns the necessary margin to prevent overlap for a given node
+     * @param {nodeData} [NodeData] - Provides node attributes for the margin calculation 
+     * @return {nodeMargin} [int] - Approx. distance by which nodes should be separated 
+     */
+    getNodeMargin(nodeData) {
+	return this.radius * Math.min(this.maxLenScalar, this.getSizeScalar(nodeData) * 2);
     }
 
-    //Returns the target node of a given link
+    /**
+     * Returns the target node of a given link
+     * @param {link} [Link] - The link for which the target node will be found
+     * @return {nodeData} [NodeData] - The relevant nodeData target 
+     */
     getLinkTarget(link) {
 	return this.nodeData.find(node => node.id === link.target.id || node.id === link.target);
     }
 
-    //Returns the source node of a given link
+    /**
+     * Returns the source node of a given link
+     * @param {link} [Link] - The link for which the source node will be found
+     * @return {nodeData} [NodeData] - The relevant nodeData source 
+     */
     getLinkSource(link) {
 	return this.nodeData.find(node => node.id === link.source);
     }
 
-    //Remove duplicates from array
+    /**
+     * Remove duplicates from array
+     * @param {arr} [list] - The array to be filtered
+     * @return {filteredArr} [list] - The original array with all duplicates removed
+     */
     getUnique(arr) {
 	return arr.filter((el, pos, arr) => {
 	    return arr.indexOf(el) == pos;

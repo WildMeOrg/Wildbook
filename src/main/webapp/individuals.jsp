@@ -1387,8 +1387,6 @@ if (sharky.getNames() != null) {
         <%
           	}
 
-          //end relationship code
-
           List<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
 
           if(relationships.size()>0){
@@ -1438,7 +1436,7 @@ if (sharky.getNames() != null) {
 
 	  <% String individualID = sharky.getIndividualID();%>	
 	  <script type="text/javascript">
-	    setupSocialGraph("<%=individualID%>");
+	    setupSocialGraph("<%=individualID%>", "#socialDiagram", wildbookGlobals);
 	  </script>
 	</div>
 
@@ -1559,7 +1557,7 @@ if (sharky.getNames() != null) {
           List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky);
 
 	//TODO - Fix coOccurrence vs encounter discrepancy
-        //if(true || otherIndies.size()>0){
+        if(true || otherIndies.size()>0){
         //ok, let's iterate the social relationships
         %>
         <div class="cooccurrences">
@@ -1614,12 +1612,12 @@ if (sharky.getNames() != null) {
                 <input type="range" min=0 class="cooccurrenceSlider" id="temporal">
 	      </div>
 	      <div class="sliderWrapper">
-		<label for="spatial">Spatial Slider (Degrees) - <span id="spatialVal"></span></label>
+		<label for="spatial">Spatial Slider (Milli-Degrees) - <span id="spatialVal"></span></label>
 		<input type="range" min=0 class="cooccurrenceSlider" id="spatial">
 	      </div>
 	    </div>
 	    <script type="text/javascript">
-              setupOccurrenceGraph("<%=occurrenceIndividualID%>")
+              setupOccurrenceGraph("<%=occurrenceIndividualID%>", wildbookGlobals)
             </script>
           </div>
 
@@ -1632,12 +1630,12 @@ if (sharky.getNames() != null) {
         </div>
 
         <%
-        //}
-        //else {
+        }
+        else {
         %>
         <%--	<p class="para"><%=props.getProperty("noCooccurrences") %></p><br /> --%>
         <%
-        //}
+        }
 
 
         %>

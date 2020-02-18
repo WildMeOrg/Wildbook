@@ -1,26 +1,32 @@
 //Helper class purposed to query and parse JSON node/link data for social and coOccurrence graphs
 class JSONParser {
-   //TODO - Logically couple disjointNodes and iId	
+    //TODO - Logically couple disjointNodes and iId	
    /**
     * Creates a JSONParse instance
+    * @param {globals} [object] - Global data from Wildbook .jsp pages
     * @param {selectedNodes} [string|iterable] - Nodes included when generating JSON data. When null, all nodes are included. 
     *   Defaults to null.
     * @param {disjointNodes} [boolean] - Whether nodes disconnected from the central node (iId) should be included when 
     *   generating JSON data. Defaults to false  
+    * @param {numNodes} [int] - Determines the total number of nodes to graph
+    * @param {localFiles} [boolean] - Whether requests should be made to local MarkedIndividual/Relationship data
     */
-    constructor(selectedNodes=null, disjointNodes=false) {
+    constructor(globals, selectedNodes=null, disjointNodes=false, numNodes=-1, localFiles=false) {	
 	//Keep track of a unique id for each node and link
 	this.nodeId = 0;
 	this.linkId = 0;
 
 	//Generate a set of selected nodes (if provided) to be used as a mask
-	if (selectedNodes !== null) {
+	if (selectedNodes) {
 	    if (typeof selectedNodes === "string") 
 		selectedNodes = selectedNodes.substr(1, selectedNodes.length - 2).split(", ");
 	    this.selectedNodes = new Set(selectedNodes);
 	}
 
 	this.disjointNodes = disjointNodes;
+	this.numNodes = numNodes;
+	this.localFiles = localFiles;
+	this.globals = globals;
     }
 
     //TODO - Turn iId into an optional parameter
@@ -34,7 +40,7 @@ class JSONParser {
 	this.queryNodeData().then(() => {
 	    this.queryRelationshipData().then(() => {
 		let nodes = this.parseNodes(iId);
-		let links = this.parseLinks();
+		let links = this.parseLinks(nodes);
 
 		if (isCoOccurrence) { //Extract temporal and latitude/longitude encounter data
 		    [nodes, links] = this.modifyOccurrenceData(iId, nodes, links);
@@ -50,8 +56,12 @@ class JSONParser {
      * @return {queryData} [array] - All MarkedIndividual data in the Wildbook DB
      */
     queryNodeData() {
-	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
-	    encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual"); //Get all individuals
+	let query;
+	if (!this.localFiles) {
+	    query = this.globals.baseUrl + "/api/jdoql?" +
+		encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual"); //Get all individuals
+	}
+	else query = "MarkedIndividual.json";
 	return this.queryData("nodeData", query, this.storeQueryAsDict);
     }
 
@@ -60,9 +70,13 @@ class JSONParser {
      * @returns {queryData} [array] - All Relationship data in the Wildbook DB
      */
     queryRelationshipData() {
-	let query = wildbookGlobals.baseUrl + "/api/jdoql?" +
-	    encodeURIComponent("SELECT FROM org.ecocean.social.Relationship " +
-			       "WHERE (this.type == \"social grouping\")");
+	let query;
+	if (!this.localFiles) {
+	    query = this.globals.baseUrl + "/api/jdoql?" +
+		encodeURIComponent("SELECT FROM org.ecocean.social.Relationship " +
+				   "WHERE (this.type == \"social grouping\")");
+	}
+	else query = "Relationship.json";
 	return this.queryData("relationshipData", query);
     }
 
@@ -76,8 +90,26 @@ class JSONParser {
     queryData(type, query, callback=null) {
 	return new Promise((resolve, reject) => {
 	    if (!JSONParser[type]) { //Memoize the result
+		/*$.ajax({
+		    "url": query,
+		    "type": "GET",
+		    "dataType": "json",
+		    "success": (json) => {
+			if (callback) callback(json, type, resolve);
+			else {
+			    console.log(json);
+			    JSONParser[type] = json;
+			    resolve(); //Handle the encapsulating promise
+			}
+		    },
+		    "error": (req, error) => reject(error)
+		});*/
+
+		
 		d3.json(query, (error, json) => {
-		    if (error) reject(error);
+		    if (error) {
+			reject(error);
+		    }
 		    else if (callback) callback(json, type, resolve);
 		    else {
 			JSONParser[type] = json;
@@ -119,15 +151,19 @@ class JSONParser {
      */
     parseNodes(iId) {
 	//Assign unique ids and groupings to the queried node data
-	if (!JSONParser.isNodeDataProcessed) this.processNodeData(iId);
+	this.processNodeData(iId); //TODO - Memoize this process
 
 	//Extract meaningful node data
 	let nodes = [];
 	let nodeData = this.getNodeData();
-	Object.keys(nodeData).forEach(key => {
+	for (let key in nodeData) {
 	    let data = nodeData[key];
 	    let name = data.displayName;
 	    name = name.substring(name.indexOf(" ") + 1);
+
+	    //TODO - Remove
+	    //Exit loop early if max number of nodes have been found
+	    if (this.numNodes > 0 && nodes.length >= this.numNodes) break;
 	    
 	    //Add node to list if disjoint nodes are allowed, or if a link exists to the central node {iId}
 	    if (this.disjointNodes || data.iIdLinked) {
@@ -146,12 +182,12 @@ class JSONParser {
 			"timeOfDeath": data.timeOfDeath,
 			"isDead": (data.timeOfDeath > 0) ? true : false,
 			"isFocused": (key === iId),
+			"currLifeStage": this.getLifeStage(data),
 			"encounters": data.encounters
 		    } //TODO - role
-		    //TODO - Add metric concerning how recently an animal has been sighted compared to others
 		});
 	    }
-	});
+	}
 
 	return nodes;
     }
@@ -165,11 +201,14 @@ class JSONParser {
 	let relationships = this.mapRelationships();
 	
 	//Update id and group attributes for all nodes with some relationship
-	let groupNum = 0;
+	let groupNum = 0, numNodes = 0;
 	while (Object.keys(relationships).length > 0) { //Treat disjoint groups of nodes
 	    let startingNode = (iId) ? iId : Object.keys(relationships)[0];
 	    let relationStack = [{"name": startingNode, "group": groupNum}];
 
+	    //Exit loop early if max number of nodes have been found
+	    if (this.numNodes > 0 && numNodes >= this.numNodes) break;
+	    
 	    while (relationStack.length > 0) { //Handle nodes connected to the "startingNode"
 		let link = relationStack.pop();
 		let name = link.name;
@@ -191,6 +230,9 @@ class JSONParser {
 		    delete relationships[name]; //Prevent circular loops    
 		}
 	    }
+
+	    if (!this.disjointNodes) break;
+	    numNodes++;
 	}
 
 	//Update id and group attributes for all disconnected nodes
@@ -231,12 +273,25 @@ class JSONParser {
     }
 
     /**
+     * Determine the most recent life stage of the given individual
+     * @param {data} [obj] - The data attribute of the current node
+     * @return {lifeStage} [string] - The current life stage of the contextual node. 
+     *   Defaults to null if missing data
+     */
+    getLifeStage(data) {
+	if (data.encounters && data.encounters.length > 0) 
+	    return data.encounters[0].lifeStage;
+	else return null;
+    }
+
+
+    /**
      * Extract link data from the MarkedIndvidiual and Relationship query data
      * @return {links} [array] - Extracted data relevant to graphing links
      */
-    parseLinks() {
+    parseLinks(nodes) {
 	let links = [];
-	let nodeData = this.getNodeData();
+	let nodeData = listToDict(nodes, ["data", "individualID"]);
 	let relationshipData = this.getRelationshipData();
 	relationshipData.forEach(el => {
 	    let node1 = el.markedIndividualName1;
@@ -281,6 +336,8 @@ class JSONParser {
 		let millis = enc.dateInMilliseconds;
 		let lat = enc.decimalLatitude;
 		let lon = enc.decimalLongitude;
+
+		console.log(lat, lon);
 		
 		if (typeof lat === "number" && typeof lon === "number" &&
 		    typeof millis === "number") {
@@ -293,8 +350,8 @@ class JSONParser {
 			    "day": enc.day
 			},
 			"location": {
-			    "lat": lat,
-			    "lon": lon
+			    "lat": lat * 1000,
+			    "lon": lon * 1000
 			}
 		    });
 		}
@@ -400,7 +457,7 @@ class JSONParser {
 
     /**
      * Returns relationship data as filtered by selected nodes
-     * @return {relationshipData} [array] - Any links with both node references in {selectedNodes}
+     * @return {relationshipData} [Link list] - Any links with both node references in {selectedNodes}
      */
     getRelationshipData() { 
 	if (this.selectedNodes) {
@@ -423,7 +480,7 @@ class JSONParser {
 
     /**
      * Returns the relationship type of a given link
-     * @param {link} [array] - A link object from {relationshipData}
+     * @param {link} [Link] - A link object from {relationshipData}
      * @return {type} [string] - Describes the type of {link} passed in
      */
     getRelationType(link){
@@ -442,3 +499,25 @@ class JSONParser {
     }
 }
 
+/**
+ * Returns a dictionary indexing a list of objects based on the specified key
+ * @param {list} [list] - A list of objects
+ * @return {key} [string|string list] - An object property within each element of the list. 
+ *   When specified as a list of strings, keys may be used to access nested object properties
+ */
+function listToDict(list, key) {
+    dict = {};
+    for (el of list) {
+	let dictKey;
+	if (Array.isArray(key)) {
+	    dictKey = el;
+	    for (k of key) {
+		dictKey = dictKey[k];
+	    }
+	}
+	else dictKey = el[key];
+	
+	dict[dictKey] = el;
+    }
+    return dict;
+}
