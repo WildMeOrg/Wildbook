@@ -89,7 +89,11 @@ class GraphAbstract { //See static attributes below class
     
     // Render Methods //
     
-    //Display data table relevant to graph
+   /**
+     * Display the data table context of this graph
+     * @param {diagramRef} [string] - HTML reference to the graph diagram
+     * @param {tableRef} [string] - HTML reference to the graph table
+     */	
     showTable(diagramRef, tableRef) {
 	//Display tableRef and hide diagramRef
 	$(diagramRef).hide();
@@ -100,8 +104,12 @@ class GraphAbstract { //See static attributes below class
 	//Report incomplete information
 	this.incompleteInfoMessage(diagramRef);
     }
-
-    //Perform all auxiliary functions necessary prior to graphing
+	
+   /**
+     * Perform all auxiliary functions necessary prior to graphing
+     * @param {linkData} [Link array] - Relationship link list
+     * @param {nodeData} [Node array] - MarkedIndividual node list
+     */	
     setupGraph(linkData, nodeData) {
 	//Establish link/node context
 	this.linkData = linkData;
@@ -121,7 +129,12 @@ class GraphAbstract { //See static attributes below class
 	this.addHideButton();
     }
     
-    //Append top-level SVG containing all graphical elements
+	//TODO - Finish comment
+    /**
+     * Append top-level SVG containing all graphical elements
+     * @param {containerId} [String] - Relationship link list
+     * @param {nodeData} [Node array] - MarkedIndividual node list
+     */	
     addSvg(containerId=this.containerId) {
 	this.svg = d3.select(containerId).append("svg")
 	    .attr("class", "container")
