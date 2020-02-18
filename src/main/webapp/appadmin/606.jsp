@@ -29,6 +29,7 @@ String sql = "SELECT \"ID\",\"ACMID\" FROM \"ANNOTATION\" WHERE \"ACMID\" IN (SE
     myShepherd.beginDBTransaction();
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
     List results = (List)q.execute();
+    q.closeAll();
     Iterator it = results.iterator();
     String prev = "";
     String list = "";

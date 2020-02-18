@@ -115,6 +115,7 @@ if (request.getParameter("number")!=null) {
 
         Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"LEGACYINDIVIDUALID\" = ? OR \"ALTERNATEID\" LIKE ? OR \"INDIVIDUALID\" = ?");
         List results = (List) q.execute(oldWorld, "%" + oldWorld + "%", oldWorld);
+        q.closeAll();
         String tryId = null;
         if (results.iterator().hasNext()) tryId = (String) results.iterator().next();
         response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);

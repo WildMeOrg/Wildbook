@@ -110,6 +110,7 @@ try {
   System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
+	query.closeAll();
   	int numEncs=encs.size();
   System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
