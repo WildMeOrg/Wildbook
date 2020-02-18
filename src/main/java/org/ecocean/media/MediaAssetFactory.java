@@ -42,14 +42,20 @@ public class MediaAssetFactory {
     }
 
     public static MediaAsset loadByUuid(final String uuid, Shepherd myShepherd) {
+        MediaAsset ma=null;
         if (!Util.isUUID(uuid)) return null;
         Query query = myShepherd.getPM().newQuery(MediaAsset.class);
         query.setFilter("uuid=='" + uuid + "'");
         List results = (List)query.execute();
-        query.closeAll();
+        
         //uuid column is constrained unique, so should always get 0 or 1
-        if (results.size() < 1) return null;
-        return (MediaAsset)results.get(0);
+        if (results.size() < 1) { 
+          query.closeAll();
+          return null;
+        }
+        ma=(MediaAsset)results.get(0);
+        query.closeAll();
+        return ma;
     }
 
     //NOTE!!!   acmId is NOT unique, so there could be more than one....  this will return "oldest" (order by revision)
