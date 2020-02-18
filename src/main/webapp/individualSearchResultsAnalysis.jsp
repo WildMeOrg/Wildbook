@@ -743,7 +743,7 @@ if(maxTimeBetweenResights>0){
 %>
 
 <script>
-  let parser = new JSONParser('<%=individualIds%>', true);
+  let parser = new JSONParser(wildbookGlobals, '<%=individualIds%>', true);
   setupSocialGraph(null, "#socialDiagram", parser);
 </script>
 	 

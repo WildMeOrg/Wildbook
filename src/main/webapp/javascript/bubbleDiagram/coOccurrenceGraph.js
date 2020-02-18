@@ -1,14 +1,16 @@
+//TODO - globals should not be a param
 //Occurence graph global API (used in individuals.jsp)
-function setupOccurrenceGraph(individualID) { //TODO - look into individualID
+function setupOccurrenceGraph(individualID, globals, parserObj=null) { //TODO - look into individualID
     let focusedScale = 1.75;
-    let occ = new OccurrenceGraph(individualID, "#bubbleChart", focusedScale);
-    setTimeout(() => occ.applyOccurrenceData(), 300); //TODO - Shift to some promise passing
+    let parser = (parserObj) ? parserObj : new JSONParser(globals, null, true, 30);
+    let occ = new OccurrenceGraph(individualID, "#bubbleChart", globals, focusedScale, parser);
+    occ.applyOccurrenceData() //TODO - Shift to some promise passing
 }
 
 //Sparse-tree mapping co-occurrence relationships between a focused individual and its species
 class OccurrenceGraph extends ForceLayoutAbstract {
-    constructor(individualId, containerId, focusedScale) {
-	super(individualId, containerId, focusedScale);
+    constructor(individualId, containerId, globals, focusedScale, parser) {
+	super(individualId, containerId, globals, focusedScale, parser);
 
 	//TODO - Remove ref, use key
 	this.sliders = {"temporal": {"ref": "temporal"},
@@ -22,7 +24,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     
     //Generate a co-occurrence graph
     graphOccurrenceData(nodes, links) {
-	console.log(nodes);
+        console.log("OCCURRENCE NODES", nodes);
+	console.log("OCCURRENCE LINKS", links);
 	if (nodes.length >= 1) { 
 	    //Create graph w/ forces
 	    this.setupGraph(links, nodes);
@@ -47,7 +50,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	super.updateGraph(linkData, nodeData);
     }
 
-    //Calculate the maximum and average node differences for the spatial/temporal sliders
+    //Calculate the maximum values for the spatial/temporal sliders
     getRangeSliderAttr(refNode) {
 	let [distArr, timeArr] = this.analyzeNodeData(refNode);
 	this.sliders.temporal.max = Math.ceil(Math.max(...timeArr));
@@ -137,8 +140,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     //Calculate the spatial difference between two node sighting locations
     calculateDist(node1Loc, node2Loc) {
 	if (node1Loc && node2Loc) {
-	    return Math.pow(Math.abs(Math.pow(node1Loc.lon - node2Loc.lon, 2) +
-				     Math.pow(node1Loc.lat - node2Loc.lat, 2)), 0.5);
+	    return Math.pow(Math.pow(node1Loc.lon - node2Loc.lon, 2) +
+			    Math.pow(node1Loc.lat - node2Loc.lat, 2), 0.5);
 	}
 	return -1;
     }
@@ -184,10 +187,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
     //Reset the graph s.t. no filters are applied
     resetGraph() {
-	//Reset all filtered nodes
 	super.resetGraph();
-
-	//Reset sliders
 	this.resetSliders();
     }
 

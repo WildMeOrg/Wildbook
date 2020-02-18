@@ -1,25 +1,99 @@
 QUnit.module('JSON Link/Node Parser');
 
-let jp;
+let jp, jpCopy;
 QUnit.begin(() => {
-    jp = new JSONParser();
+    jp = new JSONParser(null, false, -1, false, true);
 });
 
-//TODO parseJSON()
+cloneJP = () => Object.assign(Object.create(Object.getPrototypeOf(jp)), jp);
 
-//TODO queryNodeData()
+//parseJSON() - Wrapper function, not tested
 
-//TODO queryRelationshipData()
+querySetup = {
+    'beforeEach': () => {
+	jpCopy = cloneJP();
+	jpCopy.queryData = (name, query, isDict) => query;
+	jpCopy.globals = {"baseUrl": ""};
+    }
+};
+QUnit.module('queryNodeData()', querySetup, () => {
+    QUnit.test('Local files', t => {
+	jpCopy.localFiles = true;
+	query = jpCopy.queryNodeData();
+	t.ok(query.includes(".json"))
+    });
+    QUnit.test('Non-local files', t => {
+	jpCopy.localFiles = false;
+	query = jpCopy.queryNodeData();
+	t.ok(query.includes("SELECT"))	
+    });
+});
 
-//TODO queryData()
+QUnit.module('queryRelationshipData()', querySetup, () => {
+    QUnit.test('Local files', t => {
+	jpCopy.globals = {"baseUrl": ""};
+	jpCopy.localFiles = true;
+	query = jpCopy.queryNodeData();
+	t.ok(query.includes(".json"))
+    });
+    QUnit.test('Non-local Files', t => {
+	jpCopy.globals = {"baseUrl": ""};
+	jpCopy.localFiles = false;
+	query = jpCopy.queryNodeData();
+	t.ok(query.includes("SELECT"))	
+    });
+});
 
-//TODO storeQueryAsDict()
+
+//queryData() - d3.js wrapper, not tested
+
+QUnit.module('storeQueryAsDict()', {"beforeEach": () => jpCopy = cloneJP() }, () => {
+    QUnit.test('Empty JSON', t => {
+	jpCopy.storeQueryAsDict({}, "A", () => true);
+	t.equal(JSONParser["A"], undefined)
+    });
+    QUnit.test('Valid JSON', t => {
+	jpCopy.storeQueryAsDict([{"individualID": "b"}], "B", () => true);
+	t.equal(JSONParser["B"]["b"]["individualID"], "b")
+    });
+});
 
 //TODO parseNodes()
 
 //TODO processNodeData()
 
 //TODO mapRelationships()
+setupMap = {
+    "beforeEach": () => {
+	JSONParser.relationshipData = [
+	    {"markedIndividualName1": "a", "markedIndividualName2": "b"}
+	]
+	jpCopy = cloneJP();
+	jpCopy.getRelationType = (el) => "type";
+    }
+}
+QUnit.module('mapRelationships()', setupMap, () => {
+    QUnit.test('Empty relationships', t => {
+	JSONParser.relationshipData = [];
+	let relations = jpCopy.mapRelationships();
+	t.equal(relations, {});
+    });
+    QUnit.test('Valid relationships', t => {
+	let relations = jpCopy.mapRelationships();
+	t.equal(relations["a"][0]["name"], "b");
+	t.equal(relations["b"][0]["name"], "a");
+    });
+    QUnit.test('Multi-mapped relationships', t => {
+	JSONParser.relationshipData.push({"markedIndividualName1": "a",
+					  "markedIndividualName2": "b"});
+	let relations = jpCopy.mapRelationships();
+	t.equal(relations["a"].length, 2);
+	t.equal(relations["b"].length, 2);
+	t.equal(relations["a"][0]["name"], "b");
+	t.equal(relations["b"][1]["name"], "a");
+    });
+
+});
 
 //TODO parseLinks()
 

@@ -1,11 +1,11 @@
 //Abstract class defining funcitonality for all d3 graph types
 class GraphAbstract { //See static attributes below class    
-    constructor(individualID, containerId, focusedScale=1, parser=null) {
+    constructor(individualID, containerId, globals, focusedScale=1, parser=null) {
 	this.id = individualID;
 	this.containerId = containerId;
 
 	//JSON Parser
-	this.parser = (parser) ? parser : new JSONParser();
+	this.parser = (parser != null) ? parser : new JSONParser(globals);
 	
 	//Unique global id
 	this.graphId = GraphAbstract.numGraphs++;
@@ -65,7 +65,8 @@ class GraphAbstract { //See static attributes below class
 	this.popup = false;
 	this.fadeDuration = 200;
 	this.tooltipOpacity = 0.9;
-
+	this.maxDisplay = 5;
+	
 	//Legend Attributes
 	this.legendMargin = {"top": 25, "right": 25, "bottom": 25, "left": 25}
         this.legendDimensions = {"width": 265, "height": 200};
@@ -425,26 +426,36 @@ class GraphAbstract { //See static attributes below class
 		.style("left", d3.event.layerX +  "px")	
 		.style("top", d3.event.layerY + "px")
 		.style("background-color", "#7997a1")
-	.html(text);
+		.html(text);
 	}
     }
     
     //Generate a tooltip description for a given link
     generateLinkTooltipHtml(link) {
 	let target = (link.target.data.individualID === this.id) ? "source" : "target";
-	
+
 	let tooltipHtml = "";
-	link[target].data.sightings.forEach(enc => {
+	let totalLinks = link.count, numLinks = 0;
+	for (let enc of link[target].data.sightings) {
 	    let time = enc.time;
 	    let loc = enc.location;
 
+	    //Limit the total number of links displayed to {this.maxDisplay}
+	    if (numLinks >= this.maxDisplay) {
+		if (numLinks < totalLinks)
+		    tooltipHtml += "... " + (totalLinks - numLinks) + " more ...";
+		break;
+	    }
+	    
 	    if (time)
 		tooltipHtml += "<b>Date: </b>" + time.day + "/" + time.month + "/" + time.year + " ";
 	    if (loc && typeof loc.lat == "number")
 		tooltipHtml += "<b>Longitude: </b>" + loc.lon + " ";
 	    if (loc && typeof loc.lat == "number")
 		tooltipHtml += "<b>Latitude: </b>" + loc.lat + "<br/>";
-	});
+
+	    numLinks++;
+	}
 	
 	return tooltipHtml;
     }
@@ -548,30 +559,30 @@ class GraphAbstract { //See static attributes below class
 	});
     }
 
+
+    //TODO - Check CSS rules and speed up fades
     addHideButton(){
 	var shown = true;
         let hidebutton = document.createElement("button");
-        hidebutton.innerText = 'Show';
-	    console.log(this.containerId);
+        hidebutton.innerText = 'Hide Legend';
+
         $(this.containerId).append(hidebutton);
         hidebutton.addEventListener("click",() => {
-            if (shown)
-            {
-                hidebutton.innerText = "Hide";
+            if (shown) {
 		let legends = document.getElementsByClassName('legend');
-		if(legends.length==0){
-                this.addLegend();
-		}else{
-			legends[0].style.opacity = "0";
-		}
+		if (legends.length == 0) this.addLegend();
+		else legends[0].style.opacity = "0";
+
+		hidebutton.innerText = "Hide Legend";
+		shown = true;
             }
-            else
-            {
-                hidebutton.innerText = "Show";
+            else {
 		let legend = document.getElementsByClassName('legend')[0];
 		legend.style.opacity = "1";
+
+		hidebutton.innerText = "Show Legend";
+		shown = false;
             }
-	    shown = !shown;
         });
     }
 		
