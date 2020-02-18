@@ -260,7 +260,8 @@ public class Task implements java.io.Serializable {
         Query query = myShepherd.getPM().newQuery(qstr);
         query.setIgnoreCache(true);
         query.setOrdering("created");
-        List<Task> listy=(List<Task>) query.execute();
+        Collection c = (Collection)query.execute();
+        List<Task> listy=new List<Task>(c);
         query.closeAll();
         return listy;
     }
