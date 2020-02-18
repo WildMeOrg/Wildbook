@@ -26,10 +26,11 @@ org.ecocean.media.*
 String sql = "SELECT \"ID\",\"ACMID\" FROM \"ANNOTATION\" WHERE \"ACMID\" IN (SELECT acmId FROM (SELECT \"ACMID\" AS acmId, COUNT(DISTINCT(\"INDIVIDUALID_OID\")) AS ct FROM \"ANNOTATION\" JOIN \"ENCOUNTER_ANNOTATIONS\" ON (\"ANNOTATION\".\"ID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") JOIN \"MARKEDINDIVIDUAL_ENCOUNTERS\" ON (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"MARKEDINDIVIDUAL_ENCOUNTERS\".\"CATALOGNUMBER_EID\") WHERE \"ACMID\" IS NOT NULL GROUP BY acmId) AS counts WHERE ct > 1) ORDER BY \"ACMID\", \"ID\";";
     String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("606.jsp");
     myShepherd.beginDBTransaction();
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
     List results = (List)q.execute();
-    q.closeAll();
+    
     Iterator it = results.iterator();
     String prev = "";
     String list = "";
@@ -48,6 +49,8 @@ String sql = "SELECT \"ID\",\"ACMID\" FROM \"ANNOTATION\" WHERE \"ACMID\" IN (SE
         }
         list += "<li><a target=\"_new\" href=\"../obrowse.jsp?type=Annotation&id=" + id + "\">" + id + "</a></li>";
     }
+    q.closeAll();
     myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
 
 %>
