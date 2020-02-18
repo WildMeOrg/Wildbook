@@ -382,9 +382,11 @@ h1 { background: none !important; }
     display: block;
 }
 
+/*
 .enc-asset-wrapper {
     margin-bottom: 5px;
 }
+*/
 
 .match-asset {
     position: absolute;
@@ -416,6 +418,51 @@ h1 { background: none !important; }
     right: 5%;
     z-index: 100;
 }
+
+
+
+/* aka enc-asset-wrapper? */
+.enc-asset-wrapper,
+.img-wrapper {
+    width: 100%;
+    height: 400px;
+    display: inline-block;
+    margin: 10px 4px;
+    position: relative;
+    overflow: hidden;
+    background-color: #DDD;
+}
+/* aka enc-asset? */
+.enc-asset,
+.gallery-img {
+    position: absolute;
+    max-width: none;
+    display: none;
+}
+.gallery-box {
+    pointer-events: none;
+    position: absolute;
+    outline: solid 2px #bff223;
+}
+.gallery-box-wrapper {
+    pointer-events: none;
+    position: absolute;
+}
+.canvas-box {
+    pointer-events: none;
+    position: absolute;
+}
+.img-info {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    display: inline-block;
+    background-color: rgba(255,255,0,0.7);
+    border-radius: 4px;
+    padding: 2px 10px;
+}
+
+
 </style>
 
 <script type="text/javascript">
@@ -433,23 +480,9 @@ $(document).ready(function() {
     $('.attribute-option').on('click', function(ev) { clickAttributeOption(ev); });
     $('.attribute-option').append('<input type="radio" class="option-checkbox" />');
     $('#flag input').on('change', function() { updateData(); });
+/*
     $('.enc-asset').panzoom({maxScale:9}).on('panzoomend', function(ev, panzoom, matrix, changed) {
         if (!changed) return $(ev.currentTarget).panzoom('zoom');
-    });
-/*
-    $('.enc-asset').panzoom().on('panzoomchange', function(ev, panzoom, matrix, changed) {
-        $('body').css('overflow', 'auto');
-        //$('html').css('overflow', 'auto');
-    });
-    $('.enc-asset').panzoom().on('panzoomstart', function(ev, panzoom, matrix, changed) {
-        $('body').css('overflow', 'hidden');
-        //$('html').css('overflow', 'hidden');
-    });
-*/
-
-/*
-    $('.enc-asset').on('dblclick', function(ev) {
-        $(ev.currentTarget).panzoom('reset');
     });
 */
 
@@ -461,6 +494,7 @@ function zoomOut(el, imgWrapperClass) {
     iEl.attr('style', null).show().css('width', '100%');
     iEl.panzoom('reset');
     //$(el).closest(imgWrapperClass).find('img').css('transform-origin', '50% 50% !important').panzoom('reset');
+    adjustBox(iEl.attr('id').substr(4));
 }
 
 function clickAttributeOption(ev) {
@@ -706,6 +740,111 @@ console.log('CLICK IMG %o', ev);
 	imgEl.show();
 }
 
+
+
+var zscale = 1;
+function assetLoaded(el, imgInfo) {
+    var imgEl = $(el);
+    if (!imgEl.length) return;
+    if (!imgInfo || !imgInfo.bbox) {
+        imgEl.css({
+            width: '100%',
+            top: 0,
+            left: 0
+        });
+        imgEl.show();
+        imgEl.panzoom({maxScale:9}).on('panzoomend', function(ev, panzoom, matrix, changed) {
+            if (!changed) return $(ev.currentTarget).panzoom('zoom');
+        });
+        return;
+    }
+    var wrapper = imgEl.parent();
+    var ow = imgInfo.origWidth;
+    var oh = imgInfo.origHeight;
+    var iw = imgEl[0].naturalWidth;
+    var ih = imgEl[0].naturalHeight;
+    var ww = wrapper.width();
+    var wh = wrapper.height();
+    for (var i = 0 ; i < imgInfo.bbox.length ; i++) {
+        imgInfo.bbox[i] *= iw / ow;
+    }
+    //var padding = ww * 0.05;
+    var padding = imgInfo.bbox[2] * 0.3;
+    var ratio = ww / (imgInfo.bbox[2] + padding);
+    if ((wh / (imgInfo.bbox[3] + padding)) < ratio) ratio = wh / (imgInfo.bbox[3] + padding);
+console.log('img=%dx%d / wrapper=%dx%d / box=%dx%d / padding=%d', iw, ih, ww, wh, imgInfo.bbox[2], imgInfo.bbox[3], padding);
+console.log('%.f', ratio);
+/*
+	var dx = (ww / 2) - ((imgInfo.bbox[2] + padding) * ratio / 2);
+	var dy = (wh / 2) - ((imgInfo.bbox[3] + padding) * ratio / 2);
+console.log('dx, dy %f, %f', dx, dy);
+*/
+
+        imgEl.css({
+            width: '100%',
+            top: 0,
+            left: 0
+        });
+
+imgEl.panzoom({maxScale:20})
+    .on('zoomstart panzoomstart panstart', function(ev) {
+//console.log('start----- %o', ev);
+        $('#wrapper-' + ev.target.id.substring(4) + ' .canvas-box').hide();
+    })
+    .on('zoomend panzoomend', function(ev, panzoom, matrix, changed) {
+        adjustBox(ev.target.id.substring(4));
+        if (!changed) {
+            var rtn = $(ev.currentTarget).panzoom('zoom');
+            adjustBox(ev.target.id.substring(4));
+            return rtn;
+        }
+    });
+
+zscale = ww / ow;
+var yscale = wh / oh;
+var px = -(imgInfo.bbox[0] * zscale) + (ww / 2) - (imgInfo.bbox[2] * zscale / 2);
+var py = -(imgInfo.bbox[1] * yscale) + (wh / 2) - (imgInfo.bbox[3] * yscale / 2);
+
+var zz = ww / imgInfo.bbox[2];
+if (zz < 1) zz = 1;
+console.info('[ zz = %f ]  px, py = %f,%f (zscale %f, yscale %f)', zz, px, py, zscale, yscale);
+imgEl.panzoom('pan', zz * px, zz * py);
+imgEl.panzoom('zoom', zz);
+
+	imgEl.show();
+
+        var box = $('<canvas width="' + ow + '" height="' + oh + '" class="canvas-box"></canvas>');
+        box.css({
+            transformOrigin: '50% 50%',
+            xopacity: 0.5,
+            xleft: imgInfo.bbox[0] * zscale + 'px',
+            xtop: imgInfo.bbox[1] * zscale + 'px',
+            left: 0, top: 0,
+            width: '100%',
+            xheight: wh + 'px'
+        });
+        var ctx = box[0].getContext('2d');
+        ctx.strokeStyle = '#bff223';
+        ctx.lineWidth = 5;
+        ctx.setLineDash([10, 4]);
+        ctx.beginPath();
+        //ctx.rect(imgInfo.bbox[0] * zscale, imgInfo.bbox[1] * zscale, imgInfo.bbox[2] * zscale, imgInfo.bbox[3] * zscale);
+        ctx.rect(imgInfo.bbox[0] - (padding/2), imgInfo.bbox[1] - (padding/2), imgInfo.bbox[2] + padding, imgInfo.bbox[3] + padding);
+        ctx.stroke();
+        box.hide();
+        wrapper.append(box);
+        adjustBox(el.id.substr(4));
+}
+
+
+function adjustBox(id) {
+    window.setTimeout(function() {
+        var matrix = $('#img-' + id).css('transform');
+        $('#wrapper-' + id + ' .canvas-box').css('transform', matrix).show();
+    }, 300);
+}
+
+
 </script>
 
 </head>
@@ -725,10 +864,17 @@ There are two steps to processing each submission: selecting cat attributes, and
 <div>
     <div class="column-images">
 <%
-    ArrayList<MediaAsset> assets = enc.getMedia();
-    if (!Util.collectionIsEmptyOrNull(assets)) for (MediaAsset ma : assets) {
+    ArrayList<Annotation> anns = enc.getAnnotations();
+    if (!Util.collectionIsEmptyOrNull(anns)) for (Annotation ann : anns) {
+        MediaAsset ma = ann.getMediaAsset();
+        if (ma == null) continue;
+        JSONObject j = new JSONObject();
+        j.put("annotationId", ann.getId());
+        j.put("origWidth", ma.getWidth());
+        j.put("origHeight", ma.getHeight());
+        if (!ann.isTrivial()) j.put("bbox", ann.getBbox());
 %>
-        <div class="enc-asset-wrapper"><div class="zoom-hint"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, '.enc-asset-wrapper')" class="el el-lg el-zoom-out"></span></div><img class="enc-asset" src="<%=ma.safeURL(request)%>" /></div>
+        <div id="wrapper-<%=ma.getId()%>" class="enc-asset-wrapper"><div class="zoom-hint"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, '.enc-asset-wrapper')" class="el el-lg el-zoom-out"></span></div><img id="img-<%=ma.getId()%>" onload="assetLoaded(this, <%=j.toString().replaceAll("\"", "'")%>);" class="enc-asset" src="<%=ma.safeURL(request)%>" /></div>
 <%
     }
 %>
