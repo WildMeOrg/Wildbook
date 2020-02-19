@@ -476,6 +476,8 @@ var userData = {
     sex: false
 };
 $(document).ready(function() {
+    var docWidth = $(document).width();
+    if (docWidth < 900) alert('Processing submissions on small screens or mobile devices can cause problems with image display.\n\nA desktop browser is recommended.');
     utickState.encounterDecide = { initTime: new Date().getTime(), clicks: [] };
     $('.attribute-option').on('click', function(ev) { clickAttributeOption(ev); });
     $('.attribute-option').append('<input type="radio" class="option-checkbox" />');
