@@ -96,8 +96,13 @@
 
 		/IndividualSetNickame = authc, roles[researcher]
 
+    /gallery.jsp = authc, roles[researcher]
+    /studySiteSearchResults.jsp = authc, roles[researcher]
+    /studySiteSearch.jsp = authc, roles[researcher]
+
 		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
+    /individuals.jsp = authc, roles[researcher]
 		/individualSearch.jsp = authc, roles[researcher]
 		/individualSearchResults.jsp = authc
 		/individualSearchResultsExport.jsp = authc, roles[researcher]
@@ -105,6 +110,7 @@
 		/individualMappedSearchResults.jsp = authc, roles[researcher]
 		/individualThumbnailSearchResults.jsp = authc, roles[researcher]
 
+     /encounters/encounter.jsp = authc, roles[researcher]
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
 		 /encounters/encounterSearch.jsp = roles[researcher]
 		 /encounters/searchResults.jsp = authc, roles[researcher]
