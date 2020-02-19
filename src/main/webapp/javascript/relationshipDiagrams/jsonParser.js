@@ -1,3 +1,70 @@
+//Helper class pruposed to represent discrete MarkedIndividual data
+class Node {
+    constructor(key, mData, iId) {
+	this.id = mData.id;
+	this.group = mData.group;
+
+	let name = mData.displayName;
+	name = name.substring(name.indexOf(" ") + 1);
+
+	this.data = {
+	    "name": name,
+	    "gender": mData.sex,
+	    "genus": mData.genus,
+	    "individualID": key,
+	    "firstSighting": mData.dateFirstIdentified,
+	    "latestSighting": mData.dateTimeLatestSighting,
+	    "numberEncounters": mData.numberEncounters,
+	    "timeOfBirth": mData.timeOfBirth,
+	    "timeOfDeath": mData.timeOfDeath,
+	    "isDead": this.getIsDead(mData),
+	    "isFocused": this.getIsFocused(key, iId),
+	    "currLifeStage": this.getLifeStage(mData),
+	    "encounters": mData.encounters
+	}
+    }
+
+    /**
+     * Determine whether the current node is dead
+     * @param {mData} [obj] - The data attribute of the current MarkedIndividual
+     * @return {isDead} [string] - Whether the node data is dead
+     */
+
+    getIsDead(mData) {
+	return (mData.timeOfDeath > 0) ? true : false;
+    }
+
+    /**
+     * Determine whether the current node is focused
+     * @param {key} [string] - The id of the current MarkedIndividual
+     * @param {iId} [string] - The id of the central node
+     * @return {isFocused} [string] - Whether the node data is focused
+     */
+    getIsFocused(key, iId) {
+	return (key === iId);
+    }
+
+    /**
+     * Determine the most recent life stage of the given node
+     * @param {mData} [obj] - The data attribute of the current MarkedIndividual
+     * @return {lifeStage} [string] - The current life stage of the contextual node. 
+     *   Defaults to null if missing data
+     */
+    getLifeStage(mData) {
+	if (mData.encounters) {
+	    switch (mData.encounters[0].lifeStage) {
+	        case 'A':
+		    return "Adult";
+	        case 'C':
+		    return "Child";
+	        default:
+		    return mData.encounters[0].lifeStage;
+	    }
+	}
+	return null;
+    }
+}
+
 //Helper class purposed to query and parse JSON node/link data for social and coOccurrence graphs
 class JSONParser {
     //TODO - Logically couple disjointNodes and iId	
@@ -158,8 +225,6 @@ class JSONParser {
 	let nodeData = this.getNodeData();
 	for (let key in nodeData) {
 	    let data = nodeData[key];
-	    let name = data.displayName;
-	    name = name.substring(name.indexOf(" ") + 1);
 
 	    //TODO - Remove
 	    //Exit loop early if max number of nodes have been found
@@ -168,25 +233,7 @@ class JSONParser {
 	    //Add node to list if disjoint nodes are allowed, or if a link exists to the central node {iId}
 
 	    if (this.disjointNodes || data.iIdLinked) {
-		nodes.push({
-		    "id": data.id,
-		    "group": data.group,
-		    "data": {
-			"name": name,
-			"gender": data.sex,
-			"genus": data.genus, //TODO - Remove?
-			"individualID": key,
-			"firstSighting": data.dateFirstIdentified,
-			"latestSighting": data.dateTimeLatestSighting,
-			"numberEncounters": data.numberEncounters,
-			"timeOfBirth": data.timeOfBirth,
-			"timeOfDeath": data.timeOfDeath,
-			"isDead": (data.timeOfDeath > 0) ? true : false,
-			"isFocused": (key === iId),
-			"currLifeStage": this.getLifeStage(data),
-			"encounters": data.encounters
-		    } //TODO - role
-		});
+		nodes.push(new Node(key, data, iId));
 	    }
 	}
 
@@ -272,27 +319,6 @@ class JSONParser {
 	
 	return relationships;
     }
-
-    /**
-     * Determine the most recent life stage of the given individual
-     * @param {data} [obj] - The data attribute of the current node
-     * @return {lifeStage} [string] - The current life stage of the contextual node. 
-     *   Defaults to null if missing data
-     */
-    getLifeStage(data) {
-	if (data.encounters) {
-	    switch (data.encounters[0].lifeStage) {
-	        case 'A':
-		    return "Adult";
-	        case 'C':
-		    return "Child";
-	        default:
-		    return data.encounters[0].lifeStage;
-	    }
-	}
-	return null;
-    }
-
 
     /**
      * Extract link data from the MarkedIndvidiual and Relationship query data
