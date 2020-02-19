@@ -446,8 +446,8 @@ public class StandardImport extends HttpServlet {
         occ.setTerrain(getString(row, "Occurrence.terrain"));
         occ.setGroupSize(getInteger(row, "Occurrence.groupSize"));
         occ.setNumAdults(getInteger(row, "Occurrence.numAdults"));
-        occ.setNumAdultFemales(getInteger(row, "Occurrence.numFemaleAdults"));
-        occ.setNumAdultMales(getInteger(row, "Occurrence.numMaleAdults"));
+        occ.setNumAdultFemales(getInteger(row, "Occurrence.numAdultFemales"));
+        occ.setNumAdultMales(getInteger(row, "Occurrence.numAdultMales"));
         occ.setNumSubAdults(getInteger(row, "Occurrence.numSubAdults"));
         occ.setNumSubFemales(getInteger(row, "Occurrence.numSubFemales"));
         occ.setNumSubMales(getInteger(row, "Occurrence.numSubMales"));
