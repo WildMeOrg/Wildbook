@@ -65,7 +65,7 @@ class GraphAbstract { //See static attributes below class
 	this.popup = false;
 	this.fadeDuration = 200;
 	this.tooltipOpacity = 0.9;
-	this.maxDisplay = 5;
+	this.maxDisplay = 4;
 	
 	//Legend Attributes
 	this.legendMargin = {"top": 25, "right": 25, "bottom": 25, "left": 25}
@@ -140,6 +140,7 @@ class GraphAbstract { //See static attributes below class
 	//Append the legend group
 	let legendRef = d3.select(containerId + " svg").append("g")
 	    .attr("class", "legend")
+	    .attr("id", "legendRef")
 	    .attr("height", this.legendHeight)
 	    .attr("width", this.legendWidth)
 	    .attr("transform", "translate(" + this.legendOffset.horiz  + "," + this.legendOffset.vert + ")")
@@ -394,6 +395,7 @@ class GraphAbstract { //See static attributes below class
 	}
     }
 
+    //TODO - Modularize this
     //Generate a tooltip description for a given node 
     generateNodeTooltipHtml(d) {
 	let tooltipHtml = "<b>Name: </b>" + d.data.name + "<br/>";
@@ -401,6 +403,8 @@ class GraphAbstract { //See static attributes below class
 	    tooltipHtml += "<b>Sex: </b>" + d.data.gender + "<br/>";
 	if (d.data.role)
 	    tooltipHtml += "<b>Role: </b>" + d.data.role + "<br/>";
+	if (d.data.currLifeStage)
+	    tooltipHtml += "<b>Current Life Stage: </b>" + d.data.currLifeStage + "<br/>";
 	if (d.data.isDead !== null) {
 	    let livingStatus = (d.data.isDead ? "dead" : "alive");
 	    tooltipHtml += "<b>Living Status: </b>" +  livingStatus + "<br/>";
@@ -436,7 +440,7 @@ class GraphAbstract { //See static attributes below class
 
 	let tooltipHtml = "";
 	let totalLinks = link.count, numLinks = 0;
-	for (let enc of link[target].data.sightings) {
+	for (let enc of link.validEncounters) {
 	    let time = enc.time;
 	    let loc = enc.location;
 
@@ -566,23 +570,23 @@ class GraphAbstract { //See static attributes below class
         let hidebutton = document.createElement("button");
         hidebutton.innerText = 'Hide Legend';
 
+	let legend = $(this.containerId).find(".legend")[0];
+	if (!legend) {
+	    this.addLegend();
+	    legend = $(this.containerId).find(".legend")[0];
+	}
+	
         $(this.containerId).append(hidebutton);
-        hidebutton.addEventListener("click",() => {
+        hidebutton.addEventListener("click", () => {
             if (shown) {
-		let legends = document.getElementsByClassName('legend');
-		if (legends.length == 0) this.addLegend();
-		else legends[0].style.opacity = "0";
-
-		hidebutton.innerText = "Hide Legend";
-		shown = true;
+		legend.style.opacity = "0";
+		hidebutton.innerText = "Show Legend";
             }
             else {
-		let legend = document.getElementsByClassName('legend')[0];
 		legend.style.opacity = "1";
-
-		hidebutton.innerText = "Show Legend";
-		shown = false;
+		hidebutton.innerText = "Hide Legend";
             }
+	    shown = !shown;
         });
     }
 		

@@ -323,10 +323,12 @@ class ForceLayoutAbstract extends GraphAbstract {
      * @param {node} [Node] - The node for which the graph should be centered around
      */
     centerNode(node) {
-	this.svg.transition()
-	    .duration(this.transitionDuration + 250) //Delay slightly for stability
-	    .attr("transform", "translate(" + ((this.width/2) - node.x) + "," +
-		  ((this.height/2) - node.y) + ")scale(1)");
+	if (node.x && node.y) {
+	    this.svg.transition()
+		.duration(this.transitionDuration + 250) //Delay slightly for stability
+		.attr("transform", "translate(" + ((this.width/2) - node.x) + "," +
+		      ((this.height/2) - node.y) + ")");
+	}
     }
 
     /**

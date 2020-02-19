@@ -166,6 +166,7 @@ class JSONParser {
 	    if (this.numNodes > 0 && nodes.length >= this.numNodes) break;
 	    
 	    //Add node to list if disjoint nodes are allowed, or if a link exists to the central node {iId}
+
 	    if (this.disjointNodes || data.iIdLinked) {
 		nodes.push({
 		    "id": data.id,
@@ -279,9 +280,17 @@ class JSONParser {
      *   Defaults to null if missing data
      */
     getLifeStage(data) {
-	if (data.encounters && data.encounters.length > 0) 
-	    return data.encounters[0].lifeStage;
-	else return null;
+	if (data.encounters) {
+	    switch (data.encounters[0].lifeStage) {
+	        case 'A':
+		    return "Adult";
+	        case 'C':
+		    return "Child";
+	        default:
+		    return data.encounters[0].lifeStage;
+	    }
+	}
+	return null;
     }
 
 
@@ -336,8 +345,6 @@ class JSONParser {
 		let millis = enc.dateInMilliseconds;
 		let lat = enc.decimalLatitude;
 		let lon = enc.decimalLongitude;
-
-		console.log(lat, lon);
 		
 		if (typeof lat === "number" && typeof lon === "number" &&
 		    typeof millis === "number") {
