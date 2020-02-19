@@ -1,4 +1,3 @@
-//TODO - globals should not be a param, if it is kept it should be added to the function's comments
 /**
  * Social graph global API (used in individuals.jsp)
  * @param {individualId} [string] - Central social node id. Unless otherwise set by the parser, all nodes should connect to this
@@ -16,7 +15,12 @@ function setupSocialGraph(individualId, containerId="#socialDiagram", globals, p
 //Tree-like graph displaying social and familial relationships for a species
 class SocialGraph extends ForceLayoutAbstract {
     constructor(individualID, containerId, globals, focusedScale, parser=null) {
-	super(individualID, containerId, globals, focusedScale, parser);
+	super(individualID, containerId);
+
+	this.focusedScale = focusedScale;
+	
+	if (parser) this.parser = parser;
+	else this.parser = new JSONParser(globals);
     }
 
     /**
@@ -28,14 +32,12 @@ class SocialGraph extends ForceLayoutAbstract {
 
     /**
      * Generate a social graph
-     * @param {nodes} [obj list] - A list of node objects describing MarkedIndividual data to display
-     * @param {links} [obj list] - A list of link objects describing Relationship data to display
+     * @param {nodes} [Node list] - A list of Node objects queried from the MarkedIndividual psql table
+     * @param {links} [obj list] - A list of link objects queried from the Relationship psql table
      */
     graphSocialData(nodes, links) {
-    	console.log("SOCIAL NODES", nodes);
-	console.log("SOCIAL LINKS", links);
+	//Create graph w/ forces
 	if (nodes.length > 0) {
-	    //Create graph w/ forces
 	    this.setupGraph(links, nodes);
 	    this.updateGraph(links, nodes);
 	}
