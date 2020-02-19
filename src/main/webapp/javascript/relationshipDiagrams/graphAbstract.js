@@ -129,11 +129,10 @@ class GraphAbstract { //See static attributes below class
 	this.addHideButton();
     }
     
-	//TODO - Finish comment
+    //TODO - Finish comment
     /**
-     * Append top-level SVG containing all graphical elements
-     * @param {containerId} [String] - Relationship link list
-     * @param {nodeData} [Node array] - MarkedIndividual node list
+     * Append top-level SVG containing all graph elements
+     * @param {containerId} [String] - The HTML reference to append this SVG to
      */	
     addSvg(containerId=this.containerId) {
 	this.svg = d3.select(containerId).append("svg")
@@ -148,7 +147,12 @@ class GraphAbstract { //See static attributes below class
     }
 
     //TODO - Modularize
-    //Append graph legend to top-level SVG
+    /**
+     * Append graph legend to top-level SVG
+     * @param {containerId} [String] - The HTML reference to append this SVG to
+     * @param {rowsPerCol} [int] - The number of rows to display per legend column
+     * @param {rowSpacing} [int] - The spacing in px between rows
+     */	
     addLegend(containerId=this.containerId, rowsPerCol=5, rowSpacing=120) {
 	//Append the legend group
 	let legendRef = d3.select(containerId + " svg").append("g")
@@ -213,7 +217,10 @@ class GraphAbstract { //See static attributes below class
             .text(d => d);
     }
     
-   //Append a tooltip to the top-level SVG, used to visualize node info on hover
+    /**
+     * Append a tooltip to the top-level SVG, used to visualize node info on hover
+     * @param {containerId} [String] - The HTML reference to append this SVG to
+     */	
     addTooltip(containerId=this.containerId) {
 	//Define the tooltip div
 	this.tooltip = d3.select(containerId).append("div")
@@ -221,7 +228,11 @@ class GraphAbstract { //See static attributes below class
 	    .style("opacity", 0);
     }
 
-    //Draw each node with prescribed radius, fill, and outline
+    /**
+     * Draw each node with prescribed radius, fill, and outline
+     * @param {newNodes} [Node list] - A list of newly created Node elements
+     * @param {activeNodes} [Node list] - A list of previously existing, non-filtered Node elements
+     */	
     updateNodeOutlines(newNodes, activeNodes) {
 	//Create new node outlines
 	newNodes.append("circle")
@@ -237,10 +248,14 @@ class GraphAbstract { //See static attributes below class
 	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d) + "px");
     }
 
-    //Return a color based upon the given node's geneder
-    colorGender(d) {
+    /**
+     * Return a color based upon the given node's gender
+     * @param {node} [Node] - A Node element
+     * @return {gender} - The gender of the contextual Node element
+     */	
+    colorGender(node) {
 	try {
-	    let gender = d.data.gender || "default";
+	    let gender = node.data.gender || "default";
 	    switch (gender.toUpperCase()) {
 	        case "FEMALE": return this.femaleColor; 
 	        case "MALE": return this.maleColor; 
@@ -252,7 +267,11 @@ class GraphAbstract { //See static attributes below class
 	}
     }
 
-    //Draw alpha symbols for all given nodes with isAlpha attribute
+    /**
+     * Draw alpha symbols for all given nodes with isAlpha attribute
+     * @param {newNodes} [Node list] - A list of newly created Node elements
+     * @param {activeNodes} [Node list] - A list of previously existing, non-filtered Node elements
+     */	
     updateNodeSymbols(newNodes, activeNodes) {
 	//Add new node symbols
 	newNodes.append("path")
@@ -287,7 +306,11 @@ class GraphAbstract { //See static attributes below class
 	    })
     }
 
-    //Add text to the given nodes
+    /**
+     * Add text to the given nodes
+     * @param {newNodes} [Node list] - A list of newly created Node elements
+     * @param {activeNodes} [Node list] - A list of previously existing, non-filtered Node elements
+     */	
     updateNodeText(newNodes, activeNodes) {
 	//Add new node text
 	newNodes.append("text")
@@ -309,10 +332,14 @@ class GraphAbstract { //See static attributes below class
 
     // Helper Methods //
 
-    //Truncate text to fit inside node
-    truncateText(d) {
+    /**
+     * Truncate text to fit inside a given node
+     * @param {node} [Node] - A Node element
+     * @return {truncatedText} [String] - A truncated string, guarenteed to fit within the Node element
+     */	
+    truncateText(node) {
 	let nodeLen = (this.radius * 2) / 5;
-	let words = d.data.name.split(" ");
+	let words = node.data.name.split(" ");
 
 	let text = "";
 	for (let word of words) {
@@ -326,18 +353,26 @@ class GraphAbstract { //See static attributes below class
 	return text.trim();
     }
 
-    //Modify zoom wheel delta to smooth zooming
+    /**
+     * Modify zoom wheel delta to smooth zooming
+     */	
     wheelDelta() {
 	return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1 ) / this.zoomFactor;
     }
     
-    //Display message on missing data
+    /**
+     * Display message on missing data
+     * @param {diagramId} [Node] - An HTML reference dictating where the info message should be appended
+     */	
     incompleteInfoMessage(diagramId) {
 	$(diagramId).html("<h4 id='incompleteInfoMsg'>There are currently no known " +
 			  "relationships for this Marked Individual</h4>")
     }
 
-    //Sets the radius attribute for a given node
+    /**
+     * Sets the radius attribute for a given node
+     * @param {nodeData} [Node list] - A list of Node elements
+     */	
     setNodeRadius(nodeData=this.nodeData) {
 	this.calcNodeSize(nodeData);
 	nodeData.forEach(d => {
@@ -345,7 +380,10 @@ class GraphAbstract { //See static attributes below class
 	});
     }
 
-    //Calculate node size s.t. all nodes can fit in the contextual SVG
+    /**
+     * Calculate node size s.t. all nodes can fit in the contextual SVG
+     * @param {nodeData} [Node list] - A list of Node elements
+     */	
     calcNodeSize(nodeData=this.nodeData) {
 	try {
 	    let numNodes = nodeData.length || 10; //Default node length is 10 
@@ -356,10 +394,13 @@ class GraphAbstract { //See static attributes below class
 	}
     }
 
-    //Returns the color for a given link
-    getLinkColor(d) {
-	if (d) {
-	    switch(d.type) {
+    /**
+     * Returns the color for a given link
+     * @param {link} [Link] - A Link element
+     */	
+    getLinkColor(link) {
+	if (link) {
+	    switch(link.type) {
 	    case "familial":
 		return this.famLinkColor;
 	    case "paternal":
@@ -372,13 +413,19 @@ class GraphAbstract { //See static attributes below class
 	return this.defLinkColor;
     }
 
-    //Return a size multiple if the given node is focused, defaults to 1 
-    getSizeScalar(d) {
-	if (d && d.data && d.data.isFocused) return this.focusedScale;
+    /**
+     * Return a size multiple if the given node is focused, defaults to 1 
+     * @param {node} [Node] - A Node element
+     */	
+    getSizeScalar(node) {
+	if (node && node.data && node.data.isFocused) return this.focusedScale;
 	else return 1;
     }
 
-    //Display the selected tooltip type
+    /**
+     * Display the selected tooltip type
+     * @param {linkData} [LinkData] - A Link element's data attribute
+     */	
     handleMouseOver(d, type) {
 	if (!this.popup) {
 	    if (type === "node") this.displayNodeTooltip(d);
