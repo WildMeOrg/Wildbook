@@ -1,11 +1,8 @@
 //Abstract class defining funcitonality for all d3 graph types
 class GraphAbstract { //See static attributes below class    
-    constructor(individualID, containerId, globals, focusedScale=1, parser=null) {
+    constructor(individualID, containerId) {
 	this.id = individualID;
 	this.containerId = containerId;
-
-	//JSON Parser
-	this.parser = (parser != null) ? parser : new JSONParser(globals);
 	
 	//Unique global id
 	this.graphId = GraphAbstract.numGraphs++;
@@ -32,7 +29,7 @@ class GraphAbstract { //See static attributes below class
 	this.strokeWidth = 3.5;
 	
 	this.fontSize = 9;
-	this.focusedScale = focusedScale;
+	this.focusedScale = 1;
 
 	this.alphaSymbSize = 200; //TODO: Figure out the units on this...
 
@@ -444,7 +441,7 @@ class GraphAbstract { //See static attributes below class
     }
 
     /**
-     * Displays a node tooltip
+     * Displays the node tooltip
      * @param {d} [Node] - A Node element
      */	
     displayNodeTooltip(d) {
@@ -462,7 +459,7 @@ class GraphAbstract { //See static attributes below class
 
     //TODO - Modularize this
     /**
-     * Generate a tooltip description for a given node
+     * Generate the tooltip description for a given node
      * @param {d} [Node] - A Node element
      * @return {tooltipHTML} [String] - An HTML string to use as a tooltip display
      */	
@@ -490,7 +487,7 @@ class GraphAbstract { //See static attributes below class
     }
     
     /**
-     * Displays a link tooltip
+     * Display the link tooltip
      * @param {d} [Link] - A Link element
      */	
     displayLinkTooltip(d) {
@@ -507,7 +504,7 @@ class GraphAbstract { //See static attributes below class
     }
     
     /**
-     * Generate a tooltip description for a given link
+     * Generate the tooltip description for a given link
      * @param {link} [Link] - A Link element
      */	
     generateLinkTooltipHtml(link) {

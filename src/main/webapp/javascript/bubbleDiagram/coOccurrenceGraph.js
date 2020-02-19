@@ -1,40 +1,57 @@
-//TODO - globals should not be a param
-//Occurence graph global API (used in individuals.jsp)
-function setupOccurrenceGraph(individualID, globals, parserObj=null) { //TODO - look into individualID
+/**
+ * Occurence graph global API (used in individuals.jsp)
+ * @param {individualID} [string] - Identifies the central node
+ * @param {globals} [list] - Global variables passed in to maintain 
+ *   compatibility with individuals.jsp
+ * @param {parser} [JSONParser] - Optional parser specification. Defaults to null
+ */	
+function setupOccurrenceGraph(individualID, globals, parser=null) {
     let focusedScale = 1.75;
-    let parser = (parserObj) ? parserObj : new JSONParser(globals, null, true, 30);
     let occ = new OccurrenceGraph(individualID, "#bubbleChart", globals, focusedScale, parser);
     occ.applyOccurrenceData() //TODO - Shift to some promise passing
 }
 
 //Sparse-tree mapping co-occurrence relationships between a focused individual and its species
 class OccurrenceGraph extends ForceLayoutAbstract {
-    constructor(individualId, containerId, globals, focusedScale, parser) {
-	super(individualId, containerId, globals, focusedScale, parser);
+    constructor(individualId, containerId, globals, focusedScale, parser=null) {
+	super(individualId, containerId);
+
+	this.focusedScale = focusedScale;
+	
+	if (parser) this.parser = parser;
+	else this.parser = new JSONParser(globals, null, true, 30);
 
 	//TODO - Remove ref, use key
 	this.sliders = {"temporal": {"ref": "temporal"},
 			"spatial": {"ref": "spatial"}};	
     }
 
-    //Wrapper function to gather species data and generate a graph
+    /**
+     * Wrapper function to gather species data and generate a graph
+     */	   
     applyOccurrenceData() {
 	this.parser.parseJSON(this.id, (nodes, links) => this.graphOccurrenceData(nodes, links), true);
     }
     
-    //Generate a co-occurrence graph
+    /**
+     * Generate a co-occurrence graph
+     * @param {nodes} [Node list] - A list of node objects queried from the MarkedIndividual psql table
+     * @param {links} [obj list] - A list of link objects queried from the Relationship psql table
+     */	
     graphOccurrenceData(nodes, links) {
-        console.log("OCCURRENCE NODES", nodes);
-	console.log("OCCURRENCE LINKS", links);
+	//Create graph w/ forces
 	if (nodes.length >= 1) { 
-	    //Create graph w/ forces
 	    this.setupGraph(links, nodes);
 	    this.updateGraph(links, nodes);
 	}
 	else this.showTable("#cooccurrenceDiagram", "#cooccurrenceTable");
     }
 
-    //Perform all auxiliary functions necessary prior to graphing
+    /**
+     * Perform all auxiliary functions necessary prior to graphing
+     * @param {linkData} [obj list] - A list of link objects queried from the MarkedIndividual psql table
+     * @param {nodeData} [Node list] - A list of Node objects queried from the MarkedIndividual psql table
+     */	
     setupGraph(linkData, nodeData) {
 	super.setupGraph(linkData, nodeData);
 
@@ -43,61 +60,74 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	this.updateRangeSliders();
     }
 
+    //TODO - Comment
     updateGraph(linkData=this.linkData, nodeData=this.nodeData) {
 	//Update link data
-	this.updateLinkThreshCount(this.focusedNode);
-	
+	this.updateLinkThreshCount(this.focusedNode);	
 	super.updateGraph(linkData, nodeData);
     }
 
-    //Calculate the maximum values for the spatial/temporal sliders
-    getRangeSliderAttr(refNode) {
-	let [distArr, timeArr] = this.analyzeNodeData(refNode);
+    /**
+     * Calculate the maximum values for the spatial/temporal sliders
+     * @param {focusedNode} [Node] - Central coOccurrence node
+     */	
+    getRangeSliderAttr(focusedNode) {
+	let [distArr, timeArr] = this.analyzeNodeData(focusedNode);
 	this.sliders.temporal.max = Math.ceil(Math.max(...timeArr, 1));
 	this.sliders.spatial.max = Math.ceil(Math.max(...distArr, 1));
     }
 
-    analyzeNodeData(refNode) {
+    /**
+     * Calculate the minimum spatial/temporal differences between all nodes and the {focusedNode}
+     * @param {focusedNode} [Node] - Central coOccurrence node
+     * @return {distArr, timeArr} [2D list] - The spatial/temporal minimum differences 
+     *   for each node
+     */	
+    analyzeNodeData(focusedNode) {
 	let distArr = [], timeArr = []
 	this.nodeData.forEach(d => {
-	    if (d.id !== refNode.id) {
-		let [dist, time] = this.getNodeMin(refNode, d);		
+	    if (d.id !== focusedNode.id) {
+		let [dist, time] = this.getNodeMin(focusedNode, d);		
 		distArr.push(dist)
 		timeArr.push(time);
 	    }
 	});
 
-
-	console.log("DIST", distArr);
-	console.log("TIME", timeArr);
 	return [distArr, timeArr]
     }
 
+    /**
+     * Returns the minimum spatial/temporal difference between two nodes as specified
+     * @param {node1} [Node] - The first node being compared
+     * @param {node2} [Node] - The second node being compared
+     * @param {type} [String] - Determines whether the minimum spatial or temporal difference 
+     *   should be returned
+     */
     getNodeMinType(node1, node2, type) {
 	let [dist, time] = this.getNodeMin(node1, node2);
 	if (type == "spatial") return dist;
 	else if (type == "temporal") return time;
     }
 
-    //Wrapper for finding the minimum spatial/temporal differences between two nodes
+    //TODO - Consider strip optimizations
+    /**
+     * Finds the minimum spatial/temporal differences between two nodes, 
+     *   and updates co-occurrence data
+     * @param {node1} [Node] - The first node being compared
+     * @param {node2} [Node] - The second node being compared
+     */
     getNodeMin(node1, node2) {
 	let node1Sightings = node1.data.sightings;
 	let node2Sightings = node2.data.sightings;	
-	return this.getNodeMinBruteForce(node1Sightings, node2Sightings);
-    }
+	
+	let timeMin, distMin;
+	let minDist = Number.MAX_SAFE_INTEGER, minTime = Number.MAX_SAFE_INTEGER;
+	node1Sightings.forEach(node1S => {
+	    node2Sightings.forEach((node2S, idx) => {
+		let distDiff = this.calculateDist(node1S.location, node2S.location);
+		let timeDiff = this.calculateTime(node1S.time.datetime, node2S.time.datetime);
 
-    //TODO - Update combine w/ thresh
-    //TODO - Consider strip optimizations
-    //Find the minimum spatial/temporal difference between two node sightings
-    getNodeMinBruteForce(node1Sightings, node2Sightings) {
-	let timeDiff, distDiff, timeMin, distMin;
-	let minDist  = Number.MAX_SAFE_INTEGER;
-	let minTime = Number.MAX_SAFE_INTEGER;
-	node1Sightings.forEach(node1 => {
-	    node2Sightings.forEach(node2 => {
-		distDiff = this.calculateDist(node1.location, node2.location);
-		timeDiff = this.calculateTime(node1.time.datetime, node2.time.datetime);
-
+		//Update minimum
 		if (distDiff <= minDist && timeDiff <= minTime) {
 		    minDist = distDiff;
 		    minTime = timeDiff;
@@ -108,30 +138,24 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	return [minDist, minTime];
     }
 
-    //TODO - Cleanup
-    //TODO - Consider switching where link/node filtration occurs
-    updateLinkThreshCount(refNode) {
-	let refId = refNode.id;
+    updateLinkThreshCount(focusedNode) {
+	let focusedId = focusedNode.id;
 	let spatialThresh = parseInt($("#spatial").val());
 	let temporalThresh = parseInt($("#temporal").val());
 
-	console.log("STHRESH", spatialThresh);
-	//debugger;
-	
 	this.linkData.forEach(link => {
 	    let targetId = link.target.id || link.target;
 	    let sourceId = link.source.id || link.source;
-	    let linkId = (targetId === refId) ? sourceId : targetId;
+	    let linkId = (targetId === focusedId) ? sourceId : targetId;
 	    
 	    let node = this.nodeData.find(node => node.id === linkId);
-	    let threshEncounters = this.getLinkThreshEncounters(refNode, node, spatialThresh,
+	    let threshEncounters = this.getLinkThreshEncounters(focusedNode, node, spatialThresh,
 								temporalThresh);
 	    link.validEncounters = threshEncounters;
 	    link.count = threshEncounters.length;
 	});
     }
 
-    //TODO - Cleanup
     getLinkThreshEncounters(node1, node2, spatialThresh, temporalThresh) {
 	let node1Sightings = node1.data.sightings;
 	let node2Sightings = node2.data.sightings;
@@ -150,7 +174,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    });
 	});
 
-	console.log(validEncounters.length);
 	return validEncounters;
     }
     

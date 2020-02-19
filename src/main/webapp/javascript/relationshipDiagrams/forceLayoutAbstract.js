@@ -3,8 +3,8 @@
 
 //Abstract class defining functionality for all d3 forceLayout types
 class ForceLayoutAbstract extends GraphAbstract {
-    constructor(individualId, containerId, globals, focusedScale=1, parser=null) {
-	super(individualId, containerId, globals, focusedScale, parser);
+    constructor(individualId, containerId) {
+	super(individualId, containerId);
 
 	//Link attributes
 	this.linkWidth = 3;
@@ -90,7 +90,7 @@ class ForceLayoutAbstract extends GraphAbstract {
     // Render Methods //
     
     /**
-     * Render a graph with updated data
+     * Render the graph with updated data
      * @param {linkData} [Link list] - A list of link objects describing Relationship data to display
      * @param {nodeData} [Node list] - A list of link objects describing Relationship data to display
      */
