@@ -106,6 +106,7 @@ try {
 	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
+	query.closeAll();
   	int numEncs=encs.size();
 
   %><script>
@@ -255,6 +256,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
         Query q = imageShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         List results = (List)q.execute();
         Iterator it = results.iterator();
+
         while (it.hasNext()) {
             Object[] row = (Object[]) it.next();
             int aid = (int)row[0];
@@ -267,6 +269,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
             dups.getJSONObject(acm).getJSONObject(eid).put("asset", aid);
             dups.getJSONObject(acm).getJSONObject(eid).put("indiv", iid);
         }
+        q.closeAll();
     }
     out.println("<script> var assetDup = " + dups.toString() + ";</script>");
 

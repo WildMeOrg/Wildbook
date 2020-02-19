@@ -112,8 +112,10 @@ if (request.getParameter("number")!=null) {
 
         Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"LEGACYINDIVIDUALID\" = ? OR \"ALTERNATEID\" LIKE ? OR \"INDIVIDUALID\" = ?");
         List results = (List) q.execute(oldWorld, "%" + oldWorld + "%", oldWorld);
+        
         String tryId = null;
         if (results.iterator().hasNext()) tryId = (String) results.iterator().next();
+        q.closeAll();
         response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
         response.setHeader("Location", "individuals.jsp?id=" + tryId);
         response.flushBuffer();
@@ -281,10 +283,10 @@ input.nameKey, input.nameValue {
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
 <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="//d3js.org/d3.v3.min.js"></script>
-<script src="//phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
-<script src="//phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
-<script src="//phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
-<script src="//phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
+<script src="javascript/bubbleDiagram/extarray.js"></script>
+<script src="javascript/bubbleDiagram/misc.js"></script>
+<script src="javascript/bubbleDiagram/micro-observer.js"></script>
+<script src="javascript/bubbleDiagram/microplugin.js"></script>
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
 <script src="javascript/bubbleDiagram/encounter-calls.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
