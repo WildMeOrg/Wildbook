@@ -1031,14 +1031,15 @@ public class StandardImport extends HttpServlet {
 
   public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd) {
     String localPath = getString(row, "Encounter.mediaAsset"+i);
+  	System.out.println("...localPath is: "+localPath);
   	if (localPath==null) return null;
   	localPath = Util.windowsFileStringToLinux(localPath).trim();
   	//System.out.println("...localPath is: "+localPath);
   	String fullPath = photoDirectory+"/"+localPath;
   	fullPath = fullPath.replaceAll("//","/"); 
-  	//System.out.println("...fullPath is: "+fullPath);
+  	System.out.println("...fullPath is: "+fullPath);
     String resolvedPath = resolveHumanEnteredFilename(fullPath);
-    //System.out.println("getMediaAsset resolvedPath is: "+resolvedPath);
+    System.out.println("getMediaAsset resolvedPath is: "+resolvedPath);
     if (resolvedPath==null) {
       missingPhotos.add(fullPath);
       foundPhotos.remove(fullPath);
@@ -1088,6 +1089,7 @@ public class StandardImport extends HttpServlet {
 	  // String keywordOI = getString(row, keywordOIKey);
 	  // if (keywordOI!=null) keyword = myShepherd.getOrCreateKeyword(keywordOI);
 	  // if (keyword!=null) ma.addKeyword(keyword);
+System.out.println("CREATED " + ma);
 	  return ma;
   }
 
@@ -1199,7 +1201,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
     //not sure how cool this is.  but probably same can be said about all this!
     private String noExtension(String filename) {
-        if (filename.matches(".*\\.[^\\./]+$")) return filename;
+        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;
         return filename + ".jpg";  // :(
     }
 
