@@ -648,10 +648,6 @@
     <servlet-name>FixStandardImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.FixStandardImport</servlet-class>
   </servlet>
-  <servlet>
-    <servlet-name>WebImport</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.WebImport</servlet-class>
-  </servlet>
 
 
   <servlet>
@@ -1199,6 +1195,12 @@
     	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
   </servlet>
 -->
+
+      <servlet>
+      <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
+      <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
+  </servlet>
+
 
       <servlet>
         <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
@@ -1886,14 +1888,6 @@
   <servlet-mapping>
       <servlet-name>UpdateStandard</servlet-name>
       <url-pattern>/UpdateStandard</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-      <servlet-name>WebImport</servlet-name>
-      <url-pattern>/WebImport</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-      <servlet-name>WebImport</servlet-name>
-      <url-pattern>/import/upload</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
