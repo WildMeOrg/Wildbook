@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.Iterator,java.util.Properties,
 org.ecocean.media.MediaAsset,
 org.json.JSONObject, org.json.JSONArray,
+java.util.Collection,
 javax.jdo.Query,
 java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
 <%!
@@ -137,6 +138,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> backup = " + backup);
             out.println("404 not found");
             return;
         }
+        User user = AccessControl.getUser(request, myShepherd);
 /*
         if (!"new".equals(enc.getState())) {   //TODO other privilege checks here
             response.setStatus(401);
@@ -146,7 +148,6 @@ System.out.println("getMatchPhoto(" + indiv + ") -> backup = " + backup);
 */
         JSONObject similarUserData = Util.stringToJSONObject(request.getParameter("getSimilar"));
         if (similarUserData != null) {
-            User user = AccessControl.getUser(request, myShepherd);
             JSONObject rtn = new JSONObject();
             rtn.put("encounterId", enc.getCatalogNumber());
             rtn.put("userData", similarUserData);
@@ -163,9 +164,29 @@ System.out.println("getMatchPhoto(" + indiv + ") -> backup = " + backup);
             out.println(rtn.toString());
             return;
         }
+
+
+        String jdoql = "SELECT FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "' && user.uuid=='" + user.getUUID() + "'";
+        Query query = myShepherd.getPM().newQuery(jdoql);
+        Collection col = (Collection)query.execute();
+        List<Decision> decs = new ArrayList<Decision>(col);
+        query.closeAll();
+        JSONArray jdecs = new JSONArray();
+        for (Decision d : decs) {
+            JSONObject jd = new JSONObject();
+            jd.put("id", d.getId());
+            jd.put("timestamp", d.getTimestamp());
+            jd.put("property", d.getProperty());
+            jd.put("value", d.getValue());
+            jdecs.put(jd);
+        }
 %>
 
 <jsp:include page="../header.jsp" flush="true" />
+<script>
+var userDecisions = <%=jdecs.toString(4)%>;
+</script>
+
 <script src="../tools/panzoom/jquery.panzoom.min.js"></script>
 
 <style type="text/css">
@@ -200,6 +221,8 @@ h1 { background: none !important; }
 
 .column-match {
     display: none;
+    height: 1200px;
+    overflow-y: scroll;
 }
 
 @media screen and (max-width: 800px) {
@@ -476,9 +499,28 @@ var userData = {
     sex: false
 };
 $(document).ready(function() {
+    var switchToMatch = false;
+    for (var i = 0 ; i < userDecisions.length ; i++) {
+        switchToMatch = true;  //will get overridden below if we already matched too
+        if (userDecisions[i].property == 'match') {
+            $('.maincontent').html('');
+            alert('You have already processed this submission.\n\nMatched ' + new Date(userDecisions[i].timestamp).toLocaleString() + '; ID#' + userDecisions[i].id);
+            window.location.href = '../queue.jsp';
+            return;
+        }
+        userData[userDecisions[i].property] = userDecisions[i].value.value;
+    }
+
     var docWidth = $(document).width();
     if (docWidth < 900) alert('Processing submissions on small screens or mobile devices can cause problems with image display.\n\nA desktop browser is recommended.');
+
     utickState.encounterDecide = { initTime: new Date().getTime(), clicks: [] };
+
+    if (switchToMatch) {
+        enableMatch();
+        return;
+    }
+
     $('.attribute-option').on('click', function(ev) { clickAttributeOption(ev); });
     $('.attribute-option').append('<input type="radio" class="option-checkbox" />');
     $('#flag input').on('change', function() { updateData(); });
