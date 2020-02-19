@@ -9,6 +9,7 @@
          com.drew.metadata.Metadata,
          com.drew.metadata.Tag,
          org.ecocean.*,
+         org.ecocean.servlet.importer.ImportTask,
          org.ecocean.media.MediaAsset,
          java.util.regex.Pattern,
          org.ecocean.servlet.ServletUtilities,
