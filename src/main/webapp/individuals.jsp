@@ -1432,6 +1432,10 @@ if (sharky.getNames() != null) {
 		<span>Unknown Role</span>
 	      </label>
 	    </div>
+	    <div id="reZoomButtons" class="btn-group btn-group-sm" role="group">
+	      <button type="button" class="btn btn-default" id="reZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
+	      <button type="button" class="btn btn-default" id="reZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+	    </div>
 	  </div>
 
 	  <% String individualID = sharky.getIndividualID();%>	
@@ -1604,6 +1608,10 @@ if (sharky.getNames() != null) {
 		    <span>Unknown Role</span>
 	          </label>
 	        </div>
+		<div id="ocZoomButtons" class="btn-group btn-group-sm" role="group">
+		 <button type="button" class="btn btn-default" id="ocZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
+		 <button type="button" class="btn btn-default" id="ocZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+		</div>
 	      </div>
             </div>
   	    <div id="cooccurrenceSliders">
