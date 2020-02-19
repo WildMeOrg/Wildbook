@@ -77,6 +77,8 @@ String wbName = ContextConfiguration.getNameForContext(context);
 
   <p>Most importantly, <strong>the <code>Encounter.mediaAsset</code> column(s) must contain the <em>exact</em> filename(s) of the photo(s)</strong> associated with each record. These are the names of the photos uploaded in the Photo Upload step, and this is how the computer identifies which photo goes where.</p>
 
+  <p>If you do not have a value for something, please leave it blank or remove the column. Values like "N/A" added to a number field will be rejected.</p>
+
   <p>
 
 <%

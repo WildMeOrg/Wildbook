@@ -342,7 +342,7 @@ public class Shepherd {
     beginDBTransaction();
     try {
       pm.makePersistent(task);
-      commitDBTransaction();
+      updateDBTransaction();
       return true;
     } catch (Exception e) {
       rollbackDBTransaction();
@@ -376,7 +376,9 @@ public class Shepherd {
       List list = new ArrayList(c);
       System.out.println("getAllCollaborations got "+list.size()+" collabs");
       //Collections.reverse(list);
+      acceptedCollabs.closeAll();
       return list;
+      
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllCollaborations(). Returning a null collection.");
       npe.printStackTrace();
@@ -540,15 +542,18 @@ public class Shepherd {
   }
   // finds the workspace that user 'owner' created and named 'name'
   public Workspace getWorkspaceForUser(String name, String owner) {
+    Workspace result=null;
     String quotedOwner = (owner==null) ? "null" : ("\""+owner+"\"");
     String filter = "this.name == \""+name+"\" && this.owner == "+quotedOwner;
     Extent allWorkspaces = pm.getExtent(Workspace.class, true);
     Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
     Collection results = (Collection) (workspaceQuery.execute());
+    
     if (!results.isEmpty()) {
-      return (Workspace) (results.iterator().next());
+      result= (Workspace)results.iterator().next();
     }
-    return null;
+    workspaceQuery.closeAll();
+    return result;
   }
 
 
@@ -619,6 +624,7 @@ public class Shepherd {
       return resultList;
     } catch (Exception npe) {
       npe.printStackTrace();
+      mediaAssetQuery.closeAll();
       return null;
     }
   }
@@ -1173,13 +1179,15 @@ public class Shepherd {
     return ((al.size()>0) ? ((Taxonomy) al.get(0)) : null);
   }
     public Taxonomy getTaxonomy(int tsn) {
+        Taxonomy tax=null;
         Query query = pm.newQuery("SELECT org.ecocean.Taxonomy WHERE itisTsn == " + tsn);
         try {
             Collection c = (Collection) query.execute();
             Iterator it = c.iterator();
-            if (it.hasNext()) return (Taxonomy)it.next();
+            if (it.hasNext()) tax = (Taxonomy)it.next();
         } catch (Exception ex) {}
-        return null;
+        query.closeAll();
+        return tax;
     }
     //sadly, getTaxonomy(string) signatured already used above. :( so we have to go non-standard name here:
     //  however, checkout the hack to look for a uuid above!
@@ -1573,6 +1581,7 @@ public class Shepherd {
    * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
    * @see encounter, java.util.Iterator
    */
+  /*
   public Iterator getUnassignedEncounters() {
     String filter = "this.individual == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
@@ -1580,6 +1589,7 @@ public class Shepherd {
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
+  */
 
   public List<MediaAsset> getMediaAssetsFromStore(int assetStoreId) {
     String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE this.assetStore == as && as.id == "+assetStoreId;
@@ -1588,6 +1598,7 @@ public class Shepherd {
     Query q = pm.newQuery(filter);
     Collection results = (Collection) q.execute();
     ArrayList<MediaAsset> al = new ArrayList(results);
+    q.closeAll();
     return al;
   }
 
@@ -1600,7 +1611,8 @@ public class Shepherd {
     return c.iterator();
   }
   */
-
+  
+/*
   public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
     String filter = "this.individual == null && this.state != \"unidentifiable\"";
     //Extent encClass=pm.getExtent(encounter.class, true);
@@ -1608,6 +1620,7 @@ public class Shepherd {
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
+  */
 
   public Iterator<Encounter> getAllEncountersNoFilter() {
     /*Collection c;
@@ -1636,6 +1649,7 @@ public class Shepherd {
       acceptedEncounters.closeAll();
       return list;
     } catch (Exception npe) {
+      acceptedEncounters.closeAll();
       System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a transaction to use.");
       npe.printStackTrace();
       return null;
@@ -2367,6 +2381,7 @@ public class Shepherd {
     
     Collection col = (Collection) (tsQuery.execute());
     ArrayList<TissueSample> samples = new ArrayList<>(col);
+    tsQuery.closeAll();
     return samples;
   }
 
@@ -3613,6 +3628,7 @@ public class Shepherd {
       Extent extent = pm.getExtent(LabeledKeyword.class);
       Query query = pm.newQuery(extent);
       List<LabeledKeyword> ans = (List) query.execute();
+      query.closeAll();
       return ans;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
@@ -3634,8 +3650,8 @@ public class Shepherd {
     List<Keyword> propKeywords = new ArrayList<Keyword>();
 
     if((allKeywords!=null)&&(propKeywordNames!=null)) {
-      System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
-  
+      //System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
+
       for (String propKwName: propKeywordNames) {
         for (Keyword kw: allKeywords) {
           if ((kw.getReadableName()!=null) && kw.getReadableName().equals(propKwName)) {
@@ -3644,7 +3660,7 @@ public class Shepherd {
           }
         }
       }
-      System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
+      //System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
       allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
       propKeywords.addAll(allKeywords);
       // propKeywords contains all keywords, but those defined in properties are first.
@@ -4551,6 +4567,24 @@ public class Shepherd {
     return occurrenceIDs;
 
   }
+  
+  public ArrayList<String> getLinkedLocationIDs(String locationID){
+    ArrayList<String> locationIDs=new ArrayList<String>();
+
+   String filter="SELECT distinct enc2.locationID FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && encounters.contains(enc2) && enc.locationID == \""+locationID+"\" && enc2.locationID != null && enc2.locationID != \""+locationID+"\"  VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc2";
+
+    Query q = pm.newQuery (filter);
+
+    Collection results = (Collection) q.execute();
+    ArrayList al=new ArrayList(results);
+    q.closeAll();
+    int numResults=al.size();
+    for(int i=0;i<numResults;i++) {
+      locationIDs.add((String)al.get(i));
+    }
+    return locationIDs;
+
+  }
 
 
 
@@ -4617,7 +4651,7 @@ public class Shepherd {
     String filter = "individual != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
-    q.setRange(1, numToReturn+1);
+    q.setRange(0, numToReturn+1);
     q.setOrdering("year descending, month descending, day descending");
     Collection c = (Collection) (q.execute());
     if ((c != null) && (c.size() > 0)) {
@@ -4729,6 +4763,19 @@ public class Shepherd {
     Query anns = pm.newQuery(annClass, filter);
     Collection c = (Collection) (anns.execute());
     ArrayList<Annotation> al = new ArrayList(c);
+    anns.closeAll();
+    if((al!=null)&&(al.size()>0)) {
+      return al;
+    }
+    return null;
+  }
+  
+  public ArrayList<MediaAsset> getMediaAssetsWithACMId(String acmId){
+    String filter = "this.acmId == \""+acmId+"\"";
+    Extent annClass = pm.getExtent(MediaAsset.class, true);
+    Query anns = pm.newQuery(annClass, filter);
+    Collection c = (Collection) (anns.execute());
+    ArrayList<MediaAsset> al = new ArrayList(c);
     anns.closeAll();
     if((al!=null)&&(al.size()>0)) {
       return al;
