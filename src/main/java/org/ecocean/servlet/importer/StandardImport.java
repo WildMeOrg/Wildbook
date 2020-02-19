@@ -364,7 +364,7 @@ public class StandardImport extends HttpServlet {
     //out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>Trial Run: "+!committing+"</em></li>");
     if (committing) {
-        out.println("<li>ImportTask id = <b><a href=\"imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+        out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
     } else {
         out.println("<li>ImportTask id = <b>" + itask.getId() + "</b></li>");
     }
