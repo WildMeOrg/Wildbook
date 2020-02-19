@@ -214,6 +214,7 @@ public class StudySite implements java.io.Serializable {
     setGpsFromUtm(true);
   }
   public void setUtmXOnly(Double utmX) {
+    if (Double.isNaN(utmX)) utmX = null;
     this.utmX = utmX;
   }
   public Double getUtmX() {
@@ -224,6 +225,7 @@ public class StudySite implements java.io.Serializable {
     setGpsFromUtm(true);
   }
   public void setUtmYOnly(Double utmY) {
+    if (Double.isNaN(utmY)) utmY = null;
     this.utmY = utmY;
   }
   public Double getUtmY() {
