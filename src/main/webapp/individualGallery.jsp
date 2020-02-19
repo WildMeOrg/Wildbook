@@ -117,7 +117,7 @@ var yscale = wh / oh;
 var px = -(imgData[id].bbox[0] * zscale) + (ww / 2) - (imgData[id].bbox[2] * zscale / 2);
 var py = -(imgData[id].bbox[1] * yscale) + (wh / 2) - (imgData[id].bbox[3] * yscale / 2);
 
-var zz = ww / imgData[id].bbox[2];
+var zz = 2.2 * ww / imgData[id].bbox[2];
 if (zz < 1) zz = 1;
 console.info('[ zz = %f ]  px, py = %f,%f (zscale %f, yscale %f)', zz, px, py, zscale, yscale);
 imgEl.panzoom('pan', zz * px, zz * py);
