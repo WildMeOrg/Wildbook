@@ -53,48 +53,59 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     //Calculate the maximum values for the spatial/temporal sliders
     getRangeSliderAttr(refNode) {
 	let [distArr, timeArr] = this.analyzeNodeData(refNode);
-	this.sliders.temporal.max = Math.ceil(Math.max(...timeArr));
-	this.sliders.spatial.max = Math.ceil(Math.max(...distArr));
+	this.sliders.temporal.max = Math.ceil(Math.max(...timeArr, 1));
+	this.sliders.spatial.max = Math.ceil(Math.max(...distArr, 1));
     }
 
     analyzeNodeData(refNode) {
 	let distArr = [], timeArr = []
 	this.nodeData.forEach(d => {
 	    if (d.id !== refNode.id) {
-		let dist = this.getNodeMin(refNode, d, "spatial");
-		let time = this.getNodeMin(refNode, d, "temporal");
+		let [dist, time] = this.getNodeMin(refNode, d);		
 		distArr.push(dist)
 		timeArr.push(time);
 	    }
 	});
 
+
+	console.log("DIST", distArr);
+	console.log("TIME", timeArr);
 	return [distArr, timeArr]
     }
 
+    getNodeMinType(node1, node2, type) {
+	let [dist, time] = this.getNodeMin(node1, node2);
+	if (type == "spatial") return dist;
+	else if (type == "temporal") return time;
+    }
+
     //Wrapper for finding the minimum spatial/temporal differences between two nodes
-    getNodeMin(node1, node2, type) {
+    getNodeMin(node1, node2) {
 	let node1Sightings = node1.data.sightings;
-	let node2Sightings = node2.data.sightings;
-	return this.getNodeMinBruteForce(node1Sightings, node2Sightings, type);
+	let node2Sightings = node2.data.sightings;	
+	return this.getNodeMinBruteForce(node1Sightings, node2Sightings);
     }
 
     //TODO - Update combine w/ thresh
     //TODO - Consider strip optimizations
     //Find the minimum spatial/temporal difference between two node sightings
-    getNodeMinBruteForce(node1Sightings, node2Sightings, type) {
-	let val, min = Number.MAX_SAFE_INTEGER;
+    getNodeMinBruteForce(node1Sightings, node2Sightings) {
+	let timeDiff, distDiff, timeMin, distMin;
+	let minDist  = Number.MAX_SAFE_INTEGER;
+	let minTime = Number.MAX_SAFE_INTEGER;
 	node1Sightings.forEach(node1 => {
 	    node2Sightings.forEach(node2 => {
-		if (type === "spatial")
-		    val = this.calculateDist(node1.location, node2.location);
-		else if (type === "temporal")
-		    val = this.calculateTime(node1.time.datetime, node2.time.datetime);
+		distDiff = this.calculateDist(node1.location, node2.location);
+		timeDiff = this.calculateTime(node1.time.datetime, node2.time.datetime);
 
-		if (val < min) min = val;
+		if (distDiff <= minDist && timeDiff <= minTime) {
+		    minDist = distDiff;
+		    minTime = timeDiff;
+		}
 	    });
 	});
 
-	return min;
+	return [minDist, minTime];
     }
 
     //TODO - Cleanup
@@ -103,6 +114,9 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let refId = refNode.id;
 	let spatialThresh = parseInt($("#spatial").val());
 	let temporalThresh = parseInt($("#temporal").val());
+
+	console.log("STHRESH", spatialThresh);
+	//debugger;
 	
 	this.linkData.forEach(link => {
 	    let targetId = link.target.id || link.target;
@@ -110,31 +124,34 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    let linkId = (targetId === refId) ? sourceId : targetId;
 	    
 	    let node = this.nodeData.find(node => node.id === linkId);
-	    let count = this.getLinkThreshCount(refNode, node, spatialThresh, temporalThresh);
-	    link.count = count;
+	    let threshEncounters = this.getLinkThreshEncounters(refNode, node, spatialThresh,
+								temporalThresh);
+	    link.validEncounters = threshEncounters;
+	    link.count = threshEncounters.length;
 	});
     }
 
     //TODO - Cleanup
-    getLinkThreshCount(node1, node2, spatialThresh, temporalThresh) {
+    getLinkThreshEncounters(node1, node2, spatialThresh, temporalThresh) {
 	let node1Sightings = node1.data.sightings;
 	let node2Sightings = node2.data.sightings;
-
-	let count = 0, idxSet = new Set();
+	
+	let validEncounters = [], idxSet = new Set();
 	node1Sightings.forEach(node1 => {
 	    node2Sightings.forEach((node2, idx) => {
 		let spatialVal = this.calculateDist(node1.location, node2.location);
 		let temporalVal = this.calculateTime(node1.time.datetime, node2.time.datetime);
-
+		
 		if (spatialVal <= spatialThresh && temporalVal <= temporalThresh &&
 		    !idxSet.has(idx)) {
 		    idxSet.add(idx);
-		    count++;
+		    validEncounters.push(node2);
 		}
 	    });
 	});
 
-	return count;
+	console.log(validEncounters.length);
+	return validEncounters;
     }
     
     //Calculate the spatial difference between two node sighting locations
@@ -177,9 +194,9 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	$("#" + occType + "Val").text(thresh)
 	
 	let focusedNode = self.nodeData.find(d => d.data.isFocused);
-	let nodeFilter = (d) => (self.getNodeMin(focusedNode, d, occType) <= thresh)
-	let linkFilter = (d) => (self.getNodeMin(focusedNode, d.source, occType) <= thresh) &&
-	    (self.getNodeMin(focusedNode, d.target, occType) <= thresh)
+	let nodeFilter = (d) => (self.getNodeMinType(focusedNode, d, occType) <= thresh)
+	let linkFilter = (d) => (self.getNodeMinType(focusedNode, d.source, occType) <= thresh) &&
+	    (self.getNodeMinType(focusedNode, d.target, occType) <= thresh)
 
 	let validFilters = this.validFilters.concat([occType]);
 	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
@@ -221,21 +238,23 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    .lower();
 	
 	newLabels.append("circle")
-	    .attr("r", 9)
+	    .attr("r", 12)
 	    .style("fill", "white")
 	    .on("mouseover", d => this.handleMouseOver(d, "link"))				
 	    .on("mouseout", () => this.handleMouseOut());
 
 	newLabels.append("text")
-	    .attr("dy", "0.4em")
-	    .attr("dx", "-0.2em")
-	    .text(d => d.count)
+	    .style("dominant-baseline", "central")
+	    .style("text-anchor", "middle")
 	    .attr("font-size", 15)
-	    .attr("font-weight", "bold");
+	    .attr("font-weight", "bold")
+	    .text(d => d.count);
 
 	newLabels.transition()
 	    .duration(this.transitionDuration)
 	    .attr("opacity", 1);
+
+	linkLabels.select("text").text(d => d.count);
 
 	this.linkLabels = newLabels.merge(linkLabels);
 	
