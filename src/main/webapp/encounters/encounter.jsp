@@ -929,6 +929,9 @@ colorPattern: {"value":"black-white","_multipleId":"28a8e42b-b3d7-4114-af63-3213
         <div class="kitsci-attribute">
             Ear tip: <b><%=enc.getEarTip()%></b>
         </div>
+        <div class="kitsci-attribute">
+            Behavior: <b><%=((enc.getBehavior() == null) ? "-" : enc.getBehavior())%></b>
+        </div>
     </div>
 
     <div class="kitsci-actions">
@@ -1473,7 +1476,7 @@ if(enc.getLocation()!=null){
  	<%
  	if((request.getUserPrincipal()!=null)){
  	%>
- 		<p><%=encprops.getProperty("map_note") %></p>
+ 		<!-- p><%=encprops.getProperty("map_note") %></p -->
  		<div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
  	<%
  	}
@@ -3842,7 +3845,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 <div class="foo"></div>
 
-<div class="admin-only">
+<div class="declutter">
 
 
 <%-- OBSERVATION ATTRIBUTES --%>
