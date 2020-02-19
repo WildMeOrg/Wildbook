@@ -13,7 +13,7 @@
         String message = "";
         message =  "<h1 class=\"import-header\">Bulk Data Import</h1>";
         if (!committing) {
-        	message += "<strong>REVIEW ONLY: </strong> To ensure data integrity, this is a dry run of your import that will not modify the Flukebook database. When you are satisfied with the results printed on this page, commit your import with the button at the bottom of the page.";
+        	message += "<strong>REVIEW ONLY: </strong> To ensure data integrity, this is a dry run of your import that will not modify the database. When you are satisfied with the results printed on this page, commit your import with the button at the bottom of the page.";
  		} 
         %>
 
