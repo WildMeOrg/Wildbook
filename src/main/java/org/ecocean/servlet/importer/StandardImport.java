@@ -204,7 +204,7 @@ public class StandardImport extends HttpServlet {
     committing = Util.requestParameterSet(request.getParameter("commit"));
 
     if (dataFound) {
-      doImport(filename, dataFile, request, response, myShepherd);
+      doImport(filename, dataFile, request, response, myShepherd, itask);
     } else {
       out.println("An error occurred and your data could not be read from the file system.");
       System.out.println("No datafile found, aborting.");
@@ -231,7 +231,7 @@ public class StandardImport extends HttpServlet {
 
   }
 
-  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response, Shepherd myShepherd) {
+  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response, Shepherd myShepherd, ImportTask itask) {
     missingColumns = new HashSet<String>();
     numFolderRows = 0;
     boolean dataFound = (dataFile!=null && dataFile.exists());
@@ -264,6 +264,7 @@ public class StandardImport extends HttpServlet {
     //int lastColNum = firstRow.getLastCellNum();
 
 
+    System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
     int printPeriod = 1;
     if (committing) myShepherd.beginDBTransaction();
     outPrnt("<h2>Parsed Import Table</h2>"); 
@@ -273,6 +274,7 @@ public class StandardImport extends HttpServlet {
     //System.out.println("debug1");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
+    List<Encounter> encsCreated = new ArrayList<Encounter>();
     int maxRows = 50000;
     int offset = 0;
     for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
@@ -310,6 +312,7 @@ public class StandardImport extends HttpServlet {
           }
 
           myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+          encsCreated.add(enc);
           if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
           if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
           myShepherd.commitDBTransaction();
@@ -334,6 +337,13 @@ public class StandardImport extends HttpServlet {
     }
     if (!committing) feedback.printEndTable();
 
+    if (committing) {
+        itask.setEncounters(encsCreated);
+        myShepherd.getPM().makePersistent(itask);
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+    }
+
     out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
     out.println("<h2>Import Overview: </h2>");
     out.println("<ul>");
@@ -344,6 +354,11 @@ public class StandardImport extends HttpServlet {
     out.println("<li>Excel Columns = "+cols+"</li>");
     //out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>Trial Run: "+!committing+"</em></li>");
+    if (committing) {
+        out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+    } else {
+        out.println("<li>ImportTask id = <b>" + itask.getId() + "</b></li>");
+    }
     out.println("</ul>");
 
     String uName = request.getUserPrincipal().getName();
