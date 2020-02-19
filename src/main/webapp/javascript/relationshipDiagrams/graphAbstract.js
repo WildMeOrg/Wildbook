@@ -424,12 +424,14 @@ class GraphAbstract { //See static attributes below class
 
     /**
      * Display the selected tooltip type
-     * @param {linkData} [LinkData] - A Link element's data attribute
+     * @param {d} [Node|Link] - A Node or Link element
+     * @param {type} [String] - Determines whether a "node" or "link" tooltip should be displayed
      */	
     handleMouseOver(d, type) {
 	if (!this.popup) {
 	    if (type === "node") this.displayNodeTooltip(d);
 	    else if (type === "link") this.displayLinkTooltip(d);
+	    else return;
 
 	    //Display opaque tooltip
 	    this.tooltip.transition()
@@ -441,7 +443,10 @@ class GraphAbstract { //See static attributes below class
 	}
     }
 
-    //Displays a node tooltip
+    /**
+     * Displays a node tooltip
+     * @param {d} [Node] - A Node element
+     */	
     displayNodeTooltip(d) {
 	//Place tooltip offset to the upper right of the hovered node
 	let text = this.generateNodeTooltipHtml(d);
@@ -456,7 +461,11 @@ class GraphAbstract { //See static attributes below class
     }
 
     //TODO - Modularize this
-    //Generate a tooltip description for a given node 
+    /**
+     * Generate a tooltip description for a given node
+     * @param {d} [Node] - A Node element
+     * @return {tooltipHTML} [String] - An HTML string to use as a tooltip display
+     */	
     generateNodeTooltipHtml(d) {
 	let tooltipHtml = "<b>Name: </b>" + d.data.name + "<br/>";
 	if (d.data.gender)
@@ -480,7 +489,10 @@ class GraphAbstract { //See static attributes below class
 	return tooltipHtml;
     }
     
-    //Displays a link tooltip
+    /**
+     * Displays a link tooltip
+     * @param {d} [Link] - A Link element
+     */	
     displayLinkTooltip(d) {
 	//Place tooltip on the hovered link
 	let text = this.generateLinkTooltipHtml(d);
@@ -494,7 +506,10 @@ class GraphAbstract { //See static attributes below class
 	}
     }
     
-    //Generate a tooltip description for a given link
+    /**
+     * Generate a tooltip description for a given link
+     * @param {link} [Link] - A Link element
+     */	
     generateLinkTooltipHtml(link) {
 	let target = (link.target.data.individualID === this.id) ? "source" : "target";
 
@@ -524,7 +539,9 @@ class GraphAbstract { //See static attributes below class
 	return tooltipHtml;
     }
 
-    //Fade the tooltip from view when no longer hovering over a node
+    /**
+     * Fade the tooltip from view when no longer hovering over a node
+     */	
     handleMouseOut() {
 	//Enable future mouseOver events
 	this.popup = false;
@@ -535,8 +552,14 @@ class GraphAbstract { //See static attributes below class
             .style("opacity", 0);
     }
 
-    //Draws a simple arrow (used for the legend arrow icons)
-    drawLegendArrow(legendRef, x, y,color){
+    /**
+     * Draws a simple arrow (used for the legend arrow icons)
+     * @param {legendRef} [String] - The HTML element to append the legend arrow definitions
+     * @param {x} [int] - The x position of the legend arrow
+     * @param {y} [int] - The y position of the legend arrow
+     * @param {color} [String] - The hex color to use for the legend arrow 
+     */	
+    drawLegendArrow(legendRef, x, y, color){
 	//Calculate median line
 	let yCenter = y + (this.legendIcons.size / 2)
 
@@ -567,7 +590,10 @@ class GraphAbstract { //See static attributes below class
 	    .attr('stroke-width', this.legendStrokeWidth);
     }
     
-    //Abstract funciton serving to update known filter buttons with relevant filters
+    /**
+     * Abstract funciton serving to update known filter buttons with relevant filters
+     * @param {containerId} [String] - The HTML element to append the filter buttons
+     */	
     updateFilterButtons(containerId=this.containerId) {
 	//Select family filter
 	$(containerId).find("#selectFamily").on("click", () => {
@@ -624,19 +650,28 @@ class GraphAbstract { //See static attributes below class
 	$(containerId).find("#reZoomOut").on("click", () => this.zoomOut());
     }
 
-    //Zoom in when button is pressed
+    /**
+     * Zoom in when button is pressed
+     */	
     zoomIn(){
 	console.log("in zoomIn()");
 	this.zoom.scaleBy(this.svg.transition().duration(750), 1.3);
     }
 
-
-    //zoom out when button is pressed
+    /**
+     * Zoom out when button is pressed
+     */	
     zoomOut(){
 	console.log("in zoomOut()");
 	this.zoom.scaleBy(this.svg.transition().duration(750), 1 / 1.3);
     }
 
+    /**
+     * Abstract funciton serving to update known filter buttons with relevant filters
+     * @param {containerId} [String] - The HTML element to use as the root search node
+     * @param {filterRef} [String] - The desired check box for which the onclick filter will be declared
+     * @param {filter} [function] - The filter function to be applied
+     */	
     createCheckBoxFilter(containerId, filterRef, filter) {
 	$(containerId).find("#" + filterRef + "Box").on("click", (e) => {
 	    let nodeRef = $(containerId).find("#" + filterRef + "Box");
@@ -653,6 +688,9 @@ class GraphAbstract { //See static attributes below class
 
 
     //TODO - Check CSS rules and speed up fades
+    /**
+     * Append a hide button to the graph
+     */	
     addHideButton(){
 	var shown = true;
         let hidebutton = document.createElement("button");
@@ -678,6 +716,10 @@ class GraphAbstract { //See static attributes below class
         });
     }
 		
+    /**
+     * Reset all filtered checkboxes
+     * @param {containerId} [String] - The HTML element to use as the root search node
+     */	
     uncheckBoxFilters(containerId) {
 	this.validCheckFilters.forEach(filterRef => {
 	    let nodeRef = $(containerId).find("#" + filterRef + "Box");
