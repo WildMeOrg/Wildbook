@@ -266,7 +266,10 @@ public class CachedQuery {
               try{
                 jarr.put(Util.toggleJSONObject(RESTUtils.getJSONObjectFromPOJO(o, ec)));
               }
-              catch(Exception e){System.out.println("RESTUtils.getJSONObjectFromPOJO threw an exception on "+o.toString());}
+              catch(Exception e){
+                System.out.println("RESTUtils.getJSONObjectFromPOJO threw an exception on "+o.toString());
+                e.printStackTrace();
+              }
           }
       }
       JSONObject jsonobj=new JSONObject();

@@ -247,7 +247,9 @@ public class Task implements java.io.Serializable {
         Query query = myShepherd.getPM().newQuery(qstr);
         query.setIgnoreCache(true);
         query.setOrdering("created");
-        return (List<Task>) query.execute();
+        List<Task> listy= (List<Task>) query.execute();
+        query.closeAll();
+        return listy;
     }
     public static List<Task> getRootTasksFor(Annotation ann, Shepherd myShepherd) {
         return onlyRoots(getTasksFor(ann, myShepherd));
@@ -258,7 +260,9 @@ public class Task implements java.io.Serializable {
         Query query = myShepherd.getPM().newQuery(qstr);
         query.setIgnoreCache(true);
         query.setOrdering("created");
-        return (List<Task>) query.execute();
+        List<Task> listy=(List<Task>) query.execute();
+        query.closeAll();
+        return listy;
     }
     public static List<Task> getRootTasksFor(MediaAsset ma, Shepherd myShepherd) {
         return onlyRoots(getTasksFor(ma, myShepherd));
