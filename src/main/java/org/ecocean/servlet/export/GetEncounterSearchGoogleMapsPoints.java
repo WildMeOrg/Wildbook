@@ -126,7 +126,7 @@ public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
     Query q1=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (q1.execute());
     Vector<Encounter> rEncounters=new Vector<Encounter>(c);
-    
+    q1.closeAll();
     
     
     // viewOnly=true arg means this hiddenData relates to viewing the summary results
