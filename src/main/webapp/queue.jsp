@@ -285,7 +285,8 @@ if (!isAdmin) {   //filter out ones we made decision on
 System.out.println("queue.jsp: found " + encs.size() + " encs for user " + user);
 
 if (!forceList && (encs.size() > 0)) {
-    String redir = "encounters/encounterDecide.jsp?id=" + encs.get(0).getCatalogNumber();
+    int r = (int)Math.floor(Math.random() * encs.size());
+    String redir = "encounters/encounterDecide.jsp?id=" + encs.get(r).getCatalogNumber();
     myShepherd.rollbackDBTransaction();
     response.sendRedirect(redir);
     return;
