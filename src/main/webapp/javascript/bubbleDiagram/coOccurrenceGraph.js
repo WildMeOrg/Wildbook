@@ -35,7 +35,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     
     /**
      * Generate a co-occurrence graph
-     * @param {nodes} [Node list] - A list of node objects queried from the MarkedIndividual psql table
+     * @param {nodes} [Node list] - A list of node objects queried from the 
+     *   MarkedIndividual psql table
      * @param {links} [obj list] - A list of link objects queried from the Relationship psql table
      */	
     graphOccurrenceData(nodes, links) {
@@ -49,8 +50,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
     /**
      * Perform all auxiliary functions necessary prior to graphing
-     * @param {linkData} [obj list] - A list of link objects queried from the MarkedIndividual psql table
-     * @param {nodeData} [Node list] - A list of Node objects queried from the MarkedIndividual psql table
+     * @param {linkData} [obj list] - A list of link objects queried from the 
+     *   Relationship psql table
+     * @param {nodeData} [Node list] - A list of Node objects queried from the 
+     *   MarkedIndividual psql table
      */	
     setupGraph(linkData, nodeData) {
 	super.setupGraph(linkData, nodeData);
@@ -60,7 +63,13 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	this.updateRangeSliders();
     }
 
-    //TODO - Comment
+    /**
+     * Update viable occurrence data for each link, prior to updating the graph
+     * @param {linkData} [obj list] - A list of link objects queried from the 
+     *   Relationship psql table
+     * @param {nodeData} [Node list] - A list of Node objects queried from the 
+     *   MarkedIndividual psql table
+     */	    
     updateGraph(linkData=this.linkData, nodeData=this.nodeData) {
 	//Update link data
 	this.updateLinkThreshCount(this.focusedNode);	
@@ -102,6 +111,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @param {node2} [Node] - The second node being compared
      * @param {type} [String] - Determines whether the minimum spatial or temporal difference 
      *   should be returned
+     * @return {min} [int] - The minimum distance or time value
      */
     getNodeMinType(node1, node2, type) {
 	let [dist, time] = this.getNodeMin(node1, node2);
@@ -115,6 +125,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      *   and updates co-occurrence data
      * @param {node1} [Node] - The first node being compared
      * @param {node2} [Node] - The second node being compared
+     * @return {minDist, minTime} [list] - The minimum distance and time values
      */
     getNodeMin(node1, node2) {
 	let node1Sightings = node1.data.sightings;
@@ -138,6 +149,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	return [minDist, minTime];
     }
 
+    /**
+     * Update the occurrence data for each link to satisfy the current spatial/temporal thresholds
+     * @param {focusedNode} [Node] - The central occurrence node
+     */
     updateLinkThreshCount(focusedNode) {
 	let focusedId = focusedNode.id;
 	let spatialThresh = parseInt($("#spatial").val());
@@ -156,6 +171,15 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	});
     }
 
+    /**
+     * Get the list of occurrences which satisfy the given spatial/temporal thresholds 
+     *   for a given node
+     * @param {node1} [Node] - The first node being compared
+     * @param {node2} [Node] - The second node being compared
+     * @param {spatialThresh} [int] - The maximum spatial difference allowed
+     * @param {temporalThresh} [int] - The maximum temporal difference allowed
+     * @return {validEncounters} [list] - All occurrences which satisfy the given constraints 
+     */
     getLinkThreshEncounters(node1, node2, spatialThresh, temporalThresh) {
 	let node1Sightings = node1.data.sightings;
 	let node2Sightings = node2.data.sightings;
@@ -177,7 +201,14 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	return validEncounters;
     }
     
-    //Calculate the spatial difference between two node sighting locations
+    /**
+     * Calculate the spatial difference between two node sighting locations
+     * @param {node1Loc} [obj] - Object with lat and lon properties, describing the 
+     *   position of node1
+     * @param {node2Loc} [obj] - Object with lat and lon properties, describing the 
+     *   position of node2
+     * @return {dist} [int] - Describes the distance between the two node positions. Defaults to -1
+     */
     calculateDist(node1Loc, node2Loc) {
 	if (node1Loc && node2Loc) {
 	    return Math.pow(Math.pow(node1Loc.lon - node2Loc.lon, 2) +
@@ -186,7 +217,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	return -1;
     }
 
-    //Calculate the temporal difference between two node sightings
+    /**
+     * Calculate the temporal difference between two node sightings
+     * @param {node1Time} [int] - The time at which node1 was observed
+     * @param {node2Time} [int] - The time at which node2 was observed
+     * @return {time} [int] - Describes the difference between the two node times
+     */
     calculateTime(node1Time, node2Time) {
 	if (typeof node1Time === "number" && typeof node2Time === "number") {
 	    return Math.abs(node1Time - node2Time)
@@ -194,7 +230,9 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	return -1;
     }
     
-    //Update known range sliders (this.sliders) with contextual ranges/values
+    /**
+     * Update known range sliders (this.sliders) with contextual ranges/values
+     */
     updateRangeSliders() {
 	Object.values(this.sliders).forEach(slider => {
 	    //Update html slider attributes
@@ -211,7 +249,13 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	});
     }
 
-    //Filter nodes by spatial/temporal differences, displaying those less than the set threshold
+    /**
+     * Filter nodes by spatial/temporal differences, displaying those less than the set threshold
+     * @param {self} [coOccurrenceGraph] - 'this' context of the calling object
+     * @param {thresh} [int] - The maximum value for the given data type
+     * @param {occType} [String] - Determines whether links should be filtered by 
+     *   "temporal" or "spatial" considerations
+     */
     filterByOccurrence(self, thresh, occType) {
 	//Update slider label value
 	$("#" + occType + "Val").text(thresh)
@@ -225,13 +269,17 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
     }
 
-    //Reset the graph s.t. no filters are applied
+    /**
+     * Reset the graph s.t. no filters are applied
+     */
     resetGraph() {
 	super.resetGraph();
 	this.resetSliders();
     }
 
-    //Reset each slider's text and value
+    /**
+     * Reset each slider's text and value
+     */
     resetSliders() {
 	Object.values(this.sliders).forEach(slider => {
 	    $("#" + slider.ref + "Val").text(slider.max)
@@ -240,6 +288,11 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	});
     }
 
+    /**
+     * Updates link occurrence counts and visibility
+     * @param {linkData} [obj list] - A list of link objects queried from the 
+     *   Relationship psql table
+     */
     updateLinks(linkData=this.linkData) {	
 	//Add link labels
 	let linkLabels = this.svg.selectAll('.linkLabel')
@@ -285,13 +338,22 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	super.updateLinks(linkData);
     }
 
+    /**
+     * Updates the graph's physics each tick
+     * @param {self} [coOccurrenceGraph] - 'this' context of the calling object
+     */
     ticked(self) {
 	super.ticked(self);
 	self.linkLabels.attr("transform", d => "translate(" + this.linearInterp(d, "x") +
 			     "," + this.linearInterp(d, "y") + ")");
     }
 
-    //Calculates a point 40 percent between a given link's target and source nodes
+    /**
+     * Calculates a point 40 percent between a given link's target and source nodes
+     * @param {link} [obj] - Link context for the interpolation
+     * @param {axis} [int] - Determines whether the x (0) or y (1) axis should be interpolated
+     * @return {pos} [int] - Describes the interpolated position's offset
+     */
     linearInterp(link, axis) {
 	if (link) {
 	    let srcId = link.source.data.individualID
