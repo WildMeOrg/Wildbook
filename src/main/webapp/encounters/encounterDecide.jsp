@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.Iterator,java.util.Properties,
 org.ecocean.media.MediaAsset,
+org.ecocean.media.Feature,
 org.json.JSONObject, org.json.JSONArray,
 java.util.Collection,
 javax.jdo.Query,
@@ -917,6 +918,7 @@ There are two steps to processing each submission: selecting cat attributes, and
         j.put("annotationId", ann.getId());
         j.put("origWidth", ma.getWidth());
         j.put("origHeight", ma.getHeight());
+        if (ann.getFeatures() != null) for (Feature f : ann.getFeatures()) { String foo = f.toString(); }
         if (!ann.isTrivial()) j.put("bbox", ann.getBbox());
 %>
         <div id="wrapper-<%=ma.getId()%>" class="enc-asset-wrapper"><div class="zoom-hint"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, '.enc-asset-wrapper')" class="el el-lg el-zoom-out"></span></div><img id="img-<%=ma.getId()%>" onload="assetLoaded(this, <%=j.toString().replaceAll("\"", "'")%>);" class="enc-asset" src="<%=ma.safeURL(request)%>" /></div>
