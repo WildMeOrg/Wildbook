@@ -18,6 +18,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import javax.jdo.Query;
+import java.util.Collection;
 
 public class Task implements java.io.Serializable {
 
@@ -261,7 +262,7 @@ public class Task implements java.io.Serializable {
         query.setIgnoreCache(true);
         query.setOrdering("created");
         Collection c = (Collection)query.execute();
-        List<Task> listy=new List<Task>(c);
+        List<Task> listy=new ArrayList<Task>(c);
         query.closeAll();
         return listy;
     }
