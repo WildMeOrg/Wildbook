@@ -50,6 +50,17 @@ myShepherd.closeDBTransaction();
 
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
+
+      <!-- Global site tag (gtag.js) - Google Analytics -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-9"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-30944767-9');
+      </script>
+
       <title><%=CommonConfiguration.getHTMLTitle(context)%>
       </title>
       <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
