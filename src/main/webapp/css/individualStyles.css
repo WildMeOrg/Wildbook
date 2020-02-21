@@ -273,7 +273,8 @@ div .tooltip {
 }
 
 .sliderWrapper {
-  width: 40%;
+    position: relative;
+    width: 40%;
 }
 
 #temporalVal, #spatialVal {

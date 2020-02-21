@@ -8,7 +8,7 @@
 function setupOccurrenceGraph(individualID, globals, parser=null) {
     let focusedScale = 1.75;
     let occ = new OccurrenceGraph(individualID, "#bubbleChart", globals, focusedScale, parser);
-    occ.applyOccurrenceData() //TODO - Shift to some promise passing
+    occ.applyOccurrenceData();
 }
 
 //Sparse-tree mapping co-occurrence relationships between a focused individual and its species
@@ -21,16 +21,15 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	if (parser) this.parser = parser;
 	else this.parser = new JSONParser(globals, null, true, 30);
 
-	//TODO - Remove ref, use key
-	this.sliders = {"temporal": {"ref": "temporal"},
-			"spatial": {"ref": "spatial"}};	
+	this.sliders = {"temporal": {}, "spatial": {}};	
     }
 
     /**
      * Wrapper function to gather species data and generate a graph
      */	   
     applyOccurrenceData() {
-	this.parser.parseJSON(this.id, (nodes, links) => this.graphOccurrenceData(nodes, links), true);
+	this.parser.parseJSON((nodes, links) => this.graphOccurrenceData(nodes, links),
+			      this.id, true);
     }
     
     /**
@@ -234,18 +233,18 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * Update known range sliders (this.sliders) with contextual ranges/values
      */
     updateRangeSliders() {
-	Object.values(this.sliders).forEach(slider => {
+	Object.entries(this.sliders).forEach(([key, slider]) => {
 	    //Update html slider attributes
-	    let sliderNode = $("#" + slider.ref);
+	    let sliderNode = $("#" + key);
 	    sliderNode.attr("max", slider.max);
 	    sliderNode.val(slider.max);
 	    sliderNode.change(() => {
-		this.filterByOccurrence(this, parseInt(sliderNode.val()), slider.ref)
+		this.filterByOccurrence(this, parseInt(sliderNode.val()), key)
 	    });
 	    sliderNode.on("click", (e) => e.preventDefault()); //Prevent default scroll-to-focus
 
 	    //Update slider label value
-	    $("#" + slider.ref + "Val").text(slider.max)
+	    $("#" + key + "Val").text(slider.max)
 	});
     }
 

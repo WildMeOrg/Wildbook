@@ -633,7 +633,6 @@ class GraphAbstract { //See static attributes below class
 	//Zoom in
 	$(containerId).find("#gZoomIn").on("click", () => this.zoomIn());
 
-
 	//Zoom out
 	$(containerId).find("#gZoomOut").on("click", () => this.zoomOut());
     }

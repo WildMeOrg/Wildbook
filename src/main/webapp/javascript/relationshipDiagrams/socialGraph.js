@@ -8,7 +8,7 @@
 
 function setupSocialGraph(individualId, containerId="#socialDiagram", globals, parser=null) {
     let focusedScale = 1.25;
-    let sg = new SocialGraph(individualId, "#socialDiagram", globals, focusedScale, parser);
+    let sg = new SocialGraph(individualId, "#familyChart", globals, focusedScale, parser);
     sg.applySocialData();
 }
 
@@ -27,7 +27,7 @@ class SocialGraph extends ForceLayoutAbstract {
      * Wrapper function to gather species data from the Wildbook DB and generate a graph
      */
     applySocialData() {
-	this.parser.parseJSON(this.id, (nodes, links) => this.graphSocialData(nodes, links));
+	this.parser.parseJSON((nodes, links) => this.graphSocialData(nodes, links), this.id);
     }
 
     /**
@@ -43,4 +43,10 @@ class SocialGraph extends ForceLayoutAbstract {
 	}
 	else this.showTable("#socialDiagram", "#communityTable");
     }
+
+    updateGeodesicSlider(nodes, links) {
+	
+    }
+
+    depthFirstNodeTraversal
 }

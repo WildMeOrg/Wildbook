@@ -51,7 +51,7 @@ class Node {
      *   Defaults to null if missing data
      */
     getLifeStage(mData) {
-	if (mData.encounters) {
+	if (mData.encounters.length > 0) {
 	    switch (mData.encounters[0].lifeStage) {
 	        case 'A':
 		    return "Adult";
@@ -67,18 +67,17 @@ class Node {
 
 //Helper class purposed to query and parse JSON node/link data for social and coOccurrence graphs
 class JSONParser {
-    //TODO - Logically couple disjointNodes and iId	
    /**
     * Creates a JSONParse instance
     * @param {globals} [object] - Global data from Wildbook .jsp pages
-    * @param {selectedNodes} [string|iterable] - Nodes included when generating JSON data. When null, all nodes are included. 
-    *   Defaults to null.
+    * @param {selectedNodes} [string|iterable] - Nodes included when generating JSON data. 
+    *   When null, all nodes are included. Defaults to null.
     * @param {disjointNodes} [boolean] - Whether nodes disconnected from the central node (iId) should be included when 
     *   generating JSON data. Defaults to false  
-    * @param {numNodes} [int] - Determines the total number of nodes to graph
+    * @param {maxNumNodes} [int] - Determines the total number of nodes to graph
     * @param {localFiles} [boolean] - Whether requests should be made to local MarkedIndividual/Relationship data
     */
-    constructor(globals, selectedNodes=null, disjointNodes=false, numNodes=-1, localFiles=false) {	
+    constructor(globals, selectedNodes=null, disjointNodes=false, maxNumNodes=-1, localFiles=false) {	
 	//Keep track of a unique id for each node and link
 	this.nodeId = 0;
 	this.linkId = 0;
@@ -91,33 +90,43 @@ class JSONParser {
 	}
 
 	this.disjointNodes = disjointNodes;
-	this.numNodes = numNodes;
+	this.maxNumNodes = maxNumNodes;
 	this.localFiles = localFiles;
 	this.globals = globals;
     }
-
-    //TODO - Turn iId into an optional parameter
+    
     /**
      * Parse link and node data to generate a graph via {graphCallback}
-     * @param {iId} [string] - The id of the central node
      * @param {graphCallback} [function] - Handles generated node and link data arrays
-     * @param {isCoOccurrence} [boolean] - Determines whether node/link data should feature additional coOccurrence modifications
+     * @param {iId} [string] - The id of the central node. Defaults to null
+     * @param {isCoOccurrence} [boolean] - Determines whether node/link data should feature 
+     *   additional coOccurrence modifications
      */
-    parseJSON(iId, graphCallback, isCoOccurrence=false) {
+    parseJSON(graphCallback, iId=null, isCoOccurrence=false) {
 	this.queryNodeData().then(() => {
 	    this.queryRelationshipData().then(() => {
-		let nodes = this.parseNodes(iId);
-		let links = this.parseLinks(nodes);
-
-		if (isCoOccurrence) { //Extract temporal and latitude/longitude encounter data
-		    [nodes, links] = this.modifyOccurrenceData(iId, nodes, links);
-		}
-		
-		graphCallback(nodes, links);
+		this.processJSON(graphCallback, iId, isCoOccurrence);
 	    }).catch(error => console.error(error));
 	}).catch(error => console.error(error)); 
     }
 
+    /**
+     * Transform queried MarkedIndividual and Relationship data to graphable node and link objects 
+     * @param {graphCallback} [function] - Handles generated node and link data arrays
+     * @param {iId} [string] - The id of the central node. Defaults to null
+     * @param {isCoOccurrence} [boolean] - Determines whether node/link data should feature 
+     *   additional coOccurrence modifications
+     */
+    processJSON(graphCallback, iId, isCoOccurrence) {
+	let [nodeDict, nodeList] = this.parseNodes(iId);
+	let links = this.parseLinks(nodeDict);
+	
+	if (isCoOccurrence) { //Extract temporal and latitude/longitude encounter data
+	    [nodeList, links] = this.modifyOccurrenceData(iId, nodeDict, links);
+	}
+	graphCallback(nodeList, links);
+    }
+    
     /**
      * Query wrapper for the storage of MarkedIndividual data
      * @return {queryData} [array] - All MarkedIndividual data in the Wildbook DB
@@ -128,7 +137,7 @@ class JSONParser {
 	    query = this.globals.baseUrl + "/api/jdoql?" +
 		encodeURIComponent("SELECT FROM org.ecocean.MarkedIndividual"); //Get all individuals
 	}
-	else query = "MarkedIndividual.json";
+	else query = "./MarkedIndividual.json";
 	return this.queryData("nodeData", query, this.storeQueryAsDict);
     }
 
@@ -143,7 +152,7 @@ class JSONParser {
 		encodeURIComponent("SELECT FROM org.ecocean.social.Relationship " +
 				   "WHERE (this.type == \"social grouping\")");
 	}
-	else query = "Relationship.json";
+	else query = "./Relationship.json";
 	return this.queryData("relationshipData", query);
     }
 
@@ -214,60 +223,81 @@ class JSONParser {
     /**
      * Extract node data from the MarkedIndividual and Relationship query data
      * @param {iId} [string] - The id of the central node
-     * @return {nodes} - Extracted data relevant to graphing nodes
+     * @return {nodes} [obj] - Extracted data relevant to graphing nodes
      */
     parseNodes(iId) {
 	//Assign unique ids and groupings to the queried node data
-	this.processNodeData(iId); //TODO - Memoize this process
+	let graphNodes = this.processNodeData(iId); //TODO - Memoize this process
 
 	//Extract meaningful node data
-	let nodes = [];
-	let nodeData = this.getNodeData();
-	for (let key in nodeData) {
-	    let data = nodeData[key];
-
-	    //TODO - Remove
-	    //Exit loop early if max number of nodes have been found
-	    if (this.numNodes > 0 && nodes.length >= this.numNodes) break;
-	    
+	let nodes = {};
+	for (let [key, data] of Object.entries(graphNodes)) {
 	    //Add node to list if disjoint nodes are allowed, or if a link exists to the central node {iId}
-
 	    if (this.disjointNodes || data.iIdLinked) {
-		nodes.push(new Node(key, data, iId));
+		nodes[key] = new Node(key, data, iId);
 	    }
 	}
 
-	return nodes;
+	return [nodes, Object.values(nodes)];
     }
 
     /**
      * Assign unique ids and label connected groups for all nodes
      * @param {iId} [string] - The id of the central node
+     * @return {graphNodes} [obj list] - List of raw node data to be parsed and graphed
      */
     processNodeData(iId) {
 	//Generate a two way mapping of all node relationships
-	let relationships = this.mapRelationships();
+	let nodes = this.getNodeSelection();
+	let relationships = this.mapRelationships(nodes);
+	let [graphNodes, groupNum] = this.traverseRelationshipTree(iId, nodes, relationships);
 	
+	//Update id and group attributes for all disconnected nodes
+	let numNodes = Object.keys(graphNodes).length;
+	for (name in nodes) {
+	    //Exit loop early if max number of nodes have been found
+	    if (this.maxNumNodes > 0 && numNodes >= this.maxNumNodes) return graphNodes;
+	    
+	    if (!graphNodes[name]) {
+		graphNodes[name] = this.updateNodeData(nodes[name], ++groupNum, this.getNodeId());
+		numNodes++;
+	    }
+	}
+
+	return graphNodes;
+    }
+
+    /**
+     * Group and assign ids to nodes by traversing the node relationship tree, 
+     *   starting with the central node {iId} (if supplied)
+     * @param {iId} [string] - The id of the central node
+     * @param {nodes} [dict] Dict of nodes
+     * @param {relationships} [dict] Map of node relationship data 
+     * @return {graphNodes, groupNum, numNodes} [dict, int] Dict of nodes to be graphed. 
+     *   Last group number found
+     */
+    traverseRelationshipTree(iId, nodes, relationships) {
 	//Update id and group attributes for all nodes with some relationship
+	let graphNodes = {};
 	let groupNum = 0, numNodes = 0;
 	while (Object.keys(relationships).length > 0) { //Treat disjoint groups of nodes
 	    let startingNode = (iId) ? iId : Object.keys(relationships)[0];
 	    let relationStack = [{"name": startingNode, "group": groupNum}];
-
-	    //Exit loop early if max number of nodes have been found
-	    if (this.numNodes > 0 && numNodes >= this.numNodes) break;
 	    
 	    while (relationStack.length > 0) { //Handle nodes connected to the "startingNode"
-		let link = relationStack.pop();
-		let name = link.name;
-		let group = link.group;
-		
-		//Update node id and group
+		let node = relationStack.pop();
+		let name = node.name;
+		let group = node.group;
 		let iIdLinked = (startingNode === iId);
+		
+		//Exit loop early if max number of nodes have been found
+		if (this.maxNumNodes > 0 && numNodes >= this.maxNumNodes) return [graphNodes, groupNum];
 		    
 		//Update the node if it does not have an id, or has a familial relation
-		if (!JSONParser.nodeData[name].id || link.type !== "member") { 
-		    this.updateNodeData(name, group, this.getNodeId(), iIdLinked);
+		if (!graphNodes[name] || node.type !== "member") {
+		    graphNodes[name] = this.updateNodeData(nodes[name], group, this.getNodeId(),
+							   iIdLinked);
+		    numNodes++;
 		}
 
 		if (relationships[name]) { //Check if other valid relationships exist
@@ -280,42 +310,38 @@ class JSONParser {
 	    }
 
 	    if (!this.disjointNodes) break;
-	    numNodes++;
 	}
 
-	//Update id and group attributes for all disconnected nodes
-	Object.keys(JSONParser.nodeData).forEach(key => {
-	    if (!JSONParser.nodeData[key].id) {
-		this.updateNodeData(key, ++groupNum, this.getNodeId());
-	    }
-	});
-
-	JSONParser.isNodeDataProcessed = true;
+	return [graphNodes, groupNum];
     }
 	
     /**
      * Create a bi-directional dictionary of all node relationships
+     * @param {nodes} [array] - Data relevant to graphing nodes
      * @return {relationships} [dict] - A bi-directional dictionary of node relationships 
      */
-    mapRelationships() {
+    mapRelationships(nodes) {
 	let relationships = {};
 	let relationshipData = JSONParser.relationshipData;
 	    
 	//Create a two way mapping for each relationship
-	relationshipData.forEach(el => {
+	for (let el of relationshipData) {
 	    let name1 = el.markedIndividualName1;
 	    let name2 = el.markedIndividualName2;
 	    let type = this.getRelationType(el);
+
+	    //Skip relationships which do not connect valid nodes
+	    if (!nodes[name1] || !nodes[name2]) continue;
 	    
 	    //Mapping relations both ways allows for O(V + 2E) DFS traversal
-	    let link2 = {"name": name2, "type": type};
-	    if (!relationships[name1]) relationships[name1] = [link2];
-	    else relationships[name1].push(link2);
+	    let node2 = {"name": name2, "type": type};
+	    if (!relationships[name1]) relationships[name1] = [node2];
+	    else relationships[name1].push(node2);
 	    
-	    let link1 = {"name": name1, "type": type};
-	    if (!relationships[name2]) relationships[name2] = [link1];
-	    else relationships[name2].push(link1);    
-	});
+	    let node1 = {"name": name1, "type": type};
+	    if (!relationships[name2]) relationships[name2] = [node1];
+	    else relationships[name2].push(node1);    
+	}
 	
 	return relationships;
     }
@@ -326,17 +352,17 @@ class JSONParser {
      */
     parseLinks(nodes) {
 	let links = [];
-	let nodeData = listToDict(nodes, ["data", "individualID"]);
 	let relationshipData = this.getRelationshipData();
 	relationshipData.forEach(el => {
 	    let node1 = el.markedIndividualName1;
 	    let node2 = el.markedIndividualName2;
 
 	    //Ensure node references are non-circular and represent valid nodes
-	    if (nodeData[node1] && nodeData[node2] && node1 !== node2) {
+	    if (nodes[node1] && nodes[node2] && node1 !== node2) {
 		let linkId = this.getLinkId();
-		let sourceRef = nodeData[node1].id;
-		let targetRef = nodeData[node2].id;
+		let sourceRef = nodes[node1].id;
+		let targetRef = nodes[node2].id;
+		if (node1 == "5714" || node2 == "5714") debugger;
 		let type = this.getRelationType(el);
 	
 		links.push({
@@ -346,7 +372,7 @@ class JSONParser {
 		    "type": type
 		});
 	    }
-	    else console.error("Invalid Link ", "Src: " + node1, "Target: " + node2);
+	    //else console.error("Invalid Link ", "Src: " + node1, "Target: " + node2);
 	});
 
 	return links;
@@ -355,13 +381,14 @@ class JSONParser {
     /**
      * Modify node and link data to fit a coOccurrence graph format
      * @param {iId} [string] - The id of the central node
-     * @param {nodes} [array] - Data relevant to graphing nodes
+     * @param {nodeDict} [Node dict] - Data relevant to graphing nodes
      * @param {links} [array] - Data relevant to graphing links
      * @return {modifiedNodes} [array] - {nodes} data with added temporal/spatial occurrence information
      * @return {modifiedLinks} [array] - Represents one link from each node to the {iId} central node
      */
-    modifyOccurrenceData(iId, nodes, links) {
+    modifyOccurrenceData(iId, nodeDict, links) {
 	//Add sightings data to each existing node
+	let nodes = Object.values(nodeDict);
 	nodes.forEach(node => {
 	    node.data.sightings = [];
 		
@@ -397,7 +424,7 @@ class JSONParser {
 	
 	//Record all links connected to the central focusedNode
 	let modifiedLinks = [], linkedNodes = new Set();
-	let focusedNodeId = this.getNodeDataById(iId).id;
+	let focusedNodeId = nodeDict[iId].id;
 	links.forEach(link => {
 	    let focusRef = (link.source === focusedNodeId) ? link.source : link.target;
 	    let nodeRef = (link.source === focusedNodeId) ? link.target : link.source;
@@ -443,38 +470,32 @@ class JSONParser {
 
     /**
      * Update node group and id attributes
-     * @param {nodeRef} [string] - A unique string identifying the given node
+     * @return {node} [obj] - The node data corresponding to the given node id
      * @param {group} [int] - A unique integer assigned to each grouping of connected, familial nodes
      * @param {id} [int] - A unique id assigned to each graph node
-     * @param {iIdLinked} [boolean] - Whether the current node is linked to the {iId} central node
+     * @param {iIdLinked} [boolean] - Whether the current node is linked to the {iId} central node.
+     *   Defaults to false
      */
-    updateNodeData(nodeRef, group, id, iIdLinked) {
-	let node = JSONParser.nodeData[nodeRef];
-	if (node) {
-	    node.id = id;
-	    node.group = group;
-	    node.iIdLinked = iIdLinked;
-	}
-	else node = {"id": id, "group": group, "iIdLinked": iIdLinked};
-	JSONParser.nodeData[nodeRef] = node;
+    updateNodeData(node, group, id, iIdLinked=false) {
+	node.id = id;
+	node.group = group;
+	node.iIdLinked = iIdLinked;
+	return node;
     }
 
     /**
      * Return node data as filtered by selected nodes
      * @return {nodeData} [array] - Any node data matching {selectedNodes} ids
      */
-    getNodeData() {
+    getNodeSelection() {
 	if (this.selectedNodes) {
-	    if (!this.nodeData) { //Memoize node data selection
-		this.nodeData = {};
-		Object.keys(JSONParser.nodeData).forEach(key => {
-		    let data = JSONParser.nodeData[key];
-		    if (this.selectedNodes.has(key)) { //Filter out any keys not in {selectedNodes}
-			this.nodeData[key] = data;
-		    }
-		});
-	    }
-	    return this.nodeData;
+	    let nodes = {};
+	    Object.entries(JSONParser.nodeData).forEach(([key, data]) => {
+		if (this.selectedNodes.has(key)) { //Filter out any keys not in {selectedNodes}
+		    nodes[key] = data;
+		}
+	    });
+	    return nodes;
 	}
 	return JSONParser.nodeData;
     }
@@ -554,3 +575,6 @@ function listToDict(list, key) {
     }
     return dict;
 }
+
+//Static attributes
+//JSONParser.updatedNodeData = {};
