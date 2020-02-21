@@ -282,12 +282,13 @@ class JSONParser {
 	let groupNum = 0, numNodes = 0;
 	while (Object.keys(relationships).length > 0) { //Treat disjoint groups of nodes
 	    let startingNode = (iId) ? iId : Object.keys(relationships)[0];
-	    let relationStack = [{"name": startingNode, "group": groupNum}];
+	    let relationStack = [{"name": startingNode, "group": groupNum, "depth": 0}];
 	    
 	    while (relationStack.length > 0) { //Handle nodes connected to the "startingNode"
 		let node = relationStack.pop();
 		let name = node.name;
 		let group = node.group;
+		let depth = node.depth;
 		let iIdLinked = (startingNode === iId);
 		
 		//Exit loop early if max number of nodes have been found
@@ -295,7 +296,7 @@ class JSONParser {
 		    
 		//Update the node if it does not have an id, or has a familial relation
 		if (!graphNodes[name] || node.type !== "member") {
-		    graphNodes[name] = this.updateNodeData(nodes[name], group, this.getNodeId(),
+		    graphNodes[name] = this.updateNodeData(nodes[name], group, this.getNodeId(), depth,
 							   iIdLinked);
 		    numNodes++;
 		}
@@ -303,7 +304,7 @@ class JSONParser {
 		if (relationships[name]) { //Check if other valid relationships exist
 		    relationships[name].forEach(el => {
 			let currGroup = (el.type !== "member") ? group : ++groupNum;
-			relationStack.push({"name": el.name, "group": currGroup, "type": el.type});
+			relationStack.push({"name": el.name, "group": currGroup, "depth": depth + 1, "type": el.type});
 		    });
 		    delete relationships[name]; //Prevent circular loops    
 		}
@@ -476,9 +477,10 @@ class JSONParser {
      * @param {iIdLinked} [boolean] - Whether the current node is linked to the {iId} central node.
      *   Defaults to false
      */
-    updateNodeData(node, group, id, iIdLinked=false) {
+    updateNodeData(node, group, id, depth, iIdLinked=false) {
 	node.id = id;
 	node.group = group;
+	node.depth = depth;
 	node.iIdLinked = iIdLinked;
 	return node;
     }
