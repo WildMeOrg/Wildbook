@@ -706,6 +706,7 @@ function saveMatchChoice() {
     if (!ch) return;
     console.log('saving %s', ch);
     $('#match-chosen-button').hide();
+    utickState.encounterDecide.matchSaveTime = new Date().getTime();
     $.ajax({
         url: '../DecisionStore',
         data: JSON.stringify({ encounterId: encounterId, property: 'match', value: { id: ch, presented: matchData.userPresented, initTime: utickState.encounterDecide.initTime, attrSaveTime: utickState.encounterDecide.attrSaveTime, matchSaveTime: new Date().getTime() } }),
