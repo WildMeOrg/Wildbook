@@ -1389,9 +1389,6 @@ if (sharky.getNames() != null) {
         <%
           	}
 
-          List<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
-
-          if(relationships.size()>0){
           %>
 
         <div role="navigation" id="socialNavigation">
@@ -1405,41 +1402,48 @@ if (sharky.getNames() != null) {
           </ul>
         </div>
 
-	<div id="socialDiagram" class="socialVis">
-	  <div id="graphFilters">
-	    <button type="button" id="selectFamily">Select Family</button>
-	    <button type="button" id="filterFamily">Filter Family</button>
-	    <button type="button" id="reset">Reset</button>
-            <div id="filterGender" class="filterOptions">
-	      <label>	  
-	        <input type="checkbox" id="maleBox">
-		<span>Male</span>
-	      </label>
-              <label>	  
-		<input type="checkbox" id="femaleBox">
-		<span>Female</span>
-	      </label>
-	      <label>	  
-		<input type="checkbox" id="unknownGenderBox">
-		<span>Unknown Gender</span>
-	      </label>
-	    </div>
-            <div id="filterSocialRole" class="filterOptions">
-	      <label>
-	        <input type="checkbox" id="alphaBox">
-		<span>Alpha</span>
-	      </label>
-	      <label>
-		<input type="checkbox" id="unknownRoleBox">
-		<span>Unknown Role</span>
-	      </label>
-	    </div>
-	    <div id="reZoomButtons" class="btn-group btn-group-sm" role="group">
-	      <button type="button" class="btn btn-default" id="reZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-	      <button type="button" class="btn btn-default" id="reZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+	<div id="socialDiagram">
+	  <div id="familyChart">		
+	    <div id="graphFilters">
+	      <button type="button" id="selectFamily">Select Family</button>
+	      <button type="button" id="filterFamily">Filter Family</button>
+  	      <button type="button" id="reset">Reset</button>
+              <div id="filterGender" class="filterOptions">
+	        <label>	  
+	          <input type="checkbox" id="maleBox">
+		  <span>Male</span>
+	        </label>
+                <label>	  
+		  <input type="checkbox" id="femaleBox">
+		  <span>Female</span>
+	        </label>
+	        <label>	  
+		  <input type="checkbox" id="unknownGenderBox">
+		  <span>Unknown Gender</span>
+	        </label>
+	      </div>
+              <div id="filterSocialRole" class="filterOptions">
+	        <label>
+	          <input type="checkbox" id="alphaBox">
+		  <span>Alpha</span>
+	        </label>
+	        <label>
+		  <input type="checkbox" id="unknownRoleBox">
+		  <span>Unknown Role</span>
+	        </label>
+	      </div>
+	      <div id="reZoomButtons" class="btn-group btn-group-sm" role="group">
+	        <button type="button" class="btn btn-default" id="gZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
+	        <button type="button" class="btn btn-default" id="gZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+	      </div>
 	    </div>
 	  </div>
 
+	  <div class="sliderWrapper">
+            <label for="nodeDist"> Node Distance (Geodesic) - <span id="nodeDistVal"></span></label>
+            <input type="range" min=0 class="cooccurrenceSlider" id="nodeDist">
+          </div>
+					     
 	  <% String individualID = sharky.getIndividualID();%>	
 	  <script type="text/javascript">
 	    setupSocialGraph("<%=individualID%>", "#socialDiagram", wildbookGlobals);
@@ -1538,16 +1542,6 @@ if (sharky.getNames() != null) {
           </table>
         </div>
         <br/>
-        <%
-        }
-        else {
-        %>
-        	<p id="noCurrentData" class="para"><%=props.getProperty("noSocial") %></p><br/>
-        <%
-        }
-        //
-
-        %>
 
         <br>
         <%-- Cooccurrence table starts here --%>
@@ -1559,13 +1553,7 @@ if (sharky.getNames() != null) {
           getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName() %>");
         });
         </script>
-        <%
-          List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky);
 
-	//TODO - Fix coOccurrence vs encounter discrepancy
-        if(true || otherIndies.size()>0){
-        //ok, let's iterate the social relationships
-        %>
         <div class="cooccurrences">
 
           <div role="navigation">
@@ -1611,8 +1599,8 @@ if (sharky.getNames() != null) {
 	          </label>
 	        </div>
 		<div id="ocZoomButtons" class="btn-group btn-group-sm" role="group">
-		 <button type="button" class="btn btn-default" id="ocZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-		 <button type="button" class="btn btn-default" id="ocZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+		 <button type="button" class="btn btn-default" id="gZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
+		 <button type="button" class="btn btn-default" id="gZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
 		</div>
 	      </div>
             </div>
@@ -1638,17 +1626,6 @@ if (sharky.getNames() != null) {
             </table>
           </div>
         </div>
-
-        <%
-        }
-        else {
-        %>
-        <%--	<p class="para"><%=props.getProperty("noCooccurrences") %></p><br /> --%>
-        <%
-        }
-
-
-        %>
 
         </td>
         </tr>

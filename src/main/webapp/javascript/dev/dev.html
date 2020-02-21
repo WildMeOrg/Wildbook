@@ -15,46 +15,52 @@
   <script src="socialGraph.js"></script>
   <script src="encounter-calls.js"></script>
 
-  <div id="socialDiagram" class="socialVis">
-    <div id="graphFilters">
-      <button type="button" id="selectFamily">Select Family</button>
-      <button type="button" id="filterFamily">Filter Family</button>
-      <button type="button" id="reset">Reset</button>
-      <div id="filterGender" class="filterOptions">
-	<label>	  
-	  <input type="checkbox" id="maleBox">
-	  <span>Male</span>
-	</label>
-	<label>	  
-	  <input type="checkbox" id="femaleBox">
-	  <span>Female</span>
-	</label>
-	<label>	  
-	  <input type="checkbox" id="unknownGenderBox">
-	  <span>Unknown Gender</span>
-	</label>
+  <div id="socialDiagram">
+    <div id="familyChart">
+      <div id="graphFilters">
+	<button type="button" id="selectFamily">Select Family</button>
+	<button type="button" id="filterFamily">Filter Family</button>
+	<button type="button" id="reset">Reset</button>
+	<div id="filterGender" class="filterOptions">
+	  <label>	  
+	    <input type="checkbox" id="maleBox">
+	    <span>Male</span>
+	  </label>
+	  <label>	  
+	    <input type="checkbox" id="femaleBox">
+	    <span>Female</span>
+	  </label>
+	  <label>	  
+	    <input type="checkbox" id="unknownGenderBox">
+	    <span>Unknown Gender</span>
+	  </label>
+	</div>
+	<div id="filterSocialRole" class="filterOptions">
+	  <label>
+	    <input type="checkbox" id="alphaBox">
+	    <span>Alpha</span>
+	  </label>
+	  <label>
+	    <input type="checkbox" id="unknownRoleBox">
+	    <span>Unknown Role</span>
+	  </label>
+	</div>
+	<div id="reZoomButtons" class="btn-group btn-group-sm" role="group">
+	  <button type="button" class="btn btn-default" id="gZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
+	  <button type="button" class="btn btn-default" id="gZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+	</div>
       </div>
-      <div id="filterSocialRole" class="filterOptions">
-	<label>
-	  <input type="checkbox" id="alphaBox">
-	  <span>Alpha</span>
-	</label>
-	<label>
-	  <input type="checkbox" id="unknownRoleBox">
-	  <span>Unknown Role</span>
-	</label>
-      </div>
-      <div id="reZoomButtons" class="btn-group btn-group-sm" role="group">
-	<button type="button" class="btn btn-default" id="reZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-	<button type="button" class="btn btn-default" id="reZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
-      </div>
+      
+    <div class="sliderWrapper">
+      <label for="nodeDist"> Node Distance (Geodesic) - <span id="nodeDistVal"></span></label>
+      <input type="range" min=0 class="cooccurrenceSlider" id="nodeDist">
     </div>
-
     <script type="text/javascript">
       let p1 = new JSONParser(null, null, false, -1, true);
       setupSocialGraph("5d80dd4d-8903-4dc4-a681-54788c2a7d5f", "#socialDiagram", null, p1);
     </script>
   </div>
+  
   <div id="cooccurrenceDiagram">
     <div id="bubbleChart">
       <div id="graphFilters">
@@ -87,8 +93,8 @@
 	  </label>
 	</div>
 	<div id="ocZoomButtons" class="btn-group btn-group-sm" role="group">
-	  <button type="button" class="btn btn-default" id="ocZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-	  <button type="button" class="btn btn-default" id="ocZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+	  <button type="button" class="btn btn-default" id="gZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
+	  <button type="button" class="btn btn-default" id="gZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
 	</div>
       </div>
     </div>
@@ -103,7 +109,7 @@
       </div>
     </div>
     <script type="text/javascript">
-      let p2 = new JSONParser(null, null, false, 30, true);
+      let p2 = new JSONParser(null, null, true, 50, true);
       setupOccurrenceGraph("5d80dd4d-8903-4dc4-a681-54788c2a7d5f", null, p2)
     </script>
   </div>
