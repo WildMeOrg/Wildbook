@@ -922,7 +922,37 @@
 		"defaultLatitude": 90.0,
 		"defaultLongitude":0.0
     },
-	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
+	{ "name":"South Africa", "id":"South Africa", "locationID":[
+	
+		{ "name":"BAZARUTO", "id":"BAZARUTO", "locationID":[] },
+
+		{ "name":"BLUFF", "id":"BLUFF", "locationID":[] },
+
+		{ "name":"CAPEVIDAL", "id":"CAPEVIDAL", "locationID":[] },
+
+		{ "name":"DURBAN", "id":"DURBAN", "locationID":[] },
+
+		{ "name":"EAST LONDON", "id":"EASTLONDON", "locationID":[] },
+
+		{ "name":"KNYSNA", "id":"KNYSNA", "locationID":[] },
+
+		{ "name":"KNYSNAPLETT", "id":"KNYSNAPLETT", "locationID":[] },
+
+		{ "name":"PLETT", "id":"PLETT", "locationID":[] },
+
+		{ "name":"PONTAMAMOLI", "id":"PONTAMAMOLI", "locationID":[] },
+
+		{ "name":"PORT ELIZABETH", "id":"PORTELIZABETH", "locationID":[] },
+
+		{ "name":"PORT ST JOHNS", "id":"PORTSTJOHNS", "locationID":[] },
+
+		{ "name":"RICHARDS BAY", "id":"RICHARDSBAY", "locationID":[] },
+
+		{ "name":"ST. LUCIA", "id":"STLUCIA", "locationID":[] },
+
+		{ "name":"TSITSIKAMA", "id":"TSITSIKAMA", "locationID":[] }
+
+	] },
 	
 	{ "name":"Test Sets", "id":"TestSets", "locationID":[
 				{ "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] },
