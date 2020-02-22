@@ -3,6 +3,7 @@ class Node {
     constructor(key, mData, iId) {
 	this.id = mData.id;
 	this.group = mData.group;
+	this.depth = mData.depth;
 
 	let name = mData.displayName;
 	name = name.substring(name.indexOf(" ") + 1);
@@ -259,7 +260,7 @@ class JSONParser {
 	    if (this.maxNumNodes > 0 && numNodes >= this.maxNumNodes) return graphNodes;
 	    
 	    if (!graphNodes[name]) {
-		graphNodes[name] = this.updateNodeData(nodes[name], ++groupNum, this.getNodeId());
+		graphNodes[name] = this.updateNodeData(nodes[name], ++groupNum, this.getNodeId(), 0);
 		numNodes++;
 	    }
 	}
@@ -277,6 +278,7 @@ class JSONParser {
      *   Last group number found
      */
     traverseRelationshipTree(iId, nodes, relationships) {
+	debugger;
 	//Update id and group attributes for all nodes with some relationship
 	let graphNodes = {};
 	let groupNum = 0, numNodes = 0;
@@ -290,21 +292,23 @@ class JSONParser {
 		let group = node.group;
 		let depth = node.depth;
 		let iIdLinked = (startingNode === iId);
-		
+
 		//Exit loop early if max number of nodes have been found
 		if (this.maxNumNodes > 0 && numNodes >= this.maxNumNodes) return [graphNodes, groupNum];
 		    
 		//Update the node if it does not have an id, or has a familial relation
-		if (!graphNodes[name] || node.type !== "member") {
-		    graphNodes[name] = this.updateNodeData(nodes[name], group, this.getNodeId(), depth,
-							   iIdLinked);
-		    numNodes++;
-		}
+		graphNodes[name] = this.updateNodeData(nodes[name], group, this.getNodeId(), depth, iIdLinked);
+		numNodes++;
 
 		if (relationships[name]) { //Check if other valid relationships exist
 		    relationships[name].forEach(el => {
 			let currGroup = (el.type !== "member") ? group : ++groupNum;
-			relationStack.push({"name": el.name, "group": currGroup, "depth": depth + 1, "type": el.type});
+			if (!graphNodes[el.name]) {
+			    relationStack.push({"name": el.name, "group": currGroup, "depth": depth + 1, "type": el.type});
+			}
+			else if (el.type !== "member") {
+			    graphNodes[name].group = currGroup;
+			}
 		    });
 		    delete relationships[name]; //Prevent circular loops    
 		}
