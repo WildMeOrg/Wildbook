@@ -44,6 +44,11 @@ class SocialGraph extends ForceLayoutAbstract {
 	else this.showTable("#socialDiagram", "#communityTable");
     }
 
+    setupGraph(linkData=this.linkData, nodeData=this.nodeData) {
+	this.updateGeodesicSlider(nodeData, linkData);
+	super.updateGraph(linkData, nodeData);
+    }
+
     updateGeodesicSlider(nodes, links) {
 	let sliderNode = $("#nodeDist");
 
