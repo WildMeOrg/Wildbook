@@ -45,8 +45,8 @@ class SocialGraph extends ForceLayoutAbstract {
     }
 
     setupGraph(linkData=this.linkData, nodeData=this.nodeData) {
+	super.setupGraph(linkData, nodeData);
 	this.updateGeodesicSlider(nodeData, linkData);
-	super.updateGraph(linkData, nodeData);
     }
 
     updateGeodesicSlider(nodes, links) {
