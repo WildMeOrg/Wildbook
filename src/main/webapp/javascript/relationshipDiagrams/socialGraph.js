@@ -45,8 +45,33 @@ class SocialGraph extends ForceLayoutAbstract {
     }
 
     updateGeodesicSlider(nodes, links) {
+	let sliderNode = $("#nodeDist");
+
+	let maxDepth = 0;
+	nodes.forEach(node => {
+	    if (node.depth > maxDepth) maxDepth = node.depth;
+	});
 	
+	sliderNode.attr("max", maxDepth);
+	sliderNode.val(maxDepth);
+	sliderNode.change(() => {
+	    this.filterByGeodesic(this, parseInt(sliderNode.val()),
+				  "nodeDist");
+	});
+
+	//Update slider label value
+	$("#nodeDistVal").text(maxDepth);
     }
 
-    depthFirstNodeTraversal
+    filterByGeodesic(self, thresh, occType) {
+	//Update slider label value
+	$("#nodeDistVal").text(thresh)
+	
+	let focusedNode = self.nodeData.find(d => d.data.isFocused);
+	let nodeFilter = (d) => (d.depth <= thresh)
+	let linkFilter = (d) => (d.source.depth <= thresh) &&
+	    (d.target.depth <= thresh)
+	let validFilters = this.validFilters.concat([occType]);
+	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
+    }
 }
