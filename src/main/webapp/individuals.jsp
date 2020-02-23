@@ -1402,7 +1402,7 @@ if (sharky.getNames() != null) {
           </ul>
         </div>
 
-	<div id="socialDiagram">
+	<div id="socialDiagram" class="socialVis">
 	  <div id="familyChart">		
 	    <div id="graphFilters">
 	      <div id="graphOptions">
