@@ -1405,43 +1405,57 @@ if (sharky.getNames() != null) {
 	<div id="socialDiagram">
 	  <div id="familyChart">		
 	    <div id="graphFilters">
-	      <button type="button" id="selectFamily">Select Family</button>
-	      <button type="button" id="filterFamily">Filter Family</button>
-  	      <button type="button" id="reset">Reset</button>
-              <div id="filterGender" class="filterOptions">
+	      <div id="graphOptions">
+    	        <button type="button" id="reset">Reset Filters</button>
+	        <button type="button" id="gZoomIn">Zoom In</button>
+	        <button type="button" id="gZoomOut">Zoom Out</button>
+	      </div>
+	      <div id="filterGender" class="filterOptions">
 	        <label>	  
 	          <input type="checkbox" id="maleBox">
-		  <span>Male</span>
-	        </label>
-                <label>	  
-		  <input type="checkbox" id="femaleBox">
-		  <span>Female</span>
+	          <span>Male</span>
+	          </label>
+	        <label>	  
+	          <input type="checkbox" id="femaleBox">
+	          <span>Female</span>
 	        </label>
 	        <label>	  
-		  <input type="checkbox" id="unknownGenderBox">
-		  <span>Unknown Gender</span>
+	          <input type="checkbox" id="unknownGenderBox">
+	          <span>Unknown Gender</span>
 	        </label>
 	      </div>
-              <div id="filterSocialRole" class="filterOptions">
+	      <div id="filterSocialRole" class="filterOptions">
 	        <label>
 	          <input type="checkbox" id="alphaBox">
-		  <span>Alpha</span>
+	          <span>Alpha</span>
 	        </label>
 	        <label>
-		  <input type="checkbox" id="unknownRoleBox">
-		  <span>Unknown Role</span>
+	          <input type="checkbox" id="unknownRoleBox">
+	          <span>Unknown Role</span>
 	        </label>
 	      </div>
-	      <div id="reZoomButtons" class="btn-group btn-group-sm" role="group">
-	        <button type="button" class="btn btn-default" id="gZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-	        <button type="button" class="btn btn-default" id="gZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+	      <div class="filterOptions">
+	        <label>	  
+	          <input type="checkbox" id="selectFamilyBox">
+	          <span>Select Family</span>
+	        </label>
+                <label>	  
+	          <input type="checkbox" id="filterFamilyBox">
+	          <span>Filter Family</span>
+	        </label>
 	      </div>
 	    </div>
 	  </div>
 
-	  <div class="sliderWrapper">
-            <label for="nodeDist"> Node Distance (Geodesic) - <span id="nodeDistVal"></span></label>
-            <input type="range" min=0 class="cooccurrenceSlider" id="nodeDist">
+          <div class="graphSliders">
+      	    <div class="sliderWrapper">
+	      <label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
+	      <input type="range" min=0 class="graphSlider" id="nodeCount">
+	    </div>
+	    <div class="sliderWrapper">
+	      <label for="nodeDist"> Node Distance (Geodesic) - <span class="sliderLabel" id="nodeDistVal"></span></label>
+	      <input type="range" min=0 class="graphSlider" id="nodeDist">
+	    </div>
           </div>
 					     
 	  <% String individualID = sharky.getIndividualID();%>	
@@ -1570,48 +1584,61 @@ if (sharky.getNames() != null) {
           <div id="cooccurrenceDiagram">
             <div id="bubbleChart">
 	      <div id="graphFilters">
-	        <button type="button" id="selectFamily">Select Family</button>
-	        <button type="button" id="filterFamily">Filter Family</button>
-	        <button type="button" id="reset">Reset</button>
-		
-                <div id="filterGender" class="filterOptions">
+	      	<div id="graphOptions">
+    	          <button type="button" id="reset">Reset Filters</button>
+	          <button type="button" id="gZoomIn">Zoom In</button>
+	          <button type="button" id="gZoomOut">Zoom Out</button>
+	        </div>
+	        <div id="filterGender" class="filterOptions">
 	          <label>	  
 	            <input type="checkbox" id="maleBox">
-		    <span>Male</span>
-	          </label>
-                  <label>	  
-		    <input type="checkbox" id="femaleBox">
-		    <span>Female</span>
+	            <span>Male</span>
+	            </label>
+	          <label>	  
+	            <input type="checkbox" id="femaleBox">
+	            <span>Female</span>
 	          </label>
 	          <label>	  
-		    <input type="checkbox" id="unknownGenderBox">
-		    <span>Unknown Gender</span>
+	            <input type="checkbox" id="unknownGenderBox">
+	            <span>Unknown Gender</span>
 	          </label>
 	        </div>
-                <div id="filterSocialRole" class="filterOptions">
+	        <div id="filterSocialRole" class="filterOptions">
 	          <label>
 	            <input type="checkbox" id="alphaBox">
-		    <span>Alpha</span>
+	            <span>Alpha</span>
 	          </label>
 	          <label>
-		    <input type="checkbox" id="unknownRoleBox">
-		    <span>Unknown Role</span>
+	            <input type="checkbox" id="unknownRoleBox">
+	            <span>Unknown Role</span>
 	          </label>
 	        </div>
-		<div id="ocZoomButtons" class="btn-group btn-group-sm" role="group">
-		 <button type="button" class="btn btn-default" id="gZoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-		 <button type="button" class="btn btn-default" id="gZoomOut"><span class="glyphicon glyphicon-minus"></span></button>
-		</div>
+	        <div class="filterOptions">
+	          <label>	  
+	            <input type="checkbox" id="selectFamilyBox">
+	            <span>Select Family</span>
+	          </label>
+                  <label>	  
+	            <input type="checkbox" id="filterFamilyBox">
+	            <span>Filter Family</span>
+	          </label>
+	        </div>
 	      </div>
             </div>
-  	    <div id="cooccurrenceSliders">
+	    <div class="graphSliders">
+              <div class="sliderWrapper">
+	        <label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
+	        <input type="range" min=0 class="graphSlider" id="nodeCount">
+              </div>
+            </div>
+  	    <div class="graphSliders">
 	      <div class="sliderWrapper">
-		<label for="temporal">Temporal Slider (Minutes) - <span id="temporalVal"></span></label>
-                <input type="range" min=0 class="cooccurrenceSlider" id="temporal">
+		<label for="temporal">Temporal Threshold (Minutes) - <span class="sliderLabel" id="temporalVal"></span></label>
+                <input type="range" min=0 class="graphSlider" id="temporal">
 	      </div>
 	      <div class="sliderWrapper">
-		<label for="spatial">Spatial Slider (Milli-Degrees) - <span id="spatialVal"></span></label>
-		<input type="range" min=0 class="cooccurrenceSlider" id="spatial">
+		<label for="spatial">Spatial Threshold (Milli-Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
+		<input type="range" min=0 class="graphSlider" id="spatial">
 	      </div>
 	    </div>
 	    <script type="text/javascript">

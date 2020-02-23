@@ -20,9 +20,6 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Transition attributes
 	this.transitionDuration = 750; //Duration in Milliseconds
 	this.startingRadius = 0;
-
-	//Filter attributes
-	this.filtered = {};
     }
 
     // Setup Methods //
@@ -32,11 +29,10 @@ class ForceLayoutAbstract extends GraphAbstract {
      * @param {linkData} [obj list] - A list of link objects describing Relationship data to display
      * @param {nodeData} [obj list] - A list of node objects describing MarkedIndividual data to display
      */
-    setupGraph(linkData, nodeData) {
+    setupGraph(linkData, nodeData) {	
 	super.setupGraph(linkData, nodeData);
-	
+
 	//Establish node/link history
-	//this.prevNodeData = this.nodeData;
 	this.prevLinkData = this.linkData;
 	
 	//Setup force simulation
@@ -44,9 +40,6 @@ class ForceLayoutAbstract extends GraphAbstract {
 
 	//Setup link styling
 	this.defineArrows();
-
-	//Setup intial focused node
-	this.focusedNode = this.nodeData.filter(d => d.data.isFocused)[0];
     }
 
     /**
@@ -292,6 +285,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 		  .on('end', (d, i, nodeList) => this.dragEnded(d, nodeList[i])));
     }
 
+    //TODO - Modularize
     /**
      * Visit the relevant page for the selected node
      * @param {node} [Node] - The node whose page should be visited
@@ -384,37 +378,15 @@ class ForceLayoutAbstract extends GraphAbstract {
     }
 
     /**
-     * Reset the graph s.t. all filtered nodes are unfiltered
-     */
-    resetGraph() {
-	//Reset filters
-	for (let filter in this.filtered) this.filtered[filter] = {};
-	this.svg.selectAll(".node").filter(d => d.filtered).remove();
-
-	//Reset checkboxe filters
-	this.uncheckBoxFilters(this.containerId);
-	
-	//Reset data
-	this.nodeData.forEach(d => d.filtered = false);
-	this.prevLinkData = this.linkData;
-
-	//Update graph
-	this.updateGraph();
-    }
-
-    /**
      * Apply reversible filters based upon groupNum
      * @param {nodeFilter} [lambda] - Determines which nodes should be filtered
      * @param {linkFilter} [lambda] - Determines which links should be filtered
      * @param {type} [string] - The type of absolute filter being applied
      * @param {validFilters} [string list] - Specifies filters which this filter may override
      */
-    filterGraph(groupNum, nodeFilter, linkFilter, filterType, validFilters) {
-	//Ensure filter exists
-	if (!this.filtered[filterType]) this.filtered[filterType] = {};
-	
-	if (this.filtered[filterType][groupNum]) { //Reset filter
-	    this.filtered[filterType][groupNum] = false;
+    filterGraph(groupNum, nodeFilter, linkFilter, filterType, validFilters) {	
+	if (this.filters[filterType].groups[groupNum]) { //Reset filter
+	    this.filters[filterType].groups[groupNum] = false;
 
 	    //Remove any nodes who no longer qualify to be filtered
 	    this.svg.selectAll(".node").filter(d => {
@@ -429,7 +401,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    this.prevLinkData = this.getUnique(this.prevLinkData.concat(linkData));
 	}
 	else { //Apply filter
-	    this.filtered[filterType][groupNum] = true;
+	    this.filters[filterType].groups[groupNum] = true;
 
 	    //Mark nodes and links which are being filtered
 	    this.nodeData.filter(d => !nodeFilter(d) && !d.filtered)
