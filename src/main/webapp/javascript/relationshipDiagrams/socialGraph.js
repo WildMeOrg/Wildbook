@@ -21,6 +21,9 @@ class SocialGraph extends ForceLayoutAbstract {
 	
 	if (parser) this.parser = parser;
 	else this.parser = new JSONParser(globals);
+
+	//Expand upon graphAbstract's {this.sliders} attribute
+	this.sliders = {...this.sliders, "nodeDist": {"filter": this.filterByGeodesic}}
     }
 
     /**
@@ -36,6 +39,9 @@ class SocialGraph extends ForceLayoutAbstract {
      * @param {links} [obj list] - A list of link objects queried from the Relationship psql table
      */
     graphSocialData(nodes, links) {
+	console.log("LINKS", links);
+	console.log("NODES", nodes);
+	
 	//Create graph w/ forces
 	if (nodes.length > 0) {
 	    this.setupGraph(links, nodes);
@@ -44,39 +50,78 @@ class SocialGraph extends ForceLayoutAbstract {
 	else this.showTable("#socialDiagram", "#communityTable");
     }
 
-    setupGraph(linkData=this.linkData, nodeData=this.nodeData) {
-	super.setupGraph(linkData, nodeData);
-	this.updateGeodesicSlider(nodeData, linkData);
-    }
-
-    updateGeodesicSlider(nodes, links) {
-	let sliderNode = $("#nodeDist");
+    updateRangeSliderAttr() {
+	super.updateRangeSliderAttr();
 
 	let maxDepth = 0;
-	nodes.forEach(node => {
+	this.nodeData.forEach(node => {
 	    if (node.depth > maxDepth) maxDepth = node.depth;
 	});
-	
-	sliderNode.attr("max", maxDepth);
-	sliderNode.val(maxDepth);
-	sliderNode.change(() => {
-	    this.filterByGeodesic(this, parseInt(sliderNode.val()),
-				  "nodeDist");
-	});
-
-	//Update slider label value
-	$("#nodeDistVal").text(maxDepth);
+	this.sliders.nodeDist.max = maxDepth;
     }
-
+    
     filterByGeodesic(self, thresh, occType) {
 	//Update slider label value
-	$("#nodeDistVal").text(thresh)
+	let containerRef = $(self.containerId).parent();
+	containerRef.find("#nodeDistVal").text(thresh)
 	
-	let focusedNode = self.nodeData.find(d => d.data.isFocused);
 	let nodeFilter = (d) => (d.depth <= thresh)
 	let linkFilter = (d) => (d.source.depth <= thresh) &&
 	    (d.target.depth <= thresh)
-	let validFilters = this.validFilters.concat([occType]);
+	let validFilters = self.validFilters.concat([occType]);
 	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
     }
+
+    focusNode(node) {
+	this.updateNodeDepths(node, this.linkData, this.nodeData);
+	super.focusNode(node);
+    }
+
+    //TODO - Modularize w/ jsonParser
+    updateNodeDepths(rootNode, links, nodes) {
+	let nodeDict = listToDict(nodes, "id");
+	let relationships = this.mapRelationships(links);
+
+	let seenNodes = new Set();
+	let relationStack = [{"id": rootNode.id, "depth": 0}];
+	while (relationStack.length > 0) {
+	    let node = relationStack.pop();
+	    nodeDict[node.id].depth = node.depth;
+	    seenNodes.add(node.id);
+
+	    if (relationships[node.id]) {
+		relationships[node.id].forEach(id => {
+		    if (!seenNodes.has(id)) {
+			relationStack.push({"id": id, "depth": node.depth + 1});
+		    }
+		});
+		delete relationships[node.id];
+	    }
+	}
+
+	this.nodeData = Object.values(nodeDict);
+	this.updateRangeSliderAttr();
+	this.updateRangeSliders();
+    }
+
+    mapRelationships(links) {
+	let relationships = {};
+	links.forEach(l => {
+	    let sourceId = l.source.id;
+	    let targetId = l.target.id;
+	    if (!relationships[sourceId]) relationships[sourceId] = [targetId];
+	    relationships[sourceId].push(targetId);
+
+	    if (!relationships[targetId]) relationships[targetId] = [sourceId];
+	    relationships[targetId].push(sourceId);
+	});
+	return relationships;
+    }
+}
+
+function listToDict(array, keyField) {
+    return array.reduce((obj, item) => {
+	obj[item[keyField]] = item
+	return obj
+    }, {})
 }

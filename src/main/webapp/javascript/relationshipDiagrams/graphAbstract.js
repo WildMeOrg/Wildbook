@@ -57,7 +57,7 @@ class GraphAbstract { //See static attributes below class
 		[this.gWidth * 2, this.gHeight * 2]
 	    ])
 	    .wheelDelta(() => this.wheelDelta());
-
+	
 	//Tooltip Attributes
 	this.popup = false;
 	this.fadeDuration = 200;
@@ -78,9 +78,24 @@ class GraphAbstract { //See static attributes below class
 	this.legendStrokeWidth = 2;
 
 	//Filter Attributes
+	this.filters = {
+	    "selectFamily": {"func": (d) => d.group === this.focusedNode.group, "groups": {},
+			     "groupNum": () => this.focusedNode.group},
+	    "filterFamily": {"func": (d) => d.group !== this.focusedNode.group, "groups": {},
+			    "groupNum": () => this.focusedNode.group},
+	    "male": {"func": (d) => d.data.gender !== "male", "groups": {}},
+	    "female": {"func": (d) => d.data.gender !== "female", "groups": {}},
+	    "unknownGender": {"func": (d) => d.data.gender !== "unknown", "groups": {}},
+	    "alpha": {"func": (d) => d.data.role !== "alpha", "groups": {}},
+	    "unknownRole": {"func": (d) => d.data.role, "groups": {}}
+	};
+
 	this.validFamilyFilters = ["selectFamily", "filterFamily"]
 	this.validCheckFilters = ["male", "female", "unknownGender", "alpha", "unknownRole"];
-	this.validFilters = this.validFamilyFilters.concat(this.validCheckFilters);	
+	this.validFilters = this.validFamilyFilters.concat(this.validCheckFilters);
+
+	//Slider Attributes
+	this.sliders = {"nodeCount": {"filter": this.filterByNodeCount}};
     }
 
     
@@ -112,6 +127,9 @@ class GraphAbstract { //See static attributes below class
 	this.linkData = linkData;
 	this.nodeData = nodeData;
 
+	//Setup intial focused node
+	this.focusedNode = this.nodeData.filter(d => d.data.isFocused)[0];
+	
 	//Add default elements
 	this.addSvg();
 	this.addLegend();
@@ -123,6 +141,10 @@ class GraphAbstract { //See static attributes below class
 	//Initialize filter button functionalities
 	this.updateFilterButtons();
 
+	//Update sliders
+	this.updateRangeSliderAttr();
+	this.updateRangeSliders();
+	
 	this.addHideButton();
     }
     
@@ -222,6 +244,28 @@ class GraphAbstract { //See static attributes below class
 	this.tooltip = d3.select(containerId).append("div")
 	    .attr("class", "tooltip")				
 	    .style("opacity", 0);
+    }
+
+    /**
+     * Reset the graph s.t. all filtered nodes are unfiltered
+     */
+    resetGraph() {
+	//Reset filters
+	for (let filterName in this.filters) this.filters[filterName].groups = {};
+	this.svg.selectAll(".node").filter(d => d.filtered).remove();
+
+	//Reset checkbox filters
+	this.uncheckBoxFilters(this.containerId);
+
+	//Reset sliders
+	this.updateRangeSliders();
+	
+	//Reset data
+	this.nodeData.forEach(d => d.filtered = false);
+	this.prevLinkData = this.linkData;
+
+	//Update graph
+	this.updateGraph();
     }
 
     /**
@@ -468,8 +512,8 @@ class GraphAbstract { //See static attributes below class
 	    tooltipHtml += "<b>Sex: </b>" + d.data.gender + "<br/>";
 	if (d.data.role)
 	    tooltipHtml += "<b>Role: </b>" + d.data.role + "<br/>";
-	if (d.data.currLifeStage)
-	    tooltipHtml += "<b>Current Life Stage: </b>" + d.data.currLifeStage + "<br/>";
+	if (d.data.lastKnownLifeStage)
+	    tooltipHtml += "<b>Last Known Life Stage: </b>" + d.data.lastKnownLifeStage + "<br/>";
 	if (d.data.isDead !== null) {
 	    let livingStatus = (d.data.isDead ? "dead" : "alive");
 	    tooltipHtml += "<b>Living Status: </b>" +  livingStatus + "<br/>";
@@ -587,71 +631,23 @@ class GraphAbstract { //See static attributes below class
     }
     
     /**
-     * Abstract funciton serving to update known filter buttons with relevant filters
+     * Wrapper funciton serving to update known filter buttons with relevant filters
      * @param {containerId} [String] - The HTML element to append the filter buttons
      */	
-    updateFilterButtons(containerId=this.containerId) {
-	//Select family filter
-	$(containerId).find("#selectFamily").on("click", () => {
-	    let groupNum = this.focusedNode.group;
-	    let filter = (d) => d.group === groupNum;
-	    this.filterGraph(groupNum, filter, filter, "selectFamily",
-			     this.validFamilyFilters);
-	});
-
-	//Filter family filter
-	$(containerId).find("#filterFamily").on("click", () => {
-	    let groupNum = this.focusedNode.group;
-	    let nodeFilter = (d) => d.group !== groupNum;
-	    let linkFilter = (d) => (d.source.group !== groupNum &&
-				     d.target.group !== groupNum);
-	    this.filterGraph(groupNum, nodeFilter, linkFilter, "filterFamily",
-			     this.validFamilyFilters);
-	});
-
+    updateFilterButtons(containerId=this.containerId) {	
 	//Reset filter
-	$(containerId).find("#reset").on("click", () => this.resetGraph() && false);
+	$(containerId).find("#reset").on("click", () => this.resetGraph());
 
-	//Male filter
-	this.createCheckBoxFilter(containerId, "male",
-				  (d) => d.data.gender !== "male");
-
-	//Female filter
-	this.createCheckBoxFilter(containerId, "female",
-				  (d) => d.data.gender !== "female");
-
-	//Unknown gender filter
-	this.createCheckBoxFilter(containerId, "unknownGender",
-				  (d) => d.data.gender !== "unknown");
-
-	//Alpha role filter
-	this.createCheckBoxFilter(containerId, "alpha", (d) => d.data.role !== "alpha");
-
-	//Unknown role filter
-	this.createCheckBoxFilter(containerId, "unknownRole", (d) => d.data.role);
+	for (let filterName in this.filters) {
+	    let filter = this.filters[filterName];
+	    this.createCheckBoxFilter(containerId, filterName, filter.func, filter.groupNum);
+	}
 
 	//Zoom in
 	$(containerId).find("#gZoomIn").on("click", () => this.zoomIn());
 
-
 	//Zoom out
 	$(containerId).find("#gZoomOut").on("click", () => this.zoomOut());
-    }
-
-    /**
-     * Zoom in when button is pressed
-     */	
-    zoomIn(){
-	console.log("in zoomIn()");
-	this.zoom.scaleBy(this.svg.transition().duration(750), 1.3);
-    }
-
-    /**
-     * Zoom out when button is pressed
-     */	
-    zoomOut(){
-	console.log("in zoomOut()");
-	this.zoom.scaleBy(this.svg.transition().duration(750), 1 / 1.3);
     }
 
     /**
@@ -660,22 +656,75 @@ class GraphAbstract { //See static attributes below class
      * @param {filterRef} [String] - The desired check box for which the onclick filter will be declared
      * @param {filter} [function] - The filter function to be applied
      */	
-    createCheckBoxFilter(containerId, filterRef, filter) {
+    createCheckBoxFilter(containerId, filterRef, filter, groupNum) {
 	$(containerId).find("#" + filterRef + "Box").on("click", (e) => {
 	    let nodeRef = $(containerId).find("#" + filterRef + "Box");
 	    if (nodeRef.is(":checked")) {
 		nodeRef.closest("label").css("background", this.fixedNodeColor);
 	    }
-	    else {
-		nodeRef.closest("label").css("background", this.defNodeColor);
-	    }
+	    else nodeRef.closest("label").css("background", this.defNodeColor);
 
-	    this.filterGraph(0, filter, (d) => true, filterRef, this.validFilters);
+	    if (!groupNum) groupNum = 0;
+	    this.filterGraph(groupNum, filter, (d) => true, filterRef, this.validFilters);
+	});
+    }
+    
+    /**
+     * Zoom in when button is pressed
+     */	
+    zoomIn() {
+	
+	this.zoom.scaleBy(this.svg.transition().duration(750), 1.5);
+    }
+
+    /**
+     * Zoom out when button is pressed
+     */	
+    zoomOut() {
+	/*let scale = d3.event.transform.k;
+	this.svg.transition()
+	    .duration(this.transitionDuration)
+	    .attr("transform", "scale(" + (k / 1.5)  + ")");*/
+	
+	this.zoom.scaleBy(this.svg.transition().duration(750), 1 / 1.5);
+    }
+
+    updateRangeSliderAttr() {
+	this.sliders.nodeCount.max = this.nodeData.length;
+    }
+
+    /**
+     * Update known range sliders {this.sliders} with contextual ranges/values
+     */
+    updateRangeSliders() {
+	Object.entries(this.sliders).forEach(([key, slider]) => {
+	    //Update html slider attributes
+	    let containerRef = $(this.containerId).parent();
+	    let sliderNode = containerRef.find("#" + key);
+	    sliderNode.attr("max", slider.max);
+	    sliderNode.val(slider.max);
+	    sliderNode.change(() => {
+		slider.filter(this, parseInt(sliderNode.val()), key);
+	    });
+	    sliderNode.on("click", (e) => e.preventDefault()); //Prevent default scroll-to-focus
+
+	    //Update slider label value
+	    containerRef.find("#" + key + "Val").text(slider.max)
 	});
     }
 
+    //TODO - Modularize
+    filterByNodeCount(self, thresh, occType) {
+	//Update slider label value
+	let sliderLabel = $(self.containerId).parent().find("#nodeCountVal");
+	sliderLabel.text(thresh);
+	
+	let nodeFilter = (d) => (d.index < thresh)
+	let linkFilter = (d) => (d.index < thresh) && (d.index < thresh)
+	let validFilters = self.validFilters.concat([occType]);
+	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
+    }
 
-    //TODO - Check CSS rules and speed up fades
     /**
      * Append a hide button to the graph
      */	
@@ -683,14 +732,9 @@ class GraphAbstract { //See static attributes below class
 	var shown = true;
         let hidebutton = document.createElement("button");
         hidebutton.innerText = 'Hide Legend';
+	$(this.containerId).find("#graphOptions").append(hidebutton);
 
 	let legend = $(this.containerId).find(".legend")[0];
-	if (!legend) {
-	    this.addLegend();
-	    legend = $(this.containerId).find(".legend")[0];
-	}
-	
-        $(this.containerId).append(hidebutton);
         hidebutton.addEventListener("click", () => {
             if (shown) {
 		legend.style.opacity = "0";

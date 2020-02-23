@@ -10,7 +10,7 @@ class Node {
 
 	this.data = {
 	    "name": name,
-	    "gender": mData.sex,
+	    "gender": this.getGender(mData),
 	    "genus": mData.genus,
 	    "individualID": key,
 	    "firstSighting": mData.dateFirstIdentified,
@@ -20,17 +20,32 @@ class Node {
 	    "timeOfDeath": mData.timeOfDeath,
 	    "isDead": this.getIsDead(mData),
 	    "isFocused": this.getIsFocused(key, iId),
-	    "currLifeStage": this.getLifeStage(mData),
+	    "lastKnownLifeStage": this.getLifeStage(mData),
 	    "encounters": mData.encounters
 	}
     }
 
     /**
+     * Determine the gender of the current node. Assumes consistency of gender
+     * @param {mData} [obj] - The data attribute of the current MarkedIndividual
+     * @return {gender} [string] - Gender of the node
+     */
+    getGender(mData) {
+	if (mData.sex) return mData.sex;
+	else if (mData.encounters.length > 0) {
+	    mData.encounters.forEach(enc => {
+		if (enc.sex && enc.sex != "unknown") return enc.sex;
+	    });
+	}
+
+	return "unknown";
+    }
+    
+    /**
      * Determine whether the current node is dead
      * @param {mData} [obj] - The data attribute of the current MarkedIndividual
      * @return {isDead} [string] - Whether the node data is dead
      */
-
     getIsDead(mData) {
 	return (mData.timeOfDeath > 0) ? true : false;
     }
@@ -120,12 +135,12 @@ class JSONParser {
      */
     processJSON(graphCallback, iId, isCoOccurrence) {
 	let [nodeDict, nodeList] = this.parseNodes(iId);
-	let links = this.parseLinks(nodeDict);
+	let [linkDict, linkList] = this.parseLinks(nodeDict);
 	
 	if (isCoOccurrence) { //Extract temporal and latitude/longitude encounter data
-	    [nodeList, links] = this.modifyOccurrenceData(iId, nodeDict, links);
+	    [nodeList, linkList] = this.modifyOccurrenceData(iId, nodeDict, linkList);
 	}
-	graphCallback(nodeList, links);
+	graphCallback(nodeList, linkList);
     }
     
     /**
@@ -278,7 +293,6 @@ class JSONParser {
      *   Last group number found
      */
     traverseRelationshipTree(iId, nodes, relationships) {
-	debugger;
 	//Update id and group attributes for all nodes with some relationship
 	let graphNodes = {};
 	let groupNum = 0, numNodes = 0;
@@ -296,7 +310,7 @@ class JSONParser {
 		//Exit loop early if max number of nodes have been found
 		if (this.maxNumNodes > 0 && numNodes >= this.maxNumNodes) return [graphNodes, groupNum];
 		    
-		//Update the node if it does not have an id, or has a familial relation
+		//Update the node
 		graphNodes[name] = this.updateNodeData(nodes[name], group, this.getNodeId(), depth, iIdLinked);
 		numNodes++;
 
@@ -333,7 +347,7 @@ class JSONParser {
 	for (let el of relationshipData) {
 	    let name1 = el.markedIndividualName1;
 	    let name2 = el.markedIndividualName2;
-	    let type = this.getRelationType(el);
+	    let [type, _] = this.getRelationType(el);
 
 	    //Skip relationships which do not connect valid nodes
 	    if (!nodes[name1] || !nodes[name2]) continue;
@@ -356,7 +370,7 @@ class JSONParser {
      * @return {links} [array] - Extracted data relevant to graphing links
      */
     parseLinks(nodes) {
-	let links = [];
+	let links = {};
 	let relationshipData = this.getRelationshipData();
 	relationshipData.forEach(el => {
 	    let node1 = el.markedIndividualName1;
@@ -365,22 +379,27 @@ class JSONParser {
 	    //Ensure node references are non-circular and represent valid nodes
 	    if (nodes[node1] && nodes[node2] && node1 !== node2) {
 		let linkId = this.getLinkId();
-		let sourceRef = nodes[node1].id;
-		let targetRef = nodes[node2].id;
-		if (node1 == "5714" || node2 == "5714") debugger;
-		let type = this.getRelationType(el);
-	
-		links.push({
-		    "linkId": linkId,
-		    "source": sourceRef,
-		    "target": targetRef,
-		    "type": type
-		});
+		let [type, order] = this.getRelationType(el);
+		let sourceRef = nodes[(order > 0) ? node1 : node2].id;
+		let targetRef = nodes[(order > 0) ? node2 : node1].id;
+
+		let linkRef = sourceRef + ":" + targetRef;
+		if (!links[linkRef]) {
+		    links[linkRef] = {
+			"linkId": linkId,
+			"source": sourceRef,
+			"target": targetRef,
+			"type": type
+		    };
+		}
+		else if (links[linkRef].type == "member" ||
+			 type == "maternal" || type == "paternal") {
+		    links[linkRef].type = type;
+		}
 	    }
-	    //else console.error("Invalid Link ", "Src: " + node1, "Target: " + node2);
 	});
 
-	return links;
+	return [links, Object.values(links)];
     }
 
     /**
@@ -544,43 +563,20 @@ class JSONParser {
      * @return {type} [string] - Describes the type of {link} passed in
      */
     getRelationType(link){
+	let defaultOrder = 1;
 	if (link) { 
 	    let role1 = link.markedIndividualRole1;
 	    let role2 = link.markedIndividualRole2;
+	    let roles = [[role1, 1], [role2, -1]];
 
-	    if (role1 === "mother" || role2 === "mother") return "maternal";
-	    else if (role1 === "father" || role2 === "father") return "paternal"; //Not currently supported by WildMe
-	    else if (role1 === "calf" || role2 === "calf") return "familial";
-	    else return "member";
-	}
-	
-	console.error("Link relation not recognized: ", link);
-	return "member"; //Ensures the graph renders gracefully
-    }
-}
-
-/**
- * Returns a dictionary indexing a list of objects based on the specified key
- * @param {list} [list] - A list of objects
- * @return {key} [string|string list] - An object property within each element of the list. 
- *   When specified as a list of strings, keys may be used to access nested object properties
- */
-function listToDict(list, key) {
-    dict = {};
-    for (el of list) {
-	let dictKey;
-	if (Array.isArray(key)) {
-	    dictKey = el;
-	    for (k of key) {
-		dictKey = dictKey[k];
+	    for (let [role, order] of roles) {
+		if (role === "mother") return ["maternal", order];
+		else if (role === "father") return ["paternal", order];
 	    }
-	}
-	else dictKey = el[key];
-	
-	dict[dictKey] = el;
-    }
-    return dict;
-}
 
-//Static attributes
-//JSONParser.updatedNodeData = {};
+	    if (role1 === "calf" || role2 === "calf") return ["familial", defaultOrder];
+	}
+
+	return ["member", defaultOrder];
+    }
+}

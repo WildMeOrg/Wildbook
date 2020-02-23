@@ -21,7 +21,9 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	if (parser) this.parser = parser;
 	else this.parser = new JSONParser(globals, null, true, 30);
 
-	this.sliders = {"temporal": {}, "spatial": {}};	
+	//Expand upon graphAbstract's {this.sliders} attribute
+	this.sliders = {...this.sliders, "temporal": {"filter": this.filterByOccurrence},
+			"spatial": {"filter": this.filterByOccurrence}};	
     }
 
     /**
@@ -48,21 +50,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     }
 
     /**
-     * Perform all auxiliary functions necessary prior to graphing
-     * @param {linkData} [obj list] - A list of link objects queried from the 
-     *   Relationship psql table
-     * @param {nodeData} [Node list] - A list of Node objects queried from the 
-     *   MarkedIndividual psql table
-     */	
-    setupGraph(linkData, nodeData) {
-	super.setupGraph(linkData, nodeData);
-
-	//Create range sliders
-	this.getRangeSliderAttr(this.focusedNode);
-	this.updateRangeSliders();
-    }
-
-    /**
      * Update viable occurrence data for each link, prior to updating the graph
      * @param {linkData} [obj list] - A list of link objects queried from the 
      *   Relationship psql table
@@ -77,10 +64,11 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
     /**
      * Calculate the maximum values for the spatial/temporal sliders
-     * @param {focusedNode} [Node] - Central coOccurrence node
      */	
-    getRangeSliderAttr(focusedNode) {
-	let [distArr, timeArr] = this.analyzeNodeData(focusedNode);
+    updateRangeSliderAttr() {
+	super.updateRangeSliderAttr();
+	
+	let [distArr, timeArr] = this.analyzeNodeData(this.focusedNode);
 	this.sliders.temporal.max = Math.ceil(Math.max(...timeArr, 1));
 	this.sliders.spatial.max = Math.ceil(Math.max(...distArr, 1));
     }
@@ -163,10 +151,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    let linkId = (targetId === focusedId) ? sourceId : targetId;
 	    
 	    let node = this.nodeData.find(node => node.id === linkId);
-	    let threshEncounters = this.getLinkThreshEncounters(focusedNode, node, spatialThresh,
-								temporalThresh);
-	    link.validEncounters = threshEncounters;
-	    link.count = threshEncounters.length;
+	    if (node) {
+		let threshEncounters = this.getLinkThreshEncounters(focusedNode, node, spatialThresh,
+								    temporalThresh);
+		link.validEncounters = threshEncounters;
+		link.count = threshEncounters.length;
+	    }
 	});
     }
 
@@ -228,26 +218,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	}
 	return -1;
     }
-    
-    /**
-     * Update known range sliders (this.sliders) with contextual ranges/values
-     */
-    updateRangeSliders() {
-	Object.entries(this.sliders).forEach(([key, slider]) => {
-	    //Update html slider attributes
-	    let sliderNode = $("#" + key);
-	    sliderNode.attr("max", slider.max);
-	    sliderNode.val(slider.max);
-	    sliderNode.change(() => {
-		this.filterByOccurrence(this, parseInt(sliderNode.val()), key)
-	    });
-	    sliderNode.on("click", (e) => e.preventDefault()); //Prevent default scroll-to-focus
-
-	    //Update slider label value
-	    $("#" + key + "Val").text(slider.max)
-	});
-    }
-
+        
     /**
      * Filter nodes by spatial/temporal differences, displaying those less than the set threshold
      * @param {self} [coOccurrenceGraph] - 'this' context of the calling object
@@ -264,7 +235,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let linkFilter = (d) => (self.getNodeMinType(focusedNode, d.source, occType) <= thresh) &&
 	    (self.getNodeMinType(focusedNode, d.target, occType) <= thresh)
 
-	let validFilters = this.validFilters.concat([occType]);
+	let validFilters = self.validFilters.concat([occType]);
 	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
     }
 
@@ -313,7 +284,11 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    .lower();
 	
 	newLabels.append("circle")
-	    .attr("r", 12)
+	    .attr("r", d => {
+		let length = Math.max(d.count.toString().length - 1, 0);
+		let scale = 1 + (0.5 * length);
+		return 8 * scale; //8 px default
+	    })
 	    .style("fill", "white")
 	    .on("mouseover", d => this.handleMouseOver(d, "link"))				
 	    .on("mouseout", () => this.handleMouseOut());
@@ -365,6 +340,11 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	console.error("Invalid link interpolation: ", link);
 	return -1; //Likely cascades errors
     }
+
+    /**
+     * No-op method purposed to disable graphAbstract's focusNode event
+    */
+    focusNode(node) {}
 }
 
 
