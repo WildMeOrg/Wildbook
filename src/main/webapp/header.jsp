@@ -94,7 +94,6 @@ finally{
 
 <html>
     <head>
-      
       <!-- Global site tag (gtag.js) - Google Analytics -->
       <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-7"></script>
       <script>
@@ -370,7 +369,7 @@ finally{
                             <form name="form2" id="header-search" method="get" action="<%=urlLoc %>/individuals.jsp">
                               <input type="text" id="search-site" placeholder="<%=props.getProperty("siteSearchDefault")%>" class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
                               <input type="hidden" name="langCode" value="<%=langCode%>"/>
-                              <button type="submit" id="header-search-button"><span class="el el-lg el-search"></span></button>
+                              <span class="el el-lg el-search"></span>
                           </form>
                       </label>
                     </div>
@@ -528,8 +527,9 @@ finally{
                                 <li><a href="<%=urlLoc %>/javadoc/index.html">Javadoc</a></li>
                                 <% if(CommonConfiguration.isCatalogEditable(context)) { %>
                                   <li class="divider"></li>
-                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
+                                  <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
                                   <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
                                 <%
                                 }
 
@@ -588,6 +588,9 @@ finally{
                 if (ui.item.type == "individual") {
                     window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?id=") %>" + ui.item.value);
                 }
+                else if (ui.item.type == "encounter") {
+                	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number=") %>" + ui.item.value);
+                }
                 else if (ui.item.type == "locationID") {
                 	window.location.replace("<%=("//" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
                 }
@@ -638,6 +641,27 @@ finally{
                 });
             }
         });
+        //prevent enter key on tyeahead
+        $('#search-site').keydown(function (e) {
+                	    if (e.keyCode == 13) {
+                	        e.preventDefault();
+                	        return false;
+                	    }
+        });
+
+
+        // if there is an organization param, set it as a cookie so you can get yer stylez without appending to all locations
+        let urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("organization")) {
+          let orgParam = urlParams.get("organization");
+          $.cookie("wildbookOrganization", orgParam, {
+              path    : '/',     
+              secure  : false, 
+              expires : 1
+          });
+        }
+
+
         </script>
 
         <!-- ****/header**** -->

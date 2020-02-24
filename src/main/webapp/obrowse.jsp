@@ -17,7 +17,7 @@ org.json.JSONArray,
 java.util.Properties" %>
 
 <%!
-	public Shepherd myShepherd = null;
+	//public Shepherd myShepherd = null;
 
 	private ArrayList<Object> shown = new ArrayList<Object>();
 
@@ -113,7 +113,7 @@ java.util.Properties" %>
 		return h;
 	}
 
-	private String showFeature(Feature f, HttpServletRequest req) {
+	private String showFeature(Feature f, HttpServletRequest req, Shepherd myShepherd) {
 		if (f == null) return "<b>[none]</b>";
 		if (shown.contains(f)) return "<div class=\"feature shown\">Feature <b>" + f.getId() + "</b></div>";
 		shown.add(f);
@@ -121,8 +121,8 @@ java.util.Properties" %>
                 h += "<input type=\"button\" onClick=\"toggleZoom('" + f.getId() + "')\" value=\"toggle zoom\" style=\"margin-left: 10px;\" />";
                 h += "<ul>";
 		h += "<li>type: <b>" + ((f.getType() == null) ? "[null] (unity)" : f.getType()) + "</b></li>";
-		h += "<li>" + showMediaAsset(f.getMediaAsset(), req) + "</li>";
-		h += "<li>" + showAnnotation(f.getAnnotation(), req) + "</li>";
+		h += "<li>" + showMediaAsset(f.getMediaAsset(), req, myShepherd) + "</li>";
+		h += "<li>" + showAnnotation(f.getAnnotation(), req, myShepherd) + "</li>";
         h += "<script>addFeature('" + f.getId() + "', " + f.getParametersAsString() + ");</script>";
 		h += "<li>parameters: " + niceJson(f.getParameters()) + "</li>";
 		return h + "</ul></div>";
@@ -132,7 +132,7 @@ java.util.Properties" %>
         return "obrowse.jsp?type=Annotation&id="+ann.getId();
     }
 
-	private String showAnnotation(Annotation ann, HttpServletRequest req) {
+	private String showAnnotation(Annotation ann, HttpServletRequest req, Shepherd myShepherd) {
 		if (ann == null) return "annotation: <b>[none]</b>";
 		if (shown.contains(ann)) return "<div class=\"annotation shown\">Annotation <b>" + ann.getId() + "</b></div>";
 		shown.add(ann);
@@ -145,9 +145,9 @@ java.util.Properties" %>
 		h += "<li>" + format("matchAgainst", ann.getMatchAgainst()) + "</li>";
 		h += "<li>" + format("identificationStatus", ann.getIdentificationStatus()) + "</li>";
                 h += "<li>" + format("AoI", ann.getIsOfInterest()) + "</li>";
-		h += "<li>features: " + showFeatureList(ann.getFeatures(), req) + "</li>";
+		h += "<li>features: " + showFeatureList(ann.getFeatures(), req, myShepherd) + "</li>";
 		h += "<li>encounter: " + showEncounter(Encounter.findByAnnotation(ann, myShepherd), req) + "</li>";
-		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset(), req) + "</li>";
+		h += "<li class=\"deprecated\">" + showMediaAsset(ann.getMediaAsset(), req, myShepherd) + "</li>";
 		return h + "</ul></div>";
 	}
 
@@ -259,16 +259,16 @@ java.util.Properties" %>
 		return "";
 	}
 
-	private String showFeatureList(ArrayList<Feature> l, HttpServletRequest req) {
+	private String showFeatureList(ArrayList<Feature> l, HttpServletRequest req, Shepherd myShepherd) {
 		if ((l == null) || (l.size() < 1)) return "[none]";
 		String h = "<ol>";
 		for (int i = 0 ; i < l.size() ; i++) {
-			h += "<li>" + showFeature(l.get(i), req) + "</li>";
+			h += "<li>" + showFeature(l.get(i), req, myShepherd) + "</li>";
 		}
 		return h + "</ol>";
 	}
 
-	private String showMediaAsset(MediaAsset ma, HttpServletRequest req) {
+	private String showMediaAsset(MediaAsset ma, HttpServletRequest req, Shepherd myShepherd) {
 		if (ma == null) return "asset: <b>[none]</b>";
 		if (shown.contains(ma)) return "<div class=\"mediaasset shown\"><a href=\"obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\"> MediaAsset <b>" + ma.getId() + "</b></a></div>";
 		shown.add(ma);
@@ -284,15 +284,16 @@ java.util.Properties" %>
                 h += "<ul style=\"width: 65%\">";
 		h += "<li>store: <b>" + ma.getStore() + "</b></li>";
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
-		h += "<li>features: " + showFeatureList(ma.getFeatures(), req) + "</li>";
+		h += "<li>features: " + showFeatureList(ma.getFeatures(), req, myShepherd) + "</li>";
 		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
 		h += "<li>detectionStatus: <b>" + ma.getDetectionStatus() + "</b></li>";
 		h += "<li>" + format("acmId", ma.getAcmId()) + "</li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
         h += "<li>hasMetadata(): " + ma.hasMetadata() + "</li>";
-        Shepherd maShepherd = Shepherd.newActiveShepherd(req, "showMediaAsset");
-        h += "<li>hasFamily(): " + ma.hasFamily(new Shepherd(req)) + "</li>";
-        maShepherd.rollbackAndClose();
+        //Shepherd maShepherd = Shepherd.newActiveShepherd(req, "showMediaAsset");
+        //h += "<li>hasFamily(): " + ma.hasFamily(new Shepherd(req)) + "</li>";
+        h += "<li>hasFamily(): " + ma.hasFamily(myShepherd) + "</li>";
+        //maShepherd.rollbackAndClose();
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
 			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
 		}
@@ -519,7 +520,7 @@ if (Util.requestParameterSet(request.getParameter("evict"))) {
     out.println("<p style=\"padding: 10px 0; text-align: center; background-color: #FAA;\"><b>.evictAll()</b> called on PMF data store cache.</p>");
 }
 
-myShepherd = new Shepherd(context);
+Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("obrowse.jsp");
 myShepherd.beginDBTransaction();
 
@@ -540,8 +541,10 @@ context=ServletUtilities.getContext(request);
 */
 
 if (type == null) type = "Encounter";
-if (id == null && (acmid == null || !"Annotation".equals(type))) {
+if (id == null && (acmid == null || (!"Annotation".equals(type) && !"MediaAsset".equals(type)))) {
 	out.println(showForm());
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 	return;
 }
 
@@ -579,21 +582,46 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("MediaAsset")) {
-	try {
-		MediaAsset ma = ((MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
-		out.println("<p>safeURL(<i>request</i>): <b>" + ma.safeURL(request) + "</b></p>");
-		out.println(showMediaAsset(ma, request));
-	} catch (Exception ex) {
-		out.println("<p>ERROR: " + ex.toString() + "</p>");
-		ex.printStackTrace();
-		needForm = true;
+	if (id!=null&&acmid==null) {
+		try {
+			MediaAsset ma = ((MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
+			out.println("<p>safeURL(<i>request</i>): <b>" + ma.safeURL(request) + "</b></p>");
+			out.println(showMediaAsset(ma, request, myShepherd));
+		} catch (Exception ex) {
+			out.println("<p>ERROR: " + ex.toString() + "</p>");
+			ex.printStackTrace();
+			needForm = true;
+		}
 	}
+	if (id==null&&acmid!=null) {
+		try {
+			ArrayList<MediaAsset> anns = myShepherd.getMediaAssetsWithACMId(acmid);
+			if ((anns == null) || (anns.size() < 1)) {
+				out.println("none with acmid " + acmid);
+			} else {
+				out.println("found acmid " + acmid);
+				String allAnns = "";
+				for (int i=0; i<anns.size(); i++) {
+					allAnns += showMediaAsset(anns.get(i), request, myShepherd);
+				}
+				out.println(allAnns);
+			}
+		} catch (Exception e) {
+			out.println("<p>ERROR: " + e.toString() + "</p>");
+			needForm = true;
+		}
+		
+	}
+	
+
+	
+	
 
 } else if (type.equals("Annotation")) {
 	if (id!=null&&acmid==null) {
 		try {
 			Annotation ann = (Annotation) myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true);
-			out.println(showAnnotation(ann, request));
+			out.println(showAnnotation(ann, request, myShepherd));
 		} catch (Exception ex) {
 			out.println("<p>ERROR: " + ex.toString() + "</p>");
 			needForm = true;
@@ -607,7 +635,7 @@ if (type.equals("Encounter")) {
 			} else {
 				String allAnns = "";
 				for (int i=0; i<anns.size(); i++) {
-					allAnns += showAnnotation(anns.get(i), request);
+					allAnns += showAnnotation(anns.get(i), request, myShepherd);
 				}
 				out.println(allAnns);
 			}
@@ -638,7 +666,7 @@ if (type.equals("Encounter")) {
 } else if (type.equals("Feature")) {
 	try {
 		Feature f = ((Feature) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Feature.class, id), true)));
-		out.println(showFeature(f, request));
+		out.println(showFeature(f, request, myShepherd));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
 		ex.printStackTrace();

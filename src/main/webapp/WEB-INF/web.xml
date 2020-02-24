@@ -74,6 +74,7 @@
 
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
+				/appadmin/users.jsp = authc, roles[admin]
 				/appadmin/iaSpeciesDiff.jsp = = authcBasicWildbook,roles[rest]
 
 
@@ -383,21 +384,27 @@
 				/OccurrenceSetObservation = authc, roles[researcher]
 				/EncounterSetObservation = authc, roles[researcher]
 				/EncounterVMData = authc, roles[researcher]
+				/encounters/encounterVM.jsp = authc, roles[researcher]
 
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
 				/occurrenceExportSearchResults.jsp = authc, roles[researcher]
 				/sutime/** = authc
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
-				
+
 				/IndividualSetName = authc, roles[researcher]
 				
 				/AnnotationEdit = authc, roles[admin]
 				
 				/EncounterSetString = authc
 				/OrganizationEdit = authc, roles[admin]
-				/MergeIndividual = authc
+				/MergeIndividual = authc, roles[researcher]
 
+				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
+				
+				/merge.jsp = authc, roles[researcher]
+				/mergeComplete.jsp = authc, roles[researcher]
+				/AnnotationSetMatchAgainst = authc, roles[admin]
             </param-value>
         </init-param>
     </filter>
@@ -545,7 +552,8 @@
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
   </servlet>
-  
+
+
 
 <!--
 <servlet>
@@ -639,10 +647,6 @@
   <servlet>
     <servlet-name>FixStandardImport</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.FixStandardImport</servlet-class>
-  </servlet>
-  <servlet>
-    <servlet-name>WebImport</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.WebImport</servlet-class>
   </servlet>
 
 
@@ -1192,7 +1196,7 @@
   </servlet>
 -->
 
-    <servlet>
+      <servlet>
       <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
       <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
   </servlet>
@@ -1259,6 +1263,11 @@
     <servlet>
       <servlet-name>GetIndividualSearchGoogleMapsPoints</servlet-name>
       <servlet-class>org.ecocean.servlet.export.GetIndividualSearchGoogleMapsPoints</servlet-class>
+  </servlet>
+  
+      <servlet>
+      <servlet-name>GetEncounterSearchGoogleMapsPoints</servlet-name>
+      <servlet-class>org.ecocean.servlet.export.GetEncounterSearchGoogleMapsPoints</servlet-class>
   </servlet>
 
   <servlet>
@@ -1865,21 +1874,20 @@
       <servlet-name>ImportAccess</servlet-name>
       <url-pattern>/ImportAccess</url-pattern>
   </servlet-mapping>
+
   <servlet-mapping>
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>StandardImport</servlet-name>
+    <url-pattern>/import/standard-upload</url-pattern>
+  </servlet-mapping>
+
   <servlet-mapping>
       <servlet-name>UpdateStandard</servlet-name>
       <url-pattern>/UpdateStandard</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-      <servlet-name>WebImport</servlet-name>
-      <url-pattern>/WebImport</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-      <servlet-name>WebImport</servlet-name>
-      <url-pattern>/import/upload</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -1984,6 +1992,11 @@
         <servlet-mapping>
           <servlet-name>GetIndividualSearchGoogleMapsPoints</servlet-name>
           <url-pattern>/GetIndividualSearchGoogleMapsPoints</url-pattern>
+  </servlet-mapping>
+  
+          <servlet-mapping>
+          <servlet-name>GetEncounterSearchGoogleMapsPoints</servlet-name>
+          <url-pattern>/GetEncounterSearchGoogleMapsPoints</url-pattern>
   </servlet-mapping>
 
       <servlet-mapping>
@@ -2451,6 +2464,16 @@
   <servlet-mapping>
     <servlet-name>AddOccToTrack</servlet-name>
     <url-pattern>/AddOccToTrack</url-pattern>
+  </servlet-mapping>
+  
+        <servlet>
+    <servlet-name>AnnotationSetMatchAgainst</servlet-name>
+    <servlet-class>org.ecocean.servlet.AnnotationSetMatchAgainst</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>AnnotationSetMatchAgainst</servlet-name>
+    <url-pattern>/AnnotationSetMatchAgainst</url-pattern>
   </servlet-mapping>
 
 </web-app>

@@ -1381,6 +1381,7 @@ public class Encounter implements java.io.Serializable {
     public void setIndividual(MarkedIndividual indiv) {
         if(indiv==null) {this.individual=null;}
         else{this.individual = indiv;}
+        this.refreshAnnotationLiteIndividual();
     }
 
     public MarkedIndividual getIndividual() {
@@ -1875,6 +1876,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public Long getDWCDateAddedLong(){
     return dwcDateAddedLong;
   }
+  
+  public Long getDwcDateAddedLong(){
+    return dwcDateAddedLong;
+  }
 
   public void setDWCDateAdded(String m_dateAdded) {
     dwcDateAdded = m_dateAdded;
@@ -2031,7 +2036,12 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
   public void setLocationID(String newLocationID) {
-    this.locationID = newLocationID;
+    if (newLocationID!=null) {
+      this.locationID = newLocationID.trim();
+    }
+    else {
+      this.locationID = null;
+    }
   }
 
   public Double getMaximumDepthInMeters() {
@@ -2301,13 +2311,16 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setGenus(String newGenus) {
     if(newGenus!=null){genus = newGenus;}
 	  else{genus=null;}
+    this.refreshAnnotationLiteTaxonomy();
   }
   // we need these methods because our side-effected setGenus will silently break an import (!!!!!) in an edge case I cannot identify
   public void setGenusOnly(String genus) {
     this.genus = genus;
+    this.refreshAnnotationLiteTaxonomy();
   }
   public void setSpeciesOnly(String species) {
     this.specificEpithet = species;
+    this.refreshAnnotationLiteTaxonomy();
   }
 
   public String getSpecificEpithet() {
@@ -2317,6 +2330,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setSpecificEpithet(String newEpithet) {
     if(newEpithet!=null){specificEpithet = newEpithet;}
 	  else{specificEpithet=null;}
+    this.refreshAnnotationLiteTaxonomy();
   }
 
   public String getTaxonomyString() {
@@ -2344,6 +2358,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
             this.genus = gs[0];
             this.specificEpithet = gs[1];
         }
+        this.refreshAnnotationLiteTaxonomy();
     }
     public void setTaxonomyFromString(String s) {  //basically scientific name (will get split on space)
         String[] gs = Util.stringToGenusSpecificEpithet(s);
@@ -2355,6 +2370,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
             this.genus = gs[0];
             this.specificEpithet = gs[1];
         }
+        this.refreshAnnotationLiteTaxonomy();
     }
     public void setTaxonomyFromIAClass(String iaClass, Shepherd myShepherd) {
         setTaxonomy(IBEISIA.iaClassToTaxonomy(iaClass, myShepherd));
@@ -3192,45 +3208,15 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
         }
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-            jobj.put("location", this.getLocation());
-            if(individual!=null){jobj.put("individualID", this.getIndividualID());}
-            boolean fullAccess = this.canUserAccess(request);
+            
+	          boolean fullAccess = this.canUserAccess(request);
+	        
 
-            //these are for convenience, like .hasImages above (for use in table building e.g.)
-            if ((this.getTissueSamples() != null) && (this.getTissueSamples().size() > 0)) jobj.put("hasTissueSamples", true);
-            if (this.hasMeasurements()) jobj.put("hasMeasurements", true);
-/*
-            String context="context0";
-            context = ServletUtilities.getContext(request);
-            Shepherd myShepherd = new Shepherd(context);
-            if ((myShepherd.getAllTissueSamplesForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getAllTissueSamplesForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasTissueSamples", true);
-            if ((myShepherd.getMeasurementsForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasMeasurements", true);
-*/
-
-            jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
-            //jobj.remove("images");  //TODO uncomment after debugging
-/*
-            if ((this.getImages() != null) && (this.getImages().size() > 0)) {
-                jobj.put("hasImages", true);
-                JSONArray jarr = new JSONArray();
-                for (SinglePhotoVideo spv : this.getImages()) {
-                    jarr.put(spv.sanitizeJson(request, fullAccess));
-                }
-                jobj.put("images", jarr);
+            if (fullAccess) {
+              if (this.individual!=null) jobj.put("individualID", this.individual.getIndividualID());
+              if (this.individual!=null) jobj.put("displayName", this.individual.getDisplayName());
+              return jobj;
             }
-*/
-            if ((this.getAnnotations() != null) && (this.getAnnotations().size() > 0)) {
-                jobj.put("hasAnnotations", true);
-                JSONArray jarr = new JSONArray();
-                for (Annotation ann : this.getAnnotations()) {
-                    jarr.put(ann.sanitizeJson(request, fullAccess));
-                }
-                jobj.put("annotations", jarr);
-            }
-
-            if (this.individual!=null) jobj.put("displayName",getDisplayName());
-
-            if (fullAccess) return jobj;
 
             jobj.remove("gpsLatitude");
             jobj.remove("location");
@@ -3244,25 +3230,41 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 
             return jobj;
         }
+	
+	
+  public JSONObject decorateJsonNoAnnots(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
-        // this doesn't add any fields, and only removes fields that shouldn't be there
-        public JSONObject sanitizeJsonNoAnnots(HttpServletRequest request, JSONObject jobj) throws JSONException {
+  
+  
+    jobj.put("location", this.getLocation());
+    
+  
+    //these are for convenience, like .hasImages above (for use in table building e.g.)
+    if ((this.getTissueSamples() != null) && (this.getTissueSamples().size() > 0)) jobj.put("hasTissueSamples", true);
+    if (this.hasMeasurements()) jobj.put("hasMeasurements", true);
+    
+    return jobj;
+  }
+	
+  public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
-            boolean fullAccess = this.canUserAccess(request);
-            if (fullAccess) return jobj;
+    jobj=decorateJsonNoAnnots(request,jobj);
 
-            jobj.remove("gpsLatitude");
-            jobj.remove("location");
-            jobj.remove("gpsLongitude");
-            jobj.remove("verbatimLocality");
-            jobj.remove("locationID");
-            jobj.remove("gpsLongitude");
-            jobj.remove("genus");
-            jobj.remove("specificEpithet");
-            jobj.put("_sanitized", true);
+    jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
 
-            return jobj;
+    boolean fullAccess = this.canUserAccess(request);
+    if ((this.getAnnotations() != null) && (this.getAnnotations().size() > 0)) {
+        jobj.put("hasAnnotations", true);
+        JSONArray jarr = new JSONArray();
+        for (Annotation ann : this.getAnnotations()) {
+            jarr.put(ann.sanitizeJson(request, fullAccess));
         }
+        jobj.put("annotations", jarr);
+    }
+
+    return jobj;
+  }
+
 
 
         public JSONObject uiJson(HttpServletRequest request) throws JSONException {
@@ -3847,5 +3849,21 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     }
     return Util.asSortedList(idSet);
   }
+
+    public void refreshAnnotationLiteTaxonomy() {
+        if (!this.hasAnnotations()) return;
+        String tax = this.getTaxonomyString();
+        for (Annotation ann : this.annotations) {
+            ann.refreshLiteTaxonomy(tax);
+        }
+    }
+    public void refreshAnnotationLiteIndividual() {
+        if (!this.hasAnnotations()) return;
+        String indivId = "____";
+        if (this.individual != null) indivId = this.individual.getIndividualID();
+        for (Annotation ann : this.annotations) {
+            ann.refreshLiteIndividual(indivId);
+        }
+    }
 
 }

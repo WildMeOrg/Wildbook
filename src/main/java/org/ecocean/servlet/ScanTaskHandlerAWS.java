@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.ecocean.*;
 import org.ecocean.grid.*;
 
+import java.util.ArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
 
 
@@ -208,6 +209,23 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 							st=new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
 							
 							//st.setNumComparisons(numComparisons-1);
+							
+							//check for locationID filters
+							if(request.getParameterValues("locationID")!=null) {
+							  String[] locIDs=request.getParameterValues("locationID");
+							  for(int d=0;d<locIDs.length;d++) {
+							    if((locIDs[d]!=null)&&(!locIDs[d].trim().equals("")))st.addLocationIDToFilter(locIDs[d].trim());
+							  }
+							}
+							else if(enc.getLocationID()!=null) {
+							  st.addLocationIDToFilter(enc.getLocationID());
+							  ArrayList<String> linkedLocs=myShepherd.getLinkedLocationIDs(enc.getLocationID());
+							  if(linkedLocs!=null) {
+							    for(String loc:linkedLocs) {
+							      st.addLocationIDToFilter(loc);
+							    }
+							  }
+							}
 							
 							if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 							System.out.println("scanTaskHandler: About to create a scanTask...");

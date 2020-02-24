@@ -106,6 +106,7 @@ try {
 	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
+	query.closeAll();
   	int numEncs=encs.size();
 
   %><script>
@@ -183,13 +184,24 @@ function forceLink(el) {
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
+
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
                                                     if (!tasks.contains(t)) tasks.add(t);
+                                                    //System.out.println("Task ID: "+t.getId());
                                                 }
+
+                                                Collections.sort(tasks, new Comparator<Task>() {
+                                                    @Override public int compare(Task tsk1, Task tsk2) {
+                                                        return Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong()); // first asc
+                                                    }
+                                                });
+                                                Collections.reverse(tasks); // now desc, ez
+
                                                 JSONArray jt = new JSONArray();
                                                 for (Task t : tasks) {
                                                     jt.put(Util.toggleJSONObject(t.toJSONObject()));
                                                 }
+                                                //System.out.println("Root tasks returned...");
                                                 j.put("tasks", jt);
                                                 JSONObject ja = new JSONObject();
 						ja.put("id", ann.getId());
@@ -244,6 +256,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
         Query q = imageShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         List results = (List)q.execute();
         Iterator it = results.iterator();
+
         while (it.hasNext()) {
             Object[] row = (Object[]) it.next();
             int aid = (int)row[0];
@@ -256,6 +269,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
             dups.getJSONObject(acm).getJSONObject(eid).put("asset", aid);
             dups.getJSONObject(acm).getJSONObject(eid).put("indiv", iid);
         }
+        q.closeAll();
     }
     out.println("<script> var assetDup = " + dups.toString() + ";</script>");
 
