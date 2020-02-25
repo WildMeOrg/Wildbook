@@ -132,6 +132,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> backup = " + backup);
         request.setAttribute("pageTitle", "Kitizen Science &gt; Submission Input");
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("encounterDecide.jsp");
+        myShepherd.beginDBTransaction();
         String encId = request.getParameter("id");
         Encounter enc = myShepherd.getEncounter(encId);
         if (enc == null) {
@@ -163,6 +164,8 @@ System.out.println("getMatchPhoto(" + indiv + ") -> backup = " + backup);
             }
             response.setHeader("Content-type", "application/javascript");
             out.println(rtn.toString());
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return;
         }
 
@@ -925,6 +928,8 @@ There are two steps to processing each submission: selecting cat attributes, and
         <div id="wrapper-<%=ma.getId()%>" class="enc-asset-wrapper"><div class="zoom-hint"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, '.enc-asset-wrapper')" class="el el-lg el-zoom-out"></span></div><img id="img-<%=ma.getId()%>" onload="assetLoaded(this, <%=j.toString().replaceAll("\"", "'")%>);" class="enc-asset" src="<%=ma.safeURL(request)%>" /></div>
 <%
     }
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
 %>
     </div>
 
