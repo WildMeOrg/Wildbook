@@ -14,7 +14,12 @@
 			 {
 			  "name": "Sea of Chiloé", "id": "Sea of Chiloé" },
 			 {
-			  "name": "Coral Sea", "id": "Coral Sea"  },
+			  "name": "Coral Sea", "id": "Coral Sea", "locationID":[
+
+				{"name": "Gold Coast", "id": "GC" }
+
+				]
+			  },
 			 {
 			  "name": "East China Sea", "id": "East China Sea"  },
 			 {
