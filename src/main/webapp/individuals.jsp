@@ -306,6 +306,7 @@ input.nameKey, input.nameValue {
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
+<script src="javascript/kdTree.js"></script>	
 <script src="javascript/relationshipDiagrams/jsonParser.js"></script>
 <script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
 <script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
@@ -1626,21 +1627,19 @@ if (sharky.getNames() != null) {
 	      </div>
             </div>
 	    <div class="graphSliders">
-              <div class="sliderWrapper">
+      	      <div class="coOccurrenceSliderWrapper">
 	        <label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
-	        <input type="range" min=0 class="graphSlider" id="nodeCount">
-              </div>
-            </div>
-  	    <div class="graphSliders">
-	      <div class="sliderWrapper">
-		<label for="temporal">Temporal Threshold (Minutes) - <span class="sliderLabel" id="temporalVal"></span></label>
-                <input type="range" min=0 class="graphSlider" id="temporal">
-	      </div>
-	      <div class="sliderWrapper">
-		<label for="spatial">Spatial Threshold (Milli-Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
+	  	<input type="range" min=0 class="graphSlider" id="nodeCount">
+      	      </div>
+              <div class="coOccurrenceSliderWrapper">
+	        <label for="temporal">Temporal Threshold (Minutes) - <span class="sliderLabel" id="temporalVal"></span></label>
+	  	<input type="range" min=0 class="graphSlider" id="temporal">
+      	      </div>
+      	      <div class="coOccurrenceSliderWrapper">
+	        <label for="spatial">Spatial Threshold (Milli-Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
 		<input type="range" min=0 class="graphSlider" id="spatial">
-	      </div>
-	    </div>
+      	      </div>
+    	    </div>
 	    <script type="text/javascript">
               setupOccurrenceGraph("<%=occurrenceIndividualID%>", wildbookGlobals)
             </script>

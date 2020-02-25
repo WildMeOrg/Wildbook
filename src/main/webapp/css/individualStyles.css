@@ -273,9 +273,16 @@ div .tooltip {
     margin-bottom: 15px;
 }
 
-.sliderWrapper {
+.sliderWrapper, .coOccurrenceSliderWrapper {
     position: relative;
     width: 40%;
+}
+
+.coOccurrenceSliderWrapper {
+    width: 25%;
+}
+
+.coOccurrenceSlider {
 }
 
 .sliderLabel {

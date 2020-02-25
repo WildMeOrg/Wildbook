@@ -155,6 +155,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	return min;
     }
 
+    //TODO - Comment
     getNodeMinKDTree(arr1, arr2, dimensions, diffFunc) {
 	let tree = new kdTree(arr1, diffFunc, dimensions);
 
@@ -209,15 +210,15 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let node2Sightings = node2.data.sightings;
 	
 	let validEncounters = [], idxSet = new Set();
-	node1Sightings.forEach(node1 => {
-	    node2Sightings.forEach((node2, idx) => {
-		let spatialVal = this.calculateDist(node1.location, node2.location);
-		let temporalVal = this.calculateTime(node1.time.datetime, node2.time.datetime);
+	node1Sightings.forEach(sight1 => {
+	    node2Sightings.forEach((sight2, idx) => {
+		let spatialVal = this.calculateDist(sight1.location, sight2.location);
+		let temporalVal = this.calculateTime(sight1.time.datetime, sight2.time.datetime);
 		
 		if (spatialVal <= spatialThresh && temporalVal <= temporalThresh &&
 		    !idxSet.has(idx)) {
 		    idxSet.add(idx);
-		    validEncounters.push(node2);
+		    validEncounters.push(sight2);
 		}
 	    });
 	});
