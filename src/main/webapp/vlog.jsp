@@ -2,6 +2,8 @@
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
 javax.jdo.Query,
 org.joda.time.DateTime,
+java.util.Map,
+java.util.HashMap,
 java.util.List,
 java.util.ArrayList,
 java.util.Collection,
@@ -29,8 +31,15 @@ myShepherd.beginDBTransaction();
 //long since = 1577836800123l;
 long since = 1580850674297l;
 
-//String sql = "SELECT id, timestamp, content FROM volunteer_log WHERE timestamp > " + since + " ORDER BY timestamp";
-String sql = "SELECT id, timestamp, content FROM volunteer_log WHERE timestamp < 0";
+//username, email, grand total hours:min:sec spent (across all volunteer roles), total Cat and Mouse time, total submissions processed, total Cat Walk time (to pull from app of when they log in and log out?), total Cat Walks encounter submissions, total Super Volunteer time, registration date, last active date
+
+
+Map<String,int[]> stats = new HashMap<String,int[]>();
+// basically stats are columns "total" through "super volunteer time":
+String[] head = new String[]{"username", "email", "total", "cat & mouse time", "cat/mouse submissions processed", "cat walk time", "cat walk submissions processed", "super volunteer time", "registration date", "last active date"};
+
+String sql = "SELECT id, timestamp, content FROM volunteer_log WHERE timestamp > " + since + " ORDER BY timestamp";
+//String sql = "SELECT id, timestamp, content FROM volunteer_log WHERE timestamp < 0";
 Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 q.execute();
 List results = (List)q.execute();
@@ -52,7 +61,7 @@ while (it.hasNext()) {
     JSONObject j = Util.stringToJSONObject(c);
     String uri = j.optString("uri", null);
     if (uri == null) continue;
-    if (!uri.matches(".*encounterDecide.jsp.*")) continue;
+    if (!uri.matches(".*queue.jsp.*")) continue;
     boolean sessionInit = j.optBoolean("sessionInit", false);
     long tsince = j.optLong("timeSinceInit", 0l);
     long tdelta = Math.round(tsince / 1000l);
@@ -62,6 +71,7 @@ while (it.hasNext()) {
 q.closeAll();
 
 
+/*
 q = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Decision WHERE property == 'match'");
 q.setOrdering("timestamp");
 q.execute();
@@ -78,7 +88,7 @@ for (Decision dec : decs) {
     out.println("<p><b>" + new DateTime(initTime) + "</b> <i>attr save: <b>" + niceTime(attrSaveTime - initTime) + "</b> | match save: <b>" + niceTime(matchSaveTime - attrSaveTime) + "</b> | total <b>" + niceTime(matchSaveTime - initTime) + "</b></p>");
     //out.println("<p>" + val + "</p>");
 }
-
+*/
 
 %>
 
