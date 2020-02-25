@@ -106,7 +106,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	else if (type == "temporal") return time;
     }
 
-    //TODO - Consider strip optimizations
     /**
      * Finds the minimum spatial/temporal differences between two nodes, 
      *   and updates co-occurrence data
@@ -128,7 +127,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	return [minDist, minTime];
     }
 
-    //TODO - Comment
+    /**
+     * Generates a list of relevant spatial and temporal sightings data objects
+     * @param {sightings} [list of objs] - Unfiltered list of sightings data
+     * @return {sightingsData} [list of objs] - Returns a list of important spatial/temporal 
+     *   sightings data
+     */
     getSightingsData(sightings) {
 	return sightings.map(d => {
 	    let loc = d.location;
@@ -138,7 +142,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     }
 
     /**
-     * Calculates the minimum difference in two 1D arrays in nlog(n) time
+     * Calculates the minimum difference between two arrays in n^2 time
      * @param {arr1} [list] - The first array of numeric values
      * @param {arr2} [list] - The second array of numeric values
      * @param {diffFunc} [lambda] - Calculates the difference between two elements
@@ -155,7 +159,16 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	return min;
     }
 
-    //TODO - Comment
+    /**
+     * Calculates the minimu difference between two arrays in nlog(n) time. May be slower than
+     *   getNodeMinBruteForce() in very small or very sparse node populations
+     * @param {arr1} [list] - The first array of numeric values
+     * @param {arr2} [list] - The second array of numeric values
+     * @param {dimensions} [list of Strings] - Describes the dimensions key 
+     *   mappings for {arr1}/{arr2}
+     * @param {diffFunc} [lambda] - Calculates the difference between two elements
+     * @return {min} [number] - Returns the minimum difference from {arr1} and {arr2}
+     */
     getNodeMinKDTree(arr1, arr2, dimensions, diffFunc) {
 	let tree = new kdTree(arr1, diffFunc, dimensions);
 
@@ -226,7 +239,14 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	return validEncounters;
     }
 
-    //TODO - COMMENT
+    /**
+     * Calculates an unweighted distance for the sightings space between two given nodes
+     * @param {node1} [obj] - Object with lat, lon, and time properties, describing the 
+     *   position of node1 within the sightings space
+     * @param {node2} [obj] - Object with lat, lon, and time properties, describing the 
+     *   position of node2 within the sightings space
+     * @return {dist} [int] - Describes the distance between the two node positions. Defaults to -1
+     */
     calculateSightingsDiff(node1, node2) {
 	return Math.pow(node1.lat - node2.lat, 2) + Math.pow(node1.lon - node2.lon, 2) +
 	    Math.pow(node1.time - node2.time, 2);
