@@ -115,25 +115,60 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @return {minDist, minTime} [list] - The minimum distance and time values
      */
     getNodeMin(node1, node2) {
-	let node1Sightings = node1.data.sightings;
-	let node2Sightings = node2.data.sightings;	
-	
-	let timeMin, distMin;
-	let minDist = Number.MAX_SAFE_INTEGER, minTime = Number.MAX_SAFE_INTEGER;
-	node1Sightings.forEach(node1S => {
-	    node2Sightings.forEach((node2S, idx) => {
-		let distDiff = this.calculateDist(node1S.location, node2S.location);
-		let timeDiff = this.calculateTime(node1S.time.datetime, node2S.time.datetime);
+	let sights1 = this.getSightingsData(node1.data.sightings);
+	let sights2 = this.getSightingsData(node2.data.sightings);
 
-		//Update minimum
-		if (distDiff <= minDist && timeDiff <= minTime) {
-		    minDist = distDiff;
-		    minTime = timeDiff;
-		}
-	    });
-	});
+	let [min, minCoordPair] = this.getNodeMinKDTree(sights1, sights2,
+							["lat", "lon", "time"],
+							this.calculateSightingsDiff);
+	
+	let minDist = this.calculateDist(minCoordPair[0], minCoordPair[1]);
+	let minTime = this.calculateTime(minCoordPair[0].time, minCoordPair[1].time);
 
 	return [minDist, minTime];
+    }
+
+    //TODO - Comment
+    getSightingsData(sightings) {
+	return sightings.map(d => {
+	    let loc = d.location;
+	    let time = d.time.datetime;
+	    return {"lat": loc.lat, "lon": loc.lon, "time": time};
+	});
+    }
+
+    /**
+     * Calculates the minimum difference in two 1D arrays in nlog(n) time
+     * @param {arr1} [list] - The first array of numeric values
+     * @param {arr2} [list] - The second array of numeric values
+     * @param {diffFunc} [lambda] - Calculates the difference between two elements
+     * @return {min} [number] - Returns the minimum difference from {arr1} and {arr2}
+     */
+    getNodeMinBruteForce(arr1, arr2, diffFunc) {
+	let min = Number.MAX_SAFE_INTEGER;
+	arr1.forEach(el1 => {
+	    arr2.forEach(el2 => {
+		let diff = diffFunc(el1, el2);
+		if (diff < min) min = diff;
+	    });
+	});
+	return min;
+    }
+
+    getNodeMinKDTree(arr1, arr2, dimensions, diffFunc) {
+	let tree = new kdTree(arr1, diffFunc, dimensions);
+
+	let minCoordPair = null;
+	let min = Number.MAX_SAFE_INTEGER;
+	arr2.forEach(point => {
+	    let [coords, dist] = tree.nearest(point, 1)[0];
+	    if (dist < min) {
+		minCoordPair = [point, coords];
+		min = dist;
+	    }
+	});
+
+	return [min, minCoordPair];
     }
 
     /**
@@ -152,8 +187,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    
 	    let node = this.nodeData.find(node => node.id === linkId);
 	    if (node) {
-		let threshEncounters = this.getLinkThreshEncounters(focusedNode, node, spatialThresh,
-								    temporalThresh);
+		let threshEncounters = this.getLinkThreshEncounters(focusedNode, node,
+								    spatialThresh, temporalThresh);
 		link.validEncounters = threshEncounters;
 		link.count = threshEncounters.length;
 	    }
@@ -188,6 +223,12 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	});
 
 	return validEncounters;
+    }
+
+    //TODO - COMMENT
+    calculateSightingsDiff(node1, node2) {
+	return Math.pow(node1.lat - node2.lat, 2) + Math.pow(node1.lon - node2.lon, 2) +
+	    Math.pow(node1.time - node2.time, 2);
     }
     
     /**
