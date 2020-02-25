@@ -25,15 +25,10 @@ String commitStr = request.getParameter("commit");
 boolean committing = (commitStr!=null);
 
 String filename = request.getParameter("filename");
+String uploadAction = "standard-upload?filename="+filename+"&commit=true&isUserUpload=true";
 
 // This file is for window-dressing at the bottom of the (java-servlet) uploader at WebImport.java
-Boolean isUserUpload = false;
-isUserUpload = Boolean.valueOf(request.getParameter("isUserUpload"));
 
-String uploadAction = "../StandardImport?filename="+filename+"&commit=true&isUserUpload="+isUserUpload;
-if (isUserUpload) {
-	uploadAction = "standard-upload?filename="+filename+"&commit=true&isUserUpload="+isUserUpload;
-}
 
 if (!committing) {
 %>
