@@ -54,12 +54,14 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
     List<Decision> decs = new ArrayList<Decision>(col);
     query.closeAll();
 
-    List rows = new ArrayList<String[]>();
-    if ("match".equals(dtype)) {
-        String[] head = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "Time Attr (s)", "Time Match (s)", "User ID", "Username", "Match Enc ID", "Match Enc Name", "Match Cat ID", "Match Cat Name"};
-        rows.add(head);
-        for (Decision dec : decs) {
-            if (!"match".equals(dec.getProperty())) continue;
+    Map<String,String[]> matchMap = new HashMap<String,String[]>();
+    Map<String,String[]> attrMap = new HashMap<String,String[]>();
+    Map<String,String[]> dataMap = new HashMap<String,String[]>();
+
+    for (Decision dec : decs) {
+        if ((dec.getUser() == null) || (dec.getEncounter() == null)) continue;
+        String ekey = dec.getEncounter().getCatalogNumber() + "." + dec.getUser().getUUID();
+        if ("match".equals(dec.getProperty())) {
             JSONObject d = dec.getValue();
             if (d == null) continue;
             String eid = d.optString("id", null);
@@ -75,7 +77,7 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
             long initTime = d.optLong("initTime", -1l);
             long attrSaveTime = d.optLong("attrSaveTime", -1l);
             long matchSaveTime = d.optLong("matchSaveTime", -1l);
-            String[] row = new String[head.length];
+            String[] row = new String[15];
             row[0] = dec.getEncounter().getCatalogNumber();
             row[1] = dec.getEncounter().getEventID();
             if (dec.getEncounter().hasMarkedIndividual()) {
@@ -107,25 +109,29 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
                     row[13] = "";
                 }
             }
-            rows.add(row);
-        }
+            JSONObject presented = d.optJSONObject("presented");
+            if (presented == null) {
+                System.out.println("WARNING: queue.jsp generateData() has no 'presented' for Decision " + dec.getId());
+                row[14] = "???";
+            } else {
+                row[14] = "no";
+                String wantId = dec.getEncounter().getIndividualID();
+                if (wantId != null) for (Object pid : presented.keySet()) {
+                    Encounter penc = myShepherd.getEncounter((String)pid);
+                    if (wantId.equals(penc.getIndividualID())) {
+                        row[14] = "yes";
+                        break;
+                    }
+                }
+            }
+            matchMap.put(ekey, row);
 
-    } else {  //attributes flavor
-        String[] head = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern ans", "Color/Pattern", "Color/Patt correct", "Life Stage ans", "Life Stage", "Life Stage correct", "Sex ans", "Sex", "Sex correct", "Sex unk ok", "Collar ans", "Collar", "Collar correct", "Collar unk ok", "Ear Tip ans", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok"};
-        rows.add(head);
-/*
-        Map<String,Integer> indMap = new HashMap<String,Integer>();
-        for (int i = 0 ; i < head.length ; i++) {
-            indMap.put(head[i], i);
-        }
-*/
-        Map<String,String[]> dataMap = new HashMap<String,String[]>();
-        for (Decision dec : decs) {
+        } else {  //attributes flavor
             JSONObject d = dec.getValue();
             if (d == null) continue;
             String mid = d.optString("_multipleId", null);
             if (mid == null) continue;
-            if (dataMap.get(mid) == null) dataMap.put(mid, new String[head.length]);
+            if (dataMap.get(mid) == null) dataMap.put(mid, new String[27]);
             dataMap.get(mid)[0] = dec.getEncounter().getCatalogNumber();
             dataMap.get(mid)[1] = dec.getEncounter().getEventID();
             if (dec.getEncounter().hasMarkedIndividual()) {
@@ -176,11 +182,45 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
             }
         }
         for (String mid : dataMap.keySet()) {
-            rows.add(dataMap.get(mid));
+            String ekey2 = dataMap.get(mid)[0] + "." + dataMap.get(mid)[6];
+            attrMap.put(ekey2, dataMap.get(mid));
+            //rows.add(dataMap.get(mid));
 //System.out.println(String.join("|", dataMap.get(mid)));
         }
     }
 
+    List rows = new ArrayList<String[]>();
+/*
+    String[] headMatch = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "Time Attr (s)", "Time Match (s)", "User ID", "Username", "Match Enc ID", "Match Enc Name", "Match Cat ID", "Match Cat Name"};
+    String[] headAttr = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern ans", "Color/Pattern", "Color/Patt correct", "Life Stage ans", "Life Stage", "Life Stage correct", "Sex ans", "Sex", "Sex correct", "Sex unk ok", "Collar ans", "Collar", "Collar correct", "Collar unk ok", "Ear Tip ans", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok"};
+*/
+    String[] head = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern ans", "Color/Pattern", "Color/Patt correct", "Life Stage ans", "Life Stage", "Life Stage correct", "Sex ans", "Sex", "Sex correct", "Sex unk ok", "Collar ans", "Collar", "Collar correct", "Collar unk ok", "Ear Tip ans", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok",
+        "Time Attr (s)", "Time Match (s)", "Match Enc ID", "Match Enc Name", "Match Cat ID", "Match Cat Name",
+        "Match Present", "Match Correct"};
+    rows.add(head);
+
+    for (String ekey : attrMap.keySet()) {
+        if (matchMap.get(ekey) == null) {
+System.out.println("WARNING: queue.generateData() has no matchMap(" + ekey + ")");
+            rows.add(attrMap.get(ekey));
+        } else {
+            String[] all = new String[35];
+            for (int i = 0 ; i < attrMap.get(ekey).length ; i++) {
+                all[i] = attrMap.get(ekey)[i];
+            }
+            all[27] = matchMap.get(ekey)[6];
+            all[28] = matchMap.get(ekey)[7];
+            all[29] = matchMap.get(ekey)[10];
+            all[30] = matchMap.get(ekey)[11];
+            all[31] = matchMap.get(ekey)[12];
+            all[32] = matchMap.get(ekey)[13];
+            all[33] = matchMap.get(ekey)[14];
+            all[34] = "no";
+            if ("no-match".equals(all[31]) && "no".equals(all[33])) all[34] = "yes";
+            if (all[2].equals(all[31])) all[34] = "yes";
+            rows.add(all);
+        }
+    }
     ExportExcelFile.quickExcel(rows, file);
 }
 
@@ -252,7 +292,8 @@ if (isAdmin && (request.getParameter("MatchPhoto") != null)) {
 
 String dtype = request.getParameter("data");
 if (Util.requestParameterSet(dtype)) {
-    File xls = new File("/tmp/kitsci_export_" + Util.basicSanitize(dtype) + "_" + new DateTime().toLocalDate() + "_" + Util.generateUUID().substring(0,6) + ".xls");
+    //File xls = new File("/tmp/kitsci_export_" + Util.basicSanitize(dtype) + "_" + new DateTime().toLocalDate() + "_" + Util.generateUUID().substring(0,6) + ".xls");
+    File xls = new File("/tmp/kitsci_cmvolunteer_export_" + new DateTime().toLocalDate() + "_" + Util.generateUUID().substring(0,6) + ".xls");
     generateData(myShepherd, xls, dtype);
     response.setHeader("Content-type", "application/vnd.ms-excel");
     response.setHeader("Content-disposition", "attachment; filename=\"" + xls.getName() + "\"");
@@ -373,11 +414,8 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 
 <% if (isAdmin) { %>
 <p>
-    <a href="queue.jsp?data=attributes" title="Download XLS with volunteer decisions on attributes">
-        <button>Download Attributes XLS</button>
-    </a>
-    <a href="queue.jsp?data=match" title="Download XLS with volunteer cat ID matches">
-        <button>Download ID Match XLS</button>
+    <a href="queue.jsp?data=attributes" title="Download XLS with volunteer decisions on attributes/matches">
+        <button>Download Attributes/Match XLS</button>
     </a>
     <a href="queue.jsp?MatchPhoto" title="See status of MatchPhoto">
         <button>List cats with MatchPhoto status</button>
