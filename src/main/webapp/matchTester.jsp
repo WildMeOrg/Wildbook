@@ -114,7 +114,7 @@ sex: [
 };
 
 var matchData = null;
-var encId = 'b1e06c13-43d6-4299-a612-1a3f4ecc33e2';
+var encId = '<%=((request.getParameter("spoofId") != null) ? request.getParameter("spoofId") : "b1e06c13-43d6-4299-a612-1a3f4ecc33e2")%>';
 
 $(document).ready(function() {
     $('#enc-info').html('<a target="_new" href="encounters/encounter.jsp?number=' + encId + '">' + encId + '</a>');
@@ -136,11 +136,11 @@ $(document).ready(function() {
 function matchScore(mdata, udata) {
     //if (udata.colorPattern != mdata.colorPattern) return -1;  //dealbreaker
     var score = 1;
-    if (mdata.matches.earTip) score += 0.5;
-    if (mdata.matches.collar) score += 1.1;
-    if (mdata.matches.lifeStage) score += 0.7;
-    if (mdata.matches.colorPattern) score += 1.5;
-    if (mdata.matches.sex) score += 1.2;
+    if (mdata.matches.earTip) score += 1.0;
+    if (mdata.matches.collar) score += 1.0;
+    if (mdata.matches.lifeStage) score += 1.0;
+    if (mdata.matches.colorPattern) score += 4.0;
+    if (mdata.matches.sex) score += 1.0;
     if (mdata.distance) score += (10 / mdata.distance);
     return Math.round(score * 100) / 100;
 }
