@@ -503,6 +503,17 @@ function ahrefSort(a, b) {
 }
 var currentActiveState = 'incoming';
 $(document).ready(function() {
+
+    $('.maincontent').on('click', function(ev) {
+        utickState.mouseButtonActivity = true;
+        utickState.active = true;
+        utickState.inactiveTick = 0;
+        utickState.pageTick++;
+        wildbook.utick(utickState, function() {
+            utickState.mouseButtonActivity = false;
+        }, 100);
+    });
+
     setActiveTab(currentActiveState);
     $('#queue-table').on('post-body.bs.table', function() {
         filter(currentActiveState);
