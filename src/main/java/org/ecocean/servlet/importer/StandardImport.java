@@ -1420,6 +1420,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   // following 'get' functions swallow errors
   public Integer getInteger(Row row, int i) {
+    if ((row != null) && (row.getCell(i) != null) && (row.getCell(i).getCellType() == Cell.CELL_TYPE_BLANK)) return null;
     try {
       int val = (int) row.getCell(i).getNumericCellValue();
       System.out.println("extracted int for line "+i);
