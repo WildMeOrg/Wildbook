@@ -268,7 +268,8 @@ QUnit.module('handleMouseOver()', handleMouseEventHooks, () => {
 
 let displayNodeEventHooks = {
     'beforeEach': () => {
-	gaCopy = Object.assign(Object.create(Object.getPrototypeOf(ga)), ga)
+	gaCopy = Object.assign(Object.create(Object.getPrototypeOf(ga)), ga);
+	$('.tooltip').remove();
 	gaCopy.addTooltip('#test');
 	d3.event = {'layerX': 0, 'layerY': 0};
     }
@@ -286,7 +287,7 @@ QUnit.module('displayNodeTooltip()', displayNodeEventHooks, () => {
     QUnit.test('Invalid text', t => {
 	gaCopy.generateNodeTooltipHtml = (d) => false;
 	gaCopy.displayNodeTooltip({});
-	t.ok($('.tooltip').html() == "");
+	t.equal($('.tooltip').html(), "");
     });
 });
 

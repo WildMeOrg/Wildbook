@@ -526,15 +526,6 @@ class JSONParser {
     }
 
     /**
-     * Returns id referenced element from node data
-     * @param {id} [int] - A unique int identifying the given node
-     * @return {node} [obj] - The node data corresponding to the given node id
-     */
-    getNodeDataById(id) {
-	return this.getNodeData()[id];
-    }
-
-    /**
      * Returns relationship data as filtered by selected nodes
      * @return {relationshipData} [Link list] - Any links with both node references in {selectedNodes}
      */
