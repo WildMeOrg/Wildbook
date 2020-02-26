@@ -62,12 +62,9 @@ QUnit.module('storeQueryAsDict()', {"beforeEach": () => jpCopy = cloneJP() }, ()
 
 //TODO processNodeData()
 
-//TODO mapRelationships()
 setupMap = {
     "beforeEach": () => {
-	JSONParser.relationshipData = [
-	    {"markedIndividualName1": "a", "markedIndividualName2": "b"}
-	]
+	JSONParser.relationshipData = [{"markedIndividualName1": "a", "markedIndividualName2": "b"}]
 	jpCopy = cloneJP();
 	jpCopy.getRelationType = (el) => "type";
     }
@@ -76,17 +73,19 @@ QUnit.module('mapRelationships()', setupMap, () => {
     QUnit.test('Empty relationships', t => {
 	JSONParser.relationshipData = [];
 	let relations = jpCopy.mapRelationships();
-	t.equal(relations, {});
+	t.deepEqual(relations, {});
     });
     QUnit.test('Valid relationships', t => {
-	let relations = jpCopy.mapRelationships();
+	let nodes = {"a": {}, "b": {}};
+	let relations = jpCopy.mapRelationships(nodes);
 	t.equal(relations["a"][0]["name"], "b");
 	t.equal(relations["b"][0]["name"], "a");
     });
     QUnit.test('Multi-mapped relationships', t => {
+	let nodes = {"a": {}, "b": {}};
 	JSONParser.relationshipData.push({"markedIndividualName1": "a",
 					  "markedIndividualName2": "b"});
-	let relations = jpCopy.mapRelationships();
+	let relations = jpCopy.mapRelationships(nodes);
 	t.equal(relations["a"].length, 2);
 	t.equal(relations["b"].length, 2);
 	t.equal(relations["a"][0]["name"], "b");
@@ -119,36 +118,40 @@ QUnit.module('getNodeId()', () => {
     });
 });
 
-//TODO updateNodeData()
-
-//TODO getNodeData()
-
-//TODO getNodeById()
+QUnit.module('updateNodeData()', () => {
+    QUnit.test('Valid input', t => {
+	let node = {};
+	let updatedNode = jp.updateNodeData(node, 1, 2, 3);
+	t.equal(updatedNode.id, 2);
+	t.equal(updatedNode.group, 1);
+	t.equal(updatedNode.depth, 3);
+    });
+});
 
 //TODO getRelationshipData()
 
 QUnit.module('getRelationType()', () => {
     QUnit.test('Maternal relation', t => {
 	let link = {"markedIndividualRole1": "mother", "markedIndivdiualRole2": null}
-	t.equal(jp.getRelationType(link), "maternal")
+	t.equal(jp.getRelationType(link)[0], "maternal")
     });
 
     QUnit.test('Paternal relation', t => {
 	let link = {"markedIndividualRole1": null, "markedIndividualRole2": "father"}
-	t.equal(jp.getRelationType(link), "paternal")
+	t.equal(jp.getRelationType(link)[0], "paternal")
     });
 
     QUnit.test('Calf relation', t => {
 	let link = {"markedIndividualRole1": "calf", "markedIndivdiualRole2": "calf"}
-	t.equal(jp.getRelationType(link), "familial")
+	t.equal(jp.getRelationType(link)[0], "familial")
     });
 
     QUnit.test('Member relation', t => {
 	let link = {"markedIndividualRole1": null, "markedIndivdiualRole2": null}
-	t.equal(jp.getRelationType(link), "member")
+	t.equal(jp.getRelationType(link)[0], "member")
     });
 
     QUnit.test('Null relation', t => {
-	t.equal(jp.getRelationType(null), "member")
+	t.equal(jp.getRelationType(null)[0], "member")
     });
 });

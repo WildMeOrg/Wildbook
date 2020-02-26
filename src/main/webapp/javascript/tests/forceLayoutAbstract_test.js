@@ -407,19 +407,6 @@ QUnit.module('ctrlKey()', {'beforeEach': () => d3.event = {} }, () => {
     });
 });
 
-QUnit.module('getLinkLen()', {'before': () => fa.radius = 5 }, () => {
-    QUnit.test('Unfocused node', t => {
-	let len = fa.getLinkLen({});
-	t.ok(len >= fa.radius && len <= fa.radius * fa.maxLenScalar);
-    });
-
-    QUnit.test('Focused node', t => {
-	let len = fa.getLinkLen({"data": {"isFocused": true}});
-	t.ok(len >= fa.radius && len <= fa.radius * fa.maxLenScalar);
-    });
-
-});
-
 QUnit.module('getLinkTarget()', () => {
     QUnit.test('Valid target', t => {
 	let link = {'target': 'c'};
