@@ -703,34 +703,58 @@ if(maxTimeBetweenResights>0){
 <script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
 <script src="javascript/relationshipDiagrams/socialGraph.js"></script>
 
-<div id="socialDiagram" class="socialVis">
-  <div id="graphFilters">
-    <button type="button" id="selectFamily">Select Family</button>
-    <button type="button" id="filterFamily">Filter Family</button>
-    <button type="button" id="reset">Reset</button>
-    <div id="filterGender" class="filterOptions">
-      <label>	  
-        <input type="checkbox" id="maleBox">
-        <span>Male</span>
-      </label>
-      <label>	  
-        <input type="checkbox" id="femaleBox">
-        <span>Female</span>
-      </label>
-      <label>	  
-        <input type="checkbox" id="unknownGenderBox">
-        <span>Unknown Gender</span>
-      </label>
-    </div>
-    <div id="filterSocialRole" class="filterOptions">
+<div id="socialDiagram">
+  <div id="familyChart">
+    <div id="graphFilters">
+      <div id="graphOptions">
+        <button type="button" id="reset">Reset Filters</button>
+	<button type="button" id="gZoomIn">Zoom In</button>
+	<button type="button" id="gZoomOut">Zoom Out</button>
+      </div>
+      <div id="filterGender" class="filterOptions">
+        <label>	  
+	  <input type="checkbox" id="maleBox">
+	  <span>Male</span>
+	</label>
+	<label>	  
+	  <input type="checkbox" id="femaleBox">
+	  <span>Female</span>
+	</label>
+	<label>	  
+	  <input type="checkbox" id="unknownGenderBox">
+	  <span>Unknown Gender</span>
+	</label>
+      </div>
+      <div id="filterSocialRole" class="filterOptions">
       <label>
         <input type="checkbox" id="alphaBox">
-        <span>Alpha</span>
+	<span>Alpha</span>
       </label>
       <label>
-        <input type="checkbox" id="unknownRoleBox">
-        <span>Unknown Role</span>
+	<input type="checkbox" id="unknownRoleBox">
+	<span>Unknown Role</span>
       </label>
+      </div>
+      <div class="filterOptions">
+	<label>	  
+	  <input type="checkbox" id="selectFamilyBox">
+	  <span>Select Family</span>
+	</label>
+        <label>	  
+	  <input type="checkbox" id="filterFamilyBox">
+	  <span>Filter Family</span>
+	</label>
+      </div>
+    </div>
+  </div>
+  <div class="graphSliders">
+    <div class="sliderWrapper">
+      <label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
+      <input type="range" min=0 class="graphSlider" id="nodeCount">
+    </div>
+    <div class="sliderWrapper">
+      <label for="nodeDist"> Node Distance (Geodesic) - <span class="sliderLabel" id="nodeDistVal"></span></label>
+      <input type="range" min=0 class="graphSlider" id="nodeDist">
     </div>
   </div>
 </div>
@@ -743,8 +767,8 @@ if(maxTimeBetweenResights>0){
 %>
 
 <script>
-  let parser = new JSONParser(wildbookGlobals, '<%=individualIds%>', true);
-  setupSocialGraph(null, "#socialDiagram", parser);
+  let parser = new JSONParser(wildbookGlobals, '<%=individualIds%>', true, 50);
+  setupSocialGraph(null, "#socialDiagram", wildbookGlobals, parser);
 </script>
 	 
  <div id="chart_div"></div>
