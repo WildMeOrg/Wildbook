@@ -21,7 +21,7 @@ class GraphAbstract { //See static attributes below class
 	this.numNodes;
 	this.radius;
 	this.maxRadius = 50;
-	this.scalingFactor = 25; //TODO: Tune this value
+	this.scalingFactor = 25;
 	this.nodeMargin = 15;
 	this.nodeSeparation;
 	this.transitionDuration = 750;
@@ -31,7 +31,7 @@ class GraphAbstract { //See static attributes below class
 	this.fontSize = 9;
 	this.focusedScale = 1;
 
-	this.alphaSymbSize = 200; //TODO: Figure out the units on this...
+	this.alphaSymbSize = 200;
 
 	//Node Style Attributes
 	this.defGenderColor = "#7f7f7f"; 
@@ -164,7 +164,6 @@ class GraphAbstract { //See static attributes below class
 	    .append("g");
     }
 
-    //TODO - Modularize
     /**
      * Append graph legend to top-level SVG
      * @param {containerId} [String] - The HTML reference to append this SVG to
@@ -183,7 +182,6 @@ class GraphAbstract { //See static attributes below class
 	//Initialize position references
 	let xIdx = 0, yIdx = 0;
 
-	//TODO - Consider adding strong repulsive force to legend
 	//Add legend gender color-key
 	legendRef.selectAll("rect")
 	    .data(this.legendNodeColors).enter()
@@ -500,7 +498,6 @@ class GraphAbstract { //See static attributes below class
 	}
     }
 
-    //TODO - Modularize this
     /**
      * Generate the tooltip description for a given node
      * @param {d} [Node] - A Node element
@@ -713,7 +710,12 @@ class GraphAbstract { //See static attributes below class
 	});
     }
 
-    //TODO - Modularize
+    /**
+     * Filters the displayed nodes to ensure only {thresh} nodes exist
+     * @param {self} [SocialGraph] - A reference to this class for use in lambdas
+     * @param {thresh} [int] - The maximum number of nodes allowed
+     * @param {occType} [String] - The type of filter being applied
+     */
     filterByNodeCount(self, thresh, occType) {
 	//Update slider label value
 	let sliderLabel = $(self.containerId).parent().find("#nodeCountVal");

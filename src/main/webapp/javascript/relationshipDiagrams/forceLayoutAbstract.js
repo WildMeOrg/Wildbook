@@ -1,9 +1,6 @@
-//TODO
-//Add support for x family member distance slider (?)
-
 //Abstract class defining functionality for all d3 forceLayout types
 class ForceLayoutAbstract extends GraphAbstract {
-    constructor(individualId, containerId) {
+    constructor(individualId, containerId, globals) {
 	super(individualId, containerId);
 
 	//Link attributes
@@ -20,6 +17,9 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Transition attributes
 	this.transitionDuration = 750; //Duration in Milliseconds
 	this.startingRadius = 0;
+
+	//Global attributes
+	if (globals) this.baseUrl = globals.baseUrl;
     }
 
     // Setup Methods //
@@ -49,14 +49,13 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Define the graph's forces
 	this.forces = d3.forceSimulation()
 	    .force("link", d3.forceLink().id(d => d.id))
-	    .force("charge", d3.forceManyBody().strength(300)) //TODO - Tune this
+	    .force("charge", d3.forceManyBody().strength(300))
 	    .force("collision", d3.forceCollide().radius(d => this.getNodeMargin(d))) 
 	    .force("center", d3.forceCenter(this.width/2, this.height/2))
 	    .alphaDecay(0.05)
 	    .velocityDecay(0.8);
     }
 
-    //TODO - Rework to style class..?
     /**
      * Initialize unique arrow classes for each link category
      * @param {svg} [Svg] - The Svg where arrow definitions will be stored 
@@ -216,7 +215,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	
 	//Join w/ existing nodes
 	this.nodes = nodes.merge(newNodes)
-	let activeNodes = this.nodes.filter(d => !d.filtered); //TODO - Switch to newNodes
+	let activeNodes = this.nodes.filter(d => !d.filtered);
 	
 	//Style nodes
 	this.updateNodeOutlines(newNodes, activeNodes);
@@ -285,15 +284,17 @@ class ForceLayoutAbstract extends GraphAbstract {
 		  .on('end', (d, i, nodeList) => this.dragEnded(d, nodeList[i])));
     }
 
-    //TODO - Modularize
     /**
      * Visit the relevant page for the selected node
      * @param {node} [Node] - The node whose page should be visited
      */
     visitNodePage(node) {
-	let nodeId = node.data.individualID;
-	let baseURL = "http://localhost:8080/wildbook/individuals.jsp?number=";
-	window.location.href = baseURL + nodeId;
+	if (this.baseUrl) {
+	    let nodeId = node.data.individualID;
+	    let baseURL = this.baseUrl + "/individuals.jsp?number=";
+	    window.location.href = baseURL + nodeId;
+	}
+	else console.warning("visitNode() is disabled as this.baseUrl is not set");
     }
 
     /**
@@ -414,7 +415,6 @@ class ForceLayoutAbstract extends GraphAbstract {
 	this.updateGraph(this.prevLinkData, this.nodeData);
     }
 
-    //TODO - Add support for saved local family filters
     /**
      * Apply absolute filters (i.e. thresholding)
      * @param {nodeFilter} [lambda] - Determines which nodes should be filtered
