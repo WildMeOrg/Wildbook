@@ -196,7 +196,7 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
 */
     String[] head = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern ans", "Color/Pattern", "Color/Patt correct", "Life Stage ans", "Life Stage", "Life Stage correct", "Sex ans", "Sex", "Sex correct", "Sex unk ok", "Collar ans", "Collar", "Collar correct", "Collar unk ok", "Ear Tip ans", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok",
         "Time Attr (s)", "Time Match (s)", "Match Enc ID", "Match Enc Name", "Match Cat ID", "Match Cat Name",
-        "Match Present", "Match Correct"};
+        "Match Present", "Match Correct", "T/F/Positive/Negative"};
     rows.add(head);
 
     for (String ekey : attrMap.keySet()) {
@@ -204,7 +204,7 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
 System.out.println("WARNING: queue.generateData() has no matchMap(" + ekey + ")");
             rows.add(attrMap.get(ekey));
         } else {
-            String[] all = new String[35];
+            String[] all = new String[36];
             for (int i = 0 ; i < attrMap.get(ekey).length ; i++) {
                 all[i] = attrMap.get(ekey)[i];
             }
@@ -218,6 +218,18 @@ System.out.println("WARNING: queue.generateData() has no matchMap(" + ekey + ")"
             all[34] = "no";
             if ("no-match".equals(all[31]) && "no".equals(all[33])) all[34] = "yes";
             if (all[2].equals(all[31])) all[34] = "yes";
+            if (all[33].equals("yes") && all[34].equals("yes")) {
+                all[35] = "true positive";
+            } else if (!"no-match".equals(all[31])) {  //chose *some* cat (but not right one)
+                all[35] = "false positive";
+            } else if (all[33].equals("yes") && "no-match".equals(all[31])) {  //cat presented, but chose no-match
+                all[35] = "false negative";
+            } else if (all[33].equals("no") && "no-match".equals(all[31])) {  //cat NOT presented, chose no-match
+                all[35] = "true negative";
+            } else {
+                all[35] = "???";
+            }
+            
             rows.add(all);
         }
     }
