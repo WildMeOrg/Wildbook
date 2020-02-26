@@ -90,7 +90,13 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
             row[4] = Long.toString(dec.getTimestamp());
             row[5] = new DateTime(dec.getTimestamp()).toString();
             row[6] = ((initTime > 0l) && (attrSaveTime > 0l)) ? Integer.toString(Math.round((attrSaveTime - initTime) / 1000)) : "";
-            row[7] = ((attrSaveTime > 0l) && (matchSaveTime > 0l)) ? Integer.toString(Math.round((matchSaveTime - attrSaveTime) / 1000)) : "";
+            if ((attrSaveTime > 0l) && (matchSaveTime > 0l)) {
+                row[7] = Integer.toString(Math.round((matchSaveTime - attrSaveTime) / 1000));
+            } else if ((initTime > 0l) && (matchSaveTime > 0l)) {
+                row[7] = Integer.toString(Math.round((matchSaveTime - initTime) / 1000));
+            } else {
+                row[7] = "";
+            }
             row[8] = dec.getUser().getUUID();
             row[9] = dec.getUser().getUsername();
             if (menc == null) {
