@@ -164,7 +164,14 @@ for (String uid : uids) {
         row[10] = new DateTime(lastActive.get(uid)).toString();
     }
 
-    row[9] = "???";
+    row[9] = "-";
+    q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"VERSION\" FROM \"SYSTEMVALUE\" WHERE \"KEY\" = 'survey_response_" + uid + "'");
+    results = (List)q.execute();
+    it = results.iterator();
+    if (it.hasNext()) {
+        Long surveyTime = (Long)it.next();
+        row[9] = new DateTime(surveyTime).toString();
+    }
 
     rows.add(row);
 }
