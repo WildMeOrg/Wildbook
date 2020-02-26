@@ -243,7 +243,7 @@ class JSONParser {
      */
     parseNodes(iId) {
 	//Assign unique ids and groupings to the queried node data
-	let graphNodes = this.processNodeData(iId); //TODO - Memoize this process
+	let graphNodes = this.processNodeData(iId);
 
 	//Extract meaningful node data
 	let nodes = {};

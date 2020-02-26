@@ -14,7 +14,7 @@ function setupOccurrenceGraph(individualID, globals, parser=null) {
 //Sparse-tree mapping co-occurrence relationships between a focused individual and its species
 class OccurrenceGraph extends ForceLayoutAbstract {
     constructor(individualId, containerId, globals, focusedScale, parser=null) {
-	super(individualId, containerId);
+	super(individualId, containerId, globals);
 
 	this.focusedScale = focusedScale;
 	
@@ -63,7 +63,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     }
 
     /**
-     * Calculate the maximum values for the spatial/temporal sliders
+     * Updates the maximum values for the spatial/temporal sliders
      */	
     updateRangeSliderAttr() {
 	super.updateRangeSliderAttr();

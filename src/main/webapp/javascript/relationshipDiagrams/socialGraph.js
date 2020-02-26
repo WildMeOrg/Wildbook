@@ -5,7 +5,6 @@
  * 	Defaults to "#socialDiagram". 
  * @param {parser} [obj] - The parser object used to extract node and link data.
  */
-
 function setupSocialGraph(individualId, containerId="#socialDiagram", globals, parser=null) {
     let focusedScale = 1.25;
     let sg = new SocialGraph(individualId, "#familyChart", globals, focusedScale, parser);
@@ -15,8 +14,7 @@ function setupSocialGraph(individualId, containerId="#socialDiagram", globals, p
 //Tree-like graph displaying social and familial relationships for a species
 class SocialGraph extends ForceLayoutAbstract {
     constructor(individualID, containerId, globals, focusedScale, parser=null) {
-	super(individualID, containerId);
-
+	super(individualID, containerId, globals);
 	this.focusedScale = focusedScale;
 	
 	if (parser) this.parser = parser;
@@ -39,9 +37,6 @@ class SocialGraph extends ForceLayoutAbstract {
      * @param {links} [obj list] - A list of link objects queried from the Relationship psql table
      */
     graphSocialData(nodes, links) {
-	console.log("LINKS", links);
-	console.log("NODES", nodes);
-	
 	//Create graph w/ forces
 	if (nodes.length > 0) {
 	    this.setupGraph(links, nodes);
@@ -50,6 +45,9 @@ class SocialGraph extends ForceLayoutAbstract {
 	else this.showTable("#socialDiagram", "#communityTable");
     }
 
+    /**
+     * Updates the maxDepth given {this.focusedNode} context
+     */
     updateRangeSliderAttr() {
 	super.updateRangeSliderAttr();
 
@@ -59,7 +57,13 @@ class SocialGraph extends ForceLayoutAbstract {
 	});
 	this.sliders.nodeDist.max = maxDepth;
     }
-    
+
+    /**
+     * Filters the displayed nodes by their distance from {this.focusedNode}
+     * @param {self} [SocialGraph] - A reference to this class for use in lambdas
+     * @param {thresh} [int] - The maximum geodesic distance allowed
+     * @param {occType} [String] - The type of filter being applied
+     */
     filterByGeodesic(self, thresh, occType) {
 	//Update slider label value
 	let containerRef = $(self.containerId).parent();
@@ -72,12 +76,22 @@ class SocialGraph extends ForceLayoutAbstract {
 	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
     }
 
+    /**
+     * Overrides ForceLayoutAbstract's focusNode method to ensure each node has it's
+     *   depth property updated
+     * @param {node} [Node] - The node to be focused
+     */
     focusNode(node) {
 	this.updateNodeDepths(node, this.linkData, this.nodeData);
 	super.focusNode(node);
     }
 
-    //TODO - Modularize w/ jsonParser
+    /**
+     * Updates the depth of each node via a breadth first search (BFS)
+     * @param {rootNode} [Node] - The starting node for the BFS
+     * @param {links} [list of Links] - Links between nodes to traverse
+     * @param {nodes} [list of Nodes] - Nodes to be visited
+     */
     updateNodeDepths(rootNode, links, nodes) {
 	let nodeDict = listToDict(nodes, "id");
 	let relationships = this.mapRelationships(links);
@@ -104,6 +118,11 @@ class SocialGraph extends ForceLayoutAbstract {
 	this.updateRangeSliders();
     }
 
+    /**
+     * Creates a two-way mapping of all node links
+     * @param {links} [list of Links] - Links between nodes to traverse
+     * @return {relationships} [dict] - Two-way mapping of node links indexed by node ids
+     */
     mapRelationships(links) {
 	let relationships = {};
 	links.forEach(l => {
@@ -119,8 +138,14 @@ class SocialGraph extends ForceLayoutAbstract {
     }
 }
 
-function listToDict(array, keyField) {
-    return array.reduce((obj, item) => {
+/**
+ * Converts a list to a dictionary indexed by the specified {keyField}
+ * @param {list} [list of objs] - List to be converted to a dictionary
+ * @param {keyField} [String] - Obj key to use for the new dictionary's index 
+ * @return {dict} [dict] - Mapping of the list to a dict using the specified {keyField}
+ */
+function listToDict(list, keyField) {
+    return list.reduce((obj, item) => {
 	obj[item[keyField]] = item
 	return obj
     }, {})
