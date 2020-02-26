@@ -309,7 +309,18 @@ Collection col = (Collection)query.execute();
 List<Encounter> encs = new ArrayList<Encounter>(col);
 query.closeAll();
 
+boolean dailyLimit = false;
 if (!isAdmin) {   //filter out ones we made decision on
+    //first check if we reached daily limit, then hack/skip over rest if so
+    query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT COUNT(*) FROM \"DECISION\" WHERE \"USER_UUID_OID\" = '" + user.getUUID() + "' AND \"PROPERTY\" = 'colorPattern' AND \"TIMESTAMP\" > " + (System.currentTimeMillis() - (18L * 60L * 60L * 1000L)));
+    List results = (List)query.execute();
+    Long todaysCount = (Long)results.iterator().next();
+    System.out.println("INFO: queue.jsp shows todaysCount=" + todaysCount + " for " + user.toString());
+    if (todaysCount > 24L) {
+        dailyLimit = true;
+        encs = new ArrayList<Encounter>();  //hack[tm]
+    }
+
     Iterator it = encs.iterator();
     while (it.hasNext()) {
         Encounter e = (Encounter)it.next();
@@ -435,6 +446,10 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 
 <% if (encs.size() < 1) { %>
     <h1>There are no submissions needing attention right now!</h1>
+
+    <% if (dailyLimit) { %>
+        <p>You have reached your <b>daily limit</b> for submissions. Please check back later.</p>
+    <% } %>
 
 <% } else { %>
 <table id="queue-table" xdata-page-size="6" data-height="650" data-toggle="table" data-pagination="false">
