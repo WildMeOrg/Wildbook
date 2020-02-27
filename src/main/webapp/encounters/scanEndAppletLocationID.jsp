@@ -20,11 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List,
-org.ecocean.grid.ScanTask,
-java.util.ArrayList,
-org.json.JSONArray,
-java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
 
 <%
 
@@ -37,26 +33,16 @@ File webappsDir = new File(rootWebappPath).getParentFile();
 File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
+
+
   //session.setMaxInactiveInterval(6000);
-  boolean usaUser = false;
   String num="";
-    ArrayList<String> locationIDs = new ArrayList<String>();
   if(request.getParameter("number")!=null){
 	Shepherd myShepherd=new Shepherd(context);
 	myShepherd.setAction("scanEndApplet.jsp");
 	myShepherd.beginDBTransaction();
 	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
   		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
-	}
-
-	//get any scantask locationID lists
-        String taskID = request.getParameter("taskID");
-        if (taskID == null) taskID = "scan" + (Util.requestParameterSet("rightSide") ? "R" : "L") + num;
-	if(taskID != null) {
-		ScanTask st=myShepherd.getScanTask(taskID);
-		if(st!=null && st.getLocationIDFilters()!=null){
-			locationIDs=st.getLocationIDFilters();
-		}
 	}
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
@@ -82,13 +68,6 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   String Sizelim = "";
   String maxTriangleRotation = "";
   String side2 = "";
-
-  // Local hackety hack to rewrite URLs to Spot A Shark USA version if user has spotasharkusa role
-
-
-  // Part Two hackety hack to switch URLs for US users
-  String linkURLBase = CommonConfiguration.getURLLocation(request);
-
 %>
 <jsp:include page="../header.jsp" flush="true"/>
 
@@ -144,31 +123,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     border: 1px solid black;
     padding: 5px;
 }
-
-#spot-display {}
-.match-side {
-    text-align: center;
-    display: inline-block;
-    position: relative;
-    width: 49%;
-}
-.match-side img {
-    height: 400px;
-}
-.match-side-info {
-    height: 4em;
-    background-color: #DDD;
-}
-
-#match-controls {}
-#match-info {
-    width: 70%;
-    display: inline-block;
-}
-#match-controls input {
-    xdisplay: none;
-}
-
+  
 </style>
 
 
@@ -176,39 +131,39 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <ul id="tabmenu">
   <li><a
-    href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=num%>">Encounter
+    href="encounter.jsp?number=<%=num%>">Encounter
     <%=num%>
   </a></li>
-  
+  <li><a class="active">Locally Filtered Results (Modified Groth)</a></li>
 
   <%
     String fileSider = "";
     File finalXMLFile;
-    File locationIDXMLFile;
+    File grothXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightI3SScan.xml");
-      locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightLocationIDScan.xml");
+      grothXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightScan.xml");
 
 
       side2 = "right";
       fileSider = "&rightSide=true";
-    } else {
+    } 
+    else {
       //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
-      locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
+      grothXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
     }
     
     
-    if (locationIDXMLFile.exists()) {
+    if (grothXMLFile.exists()) {
   %>
 
+  <li><a
+    href="scanEndApplet.jsp?writeThis=true&number=<%=num%>&I3S=true<%=fileSider%>">Modified Groth (Full)</a>
+  </li>
   <%
     }
-    %>
-    
-    <li><a class="active">Modified Groth (Full)</a></li>
-    <%
     
     if (finalXMLFile.exists()) {
   %>
@@ -290,14 +245,14 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <p>
 
-<h2>Modified Groth Scan Results <a
+<h2>Modified Groth Scan Results Filtered to Location<a
   href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
   target="_blank"><img src="../images/information_icon_svg.gif"
                        alt="Help" border="0" align="absmiddle"></a></h2>
 </p>
 <p>The following encounter(s) received the highest
   match values against a <%=side%>-side scan of encounter <a
-    href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
+    href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
 <%
@@ -322,9 +277,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //System.out.println("Base URL is: " + baseURL);
     if (xmlOK) {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        feedURL = baseURL + encSubdir + "/lastFullRightScan.xml?";
+        feedURL = baseURL + encSubdir + "/lastFullRightLocationIDScan.xml?";
       } else {
-        feedURL = baseURL + encSubdir + "/lastFullScan.xml?";
+        feedURL = baseURL + encSubdir + "/lastFullLocationIDScan.xml?";
       }
     }
     String rightSA = "";
@@ -332,120 +287,17 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       rightSA = "&filePrefix=extractRight";
     }
     //System.out.println("I made it to the Flash without exception.");
-/*
-<matchSet scanDate="Thu Jul 22 17:42:02 EDT 2010" R="8" epsilon="0.01" Sizelim="0.9" maxTriangleRotation="30" C="0.99">
-  <match points="162.0" adjustedpoints="0.34394904458598724" pointBreakdown="23 + 19 + 16 + 15 + 14 + 11 + 11 + 11 + 10 + 10 + 8 + 8 + 6 + " finalscore="55.719" logMStdDev="0.02923" evaluation="Moderate">
-    <encounter number="19520090917" date="18/5/2009, 14:00" sex="unsure" assignedToShark="Unassigned" size="7.0 meters" location="Ningaloo Marine Park (Northern)" locationID="1a1">
-      <spot x="173.0" y="106.00000000000001"/>
-      <spot x="170.0" y="315.0"/>
-      <spot x="88.0" y="190.0"/>
-      <spot x="92.0" y="244.00000000000003"/>
-      <spot x="253.0" y="91.0"/>
-      <spot x="195.0" y="194.0"/>
-      <spot x="327.0" y="227.0"/>
-      <spot x="195.0" y="256.0"/>
-      <spot x="88.0" y="145.0"/>
-      <spot x="108.0" y="327.0"/>
-      <spot x="282.0" y="297.0"/>
-      <spot x="81.0" y="101.0"/>
-      <spot x="339.0" y="170.0"/>
-    </encounter>
-    <encounter number="2272010153941"
-*/
   %>
-
-<script>
-var subdirPrefix = '/<%=shepherdDataDir.getName()%>/encounters';
-var xmlFile = subdirPrefix + '/<%=encSubdir%>/<%=file.getName()%>';
-var xmlData = null;
-var jsonData = [];
-var rightSide = <%=side2.equals("right")%>;
-var currentCompare = 0;
-$(document).ready(function() {
-    $.ajax({
-        url: xmlFile,
-        dataType: 'xml',
-        type: 'GET',
-        complete: function(xhr) {
-            console.info(xhr);
-            if (!xhr || (xhr.status != 200) || !xhr.responseXML) {
-                var errorMsg = 'Unknown error';
-                if (xhr) errorMsg = xhr.status + ' - ' + xhr.statusText
-                $('#spot-display').html('<h1 class="error">Unable to fetch data: ' + errorMsg + '</h1>');
-            } else {
-                xmlData = $(xhr.responseXML);
-                spotDisplayInit(xmlData);
-            }
-        }
-    });
-});
-
-function spotDisplayInit(xml) {
-    xmlData.find('match').each(function(i, el) {
-        var m = xmlAttributesToJson(el);
-        m.encounters = [];
-        for (var j = 0 ; j < el.children.length ; j++) {
-            var e = xmlAttributesToJson(el.children[j]);
-            e.imgUrl = subdirPrefix + '/' + e.number + '/extract' + (rightSide ? 'Right' : '') + e.number + '.jpg';
-            e.spots = [];
-            for (var i = 0 ; i < el.children[j].children.length ; i++) {
-                e.spots.push(xmlAttributesToJson(el.children[j].children[i]));
-            }
-            m.encounters.push(e);
-        }
-        jsonData.push(m);
-    });
-    spotDisplayPair(0);
-}
-
-function xmlAttributesToJson(el) {
-    var j = {};
-    for (var i = 0 ; i < el.attributes.length ; i++) {
-        j[el.attributes[i].name] = el.attributes[i].value;
-    }
-    return j;
-}
-
-function spotDisplayPair(mnum) {
-    if (!jsonData[mnum] || !jsonData[mnum].encounters || (jsonData[mnum].encounters.length != 2)) return;
-    for (var i = 0 ; i < 2 ; i++) {
-        spotDisplaySide(i, jsonData[mnum].encounters[i]);
-    }
-}
-
-function spotDisplaySide(side, data) {
-console.log('spotDisplaySide ==> %i %o', side, data);
-    $('#match-side-' + side + ' img').prop('src', data.imgUrl);
-}
-
-</script>
-    
-<div id="spot-display">
-    <div class="match-side" id="match-side-0">
-        <img />
-        <div class="match-side-info"></div>
-    </div>
-    <div class="match-side" id="match-side-1">
-        <img />
-        <div class="match-side-info"></div>
-    </div>
-    <div id="match-controls">
-        <div id="match-info"></div>
-        <input id="match-button-prev" type="button" value="previous" onClick="return spotDisplayButton(-1)" />
-        <input id="match-button-next" type="button" value="next" onClick="return spotDisplayButton(1)" />
-    </div>
-</div>
-
   <OBJECT id=sharkflash
           codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
           height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
     <PARAM NAME="movie"
-           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=linkURLBase%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
+           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
     <PARAM NAME="qualidty" VALUE="high">
     <PARAM NAME="scale" VALUE="exactfit">
     <PARAM NAME="bgcolor" VALUE="#ddddff">
     <EMBED
-      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=linkURLBase%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
+      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
       quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
       WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
       TYPE="application/x-shockwave-flash"
@@ -453,7 +305,7 @@ console.log('spotDisplaySide ==> %i %o', side, data);
   </OBJECT>
 </p>
   
-      <a name="resultstable"></a>
+      <a name="resultstable"/>
       
       <table class="tablesorter" width="800px">
       <thead>
@@ -481,14 +333,14 @@ console.log('spotDisplaySide ==> %i %o', side, data);
         <tr>
           <td>
             <a
-                  href="//<%=linkURLBase%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
                 </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="//<%=linkURLBase%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
           </a></td>
           <%
             }
@@ -529,7 +381,6 @@ console.log('spotDisplaySide ==> %i %o', side, data);
           root = doc.getRootElement();
 
           Iterator matchsets = root.elementIterator("match");
-            int ct = 0;
           while (matchsets.hasNext()) {
             Element match = (Element) matchsets.next();
             List encounters = match.elements("encounter");
@@ -537,18 +388,16 @@ console.log('spotDisplaySide ==> %i %o', side, data);
             Element enc2 = (Element) encounters.get(1);
         %>
         
-        <tr id="table-row-<%=ct%>" align="left" valign="top"
-class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
- style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
+        <tr align="left" valign="top">
           <td>
-            <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
             	<%=enc1.attributeValue("assignedToShark")%>
             </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
-          <td><a target="_new" title="open Encounter"
+          <td><a
             href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
           </a></td>
           <%
@@ -620,7 +469,6 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
         <%
 
 
-        ct++;
             }
           }
 

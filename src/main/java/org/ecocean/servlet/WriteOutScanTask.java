@@ -114,10 +114,35 @@ public class WriteOutScanTask extends HttpServlet {
         }
         
 
-        boolean successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context);
+        boolean successfulWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context,"");
 
         boolean successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
 
+        boolean successfulLocationIDWrite=false;
+        
+        //let's write out the results for the same locationID
+        if((st2.getLocationIDFilters()!=null)&&(st2.getLocationIDFilters().size()>0)) {
+          ArrayList<MatchObject> resLocationID = gm.getMatchObjectsForTask(taskID);
+          ArrayList<String> locs=st2.getLocationIDFilters();
+          int resSize=resLocationID.size();
+          for(int f=0;f<resSize;f++) {
+            if(resLocationID.size()<25) {
+              String moEncNum=resLocationID.get(f).getEncounterNumber();
+              Encounter localEnc=myShepherd.getEncounter(moEncNum);
+              if(localEnc!=null && localEnc.getLocationID()!=null && locs.contains(localEnc.getLocationID())) {
+                resLocationID.add(resLocationID.get(f));
+              }
+            }
+          }
+          
+          if(resLocationID.size()>0) {
+            successfulLocationIDWrite = writeResult(res, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context,"LocationID");
+
+          }
+          
+        }
+        
+        
         //write out the boosted results
         //if(request.getParameter("boost")!=null){
         //    Properties props = new Properties();
@@ -163,7 +188,7 @@ public class WriteOutScanTask extends HttpServlet {
 
   }
 
-  public boolean writeResult(MatchObject[] swirs, String num, String R, String epsilon, String Sizelim, String maxTriangleRotation, String C, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd, String context) {
+  public boolean writeResult(MatchObject[] swirs, String num, String R, String epsilon, String Sizelim, String maxTriangleRotation, String C, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd, String context, String fileCustomizationString) {
 
 
     try {
@@ -296,7 +321,7 @@ public class WriteOutScanTask extends HttpServlet {
       
       
       //File file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFull"+fileAddition+"Scan.xml");
-      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + "Scan.xml");
+      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastFull" + fileAddition + fileCustomizationString +"Scan.xml");
       
       
       System.out.println("Writing scanTask XML file to: "+file.getAbsolutePath());
@@ -508,119 +533,8 @@ public class WriteOutScanTask extends HttpServlet {
   }
 
 
-/***   commented out (not called .. yet!) 2014-06-09 jon (via jason)
+  
 
-  public boolean writeBoostedResult(String encNumber, MatchObject[] swirs, String num, String newEncDate, String newEncShark, String newEncSize, boolean rightSide, double cutoff, Shepherd myShepherd, Properties props) {
-
-    try {
-      System.out.println("Prepping to write XML file for encounter " + num);
-
-      //now setup the XML write for the encounter
-      int resultsSize = swirs.length;
-      MatchObject[] matches = swirs;
-
-      // TODO: fix!
-      //Arrays.sort(matches, new BoostComparator(encNumber, myShepherd, props));
-      StringBuffer resultsXML = new StringBuffer();
-      Document document = DocumentHelper.createDocument();
-      Element root = document.addElement("matchSet");
-      root.addAttribute("scanDate", (new java.util.Date()).toString());
-      for (int i = 0; i < matches.length; i++) {
-        MatchObject mo = matches[i];
-        try {
-          double boostMatchScore = (new Double(props.getProperty(mo.getEncounterNumber()))).doubleValue();
-          double boostNotScore = (new Double(props.getProperty(("not" + mo.getEncounterNumber())))).doubleValue();
-          if (boostMatchScore >= -1) {
-
-            Element match = root.addElement("match");
-            //match.addAttribute("points", (new Double(mo.getMatchValue())).toString());
-            //match.addAttribute("adjustedpoints", (new Double(mo.getAdjustedMatchValue())).toString());
-            //match.addAttribute("pointBreakdown", mo.getPointBreakdown());
-            String finalscore = (new Double(boostMatchScore)).toString();
-            if (finalscore.length() > 7) {
-              finalscore = finalscore.substring(0, 6);
-            }
-            match.addAttribute("matchScore", finalscore);
-            match.addAttribute("finalscore", finalscore);
-            String finalscore2 = (new Double(boostNotScore)).toString();
-            if (finalscore2.length() > 7) {
-              finalscore2 = finalscore2.substring(0, 6);
-            }
-            match.addAttribute("notScore", finalscore2);
-
-            //match.addAttribute("evaluation", mo.getEvaluation());
-            Element enc = match.addElement("encounter");
-            enc.addAttribute("number", mo.getEncounterNumber());
-            enc.addAttribute("date", mo.getDate());
-            
-            
-            if(mo.getSex()!=null){enc.addAttribute("sex", mo.getSex());}
-            else{enc.addAttribute("sex", "unknown");}
-            
-            enc.addAttribute("assignedToShark", mo.getIndividualName());
-            enc.addAttribute("size", ((new Double(mo.getSize())).toString() + " meters"));
-            //	vertexPointMatch[] firstScores=mo.getScores();
-
-            Element enc2 = match.addElement("encounter");
-            enc2.addAttribute("number", num);
-            enc2.addAttribute("date", newEncDate);
-            enc2.addAttribute("sex", mo.getNewSex());
-            enc2.addAttribute("assignedToShark", newEncShark);
-            enc2.addAttribute("size", (newEncSize + " meters"));
-
-            //let's find the keywords in common
-            ArrayList keywords = myShepherd.getKeywordsInCommon(mo.getEncounterNumber(), num);
-            int keywordsSize = keywords.size();
-            if (keywordsSize > 0) {
-              Element kws = match.addElement("keywords");
-              for (int y = 0; y < keywordsSize; y++) {
-                Element keyword = kws.addElement("keyword");
-                keyword.addAttribute("name", ((String) keywords.get(y)));
-              }
-            }
-
-
-          } //end if
-
-        } catch (NullPointerException npe) {
-          npe.printStackTrace();
-          //System.out.println("npe on: "+mo.getEncounterNumber());
-        }
-
-      } //end for
-
-
-      //prep for writing out the XML
-
-      //in case this is a right-side scan, change file name to save to
-      String fileAddition = "";
-      if (rightSide) {
-        fileAddition = "Right";
-      }
-
-      //setup data dir
-      String rootWebappPath = getServletContext().getRealPath("/");
-      File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName("context0"));  //TODO need real context!
-      //File file = new File(getServletContext().getRealPath(("/encounters/" + num + "/lastBoost" + fileAddition + "Scan.xml")));
-      File file = new File(Encounter.dir(shepherdDataDir, num) + "/lastBoost" + fileAddition + "Scan.xml");
-
-
-      FileWriter mywriter = new FileWriter(file);
-      org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
-      format.setLineSeparator(System.getProperty("line.separator"));
-      org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(mywriter, format);
-      writer.write(document);
-      writer.close();
-      System.out.println("Successful write.");
-      return true;
-    } catch (Exception e) {
-      e.printStackTrace();
-      return false;
-    }
-  } //end writeResult method
-
-*/
 
 
 }
