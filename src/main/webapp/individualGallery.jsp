@@ -35,12 +35,13 @@ if (indiv == null) {
 
 
 int matchPhoto = -1;
+boolean secondary = Util.requestParameterSet(request.getParameter("secondary"));
 try {
     matchPhoto = Integer.parseInt(request.getParameter("matchPhotoAssetId"));
 } catch (Exception ex) {}
 
 if (admin && (matchPhoto > 0)) {
-    SystemValue.set(myShepherd, "MatchPhoto_" + id, matchPhoto);
+    SystemValue.set(myShepherd, "MatchPhoto" + (secondary ? "2" : "") + "_" + id, matchPhoto);
     out.println("{\"success\": true, \"assetId\": " + matchPhoto + "}");
     myShepherd.commitDBTransaction();
     return;
