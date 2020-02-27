@@ -230,13 +230,16 @@ public class Shepherd {
   }
 
 
-  public boolean storeNewTask(ScanTask task) {
-    //beginDBTransaction();
+  public boolean storeNewScanTask(ScanTask scanTask) {
+    beginDBTransaction();
     try {
-      pm.makePersistent(task);
+      pm.makePersistent(scanTask);
+      commitDBTransaction();
       return true;
     } catch (Exception e) {
-      System.out.println("I failed to store the new task number: " + task.getUniqueNumber());
+      rollbackDBTransaction();
+      e.printStackTrace();
+      System.out.println("I failed to store the new ScanTask number: " + scanTask.getUniqueNumber());
       return false;
     }
 
