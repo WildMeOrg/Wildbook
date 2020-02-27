@@ -1,3 +1,13 @@
+<%@ page contentType="text/html; charset=utf-8" language="java"
+     import="org.ecocean.ShepherdProperties,
+org.json.JSONObject,
+             org.ecocean.servlet.ServletUtilities,
+             org.ecocean.CommonConfiguration,
+             org.ecocean.Shepherd,
+             org.ecocean.Encounter
+              "
+%>
+
 <html><head>
 <title>
 kitizen science : matchTester
@@ -114,10 +124,42 @@ sex: [
 };
 
 var matchData = null;
-var encId = '<%=((request.getParameter("spoofId") != null) ? request.getParameter("spoofId") : "b1e06c13-43d6-4299-a612-1a3f4ecc33e2")%>';
+
+<%
+String encId = request.getParameter("spoofId");
+if (encId == null) encId = "b1e06c13-43d6-4299-a612-1a3f4ecc33e2";
+String context="context0";
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("matchTester.jsp");
+myShepherd.beginDBTransaction();
+Encounter enc = myShepherd.getEncounter(encId);
+
+JSONObject attrs = new JSONObject();
+JSONObject indivJson = new JSONObject();
+if (enc != null) {
+    attrs.put("colorPattern", enc.getPatterningCode());
+    attrs.put("earTip", enc.getEarTip());
+    attrs.put("collar", enc.getCollar());
+    attrs.put("sex", enc.getSex());
+    attrs.put("lifeStage", enc.getLifeStage());
+    attrs.put("_name", enc.getEventID());
+    indivJson.put("id", enc.getIndividualID());
+    indivJson.put("name", enc.getIndividual().getDisplayName());
+}
+
+
+
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+%>
+
+var encId = '<%=encId%>';
+var indiv = <%=indivJson.toString(4)%>;
+var spoofAttr = <%=attrs.toString(4)%>;
 
 $(document).ready(function() {
-    $('#enc-info').html('<a target="_new" href="encounters/encounter.jsp?number=' + encId + '">' + encId + '</a>');
+    $('#enc-info').html('<a target="_new" href="encounters/encounter.jsp?number=' + encId + '">' + encId + ' (' + spoofAttr._name + ')</a>');
+    $('#indiv-info').html('<a target="_new" href="individuals.jsp?id=' + indiv.id + '">' + indiv.id + ' (' + indiv.name + ')</a>');
     $('#code').text(matchScore.toString());
 
     var h = '';
@@ -125,7 +167,7 @@ $(document).ready(function() {
         h += '<div class="prop"><b>' + attr + '</b><br />';
         h += '<select name="' + attr + '" id="' + attr + '">';
         for (var i = 0 ; i < props[attr].length ; i++) {
-            h += '<option>' + props[attr][i] + '</option>';
+            h += '<option' + ((spoofAttr[attr] == props[attr][i]) ? ' selected' : '') + '>' + props[attr][i] + '</option>';
         }
         h += '</select>';
         h += '</div>'
@@ -141,7 +183,7 @@ function matchScore(mdata, udata) {
     if (mdata.matches.lifeStage) score += 1.0;
     if (mdata.matches.colorPattern) score += 4.0;
     if (mdata.matches.sex) score += 1.0;
-    if (mdata.distance) score += (10 / mdata.distance);
+    if (mdata.distance) score += Math.pow(500 / mdata.distance, 2);
     return Math.round(score * 100) / 100;
 }
 
@@ -214,7 +256,7 @@ function displayMatch(ct, m) {
 </head>
 <body>
 <div id="attributes">
-<p>spoofing as <b id="enc-info"></b> (will be skipped)</p>
+<p>spoofing as Encounter <b id="enc-info"></b> (will be skipped)<br /><i>cat:</i> <b id="indiv-info"></b></p>
 
     <div id="pulldowns"></div>
 <input id="go-button" type="button" value="find matches" onclick="findMatches();" />
