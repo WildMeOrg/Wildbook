@@ -14,6 +14,10 @@ private static String niceNull(Integer val) {
     if (val == null) return "-";
     return val.toString();
 }
+private static String niceNull(String val) {
+    if (val == null) return "-";
+    return val;
+}
 %>
 
 <%
@@ -317,18 +321,29 @@ context=ServletUtilities.getContext(request);
                         <%=niceNull(occ.getGroupSize())%><br />
 			&nbsp; <%=props.getProperty("numAdults") %>: 
                         <%=niceNull(occ.getNumAdults())%><br />
+			&nbsp; <%=props.getProperty("numAdultFemales") %>: 
+                        <%=niceNull(occ.getNumAdultFemales())%><br />
+			&nbsp; <%=props.getProperty("numAdultMales") %>: 
+                        <%=niceNull(occ.getNumAdultMales())%><br />
 			&nbsp; <%=props.getProperty("numSubAdults") %>: 
                         <%=niceNull(occ.getNumSubAdults())%><br />
+			&nbsp; <%=props.getProperty("numSubFemales") %>: 
+                        <%=niceNull(occ.getNumSubFemales())%><br />
+			&nbsp; <%=props.getProperty("numSubMales") %>: 
+                        <%=niceNull(occ.getNumSubMales())%><br />
 			&nbsp; <%=props.getProperty("numCalves") %>: 
                         <%=niceNull(occ.getNumCalves())%>
-
                 </p>
 
                 <p>
 			<%=props.getProperty("bearing") %>: 
                         <%=niceNull(occ.getBearing())%><br />
 			<%=props.getProperty("distance") %>: 
-                        <%=niceNull(occ.getDistance())%>
+                        <%=niceNull(occ.getDistance())%><br />
+			<%=props.getProperty("vegetation") %>: 
+                        <%=niceNull(occ.getVegetation())%><br />
+			<%=props.getProperty("terrain") %>: 
+                        <%=niceNull(occ.getTerrain())%>
                 </p>
 
 		<p style="display: none;">
