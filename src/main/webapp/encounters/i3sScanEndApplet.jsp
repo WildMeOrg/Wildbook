@@ -235,6 +235,7 @@ td, th {
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
 
     }
+
     if (finalXMLFile.exists()) {
   %>
   <li><a
