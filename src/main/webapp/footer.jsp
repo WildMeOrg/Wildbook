@@ -22,32 +22,27 @@
               <div class="container main-section">
 
                  <div class="row">        
-                    <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
+                    <div class="col-xs-3 col-sm-3 col-md-3" style="margin-top:10px;">
                       <a target="_blank" href="http://www.boi.ucsb.edu">                                             
 	                      <img class="img-responsive" alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg"/>
                       </a>
                     </div>
-                    <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
+                    <div class="col-xs-2 col-sm-2 col-md-2" style="margin-top:10px;">
                       <a target="_blank" href="http://lovelab.msi.ucsb.edu/">                      
                         <img class="img-responsive" alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/love_lab_logo-little.png"/>
                       </a>
                     </div>
-                    <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
+                    <div class="col-xs-2 col-sm-2 col-md-2" style="margin-top:10px;">
                   	  <a target="_blank" href="http://www.aquariumofpacific.org/">
                         <img class="img-responsive" alt="aop logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/Aop_logo.svg"/>
                       </a>
                     </div>
-                    <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
-                  	  <a target="_blank" href="http://sbc.marinebon.org/">
-                        <img class="img-responsive" alt="mbon logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/MBON-Logo-Color_tight.svg"/>
-                      </a>
-                    </div>
-                  	<div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
+                  	<div class="col-xs-2 col-sm-2 col-md-2" style="margin-top:10px;">
                   	  <a target="_blank" href="http://msi.ucsb.edu/">
                         <img class="img-responsive" alt="msi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/msi_logo_centered.png"/>
                       </a>
                     </div>
-                    <div class="col-xs-4 col-sm-2 col-md-2" style="margin-top:10px;">
+                    <div class="col-xs-3 col-sm-3 col-md-3" style="margin-top:10px;">
                       <a target="_blank" href="http://www.wildbook.org" title="This site is Powered by Wildbook">
                         <img class="img-responsive" src="<%=urlLoc%>/images/WildBook_logo_footer.png" alt="wildbook logo"/>
                       </a> 
