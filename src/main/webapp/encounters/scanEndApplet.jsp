@@ -20,7 +20,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List,
+org.ecocean.grid.ScanTask,
+java.util.ArrayList,
+org.json.JSONArray,
+java.util.Vector" %>
 
 <%
 
@@ -37,12 +41,21 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
   //session.setMaxInactiveInterval(6000);
   String num="";
+    ArrayList<String> locationIDs = new ArrayList<String>();
   if(request.getParameter("number")!=null){
 	Shepherd myShepherd=new Shepherd(context);
 	myShepherd.setAction("scanEndApplet.jsp");
 	myShepherd.beginDBTransaction();
 	if(myShepherd.isEncounter(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number")))){
   		num = ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("number"));
+	}
+
+	//get any scantask locationID lists
+	if(request.getParameter("taskID")!=null){
+		ScanTask st=myShepherd.getScanTask(request.getParameter("taskID").trim());
+		if(st!=null && st.getLocationIDFilters()!=null){
+			locationIDs=st.getLocationIDFilters();
+		}
 	}
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
@@ -122,6 +135,11 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   td, th {
     border: 1px solid black;
     padding: 5px;
+}
+
+.tr-location-nonlocal {
+    opacity: 0.6;
+    display: none;
 }
 
 .match-side-img-wrapper {
@@ -232,6 +250,18 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
     }
+    
+    
+    if (locationIDXMLFile.exists()) {
+  %>
+
+  <%
+    }
+    %>
+    
+    <li><a class="active">Modified Groth (Full)</a></li>
+    <%
+    
     if (finalXMLFile.exists()) {
   %>
 
@@ -387,12 +417,16 @@ out.println("</style>");
   %>
 
 <script>
+var localLocationIds = <%=new JSONArray(locationIDs)%>;
+var localOnly = [];  //pointers into jsonData
+var usingLocal = true;
 var subdirPrefix = '/<%=shepherdDataDir.getName()%>/encounters';
 var xmlFile = subdirPrefix + '/<%=encSubdir%>/<%=file.getName()%>';
 var xmlData = null;
 var jsonData = [];
 var rightSide = <%=side2.equals("right")%>;
 var currentPair = 0;
+var pageOffset = 0;
 $(document).ready(function() {
     $.ajax({
         url: xmlFile,
@@ -412,11 +446,18 @@ $(document).ready(function() {
     });
 });
 
+function overlaps(arr1, arr2) {
+    // h/t https://medium.com/@alvaro.saburido/set-theory-for-arrays-in-es6-eb2f20a61848
+    return arr1.filter(x => arr2.includes(x)).length;
+}
+
 function hashDir(dir) {
     if (dir.length != 36) return dir;
     return dir.substr(0,1) + '/' + dir.substr(1,1) + '/' + dir;
 }
+
 function spotDisplayInit(xml) {
+    var joff = 0;
     xmlData.find('match').each(function(i, el) {
         var m = xmlAttributesToJson(el);
         m.encounters = [];
@@ -427,11 +468,23 @@ function spotDisplayInit(xml) {
             for (var i = 0 ; i < el.children[j].children.length ; i++) {
                 e.spots.push(xmlAttributesToJson(el.children[j].children[i]));
             }
+            if (j == 0) {
+                m.isLocal = localLocationIds.includes(e.locationID);
+                e.isLocal = m.isLocal;
+                if (m.isLocal) localOnly.push(joff);
+            }
             m.encounters.push(e);
         }
         jsonData.push(m);
+        joff++;
     });
-    spotDisplayPair(0);
+    if (localOnly.length) {
+        toggleLocalMode(true);
+    } else {
+        toggleLocalMode(false);
+        $('#mode-message').html('Showing all matches. (None match locally.)');
+        $('#mode-button-local').hide();
+    }
 }
 
 function xmlAttributesToJson(el) {
@@ -444,23 +497,40 @@ function xmlAttributesToJson(el) {
 
 function spotDisplayPair(mnum) {
     if (!jsonData[mnum] || !jsonData[mnum].encounters || (jsonData[mnum].encounters.length != 2)) return;
+    var max = (usingLocal ? localOnly.length : jsonData.length);
     currentPair = mnum;
+    setPageOffsetFromCurrentPair();
+console.log('currentPair=%d, pageOffset=%d (usingLocal = %o)', currentPair, pageOffset, usingLocal);
     $('.table-row-highlight').removeClass('table-row-highlight');
     $('#table-row-' + mnum).addClass('table-row-highlight');
     for (var i = 0 ; i < 2 ; i++) {
         spotDisplaySide(1 - i, jsonData[mnum].encounters[i]);
     }
-    if (mnum < 1) {
+    if (pageOffset < 1) {
         $('#match-button-prev').hide();
     } else {
         $('#match-button-prev').show();
     }
-    if (mnum >= jsonData.length - 1) {
+    if (pageOffset >= max - 1) {
         $('#match-button-next').hide();
     } else {
         $('#match-button-next').show();
     }
-    $('#match-info').html('Match score: <b>' + jsonData[mnum].finalscore + '</b> (Match ' + (mnum+1) + ' of ' + jsonData.length + ')');
+    $('#match-info').html('Match score: <b>' + jsonData[mnum].finalscore + '</b> (Match ' + (pageOffset+1) + ' of ' + max + ')');
+}
+
+function setPageOffsetFromCurrentPair() {
+    if (!usingLocal) {
+        pageOffset = currentPair;
+    } else {
+        pageOffset = 0;
+        for (var i = 0 ; i < localOnly.length ; i++) {
+            if (localOnly[i] == currentPair) {
+                pageOffset = i;
+                return;
+            }
+        }
+    }
 }
 
 var attrOrder = ['number', 'date', 'sex', 'assignedToShark', 'size', 'location', 'locationID'];
@@ -489,9 +559,15 @@ console.log('spotDisplaySide ==> %i %o', side, data);
 }
 
 function spotDisplayButton(delta) {
-    currentPair += delta;
-    if (currentPair < 0) currentPair = jsonData.length;
-    if (currentPair > jsonData.length - 1) currentPair = 0;
+    pageOffset += delta;
+    var max = (usingLocal ? localOnly.length : jsonData.length);
+    if (pageOffset < 0) pageOffset = max;
+    if (pageOffset > (max - 1)) pageOffset = 0;
+    if (usingLocal) {
+        currentPair = localOnly[pageOffset];
+    } else {
+        currentPair = pageOffset;
+    }
     spotDisplayPair(currentPair);
 }
 
@@ -517,6 +593,24 @@ console.log('done %o %o', img, encI);
         wrapper.append(sp);
     }
 }
+
+function toggleLocalMode(mode) {
+    if (mode && !localOnly.length) return;
+    usingLocal = mode;
+    if (mode) {
+        $('#mode-message').html('Showing only matches with locations in: <b>' + localLocationIds.join(', ') + '</b>');
+        $('.tr-location-nonlocal').hide();
+        $('#mode-button-local').hide();
+        $('#mode-button-all').show();
+    } else {
+        $('.tr-location-nonlocal').show();
+        $('#mode-message').html('Showing all matches');
+        $('#mode-button-local').show();
+        $('#mode-button-all').hide();
+    }
+    pageOffset = 0;
+    spotDisplayPair(0);
+}
 </script>
     
 <div id="spot-display">
@@ -541,14 +635,18 @@ console.log('done %o %o', img, encI);
     </div>
 </div>
 
+<div>
+    <div id="mode-message"></div>
+    <input type="button" id="mode-button-local" value="Show only nearby matches" onClick="return toggleLocalMode(true);"/>
+    <input type="button" id="mode-button-all" value="Show all matches" onClick="return toggleLocalMode(false);"/>
+</div>
 </p>
   
-      <a name="resultstable"/>
+      <a name="resultstable"></a>
       
       <table class="tablesorter" width="800px">
       <thead>
         <tr align="left" valign="top">
-          <th><strong>#</strong></th>
           <th><strong>Individual ID</strong></th>
           <th><strong> Encounter</strong></th>
           <th><strong>Fraction Matched Triangles </strong></th>
@@ -628,17 +726,18 @@ console.log('done %o %o', img, encI);
             Element enc2 = (Element) encounters.get(1);
         %>
         
-        <tr id="table-row-<%=ct%>" align="left" valign="top">
-<td style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair"><%=(ct+1)%></td>
+        <tr id="table-row-<%=ct%>" align="left" valign="top"
+class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
+ style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
           <td>
-            <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
             	<%=enc1.attributeValue("assignedToShark")%>
             </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
-          <td><a
+          <td><a target="_new" title="open Encounter"
             href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
           </a></td>
           <%
