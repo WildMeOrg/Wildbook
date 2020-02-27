@@ -24,6 +24,7 @@ package org.ecocean.grid;
 import org.ecocean.Shepherd;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Properties;
 import java.util.Vector;
@@ -57,6 +58,7 @@ public class ScanTask implements Serializable {
   private int numCollisions = 0;
   private boolean started = false;
   private int numComparisons = Integer.MAX_VALUE;
+  private ArrayList<String> locationIDFilters = new ArrayList<String>();
 
 
   /**
@@ -365,6 +367,15 @@ public class ScanTask implements Serializable {
 
   public void setStarted(boolean value) {
     started = value;
+  }
+  
+  public void setLocationIDFilters(ArrayList<String> locationIDs) {this.locationIDFilters=locationIDs;}
+  
+  public ArrayList<String> getLocationIDFilters(){return locationIDFilters;}
+  
+  public void addLocationIDToFilter(String locID) {
+    if(locationIDFilters==null)locationIDFilters=new ArrayList<String>();
+    locationIDFilters.add(locID);
   }
 
 

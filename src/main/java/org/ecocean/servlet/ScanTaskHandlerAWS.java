@@ -209,6 +209,17 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 							
 							st.setNumComparisons(numComparisons-1);
 							
+							//check for locationID filters
+							if(request.getParameterValues("locationID")!=null) {
+							  String[] locIDs=request.getParameterValues("locationID");
+							  for(int d=0;d<locIDs.length;d++) {
+							    if((locIDs[d]!=null)&&(!locIDs[d].trim().equals("")))st.addLocationIDToFilter(locIDs[d].trim());
+							  }
+							}
+							else if(enc.getLocationID()!=null) {
+							  st.addLocationIDToFilter(enc.getLocationID());
+							}
+							
 							if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 							System.out.println("scanTaskHandler: About to create a scanTask...");
 							successfulStore=myShepherd.storeNewTask(st);
