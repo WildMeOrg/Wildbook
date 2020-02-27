@@ -208,7 +208,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 							st=new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
 							
-							st.setNumComparisons(numComparisons-1);
+							//st.setNumComparisons(numComparisons-1);
 							
 							//check for locationID filters
 							if(request.getParameterValues("locationID")!=null) {
@@ -229,7 +229,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 							
 							if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 							System.out.println("scanTaskHandler: About to create a scanTask...");
-							successfulStore=myShepherd.storeNewTask(st);
+							successfulStore=myShepherd.storeNewScanTask(st);
 							if(!successfulStore){
 
 								System.out.println("scanTaskHandler: Unsuccessful store...");
@@ -247,7 +247,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 								
 								//let the GridManager know the size
 								System.out.println("Setting GM scanTaskSize: "+taskIdentifier+": "+numComparisons);
-								gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
+								//gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
 								
 							}
 						}
@@ -278,14 +278,14 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					                    numComparisons=gm.getNumLeftPatterns();
 					                  }
 					                  st.setFinished(false);
-					                  st.setNumComparisons(numComparisons-1);
+					                  //st.setNumComparisons(numComparisons-1);
 					                  es.execute(new ScanTaskCleanupThread(taskIdentifier));
 					                  successfulStore=true;
 					                  System.out.println("I have kicked off the cleanup thread.");
 
 					                //let the GridManager know the size
 					                  System.out.println("Setting GM scanTaskSize: "+taskIdentifier+": "+numComparisons);
-					                  gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
+					                  //gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
 					                  
 					                  
 					                }
@@ -499,7 +499,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 						if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 						System.out.println("scanTaskHandler: About to create a TuningTask...");
-						successfulStore=myShepherd.storeNewTask(st);
+						successfulStore=myShepherd.storeNewScanTask(st);
 						if(!successfulStore){
 
 							System.out.println("scanTaskHandler: Unsuccessful TuningTask store...");
@@ -675,7 +675,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 						st.setNumComparisons(numComparisons);
 						if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 						System.out.println("scanTaskHandler: About to create a TuningTask...");
-						successfulStore=myShepherd.storeNewTask(st);
+						successfulStore=myShepherd.storeNewScanTask(st);
 						if(!successfulStore){
 
 							System.out.println("scanTaskHandler: Unsuccessful FalseMatchTask store...");
