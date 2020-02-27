@@ -125,21 +125,30 @@ public class WriteOutScanTask extends HttpServlet {
           ArrayList<MatchObject> resLocationID = gm.getMatchObjectsForTask(taskID);
           ArrayList<String> locs=st2.getLocationIDFilters();
           ArrayList<MatchObject> filtered=new ArrayList<MatchObject>();
-          int resSize=resLocationID.size();
+          
+          MatchObject[] resLoc2 = new MatchObject[0];
+          resLoc2 = resLocationID.toArray(resLoc2);
+          Arrays.sort(resLoc2, new MatchComparator());
+          
+          int resSize=resLoc2.length;
           for(int f=0;f<resSize;f++) {
-            if(resLocationID.size()<25) {
-              String moEncNum=resLocationID.get(f).getEncounterNumber();
-              Encounter localEnc=myShepherd.getEncounter(moEncNum);
-              if(localEnc!=null && localEnc.getLocationID()!=null && locs.contains(localEnc.getLocationID())) {
-                filtered.add(resLocationID.get(f));
+              if(filtered.size()<50) {
+                String moEncNum=resLoc2[f].getEncounterNumber();
+                Encounter localEnc=myShepherd.getEncounter(moEncNum);
+                if(localEnc!=null && localEnc.getLocationID()!=null && locs.contains(localEnc.getLocationID())) {
+                  filtered.add(resLoc2[f]);
+                  //System.out.println("        Found a "+localEnc.getLocationID()+" encounter! ("+filtered.size()+")");
+                }
               }
-            }
+
           }
           
           if(filtered.size()>0) {
             
-            MatchObject[] resLoc = new MatchObject[0];
+            MatchObject[] resLoc = new MatchObject[filtered.size()];
             resLoc = filtered.toArray(resLoc);
+            Arrays.sort(resLoc, new MatchComparator());
+            //System.out.println("resLoc="+resLoc.length+"; filtered="+filtered.size());
             successfulLocationIDWrite = writeResult(resLoc, encNumber, CommonConfiguration.getR(context), CommonConfiguration.getEpsilon(context), CommonConfiguration.getSizelim(context), CommonConfiguration.getMaxTriangleRotation(context), CommonConfiguration.getC(context), newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd,context,"LocationID");
 
           }
