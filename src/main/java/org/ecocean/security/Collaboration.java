@@ -355,6 +355,10 @@ public class Collaboration implements java.io.Serializable {
 		return canUserAccessOwnedObject(occ.getSubmitterID(), request);
 	}
 
+	public static boolean canUserEditMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
+		if (!canUserAccessMarkedIndividual(mi, request)||request.isUserInRole("all-readonly")) return false;
+		return true;
+	}
 
 	public static boolean canUserAccessMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
   	Vector<Encounter> all = mi.getEncounters();
