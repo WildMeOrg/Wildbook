@@ -379,6 +379,17 @@ public class ServletUtilities {
   public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request) {
     boolean isOwner = false;
     //if (request.isUserInRole("admin")) {
+
+    Shepherd myShepherd = null; 
+    try {
+      String context = getContext(request);
+      myShepherd = new Shepherd(context);
+      if (myShepherd.doesUserHaveRole(request.getRemoteUser(),"all-readonly", context)) return false;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    myShepherd.closeDBTransaction();
+
     if (request.getUserPrincipal()!=null) {
       if (request.isUserInRole("admin")) {
         isOwner = true;
