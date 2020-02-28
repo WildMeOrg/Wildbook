@@ -760,12 +760,52 @@ function saveMatchChoice() {
 function matchScore(mdata, udata) {
     //if (udata.colorPattern != mdata.colorPattern) return -1;  //dealbreaker
     var score = 1;
-    if (mdata.matches.earTip) score += 0.5;
-    if (mdata.matches.collar) score += 1.1;
-    if (mdata.matches.lifeStage) score += 0.7;
-    if (mdata.matches.colorPattern) score += 1.5;
-    if (mdata.matches.sex) score += 1.2;
-    if (mdata.distance) score += (10 / mdata.distance);
+    if (mdata.matches.earTip) score += 1.0;
+    if (mdata.matches.collar) score += 1.0;
+    if (mdata.matches.lifeStage) score += 1.0;
+    if (mdata.matches.sex) score += 1.0;
+    if (mdata.distance) score += Math.pow(500 / mdata.distance, 2);
+
+    //points for color matches, or nearly so
+    if (mdata.matches.colorPattern) score += 4.0;  //exact match
+    var ckey = udata.colorPattern + '_' + mdata.colorPattern;
+
+    var colorNearMatch = {
+
+        black_bw: 3,
+        bw_black: 3,
+        tabby_torbie_tab_torb_white: 3,
+        tab_torb_white_tabby_torbie: 3,
+        orange_calico_tortie: 3,
+        grey_black: 3,
+        calico_torti_tabby_torbie: 3,
+        beige_cream_wh_orange: 3,
+
+        black_calico_tortie: 2,
+        bw_calico_tortie: 2,
+        tabby_torbie_calico_tortie: 2,
+        tab_torb_white_calico_tortie: 2,
+        orange_beige_cream_wh: 2,
+        grey_bw: 2,
+        calico_torti_tab_torb_white: 2,
+        beige_cream_wh_tabby_torbie: 2,
+
+        black_grey: 1,
+        bw_beige_cream_wh: 1,
+        tabby_torbie_orange: 1,
+        tab_torb_white_bw: 1,
+        orange_tabby_torbie: 1,
+        grey_calico_tortie: 1,
+        calico_torti_bw: 1,
+        beige_cream_wh_tab_torb_white: 1
+
+    };
+
+    if (colorNearMatch[ckey]) {
+        score += colorNearMatch[ckey];
+        console.log('colorNearMatch: %s => %s %f', mdata.encounterId, ckey, colorNearMatch[ckey]);
+    }
+
     return Math.round(score * 100) / 100;
 }
 
