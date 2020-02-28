@@ -60,7 +60,7 @@ System.out.println("findSimilar() userData " + userData.toString() + " --> SQL: 
         el.put("encounterId", encId);
         if (menc.getIndividual() != null) {
             el.put("individualId", menc.getIndividual().getId());
-            //el.put("name", menc.getIndividual().getDisplayName());
+            el.put("name", menc.getIndividual().getDisplayName());
             el.put("matchPhoto", getMatchPhoto(request, myShepherd, menc.getIndividual()));
         }
         el.put("encounterEventId", menc.getEventID());
@@ -251,7 +251,10 @@ h1 { background: none !important; }
 
 .column-match {
     display: none;
-    height: 1200px;
+}
+
+.column-scroll {
+    height: 1400px;
     overflow-y: scroll;
 }
 
@@ -351,6 +354,7 @@ h1 { background: none !important; }
 }
 
 .match-summary-detail {
+    display: none;
     white-space: nowrap;
     font-size: 0.8em;
     border-radius: 3px;
@@ -360,8 +364,8 @@ h1 { background: none !important; }
 }
 
 .match-item {
-    padding: 50px 10px 10px 10px;
-    border-top: 3px black solid;
+    padding: 0 0 25px 0;
+    xborder-top: 3px black solid;
     position: relative;
 }
 .match-item:hover {
@@ -370,12 +374,19 @@ h1 { background: none !important; }
 
 .match-name {
     position: absolute;
-    top: 0;
-    left: 0;
+    bottom: 40px;
+    font-size: 1em !important;
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    left: 10px;
+    z-index: 10;
     padding: 0 8px;
     font-size: 1.3em;
 }
 
+.match-name a {
+    color: #FFF;
+}
 .match-name a:hover {
     color: #000;
 }
@@ -446,8 +457,9 @@ h1 { background: none !important; }
 }
 .match-choose {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 10px;
+    z-index: 10;
+    left: 10px;
     padding: 2px 8px;
     background-color: #9dc327;
     border-radius: 5px;
@@ -470,6 +482,10 @@ h1 { background: none !important; }
     width: 15%;
     right: 5%;
     z-index: 100;
+}
+
+#match-controls-after {
+    padding-top: 15px;
 }
 
 
@@ -682,9 +698,9 @@ console.log(url);
                         if (score < 0) continue;
                         seen[xhr.responseJSON.similar[i].individualId] = true;
                         var h = '<div class="match-item">';
-                        h += '<div class="match-name"><a title="More images of this cat" target="_new" href="../individualGallery.jsp?id=' + xhr.responseJSON.similar[i].individualId + '&subject=' + encounterId + '" title="Enc ' + xhr.responseJSON.similar[i].encounterId + '">More photos ' + xhr.responseJSON.similar[i].individualId.substr(0,8) + '</a></div>';
+                        h += '<div class="match-name"><a title="More images of this cat" target="_new" href="../individualGallery.jsp?id=' + xhr.responseJSON.similar[i].individualId + '&subject=' + encounterId + '" title="Enc ' + xhr.responseJSON.similar[i].encounterId + '">See more photos of ' + xhr.responseJSON.similar[i].name + '</a></div>';
                         //h += '<div class="match-name">' + (xhr.responseJSON.similar[i].name || xhr.responseJSON.similar[i].encounterId.substr(0,8)) + '</div>';
-                        h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">matches this cat</label></div>';
+                        h += '<div class="match-choose"><input id="mc-' + i + '" class="match-chosen-cat" type="radio" value="' + xhr.responseJSON.similar[i].encounterId + '" /> <label for="mc-' + i + '">Matches this cat</label></div>';
 /*
                         var numImages = xhr.responseJSON.similar[i].assets.length;
                         if (numImages > 2) numImages = 2;
@@ -722,7 +738,8 @@ console.log(url);
                     for (var i = 0 ; i < keys.length ; i++) {
                         $('#match-results').append(sort[keys[i]]);
                     }
-                    $('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
+                    //$('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
+                    $('#match-controls-after').html('<input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
                     $('.match-chosen-cat').on('click', function(ev) {
                         var id = ev.target.id;
 console.log(id);
@@ -1143,8 +1160,12 @@ All required selections are made.  You may now save your answers. <br />
     </div>
 
     <div class="column-match">
-        <p id="match-summary"></p>
-        <div id="match-results"><i>searching....</i></div>
+        <div class="column-scroll">
+            <p id="match-summary"></p>
+            <div id="match-results"><i>searching....</i></div>
+        </div>
+        <div id="match-controls-after">
+        </div>
     </div>
 
 </div>
