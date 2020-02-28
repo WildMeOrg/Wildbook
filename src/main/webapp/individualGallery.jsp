@@ -206,6 +206,9 @@ function adjustBox(id) {
 
 <div style="margin-top: 30px;"></div>
 <%
+Integer mpMA = SystemValue.getInteger(myShepherd, "MatchPhoto_" + id);
+Integer mp2MA = SystemValue.getInteger(myShepherd, "MatchPhoto2_" + id);
+
 if (!Util.collectionIsEmptyOrNull(indiv.getEncounters())) for (Encounter enc : indiv.getEncounters()) {
     if ((skipEncId != null) && skipEncId.equals(enc.getCatalogNumber())) continue;
     if (!Util.collectionIsEmptyOrNull(enc.getAnnotations())) for (Annotation ann : enc.getAnnotations()) {
@@ -230,7 +233,16 @@ if (!Util.collectionIsEmptyOrNull(indiv.getEncounters())) for (Encounter enc : i
 <% if (admin) { %>
     <div class="img-info"
         onClick="wildbook.openInTab('encounters/encounter.jsp?number=<%=enc.getCatalogNumber()%>');" title="open this encounter" style="cursor: pointer;"
-><%=(ma.hasKeyword("MatchPhoto") ? "<b>Match Photo</b>" : "&#x2b08;")%></div>
+><%
+    if (ma.hasKeyword("MatchPhoto") || ((mpMA != null) && (ma.getId() == mpMA))) {
+        out.println("<b>Match Photo</b>");
+    } else if ((mp2MA != null) && (ma.getId() == mp2MA)) {
+        out.println("<b style=\"color: #888;\"><i>Secondary</i> Match Photo</b>");
+    } else {
+        out.println("&#x2b08;");
+    }
+%>
+</div>
 <% } %>
 
 </div>
