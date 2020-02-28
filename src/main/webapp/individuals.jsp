@@ -445,11 +445,11 @@ $(document).ready(function() {
           MarkedIndividual sharky=myShepherd.getMarkedIndividual(id);
 
           // replace this with canUserViewIndividual?
-//          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
-          boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
+          //          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
+          boolean isOwner = Collaboration.canUserEditMarkedIndividual(sharky, request);
 
 
-          System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
+          //System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
