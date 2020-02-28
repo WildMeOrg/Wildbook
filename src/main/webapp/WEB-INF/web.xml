@@ -92,7 +92,9 @@
 				/import/** = authc, roles[researcher]
 
 				/gallery.jsp = authc
-				/encounters/encounter.jsp = authc
+        /iaResults.jsp = authc, roles[researcher]
+
+				#/encounters/encounter.jsp = authc
 				/encounters/encounterMediaGallery.jsp = authc
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
@@ -104,19 +106,13 @@
 
     	/match.jsp = authc
 
-
-		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
-		/individualSearch.jsp = authc, roles[researcher]
-		/individualSearchResults.jsp = authc
+		/individualSearchResults.jsp = authc 
 		/individualSearchResultsExport.jsp = authc, roles[researcher]
 		/individualSearchResultsAnalysis.jsp = authc, roles[researcher]
 		/individualMappedSearchResults.jsp = authc, roles[researcher]
 		/individualThumbnailSearchResults.jsp = authc, roles[researcher]
 
-		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
-		 /encounters/encounterSearch.jsp = roles[researcher]
-		 /encounters/searchResults.jsp = authc, roles[researcher]
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
 		 /encounters/mappedSearchResults.jsp = authc, roles[researcher]
 		 /encounters/mappedSearchResultsSex.jsp = authc, roles[researcher]
@@ -251,12 +247,12 @@
 						 /EncounterDelete = authc, roles[researcher]
 
 					       /xcalendar/** = authc, roles[researcher]
-						   /individualSearch.jsp = authc, roles[researcher]
+						   /individualSearch.jsp = authc
 						   /individualSearchResultsAnalysis.jsp = authc, roles[researcher]
 						   /individualMappedSearchResults.jsp = authc, roles[researcher]
 				/individualThumbnailSearchResults.jsp = authc, roles[researcher]
-				 /encounters/encounterSearch.jsp = authc, roles[researcher]
-				 /encounters/searchResults.jsp = authc, roles[researcher]
+				 /encounters/encounterSearch.jsp = authc
+				 /encounters/searchResults.jsp = authc
 				 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
 				 /encounters/mappedSearchResults.jsp = authc, roles[researcher]
 				 /encounters/mappedSearchResultsSex.jsp = authc, roles[researcher]
