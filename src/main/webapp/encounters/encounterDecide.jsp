@@ -233,6 +233,11 @@ h1 { background: none !important; }
     margin: 0;
 }
 
+#secondary-instructions {
+    height: 2em;
+    font-size: 1.5em;
+    line-height: 1.1em;
+}
 
 .column-images, .column-attributes, .column-match {
     display: inline-block;
@@ -641,6 +646,7 @@ var attributeReadable = {
     lifeStage: 'life stage'
 };
 function enableMatch() {
+    $('#secondary-instructions').html('Does the cat in this submission (left) match a cat already in our database (right)? Scroll through our list and select "Matches this cat" or "None of these cats match".');
     $('.column-attributes').hide();
     $('.column-match').show();
     $('#subtitle').text('Step 2');
@@ -976,6 +982,7 @@ function adjustBox(id) {
 <p>
 There are two steps to processing each submission: selecting cat attributes, and then looking to see if the cat has a match in the database.
 </p>
+<h2 id="secondary-instructions">&nbsp;</h2>
 </div>
 
 <b id="width-info"></b>
@@ -1136,7 +1143,6 @@ All required selections are made.  You may now save your answers. <br />
     </div>
 
     <div class="column-match">
-        <h2 style="font-size: 1.8em; margin-top: 0;"><span onClick="$('.match-item-info').show();">Step 2:</span> Does the cat on the left match<br />another cat in the list below?</h2>
         <p id="match-summary"></p>
         <div id="match-results"><i>searching....</i></div>
     </div>
