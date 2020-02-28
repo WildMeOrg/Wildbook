@@ -93,31 +93,52 @@ System.out.println("findSimilar() -> " + el.toString());
 private static JSONObject getMatchPhoto(HttpServletRequest request, Shepherd myShepherd, MarkedIndividual indiv) {
     if (indiv == null) return null;
     Integer matchAssetId = SystemValue.getInteger(myShepherd, "MatchPhoto_" + indiv.getId());
+    Integer match2AssetId = SystemValue.getInteger(myShepherd, "MatchPhoto2_" + indiv.getId());
+if (match2AssetId != null) System.out.println(match2AssetId + " ???? " + indiv);
     Annotation backup = null;
     Annotation found = null;
+    Annotation secondary = null;
+    String encId = null;
     foundOne: for (Encounter enc : indiv.getEncounters()) {
         if (Util.collectionIsEmptyOrNull(enc.getAnnotations())) continue;
         for (Annotation ann : enc.getAnnotations()) {
             MediaAsset ma = ann.getMediaAsset();
             if (ma == null) continue;
-            if (backup == null) backup = ann;
+            if (backup == null) {
+                backup = ann;
+                encId = enc.getCatalogNumber();
+            }
+            if ((match2AssetId != null) && (match2AssetId == ma.getId())) secondary = ann;
             if ( ((matchAssetId != null) && (matchAssetId == ma.getId())) ||
                  ((matchAssetId == null) && ma.hasKeyword("MatchPhoto")) ) {
                 found = ann;
-                break foundOne;
+                encId = enc.getCatalogNumber();
+                //break foundOne;  //dont break now cuz we need to catch secondary
             }
         }
     }
+/*
 System.out.println("getMatchPhoto(" + indiv + ") -> found = " + found);
 System.out.println("getMatchPhoto(" + indiv + ") -> backup = " + backup);
+System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
+*/
     if ((backup == null) && (found == null)) return null;
     if (found == null) found = backup;
     MediaAsset ma = found.getMediaAsset();
     JSONObject rtn = new JSONObject();
     rtn.put("annotationId", found.getId());
+    rtn.put("encounterId", encId);
     rtn.put("id", ma.getId());
     if (!found.isTrivial()) rtn.put("bbox", found.getBbox());
     rtn.put("url", ma.safeURL(myShepherd, request));
+    if (secondary != null) {
+        ma = secondary.getMediaAsset();
+        JSONObject j2 = new JSONObject();
+        j2.put("id", ma.getId());
+        if (!secondary.isTrivial()) j2.put("bbox", secondary.getBbox());
+        j2.put("url", ma.safeURL(myShepherd, request));
+        rtn.put("secondary", j2);
+    }
     return rtn;
 }
 
@@ -670,8 +691,15 @@ console.log(url);
 */
                         h += '<div class="match-asset-wrapper">';
                         h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
-                        h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this);" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
-                        matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
+
+                        if ((xhr.responseJSON.similar[i].matchPhoto.encounterId == encounterId) && xhr.responseJSON.similar[i].matchPhoto.secondary) {
+                            console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, xhr.responseJSON.similar[i].individualId, xhr.responseJSON.similar[i].matchPhoto);
+                            h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this);" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
+                            matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.secondary.id] = xhr.responseJSON.similar[i].matchPhoto.secondary;
+                        } else {
+                            h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this);" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
+                            matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
+                        }
 
                         h += '<div class="match-item-info">';
                         h += '<div>' + xhr.responseJSON.similar[i].encounterId.substr(0,8) + '</div>';
