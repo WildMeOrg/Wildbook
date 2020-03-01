@@ -153,7 +153,7 @@ if (thisUser == null) {
 
         <!-- ****header**** -->
         <header class="page-header clearfix">
-            <nav class="navbar navbar-default navbar-fixed-top" style="margin-top: -5px;">
+            <nav class="navbar navbar-default navbar-xfixed-top" style="margin-top: -5px;">
               <div class="header-top-wrapper">
                 <div class="container">
                 <!-- wild-me-badge -->
