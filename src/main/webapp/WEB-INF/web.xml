@@ -1892,15 +1892,8 @@
       <url-pattern>/ImportAccess</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-      <servlet-name>StandardImport</servlet-name>
-      <url-pattern>/StandardImport</url-pattern>
-  </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>StandardImport</servlet-name>
-    <url-pattern>/import/standard-upload</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
       <servlet-name>UpdateStandard</servlet-name>
@@ -1919,6 +1912,7 @@
     <servlet-mapping>
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/import/standard-upload</url-pattern>
+	  <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
 
 
