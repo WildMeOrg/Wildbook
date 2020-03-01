@@ -8,6 +8,7 @@ import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenEncReporter;
 
 import javax.jdo.*;
 
@@ -77,17 +78,8 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
         EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
         rEncounters = queryResult.getResult();
 
-				Vector blocked = Encounter.blocked(rEncounters, request);
-				if (blocked.size() > 0) {
-					response.setContentType("text/html");
-					PrintWriter out = response.getWriter();
-					out.println(ServletUtilities.getHeader(request));  
-					out.println("<html><body><p><strong>Access denied.</strong></p>");
-					out.println(ServletUtilities.getFooter(context));
-					out.close();
-					return;
-				}
-      
+        HiddenEncReporter hiddenData = new HiddenEncReporter(rEncounters, request, myShepherd);
+
         int numMatchingEncounters=rEncounters.size();
       
        //business logic start here
@@ -177,6 +169,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
 
          for(int i=0;i<numMatchingEncounters;i++){
             Encounter enc=(Encounter)rEncounters.get(i);
+            if (hiddenData.contains(enc)) continue;
             count++;
             numResults++;
             
@@ -313,6 +306,8 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
 
          } //end for loop iterating encounters   
          
+         hiddenData.writeHiddenDataReport(workbookOBIS);
+
          workbookOBIS.write();
          workbookOBIS.close();
          

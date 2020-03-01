@@ -22,6 +22,8 @@ import org.ecocean.Shepherd;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
+import org.ecocean.Taxonomy;
+import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
@@ -75,7 +77,7 @@ public class IA {
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
         return intakeMediaAssets(myShepherd, mas, null);
     }
-    public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, Task parentTask) {
+    public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
         if ((mas == null) || (mas.size() < 1)) return null;
         Task task = new Task();
         if (parentTask != null) task.setParameters(parentTask.getParameters());
@@ -107,10 +109,16 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
     }
 
     //similar behavior to above: basically fake /ia api call, but via queue
+    //     parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns) {
+        return intakeAnnotations(myShepherd, anns, null);
+    }
+    public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
+        //System.out.println("Starting intakeAnnotations");
         if ((anns == null) || (anns.size() < 1)) return null;
 
         Task topTask = new Task();
+        if (parentTask != null) topTask.setParameters(parentTask.getParameters());
         topTask.setObjectAnnotations(anns);
         String context = myShepherd.getContext();
 
@@ -119,17 +127,55 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
             for this we use IBEISIA.identOpts to decide how many flavors of identification we need to do!   if have more than
             one we need to make a set of subtasks
         */
-        List<JSONObject> opts = IBEISIA.identOpts(context);
+
+/*
+        String iaClass = anns.get(0).getIAClass(); //IAClass is a standard with image analysis that identifies the featuretype used for identification
+        List<JSONObject> opts = null;
+        // below gets it working for dolphins but can be generalized easily from IA.properties
+        String inferredIaClass = IBEISIA.inferIaClass(anns.get(0), myShepherd);
+        String bottlenose = "dolphin_bottlenose_fin"; 
+        if (bottlenose.equals(iaClass) || bottlenose.equals(inferredIaClass)) {
+            System.out.println("IA.java is sending a Tursiops truncatus job");
+            opts = IBEISIA.identOpts(context, bottlenose);
+        } else { // defaults to the default ia.properties IBEISIdentOpt, in our case humpback flukes
+            opts = IBEISIA.identOpts(context);
+        }
+*/
+        List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
+        System.out.println("identOpts: "+opts.toString());
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
+        JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
+        if (parentTask != null && parentTask.getParameters()!=null) {
+          newTaskParams = parentTask.getParameters();
+          System.out.println("newTaskParams: "+newTaskParams.toString());
+          if(newTaskParams.optJSONArray("matchingAlgorithms")!=null) {
+            JSONArray matchingAlgorithms=newTaskParams.optJSONArray("matchingAlgorithms");
+            System.out.println("matchingAlgorithms1: "+matchingAlgorithms.toString());
+            ArrayList<JSONObject> newOpts=new ArrayList<JSONObject>();
+            int maLength=matchingAlgorithms.length();
+            for(int y=0;y<maLength;y++) {
+              newOpts.add(matchingAlgorithms.getJSONObject(y));
+            }
+            System.out.println("matchingAlgorithms2: "+newOpts.toString());
+            if(newOpts.size()>0) {
+              opts=newOpts;
+              System.out.println("Swapping opts for newOpts!!");
+            }
+            
+            
+          }
+        }
         if (opts.size() == 1) {
-            topTask.setParameters("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
+            newTaskParams.put("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
+            topTask.setParameters(newTaskParams);
             tasks.add(topTask);  //topTask will be used as *the*(only) task -- no children
         } else {
             for (int i = 0 ; i < opts.size() ; i++) {
                 Task t = new Task();
                 t.setObjectAnnotations(anns);
-                t.setParameters("ibeis.identification", ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));
+                newTaskParams.put("ibeis.identification", ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));  //overwrites each time
+                t.setParameters(newTaskParams);
                 topTask.addChild(t);
                 tasks.add(t);
             }
@@ -209,11 +255,30 @@ System.out.println(i + " -> " + ma);
                 if (ann == null) continue;
                 anns.add(ann);
             }
-            Task atask = intakeAnnotations(myShepherd, anns);
+
+            // okay, if we are sending another ID job from the hburger menu, the media asset needs to be added to your top level 'root' task, 
+            // or else you will link to the original root task
+            List<MediaAsset> masForNewRoot = new ArrayList<>(); 
+            for (Annotation ann : anns) {
+                MediaAsset ma = ann.getMediaAsset();
+                if (ma!=null && !masForNewRoot.contains(ma)) {
+                    masForNewRoot.add(ma);
+                }
+            }
+            // i cant think of a scenario where we would get here and accidently double-add mas... but jic
+            for (MediaAsset ma : masForNewRoot) {
+                if (!topTask.getObjectMediaAssets().contains(ma)) {
+                    topTask.addObject(ma);       
+                }
+            }
+
+            Task atask = intakeAnnotations(myShepherd, anns, topTask);
             System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
             topTask.addChild(atask);
             myShepherd.getPM().refresh(topTask);
         }
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
     }
 
     //via IAGateway servlet, we handle the work
@@ -222,12 +287,16 @@ System.out.println(i + " -> " + ma);
         JSONObject rtn = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IA.handleGet");
+        myShepherd.beginDBTransaction();
         String taskId = request.getParameter("taskId");
 
         if (taskId != null) {
             Task task = Task.load(taskId, myShepherd);
             if (task == null) {
                 response.sendError(404, "Not found: taskId=" + taskId);
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 return;
             }
             rtn.put("success", true);
@@ -239,24 +308,40 @@ System.out.println(i + " -> " + ma);
         PrintWriter out = response.getWriter();
         out.println(rtn.toString());
         out.close();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return;
     }
 
     public static String getBaseURL(String context) {
         String url = CommonConfiguration.getServerURL(context);
-        String containerName = CommonConfiguration.getProperty("containerName","context0");
-        if (containerName != null) containerName = containerName.trim();
-        url = CommonConfiguration.getServerURL(context);
-        if (containerName!=null&&!"".equals(containerName)) { 
-            System.out.println("Wildbook is containerized: sending container name: "+containerName+" to IA instead of localhost.");
+        String containerName = CommonConfiguration.getProperty("containerName",context);
+        if (containerName!=null&&!"".equals(containerName)) {
+            containerName = containerName.trim(); 
+            System.out.println("INFO: Wildbook is containerized: Server getBaseURL is returning: "+containerName+"");
             url = url.replace("localhost", containerName);
         }
+        System.out.println("INFO: Server getBaseURL is returning "+url);
         return url;
     }
 
 
-    public static String getProperty(String context, String label) {  //no-default flavor
-        return getProperty(context, label, null);
+    //(optional!) Taxonomy will append "_Scientific_name" to label and try that.  if not available, then try just label.
+    public static String getProperty(String context, String label, Taxonomy tax, String def) {
+        if ((tax != null) && (tax.getScientificName() != null)) {
+            String propKey = label + "_".concat(tax.getScientificName()).replaceAll(" ", "_");
+            System.out.println("[INFO] IA.getProperty() using propKey=" + propKey + " based on " + tax);
+            String val = getProperty(context, propKey, (String)null);
+            if (val != null) return val;
+        }
+        return IA.getProperty(context, label, def);
+    }
+    public static String getProperty(String context, String label, Taxonomy tax) {  //no-default version
+        return getProperty(context, label, tax, null);
+    }
+
+    public static String getProperty(String context, String label) {  //no-default, no-taxonomy
+        return getProperty(context, label, (String)null);
     }
     public static String getProperty(String context, String label, String def) {
         Properties p = getProperties(context);

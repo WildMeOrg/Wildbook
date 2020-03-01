@@ -4,17 +4,17 @@
   <package name="org.ecocean.movement">
   
   	<class name="SurveyTrack" identity-type="application" table="SURVEYTRACK">
-      <field name="surveyTrackID" primary-key="true">
-        <column length="100"/>
-      </field>
+      		<field name="surveyTrackID" primary-key="true">
+        		<column length="100"/>
+      		</field>
+
+		<field name="path" persistent-modifier="persistent">
+			<join />
+		</field>
 
       <field name="occurrences" persistence-modifier="persistent">
         <collection element-type="org.ecocean.Occurrence" dependent-element="false" allows-null="true"/>
         <join/>
-      </field>
-
-      <field name="parentSurveyID" persistence-modifier="persistent">
-        <column length="100" allows-null="true" />
       </field>
 
       <field name="vesselID" persistence-modifier="persistent">
@@ -25,10 +25,6 @@
         <column length="100" allows-null="true"/>
       </field>
 
-      <field name="pathID" persistence-modifier="persistent">
-        <column length="100" allows-null="true"/>
-      </field>
-      
       <field name="type" persistence-modifier="persistent">
         <column jdbc-type="LONGVARCHAR" allows-null="true"/>
       </field>

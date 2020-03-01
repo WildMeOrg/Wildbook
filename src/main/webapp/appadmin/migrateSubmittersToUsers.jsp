@@ -56,7 +56,7 @@ myShepherd.rollbackDBTransaction();
 			Encounter enc=myShepherd.getEncounter(encS);
 			//if(enc.getSubmitters()==null){
 			
-				System.out.println("Setting submitters/photographers/informOthers for: "+enc.getCatalogNumber());
+				System.out.println(k + "/" + numEncs + ") Setting submitters/photographers/informOthers for: "+enc.getCatalogNumber());
 			
 				boolean madeChange=false;
 			

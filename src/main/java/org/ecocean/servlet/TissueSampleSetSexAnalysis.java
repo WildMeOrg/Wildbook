@@ -110,7 +110,7 @@ public class TissueSampleSetSexAnalysis extends HttpServlet {
         out.println(ServletUtilities.getFooter(context));
         } 
       else {
-
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user or is inaccessible. Please wait a few seconds before trying to modify this encounter again.");
 
@@ -119,6 +119,7 @@ public class TissueSampleSetSexAnalysis extends HttpServlet {
 
       }
     } else {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the genetic sex. I cannot find the encounter or tissue sample that you intended it for in the database.");

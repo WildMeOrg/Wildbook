@@ -41,11 +41,13 @@ try {
 
 
 List<File> imageFiles = new ArrayList<File>();
-for (File f: contents) {
-	String name = f.getName().toLowerCase();
-	// I will never use regex. Never!!!! READABILITY SHALL REIGN ETERNAL
-	if (name.endsWith(".jpg")||name.endsWith(".png")||name.endsWith(".jpeg")) {
-		imageFiles.add(f);
+if (contents!=null) {
+	for (File f: contents) {
+		String name = f.getName().toLowerCase();
+		// I will never use regex. Never!!!! READABILITY SHALL REIGN ETERNAL
+		if (name.endsWith(".jpg")||name.endsWith(".png")||name.endsWith(".jpeg")) {
+			imageFiles.add(f);
+		}
 	}
 }
 nImages = imageFiles.size();
@@ -62,10 +64,16 @@ nImages = imageFiles.size();
 
 ol.filelist {
     font-size: 0.9em;
-    width: 40%;
-    max-height: 60%;
-    overflow-y: auto;
+	/*
+	width: 40%;
+	overflow: auto;
+	min-height: 500px;
+	max-height: 600px;
+	max-height: 60%;
+	overflow-y: auto;
+	overflow-x: scroll;
     display: inline-block;
+	*/
     color: #666;
     padding: 0 0 0 30px;
 }
@@ -74,6 +82,13 @@ ol.filelist li {
     background-color: #EEA;
     margin: 3px 0;
     padding: 0 12px;
+}
+
+#filename-boxed-list {
+	min-height: 400px;
+	max-height: 500px;
+	overflow: scroll;
+	overflow-x: hidden;
 }
 
 </style>
@@ -85,23 +100,26 @@ ol.filelist li {
   <p class="import-explanation">Please confirm that you have uploaded all the images in this import</p>
 
   <p class="info"><b><%=nImages %> images found:</b></p>
-    <ol class="filelist">
-  	<% 
-  	for (File photo: imageFiles) {
-  		%>
-  		<li><%=photo.getName()%></li>
-  		<%
-	}
-  	%>
 
-    </ol>
+	<div id="filename-boxed-list">
+    	<ol class="filelist">
+  		<% 
+  		for (File photo: imageFiles) {
+  			%>
+  			<li><%=photo.getName()%></li>
+  			<%
+		}
+  		%>
+
+    	</ol>
+	</div>
   <div>
 		<input style="background-color: #CCC;" onClick="document.location='photos.jsp';" type="submit" value="Go back and try again">
 		<input onClick="document.location.href='spreadsheet.jsp';" type="submit" value="Accept and move on">
   </div>
 
           
-</div>
+</div> <!-- container maincontent -->
 
 <jsp:include page="../footer.jsp" flush="true"/>
 

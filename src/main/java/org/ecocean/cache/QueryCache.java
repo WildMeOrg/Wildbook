@@ -4,6 +4,7 @@ package org.ecocean.cache;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.IOException;
 
 import org.ecocean.cache.StoredQuery;
 import org.ecocean.Shepherd;
@@ -13,19 +14,23 @@ import org.json.JSONObject;
 public class QueryCache {
   
   private Map<String,CachedQuery> cachedQueries;
+  private String context = null;
 
   public QueryCache(){}
-  
-  
-  public CachedQuery getQueryByName(String name, String context){
-    if(cachedQueries==null)loadQueries(context);
+  public QueryCache(String context) {
+        this.context = context;
+  }
+
+  public CachedQuery getQueryByName(String name) {
+    if(cachedQueries==null)loadQueries();
     return cachedQueries.get(name);
   }
   
   
   public Map<String,CachedQuery> cachedQueries(){return cachedQueries;}
   
-  public void loadQueries(String context){
+  public void loadQueries() {
+    if (context == null) throw new RuntimeException("QueryCache.loadQueries() called with context null");
     cachedQueries=new HashMap<String,CachedQuery>();
     Shepherd myShepherd=new Shepherd(context);
     myShepherd.beginDBTransaction();
@@ -42,7 +47,7 @@ public class QueryCache {
   }
   
   
-  public void invalidateByName(String name){
+  public void invalidateByName(String name) throws IOException {
     if(cachedQueries.containsKey(name)){
       cachedQueries.get(name).invalidate();
     }

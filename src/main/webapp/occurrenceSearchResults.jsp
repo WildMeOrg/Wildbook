@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 
 
@@ -16,8 +16,7 @@
 
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
     props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
-    occProps = ShepherdProperties.getProperties("occurrence.properties");
-
+    occProps = ShepherdProperties.getProperties("occurrence.properties",langCode, context);
 
     int startNum = 1;
     int endNum = 10;
@@ -71,6 +70,10 @@
 
     OccurrenceQueryResult result = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
     rIndividuals = result.getResult();
+
+	// viewOnly=true arg means this hiddenData relates to viewing the summary results
+	HiddenOccReporter hiddenData = new HiddenOccReporter(rIndividuals, request, true,myShepherd);
+	rIndividuals = hiddenData.viewableResults(rIndividuals, true,myShepherd);
 
 
     if (rIndividuals.size() < listNum) {
@@ -243,7 +246,28 @@ function _notUndefined(fieldName) {
   return _helperFunc;
 }
 
-// Split up some collections before we try to display them. 
+function _notZero(fieldName) {
+  function _helperFunc(o) {
+    if (o[fieldName] == undefined || o[fieldName] == 0) return '';
+    return o[fieldName];
+  }
+  return _helperFunc;
+}
+function _species(o) {
+	var taxonomies = o['taxonomies'];
+	console.log("occ "+o['occurrenceID']+" taxonomies "+taxonomies);
+	if (o['taxonomies']==null || o['taxonomies'].length==0 || o['taxonomies'][0]['scientificName']==undefined) return '';
+	return o['taxonomies'][0]['scientificName'];
+}
+function _date(o) {
+	var millis = o['dateTimeLong'];
+	if (millis==null) return '';
+	var date = new Date(millis);
+	if (date==null) return '';
+	var dateStr = date.toISOString();
+	return dateStr.split('T')[0];
+}
+
 
 var colDefn = [
 /*
@@ -263,37 +287,49 @@ var colDefn = [
  
   {
     key: 'ID',
-    label: 'ID',
+    label: '<%=occProps.getProperty("ID")%>',
     value: _notUndefined('occurrenceID'),
   },
   {
-    key: 'dateTimeCreated',
-    label: 'Date Created',
-    value: _notUndefined('dateTimeCreated'),
+    key: 'dateTimeLong',
+    label: '<%=occProps.getProperty("date")%>',
+    value: _date,
   },
   {
-	    key: 'correspondingSurveyID',
-	    label: 'Corresponding Survey',
-	    value: _notUndefined('correspondingSurveyID'),
-  }, 	
+    key: 'groupBehavior',
+    label: '<%=occProps.getProperty("groupBehavior")%>',
+    value: _notUndefined('groupBehavior'),
+  },
   {
-	key: 'numberEncounters',
-	label: '<%=props.getProperty("numEncounters")%>',
-	value: _colNumberEncounters,
-	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    key: 'taxonomies',
+    label: '<%=occProps.getProperty("species")%>',
+    value: _species,
+  },
+  {
+    key: 'individualCount',
+    label: '<%=occProps.getProperty("individualCount")%>',
+    value: _notUndefined('individualCount'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },
   {
 		key: 'decimalLatitude',
-		label: 'latitude',
-    value: _notUndefined('decimalLatitude'),
+		label: '<%=occProps.getProperty("latitude")%>',
+    value: _notZero('decimalLatitude'),
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
   {
 		key: 'decimalLongitude',
-		label: 'longitude',
-    value: _notUndefined('decimalLongitude'),
+		label: '<%=occProps.getProperty("longitude")%>',
+    value: _notZero('decimalLongitude'),
     sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
+  {
+    key: 'effortCode',
+    label: '<%=occProps.getProperty("'effort")%>',
+    value: _notUndefined('effortCode'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+  },
+
   /*
   {
     key: 'individualCount',
@@ -684,13 +720,15 @@ function _colModified(o) {
 	return d.toLocaleDateString();
 }
 
-function _colOccDate(o) {
-	var dateMillis = o.get('millis');
-	if (!dateMillis) return '';
-	var dateString = new Date(dateMillis).toString();
-	return dateString;
+function _colDate(o) {
+	var millis = o.dateAsString();
 }
 
+function _colDateSort(o) {
+	var d = o.date();
+	if (!d) return 0;
+	return d.getTime();
+}
 
 function _textExtraction(n) {
 	var s = $(n).text();
@@ -713,9 +751,9 @@ function applyFilter() {
 </script>
 
 <p class="table-filter-text">
-<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="filter" />
-<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<input placeholder="<%=props.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="<%=props.getProperty("filter") %>" />
+<input type="button" value="<%=props.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 

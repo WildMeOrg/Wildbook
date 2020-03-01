@@ -39,7 +39,6 @@ context=ServletUtilities.getContext(request);
 
 
 
-  int numResults = 0;
 
 
   //Vector rEncounters = new Vector();
@@ -223,8 +222,6 @@ td.tdw:hover div {
 
 <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="../javascript/tablesorter/jquery.tablesorter.js"></script>
-
 <script src="../javascript/underscore-min.js"></script>
 <script src="../javascript/backbone-min.js"></script>
 <script src="../javascript/core.js"></script>
@@ -243,25 +240,32 @@ td.tdw:hover div {
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
 
+<% 
+
+String queryString="";
+if(request.getQueryString()!=null){queryString=request.getQueryString();}
+
+%>
+
 
 <ul id="tabmenu">
 
   <li><a class="active"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=encprops.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=queryString %>"><%=encprops.getProperty("export")%>
    </a></li>
 
 </ul>
@@ -300,17 +304,7 @@ td.tdw:hover div {
 
 <%
 	String encsJson = "false";
-/*
-	JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-	if (rEncounters instanceof Collection) {
-		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, jdopm.getExecutionContext());
-		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, ((JDOPersistenceManager)pm).getExecutionContext());
-		encsJson = jsonobj.toString();
-	} else {
-		JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(rEncounters, jdopm.getExecutionContext());
-		encsJson = jsonobj.toString();
-	}
-*/
+
 
 StringBuffer prettyPrint=new StringBuffer("");
 
@@ -326,24 +320,6 @@ var searchResults = <%=encsJson%>;
 
 var jdoql = '<%= URLEncoder.encode(filter,StandardCharsets.UTF_8.toString()) %>';
 
-var testColumns = {
-	//thumb: { label: 'Thumb', val: _colThumb },
-	individualID: { label: 'ID', val: _colIndLink },
-	date: { label: 'Date', val: _colEncDate },
-	verbatimLocality: { label: 'Location' },
-	//locationID: { label: 'Location ID' },
-	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
-	submitterID: { label: 'Submitter' },
-	creationDate: { label: 'Created', val: _colCreationDate },
-	modified: { label: 'Edit Date', val: _colModified },
-};
-
-
-
-
-
-
-
 $(document).keydown(function(k) {
 	if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
 	if (k.which == 38) return tableDn();
@@ -357,9 +333,14 @@ var colDefn = [
 
 	{
 		key: 'individualID',
-		label: 'ID',
+		label: '<%=encprops.getProperty("ID")%>',
 		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
+	},
+	{
+		key: 'occurrenceID',
+		label: '<%=encprops.getProperty("sightingID")%>',
+		value: _occurrenceID,
 	},
   {
     key: 'otherCatalogNumbers',
@@ -372,14 +353,15 @@ var colDefn = [
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
+	// {
+	// 	key: 'verbatimLocality',
+	// 	label: '<%=encprops.getProperty("location")%>',
+	// },
 	{
-		key: 'verbatimLocality',
-		label: '<%=encprops.getProperty("location")%>',
+		key: 'locationID',
+		label: '<%=encprops.getProperty("locationID")%>',
+		value: _notUndefined('locationID'),
 	},
-//	{
-//		key: 'locationID',
-// 		label: '<%=encprops.getProperty("locationID")%>',
-//	},
 	{
 		key: 'taxonomy',
 		label: '<%=encprops.getProperty("taxonomy")%>',
@@ -388,17 +370,17 @@ var colDefn = [
 	{
 		key: 'submitterID',
 		label: '<%=encprops.getProperty("submitterName")%>',
-		value: _submitterID,
+		value: _notUndefined('submitterID'),
 	},
 	{
 		key: 'creationDate',
-		label: 'Created',
+		label: '<%=encprops.getProperty("created")%>',
 		value: _colCreationDate,
 		sortValue: _colCreationDateSort,
 	},
 	{
 		key: 'modified',
-		label: 'Edit Date',
+		label: '<%=encprops.getProperty("editDate")%>',
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
@@ -410,8 +392,8 @@ var howMany = 10;
 var start = 0;
 var results = [];
 
-var sortCol = -1;
-var sortReverse = false;
+var sortCol = 7;
+var sortReverse = true;
 
 var counts = {
 	total: 0,
@@ -472,7 +454,7 @@ function doTable() {
 		data: searchResults,
 		perPage: howMany,
 		sliderElement: $('#results-slider'),
-		columns: colDefn,
+		columns: colDefn
 	});
 
 	$('#results-table').addClass('tablesorter').addClass('pageableTable');
@@ -504,7 +486,7 @@ function doTable() {
 	sTable.initValues();
 
 
-	newSlice(sortCol);
+	newSlice(sortCol, sortReverse);
 
 	$('#progress').hide();
 	sTable.sliderInit();
@@ -638,7 +620,7 @@ function computeCounts() {
 
 	for (var i = 0 ; i < counts.total ; i++) {
 		var iid = searchResults[sTable.matchesFilter[i]].get('individualID');
-		if (iid == 'Unassigned') {
+		if (!iid) {
 			counts.unid++;
 		} else {
 			var k = iid + ':' + searchResults[sTable.matchesFilter[i]].get('year') + ':' + searchResults[sTable.matchesFilter[i]].get('month') + ':' + searchResults[sTable.matchesFilter[i]].get('day');
@@ -722,6 +704,8 @@ $(document).ready( function() {
 				return xhr;
 			},
 */
+			fetch: "searchResults",
+			noDecorate: true,
 			jdoql: jdoql,
 			success: function() { searchResults = encs.models; doTable(); },
 		});
@@ -733,6 +717,23 @@ function fetchProgress(ev) {
 	if (!ev.lengthComputable) return;
 	var percent = ev.loaded / ev.total;
 console.info(percent);
+}
+
+// a functor!
+function _notUndefined(fieldName) {
+  function _helperFunc(o) {	
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
+  }
+  return _helperFunc;
+}
+// non-functor version!
+function _notUndefinedValue(obj, fieldName) {
+  function _helperFunc(o) {	
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
+  }
+  return _helperFunc(obj);
 }
 
 
@@ -768,10 +769,15 @@ function _colNumberLocations(o) {
 
 
 function _colTaxonomy(o) {
-	var animal = 'n/a';
-	if (o.get('genus')) return o.get('genus');
-	if (o.get('specificEpithet')) return o.get('specificEpithet');
-	return 'n/a';
+	var genus = _notUndefinedValue(o, 'genus');
+	var species = _notUndefinedValue(o, 'specificEpithet');
+	//console.log('colTaxonomy got genus '+genus+' and species '+species+' for object '+JSON.stringify(o));
+	return genus+' '+species;
+}
+
+function _occurrenceID(o) {
+	if (!o.get('occurrenceID')) return '';
+	return o.get('occurrenceID');
 }
 
 
@@ -797,9 +803,10 @@ function _colModified(o) {
 }
 
 function _submitterID(o) {
-	var m = o.get('submitterName');
-	if (!m) m = o.get('submitterProject');
-	return m;
+	if (o['submitterID']      != undefined) return o['submitterID'];
+	if (o['submitterProject'] != undefined) return o['submitterProject'];
+	if (o['submitterName']    != undefined) return o['submitterName'];
+	return '';
 }
 
 function _textExtraction(n) {
@@ -818,7 +825,7 @@ var tableContents = document.createDocumentFragment();
 
 function xdoTable() {
 	resultsTable = new pageableTable({
-		columns: testColumns,
+		columns: colDefn,
 		tableElement: $('#results-table'),
 		sliderElement: $('#results-slider'),
 		tablesorterOpts: {
@@ -873,7 +880,7 @@ function _colIndLink(o) {
 	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
 //
 //
-	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
+	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + o.get("displayName") + '</a>';
 }
 
 
@@ -909,10 +916,6 @@ function _colEncDateSort(o) {
 //	return d.getTime();
 //}
 
-function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
-	return o.get('genus') + ' ' + o.get('specificEpithet');
-}
 
 function _colFileName(o) {
   if (!o.get('annotations')) return 'none';
@@ -1128,11 +1131,11 @@ function _colCreationDate(o) {
 }
 
 function _colCreationDateSort(o) {
-	var m = o.get('dwcDateAdded');
+	var m = o.get('dwcDateAddedLong');
 	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) return 0;
-	return d.getTime();
+	//var d = wildbook.parseDate(m);
+	//if (!wildbook.isValidDate(d)) return 0;
+	return m;
 }
 
 
@@ -1159,9 +1162,9 @@ console.log(t);
 </script>
 
 <p class="table-filter-text">
-<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="filter" />
-<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<input placeholder="<%=encprops.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="<%=encprops.getProperty("filter") %>" />
+<input type="button" value="<%=encprops.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 <div class="pageableTable-wrapper">

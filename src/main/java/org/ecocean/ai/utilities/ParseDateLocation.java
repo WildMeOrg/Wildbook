@@ -169,12 +169,9 @@ public class ParseDateLocation {
 
 
   //NOTE: overloaded parseDate method for tweet4j status objects specifically. There is another parseDate method!
-  public static String parseDate(String rootDir, String textInput, String context, Status tweet){
-
-    //int year=-1;
-    //int month=-1;
-    //int day=-1;
-
+  public static String parseDate(String rootDir, String context, Status tweet){
+    String textInput=tweet.getText();
+    if(textInput!=null){
     try{
       String detectedLanguage = DetectTranslate.detectLanguage(textInput);
       if(!detectedLanguage.toLowerCase().startsWith("en")){
@@ -190,7 +187,7 @@ public class ParseDateLocation {
     try{
       System.out.println(">>>>>> looking for date with NLP");
       //call Stanford NLP function to find and select a date from ytRemarks
-      myDate= org.ecocean.ai.nlp.SUTime.parseDateStringForBestDate(rootDir, textInput, tweet);
+      myDate= org.ecocean.ai.nlp.SUTime.parseDateStringForBestDate(rootDir, tweet);
       //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
       System.out.println(">>>>>> NLP found date: "+myDate);
       
@@ -201,7 +198,9 @@ public class ParseDateLocation {
     }
 
 
-      return myDate;
+    return myDate;
+    }
+    return null;
   }
 
     /*
