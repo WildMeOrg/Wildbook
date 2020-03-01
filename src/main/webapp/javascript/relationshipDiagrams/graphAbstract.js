@@ -18,31 +18,22 @@ class GraphAbstract { //See static attributes below class
 	this.gHeight = this.height - this.margin.top - this.margin.bottom;
 
 	//Node Attributes
-	this.numNodes;
-	this.radius;
 	this.maxRadius = 50;
 	this.scalingFactor = 25;
 	this.nodeMargin = 15;
-	this.nodeSeparation;
 	this.transitionDuration = 750;
-
 	this.strokeWidth = 3.5;
-	
 	this.fontSize = 9;
 	this.focusedScale = 1;
-
 	this.alphaSymbSize = 200;
 
 	//Node Style Attributes
 	this.defGenderColor = "#7f7f7f"; 
 	this.maleColor = "steelblue";
 	this.femaleColor = "palevioletred";
-
 	this.alphaColor = "#bf0000";
-
 	this.defNodeColor = "#ffffff";
 	this.fixedNodeColor = "#cccccc";	
-	
 	this.defLinkColor = "#a6a6a6";
 	this.famLinkColor = "#a6a6a6"; //"#b59eda";
 	this.maternalLinkColor = "#f3acd0";
@@ -93,9 +84,6 @@ class GraphAbstract { //See static attributes below class
 	this.validFamilyFilters = ["selectFamily", "filterFamily"]
 	this.validCheckFilters = ["male", "female", "unknownGender", "alpha", "unknownRole"];
 	this.validFilters = this.validFamilyFilters.concat(this.validCheckFilters);
-
-	//Slider Attributes
-	this.sliders = {"nodeCount": {"filter": this.filterByNodeCount}};
     }
 
     
@@ -138,14 +126,13 @@ class GraphAbstract { //See static attributes below class
 	//Assess graphical sizings
 	this.setNodeRadius();
 
-	//Initialize filter button functionalities
+	//Initialize filter buttons
 	this.updateFilterButtons();
+	this.addHideButton();
 
 	//Update sliders
 	this.updateRangeSliderAttr();
 	this.updateRangeSliders();
-	
-	this.addHideButton();
     }
     
     /**
@@ -244,152 +231,7 @@ class GraphAbstract { //See static attributes below class
 	    .style("opacity", 0);
     }
 
-    /**
-     * Reset the graph s.t. all filtered nodes are unfiltered
-     */
-    resetGraph() {
-	//Reset filters
-	for (let filterName in this.filters) this.filters[filterName].groups = {};
-	this.svg.selectAll(".node").filter(d => d.filtered).remove();
-
-	//Reset checkbox filters
-	this.uncheckBoxFilters(this.containerId);
-
-	//Reset sliders
-	this.updateRangeSliders();
-	
-	//Reset data
-	this.nodeData.forEach(d => d.filtered = false);
-	this.prevLinkData = this.linkData;
-
-	//Update graph
-	this.updateGraph();
-    }
-
-    /**
-     * Draw each node with prescribed radius, fill, and outline
-     * @param {newNodes} [Node list] - A list of newly created Node elements
-     * @param {activeNodes} [Node list] - A list of previously existing, non-filtered Node elements
-     */	
-    updateNodeOutlines(newNodes, activeNodes) {
-	//Create new node outlines
-	newNodes.append("circle")
-	    .attr("r", this.startingRadius)
-	    .style("fill", this.defNodeColor)
-	    .style("stroke", d => this.colorGender(d))
-	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d));
-
-	//Scale node radius and stroke width
-	activeNodes.selectAll("circle").transition()
-	    .duration(this.transitionDuration)
-	    .attr("r", d => this.radius * this.getSizeScalar(d))
-	    .style("stroke-width", d => this.strokeWidth * this.getSizeScalar(d) + "px");
-    }
-
-    /**
-     * Return a color based upon the given node's gender
-     * @param {node} [Node] - A Node element
-     * @return {gender} - The gender of the contextual Node element
-     */	
-    colorGender(node) {
-	try {
-	    let gender = node.data.gender || "default";
-	    switch (gender.toUpperCase()) {
-	        case "FEMALE": return this.femaleColor; 
-	        case "MALE": return this.maleColor; 
-	        default: return this.defGenderColor; 
-	    }
-	}
-	catch(error) {
-	    console.error(error);
-	}
-    }
-
-    /**
-     * Draw alpha symbols for all given nodes with isAlpha attribute
-     * @param {newNodes} [Node list] - A list of newly created Node elements
-     * @param {activeNodes} [Node list] - A list of previously existing, non-filtered Node elements
-     */	
-    updateNodeSymbols(newNodes, activeNodes) {
-	//Add new node symbols
-	newNodes.append("path")
-	    .attr("class", "symb")
-	    .attr("d", d => {
-		return d3.symbol().type(d3.symbolCircle)
-		    .size(() => {
-			if (d.data.role && d.data.role.toUpperCase() == "ALPHA")
-			    return this.alphaSymbSize * this.getSizeScalar(d);
-			else return 0;
-		    })();
-	    })
-	    .style("fill", this.alphaColor)
-	    .style("fill-opacity", 0);
-
-	//Update node symbols
-	activeNodes.selectAll(".symb").transition()
-	    .duration(this.transitionDuration)
-	    .style("fill-opacity", 1)
-	    .attr("d", d => {
-		return d3.symbol().type(d3.symbolCircle)
-		    .size(() => {
-			if (d.data.role && d.data.role.toUpperCase() == "ALPHA")
-			    return this.alphaSymbSize * this.getSizeScalar(d);
-			else return 0;
-		    })();
-	    })
-	    .attr("transform", d => {
-		let radialPos = Math.cos(Math.PI / 4);
-		let pos = this.radius * this.getSizeScalar(d) * radialPos;
-		return "translate(" + pos + "," + -pos + ")";
-	    })
-    }
-
-    /**
-     * Add text to the given nodes
-     * @param {newNodes} [Node list] - A list of newly created Node elements
-     * @param {activeNodes} [Node list] - A list of previously existing, non-filtered Node elements
-     */	
-    updateNodeText(newNodes, activeNodes) {
-	//Add new node text
-	newNodes.append("text")
-	    .attr("class", "text")
-	    .attr("dy", ".5em") //Vertically centered
-	    .text(d => this.truncateText(d))
-	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
-	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal")
-	    .style("stroke-opacity", 0);
-
-	//Update node text
-	activeNodes.selectAll("text").transition()
-	    .duration(this.transitionDuration)
-	    .style("font-size", d => (this.fontSize * this.getSizeScalar(d)) + "px")
-	    .style("font-weight", d => d.data.isFocused ? "bold" : "normal")
-	    .style("stroke-opacity", 1);
-
-    }
-
     // Helper Methods //
-
-    /**
-     * Truncate text to fit inside a given node
-     * @param {node} [Node] - A Node element
-     * @return {truncatedText} [String] - A truncated string, guarenteed to fit within the Node element
-     */	
-    truncateText(node) {
-	let nodeLen = (this.radius * 2) / 5;
-	let words = node.data.name.split(" ");
-
-	let text = "";
-	for (let word of words) {
-	    text += word + " ";
-	    if (text.length > nodeLen) {
-		text = text.slice(0, nodeLen - 3) + "...";
-		break;
-	    }
-	}
-
-	return text.trim();
-    }
 
     /**
      * Modify zoom wheel delta to smooth zooming
@@ -626,46 +468,7 @@ class GraphAbstract { //See static attributes below class
 	    .attr("stroke", color)
 	    .attr('stroke-width', this.legendStrokeWidth);
     }
-    
-    /**
-     * Wrapper funciton serving to update known filter buttons with relevant filters
-     * @param {containerId} [String] - The HTML element to append the filter buttons
-     */	
-    updateFilterButtons(containerId=this.containerId) {	
-	//Reset filter
-	$(containerId).find("#reset").on("click", () => this.resetGraph());
-
-	for (let filterName in this.filters) {
-	    let filter = this.filters[filterName];
-	    this.createCheckBoxFilter(containerId, filterName, filter.func, filter.groupNum);
-	}
-
-	//Zoom in
-	$(containerId).find("#gZoomIn").on("click", () => this.zoomIn());
-
-	//Zoom out
-	$(containerId).find("#gZoomOut").on("click", () => this.zoomOut());
-    }
-
-    /**
-     * Abstract funciton serving to update known filter buttons with relevant filters
-     * @param {containerId} [String] - The HTML element to use as the root search node
-     * @param {filterRef} [String] - The desired check box for which the onclick filter will be declared
-     * @param {filter} [function] - The filter function to be applied
-     */	
-    createCheckBoxFilter(containerId, filterRef, filter, groupNum) {
-	$(containerId).find("#" + filterRef + "Box").on("click", (e) => {
-	    let nodeRef = $(containerId).find("#" + filterRef + "Box");
-	    if (nodeRef.is(":checked")) {
-		nodeRef.closest("label").css("background", this.fixedNodeColor);
-	    }
-	    else nodeRef.closest("label").css("background", this.defNodeColor);
-
-	    if (!groupNum) groupNum = 0;
-	    this.filterGraph(groupNum, filter, (d) => true, filterRef, this.validFilters);
-	});
-    }
-    
+        
     /**
      * Zoom in when button is pressed
      */	
@@ -684,47 +487,6 @@ class GraphAbstract { //See static attributes below class
 	    .attr("transform", "scale(" + (k / 1.5)  + ")");*/
 	
 	this.zoom.scaleBy(this.svg.transition().duration(750), 1 / 1.5);
-    }
-
-    updateRangeSliderAttr() {
-	this.sliders.nodeCount.max = this.nodeData.length;
-    }
-
-    /**
-     * Update known range sliders {this.sliders} with contextual ranges/values
-     */
-    updateRangeSliders() {
-	Object.entries(this.sliders).forEach(([key, slider]) => {
-	    //Update html slider attributes
-	    let containerRef = $(this.containerId).parent();
-	    let sliderNode = containerRef.find("#" + key);
-	    sliderNode.attr("max", slider.max);
-	    sliderNode.val(slider.max);
-	    sliderNode.change(() => {
-		slider.filter(this, parseInt(sliderNode.val()), key);
-	    });
-	    sliderNode.on("click", (e) => e.preventDefault()); //Prevent default scroll-to-focus
-
-	    //Update slider label value
-	    containerRef.find("#" + key + "Val").text(slider.max)
-	});
-    }
-
-    /**
-     * Filters the displayed nodes to ensure only {thresh} nodes exist
-     * @param {self} [SocialGraph] - A reference to this class for use in lambdas
-     * @param {thresh} [int] - The maximum number of nodes allowed
-     * @param {occType} [String] - The type of filter being applied
-     */
-    filterByNodeCount(self, thresh, occType) {
-	//Update slider label value
-	let sliderLabel = $(self.containerId).parent().find("#nodeCountVal");
-	sliderLabel.text(thresh);
-	
-	let nodeFilter = (d) => (d.index < thresh)
-	let linkFilter = (d) => (d.index < thresh) && (d.index < thresh)
-	let validFilters = self.validFilters.concat([occType]);
-	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
     }
 
     /**
@@ -748,18 +510,6 @@ class GraphAbstract { //See static attributes below class
             }
 	    shown = !shown;
         });
-    }
-		
-    /**
-     * Reset all filtered checkboxes
-     * @param {containerId} [String] - The HTML element to use as the root search node
-     */	
-    uncheckBoxFilters(containerId) {
-	this.validCheckFilters.forEach(filterRef => {
-	    let nodeRef = $(containerId).find("#" + filterRef + "Box");
-	    nodeRef.closest("label").css("background", this.defNodeColor);
-	    nodeRef.prop("checked", false);
-	});
     }
 }
 
