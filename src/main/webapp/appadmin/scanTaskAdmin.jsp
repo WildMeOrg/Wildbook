@@ -357,7 +357,7 @@ else{
 						
 						<td>
 						<%
-						if(scanEnc.getIndividual()!=null){
+						if(scanEnc.getIndividualID()!=null){
             %>
             
             <a href="../individuals.jsp?number=<%=scanEnc.getIndividualID()%>"><%=scanEnc.getIndividualID()%></a>
