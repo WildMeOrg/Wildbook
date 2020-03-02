@@ -3,12 +3,15 @@ package org.ecocean;
 //import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
 //import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.TimeZone;
 import java.util.UUID;
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -16,7 +19,13 @@ import org.json.JSONException;
 //EXIF-related imports
 import java.io.File;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
@@ -32,8 +41,8 @@ import javax.jdo.Query;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 
-
 import org.ecocean.tag.MetalTag;
+import org.joda.time.DateTime;
 import org.ecocean.*;
 
 
@@ -495,6 +504,8 @@ public class Util {
       sanitized = sanitized.replace(">", "");
       sanitized = sanitized.replace(")", "");
       sanitized = sanitized.replace("(", "");
+      return sanitized;
+    }
 
     public static String prettyPrintDateTime(DateTime dt) {
       System.out.println("prettyPrintDateTime:");
