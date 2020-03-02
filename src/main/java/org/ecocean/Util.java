@@ -496,6 +496,154 @@ public class Util {
       sanitized = sanitized.replace(")", "");
       sanitized = sanitized.replace("(", "");
 
+    public static String prettyPrintDateTime(DateTime dt) {
+      System.out.println("prettyPrintDateTime:");
+      System.out.println("  dt.hourOfDay = "+dt.hourOfDay().get());
+      boolean isOnlyDate = dateTimeIsOnlyDate(dt);
+      String currentToString = dt.toString();
+      if (isOnlyDate) {
+        currentToString = currentToString.split("T")[0];
+      }
+      return (currentToString);
+    }
+
+    public static boolean dateTimeIsOnlyDate(DateTime dt) {
+      try {
+        return (dt.millisOfDay().get()==0);
+      } catch (Exception e) {
+        return false;
+      }
+    }
+
+    public static String capitolizeFirstLetterOnly(String str) {
+      String lower = str.toLowerCase();
+      if (lower.length()<=1) return (lower.toUpperCase());
+      return (lower.substring(0,1).toUpperCase() + lower.substring(1));
+    }
+
+    public static String capitolizeFirstLetter(String str) {
+      if (str.length()<=1) return (str.toUpperCase());
+      return (str.substring(0,1).toUpperCase() + str.substring(1));
+    }
+
+
+    public static boolean requestHasVal(HttpServletRequest request, String paramName) {
+      return ((request.getParameter(paramName)!=null) && (!request.getParameter(paramName).equals("")));
+    }
+
+    public static String addToJDOFilter(String constraint, String filter, String origFilter) {
+      if (filter.equals(origFilter)) return (filter + constraint);
+      else return (filter + " && " + constraint);
+    }
+
+    public static String jdoStringContainsConstraint(String fieldName, String containsThis) {
+      return "("+fieldName+".indexOf('"+containsThis+"') != -1)";
+    }
+
+    public static String jdoStringContainsConstraint(String fieldName, String containsThis, boolean toLowerCase) {
+      if (!toLowerCase) return jdoStringContainsConstraint(fieldName, containsThis);
+      return "("+fieldName+".toLowerCase().indexOf('"+containsThis.toLowerCase()+"') != -1)";
+    }
+
+    public static String undoUrlEncoding(String str) {
+      return str.replaceAll("%20", " ").trim();
+    }
+
+    public static <T> String toString(Enumeration<T> things) {
+      StringBuilder result = new StringBuilder("[");
+      while (things.hasMoreElements()) {
+        T thing = things.nextElement();
+        result.append(thing.toString());
+        if (things.hasMoreElements()) result.append(", ");
+      }
+      result.append("]");
+      return result.toString();
+    }
+
+    public static String toString(Object obj) {
+      if (obj == null) return null;
+      return obj.toString();
+    }
+
+    public static boolean stringExists(String str) {
+      return (str!=null && !str.equals(""));
+    }
+
+
+    public static boolean hasProperty(String key, Properties props) {
+      return (props.getProperty(key) != null);
+    }
+
+    // given "animalType"
+    public static List<String> getIndexedPropertyValues(String key, Properties props) {
+      List<String> values = new ArrayList<String>();
+      for (int i=0; hasProperty((key+i), props); i++) {
+        values.add(props.getProperty(key+i));
+      }
+      return values;
+    }
+
+    public static void writeToFile(String data, String path) throws FileNotFoundException {
+      PrintWriter out = new PrintWriter(path);
+      out.println(data);
+      out.close();
+    }
+
+    public static String readFromFile(String path) throws FileNotFoundException, IOException {
+      FileInputStream inputStream = new FileInputStream(path);
+      String readData = IOUtils.toString(inputStream);
+      return readData;
+    }
+
+    public static String convertEpochTimeToHumanReadable (long epochTime){
+      Date date = new Date(epochTime);
+          DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+          format.setTimeZone(TimeZone.getTimeZone("Etc/GMT"));
+          String formatted = format.format(date);
+          formatted = format.format(date);
+          return formatted.toString();
+    }
+
+
+    public static int count(Iterator it) {
+      int num = 0;
+      while (it.hasNext()) {
+        Object elem = it.next();
+        num++;
+      }
+      return num;
+    }
+
+    // replaces wrong-slashes with right-slashes
+    public static String windowsFileStringToLinux(String windowsFileString) {
+      return windowsFileString.replaceAll("\\\\","/");
+    }
+    public static boolean fileExists(String filepath) {
+      File f = new File(filepath);
+      return (f.exists() && !f.isDirectory());
+    } 
+
+    //handles fuzzy case where url?key=value wants to test that 'key' is "set" (namely exists *and* is not explicitely "false")
+    public static boolean requestParameterSet(String value) {
+        if (value == null) return false;
+        value = value.toLowerCase();
+        return !(value.equals("false") || value.equals("f") || value.equals("0"));
+    }
+
+    
+    public static String basicSanitize(String input) {
+      String sanitized = null;
+      if (input!=null) {
+        sanitized = input;
+        sanitized = input.replace(":", "");
+        sanitized = input.replace(";", "");
+        sanitized = sanitized.replace("\"", "");
+        sanitized = sanitized.replace("'", "");
+        sanitized = sanitized.replace("(", "");
+        sanitized = sanitized.replace(")", "");
+        sanitized = sanitized.replace("*", "");
+        sanitized = sanitized.replace("%", "");        
+      }
       return sanitized;
     }
 
