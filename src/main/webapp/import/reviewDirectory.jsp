@@ -14,26 +14,25 @@
 
 <%
 String context = ServletUtilities.getContext(request);
-//Shepherd myShepherd=new Shepherd(context);
-//myShepherd.setAction("import.jsp");
+Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("import.jsp");
 String langCode=ServletUtilities.getLanguageCode(request);
 System.out.println("Starting import.jsp !");
 
-String subdir = UploadServlet.getSubdirForUpload(request);
+String subdir = UploadServlet.getSubdirForUpload(myShepherd, request);
 UploadServlet.setSubdirForUpload(subdir, request);
 
 String dirName = UploadServlet.getUploadDir(request);
 
-String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+
 
 File uploadDir = null;
 Collection<File> contents = null;
-int totalImages = 0;
-int newImages = 0;
+int nImages = 0;
 
 try {
 	uploadDir = new File(dirName);
-	if (!uploadDir.isDirectory()) uploadDir.mkdirs();
 	contents = FileUtils.listFiles(uploadDir, null, true);
 } catch (Exception e) {
 	System.out.println("Exception! On ReviewDirectory.jsp!!!");
@@ -45,38 +44,18 @@ List<File> imageFiles = new ArrayList<File>();
 if (contents!=null) {
 	for (File f: contents) {
 		String name = f.getName().toLowerCase();
+		// I will never use regex. Never!!!! READABILITY SHALL REIGN ETERNAL
 		if (name.endsWith(".jpg")||name.endsWith(".png")||name.endsWith(".jpeg")) {
 			imageFiles.add(f);
 		}
 	}
 }
+nImages = imageFiles.size();
 
-List<String> latestFiles = new ArrayList<String>();
-List<String> previousFiles = new ArrayList<String>();
-
-long latestUpload = 1L;
-long currentTime = System.currentTimeMillis();
-long hour = 3600000;
-
-for (File f : imageFiles) {
-	long modified = f.lastModified();
-	if (modified>latestUpload) latestUpload = modified;
-}
-for (File f : imageFiles) {
-	// "recent" uploaded images in last 12 hours
-	if (f.lastModified()>(latestUpload-(hour*12))) {
-		latestFiles.add(f.getName());
-	} else {
-		previousFiles.add(f.getName());
-	}	
-}
-
-totalImages = imageFiles.size();
-newImages = latestFiles.size();
 
 %>
 <jsp:include page="../header.jsp" flush="true"/>
-<%-- <style> 
+<style> 
 .import-explanation {
 }
 .import-header {
@@ -112,33 +91,22 @@ ol.filelist li {
 	overflow-x: hidden;
 }
 
-</style> --%>
-
-<link rel="stylesheet" href="<%=urlLoc %>/import/bulkUploader.css" />
+</style>
 
 
 <div class="container maincontent">
 
   <h1 class="import-header">Bulk Import: Photo Review</h1>
-  <p class="import-explanation"><b>These are the images currently uploaded by your account:</b></p>
-  <%-- <p>This includes images uploaded in the past.</p> --%>
+  <p class="import-explanation">Please confirm that you have uploaded all the images in this import</p>
 
-  <p class="info"><b><%=totalImages %> total images found</b></p>
-  <p class="info"><b><%=newImages %> new images found (last 12 hours)</b></p>
+  <p class="info"><b><%=nImages %> images found:</b></p>
 
 	<div id="filename-boxed-list">
     	<ol class="filelist">
   		<% 
-		for (String photo : latestFiles) {
-
-			%>
-  				<li><label class="new-upload-image">NEW</label>&nbsp<%=photo%></li>
-  			<%
-
-		}
-  		for (String photo : previousFiles) {
+  		for (File photo: imageFiles) {
   			%>
-  				<li><%=photo%></li>
+  			<li><%=photo.getName()%></li>
   			<%
 		}
   		%>

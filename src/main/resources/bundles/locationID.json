@@ -14,7 +14,12 @@
 			 {
 			  "name": "Sea of Chiloé", "id": "Sea of Chiloé" },
 			 {
-			  "name": "Coral Sea", "id": "Coral Sea"  },
+			  "name": "Coral Sea", "id": "Coral Sea", "locationID":[
+
+				{"name": "Gold Coast", "id": "GC" }
+
+				]
+			  },
 			 {
 			  "name": "East China Sea", "id": "East China Sea"  },
 			 {
@@ -261,6 +266,8 @@
 			  "name": "Baltic Sea", "id": "Baltic Sea" },
 			 {
 			  "name": "Bothnian Sea", "id": "Bothnian Sea" },
+			  {
+			  "name": "Cape Verde", "id": "Cape Verde"  },
 			 {
 			  "name": "Central Baltic Sea", "id": "Central Baltic Sea"  },
 			  { "name":"Faroe Islands", "id":"Faroe Islands", "locationID":[] },
@@ -335,8 +342,7 @@
 			 {
 			  "name": "North Sea", "id": "North Sea" },
 			  
-			  {
-			  "name": "NorfolkCanyon", "id": "NorfolkCanyon" },
+			  
 			 {
 			  "name": "Norwegian Sea", "id": "Norwegian Sea" },
 			 {
@@ -347,6 +353,12 @@
 			  "name": "Sea of the Hebrides", "id": "Sea of the Hebrides" },
 			  
 			  {"name":"U.S. Eastern Seaboard","id":"U.S. Eastern Seaboard","locationID":[
+			  
+					{
+					"name": "NorfolkCanyon", "id": "NorfolkCanyon" },
+					
+					{
+					"name": "NC-OUTERBANKS", "id": "NC-OUTERBANKS" },
 			  
 					{ "name":"Montauk NY", "id":"Montauk NY", "locationID":[] },
 					{ "name":"Cape May, NJ", "id":"CapeMay", "locationID":[] },
@@ -841,7 +853,11 @@
 			 {
 			  "name": "Amundsen Sea", "id": "Amundsen Sea" },
 			 {
-			  "name": "Bass Strait", "id": "Bass Strait" },
+			  "name": "Bass Strait", "id": "Bass Strait", "locationID":[
+			  
+							 { "name": "Port Phillip", "id": "Port Phillip" } 
+			  
+			  ]},
 			 {
 			  "name": "Bellingshausen Sea", "id": "Bellingshausen Sea" },
 			 {
@@ -864,6 +880,7 @@
 			  "name": "Lazarev Sea", "id": "Lazarev Sea" },
 			 {
 			  "name": "Mawson Sea", "id": "Mawson Sea" },
+			  
 			 {
 			  "name": "Riiser-Larsen Sea", "id": "Riiser-Larsen Sea" },
 			 {
@@ -910,7 +927,37 @@
 		"defaultLatitude": 90.0,
 		"defaultLongitude":0.0
     },
-	{ "name":"South Africa", "id":"South Africa", "locationID":[] },
+	{ "name":"South Africa", "id":"South Africa", "locationID":[
+	
+		{ "name":"BAZARUTO", "id":"BAZARUTO", "locationID":[] },
+
+		{ "name":"BLUFF", "id":"BLUFF", "locationID":[] },
+
+		{ "name":"CAPEVIDAL", "id":"CAPEVIDAL", "locationID":[] },
+
+		{ "name":"DURBAN", "id":"DURBAN", "locationID":[] },
+
+		{ "name":"EAST LONDON", "id":"EASTLONDON", "locationID":[] },
+
+		{ "name":"KNYSNA", "id":"KNYSNA", "locationID":[] },
+
+		{ "name":"KNYSNAPLETT", "id":"KNYSNAPLETT", "locationID":[] },
+
+		{ "name":"PLETT", "id":"PLETT", "locationID":[] },
+
+		{ "name":"PONTAMAMOLI", "id":"PONTAMAMOLI", "locationID":[] },
+
+		{ "name":"PORT ELIZABETH", "id":"PORTELIZABETH", "locationID":[] },
+
+		{ "name":"PORT ST JOHNS", "id":"PORTSTJOHNS", "locationID":[] },
+
+		{ "name":"RICHARDS BAY", "id":"RICHARDSBAY", "locationID":[] },
+
+		{ "name":"ST. LUCIA", "id":"STLUCIA", "locationID":[] },
+
+		{ "name":"TSITSIKAMA", "id":"TSITSIKAMA", "locationID":[] }
+
+	] },
 	
 	{ "name":"Test Sets", "id":"TestSets", "locationID":[
 				{ "name":"FlukematcherTestSet", "id":"FlukematcherTestSet", "locationID":[] },

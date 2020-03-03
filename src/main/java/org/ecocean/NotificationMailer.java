@@ -168,8 +168,8 @@ public final class NotificationMailer implements Runnable {
   private EmailTemplate mailer;
   /** Flag indicating whether setup failed. */
   private boolean failedSetup;
-  private String urlScheme="http";
   private List<String> types=null;
+  private String urlScheme="https";
 
   /**
    * Creates a new NotificationMailer instance.
@@ -254,7 +254,7 @@ public final class NotificationMailer implements Runnable {
           // Extra layer to help prevent chance of URL spoof attacks.
           String noTrack = map.get(EMAIL_NOTRACK);
           if (noTrack.matches("([a-z]+)=(.+)")) {
-            String link = String.format(urlScheme+"://%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
+            String link = String.format("%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
             mailer.replace("@REMOVEME_LINK@", link, true);
           }
         } else {

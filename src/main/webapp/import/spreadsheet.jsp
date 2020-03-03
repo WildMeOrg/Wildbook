@@ -118,9 +118,8 @@ div.file-item div {
 	<input type="file" id="file-chooser" accept=".xlsx" onChange="return filesChangedSetFilename(this)" /> 
 	<button id="upload-button">begin upload</button>
 <% System.out.println("Done with import/spreadsheet.jsp. About to print footer."); %>
-</div>
 
-</div>
+</div></div>
 <jsp:include page="../footer.jsp" flush="true"/>
 </body>
 </html>

@@ -413,16 +413,24 @@ System.out.println("fromResponse ---> " + ids);
     private static Object mediaAssetToUri(MediaAsset ma) {
         //URL curl = ma.containerURLIfPresent();  //what is this??
         //if (curl == null) curl = ma.webURL();
+
         URL curl = ma.webURL();
-        if (ma.getStore() instanceof LocalAssetStore) {
-            if (curl == null) return null;
-            return curl.toString();
-        } else if (ma.getStore() instanceof S3AssetStore) {
-            return ma.getParameters();
-        } else {
-            if (curl == null) return null;
-            return curl.toString();
+        
+        String urlStr = curl.toString();
+        // THIS WILL BREAK if you need to append a query to the filename... 
+        // we are double encoding the '?' in order to allow filenames that contain it to go to IA   
+        if (urlStr!=null) {
+            urlStr = urlStr.replaceAll("\\?", "%3F");
+            if (ma.getStore() instanceof LocalAssetStore) {
+                return urlStr;
+            } else if (ma.getStore() instanceof S3AssetStore) {
+                return ma.getParameters();
+            } else {
+                return urlStr;
+            }
         }
+        return null;
+        
     }
 
     //basically "should we send to IA?"

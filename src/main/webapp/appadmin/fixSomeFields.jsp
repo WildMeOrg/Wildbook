@@ -3,8 +3,23 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
-org.ecocean.grid.*,
+org.ecocean.grid.*,org.ecocean.ia.*,java.util.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+
+<%!
+
+public static List<Task> getTasksFor(Annotation ann, Shepherd myShepherd) {
+    String qstr = "SELECT FROM org.ecocean.ia.Task WHERE objectAnnotations.contains(obj) && obj.id == \"" + ann.getId() + "\" VARIABLES org.ecocean.Annotation obj";
+    Query query = myShepherd.getPM().newQuery(qstr);
+    query.setIgnoreCache(true);
+    query.setOrdering("created");
+    Collection c=(Collection)=query.execute();
+    ArrayList<Task> listy=new ArrayList<Task>(c);
+    query.closeAll();
+    return listy;
+}
+
+%>
 
 <%
 
@@ -30,24 +45,18 @@ Shepherd myShepherd=new Shepherd(context);
 
 myShepherd.beginDBTransaction();
 
+Annotation annot=myShepherd.getAnnotation("c41b8651-01be-403b-83f5-56e7fc212609");
 
-String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && encounters.contains(enc1515) &&( enc1515.submitterID == \"SDRP\" ) && ((enc.dwcDateAddedLong >= 1356998400000) && (enc.dwcDateAddedLong <= 1640995140000)) VARIABLES org.ecocean.Encounter enc;org.ecocean.Encounter enc1515";
-
-PersistenceManager pm=myShepherd.getPM();
-PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
-FetchPlan fp=pm.getFetchPlan();
-
-//Create a FetchGroup on the PMF called "TestGroup" for MyClass
-//FetchGroup grp = pm.getPersistenceManagerFactory().getFetchGroup(MarkedIndividual.class, "TestGroup");
-//grp.addMember("field1").addMember("field2");
-
+List<Task> tasks=getTasksFor(annot, myShepherd);
+for (Task t:tasks){
+	%>
+	<p>Task ID: <%=t.getId() %></p>
+	<%
+}
 
 try {
 	
-    Role newRole1=new Role("admin","orgAdmin");
-    newRole1.setContext("context0");
-    myShepherd.getPM().makePersistent(newRole1);
-    myShepherd.updateDBTransaction();
+
 
 	
 }

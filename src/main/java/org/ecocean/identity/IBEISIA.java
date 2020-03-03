@@ -457,6 +457,7 @@ Util.mark("identify process pre-post end");
             System.out.println("[INFO] sendDetect() nms_thresh is null; DEFAULT will be used");
         }
 
+
         String orienterAlgoKey = "orienter_algo"+taxonomyPropString;
         String orienterAlgo = IA.getProperty(context, orienterAlgoKey);
         if (orienterAlgo != null) {
@@ -466,6 +467,24 @@ Util.mark("identify process pre-post end");
             System.out.println("[INFO] sendDetect() orienter_algo is null; DEFAULT will be used");
         }
 
+
+
+	        String nms_aware = IA.getProperty(context, "nms_aware");
+        if (nms_aware != null) {
+            System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
+            map.put("nms_aware", nms_aware);
+        } else {
+            System.out.println("[INFO] sendDetect() nms_aware is null; DEFAULT will be used");
+        }
+
+        String nms = IA.getProperty(context, "nms");
+        if (nms != null) {
+            System.out.println("[INFO] sendDetect() nms set to " + nms);
+            map.put("nms", nms);
+        } else {
+            System.out.println("[INFO] sendDetect() nms is null; DEFAULT will be used");
+        }
+        
 
         String u = getDetectUrlByModelTag(context, modelTag);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
@@ -1145,7 +1164,7 @@ Util.mark("bia 4B", tt);
                 if (queryConfigDict == null) queryConfigDict = new JSONObject();
                 
                 //from JP on 12/27/2019 - if we want to specify an unfiltered list, just omit the tag
-                if(!curvrankDailyTag.toLowerCase().equals("user:any")) {
+                if(!curvrankDailyTag.toLowerCase().equals("user:any") && !curvrankDailyTag.toLowerCase().equals("user:any;locs:")) {
                   queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
                 }
             }
@@ -1285,7 +1304,7 @@ Util.mark("OPT bia 4X", tt);
                 if (queryConfigDict == null) queryConfigDict = new JSONObject();
                 
                 //from JP on 12/27/2019 - if we want to specify an unfiltered list, just omit the tag
-                if(!curvrankDailyTag.toLowerCase().equals("user:any")) {
+                if(!curvrankDailyTag.toLowerCase().equals("user:any") && !curvrankDailyTag.toLowerCase().equals("user:any;locs:")) {
                   queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
                 }
             }

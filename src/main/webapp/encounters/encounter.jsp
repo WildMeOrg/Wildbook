@@ -108,7 +108,7 @@
 		}
 		return true;
 	}
-	
+
 	private String escapeSpecialRegexChars(String str) {
 		Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
 	    return SPECIAL_REGEX_CHARS.matcher(str).replaceAll("\\\\$0");
@@ -169,7 +169,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   boolean proceed = true;
   boolean haveRendered = false;
 
-  
+
 
   Properties collabProps = new Properties();
   collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
@@ -403,7 +403,7 @@ td.measurement{
           	    ne_long_element.value = location.lng();
 	}
 	</script>
-	
+
 <script>
 var lastIndivAutoData = {};
 function setIndivAutocomplete(el) {
@@ -843,7 +843,7 @@ if(enc.getLocation()!=null){
 <a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
 <em><%=encprops.getProperty("locationID") %></em>
-<span> 
+<span>
 	<span id="displayLocationID">
 	<%
     String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
@@ -857,7 +857,7 @@ if(enc.getLocation()!=null){
 		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
 	}
 	%>
-		<%=displayPath %>	
+		<%=displayPath %>
 	</span>
 </span>
 
@@ -1074,7 +1074,7 @@ if(enc.getLocation()!=null){
             <div class="col-sm-5">
 
               <%=LocationID.getHTMLSelector(false, enc.getLocationID(),qualifier,"selectCode","code","form-control") %>
-              
+
             </div>
             <div class="col-sm-3">
               <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
@@ -1271,7 +1271,7 @@ if(enc.getLocation()!=null){
 
 
       google.maps.event.addDomListener(window, 'load', initialize);
-      
+
       function emptyMarkers() {
 
     	    // Loop through markers and set map to null for each
@@ -1284,8 +1284,8 @@ if(enc.getLocation()!=null){
     	    markers = [];
 
     	}
-      
-      
+
+
     </script>
 
  	<%
@@ -1316,8 +1316,8 @@ if(enc.getLocation()!=null){
 
       <script type="text/javascript">
         $(document).ready(function() {
-        	
-          //form submission	
+
+          //form submission
           $("#setGPSbutton").click(function(event) {
             event.preventDefault();
 
@@ -1340,9 +1340,9 @@ if(enc.getLocation()!=null){
             $("#gpsErrorDiv").hide()
             $("#latCheck, #longCheck").hide();
           });
-          
-          
-          
+
+
+
           //validate GPS values
           $('#lat,#longitude').keyup(function() {
               if( ( $('#lat').val() == "") && ( $('#longitude').val() == "") ) {
@@ -1353,7 +1353,7 @@ if(enc.getLocation()!=null){
               else if( $('#lat').val() == "" || $('#longitude').val() == "" ) {
                   $("#setGPSbutton").attr("disabled","disabled");
                   //alert("here 2!");
-              }  
+              }
               else{
               	//alert("Trying to validate!");
               	var valid=validate_coords($('#lat').val(),$('#longitude').val());
@@ -1364,7 +1364,7 @@ if(enc.getLocation()!=null){
               	else{
                     $("#setGPSbutton").removeAttr("disabled");
                     emptyMarkers();
-                    var newLatLng = new google.maps.LatLng($('#lat').val(), $('#longitude').val());   
+                    var newLatLng = new google.maps.LatLng($('#lat').val(), $('#longitude').val());
                     var newMarker = new google.maps.Marker({
                  	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
                  	   position:newLatLng,
@@ -1374,13 +1374,13 @@ if(enc.getLocation()!=null){
               	}
               }
           });
-          
-          
-        });
-        
 
-        
-        
+
+        });
+
+
+
+
       </script>
 
 
@@ -1414,9 +1414,9 @@ if(enc.getLocation()!=null){
               </div>
             </div>
           </form>
-          
-          
-          
+
+
+
 
           <br/>
           <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
@@ -1436,9 +1436,9 @@ if(enc.getLocation()!=null){
 	        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
 	        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
 	      </h2>
-	
-	
-	
+
+
+
 	        <script type="text/javascript">
 	        $(document).ready(function() {
 	          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
@@ -1446,39 +1446,39 @@ if(enc.getLocation()!=null){
 	          });
 	          $("#editIdentity").click(function() {
 	            $("#matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
-	
+
 	            $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn").show();
-	
+
 				<%
 				if(enc.getIndividualID()!=null){
 				%>
-					$(".add2shark").hide();               
-					$(".removeFromShark").show();                   	                                      
+					$(".add2shark").hide();
+					$(".removeFromShark").show();
 				<%
 				}
 				else{
 				%>
-					$(".add2shark").show();               
-					$(".removeFromShark").hide(); 
+					$(".add2shark").show();
+					$(".removeFromShark").hide();
 				<%
 				}
 				%>
-	            
-	            
+
+
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
-	
+
 	            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
                     resetIdButtons();
 	          });
-	
+
 	          $("#closeEditIdentity").click(function() {
 	            $(".editForm, .editText, .resultMessageDiv").hide();
 	          });
 	        });
 	        </script>
-	
-	
-	        <% 
+
+
+	        <%
         }
         else {
 	         %>
@@ -1488,11 +1488,11 @@ if(enc.getLocation()!=null){
          %>
 
 
-    					
-    						
+
+
     							<div>
     							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %> 
+    								 <%=encprops.getProperty("identified_as") %>
     								 <%
     								 String hrefVal="";
     								 String indyDisplayName="";
@@ -1504,18 +1504,18 @@ if(enc.getLocation()!=null){
                      					<a href="<%=hrefVal %>">
                      						<span id="displayIndividualID"><%=indyDisplayName %></span>
                      					</a>
-                     				
+
                      			</p>
-    							
+
                   <p>
                     <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
                       <span><%=encprops.getProperty("matched_by") %>: <span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
                   </p>
 
-    							
+
 
           <%-- START MATCHED BY --%>
-    			
+
 
                     <script type="text/javascript">
                     $(document).ready(function() {
@@ -1570,16 +1570,16 @@ if(enc.getLocation()!=null){
                       </div>
                     </form>
     							</div>
-    						
+
       <%-- END MATCHED BY --%>
 
       <%-- START MANAGE IDENTITY --%>
 
      		<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
 
- 
- 					
- 
+
+
+
 
                     <script type="text/javascript">
 function switchIdMode(bid) {
@@ -1612,8 +1612,8 @@ console.info('resetIdButtons()');
 }
 
                     $(document).ready(function() {
-                    	
-                    	
+
+
                       $(".id-action").click(function(event) {
                         event.preventDefault();
                         var forceNew = false;
@@ -1636,29 +1636,29 @@ console.info('resetIdButtons()');
 
                         $.post("../IndividualAddEncounter", sendData,
                         function(data) {
-                        	
-                         
+
+
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
-                          
+
                           //change the display in the Encounter page nearby link
                           $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + data.individualID);
                           $('#displayIndividualID').closest('a').text(data.displayName);
-                          
+
                           //change the name in the topbar
                           //$('#topid').text(data.displayName);
                           //$("#topid").html(data.displayName);
                           $("#topid").prop('href', '../individuals.jsp?number=' + data.individualID);
                           $("#topid").text(data.displayName);
-          				  
-                          $(".add2shark").hide();               
-        				  $(".removeFromShark").show();      
-                          
+
+                          $(".add2shark").hide();
+        				  $(".removeFromShark").show();
+
                           $("#displayMatchedBy").html(matchType);
                           $("#addSuccessDiv").html("<strong><%=encprops.getProperty("success") %></strong> <%=encprops.getProperty("successfulAdd") %> " + data.displayName + ".");
-                          
+
 
                         })
                         .fail(function(response) {
@@ -1666,7 +1666,7 @@ console.info('resetIdButtons()');
                           	$("#individualDiv").addClass("has-error");
                           	$("#individualErrorDiv").html(response.responseText);
                           	$("#individualError, #matchedByError, #individualErrorDiv, #individualResultsDiv").show();
-                          
+
                         });
                       });
 
@@ -1683,7 +1683,7 @@ console.info('resetIdButtons()');
                     <div class="editText">
                       <h3><%=encprops.getProperty("manageIdentity")%></h3>
                          <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
-                   
+
                     </div>
 
 
@@ -1714,7 +1714,7 @@ console.info('resetIdButtons()');
 
                         </div>
                         <input name="AddNew" type="button" id="AddNew" value="<%=encprops.getProperty("new")%>" class="btn btn-sm editFormBtn add2shark id-action"/>
-                          
+
                       </div>
 
                     <p class="add2shark"><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
@@ -1751,7 +1751,7 @@ console.info('resetIdButtons()');
                         </div>
                       </div>
                       </form>
-					
+
 					<script type="text/javascript">
 
 function showHiddenId() {
@@ -1765,11 +1765,11 @@ function checkIdDisplay() {
     resetIdButtons();
 }
 	                    $(document).ready(function() {
-	                    	
+
 	                    	//set autocomplete on #individualAddEncounterInput above
 	                    	setIndivAutocomplete($('#individualAddEncounterInputDisplay'));
-	                    	
-	                    	
+
+
     $('#individualAddEncounterInputDisplay').on('change', function(ev) {
         checkIdDisplay();
         resetIdButtons();
@@ -1786,15 +1786,15 @@ function checkIdDisplay() {
         //$('#individualAddEncounterInput').val('');
         //$('#matchType').val('Unmatched first encounter');
     });
-	                    	
+
 	                    });
                     </script>
 
 
-       
+
              <script type="text/javascript">
                     $(document).ready(function() {
-                    
+
 
                       $("#individualRemoveEncounterBtn").click(function(event) {
                         event.preventDefault();
@@ -1815,18 +1815,18 @@ function checkIdDisplay() {
                           $("#displayIndividualID").html("");
                           $("#individualAddEncounterInput").value="";
                           $("#topid").html("<%=encprops.getProperty("unassigned") %>");
-          					$(".add2shark").show();               
-        					$(".removeFromShark").hide();  
+          					$(".add2shark").show();
+        					$(".removeFromShark").hide();
                             $("#individualErrorDiv").hide();
                             $("#individualDiv").removeClass("has-success");
                             $("#individualCheck, #matchedByCheck, #individualResultsDiv").hide();
-                            
+
                             $("#displayIndividualID").html("");
                             //$('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
                             //$('#topid').prop('href', '../individuals.jsp?number=' + individual);
                             $("#topid").html("<%=encprops.getProperty("unassigned") %>");
                             $("#topid").removeAttr("href");
-                            
+
                         })
                         .fail(function(response) {
                           $("#setRemoveResultDiv").show();
@@ -1839,17 +1839,17 @@ function checkIdDisplay() {
                       });
                     });
                     </script>
-                    
+
                     <div class="highlight resultMessageDiv removeFromShark" id="individualResultsDiv">
                       <span class="highlight" id="individualErrorDiv"></span>
                       <span class="successHighlight" id="addSuccessDiv"></span>
                     </div>
-                    
+
 					<div id="setRemoveResultDiv" class="resultMessageDiv add2shark">
                       <span class="highlight" id="removeErrorDiv"></span>
                       <span class="successHighlight" id="removeSuccessDiv"></span>
                     </div>
-         
+
                     <form class="removeFromShark" id="removeShark" name="removeShark">
                       <div class="form-group row removeFromShark">
                         <div class="col-sm-12 col-xs-10 removeFromShark">
@@ -2166,10 +2166,10 @@ function checkIdDisplay() {
             var buttons = $("#editContactBtn, #closeEditContact").on("click", function(){
               buttons.toggle();
             });
-            
+
             $(".editUsers").hide();
             //$(".addUser").hide();
-            
+
             $("#editContactBtn").click(function() {
               $(".editUsers,.editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
 
@@ -2200,7 +2200,7 @@ function checkIdDisplay() {
 
 	      <p class="para"><h4><%=encprops.getProperty("submitter") %></h4>
 	      <%
-	       if(enc.getSubmitters()!=null){   
+	       if(enc.getSubmitters()!=null){
 	    	   %>
 	    	   <table id="submitters" width="100%">
 	    	   <tbody>
@@ -2213,7 +2213,7 @@ function checkIdDisplay() {
 				   <tr id="<%=user.getUUID() %>">
 					   <td>
 					   <%
-				    	   
+
 					   		String name=encprops.getProperty("noname");
 				    	   %>
 				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" id="<%=user.getUUID() %>">
@@ -2222,13 +2222,13 @@ function checkIdDisplay() {
 				            %>
 				            <span id="displaySubmitName"><%=name %></span>
 				            <%
-				          
+
 				          if (isOwner) {
-				
+
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
 						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-		
+
 						                %>
 						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
 						                <%
@@ -2238,7 +2238,7 @@ function checkIdDisplay() {
 					                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation() %></span>
 					                <%
 					                }
-				
+
 				         } //end if isOwner
 					         %>
 					         </p>
@@ -2259,16 +2259,16 @@ function checkIdDisplay() {
 					         </td>
 				         </tr>
 				         <%
-			   	} //submitters for loop     
-			   	
+			   	} //submitters for loop
+
 			   	%>
 			   	</tbody>
 			   	</table>
 			   	<%
-			   	
+
 	 		} //end if submitters!=null
 			%>
-			
+
 			</p> <!--  End submitters paragraph -->
 			<%
 			if(isOwner){
@@ -2281,12 +2281,12 @@ function checkIdDisplay() {
 			<%
 			}
 			%>
-		
+
 	      <p class="para"><h4><%=encprops.getProperty("photographer") %></h4>
 	      <%
-	       if(enc.getPhotographers()!=null){   
+	       if(enc.getPhotographers()!=null){
 	    	   %>
-	    	   
+
 	    	   <table id="photographers" width="100%">
 	    	   <tbody>
 	    	   <%
@@ -2298,7 +2298,7 @@ function checkIdDisplay() {
 				   <tr id="<%=user.getUUID() %>">
 					   <td>
 					   <%
-				    	   
+
 				    	   String name=encprops.getProperty("noname");
 				    	   %>
 				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" id="<%=user.getUUID() %>">
@@ -2307,13 +2307,13 @@ function checkIdDisplay() {
 				            %>
 				            <span id="displaySubmitName"><%=name%></span>
 				            <%
-				          
+
 				          if (isOwner) {
-				
+
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
 						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-		
+
 						                %>
 						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
 						                <%
@@ -2323,7 +2323,7 @@ function checkIdDisplay() {
 					                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation() %></span>
 					                <%
 					                }
-				
+
 				         } //end if isOwner
 					         %>
 					         </p>
@@ -2335,7 +2335,7 @@ function checkIdDisplay() {
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
 					         			<input type="hidden" name="type" value="photographer" />
-					         			
+
 					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("remove") %></button>
 					         		  </div>
 					         <%
@@ -2344,7 +2344,7 @@ function checkIdDisplay() {
 					         </td>
 				         </tr>
 				         <%
-			   	} //photographers for loop   
+			   	} //photographers for loop
 			   	%>
 			   	</tbody>
 			   	</table>
@@ -2362,23 +2362,23 @@ function checkIdDisplay() {
 			</div>
 		    <%
 			}
-		    %>          
-		                   
-		                  
-		                   
-		                   
-		                   
-		                   
-		                   
+		    %>
+
+
+
+
+
+
+
 							<%
 		                    if(isOwner){
-		           
+
 		                    %>
-		
+
 		                     	<p class="para"><h4><%=encprops.getProperty("inform_others") %></h4> <%
-	       						if(enc.getPhotographers()!=null){   
+	       						if(enc.getPhotographers()!=null){
 	    	   %>
-	    	   
+
 	    	   <table id="informOthers" width="100%">
 	    	   <tbody>
 	    	   <%
@@ -2390,7 +2390,7 @@ function checkIdDisplay() {
 				   <tr id="<%=user.getUUID() %>">
 					   <td>
 					   <%
-				    	   
+
 				    	   String name=encprops.getProperty("noname");
 				    	   %>
 				    	   <p style="background-color: #B0C4DE;border-radius:5px;padding: 5px;" id="<%=user.getUUID() %>">
@@ -2401,13 +2401,13 @@ function checkIdDisplay() {
 				            	<span id="displaySubmitName"><%=name%></span>
 				            	<%
 			   				}
-				          
+
 				          if (isOwner) {
-				
+
 						            if((user.getEmailAddress()!=null)&&(!user.getEmailAddress().equals(""))) {
 						              //break up the string
 						              StringTokenizer stzr=new StringTokenizer(user.getEmailAddress(),",");
-		
+
 						                %>
 						                <br/><a href="mailto:<%=user.getEmailAddress()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=user.getEmailAddress()%></a>
 						                <%
@@ -2417,7 +2417,7 @@ function checkIdDisplay() {
 					                	<br/><span id="displaySubmitOrg"><%=user.getAffiliation() %></span>
 					                <%
 					                }
-				
+
 				         } //end if isOwner
 					         %>
 					         </p>
@@ -2429,7 +2429,7 @@ function checkIdDisplay() {
 					         	&nbsp;<div name="deleteUsers" class="editFormUsers">
 					         			<input type="hidden" name="uuid" value="<%=user.getUUID() %>" />
 					         			<input type="hidden" name="type" value="informOther" />
-					         			
+
 					         			&nbsp;<button id="remove<%=user.getUUID() %>button" class="btn btn-sm editUsers" style="margin-top:0;display: inline-block;" type="submit"><%=encprops.getProperty("remove") %></button>
 					         		  </div>
 					         <%
@@ -2438,7 +2438,7 @@ function checkIdDisplay() {
 					         </td>
 				         </tr>
 				         <%
-			   	} //informOthers for loop   
+			   	} //informOthers for loop
 			   	%>
 			   	</tbody>
 			   	</table>
@@ -2457,21 +2457,21 @@ function checkIdDisplay() {
 			<%
 			}
 			%>
-		            
+
 		               		<%
 		                  	} //end if isOwner
-    	   		
+
 
                   	%>
                   	<br>
-                  	 <!--  remake for Users removal -->         
+                  	 <!--  remake for Users removal -->
 		         <script type="text/javascript">
                     $(document).ready(function() {
-                    	
-                    	
+
+
                       //$("button.editUsers").click(function(event) {
                       $("#submitters,#photographers,#informOthers").on('click', 'button.editUsers',function(event) {
-                    	//alert("Made it here");  
+                    	//alert("Made it here");
                         event.preventDefault();
 						if(confirm('<%=encprops.getProperty("sureDeleteUser") %>')){
 
@@ -2483,42 +2483,42 @@ function checkIdDisplay() {
 	    					//alert("type:"+type);
 	    					var uuid = $(TheDiv).find("> input[name='uuid']").val();
 	    					//alert("uuid:"+uuid);
-	
-	                        
-	
-	                        $.post("../EncounterRemoveUser", 
+
+
+
+	                        $.post("../EncounterRemoveUser",
 	                        	{
-		                        	"encounter": '<%=enc.getCatalogNumber() %>', 
-		                        	"type": type, 
-		                        	"uuid": uuid, 
+		                        	"encounter": '<%=enc.getCatalogNumber() %>',
+		                        	"type": type,
+		                        	"uuid": uuid,
 	                        	},
 		                        function() {
 		                          //$("#individualErrorDiv").hide();
 		                          TheRow.hide();
-		                         
-		
+
+
 		                     }) //end post
 		                     .fail(function(response) {
 		                          alert("I could not remove this user. Please check the logs for errors.");
 		                        }); //end fail
-	                        
+
 		                      } //end if
-						
-                      	
-	                    	
+
+
+
                     	}); //end click function
                     });  //end document ready
-                    </script>   
-                    
-                 <!--  remake for User addition -->         
+                    </script>
+
+                 <!--  remake for User addition -->
 		         <script type="text/javascript">
                     $(document).ready(function() {
-                    	
-                    	
+
+
                       $("button.addUser").click(function(event) {
-                    	//alert("Made it here");  
+                    	//alert("Made it here");
                         event.preventDefault();
-						
+
 	                        var SendButton = $(event.target);
 	                        var elemID=event.target.id;
 	    					//var TheTable = SendButton.parents('table');
@@ -2527,21 +2527,21 @@ function checkIdDisplay() {
 	    					//alert("type:"+type);
 	    					var email = $(TheDiv).find("> input[name='email']").val();
 	    					///alert("email:"+email);
-	
-	                        
-	
-	                        $.post("../EncounterAddUser", 
+
+
+
+	                        $.post("../EncounterAddUser",
 	                        	{
-		                        	"encounter": '<%=enc.getCatalogNumber() %>', 
-		                        	"type": type, 
-		                        	"email": email, 
+		                        	"encounter": '<%=enc.getCatalogNumber() %>',
+		                        	"type": type,
+		                        	"email": email,
 	                        	},
 		                        function(data) {
-		                          
+
 	                        		//add User row above
 	                        		var remove="<%=encprops.getProperty("remove") %>";
 	                        		var encounter="<%=enc.getCatalogNumber() %>";
-	                        		
+
 	                        		$("table#"+type+"s").find('> tbody:last-child')
 	                        			.append('<tr id=\"'+data.uuid+'\">'
 	                        			                            +'<td><p style=\"background-color: #B0C4DE;border-radius:5px;padding: 5px;\">'+email+'</p></td>'
@@ -2555,24 +2555,24 @@ function checkIdDisplay() {
 	                        			                            +'</td>'
 	                        			        +'</tr>'
 	                        		);
-	                        		
-		                         
-		
-		                     }, 'json' 
+
+
+
+		                     }, 'json'
 	                         ) //end post
 		                     .fail(function(response) {
 		                          alert("I could not remove this user. Please check the logs for errors.");
 		                        }); //end fail
-	                        
-		                      
-						
-                      	
-	                    	
+
+
+
+
+
                     	}); //end click function
                     });  //end document ready
-                    </script>      
-                  
-                   
+                    </script>
+
+
         </div>
 <%-- END CONTACT INFORMATION --%>
 
@@ -2616,13 +2616,16 @@ else {
 
  <%}%>
 
-
-
-
-
 								<p class="para">
 									Number: <%=num%>
 								</p>
+                <!--margin to match p class in manta.css-->
+                <table class="para" style="margin: 0 0 15px;">
+                  <tr><td><%=encprops.getProperty("dateCreated")%></td><td><%=enc.getDWCDateAdded()%></td></tr>
+
+                  <tr><td><%=encprops.getProperty("dateEdited")%>&nbsp&nbsp</td><td><%=enc.getDWCDateLastModified()%></td></tr>
+                </table>
+
 			<!-- START WORKFLOW ATTRIBUTE -->
 
 
@@ -2729,11 +2732,7 @@ else {
     									<td>
      										<img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif" /> <%=encprops.getProperty("assigned_user")%>&nbsp;
      									</td>
-        								<%
-      									%>
 
-      									<%
-      									%>
      								</tr>
      								<tr>
      									<td>
@@ -2750,7 +2749,7 @@ else {
 
                          					if(thisUser.getUserImage()!=null){
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-                         						
+
                          					}
                          					%>
                      						<%
@@ -2762,54 +2761,54 @@ else {
                          					}
                                 			%>
 
-     								<div>
-                      <div class="row">
-                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
-                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="border: 1px solid;" />
-                        </div>
-                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
-                          <%-- <p> --%>
-
-                        <%
-                        if(thisUser.getAffiliation()!=null){
-                        %>
-                        <p><strong><%=displayName %></strong></p>
-                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
-                        <%
-                        }
-
-                        if(thisUser.getUserProject()!=null){
-                        %>
-                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
-                        <%
-                        }
-
-                        if(thisUser.getUserURL()!=null){
-                            %>
-                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
-                            <%
-                          }
-
-                        if(thisUser.getUserStatement()!=null){
-                            %>
-                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
-                            <%
-                          }
-                        %>
-                        </div>
-                      </div>
-
-                  </div>
-
-<%
-                         	}
-
-
-                      	else{
-                      	%>
-                      	&nbsp;
-                      	<%
-                      	}
+					     				<div>
+					                      <div class="row">
+					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
+					                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="border: 1px solid;" />
+					                        </div>
+					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
+					                          <%-- <p> --%>
+					
+					                        <%
+					                        if(thisUser.getAffiliation()!=null){
+					                        %>
+					                        <p><strong><%=displayName %></strong></p>
+					                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
+					                        <%
+					                        }
+					
+					                        if(thisUser.getUserProject()!=null){
+					                        %>
+					                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
+					                        <%
+					                        }
+					
+					                        if(thisUser.getUserURL()!=null){
+					                            %>
+					                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
+					                            <%
+					                          }
+					
+					                        if(thisUser.getUserStatement()!=null){
+					                            %>
+					                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
+					                            <%
+					                          }
+					                        %>
+					                        </div>
+					                      </div>
+					
+					                  </div>
+					
+					<%
+					                         	}
+					
+					
+					                      	else{
+					                      	%>
+					                      	&nbsp;
+					                      	<%
+					                      	}
 
                       	}
                          				//insert here
@@ -2997,6 +2996,7 @@ if (isOwner) {
 
 Query itq = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getEncounterNumber() + "'");
 List ires = (List)itq.execute();
+
 if (ires.size() > 0) {
     Iterator it = ires.iterator();
     ImportTask itask = (ImportTask)it.next();
@@ -3004,7 +3004,7 @@ if (ires.size() > 0) {
     <a target="_new" href="../imports.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
 <%
 }
-//
+itq.closeAll();
 %>
 
 </td>
@@ -5308,7 +5308,7 @@ for(int j=0;j<numTissueSamples;j++){
 				}
 				%>
 				</span>
-					
+
 
 							<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -5536,7 +5536,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 			%>
 			<tr>
 				<td style="border-style: none;">
-					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span>          
+					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span>
 					<a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 
         <a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>">
@@ -6506,13 +6506,13 @@ function iaMatchFilterGo() {
         'match-filter-location-id': 'locationIds',
         'match-filter-owner': 'owner'
     };
-    
+
     var optArray=[];
-    
-    
+
+
 		<%
 		Properties iaprops = ShepherdProperties.getProperties("IA.properties", "", context);
-		
+
 		String IBEISIdentOptRoot="IBEISIdentOpt";
 		if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null){
 			String speciesIBEISIdentOptRoot=IBEISIdentOptRoot+"_"+enc.getGenus()+"_"+enc.getSpecificEpithet();
@@ -6523,7 +6523,7 @@ function iaMatchFilterGo() {
 		}
 		int rootIter=0;
 		while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-			
+
 			String val="HotSpotter";
 			String queryDict="";
 			try {
@@ -6540,20 +6540,20 @@ function iaMatchFilterGo() {
 			rootIter++;
 		}
 		%>
-    
+
     $('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
         var key = keyMap[el.name] || '_UNKNOWN_';
         if (!data.taskParameters.matchingSetFilter[key]) data.taskParameters.matchingSetFilter[key] = [];
-        
+
         if(el.name=="match-filter-algorithm"){
         	data.taskParameters.matchingAlgorithms.push(optArray[el.defaultValue]);
         }
         else{
         	data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
         }
-        
-        
+
+
     });
 console.log('SENDING ===> %o', data);
     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -6613,7 +6613,7 @@ $(document).ready(function() {
   <div class="ia-match-filter-container" style="display: none">
     <div  style="width: 100%; max-height: 200px; overflow-y: scroll">
     <div id="ia-match-filter-location" class="option-cols">
-    
+
     	<div>
 	    	<!-- TODO maybe an option here to not recurse to children locations? -->
 	        <input type="button" value="<%=encprops.getProperty("selectAll")%>"
@@ -6631,6 +6631,7 @@ Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 List results = (List)q.execute();
 int c = 0;
 Iterator it = results.iterator();
+
 while (it.hasNext()) {
     Object[] row = (Object[]) it.next();
     String locId = (String)row[0];
@@ -6641,6 +6642,7 @@ while (it.hasNext()) {
         locCount.put(locId, ct);
     }
 }
+q.closeAll();
 
 
 JSONObject locIdTree = LocationID.getLocationIDStructure(request);
@@ -6717,18 +6719,26 @@ $(".search-collapse-header").click(function(){
     </div>
 -->
 
-<div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
 <%
 
 rootIter=0;
 while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
+
+	
+	if(rootIter==0){
+		%>
+		<div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
+		
+		<%
+	}
+	
 	
 	String val="HotSpotter";
 	String queryDict="";
 	try {
 	     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
 	     queryDict=jsonObject.toString();
-	     
+
 	     if(iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter)!=null){
 	    	 val=iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter);
 	     }
@@ -6743,10 +6753,10 @@ while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
 	if(val==null || val.trim().equals("")){
 		val="HotSpotter";
 	}
-	
+
 
 	out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + rootIter + "\" name=\"match-filter-algorithm\" value=\"" + rootIter+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + rootIter + "\">" + val + " </label></div>");
-	
+
 	rootIter++;
 }
 
@@ -6798,6 +6808,7 @@ finally{
 %>
 
 
+</div>
 </div>
 
 <!--db: These are the necessary tools for photoswipe.-->

@@ -20,7 +20,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays,
+java.util.ArrayList,
+org.json.JSONArray,
+java.util.Iterator, java.util.List, java.util.Vector" %>
 
 <%
 
@@ -29,6 +32,7 @@ context=ServletUtilities.getContext(request);
 
   //session.setMaxInactiveInterval(6000);
   String num="";
+    ArrayList<String> locationIDs = new ArrayList<String>();
   if(request.getParameter("number")!=null){
 	Shepherd myShepherd=new Shepherd(context);
 	myShepherd.setAction("scanEndApplet.jsp");
@@ -114,6 +118,93 @@ context=ServletUtilities.getContext(request);
     border-bottom: 1px solid #8DBDD8;
   }
   
+
+.tr-location-nonlocal {
+    opacity: 0.6;
+    display: none;
+}
+
+.match-side-img-wrapper {
+    width: 1000px;
+    display: inline-block;
+    position: relative;
+    height: 400px;
+    cursor: crosshair;
+}
+
+.match-side-spot {
+    width: 9px;
+    height: 9px;
+    border-radius: 5px;
+    background-color: #888;
+    position: absolute;
+    border: solid 1px black;
+    transform: scale(1.5);
+}
+.match-spot-highlight {
+    border-color: yellow;
+    transform: scale(3.0);
+}
+
+#spot-display {}
+.match-side {
+    text-align: center;
+    display: inline-block;
+    position: relative;
+    width: 49%;
+}
+.match-side img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 400px;
+}
+.match-side-info {
+    height: 9.1em;
+    background-color: #DDD;
+}
+
+#match-controls {
+    height: 5em;
+}
+#match-info {
+    width: 70%;
+    display: inline-block;
+}
+#match-controls input {
+    position: absolute;
+    display: none;
+}
+#match-button-next {
+    right: 0px;
+}
+#match-button-prev {
+    left: 0px;
+}
+
+.match-side-attribute-label,
+.match-side-attribute-value {
+    line-height: 1.3em;
+    display: inline-block;
+    vertical-align: middle;
+}
+.match-side-attribute-value {
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 60%;
+}
+.match-side-attribute-label {
+    width: 39%;
+    font-weight: bold;
+    font-size: 0.8em;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.table-row-highlight {
+    background-color: #FF8;
+}
 </style>
 
 <style>
@@ -148,13 +239,7 @@ td, th {
 
 
     }
-    if (locationIDXMLFile.exists()) {
-  %>
-  <li><a
-    href="scanEndAppletLocationID.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Locally Filtered Results (Modified Groth)</a></li>
 
-  <%
-    }
     if (finalXMLFile.exists()) {
   %>
   <li><a
@@ -258,25 +343,64 @@ td, th {
 		    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
 		      rightSA = "&filePrefix=extractRight";
 		    }
-		    //System.out.println("I made it to the Flash without exception.");
-		  %>
-		  <OBJECT id="sharkflash"
-		          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
-		          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
-		    <PARAM NAME="movie"
-		           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
-		    <PARAM NAME="quality" VALUE="high">
-		    <PARAM NAME="scale" VALUE="exactfit">
-		    <PARAM NAME="bgcolor" VALUE="#ddddff">
-		    <EMBED
-		      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
-		      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
-		      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
-		      TYPE="application/x-shockwave-flash"
-		      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
-		  </OBJECT>
-		</p>
-<a name="resultstable" /><table class="tablesorter">
+
+java.util.Random rnd = new java.util.Random();
+%>
+<style>
+    .match-side-spot-0 { background-color: #F00; border: dotted 1px #FF4; }
+    .match-side-spot-1 { background-color: #0F0; border: dotted 1px #FF4; }
+    .match-side-spot-2 { background-color: #00F; border: dotted 1px #FF4; }
+<%
+for (int i = 3 ; i < 50 ; i++) {
+    out.println(".match-side-spot-" + i + " { background-color: rgb(" + rnd.nextInt(256) + "," + rnd.nextInt(256) + "," + rnd.nextInt(256) + "); }");
+}
+out.println("</style>");
+  %>
+
+<script src="../javascript/spotCompare.js"></script>
+
+<script>
+//these (must) override spotCompare.js values
+localLocationIds = <%=new JSONArray(locationIDs)%>;
+subdirPrefix = '/<%=shepherdDataDir.getName()%>/encounters';
+rightSide = <%=side2.equals("right")%>;
+
+$(document).ready(function() {
+    spotInit(subdirPrefix + '/<%=encSubdir%>/<%=file.getName()%>');
+});
+</script>
+
+<div id="spot-display">
+    <div class="match-side" id="match-side-0">
+        <div class="match-side-img-wrapper">
+            <img onLoad="return matchImgDone(this, 1)" />
+        </div>
+        <div class="match-side-info"></div>
+    </div>
+    <div class="match-side" id="match-side-1">
+        <div class="match-side-img-wrapper">
+            <img onLoad="return matchImgDone(this, 0)" />
+        </div>
+        <div class="match-side-info"></div>
+    </div>
+    <div id="match-controls">
+        <div id="match-info"></div>
+        <div style="position: relative; display: inline-block; width: 20%; height: 3em;">
+            <input id="match-button-prev" type="button" value="previous" onClick="return spotDisplayButton(-1)" />
+            <input id="match-button-next" type="button" value="next" onClick="return spotDisplayButton(1)" />
+        </div>
+    </div>
+</div>
+
+<div>
+    <div id="mode-message"></div>
+    <input type="button" id="mode-button-local" value="Show only nearby matches" onClick="return toggleLocalMode(true);"/>
+    <input type="button" id="mode-button-all" value="Show all matches" onClick="return toggleLocalMode(false);"/>
+</div>
+</p>
+  
+<a name="resultstable"></a>
+<table class="tablesorter">
 
 <table width="800px">
   <thead>
@@ -337,22 +461,26 @@ td, th {
           root = doc.getRootElement();
 
           Iterator matchsets = root.elementIterator("match");
+            int ct = 0;
           while (matchsets.hasNext()) {
             Element match = (Element) matchsets.next();
             List encounters = match.elements("encounter");
             Element enc1 = (Element) encounters.get(0);
             Element enc2 = (Element) encounters.get(1);
         %>
-        <tr align="left" valign="top">
+        <tr id="table-row-<%=ct%>" align="left" valign="top"
+class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
+ style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
           
-                <td width="60" align="left"><a
-                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
+                <td width="60" align="left">
+            <a target="_new" title="open individual" href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            	<%=enc1.attributeValue("assignedToShark")%>
                 </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
-          <td><a
+          <td><a target="_new" title="open Encounter"
             href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>"><%=enc1.attributeValue("number")%>
           </a></td>
           <%
@@ -390,6 +518,7 @@ td, th {
         <%
 
 
+        ct++;
             }
 
 

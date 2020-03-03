@@ -86,6 +86,20 @@ finally{
 
 <html>
     <head>
+      
+      <!-- Global site tag (gtag.js) - Google Analytics -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-5"></script>
+
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+
+        gtag('config', 'UA-30944767-5');
+
+      </script>
+
       <title><%=pageTitle%></title>
       <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -96,7 +110,7 @@ finally{
             content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
       <link rel="shortcut icon"
-            href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+            href="//<%=urlLoc %>/<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
       <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
 
@@ -512,7 +526,6 @@ finally{
                                 <li><a href="<%=urlLoc %>/javadoc/index.html">Javadoc</a></li>
                                 <% if(CommonConfiguration.isCatalogEditable(context)) { %>
                                   <li class="divider"></li>
-                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
                                   <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
                                 <%
                                 }
