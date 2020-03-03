@@ -1,6 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,
-java.nio.file.Files,
 org.ecocean.*
 " %>
 <% request.setAttribute("pageTitle", "Account Creation"); %>
