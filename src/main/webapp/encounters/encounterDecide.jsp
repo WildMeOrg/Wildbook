@@ -570,7 +570,11 @@ $(document).ready(function() {
     }
 
     var docWidth = $(document).width();
-    if (docWidth < 900) alert('Processing submissions on small screens or mobile devices can cause problems with image display.\n\nA desktop browser is recommended.');
+    if (docWidth < 900) {
+        //alert('Processing submissions on small screens or mobile devices can cause problems with image display.\n\nA desktop browser is recommended.');
+        window.location.href = '../mobileNotice.jsp';
+        return;
+    }
 
     utickState.encounterDecide = { initTime: new Date().getTime(), clicks: [] };
 
