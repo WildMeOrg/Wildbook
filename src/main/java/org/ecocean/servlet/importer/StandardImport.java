@@ -251,7 +251,7 @@ public class StandardImport extends HttpServlet {
     }
     sheet = wb.getSheetAt(0);
 
-    if (committing) out.println("<h4><strong class=\"import-commiting\">Committing: </strong> When this page is finished loading, your import is complete and you can find your data on Flukebook.</h4>");
+    if (committing) out.println("<h4><strong class=\"import-commiting\">Committing: </strong> When this page is finished loading, your import is complete and you can find your data.</h4>");
 
     int numSheets = wb.getNumberOfSheets();
     int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
@@ -1440,6 +1440,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   // following 'get' functions swallow errors
   public Integer getInteger(Row row, int i) {
+    if ((row != null) && (row.getCell(i) != null) && (row.getCell(i).getCellType() == Cell.CELL_TYPE_BLANK)) return null;
     try {
       int val = (int) row.getCell(i).getNumericCellValue();
       System.out.println("extracted int for line "+i);
