@@ -1016,56 +1016,76 @@ public class StandardImport extends HttpServlet {
   }
 
   public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd) {
+    
     String localPath = getString(row, "Encounter.mediaAsset"+i);
-  	if (localPath==null) return null;
-  	localPath = Util.windowsFileStringToLinux(localPath).trim();
-  	//System.out.println("...localPath is: "+localPath);
-  	String fullPath = photoDirectory+"/"+localPath;
-  	fullPath = fullPath.replaceAll("//","/"); 
-  	//System.out.println("...fullPath is: "+fullPath);
-    String resolvedPath = resolveHumanEnteredFilename(fullPath);
-    //System.out.println("getMediaAsset resolvedPath is: "+resolvedPath);
-    if (resolvedPath==null) {
-      missingPhotos.add(fullPath);
-      foundPhotos.remove(fullPath);
-      return null;
+
+    String resolvedPath = null;
+    String fullPath = null;
+    try {
+      if (localPath==null) {
+        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath+" ERR", row);
+        return null;
+      } 
+      localPath = Util.windowsFileStringToLinux(localPath).trim();
+      fullPath = photoDirectory+"/"+localPath;
+      fullPath = fullPath.replaceAll("//","/"); 
+      resolvedPath = resolveHumanEnteredFilename(fullPath);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-	  File f = new File(resolvedPath);
-            MediaAsset existMA = checkExistingMediaAsset(f);
-            if (existMA != null) {
-                if (!f.getName().equals(existMA.getFilename())) {
-                    System.out.println("WARNING: got hash match, but DIFFERENT FILENAME for " + f + " with " + existMA + "; allowing new MediaAsset to be created");
-                } else {
-                    System.out.println("INFO: " + f + " got hash and filename match on " + existMA);
-                    return existMA;
-                }
-            }
+
+    //System.out.println("getMediaAsset resolvedPath is: "+resolvedPath);
+    try {
+      if (resolvedPath==null) {
+        missingPhotos.add(fullPath);
+        foundPhotos.remove(fullPath);
+        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
+        return null;
+      }
+    } catch (NullPointerException npe) {
+      npe.printStackTrace();
+    }
+
+    File f = new File(resolvedPath);
+
+    MediaAsset existMA = checkExistingMediaAsset(f);
+    if (existMA != null) {
+      System.out.println("Found this file on disk!!");
+        if (!f.getName().equals(existMA.getFilename())) {
+            System.out.println("WARNING: got hash match, but DIFFERENT FILENAME for " + f + " with " + existMA + "; allowing new MediaAsset to be created");
+        } else {
+            System.out.println("INFO: " + f + " got hash and filename match on " + existMA);
+            return existMA;
+        }
+    }
 
 	  // create MediaAsset and return it
 	  JSONObject assetParams = astore.createParameters(f);
-	  assetParams.put("_localDirect", f.toString());
+    assetParams.put("_localDirect", f.toString());
+    
 	  MediaAsset ma = null;
 	  try {
 
-	  	ma = astore.copyIn(f, assetParams);
+      System.out.println("Trying to create NEW asset!");
+
+      ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
+      if (committing) {
+        ma = astore.copyIn(f, assetParams);
+        if(kws!=null)ma.setKeywords(kws);
+      }
 	    // keywording
 
-	    ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
-	    if(kws!=null)ma.setKeywords(kws);
 	  } catch (java.io.IOException ioEx) {
 
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
       ioEx.printStackTrace();
       
       feedback.addMissingPhoto(localPath);
-      feedback.logParseError(i, localPath, row);
-
+      feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
 	  	foundPhotos.remove(fullPath);
-                return null;
+      return null;
 	  }
-          myAssets.put(fileHash(f), ma);
-
-
+    myAssets.put(fileHash(f), ma);
 
 	  // Keyword keyword = null;
 	  // String keywordI = getString(row, "Encounter.keyword"+i);
@@ -1512,11 +1532,16 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         feedback.logParseError(i, originalString, row);
         return null;
       }
-    }
+    } 
   }
 
+
+  //TODO getString logging good string values... should check against 
+  // 1. allowed values for strings
+  // 2. image file presence for filenames
+
   public String getString(final Row row, final int i) {
-    System.out.println("Calling getString on row "+i+" with cell "+String.valueOf(row.getCell(i)));
+    System.out.println("Calling getString on row "+row.getRowNum()+" with cell "+i+" value "+String.valueOf(row.getCell(i)));
     final Cell cell = row.getCell(i);
     String str = null;
     try {
@@ -1537,7 +1562,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       feedback.logParseNoValue(i);
       return null;
     }
-    feedback.logParseValue(i, str, row); //todo: figure out why this line breaks the import
+    feedback.logParseValue(i, str, row);
     return str;
   }
 
@@ -1872,7 +1897,6 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       public void printStartTable() {
         out.println("<div class=\"tableFeedbackWrapper\"><table class=\"tableFeedback\">");
         out.println("<tr class=\"headerRow\"><th class=\"rotate\"><div><span><span></div></th>"); // empty header cell for row # column
-        System.out.println("HEY YOU! You damn well better see a line below this");
         boolean isNull = (colNames==null);
         System.out.println("colNames isNull "+isNull);
         System.out.println("starting to print table. num colNames="+colNames.length+" and the array itself = "+colNames);
@@ -1919,7 +1943,8 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
   
     private class RowFeedback {
-      CellFeedback[] cells;
+
+      CellFeedback[] cells = new CellFeedback[colIndexMap.size()];
       public int num;
   
       //String checkingInheritance = uploadDirectory;
@@ -1959,15 +1984,22 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
             } 
             logParseError(colNum, valueString, row);
             return;
-          }
+          } 
           this.cells[colNum] = new CellFeedback(value, true, false);
         }
       }
 
-
+      // make this overwrite any existing value!!!
       public void logParseError(int colNum, Object value, Row row) {
         if (!committing) {
-          this.cells[colNum] = new CellFeedback(value, false, false);
+          if (this.cells[colNum]!=null) {
+            System.out.println("Setting ERROR value on OLD CellFeedback for col "+colNum+" val "+value.toString()+" row "+row.getRowNum());
+            this.cells[colNum].setSuccess(false);
+            this.cells[colNum].setValueString(value+" NOT FOUND");
+          } else {
+            System.out.println("Setting ERROR value on NEW CellFeedback for col "+colNum+" val "+value.toString()+" row "+row.getRowNum());
+            this.cells[colNum] = new CellFeedback(value+" NOT FOUND", false, false);
+          }
         }
       }
 
@@ -2003,7 +2035,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       public boolean isBlank;
       String valueStr;
   
-  
+
       public CellFeedback(Object value, boolean success, boolean isBlank) {
         System.out.println("about to create cellFeedback for value "+value);
         if (value == null) valueStr = null;
@@ -2012,6 +2044,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         this.isBlank = isBlank;
         System.out.println("new cellFeedback: got valueStr "+valueStr+" success: "+success+" and isBlank: "+isBlank);
       }
+
       public String html() { // here's where we add the excel value string on errors
         StringBuffer str = new StringBuffer();
         str.append("<td class=\"cellFeedback "+classStr()+"\" title=\""+titleStr()+"\"><span>");
@@ -2033,13 +2066,28 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         if (!success) return "ERROR: The import was unable to parse this cell. Please ensure that there are not letters or special characters in number fields (ex. lat/lon text or degree mark), formulas where there should be values or other data inconsistencies.";
         return "Successfully parsed value from excel file.";    
       }
-  
-  
+
+      public String valueString() {
+        if (valueStr!=null) return valueStr;
+        return null;
+      }
+
+      public void setSuccess(boolean success) {
+        this.success = success;
+      }
+
+      public void setIsBlank(boolean isBlank) {
+        this.isBlank = isBlank;
+      }
+
+      public void setValueString(String val) {
+        this.valueStr = val;
+      }
+
     }
 
       /**
      * h/t http://www.java-connect.com/apache-poi-tutorials/read-all-type-of-excel-cell-value-as-string-using-poi/
-     * gripe: apache POI is a shit excel library if GETTING A STRING FROM A CELL TAKES 30 $@(%# LINES OF CODE
      */
   public static String getCellValueAsString(Cell cell) {
     String strCellValue = null;
@@ -2088,6 +2136,13 @@ public static String getCellValueAsString(Row row, int num) {
 
   private void outPrnt(String str) {
     if (!committing&&str!=null) out.println(str); 
+  }
+
+  private Integer getColIndexFromColName(String colName) {
+    if (colName!=null) {
+      return Integer.valueOf(colIndexMap.get(colName));
+    }
+    return null;
   }
 
 }
