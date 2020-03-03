@@ -234,7 +234,7 @@ h1 { background: none !important; }
 }
 
 #secondary-instructions {
-    height: 2em;
+    xheight: 2em;
     font-size: 1.5em;
     line-height: 1.1em;
 }
@@ -256,6 +256,7 @@ h1 { background: none !important; }
 .column-scroll {
     height: 1400px;
     overflow-y: scroll;
+    scrollbar-color: #bff223 blue;
 }
 
 @media screen and (max-width: 800px) {
@@ -353,6 +354,9 @@ h1 { background: none !important; }
     background-color: #DDD !important;
 }
 
+#match-summary {
+    display: none;
+}
 .match-summary-detail {
     display: none;
     white-space: nowrap;
@@ -376,19 +380,24 @@ h1 { background: none !important; }
     position: absolute;
     bottom: 40px;
     font-size: 1em !important;
+    right: 30px;
+    z-index: 10;
+    font-size: 1.3em;
+    color: white;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+/*
     background-color: rgba(255,255,255,0.3);
     border-radius: 3px;
-    left: 10px;
-    z-index: 10;
     padding: 0 8px;
-    font-size: 1.3em;
+*/
 }
 
 .match-name a {
     color: #FFF;
-}
-.match-name a:hover {
-    color: #000;
 }
 
 .match-item-info {
@@ -431,6 +440,9 @@ h1 { background: none !important; }
     border-radius: 10px;
     padding: 10px;
     pointer-events: none;
+}
+.match-asset-wrapper .zoom-hint {
+    right: 35px !important;
 }
 .zoom-hint .el-zoom-in {
     pointer-events: none;
@@ -496,7 +508,7 @@ h1 { background: none !important; }
     width: 100%;
     height: 400px;
     display: inline-block;
-    margin: 10px 4px;
+    margin: 0 10px 4px 10px;
     position: relative;
     overflow: hidden;
     background-color: #DDD;
@@ -999,7 +1011,7 @@ function adjustBox(id) {
 <p>
 There are two steps to processing each submission: selecting cat attributes, and then looking to see if the cat has a match in the database.
 </p>
-<h2 id="secondary-instructions">&nbsp;</h2>
+<h2 id="secondary-instructions"></h2>
 </div>
 
 <b id="width-info"></b>
