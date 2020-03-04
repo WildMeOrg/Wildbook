@@ -223,8 +223,8 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
 		String id = mark.getIndividualID();
 		String altID = mark.getDisplayName();
-		if (Util.shouldReplace(mark.getNickName(), altID)) altID = mark.getNickName();
-		String altIDStr = (Util.stringExists(altID)) ? ("<em>("+altID+")</em>") : "";
+		//if (Util.shouldReplace(mark.getNickName(), altID)) altID = mark.getNickName();
+		String altIDStr = (Util.stringExists(mark.getNickName())) ? ("<em>("+mark.getNickName()+")</em>") : "";
 		System.out.println("PictureBook: proceeded past hasHeader check");
 
 
@@ -235,7 +235,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
 		<hr class="pictureBook-pagebreak">
 		<div class="pictureBook-page">
-			<h3>Individual ID: <a href=<%=mark.getWebUrl(request) %> ><%=id%></a> <%=altIDStr %></h3>
+			<h3>Individual ID: <a target="_blank" href=<%=mark.getWebUrl(request) %> ><%=altID %></a> <%=altIDStr %> </h3>
 
 			<div class="pictureBook-images">
 				<table>
