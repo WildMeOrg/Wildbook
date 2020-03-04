@@ -1085,7 +1085,7 @@ There are two steps to processing each submission: selecting cat attributes, and
                 </div>
                 <div id="beige_cream_wh" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_light.jpg" />
-                    <div class="attribute-title">Beige / Cream / White</div>
+                    <div class="attribute-title">Beige / White / Siamese</div>
                 </div>
             </div>
         </div>
