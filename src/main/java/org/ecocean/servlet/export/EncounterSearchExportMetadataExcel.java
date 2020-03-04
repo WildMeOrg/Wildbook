@@ -186,6 +186,8 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         maFilenameK.setMaNum(maNum); // important for later!
         ExportColumn maPathK = new ExportColumn(MediaAsset.class, fullPathName, maLocalPath, columns);
         maPathK.setMaNum(maNum);
+        ExportColumn relPos = new ExportColumn(Annotation.class, "Encounter.positionInMediaAsset" + maNum, Annotation.class.getMethod("relativePosition", null), columns);
+        relPos.setMaNum(maNum);
 
         for (int kwNum = 0; kwNum < numKeywords; kwNum++) {
           String keywordColName = "Encounter.mediaAsset"+maNum+".keyword"+kwNum;
@@ -214,7 +216,11 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         MarkedIndividual ind = myShepherd.getMarkedIndividual(enc);
         MultiValue names = (ind!=null) ? ind.getNames() : null;
         List<String> sortedNameKeys = (names!=null) ? names.getSortedKeys() : null;
-        List<MediaAsset> mas = enc.getMedia();
+        List<Annotation> anns = enc.getAnnotations();
+        List<MediaAsset> mas = new ArrayList<MediaAsset>();
+        for (Annotation ann : anns) {
+            mas.add(ann.getMediaAsset());
+        }
 
         // use exportColumns, passing in the appropriate object for each column
         // (can't use switch statement bc Class is not a java primitive type)
@@ -232,6 +238,13 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
             MediaAsset ma = mas.get(num);
             if (ma == null) continue; // on to next column
             exportCol.writeLabel(ma, row, sheet);
+          }
+          else if (exportCol.isFor(Annotation.class)) {
+            int num = exportCol.getMaNum();
+            if (num >= anns.size()) continue;
+            Annotation ann = anns.get(num);
+            if (ann == null) continue;
+            exportCol.writeLabel(ann, row, sheet);
           }
           else if (exportCol.isFor(Keyword.class)) {
             int maNum = exportCol.getMaNum();
