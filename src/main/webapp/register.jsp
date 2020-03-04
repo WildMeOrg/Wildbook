@@ -738,74 +738,76 @@ How did you hear about Kitizen Science?
 
 <h1>Instructions for the Online Workflow Study</h1>
 
-<p>The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission later, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.  You will receive a short survey via email after this study ends asking for your feedback and for you to rate aspects of the website.</p>
-<p>This study is open from <span class="style1">February _ to March _</span>, 2020.</p>
-<h2>Rules</h2><p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change your success at processing submissions, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own.</p>
-<p xclass="quiz-note">There is a quiz at the end of this instruction page to ensure that you have read the instructions and understand what is being asked of you. </p>
-<h2>General instructions</h2><p>In this study, you will be presented with a cat photo submission and asked to do two things: to assign attributes to the cat in the photo (primary color/pattern, life stage, ear tip, collar, and sex if visible), and then to decide if the cat has a match in the system (you'll be presented with potential matches) or if they are a new cat to the system.</p>
-<p>We realize this instruction page is long, but we think that once you get the hang of things, processing cat submissions will be simple.</p>
-<p>There are 168 submissions in the system, and you'll be presented with one randomly. You can complete all of them or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible. We estimate each submission will each take a few minutes to process once you become familiar with the workflow. You can process a maximum of 24 submissions per day. (Observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time.)</p>
-<p>Most photos are taken at a distance, so make sure to click photos to zoom all the way in. (Clicking on an image zooms in on it, and you are zoomed in all the way once clicking no longer increases the image size.) These test photos were obtained in the same way that our project will gather data in the real world. That means some cats are harder to see than others, and you won't always get to see good details.</p>
-<p>Note: All of the locations of cats in this trial have been edited so the cats could be grouped into a new area together.</p>
+<p>The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.  You will receive a short survey via email after this study ends asking for your feedback and for you to rate aspects of the website.</p>
+<p class="style2">This study is open from March 3 to May 4, 2020.</p>
+<h2><a name="requirements" id="requirements"></a>Computer requirements</h2>
+<p>Because of the small screen size of web browsers on smart phones and many tablets, we do not want you to process submissions on these smaller devices. Please use a standard desktop or laptop computer.
+</p>
+<h2>Rules</h2>
+<p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change your success at processing submissions, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own.</p>
+<p>There is a quiz at the end of this instruction page to ensure that you have read the instructions and understand what is being asked of you. </p>
+<h2>General instructions</h2>
+<p>In this study, you will be presented with a cat photo submission and asked to do two things: to assign attributes to the cat in the photo (primary color/pattern, life stage, ear tip, collar, and sex if visible), and then to decide if the cat has a match in the system  or if they are a new cat to the system. These test photos were obtained in the same way that our project will gather data in the real world.  That means some cats are harder to see than others, and you won't always get to see good details.</p>
+<p class="style2">There are 168 submissions in the system, and you'll be presented with one randomly.  You can complete all of them or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each submission will each take a few minutes to process once you become familiar with the workflow.  You can process a maximum of 24 submissions per day.  (Observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time.)</p>
 <h2>Step 1: assigning cat attributes</h2>
 <p>For each submission, you start out by assigning attributes to a cat. You may have one, two, or three photos of the cat, and you may or may not be able to see the cat's whole body. Base your attribute assignments only on what you are sure you can see.</p>
-<p>Some photos will have more than one cat. The focal cat whose attributes you are assigning and matching will be highlighted with a box drawn in a dashed green line.</p>
+<p>Some photos will have more than one cat. The  cat whose attributes you are assigning and  matching  will be highlighted  in a green box.</p>
 <p>First, select a cat's primary color or pattern group.  These are our 8 categories:</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
-    <td width="551" valign="top"><div align="center"><strong>Black</strong>:  all black or with a  small patch of white</div></td>
+    <td width="550" valign="top"><div align="center"><strong>Black</strong>:  or with a  very small patch of white</div></td>
     <td width="50" valign="top">&nbsp;</td>
-    <td width="498" valign="top"><div align="center"><strong>Black &amp; White</strong></div></td>
+    <td width="550" valign="top"><div align="center"><strong>Black &amp; White</strong></div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="images/instructions_black.jpg" width="402" height="300" /></div></td>
+    <td width="550"><div align="center"><img src="images/instructions_black.jpg" width="402" height="300" /></div></td>
     <td width="50">&nbsp;</td>
-    <td><div align="center"><img src="images/instructions_bw.jpg" width="402" height="300" /></div></td>
+    <td width="550"><div align="center"><img src="images/instructions_bw.jpg" width="402" height="300" /></div></td>
   </tr>
   <tr>
-    <td height="50">&nbsp;</td>
+    <td width="550" height="50">&nbsp;</td>
     <td width="50">&nbsp;</td>
-    <td height="50">&nbsp;</td>
+    <td width="550" height="50">&nbsp;</td>
   </tr>
   <tr>
-    <td valign="top"><div align="center"><strong>Grey or Brown Tabby/Torbie</strong></div></td>
+    <td width="550" valign="top"><div align="center"><strong>Grey or Brown Tabby/Torbie</strong></div></td>
     <td width="50" valign="top">&nbsp;</td>
-    <td valign="top"><div align="center"><strong>Tabby/Torbie &amp; White</strong></div></td>
+    <td width="550" valign="top"><div align="center"><strong>Tabby/Torbie &amp; White</strong></div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="images/instructions_tabby.jpg" width="402" height="300" /></div></td>
+    <td width="550"><div align="center"><img src="images/instructions_tabby.jpg" width="402" height="300" /></div></td>
     <td width="50">&nbsp;</td>
-    <td><div align="center"><img src="images/instructions_tabwhite.jpg" width="402" height="300" /></div></td>
+    <td width="550"><div align="center"><img src="images/instructions_tabwhite.jpg" width="402" height="300" /></div></td>
   </tr>
   <tr>
-    <td height="50">&nbsp;</td>
+    <td width="550" height="50">&nbsp;</td>
     <td width="50">&nbsp;</td>
-    <td height="50">&nbsp;</td>
+    <td width="550" height="50">&nbsp;</td>
   </tr>
   <tr>
-    <td valign="top"><div align="center"><strong>Orange</strong>: Peach-orange through dark orange</div></td>
+    <td width="550" valign="top"><div align="center"><strong>Orange</strong>: peach through dark orange</div></td>
     <td width="50" valign="top">&nbsp;</td>
-    <td valign="top"><div align="center"><strong>Dark Grey</strong></div></td>
+    <td width="550" valign="top"><div align="center"><strong>Dark Grey</strong></div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="images/instructions_orange.jpg" width="402" height="300" /></div></td>
+    <td width="550"><div align="center"><img src="images/instructions_orange.jpg" width="402" height="300" /></div></td>
     <td width="50">&nbsp;</td>
-    <td><div align="center"><img src="images/instructions_grey.jpg" width="402" height="300" /></div></td>
+    <td width="550"><div align="center"><img src="images/instructions_grey.jpg" width="402" height="300" /></div></td>
   </tr>
   <tr>
-    <td height="50">&nbsp;</td>
+    <td width="550" height="50">&nbsp;</td>
     <td width="50">&nbsp;</td>
-    <td height="50">&nbsp;</td>
+    <td width="550" height="50">&nbsp;</td>
   </tr>
   <tr>
-    <td valign="top"><div align="center"><strong>Calico/Tortoiseshell</strong>: Including diluted/muted</div></td>
+    <td width="550" valign="top"><div align="center"><strong>Calico/Tortoiseshell</strong>: including diluted/muted</div></td>
     <td width="50" valign="top">&nbsp;</td>
-    <td valign="top"><div align="center"><strong>Beige/Cream/White</strong>: Including pointed/&quot;Siamese&quot;</div></td>
+    <td width="550" valign="top"><div align="center"><strong>Beige/White/Siamese</strong></div></td>
   </tr>
   <tr>
-    <td><div align="center"><img src="images/instructions_tortical.jpg" width="402" height="300" /></div></td>
+    <td width="550"><div align="center"><img src="images/instructions_tortical.jpg" width="402" height="300" /></div></td>
     <td width="50">&nbsp;</td>
-    <td><div align="center"><img src="images/instructions_light.jpg" width="402" height="300" /></div></td>
+    <td width="550"><div align="center"><img src="images/instructions_light.jpg" width="402" height="300" /></div></td>
   </tr>
 </table>
 <p>&nbsp;</p>
@@ -823,7 +825,7 @@ How did you hear about Kitizen Science?
   </tr>
 </table>
 <p>&nbsp;</p>
-<p>Third, select whether the cat has an ear tip removed (a sign the cat has been surgically sterilized), and on which side.</p>
+<p>Third, select whether the cat has an ear tip removed (a sign the cat has been surgically sterilized), and on which side, or select unknown. Depending on how much eartip was removed at surgery time, these can be very hard to see.</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
     <td width="551" valign="top"><div align="center"><strong>Yes - Cat's Left</strong></div></td>
@@ -871,7 +873,7 @@ How did you hear about Kitizen Science?
   <tr>
     <td width="551" valign="top"><div align="center"><strong>Male - Testicles visible</strong></div></td>
     <td width="50" valign="top">&nbsp;</td>
-    <td width="498" valign="top"><div align="center"><strong> Female - Mammaries/kittens</strong></div></td>
+    <td width="498" valign="top"><div align="center"><strong> Female - Nursing or with small kittens</strong></div></td>
   </tr>
   <tr>
     <td><div align="center"><img src="images/instructions_male.jpg" width="402" height="300" /></div></td>
@@ -950,7 +952,7 @@ How did you hear about Kitizen Science?
     var quizUnset = 99;
 $(document).ready(function() {
     var quizq = [
-        [ 'Choose a color/pattern', 'Black', 'Black & White', 'Grey or Brown Tabby/Torbie', 'Tabby/Torbie & White', 'Orange', 'Dark Grey', 'Calico/Tortoiseshell', 'Beige/Cream/White' ],
+        [ 'Choose a color/pattern', 'Black', 'Black & White', 'Grey or Brown Tabby/Torbie', 'Tabby/Torbie & White', 'Orange', 'Dark Grey', 'Calico/Tortoiseshell', 'Beige/White/Siamese' ],
         ['Choose life stage', 'Adult', 'Kitten'],
         ['Ear tip removed?', 'Yes - Cat\'s Left', 'Yes - Cat\'s Right', 'No'],
         ['Wearing collar?', 'Yes', 'No', 'Unknown'],
@@ -1093,7 +1095,8 @@ console.log('%d) %d: %d [%d]', qi, seli, sel.selectedIndex, qans[qi][seli]);
         <h2>Complete the quiz for all four cats above to continue.</h2>
         <p>Questions remaining: <b id="quiz-unanswered-count">20</b></p>
     </div>
-    <a id="quiz-button" class="big-button" href="#" onClick="return quizButton();">Check quiz answers</a>
+
+    <a id="quiz-button" class="big-button" href="#" onClick="return quizButton();">Submit my quiz answers, proceed to study</a>
 </div>
 
 </div><!-- end quiz -->
