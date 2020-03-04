@@ -144,9 +144,9 @@
 		 
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 		
-<!--
 		<p><br>Standard Format Export <a href="<%=serverUrl%>/EncounterSearchExportMetadataExcel?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
+<!--
 		<p>CRC Excel Matching Summary <a href="<%=serverUrl%>/CRCExportReport?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
 -->
