@@ -22,15 +22,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
 
   int startNum = 1;
-  int maxPages = 10000000;
-  if(request.getParameter("maxPages")!=null){
-	  try{
-		  maxPages=(new Integer(request.getParameter("maxPages"))).intValue();
-	  }
-	  catch(Exception e){
-		  e.printStackTrace();
-	  }
-  }
+  int maxPages = 10;
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("pictureBook.jsp");
@@ -81,7 +73,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	      <p><strong><%=props.getProperty("matchingMarkedIndividuals")%>
 	      </strong>: <span id="count-total"> <%=numResults%> </span> (Showing only the <span id="image-count-total"></span> individuals with tagged exemplar images)
 	      </p>
-	      <%myShepherd.beginDBTransaction();%>
+
 	      <p><strong><%=props.getProperty("totalMarkedIndividuals")%>
 	      </strong>: <%=(myShepherd.getNumMarkedIndividuals())%>
 	      </p>
@@ -215,7 +207,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
 	for (MarkedIndividual mark: rIndividuals) {
 
-		ArrayList<JSONObject> exemplarImages = mark.getBestKeywordPhotos(request, desiredKeywords, true);
+		ArrayList<JSONObject> exemplarImages = mark.getBestKeywordPhotos(request, desiredKeywords, true, myShepherd);
 		
 		boolean hasHeader = exemplarImages.size()>0;
 		boolean haspic2 = exemplarImages.size()>1;
