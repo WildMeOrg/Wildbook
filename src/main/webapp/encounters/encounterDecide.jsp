@@ -417,7 +417,7 @@ h1 { background: none !important; }
 }
 
 .match-asset-img-wrapper {
-    width: 500px;
+    width: 520px;
     height: 400px;
     background-color: #AAA;
     position: relative;
@@ -442,7 +442,7 @@ h1 { background: none !important; }
     pointer-events: none;
 }
 .match-asset-wrapper .zoom-hint {
-    right: 35px !important;
+    right: 15px !important;
 }
 .zoom-hint .el-zoom-in {
     pointer-events: none;
@@ -755,7 +755,7 @@ console.log(url);
                         $('#match-results').append(sort[keys[i]]);
                     }
                     //$('#match-results').append('<div id="match-controls"><div><input type="checkbox" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none">None of these cats match</label></div><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" /></div>');
-                    $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
+                    $('#match-controls-after').html('<input type="radio" class="match-chosen-cat" value="no-match" id="mc-none" /> <label for="mc-none" style="font-size: 1.5em;"><b>None of these cats match</b></label></div><br /><input type="button" id="match-chosen-button" value="Save match choice" disabled class="button-disabled" onClick="saveMatchChoice();" />');
                     $('.match-chosen-cat').on('click', function(ev) {
                         var id = ev.target.id;
 console.log(id);
