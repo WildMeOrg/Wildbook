@@ -28,6 +28,7 @@ import java.lang.NumberFormatException;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
+import org.ecocean.importutils.*;
 import org.ecocean.media.*;
 import org.ecocean.genetics.*;
 import org.ecocean.tag.SatelliteTag;
@@ -269,7 +270,7 @@ public class StandardImport extends HttpServlet {
     if (committing) myShepherd.beginDBTransaction();
     outPrnt("<h2>Parsed Import Table</h2>"); 
     //System.out.println("debug0");
-    System.out.println("feedback headers = "+feedback.colNames);
+    System.out.println("feedback headers = "+feedback.getColNames());
     if (!committing) feedback.printStartTable();
     //System.out.println("debug1");
     // one encounter per-row. We keep these running.
@@ -393,7 +394,9 @@ public class StandardImport extends HttpServlet {
 
     if (!committing) {
       feedback.printMissingPhotos();
-      feedback.printFoundPhotos();
+      if (!isUserUpload) {
+        feedback.printFoundPhotos();
+      }
       out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
       //out.println("<h2>Import completed successfully</h2>");    
     }
@@ -1023,7 +1026,7 @@ public class StandardImport extends HttpServlet {
     String fullPath = null;
     try {
       if (localPath==null) {
-        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath+" ERR", row);
+        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
         return null;
       } 
       localPath = Util.windowsFileStringToLinux(localPath).trim();
@@ -1376,9 +1379,9 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   		colMap.put(colName, i);
     }
 
-    feedback = new TabularFeedback(headers);
+    feedback = new TabularFeedback(headers, committing, out, skipCols);
     System.out.println("headers = "+headers);
-    System.out.println("feedback headers = "+feedback.colNames);
+    System.out.println("feedback headers = "+feedback.getColNames());
   	return colMap;
   }
 
@@ -1829,189 +1832,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         System.out.println("WARNING: importXlsFile() could not find 'WildbookStandardFormat*.xlsx' in " + dir);
         return null;
     }
-
-
-
-    // FEEDBACK CLASSES - May break out -- 
-
-
-    private class TabularFeedback {
-
-      //Set<String> unusedColumns;
-      //Set<String> missingColumns; // columns we look for but don't find
-      List<String> missingPhotos = new ArrayList<String>();
-      List<String> foundPhotos = new ArrayList<String>();
   
-      String[] colNames;
-  
-      RowFeedback currentRow;
-  
-      public TabularFeedback(String[] colNames) {
-        this.colNames = colNames;
-        missingPhotos = new ArrayList<String>();
-        foundPhotos = new ArrayList<String>();
-        currentRow=null; // must be manually initialized during row loop with startRow
-      }
-  
-      public void startRow(Row row, int i) {
-        if (!committing) {
-          currentRow = new RowFeedback(row, i);
-          System.out.println("StartRow called for i="+i);
-        }
-      }
-  
-      public void addMissingPhoto(String localPath) {
-        missingPhotos.add(localPath);
-      }
-
-      public void addFoundPhoto(String localPath) {
-        foundPhotos.add(localPath);
-      }
-  
-      public void printMissingPhotos() {
-        //if (!isUserUpload) {
-          out.println("<h2><em>Missing photos</em>("+missingPhotos.size()+"):</h2><ul>");
-          for (String photo: missingPhotos) {
-            out.println("<li>"+photo+"</li>");
-          }
-          out.println("</ul>");
-        //} 
-      }
-  
-      public void printRow() {
-        System.out.println("Starting to printRow");
-        if (!committing) out.println(currentRow);
-        //System.out.println(currentRow);
-        System.out.println("Done with printRow");
-      }
-    
-      public void printFoundPhotos() {
-        if (!isUserUpload) {
-          out.println("<h2><em>Found photos</em>("+foundPhotos.size()+"):</h2><ul>");
-          for (String photo: foundPhotos) {
-            out.println("<li>"+photo+"</li>");
-          }
-          out.println("</ul>");
-        }
-      }
-  
-      public void printStartTable() {
-        out.println("<div class=\"tableFeedbackWrapper\"><table class=\"tableFeedback\">");
-        out.println("<tr class=\"headerRow\"><th class=\"rotate\"><div><span><span></div></th>"); // empty header cell for row # column
-        boolean isNull = (colNames==null);
-        System.out.println("colNames isNull "+isNull);
-        System.out.println("starting to print table. num colNames="+colNames.length+" and the array itself = "+colNames);
-        for (int i=0;i<colNames.length;i++) {
-          if (skipCols.contains(i)) continue; 
-          out.println("<th class=\"rotate\"><div><span class=\"tableFeedbackColumnHeader\">"+colNames[i]+"</span></div></th>");
-        }
-        System.out.println("done printing start table");
-        out.println("</tr>");
-      }
-      public void printEndTable() {
-        out.println("</table></div>");
-      }
-  
-      public void logParseValue(int colNum, Object value, Row row) {
-        if (!committing) {
-          System.out.println("TabularFeedback.logParseValue called on object: "+value+" and colNum "+colNum);
-          if (value==null||String.valueOf(value)=="") {
-            this.currentRow.logParseNoValue(colNum);
-          }
-          this.currentRow.logParseValue(colNum, value, row);
-        }
-      }
-
-      public void logParseError(int colNum, Object value, Row row) {
-        if (!committing) {
-          this.currentRow.logParseError(colNum, value, row);
-        }
-      }
-
-      public void logParseNoValue(int colNum) {
-        if (!committing) {
-          this.currentRow.logParseNoValue(colNum);
-        }
-      }
-  
-      public String toString() {
-        if (!committing) {
-          return "Tabular feedback with "+colNames.length+" columns, on row "+currentRow.num;
-        }
-        return "";
-      }
-  
-    }
-  
-    private class RowFeedback {
-
-      CellFeedback[] cells = new CellFeedback[colIndexMap.size()];
-      public int num;
-  
-      //String checkingInheritance = uploadDirectory;
-  
-      public RowFeedback(Row row, int num) {
-        this.num=num;
-        this.cells = new CellFeedback[numCols];
-      }
-  
-      public String toString() {
-        StringBuffer str = new StringBuffer();
-        str.append("<tr>");
-        str.append("<td>"+num+"</td>");
-
-        for (int i=0;i<cells.length; i++) {
-          if (skipCols.contains(i)) {
-            System.out.println("skipping this col for feedback, index "+i+" was present in skipCols");
-            continue; 
-          }
-          CellFeedback cell = cells[i];
-          if (cell==null) str.append(nullCellHtml());
-          else str.append(cell.html());
-        }
-        str.append("</tr>"); 
-        return str.toString();
-      }
-  
-      public void logParseValue(int colNum, Object value, Row row) {
-        if (!committing) {
-          System.out.println("RowFeedback.logParseValue on an object: "+value+" with colNum "+colNum);
-          if (value==null) { // a tad experimental here. this means we don't have to check the parseSuccess in each getWhatever method
-            System.out.println("RowFeedback.logParseValue on a NULL OBJECT: trying to recover a value, or log empty");
-            String valueString = getCellValueAsString(row, colNum);
-            if (valueString==null||"".equals(valueString.trim())) {
-              logParseNoValue(colNum);
-              return;
-            } 
-            logParseError(colNum, valueString, row);
-            return;
-          } 
-          this.cells[colNum] = new CellFeedback(value, true, false);
-        }
-      }
-
-      // make this overwrite any existing value!!!
-      public void logParseError(int colNum, Object value, Row row) {
-        if (!committing) {
-          if (this.cells[colNum]!=null) {
-            System.out.println("Setting ERROR value on OLD CellFeedback for col "+colNum+" val "+value.toString()+" row "+row.getRowNum());
-            this.cells[colNum].setSuccess(false);
-            this.cells[colNum].setValueString(value+" NOT FOUND");
-          } else {
-            System.out.println("Setting ERROR value on NEW CellFeedback for col "+colNum+" val "+value.toString()+" row "+row.getRowNum());
-            this.cells[colNum] = new CellFeedback(value+" NOT FOUND", false, false);
-          }
-        }
-      }
-
-      public void logParseNoValue(int colNum) {
-        if (!committing) {
-          this.cells[colNum] = new CellFeedback(null, true, true);
-        }
-      }
-
-    }
-
     public String getStringNoLog(Row row, int i) {
       String str = null;
       try {
@@ -2024,69 +1845,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   
   
     // cannot put this inside CellFeedback bc java inner classes are not allowed static methods or vars (this is stupid).
-    static String nullCellHtml() {
+    public static String nullCellHtml() {
       return "<td class=\"cellFeedback null\" title=\"The importer was unable to retrieve this cell, or it did not exist. This is possible if it is a duplicate column, it relies on another column, or only some rows contain the cell. You may proceed if this cell OK to ignore.\"><span></span></td>";
     }
   
-    class CellFeedback {
-  
-      // These two booleans cover the 3 possible states of a cell:
-      // 1: successful parse (T,F), 2:no value provided (T,T), 3: unsuccessful parse with a value provided (F,F).
-      public boolean success;
-      public boolean isBlank;
-      String valueStr;
-  
-
-      public CellFeedback(Object value, boolean success, boolean isBlank) {
-        System.out.println("about to create cellFeedback for value "+value);
-        if (value == null) valueStr = null;
-        else valueStr = value.toString();
-        this.success = success;
-        this.isBlank = isBlank;
-        System.out.println("new cellFeedback: got valueStr "+valueStr+" success: "+success+" and isBlank: "+isBlank);
-      }
-
-      public String html() { // here's where we add the excel value string on errors
-        StringBuffer str = new StringBuffer();
-        str.append("<td class=\"cellFeedback "+classStr()+"\" title=\""+titleStr()+"\"><span>");
-        if (Util.stringExists(valueStr)) {
-          str.append(valueStr);
-        }
-        str.append("</span></td>");
-        return str.toString();
-      }
-  
-      public String classStr() {
-        if (isBlank) return "blank";
-        if (!success) return "error";
-        return "success";
-      }
-  
-      public String titleStr() {
-        if (isBlank) return "Cell was blank in excel file.";
-        if (!success) return "ERROR: The import was unable to parse this cell. Please ensure that there are not letters or special characters in number fields (ex. lat/lon text or degree mark), formulas where there should be values or other data inconsistencies.";
-        return "Successfully parsed value from excel file.";    
-      }
-
-      public String valueString() {
-        if (valueStr!=null) return valueStr;
-        return null;
-      }
-
-      public void setSuccess(boolean success) {
-        this.success = success;
-      }
-
-      public void setIsBlank(boolean isBlank) {
-        this.isBlank = isBlank;
-      }
-
-      public void setValueString(String val) {
-        this.valueStr = val;
-      }
-
-    }
-
       /**
      * h/t http://www.java-connect.com/apache-poi-tutorials/read-all-type-of-excel-cell-value-as-string-using-poi/
      */
