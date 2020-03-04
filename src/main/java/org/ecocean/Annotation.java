@@ -422,6 +422,38 @@ public class Annotation implements java.io.Serializable {
         return sibs;
     }
 
+/*
+    this is an ordering value which equates to "where in the MediaAsset this Annotation lies compared to siblings".
+    what this means is greatly open to interpretation!  "english reading order" (top-down/left-right) might seem a decent choice,
+    but after some discussion, for boundingBox Annotations, i am going to go with left-most x-value of the bounding box.
+    NOTE: this is dependent on FeatureType, so there are loose ends to deal with regarding non-boundingBox Features.
+*/
+    public int relativePosition() {
+        MediaAsset ma = this.getMediaAsset();
+        if (ma == null) return -2;
+        List<Annotation> anns = ma.getAnnotationsSortedPositionally();
+        return anns.indexOf(this);
+    }
+
+    // standard -1, 0, 1 expected
+    //fbow, return 0 if "not comparable"... :/
+    // note that this does not assume they are the same MediaAsset... fwiw?
+    public int comparePositional(Annotation other) {
+        if (other == null) return 0;
+        if ((Util.collectionSize(this.getFeatures()) * Util.collectionSize(other.getFeatures())) == 0) return 0;  //no features, oops
+        // i have *no idea* how we should handle *multiple Features* here... so i am just going to look for any non-zero response as "useful" :(
+        //   thus we do NxM comparing all Feature combinations; which seems like it might suck but i think we "almost always" only have one!
+        for (Feature f1 : this.getFeatures()) {
+            for (Feature f2 : other.getFeatures()) {
+                if (!f1.equals(f2)) {
+                    int c = f1.comparePositional(f2);
+                    if (c != 0) return c;
+                }
+            }
+        }
+        return 0;
+    }
+
     public String getSpecies(Shepherd myShepherd) {
         Encounter enc = this.findEncounter(myShepherd);
         if (enc == null) return null;
