@@ -953,6 +953,20 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.resetDateInMilliseconds();
             newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
             newEnc.setGenus(someEnc.getGenus());
+
+            Occurrence occ = myShepherd.getOccurrence(someEnc);
+            if (occ==null) {
+                occ = new Occurrence(Util.generateUUID(), someEnc);
+                try {
+                    myShepherd.beginDBTransaction();
+                    myShepherd.storeNewOccurrence(occ);
+                    myShepherd.commitDBTransaction();
+                } catch (Exception e) {
+                    myShepherd.rollbackDBTransaction();
+                }
+                occ.addEncounter(someEnc);
+            }
+            occ.addEncounter(newEnc);
         }
         if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
           newEnc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
