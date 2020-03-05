@@ -191,6 +191,8 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
         return dict['occurrenceNumber'];
       } if (d === "behavior") {
         return dict['behavior'];
+      } if(d === "locationID") {
+          return dict['locationID'];
       } if(d === "alternateID") {
         return dict['alternateID'];
       }if (d === "sex") {
@@ -269,7 +271,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
           return d[0].italics() + "-" + d[1];
         }
         if(d.length > 2) {
-          return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
+          return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['locationID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
           }
         }
         if(d == "GOS") {
@@ -373,6 +375,11 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         } else {
           var location = "";
         }
+        if(jsonData.encounters[i].locationID) {
+            var locationID = jsonData.encounters[i].locationID;
+          } else {
+            var locationID = "";
+          }
         var catalogNumber = jsonData.encounters[i].catalogNumber;
         console.log("Here's what we are working with : "+jsonData.encounters[i]);
         if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
@@ -404,7 +411,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         if(occurringWith === undefined) {
           var occurringWith = "";
         }
-        encounter = {catalogNumber: catalogNumber, date: date, location: location, dataTypes: dataTypes, alternateID: alternateID, sex: sex, occurringWith: occurringWith, behavior: behavior};
+        encounter = {catalogNumber: catalogNumber, date: date, location: location, dataTypes: dataTypes, locationID: locationID, sex: sex, occurringWith: occurringWith, behavior: behavior};
         encounterData.push(encounter);
       }
       makeTable(encounterData, "#encountHead", "#encountBody", "date");
