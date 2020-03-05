@@ -99,7 +99,7 @@ console.log('dx, dy %f, %f', dx, dy);
             left: 0
         });
 
-imgEl.panzoom({maxScale:20})
+imgEl.panzoom({maxScale:22})
     .on('zoomstart panzoomstart panstart', function(ev) {
 //console.log('start----- %o', ev);
         $('#wrapper-' + ev.target.id.substring(4) + ' .canvas-box').hide();
@@ -119,6 +119,7 @@ var px = -(imgData[id].bbox[0] * zscale) + (ww / 2) - (imgData[id].bbox[2] * zsc
 var py = -(imgData[id].bbox[1] * yscale) + (wh / 2) - (imgData[id].bbox[3] * yscale / 2);
 
 var zz = 2.2 * ww / imgData[id].bbox[2];
+if (imgData[id].bbox[3] > imgData[id].bbox[2]) zz = 2.2 * wh / imgData[id].bbox[3];
 if (zz < 1) zz = 1;
 console.info('[ zz = %f ]  px, py = %f,%f (zscale %f, yscale %f)', zz, px, py, zscale, yscale);
 imgEl.panzoom('pan', zz * px, zz * py);
