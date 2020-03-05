@@ -145,6 +145,19 @@ if (thisUser == null) {
         width: 100%;
       }
 
+/* this hackiness is cuz we un-fixed the navbar */
+.maincontent {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+.navbar {
+    margin-bottom: 0 !important;
+}
+.page-header {
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
     </style>
 
     </head>
@@ -153,7 +166,7 @@ if (thisUser == null) {
 
         <!-- ****header**** -->
         <header class="page-header clearfix">
-            <nav class="navbar navbar-default navbar-fixed-top" style="margin-top: -5px;">
+            <nav class="navbar navbar-default xnavbar-fixed-top" style="margin-top: -5px;">
               <div class="header-top-wrapper">
                 <div class="container">
                 <!-- wild-me-badge -->
