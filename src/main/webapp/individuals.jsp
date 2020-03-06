@@ -95,7 +95,7 @@ context=ServletUtilities.getContext(request);
   String occurrenceNumber = props.getProperty("occurrenceNumber");
   //System.out.println("We got occurrenceNumber = "+occurrenceNumber);
   //System.out.println("We got sex = "+sex);
-
+	String locationID = props.getProperty("locationID");
     //String id = null;
   String id = request.getParameter("number");
   Shepherd myShepherd = new Shepherd(context);
@@ -424,6 +424,7 @@ tableDictionary['date'] = "<%= date %>";
 tableDictionary['unknown'] = "<%= unknown %>";
 tableDictionary['nickname'] = "<%= nickname %>";
 tableDictionary['occurrenceNumber'] = "<%= occurrenceNumber%>";
+tableDictionary['locationID'] = "<%= locationID%>";
 
 
 $(document).ready(function() {
