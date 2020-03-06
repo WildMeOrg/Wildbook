@@ -897,7 +897,7 @@ ITIS Species TSN: "552298",
 
     public static Taxonomy findTaxonomy(Shepherd myShepherd, String tstring) {
         if (tstring == null) return null;
-        List<Taxonomy> found = Taxonomy.findMatch(myShepherd, "(?i)" + tstring);  //exact match (but case-insensitive)
+        List<Taxonomy> found = Taxonomy.findMatch(myShepherd, "(?i)" + java.util.regex.Pattern.quote(tstring));  //exact match (but case-insensitive)
         if (found.size() > 0) return found.get(0);
         return null;
     }
