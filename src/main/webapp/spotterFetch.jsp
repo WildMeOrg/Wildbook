@@ -96,6 +96,7 @@ private static String justSomeTrips(String[] tripIds, Shepherd myShepherd) {
         if (id < 0) return "<li>tryTrip invalid id=" + id + "</li>";
         Occurrence occ = loadByTripId(myShepherd, id);
         if (occ != null) {
+            fetchLog("skipping " + flavor + " id " + id + "; already exists");
             return "<li class=\"exists\"><b>" + id + "</b> (" + j.optString("start_date") + ") exists: <a href=\"occurrence.jsp?number=" + occ.getOccurrenceID() + "\">Occ " + occ.getOccurrenceID() + "</a></li>";
         } else {
             JSONObject tripData = null;
@@ -214,8 +215,10 @@ private static String justSomeTrips(String[] tripIds, Shepherd myShepherd) {
     String[] tripIds = request.getParameterValues("tripId");
     if ((tripIds != null) && (tripIds.length > 0)) {
         out.println(justSomeTrips(tripIds, myShepherd));
-    return;
-}
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        return;
+    }
 
 Integer since = null;
 try {
@@ -223,6 +226,9 @@ try {
 } catch (NumberFormatException ex) {}
 
 fetchLog("INIT.  passed since=" + since);
+
+boolean commit = Util.requestParameterSet(request.getParameter("commit"));
+fetchLog("commit=" + commit);
 
 int sinceWA = SpotterConserveIO.waGetLastSync(context);
 int sinceCI = SpotterConserveIO.ciGetLastSync(context);
@@ -247,6 +253,8 @@ try {
     out.println("<p class=\"error\">Warning: unable to fetch trip data; threw " + ex.toString() + "</p>");
     fetchLog("error fetching data: " + ex.toString());
     ex.printStackTrace();
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
     return;
 }
 
@@ -259,8 +267,22 @@ out.println("<p><b>Channel Island raw trip data:</b> <xmp style=\"font-size: 0.8
 out.println("<p>WA: <b>" + tripListSummary(waTripList) + "</b><br />");
 out.println("CI: <b>" + tripListSummary(ciTripList) + "</b></p>");
 
-fetchLog("fetched: " + tripListSummary(waTripList));
-fetchLog("fetched: " + tripListSummary(ciTripList));
+fetchLog("WA fetched: " + tripListSummary(waTripList));
+fetchLog("CI fetched: " + tripListSummary(ciTripList));
+
+if (!commit) {
+    fetchLog("non-commit, so exiting.");
+    out.println("<p><b>commit=<i>false</i></b>; exiting.</p>");
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+    return;
+}
+
+//// FOR NOW we skip doing wa trip at all...
+waTripList = new JSONObject();
+waTripList.put("trips", new JSONArray());
+out.println("<p><i>WA trips temporarily disabled!</i></p>");
+////
 
 out.println("<p><b>Whale Alert trips</b><ul>");
 JSONArray trips = waTripList.optJSONArray("trips");
@@ -280,12 +302,13 @@ out.println("</ul>");
 
 
 fetchLog("*** finished");
-myShepherd.commitDBTransaction();
 
 //set "last sync" time to now....
 SpotterConserveIO.waSetLastSync(context);
 SpotterConserveIO.ciSetLastSync(context);
 
+myShepherd.commitDBTransaction();
+myShepherd.closeDBTransaction();
 
 
 %>
