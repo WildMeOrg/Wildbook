@@ -137,7 +137,7 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
             if (d == null) continue;
             String mid = d.optString("_multipleId", null);
             if (mid == null) continue;
-            if (dataMap.get(mid) == null) dataMap.put(mid, new String[27]);
+            if (dataMap.get(mid) == null) dataMap.put(mid, new String[28]);
             dataMap.get(mid)[0] = dec.getEncounter().getCatalogNumber();
             dataMap.get(mid)[1] = dec.getEncounter().getEventID();
             if (dec.getEncounter().hasMarkedIndividual()) {
@@ -172,17 +172,18 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
                 dataMap.get(mid)[15] = val;
                 dataMap.get(mid)[16] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getSex() != null) && truthEnc.getSex().equals(val)).toString();
                 dataMap.get(mid)[17] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getSex() != null) && (truthEnc.getSex().equals(val) || val.equals("unknown"))).toString();
+                dataMap.get(mid)[18] = new Boolean((val != null) && val.equals("female") && "calico_torto".equals(dataMap.get(mid)[9])).toString();
             } else if (prop.equals("collar")) {
-                if (truthEnc != null) dataMap.get(mid)[18] = truthEnc.getCollar();
-                dataMap.get(mid)[19] = val;
-                dataMap.get(mid)[20] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getCollar() != null) && truthEnc.getCollar().equals(val)).toString();
-                dataMap.get(mid)[21] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getCollar() != null) && (truthEnc.getCollar().equals(val) || val.equals("unknown"))).toString();
+                if (truthEnc != null) dataMap.get(mid)[19] = truthEnc.getCollar();
+                dataMap.get(mid)[20] = val;
+                dataMap.get(mid)[21] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getCollar() != null) && truthEnc.getCollar().equals(val)).toString();
+                dataMap.get(mid)[22] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getCollar() != null) && (truthEnc.getCollar().equals(val) || val.equals("unknown"))).toString();
             } else if (prop.equals("earTip")) {
-                if (truthEnc != null) dataMap.get(mid)[22] = truthEnc.getEarTip();
-                dataMap.get(mid)[23] = val;
-                dataMap.get(mid)[24] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && truthEnc.getEarTip().equals(val)).toString();
-                dataMap.get(mid)[25] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && truthEnc.getEarTip().startsWith("yes") && val.startsWith("yes")).toString();
-                dataMap.get(mid)[26] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && (truthEnc.getEarTip().equals(val) || val.equals("unknown") || (truthEnc.getEarTip().equals("unknown") && val.equals("no")))).toString();
+                if (truthEnc != null) dataMap.get(mid)[23] = truthEnc.getEarTip();
+                dataMap.get(mid)[24] = val;
+                dataMap.get(mid)[25] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && truthEnc.getEarTip().equals(val)).toString();
+                dataMap.get(mid)[26] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && truthEnc.getEarTip().startsWith("yes") && val.startsWith("yes")).toString();
+                dataMap.get(mid)[27] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getEarTip() != null) && (truthEnc.getEarTip().equals(val) || val.equals("unknown") || (truthEnc.getEarTip().equals("unknown") && val.equals("no")))).toString();
             } else {
                 System.out.println("WARNING: queue.generateData() found bad property " + dec.getProperty() + " on Decision id=" + dec.getId());
             }
@@ -198,9 +199,9 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
     List rows = new ArrayList<String[]>();
 /*
     String[] headMatch = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "Time Attr (s)", "Time Match (s)", "User ID", "Username", "Match Enc ID", "Match Enc Name", "Match Cat ID", "Match Cat Name"};
-    String[] headAttr = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern ans", "Color/Pattern", "Color/Patt correct", "Life Stage ans", "Life Stage", "Life Stage correct", "Sex ans", "Sex", "Sex correct", "Sex unk ok", "Collar ans", "Collar", "Collar correct", "Collar unk ok", "Ear Tip ans", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok"};
+    String[] headAttr = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern ans", "Color/Pattern", "Color/Patt correct", "Life Stage ans", "Life Stage", "Life Stage correct", "Sex ans", "Sex", "Sex correct", "Sex unk ok", "Sex calico ok", "Collar ans", "Collar", "Collar correct", "Collar unk ok", "Ear Tip ans", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok"};
 */
-    String[] head = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern ans", "Color/Pattern", "Color/Patt correct", "Life Stage ans", "Life Stage", "Life Stage correct", "Sex ans", "Sex", "Sex correct", "Sex unk ok", "Collar ans", "Collar", "Collar correct", "Collar unk ok", "Ear Tip ans", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok",
+    String[] head = new String[]{"Enc ID", "Enc Name", "Cat ID", "Cat Name", "Timestamp", "Date/Time", "User ID", "Username", "Color/Pattern ans", "Color/Pattern", "Color/Patt correct", "Life Stage ans", "Life Stage", "Life Stage correct", "Sex ans", "Sex", "Sex correct", "Sex unk ok", "Sex calico ok", "Collar ans", "Collar", "Collar correct", "Collar unk ok", "Ear Tip ans", "Ear Tip", "Ear Tip correct", "Ear Tip swap ok", "Ear Tip unk ok",
         "Time Attr (s)", "Time Match (s)", "Match Enc ID", "Match Enc Name", "Match Cat ID", "Match Cat Name",
         "Match Present", "Match Correct", "T/F/Positive/Negative"};
     rows.add(head);
@@ -210,30 +211,30 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
 System.out.println("WARNING: queue.generateData() has no matchMap(" + ekey + ")");
             rows.add(attrMap.get(ekey));
         } else {
-            String[] all = new String[36];
+            String[] all = new String[37];
             for (int i = 0 ; i < attrMap.get(ekey).length ; i++) {
                 all[i] = attrMap.get(ekey)[i];
             }
-            all[27] = matchMap.get(ekey)[6];
-            all[28] = matchMap.get(ekey)[7];
-            all[29] = matchMap.get(ekey)[10];
-            all[30] = matchMap.get(ekey)[11];
-            all[31] = matchMap.get(ekey)[12];
-            all[32] = matchMap.get(ekey)[13];
-            all[33] = matchMap.get(ekey)[14];
+            all[28] = matchMap.get(ekey)[6];
+            all[29] = matchMap.get(ekey)[7];
+            all[30] = matchMap.get(ekey)[10];
+            all[31] = matchMap.get(ekey)[11];
+            all[32] = matchMap.get(ekey)[12];
+            all[33] = matchMap.get(ekey)[13];
+            all[34] = matchMap.get(ekey)[14];
             all[34] = "no";
-            if ("no-match".equals(all[31]) && "no".equals(all[33])) all[34] = "yes";
-            if (all[2].equals(all[31])) all[34] = "yes";
-            if (all[33].equals("yes") && all[34].equals("yes")) {
-                all[35] = "true positive";
-            } else if (!"no-match".equals(all[31])) {  //chose *some* cat (but not right one)
-                all[35] = "false positive";
-            } else if (all[33].equals("yes") && "no-match".equals(all[31])) {  //cat presented, but chose no-match
-                all[35] = "false negative";
-            } else if (all[33].equals("no") && "no-match".equals(all[31])) {  //cat NOT presented, chose no-match
-                all[35] = "true negative";
+            if ("no-match".equals(all[32]) && "no".equals(all[34])) all[35] = "yes";
+            if (all[2].equals(all[32])) all[35] = "yes";
+            if (all[34].equals("yes") && all[35].equals("yes")) {
+                all[36] = "true positive";
+            } else if (!"no-match".equals(all[32])) {  //chose *some* cat (but not right one)
+                all[36] = "false positive";
+            } else if (all[34].equals("yes") && "no-match".equals(all[32])) {  //cat presented, but chose no-match
+                all[36] = "false negative";
+            } else if (all[34].equals("no") && "no-match".equals(all[32])) {  //cat NOT presented, chose no-match
+                all[36] = "true negative";
             } else {
-                all[35] = "???";
+                all[36] = "???";
             }
             
             rows.add(all);
