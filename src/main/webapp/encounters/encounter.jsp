@@ -14,6 +14,7 @@
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
+         org.ecocean.servlet.importer.ImportTask,
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
          org.json.JSONArray,
