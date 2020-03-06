@@ -5,13 +5,38 @@
 <jdo>
     <package name="org.ecocean.social">
 
-	
-        
+        <class name="Membership" identity-type="application" table="MEMBERSHIP">
+				<field name="id" primary-key="true">
+					<column length="128"/>
+				</field>
+
+				<field name="mi" element-type="org.ecocean.MarkedIndividual" persistence-modifier="persistent" />
+
+				<field name="role" persistence-modifier="persistent">
+					<column jdbc-type="String" length="128" />
+				</field>
+
+				<field name="startDate" persistence-modifier="persistent">
+					<column jdbc-type="LONGVARCHAR" length="128" />
+				</field>
+
+				<field name="endDate" persistence-modifier="persistent">
+					<column jdbc-type="LONGVARCHAR" length="128" />
+				</field>
+
+				<fetch-group name="count" />
+		</class>
         
         <class name="SocialUnit" identity-type="application" table="SOCIALUNIT">
 				<field name="socialUnitName" primary-key="true">
 					<column length="100"/>
 				</field>
+
+				<field name="members" persistence-modifier="persistent">
+					<collection element-type="org.ecocean.social.Membership" />
+					<join/>
+				</field>
+
 				<fetch-group name="count" />
 		</class>
 		
