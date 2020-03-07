@@ -302,11 +302,16 @@ h1 { background: none !important; }
 
 .attribute-option .attribute-title {
     overflow: hidden;
-    font-size: 0.8em;
+    font-size: 0.75em;
     line-height: 1.2em;
     height: 2.5em;
     font-weight: bold;
 }
+
+.attribute-option .attribute-title .tinier {
+    font-size: 0.9em;
+}
+
 
 .attribute-unknown {
     font-size: 4em;
@@ -1065,11 +1070,11 @@ There are two steps to processing each submission: selecting cat attributes, and
                 </div>
                 <div id="tabby_torbie" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tabby.jpg" />
-                    <div class="attribute-title">Grey or Brown Tabby/Torbie</div>
+                    <div class="attribute-title">Grey or Brown <span class="tinier">Tabby/Torbie</span></div>
                 </div>
                 <div id="tab_torb_white" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tabwhite.jpg" />
-                    <div class="attribute-title">Tabby/Torbie &amp; White</div>
+                    <div class="attribute-title"><span class="tinier">Tabby/Torbie</span> &amp; White</div>
                 </div>
                 <div id="orange" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_orange.jpg" />
@@ -1081,7 +1086,7 @@ There are two steps to processing each submission: selecting cat attributes, and
                 </div>
                 <div id="calico_torto" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tortical.jpg" />
-                    <div class="attribute-title">Calico / Tortoiseshell</div>
+                    <div class="attribute-title">Calico / <span class="tinier">Tortoiseshell</span></div>
                 </div>
                 <div id="beige_cream_wh" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_light.jpg" />
