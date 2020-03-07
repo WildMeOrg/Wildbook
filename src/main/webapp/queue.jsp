@@ -172,7 +172,7 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
                 dataMap.get(mid)[15] = val;
                 dataMap.get(mid)[16] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getSex() != null) && truthEnc.getSex().equals(val)).toString();
                 dataMap.get(mid)[17] = new Boolean((val != null) && (truthEnc != null) && (truthEnc.getSex() != null) && (truthEnc.getSex().equals(val) || val.equals("unknown"))).toString();
-                dataMap.get(mid)[18] = new Boolean((val != null) && val.equals("female") && "calico_torto".equals(dataMap.get(mid)[9])).toString();
+                dataMap.get(mid)[18] = new Boolean((val != null) && val.equals("female") && ("calico_torto".equals(dataMap.get(mid)[8]) || "calico_torto".equals(dataMap.get(mid)[9])) ).toString();
             } else if (prop.equals("collar")) {
                 if (truthEnc != null) dataMap.get(mid)[19] = truthEnc.getCollar();
                 dataMap.get(mid)[20] = val;
