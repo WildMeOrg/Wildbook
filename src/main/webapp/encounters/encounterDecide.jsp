@@ -572,7 +572,7 @@ $(document).ready(function() {
     var docWidth = $(document).width();
     if (docWidth < 900) {
         //alert('Processing submissions on small screens or mobile devices can cause problems with image display.\n\nA desktop browser is recommended.');
-        window.location.href = '../mobileNotice.jsp';
+        window.location.href = '../register.jsp?instructions#requirements';
         return;
     }
 
