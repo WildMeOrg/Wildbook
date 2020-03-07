@@ -1081,7 +1081,7 @@ There are two steps to processing each submission: selecting cat attributes, and
                 </div>
                 <div id="tabby_torbie" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tabby.jpg" />
-                    <div class="attribute-title">Grey or Brown <span class="tinier">Tabby/Torbie</span></div>
+                    <div class="attribute-title"><span class="tinier">Tabby/Torbie</span> Grey or Brown</div>
                 </div>
                 <div id="tab_torb_white" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_tabwhite.jpg" />
