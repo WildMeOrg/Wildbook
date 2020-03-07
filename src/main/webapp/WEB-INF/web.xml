@@ -110,6 +110,7 @@
 		/individualThumbnailSearchResults.jsp = authc, roles[researcher]
 
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[cat_mouse_volunteer]
+		 /encounters/encounter.jsp = authc
 		 /encounters/encounterSearch.jsp = roles[researcher]
 		 /encounters/searchResults.jsp = authc, roles[researcher]
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
