@@ -79,6 +79,8 @@ System.out.println("findSimilar() -> " + el.toString());
             if (ma == null) continue;
             JSONObject mj = new JSONObject();
             mj.put("annotationId", ann.getId());
+            mj.put("origWidth", ma.getWidth());
+            mj.put("origHeight", ma.getHeight());
             if (!ann.isTrivial()) mj.put("bbox", ann.getBbox());
             mj.put("id", ma.getId());
             mj.put("url", ma.safeURL(myShepherd, request));
@@ -129,14 +131,19 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
     rtn.put("annotationId", found.getId());
     rtn.put("encounterId", encId);
     rtn.put("id", ma.getId());
+    rtn.put("origWidth", ma.getWidth());
+    rtn.put("origHeight", ma.getHeight());
     if (!found.isTrivial()) rtn.put("bbox", found.getBbox());
     rtn.put("url", ma.safeURL(myShepherd, request));
     if (secondary != null) {
         ma = secondary.getMediaAsset();
         JSONObject j2 = new JSONObject();
         j2.put("id", ma.getId());
+        j2.put("annotationId", secondary.getId());
         if (!secondary.isTrivial()) j2.put("bbox", secondary.getBbox());
         j2.put("url", ma.safeURL(myShepherd, request));
+        j2.put("origWidth", ma.getWidth());
+        j2.put("origHeight", ma.getHeight());
         rtn.put("secondary", j2);
     }
     return rtn;
@@ -728,7 +735,7 @@ console.log(url);
                         for (var j = 0 ; j < numImages ; j++) {
                             h += '<div class="match-asset-wrapper">';
                             h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
-                            h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this);" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div></div>';
+                            h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].assets[j].id + '" src="' + xhr.responseJSON.similar[i].assets[j].url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].assets[j].id] = xhr.responseJSON.similar[i].assets[j];
                         }
 */
@@ -736,11 +743,13 @@ console.log(url);
                         h += '<div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, \'.match-asset-wrapper\')" class="el el-lg el-zoom-out"></span></div>';
 
                         if ((xhr.responseJSON.similar[i].matchPhoto.encounterId == encounterId) && xhr.responseJSON.similar[i].matchPhoto.secondary) {
+                            var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto.secondary).replace(/"/g, "'");
                             console.info('i=%d (%s) blocking MatchPhoto in favor of secondary for %o', i, xhr.responseJSON.similar[i].individualId, xhr.responseJSON.similar[i].matchPhoto);
-                            h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this);" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
+                            h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.secondary.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.secondary.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.secondary.id] = xhr.responseJSON.similar[i].matchPhoto.secondary;
                         } else {
-                            h += '<div class="match-asset-img-wrapper"><img onLoad="matchAssetLoaded(this);" class="match-asset-img" id="match-asset-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
+                            var passj = JSON.stringify(xhr.responseJSON.similar[i].matchPhoto).replace(/"/g, "'");
+                            h += '<div class="match-asset-img-wrapper" id="wrapper-' + xhr.responseJSON.similar[i].matchPhoto.id + '"><img onLoad="matchAssetLoaded(this, ' + passj + ');" class="match-asset-img" id="img-' + xhr.responseJSON.similar[i].matchPhoto.id + '" src="' + xhr.responseJSON.similar[i].matchPhoto.url + '" /></div></div>';
                             matchData.assetData[xhr.responseJSON.similar[i].matchPhoto.id] = xhr.responseJSON.similar[i].matchPhoto;
                         }
 
@@ -853,7 +862,9 @@ function matchScore(mdata, udata) {
     return Math.round(score * 100) / 100;
 }
 
-function matchAssetLoaded(el) {
+function matchAssetLoaded(el, imgInfo) {
+    assetLoaded(el, imgInfo);
+    return;
     $(el).panzoom({maxScale:9}).on('panzoomend', function(ev, panzoom, matrix, changed) {
         if (!changed) return $(ev.currentTarget).panzoom('zoom');
     });
