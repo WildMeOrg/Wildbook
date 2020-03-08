@@ -219,6 +219,7 @@ if (!Util.collectionIsEmptyOrNull(indiv.getEncounters())) for (Encounter enc : i
         j.put("annotationId", ann.getId());
         j.put("origWidth", ma.getWidth());
         j.put("origHeight", ma.getHeight());
+        if (ann.getFeatures() != null) for (Feature f : ann.getFeatures()) { String foo = f.toString(); }
         if (!ann.isTrivial()) j.put("bbox", ann.getBbox());
 /*
         ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");

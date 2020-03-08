@@ -81,6 +81,7 @@ System.out.println("findSimilar() -> " + el.toString());
             mj.put("annotationId", ann.getId());
             mj.put("origWidth", ma.getWidth());
             mj.put("origHeight", ma.getHeight());
+            if (ann.getFeatures() != null) for (Feature f : ann.getFeatures()) { String foo = f.toString(); }
             if (!ann.isTrivial()) mj.put("bbox", ann.getBbox());
             mj.put("id", ma.getId());
             mj.put("url", ma.safeURL(myShepherd, request));
@@ -133,6 +134,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
     rtn.put("id", ma.getId());
     rtn.put("origWidth", ma.getWidth());
     rtn.put("origHeight", ma.getHeight());
+    if (found.getFeatures() != null) for (Feature f : found.getFeatures()) { String foo = f.toString(); }
     if (!found.isTrivial()) rtn.put("bbox", found.getBbox());
     rtn.put("url", ma.safeURL(myShepherd, request));
     if (secondary != null) {
@@ -140,6 +142,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
         JSONObject j2 = new JSONObject();
         j2.put("id", ma.getId());
         j2.put("annotationId", secondary.getId());
+        if (secondary.getFeatures() != null) for (Feature f : secondary.getFeatures()) { String foo = f.toString(); }
         if (!secondary.isTrivial()) j2.put("bbox", secondary.getBbox());
         j2.put("url", ma.safeURL(myShepherd, request));
         j2.put("origWidth", ma.getWidth());
@@ -315,7 +318,11 @@ h1 { background: none !important; }
     font-weight: bold;
 }
 
-.attribute-option .attribute-title .tinier {
+#colorPattern .attribute-title {
+    font-size: 0.7em;
+}
+
+.attribute-option .attribute-title .xxxtinier {
     font-size: 0.9em;
 }
 
