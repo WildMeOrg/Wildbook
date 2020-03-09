@@ -297,16 +297,24 @@ Our second validation study, open to everyone, will begin in January 2020!
 <img src="images/participate_manatdesk.jpg" width="324" height="300" hspace="10" vspace="10" align="right" />
 
 <p>
-The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission later, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.
+The second of our three validation studies is about testing the online workflow for Kitizen Science. This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match. Now, we are doing a trial of how the online side of Kitizen Science works. We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.
 </p>
 
-<p style="display: none;" blocked>
+<p xstyle="display: none;">
 You can <a href="register.jsp?instructions">read the study instructions</a>
 before deciding whether you want to volunteer.
 </p>
 
-<p><b>This study is not yet open.</b></p>
-<p style="display: none;" blocked>This study is open from February _ to March _, 2020.</p>
+<p>
+This study is open from March 9 to May 10, 2020.
+</p>
+
+<p>
+    <form method="post">
+    <input type="submit" value="Register to Participate" />
+    <input type="hidden" name="fromMode" value="-1" />
+    </form>
+</p>
 
 
 <%
@@ -739,9 +747,10 @@ How did you hear about Kitizen Science?
 <h1>Instructions for the Online Workflow Study</h1>
 
 <p>The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.  You will receive a short survey via email after this study ends asking for your feedback and for you to rate aspects of the website.</p>
-<p class="style2">This study is open from March 3 to May 4, 2020.</p>
+<p class="style2">This study is open from March 9 to May 10, 2020.</p>
 <h2><a name="requirements" id="requirements"></a>Computer requirements</h2></a>
-<p>Because of the small screen size of web browsers on smart phones and many tablets, we do not want you to process submissions on these smaller devices. Please use a standard desktop or laptop computer.
+<p>
+Because of the small screen size of web browsers on smart phones and small tablets, we do not want you to process submissions on smaller devices. Please use a desktop or laptop computer.
 </p>
 <h2>Rules</h2>
 <p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change your success at processing submissions, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own.</p>
