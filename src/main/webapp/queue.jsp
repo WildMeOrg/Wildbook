@@ -222,7 +222,7 @@ System.out.println("WARNING: queue.generateData() has no matchMap(" + ekey + ")"
             all[32] = matchMap.get(ekey)[12];
             all[33] = matchMap.get(ekey)[13];
             all[34] = matchMap.get(ekey)[14];
-            all[34] = "no";
+            all[35] = "no";
             if ("no-match".equals(all[32]) && "no".equals(all[34])) all[35] = "yes";
             if (all[2].equals(all[32])) all[35] = "yes";
             if (all[34].equals("yes") && all[35].equals("yes")) {
