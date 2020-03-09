@@ -93,7 +93,7 @@ public class StandardImport extends HttpServlet {
 
   Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
   
-  Map<String,MarkedIndividual> individualCache = new HashMap<String,MarkedIndividual>();
+  Map<String,String> individualCache = new HashMap<String,String>();
   
   TabularFeedback feedback;
 
@@ -222,12 +222,14 @@ public class StandardImport extends HttpServlet {
       e.printStackTrace();
     } finally {
       System.out.println("Forwarding, I hope...");
+      myShepherd.commitDBTransaction();
       myShepherd.closeDBTransaction();
     }
 
     System.out.println("Did redirect succeed???");
 
-    //myShepherd.rollbackDBTransaction();
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
 
 
   }
@@ -1268,7 +1270,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
 
 
-  public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing, Map<String,MarkedIndividual> individualCache) {
+  public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing, Map<String,String> individualCache) {
 
   	boolean newIndividual = false;
   	String individualID = getIndividualID(row);
@@ -1279,15 +1281,19 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     // no
     individualID = individualID.trim();
 
-  	MarkedIndividual mark = individualCache.get(individualID);
+  	String uuid=individualCache.get(individualID);
+    MarkedIndividual mark = myShepherd.getMarkedIndividual(uuid);
     if (mark==null) mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
   	if (mark==null) { // new individual
 	    mark = new MarkedIndividual(enc);
+      if (!mark.hasName(individualID))mark.addName(individualID);
+      
 	    if(committing) {
 	      myShepherd.getPM().makePersistent(mark);
 	      myShepherd.commitDBTransaction();
 	      myShepherd.beginDBTransaction();
         mark.refreshNamesCache();
+        individualCache.put(individualID, mark.getIndividualID());
 	      //out.println("persisting new individual");
 	    }
 	    newIndividual = true;
@@ -1295,9 +1301,9 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	
     // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
     Organization org = getOrganization(row, myShepherd);
-    if (org!=null) mark.addName(individualID);
+    //if (org!=null) mark.addName(individualID);
     //else mark.addName(request, individualID);
-    else mark.addName(individualID);
+    //else mark.addName(individualID);
 
 	  if (mark==null) {
       out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
