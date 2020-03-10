@@ -83,17 +83,19 @@ public class Shepherd {
 
   private String action="undefined";
   private String shepherdID="";
+  private boolean readOnly = false;
 
 
   /**
    * Constructor to create a new shepherd thread object
    */
-  public Shepherd(String context) {
+  public Shepherd(String context, boolean ro) {
     if (pm == null || pm.isClosed()) {
       //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(context);
       localContext=context;
+      readOnly = ro;
       try {
-        pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
+        pm = getPMF(localContext).getPersistenceManager();
         this.shepherdID=Util.generateUUID();
 
         ShepherdPMF.setShepherdState(action+"_"+shepherdID, "new");
@@ -109,6 +111,14 @@ public class Shepherd {
   public Shepherd(HttpServletRequest req) {
     this(ServletUtilities.getContext(req));
   }
+
+    public Shepherd(String context) {
+        this(context, false);
+    }
+
+    public PersistenceManagerFactory getPMF(String context) {
+        return ShepherdPMF.getPMF(context, this.readOnly);
+    }
 
   // static method so the programmer knows this is an *active* Shepherd
   public static Shepherd newActiveShepherd(String context, String action) {
@@ -485,8 +495,8 @@ public class Shepherd {
     //throw away the task
     pm.deletePersistent(sTask);
     //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
-    ShepherdPMF.getPMF(localContext).getDataStoreCache().unpin(sTask);
-    ShepherdPMF.getPMF(localContext).getDataStoreCache().evict(sTask);
+    getPMF(localContext).getDataStoreCache().unpin(sTask);
+    getPMF(localContext).getDataStoreCache().evict(sTask);
     //pmf=null;
   }
 
@@ -3394,7 +3404,7 @@ public class Shepherd {
     //PersistenceManagerFactory pmf = ShepherdPMF.getPMF(localContext);
     try {
       if (pm == null || pm.isClosed()) {
-        pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
+        pm = getPMF(localContext).getPersistenceManager();
         pm.currentTransaction().begin();
       } else if (!pm.currentTransaction().isActive()) {
 

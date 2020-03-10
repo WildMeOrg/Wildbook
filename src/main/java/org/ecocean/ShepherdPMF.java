@@ -46,12 +46,13 @@ public class ShepherdPMF {
 
 
   public synchronized static PersistenceManagerFactory getPMF(String context) {
-    //public static PersistenceManagerFactory getPMF(String dbLocation) {
-    
+    return getPMF(context, false);
+  }
+  public synchronized static PersistenceManagerFactory getPMF(String context, boolean forceReadOnly) {
     if(pmfs==null){pmfs=new TreeMap<String,PersistenceManagerFactory>();}
-    
+    String key = context + ":" + Boolean.toString(forceReadOnly);
     try {
-      if ((!pmfs.containsKey(context))||(pmfs.get(context).isClosed())) {
+      if ((!pmfs.containsKey(key))||(pmfs.get(key).isClosed())) {
 
         Properties dnProperties = new Properties();
 
@@ -68,16 +69,25 @@ public class ShepherdPMF {
           
         }
         //System.out.println("ShepherdPMF: Data directory for context "+context+" is: "+shepherdDataDir);
-        Properties overrideProps=loadOverrideProps(shepherdDataDir);
+        Properties overrideProps=loadOverrideProps(shepherdDataDir, forceReadOnly);
         //System.out.println(overrideProps);
         
         if(overrideProps.size()>0){props=overrideProps;}
         else {
           //otherwise load the embedded commonConfig
           
+            if (forceReadOnly) {
+                try {
+                    props = ShepherdProperties.getProperties("jdoconfigReadOnly.properties", "");
+                    System.out.println("INFO: ShepherdPMF.getPMF() read-only usage found default jdoconfigReadOnly.properties");
+                } catch (Exception ex) {
+                    System.out.println("WARNING: ShepherdPMF.getPMF() wanted read-only but default jdoconfigReadOnly.properties does not exist; using jdoconfig.properties instead");
+                }
+            }
+
           try {
             //props.load(ShepherdPMF.class.getResourceAsStream("/bundles/jdoconfig.properties"));
-            props=ShepherdProperties.getProperties("jdoconfig.properties", "");
+            if (props.size() < 1) props=ShepherdProperties.getProperties("jdoconfig.properties", "");
           } 
           catch (Exception ioe) {
             ioe.printStackTrace();
@@ -92,6 +102,7 @@ public class ShepherdPMF {
               dnProperties.setProperty(name, props.getProperty(name).trim());
           }
         }
+        if (forceReadOnly) dnProperties.setProperty("javax.jdo.option.ReadOnly", "true");
 
         /*****************************************************************************************************************************************************/
         /* This code below allows you to define the Database Connection parameters (user, password, driver name and connection URL in environment variables  */
@@ -326,13 +337,13 @@ public class ShepherdPMF {
         //make sure to close an old PMF if switching
         //if(pmf!=null){pmf.close();}
 
-        pmfs.put(context, JDOHelper.getPersistenceManagerFactory(dnProperties));
-        return pmfs.get(context);
+        pmfs.put(key, JDOHelper.getPersistenceManagerFactory(dnProperties));
+        return pmfs.get(key);
 
       }
       else{
         
-        return pmfs.get(context);
+        return pmfs.get(key);
         
       }
       
@@ -343,7 +354,7 @@ public class ShepherdPMF {
     }
   }
   
-  public static Properties loadOverrideProps(String shepherdDataDir) {
+  public static Properties loadOverrideProps(String shepherdDataDir, boolean forceReadOnly) {
     //System.out.println("     Starting loadOverrideProps");
     Properties myProps=new Properties();
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
@@ -359,6 +370,16 @@ public class ShepherdPMF {
      //System.out.println("     Looking in: "+configDir.getAbsolutePath());
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, "jdoconfig.properties");
+    if (forceReadOnly) {
+        configFile = new File(configDir, "jdoconfigReadOnly.properties");
+        if (configFile.exists()) {
+            System.out.println("INFO: ShepherdPMF.loadOverrideProps() using override jdoconfigReadOnly.properties for read-only");
+        } else {
+            System.out.println("WARNING: ShepherdPMF.loadOverrideProps() wanted read-only, but jdoconfigReadOnly.properties was not in override dir; using jdoconfig.properties instead");
+            configFile = new File(configDir, "jdoconfig.properties");
+        }
+    }
+
     if (configFile.exists()) {
       //System.out.println("     Overriding default properties with " + configFile.getAbsolutePath());
       FileInputStream fileInputStream = null;
