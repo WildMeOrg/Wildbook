@@ -12,8 +12,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <datanucleus.version>4.2.0-release</datanucleus.version>
-
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
     <geotools.version>21.1</geotools.version>
@@ -296,49 +294,49 @@
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>javax.jdo</artifactId>
-	<version>3.2.0-m3</version>
+	<version>3.2.0-m13</version>
 </dependency>
 
 
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-core</artifactId>
-<version>4.1.7</version>
+<version>5.2.2</version>
 </dependency>
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-api-jdo</artifactId>
-<version>${datanucleus.version}</version>
+<version>5.2.2</version>
 </dependency>
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-jdo-query</artifactId>
-<version>4.2.1</version>
+<version>5.0.9</version>
 </dependency>
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-rdbms</artifactId>
-<version>4.1.11</version>
+<version>5.2.2</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-jodatime</artifactId>
-	<version>4.1.1</version>
+	<version>5.2.0-release</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-api-rest</artifactId>
-	<version>4.2.2</version>
+	<version>5.2.0-release</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-geospatial</artifactId>
-	<version>4.1.0-release</version>
+	<version>5.2.0-release</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-api-jpa</artifactId>
-	<version>4.1.7</version>
+	<version>5.2.1</version>
 </dependency>
 
 
@@ -820,6 +818,7 @@
 			<argument>target/classes/org/ecocean/cache/package.jdo</argument>
             <argument>target/classes/org/ecocean/tag/package.jdo</argument>
             <argument>target/classes/org/ecocean/media/package.jdo</argument>
+            <argument>target/classes/org/ecocean/api/package.jdo</argument>
             <argument>target/classes/org/ecocean/identity/package.jdo</argument>
             <argument>target/classes/org/ecocean/ia/package.jdo</argument>
             <argument>target/classes/org/ecocean/servlet/importer/package.jdo</argument>
