@@ -3,6 +3,7 @@ java.util.Iterator,
 org.ecocean.*,
 org.ecocean.media.MediaAsset,
 javax.jdo.Query,
+java.util.Arrays,
 java.util.Map, java.util.HashMap,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.servlet.export.ExportExcelFile,
@@ -58,8 +59,11 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
     Map<String,String[]> attrMap = new HashMap<String,String[]>();
     Map<String,String[]> dataMap = new HashMap<String,String[]>();
 
+    List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer");
+
     for (Decision dec : decs) {
         if ((dec.getUser() == null) || (dec.getEncounter() == null)) continue;
+        if (skipUsers.contains(dec.getUser().getUsername())) continue;
         String ekey = dec.getEncounter().getCatalogNumber() + "." + dec.getUser().getUUID();
         if ("match".equals(dec.getProperty())) {
             JSONObject d = dec.getValue();
