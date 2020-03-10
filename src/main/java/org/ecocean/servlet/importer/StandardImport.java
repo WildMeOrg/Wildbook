@@ -91,7 +91,7 @@ public class StandardImport extends HttpServlet {
 	// just for lazy loading a var used on each row
 	Integer numMediaAssets;
 
-  Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
+  //Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
   
   Map<String,String> individualCache = new HashMap<String,String>();
   
@@ -128,6 +128,8 @@ public class StandardImport extends HttpServlet {
     if (request.getCharacterEncoding() == null) {
       request.setCharacterEncoding("utf-8");
     }
+    
+    out = response.getWriter();
 
     response.setContentType("text/html; charset=UTF-8");
     this.getServletContext().getRequestDispatcher("/header.jsp").include(request, response);
@@ -135,32 +137,8 @@ public class StandardImport extends HttpServlet {
 
     context = ServletUtilities.getContext(request);
 
-    myAssets = new HashMap<String,MediaAsset>();  //zero this out from previous (e.g. uncommited)
-
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("StandardImport.java");
-    myShepherd.beginDBTransaction();
-
-    out = response.getWriter();
-    AssetStore astore = getAssetStore(myShepherd);
     
-    if(astore!=null){
-      System.out.println("astore is OK!");
-      System.out.println("Using AssetStore: "+astore.getId()+" of total "+myShepherd.getNumAssetStores());
-    } else {
-      System.out.println("astore is null...BOO!!");
-      out.println("<p>I could not find a default AssetStore. Import cannot continue.</p>");
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
-      return;
-    }
 
-    User creator = AccessControl.getUser(request, myShepherd);
-    ImportTask itask = new ImportTask(creator);
-    itask.setPassedParameters(request);
-    //this might better be set via a different configuration variable of its own
-    //String filename = Util.safePath(request.getParameter("filename"));
-    //if (filename == null) filename = "upload.xlsx";  //meh?
     
     //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
     String filename = request.getParameter("filename");
@@ -183,8 +161,7 @@ public class StandardImport extends HttpServlet {
     if(!dataFile.exists()){
       out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+". We found file = "+dataFile+"</p>");
       out.println("<p>File.getAbsoluteFile = "+dataFile.getAbsoluteFile()+"</p>");
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+
       return;
     }
     
@@ -205,7 +182,7 @@ public class StandardImport extends HttpServlet {
     committing = Util.requestParameterSet(request.getParameter("commit"));
 
     if (dataFound) {
-      doImport(filename, dataFile, request, response, myShepherd, itask);
+      doImport(filename, dataFile, request, response);
     } else {
       out.println("An error occurred and your data could not be read from the file system.");
       System.out.println("No datafile found, aborting.");
@@ -222,19 +199,18 @@ public class StandardImport extends HttpServlet {
       e.printStackTrace();
     } finally {
       System.out.println("Forwarding, I hope...");
-      myShepherd.commitDBTransaction();
-      myShepherd.closeDBTransaction();
+
     }
 
     System.out.println("Did redirect succeed???");
 
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
 
 
   }
 
-  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response, Shepherd myShepherd, ImportTask itask) {
+  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response) {
+    
+
     missingColumns = new HashSet<String>();
     numFolderRows = 0;
     boolean dataFound = (dataFile!=null && dataFile.exists());
@@ -251,7 +227,10 @@ public class StandardImport extends HttpServlet {
     } catch (java.io.IOException ioEx) {
       out.println("<err>ioException on input file "+filename+". Printing error to java server logs.");
       ioEx.printStackTrace();
+      return;
     }
+    
+
     sheet = wb.getSheetAt(0);
 
     if (committing) out.println("<h4><strong class=\"import-commiting\">Committing: </strong> When this page is finished loading, your import is complete and you can find your data.</h4>");
@@ -265,11 +244,28 @@ public class StandardImport extends HttpServlet {
 
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     //int lastColNum = firstRow.getLastCellNum();
+    
 
+    if(committing) {
+      Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("StandardImport.java_checkAssetStore");
+      AssetStore astore = getAssetStore(myShepherd);
+      if(astore!=null){
+        System.out.println("astore is OK!");
+        System.out.println("Using AssetStore: "+astore.getId()+" of total "+myShepherd.getNumAssetStores());
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+      } else {
+        System.out.println("astore is null...BOO!!");
+        out.println("<p>I could not find a default AssetStore. Import cannot continue.</p>");
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        return;
+      }
+    }
 
-    System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
     int printPeriod = 1;
-    if (committing) myShepherd.beginDBTransaction();
+    //if (committing) myShepherd.beginDBTransaction();
     outPrnt("<h2>Parsed Import Table</h2>"); 
     //System.out.println("debug0");
     System.out.println("feedback headers = "+feedback.getColNames());
@@ -277,22 +273,27 @@ public class StandardImport extends HttpServlet {
     //System.out.println("debug1");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
-    List<Encounter> encsCreated = new ArrayList<Encounter>();
+    List<String> encsCreated = new ArrayList<String>();
     int maxRows = 50000;
     int offset = 0;
     for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
 
       MarkedIndividual mark = null;
       verbose = ((i%printPeriod)==0);
+      
+      Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("StandardImport.java_rowLoopNum_"+i);
+      myShepherd.beginDBTransaction();
+      
       try {
 
-        if (committing) myShepherd.beginDBTransaction();
+        //if (committing) myShepherd.beginDBTransaction();
         Row row = sheet.getRow(i);
         if (isRowEmpty(row)) continue;
 
         if (!committing) feedback.startRow(row, i);
-
-        ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd);
+        Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
+        ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd, myAssets);
         Encounter enc = loadEncounter(row, annotations, context, myShepherd);
         occ = loadOccurrence(row, occ, enc, myShepherd);
         mark = loadIndividual(row, enc, myShepherd, committing, individualCache);
@@ -315,37 +316,75 @@ public class StandardImport extends HttpServlet {
           }
 
           myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
-          encsCreated.add(enc);
+          encsCreated.add(enc.getCatalogNumber());
           if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
           if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
           myShepherd.commitDBTransaction();
+
+        }
+        else {
+          myShepherd.rollbackDBTransaction();
+          
+          if (verbose) {
+            feedback.printRow();
+            //   out.println("<td> Enc "+getEncounterDisplayString(enc)+"</td>"
+            //   +"<td> individual "+mark+"</td>"
+            //   +"<td> occurrence "+occ+"</td>"
+            //   +"<td> dateInMillis "+enc.getDateInMilliseconds()+"</td>"
+            //   +"<td> sex "+enc.getSex()+"</td>"
+            //   +"<td> lifeStage "+enc.getLifeStage()+"</td>"
+            //  out.println("</tr>");
+          }
+          
         }
 
-        if (verbose&&!committing) {
-          feedback.printRow();
-          //   out.println("<td> Enc "+getEncounterDisplayString(enc)+"</td>"
-          //   +"<td> individual "+mark+"</td>"
-          //   +"<td> occurrence "+occ+"</td>"
-          //   +"<td> dateInMillis "+enc.getDateInMilliseconds()+"</td>"
-          //   +"<td> sex "+enc.getSex()+"</td>"
-          //   +"<td> lifeStage "+enc.getLifeStage()+"</td>"
-          //  out.println("</tr>");
-        }
+
         
       } catch (Exception e) {
         out.println("Encountered an error while importing the file.");
         e.printStackTrace(out);
         myShepherd.rollbackDBTransaction();
       }
+      finally {
+        myShepherd.closeDBTransaction();
+      }
+      
     }
-    if (!committing) feedback.printEndTable();
+    
 
     if (committing) {
-        itask.setEncounters(encsCreated);
-        myShepherd.getPM().makePersistent(itask);
-        myShepherd.commitDBTransaction();
-        myShepherd.beginDBTransaction();
+      
+      Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("StandardImport.java_iTaskCommit");
+      myShepherd.beginDBTransaction();
+      
+      User creator = AccessControl.getUser(request, myShepherd);
+      ImportTask itask = new ImportTask(creator);
+      itask.setPassedParameters(request);
+      
+      myShepherd.getPM().makePersistent(itask);
+      myShepherd.updateDBTransaction();
+      
+      System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
+      
+      
+      List<Encounter> actualEncsCreated = new ArrayList<Encounter>();
+      for(String encid:encsCreated) {
+        if(myShepherd.getEncounter(encid)!=null) {
+          itask.addEncounter(myShepherd.getEncounter(encid));
+          myShepherd.updateDBTransaction();
+        }
+      }
+
+      myShepherd.commitDBTransaction();
+      myShepherd.closeDBTransaction();
+        
+
+      out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+
+
     }
+    else{feedback.printEndTable();}
 
     out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
     out.println("<h2>Import Overview: </h2>");
@@ -357,11 +396,7 @@ public class StandardImport extends HttpServlet {
     out.println("<li>Excel Columns = "+cols+"</li>");
     //out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>Trial Run: "+!committing+"</em></li>");
-    if (committing) {
-        out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
-    } else {
-        out.println("<li>ImportTask id = <b>" + itask.getId() + "</b></li>");
-    }
+
     out.println("</ul>");
 
     String uName = request.getUserPrincipal().getName();
@@ -400,9 +435,9 @@ public class StandardImport extends HttpServlet {
         feedback.printFoundPhotos();
       }
       out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
-      //out.println("<h2>Import completed successfully</h2>");    
+      //out.println("<h2>Import completed successfully</h2>");  
+      
     }
-
 
 
 
@@ -882,14 +917,14 @@ public class StandardImport extends HttpServlet {
   	return fieldNames;
   }
 
-  public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd) {
+  public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
 
     AssetStore astore = getAssetStore(myShepherd);
 
   	//if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
     ArrayList<Annotation> annots = new ArrayList<Annotation>();
   	for (int i=0; i<getNumMediaAssets(); i++) {
-  		MediaAsset ma = getMediaAsset(row, i, astore, myShepherd);
+  		MediaAsset ma = getMediaAsset(row, i, astore, myShepherd, myAssets);
   		if (ma==null) continue;
 
   		String species = getSpeciesString(row);
@@ -1020,7 +1055,7 @@ public class StandardImport extends HttpServlet {
     return individualPrefix+indID;
   }
 
-  public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd) {
+  public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
     
     String localPath = getString(row, "Encounter.mediaAsset"+i);
 
@@ -1053,7 +1088,7 @@ public class StandardImport extends HttpServlet {
 
     File f = new File(resolvedPath);
 
-    MediaAsset existMA = checkExistingMediaAsset(f);
+    MediaAsset existMA = checkExistingMediaAsset(f, myAssets);
     if (existMA != null) {
       System.out.println("Found this file on disk!!");
         if (!f.getName().equals(existMA.getFilename())) {
@@ -1104,7 +1139,7 @@ public class StandardImport extends HttpServlet {
 
 
     //TODO in a perfect world, we would also check db for assets with same hash!!  but then we need a shepherd.  SIGH
-    private MediaAsset checkExistingMediaAsset(File f) {
+    private MediaAsset checkExistingMediaAsset(File f, Map<String,MediaAsset> myAssets) {
         String fhash = fileHash(f);
         if (fhash == null) return null;
 System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
@@ -1281,9 +1316,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     // no
     individualID = individualID.trim();
 
+    MarkedIndividual mark = null;
   	String uuid=individualCache.get(individualID);
-    MarkedIndividual mark = myShepherd.getMarkedIndividual(uuid);
-    if (mark==null) mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
+  	if(myShepherd.isMarkedIndividual(uuid)) {
+  	  mark = myShepherd.getMarkedIndividual(uuid);
+  	}
+  	else mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
   	if (mark==null) { // new individual
 	    mark = new MarkedIndividual(enc);
       if (!mark.hasName(individualID))mark.addName(individualID);
