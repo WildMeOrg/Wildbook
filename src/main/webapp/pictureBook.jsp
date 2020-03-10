@@ -16,7 +16,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
   String context="context0";
   context=ServletUtilities.getContext(request);
-  
+
   Properties props = new Properties();
   String langCode=ServletUtilities.getLanguageCode(request);
   props = ShepherdProperties.getProperties("pictureBook.properties", langCode,context);
@@ -34,9 +34,9 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
   Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
   myShepherd.beginDBTransaction();
-  
+
   try {
-  
+
   String order ="";
   MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
   rIndividuals = result.getResult();
@@ -47,7 +47,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 
   if (numResults < maxPages) maxPages = numResults;
   %>
-	
+
 	<jsp:include page="header.jsp" flush="true"/>
 
 	<!-- not sure why we need backbone or underscore but we get errors without 'em -->
@@ -64,7 +64,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	</ul></em></p>
 
 	<p class="instructions"> Your Flukebook search results have been collated into a printable format. Use your browser's print function to convert this page into a pdf: modern browsers have a "print to pdf" function that will download the page without a physical printer. Page breaks and formatting will appear, allowing you to print this report and take it into the field.</p>
-	
+
 	<p class="resultSummary">
 	<table width="810" border="0" cellspacing="0" cellpadding="0">
 	  <tr>
@@ -156,6 +156,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		height: 100vh;
 	}
 	div.pictureBook-images {
+		width: 100%;
 		max-height: 50%;
 		position: relative;
 		display: inline-block;
@@ -168,6 +169,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		position: relative;
 	}
 	div.pictureBook-headerImage img{
+		object-fit: contain;
 		max-height: 25vh;
     display: block;
     margin-left: auto;
@@ -175,10 +177,10 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
     	width: 100%;
 	}
 	div.pictureBook-subImage img {
+		object-fit: contain;
 		max-height: 25vh;
 	}
 	div.pictureBook-images table {
-		width: 50%;
 		margin: 0 auto;
 	}
 
@@ -208,7 +210,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	for (MarkedIndividual mark: rIndividuals) {
 
 		ArrayList<JSONObject> exemplarImages = mark.getBestKeywordPhotos(request, desiredKeywords, true, myShepherd);
-		
+
 		boolean hasHeader = exemplarImages.size()>0;
 		boolean haspic2 = exemplarImages.size()>1;
 		boolean haspic3 = exemplarImages.size()>2;
@@ -332,11 +334,11 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
     	System.out.println("Exception on pictureBook.jsp!");
     	e.printStackTrace();
     %>
-    
+
     <p>Exception on page!</p>
     <p><%=e.getMessage() %></p>
-    
-    <%	
+
+    <%
     }
     finally{
       myShepherd.rollbackDBTransaction();
@@ -355,6 +357,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 			var jsonString = $(this).text();
 			var maJson = JSON.parse(jsonString);
 			console.log("pictureBook is displaying images for ma"+maJson.id);
+			console.log("and majson = "+JSON.stringify(maJson));
 			var imgDisplay = maLib.mkImg(maJson);
 			$(this).parent().append(imgDisplay);
 		});
@@ -371,4 +374,4 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	});
 </script>
 
-<jsp:include page="footer.jsp" flush="true"/> 
+<jsp:include page="footer.jsp" flush="true"/>
