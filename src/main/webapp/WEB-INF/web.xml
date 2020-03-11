@@ -1200,17 +1200,6 @@
   </servlet>
 -->
 
-  <servlet>
-    <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
-    <servlet-class>org.ecocean.servlet.TissueSampleSetMicrosatelliteMarkers</servlet-class>
-  </servlet>
-
-    <servlet>
-      <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
-      <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
-  </servlet>
-
-
       <servlet>
         <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
         <servlet-class>org.ecocean.servlet.export.GenalexExportCodominantMSDataBySize</servlet-class>
@@ -1900,10 +1889,17 @@
       <servlet-name>ImportAccess</servlet-name>
       <url-pattern>/ImportAccess</url-pattern>
   </servlet-mapping>
+
   <servlet-mapping>
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>StandardImport</servlet-name>
+    <url-pattern>/import/standard-upload</url-pattern>
+  </servlet-mapping>
+
   <servlet-mapping>
       <servlet-name>UpdateStandard</servlet-name>
       <url-pattern>/UpdateStandard</url-pattern>
