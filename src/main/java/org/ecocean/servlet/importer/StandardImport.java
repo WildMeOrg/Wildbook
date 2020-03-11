@@ -28,6 +28,7 @@ import java.lang.NumberFormatException;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
+import org.ecocean.importutils.*;
 import org.ecocean.media.*;
 import org.ecocean.genetics.*;
 import org.ecocean.tag.SatelliteTag;
@@ -90,9 +91,9 @@ public class StandardImport extends HttpServlet {
 	// just for lazy loading a var used on each row
 	Integer numMediaAssets;
 
-  Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
+  //Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
   
-  Map<String,MarkedIndividual> individualCache = new HashMap<String,MarkedIndividual>();
+  Map<String,String> individualCache = new HashMap<String,String>();
   
   TabularFeedback feedback;
 
@@ -127,6 +128,8 @@ public class StandardImport extends HttpServlet {
     if (request.getCharacterEncoding() == null) {
       request.setCharacterEncoding("utf-8");
     }
+    
+    out = response.getWriter();
 
     response.setContentType("text/html; charset=UTF-8");
     this.getServletContext().getRequestDispatcher("/header.jsp").include(request, response);
@@ -134,32 +137,8 @@ public class StandardImport extends HttpServlet {
 
     context = ServletUtilities.getContext(request);
 
-    myAssets = new HashMap<String,MediaAsset>();  //zero this out from previous (e.g. uncommited)
-
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("StandardImport.java");
-    myShepherd.beginDBTransaction();
-
-    out = response.getWriter();
-    AssetStore astore = getAssetStore(myShepherd);
     
-    if(astore!=null){
-      System.out.println("astore is OK!");
-      System.out.println("Using AssetStore: "+astore.getId()+" of total "+myShepherd.getNumAssetStores());
-    } else {
-      System.out.println("astore is null...BOO!!");
-      out.println("<p>I could not find a default AssetStore. Import cannot continue.</p>");
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
-      return;
-    }
 
-    User creator = AccessControl.getUser(request, myShepherd);
-    ImportTask itask = new ImportTask(creator);
-    itask.setPassedParameters(request);
-    //this might better be set via a different configuration variable of its own
-    //String filename = Util.safePath(request.getParameter("filename"));
-    //if (filename == null) filename = "upload.xlsx";  //meh?
     
     //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
     String filename = request.getParameter("filename");
@@ -182,8 +161,7 @@ public class StandardImport extends HttpServlet {
     if(!dataFile.exists()){
       out.println("<p>I found a filename parameter in the URL, but I couldn't find the file itself at the path your specified: "+filename+". We found file = "+dataFile+"</p>");
       out.println("<p>File.getAbsoluteFile = "+dataFile.getAbsoluteFile()+"</p>");
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+
       return;
     }
     
@@ -204,7 +182,7 @@ public class StandardImport extends HttpServlet {
     committing = Util.requestParameterSet(request.getParameter("commit"));
 
     if (dataFound) {
-      doImport(filename, dataFile, request, response, myShepherd);
+      doImport(filename, dataFile, request, response);
     } else {
       out.println("An error occurred and your data could not be read from the file system.");
       System.out.println("No datafile found, aborting.");
@@ -221,17 +199,18 @@ public class StandardImport extends HttpServlet {
       e.printStackTrace();
     } finally {
       System.out.println("Forwarding, I hope...");
-      myShepherd.closeDBTransaction();
+
     }
 
     System.out.println("Did redirect succeed???");
 
-    //myShepherd.rollbackDBTransaction();
 
 
   }
 
-  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response, Shepherd myShepherd) {
+  public void doImport(String filename, File dataFile, HttpServletRequest request, HttpServletResponse response) {
+    
+
     missingColumns = new HashSet<String>();
     numFolderRows = 0;
     boolean dataFound = (dataFile!=null && dataFile.exists());
@@ -248,10 +227,13 @@ public class StandardImport extends HttpServlet {
     } catch (java.io.IOException ioEx) {
       out.println("<err>ioException on input file "+filename+". Printing error to java server logs.");
       ioEx.printStackTrace();
+      return;
     }
+    
+
     sheet = wb.getSheetAt(0);
 
-    if (committing) out.println("<h4><strong class=\"import-commiting\">Committing: </strong> When this page is finished loading, your import is complete and you can find your data on Flukebook.</h4>");
+    if (committing) out.println("<h4><strong class=\"import-commiting\">Committing: </strong> When this page is finished loading, your import is complete and you can find your data.</h4>");
 
     int numSheets = wb.getNumberOfSheets();
     int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
@@ -262,32 +244,56 @@ public class StandardImport extends HttpServlet {
 
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     //int lastColNum = firstRow.getLastCellNum();
+    
 
+    if(committing) {
+      Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("StandardImport.java_checkAssetStore");
+      AssetStore astore = getAssetStore(myShepherd);
+      if(astore!=null){
+        System.out.println("astore is OK!");
+        System.out.println("Using AssetStore: "+astore.getId()+" of total "+myShepherd.getNumAssetStores());
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+      } else {
+        System.out.println("astore is null...BOO!!");
+        out.println("<p>I could not find a default AssetStore. Import cannot continue.</p>");
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        return;
+      }
+    }
 
     int printPeriod = 1;
-    if (committing) myShepherd.beginDBTransaction();
+    //if (committing) myShepherd.beginDBTransaction();
     outPrnt("<h2>Parsed Import Table</h2>"); 
     //System.out.println("debug0");
-    System.out.println("feedback headers = "+feedback.colNames);
+    System.out.println("feedback headers = "+feedback.getColNames());
     if (!committing) feedback.printStartTable();
     //System.out.println("debug1");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
+    List<String> encsCreated = new ArrayList<String>();
     int maxRows = 50000;
     int offset = 0;
     for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
 
       MarkedIndividual mark = null;
       verbose = ((i%printPeriod)==0);
+      
+      Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("StandardImport.java_rowLoopNum_"+i);
+      myShepherd.beginDBTransaction();
+      
       try {
 
-        if (committing) myShepherd.beginDBTransaction();
+        //if (committing) myShepherd.beginDBTransaction();
         Row row = sheet.getRow(i);
         if (isRowEmpty(row)) continue;
 
         if (!committing) feedback.startRow(row, i);
-
-        ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd);
+        Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
+        ArrayList<Annotation> annotations = loadAnnotations(row, myShepherd, myAssets);
         Encounter enc = loadEncounter(row, annotations, context, myShepherd);
         occ = loadOccurrence(row, occ, enc, myShepherd);
         mark = loadIndividual(row, enc, myShepherd, committing, individualCache);
@@ -310,29 +316,75 @@ public class StandardImport extends HttpServlet {
           }
 
           myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+          encsCreated.add(enc.getCatalogNumber());
           if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
           if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
           myShepherd.commitDBTransaction();
+
+        }
+        else {
+          myShepherd.rollbackDBTransaction();
+          
+          if (verbose) {
+            feedback.printRow();
+            //   out.println("<td> Enc "+getEncounterDisplayString(enc)+"</td>"
+            //   +"<td> individual "+mark+"</td>"
+            //   +"<td> occurrence "+occ+"</td>"
+            //   +"<td> dateInMillis "+enc.getDateInMilliseconds()+"</td>"
+            //   +"<td> sex "+enc.getSex()+"</td>"
+            //   +"<td> lifeStage "+enc.getLifeStage()+"</td>"
+            //  out.println("</tr>");
+          }
+          
         }
 
-        if (verbose&&!committing) {
-          feedback.printRow();
-          //   out.println("<td> Enc "+getEncounterDisplayString(enc)+"</td>"
-          //   +"<td> individual "+mark+"</td>"
-          //   +"<td> occurrence "+occ+"</td>"
-          //   +"<td> dateInMillis "+enc.getDateInMilliseconds()+"</td>"
-          //   +"<td> sex "+enc.getSex()+"</td>"
-          //   +"<td> lifeStage "+enc.getLifeStage()+"</td>"
-          //  out.println("</tr>");
-        }
+
         
       } catch (Exception e) {
         out.println("Encountered an error while importing the file.");
         e.printStackTrace(out);
         myShepherd.rollbackDBTransaction();
       }
+      finally {
+        myShepherd.closeDBTransaction();
+      }
+      
     }
-    if (!committing) feedback.printEndTable();
+    
+
+    if (committing) {
+      
+      Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("StandardImport.java_iTaskCommit");
+      myShepherd.beginDBTransaction();
+      
+      User creator = AccessControl.getUser(request, myShepherd);
+      ImportTask itask = new ImportTask(creator);
+      itask.setPassedParameters(request);
+      
+      myShepherd.getPM().makePersistent(itask);
+      myShepherd.updateDBTransaction();
+      
+      System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
+      
+      
+      List<Encounter> actualEncsCreated = new ArrayList<Encounter>();
+      for(String encid:encsCreated) {
+        if(myShepherd.getEncounter(encid)!=null) {
+          itask.addEncounter(myShepherd.getEncounter(encid));
+          myShepherd.updateDBTransaction();
+        }
+      }
+
+      myShepherd.commitDBTransaction();
+      myShepherd.closeDBTransaction();
+        
+
+      out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+
+
+    }
+    else{feedback.printEndTable();}
 
     out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
     out.println("<h2>Import Overview: </h2>");
@@ -344,6 +396,7 @@ public class StandardImport extends HttpServlet {
     out.println("<li>Excel Columns = "+cols+"</li>");
     //out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>Trial Run: "+!committing+"</em></li>");
+
     out.println("</ul>");
 
     String uName = request.getUserPrincipal().getName();
@@ -378,11 +431,13 @@ public class StandardImport extends HttpServlet {
 
     if (!committing) {
       feedback.printMissingPhotos();
-      feedback.printFoundPhotos();
+      if (!isUserUpload) {
+        feedback.printFoundPhotos();
+      }
       out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
-      //out.println("<h2>Import completed successfully</h2>");    
+      //out.println("<h2>Import completed successfully</h2>");  
+      
     }
-
 
 
 
@@ -862,14 +917,14 @@ public class StandardImport extends HttpServlet {
   	return fieldNames;
   }
 
-  public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd) {
+  public ArrayList<Annotation> loadAnnotations(Row row, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
 
     AssetStore astore = getAssetStore(myShepherd);
 
   	//if (isFolderRow(row)) return loadAnnotationsFolderRow(row);
     ArrayList<Annotation> annots = new ArrayList<Annotation>();
   	for (int i=0; i<getNumMediaAssets(); i++) {
-  		MediaAsset ma = getMediaAsset(row, i, astore, myShepherd);
+  		MediaAsset ma = getMediaAsset(row, i, astore, myShepherd, myAssets);
   		if (ma==null) continue;
 
   		String species = getSpeciesString(row);
@@ -1000,57 +1055,77 @@ public class StandardImport extends HttpServlet {
     return individualPrefix+indID;
   }
 
-  public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd) {
+  public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
+    
     String localPath = getString(row, "Encounter.mediaAsset"+i);
-  	if (localPath==null) return null;
-  	localPath = Util.windowsFileStringToLinux(localPath).trim();
-  	//System.out.println("...localPath is: "+localPath);
-  	String fullPath = photoDirectory+"/"+localPath;
-  	fullPath = fullPath.replaceAll("//","/"); 
-  	//System.out.println("...fullPath is: "+fullPath);
-    String resolvedPath = resolveHumanEnteredFilename(fullPath);
-    //System.out.println("getMediaAsset resolvedPath is: "+resolvedPath);
-    if (resolvedPath==null) {
-      missingPhotos.add(fullPath);
-      foundPhotos.remove(fullPath);
-      return null;
+
+    String resolvedPath = null;
+    String fullPath = null;
+    try {
+      if (localPath==null) {
+        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
+        return null;
+      } 
+      localPath = Util.windowsFileStringToLinux(localPath).trim();
+      fullPath = photoDirectory+"/"+localPath;
+      fullPath = fullPath.replaceAll("//","/"); 
+      resolvedPath = resolveHumanEnteredFilename(fullPath);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-	  File f = new File(resolvedPath);
-            MediaAsset existMA = checkExistingMediaAsset(f);
-            if (existMA != null) {
-                if (!f.getName().equals(existMA.getFilename())) {
-                    System.out.println("WARNING: got hash match, but DIFFERENT FILENAME for " + f + " with " + existMA + "; allowing new MediaAsset to be created");
-                } else {
-                    System.out.println("INFO: " + f + " got hash and filename match on " + existMA);
-                    return existMA;
-                }
-            }
+
+    //System.out.println("getMediaAsset resolvedPath is: "+resolvedPath);
+    try {
+      if (resolvedPath==null) {
+        missingPhotos.add(fullPath);
+        foundPhotos.remove(fullPath);
+        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
+        return null;
+      }
+    } catch (NullPointerException npe) {
+      npe.printStackTrace();
+    }
+
+    File f = new File(resolvedPath);
+
+    MediaAsset existMA = checkExistingMediaAsset(f, myAssets);
+    if (existMA != null) {
+      System.out.println("Found this file on disk!!");
+        if (!f.getName().equals(existMA.getFilename())) {
+            System.out.println("WARNING: got hash match, but DIFFERENT FILENAME for " + f + " with " + existMA + "; allowing new MediaAsset to be created");
+        } else {
+            System.out.println("INFO: " + f + " got hash and filename match on " + existMA);
+            return existMA;
+        }
+    }
 
 	  // create MediaAsset and return it
 	  JSONObject assetParams = astore.createParameters(f);
-	  assetParams.put("_localDirect", f.toString());
+    assetParams.put("_localDirect", f.toString());
+    
 	  MediaAsset ma = null;
 	  try {
 
-	  	ma = astore.copyIn(f, assetParams);
+      System.out.println("Trying to create NEW asset!");
+
+      ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
+      if (committing) {
+        ma = astore.copyIn(f, assetParams);
+        if(kws!=null)ma.setKeywords(kws);
+      }
 	    // keywording
 
-	    ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
-	    if(kws!=null)ma.setKeywords(kws);
 	  } catch (java.io.IOException ioEx) {
 
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
       ioEx.printStackTrace();
       
       feedback.addMissingPhoto(localPath);
-      feedback.logParseError(i, localPath, row);
-
+      feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
 	  	foundPhotos.remove(fullPath);
-                return null;
+      return null;
 	  }
-          myAssets.put(fileHash(f), ma);
-
-
+    myAssets.put(fileHash(f), ma);
 
 	  // Keyword keyword = null;
 	  // String keywordI = getString(row, "Encounter.keyword"+i);
@@ -1064,7 +1139,7 @@ public class StandardImport extends HttpServlet {
 
 
     //TODO in a perfect world, we would also check db for assets with same hash!!  but then we need a shepherd.  SIGH
-    private MediaAsset checkExistingMediaAsset(File f) {
+    private MediaAsset checkExistingMediaAsset(File f, Map<String,MediaAsset> myAssets) {
         String fhash = fileHash(f);
         if (fhash == null) return null;
 System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
@@ -1170,7 +1245,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
     //not sure how cool this is.  but probably same can be said about all this!
     private String noExtension(String filename) {
-        if (filename.matches(".*\\.[^\\./]+$")) return filename;
+        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;
         return filename + ".jpg";  // :(
     }
 
@@ -1230,7 +1305,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
 
 
-  public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing, Map<String,MarkedIndividual> individualCache) {
+  public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing, Map<String,String> individualCache) {
 
   	boolean newIndividual = false;
   	String individualID = getIndividualID(row);
@@ -1241,15 +1316,22 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     // no
     individualID = individualID.trim();
 
-  	MarkedIndividual mark = individualCache.get(individualID);
-    if (mark==null) mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
+    MarkedIndividual mark = null;
+  	String uuid=individualCache.get(individualID);
+  	if(myShepherd.isMarkedIndividual(uuid)) {
+  	  mark = myShepherd.getMarkedIndividual(uuid);
+  	}
+  	else mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
   	if (mark==null) { // new individual
 	    mark = new MarkedIndividual(enc);
+      if (!mark.hasName(individualID))mark.addName(individualID);
+      
 	    if(committing) {
 	      myShepherd.getPM().makePersistent(mark);
 	      myShepherd.commitDBTransaction();
 	      myShepherd.beginDBTransaction();
         mark.refreshNamesCache();
+        individualCache.put(individualID, mark.getIndividualID());
 	      //out.println("persisting new individual");
 	    }
 	    newIndividual = true;
@@ -1257,9 +1339,9 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	
     // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
     Organization org = getOrganization(row, myShepherd);
-    if (org!=null) mark.addName(individualID);
+    //if (org!=null) mark.addName(individualID);
     //else mark.addName(request, individualID);
-    else mark.addName(individualID);
+    //else mark.addName(individualID);
 
 	  if (mark==null) {
       out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
@@ -1341,9 +1423,9 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   		colMap.put(colName, i);
     }
 
-    feedback = new TabularFeedback(headers);
+    feedback = new TabularFeedback(headers, committing, out, skipCols);
     System.out.println("headers = "+headers);
-    System.out.println("feedback headers = "+feedback.colNames);
+    System.out.println("feedback headers = "+feedback.getColNames());
   	return colMap;
   }
 
@@ -1405,6 +1487,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   // following 'get' functions swallow errors
   public Integer getInteger(Row row, int i) {
+    if ((row != null) && (row.getCell(i) != null) && (row.getCell(i).getCellType() == Cell.CELL_TYPE_BLANK)) return null;
     try {
       int val = (int) row.getCell(i).getNumericCellValue();
       System.out.println("extracted int for line "+i);
@@ -1497,11 +1580,16 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         feedback.logParseError(i, originalString, row);
         return null;
       }
-    }
+    } 
   }
 
+
+  //TODO getString logging good string values... should check against 
+  // 1. allowed values for strings
+  // 2. image file presence for filenames
+
   public String getString(final Row row, final int i) {
-    System.out.println("Calling getString on row "+i+" with cell "+String.valueOf(row.getCell(i)));
+    System.out.println("Calling getString on row "+row.getRowNum()+" with cell "+i+" value "+String.valueOf(row.getCell(i)));
     final Cell cell = row.getCell(i);
     String str = null;
     try {
@@ -1522,7 +1610,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       feedback.logParseNoValue(i);
       return null;
     }
-    feedback.logParseValue(i, str, row); //todo: figure out why this line breaks the import
+    feedback.logParseValue(i, str, row);
     return str;
   }
 
@@ -1788,182 +1876,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         System.out.println("WARNING: importXlsFile() could not find 'WildbookStandardFormat*.xlsx' in " + dir);
         return null;
     }
-
-
-
-    // FEEDBACK CLASSES - May break out -- 
-
-
-    private class TabularFeedback {
-
-      //Set<String> unusedColumns;
-      //Set<String> missingColumns; // columns we look for but don't find
-      List<String> missingPhotos = new ArrayList<String>();
-      List<String> foundPhotos = new ArrayList<String>();
   
-      String[] colNames;
-  
-      RowFeedback currentRow;
-  
-      public TabularFeedback(String[] colNames) {
-        this.colNames = colNames;
-        missingPhotos = new ArrayList<String>();
-        foundPhotos = new ArrayList<String>();
-        currentRow=null; // must be manually initialized during row loop with startRow
-      }
-  
-      public void startRow(Row row, int i) {
-        if (!committing) {
-          currentRow = new RowFeedback(row, i);
-          System.out.println("StartRow called for i="+i);
-        }
-      }
-  
-      public void addMissingPhoto(String localPath) {
-        missingPhotos.add(localPath);
-      }
-
-      public void addFoundPhoto(String localPath) {
-        foundPhotos.add(localPath);
-      }
-  
-      public void printMissingPhotos() {
-        //if (!isUserUpload) {
-          out.println("<h2><em>Missing photos</em>("+missingPhotos.size()+"):</h2><ul>");
-          for (String photo: missingPhotos) {
-            out.println("<li>"+photo+"</li>");
-          }
-          out.println("</ul>");
-        //} 
-      }
-  
-      public void printRow() {
-        System.out.println("Starting to printRow");
-        if (!committing) out.println(currentRow);
-        //System.out.println(currentRow);
-        System.out.println("Done with printRow");
-      }
-    
-      public void printFoundPhotos() {
-        if (!isUserUpload) {
-          out.println("<h2><em>Found photos</em>("+foundPhotos.size()+"):</h2><ul>");
-          for (String photo: foundPhotos) {
-            out.println("<li>"+photo+"</li>");
-          }
-          out.println("</ul>");
-        }
-      }
-  
-      public void printStartTable() {
-        out.println("<div class=\"tableFeedbackWrapper\"><table class=\"tableFeedback\">");
-        out.println("<tr class=\"headerRow\"><th class=\"rotate\"><div><span><span></div></th>"); // empty header cell for row # column
-        System.out.println("HEY YOU! You damn well better see a line below this");
-        boolean isNull = (colNames==null);
-        System.out.println("colNames isNull "+isNull);
-        System.out.println("starting to print table. num colNames="+colNames.length+" and the array itself = "+colNames);
-        for (int i=0;i<colNames.length;i++) {
-          if (skipCols.contains(i)) continue; 
-          out.println("<th class=\"rotate\"><div><span class=\"tableFeedbackColumnHeader\">"+colNames[i]+"</span></div></th>");
-        }
-        System.out.println("done printing start table");
-        out.println("</tr>");
-      }
-      public void printEndTable() {
-        out.println("</table></div>");
-      }
-  
-      public void logParseValue(int colNum, Object value, Row row) {
-        if (!committing) {
-          System.out.println("TabularFeedback.logParseValue called on object: "+value+" and colNum "+colNum);
-          if (value==null||String.valueOf(value)=="") {
-            this.currentRow.logParseNoValue(colNum);
-          }
-          this.currentRow.logParseValue(colNum, value, row);
-        }
-      }
-
-      public void logParseError(int colNum, Object value, Row row) {
-        if (!committing) {
-          this.currentRow.logParseError(colNum, value, row);
-        }
-      }
-
-      public void logParseNoValue(int colNum) {
-        if (!committing) {
-          this.currentRow.logParseNoValue(colNum);
-        }
-      }
-  
-      public String toString() {
-        if (!committing) {
-          return "Tabular feedback with "+colNames.length+" columns, on row "+currentRow.num;
-        }
-        return "";
-      }
-  
-    }
-  
-    private class RowFeedback {
-      CellFeedback[] cells;
-      public int num;
-  
-      //String checkingInheritance = uploadDirectory;
-  
-      public RowFeedback(Row row, int num) {
-        this.num=num;
-        this.cells = new CellFeedback[numCols];
-      }
-  
-      public String toString() {
-        StringBuffer str = new StringBuffer();
-        str.append("<tr>");
-        str.append("<td>"+num+"</td>");
-
-        for (int i=0;i<cells.length; i++) {
-          if (skipCols.contains(i)) {
-            System.out.println("skipping this col for feedback, index "+i+" was present in skipCols");
-            continue; 
-          }
-          CellFeedback cell = cells[i];
-          if (cell==null) str.append(nullCellHtml());
-          else str.append(cell.html());
-        }
-        str.append("</tr>"); 
-        return str.toString();
-      }
-  
-      public void logParseValue(int colNum, Object value, Row row) {
-        if (!committing) {
-          System.out.println("RowFeedback.logParseValue on an object: "+value+" with colNum "+colNum);
-          if (value==null) { // a tad experimental here. this means we don't have to check the parseSuccess in each getWhatever method
-            System.out.println("RowFeedback.logParseValue on a NULL OBJECT: trying to recover a value, or log empty");
-            String valueString = getCellValueAsString(row, colNum);
-            if (valueString==null||"".equals(valueString.trim())) {
-              logParseNoValue(colNum);
-              return;
-            } 
-            logParseError(colNum, valueString, row);
-            return;
-          }
-          this.cells[colNum] = new CellFeedback(value, true, false);
-        }
-      }
-
-
-      public void logParseError(int colNum, Object value, Row row) {
-        if (!committing) {
-          this.cells[colNum] = new CellFeedback(value, false, false);
-        }
-      }
-
-      public void logParseNoValue(int colNum) {
-        if (!committing) {
-          this.cells[colNum] = new CellFeedback(null, true, true);
-        }
-      }
-
-    }
-
     public String getStringNoLog(Row row, int i) {
       String str = null;
       try {
@@ -1976,55 +1889,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   
   
     // cannot put this inside CellFeedback bc java inner classes are not allowed static methods or vars (this is stupid).
-    static String nullCellHtml() {
+    public static String nullCellHtml() {
       return "<td class=\"cellFeedback null\" title=\"The importer was unable to retrieve this cell, or it did not exist. This is possible if it is a duplicate column, it relies on another column, or only some rows contain the cell. You may proceed if this cell OK to ignore.\"><span></span></td>";
     }
   
-    class CellFeedback {
-  
-      // These two booleans cover the 3 possible states of a cell:
-      // 1: successful parse (T,F), 2:no value provided (T,T), 3: unsuccessful parse with a value provided (F,F).
-      public boolean success;
-      public boolean isBlank;
-      String valueStr;
-  
-  
-      public CellFeedback(Object value, boolean success, boolean isBlank) {
-        System.out.println("about to create cellFeedback for value "+value);
-        if (value == null) valueStr = null;
-        else valueStr = value.toString();
-        this.success = success;
-        this.isBlank = isBlank;
-        System.out.println("new cellFeedback: got valueStr "+valueStr+" success: "+success+" and isBlank: "+isBlank);
-      }
-      public String html() { // here's where we add the excel value string on errors
-        StringBuffer str = new StringBuffer();
-        str.append("<td class=\"cellFeedback "+classStr()+"\" title=\""+titleStr()+"\"><span>");
-        if (Util.stringExists(valueStr)) {
-          str.append(valueStr);
-        }
-        str.append("</span></td>");
-        return str.toString();
-      }
-  
-      public String classStr() {
-        if (isBlank) return "blank";
-        if (!success) return "error";
-        return "success";
-      }
-  
-      public String titleStr() {
-        if (isBlank) return "Cell was blank in excel file.";
-        if (!success) return "ERROR: The import was unable to parse this cell. Please ensure that there are not letters or special characters in number fields (ex. lat/lon text or degree mark), formulas where there should be values or other data inconsistencies.";
-        return "Successfully parsed value from excel file.";    
-      }
-  
-  
-    }
-
       /**
      * h/t http://www.java-connect.com/apache-poi-tutorials/read-all-type-of-excel-cell-value-as-string-using-poi/
-     * gripe: apache POI is a shit excel library if GETTING A STRING FROM A CELL TAKES 30 $@(%# LINES OF CODE
      */
   public static String getCellValueAsString(Cell cell) {
     String strCellValue = null;
@@ -2073,6 +1943,13 @@ public static String getCellValueAsString(Row row, int num) {
 
   private void outPrnt(String str) {
     if (!committing&&str!=null) out.println(str); 
+  }
+
+  private Integer getColIndexFromColName(String colName) {
+    if (colName!=null) {
+      return Integer.valueOf(colIndexMap.get(colName));
+    }
+    return null;
   }
 
 }
