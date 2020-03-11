@@ -60,14 +60,15 @@ public class MediaAssetFactory {
 
     //NOTE!!!   acmId is NOT unique, so there could be more than one....  this will return "oldest" (order by revision)
     public static MediaAsset loadByAcmId(final String id, Shepherd myShepherd) {
+        MediaAsset ma = null;
         //if (!Util.isUUID(uuid)) return null;  //TODO yes or no?
         Query query = myShepherd.getPM().newQuery(MediaAsset.class);
         query.setFilter("acmId=='" + id + "'");
         query.setOrdering("revision");
         List results = (List)query.execute();
+        if (results.size() > 0) ma = (MediaAsset)results.get(0);
         query.closeAll();
-        if (results.size() < 1) return null;
-        return (MediaAsset)results.get(0);
+        return ma;
     }
 
 /*

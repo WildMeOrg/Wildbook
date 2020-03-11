@@ -33,9 +33,9 @@ String uploadAction = "standard-upload?filename="+filename+"&commit=true&isUserU
 if (!committing) {
 %>
 	<p>If you are adding many images and encounters (more than a couple hundred if each) this may take a while. You will be redirected when the process is finished.</p>
-	<a href="<%=uploadAction%>"><button onclick="confirmCommit()">Commit these results.</button></a></p>
+	<p	><a href="<%=uploadAction%>"><button onclick="confirmCommit()">Commit these results.</button></a></p>
 <%
 }
 %>
 
-</div><!-- container maincontent -->
+</div></div><!-- container maincontent -->

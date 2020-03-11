@@ -468,8 +468,19 @@ Util.mark("identify process pre-post end");
         }
 
 
-
-	        String nms_aware = IA.getProperty(context, "nms_aware");
+        /*
+	      String nms_aware = IA.getProperty(context, "nms_aware");
+        if (nms_aware != null) {
+            System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
+            map.put("nms_aware", nms_aware);
+        } else {
+            System.out.println("[INFO] sendDetect() nms_aware is null; DEFAULT will be used");
+        }
+        */
+        
+        //nms_aware
+        String nmsAwareKey = "nms_aware"+taxonomyPropString;
+        String nms_aware = IA.getProperty(context, nmsAwareKey);
         if (nms_aware != null) {
             System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
             map.put("nms_aware", nms_aware);

@@ -1233,8 +1233,10 @@ public class Shepherd {
       String filter = "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \""+readableName+"\" && this.label == \""+label+"\"";
       Query query = pm.newQuery(filter);
       List<Keyword> ans = (List) query.execute();
-      if (ans!=null && ans.size()>0) return (LabeledKeyword) ans.get(0);
+      LabeledKeyword lk = null;
+      if (ans!=null && ans.size()>0) lk = (LabeledKeyword) ans.get(0);
       query.closeAll();
+      return lk;
     }
     catch (Exception e) {
       System.out.println("Exception on getLabeledKeyword("+label+", "+readableName+")!");
@@ -2462,7 +2464,7 @@ public class Shepherd {
 
   public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
 
-    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individualID == \""+indy.getIndividualID()+"\" ";
+    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individual.individualID == \""+indy.getIndividualID()+"\" ";
     String vars=" VARIABLES org.ecocean.Encounter enc3_0";
     for(int i=0; i<kwReadableNames.length; i++){
       filter+="  && features.contains(feat"+i+") && feat"+i+".asset.keywords.contains(word"+i+") &&  word"+i+".readableName == \""+kwReadableNames[i]+"\" ";
