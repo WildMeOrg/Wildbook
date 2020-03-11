@@ -180,28 +180,22 @@ h2.vidcap {
  
 
 </style>
-<section style="padding-bottom: 0px;padding-top:0px;" class="container-fluid main-section relative videoDiv">
 
-        
-   <div id="fullScreenDiv">
-        <div id="videoDiv">           
-            <video playsinline preload id="video" autoplay muted>
-            <source src="images/MS_humpback_compressed.webm#t=,3:05" type="video/webm"></source>
-            <source src="images/MS_humpback_compressed.mp4#t=,3:05" type="video/mp4"></source>
-            </video> 
+
+<section class="hero container-fluid main-section relative">
+    <div class="container relative">
+        <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
+            <h1 class="hidden">Wildbook for African Carnivores</h1>
+            <h2>Wildbook for Carnivores</h2>
+
+            <a href="submit.jsp">
+                <button class="large"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
+            </a>
         </div>
-        <div id="messageBox"> 
-            <div>
-                <h2 class="vidcap"><%=props.getProperty("4cetaceanResearch") %></h2>
-
-            </div>
-        </div>   
-    </div>
-
-  
-
-
+	</div>
 </section>
+
+
 
 <section class="container text-center main-section">
 

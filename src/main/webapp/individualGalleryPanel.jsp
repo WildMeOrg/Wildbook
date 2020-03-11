@@ -62,7 +62,7 @@ myShepherd.setAction("individualGalleryPanel.jsp");
 imageShepherd.beginDBTransaction();
 String indID = request.getParameter("individualID");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-String imgUrl = urlLoc+"/cust/mantamatcher/img/hero_manta.jpg";
+String imgUrl = urlLoc+"/cust/mantamatcher/img/puppy_with_big_ears.JPG";
 String nickname = indID;
 
 try {
@@ -74,7 +74,7 @@ try {
   //JSONObject maJson = new JSONObject();
   //JSONObject maJson = getExemplarImage(indie, request);
   JSONObject maJson = indie.getExemplarImage(request);
-  imgUrl = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+  imgUrl = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/puppy_with_big_ears.JPG");
   if (!indie.getNickName().equals("Unassigned") && indie.getNickName()!=null && !indie.getNickName().equals("")) nickname = indie.getNickName();
   // loop through encs until we get a good representative MediaAsset
 }

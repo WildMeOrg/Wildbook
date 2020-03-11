@@ -392,7 +392,7 @@ try{
 	            pairCopyright[j] =  "&copy; " +pairCopyright[j];
 	          }
 	          pairMediaAssetID[j]=maJson.optString("id");
-	          pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+	          pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/puppy_with_big_ears.JPG");
 	          pairName[j] = indie.getDisplayName();
 	          pairIndividualID[j] = indie.getIndividualID();
 	          pairNickname[j] = indie.getNickName();
@@ -448,7 +448,7 @@ try{
 	              for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
 	                JSONObject newMaJson = new JSONObject();
 	                newMaJson = al.get(extraImgNo);
-	                String newUrl = newMaJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+	                String newUrl = newMaJson.optString("url", urlLoc+"/cust/mantamatcher/img/puppy_with_big_ears.JPG");
 	
 	                String copyright = newMaJson.optString("photographer");
 	                if ((copyright!=null)&&!copyright.equals("")) {

@@ -528,7 +528,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 		      for (int extraImgNo=0; extraImgNo<numPhotos; extraImgNo++) {
 		        JSONObject newMaJson = new JSONObject();
 		        newMaJson = photoObjectArray.get(extraImgNo);
-		        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+		        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/puppy_with_big_ears.JPG");
 		
 		        %>
 		        <div class="crop-outer">
