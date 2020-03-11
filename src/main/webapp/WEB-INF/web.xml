@@ -381,6 +381,9 @@
 				/mergeComplete.jsp = authc, roles[researcher]
 				
 				  /AnnotationSetMatchAgainst = authc, roles[admin]
+				  
+				  /adoptions/adoption.jsp = authc, roles[adoption]
+				  /adoptions/allAdoptions.jsp = authc, roles[adoption]
 
             </param-value>
         </init-param>
