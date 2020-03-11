@@ -54,6 +54,7 @@ public class IBEISIAIdentificationMatchingState implements java.io.Serializable 
             IBEISIAIdentificationMatchingState ms = (IBEISIAIdentificationMatchingState)o;
             jarr.put(new JSONArray(new String[]{ms.annId1, ms.annId2, ms.state}));
         }
+        q.closeAll();
         return jarr;
     }
 
