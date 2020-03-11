@@ -18,7 +18,9 @@
          org.json.JSONObject,
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
-         java.io.File, java.text.DecimalFormat, org.apache.commons.lang.StringEscapeUtils,
+         java.io.File, java.text.DecimalFormat, 
+         org.ecocean.servlet.importer.ImportTask,
+         org.apache.commons.lang.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
