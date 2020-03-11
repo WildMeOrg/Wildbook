@@ -2,7 +2,7 @@ SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
 Just a quick email to let you know that the whale shark encounter that you
-submitted has been matched to an identified whale shark in the Wildbook for Whale Sharks
+submitted has been matched to an identified whale shark in the MantaMatcher
 photo-identification library.
 Follow these links to find out more:
 
