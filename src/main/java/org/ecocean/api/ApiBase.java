@@ -6,7 +6,11 @@ import org.ecocean.Organization;
 
 import java.util.List;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.lang.reflect.Constructor;
 
 public abstract class ApiBase implements java.io.Serializable {
     private String id = null;
@@ -43,5 +47,27 @@ public abstract class ApiBase implements java.io.Serializable {
     }
 
     public abstract String description();
+
+
+    public JSONObject toApiJSONObject() {
+        return toApiJSONObject(null);
+    }
+    public JSONObject toApiJSONObject(JSONObject opts) {
+        return null;
+    }
+
+    public JSONObject toApiDefinitionJSONObject() {
+        JSONObject defn = new JSONObject();
+        JSONObject refl = new JSONObject();
+        Class cls = this.getClass();
+        refl.put("className", cls.getName());
+        JSONArray marr = new JSONArray();
+        for (Method m : cls.getMethods()) {
+            marr.put(m.getName());
+        }
+        refl.put("methods", marr);
+        defn.put("_reflect", refl);
+        return defn;
+    }
 }
 
