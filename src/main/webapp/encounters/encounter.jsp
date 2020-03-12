@@ -6524,7 +6524,6 @@ function iaMatchFilterGo() {
 		}
 		int rootIter=0;
 		while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-
 			String val="HotSpotter";
 			String queryDict="";
 			try {
@@ -6542,7 +6541,7 @@ function iaMatchFilterGo() {
 		}
 		%>
 
-    $('.ia-match-filter-dialog input').each(function(i, el) {
+$('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
         var key = keyMap[el.name] || '_UNKNOWN_';
         if (!data.taskParameters.matchingSetFilter[key]) data.taskParameters.matchingSetFilter[key] = [];
@@ -6553,8 +6552,7 @@ function iaMatchFilterGo() {
         else{
         	data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
         }
-
-
+        
     });
 console.log('SENDING ===> %o', data);
     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -6723,7 +6721,6 @@ $(".search-collapse-header").click(function(){
 
 rootIter=0;
 while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-
 	
 	if(rootIter==0){
 		%>
@@ -6753,7 +6750,6 @@ while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
 	if(val==null || val.trim().equals("")){
 		val="HotSpotter";
 	}
-
 
 	out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + rootIter + "\" name=\"match-filter-algorithm\" value=\"" + rootIter+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + rootIter + "\">" + val + " </label></div>");
 

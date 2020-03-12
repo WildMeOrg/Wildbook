@@ -1,0 +1,143 @@
+<html>
+    <head>
+    <meta charset="utf-8"/>
+  </head>
+
+  <link rel="stylesheet" type="text/css" href="individualStyles.css">
+  <link rel="stylesheet" type="text/css" href="bootstrap.css">
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+  <script src="kdTree.js"></script>
+  <script src="jsonParser.js"></script>
+  <script src="graphAbstract.js"></script>
+  <script src="forceLayoutAbstract.js"></script>
+  <script src="coOccurrenceGraph.js"></script>
+  <script src="socialGraph.js"></script>
+  <script src="encounter-calls.js"></script>
+
+  <div id="socialDiagram">
+    <div id="familyChart">
+      <div id="graphFilters">
+	<div id="graphOptions">
+	  <button type="button" id="reset">Reset Filters</button>
+	  <button type="button" id="gZoomIn">Zoom In</button>
+	  <button type="button" id="gZoomOut">Zoom Out</button>
+	</div>
+	<div id="filterGender" class="filterOptions">
+	  <label>	  
+	    <input type="checkbox" id="maleBox">
+	    <span>Male</span>
+	  </label>
+	  <label>	  
+	    <input type="checkbox" id="femaleBox">
+	    <span>Female</span>
+	  </label>
+	  <label>	  
+	    <input type="checkbox" id="unknownGenderBox">
+	    <span>Unknown Gender</span>
+	  </label>
+	</div>
+	<div id="filterSocialRole" class="filterOptions">
+	  <label>
+	    <input type="checkbox" id="alphaBox">
+	    <span>Alpha</span>
+	  </label>
+	  <label>
+	    <input type="checkbox" id="unknownRoleBox">
+	    <span>Unknown Role</span>
+	  </label>
+	</div>
+	<div class="filterOptions">
+	  <label>	  
+	    <input type="checkbox" id="selectFamilyBox">
+	    <span>Select Family</span>
+	  </label>
+          <label>	  
+	    <input type="checkbox" id="filterFamilyBox">
+	    <span>Filter Family</span>
+	  </label>
+	</div>
+      </div>
+    </div>
+    <div class="graphSliders">
+      <div class="sliderWrapper">
+	<label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
+	<input type="range" min=0 class="graphSlider" id="nodeCount">
+      </div>
+      <div class="sliderWrapper">
+	<label for="nodeDist"> Node Distance (Geodesic) - <span class="sliderLabel" id="nodeDistVal"></span></label>
+	<input type="range" min=0 class="graphSlider" id="nodeDist">
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      let p1 = new JSONParser(null, null, false, -1, true);
+      setupSocialGraph("5d80dd4d-8903-4dc4-a681-54788c2a7d5f", "#socialDiagram", null, p1);
+    </script>
+  </div>
+  
+  <div id="cooccurrenceDiagram">
+    <div id="bubbleChart">
+      <div id="graphFilters">
+	<div id="graphOptions">
+	  <button type="button" id="reset">Reset Filters</button>
+	  <button type="button" id="gZoomIn">Zoom In</button>
+	  <button type="button" id="gZoomOut">Zoom Out</button>
+	</div>
+	<div id="filterGender" class="filterOptions">
+	  <label>	  
+	    <input type="checkbox" id="maleBox">
+	    <span>Male</span>
+	  </label>
+          <label>	  
+	    <input type="checkbox" id="femaleBox">
+	    <span>Female</span>
+	  </label>
+	  <label>	  
+	    <input type="checkbox" id="unknownGenderBox">
+	    <span>Unknown Gender</span>
+	  </label>
+	</div>
+	<div id="filterSocialRole" class="filterOptions">
+	  <label>
+	    <input type="checkbox" id="alphaBox">
+	    <span>Alpha</span>
+	  </label>
+	  <label>
+	    <input type="checkbox" id="unknownRoleBox">
+	    <span>Unknown Role</span>
+	  </label>
+	</div>
+	<div class="filterOptions">
+	  <label>	  
+	    <input type="checkbox" id="selectFamilyBox">
+	    <span>Select Family</span>
+	  </label>
+          <label>	  
+	    <input type="checkbox" id="filterFamilyBox">
+	    <span>Filter Family</span>
+	  </label>
+	</div>
+      </div>
+    </div>
+    <div class="graphSliders">
+      <div class="coOccurrenceSliderWrapper">
+	<label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
+	<input type="range" min=0 class="graphSlider" id="nodeCount">
+      </div>
+      <div class="coOccurrenceSliderWrapper">
+	<label for="temporal">Temporal Threshold (Minutes) - <span class="sliderLabel" id="temporalVal"></span></label>
+	<input type="range" min=0 class="graphSlider" id="temporal">
+      </div>
+      <div class="coOccurrenceSliderWrapper">
+	<label for="spatial">Spatial Threshold (Milli-Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
+	<input type="range" min=0 class="graphSlider" id="spatial">
+      </div>
+    </div>
+    <script type="text/javascript">
+      let p2 = new JSONParser(null, null, true, 50, true);
+      setupOccurrenceGraph("5d80dd4d-8903-4dc4-a681-54788c2a7d5f", null, p2)
+    </script>
+  </div>
+</html>

@@ -10,6 +10,8 @@
 
 
   <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <datanucleus.version>4.2.0-release</datanucleus.version>
@@ -864,6 +866,18 @@
         </executions>
       </plugin>
 	  -->
+
+	<plugin>
+	<groupId>org.apache.tomcat.maven</groupId>  
+ 	<artifactId>tomcat7-maven-plugin</artifactId>  
+ 	<version>2.2</version>  
+ 	<configuration>  
+  	<url>http://localhost:8080/manager/text</url>  
+  	<server>TomcatServer</server>    
+  	<username>admin</username>  
+  	<password></password>   
+ 	</configuration>
+	</plugin>
 
         <plugin>
             <groupId>org.lesscss</groupId>
