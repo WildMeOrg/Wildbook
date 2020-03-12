@@ -1052,7 +1052,7 @@ if (sharky.getNames() != null) {
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
         JSONObject newMaJson = new JSONObject();
         newMaJson = photoObjectArray.get(extraImgNo);
-	String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/puppy_with_big_ears.JPG");
+	String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/main-background.jpg");
 
         %>
         <div class="crop-outer">

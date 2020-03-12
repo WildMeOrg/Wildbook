@@ -1131,18 +1131,18 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
 
-      <hr/>
-
-       <fieldset>
-        <h3><%=props.getProperty("tags") %></h3>
-      <%
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
-  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
-  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
-  pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
+<%
+pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
+pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
+pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
+pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
 %>
 
 <c:if test="${showMetalTags and !empty metalTags}">
+  <hr/>
+  
+   <fieldset>
+    <h3><%=props.getProperty("tags") %></h3>
 
  <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1215,12 +1215,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </tr>
       </table>
     </div>
-    </div>
-</c:if>
-
-      </fieldset>
+  </div>
+</fieldset>
 
 <hr/>
+</c:if>
+
 
       <div class="form-group">
         <label class="control-label"><%=props.getProperty("otherEmails") %></label>
