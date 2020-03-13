@@ -749,6 +749,10 @@ public class Shepherd {
     return tempCom;
   }
 
+  public SocialUnit getSocialUnit(String name) {
+    return getSocialUnit(name);
+  }
+
   public SinglePhotoVideo getSinglePhotoVideo(String num) {
     SinglePhotoVideo tempEnc = null;
     try {
