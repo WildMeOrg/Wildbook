@@ -23,6 +23,14 @@
 		<class name="TestObject" identity-type="application">
 			<field name="testField" />
 			<field name="description" />
+			<field name="twos" persistence-modifier="persistent" default-fetch-group="true">
+				<collection element-type="org.ecocean.api.TestObject2" dependent-element="false" />
+				<join />
+			</field>
+		</class>
+
+		<class name="TestObject2" identity-type="application">
+			<field name="foo" />
 		</class>
 
 <!--
