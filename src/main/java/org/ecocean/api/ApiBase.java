@@ -4,6 +4,7 @@ import org.ecocean.Util;
 import org.ecocean.User;
 import org.ecocean.Organization;
 
+import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +22,7 @@ public abstract class ApiBase implements java.io.Serializable {
     private String id = null;
     private long version = 0l;
     private User owner = null;
-    private List<Organization> organizations = null;
+    private OrganizationSet organizationSet = null;
 
 
     public ApiBase() {
@@ -44,11 +45,20 @@ public abstract class ApiBase implements java.io.Serializable {
     public void setOwner(User u) {
         owner = u;
     }
-    public List<Organization> getOrganizations() {
-        return organizations;
+    public Set<Organization> getOrganizations() {
+        if (organizationSet == null) return null;
+        return organizationSet.getSet();
     }
-    public void setOrganizations(List<Organization> orgs) {
-        organizations = orgs;
+    public void setOrganizations(Set<Organization> orgs) {
+        if (organizationSet == null) {
+            organizationSet = new OrganizationSet(orgs);
+        } else {
+            organizationSet.setSet(orgs);
+        }
+    }
+    public void addOrganization(Organization org) {
+        if (organizationSet == null) organizationSet = new OrganizationSet();
+        organizationSet.addOrganization(org);
     }
 
     public abstract String description();
