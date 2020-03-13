@@ -164,8 +164,10 @@ public abstract class ApiBase implements java.io.Serializable {
         }
 
         if (debug != null) {
+            debug.put("class", this.getClass().getName());
             debug.put("noAccess", noAccess);
             debug.put("opts", new JSONObject(opts));
+            debug.put("traversalDepth", td);
             rtn.put("_debug", debug);
         }
         return rtn;
@@ -177,13 +179,21 @@ public abstract class ApiBase implements java.io.Serializable {
 
     //ideally this would be a primitive, JSONObject, or JSONArray, but..... ymmv?
     //  TODO not sure how to really deal with traversalDepth ... !!!
-    public Object getApiValueForJSONObject(Method mth, Map<String,Object> opts) {
+    public Object getApiValueForJSONObject(Method mth, final Map<String,Object> opts) {
         Class rtnCls = mth.getReturnType();
-System.out.println(mth + " -> returnType = " + rtnCls);
+System.out.println("=============== " + mth + " -> returnType = " + rtnCls);
         //if (rtnCls.equals(String.class) || rtnCls.equals(Integer.class) || rtnCls.equals(Long.class)) {
         if (invokeAsIs.contains(rtnCls)) {
             try {
                 return mth.invoke(this);
+            } catch (Exception ex) {
+                System.out.println("failed to call " + mth + " on " + this + " --> " + ex.toString());
+                return null;
+            }
+        } else if (ApiBase.class.isAssignableFrom(rtnCls)) {
+            try {
+                Object obj = mth.invoke(this);
+                return ((ApiBase)obj).toApiJSONObject(opts);
             } catch (Exception ex) {
                 System.out.println("failed to call " + mth + " on " + this + " --> " + ex.toString());
                 return null;
@@ -199,7 +209,11 @@ System.out.println(mth + " -> returnType = " + rtnCls);
             JSONArray arr = new JSONArray();
             if (coll == null) return arr;
             for (Object obj : coll) {
-                arr.put(obj);
+                if (obj instanceof ApiBase) {
+                    arr.put(((ApiBase)obj).toApiJSONObject(opts));
+                } else {
+                    arr.put(obj);
+                }
             }
             return arr;
         }
@@ -245,5 +259,7 @@ System.out.println(mth + " -> returnType = " + rtnCls);
         opts.put("traversalDepth", val);
         return val;
     }
+
+    public String toString() {  return this.getClass().getName() + ":" + this.id; }
 }
 
