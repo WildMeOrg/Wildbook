@@ -6,8 +6,10 @@ import org.ecocean.Organization;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Collection;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +20,7 @@ import java.lang.reflect.Constructor;
 public abstract class ApiBase implements java.io.Serializable {
     private String id = null;
     private long version = 0l;
-    private User creator = null;
+    private User owner = null;
     private List<Organization> organizations = null;
 
 
@@ -36,11 +38,11 @@ public abstract class ApiBase implements java.io.Serializable {
     public long getVersion() {
         return version;
     }
-    public User getCreator() {
-        return creator;
+    public User getOwner() {
+        return owner;
     }
-    public void setCreator(User u) {
-        creator = u;
+    public void setOwner(User u) {
+        owner = u;
     }
     public List<Organization> getOrganizations() {
         return organizations;
@@ -53,7 +55,9 @@ public abstract class ApiBase implements java.io.Serializable {
 
 
     //ignore these ones
-    private static final List<String> skipGetters = Arrays.asList(new String[]{"getClass", "getGetters", "getSetters", "getProperties"});
+    private static final List<String> skipGetters = Arrays.asList(new String[]{
+            "getClass", "getGetters", "getSetters", "getProperties", "getApiValueForJSONObject"
+        });
     //this effectively exposes all getters and setters
     // so consider overriding if desired
     public List<Method> getGetters() {
@@ -125,6 +129,7 @@ public abstract class ApiBase implements java.io.Serializable {
     }
     public JSONObject toApiJSONObject(Map<String,Object> opts) {
         if (opts == null) opts = new HashMap<String,Object>();
+        int td = incrementTraversalDepth(opts);
         JSONObject rtn = new JSONObject();
 
         if (optsBoolean(opts.get("includeClass"))) {
@@ -142,7 +147,7 @@ public abstract class ApiBase implements java.io.Serializable {
             String prop = propertyFromGetter(mth.getName());
             User user = optsUser(opts.get("user"));
             if (hasAccess(user, prop, ApiAccess.READ)) {
-                rtn.put(prop, "SOME VALUE HERE!!!");
+                rtn.put(prop, getApiValueForJSONObject(mth, opts));
             } else if (debug != null) {
                 noAccess.put(prop);
             }
@@ -150,9 +155,49 @@ public abstract class ApiBase implements java.io.Serializable {
 
         if (debug != null) {
             debug.put("noAccess", noAccess);
+            debug.put("opts", new JSONObject(opts));
             rtn.put("_debug", debug);
         }
         return rtn;
+    }
+
+    private static final List<Class> invokeAsIs = Arrays.asList(new Class[]{
+            String.class, Integer.class, Integer.TYPE, Long.class, Long.TYPE
+        });
+
+    //ideally this would be a primitive, JSONObject, or JSONArray, but..... ymmv?
+    //  TODO not sure how to really deal with traversalDepth ... !!!
+    public Object getApiValueForJSONObject(Method mth, Map<String,Object> opts) {
+        Class rtnCls = mth.getReturnType();
+System.out.println(mth + " -> returnType = " + rtnCls);
+        //if (rtnCls.equals(String.class) || rtnCls.equals(Integer.class) || rtnCls.equals(Long.class)) {
+        if (invokeAsIs.contains(rtnCls)) {
+            try {
+                return mth.invoke(this);
+            } catch (Exception ex) {
+                System.out.println("failed to call " + mth + " on " + this + " --> " + ex.toString());
+                return null;
+            }
+        } else if (Collection.class.isAssignableFrom(rtnCls)) {
+            Collection coll = null;
+            try {
+                coll = (Collection)mth.invoke(this);
+            } catch (Exception ex) {
+                System.out.println("failed to call " + mth + " on " + this + " --> " + ex.toString());
+                return null;
+            }
+            JSONArray arr = new JSONArray();
+            if (coll == null) return arr;
+            for (Object obj : coll) {
+                arr.put(obj);
+            }
+            return arr;
+        }
+
+        System.out.println("WARNING: ApiBase.getApiValueForJSONObject() unknown " + mth + " on " + this);
+        JSONObject jobj = new JSONObject();
+        jobj.put("_class", rtnCls.toString());
+        return jobj;
     }
 
     public JSONObject toApiDefinitionJSONObject() {
@@ -179,6 +224,16 @@ public abstract class ApiBase implements java.io.Serializable {
     private static User optsUser(Object val) {
         if ((val == null) || !(val instanceof User)) return null;
         return (User)val;
+    }
+    private static int incrementTraversalDepth(Map<String,Object> opts) {
+        Object td = opts.get("traversalDepth");
+        int val = 0;
+        if ((td != null) || (td instanceof Integer)) {
+            Integer i = (Integer)td;
+            val = i.intValue() + 1;
+        }
+        opts.put("traversalDepth", val);
+        return val;
     }
 }
 

@@ -13,7 +13,7 @@
 			<field name="version">
                 		<column jdbc-type="BIGINT" allows-null="false"/>
 			</field>
-			<field name="creator" persistence-modifier="persistent" element-type="org.ecocean.User" default-fetch-group="true" />
+			<field name="owner" persistence-modifier="persistent" element-type="org.ecocean.User" default-fetch-group="true" />
 			<field name="organizations" persistence-modifier="persistent" default-fetch-group="true">
 				<collection element-type="org.ecocean.Organization" dependent-element="false" />
 				<join />
