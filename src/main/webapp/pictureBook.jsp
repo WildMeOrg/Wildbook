@@ -358,7 +358,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 			var maJson = JSON.parse(jsonString);
 			console.log("pictureBook is displaying images for ma"+maJson.id);
 			console.log("and majson = "+JSON.stringify(maJson));
-			var imgDisplay = maLib.mkImg(maJson);
+			var imgDisplay = maLib.mkImgPictureBook(maJson);
 			$(this).parent().append(imgDisplay);
 		});
 	}
