@@ -5,17 +5,31 @@
 
 { "name":"EastAustralia.CapeByron", "id":"EastAustralia.CapeByron", "locationID":[] },
 
-{ "name":"Mozambique.Amazon", "id":"Mozambique.Amazon", "locationID":[] },
+{ "name":"Mozambique", "id":"Mozambique", "locationID":[
 
-{ "name":"Mozambique.Giants Castle", "id":"Mozambique.Giants Castle", "locationID":[] },
+	{ "name":"Mozambique.Amazon", "id":"Mozambique.Amazon", "locationID":[] },
 
-{ "name":"Mozambique.Hospital", "id":"Mozambique.Hospital", "locationID":[] },
+	{ "name":"Mozambique.Bazaruto", "id":"Mozambique.Bazaruto", "locationID":[] },
 
-{ "name":"Mozambique.Manta Reef", "id":"Mozambique.Manta Reef", "locationID":[] },
+	{ "name":"Mozambique.Giants Castle", "id":"Mozambique.Giants Castle", "locationID":[] },
 
-{ "name":"Mozambique.Office", "id":"Mozambique.Office", "locationID":[] },
+	{ "name":"Mozambique.Hospital", "id":"Mozambique.Hospital", "locationID":[] },
 
-{ "name":"Mozambique.Reggies", "id":"Mozambique.Reggies", "locationID":[] }
+	{ "name":"Mozambique.Manta Reef", "id":"Mozambique.Manta Reef", "locationID":[] },
+
+	{ "name":"Mozambique.Morrungulo", "id":"Mozambique.Morrungulo", "locationID":[] },
+
+	{ "name":"Mozambique.Office", "id":"Mozambique.Office", "locationID":[] },
+
+	{ "name":"Mozambique.Reggies", "id":"Mozambique.Reggies", "locationID":[] },
+
+	{ "name":"Mozambique.SanSebastian", "id":"Mozambique.SanSebastian", "locationID":[] },
+
+	{ "name":"Mozambique.Tofo", "id":"Mozambique.Tofo", "locationID":[] },
+
+	{ "name":"Mozambique.Zavora", "id":"Mozambique.Zavora", "locationID":[] }
+
+] }
 
   ]
 }
