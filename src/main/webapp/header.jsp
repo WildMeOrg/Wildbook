@@ -398,8 +398,13 @@ finally{
                             <!--
                             <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
                             -->
-                            
-                            <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                            <%
+                            if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) {
+                            %>
+                            	<li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                        	<%
+                            }
+                        	%>
                         </ul>
                       </li>                      
                       <li class="dropdown">
