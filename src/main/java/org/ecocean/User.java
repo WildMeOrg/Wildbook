@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.HashSet;
 import java.io.Serializable;
 import org.ecocean.SinglePhotoVideo;
@@ -492,4 +493,11 @@ public class User implements Serializable {
       return jobj;
     }
 
+    public org.json.JSONObject toApiJSONObject(Map<String,Object> opts) {
+        org.json.JSONObject u = new org.json.JSONObject();
+        u.put("uuid", uuid);
+        u.put("fullName", fullName);
+        u.put("username", username);
+        return u;
+    }
 }

@@ -18,6 +18,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 import java.lang.reflect.Constructor;
 
+/*
+    TODO: cache things.  reflection should only be used once, then maybe cache on class or something
+*/
 public abstract class ApiBase implements java.io.Serializable {
     private String id = null;
     private long version = 0l;
@@ -181,46 +184,47 @@ public abstract class ApiBase implements java.io.Serializable {
     //  TODO not sure how to really deal with traversalDepth ... !!!
     public Object getApiValueForJSONObject(Method mth, final Map<String,Object> opts) {
         Class rtnCls = mth.getReturnType();
-System.out.println("=============== " + mth + " -> returnType = " + rtnCls);
-        //if (rtnCls.equals(String.class) || rtnCls.equals(Integer.class) || rtnCls.equals(Long.class)) {
+        Object obj = null;
+        try {
+            obj = mth.invoke(this);
+        } catch (Exception ex) {
+            System.out.println("ERROR: ApiBase.getApiValueForJSONObject() failed to call " + mth + " on " + this + " --> " + ex.toString());
+            return null;
+        }
+System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " yielded: " + obj);
         if (invokeAsIs.contains(rtnCls)) {
-            try {
-                return mth.invoke(this);
-            } catch (Exception ex) {
-                System.out.println("failed to call " + mth + " on " + this + " --> " + ex.toString());
-                return null;
-            }
-        } else if (ApiBase.class.isAssignableFrom(rtnCls)) {
-            try {
-                Object obj = mth.invoke(this);
-                return ((ApiBase)obj).toApiJSONObject(opts);
-            } catch (Exception ex) {
-                System.out.println("failed to call " + mth + " on " + this + " --> " + ex.toString());
-                return null;
-            }
+            return obj;
         } else if (Collection.class.isAssignableFrom(rtnCls)) {
-            Collection coll = null;
-            try {
-                coll = (Collection)mth.invoke(this);
-            } catch (Exception ex) {
-                System.out.println("failed to call " + mth + " on " + this + " --> " + ex.toString());
-                return null;
-            }
+            Collection coll = (Collection)obj;
             JSONArray arr = new JSONArray();
             if (coll == null) return arr;
-            for (Object obj : coll) {
-                if (obj instanceof ApiBase) {
-                    arr.put(((ApiBase)obj).toApiJSONObject(opts));
-                } else {
-                    arr.put(obj);
-                }
+            for (Object cobj : coll) {
+                arr.put(attemptGetValue(cobj, opts));
             }
             return arr;
         }
+        return attemptGetValue(obj, opts);  //try our luck
+    }
 
-        System.out.println("WARNING: ApiBase.getApiValueForJSONObject() unknown " + mth + " on " + this);
+    private static JSONObject attemptGetValue(Object obj, Map<String,Object> opts) {
+        if (obj == null) return null;
+        Class cls = obj.getClass();
+        if (ApiBase.class.isAssignableFrom(cls)) return ((ApiBase)obj).toApiJSONObject(opts);
+        for (Method mth : cls.getMethods()) {  //see if our object has .toApiJSONObject()
+            if (mth.getName().equals("toApiJSONObject") && (mth.getParameterCount() == 1)) {  //kinda cheat on checking param *type*
+                try {
+                    return (JSONObject)mth.invoke(obj, opts);
+                } catch (Exception ex) {
+                    System.out.println("ERROR: ApiBase.attemptGetValue() failed to call toApiJSONObject() on " + obj + " --> " + ex.toString());
+                    return null;
+                }
+            }
+        }
+        //fell thru here, well... you get what you get and you dont throw a fit
         JSONObject jobj = new JSONObject();
-        jobj.put("_class", rtnCls.toString());
+        jobj.put("_class", obj.getClass().toString());
+        jobj.put("_toString", obj.toString());
+        jobj.put("value", obj);  //godspeed
         return jobj;
     }
 

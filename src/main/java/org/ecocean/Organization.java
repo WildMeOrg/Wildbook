@@ -11,6 +11,7 @@ import org.ecocean.media.MediaAsset;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.joda.time.DateTime;
+import java.util.Map;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -428,5 +429,8 @@ public class Organization implements java.io.Serializable {
     }
 
 */
+    public JSONObject toApiJSONObject(Map<String,Object> opts) {
+        return toJSONObject();
+    }
 }
 
