@@ -29,7 +29,13 @@
 
 	{ "name":"Mozambique.Zavora", "id":"Mozambique.Zavora", "locationID":[] }
 
-] }
+] },
+
+{ "name":"Myanmar", "id":"Myanmar", "locationID":[] },
+
+{ "name":"Thailand", "id":"Thailand", "locationID":[] }
+
+
 
   ]
 }
