@@ -463,8 +463,11 @@ class ForceLayoutAbstract extends GraphAbstract {
 	//Focus the target node
 	node.data.isFocused = true;
 	this.focusedNode = node;
-	
-	//Update the graph
+
+	//Reset graph
+	this.resetGraph();
+
+	//Update graph
 	this.updateGraph(this.prevLinkData, this.nodeData);
     }
 
