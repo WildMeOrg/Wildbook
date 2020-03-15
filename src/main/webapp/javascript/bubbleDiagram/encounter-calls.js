@@ -103,110 +103,70 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     var previousSort = null;
     refreshTable(sortOn);
 
+    function refreshTable(sortOn) {
+	console.log("Refreshing table")
+	
+	var keys=d3.keys(items[0]);
+	if(tableHeadLocation == "#encountHead"){
+	    keys.shift();
+	}
+	var thead = d3.select(tableHeadLocation).selectAll("th")
+	    .data(keys).enter()
+	    .append("th").text(function(d){
+		if(d === "text") {
+		    return dict['occurringWith'];
+		} if (d === "occurrenceNumber"){
+		    return dict['occurrenceNumber'];
+		} if (d === "behavior") {
+		    return dict['behavior'];
+		} if(d === "alternateID") {
+		    return dict['alternateID'];
+		}if (d === "sex") {
+		    return dict['sex'];
+		} if (d === "haplotype") {
+		    return dict['haplotype'];
+		} if (d === "location") {
+		    return dict['location'];
+		} if (d === "dataTypes") {
+		    return dict['dataTypes'];
+		} if (d === "date") {
+		    return dict['date'];
+		} if(d === "occurringWith") {
+		    return dict['occurringWith'];
+		} if(d === "catalogNumber") {
+		    //return dict['catalogNumber'];
+		} if(d === "roles") {
+		    return dict['roles'];
+		} if(d === "relationshipWith") {
+		    return dict['relationshipWith'];
+		} if(d === "type") {
+		    return dict['type'];
+		} if(d === "socialUnit") {
+		    return dict['socialUnit'];
+		} if(d === "edit") {
+		    return dict['edit'];
+		} if(d === "remove") {
+		    return dict['remove'];
+		} if(d === "relationshipID") {
+		    return  dict['relationshipID'];
+		}
+	    })
+	    .on("click", function(d){
+		if(tableHeadLocation != "#relationshipHead") {
+		    return refreshTable(d);
+		}
+	    });
 
-  function refreshTable(sortOn) {
-	  var keys=d3.keys(items[0]);
-	  if(tableHeadLocation == "#encountHead"){
-		  keys.shift();
-	  }
-    var thead = d3.select(tableHeadLocation).selectAll("th")
-    .data(keys)
-    .enter().append("th").text(function(d){
-      if(d === "text") {
-        return dict['occurringWith'];
-      } if (d === "occurrenceNumber"){
-        return dict['occurrenceNumber'];
-      } if (d === "behavior") {
-        return dict['behavior'];
-      } if(d === "locationID") {
-          return dict['locationID'];
-      } if(d === "alternateID") {
-        return dict['alternateID'];
-      }if (d === "sex") {
-        return dict['sex'];
-      } if (d === "haplotype") {
-        return dict['haplotype'];
-      } if (d === "location") {
-        return dict['location'];
-      } if (d === "dataTypes") {
-        return dict['dataTypes'];
-      } if (d === "date") {
-        return dict['date'];
-      } if(d === "occurringWith") {
-        return dict['occurringWith'];
-      } if(d === "catalogNumber") {
-        //return dict['catalogNumber'];
-      } if(d === "roles") {
-        return dict['roles'];
-      } if(d === "relationshipWith") {
-        return dict['relationshipWith'];
-      } if(d === "type") {
-        return dict['type'];
-      } if(d === "socialUnit") {
-        return dict['socialUnit'];
-      } if(d === "edit") {
-        return dict['edit'];
-      } if(d === "remove") {
-        return dict['remove'];
-      } if(d === "relationshipID") {
-        return  dict['relationshipID'];
-      }
-    })
-    .on("click", function(d){
-      if(tableHeadLocation != "#relationshipHead") {
-        return refreshTable(d);
-      }
-    });
-
-    var tr = d3.select(tableBodyLocation).selectAll("tr").data(items);
-    tr.enter().append("tr").attr("class", function(d){
-      if(d.relationshipID !=null && d.relationshipID != 'undefined') {
-        return	 d.relationshipID;
-      }
-      return d3.values(d)[0];
-    });
-    var td = tr.selectAll("td").data(function(d){
-	    if(tableHeadLocation == "#encountHead"){
-	    		var smaller=d3.values(d);
-	    		smaller.shift();
-	    		return smaller;
-	    	}
-	    	return d3.values(d);
-    	}
-    );
-    td.enter().append("td").html(function(d) {
-      if(d == 'TissueSample') {
-        return "<img class='encounterImg' src='images/microscope.gif'/>";
-      } 
-      if(d == 'image') {
-        return "<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>"
-      } 
-      if(d == 'youtube-image') {
-          return "<img class='encounterImg' src='images/youtube.png'/>"
-      } 
-      if(d == 'both') {
-        return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
-      }
-      if(typeof d == "object") {
-        if(d.length <= 2) {
-          if(d[0] == 'edit'){
-            return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
-          } if(d[0] == 'remove') {
-            return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>"
-            ;
-          }
-          return d[0].italics() + "-" + d[1];
-        }
-        if(d.length > 2) {
-          return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['locationID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
-          }
-        }
-        if(d == "GOS") {
-          return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
-        }
-      return d; 
-    });
-
+	console.log("ITEMS", items)
+	var tr = d3.select(tableBodyLocation).selectAll("tr")
+	    .data(items).enter()
+	    .append("tr")
+	    .attr("class", function(d){
+		if(d.relationshipID !=null && d.relationshipID != 'undefined') {
+		    return d.relationshipID;
+		}
+		return d3.values(d)[0];
+	    });
 
 	console.log("TR", tr.selectAll("td"))
 	var td = tr.selectAll("td")
@@ -344,57 +304,50 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 		date = dict['unknown'];
             }
 
-
-        if(jsonData.encounters[i].verbatimLocality) {
-          var location = jsonData.encounters[i].verbatimLocality;
-        } else {
-          var location = "";
-        }
-        if(jsonData.encounters[i].locationID) {
-            var locationID = jsonData.encounters[i].locationID;
-          } else {
-            var locationID = "";
-          }
-        var catalogNumber = jsonData.encounters[i].catalogNumber;
-        console.log("Here's what we are working with : "+jsonData.encounters[i]);
-        if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
-          if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
-                var dataTypes = "both"
-              } 
-          else if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
-            var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
-          } 
-          else if((jsonData.encounters[i].annotations)&&(jsonData.encounters[i].annotations.length > 0)) {
-            
-        	  if((jsonData.encounters[i].eventID)&&(jsonData.encounters[i].eventID.indexOf("youtube") > -1)){
-        		  var dataTypes = "youtube-image";
-        	  }
-        	  //otherwise it's just a plain old image
-        	  else{
-        		  var dataTypes = "image";
-        	  }
-        	  
-          }
-          else {
-            var dataTypes = "";
-          }
-        }
-        var sex = jsonData.encounters[i].sex;
-        var behavior = jsonData.encounters[i].behavior;
-        var alternateID = jsonData.encounters[i].alternateid;
-        var encounter = new Object();
-        if(occurringWith === undefined) {
-          var occurringWith = "";
-        }
-        encounter = {catalogNumber: catalogNumber, date: date, location: location, dataTypes: dataTypes, locationID: locationID, sex: sex, occurringWith: occurringWith, behavior: behavior};
-        encounterData.push(encounter);
-      }
-      makeTable(encounterData, "#encountHead", "#encountBody", "date");
-      $('#encountTable tr').click(function() {
-          selectedWhale = ($(this).attr("class"));
-          goToEncounterURL(selectedWhale);
-      });
-
+            if(jsonData.encounters[i].verbatimLocality) {
+		var location = jsonData.encounters[i].verbatimLocality;
+            } else {
+		var location = "";
+            }
+            var catalogNumber = jsonData.encounters[i].catalogNumber;
+            console.log("Here's what we are working with : "+jsonData.encounters[i]);
+            if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
+		if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
+                    var dataTypes = "both"
+		} 
+		else if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
+		    var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
+		} 
+		else if((jsonData.encounters[i].annotations)&&(jsonData.encounters[i].annotations.length > 0)) {
+		    
+        	    if((jsonData.encounters[i].eventID)&&(jsonData.encounters[i].eventID.indexOf("youtube") > -1)){
+        		var dataTypes = "youtube-image";
+        	    }
+        	    //otherwise it's just a plain old image
+        	    else{
+        		var dataTypes = "image";
+        	    }
+        	    
+		}
+		else {
+		    var dataTypes = "";
+		}
+            }
+            var sex = jsonData.encounters[i].sex;
+            var behavior = jsonData.encounters[i].behavior;
+            var alternateID = jsonData.encounters[i].alternateid;
+            var encounter = new Object();
+            if(occurringWith === undefined) {
+		var occurringWith = "";
+            }
+            encounter = {catalogNumber: catalogNumber, date: date, location: location, dataTypes: dataTypes, alternateID: alternateID, sex: sex, occurringWith: occurringWith, behavior: behavior};
+            encounterData.push(encounter);
+	}
+	makeTable(encounterData, "#encountHead", "#encountBody", "date");
+	$('#encountTable tr').click(function() {
+            selectedWhale = ($(this).attr("class"));
+            goToEncounterURL(selectedWhale);
+	});
     });
 }
 
