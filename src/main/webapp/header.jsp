@@ -158,6 +158,15 @@ if (thisUser == null) {
     padding-top: 0 !important;
     margin-top: 0 !important;
 }
+
+.partners-header {
+    padding-top: 15px;
+    float: right;
+    height: 150px;
+}
+.partners-header img {
+    height: 140px;
+}
     </style>
 
     </head>
@@ -170,6 +179,10 @@ if (thisUser == null) {
               <div class="header-top-wrapper">
                 <div class="container">
                 <!-- wild-me-badge -->
+                    <div class="partners-header">
+<a target="_new" href="https://www.petcofoundation.org/innovation-showdown/"><img
+src="images/innovation-logo.jpg" /></a>
+                    </div>
                   <div class="search-and-secondary-wrapper">
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
