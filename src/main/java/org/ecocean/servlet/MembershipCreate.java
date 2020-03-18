@@ -14,6 +14,9 @@ import org.json.JSONException;
 import org.ecocean.media.*;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -24,6 +27,7 @@ import java.io.*;
 
 public class MembershipCreate extends HttpServlet {
 
+    private static final long serialVersionUID = 1L;
 
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -56,45 +60,68 @@ public class MembershipCreate extends HttpServlet {
 
         MarkedIndividual mi = null;
         try {
+
+            miId = j.optString("miId");
+            System.out.println("miID: "+miId);
             if (myShepherd.isMarkedIndividual(miId)) {
                 mi = myShepherd.getMarkedIndividual(miId);
             }
-        
-            miId = j.optString("miId");
+
             groupName = j.optString("groupName");
             roleName = j.optString("roleName");
             startDate = j.optString("startDate");
             endDate = j.optString("endDate");
             SocialUnit su = myShepherd.getSocialUnit(groupName);
+            boolean isNew = false;
             if (su==null) {
+                isNew = true;
                 su = new SocialUnit(groupName);
+                myShepherd.storeNewSocialUnit(su);
             }
-
             Membership membership = null;
             if (su.hasMarkedIndividualAsMember(mi)) {
                 membership = su.getMembershipForMarkedIndividual(mi);
             } else {
-                //membership = new Membership(mi, roleName, startDate, endDate);
-                membership = new Membership(mi, roleName);
+                System.out.println("New membership!");
+                Long startLong = null;
+                Long endLong = null;
+                DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                
+                if (startDate!=null) {
+                    DateTime startDT = DateTime.parse(startDate, formatter); 
+                    startLong = startDT.getMillis();   
+                } 
+                if (endDate!=null) {
+                    DateTime endDT = DateTime.parse(endDate, formatter);
+                    endLong = endDT.getMillis(); 
+                }
+                // yer one of us now, mate
+                membership = new Membership(mi, roleName, startLong, endLong);
+                myShepherd.storeNewMembership(membership);
             }
+
+            response.setContentType("text/plain");
+            JSONObject res = new JSONObject();
+            res.put("isNewSocialUnit",isNew);
+            res.put("membershipId",membership.getId());
+            PrintWriter out = response.getWriter();
+            
+            out.println(res);
+            out.close();
 
         } catch (NullPointerException npe) {
             npe.printStackTrace();
         } catch (JSONException je) {
             je.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
         }
 
         System.out.println("prototype MembershipCreate servlet end");
-
-
-
-
-        // membershipJSON[groupName] = $("#socialGroupName").value();
-        // membershipJSON[roleName] = $("#socialRoleName").value();
-        // membershipJSON[startDate] = $("#socialGroupMembershipStart").value();
-        // membershipJSON[endDate] = $("#socialGroupMembershipEnd").value();
     
-
     }
 
 
