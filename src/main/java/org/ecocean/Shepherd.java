@@ -747,8 +747,54 @@ public class Shepherd {
     return tempCom;
   }
 
+  // public ArrayList<Membership> getMembershipsForMarkedIndividual(MarkedIndividual mi) {
+    
+  // }
+
+  public List<SocialUnit> getAllSocialUnitsForMarkedIndividual(MarkedIndividual mi) {
+    List<SocialUnit> units = getAllSocialUnits();
+    List<SocialUnit> matches = null;
+    if (units!=null) {
+      for (SocialUnit su : units) {
+        if (su.hasMarkedIndividualAsMember(mi)) {
+          if (matches==null) {
+            matches = new ArrayList<SocialUnit>();
+          }
+          matches.add(su);
+        }
+      }
+    }
+    return matches;
+  }
+
+  public ArrayList<SocialUnit> getAllSocialUnits() {
+    ArrayList<SocialUnit> units = null;
+    Query q = pm.newQuery(SocialUnit.class);
+    try{
+      Collection results = (Collection) q.execute();
+      units = new ArrayList<SocialUnit>(results);
+    } catch (Exception e){
+      e.printStackTrace();
+    }
+    q.closeAll();
+    return units;
+  }
+
+  public ArrayList<Membership> getAllMemberships() {
+    ArrayList<Membership> mships = null;
+    Query q = pm.newQuery(Membership.class);
+    try{
+      Collection results = (Collection) q.execute();
+      mships = new ArrayList<Membership>(results);
+    } catch (Exception e){
+      e.printStackTrace();
+    }
+    q.closeAll();
+    return mships;
+  }
+
   public SocialUnit getSocialUnit(String name) {
-    return getSocialUnit(name);
+    return getCommunity(name);
   }
 
   public SinglePhotoVideo getSinglePhotoVideo(String num) {
@@ -760,6 +806,7 @@ public class Shepherd {
     }
     return tempEnc;
   }
+
 
   public Role getRole(String rolename, String username, String context) {
 
