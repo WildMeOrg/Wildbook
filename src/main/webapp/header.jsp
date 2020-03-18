@@ -160,12 +160,19 @@ if (thisUser == null) {
 }
 
 .partners-header {
-    padding-top: 15px;
-    float: right;
-    height: 150px;
+    position: absolute;
+    bottom: 0;
+    padding: 5px;
+    right: 0;
 }
-.partners-header img {
-    height: 140px;
+
+    .partners-header img {
+        height: 70px;
+    }
+@media (min-width: 768px) {
+    .partners-header img {
+        height: 140px;
+    }
 }
     </style>
 
