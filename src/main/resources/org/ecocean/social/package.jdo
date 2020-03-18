@@ -17,11 +17,11 @@
 				</field>
 
 				<field name="startDate" persistence-modifier="persistent">
-					<column jdbc-type="LONGVARCHAR" length="128" />
+					<column jdbc-type="BIGINT" allows-null="true" />
 				</field>
 
 				<field name="endDate" persistence-modifier="persistent">
-					<column jdbc-type="LONGVARCHAR" length="128" />
+					<column jdbc-type="BIGINT" allows-null="true" />
 				</field>
 
 				<fetch-group name="count" />
