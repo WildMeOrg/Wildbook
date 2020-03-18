@@ -255,12 +255,15 @@ public final class NotificationMailer implements Runnable {
             mailer.replaceInHtmlText("<!--@REMOVEME_START@-->", null, false);
             mailer.replaceInHtmlText("<!--@REMOVEME_END@-->", null, false);
           }
+/*
+    re: discussion with jh 2020-03-18, this is deprecated usage so commenting out -jv
           // Extra layer to help prevent chance of URL spoof attacks.
           String noTrack = map.get(EMAIL_NOTRACK);
           if (noTrack.matches("([a-z]+)=(.+)")) {
             String link = String.format("%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
             mailer.replace("@REMOVEME_LINK@", link, true);
           }
+*/
         } else {
           mailer.replaceRegexInPlainText("(?s)@REMOVEME_START@.*@REMOVEME_END@", null, false);
           if (mailer.hasHtmlText())
