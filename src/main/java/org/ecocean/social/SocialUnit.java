@@ -24,6 +24,15 @@ public class SocialUnit implements java.io.Serializable {
   public List<MarkedIndividual> getMarkedIndividuals(Shepherd myShepherd){
       return myShepherd.getAllMarkedIndividualsInCommunity(socialUnitName);
   }
+
+  public boolean removeMember(MarkedIndividual mi) {
+    if (hasMarkedIndividualAsMember(mi)) {
+      Membership toRemove = getMembershipForMarkedIndividual(mi);
+      members.remove(toRemove);
+      return true;
+    }
+    return false;
+  }
   
   public String getSocialUnitName(){return socialUnitName;}
   public void setSocialUnitName(String name){socialUnitName=name;}
