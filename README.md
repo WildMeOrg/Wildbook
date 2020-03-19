@@ -31,7 +31,7 @@ Please see <a href="https://www.wildbook.org">Wildbook.org</a> for documentation
 </ul>
 
 <h2>History</h2>
-Wildbook started as a collaborative software platform for globally-coordinated tiger shark research as deployed in the Wildbook for Sand Tiger Sharks (http://ncaquariums.wildbook.org). After many requests to use our software outside of tiger shark research, it is now an open source, community-maintained standard for mark-recapture studies.
+Wildbook started as a collaborative software platform for globally-coordinated sand tiger shark research as deployed in the Wildbook for Sand Tiger Sharks (http://ncaquariums.wildbook.org). After many requests to use our software outside of sand tiger shark research, it is now an open source, community-maintained standard for mark-recapture studies.
 
 
 <p><img style="float: right;" align="middle" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization.</p> https://www.wildme.org

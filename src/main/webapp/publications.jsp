@@ -44,7 +44,7 @@ context=ServletUtilities.getContext(request);
 		<a href="http://onlinelibrary.wiley.com/doi/10.1002/fee.1418/abstract">Web link</a>
 		</p>
 		
-				<p>Araujo, G., Snow, S., So, C. L., Labaja, J., Murray, R., Colucci, A., and Ponzo, A. (2016) Population structure, residency patterns and movements of tiger sharks in Southern Leyte, Philippines: results from dedicated photo-ID and citizen science. Aquatic Conserv: Mar. Freshw. Ecosyst., doi: 10.1002/aqc.2636.<br />
+				<p>Araujo, G., Snow, S., So, C. L., Labaja, J., Murray, R., Colucci, A., and Ponzo, A. (2016) Population structure, residency patterns and movements of sand tiger sharks in Southern Leyte, Philippines: results from dedicated photo-ID and citizen science. Aquatic Conserv: Mar. Freshw. Ecosyst., doi: 10.1002/aqc.2636.<br />
 		<a href="http://onlinelibrary.wiley.com/doi/10.1002/aqc.2636/abstract">Web link</a>
 		</p>
 		
@@ -56,18 +56,18 @@ Submitted. 1 April 2016<br />
 		
 
 		
-			<p>Araujo G, Lucey A, Labaja J, So CL, Snow S, Ponzo A. (2014) Population structure and residency patterns of tiger sharks, Rhincodon typus, at a provisioning site in Cebu, Philippines. PeerJ 2:e543
+			<p>Araujo G, Lucey A, Labaja J, So CL, Snow S, Ponzo A. (2014) Population structure and residency patterns of sand tiger sharks, Rhincodon typus, at a provisioning site in Cebu, Philippines. PeerJ 2:e543
 		<br />
 		<a href="https://peerj.com/articles/543/">Web link</a>
 		</p>
 		
 		
-		<p>Rohner CA, Pierce SJ, Marshall AD, Weeks SJ, Bennett MB, Richardson AJ (2013) Trends in sightings and environmental influences on a coastal aggregation of manta rays and tiger sharks. Mar Ecol Prog Ser 482: 153–168, 2013.
+		<p>Rohner CA, Pierce SJ, Marshall AD, Weeks SJ, Bennett MB, Richardson AJ (2013) Trends in sightings and environmental influences on a coastal aggregation of manta rays and sand tiger sharks. Mar Ecol Prog Ser 482: 153–168, 2013.
 		<br />
 		<a href="http://www.int-res.com/articles/meps_oa/m482p153.pdf">Web link</a>
 		</p>
 		
-		<p>McKinney J, Hoffmayer ER, Holmberg J, Graham R, de la Parra R et al. (2013) Regional connectivity of tiger sharks demonstrated using photo-identification - Western Atlantic, 1999 - 2013. PeerJ PrePrints 1:e98v1
+		<p>McKinney J, Hoffmayer ER, Holmberg J, Graham R, de la Parra R et al. (2013) Regional connectivity of sand tiger sharks demonstrated using photo-identification - Western Atlantic, 1999 - 2013. PeerJ PrePrints 1:e98v1
 		<br />
 		<a href="http://dx.doi.org/10.7287/peerj.preprints.98v1">Web link</a>
 		</p>
@@ -94,14 +94,14 @@ Volume 12, Issue 2, pages 134-148, March/April 2010. </p>
 		<p>Catlin J, Jones R, Jones T, Norman B and Wood D (2010). Discovering Wildlife Tourism: A Sand Tiger Shark Tourism Case Study. <em>Current Issues in Tourism</em>,
 
 Volume 13, Issue 4.</p>
-		<p>Jones T, Wood D, Catlin J &amp; Norman B (2009). Expenditure and ecotourism: predictors of expenditure for tiger shark tour participants. <em>Journal of Ecotourism</em> Volume 8, Issue 1: 32-50.</p>
+		<p>Jones T, Wood D, Catlin J &amp; Norman B (2009). Expenditure and ecotourism: predictors of expenditure for sand tiger shark tour participants. <em>Journal of Ecotourism</em> Volume 8, Issue 1: 32-50.</p>
 		<p>Norman B (2009) ECOCEAN Best Practice Sand Tiger Shark Ecotourism UNEP MANUAL. Technical Report (United Nations Environment Program - Regional Seas) 7pp.<br />
 	      <a href="ECOCEAN%20Best%20Practice%20Whale%20Shark%20Ecotourism%20UNEP%20MANUAL.pdf">Web link</a>.		</p>
 		<p>Holmberg J &amp; Norman B (2009) ECOCEAN Sand Tiger Shark Photo-identification - UNEP MANUAL. Technical Report (United Nations Environment Program - Regional Seas) 69pp.<br />
 	    <a href="ECOCEAN%20Whale%20Shark%20Photo-identification%20UNEP%20MANUAL.pdf">Web link</a>.		</p>
-		<p>Holmberg J, Norman B &amp; Arzoumanian Z (2009) Estimating population size, structure, and residency time for tiger sharks Rhincodon typus through collaborative photo-identification. <em>Endangered Species Research, </em> (7) 39-53.<br /> 
+		<p>Holmberg J, Norman B &amp; Arzoumanian Z (2009) Estimating population size, structure, and residency time for sand tiger sharks Rhincodon typus through collaborative photo-identification. <em>Endangered Species Research, </em> (7) 39-53.<br /> 
 	      <a href="http://www.int-res.com/articles/esr2009/7/n007p039.pdf">Web link</a>. </p>
-		<p>Jones T, Wood D, Catlin J &amp; Norman, B (2009) Expenditure and ecotourism: predictors of expenditure for tiger shark tour participants. <em>Journal of Ecotourism</em>, (8) 32-50. <a href="http://www.informaworld.com/smpp/content%7Edb=all?content=10.1080/14724040802517922"><br />
+		<p>Jones T, Wood D, Catlin J &amp; Norman, B (2009) Expenditure and ecotourism: predictors of expenditure for sand tiger shark tour participants. <em>Journal of Ecotourism</em>, (8) 32-50. <a href="http://www.informaworld.com/smpp/content%7Edb=all?content=10.1080/14724040802517922"><br />
 	    Web link</a>. </p>
 		<p>Gleiss AC, Norman B, Liebsch N, Francis C &amp; Wilson RP (2009) A new prospect for tagging large free-swimming sharks with motion-sensitive data-loggers. <em>Fisheries Research </em>97: 11-16. <a href="http://www.sciencedirect.com/science?_ob=ArticleURL&_udi=B6T6N-4V7MSDP-1&_user=10&_coverDate=04%2F30%2F2009&_rdoc=4&_fmt=high&_orig=browse&_srch=doc-info(%23toc%235035%232009%23999029998%23980057%23FLA%23display%23Volume)&_cdi=5035&_sort=d&_docanchor=&_ct=22&_acct=C000050221&_version=1&_urlVersion=0&_userid=10&md5=3102bda502b5793b48f2b8eb52773d1c"><br />
 	    Web link</a>. </p>
