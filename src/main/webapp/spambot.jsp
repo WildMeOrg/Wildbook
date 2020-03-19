@@ -32,7 +32,7 @@
           <li>An unknown problem was encountered.</li>
         </ol>
         <p>We apologize in advance if you believe you have reached this page
-          in error and have a genuine tiger shark encounter to report. As an
+          in error and have a genuine sand tiger shark encounter to report. As an
           alternative, please email your photos and encounter information (date,
           time, size, location, etc.) to:</p>
 

@@ -85,7 +85,7 @@ context=ServletUtilities.getContext(request);
 					<p>$?/yr</p>
 				</div>
 				<p>
-					We appreciate your support of ongoing tiger shark research
+					We appreciate your support of ongoing sand tiger shark research
 				</p>
 			</div>
 		</article>
