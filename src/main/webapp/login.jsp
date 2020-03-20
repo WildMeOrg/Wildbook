@@ -63,7 +63,7 @@ if (session.getAttribute("error") != null) {
     <table align="left" border="0" cellspacing="0" cellpadding="3">
         <tr>
             <td><%=props.getProperty("username") %></td>
-            <td><input type="text" value="<%=((passedUsername == null) ? "" : passedUsername)%>" name="username" maxlength="50" /></td>
+            <td><input type="text" value="<%=((passedUsername == null) ? "" : passedUsername)%>" name="username" /></td>
         </tr>
         <tr>
             <td><%=props.getProperty("password") %></td>

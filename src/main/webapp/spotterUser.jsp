@@ -31,7 +31,7 @@ if (email != null) {
 <% if (sentReset) { %>
 <p>An email confirmation has been sent to this address.  Use it to <b>set a new password</b>.</p>
 <% } %>
-<p>You can <a href="login.jsp?email=<%=email%>">login here</a>.</p>
+<p>You can <a href="login.jsp?username=<%=email%>">login here</a>.</p>
 <%
     } else {
         //SpotterConserveIO.init("context0");
