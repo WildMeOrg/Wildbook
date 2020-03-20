@@ -8,7 +8,7 @@ body {
 }
 
 .navbar-brand.wildbook {
-	background: url(flukebook_logo_black_noborder.svg) no-repeat;
+	background: url(wildbook_logo_white.svg) no-repeat;
 	background-size: 100% auto;
 	background-position: center;
 }
