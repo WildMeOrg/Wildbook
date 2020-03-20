@@ -47,8 +47,11 @@ public class SocialUnit implements java.io.Serializable {
     }
   }
 
-  public boolean hasMarkedIndividualAsMember(MarkedIndividual mi) {
-    return getMarkedIndividuals().contains(mi);
+  public boolean hasMarkedIndividualAsMember(MarkedIndividual queryMi) {
+    for (MarkedIndividual targetMi : getMarkedIndividuals()) {
+      if (targetMi.getId().equals(queryMi.getId())) return true; 
+    }
+    return false;
   }
 
   public Membership getMembershipForMarkedIndividual(MarkedIndividual mi) {
