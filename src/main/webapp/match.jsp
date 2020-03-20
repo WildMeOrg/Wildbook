@@ -1243,7 +1243,7 @@ if ((tax == null) || (tax.values() == null) || (tax.values().size() < 1)) {
 <div id="disclaimer">
 <b>DISCLAIMER:</b>
 Images are for non-profit scientific research purposes only.
-Data will be removed after 7 days unless you take further action to incorporate it into Flukebook.org.
+Data will be removed after 7 days unless you take further action to incorporate it into African Carnivore Wildbook .org.
 </div>
 <div style="clear: both; margin-bottom: 100px;"></div>
 

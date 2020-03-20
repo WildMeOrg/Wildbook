@@ -210,48 +210,13 @@ h2.vidcap {
   	
   	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks2Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="images/CurvRank_matches.jpg" />
+  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="cust/mantamatcher/img/leopard_howitworks2.jpg" />
 		
 		
 	<h3 class="section-header"><%=props.getProperty("howItWorks4") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
-  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="images/action.jpg" />
+  	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="cust/mantamatcher/img/puppy_with_big_ears.JPG" />
 		
-  	
-  	<h2 class="section-header"><%=props.getProperty("howItWorks3") %></h2>
-  	<p class="lead"><%=props.getProperty("howItWorks3Description") %></p>
-  	
-  	<div class="row">
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="images/hotspotter.jpg" />
-		  	<em><%=props.getProperty("megapteraMatching") %></em>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox" height="500px">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="images/spermWhaleTrailingEdge.jpg" />
-		  	<em><%=props.getProperty("physeterMatching") %></em>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-		  	<div class="focusbox-inner opec">
-		  	<img height="*" style="max-width: 100%;" width="400px" class="lazyload pull-left" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="images/tracedFin.jpg" />
-		  	<div><em><%=props.getProperty("tursiopsMatching") %></em></div>
-	  	</section>
-	  	
-  		<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-		  	<div class="focusbox-inner opec">
-		  	<img width="400px" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="images/rightWHaleID.jpg" />
-		  	<em><%=props.getProperty("eubalaenaMatching") %></em>
-	  	</section>
-	  	
-  	</div>
-  	
-  	
-
-  	<p class="lead"><%=props.getProperty("moreSoon") %></p>
-
 </section>
 
 <div class="container-fluid relative data-section">
@@ -437,7 +402,7 @@ h2.vidcap {
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead">
-                            <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
+                            <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. African Carnivore Wildbook  enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
                         
                     </div>
                 </div>
