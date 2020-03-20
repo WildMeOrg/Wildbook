@@ -98,6 +98,7 @@ public class MembershipCreate extends HttpServlet {
                 // yer one of us now, mate
                 membership = new Membership(mi, roleName, startLong, endLong);
                 myShepherd.storeNewMembership(membership);
+                su.addMember(membership);
             }
 
             response.setContentType("text/plain");
