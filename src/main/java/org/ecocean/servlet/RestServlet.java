@@ -217,19 +217,23 @@ public class RestServlet extends HttpServlet
         String[] fetchParams = req.getParameterValues("fetch");
         String fetchDepth = req.getParameter("fetchDepth");
         
-                String encodings = req.getHeader("Accept-Encoding");
-                boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
-
+        String encodings = req.getHeader("Accept-Encoding");
+        boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
+        boolean isSQLQuery=false;        
         
         String queryString="";        
         try
         {
             String token = getNextTokenAfterSlash(req);
-            if (req.getParameter("query")!=null || token!=null && (token.equalsIgnoreCase("query") || token.equalsIgnoreCase("jdoql")))
+            if (req.getParameter("query")!=null || (req.getParameter("sqlquery")!=null && req.getParameter("class")!=null) || token!=null && (token.equalsIgnoreCase("query") || token.equalsIgnoreCase("jdoql")))
             {
                 
               if(req.getParameter("query")!=null) {
                 queryString = URLDecoder.decode(req.getParameter("query"), "UTF-8");
+              }
+              else if(req.getParameter("sqlquery")!=null && req.getParameter("class")!=null) {
+                queryString = URLDecoder.decode(req.getParameter("sqlquery"), "UTF-8");
+                isSQLQuery=true;
               }
               else {
                 // GET "/query?the_query_details" or GET "/jdoql?the_query_details" where "the_query_details" is "SELECT FROM ... WHERE ... ORDER BY ..."
@@ -274,7 +278,18 @@ public class RestServlet extends HttpServlet
                     ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "begin");
                     
 
-                    Query query = pm.newQuery("JDOQL", queryString);
+                    Query query = null;
+                    //SQL query
+                    if(isSQLQuery) {
+                      query=pm.newQuery("javax.jdo.query.SQL", queryString);
+                      query.setClass(Class.forName(req.getParameter("class")));
+                      
+                      
+                    }
+                    //JDOQL query
+                    else {query=pm.newQuery("JDOQL", queryString);}
+                    
+                    
                     if(fetchParams!=null) {
                       int numParams=fetchParams.length;
                       for(int g=0;g<numParams;g++) {
@@ -312,6 +327,9 @@ public class RestServlet extends HttpServlet
                     pm.currentTransaction().commit();
                     ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "commit");
                     
+                }
+                catch(Exception e) {
+                  e.printStackTrace();
                 }
                 finally
                 {
