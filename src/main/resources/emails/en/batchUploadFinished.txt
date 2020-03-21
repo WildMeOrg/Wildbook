@@ -1,0 +1,12 @@
+SUBJECT: MantaMatcher batch data upload has finished
+Your batch data processing session to MantaMatcher has finished processing.
+
+You should now be able to see the successfully uploaded data by logging into
+your MantaMatcher account:
+@URL_LOCATION@
+
+@BATCH_ERRORS_MESSAGE@
+@BATCH_ERRORS_CONTENT@
+
+@BATCH_WARNINGS_MESSAGE@
+@BATCH_WARNINGS_CONTENT@

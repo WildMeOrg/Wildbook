@@ -1,5 +1,5 @@
-SUBJECT: @CONTEXT_NAME@ Collaboration Request
-You have a request to collaborate on @CONTEXT_NAME@ from @SENDER@.
+SUBJECT: Collaboration request (@CONTEXT_NAME@)
+You have a request to collaborate on @CONTEXT_NAME@ from @USER@.
 Please see: @LINK@
 
 @TEXT_CONTENT@

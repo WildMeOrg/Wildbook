@@ -1,8 +1,8 @@
 SUBJECT: Individual update: @INDIVIDUAL_ID@
-Hello!
+Hello! 
 
-Just a quick email to let you know of a change in data for a shark that you
-have marked for tracking. See the text below to learn more.
+Just a quick email to let you know of a change in data for a shark
+that you have marked for tracking. See the text below to learn more.
 
 Change:
 

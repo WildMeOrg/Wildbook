@@ -1,7 +1,8 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
-Hello!
+Hello! 
 
-Just a quick email to let you know of a change in data for a spotted shark encounter that you have marked for tracking. See the text below to learn more.
+Just a quick email to let you know of a change in data for a whale shark encounter
+that you have marked for tracking. See the text below to learn more.
 
 Change:
 

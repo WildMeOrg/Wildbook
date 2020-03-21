@@ -1,16 +1,16 @@
-SUBJECT: Email from Spot a Shark
+SUBJECT: Email from Wildbook
 
 @EMAIL_CONTENT@
 
 Sincerely,
 
-The Spot a Shark Team
+The Wildbook Team
 
 
 LEGAL STATEMENT
 
-Wildbook is copyrighted 2009-2015 by Wild Me.
-Individual contributors to Spot a Shark retain copyrights for submitted images.
+Wildbook is copyrighted 2020 by Wild Me.
+Individual contributors to Wildbook retain copyrights for submitted images.
 No reproduction or usage of material in this library is permitted without the
 express permission of the copyright holders.
 

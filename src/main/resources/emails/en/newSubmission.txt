@@ -1,18 +1,19 @@
 SUBJECT: New encounter submission: @ENCOUNTER_ID@
-Thank you for participating in Spot a Shark!
+Thank you for helping manta research!
 
-Thank you for reporting your grey nurse shark shark encounter! We will use your information to assist a global community of researchers and citizen scientists working to better understand and protect wildlife.
+Thank you for reporting your encounter. We will use your information to assist
+scientific research and global conservation initiatives for manta rays.
 
 Your sighting link:
 @ENCOUNTER_LINK@
 
-The information that you have submitted represents an "encounter" that
+The information that you have submitted represents an “encounter” that
 we track. Each encounter is assigned a unique number, and you can view
 that encounter at any time using the link above or by going to:
 
-        http://www.spotashark.com/
+        http://www.mantamatcher.org
 
 We will keep you informed of any changes to your submitted encounter,
-and email you if the shark is matched to another one within the Spot a Shark
-database. We will also let you know if/when and where your shark is
+and email you if the whale shark is matched to another one within this Wildbook
+database. We will also let you know if/when and where your whale shark is
 resighted by other community members.
