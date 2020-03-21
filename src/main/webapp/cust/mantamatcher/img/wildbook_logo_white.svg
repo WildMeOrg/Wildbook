@@ -20,12 +20,12 @@
    xml:space="preserve"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
    sodipodi:docname="wildbook_logo_white.svg"
-   inkscape:export-filename="C:\github-shepherd\src\main\webapp\cust\mantamatcher\img\wildbook_logo_white.png"
+   inkscape:export-filename="C:\Wildbook\src\main\webapp\cust\mantamatcher\img\wildbook_logo_white.png"
    inkscape:export-xdpi="120.952"
    inkscape:export-ydpi="120.952"><metadata
      id="metadata3517"><rdf:RDF><cc:Work
          rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
      id="defs3515"><pattern
        inkscape:collect="always"
        xlink:href="#pattern4591"
@@ -208,9 +208,9 @@
      inkscape:window-height="2004"
      id="namedview3513"
      showgrid="false"
-     inkscape:zoom="1.6328077"
-     inkscape:cx="1068.1226"
-     inkscape:cy="250.32286"
+     inkscape:zoom="1.5275"
+     inkscape:cx="1000"
+     inkscape:cy="246.3"
      inkscape:window-x="-16"
      inkscape:window-y="-16"
      inkscape:window-maximized="1"
@@ -322,6 +322,7 @@
      id="tspan3390"
      sodipodi:role="line"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:180px;line-height:1.25;font-family:'Segoe Print';-inkscape-font-specification:'Segoe Print';fill:#f4eed7;fill-opacity:1;stroke:url(#pattern5302)">for Leopard Sharks</tspan></text>
+
 
 </g><path
          inkscape:connector-curvature="0"
