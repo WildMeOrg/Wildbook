@@ -19,8 +19,7 @@ java.lang.NumberFormatException"
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-Shepherd myShepherd=new Shepherd(context);
-myShepherd.setAction("testEmail.jsp");
+
 
 int numFixes=0;
 
@@ -51,6 +50,9 @@ if(emailAddress==null){
 <%
 }
 else{
+	
+	Shepherd myShepherd=new Shepherd(context);
+	myShepherd.setAction("testEmail.jsp");
 
 	ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 	
