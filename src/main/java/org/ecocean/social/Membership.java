@@ -51,6 +51,11 @@ public class Membership implements java.io.Serializable {
         }
     }
 
+    public Membership(MarkedIndividual mi) {
+        if (mi==null) throw new NullPointerException();
+        this.mi = mi;
+    }
+
     public MarkedIndividual getMarkedIndividual() {
         return mi;
     }
