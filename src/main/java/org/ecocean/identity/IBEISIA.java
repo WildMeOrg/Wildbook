@@ -1703,7 +1703,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
             uuids.add(ann.getAcmId());
             species.add(taxonomyString);
             try {
-                iaUpdateSpecies(uuids, species, context);
+                //iaUpdateSpecies(uuids, species, context);
             } catch (Exception ex) {
                 System.out.println("ERROR: iaUpdateSpecies() failed! " + ex.toString());
                 ex.printStackTrace();
