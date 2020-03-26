@@ -26,6 +26,8 @@ import java.lang.NumberFormatException;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
+import org.ecocean.social.Membership;
+import org.ecocean.social.SocialUnit;
 import org.ecocean.importutils.*;
 import org.ecocean.media.*;
 import org.ecocean.genetics.*;
@@ -309,6 +311,7 @@ public class StandardImport extends HttpServlet {
         Encounter enc = loadEncounter(row, annotations, context, myShepherd);
         occ = loadOccurrence(row, occ, enc, myShepherd);
         mark = loadIndividual(row, enc, myShepherd, committing, individualCache);
+        SocialUnit socUnit = loadSocialUnit(row, mark, myShepherd, committing);
 
         if (committing) {
 
@@ -461,6 +464,46 @@ public class StandardImport extends HttpServlet {
     //fs.close();
 
 
+  }
+
+  public SocialUnit loadSocialUnit(Row row, MarkedIndividual mark, Shepherd myShepherd, boolean committing) {
+    
+    String suName = getString(row, "SocialUnit.socialUnitName");
+    if (suName!=null) {
+      
+      System.out.println("----> suName not null: "+suName);
+      SocialUnit su = null;
+      try {
+        su = myShepherd.getSocialUnit(suName);
+        if (su==null) {
+          su = new SocialUnit(suName);
+          myShepherd.storeNewSocialUnit(su);
+        }
+        
+        if (mark!=null) {
+          System.out.println("----> have Indy ID for this SocU: "+suName);
+          if (!su.hasMarkedIndividualAsMember(mark)) {
+            Membership ms = new Membership(mark);
+            myShepherd.storeNewMembership(ms);
+            if (getString(row, "Membership.role")!=null) {
+              ms.setRole(getString(row, "Membership.role"));
+            }
+
+            myShepherd.beginDBTransaction();
+            su.addMember(ms);
+            myShepherd.commitDBTransaction();
+            System.out.println("----> added membership to SocU ");
+  
+          }
+        }
+      } catch (Exception e) {
+        System.out.println("Exception while creating SocialUnit, retrieving it or adding Membership!");
+        e.printStackTrace();
+        myShepherd.rollbackDBTransaction();
+      }
+      return su;
+    }
+    return null;
   }
 
   public Taxonomy loadTaxonomy0(Row row, Shepherd myShepherd) {
