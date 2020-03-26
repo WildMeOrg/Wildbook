@@ -3899,13 +3899,27 @@ return Util.generateUUID();
         HashMap<String,Taxonomy> map = new HashMap<String,Taxonomy>();
         String sciName = "";
         int i = 0;
-        while (sciName != null) {
-            sciName = IA.getProperty(context, "taxonomyScientificName" + i);
-            if (sciName == null) continue;
-            String iaClass = IA.getProperty(context, "detectionClass" + i);
-            if (iaClass == null) iaClass = sciName;  //tough love
-            map.put(iaClass, myShepherd.getOrCreateTaxonomy(sciName, true));
-            i++;
+        try {
+            while (sciName != null) {
+                sciName = IA.getProperty(context, "taxonomyScientificName" + i);
+                System.out.println("SCINAME "+i+" = "+sciName);
+                if (sciName == null) continue;
+                String iaClass = IA.getProperty(context, "detectionClass" + i);
+                System.out.println("IACLASS "+i+" = "+iaClass);
+                if (iaClass == null) iaClass = sciName;  //tough love
+
+                Taxonomy tax = myShepherd.getOrCreateTaxonomy(sciName, true);
+
+                System.out.println("GOT TAX??? "+tax);
+                if (tax!=null) {
+                    System.out.println("HERE'S TAX!!! "+tax.getScientificName());
+                }
+
+                map.put(iaClass, myShepherd.getOrCreateTaxonomy(sciName, true));
+                i++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return map;
     }
