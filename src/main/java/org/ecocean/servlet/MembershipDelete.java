@@ -66,15 +66,20 @@ public class MembershipDelete extends HttpServlet {
             myShepherd.beginDBTransaction();
             if (su.hasMarkedIndividualAsMember(mi)) {
                 su.removeMember(mi);
+                res.put("success", "true"); 
             }
             myShepherd.commitDBTransaction();
 
         } catch (Exception e) {
             myShepherd.rollbackAndClose();
             e.printStackTrace();
+            res.put("success", "false"); 
         } finally {
             myShepherd.closeDBTransaction();
         }
+
+        PrintWriter out = response.getWriter();
+        out.println(res);
 
         System.out.println("prototype MembershipDelete servlet end");
     
