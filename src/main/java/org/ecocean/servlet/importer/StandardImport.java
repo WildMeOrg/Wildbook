@@ -28,6 +28,7 @@ import java.lang.NumberFormatException;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
+import org.ecocean.importutils.*;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.importutils.*;
@@ -1149,7 +1150,7 @@ public class StandardImport extends HttpServlet {
         feedback.logParseError(assetColIndex(i), localPath, row);
         return null;
       }
-    } catch (NullPointerException npe) {
+    } catch (NullPointerException npe) {  
       npe.printStackTrace();
     }
 
