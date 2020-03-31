@@ -21,6 +21,7 @@ import org.joda.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.net.URL;
 
 import java.io.*;
@@ -48,40 +49,47 @@ public class MembershipDelete extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MembershipDelete.java");
 
-        JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
-        System.out.println("==> Hit the MembershipDelete Servlet.. ");
 
-        String groupName = j.optString("groupName");
-        String individualId = j.optString("individualId");
+        JSONObject j = null;
+        try {
+            j = ServletUtilities.jsonFromHttpServletRequest(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         JSONObject res = new JSONObject();
-        try {
-            MarkedIndividual mi = myShepherd.getMarkedIndividual(individualId);
-            if (mi==null) {
-                res.put("success", "false"); 
+        res.put("success", "false"); 
+        System.out.println("==> Hit the MembershipDelete Servlet.. ");
+        if (j!=null) {
+            String groupName = j.optString("groupName");
+            String individualId = j.optString("miId");
+    
+            try {
+                MarkedIndividual mi = myShepherd.getMarkedIndividual(individualId);
+                if (mi!=null) {
+                    SocialUnit su = myShepherd.getSocialUnit(groupName);
+        
+                    myShepherd.beginDBTransaction();
+                    if (su.hasMarkedIndividualAsMember(mi)) {
+                        su.removeMember(mi, myShepherd);
+                        res.put("success", "true"); 
+                    }
+                    myShepherd.commitDBTransaction();
+        
+                    System.out.println("I think I removed the indy from the SocialUnit: "+(!su.hasMarkedIndividualAsMember(mi)));
+                }
+    
+            } catch (Exception e) {
+                myShepherd.rollbackAndClose();
+                e.printStackTrace();
+            } finally {
+                myShepherd.closeDBTransaction();
             }
-            SocialUnit su = myShepherd.getSocialUnit(groupName);
-
-            myShepherd.beginDBTransaction();
-            if (su.hasMarkedIndividualAsMember(mi)) {
-                su.removeMember(mi);
-                res.put("success", "true"); 
-            }
-            myShepherd.commitDBTransaction();
-
-        } catch (Exception e) {
-            myShepherd.rollbackAndClose();
-            e.printStackTrace();
-            res.put("success", "false"); 
-        } finally {
-            myShepherd.closeDBTransaction();
         }
 
         PrintWriter out = response.getWriter();
         out.println(res);
-
-        System.out.println("prototype MembershipDelete servlet end");
     
     }
 
