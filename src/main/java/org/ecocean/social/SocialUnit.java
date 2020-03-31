@@ -63,10 +63,13 @@ public class SocialUnit implements java.io.Serializable {
     return null;
   }
 
-  public boolean removeMember(MarkedIndividual mi) {
+  public boolean removeMember(MarkedIndividual mi, Shepherd myShepherd) {
     if (hasMarkedIndividualAsMember(mi)) {
       Membership toRemove = getMembershipForMarkedIndividual(mi);
+      myShepherd.beginDBTransaction();
       members.remove(toRemove);
+      myShepherd.throwAwayMembership(toRemove);
+      myShepherd.commitDBTransaction();
       return true;
     }
     return false;
