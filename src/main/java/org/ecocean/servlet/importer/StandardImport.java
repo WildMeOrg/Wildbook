@@ -1057,7 +1057,7 @@ public class StandardImport extends HttpServlet {
     return individualPrefix+indID;
   }
 
-  public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd) {
+  public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
         
     try {
       if (emptyAssetColumn(i)) {
