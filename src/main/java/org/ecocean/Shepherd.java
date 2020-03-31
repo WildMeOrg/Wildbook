@@ -436,6 +436,11 @@ public class Shepherd {
     pm.deletePersistent(wSpace);
   }
 
+  public void throwAwayMembership(Membership mShip) {
+    pm.deletePersistent(mShip);
+  }
+
+
   public void throwAwayCollaboration(Collaboration collab) {
     pm.deletePersistent(collab);
   }
