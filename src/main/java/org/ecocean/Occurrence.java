@@ -8,11 +8,14 @@ import java.util.Vector;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Collection;
+import javax.jdo.Query;
 
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.movement.SurveyTrack;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -696,7 +699,15 @@ public class Occurrence implements java.io.Serializable {
     return null;
   }
 
-  //public void setLocationID(String newLocID){this.locationID=newLocID;}
+    //thanks for nothing unidirectional mess
+    public SurveyTrack getSurveyTrack(Shepherd myShepherd) {
+        SurveyTrack trk = null;
+        Query q = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.movement.SurveyTrack WHERE this.occurrences.contains(occ) && occ.occurrenceID =='" + this.getOccurrenceID() + "' VARIABLES org.ecocean.Occurrence occ");
+        List results = (List)q.execute();
+        if (results.size() > 0) trk = (SurveyTrack)results.get(0);
+        q.closeAll();
+        return trk;
+    }
 
   public String getDateTimeCreated() {
     if (dateTimeCreated != null) {
