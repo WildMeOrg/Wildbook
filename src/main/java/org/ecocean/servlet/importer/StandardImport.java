@@ -1478,7 +1478,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     numCols = firstRow.getLastCellNum();
     String[] headers = new String[numCols];
     System.out.println("We're making colIndexMap!");
-  	for (int i=0; i<numCols; i++) {
+  	for (int i=0; i<=numCols; i++) {
       String colName = getStringNoLog(firstRow, i);
       System.out.println("Are there any values in this colum? "+i);
       allColsMap.put(colName,i);
