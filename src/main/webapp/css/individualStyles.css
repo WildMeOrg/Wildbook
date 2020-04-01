@@ -1,378 +1,460 @@
 .mainColumn {
-  padding-right: 0 !important;
-  padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
 }
 
 .mainHeader {
-  background-color: #e8eff1;
+    background-color: #e8eff1;
 }
 
 .slider {
-  padding-right: 0 !important;
-  padding-left: 0 !important;
-  display: none;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+    display: none;
 }
 
 .sliderimg {
-  max-height: 400px;
-  margin: 0 !important;
+    max-height: 400px;
+    margin: 0 !important;
 }
 
 .crop-outer {
-  cursor: pointer;
-  width: auto;
-  overflow: hidden;
+    cursor: pointer;
+    width: auto;
+    overflow: hidden;
 }
 .crop-outer .crop {
-  text-align: center;
-  overflow: hidden;
+    text-align: center;
+    overflow: hidden;
 }
 
 #markedIndividualHeader {
-  -webkit-text-fill-color: #005589;
+    -webkit-text-fill-color: #005589;
 }
 
 #markedIndividualHeader a{
-  -webkit-text-fill-color: white;
+    -webkit-text-fill-color: white;
 }
 
+/*Social Graph*/
+.node {
+    cursor: pointer;
+}
+
+.node text {
+    font: 12px sans-serif;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+.linkLabel text {
+    pointer-events: none;
+}
 
 /*Edit forms*/
 label {
-  font-weight: lighter;
+    font-weight: lighter;
 }
 
 input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-control, input#timeOfDeath.form-control, input#alternateid.form-control{
-  padding-top: 0px;
-  padding-bottom: 0px;
-  color:  #333;
-  font-size: 1em;
-  height: 30px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    color:  #333;
+    font-size: 1em;
+    height: 30px;
 }
 
 .editForm {
-  display: none;
-  margin-bottom: 10px;
+    display: none;
+    margin-bottom: 10px;
 }
 
 input.nameVale, input.nameKey {
-  display: none;
+    display: none;
 }
 
 .clickDateText{
-  margin-bottom: 0px;
-  display: none;
-  color: #990000;
-  font-size: 14px;
+    margin-bottom: 0px;
+    display: none;
+    color: #990000;
+    font-size: 14px;
 }
 
 .form-group {
-  margin-bottom: 0px;
+    margin-bottom: 0px;
 }
 
 #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #matchCheck {
-  display: none;
-  color: green;
-  font-family: sans-serif;
+    display: none;
+    color: green;
+    font-family: sans-serif;
 }
 
 #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, #matchError {
-  display: none;
-  color: red;
-  font-family: sans-serif;
-  font-weight: bold;
+    display: none;
+    color: red;
+    font-family: sans-serif;
+    font-weight: bold;
 }
 
 #nicknameErrorDiv, #sexErrorDiv, #birthErrorDiv, #deathErrorDiv, #altIdErrorDiv, #matchErrorDiv {
-  display: none;
+    display: none;
 }
 
 .relationshipInput {
-  
+    
 }
 
 .requiredLabel {
-  margin-bottom: 0px;
+    margin-bottom: 0px;
 }
 
 .highlight {
-  color: #990000;
+    color: #990000;
 }
 
 input.form-control.relationshipInput, select.form-control.relationshipInput {
-  margin-bottom: 10px;
+    margin-bottom: 10px;
 }
 
 .editFormInput {
-  margin-right: 5px;
-  padding-right: 0px;
+    margin-right: 5px;
+    padding-right: 0px;
 }
 
 .editFormBtn {
-  width: 70px;
+    width: 70px;
 }
 
 #addRelationshipForm {
-  background-color: #e8eff1;
-  padding: 10px;
-  margin-bottom: 20px;
-  display: none;
+    background-color: #e8eff1;
+    padding: 10px;
+    margin-bottom: 20px;
+    display: none;
 }
 
 #Name, #Add, #birthy, #deathy, #AltID, #setMB {
-  margin-bottom: 0px;
-  margin-top: 2px;
-  margin-left: 15px;
-  padding-top: 0px;
-  padding-bottom: 2px;
+    margin-bottom: 0px;
+    margin-top: 2px;
+    margin-left: 15px;
+    padding-top: 0px;
+    padding-bottom: 2px;
 }
 
 #addRelationshipBtn {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 #edit {
-  display: block;
+    display: block;
 }
 
 #closeEdit, .confirmDelete {
-  display: none;
+    display: none;
 }
 
 #edit, #closeEdit {
-  background-color: white;
+    background-color: white;
 }
 
 #edit:hover, #closeEdit:hover {
-  background-color: #8bff00;
-}
+		 background-color: #8bff00;
+	     }
 
 .has-feedback .form-control {
-  padding-right: 30px;
+    padding-right: 30px;
 }
 
 #individual1set, #individual2set {
-  display: none;
+    display: none;
 }
 
 .successHighlight {
-  color: green;
+    color: green;
 }
 
 button.btn.btn-sm.btn-block.yesDelete {
-  background-color: #20B845;
-  color: #FFFFFF;
+    background-color: #20B845;
+    color: #FFFFFF;
 }
 
 button.btn.btn-sm.btn-block.yesDelete:hover {
-  background-color: #22C449;
-  color: #FFFFFF;
+    background-color: #22C449;
+    color: #FFFFFF;
 }
 
 button.btn.btn-sm.btn-block.cancelDelete {
-  background-color: #D9231A;
-  color: #FFFFFF;
+    background-color: #D9231A;
+    color: #FFFFFF;
 }
 
 button.btn.btn-sm.btn-block.cancelDelete:hover {
-  background-color: #EE261D;
-  color: #FFFFFF;
+    background-color: #EE261D;
+    color: #FFFFFF;
 }
 
 button.btn.btn-sm.btn-block.deleteRelationshipBtn {
-  background-color: #D9231A;
-  color: #FFFFFF;
+    background-color: #D9231A;
+    color: #FFFFFF;
 }
 button.btn.btn-sm.btn-block.deleteRelationshipBtn:hover {
-  background-color: #EE261D;
-  color: #FFFFFF;
+    background-color: #EE261D;
+    color: #FFFFFF;
 }
 
 input.btn.btn-md#closeRelationshipForm {
-  background-color: #D9231A;
-  color: #FFFFFF;
+    background-color: #D9231A;
+    color: #FFFFFF;
 }
 
 input.btn.btn-md#closeRelationshipForm:hover {
-  background-color: #EE261D;
-  color: #FFFFFF;
+    background-color: #EE261D;
+    color: #FFFFFF;
 }
 
 .setRelationshipResultDiv {
-  padding-bottom: 20px;
+    padding-bottom: 20px;
 }
 
 /*Hide Diagram Tab Content*/
 #communityTable, #cooccurrenceTable, #bioSamplesTable {
-  display: none;
+    display: none;
 }
 
 /*Nav-tab styling*/
 li.active{
-  background-color: #FFFFFF;
+    background-color: #FFFFFF;
 }
 
 .nav-tabs>li>a {
-  background-color: #7997a1;
-  color: white;
-  border-top-right-radius: 5px;
-  border-top-left-radius: 5px;
-  border-right: 1px solid white;
-  border-left: 1px solid white;
+    background-color: #7997a1;
+    color: white;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+    border-right: 1px solid white;
+    border-left: 1px solid white;
 }
 
 .nav-tabs>li>a:hover {
-  background-color: #8aacb8;
+    background-color: #8aacb8;
 }
 
 /*Social Relationships Table Styles*/
 #relationshipTable th {
-  background-image: none;
+    background-image: none;
 }
 
-/* Family Tree Styles */
-
-#familyDiagram {
-  text-align: center;
-}
-
-#familyDiagram svg {
-  border: 1px solid #aaa;
-}
-.individual rect {
-  fill: #fff;
-  stroke: steelblue;
-  stroke-width: 1px;
-}
-.individual {
-  font: 14px sans-serif;
-  cursor: pointer;
-}
-.link {
-  fill: none;
-  stroke: #ccc;
-  stroke-width: 1.5px;
+div .tooltip {	
+    position: absolute;			
+    text-align: center;			
+    /*    width: 100px;					*/
+    /*    height: 30px;					*/
+    padding: 2px;				
+    font: 12px sans-serif;
+    color: #ffffff;
+    background: #909090;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
 }
 
 /*Bubble Diagram Styles*/
 
 .co-occurrences {
-  width: 850px;
-  height: 400px;
-  border-radius: 5px;
+    width: 850px;
+    height: 400px;
+    border-radius: 5px;
+}
+
+.graphSliders {
+    display:flex;
+    flex-direction:row;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.sliderWrapper, .coOccurrenceSliderWrapper {
+    position: relative;
+    width: 40%;
+}
+
+.coOccurrenceSliderWrapper {
+    width: 25%;
+}
+
+.coOccurrenceSlider {
+}
+
+.sliderLabel {
+    font-weight: 550;
+}
+
+.graphSlider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 7px;
+    border-radius: 5px;  
+    background-color: #c9d5d9;
+    outline: none !important;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.graphSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%; 
+    background: #7997A1;
+    outline: none !important;
+    cursor: pointer;
+}
+
+.graphSlider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #7997A1;
+    outline: none !important;
+    cursor: pointer;
+}
+
+.graphSlider:focus, .graphSlider:active {
+			outline: none !important;
+		    }
+
+.graphSlider::-moz-focus-inner {
+    border: 0;
 }
 
 .bubbleChart {
-  width: auto;
-  height: 350px;
+    width: auto;
+    height: 350px;
 }
 
 .bubbleChart svg{
-  background: #373F51;
-  width: 100%;
+    background: #373F51;
+    width: 100%;
 }
 
 .btn-group {
-  position: absolute;
+    position: absolute;
 }
 
 .mygrid-wrapper-div {
-  overflow: scroll;
-  max-height: 350px;
+    overflow: scroll;
+    max-height: 350px;
 }
 
-#zoomIn, #zoomOut, #reset, #resetButton {
-  background: #FFFFFF;
-  color: navy;
+#zoomIn, #zoomOut, #resetButton {
+    background: #FFFFFF;
+    color: navy;
 }
 
-button#zoomIn.btn.btn-default{
-  padding-top: 6px;
-  padding-bottom: 10px;
+#graphFilters {
+    position: absolute;
 }
 
-button#zoomOut.btn.btn-default{
-  padding-top: 8px;
-  padding-bottom: 8px;
+#graphFilters button, .filterOptions label {
+    padding: 6px 12px;
+    margin: 12px 8px 0px 0px;
+
+    font-size: 15px;
+    color: #333;
+    text-align: center;
+    
+    background: #fff;
+    border: 2px solid #7997a1;
+    border-radius: 5px;
+    line-height: 1.5em;
 }
 
-/*button {
-  margin-right: 0px;
-  margin-top: 0px;
-}*/
-
-.node circle {
-  stroke: none;
+.filterOptions label {
+    border-color: #808080;
 }
 
+.filterOptions label input {
+    position: absolute;
+    visibility: hidden;
+}
+
+#graphFilters button:hover, .filterOptions label:hover {
+    background: #ccc !important;
+}
 
 /*Co-occurrence Table Style*/
 
 th {
-  background-color: #566c73;
-  font-weight: lighter;
-  color: white;
-  border: 1px solid white;
-  text-align: center;
-  width: 400px;
-  padding: 10px;
+    background-color: #566c73;
+    font-weight: lighter;
+    color: white;
+    border: 1px solid white;
+    text-align: center;
+    width: 400px;
+    padding: 10px;
 }
 
 #encountTable th, #coTable th {
-  background-image: url("/images/upDownArrows.png");
-  background-repeat: no-repeat;
-  background-position: right;
+    background-image: url("/images/upDownArrows.png");
+    background-repeat: no-repeat;
+    background-position: right;
 }
 
 #encountTable th:hover, #coTable th:hover {
-  cursor: pointer;
-}
+			    cursor: pointer;
+			}
 
 .encounterImg, .encounterSample {
-  max-width: 30px;
-  width: auto;
-  max-height: 30px;
+    max-width: 30px;
+    width: auto;
+    max-height: 30px;
 }
 
 .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
-  background-color: #7997a1;
-  color: #FFFFFF;
-  cursor: pointer;
-}
+				    background-color: #7997a1;
+				    color: #FFFFFF;
+				    cursor: pointer;
+				}
 
 .hide {
-  display: none;
+    display: none;
 }
 
 .maincontent td {
-  font-family: sans-serif;
-  font-size: 14px;
-  vertical-align: middle;
+    font-family: sans-serif;
+    font-size: 14px;
+    vertical-align: middle;
 }
 
 /*Collaborating Researcher Styles*/
 
 .researcherName {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 .researcherPhoto {
-  max-width: 100%;
-  max-height: 200px;
-  height: auto;
+    max-width: 100%;
+    max-height: 200px;
+    height: auto;
 }
 
 .researcherPhotoContainer {
-  width: 30rem;
-  padding: 2%;
-  word-wrap: break-word;
+    width: 30rem;
+    padding: 2%;
+    word-wrap: break-word;
 }
 
 .thumbnail {
-  box-shadow: none;
+    box-shadow: none;
+}
+
+.legend {
+    transition: opacity 1.5s;
 }
 
 #researchers {
-  display: flex;
-  flex-wrap: wrap;
+    display: flex;
+    flex-wrap: wrap;
 }
