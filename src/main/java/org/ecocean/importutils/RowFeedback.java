@@ -76,7 +76,7 @@ public class RowFeedback {
     }
 
     public void logParseNoValue(int colNum) {
-      if (!committing) {
+      if (!committing&&colNum<this.cells.length) {
         this.cells[colNum] = new CellFeedback(null, true, true);
       }
     }
