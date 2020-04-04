@@ -316,6 +316,9 @@
 			  "name": "Gulf of Maine", "id": "Gulf of Maine" },
 			 {
 			  "name": "Gulf of Mexico","id":"Gulf of Mexico","locationID":[
+			  
+			    { "name":"Cedar Key", "id":"Cedar Key", "locationID":[] },
+			  
 				{ "name":"CH", "id":"CH", "locationID":[] },
 			  
 				{ "name":"GU", "id":"GU", "locationID":[] },
@@ -522,7 +525,14 @@
 		 {
 		  "name": "Red Sea", "id":"Red Sea", 
 		  "locationID":[
-		    {"name":"Israel","id":"Israel"}
+		    {"name":"Israel","id":"Israel", "locationID":[
+			
+				{"name": "Ashdod", "id": "Ashdod" },
+				{"name": "Ashkelon", "id": "Ashkelon" },
+				{"name": "Dor", "id": "Dor" },
+				{"name": "Herzelia", "id": "Herzelia" }
+
+			]}
 		  ] 
 		  },
 		 {
