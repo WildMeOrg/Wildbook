@@ -444,9 +444,9 @@ public class Annotation implements java.io.Serializable {
                 MediaAsset ma = this.getMediaAsset();
 
                 for (int i=0;i<keywords.size();i++) {
-                    String keyword = keywords.get(i);
+                    String keyword = keywords.get(i).trim();
                     if (!this.iaClass.contains(keyword)) continue;
-                    String labelValue = labelValues.get(i);
+                    String labelValue = labelValues.get(i).trim();
                     if (keyword!=null&&!"".equals(keyword)&&labelValue!=null&&!"".equals(labelValue)) {
                         
                         Keyword kw = null;
