@@ -56,7 +56,7 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request) thro
 
 <%!
 
-void tryCompress(HttpServletRequest req, HttpServletResponse resp, Object jo, boolean useComp) throws IOException, JSONException {
+void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo, boolean useComp) throws IOException, JSONException {
 //System.out.println("??? TRY COMPRESS ??");
     //String s = scrubJson(req, jo).toString();
     String s = jo.toString();
@@ -122,6 +122,7 @@ Query query=null;
 try {
 	
 	JSONObject jsonobj = new JSONObject();
+
 	
 	QueryCache qc=QueryCacheFactory.getQueryCache(context);
 	if(qc.getQueryByName("socialJson")!=null && System.currentTimeMillis()<qc.getQueryByName("socialJson").getNextExpirationTimeout() && request.getParameter("refresh")==null){
@@ -150,6 +151,7 @@ try {
 	
 		Collection result = (Collection)query.execute();
 		ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>(result);
+		
 		JSONArray jarray=new JSONArray();
 	        
 	        for(MarkedIndividual indy:indies){
@@ -162,7 +164,7 @@ try {
 		}
 
         
-        tryCompress(request, response, jsonobj, true);
+        tryCompress(request, response, jsonobj.getJSONArray("results"), true);
         CachedQuery cq=new CachedQuery("socialJson",Util.toggleJSONObject(jsonobj), false, myShepherd);
         cq.nextExpirationTimeout=System.currentTimeMillis()+300000;
         qc.addCachedQuery(cq);
