@@ -357,11 +357,34 @@ if (!isAdmin) {   //filter out ones we made decision on
     }
 }
 
-System.out.println("queue.jsp: found " + encs.size() + " encs for user " + user);
+System.out.println("queue.jsp: found " + encs.size() + " encs for " + user);
 
 if (!forceList && (encs.size() > 0)) {
+/*  we should never need to do straight up random now
     int r = (int)Math.floor(Math.random() * encs.size());
     String redir = "encounters/encounterDecide.jsp?id=" + encs.get(r).getCatalogNumber();
+*/
+
+    //this will find the least-served pages find available one in order of need
+    String foundId = "ERROR";  //snh
+    query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select \"ENCOUNTER_CATALOGNUMBER_OID\" as id, count(*) as ct from \"DECISION\" group by id order by ct, random()");
+    List results = (List)query.execute();
+    Iterator it = results.iterator();
+    IDFOUND: while (it.hasNext()) {
+        Object[] row = (Object[]) it.next();
+        String eid = (String)row[0];
+        if (eid == null) continue;  //snh
+        Long ct = (Long)row[1];
+        System.out.println("queue.jsp: ? can give " + eid + " (ct " + ct + ") to " + user);
+        for (Encounter enc : encs) {
+            if (eid.equals(enc.getCatalogNumber())) {
+                foundId = eid;
+                break IDFOUND;
+            }
+        }
+    }
+    query.closeAll();
+    String redir = "encounters/encounterDecide.jsp?id=" + foundId;
     myShepherd.rollbackDBTransaction();
     response.sendRedirect(redir);
     return;
