@@ -692,9 +692,15 @@ System.out.println("[1] getMatchingSet params=" + params);
 
     //gets everything, no exclusions (e.g. for cacheing)
     public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet, JSONObject params) {
-        if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
-        return getMatchingSetForFilter(myShepherd, filter);
+      String filter="";  
+      if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
+      else if(specificEpithet.equals("sp.")) {
+        filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' VARIABLES org.ecocean.Encounter enc";
+        }
+      else {
+          filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
+      }
+      return getMatchingSetForFilter(myShepherd, filter);
     }
     //figgeritout
     public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, JSONObject params) {
