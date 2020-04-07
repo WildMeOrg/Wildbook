@@ -3,21 +3,35 @@
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
 
-	{"name":"Africa","id":"Africa","locationID":[
+	{"name":"Africa - All","id":"Africa","locationID":[
 
-		{ "name":"Angola", "id":"Angola", "locationID":[] },
-		{ "name":"Botswana", "id":"Botswana", "locationID":[] },
-		{ "name":"Eswatini", "id":"Eswatini", "locationID":[] },
-		{ "name":"Kenya", "id":"Kenya", "locationID":[] },
-		{ "name":"Lesotho", "id":"Lesotho", "locationID":[] },
-		{ "name":"Malawi", "id":"Malawi", "locationID":[] },
-		{ "name":"Mozambique", "id":"Mozambique", "locationID":[] },
-		{ "name":"Namibia", "id":"Namibia", "locationID":[] },
-		{ "name":"South Africa", "id":"South Africa", "locationID":[] },
-		{ "name":"Tanzania", "id":"Tanzania", "locationID":[] },
-		{ "name":"Zambia", "id":"Zambia", "locationID":[] },
-		{ "name":"Zimbabwe", "id":"Zimbabwe", "locationID":[] }
+		{"name":"Africa - South","id":"Africa","locationID":[
+
+
+			{ "name":"Angola", "id":"Angola", "locationID":[] },
+			{ "name":"Botswana", "id":"Botswana", "locationID":[] },
+			{ "name":"Mozambique", "id":"Mozambique", "locationID":[] },
+			{ "name":"Namibia", "id":"Namibia", "locationID":[] },
+			{ "name":"South Africa", "id":"South Africa", "locationID":[] },
+			{ "name":"Zambia", "id":"Zambia", "locationID":[] },
+			{ "name":"Zimbabwe", "id":"Zimbabwe", "locationID":[] }
+			
+			
+			]}, 
+			
+			{"name":"Africa - East","id":"Africa","locationID":[
+				
+				{ "name":"Kenya", "id":"Kenya", "locationID":[] },
+				{ "name":"Malawi", "id":"Malawi", "locationID":[] },
+				{ "name":"Tanzania", "id":"Tanzania", "locationID":[] }
+
+		]},
+
+		{"name":"Africa - West","id":"Africa","locationID":[
+
+
+		]}
+
 	]}
   ]
-}
-
+}	
