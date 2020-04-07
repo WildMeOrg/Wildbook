@@ -750,7 +750,10 @@ System.out.println("[1] getMatchingSet params=" + params);
     //   note: will return "" when this annot has no (valid) viewpoint
     private String getMatchingSetFilterViewpointClause(Shepherd myShepherd) {
         String[] viewpoints = this.getViewpointAndNeighbors();
-        if (viewpoints == null || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops truncatus")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Orcinus orca"))|| (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops aduncus")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops sp.")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Delphinus delphis"))) return "";
+        if (viewpoints == null) return "";
+        //else if(getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops truncatus")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Orcinus orca"))|| (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops aduncus")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops sp.")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Delphinus delphis")) return "";
+        //if explicitly told to ignore viewpoint matching, skip this step
+        else if(getTaxonomy(myShepherd)!=null && IA.getProperty(myShepherd.getContext(), "ignoreViewpointMatching",getTaxonomy(myShepherd))!=null && IA.getProperty(myShepherd.getContext(), "ignoreViewpointMatching",getTaxonomy(myShepherd)).equals("true")) return "";
         String clause = "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
         System.out.println("VIEWPOINT CLAUSE: "+clause);
         return clause;
