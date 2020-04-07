@@ -58,7 +58,7 @@ if (session.getAttribute("error") != null) {
 %>
 </div>
               
-              <form action="LoginUser" method="post" id="logMeInForm">
+    <form action="LoginUser" method="post" id="logMeInForm">
     <table align="left" border="0" cellspacing="0" cellpadding="3">
         <tr>
             <td><%=props.getProperty("username") %></td>
@@ -132,8 +132,19 @@ if((CommonConfiguration.getProperty("allowSocialMediaAccountCreation", "context0
         <strong><%=props.getProperty("passwordHelp") %></strong><br />
         <a href="resetPassword.jsp"><%=props.getProperty("forgotPassword") %></a>
      </td></tr>
+
+
+      <tr><td colspan="2" align="left">
+        <br/>
+        <p><%=props.getProperty("accountInquiry") %></p>
+        <p>
+          <a href="contactus.jsp">Contact us here to request an account.</a>
+        </p>
+      </td></tr>
      
     </table>
+
+
 </form>
               
               </p>
