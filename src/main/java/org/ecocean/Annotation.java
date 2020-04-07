@@ -736,7 +736,7 @@ System.out.println("[1] getMatchingSet params=" + params);
     //   note: will return "" when this annot has no (valid) viewpoint
     private String getMatchingSetFilterViewpointClause(Shepherd myShepherd) {
         String[] viewpoints = this.getViewpointAndNeighbors();
-        if (viewpoints == null || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops truncatus"))) return "";
+        if (viewpoints == null || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops truncatus")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Orcinus orca"))|| (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops aduncus"))) return "";
         String clause = "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
         System.out.println("VIEWPOINT CLAUSE: "+clause);
         return clause;

@@ -32,15 +32,18 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.net.URISyntaxException;
-import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.Vector;
 
 import org.joda.time.LocalDateTime;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 
 public class UserResetPasswordSendEmail extends HttpServlet {
@@ -59,9 +62,7 @@ public class UserResetPasswordSendEmail extends HttpServlet {
     
     String context="context0";
     //context=ServletUtilities.getContext(request);
-    String langCode = ServletUtilities.getLanguageCode(request);
-    Locale locale = new Locale(langCode);
-
+    
     //set up the user directory
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -128,31 +129,16 @@ public class UserResetPasswordSendEmail extends HttpServlet {
             put("@RESET_LINK@", npLink);
           }};
           String mailTo = myUser.getEmailAddress();
-          NotificationMailer mailer = new NotificationMailer(context, langCode, mailTo, "passwordReset", tagMap);
+          NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "passwordReset", tagMap, true);  //override user.receiveEmails
           es.execute(mailer);
           es.shutdown();
-
-          try {
-//          String link = "http://" + CommonConfiguration.getURLLocation(request);
-            String link = CommonConfiguration.getServerURL(request, request.getContextPath());
-            ActionResult actRes = new ActionResult(locale, "newPassword", true, link);
-            request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
-            getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-          }
-          catch (URISyntaxException ex) {
-            getServletConfig().getServletContext().getRequestDispatcher("/error.jsp").forward(request, response);
-          }
+          
+          out.println("If a user with that username or email address was found, we just sent them an email. Please check your Inbox and follow the link in the email to reset your password. If you don't see an email, don't forget to check your spam folder. Thank you!");
+          
         }
-        else {
-          try {
-            String link = CommonConfiguration.getServerURL(request, request.getContextPath());
-            ActionResult actRes = new ActionResult(locale, "newPassword", false, link);
-            request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
-            getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
-          }
-          catch (URISyntaxException ex) {
-            getServletConfig().getServletContext().getRequestDispatcher("/error.jsp").forward(request, response);
-          }
+        else{
+          out.println("No email address was registered with that username. Please contact a system administrator to reset your password.");
+          
         }
         
         

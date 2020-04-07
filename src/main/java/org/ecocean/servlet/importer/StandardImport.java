@@ -103,6 +103,8 @@ public class StandardImport extends HttpServlet {
   // indexes of columns determined to have no values for quick skipping
   List<Integer> skipCols = new ArrayList<Integer>();
 
+  HashMap<String,Integer> allColsMap = new HashMap<String,Integer>();
+
   Sheet sheet = null;
 
   public void init(ServletConfig config) throws ServletException {
@@ -1056,14 +1058,36 @@ public class StandardImport extends HttpServlet {
   }
 
   public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
-    
+        
+    try {
+      if (emptyAssetColumn(i)) {
+        feedback.logParseNoValue(assetColIndex(i));
+        return null;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
     String localPath = getString(row, "Encounter.mediaAsset"+i);
+    
+    if (isUserUpload) {
+      // user uploads currently flatten all images into a folder (TODO fix that!) so we trim extensions
+      try {
+        if (localPath!=null&&!"null".equals(localPath)&&localPath.contains("/")) {
+          int numChunks = localPath.split("/").length;
+          String lastChunk = localPath.split("/")[numChunks-1];
+          localPath = lastChunk;
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
 
     String resolvedPath = null;
     String fullPath = null;
     try {
-      if (localPath==null) {
-        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
+      if (localPath==null||"null".equals(localPath)) {
+        feedback.logParseError(assetColIndex(i), localPath, row);
         return null;
       } 
       localPath = Util.windowsFileStringToLinux(localPath).trim();
@@ -1074,12 +1098,12 @@ public class StandardImport extends HttpServlet {
       e.printStackTrace();
     }
 
-    //System.out.println("getMediaAsset resolvedPath is: "+resolvedPath);
+    //System.out.println("==============> getMediaAsset resolvedPath is: "+resolvedPath);
     try {
       if (resolvedPath==null) {
         missingPhotos.add(fullPath);
         foundPhotos.remove(fullPath);
-        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
+        feedback.logParseError(assetColIndex(i), localPath, row);
         return null;
       }
     } catch (NullPointerException npe) {
@@ -1410,9 +1434,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     numCols = firstRow.getLastCellNum();
     String[] headers = new String[numCols];
     System.out.println("We're making colIndexMap!");
-  	for (int i=0; i<numCols; i++) {
+  	for (int i=0; i<=numCols; i++) {
       String colName = getStringNoLog(firstRow, i);
       System.out.println("Are there any values in this colum? "+i);
+      allColsMap.put(colName,i);
       if (colName==null || colName.length()<4 || !anyValuesInColumn(i)) {
         System.out.println("skipCols adding column named: "+colName+" with index "+i);
         skipCols.add(i);
@@ -1432,7 +1457,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   private boolean anyValuesInColumn(int colIndex) {
     int numRows = sheet.getPhysicalNumberOfRows();
     System.out.println("physical number rows in sheet: "+sheet.getPhysicalNumberOfRows());
-    for (int i=1; i<=numRows; i++) {
+    for (int i=1; i<numRows; i++) {
       System.out.println("checking row "+i+" for value presence");
       try {
         //String anyVal = sheet.getRow(i).getCell(colIndex).toString();
@@ -1946,10 +1971,31 @@ public static String getCellValueAsString(Row row, int num) {
   }
 
   private Integer getColIndexFromColName(String colName) {
-    if (colName!=null) {
-      return Integer.valueOf(colIndexMap.get(colName));
+    try {
+      if (colName!=null) {
+        if (colIndexMap==null) {
+          return null;
+        } else {
+          Integer colIndex = colIndexMap.get(colName);
+          if (colIndex!=null) return Integer.valueOf(colIndex);
+          return null;
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
     return null;
+  }
+
+  private boolean emptyAssetColumn(int i) {
+    // FIX THIS: necessary because skipCols doesn't well handle open ended col names, like mediaAsset 
+    Integer result = assetColIndex(i);
+    if (skipCols.contains(result)) return true;
+    return false;
+  }
+
+  private Integer assetColIndex(int i) {
+    return allColsMap.get("Encounter.mediaAsset"+i);
   }
 
 }
