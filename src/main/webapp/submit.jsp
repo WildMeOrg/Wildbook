@@ -399,7 +399,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
       <p><%=props.getProperty("submit_overview") %></p>
 
       <p class="bg-danger text-danger">
+        <!--
         <%=props.getProperty("submit_note_red") %>
+        -->
       </p>
   </div>
 
@@ -594,7 +596,7 @@ function showUploadBox() {
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
           <li class="active">
-              <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()" style="background:url(images/computer.png);background-repeat: no-repeat;">
+              <button class="zocial icon hidden" title="Upload from your computer" onclick="showUploadBox()" style="background:url(images/computer.png);background-repeat: no-repeat;">
               </button>
           </li>
 
@@ -975,6 +977,13 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
         <fieldset>
 
   <div class="form-group">
+
+
+          <%
+          if (request.getRemoteUser()!=null) {
+          %>
+
+
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("status") %></label>
           </div>
@@ -1019,6 +1028,10 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
           </div>
         </div>
+
+        <%
+        }
+        %>
 
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1221,17 +1234,20 @@ pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
 <hr/>
 </c:if>
 
+        <%
+        if(request.getRemoteUser()!=null){
+        %>
 
-      <div class="form-group">
-        <label class="control-label"><%=props.getProperty("otherEmails") %></label>
-        <input class="form-control" name="informothers" type="text" id="informothers" size="75">
-        <p class="help-block"><%=props.getProperty("multipleEmailNote") %></p>
-      </div>
+        <div class="form-group">
+          <label class="control-label"><%=props.getProperty("otherEmails") %></label>
+          <input class="form-control" name="informothers" type="text" id="informothers" size="75">
+          <p class="help-block"><%=props.getProperty("multipleEmailNote") %></p>
+        </div>
       </div>
 
 
          <%
-         if(request.getRemoteUser()==null){
+        } else {
          %>
          <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
            <script>
@@ -1247,10 +1263,6 @@ pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
 				  			'theme' : 'light'
 						});
 		        }
-
-
-
-
 
            </script>
 
