@@ -185,12 +185,14 @@ h2.vidcap {
 <section class="hero container-fluid main-section relative main-background">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h1 class="hidden">Wildbook for African Carnivores</h1>
-            <h2>Wildbook for Carnivores</h2>
+            <div id="index-splash-text">
 
-            <a href="submit.jsp">
-                <button class="large"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
-            </a>
+                <h1 class="hidden">Wildbook for African Carnivores</h1>
+                <h2>Wildbook for Carnivores</h2>
+                <a href="submit.jsp">
+                    <button class="large"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
+                </a>
+            </div>
         </div>
 	</div>
 </section>
@@ -203,11 +205,11 @@ h2.vidcap {
 
   	<p class="lead"><%=props.getProperty("howItWorksHDescription") %></p>
   	
-  	<h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3>
+  	<!-- <h3 class="section-header"><%=props.getProperty("howItWorks1") %></h3> -->
   	<p class="lead"><%=props.getProperty("howItWorks1Description") %></p>
   	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="images/index_detection.jpg" />
 		  	
-  	
+  	<!--
   	<h3 class="section-header"><%=props.getProperty("howItWorks2") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks2Description") %></p>
   	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="cust/mantamatcher/img/leopard_howitworks2.jpg" />
@@ -216,7 +218,8 @@ h2.vidcap {
 	<h3 class="section-header"><%=props.getProperty("howItWorks4") %></h3>
   	<p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
   	<img width="500px" height="*" style="max-width: 100%;" height="*" class="lazyload" src="cust/mantamatcher/img/puppy_with_big_ears.JPG" data-src="cust/mantamatcher/img/puppy_with_big_ears.JPG" />
-		
+    -->
+      
 </section>
 
 <div class="container-fluid relative data-section">
@@ -309,7 +312,9 @@ h2.vidcap {
                         %>
 
                     </ul>
+                    <!--
                     <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
+                    -->
                 </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
@@ -366,7 +371,9 @@ h2.vidcap {
                    %>
 
                     </ul>
+                    <!--
                     <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters") %></a>
+                    -->
                 </div>
             </section>
         </div>
