@@ -409,11 +409,14 @@ finally{
 
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
 
-                          	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
-
+                            <!-- <li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li> -->
+                            
+                            <li><a href="<%=urlLoc %>/aboutUs.jsp"><%=props.getProperty("aboutUs")%></a></li>
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                          	<li><a target="_blank" href="https://www.wildbook.org"><%=props.getProperty("learnAboutShepherd")%></a></li>
-                        	<li class="divider"></li>
+                            <li><a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a></li>
+                            
+                            <li class="divider"></li>
+                            <li><a target="_blank" href="https://www.wildbook.org"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         </ul>
                       </li>
                       <li class="dropdown">
@@ -473,7 +476,11 @@ finally{
                       </li>
 
 
+                      <%
+                      if(request.getUserPrincipal()!=null) {
+                      %>
                       <li class="dropdown">
+
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                             <% if (CommonConfiguration.getWikiLocation(context)!=null) { %>
@@ -492,7 +499,7 @@ finally{
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                                 
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
-								<li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
+								                <li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
 								
                                 <% 
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
@@ -535,17 +542,21 @@ finally{
                               </ul>
                             </li>
 
-
-                                <li class="divider"></li>
-                                  <li class="dropdown-header"><%=props.getProperty("grid")%></li>
-
-                                <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
-                                <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-
-                        </ul>
-                      </li>
-                    </ul>
-
+                            
+                            
+                            <li class="divider"></li>
+                            <li class="dropdown-header"><%=props.getProperty("grid")%></li>
+                            
+                            <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                            <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                            
+                          </ul>
+                        </li>
+                      </ul>
+                      
+                      <%
+                      }
+                      %>
 
 
 
