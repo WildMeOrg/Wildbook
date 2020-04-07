@@ -13,7 +13,7 @@
 <jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
-		  <h2>Photographing Whales and Dolphins for Individual Identification with Computer Vision</h2>
+		  <h2>Photographing African carnivores for Individual Identification with Computer Vision</h2>
 	<p>Coming soon...</p>
 			
 	
