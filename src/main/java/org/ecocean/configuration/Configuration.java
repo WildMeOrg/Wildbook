@@ -44,7 +44,7 @@ public class Configuration implements java.io.Serializable {
         return ConfigurationUtil.isValidRoot(this.id);
     }
 
-    //this means it "can" or "should" have a value (e.g. path is good, config defined etc)
+    //this means it "can" or "should" have a value (e.g. path is good, meta defined etc)
     //  note that this is false you cannot read or set value on it
     public boolean isValid() {
         if (!this.hasValidRoot()) return false;

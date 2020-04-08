@@ -17,7 +17,7 @@ org.ecocean.media.*
 
 Shepherd myShepherd = new Shepherd("context0");
 
-//out.println(ConfigurationUtil.getConfigAsJSONObject());
+//out.println(ConfigurationUtil.getMetaAsJSONObject());
 //out.println("<p>" + ConfigurationUtil.getConfiguration(myShepherd, "cache.bar") + "</p>");
 out.println(ConfigurationUtil.getConfiguration(myShepherd, "cache.bar").toJSONObject());
 
