@@ -48,17 +48,27 @@ We are sorry, but we <b>do not</b> have an account associated with this email ad
 } else {  //main form
 %>
 
-<h1>Whale Alert user creation</h1>
+<h1>Welcome Whale Alert users!</h1>
+
 <p>
-If you are a <a target="_new" href="http://www.whalealert.org/">Whale Alert</a> app user, you can create an account
-on Flukebook with your username and password.  (more info etc)
+Thanks for using <a target="_new" href="http://www.whalealert.org/">Whale Alert</a> to help us spot and identify whales.
+If you're interested in contributing further, you can use your Whale Alert email to create a Flukebook account.
+</p>
+
+<p>
+With a Flukebook account, you'll be able to contribute data and assist in tracking individual whales as they move across the oceans.
+<br />
+<b>Enter your email below to get started!</b>
 </p>
 
 <form method="post">
     <p><input name="email" /> <b>Whale Alert email address</b></p>
     <input type="submit" value="Create Account" />
-    (agree to terms etc....)
 </form>
+
+<p>
+By creating an account, you agree to the terms and conditions of Flukebook.
+</p>
 
 
 <%
