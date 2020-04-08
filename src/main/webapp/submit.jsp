@@ -1104,41 +1104,39 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 <c:if test="${showMeasurements}">
 <hr>
- <fieldset>
+<fieldset>
 <%
     pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
     pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
 %>
 
- <div class="form-group">
-           <h3><%=props.getProperty("measurements") %></h3>
-
-
-<div class="col-xs-12 col-lg-8">
-  <table class="measurements">
-  <tr>
-  <th><%=props.getProperty("type") %></th><th><%=props.getProperty("size") %></th><th><%=props.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th><%=props.getProperty("samplingProtocol") %></th></c:if>
-  </tr>
-  <c:forEach items="${items}" var="item">
-    <tr>
-    <td>${item.label}</td>
-    <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
-    <td><c:out value="${item.unitsLabel}"/></td>
-    <c:if test="${!empty samplingProtocols}">
-      <td>
-        <select name="measurement(${item.type}samplingProtocol)">
-        <c:forEach items="${samplingProtocols}" var="optionDesc">
-          <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
-        </c:forEach>
-        </select>
-      </td>
-    </c:if>
-    </tr>
-  </c:forEach>
-  </table>
-   </div>
+        <div class="form-group">
+             <h3><%=props.getProperty("measurements") %></h3>
+             <div class="col-xs-12 col-lg-8">
+                <table class="measurements">
+                <tr>
+                <th><%=props.getProperty("type") %></th><th><%=props.getProperty("size") %></th><th><%=props.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th><%=props.getProperty("samplingProtocol") %></th></c:if>
+                </tr>
+                <c:forEach items="${items}" var="item">
+                  <tr>
+                  <td>${item.label}</td>
+                  <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
+                  <td><c:out value="${item.unitsLabel}"/></td>
+                  <c:if test="${!empty samplingProtocols}">
+                    <td>
+                      <select name="measurement(${item.type}samplingProtocol)">
+                      <c:forEach items="${samplingProtocols}" var="optionDesc">
+                        <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
+                      </c:forEach>
+                      </select>
+                    </td>
+                  </c:if>
+                  </tr>
+                </c:forEach>
+                </table>
+          </div>
         </div>
-         </fieldset>
+</fieldset>
 </c:if>
 
 
@@ -1150,11 +1148,11 @@ pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(
 pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
 %>
+<fieldset>
 
 <c:if test="${showMetalTags and !empty metalTags}">
   <hr/>
   
-   <fieldset>
     <h3><%=props.getProperty("tags") %></h3>
 
  <div class="form-group">
@@ -1200,40 +1198,45 @@ pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
 
 <c:if test="${showSatelliteTag}">
  <div class="form-group">
+
           <div class="col-xs-6 col-md-4">
             <label><%=props.getProperty("satelliteTag") %></label>
           </div>
 <%
   pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
 %>
-<div class="col-xs-12 col-lg-8">
-      <table class="satelliteTag">
-      <tr>
-        <td><%=props.getProperty("name") %></td>
-        <td>
-            <select name="satelliteTagName">
-              <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
-                <option value="${satelliteTagName}">${satelliteTagName}</option>
-              </c:forEach>
-            </select>
-        </td>
-      </tr>
-      <tr>
-        <td><%=props.getProperty("serialNumber") %></td>
-        <td><input name="satelliteTagSerial"/></td>
-      </tr>
-      <tr>
-        <td><%=props.getProperty("argosNumber") %></td>
-        <td><input name="satelliteTagArgosPttNumber"/></td>
-      </tr>
-      </table>
-    </div>
+
+      <div class="col-xs-12 col-lg-8">
+          <table class="satelliteTag">
+          <tr>
+            <td><%=props.getProperty("name") %></td>
+            <td>
+                <select name="satelliteTagName">
+                  <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+                    <option value="${satelliteTagName}">${satelliteTagName}</option>
+                  </c:forEach>
+                </select>
+            </td>
+          </tr>
+          <tr>
+            <td><%=props.getProperty("serialNumber") %></td>
+            <td><input name="satelliteTagSerial"/></td>
+          </tr>
+          <tr>
+            <td><%=props.getProperty("argosNumber") %></td>
+            <td><input name="satelliteTagArgosPttNumber"/></td>
+          </tr>
+          </table>
+      </div>
   </div>
+  
+</c:if>
 </fieldset>
 
-<hr/> 
-</c:if>
+<hr/>
 
+
+        <!-- </div> -->
 
         <%
         if(request.getRemoteUser()!=null){
@@ -1249,7 +1252,6 @@ pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
       }
       %>
       
-      <!-- </div> -->
 
           <%
           if(request.getRemoteUser()==null){
