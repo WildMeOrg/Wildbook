@@ -284,7 +284,7 @@ h2.vidcap {
 	                           Encounter thisEnc=latestIndividuals.get(i);
 	                           %>
 	                            <li>
-	                                <img src="images/wild_dog_icon_large.png" alt="" width="85px" height="75px" class="pull-left" />
+	                                <img src="images/wild_dog_logo_2.png" alt="" width="85px" height="75px" class="pull-left" />
 	                                <small>
 	                                    <time>
 	                                        <%=thisEnc.getDate() %>
