@@ -61,7 +61,9 @@ public class ConfigurationUtil {
         if (!idHasValidRoot(id)) return null;
         checkCache();
         List<String> path = idPath(id);
-        return _traverse(meta.get(path.remove(0)), path);
+        JSONObject end = _traverse(meta.get(path.remove(0)), path);
+        if (end == null) return null;
+        return end.optJSONObject("__meta");
     }
 
     private static JSONObject _traverse(final JSONObject j, final List<String> path) {

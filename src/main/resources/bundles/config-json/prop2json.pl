@@ -82,7 +82,8 @@ foreach $pfile (@files) {
         };
         $defn->{defaultValue} = $value if (defined $value);
 
-        &set($j, \@key_path, $defn, $key_prefix);
+        my $meta = { '__meta' => $defn };
+        &set($j, \@key_path, $meta, $key_prefix);
     }
 
     open(J, ">$base_name.json");
