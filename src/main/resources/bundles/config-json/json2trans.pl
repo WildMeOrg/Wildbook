@@ -65,6 +65,6 @@ sub expand {
 
 sub make_id {
     my $id = join($KEY_DELIM, @_);
-    $id =~ s/\-/_/g;
+    $id =~ s/[\s\-]/_/g;
     return $id;
 }
