@@ -976,14 +976,14 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
         <hr>
         <fieldset>
 
-  <div class="form-group">
-
-
+          
+          
           <%
           if (request.getRemoteUser()!=null) {
           %>
-
-
+            
+            
+        <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("status") %></label>
           </div>
@@ -1045,7 +1045,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 
 
-           <div class="form-group">
+        <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_scars") %></label>
           </div>
@@ -1231,8 +1231,9 @@ pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
   </div>
 </fieldset>
 
-<hr/>
+<hr/> 
 </c:if>
+
 
         <%
         if(request.getRemoteUser()!=null){
@@ -1243,12 +1244,16 @@ pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
           <input class="form-control" name="informothers" type="text" id="informothers" size="75">
           <p class="help-block"><%=props.getProperty("multipleEmailNote") %></p>
         </div>
-      </div>
+        
+        <%
+      }
+      %>
+      
+      <!-- </div> -->
 
-
-         <%
-        } else {
-         %>
+          <%
+          if(request.getRemoteUser()==null){
+          %>
          <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
            <script>
 		         //we need to first check here if we need to do the background social image send... in which case,
@@ -1266,9 +1271,9 @@ pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
 
            </script>
 
-        <%
-         }
-        %>
+          <%
+          }
+          %>
 <script>
 
 function sendButtonClicked() {
@@ -1316,7 +1321,6 @@ function sendButtonClicked() {
 	return true;
 }
 </script>
-
 
       <p class="text-center">
         <button id="submitEncounterButton" class="large" type="submit" onclick="return sendButtonClicked();">
