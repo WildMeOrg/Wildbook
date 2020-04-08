@@ -28,6 +28,7 @@ import org.ecocean.media.*;
 import org.ecocean.ia.Task;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
+import org.ecocean.configuration.Configuration;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -4872,6 +4873,16 @@ public class Shepherd {
     queries.closeAll();
     return listy;
   }
+
+
+    public Configuration getConfiguration(String id) {
+        if (id == null) return null;
+        Configuration conf = null;
+        try {
+            conf = ((Configuration) (pm.getObjectById(pm.newObjectIdInstance(Configuration.class, id), true)));
+        } catch (Exception ex) {}
+        return conf;
+    }
 
 
 } //end Shepherd class
