@@ -1,13 +1,14 @@
 #!/usr/bin/perl
 use JSON;
 use Data::Dumper;
+my $KEY_DELIM = '_';
 
 opendir(D, '..');
 my @files = readdir(D);
 foreach $pfile (@files) {
     next unless ($pfile =~ /\.properties$/);
     my $base_name = $`;
-next unless ($base_name eq 'socialAuth');
+next unless ($base_name =~ /^(socialAuth|googleKeys)$/);
     print "$base_name\n";
 
     if (!open(F, "../$pfile")) {
@@ -15,7 +16,10 @@ next unless ($base_name eq 'socialAuth');
         next;
     }
 
-    my $j = {};
+    my $key_prefix = join($KEY_DELIM, 'configuration', $base_name);
+    my $j = {
+        id => &key_id($key_prefix),
+    };
     while (<F>) {
         next if (/^\s*#/);
         next if (/^\s*$/);
@@ -24,19 +28,36 @@ next unless ($base_name eq 'socialAuth');
         my $key = $`;
         my $value = $';
         next unless $key;
+        my $type = 'string';  #default
+
+        #some hacky cleanup of default values!
+        $value = undef if ($value =~ /(changeme|changme|set_me)/i);
         my @key_path = split(/\./, $key);
-my $val = 999;
-        &set($j, \@key_path, $val);
+        my $key_prefix = join($KEY_DELIM, 'configuration', $base_name);
+        my $key_id = &key_id($key_prefix, \@key_path);
+
+        my $formSchema = {
+            required => JSON::false,
+            type => $type,
+        };
+        my $defn = {
+            id => $key_id,
+            formSchema => $formSchema,
+        };
+        $defn->{defaultValue} = $value if (defined $value);
+
+        &set($j, \@key_path, $defn, $key_prefix);
     }
 
     open(J, ">$base_name.json");
     print J to_json($j, {pretty => 1, utf8 => 1});
     close(J);
+print "\n==========\n" . to_json($j, {pretty => 1, utf8 => 1});
 }
 
 
 sub set {
-    my ($j, $path, $val) = @_;
+    my ($j, $path, $val, $key_prefix) = @_;
     next unless @$path;
     if (scalar(@$path) == 1) {
         $j->{$path->[0]} = $val;
@@ -44,7 +65,18 @@ sub set {
         return;
     }
     my $k = shift @$path;
-    $j->{$k} = {} unless $j->{$k};
-    &set($j->{$k}, $path, $val);
+    if (!$j->{$k}) {
+        my $key_id = &key_id($key_prefix, [$k]);
+        $j->{$k} = {
+            id => $key_id,
+        };
+    }
+    &set($j->{$k}, $path, $val, $key_prefix . $KEY_DELIM . $k);
 #print "(B)" . Dumper($j);
 }
+
+sub key_id {
+    my ($prefix, $key_path) = @_;
+    return join($KEY_DELIM, $prefix, @$key_path);
+}
+
