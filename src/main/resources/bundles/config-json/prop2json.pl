@@ -5,6 +5,7 @@
 ####    .json, see README.md
 ####
 
+use utf8;
 use JSON;
 use Data::Dumper;
 my $KEY_DELIM = '_';
@@ -35,8 +36,8 @@ foreach $pfile (@files) {
         next if (/^\s*$/);
         chop;
         next unless (/\s*=\s*/);
-        my $key = $`;
-        my $value = $';
+        my $key = &uni($`);
+        my $value = &uni($');
         next unless $key;
         my $type = 'string';  #default
 
@@ -114,4 +115,14 @@ sub key_id {
     my ($prefix, $key_path) = @_;
     return join($KEY_DELIM, $prefix, @$key_path);
 }
+
+
+sub uni {
+    my $in = shift;
+    while ($in =~ /\\u([0-9a-f]{4})/i) {
+        $in = $` . chr(hex($1)) . $';
+    }
+    return $in;
+}
+
 
