@@ -1147,8 +1147,18 @@ pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(cont
 pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
 pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
+
+boolean hasTags = false;
+if (CommonConfiguration.showMetalTags(context)||CommonConfiguration.showAcousticTag(context)||CommonConfiguration.showSatelliteTag(context)) {
+  hasTags = true;
+}
+if (hasTags) {
 %>
 <fieldset>
+<%
+}
+System.out.println("IS FIELDSET APPEAR CAUSE TAG YES??? "+hasTags);
+%>
 
 <c:if test="${showMetalTags and !empty metalTags}">
   <hr/>
@@ -1231,12 +1241,18 @@ pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
   </div>
   
 </c:if>
+<%
+if (hasTags) {
+%>
 </fieldset>
+<%
+}
+%>
 
 <hr/>
 
 
-        <!-- </div> -->
+        </div> <!-- closes out advanced info accordion -->
 
         <%
         if(request.getRemoteUser()!=null){
