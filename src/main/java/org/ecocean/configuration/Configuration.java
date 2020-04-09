@@ -48,24 +48,38 @@ public class Configuration implements java.io.Serializable {
         ConfigurationUtil.setConfigurationValue(myShepherd, this.id, value);
     }
 
+//////////// TODO need something like .hasValue() to know when set but null (as opposed to .getValue() returning null for other reasons like never set)
+
     public Object getValue() {
         if (!this.isValid()) return null;
         JSONObject meta = this.getMeta();
         String type = ConfigurationUtil.getType(meta);
         JSONObject c = this.getContent();
-        if ((c == null) || c.isNull("value")) return null;
-        if (type == null) return c.opt("value"); //good luck, part 1
+        Object val = _coerce(c, "value", type);
+        return val;
+    }
+
+    public Object getDefaultValue() {
+        if (!this.hasValidRoot()) return null;
+        JSONObject meta = this.getMeta();
+        String type = ConfigurationUtil.getType(meta);
+        return _coerce(meta, "defaultValue", type);
+    }
+
+    private static Object _coerce(JSONObject c, String key, String type) {
+        if ((c == null) || c.isNull(key)) return null;
+        if (type == null) return c.opt(key); //good luck, part 1
         switch (type) {
             case "string":
-                return (String)c.optString("value", null);
+                return (String)c.optString(key, null);
             case "boolean":
-                return (Boolean)c.optBoolean("value", false);
+                return (Boolean)c.optBoolean(key, false);
             case "integer":
-                return (Integer)c.optInt("value", 0);
+                return (Integer)c.optInt(key, 0);
             case "double":
-                return (Double)c.optDouble("value", 0.0d);
+                return (Double)c.optDouble(key, 0.0d);
         }
-        return c.opt("value"); //good luck, part 2
+        return c.opt(key); //good luck, part 2
     }
 
     public List<String> getIdPath() {
@@ -84,6 +98,9 @@ public class Configuration implements java.io.Serializable {
     //  note that this is false you cannot read or set value on it
     public boolean isValid() {
         if (!this.hasValidRoot()) return false;
+        JSONObject meta = this.getMeta();
+        if (meta == null) return false;
+        if (ConfigurationUtil.getType(meta) == null) return false;
         return true;
     }
 
