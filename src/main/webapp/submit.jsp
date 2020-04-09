@@ -1162,7 +1162,6 @@ if (hasTags) {
 <fieldset>
 <%
 }
-System.out.println("IS FIELDSET APPEAR CAUSE TAG YES??? "+hasTags);
 %>
 
 <c:if test="${showMetalTags and !empty metalTags}">
