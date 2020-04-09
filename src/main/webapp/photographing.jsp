@@ -127,10 +127,112 @@
 	Photos of either side (or both left and right sides) of hyaenas you’ve spotted on your travels, and any of their fellow hyaena companions, will help with the conservation of all carnivores in Africa. 
 	</p>
 
+	<br/>
+	<hr/>
+
+	<h3>Example Images:</h3>
 
 
-</div>
+
+	<h4>Profile examples:</h4>
+
+	<div class="row">
+		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+			<img src="images/howtophotograph/Perfect dog pic.jpg" alt="Perfect dog pic" width="100%" />
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+			<img src="images/howtophotograph/Cheetah at sunset Selinda.jpg" alt="Cheetah at sunset Selinda" width="100%" />
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+			<img src="images/howtophotograph/Leopardess at Duba2.PNG.jpg" alt="Leopardess at Duba2.PNG.jpg" width="100%" />
+		</div>
+	</div>
+	<br/>
+	<div class="row">
+		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+			<img src="images/howtophotograph/Collared lioness w cubs Meno.jpg" alt="Collared lioness w cubs Meno" width="100%" />
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+			<img src="images/howtophotograph/Lion pride late evening female1.JPG" alt="Lion pride late evening female" width="100%" />
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+			<img src="images/howtophotograph/Male leopard Selinda.jpg" alt="Male leopard Selinda" width="100%" />
+		</div>
+	</div>
+	<br/>
+	<div class="row">
+		<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+			<img src="images/howtophotograph/Hyaena pic.jpg" alt="Hyaena pic" width="100%" />
+		</div>
+
+		<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+			<img src="images/howtophotograph/Sitting hyaena.JPG" alt="Sitting hyaena" width="100%" />
+		</div>
+	</div>
 	
+	<h4>It’s a boy!  Great rear end shots:</h4>
+
+	<div class="row">
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			<img src="images/howtophotograph/Its a boy wild dog at Duba.jpg" alt="Its a boy wild dog at Duba" width="100%" />
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			<img src="images/howtophotograph/Its a boy cheetah Selinda.jpg" alt="Its a boy cheetah Selinda" width="100%" />
+		</div>
+	</div>
+	
+	<h4>Useful sets of group images – ID of multiple individuals with a number of related animals:</h4>
+
+	<div class="row">
+		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+			<img src="images/howtophotograph/Lion pride late evening all.JPG" alt="Lion pride late evening all" width="100%" />
+		</div>
+
+		<div class="col-xs-6 col-sm-3 col-md-3 col-lg-3">
+			<img src="images/howtophotograph/Lion pride late evening female1.JPG" alt="Lion pride late evening female 1" width="100%" />
+		</div>
+
+		<div class="col-xs-6 col-sm-3 col-md-3 col-lg-3">
+			<img src="images/howtophotograph/Lion pride late evening male1.JPG" alt="Lion pride late evening male 1" width="100%" />
+		</div>
+	</div>
+
+	<br/>
+
+	<div class="row">
+		<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+			<img src="images/howtophotograph/Group of dogs Selinda.jpg" alt="Group of dogs Selinda" width="100%" />
+		</div>
+
+		<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+			<img src="images/howtophotograph/Group of dogs Selinda2.jpg" alt="Group of dogs Selinda 2" width="100%" />
+		</div>
+	</div>
+	
+	<h4>Pretty but not very useful:</h4>
+	
+	<div class="row">
+		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+			<img src="images/howtophotograph/Lioness and 2 cubs in blue Selinda.JPG" alt="Lioness and 2 cubs in blue Selinda" width="100%" />
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+			<img src="images/howtophotograph/Dogs in riverbed at Duba.jpg" alt="Dogs in riverbed at Duba" width="100%" />
+		</div>
+
+		<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+			<img src="images/howtophotograph/Adorable dog but not for ID.JPG" alt="Adorable dog but not for ID" width="100%" />
+		</div>
+	</div>
+	
+	<br/>
+
+</div> <!-- end container/maincontent -->
 
 <jsp:include page="footer.jsp" flush="true" />
 
