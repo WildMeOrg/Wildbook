@@ -42,11 +42,62 @@ public class ConfigurationUtil {
     public static Configuration getConfiguration(Shepherd myShepherd, String id) {
         if (!idHasValidRoot(id)) return new Configuration(id);
         //TODO something with 'value' cache??????
-        Configuration conf = myShepherd.getConfiguration(id);
-        if (conf == null) {
-            conf = new Configuration(id);
-        }
+        List<String> path = idPath(id);
+        String root = path.remove(0);
+        Configuration conf = myShepherd.getConfiguration(root);
+        if (conf == null) conf = new Configuration(id, new JSONObject());  //no root in db yet
+        if (id.equals(root)) return conf;  //we want the whole thing
+        //we must be a sub-branch (or leaf) of the main json
+        conf = new Configuration(id, _traverse(conf.getContent(), path));
         return conf;
+    }
+    public static Object getConfigurationValue(Shepherd myShepherd, String id) {
+        Configuration conf = getConfiguration(myShepherd, id);
+        if (conf == null) return null;
+        return conf.getValue();
+    }
+
+    public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) {
+        if (!idHasValidRoot(id)) return null;
+        List<String> path = idPath(id);
+        String root = path.remove(0);
+        JSONObject content = null;
+        Configuration conf = getConfiguration(myShepherd, root);
+        if (conf == null) {
+            conf = new Configuration(root, new JSONObject());
+            myShepherd.getPM().makePersistent(conf);
+        } else {
+            content = conf.getContent();
+        }
+        if (content == null) content = new JSONObject();
+        content = setDeepJSONObject(content, path, value);
+        conf.setContent(content);
+        conf.setModified();
+        myShepherd.getPM().makePersistent(conf);
+        return conf;
+    }
+
+    public static JSONObject setDeepJSONObject(final JSONObject jobj, final List<String> path, final Object value) {
+        if (jobj == null) return null;
+
+        if (path.size() == 1) {  //last one, we set the value
+            JSONObject jval = new JSONObject();
+            jval.put("value", value);
+            String top = path.remove(0);
+            jobj.put(top, jval);
+            return jobj;
+
+        } else if (path.size() > 1) {  //more to go down...
+            String top = path.remove(0);
+            JSONObject next = jobj.optJSONObject(top);
+            if (next == null) next = new JSONObject();
+            next = setDeepJSONObject(next, path, value);
+            jobj.put(top, next);
+            return jobj;
+        } else {
+System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
+        }
+        return null;
     }
 
     public static Map<String,JSONObject> getMeta() {
@@ -64,6 +115,17 @@ public class ConfigurationUtil {
         JSONObject end = _traverse(meta.get(path.remove(0)), path);
         if (end == null) return null;
         return end.optJSONObject("__meta");
+    }
+
+    public static String getType(JSONObject meta) {
+        if (meta == null) return null;
+        if (meta.optString("type", null) != null) return meta.getString("type");
+        JSONObject fs = meta.optJSONObject("formSchema");
+        if (fs == null) return null;
+        return fs.optString("type", null);
+    }
+    public static String getType(String id) {
+        return getType(getMeta(id));
     }
 
     private static JSONObject _traverse(final JSONObject j, final List<String> path) {

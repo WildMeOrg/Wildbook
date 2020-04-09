@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.io.File;
 import org.ecocean.Util;
+import org.ecocean.Shepherd;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -14,12 +15,19 @@ public class Configuration implements java.io.Serializable {
     private String id;
     private String content = null;
     private long created;
+    private long modified;
 
     public Configuration() {
         this.created = System.currentTimeMillis();
+        this.setModified();
     }
     public Configuration(String id) {
         this();
+        this.id = id;
+    }
+    public Configuration(String id, JSONObject cont) {
+        this();
+        if (cont != null) this.content = cont.toString();
         this.id = id;
     }
 
@@ -27,9 +35,37 @@ public class Configuration implements java.io.Serializable {
         return Util.stringToJSONObject(content);
     }
 
+    //do NOT setContent directly, instead use ConfigurationUtil.setConfigurationValue()
+    public void setContent(JSONObject j) {
+        if (j == null) {
+            content = null;
+        } else {
+            content = j.toString();
+        }
+        this.setModified();
+    }
+    public void setValue(Shepherd myShepherd, Object value) {  //but, convenience
+        ConfigurationUtil.setConfigurationValue(myShepherd, this.id, value);
+    }
+
     public Object getValue() {
         if (!this.isValid()) return null;
-        return "OKAY";
+        JSONObject meta = this.getMeta();
+        String type = ConfigurationUtil.getType(meta);
+        JSONObject c = this.getContent();
+        if ((c == null) || c.isNull("value")) return null;
+        if (type == null) return c.opt("value"); //good luck, part 1
+        switch (type) {
+            case "string":
+                return (String)c.optString("value", null);
+            case "boolean":
+                return (Boolean)c.optBoolean("value", false);
+            case "integer":
+                return (Integer)c.optInt("value", 0);
+            case "double":
+                return (Double)c.optDouble("value", 0.0d);
+        }
+        return c.opt("value"); //good luck, part 2
     }
 
     public List<String> getIdPath() {
@@ -51,21 +87,44 @@ public class Configuration implements java.io.Serializable {
         return true;
     }
 
+    public JSONObject getMeta() {
+        return ConfigurationUtil.getMeta(this.id);
+    }
+    public String getType() {
+        return ConfigurationUtil.getType(this.id);
+    }
+
+    public void setModified() {
+        modified = System.currentTimeMillis();
+    }
+    public long getModified() {
+        return modified;
+    }
+    public long getCreated() {
+        return created;
+    }
+
     public JSONObject toJSONObject() {
+        JSONObject m = this.getMeta();
         JSONObject j = new JSONObject();
         j.put("id", id);
         j.put("idPath", new JSONArray(this.getIdPath()));
+        j.put("meta", m);
+        j.put("type", ConfigurationUtil.getType(m));
         j.put("isRootLevel", this.isRootLevel());
         j.put("isValid", this.isValid());
         j.put("validRoot", this.hasValidRoot());
         j.put("content", this.getContent());
         j.put("value", this.getValue());
+        j.put("created", this.getCreated());
+        j.put("modified", this.getModified());
         return j;
     }
 
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)
+                .append("type", this.getType())
                 .append("isRootLevel", this.isRootLevel())
                 .append("isValid", this.isValid())
                 .append("validRoot", this.hasValidRoot())

@@ -1,0 +1,24 @@
+<!DOCTYPE jdo PUBLIC
+    "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN"
+    "http://java.sun.com/dtd/jdo_2_0.dtd">
+
+<jdo>
+    <package name="org.ecocean.configuration">
+
+	<class name="Configuration" identity-type="application">
+		<field name="id" primary-key="true">
+        		<column length="4096" jdbc-type="VARCHAR"/>
+		</field>
+		<field name="created">
+			<index name="CONFIGURATION_CREATED_idx" />
+		</field>
+		<field name="modified">
+			<index name="CONFIGURATION_MODIFIED_idx" />
+		</field>
+      		<field name="content" persistence-modifier="persistent">
+        		<column jdbc-type="LONGVARCHAR"/>
+      		</field>
+	</class>
+
+    </package>
+</jdo>
