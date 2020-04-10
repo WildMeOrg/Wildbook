@@ -59,6 +59,9 @@
 	  </label>
 	</div>
       </div>
+      <div class="loadingIcon">
+	<img src="loadingSpinner.svg">
+      </div>
     </div>
     <div class="graphSliders">
       <div class="sliderWrapper">
@@ -70,11 +73,6 @@
 	<input type="range" min=0 class="graphSlider" id="nodeDist">
       </div>
     </div>
-
-    <script type="text/javascript">
-      let p1 = new JSONParser(null, null, false, -1, true);
-      setupSocialGraph("5d80dd4d-8903-4dc4-a681-54788c2a7d5f", "#socialDiagram", null, p1);
-    </script>
   </div>
   
   <div id="cooccurrenceDiagram">
@@ -120,6 +118,9 @@
 	  </label>
 	</div>
       </div>
+      <div class="loadingIcon">
+	<img src="loadingSpinner.svg">
+      </div>
     </div>
     <div class="graphSliders">
       <div class="coOccurrenceSliderWrapper">
@@ -136,8 +137,12 @@
       </div>
     </div>
     <script type="text/javascript">
-      let p2 = new JSONParser(null, null, true, 50, true);
-      setupOccurrenceGraph("5d80dd4d-8903-4dc4-a681-54788c2a7d5f", null, p2)
+      let parser1 = new JSONParser(null, false, -1);
+      let parser2 = new JSONParser(null, true, 50);
+      let querier = new JSONQuerier(null, true);
+      querier.preFetchData("5d80dd4d-8903-4dc4-a681-54788c2a7d5f", null, null,
+         [setupSocialGraph, setupOccurrenceGraph], ["#socialDiagram", "#bubbleChart"],
+         [parser1, parser2]);
     </script>
   </div>
 </html>
