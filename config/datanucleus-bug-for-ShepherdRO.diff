@@ -1,0 +1,21 @@
+diff --git a/src/main/java/org/datanucleus/store/rdbms/RDBMSStoreManager.java b/src/main/java/org/datanucleus/store/rdbms/RDBMSStoreManager.java
+index 7b69552b..1b429474 100644
+--- a/src/main/java/org/datanucleus/store/rdbms/RDBMSStoreManager.java
++++ b/src/main/java/org/datanucleus/store/rdbms/RDBMSStoreManager.java
+@@ -2904,7 +2904,8 @@ public class RDBMSStoreManager extends AbstractStoreManager implements BackedSCO
+          */
+         private ClassAdder(String[] classNames, Writer writer)
+         {
+-            super(RDBMSStoreManager.this, dba.getTransactionIsolationForSchemaCreation());
++            //super(RDBMSStoreManager.this, dba.getTransactionIsolationForSchemaCreation());
++            super(RDBMSStoreManager.this, TransactionIsolation.REPEATABLE_READ);
+             this.ddlWriter = writer;
+             this.classNames = classNames;
+ 
+@@ -4413,4 +4414,4 @@ public class RDBMSStoreManager extends AbstractStoreManager implements BackedSCO
+         }
+         return classNames;
+     }
+-}
+\ No newline at end of file
++}

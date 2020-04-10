@@ -316,8 +316,12 @@
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-rdbms</artifactId>
-<!-- <version>5.2.2</version> -->
+<version>5.2.2</version>
+<!--
 <version>5.1.12-SNAPSHOT</version>
+omg, *this* debacle....
+https://github.com/datanucleus/datanucleus-rdbms/issues/336
+-->
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
