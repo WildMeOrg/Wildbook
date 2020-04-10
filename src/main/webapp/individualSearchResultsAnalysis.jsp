@@ -746,6 +746,9 @@ if(maxTimeBetweenResights>0){
 	</label>
       </div>
     </div>
+    <div class="loadingIcon">
+      <img src="loadingSpinner.svg">
+    </div>
   </div>
   <div class="graphSliders">
     <div class="sliderWrapper">
@@ -767,8 +770,9 @@ if(maxTimeBetweenResights>0){
 %>
 
 <script>
-  let parser = new JSONParser(wildbookGlobals, '<%=individualIds%>', true, 50);
-  setupSocialGraph(null, "#socialDiagram", wildbookGlobals, parser);
+  let parser = new JSONParser('<%=individualIds%>', true, 50);
+  let querier = new JSONQuerier(wildbookGlobals);
+  querier.preFetchData(null, null, null, [setupSocialgraph], ["#socialDiagram"], [parser]);
 </script>
 	 
  <div id="chart_div"></div>
