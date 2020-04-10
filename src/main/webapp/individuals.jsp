@@ -801,7 +801,7 @@ if (sharky.getNames() != null) {
             if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
             String genusSpeciesFound=props.getProperty("notAvailable");
-            if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
+            if(sharky.getGenusSpeciesDeep()!=null){genusSpeciesFound=sharky.getGenusSpeciesDeep();}
             %>
             <p>
               <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
@@ -1696,8 +1696,22 @@ if (sharky.getNames() != null) {
 	<p><strong><%=props.getProperty("cooccurrence")%></strong></p>
 	<script type="text/javascript">
         <% String occurrenceIndividualID = sharky.getIndividualID();%>
-        <% String individualGenus = sharky.getGenusSpecies();%>
-	<% String individualEpithet = sharky.getSpecificEpithet();%>
+        <% 
+        
+        
+        
+        String individualGenus = sharky.getGenusSpecies();
+		String individualEpithet = sharky.getSpecificEpithet();
+		if(individualGenus == null || individualEpithet==null){
+			if(sharky.getGenusSpeciesDeep()!=null){
+				
+				StringTokenizer str=new StringTokenizer(sharky.getGenusSpeciesDeep()," ");
+				if(str.hasMoreTokens()){individualGenus=str.nextToken();}
+				if(str.hasMoreTokens()){individualEpithet=str.nextToken();}
+			}
+		}
+	
+		%>
 
         $(document).ready(function() {
           getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName() %>");
