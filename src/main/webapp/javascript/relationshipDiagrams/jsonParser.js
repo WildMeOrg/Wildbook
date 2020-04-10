@@ -115,7 +115,7 @@ class JSONQuerier {
     queryNodeData(genus, epithet) {
 	let query;
 	if (!this.localFiles) {
-	    query = window.location.host + this.globals.baseUrl + "/encounters/socialJson.jsp?";
+	    query = "../../encounters/socialJson.jsp?";
 	    if (genus) query += "genus=" + genus + "&";
 	    if (epithet) query += "specificEpithet=" + epithet + "&";
 	}
