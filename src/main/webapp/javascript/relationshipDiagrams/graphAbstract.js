@@ -501,11 +501,11 @@ class GraphAbstract { //See static attributes below class
 	let legend = $(this.containerId).find(".legend")[0];
         hidebutton.addEventListener("click", () => {
             if (shown) {
-		legend.style.opacity = "0";
+		legend.style.display = "none";
 		hidebutton.innerText = "Show Legend";
             }
             else {
-		legend.style.opacity = "1";
+		legend.style.display = "block";
 		hidebutton.innerText = "Hide Legend";
             }
 	    shown = !shown;
