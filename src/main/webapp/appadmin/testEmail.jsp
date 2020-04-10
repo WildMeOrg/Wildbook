@@ -113,6 +113,11 @@ else{
 				<%
 				es.execute(new NotificationMailer(context, "en", emailAddress, "individualUpdate", tagMap3));
 				
+				%>
+				<p>Trying to send a password reset email with random data to: <%=emailAddress %></p>
+				<%
+				es.execute(new NotificationMailer(context, "en", emailAddress, "passwordReset", tagMap3));
+				
 				
 			}
 			
