@@ -224,8 +224,8 @@ public class WriteOutScanTask extends HttpServlet {
       if(locationIDs!=null && locationIDs.size()>0)root.addAttribute("locationID", locationIDs.toString());
       int numMatches=matches.length;
       
-      //hard limit this to 100 matches...no human really goes beyond this...
-      if(numMatches>100)numMatches=100;
+      //hard limit this to 500 matches...no human really goes beyond this...
+      if(numMatches>100)numMatches=500;
       
       for (int i = 0; i < numMatches; i++) {
         try{
