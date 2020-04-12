@@ -1396,7 +1396,7 @@
     <servlet-name>OccurrenceSearchExportMetadataExcel</servlet-name>
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportMetadataExcel</servlet-class>
   </servlet>
-  <servlet>
+
   
 
   
@@ -1411,6 +1411,7 @@
         <url-pattern>/EncounterSearchExportMetadataExcel</url-pattern>
   </servlet-mapping>
   
+    <servlet>
   
     <servlet-name>OccurrenceSearchExportGtm</servlet-name>
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
