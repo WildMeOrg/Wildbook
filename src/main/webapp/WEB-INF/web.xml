@@ -288,6 +288,8 @@
 				
 				/merge.jsp = authc, roles[researcher]
 				/mergeComplete.jsp = authc, roles[researcher]
+				
+				/EncounterSearchExportMetadataExcel = authc, roles[researcher]
 
 
             </param-value>
@@ -1395,6 +1397,21 @@
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportMetadataExcel</servlet-class>
   </servlet>
   <servlet>
+  
+
+  
+  
+    <servlet>
+    <servlet-name>EncounterSearchExportMetadataExcel</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.EncounterSearchExportMetadataExcel</servlet-class>
+  </servlet>
+  
+        <servlet-mapping>
+        <servlet-name>EncounterSearchExportMetadataExcel</servlet-name>
+        <url-pattern>/EncounterSearchExportMetadataExcel</url-pattern>
+  </servlet-mapping>
+  
+  
     <servlet-name>OccurrenceSearchExportGtm</servlet-name>
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
   </servlet>
