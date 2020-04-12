@@ -225,7 +225,7 @@ public class WriteOutScanTask extends HttpServlet {
       int numMatches=matches.length;
       
       //hard limit this to 500 matches...no human really goes beyond this...
-      if(numMatches>100)numMatches=500;
+      if(numMatches>500)numMatches=500;
       
       for (int i = 0; i < numMatches; i++) {
         try{
