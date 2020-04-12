@@ -5,11 +5,12 @@
  *   compatibility with individuals.jsp
  * @param {parser} [JSONParser] - Optional parser specification. Defaults to null
  */	
-function setupOccurrenceGraph(individualID, globals, parser=null) {
+function setupOccurrenceGraph(individualId, containerId, globals, parser=null) {
     let focusedScale = 1.75;
-    let occ = new OccurrenceGraph(individualID, "#bubbleChart", globals, focusedScale, parser);
+    let occ = new OccurrenceGraph(individualId, containerId, globals, focusedScale, parser);
     occ.applyOccurrenceData();
 }
+
 
 //Sparse-tree mapping co-occurrence relationships between a focused individual and its species
 class OccurrenceGraph extends ForceLayoutAbstract {
