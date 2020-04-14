@@ -114,7 +114,12 @@ public class EncounterDelete extends HttpServlet {
 
         try {
 
-          if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
+          Occurrence occ = myShepherd.getOccurrenceForEncounter(enc2trash.getID());
+          if (occ==null&&(enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
+            occ = myShepherd.getOccurrence(enc2trash.getOccurrenceID());
+          }
+
+          if(occ!=null) {
             Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
             occur.removeEncounter(enc2trash);
             enc2trash.setOccurrenceID(null);
