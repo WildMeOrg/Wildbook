@@ -81,6 +81,8 @@ void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo,
 
 <%
 
+response.setHeader("Access-Control-Allow-Origin", "*"); 
+
 String context="context0";
 context=ServletUtilities.getContext(request);
 

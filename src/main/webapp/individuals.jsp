@@ -1700,7 +1700,7 @@ if (sharky.getNames() != null) {
         
         
         
-        String individualGenus = sharky.getGenusSpecies();
+        String individualGenus = sharky.getGenus();
 		String individualEpithet = sharky.getSpecificEpithet();
 		if(individualGenus == null || individualEpithet==null){
 			if(sharky.getGenusSpeciesDeep()!=null){

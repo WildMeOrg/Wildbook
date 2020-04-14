@@ -115,7 +115,7 @@ class JSONQuerier {
     queryNodeData(genus, epithet) {
 	let query;
 	if (!this.localFiles) {
-	    query = "../../encounters/socialJson.jsp?";
+	    query = "//"+window.location.host + "/encounters/socialJson.jsp?";
 	    if (genus) query += "genus=" + genus + "&";
 	    if (epithet) query += "specificEpithet=" + epithet + "&";
 	}
@@ -267,6 +267,9 @@ class JSONParser {
 	let relationships = this.mapRelationships(nodes);
 	let [graphNodes, groupNum] = this.traverseRelationshipTree(iId, nodes, relationships);
 
+	//Ensure iId is in graphNodes
+	if (iId && !graphNodes[iId]) graphNodes[iId] = this.updateNodeData(nodes[iId], ++groupNum, this.getNodeId(), 0, true);
+	
 	//Update id and group attributes for all disconnected nodes
 	let numNodes = Object.keys(graphNodes).length;
 	for (name in nodes) {
