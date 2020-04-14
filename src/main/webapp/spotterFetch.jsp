@@ -279,9 +279,11 @@ if (!commit) {
 }
 
 //// FOR NOW we skip doing wa trip at all...
+/*  or not
 waTripList = new JSONObject();
 waTripList.put("trips", new JSONArray());
 out.println("<p><i>WA trips temporarily disabled!</i></p>");
+*/
 ////
 
 out.println("<p><b>Whale Alert trips</b><ul>");
