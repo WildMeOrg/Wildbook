@@ -1428,10 +1428,12 @@
 	<servlet>
 		<servlet-name>WildbookApiV2</servlet-name>
 		<servlet-class>org.ecocean.servlet.RestServletV2</servlet-class>
+<!--
 		<init-param>
 			<param-name>persistence-context</param-name>
 			<param-value>ShepherdPMF</param-value>
 		</init-param>
+-->
 	</servlet>
 
 	<servlet>
@@ -1588,7 +1590,7 @@
 
 <servlet-mapping>
 	<servlet-name>WildbookApiV2</servlet-name>
-	<url-pattern>/v2/*</url-pattern>
+	<url-pattern>/api/v0/*</url-pattern>
 </servlet-mapping>
 
 <servlet-mapping>
