@@ -26,9 +26,12 @@ myShepherd.beginDBTransaction();
 //out.println(ConfigurationUtil.getConfiguration(myShepherd, "cache.bar").toJSONObject());
 
 
-out.println(ConfigurationUtil.getConfiguration(myShepherd, "cache.bar").toJSONObject());
+out.println(ConfigurationUtil.setConfigurationValue(myShepherd, "test.fu.barr", 2170));
 
-out.println(  ConfigurationUtil.getConfigurationValue(myShepherd, "cache.bar")  );
+
+//out.println(ConfigurationUtil.getConfiguration(myShepherd, "cache.bar").toJSONObject());
+
+//out.println(  ConfigurationUtil.getConfigurationValue(myShepherd, "cache.bar")  );
 
 /*
 
