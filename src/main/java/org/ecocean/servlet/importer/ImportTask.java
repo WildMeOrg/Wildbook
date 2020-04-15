@@ -55,6 +55,12 @@ public class ImportTask implements java.io.Serializable {
         if (!encounters.contains(enc)) encounters.add(enc);
     }
 
+    public void removeEncounter(Encounter enc) {
+        if (encounters.contains(enc)) {
+            encounters.remove(enc);
+        }
+    }
+
     public void setCreator(User u) {
         creator = u;
     }

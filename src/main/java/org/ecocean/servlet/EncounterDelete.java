@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
+import org.ecocean.servlet.importer.ImportTask;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -110,6 +111,13 @@ public class EncounterDelete extends HttpServlet {
           oos.writeObject(backUpEnc);
           oos.close();
           
+          if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
+            ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);
+            itask.removeEncounter(enc2trash);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
+
           if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
             Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
             occur.removeEncounter(enc2trash);
