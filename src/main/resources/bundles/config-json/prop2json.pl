@@ -101,9 +101,9 @@ print J to_json({
         bar => {
             '__meta' => {
                 formSchema => {
-                    required => JSON::true,
-                    type => 'string',
                 },
+                required => JSON::true,
+                type => 'string',
                 defaultValue => 'BAR',
             },
         },
