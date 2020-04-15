@@ -119,22 +119,9 @@ public class EncounterDelete extends HttpServlet {
           if (occ==null&&(enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
             occ = myShepherd.getOccurrence(enc2trash.getOccurrenceID());
           }
-
-          if(occ!=null) {
-          File serializedBackup = new File(thisEncounterDir, savedFilename);
-          FileOutputStream fout = new FileOutputStream(serializedBackup);
-          ObjectOutputStream oos = new ObjectOutputStream(fout);
-          oos.writeObject(backUpEnc);
-          oos.close();
           
-          if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
-            ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);
-            itask.removeEncounter(enc2trash);
-            myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-          }
+          if(occ!=null) {
 
-          if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
             Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
             occur.removeEncounter(enc2trash);
             enc2trash.setOccurrenceID(null);
@@ -149,6 +136,13 @@ public class EncounterDelete extends HttpServlet {
      
           }
 
+          if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
+            ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);
+            itask.removeEncounter(enc2trash);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
+          
           //Set all associated annotations matchAgainst to false
           enc2trash.useAnnotationsForMatching(false);
           
