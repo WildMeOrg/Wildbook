@@ -110,9 +110,9 @@ print J to_json({
         initiationDate => {
             '__meta' => {
                 formSchema => {
-                    required => JSON::false,
-                    type => 'date',
                 },
+                required => JSON::false,
+                type => 'date',
                 defaultValue => { macro => 'now' },
             },
         },
