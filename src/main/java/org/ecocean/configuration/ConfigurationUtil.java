@@ -58,7 +58,7 @@ public class ConfigurationUtil {
         return conf.getValue();
     }
 
-    public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) {
+    public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException {
         if (!idHasValidRoot(id)) return null;
         List<String> path = idPath(id);
         String root = path.remove(0);
@@ -208,3 +208,4 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
     }
 
 }
+
