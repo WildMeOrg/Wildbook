@@ -15,6 +15,7 @@ import org.json.JSONArray;
 public class ConfigurationUtil {
     public static final String KEY_DELIM = "_";
     public static final String ID_DELIM = ".";
+    public static final String META_KEY = "__meta";
 
     private static Map<String,JSONObject> meta = new HashMap<String,JSONObject>();
     private static Map<String,JSONObject> value = new HashMap<String,JSONObject>();
@@ -109,20 +110,28 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         return new JSONObject(meta);
     }
     public static JSONObject getMeta(String id) {
+        JSONObject node = getNode(id);
+        if (node == null) return null;
+        return node.optJSONObject(META_KEY);
+    }
+    public static JSONObject getNode(String id) {
         if (!idHasValidRoot(id)) return null;
-        checkCache();
         List<String> path = idPath(id);
-        JSONObject end = _traverse(meta.get(path.remove(0)), path);
-        if (end == null) return null;
-        return end.optJSONObject("__meta");
+        if (Util.collectionIsEmptyOrNull(path)) return null;
+        checkCache();
+        if (path.size() == 1) return meta.get(path.get(0));  //want the whole tree
+        return _traverse(meta.get(path.remove(0)), path);
     }
 
     public static String getType(JSONObject meta) {
         if (meta == null) return null;
+        return meta.optString("type", null);
+/*  for now we dont have any .type on formSchema
         if (meta.optString("type", null) != null) return meta.getString("type");
         JSONObject fs = meta.optJSONObject("formSchema");
         if (fs == null) return null;
         return fs.optString("type", null);
+*/
     }
     public static String getType(String id) {
         return getType(getMeta(id));

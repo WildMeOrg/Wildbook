@@ -2,6 +2,8 @@ package org.ecocean.configuration;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.File;
@@ -107,8 +109,24 @@ public class Configuration implements java.io.Serializable {
     public JSONObject getMeta() {
         return ConfigurationUtil.getMeta(this.id);
     }
+    public JSONObject getNode() {
+        return ConfigurationUtil.getNode(this.id);
+    }
     public String getType() {
         return ConfigurationUtil.getType(this.id);
+    }
+    public Set<String> getChildKeys() {
+        Set<String> ck = new HashSet<String>();
+        JSONObject node = this.getNode();
+        if (node == null) return ck;
+        for (Object k : node.keySet()) {
+            String ks = (String)k;
+            if (!ks.startsWith("_")) ck.add(ks);
+        }
+        return ck;
+    }
+    public boolean hasChildren() {
+        return (this.getChildKeys().size() > 0);
     }
 
     public void setModified() {
