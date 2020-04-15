@@ -75,11 +75,11 @@ foreach $pfile (@files) {
         my $key_id = &key_id($key_prefix, \@key_path);
 
         my $formSchema = {
-            required => JSON::false,
-            type => $type,
         };
         my $defn = {
             #id => $key_id,
+            required => JSON::false,
+            type => $type,
             formSchema => $formSchema,
         };
         $defn->{defaultValue} = $value if (defined $value);
