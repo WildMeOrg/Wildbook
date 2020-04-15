@@ -132,7 +132,7 @@ class JSONQuerier {
     queryRelationshipData(genus) {
 	let query;
 	if (!this.localFiles) {
-	    query = this.globals.baseUrl + "/api/jdoql?" +
+	    query = "//"+window.location.host + "/api/jdoql?" +
 		encodeURIComponent("SELECT FROM org.ecocean.social.Relationship " +
 				   "WHERE (this.type == \"social grouping\")");
 	}
