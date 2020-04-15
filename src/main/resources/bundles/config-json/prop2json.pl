@@ -1,8 +1,10 @@
 #!/usr/bin/perl
 ####
 ####  note!!!  this is meant to be run ONCE ONLY in order to convert the initial .properties files
-####    into .json files ... which can then be edited manually.  for info on the contents of the
+####    into .json DEFINITION files ... which can then be edited manually.  for info on the contents of the
 ####    .json, see README.md
+####
+####  in short:  do not run this.  :)
 ####
 
 use utf8;
@@ -91,6 +93,33 @@ foreach $pfile (@files) {
     close(J);
 #print "\n==========\n" . to_json($j, {pretty => 1, utf8 => 1});
 }
+
+#now we do a test one just so we have it to play with
+open(J, ">test.json");
+print J to_json({
+    foo => {
+        bar => {
+            '__meta' => {
+                formSchema => {
+                    required => JSON::true,
+                    type => 'string',
+                },
+                defaultValue => 'BAR',
+            },
+        },
+        initiationDate => {
+            '__meta' => {
+                formSchema => {
+                    required => JSON::false,
+                    type => 'date',
+                },
+                defaultValue => { macro => 'now' },
+            },
+        },
+    }
+}, {pretty => 1, utf8 => 1});
+close(J);
+print "test\n";
 
 
 sub set {
