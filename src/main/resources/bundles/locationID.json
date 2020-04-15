@@ -112,13 +112,29 @@
 			  
 			  			  {
 			  "name": "Madagascar", "id": "Madagascar" },
+			  
+			  {
+			  "name": "Madagascar", "id": "Madagascar" },
+			  
+			  {
+			  "name": "Mayotte", "id": "Mayotte" },
+			  
+			  
+			  {
+			  "name": "Réunion Island", "id": "Reunion Island" },
 
-				{
-			  "name": "RedSea", "id": "RedSea" },
+
+			 {
+			  "name": "RedSea", "id": "RedSea", "locationID":[
+			  
+			  
+				{"name": "RedSea-ShibHabil", "id": "RedSea-ShibHabil" }
+			  
+			  
+			  ] },
 
 
-			{
-			  "name": "RedSea-ShibHabil", "id": "RedSea-ShibHabil" },
+			
 			  
 			   {
 			  "name": "4h", "id": "4h" },
