@@ -82,6 +82,7 @@ public class ConfigurationUtil {
     }
 */
 
+///////////// TODO handle isMultiple !!!
     public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException {
         if (!idHasValidRoot(id)) throw new ConfigurationException("setConfiguration() passed invalid id=" + id);
         Object cvalue = handleValue(id, value);
@@ -357,6 +358,71 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         return inVal;
     }
 
+    public static String coerceString(JSONObject content, JSONObject meta) throws ConfigurationException {
+        if ((content == null) || (meta == null)) throw new ConfigurationException("invalid content/meta arguments");
+        String type = ConfigurationUtil.getType(meta);
+        //all these json values seem to cast just fine to string
+        if ((type == null) || type.equals("string") || type.equals("date") || type.equals("integer") || type.equals("boolean") || type.equals("double")) {
+            String s = content.optString(VALUE_KEY, null);
+            if ((s != null) || content.has(VALUE_KEY)) return s;
+        }
+        throw new ConfigurationException("could not coerce String from " + content.toString());
+    }
+    public static Integer coerceInteger(JSONObject content, JSONObject meta) throws ConfigurationException {
+        if ((content == null) || (meta == null)) throw new ConfigurationException("invalid content/meta arguments");
+        String type = ConfigurationUtil.getType(meta);
+        if ((type == null) || !type.equals("integer")) throw new ConfigurationException("not type=integer");
+        if (content.has(VALUE_KEY) && content.isNull(VALUE_KEY)) return null;  //legit null
+        int i = content.optInt(VALUE_KEY, 0);
+        //this wonky second fallback is to prove no int there (vs actual 0)
+        if ((i == 0) && (content.optInt(VALUE_KEY, 1) == 1)) throw new ConfigurationException("could not coerce Integer from " + content.toString());
+        return i;
+    }
+    public static Double coerceDouble(JSONObject content, JSONObject meta) throws ConfigurationException {
+        if ((content == null) || (meta == null)) throw new ConfigurationException("invalid content/meta arguments");
+        String type = ConfigurationUtil.getType(meta);
+        if ((type == null) || !type.equals("double")) throw new ConfigurationException("not type=double");
+        if (content.has(VALUE_KEY) && content.isNull(VALUE_KEY)) return null;  //legit null
+        double d = content.optDouble(VALUE_KEY, 0d);
+        //this wonky second fallback is to prove no int there (vs actual 0)
+        if ((d == 0d) && (content.optDouble(VALUE_KEY, 1d) == 1d)) throw new ConfigurationException("could not coerce Double from " + content.toString());
+        return d;
+    }
+    public static Boolean coerceBoolean(JSONObject content, JSONObject meta) throws ConfigurationException {
+        if ((content == null) || (meta == null)) throw new ConfigurationException("invalid content/meta arguments");
+        String type = ConfigurationUtil.getType(meta);
+        if ((type == null) || !type.equals("boolean")) throw new ConfigurationException("not type=double");
+        if (content.has(VALUE_KEY) && content.isNull(VALUE_KEY)) return null;  //legit null
+        boolean b = content.optBoolean(VALUE_KEY, false);
+        //this wonky second fallback is to prove no int there (vs actual 0)
+        if (!b && content.optBoolean(VALUE_KEY, true)) throw new ConfigurationException("could not coerce Boolean from " + content.toString());
+        return b;
+    }
+
+    public static List<String> coerceStringList(JSONObject content, JSONObject meta) throws ConfigurationException {
+        if ((content == null) || (meta == null)) throw new ConfigurationException("invalid content/meta arguments");
+        String type = ConfigurationUtil.getType(meta);
+        if ((type == null) || type.equals("string") || type.equals("date") || type.equals("integer") || type.equals("boolean") || type.equals("double")) {
+            List<String> list = new ArrayList<String>();
+            JSONArray arr = content.optJSONArray(VALUE_KEY);
+            if (arr == null) {  //we allow a single value to be promoted to array here
+                list.add(coerceString(content, meta));
+            } else {
+                for (int i = 0 ; i < arr.length() ; i++) {
+                    if (arr.isNull(i)) {
+                        list.add(null);
+                    } else {
+                        String s = arr.optString(i);
+                        if (s == null) throw new ConfigurationException("unable to coerce String from i=" + i + " in " + arr.toString());
+                        list.add(s);
+                    }
+                }
+            }
+            return list;
+        }
+        throw new ConfigurationException("could not coerce String from " + content.toString());
+    }
+/*
     // this is the "inverse" of handleValue() above, in that it tries to get the right kind of object out of this
     public static Object coerceValue(Configuration conf) throws ConfigurationException {
 System.out.println("*** coerceValue() conf=" + conf);
@@ -380,6 +446,7 @@ System.out.println("*** coerceValue(key=" + key + ";type=" + type + ") content="
         }
         return cont.opt(key); //good luck, part 2
     }
+*/
 
 
     //this requires that only the 0th element is returned, and builds a list of that... casting should be done elsewhere

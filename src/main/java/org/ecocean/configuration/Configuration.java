@@ -56,6 +56,46 @@ public class Configuration implements java.io.Serializable {
 
 //////////// TODO need something like .hasValue() to know when set but null (as opposed to .getValue() returning null for other reasons like never set)
 
+    //we have various flavors.  note the *List ones can be used to grab non-multiple values but as a list
+    // we do our best to cast values even if type does not match
+    public String getValueAsString() throws ConfigurationException {
+        return ConfigurationUtil.coerceString(this.getContent(), this._precheckSingle());
+    }
+    public Integer getValueAsInteger() throws ConfigurationException {
+        return ConfigurationUtil.coerceInteger(this.getContent(), this._precheckSingle());
+    }
+    public Double getValueAsDouble() throws ConfigurationException {
+        return ConfigurationUtil.coerceDouble(this.getContent(), this._precheckSingle());
+    }
+    public Boolean getValueAsBoolean() throws ConfigurationException {
+        return ConfigurationUtil.coerceBoolean(this.getContent(), this._precheckSingle());
+    }
+
+    public List<String> getValueAsStringList() throws ConfigurationException {
+        JSONObject meta = this._precheckMultiple();
+        if (!this.isMultiple(meta)) {
+            List<String> rtn = new ArrayList<String>();
+            rtn.add(ConfigurationUtil.coerceString(this.getContent(), meta));
+            return rtn;
+        }
+        return ConfigurationUtil.coerceStringList(this.getContent(), meta);
+    }
+
+    private JSONObject _precheckMultiple() throws ConfigurationException {
+        if (!this.hasValidRoot()) throw new ConfigurationException("invalid root on id=" + this.id);
+        JSONObject meta = this.getMeta();
+        if (meta == null) throw new ConfigurationException("missing meta on id=" + this.id);
+        return meta;
+    }
+    private JSONObject _precheckSingle() throws ConfigurationException {
+        if (!this.hasValidRoot()) throw new ConfigurationException("invalid root on id=" + this.id);
+        JSONObject meta = this.getMeta();
+        if (meta == null) throw new ConfigurationException("missing meta on id=" + this.id);
+        if (this.isMultiple(meta)) throw new ConfigurationException("calling single value on multiple for id=" + this.id);
+        return meta;
+    }
+
+/*
     public Object getValue() throws ConfigurationException {  //convenience
         return ConfigurationUtil.coerceValue(this);
     }
@@ -67,6 +107,7 @@ public class Configuration implements java.io.Serializable {
 return null; ///FIXME
         //return _coerce(meta, "defaultValue", type);
     }
+*/
 
     public List<String> getIdPath() {
         return ConfigurationUtil.idPath(this.id);
@@ -132,9 +173,9 @@ return null; ///FIXME
     }
     public boolean isMultiple(JSONObject meta) {
         if (meta == null) return false;
-        if (m.optBoolean("multiple", false)) return true;  //vanilla
-        int min = m.optInt("multipleMin", -1);
-        int max = m.optInt("multipleMax", -1);
+        if (meta.optBoolean("multiple", false)) return true;  //vanilla
+        int min = meta.optInt("multipleMin", -1);
+        int max = meta.optInt("multipleMax", -1);
         if ((min > 1) || (max > 1)) return true;
         return false;
     }
@@ -217,11 +258,14 @@ return null; ///FIXME
         j.put("type", ConfigurationUtil.getType(m));
         j.put("isRootLevel", this.isRootLevel());
         j.put("isValid", this.isValid());
+        j.put("isMultiple", this.isMultiple(m));
         j.put("validRoot", this.hasValidRoot());
         j.put("content", this.getContent());
+/*
         try {
-            j.put("value", this.getValue());
+            j.put("value", this.getValueStringList());
         } catch (ConfigurationException ex) {}
+*/
         j.put("created", this.getCreated());
         j.put("modified", this.getModified());
         return j;
