@@ -99,10 +99,9 @@ public class ConfigurationUtil {
         if (content == null) content = new JSONObject();
         content = setDeepJSONObject(content, path, cvalue);
         conf.setContent(content);
-        conf.setModified();
         myShepherd.getPM().makePersistent(conf);
-        System.out.println("INFO: setConfigurationValue(" + root + ") persisted and inserted into cache");
         valueCache.put(root, content);
+        System.out.println("INFO: setConfigurationValue(" + root + ") persisted and inserted into cache");
         return conf;
     }
 
@@ -448,6 +447,27 @@ System.out.println("*** coerceValue(key=" + key + ";type=" + type + ") content="
     }
 */
 
+    public static JSONObject frontEndValueLabels(JSONObject meta, JSONArray vals, String id) {
+        if ((meta == null) || (vals == null) || (vals.length() < 1)) return null;
+        JSONObject fs = meta.optJSONObject("formSchema");
+        if (fs == null) return null;
+        if (fs.optJSONObject("valueLabels") != null) return fs.getJSONObject("valueLabels");  //easy
+        String prefix = fs.optString("valueLabelsPrefix", null);
+        boolean langAuto = fs.optBoolean("valueLabelsAuto", false);
+        if (langAuto) prefix = idToLang(id) + KEY_DELIM;  //assumed to be used as i18n key
+        if (prefix == null) return null;
+        JSONObject lab = new JSONObject();
+        for (int i = 0 ; i < vals.length() ; i++) {
+            String v = vals.optString(i);
+            if (v == null) continue;
+            if (langAuto) {
+                lab.put(v, prefix + v.toUpperCase());
+            } else {
+                lab.put(v, prefix + v);
+            }
+        }
+        return lab;
+    }
 
     //this requires that only the 0th element is returned, and builds a list of that... casting should be done elsewhere
     public static List<Object> sqlLookup(Shepherd myShepherd, String sql) {

@@ -31,6 +31,9 @@ pre {
     color: #FFF;
     background-color: #8AF;
 }
+.warn {
+    color: #641;
+}
 </style>
 </html><body><%
 
@@ -69,15 +72,36 @@ if (conf == null) {
     return;
 }
 
-try {
-    out.println("<div class=\"value\">" + conf.getValue() + "</div>");
-} catch (Exception ex) {}
+if (conf.hasValue()) {
+    out.println("<div class=\"value\">");
+    if (conf.isMultiple()) {
+        out.println("<ul>");
+        try {
+            List<String> vals = conf.getValueAsStringList();
+            for (String val : vals) {
+                out.println("<li>" + val + "</li>");
+            }
+        } catch (Exception ex) {}
+        out.println("</ul>");
+    } else {
+        try {
+            String val = conf.getValueAsString();
+            out.println(val);
+        } catch (Exception ex) {}
+    }
+    out.println("</div>");
+} else {
+    out.println("<div class=\"value warn\"><i>no value set</i></div>");
+}
 
 //JSONObject meta = ConfigurationUtil.getMeta(id);
 out.println("<p>" + conf + "</p>");
 if (conf.getMeta() != null) out.println("<p>our <b>meta</b>:</p><pre>" + conf.getMeta().toString(8) + "</pre>");
 
 out.println("<p>for <b>front end</b>:</p><pre>" + conf.toFrontEndJSONObject(myShepherd).toString(8) + "</pre>");
+
+out.println("<p><b>.toJSONObject()</b>:</p><pre>" + conf.toJSONObject().toString(8) + "</pre>");
+
 out.println("<ul>");
 for (String k : conf.getChildKeys()) {
     out.println("<li><a href=\"configTest.jsp?id=" + id + "." + k + "\">" + id + "." + k + "</a></li>");

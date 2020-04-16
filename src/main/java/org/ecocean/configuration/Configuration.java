@@ -54,7 +54,11 @@ public class Configuration implements java.io.Serializable {
         ConfigurationUtil.setConfigurationValue(myShepherd, this.id, value);
     }
 
-//////////// TODO need something like .hasValue() to know when set but null (as opposed to .getValue() returning null for other reasons like never set)
+    public boolean hasValue() {
+        JSONObject c = this.getContent();
+        if ((c == null) || !c.has(ConfigurationUtil.VALUE_KEY)) return false;
+        return true;
+    }
 
     //we have various flavors.  note the *List ones can be used to grab non-multiple values but as a list
     // we do our best to cast values even if type does not match
@@ -190,13 +194,16 @@ return null; ///FIXME
     public JSONObject toFrontEndJSONObject(Shepherd myShepherd) {
         JSONObject m = this.getMeta();
         JSONObject j = new JSONObject();
+        JSONObject c = this.getContent();
         j.put("configurationId", id);
         j.put("name", this.getKey());
         j.put("translationId", this.getLang());
+        if (c != null) j.put("currentValue", c.opt(ConfigurationUtil.VALUE_KEY));
         if (m == null) {
             j.put("__warning", "no meta available");
             return j;
         }
+        j.put("defaultValue", m.opt("defaultValue"));
         String type = ConfigurationUtil.getType(m);
         j.put("fieldType", type);
         j.put("required", m.optBoolean("required", false));
@@ -246,6 +253,9 @@ return null; ///FIXME
                 }
             }
         }
+        //we call this now cuz .values should be populated (e.g. lookup)
+        JSONObject vlabels = ConfigurationUtil.frontEndValueLabels(m, j.optJSONArray("values"), this.id);
+        if (vlabels != null) j.put("valueLabels", vlabels);
         return j;
     }
 
@@ -258,6 +268,7 @@ return null; ///FIXME
         j.put("type", ConfigurationUtil.getType(m));
         j.put("isRootLevel", this.isRootLevel());
         j.put("isValid", this.isValid());
+        j.put("hasValue", this.hasValue());
         j.put("isMultiple", this.isMultiple(m));
         j.put("validRoot", this.hasValidRoot());
         j.put("content", this.getContent());
@@ -277,6 +288,7 @@ return null; ///FIXME
                 .append("type", this.getType())
                 .append("isRootLevel", this.isRootLevel())
                 .append("isValid", this.isValid())
+                .append("hasValue", this.hasValue())
                 .append("validRoot", this.hasValidRoot())
                 .toString();
     }
