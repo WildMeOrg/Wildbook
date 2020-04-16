@@ -23,6 +23,7 @@ public class ConfigurationUtil {
     public static final String KEY_PREFIX = "configuration";  //for frontend, like configuration_foo_path_blah
     public static final String ID_DELIM = ".";
     public static final String META_KEY = "__meta";
+    public static final String VALUE_KEY = "__value";
 
     private static Map<String,JSONObject> meta = new HashMap<String,JSONObject>();
     private static Map<String,JSONObject> valueCache = new HashMap<String,JSONObject>();
@@ -108,7 +109,7 @@ public class ConfigurationUtil {
 
         if (path.size() == 1) {  //last one, we set the value
             JSONObject jval = new JSONObject();
-            jval.put("value", value);
+            jval.put(VALUE_KEY, value);
             String top = path.remove(0);
             jobj.put(top, jval);
             return jobj;
@@ -356,11 +357,13 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
 
     // this is the "inverse" of handleValue() above, in that it tries to get the right kind of object out of this
     public static Object coerceValue(Configuration conf) throws ConfigurationException {
+System.out.println("*** coerceValue() conf=" + conf);
         if ((conf == null) || !conf.isValid()) throw new ConfigurationException("coerceValue() given invalid conf=" + conf);
         JSONObject meta = conf.getMeta();
         String type = ConfigurationUtil.getType(meta);
         JSONObject cont = conf.getContent();
-        String key = "value";  //this is only valid one for now: content.value = (?)
+        String key = VALUE_KEY;  //this is only valid one for now: content.__value = (?)
+System.out.println("*** coerceValue(key=" + key + ";type=" + type + ") content=" + cont);
         if ((cont == null) || cont.isNull(key)) return null;
         if (type == null) return cont.opt(key); //good luck, part 1
         switch (type) {
