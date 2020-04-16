@@ -33,6 +33,10 @@ public class Configuration implements java.io.Serializable {
         this.id = id;
     }
 
+    public String getId() {
+        return id;
+    }
+
     public JSONObject getContent() {
         return Util.stringToJSONObject(content);
     }
@@ -117,6 +121,78 @@ return null; ///FIXME
     }
     public long getCreated() {
         return created;
+    }
+
+    //mostly for front end
+    public String getKey() {
+        return ConfigurationUtil.idToKey(this.id);
+    }
+    public String getLang() {
+        return ConfigurationUtil.idToLang(this.id);
+    }
+
+    // based on https://github.com/WildbookOrg/wildbook-frontend/blob/master/src/constants/userSchema.js
+    public JSONObject toFrontEndJSONObject() {
+        return toFrontEndJSONObject(null);
+    }
+//TODO cache this nonsense!!!
+    public JSONObject toFrontEndJSONObject(Shepherd myShepherd) {
+        JSONObject m = this.getMeta();
+        JSONObject j = new JSONObject();
+        j.put("configurationId", id);
+        j.put("name", this.getKey());
+        j.put("translationId", this.getLang());
+        if (m == null) {
+            j.put("__warning", "no meta available");
+            return j;
+        }
+        String type = ConfigurationUtil.getType(m);
+        j.put("fieldType", type);
+        j.put("required", m.optBoolean("required", false));
+        int min = m.optInt("multipleMin", -1);
+        int max = m.optInt("multipleMax", -1);
+        if (min > -1) {
+            j.put("multiple", true);
+            j.put("multipleMin", min);
+            if (min > 0) j.put("required", true);
+        }
+        if (max > -1) {
+            j.put("multiple", true);
+            j.put("multipleMax", max);
+        }
+        if (m.optJSONArray("values") != null) j.put("values", m.getJSONArray("values"));
+        JSONObject vobj = m.optJSONObject("values");
+        if (vobj != null) {  //got something complex...
+            String sql = vobj.optString("sql", null);
+            if (sql != null) {
+                if (myShepherd == null) {
+                    System.out.println("WARNING: .toFrontEndJSONObject() called without myShepherd but sql lookup needed for " + this);
+                    j.put("_valuesError", "sql lookup but no Shepherd");
+                } else {
+                    try {
+                        List<Object> list = ConfigurationUtil.sqlLookup(myShepherd, sql);
+                        JSONArray vlist = new JSONArray();
+                        for (Object o : list) {
+                            if ("string".equals(type)) {
+                                vlist.put((String)o);
+                            } else if ("integer".equals(type)) {
+                                vlist.put((Integer)o);
+                            } else if ("double".equals(type)) {
+                                vlist.put((Double)o);
+                            } else if ("long".equals(type)) {
+                                vlist.put((Long)o);
+                            } else {
+                                vlist.put(o);
+                            }
+                        }
+                    } catch (Exception ex) {
+                        System.out.println("WARNING: .toFrontEndJSONObject() sql lookup on " + this + " threw " + ex.toString());
+                        j.put("_valuesError", "sql lookup failed");
+                    }
+                }
+            }
+        }
+        return j;
     }
 
     public JSONObject toJSONObject() {

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.io.File;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -15,6 +16,7 @@ import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
 import java.time.Instant;
 import java.time.DateTimeException;
+import javax.jdo.Query;
 
 public class ConfigurationUtil {
     public static final String KEY_DELIM = "_";
@@ -22,7 +24,7 @@ public class ConfigurationUtil {
     public static final String META_KEY = "__meta";
 
     private static Map<String,JSONObject> meta = new HashMap<String,JSONObject>();
-    private static Map<String,JSONObject> value = new HashMap<String,JSONObject>();
+    private static Map<String,JSONObject> valueCache = new HashMap<String,JSONObject>();
     private static long lastRead = 0l;
 
     public static boolean isValidRoot(String root) {
@@ -44,12 +46,28 @@ public class ConfigurationUtil {
         return new ArrayList<String>(Arrays.asList(id.split("\\.")));
     }
 
+    //not really(?) for public consumption
+    private static Configuration _loadConfiguration(Shepherd myShepherd, String id) {
+        if (!idHasValidRoot(id)) return null;
+        String root = idGetRoot(id);
+        //TODO other cache checks?  expires? etc
+        Configuration conf = null;
+        if (valueCache.get(root) != null) {
+            System.out.println("INFO: _loadConfiguration(" + root + ") read from cache");
+            conf = new Configuration(root, valueCache.get(root));
+        } else {
+            conf = myShepherd.getConfiguration(root);
+            System.out.println("INFO: _loadConfiguration(" + root + ") loaded from db");
+            valueCache.put(root, conf.getContent());
+        }
+        return conf;
+    }
     public static Configuration getConfiguration(Shepherd myShepherd, String id) {
         if (!idHasValidRoot(id)) return new Configuration(id);
         //TODO something with 'value' cache??????
         List<String> path = idPath(id);
         String root = path.remove(0);
-        Configuration conf = myShepherd.getConfiguration(root);
+        Configuration conf = _loadConfiguration(myShepherd, id);  //this is root
         if (conf == null) conf = new Configuration(id, new JSONObject());  //no root in db yet
         if (id.equals(root)) return conf;  //we want the whole thing
         //we must be a sub-branch (or leaf) of the main json
@@ -78,6 +96,8 @@ public class ConfigurationUtil {
         conf.setContent(content);
         conf.setModified();
         myShepherd.getPM().makePersistent(conf);
+        System.out.println("INFO: setConfigurationValue(" + root + ") persisted and inserted into cache");
+        valueCache.put(root, content);
         return conf;
     }
 
@@ -211,6 +231,16 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         return n.replaceAll("\\-", KEY_DELIM).replaceAll("\\.", KEY_DELIM);
     }
 
+    //of the form foo_bar_etc (for front end mostly?)
+    public static String idToKey(String id) {
+        if (id == null) return null;
+        return String.join(KEY_DELIM, idPath(id));
+    }
+    //like FOO_BAR_BLAH (for front end i18n)
+    public static String idToLang(String id) {
+        if (id == null) return null;
+        return String.join(KEY_DELIM, idPath(id)).toUpperCase();
+    }
 
     //a whole bunch of these based on diff incoming types
     public static boolean checkValidity(Boolean b, JSONObject meta) throws ConfigurationException {
@@ -343,6 +373,19 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         return cont.opt(key); //good luck, part 2
     }
 
+
+    //this assumes only the 0th element is all we want, and builds a list of that... casting should be done elsewhere
+    public static List<Object> sqlLookup(Shepherd myShepherd, String sql) {
+        List<Object> list = new ArrayList<Object>();
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
+        List results = (List)q.execute();
+        Iterator it = results.iterator();
+        while (it.hasNext()) {
+            Object[] row = (Object[]) it.next();
+            if (row.length > 0) list.add(row[0]);
+        }
+        return list;
+    }
 
 }
 

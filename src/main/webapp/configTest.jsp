@@ -23,6 +23,14 @@ pre {
     margin: 6px;
     background-color: #CCC;
 }
+.value {
+    border-radius: 4px;
+    padding: 6px;
+    margin: 2px;
+    display: inline-block;
+    color: #FFF;
+    background-color: #8AF;
+}
 </style>
 </html><body><%
 
@@ -44,8 +52,10 @@ if (id == null) {
 }
 
 out.println("<h1>" + id + "</h1>");
+String root = null;
 List<String> path = ConfigurationUtil.idPath(id);
 if (path.size() > 1) {
+    root = path.get(0);
     path.remove(path.size() - 1);
     String up = String.join(".", path);
     out.println("<p><i>Up to <a href=\"configTest.jsp?id=" + up + "\">" + up + "</a></i></p>");
@@ -57,15 +67,26 @@ if (conf == null) {
     return;
 }
 
+try {
+    out.println("<div class=\"value\">" + conf.getValue() + "</div>");
+} catch (Exception ex) {}
+
 //JSONObject meta = ConfigurationUtil.getMeta(id);
 out.println("<p>" + conf + "</p>");
-if (conf.getMeta() != null) out.println("<pre>" + conf.getMeta().toString(8) + "</pre>");
+if (conf.getMeta() != null) out.println("<p>our <b>meta</b>:</p><pre>" + conf.getMeta().toString(8) + "</pre>");
 
+out.println("<p>for <b>front end</b>:</p><pre>" + conf.toFrontEndJSONObject().toString(8) + "</pre>");
 out.println("<ul>");
 for (String k : conf.getChildKeys()) {
     out.println("<li><a href=\"configTest.jsp?id=" + id + "." + k + "\">" + id + "." + k + "</a></li>");
 }
 out.println("</ul>");
+
+
+if (root != null) {
+    Configuration top = ConfigurationUtil.getConfiguration(myShepherd, root);
+    out.println("<div class=\"value\">" + top.getContent().toString(8) + "</div>");
+}
 
 /*
 //out.println("<p>" + ConfigurationUtil.getConfiguration(myShepherd, "cache.bar") + "</p>");
