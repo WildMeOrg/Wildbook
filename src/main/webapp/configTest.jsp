@@ -59,6 +59,8 @@ if (path.size() > 1) {
     path.remove(path.size() - 1);
     String up = String.join(".", path);
     out.println("<p><i>Up to <a href=\"configTest.jsp?id=" + up + "\">" + up + "</a></i></p>");
+} else {
+    out.println("<p><i>Up to <a href=\"configTest.jsp\">[TOP]</a></i></p>");
 }
 
 Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, id);
@@ -75,7 +77,7 @@ try {
 out.println("<p>" + conf + "</p>");
 if (conf.getMeta() != null) out.println("<p>our <b>meta</b>:</p><pre>" + conf.getMeta().toString(8) + "</pre>");
 
-out.println("<p>for <b>front end</b>:</p><pre>" + conf.toFrontEndJSONObject().toString(8) + "</pre>");
+out.println("<p>for <b>front end</b>:</p><pre>" + conf.toFrontEndJSONObject(myShepherd).toString(8) + "</pre>");
 out.println("<ul>");
 for (String k : conf.getChildKeys()) {
     out.println("<li><a href=\"configTest.jsp?id=" + id + "." + k + "\">" + id + "." + k + "</a></li>");

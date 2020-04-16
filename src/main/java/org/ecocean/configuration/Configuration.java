@@ -185,6 +185,7 @@ return null; ///FIXME
                                 vlist.put(o);
                             }
                         }
+                        j.put("values", vlist);
                     } catch (Exception ex) {
                         System.out.println("WARNING: .toFrontEndJSONObject() sql lookup on " + this + " threw " + ex.toString());
                         j.put("_valuesError", "sql lookup failed");

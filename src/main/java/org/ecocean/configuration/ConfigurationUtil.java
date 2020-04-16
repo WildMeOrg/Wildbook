@@ -20,6 +20,7 @@ import javax.jdo.Query;
 
 public class ConfigurationUtil {
     public static final String KEY_DELIM = "_";
+    public static final String KEY_PREFIX = "configuration";  //for frontend, like configuration_foo_path_blah
     public static final String ID_DELIM = ".";
     public static final String META_KEY = "__meta";
 
@@ -234,12 +235,14 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
     //of the form foo_bar_etc (for front end mostly?)
     public static String idToKey(String id) {
         if (id == null) return null;
-        return String.join(KEY_DELIM, idPath(id));
+        List<String> p = idPath(id);
+        p.add(0, KEY_PREFIX);
+        return String.join(KEY_DELIM, p);
     }
     //like FOO_BAR_BLAH (for front end i18n)
     public static String idToLang(String id) {
         if (id == null) return null;
-        return String.join(KEY_DELIM, idPath(id)).toUpperCase();
+        return idToKey(id).toUpperCase();
     }
 
     //a whole bunch of these based on diff incoming types
@@ -374,15 +377,15 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
     }
 
 
-    //this assumes only the 0th element is all we want, and builds a list of that... casting should be done elsewhere
+    //this requires that only the 0th element is returned, and builds a list of that... casting should be done elsewhere
     public static List<Object> sqlLookup(Shepherd myShepherd, String sql) {
         List<Object> list = new ArrayList<Object>();
         Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         List results = (List)q.execute();
         Iterator it = results.iterator();
         while (it.hasNext()) {
-            Object[] row = (Object[]) it.next();
-            if (row.length > 0) list.add(row[0]);
+            Object row = (Object)it.next();  //is a single column
+            if (row != null) list.add(row);
         }
         return list;
     }
