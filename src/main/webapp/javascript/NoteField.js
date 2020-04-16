@@ -8,6 +8,20 @@ wildbook.NoteField = {
         if (wildbook.NoteField.quill[id]) return;
         wildbook.NoteField.originalContent[id] = document.getElementById('id-' + id).innerHTML;
         $(wrap).find('.org-ecocean-notefield-control').css('visibility', 'hidden');
+
+        /// see:  https://github.com/quilljs/quill/issues/1139
+        var Link = Quill.import('formats/link');
+        class MyLink extends Link {
+            static create(value) {
+                let node = super.create(value);
+                value = this.sanitize(value);
+                node.setAttribute('href', value);
+                node.removeAttribute('target');
+                return node;
+            }
+        }
+        Quill.register(MyLink);
+
         wildbook.NoteField.quill[id] = new Quill('#id-' + id, {
             theme: 'snow'
         });
