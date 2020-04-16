@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,
          javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,
-         org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SynchronizedSummaryStatistics,
+         org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SynchronizedSummaryStatistics, java.util.stream.Collectors,
          org.joda.time.DateTime,
 		org.joda.time.format.DateTimeFormatter,
 		org.joda.time.format.ISODateTimeFormat
@@ -9,8 +9,6 @@
 
 
   <%
-
-  
   //get our Shepherd
   String context="context0";
   context=ServletUtilities.getContext(request);
@@ -593,9 +591,9 @@ if (request.getQueryString() != null) {
 <li><%=encprops.getProperty("numberHaplotype") %> <%=numResultsWithHaplotype %></li>
 <li><%=encprops.getProperty("numberGeneticSex") %> <%=numResultsWithGeneticSex %></li>
 </ul>
-</p>
-<%
+    </p>
 
+<%
 if(maxTravelDistance>0){
 %>
 <p><%=encprops.getProperty("individualLargestDistance") %> <a href="individuals.jsp?number=<%=farthestTravelingIndividual %>"><%=farthestTravelingIndividualDisplayName %></a> (<%=df.format(maxTravelDistance/1000) %> km)</p>
@@ -698,6 +696,81 @@ if(maxTimeBetweenResights>0){
  
 <p><strong><%=encprops.getProperty("charting") %></strong></p>
 
+<link rel="stylesheet" type="text/css" href="css/individualStyles.css">
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script src="javascript/relationshipDiagrams/jsonParser.js"></script>
+<script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
+<script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
+<script src="javascript/relationshipDiagrams/socialGraph.js"></script>
+
+<div id="socialDiagram">
+  <div id="familyChart">
+    <div id="graphFilters">
+      <div id="graphOptions">
+        <button type="button" id="reset">Reset Filters</button>
+	<button type="button" id="gZoomIn">Zoom In</button>
+	<button type="button" id="gZoomOut">Zoom Out</button>
+      </div>
+      <div id="filterGender" class="filterOptions">
+        <label>	  
+	  <input type="checkbox" id="maleBox">
+	  <span>Male</span>
+	</label>
+	<label>	  
+	  <input type="checkbox" id="femaleBox">
+	  <span>Female</span>
+	</label>
+	<label>	  
+	  <input type="checkbox" id="unknownGenderBox">
+	  <span>Unknown Gender</span>
+	</label>
+      </div>
+      <div id="filterSocialRole" class="filterOptions">
+      <label>
+        <input type="checkbox" id="alphaBox">
+	<span>Alpha</span>
+      </label>
+      <label>
+	<input type="checkbox" id="unknownRoleBox">
+	<span>Unknown Role</span>
+      </label>
+      </div>
+      <div class="filterOptions">
+	<label>	  
+	  <input type="checkbox" id="selectFamilyBox">
+	  <span>Select Family</span>
+	</label>
+        <label>	  
+	  <input type="checkbox" id="filterFamilyBox">
+	  <span>Filter Family</span>
+	</label>
+      </div>
+    </div>
+  </div>
+  <div class="graphSliders">
+    <div class="sliderWrapper">
+      <label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
+      <input type="range" min=0 class="graphSlider" id="nodeCount">
+    </div>
+    <div class="sliderWrapper">
+      <label for="nodeDist"> Node Distance (Geodesic) - <span class="sliderLabel" id="nodeDistVal"></span></label>
+      <input type="range" min=0 class="graphSlider" id="nodeDist">
+    </div>
+  </div>
+</div>
+
+<%
+  ArrayList<String> individualIds = new ArrayList<String>();
+  for (MarkedIndividual rIndividual : rIndividuals) {
+    individualIds.add(rIndividual.getIndividualID());
+  }
+%>
+
+<script>
+  let parser = new JSONParser(wildbookGlobals, '<%=individualIds%>', true, 50);
+  setupSocialGraph(null, "#socialDiagram", wildbookGlobals, parser);
+</script>
+	 
  <div id="chart_div"></div>
 
 <div id="sexchart_div"></div>

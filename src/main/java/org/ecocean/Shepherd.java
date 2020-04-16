@@ -26,6 +26,7 @@ import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
 import org.ecocean.ia.Task;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
 
@@ -1283,6 +1284,20 @@ public class Shepherd {
     return inCommon;
   }
 
+  public ImportTask getImportTaskForEncounter(Encounter enc) {
+    Query itq = pm.newQuery("SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getID() + "'");
+    Collection c = (Collection) (itq.execute());
+    Iterator it = c.iterator();
+    ImportTask itask = null;
+    if (it.hasNext()) {
+      itask = (ImportTask)it.next();
+      itq.closeAll();
+      return itask;
+    }
+    itq.closeAll();
+    return itask;
+  }
+
   public boolean isSurvey(String num) {
     try {
       Survey tempSvy = ((org.ecocean.Survey) (pm.getObjectById(pm.newObjectIdInstance(Survey.class, num.trim()), true)));
@@ -2464,7 +2479,7 @@ public class Shepherd {
 
   public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
 
-    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individualID == \""+indy.getIndividualID()+"\" ";
+    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individual.individualID == \""+indy.getIndividualID()+"\" ";
     String vars=" VARIABLES org.ecocean.Encounter enc3_0";
     for(int i=0; i<kwReadableNames.length; i++){
       filter+="  && features.contains(feat"+i+") && feat"+i+".asset.keywords.contains(word"+i+") &&  word"+i+".readableName == \""+kwReadableNames[i]+"\" ";

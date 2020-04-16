@@ -549,8 +549,6 @@
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
   </servlet>
 
-
-
 <!--
 <servlet>
 <servlet-name>EncounterSetPatterningPassport</servlet-name>
@@ -2327,8 +2325,6 @@
     <servlet-name>IndividualSetNickName</servlet-name>
     <url-pattern>/IndividualSetNickName</url-pattern>
   </servlet-mapping>
-
-
 
   <servlet-mapping>
     <servlet-name>IndividualSetAlternateID</servlet-name>
