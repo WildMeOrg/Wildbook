@@ -92,8 +92,11 @@ sub check_defn {
             return;
         }
         foreach my $k (keys %$v) {
-            if (!$d->{$k}) {
-                print "--   $prev.$k has no defn (1); value = " . to_json($v->{$k}) . "\n";
+            if ($k eq '__value') {
+                ## skip this
+            } elsif (!$d->{$k}) {
+                #print "--   $prev.$k has no defn (1); value = " . to_json($v->{$k}) . "\n";
+                warn "--   $prev.$k has no defn (1); value = " . Dumper($v->{$k}) . "\n";
             } else {
                 &check_defn("$prev.$k", $v->{$k}, $d->{$k});
             }
@@ -118,8 +121,17 @@ sub set {
 #warn Dumper($j) . Dumper($path) . "val=($val)\n";
     next unless @$path;
     if (scalar(@$path) == 1) {
-        $j->{$path->[0]} = $val;
-#print "(A)" . Dumper($j);
+#warn "$key_prefix($path->[0])";
+        my $cval = $val;
+        if ($cval =~ /^true$/i) {
+            $cval = JSON::true;
+        } elsif ($cval =~ /^false$/i) {
+            $cval = JSON::false;
+        } elsif ($cval =~ /^[\d\.\-]+$/i) {
+            $cval = $cval + 0;
+        }
+        $j->{$path->[0]} = { '__value' => $cval };
+#print "(A:$path->[0]) " . Dumper($j);
         return;
     }
     my $k = shift @$path;
