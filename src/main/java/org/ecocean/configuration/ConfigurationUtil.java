@@ -76,9 +76,11 @@ public class ConfigurationUtil {
         conf = new Configuration(id, _traverse(conf.getContent(), path));
         return conf;
     }
+/*
     public static Object getConfigurationValue(Shepherd myShepherd, String id) throws ConfigurationException {
         return coerceValue(getConfiguration(myShepherd, id));
     }
+*/
 
     public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException {
         if (!idHasValidRoot(id)) throw new ConfigurationException("setConfiguration() passed invalid id=" + id);
@@ -179,7 +181,7 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
 
     public static void init() {
         meta = new HashMap<String,JSONObject>();
-        //value = new HashMap<String,JSONObject>();
+        valueCache = new HashMap<String,JSONObject>();
         for (File conf : allFiles(dirOverride())) {
             JSONObject j = readJson(conf);
             if (j == null) continue;

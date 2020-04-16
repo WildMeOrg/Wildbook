@@ -130,12 +130,22 @@ return null; ///FIXME
     public String getLang() {
         return ConfigurationUtil.idToLang(this.id);
     }
+    public boolean isMultiple(JSONObject meta) {
+        if (meta == null) return false;
+        if (m.optBoolean("multiple", false)) return true;  //vanilla
+        int min = m.optInt("multipleMin", -1);
+        int max = m.optInt("multipleMax", -1);
+        if ((min > 1) || (max > 1)) return true;
+        return false;
+    }
+    public boolean isMultiple() {
+        return isMultiple(this.getMeta());
+    }
 
     // based on https://github.com/WildbookOrg/wildbook-frontend/blob/master/src/constants/userSchema.js
     public JSONObject toFrontEndJSONObject() {
         return toFrontEndJSONObject(null);
     }
-//TODO cache this nonsense!!!
     public JSONObject toFrontEndJSONObject(Shepherd myShepherd) {
         JSONObject m = this.getMeta();
         JSONObject j = new JSONObject();
@@ -156,7 +166,7 @@ return null; ///FIXME
             j.put("multipleMin", min);
             if (min > 0) j.put("required", true);
         }
-        if (max > -1) {
+        if ((max > -1) && (max >= min)) {
             j.put("multiple", true);
             j.put("multipleMax", max);
         }
@@ -165,7 +175,9 @@ return null; ///FIXME
         if (vobj != null) {  //got something complex...
             String sql = vobj.optString("sql", null);
             if (sql != null) {
+                //TODO should we cache this?  or let it stay fresh/synced with db?
                 if (myShepherd == null) {
+                    //  ... maybe only use cache when no shepherd?
                     System.out.println("WARNING: .toFrontEndJSONObject() called without myShepherd but sql lookup needed for " + this);
                     j.put("_valuesError", "sql lookup but no Shepherd");
                 } else {
