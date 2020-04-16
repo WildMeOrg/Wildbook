@@ -11,6 +11,10 @@ import java.util.Arrays;
 import java.io.File;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.Instant;
+import java.time.DateTimeException;
 
 public class ConfigurationUtil {
     public static final String KEY_DELIM = "_";
@@ -52,33 +56,33 @@ public class ConfigurationUtil {
         conf = new Configuration(id, _traverse(conf.getContent(), path));
         return conf;
     }
-    public static Object getConfigurationValue(Shepherd myShepherd, String id) {
-        Configuration conf = getConfiguration(myShepherd, id);
-        if (conf == null) return null;
-        return conf.getValue();
+    public static Object getConfigurationValue(Shepherd myShepherd, String id) throws ConfigurationException {
+        return coerceValue(getConfiguration(myShepherd, id));
     }
 
     public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException {
-        if (!idHasValidRoot(id)) return null;
+        if (!idHasValidRoot(id)) throw new ConfigurationException("setConfiguration() passed invalid id=" + id);
+        Object cvalue = handleValue(id, value);
         List<String> path = idPath(id);
         String root = path.remove(0);
         JSONObject content = null;
         Configuration conf = getConfiguration(myShepherd, root);
         if (conf == null) {
             conf = new Configuration(root, new JSONObject());
-            myShepherd.getPM().makePersistent(conf);
+            //myShepherd.getPM().makePersistent(conf);
         } else {
             content = conf.getContent();
         }
         if (content == null) content = new JSONObject();
-        content = setDeepJSONObject(content, path, value);
+        content = setDeepJSONObject(content, path, cvalue);
         conf.setContent(content);
         conf.setModified();
         myShepherd.getPM().makePersistent(conf);
         return conf;
     }
 
-    public static JSONObject setDeepJSONObject(final JSONObject jobj, final List<String> path, final Object value) {
+    //not really for public consumption!
+    private static JSONObject setDeepJSONObject(final JSONObject jobj, final List<String> path, final Object value) {
         if (jobj == null) return null;
 
         if (path.size() == 1) {  //last one, we set the value
@@ -206,6 +210,139 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         if (n == null) return "";
         return n.replaceAll("\\-", KEY_DELIM).replaceAll("\\.", KEY_DELIM);
     }
+
+
+    //a whole bunch of these based on diff incoming types
+    public static boolean checkValidity(Boolean b, JSONObject meta) throws ConfigurationException {
+        return true;
+    }
+    public static boolean checkValidity(Integer i, JSONObject meta) throws ConfigurationException {
+        return true;
+    }
+    public static boolean checkValidity(Double d, JSONObject meta) throws ConfigurationException {
+        return true;
+    }
+    public static boolean checkValidity(Long l, JSONObject meta) throws ConfigurationException {
+        return true;
+    }
+    public static boolean checkValidity(String s, JSONObject meta) throws ConfigurationException {
+        return true;
+    }
+    public static boolean checkValidity(ZonedDateTime dt, JSONObject meta) throws ConfigurationException {
+        return true;
+    }
+
+    //this does a whole bunch of magic to get a json-settable value from any kind of nonsense that comes in
+    //  it also does validity checks!
+    public static Object handleValue(String id, Object inVal) throws ConfigurationException {
+        JSONObject meta = getMeta(id);
+        String type = ConfigurationUtil.getType(meta);
+        if ((meta == null) || (type == null)) {
+            System.out.println("WARNING: ConfigurationUtil.handleValue() missing meta/type for id=" + id);
+            return inVal;
+        }
+        switch (type) {
+            case "string":
+                String s = null;
+                if (inVal instanceof String) {
+                    s = (String)inVal;
+                }
+                checkValidity(s, meta);
+            case "boolean":
+                Boolean b = null;
+                if (inVal instanceof String) {
+                    b = !((String)inVal).toLowerCase().startsWith("f");
+                } else if (inVal instanceof Integer) {
+                    b = ((Integer)inVal != 0);
+                } else if (inVal instanceof Boolean) {
+                    b = (Boolean)inVal;
+                }
+                checkValidity(b, meta);
+                return b;
+            case "integer":
+                Integer i = null;
+                if (inVal instanceof Integer) {
+                    i = (Integer)inVal;
+                } else if (inVal instanceof String) {
+                    try {
+                        i = Integer.parseInt((String)inVal);
+                    } catch (NumberFormatException ex) {
+                        throw new ConfigurationException("could not parse Integer from " + (String)inVal);
+                    }
+                }
+                checkValidity(i, meta);
+                return i;
+            case "long":
+                Long l = null;
+                if (inVal instanceof Long) {
+                    l = (Long)inVal;
+                } else if (inVal instanceof String) {
+                    try {
+                        l = Long.parseLong((String)inVal);
+                    } catch (NumberFormatException ex) {
+                        throw new ConfigurationException("could not parse Long from " + (String)inVal);
+                    }
+                }
+                checkValidity(l, meta);
+                return l;
+            case "double":
+                Double d = null;
+                if (inVal instanceof Double) {
+                    d = (Double)inVal;
+                } else if (inVal instanceof String) {
+                    try {
+                        d = Double.parseDouble((String)inVal);
+                    } catch (NumberFormatException ex) {
+                        throw new ConfigurationException("could not parse Double from " + (String)inVal);
+                    }
+                }
+                checkValidity(d, meta);
+                return d;
+            case "date":
+                ZonedDateTime dt = null;
+                if (inVal instanceof ZonedDateTime) {
+                    dt = (ZonedDateTime)inVal;
+                } else if (inVal instanceof Long) {
+                    try {
+                        dt = ZonedDateTime.ofInstant(Instant.ofEpochSecond((Long)inVal), ZoneOffset.UTC);
+                    } catch (DateTimeException ex) {
+                        throw new ConfigurationException("could not parse ZonedDateTime from " + (Long)inVal + " - " + ex.toString());
+                    }
+                } else if (inVal instanceof String) {
+                    try {
+                        dt = ZonedDateTime.parse((String)inVal);
+                    } catch (DateTimeException ex) {
+                        throw new ConfigurationException("could not parse ZonedDateTime from " + (String)inVal + " - " + ex.toString());
+                    }
+                }
+                checkValidity(dt, meta);
+                return dt;
+        }
+        return inVal;
+    }
+
+    // this is the "inverse" of handleValue() above, in that it tries to get the right kind of object out of this
+    public static Object coerceValue(Configuration conf) throws ConfigurationException {
+        if ((conf == null) || !conf.isValid()) throw new ConfigurationException("coerceValue() given invalid conf=" + conf);
+        JSONObject meta = conf.getMeta();
+        String type = ConfigurationUtil.getType(meta);
+        JSONObject cont = conf.getContent();
+        String key = "value";  //this is only valid one for now: content.value = (?)
+        if ((cont == null) || cont.isNull(key)) return null;
+        if (type == null) return cont.opt(key); //good luck, part 1
+        switch (type) {
+            case "string":
+                return (String)cont.optString(key, null);
+            case "boolean":
+                return (Boolean)cont.optBoolean(key, false);
+            case "integer":
+                return (Integer)cont.optInt(key, 0);
+            case "double":
+                return (Double)cont.optDouble(key, 0.0d);
+        }
+        return cont.opt(key); //good luck, part 2
+    }
+
 
 }
 

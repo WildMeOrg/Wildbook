@@ -35,15 +35,17 @@ The JSON content describes a "tree" of settings beneath the top-level (which is 
 
 "Leaf" nodes as described above, should have a special structure to describe how values can be set.  This has the key **__meta**, and would reside (in our above example) such as: `{ google: apiKey: { __meta: {}, .... } }`.  The contents of this `__meta` data is:
 
-* **type** (required) contains type of data that will be stored.  Varied values range from "special" to full java classes.  #TODO
+* **type** - (required) contains type of data that will be stored.  Varied values range from "special" to full java classes.  #TODO
 
-* **defaultValue** (optional) contains the default value for this property.
+* **defaultValue** - (optional) contains the default value for this property.
 
-* **required** (_boolean_, optional) whether there must be a value here
+* **required** - (_boolean_, optional) whether there must be a value here
 
-* **values** (optional) some TBD way of describing what valid values are
+* **values** - (optional) some TBD way of describing what valid values are
 
-* **formSchema** (optional) contains "hints" for generating the json the ui will use to construct the form. TBD
+* **multipleMin**, **multipleMax** - (optional) implies (potentially) multiple choices possible, bounded by values (unset max with min set means no limit); if _multipleMin_ > 0 this implies **required**.
+
+* **formSchema** - (optional) contains "hints" for generating the json the ui will use to construct the form. TBD
 
 ```json
 {
@@ -69,6 +71,13 @@ This might _generate output_ something along the lines of this, for usage by the
 ```
 
 Current development / work-in-progress, subject to change.  Based on [this example](https://github.com/WildbookOrg/wildbook-frontend/blob/master/src/constants/userSchema.js).
+
+### Misc. options and caveats
+
+* **formSchema.valueText** - (_boolean_, optional) is a hash for _labels_ (viewed by user) associated with the options provided in a (required if this is present) **values** list.  e.g `values: ["a", "b"], formSchema: { valueText: { a: "Apple", b: "Banana" } }`.  Note: this does _not_ implicitely support i18n; see below for variation to help with this.
+
+* **_alternate_ i18n** - better would be for the frontend to construct consistent/predictable _translationIds_ based on the setting ID combined
+with the option value, such as: `configuration_path_foo_bar_option_a` (as the label for value `a`).
 
 # Potential development?
 

@@ -52,36 +52,16 @@ public class Configuration implements java.io.Serializable {
 
 //////////// TODO need something like .hasValue() to know when set but null (as opposed to .getValue() returning null for other reasons like never set)
 
-    public Object getValue() {
-        if (!this.isValid()) return null;
-        JSONObject meta = this.getMeta();
-        String type = ConfigurationUtil.getType(meta);
-        JSONObject c = this.getContent();
-        Object val = _coerce(c, "value", type);
-        return val;
+    public Object getValue() throws ConfigurationException {  //convenience
+        return ConfigurationUtil.coerceValue(this);
     }
 
     public Object getDefaultValue() {
         if (!this.hasValidRoot()) return null;
         JSONObject meta = this.getMeta();
         String type = ConfigurationUtil.getType(meta);
-        return _coerce(meta, "defaultValue", type);
-    }
-
-    private static Object _coerce(JSONObject c, String key, String type) {
-        if ((c == null) || c.isNull(key)) return null;
-        if (type == null) return c.opt(key); //good luck, part 1
-        switch (type) {
-            case "string":
-                return (String)c.optString(key, null);
-            case "boolean":
-                return (Boolean)c.optBoolean(key, false);
-            case "integer":
-                return (Integer)c.optInt(key, 0);
-            case "double":
-                return (Double)c.optDouble(key, 0.0d);
-        }
-        return c.opt(key); //good luck, part 2
+return null; ///FIXME
+        //return _coerce(meta, "defaultValue", type);
     }
 
     public List<String> getIdPath() {
@@ -150,7 +130,9 @@ public class Configuration implements java.io.Serializable {
         j.put("isValid", this.isValid());
         j.put("validRoot", this.hasValidRoot());
         j.put("content", this.getContent());
-        j.put("value", this.getValue());
+        try {
+            j.put("value", this.getValue());
+        } catch (ConfigurationException ex) {}
         j.put("created", this.getCreated());
         j.put("modified", this.getModified());
         return j;
