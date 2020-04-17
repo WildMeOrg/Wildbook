@@ -424,7 +424,7 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         if ((content == null) || (meta == null)) throw new ConfigurationException("invalid content/meta arguments");
         String type = ConfigurationUtil.getType(meta);
         //all these json values seem to cast just fine to string
-        if ((type == null) || type.equals("string") || type.equals("date") || type.equals("integer") || type.equals("boolean") || type.equals("double")) {
+        if ((type == null) || type.equals("string") || type.equals("date") || type.equals("integer") || type.equals("boolean") || type.equals("double") || type.equals("color")) {
             String s = content.optString(VALUE_KEY, null);
             if ((s != null) || content.has(VALUE_KEY)) return s;
         }
