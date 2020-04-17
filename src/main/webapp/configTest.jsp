@@ -14,6 +14,7 @@ org.ecocean.media.*
               "
 %><html><head>
 <title>Configuration Test</title>
+<script src="tools/jquery/js/jquery.min.js"></script>
 <style>
 body {
     font-family: sans, arial;
@@ -50,8 +51,19 @@ pre {
 .warn {
     color: #641;
 }
+
+.form {
+    border-radius: 4px;
+    padding: 6px;
+    margin: 5px;
+    display: inline-block;
+    background-color: #EEC;
+}
+.form input {
+    width: 20em;
+}
 </style>
-</html><body><%
+</html><body onLoad="init()"><%
 
 Shepherd myShepherd = new Shepherd("context0");
 myShepherd.beginDBTransaction();
@@ -97,7 +109,7 @@ if (id == null) {
     return;
 }
 
-out.println("<h1>" + id + "</h1>");
+out.println("<h1 id=\"h1id\">" + id + "</h1>");
 String root = null;
 List<String> path = ConfigurationUtil.idPath(id);
 if (path.size() > 1) {
@@ -185,8 +197,124 @@ out.println(ConfigurationUtil.setDeepJSONObject(jobj, path, 2170));
 
 */
 
-myShepherd.commitDBTransaction();
+
 
 %>
+
+<script>
+
+var meta = <%=conf.toFrontEndJSONObject(myShepherd)%>;
+var isValid = <%=conf.isValid()%>;
+function init() {
+    if (!isValid) return;
+    $('#h1id').after('<div><input type="button" value="set value" onClick="return buildUI(this);" /></div>');
+}
+
+function buildUI(b) {
+    $(b).hide();
+    var h = '<form class="form">';
+
+    if (!meta.multiple) {
+        var val = '';
+        if (meta.currentValue != undefined) {
+            val = meta.currentValue;
+        } else {
+            val = decodeDefaultSingle();
+        }
+        if (meta.values) {
+            h += pulldown(val);
+        } else {
+            h += '<input class="inp" name="' + meta.configurationId + '" value="' + val + '" />';
+        }
+
+    } else {  //multiple
+        var vals = meta.currentValue;
+        if (vals == undefined) vals = decodeDefaultMulti();
+        if (vals == undefined) {
+            vals = [];
+        } else if (!Array.isArray(vals)) {
+            vals = [ vals ];
+        }
+console.log('vals=%o', vals);
+        if (meta.values) {
+            h += multi(vals);
+        } else {
+            h += '<input title="THIS SHOULD ALLOW MULTIPLE!" class="inp" name="' + meta.configurationId + '" value="" />';
+        }
+    }
+
+    h += '<br /><input type="button" value="update" onClick="return set()" />';
+    h += '</form>';
+    $(b).after(h);
+}
+
+function set() {
+    var parts = [];
+    $('.inp').each(function(i, el) {
+        var jel = $(el);
+        var name = jel.prop('name');
+        var val = jel.val();
+        if (val == undefined) return;
+        if (!Array.isArray(val)) val = [ val ];
+console.log('%d: %s => %o', i, name, val);
+        if (!val.length) return;
+        for (var i = 0 ; i < 1 ; i++) {  //FIXME we dont support val.length yet, only 1 !!!
+            parts.push(name + '=' + val[i]);
+        }
+    });
+    if (!parts.length) return;
+    $('.form').hide();
+    window.location.href = 'configTest.jsp?' + parts.join('&');
+}
+
+function pulldown(sel) {
+    var h = '<select class="inp" name="' + meta.configurationId + '">';
+    if (!meta.required) h += '<option value="">SELECT</option>';
+    for (var i = 0 ; i < meta.values.length ; i++) {
+        var v = meta.values[i];
+        var l = v;
+        if (meta.valueLabels && meta.valueLabels[v]) l = meta.valueLabels[v] + ' [' + v + ']';
+        h += '<option value="' + v + '"' + ((v == sel) ? ' selected' : '') + '>' + l + '</option>';
+    }
+    h += '</select>';
+    return h;
+}
+
+function multi(vals) {
+    var sz = meta.values.length + 1;
+    if (sz > 8) sz = 8;
+    var h = '<select multiple size="' + sz + '" class="inp" name="' + meta.configurationId + '">';
+    for (var i = 0 ; i < meta.values.length ; i++) {
+        var v = meta.values[i];
+        var l = v;
+        if (meta.valueLabels && meta.valueLabels[v]) l = meta.valueLabels[v] + ' [' + v + ']';
+        h += '<option value="' + v + '"' + ((vals.includes(v)) ? ' selected' : '') + '>' + l + '</option>';
+    }
+    h += '</select>';
+    return h;
+}
+
+function decodeDefaultSingle() {
+    var m = decodeDefaultMacro();
+    if (m != undefined) return m;
+    return meta.defaultValue;
+}
+function decodeDefaultMulti() {
+    var m = decodeDefaultMacro();
+    if (m != undefined) return m;
+    return meta.defaultValue;
+}
+
+function decodeDefaultMacro() {
+    if (typeof meta.defaultValue != 'object') return;
+    if (!meta.defaultValue.macro) return;
+    if (meta.defaultValue.macro == 'now') return new Date().toISOString();
+    return;
+}
+
+</script>
 </body></html>
 
+<%
+myShepherd.commitDBTransaction();
+%>
