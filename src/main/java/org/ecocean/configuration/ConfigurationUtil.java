@@ -89,12 +89,10 @@ public class ConfigurationUtil {
         if (cont == null) return null; 
         Object gone = _traverseRemove(cont, path);
         if (gone == null) return null;  //removes id, returns what removed if successful
-System.out.println("OUT_CONT>>> " + cont.toString(8));
-        //conf.setContent(cont.toString());  //hack to force conf to think it has changed!
+//System.out.println("OUT_CONT>>> " + cont.toString(8));
         conf.setContent(cont);
         valueCache.put(root, cont);
         System.out.println("INFO: removeConfiguration(" + id + ") successful; removed: " + gone.toString());
-System.out.println("WARNING: removeConfiguration() NOT CURRENTLY SUPPORTED!");  //why wont conf persist to db!?  FIXME
         return gone;
     }
 
@@ -197,7 +195,7 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         return _traverse(next, path);
     }
     private static Object _traverseRemove(JSONObject j, final List<String> path) {
-System.out.println("A>> " + String.join("/", path));
+//System.out.println("A>> " + String.join("/", path));
         if (j == null) return null;
         int psize = Util.collectionSize(path);
         if (psize < 1) return null;
@@ -214,7 +212,7 @@ System.out.println("A>> " + String.join("/", path));
         }
         JSONObject next = j.optJSONObject(key);
         if (next == null) return null;  //dead end, didnt find it
-System.out.println("B>> " + String.join("/", path));
+//System.out.println("B>> " + String.join("/", path));
         return _traverseRemove(next, path);
     }
 
