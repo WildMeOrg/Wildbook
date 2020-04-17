@@ -50,6 +50,7 @@ public class Configuration implements java.io.Serializable {
         }
         this.setModified();
     }
+
     public void setValue(Shepherd myShepherd, Object value) throws ConfigurationException {  //but, convenience
         ConfigurationUtil.setConfigurationValue(myShepherd, this.id, value);
     }

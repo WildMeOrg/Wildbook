@@ -59,14 +59,15 @@ public class ConfigurationUtil {
             conf = new Configuration(root, valueCache.get(root));
         } else {
             conf = myShepherd.getConfiguration(root);
-            System.out.println("INFO: _loadConfiguration(" + root + ") loaded from db");
-            valueCache.put(root, conf.getContent());
+            if (conf != null) {
+                System.out.println("INFO: _loadConfiguration(" + root + ") loaded from db");
+                valueCache.put(root, conf.getContent());
+            }
         }
         return conf;
     }
     public static Configuration getConfiguration(Shepherd myShepherd, String id) {
         if (!idHasValidRoot(id)) return new Configuration(id);
-        //TODO something with 'value' cache??????
         List<String> path = idPath(id);
         String root = path.remove(0);
         Configuration conf = _loadConfiguration(myShepherd, id);  //this is root
@@ -76,11 +77,26 @@ public class ConfigurationUtil {
         conf = new Configuration(id, _traverse(conf.getContent(), path));
         return conf;
     }
-/*
-    public static Object getConfigurationValue(Shepherd myShepherd, String id) throws ConfigurationException {
-        return coerceValue(getConfiguration(myShepherd, id));
+
+    public static Object removeConfiguration(Shepherd myShepherd, String id) throws ConfigurationException {
+        if (!idHasValidRoot(id)) throw new ConfigurationException("removeConfiguration() passed invalid id=" + id);
+        List<String> path = idPath(id);
+        String root = path.remove(0);
+        if (id.equals(root)) throw new ConfigurationException("removeConfiguration() does not support removing root");
+        Configuration conf = getConfiguration(myShepherd, root);
+        if (conf == null) return null;  //nothing to delete!
+        JSONObject cont = conf.getContent();
+        if (cont == null) return null; 
+        Object gone = _traverseRemove(cont, path);
+        if (gone == null) return null;  //removes id, returns what removed if successful
+System.out.println("OUT_CONT>>> " + cont.toString(8));
+        //conf.setContent(cont.toString());  //hack to force conf to think it has changed!
+        conf.setContent(cont);
+        valueCache.put(root, cont);
+        System.out.println("INFO: removeConfiguration(" + id + ") successful; removed: " + gone.toString());
+System.out.println("WARNING: removeConfiguration() NOT CURRENTLY SUPPORTED!");  //why wont conf persist to db!?  FIXME
+        return gone;
     }
-*/
 
 ///////////// TODO handle isMultiple !!!
     public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException {
@@ -94,7 +110,6 @@ public class ConfigurationUtil {
         Configuration rconf = getConfiguration(myShepherd, root);  //root conf (to change value)
         if (rconf == null) {
             rconf = new Configuration(root, new JSONObject());
-            //myShepherd.getPM().makePersistent(rconf);
         } else {
             content = rconf.getContent();
         }
@@ -140,6 +155,10 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         checkCache();
         return new JSONObject(meta);
     }
+    public static JSONObject getValueCache() {
+        checkCache();
+        return new JSONObject(valueCache);
+    }
     public static JSONObject getMeta(String id) {
         JSONObject node = getNode(id);
         if (node == null) return null;
@@ -176,6 +195,27 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         JSONObject next = j.optJSONObject(key);
         if ((path.size() < 1) || (next == null)) return next;  //terminal case!  nowhere to go!
         return _traverse(next, path);
+    }
+    private static Object _traverseRemove(JSONObject j, final List<String> path) {
+System.out.println("A>> " + String.join("/", path));
+        if (j == null) return null;
+        int psize = Util.collectionSize(path);
+        if (psize < 1) return null;
+        String key = path.remove(0);
+        if (path.size() < 1) {  //we have our target!
+            if (j.has(key)) {
+                Object gone = j.get(key);
+                j.remove(key);
+                if (gone == null) return "<NULL-REMOVED>";  //we dont want to return null from here!
+                return gone;
+            } else {
+                return null;
+            }
+        }
+        JSONObject next = j.optJSONObject(key);
+        if (next == null) return null;  //dead end, didnt find it
+System.out.println("B>> " + String.join("/", path));
+        return _traverseRemove(next, path);
     }
 
     public static void checkCache() {
@@ -253,6 +293,7 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
 
     //a whole bunch of these based on diff incoming types
     // TODO make these actually verify against meta!!!
+    /// TODO support .allowEmpty as option *when require=T*
     public static boolean checkValidity(Boolean b, JSONObject meta) throws ConfigurationException {
         return true;
     }

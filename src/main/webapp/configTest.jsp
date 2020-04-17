@@ -133,6 +133,13 @@ out.println("<p>for <b>front end</b>:</p><pre>" + conf.toFrontEndJSONObject(mySh
 
 out.println("<p><b>.toJSONObject()</b>:</p><pre>" + conf.toJSONObject().toString(8) + "</pre>");
 
+out.println("<p><b>content</b>:</p><pre>" + conf.getContent().toString(8) + "</pre>");
+
+
+String rmId = request.getParameter("rmId");
+if (rmId != null) out.println("<p>[" + rmId + "] <i>remove test=</i>" + Boolean.toString(ConfigurationUtil.removeConfiguration(myShepherd, rmId)) + "</p>");
+
+
 out.println("<ul>");
 for (String k : conf.getChildKeys()) {
     out.println("<li><a href=\"configTest.jsp?id=" + id + "." + k + "\">" + id + "." + k + "</a></li>");
