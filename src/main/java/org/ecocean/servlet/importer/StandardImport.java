@@ -22,8 +22,6 @@ import java.io.FileNotFoundException;
 import javax.jdo.*;
 
 import java.lang.StringBuffer;
-import java.util.Vector;
-import java.util.Iterator;
 import java.lang.NumberFormatException;
 
 import org.ecocean.*;
@@ -52,9 +50,15 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.amazonaws.services.route53.model.GetGeoLocationRequest;
+
 public class StandardImport extends HttpServlet {
 
   Boolean isUserUpload = false;
+
+  // scope to match an individual ID within before deciding to create a new one
+  String individualScope = "user"; //accepts 'user', 'organization' and 'global'- default to only matching in user catalog
+
 	// variables shared by any single import instance
 
 	Map<String,Integer> colIndexMap = new HashMap<String, Integer>();
@@ -94,6 +98,9 @@ public class StandardImport extends HttpServlet {
   //Map<String,MediaAsset> myAssets = new HashMap<String,MediaAsset>();
   
   Map<String,String> individualCache = new HashMap<String,String>();
+
+  List<User> userCache = new ArrayList<>();
+  HashMap<User, List<MarkedIndividual>> userIndividualCache = new  HashMap<>();
   
   TabularFeedback feedback;
 
@@ -138,10 +145,13 @@ public class StandardImport extends HttpServlet {
     this.getServletContext().getRequestDispatcher("/import/uploadHeader.jsp").include(request, response);
 
     context = ServletUtilities.getContext(request);
+  
+    List<String> allowableScopes = Arrays.asList(new String[] {"user","organization","global"});
+    String newScope = request.getParameter("individualScope");
+    if (newScope!=null&&!"".equals(newScope)&&allowableScopes.contains(newScope)) {
+      individualScope = newScope;
+    }
 
-    
-
-    
     //Thus MUST be full path, such as: /import/NEAQ/converted/importMe.xlsx
     String filename = request.getParameter("filename");
     
@@ -1331,22 +1341,56 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   public MarkedIndividual loadIndividual(Row row, Encounter enc, Shepherd myShepherd, boolean committing, Map<String,String> individualCache) {
 
+
   	boolean newIndividual = false;
   	String individualID = getIndividualID(row);
   	if (individualID==null) {
       return null;
     }
     
+
+    User u = getUserForRowOrCurrent(row, myShepherd);
+    if (!userIndividualCache.containsKey(u)&&"user".equals(individualScope)) {
+      createMarkedIndividualCacheForUser(myShepherd, u);
+    }
+    Iterator uIt = userIndividualCache.keySet().iterator();
+    while (uIt.hasNext()) {
+      User itU = (User)uIt.next();
+    }
+
+
     // no
     individualID = individualID.trim();
 
     MarkedIndividual mark = null;
-  	String uuid=individualCache.get(individualID);
+
+
+    String uuid=individualCache.get(individualID);
+    
+    // this is fine UNLESS you have two same species, same name individuals assigned to two different users in the excel
   	if(myShepherd.isMarkedIndividual(uuid)) {
-  	  mark = myShepherd.getMarkedIndividual(uuid);
-  	}
-  	else mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
-  	if (mark==null) { // new individual
+      mark = myShepherd.getMarkedIndividual(uuid);
+    }
+
+    // ID not in cache.. withName gets the first choice that matches species so caution and require global 
+  	if (mark==null&&"global".equals(individualScope)) {
+      mark = MarkedIndividual.withName(myShepherd, individualID, enc.getGenus(),enc.getSpecificEpithet());
+    } 
+
+    // if nothing yet, look in user's cache for indy name and use species if present
+    if (mark==null&&"user".equals(individualScope)) {
+      MarkedIndividual shallowMark = getIndividualByNameFromUserIndividualCache(u, individualID, enc.getGenus(), enc.getSpecificEpithet());
+      mark = myShepherd.getMarkedIndividual(shallowMark.getId());
+      myShepherd.getPM().refresh(mark);
+    }
+
+    // System.out.println("Checking userIndividualCache again...");
+    // if ("user".equals(individualScope)&&!userIndividualCache.get(u).contains(mark)) {
+    //   System.out.println("MI not in cache!!");
+    //   mark = null;
+    // }
+    
+    if (mark==null) { // new individual
 	    mark = new MarkedIndividual(enc);
       if (!mark.hasName(individualID))mark.addName(individualID);
       
@@ -1355,35 +1399,46 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 	      myShepherd.commitDBTransaction();
 	      myShepherd.beginDBTransaction();
         mark.refreshNamesCache();
+        mark.setTaxonomyFromEncounters(true);
         individualCache.put(individualID, mark.getIndividualID());
+
+        if ("user".equals(individualScope)) {
+          addIndividualToUserIndividualCache(u,mark);
+        }
+
 	      //out.println("persisting new individual");
-	    }
+      }
+      
 	    newIndividual = true;
 	  }
   	
     // add the entered name, make sure it's attached to either the labelled organization, or fallback to the logged-in user
-    Organization org = getOrganization(row, myShepherd);
+    //Organization org = getOrganizationForRow(row, myShepherd);
     //if (org!=null) mark.addName(individualID);
     //else mark.addName(request, individualID);
     //else mark.addName(individualID);
+    try {
+    
+      if (mark==null) {
+        out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
+        return mark;
+      }
 
-	  if (mark==null) {
-      out.println("StandardImport WARNING: weird behavior. Just made an individual but it's still null.");
-      return mark;
+      if (!newIndividual) {
+        mark.addEncounter(enc);
+        enc.setIndividual(mark);
+        System.out.println("loadIndividual notnew individual: "+mark.getDisplayName());
+      }
+      else {
+        enc.setIndividual(mark);
+      }
+      if(committing) {
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-
-	  if (!newIndividual) {
-	    mark.addEncounter(enc);
-	    enc.setIndividual(mark);
-	    System.out.println("loadIndividual notnew individual: "+mark.getDisplayName());
-	  }
-	  else {
-	    enc.setIndividual(mark);
-	  }
-	  if(committing) {
-	    myShepherd.commitDBTransaction();
-	    myShepherd.beginDBTransaction();
-	  }
 
     //String alternateID = getString(row, "Encounter.alternateID");
     //if (alternateID!=null) mark.setAlternateID(alternateID);
@@ -1458,7 +1513,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     int numRows = sheet.getPhysicalNumberOfRows();
     System.out.println("physical number rows in sheet: "+sheet.getPhysicalNumberOfRows());
     for (int i=1; i<numRows; i++) {
-      System.out.println("checking row "+i+" for value presence");
+      //System.out.println("checking row "+i+" for value presence");
       try {
         //String anyVal = sheet.getRow(i).getCell(colIndex).toString();
         Row row = sheet.getRow(i);
@@ -1469,7 +1524,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
           String anyVal = cell.toString();
           System.out.println("get anyVal "+anyVal);
           if (anyVal!=null&&anyVal.length()>0&&!"".equals(anyVal)) {
-            System.out.println("hey, anyValue! look at you. ---> "+anyVal);
+            //System.out.println("hey, anyValue! look at you. ---> "+anyVal);
             return true;
           }
         }
@@ -1713,11 +1768,79 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     return ans;
   }
   
-  public Organization getOrganization(Row row, Shepherd myShepherd) {
+  public Organization getOrganizationForRow(Row row, Shepherd myShepherd) {
     String orgID = getString(row, "Encounter.submitterOrganization");
     if (orgID==null) return null;
     Organization org = myShepherd.getOrCreateOrganizationByName(orgID, committing);
     return org;
+  }
+
+  private User getUserForRowOrCurrent(Row row, Shepherd myShepherd) {
+    String submitterID = getString(row, "Encounter.submitterID");
+    User u = null;
+    if (submitterID!=null) {
+      submitterID = submitterID.trim();
+      u = myShepherd.getUserByUsername(submitterID);
+    }
+    if (u==null){
+      u = AccessControl.getUser(request, myShepherd); // fall back to logged in user
+    }
+    return u;
+  }
+
+  private List<MarkedIndividual> getAllMarkedIndividualsForUser(Shepherd myShepherd, User u) {
+    List<Encounter> uEncs = myShepherd.getEncountersForSubmitter(u, myShepherd);
+    List<Encounter> sIdEncs = myShepherd.getEncountersByField("submitterID", u.getUsername());
+    HashSet<Encounter> uniqueEncs = new HashSet<>();
+    uniqueEncs.addAll(uEncs);
+    uniqueEncs.addAll(sIdEncs);
+    List<MarkedIndividual> uniqueIndys = new ArrayList<>();
+    Iterator<Encounter> iter = uniqueEncs.iterator();
+    while (iter.hasNext()) {
+      Encounter enc = iter.next();
+      MarkedIndividual mi = enc.getIndividual();
+      if (mi!=null&&!uniqueIndys.contains(mi)) {
+        uniqueIndys.add(mi);
+      }
+    }  
+    return uniqueIndys;
+  }
+
+  private void createMarkedIndividualCacheForUser(Shepherd myShepherd, User u) {
+    List<MarkedIndividual> mis = getAllMarkedIndividualsForUser(myShepherd, u);
+    if (!userIndividualCache.containsKey(u)) {
+      userIndividualCache.put(u, mis);
+    }
+  }
+
+  private void addIndividualToUserIndividualCache(User u, MarkedIndividual mi) {
+    List<MarkedIndividual> mis = userIndividualCache.get(u);
+    if (!mis.contains(mi)) {
+      mis.add(mi);
+    }
+    userIndividualCache.put(u, mis);
+  }
+
+  private MarkedIndividual getIndividualByNameFromUserIndividualCache(User u, String name, String genus, String specificEpithet) {
+    if (userIndividualCache.get(u)!=null) {
+      List<MarkedIndividual> mis = userIndividualCache.get(u);
+      for (MarkedIndividual mi : mis) {
+        if (mi.getGenus()==null||mi.getSpecificEpithet()==null||"".equals(mi.getSpecificEpithet())||"".equals(mi.getGenus())) {
+          mi.setTaxonomyFromEncounters(true);
+        }
+        if (mi.getNamesList().contains(name)) {
+          if (genus!=null&&specificEpithet!=null&&!"".equals(genus)&&!"".equals(specificEpithet)) {
+
+            if(genus.equals(mi.getGenus())&&specificEpithet.equals(mi.getSpecificEpithet())) {
+              return mi;
+            }
+          } else {
+            return mi;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   // public Integer getInteger(Row row, String colName) {
