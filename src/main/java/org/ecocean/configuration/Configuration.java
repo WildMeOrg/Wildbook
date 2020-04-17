@@ -132,8 +132,8 @@ return null; ///FIXME
         return isValid(this.getMeta());
     }
     public boolean isValid(JSONObject meta) {
-        if (!this.hasValidRoot()) return false;
         if (meta == null) return false;
+        if (!this.hasValidRoot()) return false;
         if (ConfigurationUtil.getType(meta) == null) return false;
         return true;
     }
@@ -197,15 +197,23 @@ return null; ///FIXME
     public JSONObject toFrontEndJSONObject(Shepherd myShepherd) {
         JSONObject m = this.getMeta();
         JSONObject j = new JSONObject();
-        JSONObject c = this.getContent();
         j.put("configurationId", id);
         j.put("name", this.getKey());
         j.put("translationId", this.getLang());
-        if (c != null) j.put("currentValue", c.opt(ConfigurationUtil.VALUE_KEY));
-        if (m == null) {
-            j.put("__warning", "no meta available");
-            return j;
+        Set<String> kids = this.getChildKeys();
+        if (!Util.collectionIsEmptyOrNull(kids)) j.put("childrenKeys", kids);
+        if (m != null) {
+            JSONObject fs = m.optJSONObject("formSchema");
+            if (fs != null) j.put("schema", fs);
         }
+        if (!this.isValid(m)) {
+            j.put("settable", false);
+            return j;  //no need to continue
+        }
+
+        JSONObject c = this.getContent();
+        if (c != null) j.put("currentValue", c.opt(ConfigurationUtil.VALUE_KEY));  //FIXME probably
+        j.put("settable", true);
         j.put("defaultValue", m.opt("defaultValue"));
         String type = ConfigurationUtil.getType(m);
         j.put("fieldType", type);
