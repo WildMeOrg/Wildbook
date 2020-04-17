@@ -31,6 +31,7 @@ public class ConfigurationUtil {
         "long",
         "date",
         "url",
+        "uuid",
         "image",
         "color",
         "geo",
@@ -116,6 +117,7 @@ public class ConfigurationUtil {
         String root = path.remove(0);
         Configuration conf = new Configuration(id);  //this is our conf (for now just to check validity)
         if (!conf.isValid()) throw new ConfigurationException("setConfigurationValue() on invalid " + conf);
+        if (conf.isReadOnly()) throw new ConfigurationException("setConfigurationValue() on readOnly " + conf);
         JSONObject content = null;
         Configuration rconf = getConfiguration(myShepherd, root);  //root conf (to change value)
         if (rconf == null) {
@@ -424,7 +426,7 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         if ((content == null) || (meta == null)) throw new ConfigurationException("invalid content/meta arguments");
         String type = ConfigurationUtil.getType(meta);
         //all these json values seem to cast just fine to string
-        if ((type == null) || type.equals("string") || type.equals("date") || type.equals("integer") || type.equals("boolean") || type.equals("double") || type.equals("color")) {
+        if ((type == null) || type.equals("string") || type.equals("date") || type.equals("integer") || type.equals("boolean") || type.equals("double") || type.equals("color") || type.matches("uuid")) {
             String s = content.optString(VALUE_KEY, null);
             if ((s != null) || content.has(VALUE_KEY)) return s;
         }

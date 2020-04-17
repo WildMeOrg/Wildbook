@@ -15,6 +15,14 @@
 	},
 
 	"general" : {
+		"siteGUID": {
+			"__meta": {
+				"type": "uuid",
+				"formSchema": { "displayOrder": 100.0 },
+				"required": true,
+				"readOnly": true
+			}
+		},
 		"metaKeywords": {
 		}
 	},

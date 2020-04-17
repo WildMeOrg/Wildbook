@@ -137,12 +137,22 @@ return null; ///FIXME
         if (ConfigurationUtil.getType(meta) == null) return false;
         return true;
     }
+    public boolean isReadOnly() {
+        return isReadOnly(this.getMeta());
+    }
+    public boolean isReadOnly(JSONObject meta) {
+        if (!this.isValid(meta)) return true;  //kinda wonky; but also true!
+        return meta.optBoolean("readOnly", false);
+    }
 
     public JSONObject getMeta() {
         return ConfigurationUtil.getMeta(this.id);
     }
     public JSONObject getNode() {
         return ConfigurationUtil.getNode(this.id);
+    }
+    public String getType(JSONObject meta) {
+        return ConfigurationUtil.getType(meta);
     }
     public String getType() {
         return ConfigurationUtil.getType(this.id);
@@ -218,6 +228,7 @@ return null; ///FIXME
         String type = ConfigurationUtil.getType(m);
         j.put("fieldType", type);
         j.put("required", m.optBoolean("required", false));
+        j.put("readOnly", m.optBoolean("readOnly", false));
         int min = m.optInt("multipleMin", -1);
         int max = m.optInt("multipleMax", -1);
         if (min > -1) {
@@ -276,9 +287,10 @@ return null; ///FIXME
         j.put("id", id);
         j.put("idPath", new JSONArray(this.getIdPath()));
         j.put("meta", m);
-        j.put("type", ConfigurationUtil.getType(m));
+        j.put("type", this.getType(m));
         j.put("isRootLevel", this.isRootLevel());
-        j.put("isValid", this.isValid());
+        j.put("isValid", this.isValid(m));
+        j.put("readOnly", this.isReadOnly(m));
         j.put("hasValue", this.hasValue());
         j.put("isMultiple", this.isMultiple(m));
         j.put("validRoot", this.hasValidRoot());
@@ -294,11 +306,13 @@ return null; ///FIXME
     }
 
     public String toString() {
+        JSONObject m = this.getMeta();
         return new ToStringBuilder(this)
                 .append("id", id)
-                .append("type", this.getType())
+                .append("type", this.getType(m))
+                .append("readOnly", this.isReadOnly(m))
                 .append("isRootLevel", this.isRootLevel())
-                .append("isValid", this.isValid())
+                .append("isValid", this.isValid(m))
                 .append("hasValue", this.hasValue())
                 .append("validRoot", this.hasValidRoot())
                 .toString();
