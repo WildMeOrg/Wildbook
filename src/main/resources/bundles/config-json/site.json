@@ -33,28 +33,28 @@
 			"__meta": {
 				"formSchema": { "displayOrder": 0.1 },
 				"type": "color",
-				"defaultValue": "#000"
+				"defaultValue": "#000000"
 			}
 		},
 		"primaryColor": {
 			"__meta": {
 				"formSchema": { "displayOrder": 0.2 },
 				"type": "color",
-				"defaultValue": "#222"
+				"defaultValue": "#222222"
 			}
 		},
 		"secondaryColor": {
 			"__meta": {
 				"formSchema": { "displayOrder": 0.3 },
 				"type": "color",
-				"defaultValue": "#888"
+				"defaultValue": "#888888"
 			}
 		},
 		"backgroundColor": {
 			"__meta": {
 				"formSchema": { "displayOrder": 0.4 },
 				"type": "color",
-				"defaultValue": "#FFF"
+				"defaultValue": "#FFFFFF"
 			}
 		},
 		"favicon": {
