@@ -47,6 +47,8 @@ The JSON content describes a "tree" of settings beneath the top-level (which is 
 
 * **formSchema** - (optional) contains "hints" for generating the json the ui will use to construct the form. TBD
 
+* _see also **branching** info below_
+
 ```json
 {
     "defaultValue": 100,
@@ -78,6 +80,14 @@ Current development / work-in-progress, subject to change.  Based on [this examp
 
 * **_alternate_ i18n** - better would be for the frontend to construct consistent/predictable _translationIds_ based on the setting ID combined
 with the option value, such as: `configuration_path_foo_bar_option_a` (as the label for value `a`).
+
+### Branching (WIP)
+
+Nodes in the configuration tree may be optional _dependent on other settings_ (i.e. user choices).  Some potential properties to control this might be:
+
+* `.enableIf`, `.disableIf` - references an ID, which _must_ contain a boolean value.  This node (and sub-tree) will be enabled/disabled based on parity
+of the configuration at that ID.  (Otherwise it will be the opposite; disabled/enabled.)  Potentially can establish consistent message IDs for these cases, such as `<TRANSLATION-ID-PREFIX>_DISABLED_MESSAGE` etc.
+
 
 # Potential development?
 
