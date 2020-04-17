@@ -136,7 +136,10 @@ for (String k : conf.getChildKeys()) {
 out.println("</ul><hr />");
 
 
-if (conf.hasValue()) {
+if (!conf.isValid()) {
+    out.println("<div style=\"color: #666\">does not accept a value</div>");
+
+} else if (conf.hasValue()) {
     out.println("<div class=\"value\">");
     if (conf.isMultiple()) {
         out.println("<ul>");
@@ -145,13 +148,17 @@ if (conf.hasValue()) {
             for (String val : vals) {
                 out.println("<li>" + val + "</li>");
             }
-        } catch (Exception ex) {}
+        } catch (Exception ex) {
+            out.println("<li class=\"warn\"><b>Exception:</b> " + ex.toString() + "</li>");
+        }
         out.println("</ul>");
     } else {
         try {
             String val = conf.getValueAsString();
             out.println(val);
-        } catch (Exception ex) {}
+        } catch (Exception ex) {
+            out.println("<li class=\"warn\"><b>Exception:</b> " + ex.toString() + "</li>");
+        }
     }
     out.println("</div>");
 } else {
@@ -221,7 +228,9 @@ function buildUI(b) {
         } else {
             val = decodeDefaultSingle();
         }
-        if (meta.values) {
+        if (meta.fieldType == 'color') {
+            h += '<input type="color" class="inp" name="' + meta.configurationId + '" value="' + val + '" />';
+        } else if (meta.values) {
             h += pulldown(val);
         } else {
             h += '<input class="inp" name="' + meta.configurationId + '" value="' + val + '" />';
@@ -259,7 +268,7 @@ function set() {
 console.log('%d: %s => %o', i, name, val);
         if (!val.length) return;
         for (var i = 0 ; i < 1 ; i++) {  //FIXME we dont support val.length yet, only 1 !!!
-            parts.push(name + '=' + val[i]);
+            parts.push(name + '=' + encodeURIComponent(val[i]));
         }
     });
     if (!parts.length) return;
