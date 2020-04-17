@@ -10,12 +10,12 @@ some other meta-congnizant superpower.  Some of these may be done post-tomcat la
 
 Here are some examples, and how they might be done:
 
-* **DB credentials** - via docker or other initial setup (??) by way of **environment variables**; see e.g. [ShepherdPMF.java](../ShepherdPMF.java)
+* **DB credentials** - via docker or other initial setup (??) by way of **environment variables**; see e.g. [ShepherdPMF.java#L107](../ShepherdPMF.java)
 * **URL for server** - maybe via `CommonConfiguration.ensureServerInfo()` in a way similar to legacy _appadmin/setup.jsp_
 * **Site GUID** - via `CommonConfiguration.getGUID()`, ditto above
 * probably other things currently in _appadmin/setup.jsp_ (lower priority)
 * **Taxonomy** - seed this, possibly via **Phone Home** magick???
-* **"IA Algorithms** - see above
+* **"IA Algorithms"** - see above
 *  ?????
 
 _still under development #TODO_
