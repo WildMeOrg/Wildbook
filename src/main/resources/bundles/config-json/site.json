@@ -1,0 +1,68 @@
+{
+	"name" : {
+		"__meta" : {
+			"type" : "string",
+			"required" : true,
+			"formSchema": { "displayOrder": 0 }
+		}
+	},
+	"url" : {
+		"__meta" : {
+			"type" : "url",
+			"required" : true,
+			"formSchema": { "displayOrder": 0.1 }
+		}
+	},
+
+	"general" : {
+		"metaKeywords": {
+		}
+	},
+
+	"look": {
+		"__meta" : {
+			"formSchema": { "displayOrder": 1 }
+		},
+		"headerLogo": {
+			"__meta": {
+				"formSchema": { "displayOrder": 0.0 },
+				"type": "image"
+			}
+		},
+		"textColor": {
+			"__meta": {
+				"formSchema": { "displayOrder": 0.1 },
+				"type": "color",
+				"defaultValue": "#000"
+			}
+		},
+		"primaryColor": {
+			"__meta": {
+				"formSchema": { "displayOrder": 0.2 },
+				"type": "color",
+				"defaultValue": "#222"
+			}
+		},
+		"secondaryColor": {
+			"__meta": {
+				"formSchema": { "displayOrder": 0.3 },
+				"type": "color",
+				"defaultValue": "#888"
+			}
+		},
+		"backgroundColor": {
+			"__meta": {
+				"formSchema": { "displayOrder": 0.4 },
+				"type": "color",
+				"defaultValue": "#FFF"
+			}
+		},
+		"favicon": {
+			"__meta": {
+				"formSchema": { "displayOrder": 1.0 },
+				"type": "image"
+			}
+		}
+	}
+}
+

@@ -27,6 +27,8 @@ files themselves, as they are generatable and would thus be redundant.
 
 3. Provide guidance for the site configuration UI on how to construct the form for asking the admin for values to persist in the db.
 
+An _example_ can be seen in [site.json](site.json) (general site-wide configuration).
+
 # JSON Files: Content description 
 
 The JSON content describes a "tree" of settings beneath the top-level (which is represented by the file itself, e.g. `socialAuth.json` = _socialAuth_).  The path to the _leaf nodes_ represent sub-sections of configuration.  For example, `socialAuth.json` might contain `{ google: { apiKey: {...} }`, which means there is a sub-section for "google" which has a leaf (setting) for "apiKey".  This _path_ is represented by the key **socialAuth.google.apiKey** when accessing via java Configuration calls.  Further, it would generate an ID (for the front end) of `socialAuth_google_apiKey` and corresponding _set_ of translation keys based off that, such as `SOCIALAUTH_GOOGLE_APIKEY_LABEL`, `SOCIALAUTH_GOOGLE_APIKEY_DESCRIPTION`, `SOCIALAUTH_GOOGLE_APIKEY_HELPTEXT` and so on.
@@ -35,7 +37,9 @@ The JSON content describes a "tree" of settings beneath the top-level (which is 
 
 "Leaf" nodes as described above, should have a special structure to describe how values can be set.  This has the key **__meta**, and would reside (in our above example) such as: `{ google: apiKey: { __meta: {}, .... } }`.  The contents of this `__meta` data is:
 
-* **type** - (required) contains type of data that will be stored.  Varied values range from "special" to full java classes.  #TODO
+* **type** - (optional) contains type of data that will be stored.  Varied values range from "special" to full java classes.  #TODO
+  _Note:_ if no `__meta.type` (or enclosing `__meta`) is present, this node in the JSON tree is considered "invalid", in that it **cannot have a value set** and
+  is simply there as part of the organizational tree structure (used for display decisions etc).
 
 * **defaultValue** - (optional) contains the default value for this property.
 
