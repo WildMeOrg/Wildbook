@@ -44,6 +44,9 @@ pre {
     color: #888;
     background-color: #8FA;
 }
+.set a {
+    color: #888;
+}
 .warn {
     color: #641;
 }
@@ -69,11 +72,19 @@ if (pmap.size() > 0) for (String pkey : pmap.keySet()) {
             //this needs to correctly handle List for (only) multi  TODO
             confSet = ConfigurationUtil.setConfigurationValue(myShepherd, pkey, Arrays.asList(pmap.get(pkey)));
         }
-        out.println("<div class=\"set\">set <b>" + pkey + "</b></div>");
+        out.println("<div class=\"set\">set <b><a href=\"configTest.jsp?id=" + pkey + "\">" + pkey + "</a></b></div>");
     } catch (ConfigurationException ex) {
         out.println("<div class=\"set warn\">could not set <b>" + pkey + "</b>: " + ex.toString() + "</div>");
     }
 }
+
+String rmId = request.getParameter("rmId");
+if (rmId != null) {
+    Object rm = ConfigurationUtil.removeConfiguration(myShepherd, rmId);
+    out.println("<div class=\"set\">[" + rmId + "] <i>remove=</i>" + ((rm == null) ? "<b>failed</b>" : rm.toString()) + "</div>");
+}
+
+
 
 if (id == null) {
     Map<String,JSONObject> meta = ConfigurationUtil.getMeta();
@@ -82,6 +93,7 @@ if (id == null) {
         out.println("<li><a href=\"configTest.jsp?id=" + k + "\">" + k + "</a></li>");
     }
     out.println("</ul>");
+    myShepherd.commitDBTransaction();
     return;
 }
 
@@ -97,11 +109,20 @@ if (path.size() > 1) {
     out.println("<p><i>Up to <a href=\"configTest.jsp\">[TOP]</a></i></p>");
 }
 
+
 Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, id);
 if (conf == null) {
     out.println("<p>unknown id <b>" + id + "</b></p>");
+    myShepherd.commitDBTransaction();
     return;
 }
+
+out.println("<ul>");
+for (String k : conf.getChildKeys()) {
+    out.println("<li><a href=\"configTest.jsp?id=" + id + "." + k + "\">" + id + "." + k + "</a></li>");
+}
+out.println("</ul><hr />");
+
 
 if (conf.hasValue()) {
     out.println("<div class=\"value\">");
@@ -133,23 +154,14 @@ out.println("<p>for <b>front end</b>:</p><pre>" + conf.toFrontEndJSONObject(mySh
 
 out.println("<p><b>.toJSONObject()</b>:</p><pre>" + conf.toJSONObject().toString(8) + "</pre>");
 
-out.println("<p><b>content</b>:</p><pre>" + conf.getContent().toString(8) + "</pre>");
+if (conf.getContent() != null) out.println("<p><b>content</b>:</p><pre>" + conf.getContent().toString(8) + "</pre>");
 
 
-String rmId = request.getParameter("rmId");
-if (rmId != null) out.println("<p>[" + rmId + "] <i>remove test=</i>" + Boolean.toString(ConfigurationUtil.removeConfiguration(myShepherd, rmId)) + "</p>");
-
-
-out.println("<ul>");
-for (String k : conf.getChildKeys()) {
-    out.println("<li><a href=\"configTest.jsp?id=" + id + "." + k + "\">" + id + "." + k + "</a></li>");
-}
-out.println("</ul>");
-
+out.println("<p>&nbsp;</p>");
 
 if (root != null) {
     Configuration top = ConfigurationUtil.getConfiguration(myShepherd, root);
-    out.println("<div class=\"value\">" + top.getContent().toString(8) + "</div>");
+    out.println("<pre class=\"value\">" + top.getContent().toString(8) + "</pre>");
 }
 
 /*
