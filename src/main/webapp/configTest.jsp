@@ -2,6 +2,7 @@
      import="org.ecocean.*,
 java.util.List,
 java.util.ArrayList,
+java.util.Arrays,
 java.util.Map,
 java.util.HashMap,
 java.io.File,
@@ -34,6 +35,18 @@ pre {
 .warn {
     color: #641;
 }
+.set {
+    border-radius: 4px;
+    font-size: 0.8em;
+    padding: 6px;
+    margin: 3px;
+    display: inline-block;
+    color: #888;
+    background-color: #8FA;
+}
+.warn {
+    color: #641;
+}
 </style>
 </html><body><%
 
@@ -43,6 +56,24 @@ myShepherd.beginDBTransaction();
 ConfigurationUtil.init();   //not required, but clears cache for us (for testing)
 
 String id = request.getParameter("id");
+
+Map<String,String[]> pmap = request.getParameterMap();
+if (pmap.size() > 0) for (String pkey : pmap.keySet()) {
+    if (!ConfigurationUtil.idHasValidRoot(pkey)) continue;
+    if ((pmap.get(pkey) == null) || (pmap.get(pkey).length < 1)) continue;
+    Configuration confSet = null;
+    try {
+        if (pmap.get(pkey).length == 1) {
+            confSet = ConfigurationUtil.setConfigurationValue(myShepherd, pkey, pmap.get(pkey)[0]);
+        } else {
+            //this needs to correctly handle List for (only) multi  TODO
+            confSet = ConfigurationUtil.setConfigurationValue(myShepherd, pkey, Arrays.asList(pmap.get(pkey)));
+        }
+        out.println("<div class=\"set\">set <b>" + pkey + "</b></div>");
+    } catch (ConfigurationException ex) {
+        out.println("<div class=\"set warn\">could not set <b>" + pkey + "</b>: " + ex.toString() + "</div>");
+    }
+}
 
 if (id == null) {
     Map<String,JSONObject> meta = ConfigurationUtil.getMeta();

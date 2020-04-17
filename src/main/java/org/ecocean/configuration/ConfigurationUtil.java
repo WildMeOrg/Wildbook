@@ -84,24 +84,27 @@ public class ConfigurationUtil {
 
 ///////////// TODO handle isMultiple !!!
     public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException {
-        if (!idHasValidRoot(id)) throw new ConfigurationException("setConfiguration() passed invalid id=" + id);
+        if (!idHasValidRoot(id)) throw new ConfigurationException("setConfigurationValue() passed invalid id=" + id);
         Object cvalue = handleValue(id, value);
         List<String> path = idPath(id);
         String root = path.remove(0);
+        Configuration conf = new Configuration(id);  //this is our conf (for now just to check validity)
+        if (!conf.isValid()) throw new ConfigurationException("setConfigurationValue() on invalid " + conf);
         JSONObject content = null;
-        Configuration conf = getConfiguration(myShepherd, root);
-        if (conf == null) {
-            conf = new Configuration(root, new JSONObject());
-            //myShepherd.getPM().makePersistent(conf);
+        Configuration rconf = getConfiguration(myShepherd, root);  //root conf (to change value)
+        if (rconf == null) {
+            rconf = new Configuration(root, new JSONObject());
+            //myShepherd.getPM().makePersistent(rconf);
         } else {
-            content = conf.getContent();
+            content = rconf.getContent();
         }
         if (content == null) content = new JSONObject();
         content = setDeepJSONObject(content, path, cvalue);
-        conf.setContent(content);
-        myShepherd.getPM().makePersistent(conf);
+        rconf.setContent(content);
+        myShepherd.getPM().makePersistent(rconf);
         valueCache.put(root, content);
-        System.out.println("INFO: setConfigurationValue(" + root + ") persisted and inserted into cache");
+        conf.setContent(_traverse(conf.getContent(), path));  //now set our content
+        System.out.println("INFO: setConfigurationValue(" + id + ") persisted and inserted into cache [" + ((cvalue == null) ? "NULL" : cvalue.getClass().getName()) + "] cvalue=" + cvalue);
         return conf;
     }
 
@@ -249,6 +252,7 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
     }
 
     //a whole bunch of these based on diff incoming types
+    // TODO make these actually verify against meta!!!
     public static boolean checkValidity(Boolean b, JSONObject meta) throws ConfigurationException {
         return true;
     }
@@ -284,6 +288,7 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
                     s = (String)inVal;
                 }
                 checkValidity(s, meta);
+                return s;
             case "boolean":
                 Boolean b = null;
                 if (inVal instanceof String) {

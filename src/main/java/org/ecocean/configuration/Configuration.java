@@ -128,8 +128,10 @@ return null; ///FIXME
     //this means it "can" or "should" have a value (e.g. path is good, meta defined etc)
     //  note that this is false you cannot read or set value on it
     public boolean isValid() {
+        return isValid(this.getMeta());
+    }
+    public boolean isValid(JSONObject meta) {
         if (!this.hasValidRoot()) return false;
-        JSONObject meta = this.getMeta();
         if (meta == null) return false;
         if (ConfigurationUtil.getType(meta) == null) return false;
         return true;
