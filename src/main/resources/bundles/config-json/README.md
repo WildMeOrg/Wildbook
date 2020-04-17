@@ -59,6 +59,7 @@ The JSON content describes a "tree" of settings beneath the top-level (which is 
     "type": "integer",
     "required": true,
     "formSchema": {
+	"displayOrder" 1.3,
         "css-class": "special"
     }
 }

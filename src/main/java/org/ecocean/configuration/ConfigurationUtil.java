@@ -24,6 +24,18 @@ public class ConfigurationUtil {
     public static final String ID_DELIM = ".";
     public static final String META_KEY = "__meta";
     public static final String VALUE_KEY = "__value";
+    public static final String[] TYPES = new String[]{
+        "string",
+        "integer",
+        "double",
+        "long",
+        "date",
+        "url",
+        "image",
+        "color",
+        "geo",
+        "taxonomy"
+    };
 
     private static Map<String,JSONObject> meta = new HashMap<String,JSONObject>();
     private static Map<String,JSONObject> valueCache = new HashMap<String,JSONObject>();
@@ -173,16 +185,23 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
 
     public static String getType(JSONObject meta) {
         if (meta == null) return null;
-        return meta.optString("type", null);
-/*  for now we dont have any .type on formSchema
-        if (meta.optString("type", null) != null) return meta.getString("type");
-        JSONObject fs = meta.optJSONObject("formSchema");
-        if (fs == null) return null;
-        return fs.optString("type", null);
-*/
+        String t = meta.optString("type", null);
+        if (t == null) return null;
+        if (!isValidType(t)) {
+            System.out.println("WARNING: invalid type found in " + meta.toString());  //worth noting, i guess
+            return null;
+        }
+        return t;
     }
     public static String getType(String id) {
         return getType(getMeta(id));
+    }
+    public static boolean isValidType(String t) {
+        if (t == null) return false;
+        for (int i = 0 ; i < TYPES.length ; i++) {
+            if (t.equals(TYPES[i])) return true;
+        }
+        return false;
     }
 
     private static JSONObject _traverse(final JSONObject j, final List<String> path) {
