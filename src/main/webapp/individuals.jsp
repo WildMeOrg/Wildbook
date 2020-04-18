@@ -306,7 +306,7 @@ input.nameKey, input.nameValue {
 <script src="javascript/bubbleDiagram/misc.js"></script>
 <script src="javascript/bubbleDiagram/micro-observer.js"></script>
 <script src="javascript/bubbleDiagram/microplugin.js"></script>
-<script src="javascript/kdTree.js"></script>
+<script src="javascript/kdTree.js"></script>	
 <script src="javascript/relationshipDiagrams/jsonParser.js"></script>
 <script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
 <script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
@@ -1101,7 +1101,7 @@ if (sharky.getNames() != null) {
       }
       }
       %>
-
+      
             <%-- Start Encounter Table --%>
       <p><strong><%=numencounters %> &amp; <%=props.getProperty("tissueSamples") %></strong></p>
       <div class="encountersBioSamples">
@@ -1232,7 +1232,7 @@ if (sharky.getNames() != null) {
         <!-- End genetics -->
       </div>
       <br></br>
-
+      
       <%-- Relationship Graphs --%>
       <div>
         <a name="socialRelationships"></a>
