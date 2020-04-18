@@ -279,7 +279,19 @@
 			{ "name":"Iceland", "id":"Iceland", "locationID":[] },
 
 			 {
-			  "name": "Mediterranean Sea", "id": "Mediterranean Sea" },
+			  "name": "Mediterranean Sea", "id": "Mediterranean Sea", "locationID":[
+			  
+			  {"name":"Israel","id":"Israel", "locationID":[
+			
+				{"name": "Ashdod", "id": "Ashdod" },
+				{"name": "Ashkelon", "id": "Ashkelon" },
+				{"name": "Dor", "id": "Dor" },
+				{"name": "Herzelia", "id": "Herzelia" }
+
+			]}
+			  
+			  
+			  ] },
 			 {
 			  "name": "Argentine Sea", "id": "Argentine Sea"  },
 			 {
@@ -316,6 +328,9 @@
 			  "name": "Gulf of Maine", "id": "Gulf of Maine" },
 			 {
 			  "name": "Gulf of Mexico","id":"Gulf of Mexico","locationID":[
+			  
+			    { "name":"Cedar Key", "id":"Cedar Key", "locationID":[] },
+			  
 				{ "name":"CH", "id":"CH", "locationID":[] },
 			  
 				{ "name":"GU", "id":"GU", "locationID":[] },
@@ -521,9 +536,7 @@
 		  "name": "Persian Gulf", "id": "Persian Gulf" },
 		 {
 		  "name": "Red Sea", "id":"Red Sea", 
-		  "locationID":[
-		    {"name":"Israel","id":"Israel"}
-		  ] 
+		  "locationID":[] 
 		  },
 		 {
 		  "name": "Timor Sea" , "id": "Timor Sea"

@@ -93,7 +93,6 @@ public class EncounterDelete extends HttpServlet {
         //myShepherd.beginDBTransaction();
 
         try {
-
           Encounter backUpEnc = myShepherd.getEncounterDeepCopy(enc2trash.getEncounterNumber());
 
           String savedFilename = request.getParameter("number") + ".dat";
@@ -101,16 +100,26 @@ public class EncounterDelete extends HttpServlet {
           if(!thisEncounterDir.exists()){
             thisEncounterDir.mkdirs();
             System.out.println("Trying to create the folder to store a dat file in EncounterDelete2: "+thisEncounterDir.getAbsolutePath());
-          
+            File serializedBackup = new File(thisEncounterDir, savedFilename);
+            FileOutputStream fout = new FileOutputStream(serializedBackup);
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+            oos.writeObject(backUpEnc);
+            oos.close();  
+          }
+        
+        } catch (NotSerializableException nse) {
+          System.out.println("[WARN]: The encounter "+enc2trash.getCatalogNumber()+" could not be serialized.");
+          nse.printStackTrace();
+        }
+
+        try {
+
+          Occurrence occ = myShepherd.getOccurrenceForEncounter(enc2trash.getID());
+          if (occ==null&&(enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
+            occ = myShepherd.getOccurrence(enc2trash.getOccurrenceID());
           }
 
-          File serializedBackup = new File(thisEncounterDir, savedFilename);
-          FileOutputStream fout = new FileOutputStream(serializedBackup);
-          ObjectOutputStream oos = new ObjectOutputStream(fout);
-          oos.writeObject(backUpEnc);
-          oos.close();
-          
-          if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
+          if(occ!=null) {
             Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
             occur.removeEncounter(enc2trash);
             enc2trash.setOccurrenceID(null);
@@ -176,10 +185,9 @@ public class EncounterDelete extends HttpServlet {
 
 
 
-        } 
-        catch (Exception edel) {
+        } catch (Exception edel) {
           locked = true;
-          log.warn("Failed to serialize encounter: " + request.getParameter("number"), edel);
+          //log.warn("Failed to serialize encounter: " + request.getParameter("number"), edel);
           edel.printStackTrace();
           myShepherd.rollbackDBTransaction();
 

@@ -51,6 +51,15 @@
     pointer-events: none;
 }
 
+.loadingIcon {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    height: 500px;
+}
+
 /*Edit forms*/
 label {
     font-weight: lighter;

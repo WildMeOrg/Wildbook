@@ -1969,12 +1969,41 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                         System.out.println("WARN: could not find MediaAsset for " + iuuid + " in detection results for task " + taskID);
                         continue;
                     }
-                    boolean needsReview = false;
+                    
+                    
                     JSONArray newAnns = new JSONArray();
+                    if(janns.length()==0) {
+                      //OK, for some species and conditions we may just want to trust the user 
+                      //that there is an animal in the image and set trivial annot to matchAgainst=true
+                      
+                      if(asset.getAnnotations()!=null && asset.getAnnotations().size()==1 && asset.getAnnotations().get(0).isTrivial()) {
+                        
+                        //so this media asset currently only has one trivial annot
+                        Annotation annot=asset.getAnnotations().get(0);
+                        Encounter enc=annot.findEncounter(myShepherd);
+                        if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null && IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd))!=null ) {
+                          if(IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd)).equals("true")) {
+                            
+                            annot.setMatchAgainst(true);
+                            myShepherd.updateDBTransaction();
+                            
+                            allAnns.add(annot);  //this is cumulative over *all MAs*
+
+                          }
+                        }
+                        
+                      }
+                    }
+                    
+                    
+                    boolean needsReview = false;
+                    
                     boolean skipEncounters = asset.hasLabel("_frame");
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
-                        if (jann == null) continue;
+                        if (jann == null) {
+                          continue;
+                        }
                         if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue(context, task)) {
                             needsReview = true;
                             continue;
@@ -2004,6 +2033,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 if (amap.length() > 0) rtn.put("annotations", amap);  //needed to kick off ident jobs with return value
+  
 
                 JSONObject jlog = new JSONObject();
 

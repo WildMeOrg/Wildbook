@@ -678,9 +678,17 @@ System.out.println("[1] getMatchingSet params=" + params);
 
     //note: this also excludes "sibling annots" (in same encounter)
     public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc, JSONObject params) {
+        String filter="";  
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
+        else if(enc.getSpecificEpithet().equals("sp.")) {
+          
+          filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterFromParameters(params) + this.getMatchingSetFilterViewpointClause(myShepherd) + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' VARIABLES org.ecocean.Encounter enc";
+          
+        }
         //do we need to worry about our annot living in another encounter?  i hope not!
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterFromParameters(params) + this.getMatchingSetFilterViewpointClause(myShepherd) + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        else {
+          filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterFromParameters(params) + this.getMatchingSetFilterViewpointClause(myShepherd) + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        }
         if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";  //need another VARIABLE declaration
         return getMatchingSetForFilter(myShepherd, filter);
     }
@@ -692,9 +700,15 @@ System.out.println("[1] getMatchingSet params=" + params);
 
     //gets everything, no exclusions (e.g. for cacheing)
     public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet, JSONObject params) {
-        if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
-        return getMatchingSetForFilter(myShepherd, filter);
+      String filter="";  
+      if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
+      else if(specificEpithet.equals("sp.")) {
+        filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' VARIABLES org.ecocean.Encounter enc";
+        }
+      else {
+          filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
+      }
+      return getMatchingSetForFilter(myShepherd, filter);
     }
     //figgeritout
     public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, JSONObject params) {
@@ -736,7 +750,10 @@ System.out.println("[1] getMatchingSet params=" + params);
     //   note: will return "" when this annot has no (valid) viewpoint
     private String getMatchingSetFilterViewpointClause(Shepherd myShepherd) {
         String[] viewpoints = this.getViewpointAndNeighbors();
-        if (viewpoints == null || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops truncatus")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Orcinus orca"))|| (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops aduncus"))) return "";
+        if (viewpoints == null) return "";
+        //else if(getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops truncatus")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Orcinus orca"))|| (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops aduncus")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops sp.")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Delphinus delphis")) return "";
+        //if explicitly told to ignore viewpoint matching, skip this step
+        else if(getTaxonomy(myShepherd)!=null && IA.getProperty(myShepherd.getContext(), "ignoreViewpointMatching",getTaxonomy(myShepherd))!=null && IA.getProperty(myShepherd.getContext(), "ignoreViewpointMatching",getTaxonomy(myShepherd)).equals("true")) return "";
         String clause = "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
         System.out.println("VIEWPOINT CLAUSE: "+clause);
         return clause;
