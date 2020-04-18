@@ -1034,6 +1034,7 @@ console.info('OFFSET... DONE mediaData!!!!!');
     filterList();
     //$('#app-data-list').html('');
     var appDataList = [];  //build this first, then sort it, then add to page
+    var occsFound = [];
     $('.bulk-active').each(function(i, el) {
         var occId = el.id;
         var occJel = $('#' + occId);
@@ -1042,6 +1043,7 @@ console.info('OFFSET... DONE mediaData!!!!!');
         var occLat = parseFloat(occJel.find(':nth-child(7)').data('lat'));
         var occLon = parseFloat(occJel.find(':nth-child(8)').data('lon'));
         if (appData[occId] && appData[occId].encs && appData[occId].encs.length) {
+            occsFound.push(occId);
             for (var i = 0 ; i < appData[occId].encs.length ; i++) {
                 var h = '<div data-lat="' + occLat + '" data-lon="' + occLon + '" class="app-data app-data-enc" id="app-data-enc-' + appData[occId].encs[i].id + '" data-occ-id="' + occId + '">';
                 h += '<div class="app-hide" title="hide this item">X</div>';
@@ -1082,6 +1084,35 @@ console.info('OFFSET... DONE mediaData!!!!!');
     $('.app-hide').on('click', function(ev) {
         $(ev.target.parentElement).hide();
     });
+
+    var encRanges = {};
+    var r = new RegExp(/images\s+(\d+)-(\d+)/);
+    for (var i = 0 ; i < occsFound.length ; i++) {
+        for (var j = 0 ; j < appData[occsFound[i]].encs.length ; j++) {
+            var m = r.exec(appData[occsFound[i]].encs[j].ph);
+            if (m) encRanges[appData[occsFound[i]].encs[j].id] = [ m[1], m[2] ];
+        }
+    }
+    console.info('encRanges=%o', encRanges);
+    r = new RegExp(/_A(\d+)\.jpg$/i)
+    for (var i = 0 ; i < mediaData.length ; i++) {
+        if (!mediaData[i].file || !mediaData[i].file.name) continue;
+        var m = r.exec(mediaData[i].file.name);
+        if (!m) continue;
+        var ct = 0;
+        var found = false;
+        for (var eid in encRanges) {
+            if ((m[1] >= encRanges[eid][0]) && (m[1] <= encRanges[eid][1])) {
+                found = eid;
+                ct++;
+                console.info('found %d: %s', ct, eid);
+            }
+        }
+        if (ct == 1) {
+            $('#app-data-enc-' + found + ' .app-attachments').append($('.bulk-media[data-offset="' + i + '"]'));
+        }
+    }
+
     $('.bulk-media').draggable({
         containment: '#file-activity'
     });
