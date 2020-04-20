@@ -7,6 +7,7 @@
 	
 	String context="context0";
 	context=ServletUtilities.getContext(request);
+Shepherd myShepherd = new Shepherd(context);
 	
 	//set up the file input stream
 	//FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
@@ -34,11 +35,24 @@
 
 <body>
 <h1>Mission, Questions, and Timeline</h1>
+<%= NoteField.buildHtmlDiv("45344613-2d55-4d62-a7e4-b7b3385bed5e", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-45344613-2d55-4d62-a7e4-b7b3385bed5e">
 <p><em>First, a short definition of terms used on this page and elsewhere on the website.  There are a lot of names for programs that sterilize unowned outdoor cats (trap-neuter-return, shelter-neuter-return, return to field, community cat programs) and return them to where they were trapped.  Here, we use &quot;spay/neuter program&quot; as our most all-inclusive and neutral term.  There are also many names for unowned outdoor cats (feral cat, community cat, stray cat, working cat, barn cat).  We have chosen to use &quot;free-roaming cat&quot; as our most all-inclusive and neutral term. </em></p>
+</div>
+
 <h2><img src="images/about_greycatsleeping.jpg" width="350" height="180" hspace="10" vspace="10" align="right" />Vision</h2>
+
+<%= NoteField.buildHtmlDiv("45344613-2d55-4d62-a7e4-b7b3385bed5f", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-45344613-2d55-4d62-a7e4-b7b3385bed5f">
 <p>Kitizen Science wants to build a better evidence base about how sterilization programs affect the size of free-roaming cat populations in urban and suburban North America with the applied goal of learning the most effective ways of reducing free-roaming cat overpopulation using cat-friendly methods.</p>
+</div>
+
 <h2>Mission</h2>
+<%= NoteField.buildHtmlDiv("45344613-2d55-4d62-a7e4-b7b3385bed50", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-45344613-2d55-4d62-a7e4-b7b3385bed50">
 <p>Monitoring the impact of spay/neuter programs on free-roaming cat populations.</p>
+</div>
+
 <h2>Research questions   </h2>
 <p>Pairing rigorous population ecology research methods with volunteer-driven data collection and processing, we are focusing on the following important questions.   </p>
 <table width="90%" border="0" align="center" cellpadding="0" cellspacing="0">
@@ -49,10 +63,20 @@
     <p><strong>How do the answers to these questions change in different contexts</strong>?  We want to learn whether sterilization is more effective at reducing free-roaming cat populations in hotter locations or cooler locations, urban habitats or suburban habitats, higher income or lower income neighborhoods, and more.  There are many variables that might influence the success of spay/neuter programs, which is why we aren't planning to conduct just a single study of a single location. </p></td>
   </tr>
 </table>
-<p>Our unique approach keeps our overhead low and mobilizes citizen science volunteers, allowing us to gather more data at a reasonable cost so we can take a comparative approach to studying spay/neuter programs.  Kitizen Science is a long-term monitoring project that will take years before we start being able to see trends and draw conclusions, but this information has the potential to revolutionize the way spay/neuter programs are implemented and change the policy conversation around free-roaming cat management.  While we work towards shaping the bigger picture for tomorrow, we’re excited to be part of engaging the cat advocate community about the need for higher quality research.   <span class="style1"><img src="images/about_tuxedocat.jpg" width="174" height="300" hspace="10" vspace="10" align="left" /></span></p>
+
+<%= NoteField.buildHtmlDiv("45344613-2d55-4d62-a7e4-b7b3385bed51", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-45344613-2d55-4d62-a7e4-b7b3385bed51">
+<p>Our unique approach keeps our overhead low and mobilizes citizen science volunteers, allowing us to gather more data at a reasonable cost so we can take a comparative approach to studying spay/neuter programs.  Kitizen Science is a long-term monitoring project that will take years before we start being able to see trends and draw conclusions, but this information has the potential to revolutionize the way spay/neuter programs are implemented and change the policy conversation around free-roaming cat management.  While we work towards shaping the bigger picture for tomorrow, we’re excited to be part of engaging the cat advocate community about the need for higher quality research.
+</div>
+
+<span class="style1"><img src="images/about_tuxedocat.jpg" width="174" height="300" hspace="10" vspace="10" align="left" /></span></p>
 <h2>Timeline</h2>
+
+<%= NoteField.buildHtmlDiv("45344613-2d55-4d62-a7e4-b7b3385bed52", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-45344613-2d55-4d62-a7e4-b7b3385bed52">
 <p><strong>Beta period (2019 and 2020)</strong>: Test our approach in three phases of validation trials and make any needed changes to improve data collection and analysis.</p>
 <p><strong>Next ten years (2021 onwards)</strong>: Launch monitoring projects based on controlled field experiments in multiple locations, with the intention to follow these experiments over a long period of time.  We want to partner with spay/neuter organizations to plan treatment areas (with targeted spay/neuter) and control areas (with no targeted spay/neuter programs) so we can compare how the population sizes of free-roaming cats change in each.</p>
+</div>
 
 
   </div>

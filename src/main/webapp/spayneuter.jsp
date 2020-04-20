@@ -78,6 +78,8 @@ First, a short definition of terms used on this page and elsewhere on the websit
 <p align="center"><img src="images/evidence_piecharts.gif" width="800" height="470" hspace="10" vspace="10" align="bottom" /></p>
 <p align="center">&nbsp;</p>
 <h2><a name="library" id="library2"></a>Research library</h2>
+<%= NoteField.buildHtmlDiv("142a335d-addc-4b04-9d0b-b60a30011a89", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-142a335d-addc-4b04-9d0b-b60a30011a89">
 <p>All article summaries below list the title, year published, author(s), location, time span, study design, metric(s) of interest, sample size, and their DOI (document identification number) or another identifier so you can find these articles online. These are listed starting with the most recent publications.</p>
 <p><strong>﻿Back to School: An Updated Evaluation of the Effectiveness of a Long-Term Trap-Neuter-Return Program on a University’s Free-Roaming Cat Population (2019)</strong></p>
 <p><em>Authors: Daniel D. Spehar, Peter J. Wolf <br />
@@ -409,6 +411,7 @@ Study design: Observational <br />
 Metric of interest: Cat behavior <br />
 Sample size: 8 cats </em></p>
 <p>This article sought to replicate a 1984 study from the United Kingdom conducted by Neville and Remfry.  These researchers could not locate naturally-occurring feral cat colonies nearby and attempted to create colonies for the purpose of the study.  They obtained kittens from an animal control center, relocated them to rural areas, and fed them for a period of at least 6 weeks.  Some cats were then spayed and neutered and released again.  Many study cats were reported to have wandered away or gone missing, two unsterilized females gave birth to litters, and researchers conclude that their attempt to create artificial feral colonies for the study failed. </p>
+</div>
 
 </div>
 

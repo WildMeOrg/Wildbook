@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,java.util.Properties, org.ecocean.servlet.ServletUtilities" %>
+         import="org.ecocean.CommonConfiguration,java.util.Properties, org.ecocean.servlet.ServletUtilities, org.ecocean.NoteField, org.ecocean.Shepherd " %>
 <%
 
   //setup our Properties object to hold all properties
@@ -14,6 +14,7 @@
 
   
   String context=ServletUtilities.getContext(request);
+Shepherd myShepherd = new Shepherd(context);
         request.setAttribute("pageTitle", "Kitizen Science &gt; Donate");
 
 %>
@@ -22,9 +23,14 @@
 
 
 <h1><img src="images/donate_orangecat.jpg" width="323" height="300" hspace="10" vspace="10" align="right" />Donate</h1>
+
+<%= NoteField.buildHtmlDiv("e41428e0-da9d-40a5-b01c-e952fd24f586", request, myShepherd) %>
+<div class="org-ecocean-notefield-default" id="default-e41428e0-da9d-40a5-b01c-e952fd24f586">
 <p>If you represent a foundation and think our endeavor fits within the mission of any of your grants, please contact us at kitizenscience@gmail.com, as we would love to hear about you. </p>
 <p>We also welcome and are grateful for support from individuals.  </p>
 <p>Kitizen Science is an official tax-exempt 501(c)3 nonprofit organization, and your donations are tax-deductible. Our federal tax ID is 83-4432917. </p>
+</div>
+
 <p>Donate online via Paypal here:<br />
 </p>
 <p>
