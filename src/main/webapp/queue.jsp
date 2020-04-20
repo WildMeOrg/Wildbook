@@ -59,7 +59,7 @@ private static void generateData(Shepherd myShepherd, File file, String dtype) t
     Map<String,String[]> attrMap = new HashMap<String,String[]>();
     Map<String,String[]> dataMap = new HashMap<String,String[]>();
 
-    List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer");
+    List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer", "kitizenscience");
 
     for (Decision dec : decs) {
         if ((dec.getUser() == null) || (dec.getEncounter() == null)) continue;
@@ -542,6 +542,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
         out.println("<td>" + enc.getDate() + "</td>");
 
         if (isAdmin) {
+            List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer", "kitizenscience");
             jdoql = "SELECT FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "'";
             query = myShepherd.getPM().newQuery(jdoql);
             col = (Collection)query.execute();
@@ -552,6 +553,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
             long lastT = 0L;
             Map<String,Integer> fmap = new HashMap<String,Integer>();
             for (Decision dec : decs) {
+                if ((dec.getUser() != null) && skipUsers.contains(dec.getUser().getUsername())) continue;
                 if ("sex".equals(dec.getProperty())) dct++;
                 if ("flag".equals(dec.getProperty())) {
                     fct++;
