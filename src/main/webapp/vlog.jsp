@@ -165,7 +165,7 @@ for (String uid : uids) {
     }
 
     row[9] = "-";
-    q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"VERSION\" FROM \"SYSTEMVALUE\" WHERE \"KEY\" = 'survey_response_" + uid + "'");
+    q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"VERSION\" FROM \"SYSTEMVALUE\" WHERE \"KEY\" LIKE 'survey_response%" + uid + "'");
     results = (List)q.execute();
     it = results.iterator();
     if (it.hasNext()) {
