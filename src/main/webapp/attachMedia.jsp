@@ -1112,6 +1112,7 @@ console.info('OFFSET... DONE mediaData!!!!!');
             $('#app-data-enc-' + found + ' .app-attachments').append($('.bulk-media[data-offset="' + i + '"]'));
         }
     }
+    checkHiders();
 
     $('.bulk-media').draggable({
         containment: '#file-activity'
