@@ -196,8 +196,7 @@ function forceLink(el) {
 
 		  		if (ma != null) {
 		  			System.out.println("    EMG: ma is not null");
-
-                                        if (ma.getMetadata() != null) ma.getMetadata().getDataAsString();  //this hackery seems to force ma.metadata to properly be loaded into memory!!  #wtf #dnpain
+                    if (ma.getMetadata() != null) ma.getMetadata().getDataAsString(); //temp hack to make sure metadata available, remove at yer peril
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());

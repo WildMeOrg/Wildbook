@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
+import org.ecocean.servlet.importer.ImportTask;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -118,15 +119,14 @@ public class EncounterDelete extends HttpServlet {
           if (occ==null&&(enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
             occ = myShepherd.getOccurrence(enc2trash.getOccurrenceID());
           }
-
+          
           if(occ!=null) {
-            Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
-            occur.removeEncounter(enc2trash);
+            occ.removeEncounter(enc2trash);
             enc2trash.setOccurrenceID(null);
             
             //delete Occurrence if it's last encounter has been removed.
-            if(occur.getNumberEncounters()==0){
-              myShepherd.throwAwayOccurrence(occur);
+            if(occ.getNumberEncounters()==0){
+              myShepherd.throwAwayOccurrence(occ);
             }
             
             myShepherd.commitDBTransaction();
@@ -134,6 +134,13 @@ public class EncounterDelete extends HttpServlet {
      
           }
 
+          if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
+            ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);
+            itask.removeEncounter(enc2trash);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
+          
           //Set all associated annotations matchAgainst to false
           enc2trash.useAnnotationsForMatching(false);
           

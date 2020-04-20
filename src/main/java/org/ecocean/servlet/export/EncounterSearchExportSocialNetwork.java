@@ -253,8 +253,8 @@ public class EncounterSearchExportSocialNetwork extends HttpServlet{
               Label lNumberx27 = new Label(27, count, enc.getSizeAsDouble().toString());
               sheet.addCell(lNumberx27);
             }
-            if (enc.getIndividualID()!=null) {
-              Label lNumberx28 = new Label(28, count, enc.getIndividualID());
+            if (enc.getIndividual()!=null) {
+              Label lNumberx28 = new Label(28, count, enc.getIndividual().getDisplayName());
               sheet.addCell(lNumberx28);
             }
             if (enc.getLocationCode() != null) {

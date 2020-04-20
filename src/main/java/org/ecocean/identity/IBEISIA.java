@@ -495,7 +495,15 @@ Util.mark("identify process pre-post end");
         } else {
             System.out.println("[INFO] sendDetect() nms is null; DEFAULT will be used");
         }
-        
+
+        String ulsKey = "use_labeler_species"+taxonomyPropString;
+        String uls = IA.getProperty(context, ulsKey);
+        if (uls != null) {
+            System.out.println("[INFO] sendDetect() use_labeler_species set to " + uls);
+            map.put("use_labeler_species", uls);
+        } else {
+            System.out.println("[INFO] sendDetect() use_labeler_species is null; DEFAULT of False will be used");
+        }        
 
         String u = getDetectUrlByModelTag(context, modelTag);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
@@ -1746,6 +1754,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
+        ann.setIAExtractedKeywords(myShepherd);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
         String vp = iaResult.optString("viewpoint", null);  //not always supported by IA
         if ("None".equals(vp)) vp = null;  //the ol' "None" means null joke!
@@ -2397,6 +2406,7 @@ System.out.println("identification most recent action found is " + action);
             // iaClass... not your scientific name species
             String iaClass = rtn.getJSONArray("response").optString(0, null);
             Annotation ann = new Annotation(convertSpeciesToString(iaClass), ft, iaClass);
+            ann.setIAExtractedKeywords(myShepherd);
             //note: ann.id is a random UUID at this point; should we set to acmId??
             //   ann.setId(acmId);
             ann.setAcmId(acmId);

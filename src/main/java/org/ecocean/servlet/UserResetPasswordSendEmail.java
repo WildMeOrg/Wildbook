@@ -112,7 +112,27 @@ public class UserResetPasswordSendEmail extends HttpServlet {
         }
         
         if((myUser!=null)&&(myUser.getEmailAddress()!=null)){
-            sendPasswordResetEmail(context, myUser, myUser.getEmailAddress());
+          
+          //time
+          LocalDateTime dt = new LocalDateTime();
+          long time=dt.toDateTime().getMillis();
+          
+          //OTP string
+          
+          String otpString=myUser.getPassword()+time+myUser.getSalt();
+          otpString=ServletUtilities.hashAndSaltPassword(otpString, myUser.getSalt());
+          
+          // Build the link and send email.
+          final String npLink = String.format(request.getScheme()+"://%s/setNewPassword.jsp?username=%s&time=%s&OTP=%s", CommonConfiguration.getURLLocation(request), myUser.getUsername(), time, otpString);
+          ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+          Map<String, String> tagMap = new HashMap<String, String>(){{
+            put("@RESET_LINK@", npLink);
+          }};
+          String mailTo = myUser.getEmailAddress();
+          NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "passwordReset", tagMap, true);  //override user.receiveEmails
+          es.execute(mailer);
+          es.shutdown();
+          
           out.println("If a user with that username or email address was found, we just sent them an email. Please check your Inbox and follow the link in the email to reset your password. If you don't see an email, don't forget to check your spam folder. Thank you!");
           
         }
@@ -156,31 +176,6 @@ else{
     out.close();
     
   }
-
-
-    public static boolean sendPasswordResetEmail(String context, User myUser, String mailTo) {
-          if ((myUser == null) || (mailTo == null)) return false;
-          //time
-          LocalDateTime dt = new LocalDateTime();
-          long time=dt.toDateTime().getMillis();
-          
-          //OTP string
-          
-          String otpString=myUser.getPassword()+time+myUser.getSalt();
-          otpString=ServletUtilities.hashAndSaltPassword(otpString, myUser.getSalt());
-          
-          // Build the link and send email.
-          final String npLink = String.format("%s/setNewPassword.jsp?username=%s&time=%s&OTP=%s", CommonConfiguration.getServerURL(context), myUser.getUsername(), time, otpString);
-System.out.println("pwlink: " + npLink);
-          ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-          Map<String, String> tagMap = new HashMap<String, String>(){{
-            put("@RESET_LINK@", npLink);
-          }};
-          NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "passwordReset", tagMap);
-          es.execute(mailer);
-          es.shutdown();
-          return true;
-    }
 }
 
 
