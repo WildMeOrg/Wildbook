@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpSession;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -63,6 +64,10 @@ public class RestServletV2 extends HttpServlet {
         if (debug) _log(instanceId, "payload: " + payload.toString());
         if (payload.optString("class", "__FAIL__").equals("login")) {  //special case
             handleLogin(request, response, payload, instanceId, context);
+            return;
+        }
+        if (payload.optString("class", "__FAIL__").equals("logout")) {  //special case
+            handleLogout(request, response, payload, instanceId, context);
             return;
         }
 
@@ -143,6 +148,19 @@ public class RestServletV2 extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         response.setContentType("application/javascript");
+        out.println(rtn.toString());
+        out.close();
+    }
+    private void handleLogout(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        JSONObject rtn = new JSONObject();
+            //see:  http://jsecurity.org/api/index.html?org/jsecurity/web/DefaultWebSecurityManager.html
+        Subject subject = SecurityUtils.getSubject();
+        if (subject != null) subject.logout();
+        HttpSession session = request.getSession(false);
+        if (session != null) session.invalidate();
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+        rtn.put("success", true);
         out.println(rtn.toString());
         out.close();
     }
