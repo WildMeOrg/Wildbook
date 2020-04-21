@@ -188,7 +188,7 @@ h2.vidcap {
             <div id="index-splash-text">
 
                 <h1 class="hidden">Wildbook for African Carnivores</h1>
-                <h2>Wildbook for Carnivores</h2>
+                <!--<h2>Wildbook for Carnivores</h2>-->
                 <a href="submit.jsp">
                     <button class="large"><%= props.getProperty("reportEncounter") %><span class="button-icon" aria-hidden="true"></button>
                 </a>
@@ -404,12 +404,12 @@ h2.vidcap {
         <main class="container">
             <article class="text-center">
                 <div class="row">
-                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="cust/mantamatcher/img/DSWP2015-20150408_081746a_Kopi.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
+                    <img src="cust/mantamatcher/img/tico_meeting.jpg" data-src="cust/mantamatcher/img/tico_meeting.jpg" alt="Tico McNutt Quote Image" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1 lazyload" />
                    
 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
                         <p class="lead">
-                            <i>"Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. African Carnivore Wildbook  enables us to do this easily."</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
+                            <i>“Iconic, rare, spectacular and fearsome, Africa's large predators are among our planet's most revered - and most threatened. Knowledge about these predators' population connectivity is critical to mapping the strategy to ensure their future and the health of the ecosystems Africans and Africa's wildlife depend on. The ACW is the tool that will enable conservationists and wildlife ecologists to document that critical connectivity.”</i><br>- JW McNutt, <i>PhD., Director, Wild Entrust; Founder and Director, Botswana Predator Conservation</i></p>
                         
                     </div>
                 </div>
