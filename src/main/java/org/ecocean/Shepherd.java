@@ -2259,6 +2259,19 @@ public class Shepherd {
 
   
 
+    //this tries (in this order) username, uuid, email and returns first user it finds
+    // note: we do *not* check validity of either uuid or email address, given that (undoubtedly) we have
+    //       malformed values for both in the db.  is this a bug or a feature?  #philosophy
+    public User getUserByWhatever(String value) {
+        if (value == null) return null;
+        User u = getUser(value);
+        if (u != null) return u;
+        u = getUserByUUID(value);
+        if (u != null) return u;
+        return getUserByEmailAddress(value);  //see note below about uniqueness, alas
+    }
+
+
 
 
   public User getUserByEmailAddress(String email){
