@@ -531,6 +531,25 @@ System.out.println("looks like cr format and target format are the same! -> " + 
 
                 // Set MMA-compatible flag if appropriate.
                 if (enc != null && MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir)) {
+/*
+
+[WB-285]
+
+we need to:
+
+* use write2me (a File) to create a proper MediaAsset
+    see for example: servlet/SubmitSpotsAndImages.java; goes something like:
+      JSONObject params = store.createParameters(FILE);
+      MediaAsset ma = store.create(params);
+* i have been adding the keyword "CR Image" and label "CR" to the assets i make, so lets continue that
+      Keyword crKeyword = myShepherd.getOrCreateKeyword("CR Image");  ma.addKeyword(crKeyword);
+      ma.addLabel("CR")
+* create trival annot, set matchAgainst=T, and attach under encounter
+
+* test.   :)
+
+*/
+
                   enc.setMmaCompatible(true);
                   myShepherd.commitDBTransaction();
                 }
