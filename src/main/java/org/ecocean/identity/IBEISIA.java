@@ -1751,7 +1751,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         if ("None".equals(vp)) vp = null;  //the ol' "None" means null joke!
         ann.setViewpoint(vp);
         if (validForIdentification(ann, context)) {
-            ann.setMatchAgainst(true);
+            //ann.setMatchAgainst(true);  //disabled for mm see [WB-284]
         }
         return ann;
     }
@@ -2377,7 +2377,7 @@ System.out.println("identification most recent action found is " + action);
             }
             Boolean aoi = iaIsOfInterestFromAnnotUUID(acmId, context);
             ann.setIsOfInterest(aoi);
-            ann.setMatchAgainst(true);  //kosher?
+            //ann.setMatchAgainst(true);  //kosher?   -- disabled cuz of [WB-284] -- is this overkill?
             ann.setViewpointFromIA(context);  //note: can block ... but wygd
             System.out.println("INFO: " + ann + " pulled from IA");
             return ann;
