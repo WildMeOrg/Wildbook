@@ -6,9 +6,14 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.authc.UsernamePasswordToken;
 import java.io.IOException;
 import java.io.PrintWriter;
+import org.ecocean.Shepherd;
 import org.ecocean.Util;
+import org.ecocean.User;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -56,6 +61,11 @@ public class RestServletV2 extends HttpServlet {
         boolean debug = (payload.optBoolean("_debug", false) || ((request.getQueryString() != null) && request.getQueryString().matches(".*_debug.*")));
 
         if (debug) _log(instanceId, "payload: " + payload.toString());
+        if (payload.optString("class", "__FAIL__").equals("login")) {  //special case
+            handleLogin(request, response, payload, instanceId, context);
+            return;
+        }
+
         JSONObject rtn = new JSONObject();
         rtn.put("success", false);
 /*
@@ -66,11 +76,11 @@ public class RestServletV2 extends HttpServlet {
 */
 
 
+        rtn.put("__instanceId", instanceId);
         if (debug) {
             _log(instanceId, "rtn: " + rtn.toString());
             JSONObject jbug = new JSONObject();
             jbug.put("payload", payload);
-            jbug.put("instanceId", instanceId);
             jbug.put("timestamp", System.currentTimeMillis());
             jbug.put("remoteHost", ServletUtilities.getRemoteHost(request));
             jbug.put("method", httpMethod);
@@ -80,6 +90,59 @@ public class RestServletV2 extends HttpServlet {
         }
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
+        out.println(rtn.toString());
+        out.close();
+    }
+    private void handleLogin(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
+        JSONObject rtn = new JSONObject();
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RestServletV2.handleLogin");
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+
+        rtn.put("success", false);
+        User user = myShepherd.getUserByWhatever(payload.optString("login", null));
+        if (user == null) {
+            _log(instanceId, "invalid login with payload=" + payload);
+            rtn.put("message", "access denied");
+            response.setStatus(401);
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            out.println(rtn.toString());
+            out.close();
+            return;
+        }
+        //potentially could do something like 429 for too many tries, 4XX for acct disabled, etc.
+
+        //do the actual login...
+        try {
+            UsernamePasswordToken token = new UsernamePasswordToken(user.getUsername(),
+                ServletUtilities.hashAndSaltPassword(payload.optString("password", Util.generateUUID()), user.getSalt()) );
+            Subject subject = SecurityUtils.getSubject();			
+            subject.login(token);
+        } catch (Exception ex) {
+            _log(instanceId, "invalid login with payload=" + payload + "; threw " + ex.toString());
+            rtn.put("message", "access denied");
+            response.setStatus(401);
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            out.println(rtn.toString());
+            out.close();
+            return;
+        }
+
+/*   FIXME
+		  	if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(CommonConfiguration.getProperty("userAgreementURL",context)!=null)&&(CommonConfiguration.getProperty("showUserAgreement",context).equals("true"))&&(!user.getAcceptedUserAgreement())){
+*/
+        rtn.put("needsUserAgreement", false);
+        rtn.put("previousLogin", user.getLastLogin());
+        rtn.put("success", true);
+        _log(instanceId, "successful login user=" + user);
+        user.setLastLogin(System.currentTimeMillis());
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        response.setContentType("application/javascript");
         out.println(rtn.toString());
         out.close();
     }
