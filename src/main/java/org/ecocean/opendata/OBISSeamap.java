@@ -5,10 +5,14 @@ import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Taxonomy;
+import org.ecocean.Survey;
 import org.ecocean.User;
 import org.ecocean.Util;
+import org.ecocean.PointLocation;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
+import org.ecocean.movement.SurveyTrack;
+import org.ecocean.movement.Path;
 import javax.jdo.Query;
 import java.util.Collection;
 import java.util.List;
@@ -48,7 +52,11 @@ public class OBISSeamap extends Share {
     public void generate(String occurrence_jdoql, String encounter_sql) throws IOException {
         String outPath = getProperty("outputFile", null);
         if (outPath == null) throw new IllegalArgumentException("must have 'outputFile' set in properties file");
+        String effortOutPath = outPath + "_effort";  //fallback
+        int dot = outPath.lastIndexOf(".");
+        if (dot > 0) effortOutPath = outPath.substring(0,dot) + "_effort." + outPath.substring(dot+1);
         BufferedWriter writer = new BufferedWriter(new FileWriter(outPath));
+        BufferedWriter effortWriter = new BufferedWriter(new FileWriter(effortOutPath));
 
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction(this.typeCode() + ".generate");
@@ -60,9 +68,22 @@ public class OBISSeamap extends Share {
         Collection c = (Collection) (query.execute());
         List<Occurrence> occs = new ArrayList<Occurrence>(c);
         query.closeAll();
+        List<String> surveyTrackIds = new ArrayList<String>();
         for (Occurrence occ : occs) {
             if (!isShareable(occ)) continue;
-            String row = tabRow(occ, myShepherd);
+            SurveyTrack trk = occ.getSurveyTrack(myShepherd);
+            String surveyTrackId = (trk == null) ? null : trk.getID();
+            //TODO do we need to check isShareable(trk) at this point??? think not cuz it references back to occ
+            if ((trk != null) && !surveyTrackIds.contains(surveyTrackId)) {
+                String trow = tabRow(trk, myShepherd);
+                if (trow != null) {
+                    effortWriter.write(trow);
+                } else {
+                    surveyTrackId = null;  //dont reference via Occurrence data
+                }
+                surveyTrackIds.add(trk.getID());
+            }
+            String row = tabRow(occ, surveyTrackId, myShepherd);
             if (row != null) writer.write(row);
         }
 
@@ -80,14 +101,16 @@ public class OBISSeamap extends Share {
         }
 
         writer.close();
+        effortWriter.close();
         myShepherd.rollbackDBTransaction();
-        log(outPath + " written by generate()");
+        log(outPath + " and " + effortOutPath + " written by generate()");
     }
 
     public boolean isShareable(Object obj) {
         if (obj == null) return false;
         if (obj instanceof Encounter) return isShareable((Encounter)obj);
         if (obj instanceof Occurrence) return isShareable((Occurrence)obj);
+        if (obj instanceof SurveyTrack) return isShareable((SurveyTrack)obj);
         return false;
     }
 
@@ -112,6 +135,16 @@ public class OBISSeamap extends Share {
         return true;
     }
 
+    public boolean isShareable(SurveyTrack trk) {
+        if (trk == null) return false;
+        if (getShareAll()) return true;
+        if (Util.collectionIsEmptyOrNull(trk.getOccurrences())) return false;
+        for (Occurrence occ : trk.getOccurrences()) {
+            if (occ == null) continue;
+            if (!isShareable(occ)) return false;
+        }
+        return true;
+    }
 
     //these are the row (record) for tab-delim output; assuming OBISSeamap flat-file Darwin Core
     //  NOTE: these do not include trailing newline
@@ -125,7 +158,7 @@ public class OBISSeamap extends Share {
             log("cannot share " + occ + " due to invalid date!");
             return null;
         }
-        fields.add((new DateTime(d)).toString().substring(0,16).replace("T", " "));
+        fields.add(toISO8601(d));
         occ.setLatLonFromEncs(false);
         Double dlat = occ.getDecimalLatitude();
         Double dlon = occ.getDecimalLongitude();
@@ -168,19 +201,22 @@ public class OBISSeamap extends Share {
         return String.join("\t", fields);
     }
 
-    public String tabRow(Occurrence occ, Shepherd myShepherd) {
+    public String tabRow(Occurrence occ, String surveyTrackId, Shepherd myShepherd) {
         if ((occ == null) || Util.collectionIsEmptyOrNull(occ.getEncounters())) return null;
         String rtn = "";
         for (Encounter enc : occ.getEncounters()) {
-            String e = tabRow(enc, myShepherd);
+            String e = tabRow(enc, surveyTrackId, myShepherd);
             if (e != null) rtn += e;
         }
         return rtn;
     }
 
 //header of field contents
-//GUID	DATE	OCCURRENCE_ID	DEC_LAT	DEC_LON	TAXONOMY	INDIV_ID	SEX	LIFE_STAGE	IMAGE_URL	CONTRIBUTERS	COPYRIGHT_INFO
+//GUID	DATE	OCCURRENCE_ID	SURVEY_ID   DEC_LAT	DEC_LON	TAXONOMY	INDIV_ID	SEX	LIFE_STAGE	IMAGE_URL	CONTRIBUTERS	COPYRIGHT_INFO
     public String tabRow(Encounter enc, Shepherd myShepherd) {
+        return tabRow(enc, null, myShepherd);
+    }
+    public String tabRow(Encounter enc, String surveyTrackId, Shepherd myShepherd) {
         if (enc == null) return null;
         List<String> fields = new ArrayList<String>();
         //fields.add(getGUID("E-" + enc.getCatalogNumber()));  //decided now to have url/link be "guid" (via feedback from ei)
@@ -192,6 +228,7 @@ public class OBISSeamap extends Share {
         }
         fields.add(d);
         fields.add(forceString(enc.getOccurrenceID()));
+        fields.add(forceString(surveyTrackId));
         Double dlat = enc.getLatitudeAsDouble();
         Double dlon = enc.getLongitudeAsDouble();
         if ((dlat == null) || (dlon == null)) {
@@ -231,8 +268,38 @@ public class OBISSeamap extends Share {
     }
 
 
+    public String tabRow(SurveyTrack trk, Shepherd myShepherd) {
+        if (trk == null) return null;
+        List<String> fields = new ArrayList<String>();
+        fields.add(forceString(trk.getID()));
+        fields.add(toISO8601(trk.getStartTime()));
+        fields.add(toISO8601(trk.getEndTime()));
+
+        List<String> points = new ArrayList<String>();
+        Path path = trk.getPath();
+        if (path != null) {
+            //wanna keep 5 min apart, per obis request
+            for (PointLocation pl : path.getPointLocationsSubsampledTimeGap(5L * 60000L)) {
+                String dt = pl.getDateTimeAsString();
+                Double lat = pl.getLatitude();
+                Double lon = pl.getLongitude();
+                if ((dt != null) && (lat != null) && (lon != null)) points.add("(" + dt + ";" + lat + ";" + lon + ")");
+            }
+        }
+        if (points.size() < 1) return null;  //boring
+        fields.add(String.join(", ", points));
+
+        return String.join("\t", fields) + "\n";
+    }
+
+
     private static String forceString(String txt) {
         if (!Util.stringExists(txt)) return "";  //this checks for "unknown", "none", etc...
         return txt;
+    }
+
+    private static String toISO8601(Long millis) {
+        if (millis == null) return "";
+        return (new DateTime(millis)).toString().substring(0,16).replace("T", " ");
     }
 }

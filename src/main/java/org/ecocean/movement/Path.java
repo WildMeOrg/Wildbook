@@ -118,6 +118,23 @@ public class Path implements java.io.Serializable {
         }
         return rtn;
     }
+    //this will force (minimum) millis between points
+    public List<PointLocation> getPointLocationsSubsampledTimeGap(long millis) {
+        if (Util.collectionSize(pointLocations) <= 10) return pointLocations;
+        long prev = 0;
+        List<PointLocation> rtn = new ArrayList();
+        for (int i = 0 ; i < pointLocations.size() ; i++) {
+            PointLocation pl = pointLocations.get(i);
+            Long dt = pl.getDateTimeInMilli();
+            if (dt == null) {
+                rtn.add(pl);  //?????
+            } else if ((dt - prev) >= millis) {
+                rtn.add(pl);
+                prev = dt;
+            }
+        }
+        return rtn;
+    }
 
     public Double averageDiff2() {
         if (Util.collectionSize(pointLocations) < 2) return null;  //meh?

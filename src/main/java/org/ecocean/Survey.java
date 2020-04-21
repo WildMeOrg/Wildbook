@@ -275,6 +275,9 @@ public class Survey implements java.io.Serializable{
     }
     return null;
   }
+    public Long getStartTime() {
+        return startTime;
+    }
   
   public void setEndTimeMilli(Long et) {
     if (et > 0) {
@@ -310,6 +313,10 @@ public class Survey implements java.io.Serializable{
     }
     return null;
   }
+
+    public Long getEndTime() {
+        return endTime;
+    }
   
   private String monthDayYearToMilli(String newDate) {
     SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
