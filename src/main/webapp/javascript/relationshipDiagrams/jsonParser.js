@@ -133,8 +133,11 @@ class JSONQuerier {
 	let query;
 	if (!this.localFiles) {
 	    query = "//"+window.location.host + "/api/jdoql?" +
-		encodeURIComponent("SELECT FROM org.ecocean.social.Relationship " +
-				   "WHERE (this.type == \"social grouping\")");
+		//encodeURIComponent(
+				"SELECT FROM org.ecocean.social.Relationship " +
+				   "WHERE (this.type != null )"
+		//)
+		;
 	}
 	else query = "./Relationship.json";
 	return this.queryData("relationshipData", query);
