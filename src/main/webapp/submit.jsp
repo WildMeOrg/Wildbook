@@ -399,9 +399,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
       <p><%=props.getProperty("submit_overview") %></p>
 
       <p class="bg-danger text-danger">
-        <!--
         <%=props.getProperty("submit_note_red") %>
-        -->
       </p>
   </div>
 
