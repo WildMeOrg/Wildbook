@@ -15,6 +15,8 @@ import org.joda.time.DateTime;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.datanucleus.api.rest.orgjson.JSONException;
 import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -500,4 +502,23 @@ public class User implements Serializable {
         u.put("username", username);
         return u;
     }
+
+//this tomfoolery is just to still support legacy api.  :(  TEMPORARY  FIXME
+// plus SUPER-hackery to provide mockup-profile photos!
+	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+            Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(request));
+            int r = (new java.util.Random()).nextInt(8);  //only 0-4 are images we want, the rest are to generate no profile photo
+            MediaAsset ma = null;
+            if (r < 5) ma = MediaAssetFactory.load(r + 81926, myShepherd);
+            if (ma != null) {
+                jobj.put("profileAsset", ma.sanitizeJson(request, new JSONObject()));
+            }
+            jobj.remove("salt");
+            jobj.remove("password");
+            jobj.remove("lastLogin");
+            jobj.remove("userID");
+            jobj.remove("dateInMilliseconds");
+            jobj.remove("receiveEmails");
+            return jobj;
+        }
 }

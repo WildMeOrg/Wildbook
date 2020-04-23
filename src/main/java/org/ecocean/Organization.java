@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import javax.servlet.http.HttpServletRequest;
 /*
 //import java.util.UUID;   :(
 import javax.jdo.Query;
@@ -432,5 +433,15 @@ public class Organization implements java.io.Serializable {
     public JSONObject toApiJSONObject(Map<String,Object> opts) {
         return toJSONObject();
     }
+
+
+//this tomfoolery is just to still support legacy api.  :(  TEMPORARY  FIXME
+	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
+            if (this.getLogo() != null) {
+                jobj.put("logoAsset", this.getLogo().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
+            }
+            return jobj;
+        }
+
 }
 
