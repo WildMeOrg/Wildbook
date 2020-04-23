@@ -10,9 +10,6 @@
   //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
   //props.load(propsInputStream);
   
-  
-
-  
   String context=ServletUtilities.getContext(request);
 
 %>
@@ -28,19 +25,19 @@
 
 <h3>BPCT</h3>
 
-<p><img src="images/bpct.png" width="500px" height="*" /></p>
+<p><a href="https://www.bpctrust.org/"><img src="cust/mantamatcher/img/BPC_logo_dog.jpg" width="200px" height="*" /></a></p>
 
 <h3>Wild Me</h3>
 
-<p><img src="images/wild-me-logo-high-resolution.png" width="500px" height="*" /></p>
+<p><a href="https://www.wildme.org/"><img src="images/wild-me-logo-high-resolution.png" width="200px" height="*" /></a></p>
 
-<h3>Wildbook&reg;</h3>
+<h3>Wildbook</h3>
 
-<p><img src="images/WildBook_logo_300dpi-04.png" width="500px" height="*" /></p>
+<p><a href="https://www.wildbook.org/"><img src="images/WildBook_logo_300dpi-04.png" width="200px" height="*" /></a></p>
 
 
    
-      <!-- end maintext -->
-      </div>
+<!-- end maintext -->
+</div>
 
 
