@@ -110,6 +110,7 @@ public class ShepherdPMF {
         /*                                                                                                                                                   */ 
         /* You create a setenv.sh script containing exports for the environment variables and place the script in the $CATALINA_HOME/bin directory.          */
         /* The catalina.sh script will call the setenv.sh script (if it exists) before it launches Tomcat.                                                   */
+        /* *** NOTE: for ubuntu/debian, these should be added to /etc/default/tomcat8 (i.e. just DB_USER="xxxx")                                             */
         /* This allows you specify the Database Connection parameters: user, password, driver name and connection URL at run time instead of hardcoding      */
         /* them in the jdoconfig.properties file which is inside the wildbook.war file. This also makes it easy to use with Docker and Kubernetes.           */
         /* And you can also define the Database Connection parameters as Docker secrets or Kubernetes secrets which makes the credentials secure.            */
