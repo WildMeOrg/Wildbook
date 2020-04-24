@@ -266,7 +266,9 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         return "webapps/wildbook/WEB-INF/classes/bundles/config-json";
     }
     public static String dirOverride() {
-        return "webapps/" + ContextConfiguration.getDataDirForContext("context0") + "/WEB-INF/classes/bundles/config-json";
+        // UGH FIXME too... we cant get this value from a config!  #recursion
+        //return "webapps/" + ContextConfiguration.getDataDirForContext("context0") + "/WEB-INF/classes/bundles/config-json";
+        return "webapps/wildbook_data_dir/WEB-INF/classes/bundles/config-json";
     }
     public static List<File> allFiles(String dir) {
         List<File> all = new ArrayList<File>();
