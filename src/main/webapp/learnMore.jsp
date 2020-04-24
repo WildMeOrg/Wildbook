@@ -33,7 +33,7 @@ props = ShepherdProperties.getProperties("learnMore.properties", "en",context);
 <p class="lead"><%=props.getProperty("howItWorks4Description") %></p>
 
 <br>
-<h4><%=props.getProperty("gotoWildbook") %> <a href="http://www.wildbook.org"></a></h4>
+<h4><%=props.getProperty("gotoWildbook") %> <a href="http://www.wildbook.org">http://www.wildbook.org</a></h4>
 
 <br/>
 
