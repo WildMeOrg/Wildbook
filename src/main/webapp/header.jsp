@@ -405,7 +405,7 @@ finally{
                       </li>                      
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
+                        <ul class="dropdown-menu solid-menu-background" role="menu">
 
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
 
@@ -421,7 +421,7 @@ finally{
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
+                        <ul class="dropdown-menu solid-menu-background" role="menu">
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
 
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
@@ -429,7 +429,7 @@ finally{
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("occurrences")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
+                        <ul class="dropdown-menu solid-menu-background" role="menu">
                           <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("search")%></a></li>
 
                           <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
@@ -437,7 +437,7 @@ finally{
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
+                        <ul class="dropdown-menu solid-menu-background" role="menu">
                           <li class="dropdown-header"><%=props.getProperty("states")%></li>
 
                         <!-- list encounters by state -->
@@ -464,7 +464,7 @@ finally{
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
+                        <ul class="dropdown-menu solid-menu-background" role="menu">
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
@@ -482,7 +482,7 @@ finally{
                       <li class="dropdown">
 
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
+                        <ul class="dropdown-menu solid-menu-background" role="menu">
                             <% if (CommonConfiguration.getWikiLocation(context)!=null) { %>
                               <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>/photographing.jsp"><%=props.getProperty("userWiki")%></a></li>
                             <% }
@@ -527,7 +527,7 @@ finally{
                             %>
                             <li class="dropdown">
                               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
-                              <ul class="dropdown-menu" role="menu">
+                              <ul class="dropdown-menu solid-menu-background" role="menu">
                               <%
                               if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
                               %>
