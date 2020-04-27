@@ -160,10 +160,18 @@ return null; ///FIXME
     public Set<String> getChildKeys() {
         Set<String> ck = new HashSet<String>();
         JSONObject node = this.getNode();
-        if (node == null) return ck;
-        for (Object k : node.keySet()) {
-            String ks = (String)k;
-            if (!ks.startsWith("_")) ck.add(ks);
+        if ("".equals(this.id)) {  //special case cuz we just wanna hack the root ids as kids!
+            for (String k : ConfigurationUtil.getMeta().keySet()) {
+                ck.add(k);
+            }
+
+        } else if (node == null) {
+            return ck;
+        } else {
+            for (Object k : node.keySet()) {
+                String ks = (String)k;
+                if (!ks.startsWith("_")) ck.add(ks);
+            }
         }
         return ck;
     }
