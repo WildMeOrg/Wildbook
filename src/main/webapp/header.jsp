@@ -517,7 +517,6 @@ finally{
                             } //end if admin
                             %>
                             <li class="dropdown">
-                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                               <ul class="dropdown-menu" role="menu">
                               <%
                               if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
