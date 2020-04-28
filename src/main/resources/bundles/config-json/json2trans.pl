@@ -50,7 +50,7 @@ sub traverse {
     my ($j, $prefix) = @_;
     return if (ref($j) ne ref({}));
     foreach my $key (keys %$j) {
-        next if ($key eq 'formSchema');
+        next if ($key =~ /^_/);
         my $id = &make_id($prefix, $key);
         &expand($id);
         &traverse($j->{$key}, $id);
