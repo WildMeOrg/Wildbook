@@ -36,6 +36,9 @@ public class Configuration implements java.io.Serializable {
     public String getId() {
         return id;
     }
+    public String getParentId() {
+        return ConfigurationUtil.parentId(id);
+    }
 
     public JSONObject getContent() {
         return Util.stringToJSONObject(content);
@@ -216,6 +219,7 @@ return null; ///FIXME
         JSONObject m = this.getMeta();
         JSONObject j = new JSONObject();
         j.put("configurationId", id);
+        j.put("parentConfigurationId", this.getParentId());
         j.put("name", this.getKey());
         j.put("translationId", this.getLang());
         Set<String> kids = this.getChildKeys();
