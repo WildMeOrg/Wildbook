@@ -1256,8 +1256,11 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     String candidatePath = uppercaseJpg(fullPath);
     if (Util.fileExists(candidatePath)) return candidatePath;
 
-    candidatePath = noExtension(candidatePath);
-    if (Util.fileExists(candidatePath)) return candidatePath;
+    String candidatePathMissing = noExtension(candidatePath);
+    if (Util.fileExists(candidatePathMissing)) return candidatePathMissing;
+
+    candidatePathMissing = noExtensionUpper(candidatePath);
+    if (Util.fileExists(candidatePathMissing)) return candidatePathMissing;
 
     String candidatePath2 = uppercaseBeforeJpg(candidatePath);
     if (Util.fileExists(candidatePath2)) return candidatePath2;
@@ -1279,8 +1282,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
     //not sure how cool this is.  but probably same can be said about all this!
     private String noExtension(String filename) {
-        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;
+        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;  //has ext
         return filename + ".jpg";  // :(
+    }
+    private String noExtensionUpper(String filename) {
+        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;  //has ext
+        return filename + ".JPG";  // :(
     }
 
   private String uppercaseBeforeJpg(String filename) {
