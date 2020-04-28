@@ -6,7 +6,7 @@
 use JSON;
 use Data::Dumper;
 my $KEY_DELIM = '_';
-my @FIELDS = qw( label description alt help );
+my @FIELDS = qw( label description menulabel menudescription alt help );
 
 print "{\n";
 
