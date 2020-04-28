@@ -6,9 +6,12 @@
 use JSON;
 use Data::Dumper;
 my $KEY_DELIM = '_';
-my @FIELDS = qw( label description alt );
+my @FIELDS = qw( label description alt help );
 
 print "{\n";
+
+my $prefix = &make_id('configuration', "");
+&expand($prefix);
 
 opendir(D, '.');
 my @files = readdir(D);
