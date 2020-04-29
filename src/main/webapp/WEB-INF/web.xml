@@ -1938,6 +1938,12 @@
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>StandardImport</servlet-name>
+    <url-pattern>/import/standard-upload</url-pattern>
+  </servlet-mapping>
+
   <servlet-mapping>
       <servlet-name>UpdateStandard</servlet-name>
       <url-pattern>/UpdateStandard</url-pattern>
@@ -2372,8 +2378,6 @@
     <servlet-name>IndividualSetNickName</servlet-name>
     <url-pattern>/IndividualSetNickName</url-pattern>
   </servlet-mapping>
-
-
 
   <servlet-mapping>
     <servlet-name>IndividualSetName</servlet-name>

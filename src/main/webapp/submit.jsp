@@ -934,6 +934,67 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 
 
+<%
+
+if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+%>
+
+      <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("species") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <select class="form-control" name="genusSpecies" id="genusSpecies" onChange="$('.required-missing').removeClass('required-missing'); return true;">
+             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
+  <%
+
+  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+  					int numGenusSpeciesProps=species.size();
+  					String selected="";
+  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
+
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+                      
+
+                    	for(int q=0;q<numGenusSpeciesProps;q++){
+                           String currentGenuSpecies = "genusSpecies"+q;
+
+                           String showCommonNames = CommonConfiguration.getProperty("showCommonSpeciesNames",context);
+
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+
+                            String commonNameLabel = "";
+                             if (showCommonNames!=null&&"true".equals(showCommonNames)) {
+                                String commonNameVal = CommonConfiguration.getProperty("commonName"+q,context);
+                                if (commonNameVal!=null&&!"null".equals(commonNameVal)&&!"".equals(commonNameVal)) {
+                                  commonNameLabel = " ("+commonNameVal+")";
+                                }
+                              }
+
+                               %>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")+commonNameLabel%></option>
+                               <%
+
+                        }
+
+
+                   }
+                   }
+ %>
+  </select>
+    </div>
+        </div>
+
+        <%
+}
+
+%>
+
+
+
   <h4 class="accordion">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
       <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">

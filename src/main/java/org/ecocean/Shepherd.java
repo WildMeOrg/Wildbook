@@ -26,6 +26,7 @@ import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
 import org.ecocean.ia.Task;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.datacollection.*;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
@@ -457,7 +458,9 @@ public class Shepherd {
       List list = new ArrayList(c);
       System.out.println("getAllCollaborations got "+list.size()+" collabs");
       //Collections.reverse(list);
+      acceptedCollabs.closeAll();
       return list;
+      
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllCollaborations(). Returning a null collection.");
       npe.printStackTrace();
@@ -653,15 +656,18 @@ public class Shepherd {
   }
   // finds the workspace that user 'owner' created and named 'name'
   public Workspace getWorkspaceForUser(String name, String owner) {
+    Workspace result=null;
     String quotedOwner = (owner==null) ? "null" : ("\""+owner+"\"");
     String filter = "this.name == \""+name+"\" && this.owner == "+quotedOwner;
     Extent allWorkspaces = pm.getExtent(Workspace.class, true);
     Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
     Collection results = (Collection) (workspaceQuery.execute());
+    
     if (!results.isEmpty()) {
-      return (Workspace) (results.iterator().next());
+      result= (Workspace)results.iterator().next();
     }
-    return null;
+    workspaceQuery.closeAll();
+    return result;
   }
 
 
@@ -732,6 +738,7 @@ public class Shepherd {
       return resultList;
     } catch (Exception npe) {
       npe.printStackTrace();
+      mediaAssetQuery.closeAll();
       return null;
     }
   }
@@ -1031,6 +1038,20 @@ public class Shepherd {
     return users;
   }
 
+  public User getUserByUsername(String username) {
+    User u = null;
+    String filter="SELECT FROM org.ecocean.User WHERE username == \""+username.trim()+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      u = (User) it.next();
+    }
+    query.closeAll();
+    return u;
+
+  }
+
   // filters out social media- and other-app-based users (twitter, ConserveIO, etc)
   public List<User> getNativeUsers() {
     return getNativeUsers("username ascending NULLS LAST");
@@ -1286,13 +1307,15 @@ public class Shepherd {
     return ((al.size()>0) ? ((Taxonomy) al.get(0)) : null);
   }
     public Taxonomy getTaxonomy(int tsn) {
+        Taxonomy tax=null;
         Query query = pm.newQuery("SELECT org.ecocean.Taxonomy WHERE itisTsn == " + tsn);
         try {
             Collection c = (Collection) query.execute();
             Iterator it = c.iterator();
-            if (it.hasNext()) return (Taxonomy)it.next();
+            if (it.hasNext()) tax = (Taxonomy)it.next();
         } catch (Exception ex) {}
-        return null;
+        query.closeAll();
+        return tax;
     }
     //sadly, getTaxonomy(string) signatured already used above. :( so we have to go non-standard name here:
     //  however, checkout the hack to look for a uuid above!
@@ -1338,8 +1361,10 @@ public class Shepherd {
       String filter = "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \""+readableName+"\" && this.label == \""+label+"\"";
       Query query = pm.newQuery(filter);
       List<Keyword> ans = (List) query.execute();
-      if (ans!=null && ans.size()>0) return (LabeledKeyword) ans.get(0);
+      LabeledKeyword lk = null;
+      if (ans!=null && ans.size()>0) lk = (LabeledKeyword) ans.get(0);
       query.closeAll();
+      return lk;
     }
     catch (Exception e) {
       System.out.println("Exception on getLabeledKeyword("+label+", "+readableName+")!");
@@ -1384,6 +1409,20 @@ public class Shepherd {
 
     }
     return inCommon;
+  }
+
+  public ImportTask getImportTaskForEncounter(Encounter enc) {
+    Query itq = pm.newQuery("SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getID() + "'");
+    Collection c = (Collection) (itq.execute());
+    Iterator it = c.iterator();
+    ImportTask itask = null;
+    if (it.hasNext()) {
+      itask = (ImportTask)it.next();
+      itq.closeAll();
+      return itask;
+    }
+    itq.closeAll();
+    return itask;
   }
 
   public boolean isSurvey(String num) {
@@ -1708,6 +1747,7 @@ public class Shepherd {
    * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
    * @see encounter, java.util.Iterator
    */
+  /*
   public Iterator getUnassignedEncounters() {
     String filter = "this.individual == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
@@ -1715,6 +1755,7 @@ public class Shepherd {
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
+  */
 
   public List<MediaAsset> getMediaAssetsFromStore(int assetStoreId) {
     String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE this.assetStore == as && as.id == "+assetStoreId;
@@ -1723,6 +1764,7 @@ public class Shepherd {
     Query q = pm.newQuery(filter);
     Collection results = (Collection) q.execute();
     ArrayList<MediaAsset> al = new ArrayList(results);
+    q.closeAll();
     return al;
   }
 
@@ -1735,7 +1777,8 @@ public class Shepherd {
     return c.iterator();
   }
   */
-
+  
+/*
   public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
     String filter = "this.individual == null && this.state != \"unidentifiable\"";
     //Extent encClass=pm.getExtent(encounter.class, true);
@@ -1743,6 +1786,7 @@ public class Shepherd {
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
+  */
 
   public Iterator<Encounter> getAllEncountersNoFilter() {
     /*Collection c;
@@ -1771,6 +1815,7 @@ public class Shepherd {
       acceptedEncounters.closeAll();
       return list;
     } catch (Exception npe) {
+      acceptedEncounters.closeAll();
       System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a transaction to use.");
       npe.printStackTrace();
       return null;
@@ -2529,6 +2574,7 @@ public class Shepherd {
     
     Collection col = (Collection) (tsQuery.execute());
     ArrayList<TissueSample> samples = new ArrayList<>(col);
+    tsQuery.closeAll();
     return samples;
   }
 
@@ -2609,7 +2655,7 @@ public class Shepherd {
 
   public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
 
-    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individualID == \""+indy.getIndividualID()+"\" ";
+    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individual.individualID == \""+indy.getIndividualID()+"\" ";
     String vars=" VARIABLES org.ecocean.Encounter enc3_0";
     for(int i=0; i<kwReadableNames.length; i++){
       filter+="  && features.contains(feat"+i+") && feat"+i+".asset.keywords.contains(word"+i+") &&  word"+i+".readableName == \""+kwReadableNames[i]+"\" ";
@@ -3850,6 +3896,7 @@ public class Shepherd {
       Extent extent = pm.getExtent(LabeledKeyword.class);
       Query query = pm.newQuery(extent);
       List<LabeledKeyword> ans = (List) query.execute();
+      query.closeAll();
       return ans;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
@@ -3871,8 +3918,8 @@ public class Shepherd {
     List<Keyword> propKeywords = new ArrayList<Keyword>();
 
     if((allKeywords!=null)&&(propKeywordNames!=null)) {
-      System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
-  
+      //System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
+
       for (String propKwName: propKeywordNames) {
         for (Keyword kw: allKeywords) {
           if ((kw.getReadableName()!=null) && kw.getReadableName().equals(propKwName)) {
@@ -3881,7 +3928,7 @@ public class Shepherd {
           }
         }
       }
-      System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
+      //System.out.println("getSortedKeywordList got "+propKeywords.size()+" keywords.");
       allKeywords.removeAll(propKeywords); // allKeywords = keywords not in props
       propKeywords.addAll(allKeywords);
       // propKeywords contains all keywords, but those defined in properties are first.
