@@ -1424,8 +1424,10 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     // if nothing yet, look in user's cache for indy name and use species if present
     if (mark==null&&"user".equals(individualScope)) {
       MarkedIndividual shallowMark = getIndividualByNameFromUserIndividualCache(u, individualID, enc.getGenus(), enc.getSpecificEpithet());
-      mark = myShepherd.getMarkedIndividual(shallowMark.getId());
-      myShepherd.getPM().refresh(mark);
+      if (shallowMark!=null) {
+        mark = myShepherd.getMarkedIndividual(shallowMark.getId());
+        myShepherd.getPM().refresh(mark);
+      }
     }
 
     // System.out.println("Checking userIndividualCache again...");
