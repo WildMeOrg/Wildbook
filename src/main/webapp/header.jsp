@@ -495,7 +495,6 @@ finally{
                             <% }
                             if(request.isUserInRole("admin")) { %>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
-                              <li><a href="<%=urlLoc %>/reports.jsp"><%=props.getProperty("adminReports")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                                 
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
@@ -513,8 +512,7 @@ finally{
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
                                 <% } %>
-                                <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <li><a href="<%=urlLoc %>/javadoc/index.html">Javadoc</a></li>
+                                <li><a target="_blank" href="http://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
                                 <% if(CommonConfiguration.isCatalogEditable(context)) { %>
                                   <li class="divider"></li>
                                   <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
@@ -543,13 +541,16 @@ finally{
                             </li>
 
                             
-                            
-                            <li class="divider"></li>
-                            <li class="dropdown-header"><%=props.getProperty("grid")%></li>
-                            
-                            <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
-                            <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                            
+                            <%
+                            if(CommonConfiguration.useSpotPatternRecognition(context)){
+                            %>
+                            	<li class="divider"></li>
+                            	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
+                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                            	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                            <%
+                            }
+                            %>
                           </ul>
                         </li>
                       </ul>
