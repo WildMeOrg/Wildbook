@@ -217,7 +217,13 @@ input.btn.btn-md#closeRelationshipForm:hover {
 }
 
 /*Hide Diagram Tab Content*/
-#communityTable, #cooccurrenceTable, #bioSamplesTable {
+/* #communityTable, #cooccurrenceTable, #bioSamplesTable {
+    display: none;
+} */
+
+
+/*switch to hide new coocurrence stuff by default on individuals.jsp, since UI broken*/
+#communityTable, #cooccurrenceDiagram, #bioSamplesTable {
     display: none;
 }
 

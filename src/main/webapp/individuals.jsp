@@ -1708,10 +1708,10 @@ if (sharky.getNames() != null) {
 
           <div role="navigation">
             <ul class="nav nav-tabs">
-              <li id="cooccurrenceDiagramTab" class="active">
+              <li id="cooccurrenceDiagramTab" >
                 <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a>
               </li>
-              <li id="cooccurrenceTableTab">
+              <li id="cooccurrenceTableTab" class="active">
                 <a href="#cooccurrenceTable"><%=props.getProperty("cooccurrence")%> Table</a>
               </li>
             </ul>
