@@ -1392,7 +1392,7 @@ function checkUploadComplete() {
     if (pendingUpload > 0) return;
     var macData = {
         MediaAssetCreate: [],
-        skipIA: true  //for testing only
+        skipIA: false
     };
     $('.has-attachments').each(function(i, el) {
         var mac = { assets: [] };
