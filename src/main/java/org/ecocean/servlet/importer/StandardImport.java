@@ -1153,15 +1153,15 @@ public class StandardImport extends HttpServlet {
     }
 
     //System.out.println("==============> getMediaAsset resolvedPath is: "+resolvedPath);
-    try {
-      if (resolvedPath==null) {
+    if (resolvedPath==null||"null".equals(resolvedPath)) {
+      try {
         missingPhotos.add(fullPath);
         foundPhotos.remove(fullPath);
         feedback.logParseError(assetColIndex(i), localPath, row);
-        return null;
+      } catch (NullPointerException npe) {  
+        npe.printStackTrace();
       }
-    } catch (NullPointerException npe) {  
-      npe.printStackTrace();
+      return null;
     }
 
     File f = new File(resolvedPath);
@@ -1874,7 +1874,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         if (mi.getGenus()==null||mi.getSpecificEpithet()==null||"".equals(mi.getSpecificEpithet())||"".equals(mi.getGenus())) {
           mi.setTaxonomyFromEncounters(true);
         }
-        if (mi.getNamesList().contains(name)) {
+        if (mi.getNamesList()!=null&&mi.getNamesList().contains(name)) {
           if (genus!=null&&specificEpithet!=null&&!"".equals(genus)&&!"".equals(specificEpithet)) {
 
             if(genus.equals(mi.getGenus())&&specificEpithet.equals(mi.getSpecificEpithet())) {
@@ -2164,7 +2164,10 @@ public static String getCellValueAsString(Row row, int num) {
   }
 
   private Integer assetColIndex(int i) {
-    return allColsMap.get("Encounter.mediaAsset"+i);
+    if  (allColsMap.containsKey("Encounter.mediaAsset"+i)) {
+      return allColsMap.get("Encounter.mediaAsset"+i);
+    }
+    return null;
   }
 
 }
