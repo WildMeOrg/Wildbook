@@ -268,30 +268,60 @@ public class OBISSeamap extends Share {
     }
 
 
+/* per obis, format should be (multiple lines per survey, each line a "segment" that connects to next
+note how "dateB" becomes *start* date of next line....
+
+surv_id  date_start  date_end  lon_start  lat_start  lon_end  lat_end  time_zone (e.g. "-8")
+AAAA     dateA       dateB     .....
+AAAA     dateB       dateC     .....
+AAAA     dateD       dateE     .....
+
+*/
     public String tabRow(SurveyTrack trk, Shepherd myShepherd) {
         if (trk == null) return null;
-        List<String> fields = new ArrayList<String>();
-        fields.add(forceString(trk.getID()));
-        fields.add(toISO8601(trk.getStartTime()));
-        fields.add(toISO8601(trk.getEndTime()));
-
-        List<String> points = new ArrayList<String>();
+        String rtn = "";
+        String timezone = null;
+        String prevEndDate = null;
+        Double prevEndLon = null;
+        Double prevEndLat = null;
         Path path = trk.getPath();
-        if (path != null) {
-            //wanna keep 5 min apart, per obis request
-            for (PointLocation pl : path.getPointLocationsSubsampledTimeGap(5L * 60000L)) {
-                String dt = pl.getDateTimeAsString();
-                Double lat = pl.getLatitude();
-                Double lon = pl.getLongitude();
-                if ((dt != null) && (lat != null) && (lon != null)) points.add("(" + dt + ";" + lat + ";" + lon + ")");
+        if (path == null) return null;
+        //wanna keep 5 min apart, per obis request
+        for (PointLocation pl : path.getPointLocationsSubsampledTimeGap(5L * 60000L)) {
+            String dt = pl.getDateTimeAsString();
+            if (timezone == null) timezone = obisTimezone(dt);
+            dt = obisShortDateTime(dt);
+            Double lat = pl.getLatitude();
+            Double lon = pl.getLongitude();
+            if ((dt == null) || (lat == null) || (lon == null)) continue;
+            if (prevEndDate != null) {
+                List<String> fields = new ArrayList<String>();
+                fields.add(forceString(trk.getID()));
+                fields.add(prevEndDate);
+                fields.add(dt);
+                fields.add(prevEndLon.toString());
+                fields.add(prevEndLat.toString());
+                fields.add(lon.toString());
+                fields.add(lat.toString());
+                fields.add(timezone);
+                rtn += String.join("\t", fields) + "\n";
             }
+            prevEndDate = dt;
+            prevEndLon = lon;
+            prevEndLat = lat;
         }
-        if (points.size() < 1) return null;  //boring
-        fields.add(String.join(", ", points));
-
-        return String.join("\t", fields) + "\n";
+        if (rtn.equals("")) return null;
+        return rtn;
     }
 
+    public String obisShortDateTime(String iso) {
+        if ((iso == null) || (iso.length() < 19)) return iso;
+        return iso.substring(0,19);
+    }
+    public String obisTimezone(String iso) {
+        if ((iso == null) || (iso.length() < 25)) return null;
+        return iso.substring(23);
+    }
 
     private static String forceString(String txt) {
         if (!Util.stringExists(txt)) return "";  //this checks for "unknown", "none", etc...
