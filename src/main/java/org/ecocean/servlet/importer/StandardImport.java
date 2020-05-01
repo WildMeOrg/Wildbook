@@ -1109,15 +1109,15 @@ public class StandardImport extends HttpServlet {
     }
 
     //System.out.println("==============> getMediaAsset resolvedPath is: "+resolvedPath);
-    try {
-      if (resolvedPath==null) {
+    if (resolvedPath==null||"null".equals(resolvedPath)) {
+      try {
         missingPhotos.add(fullPath);
         foundPhotos.remove(fullPath);
         feedback.logParseError(assetColIndex(i), localPath, row);
-        return null;
+      } catch (NullPointerException npe) {  
+        npe.printStackTrace();
       }
-    } catch (NullPointerException npe) {
-      npe.printStackTrace();
+      return null;
     }
 
     File f = new File(resolvedPath);
@@ -1256,8 +1256,11 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     String candidatePath = uppercaseJpg(fullPath);
     if (Util.fileExists(candidatePath)) return candidatePath;
 
-    candidatePath = noExtension(candidatePath);
-    if (Util.fileExists(candidatePath)) return candidatePath;
+    String candidatePathMissing = noExtension(candidatePath);
+    if (Util.fileExists(candidatePathMissing)) return candidatePathMissing;
+
+    candidatePathMissing = noExtensionUpper(candidatePath);
+    if (Util.fileExists(candidatePathMissing)) return candidatePathMissing;
 
     String candidatePath2 = uppercaseBeforeJpg(candidatePath);
     if (Util.fileExists(candidatePath2)) return candidatePath2;
@@ -1279,8 +1282,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
     //not sure how cool this is.  but probably same can be said about all this!
     private String noExtension(String filename) {
-        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;
+        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;  //has ext
         return filename + ".jpg";  // :(
+    }
+    private String noExtensionUpper(String filename) {
+        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;  //has ext
+        return filename + ".JPG";  // :(
     }
 
   private String uppercaseBeforeJpg(String filename) {
@@ -1830,7 +1837,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         if (mi.getGenus()==null||mi.getSpecificEpithet()==null||"".equals(mi.getSpecificEpithet())||"".equals(mi.getGenus())) {
           mi.setTaxonomyFromEncounters(true);
         }
-        if (mi.getNamesList().contains(name)) {
+        if (mi.getNamesList()!=null&&mi.getNamesList().contains(name)) {
           if (genus!=null&&specificEpithet!=null&&!"".equals(genus)&&!"".equals(specificEpithet)) {
 
             if(genus.equals(mi.getGenus())&&specificEpithet.equals(mi.getSpecificEpithet())) {
@@ -2120,7 +2127,10 @@ public static String getCellValueAsString(Row row, int num) {
   }
 
   private Integer assetColIndex(int i) {
-    return allColsMap.get("Encounter.mediaAsset"+i);
+    if  (allColsMap.containsKey("Encounter.mediaAsset"+i)) {
+      return allColsMap.get("Encounter.mediaAsset"+i);
+    }
+    return null;
   }
 
 }
