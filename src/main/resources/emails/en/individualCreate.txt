@@ -2,7 +2,7 @@ SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello!
 
 Just a quick e-mail to let you know that the encounter that you submitted
-has been added as a new, previously unidentified cetacean!
+has been added as a new, previously unidentified carnivore!
 
 You discovered a new individual for science!
 
