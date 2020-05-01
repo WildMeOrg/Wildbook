@@ -114,7 +114,8 @@
 	</p>
 	<p>
 		Since lions don’t have spotted coat patterns like the other species in this Wildbook, researchers often rely on scars and other unusual features like manes, tails and even nose colour & spots to help identify individual images.
-		<mark>So with lions, all photos are good – muzzle, full body and group photos all add value to their research community.</mark>
+		<!-- <mark>So with lions, all photos are good – muzzle, full body and group photos all add value to their research community.</mark> -->
+		So with lions, all photos are good – muzzle, full body and group photos all add value to their research community.
 	</p>
 
 	<h4 class="header-primary">Spotted Hyaenas</h4>
