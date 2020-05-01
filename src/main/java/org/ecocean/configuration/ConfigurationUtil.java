@@ -60,6 +60,18 @@ public class ConfigurationUtil {
         if (id == null) return null;
         return new ArrayList<String>(Arrays.asList(id.split("\\.")));
     }
+    public static List<String> parentIdPath(String id) {
+        if (id == null) return null;
+        List<String> p = idPath(id);
+        if (Util.collectionSize(p) < 2) return null;
+        p.remove(p.size() - 1);
+        return p;
+    }
+    public static String parentId(String id) {
+        List<String> p = parentIdPath(id);
+        if (p == null) return null;
+        return String.join(ID_DELIM, p);
+    }
 
     //not really(?) for public consumption
     private static Configuration _loadConfiguration(Shepherd myShepherd, String id) {
@@ -266,7 +278,9 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         return "webapps/wildbook/WEB-INF/classes/bundles/config-json";
     }
     public static String dirOverride() {
-        return "webapps/" + ContextConfiguration.getDataDirForContext("context0") + "/WEB-INF/classes/bundles/config-json";
+        // UGH FIXME too... we cant get this value from a config!  #recursion
+        //return "webapps/" + ContextConfiguration.getDataDirForContext("context0") + "/WEB-INF/classes/bundles/config-json";
+        return "webapps/wildbook_data_dir/WEB-INF/classes/bundles/config-json";
     }
     public static List<File> allFiles(String dir) {
         List<File> all = new ArrayList<File>();

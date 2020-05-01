@@ -130,7 +130,7 @@ if (conf == null) {
 }
 
 out.println("<ul>");
-for (String k : conf.getChildKeys()) {
+if (!id.equals("")) for (String k : conf.getChildKeys()) {
     out.println("<li><a href=\"configTest.jsp?id=" + id + "." + k + "\">" + id + "." + k + "</a></li>");
 }
 out.println("</ul><hr />");

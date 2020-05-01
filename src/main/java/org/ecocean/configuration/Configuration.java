@@ -36,6 +36,9 @@ public class Configuration implements java.io.Serializable {
     public String getId() {
         return id;
     }
+    public String getParentId() {
+        return ConfigurationUtil.parentId(id);
+    }
 
     public JSONObject getContent() {
         return Util.stringToJSONObject(content);
@@ -160,10 +163,18 @@ return null; ///FIXME
     public Set<String> getChildKeys() {
         Set<String> ck = new HashSet<String>();
         JSONObject node = this.getNode();
-        if (node == null) return ck;
-        for (Object k : node.keySet()) {
-            String ks = (String)k;
-            if (!ks.startsWith("_")) ck.add(ks);
+        if ("".equals(this.id)) {  //special case cuz we just wanna hack the root ids as kids!
+            for (String k : ConfigurationUtil.getMeta().keySet()) {
+                ck.add(k);
+            }
+
+        } else if (node == null) {
+            return ck;
+        } else {
+            for (Object k : node.keySet()) {
+                String ks = (String)k;
+                if (!ks.startsWith("_")) ck.add(ks);
+            }
         }
         return ck;
     }
@@ -208,6 +219,7 @@ return null; ///FIXME
         JSONObject m = this.getMeta();
         JSONObject j = new JSONObject();
         j.put("configurationId", id);
+        j.put("parentConfigurationId", this.getParentId());
         j.put("name", this.getKey());
         j.put("translationId", this.getLang());
         Set<String> kids = this.getChildKeys();

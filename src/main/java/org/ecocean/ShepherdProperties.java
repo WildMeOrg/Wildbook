@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
+import org.ecocean.configuration.*;
+import org.json.JSONObject;
 
 
 public class ShepherdProperties {
@@ -114,7 +116,41 @@ public class ShepherdProperties {
     return (getOverwriteStringForUser(request)!=null);
   }
 
-  public static Properties getProperties(String fileName, String langCode, String context, String overridePrefix){
+    public static Properties getProperties(String fileName, String langCode, String context, String overridePrefix){
+        System.out.println("ShepherdProperties.getProperties() is DEPRECATED; please consider upgrading code; called with: " + fileName + ", " + langCode + ", " + context + ", " + overridePrefix);
+        if (Util.stringExists(langCode)) return getPropertiesLEGACY(fileName, langCode, context, overridePrefix);
+
+        if ((fileName == null) || !fileName.endsWith(".properties")) throw new RuntimeException("ShepherdProperties.getProperties() invalid fileName=" + fileName);
+        String id = fileName.substring(0, fileName.length() - 11);
+        ShepherdRO myShepherd = new ShepherdRO(context);
+        myShepherd.setAction("ShepherdProperties.getProperties");
+        myShepherd.beginDBTransaction();
+        Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, id);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        if (conf == null) {  //throw new RuntimeException() <-- probably better
+            System.out.println("ERROR: ShepherdProperties.getProperties() has no Configuration for id=" + id + " (fileName=" + fileName + ")");
+            return null;
+        }
+        return __configurationContentToProperties(conf.getContent());
+        //return getPropertiesLEGACY(fileName, langCode, context, overridePrefix);
+    }
+
+    private static Properties __configurationContentToProperties(JSONObject content) {
+        if (content == null) return null;
+        Properties prop = new Properties();
+        for (Object k : content.keySet()) {
+            String key = (String)k;
+            JSONObject val = content.optJSONObject(key);
+            if (val != null) prop.setProperty(key, val.optString("__value", null));
+        }
+System.out.println("INFO: __configurationContentToProperties() got Properties with size " + prop.stringPropertyNames().size());
+        return prop;
+    }
+
+/*  LEGACY CRUFT for prosperity  */
+  public static Properties getPropertiesLEGACY(String fileName, String langCode, String context, String overridePrefix){
+        System.out.println("ShepherdProperties.getPropertiesLEGACY() is DEPRECATED; please consider upgrading code; called with: " + fileName + ", " + langCode + ", " + context + ", " + overridePrefix);
     // initialize props as empty (no override provided) or the default values (if override provided)
     // initializing
     boolean verbose = (Util.stringExists(overridePrefix));
@@ -156,6 +192,7 @@ public class ShepherdProperties {
     return (Properties)loadProperties(customUserPathString, props);
   }
 
+
   public static Properties loadProperties(String pathStr, Properties defaults) {
     //System.out.println("loadProperties called for path "+pathStr);
     File propertiesFile = new File(pathStr);
@@ -176,7 +213,9 @@ public class ShepherdProperties {
   public static Properties loadProperties(String pathStr) {
     return loadProperties(pathStr, null);
   }
+
   public static Properties getContextsProperties(){
+System.out.println("DEPRECATED getContextsProperties() called");
     LinkedProperties props=new LinkedProperties();
       try {
         InputStream inputStream = ShepherdProperties.class.getResourceAsStream("/bundles/contexts.properties");
@@ -187,6 +226,7 @@ public class ShepherdProperties {
       }
     return (Properties)props;
   }
+
 
   public static List<String> getIndexedPropertyValues(Properties props, String baseKey) {
     List<String> list = new ArrayList<String>();

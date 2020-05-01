@@ -99,47 +99,6 @@ public class CommonConfiguration {
 
     return props;
   }
-  
-  
-
-  private static Properties loadOverrideProps(String shepherdDataDir) {
-    File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
-    Properties props=new Properties();
-    //sometimes this ends up being the "bin" directory of the J2EE container
-    //we need to fix that
-    if((configDir.getAbsolutePath().contains("/bin/"))||(configDir.getAbsolutePath().contains("\\bin\\"))){
-      String fixedPath=configDir.getAbsolutePath().replaceAll("/bin", "").replaceAll("\\\\bin", "");
-      configDir=new File(fixedPath);
-      //System.out.println("Fixing the bin issue in CommonConfiguration.");
-      //System.out.println("The fix absolute path is: "+configDir.getAbsolutePath());
-    }
-    
-    if(!configDir.exists()){configDir.mkdirs();}
-    File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
-    if (configFile.exists()) {
-      //System.out.println("Overriding default properties with " + configFile.getAbsolutePath());
-      FileInputStream fileInputStream = null;
-      try {
-        fileInputStream = new FileInputStream(configFile);
-        props.load(fileInputStream);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      finally {
-        if (fileInputStream != null) {
-          try {
-            fileInputStream.close();
-          } catch (Exception e2) {
-            e2.printStackTrace();
-          }
-        }
-      }
-    }
-    else {
-      //System.out.println("No properties override file found at " + configFile.getAbsolutePath());
-    }
-    return props;
-  }
 
   //start getter methods
   public static String getURLLocation(HttpServletRequest request) {

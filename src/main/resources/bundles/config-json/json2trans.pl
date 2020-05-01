@@ -6,9 +6,12 @@
 use JSON;
 use Data::Dumper;
 my $KEY_DELIM = '_';
-my @FIELDS = qw( label description alt );
+my @FIELDS = qw( label description menulabel menudescription alt help );
 
 print "{\n";
+
+my $prefix = &make_id('configuration', "");
+&expand($prefix);
 
 opendir(D, '.');
 my @files = readdir(D);
@@ -47,7 +50,7 @@ sub traverse {
     my ($j, $prefix) = @_;
     return if (ref($j) ne ref({}));
     foreach my $key (keys %$j) {
-        next if ($key eq 'formSchema');
+        next if ($key =~ /^_/);
         my $id = &make_id($prefix, $key);
         &expand($id);
         &traverse($j->{$key}, $id);
