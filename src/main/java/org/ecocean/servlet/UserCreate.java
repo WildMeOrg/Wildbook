@@ -318,13 +318,14 @@ public class UserCreate extends HttpServlet {
           out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
           
-          
+          myShepherd.commitDBTransaction();
       }
       catch(Exception e){
+        myShepherd.rollbackDBTransaction();
         e.printStackTrace();
       }  
       finally{
-        myShepherd.commitDBTransaction();    
+            
         myShepherd.closeDBTransaction();
         myShepherd=null;
       }
