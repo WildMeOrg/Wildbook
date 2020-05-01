@@ -510,6 +510,10 @@
     <servlet-name>EncounterForm</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterForm</servlet-class>
   </servlet>
+    <servlet>
+    <servlet-name>SimpleEncounterForm</servlet-name>
+    <servlet-class>org.ecocean.servlet.SimpleEncounterForm</servlet-class>
+  </servlet>
 
     <servlet>
     <servlet-name>Collaborate</servlet-name>
@@ -1653,6 +1657,11 @@
   <servlet-mapping>
     <servlet-name>EncounterForm</servlet-name>
     <url-pattern>/EncounterForm</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>SimpleEncounterForm</servlet-name>
+    <url-pattern>/SimpleEncounterForm</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
