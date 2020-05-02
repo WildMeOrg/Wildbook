@@ -76,7 +76,11 @@ console.log('xxxxxyxy %o', j);
         el.append(wbConf.plainDiv(j, 'help'));
         el.append(wbConf.config(j));  //the guts to set stuff!!
 console.log('xxxx %s %s %o', j.configurationId, j.translationId, j.childrenKeys);
-        if (!j.childrenKeys) return;  //no kids, we are done
+        if (!j.childrenKeys) {  //no kids, we are done
+            el.addClass('c-loaded');
+            wbConf.checkSort(el.parent());
+            return;
+        }
         //now these become divs for either panels or links depending...
         var kids = $('<div class="c-children" />');
         for (var i = 0 ; i < j.childrenKeys.length ; i++) {
@@ -108,7 +112,7 @@ checkSort: function(par) {
 //console.log("ORD %d >> %o", i, el.getAttribute('displayorder'));
 //console.log(el);
     });
-    //console.log('PENDING = %d', pending);
+    console.log('PENDING = %d', pending);
     if (pending < 1) wbConf.sortKids(par);
 },
 
