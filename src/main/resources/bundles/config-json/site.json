@@ -3,14 +3,14 @@
 		"__meta" : {
 			"type" : "string",
 			"required" : true,
-			"formSchema": { "displayOrder": 0 }
+			"formSchema": { "displayOrder": 0, "panel": true }
 		}
 	},
 	"url" : {
 		"__meta" : {
 			"type" : "url",
 			"required" : true,
-			"formSchema": { "displayOrder": 0.1 }
+			"formSchema": { "displayOrder": 0.1, "panel": true }
 		}
 	},
 	"species" : {
