@@ -3,17 +3,30 @@ var wbConf = {
     lang: null,
     cache: {},
 
-init: function() {
+loadLang: function(code, callback) {
+    if (!code) code = 'en';
     $.ajax({
-        url: '../wildbook_data_dir/lang.json?' + new Date().getTime(),
+        url: 'json/lang/configuration.' + code + '.json?' + new Date().getTime(),
         type: 'GET',
         dataType: 'json',
         success: function(d) {
             wbConf.debug('log lang.json of length ' + Object.keys(d).length);
             wbConf.lang = d;
-            wbConf.build('');
+            if (typeof callback == 'function') callback();
+        },
+        error: function(x) {
+            console.warn('error loading lang %s %o', code, x);
+            if (code == 'en') {
+                alert('could not load fallback language=en');
+            } else {
+                wbConf.loadLang('en', callback);
+            }
         }
     });
+},
+
+init: function() {
+    wbConf.loadLang('en', function() { wbConf.build(''); });
 },
 
 linkClicked: function(id) {

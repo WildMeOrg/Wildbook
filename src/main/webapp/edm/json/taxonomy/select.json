@@ -1,0 +1,14 @@
+{
+	"single": [
+		159857,
+		180488,
+		180530
+	],
+
+"_comment": "i18n for bundles will be taxonomy_select_bundle_CODE",
+
+	"bundles": {
+		"cetaceans": [ 180488, 180530, "bundle_dolphins" ],
+		"dolphins": [ ]
+	}
+}

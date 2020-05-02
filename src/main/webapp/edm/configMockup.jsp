@@ -30,7 +30,7 @@ if (id != null) {
 
 %><html><head>
 <title>Configuration Mockup</title>
-<script src="tools/jquery/js/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="javascript/configuration.js"></script>
 <style>
 body {
