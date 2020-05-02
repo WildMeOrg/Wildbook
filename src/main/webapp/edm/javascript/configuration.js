@@ -162,6 +162,7 @@ debug: function(msg) {
 
 config: function(j) {
     if (!j.settable) return null;
+    if (typeof wbConf.makeUI[j.name] == 'function') return wbConf.makeUI[j.name](j);
     if (typeof wbConf.makeUI[j.fieldType] != 'function') {
         return '<div class="c-settable"><b>no makeUI function</b><pre>' + JSON.stringify(j, null, 4) + '</pre></div>';
     }
@@ -176,6 +177,16 @@ makeUI: {
     },
     string: function(j) {
         return '<div class="c-settable"><input name="' + j.name + '" /></div>';
+    },
+
+    configuration_site_species: function(j) {
+        var h = '<div id="configuration_site_species_itis">';
+        h += '<div id="configuration_site_species_itis_results">';
+        h += '</div>';
+        h += '<input id="configuration_site_species_itis_term" />';
+        h += '<input type="button" value="search" onClick="wbConf.itisSearch();" />';
+        h += '</div>';
+        return h;
     }
 },
 
@@ -183,6 +194,79 @@ onUpdate: {
     configuration_site_look_textColor: function(d) {
         //change site colors?
     }
+},
+
+itisSearch: function() {
+    var term = $('#configuration_site_species_itis_term').val();
+    if (!term) return;
+    wbConf.askITIS(term, function(res) {
+        var el = $('#configuration_site_species_itis_results');
+        if (!res || (res.length < 1)) {
+            el.append('<i>no results</i>');
+        } else {
+            for (var i = 0 ; i < res.length ; i++) {
+                var h = '<div><i>' + res[i].sciName + '</i>';
+                h += ' [<b>' + res[i].tsn + '</b>]';
+                var cn = [];
+                if (res[i].commonNameList && res[i].commonNameList.commonNames) for (var j = 0 ; j < res[i].commonNameList.commonNames.length ; j++) {
+                    cn.push(res[i].commonNameList.commonNames[j].commonName);
+                }
+                if (cn.length) h += ' (' + cn.join(', ') + ')';
+                h += '</div>';
+                el.append(h);
+            }
+        }
+    });
+},
+
+
+/* data looks like below.  we return [] at .anyMatchList ... useful(?) field denoted with >>
+
+{
+    anyMatchList: [
+        {
+            author: "Gray, 1846",
+            class: "gov.usgs.itis.itis_service.data.SvcAnyMatch",
+            commonNameList: {
+                class: "gov.usgs.itis.itis_service.data.SvcCommonNameList",
+                commonNames: [
+                    {
+                        class: "gov.usgs.itis.itis_service.data.SvcCommonName",
+>>                      commonName: "humpback whales",
+>> ?                    language: "English",
+                        tsn: "180529"
+                    }
+                ],
+                tsn: "180530"
+            },
+            matchType: "COMMON",
+>>          sciName: "Megaptera novaeangliae",
+>>          tsn: "180530"
+},
+
+*/
+askITIS: function(term, callback) {
+    // cuz this is jsonp we need a way to get to our callback so we generate an on-the-fly function for jsonp to callback to (!)
+    var fname = 'askITISjsonp' + Math.random().toString().substr(2);
+    wbConf[fname] = function(d) {
+        console.log('askITIS callback => %o', d);
+        if (!d.anyMatchList) {
+            console.info('askITIS returned null anyMatchList');
+            d.anyMatchList = [];
+        }
+        callback(d.anyMatchList);
+    };
+    $.ajax({
+        url: 'https://www.itis.gov/ITISWebService/jsonservice/searchForAnyMatch?srchKey=' + term,
+        type: 'GET',
+        cache: true,
+        dataType: 'jsonp',
+        jsonp: 'jsonp',
+        jsonpCallback: 'wbConf.' + fname,
+        crossDomain: true,
+        error: function(x) {  //might be offline btw
+        }
+    });
 }
 
 
