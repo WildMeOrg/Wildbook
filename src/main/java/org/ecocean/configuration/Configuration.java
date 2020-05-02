@@ -252,6 +252,7 @@ return null; ///FIXME
             j.put("multiple", true);
             j.put("multipleMax", max);
         }
+        if (this.isMultiple()) j.put("multiple", true);
         if (m.optJSONArray("values") != null) j.put("values", m.getJSONArray("values"));
         JSONObject vobj = m.optJSONObject("values");
         if (vobj != null) {  //got something complex...
