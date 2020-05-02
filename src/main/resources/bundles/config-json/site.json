@@ -15,7 +15,7 @@
 	},
 	"species" : {
 		"__meta" : {
-			"type" : "taxonomySelect",
+			"type" : "taxonomy",
 			"multiple": true,
 			"required" : true,
 			"formSchema": { "displayOrder": 0.5 }
