@@ -68,7 +68,7 @@ body {
     background-color: #EEE;
     width: 50%;
     font-size: 0.8em;
-    height: 5em;
+    height: 25em;
     overflow-y: scroll;
 }
 
