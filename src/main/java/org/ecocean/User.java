@@ -516,6 +516,8 @@ public class User implements Serializable {
             jobj.remove("salt");
             jobj.remove("password");
             jobj.remove("lastLogin");
+            jobj.remove("emailAddress");
+            jobj.remove("hashedEmailAddress");
             jobj.remove("userID");
             jobj.remove("dateInMilliseconds");
             jobj.remove("receiveEmails");
