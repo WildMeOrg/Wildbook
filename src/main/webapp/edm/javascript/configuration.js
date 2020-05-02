@@ -162,7 +162,27 @@ debug: function(msg) {
 
 config: function(j) {
     if (!j.settable) return null;
-    return '<div class="c-settable"><pre>' + JSON.stringify(j, null, 4) + '</pre></div>';
+    if (typeof wbConf.makeUI[j.fieldType] != 'function') {
+        return '<div class="c-settable"><b>no makeUI function</b><pre>' + JSON.stringify(j, null, 4) + '</pre></div>';
+    }
+    return wbConf.makeUI[j.fieldType](j);
+},
+
+
+makeUI: {
+
+    color: function(j) {
+        return '<div class="c-settable"><input type="color" name="' + j.name + '" /></div>';
+    },
+    string: function(j) {
+        return '<div class="c-settable"><input name="' + j.name + '" /></div>';
+    }
+},
+
+onUpdate: {
+    configuration_site_look_textColor: function(d) {
+        //change site colors?
+    }
 }
 
 
