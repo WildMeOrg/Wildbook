@@ -1,10 +1,15 @@
 package org.ecocean.social;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.datanucleus.api.rest.orgjson.JSONException;
+import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Util;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.json.JSONArray;
 
 public class Membership implements java.io.Serializable {
 
@@ -109,5 +114,28 @@ public class Membership implements java.io.Serializable {
     public String getId() {
         return id;
     }
+    
+    // Returns a somewhat rest-like JSON object containing the metadata
+    public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+      JSONObject jobj = new JSONObject();
+      jobj.put("id", this.getId());
+      jobj.put("role", this.getRole());
+      jobj.put("startDate", this.getStartDate());
+      jobj.put("endDate", this.getEndDate());
+      jobj.put("mi", this.getMarkedIndividual().uiJson(request,false));
+      return sanitizeJson(request,decorateJson(request, jobj));
+    }
+    
+    public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+      if (mi!=null && mi.canUserAccess(request)) return jobj;
+      jobj.remove("mi");
+      jobj.put("_sanitized", true);
+      return jobj;
+    }
+
+    public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+      return jobj;
+    }
+
 
 }
