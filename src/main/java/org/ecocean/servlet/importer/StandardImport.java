@@ -368,35 +368,40 @@ public class StandardImport extends HttpServlet {
       
       Shepherd myShepherd = new Shepherd(context);
       myShepherd.setAction("StandardImport.java_iTaskCommit");
-      myShepherd.beginDBTransaction();
-      
-      User creator = AccessControl.getUser(request, myShepherd);
-      ImportTask itask = new ImportTask(creator);
-      itask.setPassedParameters(request);
-      
-      myShepherd.getPM().makePersistent(itask);
-      myShepherd.updateDBTransaction();
-      
-      System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
-      
-      
-      List<Encounter> actualEncsCreated = new ArrayList<Encounter>();
-      for(String encid:encsCreated) {
-        if(myShepherd.getEncounter(encid)!=null) {
-          itask.addEncounter(myShepherd.getEncounter(encid));
-          myShepherd.updateDBTransaction();
+      try {
+        myShepherd.beginDBTransaction();
+        
+        User creator = AccessControl.getUser(request, myShepherd);
+        ImportTask itask = new ImportTask(creator);
+        itask.setPassedParameters(request);
+        
+        myShepherd.getPM().makePersistent(itask);
+        myShepherd.updateDBTransaction();
+        
+        System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
+        
+        List<Encounter> actualEncsCreated = new ArrayList<Encounter>();
+        for(String encid:encsCreated) {
+          if(myShepherd.getEncounter(encid)!=null) {
+            itask.addEncounter(myShepherd.getEncounter(encid));
+            myShepherd.updateDBTransaction();
+          }
         }
+
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+          
+        out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+      
+      } catch (Exception e) {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        e.printStackTrace();
       }
 
-      myShepherd.commitDBTransaction();
-      myShepherd.closeDBTransaction();
-        
-
-      out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
-
-
+    } else { 
+      feedback.printEndTable();
     }
-    else{feedback.printEndTable();}
 
     out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
     out.println("<h2>Import Overview: </h2>");
