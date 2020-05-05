@@ -553,8 +553,6 @@
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
   </servlet>
 
-
-
 <!--
 <servlet>
 <servlet-name>EncounterSetPatterningPassport</servlet-name>

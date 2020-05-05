@@ -471,8 +471,19 @@ Util.mark("identify process pre-post end");
         }
 
 
-
-	        String nms_aware = IA.getProperty(context, "nms_aware");
+        /*
+	      String nms_aware = IA.getProperty(context, "nms_aware");
+        if (nms_aware != null) {
+            System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
+            map.put("nms_aware", nms_aware);
+        } else {
+            System.out.println("[INFO] sendDetect() nms_aware is null; DEFAULT will be used");
+        }
+        */
+        
+        //nms_aware
+        String nmsAwareKey = "nms_aware"+taxonomyPropString;
+        String nms_aware = IA.getProperty(context, nmsAwareKey);
         if (nms_aware != null) {
             System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
             map.put("nms_aware", nms_aware);
@@ -487,7 +498,15 @@ Util.mark("identify process pre-post end");
         } else {
             System.out.println("[INFO] sendDetect() nms is null; DEFAULT will be used");
         }
-        
+
+        String ulsKey = "use_labeler_species"+taxonomyPropString;
+        String uls = IA.getProperty(context, ulsKey);
+        if (uls != null) {
+            System.out.println("[INFO] sendDetect() use_labeler_species set to " + uls);
+            map.put("use_labeler_species", uls);
+        } else {
+            System.out.println("[INFO] sendDetect() use_labeler_species is null; DEFAULT of False will be used");
+        }        
 
         String u = getDetectUrlByModelTag(context, modelTag);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
@@ -1741,6 +1760,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
+        ann.setIAExtractedKeywords(myShepherd);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
         String vp = iaResult.optString("viewpoint", null);  //not always supported by IA
         if ("None".equals(vp)) vp = null;  //the ol' "None" means null joke!
@@ -1964,12 +1984,41 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                         System.out.println("WARN: could not find MediaAsset for " + iuuid + " in detection results for task " + taskID);
                         continue;
                     }
-                    boolean needsReview = false;
+                    
+                    
                     JSONArray newAnns = new JSONArray();
+                    if(janns.length()==0) {
+                      //OK, for some species and conditions we may just want to trust the user 
+                      //that there is an animal in the image and set trivial annot to matchAgainst=true
+                      
+                      if(asset.getAnnotations()!=null && asset.getAnnotations().size()==1 && asset.getAnnotations().get(0).isTrivial()) {
+                        
+                        //so this media asset currently only has one trivial annot
+                        Annotation annot=asset.getAnnotations().get(0);
+                        Encounter enc=annot.findEncounter(myShepherd);
+                        if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null && IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd))!=null ) {
+                          if(IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd)).equals("true")) {
+                            
+                            annot.setMatchAgainst(true);
+                            myShepherd.updateDBTransaction();
+                            
+                            allAnns.add(annot);  //this is cumulative over *all MAs*
+
+                          }
+                        }
+                        
+                      }
+                    }
+                    
+                    
+                    boolean needsReview = false;
+                    
                     boolean skipEncounters = asset.hasLabel("_frame");
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
-                        if (jann == null) continue;
+                        if (jann == null) {
+                          continue;
+                        }
                         if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue(context, task)) {
                             needsReview = true;
                             continue;
@@ -1999,6 +2048,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 if (amap.length() > 0) rtn.put("annotations", amap);  //needed to kick off ident jobs with return value
+  
 
                 JSONObject jlog = new JSONObject();
 
@@ -2362,6 +2412,7 @@ System.out.println("identification most recent action found is " + action);
             // iaClass... not your scientific name species
             String iaClass = rtn.getJSONArray("response").optString(0, null);
             Annotation ann = new Annotation(convertSpeciesToString(iaClass), ft, iaClass);
+            ann.setIAExtractedKeywords(myShepherd);
             //note: ann.id is a random UUID at this point; should we set to acmId??
             //   ann.setId(acmId);
             ann.setAcmId(acmId);

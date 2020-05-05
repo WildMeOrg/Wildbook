@@ -52,9 +52,9 @@ public class EncounterSearchExportMetadataExcel extends HttpServlet {
         int numKw = ma.numKeywords();
         if (numKw > maxNumKeywords) maxNumKeywords = numKw;
       }
-      String id = enc.getIndividualID();
-      if (id!=null && !individualIDsChecked.contains(id)) {
-        individualIDsChecked.add(id);
+      MarkedIndividual id = enc.getIndividual();
+      if (id!=null && !individualIDsChecked.contains(id.getIndividualID())) {
+        individualIDsChecked.add(id.getIndividualID());
         int numNames = enc.getIndividual().numNames();
         //System.out.println("Individual "+enc.getIndividual()+" isnull = "+(enc.getIndividual()==null)+" and has # names: "+numNames);
         if (numNames>maxNumNames) maxNumNames = numNames;

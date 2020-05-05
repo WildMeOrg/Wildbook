@@ -299,8 +299,8 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
               Label lNumberx28 = new Label(28, count, enc.getSizeAsDouble().toString());
               sheet.addCell(lNumberx28);
             }
-            if (enc.getIndividualID()!=null) {
-              Label lNumberx29 = new Label(29, count, enc.getIndividualID());
+            if (enc.getIndividual()!=null) {
+              Label lNumberx29 = new Label(29, count, enc.getIndividual().getDisplayName());
               sheet.addCell(lNumberx29);
             }
             if (enc.getLocationCode() != null) {

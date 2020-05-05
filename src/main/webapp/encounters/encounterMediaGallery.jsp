@@ -180,6 +180,8 @@ function forceLink(el) {
 
 		  		
 		  		if (ma != null) {
+		  			System.out.println("    EMG: ma is not null");
+                    if (ma.getMetadata() != null) ma.getMetadata().getDataAsString(); //temp hack to make sure metadata available, remove at yer peril
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
