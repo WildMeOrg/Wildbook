@@ -863,7 +863,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
   <hr/>
 
-<%
+<!-- <%
 if(CommonConfiguration.showProperty("showTaxonomy",context)){
 %>
     <div class="form-group">
@@ -900,7 +900,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
     </div> 
 <%
 }
-%>
+%> -->
 
   <fieldset>
     <div class="form-group">
