@@ -37,7 +37,7 @@ $(document).ready(function() {
 </p>
 <p>
 <b>Latitude:</b> <input name="lat" />
-<b>Latitude:</b> <input name="lon" />
+<b>Longitude:</b> <input name="lon" />
 </p>
 
 <p>
