@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.*;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
@@ -2502,6 +2504,28 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             if (NAMES_CACHE.get(nid).matches(regex.toLowerCase())) nameIds.add(Integer.toString(nid));
         }
         return nameIds;
+    }
+
+    //returns next integer-based value that follows pattern PREnnn (where 'nnn' is one-or-more digits!)
+    // cache-key is lowercase, but we return respecting case of original prefix
+    // in a perfect world, this would use a sequence in db to prevent race-conditions.   :/
+    public static String nextNameByPrefix(String prefix) {
+        return nextNameByPrefix(prefix, 0);  //0 means guess at length of zeroes
+    }
+    public static String nextNameByPrefix(String prefix, int zeroPadding) {
+        if (NAMES_CACHE == null) return null;  //snh
+        if (prefix == null) return null;
+        Pattern pat = Pattern.compile("(^|.*;)" + prefix.toLowerCase() + "(\\d+)(;.*|$)");
+        int val = 0;  //will have +1 at end; see comment elsewhere about 0 vs 1 and heathens
+        for (String c : NAMES_CACHE.values()) {
+            Matcher mat = pat.matcher(c);
+            if (!mat.find()) continue;
+            if (zeroPadding < 1) zeroPadding = mat.group(2).length();
+            int num = Integer.parseInt(mat.group(2));  //snh!? blame regex if exception thrown here.  :)
+            if (num > val) val = num;
+        }
+        if (zeroPadding < 1) zeroPadding = 4;  //if we had no guess (e.g. new?) lets be optimistic!
+        return String.format("%s%0" + zeroPadding + "d", prefix, val + 1);
     }
 
     //only does once (when needed)
