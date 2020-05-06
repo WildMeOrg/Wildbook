@@ -1814,7 +1814,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     User u = null;
     if (submitterID!=null) {
       submitterID = submitterID.trim();
-      u = myShepherd.getUserByUsername(submitterID);
+      u = myShepherd.getUser(submitterID);
     }
     if (u==null){
       u = AccessControl.getUser(request, myShepherd); // fall back to logged in user

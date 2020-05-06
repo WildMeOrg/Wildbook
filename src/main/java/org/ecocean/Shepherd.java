@@ -926,21 +926,6 @@ public class Shepherd {
     return users;
   }
 
-    ///note: this appears to be a *duplicate* of historical getUser(username)  FIXME?
-  public User getUserByUsername(String username) {
-    User u = null;
-    String filter="SELECT FROM org.ecocean.User WHERE username == \""+username.trim()+"\"";
-    Query query=getPM().newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    Iterator it = c.iterator();
-    if(it.hasNext()){
-      u = (User) it.next();
-    }
-    query.closeAll();
-    return u;
-
-  }
-
   // filters out social media- and other-app-based users (twitter, ConserveIO, etc)
   public List<User> getNativeUsers() {
     return getNativeUsers("username ascending NULLS LAST");
