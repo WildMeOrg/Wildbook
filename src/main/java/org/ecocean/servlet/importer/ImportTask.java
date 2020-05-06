@@ -155,6 +155,12 @@ public class ImportTask implements java.io.Serializable {
                 .append("numEncs", Util.collectionSize(encounters))
                 .toString();
     }
+    
+    public void removeEncounter(Encounter enc) {
+      if (enc == null) return;
+      if (encounters == null) return;
+      if (encounters.contains(enc)) encounters.remove(enc);
+    }
 
 
 }
