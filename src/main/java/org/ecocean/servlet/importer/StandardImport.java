@@ -575,6 +575,9 @@ public class StandardImport extends HttpServlet {
     Double effortCode = getDouble(row, "Occurrence.effortCode");
     if (effortCode!=null) occ.setEffortCode(effortCode);
 
+    String observer = getString(row, "Occurrence.observer");
+    if (observer!=null&&!"".equals(observer)) occ.setObserver(observer);
+
     Taxonomy taxy = loadTaxonomy0(row, myShepherd);
     if (taxy!=null) occ.addTaxonomy(taxy);
 
