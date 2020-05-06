@@ -2514,6 +2514,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
     public static String nextNameByPrefix(String prefix, int zeroPadding) {
         if (NAMES_CACHE == null) return null;  //snh
+        if (NAMES_CACHE.size() < 1) return null;  //on the off chance has not been init'ed  (snh?)
         if (prefix == null) return null;
         Pattern pat = Pattern.compile("(^|.*;)" + prefix.toLowerCase() + "(\\d+)(;.*|$)");
         int val = 0;  //will have +1 at end; see comment elsewhere about 0 vs 1 and heathens
