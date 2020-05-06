@@ -926,6 +926,7 @@ public class Shepherd {
     return users;
   }
 
+    ///note: this appears to be a *duplicate* of historical getUser(username)  FIXME?
   public User getUserByUsername(String username) {
     User u = null;
     String filter="SELECT FROM org.ecocean.User WHERE username == \""+username.trim()+"\"";
