@@ -1092,7 +1092,7 @@ public class StandardImport extends HttpServlet {
   }
 
   public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
-        
+     
     try {
       if (emptyAssetColumn(i)) {
         feedback.logParseNoValue(assetColIndex(i));
@@ -1135,7 +1135,7 @@ public class StandardImport extends HttpServlet {
     //System.out.println("==============> getMediaAsset resolvedPath is: "+resolvedPath);
     if (resolvedPath==null||"null".equals(resolvedPath)) {
       try {
-        missingPhotos.add(fullPath);
+        feedback.addMissingPhoto(localPath);
         foundPhotos.remove(fullPath);
         feedback.logParseError(assetColIndex(i), localPath, row);
       } catch (NullPointerException npe) {  
@@ -1153,6 +1153,7 @@ public class StandardImport extends HttpServlet {
             System.out.println("WARNING: got hash match, but DIFFERENT FILENAME for " + f + " with " + existMA + "; allowing new MediaAsset to be created");
         } else {
             System.out.println("INFO: " + f + " got hash and filename match on " + existMA);
+            feedback.addFoundPhoto(localPath);
             return existMA;
         }
     }
@@ -1177,8 +1178,8 @@ public class StandardImport extends HttpServlet {
 
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
       ioEx.printStackTrace();
-      
       feedback.addMissingPhoto(localPath);
+      missingPhotos.add(localPath);
       feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
 	  	foundPhotos.remove(fullPath);
       return null;
