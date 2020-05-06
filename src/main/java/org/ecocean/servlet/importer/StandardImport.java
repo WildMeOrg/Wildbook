@@ -751,8 +751,13 @@ public class StandardImport extends HttpServlet {
      */
     List<String> measureVals=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurement", context);
     List<String> measureUnits=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurementUnits", context);
+    // measurements by index number in cc.properties OR verbatim name
+    // you can do both I guess if you are chaotic alignment
+
     int numMeasureVals=measureVals.size();
     for(int bg=0;bg<numMeasureVals;bg++){
+
+      // by index
       String colName="Encounter.measurement"+bg;
       Double val = getDouble(row, colName);
       if (val!=null) {
@@ -761,7 +766,18 @@ public class StandardImport extends HttpServlet {
         if (unusedColumns!=null) unusedColumns.remove(colName);
       }
 
+      // by name
+      colName = "Encounter.measurement."+measureVals.get(bg);
+      val = getDouble(row, colName);
+      if (val!=null) {
+        Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.get(bg), "");
+        if (committing) enc.setMeasurement(valMeas, myShepherd);
+        if (unusedColumns!=null) unusedColumns.remove(colName);
+      }
     }
+
+
+
     /*
      * End measurements import
      */
