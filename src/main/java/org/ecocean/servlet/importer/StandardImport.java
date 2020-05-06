@@ -167,8 +167,6 @@ public class StandardImport extends HttpServlet {
     if (filename == null) {
       System.out.println("Filename request parameter was not set in the URL.");
       out.println("<p>I could not find a filename parameter in the URL. Please specify the full path on the server file system to the Excel import file as the ?filename= parameter on the URL.</p><p>Please note: the importer assumes that all image files exist in the same folder as the Excel file or are relatively referenced in the Excel file within a subdirectory.</p><p>Example value: ?filename=/import/MyNewData/importMe.xlsx</p>");
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
       return;
     }
     if(!dataFile.exists()){
