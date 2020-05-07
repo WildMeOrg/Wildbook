@@ -27,8 +27,8 @@ public class TabularFeedback {
       this.colNames = colNames;
       this.out = out;
       this.skipCols = skipCols;
-      missingPhotos = new ArrayList<String>();
-      foundPhotos = new ArrayList<String>();
+      this.missingPhotos = new ArrayList<String>();
+      this.foundPhotos = new ArrayList<String>();
       currentRow=null; // must be manually initialized during row loop with startRow
     }
 
@@ -40,20 +40,20 @@ public class TabularFeedback {
     }
 
     public void addMissingPhoto(String localPath) {
-      missingPhotos.add(localPath);
+      this.missingPhotos.add(localPath);
     }
 
     public void addFoundPhoto(String localPath) {
-      foundPhotos.add(localPath);
+      this.foundPhotos.add(localPath);
     }
 
     public void printMissingPhotos() {
       //if (!isUserUpload) {
-        out.println("<h2><em>Missing photos</em>("+missingPhotos.size()+"):</h2><ul>");
-        for (String photo: missingPhotos) {
+        out.println("<div class=\"row\"><div class=\"col-col-sm-12 col-md-12 col-lg-12 col-xl-12\"><h2><em>Missing photos</em>("+this.missingPhotos.size()+"):</h2><ul>");
+        for (String photo: this.missingPhotos) {
           out.println("<li>"+photo+"</li>");
         }
-        out.println("</ul>");
+        out.println("</ul></div></div>");
       //} 
     }
 
