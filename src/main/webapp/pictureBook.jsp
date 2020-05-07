@@ -203,9 +203,10 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 	<%
 
 		List<String> desiredKeywords = new ArrayList<String>();
-		desiredKeywords.add("Tail Fluke");
-		desiredKeywords.add("Right Dorsal Fin");
-		desiredKeywords.add("Left Dorsal Fin");
+		desiredKeywords.add("Top");
+		desiredKeywords.add("Bottom");
+		desiredKeywords.add("Right");
+		desiredKeywords.add("Left");
 
 	for (MarkedIndividual mark: rIndividuals) {
 
