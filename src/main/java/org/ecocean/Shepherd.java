@@ -4547,6 +4547,8 @@ public class Shepherd {
 
   public List<MarkedIndividual> getAllMarkedIndividualsInCommunity(String communityName){
     ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
+
+    // this will get all indy's from group based on the Reletionship class.
     Extent encClass = pm.getExtent(Relationship.class, true);
     String filter2use = "this.relatedSocialUnitName == \""+communityName+"\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter2use);
@@ -4567,6 +4569,15 @@ public class Shepherd {
         if(isMarkedIndividual(name2)){
           MarkedIndividual indie=getMarkedIndividual(name2);
           if(!indies.contains(indie)){indies.add(indie);}
+        }
+      }
+
+      // We also need all Indy's that have a Membership in a SocialUnit, and may not have a pairwise Relationship object. 
+      SocialUnit su = getSocialUnit(communityName);
+      List<MarkedIndividual> socMis = su.getMarkedIndividuals();
+      for (MarkedIndividual mi : socMis) {
+        if (!indies.contains(mi)) {
+          indies.add(mi);
         }
       }
 

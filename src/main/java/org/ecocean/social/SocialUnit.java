@@ -19,12 +19,15 @@ public class SocialUnit implements java.io.Serializable {
     this.socialUnitName=name;
   }
   
-
-  //this is a convenience method to get the MarkedIndividuals associated with this community via its Relationship objects
-  public List<MarkedIndividual> getMarkedIndividuals(Shepherd myShepherd){
-      return myShepherd.getAllMarkedIndividualsInCommunity(socialUnitName);
+  public List<MarkedIndividual> getMarkedIndividuals(){
+      List<MarkedIndividual> mis = new ArrayList<>();
+      for (Membership member : members) {
+        mis.add(member.getMarkedIndividual());
+      }
+      return mis;
   }
 
+  // preserve calls to old method that required shepherd
   public List<MarkedIndividual> getMarkedIndividuals(Shepherd myShepherd) {
     return getMarkedIndividuals();
   }
