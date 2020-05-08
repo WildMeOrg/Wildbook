@@ -30,7 +30,14 @@
 
 		{ "name":"French Polynesia", "id":"French Polynesia", "locationID":[] },
 
-		{ "name":"Indonesia", "id":"Indonesia", "locationID":[] },
+		{ "name":"Indonesia", "id":"Indonesia", "locationID":[
+		
+			{ "name":"Komodo", "id":"Indonesia-Komodo", "locationID":[] },
+			{ "name":"Nusa Penida", "id":"Indonesia-Nusa Penida", "locationID":[] },
+		    { "name":"Raja Ampat", "id":"Indonesia-Raja Ampat", "locationID":[] },
+            { "name":"Sangalaki", "id":"Indonesia-Sangalaki", "locationID":[] }
+			
+		] },
 
 		{ "name":"Japan", "id":"Japan", "locationID":[] },
 
