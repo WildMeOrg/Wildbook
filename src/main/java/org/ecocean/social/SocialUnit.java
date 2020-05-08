@@ -25,6 +25,36 @@ public class SocialUnit implements java.io.Serializable {
       return myShepherd.getAllMarkedIndividualsInCommunity(socialUnitName);
   }
 
+  public List<MarkedIndividual> getMarkedIndividuals(Shepherd myShepherd) {
+    return getMarkedIndividuals();
+  }
+
+  public List<Membership> getAllMembers() {
+    return members;
+  }
+
+  public void addMember(Membership mem) {
+    if (!members.contains(mem)) {
+      members.add(mem);
+    }
+  }
+
+  public boolean hasMarkedIndividualAsMember(MarkedIndividual queryMi) {
+    for (MarkedIndividual targetMi : getMarkedIndividuals()) {
+      if (targetMi.getId().equals(queryMi.getId())) return true; 
+    }
+    return false;
+  }
+
+  public Membership getMembershipForMarkedIndividual(MarkedIndividual mi) {
+    for (Membership member : members) {
+      if (member.getMarkedIndividual().getId().equals(mi.getId())) {
+        return member;
+      }
+    }
+    return null;
+  }
+
   public boolean removeMember(MarkedIndividual mi) {
     if (hasMarkedIndividualAsMember(mi)) {
       Membership toRemove = getMembershipForMarkedIndividual(mi);
