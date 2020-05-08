@@ -390,7 +390,6 @@ input.nameKey, input.nameValue {
     });
 
     $("#closeEdit").click(function() {
-      $(".namebutton").css("visibility", "hidden");
       $(".editForm, input.nameKey, input.nameValue, #defaultNameColon, input.namebutton, input.btn.deletename").hide();
       $(".clickDateText").hide();
       $(".noEditText, span.nameKey, span.nameValue").show();
