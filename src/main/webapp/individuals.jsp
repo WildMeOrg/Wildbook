@@ -450,7 +450,7 @@ $(document).ready(function() {
           boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
 
 
-          System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
+          //System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
@@ -496,7 +496,7 @@ $(document).ready(function() {
           <%
           }
         }
-                  System.out.println("    |=-| INDIVIDUALS.JSP after nickname");
+                  //System.out.println("    |=-| INDIVIDUALS.JSP after nickname");
 
           %>
 
@@ -1082,21 +1082,116 @@ if (sharky.getNames() != null) {
       int equalPlace = token.indexOf("=");
       String nm = token.substring(0, (equalPlace));
       String vl = token.substring(equalPlace + 1);
+
       %>
       <p class="para"><img align="absmiddle" src="images/lightning_dynamic_props.gif"> <strong><%=nm%>
       </strong><br/> <%=vl%>
       <%
       if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-      %>
-      <font size="-1"><a
-      href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=id%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
-      <%
-      }
-      %>
+        %>  
+        <font size="-1"><a
+          href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=id%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>  
+          <%
+        }
+        %>
       </p>
-
+      
       <%
-      }
+    }
+  }
+  %>
+  <%-- Relationship Graphs --%>
+  <div>
+    <!-- begin social unit memberships-->
+    
+    <p><strong><%=props.getProperty("socialUnitMemberships")%></strong></p>
+    <input class="btn btn-md" type="button" id="editSocialMembership" value="<%=props.getProperty("editSocialMembership") %>">
+    <%
+      List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(sharky);
+        System.out.println("-----------------> Units : "+units);
+      if (isOwner&&CommonConfiguration.isCatalogEditable(context)) {
+        if (units!=null) {
+            System.out.println("-----------------> Got Units! ");
+            for (SocialUnit unit : units) {
+                Membership membership = unit.getMembershipForMarkedIndividual(sharky);
+                System.out.println("-----------> Got a membership? "+membership);
+                String unitName = "";
+                String role = "";
+                String startDate = "";
+                String endDate = "";
+                if (unit.getSocialUnitName()!=null) {unitName=unit.getSocialUnitName();}
+                if (membership.getRole()!=null) {role=membership.getRole();}
+                if (membership.getStartDate()!=null) {startDate=String.valueOf(membership.getStartDate());}
+                if (membership.getEndDate()!=null) {endDate=String.valueOf(membership.getEndDate());}
+          
+      %>  
+
+        <!--display current social unit membership-->
+        <div id="displayMembership">
+          <div class="form-group row">
+
+            <div class="col-xs-3 col-sm-2">
+              <label><%=props.getProperty("socialGroupName") %></label>
+              <p id="socialGroupName"><%=unitName%></p>
+            </div>
+
+            <div class="col-xs-3 col-sm-2">
+              <label><%=props.getProperty("socialRoleName") %></label>
+              <p id="socialRoleName"><%=role%></p>
+            </div>
+
+            <div class="col-xs-3 col-sm-2">
+              <label><%=props.getProperty("socialGroupMembershipStart") %></label>
+              <p id="socialGroupMembershipStart"><%=startDate%></p>
+            </div>
+
+            <div class="col-xs-3 col-sm-2">
+              <label><%=props.getProperty("socialGroupMembershipEnd") %></label>
+              <p id="socialGroupMembershipEnd"><%=endDate%></p>
+            </div>
+
+          </div>
+        </div>
+
+        <%
+            }
+        }
+        %>
+
+
+        <!-- form to edit or create social unit membership -->
+        <div id="editOrCreateMembership" class="hidden">
+          <div class="form-group row">
+
+            <div class="col-xs-3 col-sm-2">
+              <label><%=props.getProperty("socialGroupName") %></label>
+              <input id="socialGroupNameField" class="form-control" type="text"></input>
+            </div>  
+
+            <div class="col-xs-3 col-sm-2">
+              <label><%=props.getProperty("socialRoleName") %></label>
+              <input id="socialRoleNameField" class="form-control" type="text"></input>
+            </div>  
+
+            <div class="col-xs-3 col-sm-2">
+              <label><%=props.getProperty("socialGroupMembershipStart") %></label>
+              <input id="socialGroupMembershipStartField" class="form-control" type="date"></input>
+            </div>  
+
+            <div class="col-xs-3 col-sm-2">
+              <label><%=props.getProperty("socialGroupMembershipEnd") %></label>
+              <input id="socialGroupMembershipEndField" class="form-control" type="date"></input>
+            </div>  
+
+            <input class="btn btn-md" type="button" name="button" id="submitSocialMembership" value="<%=props.getProperty("editCreate")%>">
+            
+            <!--feedback from edit/create servlet and response-->
+            <label id="editOrCreateMembershipResponse" ></label>
+
+          </div>  
+        </div>  
+
+      <%  
       }
       %>
 
@@ -1235,42 +1330,154 @@ if (sharky.getNames() != null) {
       <div>
         <a name="socialRelationships"></a>
         <p><strong><%=props.getProperty("social")%></strong></p>
+
+      <!--begin html for display current socialunits-->
+        <!-- relationships of type social unit will delete, preserve mother/calf -->
+
+        <script type="text/javascript">
+          $(document).ready(function() {
+
+
+            // // git current memberships proper-like
+            // $.ajax({
+            //       url: '../MembershipDelete',
+            //       type: 'POST',
+            //       dataType: 'json',
+            //       contentType: 'application/javascript',
+            //       data: JSON.stringify(membershipDeleteJSON),
+                
+            //       success: function(d) {
+            //           console.info('Success! Got back '+JSON.stringify(d));
+            //           $("#deleteMembershipResponse").text("Success in DeleteMembership!");
+            //       },
+            //       error: function(x,y,z) {
+            //           console.log("---> Err from MembershipDelete ajax");
+            //           $("#deleteMembershipResponse").text("An error has occurred in DeleteMembership.");
+            //           console.warn('%o %o %o', x, y, z);
+            //       }
+            //   });
+
+
+              console.log("clicked edit social...");
+              $(document).on('click', "#editSocialMembership",function(e) {
+                  e.preventDefault();
+                  console.log("CLICK!");
+
+                  if ($("#editOrCreateMembership").hasClass("hidden")) {
+                      $("#editOrCreateMembership").removeClass("hidden");
+                      $("#displayMembership").addClass("hidden");
+                  } else if ($("#displayMembership").hasClass("hidden")) {
+                      $("#editOrCreateMembership").addClass("hidden");
+                      $("#displayMembership").removeClass("hidden");
+                  }
+                      // of course it doesn't work you dolt
+              });
+              $(document).on('click', "#submitSocialMembership",function(e) {
+                  console.log("clicked change/create social relationship...");
+                  e.preventDefault();
+                  console.log("CLICK SUBMIT social group!");
+                  createOrEditMembership();
+              });
+          });
+
+          function createOrEditMembership() {
+              console.log("click edit member..");
+              var membershipJSON = {};
+
+              let id = "<%=sharky.getIndividualID()%>";
+              console.log("ID of this succkkkaaa: "+id);
+              membershipJSON["miId"] = id;
+              membershipJSON["groupName"] = $("#socialGroupNameField").val();
+              membershipJSON["roleName"] = $("#socialRoleNameField").val();
+
+              if ($("#socialGroupMembershipStartField").val()) {
+                  let startDate = new Date($("#socialGroupMembershipStartField").val());
+                  membershipJSON["startDate"] = startDate;
+              }
+
+              if ($("#socialGroupMembershipEndField").val()) {
+                  let endDate = new Date($("#socialGroupMembershipEndField").val())
+                  membershipJSON["endDate"] = endDate;
+              }
+
+              $.ajax({
+                  url: '../MembershipCreate',
+                  type: 'POST',
+                  dataType: 'json',
+                  contentType: 'application/javascript',
+                  data: JSON.stringify(membershipJSON),
+                
+                  success: function(d) {
+                      console.info('Success! Got back '+JSON.stringify(d));
+                      $("#editOrCreateMembershipResponse").text("Success!");
+                  },
+                  error: function(x,y,z) {
+                      console.log("---> Err from MembershipCreate ajax");
+                      $("#editOrCreateMembershipResponse").text("An error has occurred.");
+                      console.warn('%o %o %o', x, y, z);
+                  }
+              });
+          }
+
+          function deleteMembership() {
+            
+            var membershipDeleteJSON = {};
+
+            $.ajax({
+                  url: '../MembershipDelete',
+                  type: 'POST',
+                  dataType: 'json',
+                  contentType: 'application/javascript',
+                  data: JSON.stringify(membershipDeleteJSON),
+                
+                  success: function(d) {
+                      console.info('Success! Got back '+JSON.stringify(d));
+                      $("#deleteMembershipResponse").text("Success in DeleteMembership!");
+                  },
+                  error: function(x,y,z) {
+                      console.log("---> Err from MembershipDelete ajax");
+                      $("#deleteMembershipResponse").text("An error has occurred in DeleteMembership.");
+                      console.warn('%o %o %o', x, y, z);
+                  }
+              });
+
+          }
+
+        </script>
+
+        <!-- end social unit memberships -->
+
         <%
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         %>
-
         <input class="btn btn-md" type="button" name="button" id="addRelationshipBtn" value="<%=props.getProperty("addRelationship") %>">
-
-
         <%
         }
         %>
+
         <script type="text/javascript">
           $(document).ready(function() {
-            $("#addRelationshipBtn").click(function() {
+              $("#addRelationshipBtn").click(function() {
               $("#addRelationshipForm").show();
               resetForm($('#setRelationship'), "<%=sharky.getIndividualID()%>");
               $("#setRelationshipResultDiv").hide();
-            });
+          });
 
-            $("#closeRelationshipForm").click(function() {
-              $("#addRelationshipForm").hide();
-            });
+          $("#closeRelationshipForm").click(function() {
+              $("#addRelati onshipForm").hide();
+          });
 
-            $("#EditRELATIONSHIP").click(function(event) {
+          $("#EditRELATIONSHIP").click(function(event) {
               event.preventDefault();
 
-	      var persistenceID = "";
-	      var relationshipID = $("#inputPersistenceID").val();
-	      if ((relationshipID != null) && (relationshipID != "")) {
-              	persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
-
+              var persistenceID = "";
+              var relationshipID = $("#inputPersistenceID").val();
+              if ((relationshipID != null) && (relationshipID != "")) {
+                  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
               }
-
-
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
-	      console.log("editRELATIONSHIP indy.jsp : " + markedIndividualName1);
+	            console.log("editRELATIONSHIP indy.jsp : " + markedIndividualName1);
               console.log(markedIndividualName2);
               var markedIndividualRole1 = $("#role1").val();
               var markedIndividualName2 = $("#individual2").val();
@@ -1282,44 +1489,45 @@ if (sharky.getNames() != null) {
               var markedIndividual2DirectionalDescriptor = $("#descriptor2").val();
               var bidirectional = $("#bidirectional").val();
 
-	      if (startTime == "-1") {
+	            if (startTime == "-1") {
                  startTime = "";
               }
               if (endTime == "-1") {
                  endTime = "";
               }
 
-   	      console.log("persistenceID sent to encounter-calls: " + persistenceID + " relationshipID: "+ relationshipID );
+   	          console.log("persistenceID sent to encounter-calls: " + persistenceID + " relationshipID: "+ relationshipID );
               $.post("RelationshipCreate", {
-	        "persistenceID": persistenceID,
-                "type": type,
-                "markedIndividualName1": markedIndividualName1,
-                "markedIndividualRole1": markedIndividualRole1,
-                "markedIndividualName2": markedIndividualName2,
-                "markedIndividualRole2": markedIndividualRole2,
-                "relatedCommunityName": relatedCommunityName,
-                "startTime": startTime,
-                "endTime": endTime,
-                "markedIndividual1DirectionalDescriptor": markedIndividual1DirectionalDescriptor,
-                "markedIndividual2DirectionalDescriptor": markedIndividual2DirectionalDescriptor,
-                "bidirectional": bidirectional
+                  "persistenceID": persistenceID,
+                  "type": type,
+                  "markedIndividualName1": markedIndividualName1,
+                  "markedIndividualRole1": markedIndividualRole1,
+                  "markedIndividualName2": markedIndividualName2,
+                  "markedIndividualRole2": markedIndividualRole2,
+                  "relatedCommunityName": relatedCommunityName,
+                  "startTime": startTime,
+                  "endTime": endTime,
+                  "markedIndividual1DirectionalDescriptor": markedIndividual1DirectionalDescriptor,
+                  "markedIndividual2DirectionalDescriptor": markedIndividual2DirectionalDescriptor,
+                  "bidirectional": bidirectional
               },
-              function(response) {
-                window.location.reload(true);
-                $("#relationshipErrorDiv").empty();
-                $("#addRelationshipForm").hide();
-                <% String relationshipIndividualID = sharky.getIndividualID();%>
-                getRelationshipTableData("<%=relationshipIndividualID%>");
 
-                $("#communityTable").empty();
-                $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
-              })
-              .fail(function(response) {
-		console.log("Relationship update failure!");
-                $("#setRelationshipResultDiv").show();
-                $("#relationshipErrorDiv").html(response.responseText);
-                $("#relationshipSuccessDiv").empty();
-                $("#addRelationshipForm").hide();
+              function(response) {
+                  window.location.reload(true);
+                  $("#relationshipErrorDiv").empty();
+                  $("#addRelationshipForm").hide();
+                  <% String relationshipIndividualID = sharky.getIndividualID();%>
+
+                  getRelationshipTableData("<%=relationshipIndividualID%>");
+
+                  $("#communityTable").empty();
+                  $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
+              }).fail(function(response) {
+                  console.log("Relationship update failure!");
+                  $("#setRelationshipResultDiv").show();
+                  $("#relationshipErrorDiv").html(response.responseText);
+                  $("#relationshipSuccessDiv").empty();
+                  $("#addRelationshipForm").hide();
               });
             });
 
@@ -1361,18 +1569,18 @@ if (sharky.getNames() != null) {
               <div class="col-xs-9 col-sm-3">
                 <select required name="type" class="form-control relationshipInput" id="type">
                   <%
-		  String indID = sharky.getIndividualID();
-                  List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
-                  int numTypes=types.size();
-                  for(int g=0;g<numTypes;g++){
+                    String indID = sharky.getIndividualID();
+                    List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
+                    int numTypes=types.size();
+                    for(int g=0;g<numTypes;g++){
 
-                    String selectedText="";
-                    if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
+                      String selectedText="";
+                      if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
                     %>
-                    <option <%=selectedText%>><%=types.get(g)%></option>
+                      <option <%=selectedText%>><%=types.get(g)%></option>
                     <%
-                  }
-                  %>
+                    }
+                    %>
                 </select>
               </div>
             </div>
