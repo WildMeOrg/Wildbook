@@ -1107,19 +1107,18 @@ if (sharky.getNames() != null) {
     <p><strong><%=props.getProperty("socialUnitMemberships")%></strong></p>
     <input class="btn btn-sm" type="button" id="editSocialMembership" value="<%=props.getProperty("editSocialMembership") %>">
     <br/>
+
+    <div id="allDisplayMemberships">
     <%
       List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(sharky);
-      System.out.println("-----------------> Units : "+units);
       String unitName = "";
       String role = "";
       String startDate = "";
       String endDate = "";
       if (isOwner&&CommonConfiguration.isCatalogEditable(context)) {
         if (units!=null) {
-            System.out.println("-----------------> Got Units! ");
             for (SocialUnit unit : units) {
                 Membership membership = unit.getMembershipForMarkedIndividual(sharky);
-                System.out.println("-----------> Got a membership? "+membership);
                 if (unit.getSocialUnitName()!=null) {unitName=unit.getSocialUnitName();}
                 if (membership.getRole()!=null) {role=membership.getRole();}
                 if (membership.getStartDate()!=null) {startDate=String.valueOf(membership.getStartDate());}
@@ -1162,7 +1161,39 @@ if (sharky.getNames() != null) {
       }
     }
     %>
-        <!-- need to ensure this gets values from java above-->
+
+    <!-- this section is made visible only when a new membership is created-->
+    <br/>
+    <div id="displayNewMembership" class="socialUnitEditForm hidden newMembershipFromServer">
+      <div class="form-group row">
+
+        <div class="col-xs-3 col-sm-2">
+          <label><strong><%=props.getProperty("socialGroupName") %></strong></label>
+          <p id="socialGroupName"></p>
+        </div>
+
+        <div class="col-xs-3 col-sm-2">
+          <label><strong><%=props.getProperty("socialRoleName") %></strong></label>
+          <p id="socialRoleName"></p>
+        </div>
+
+        <div class="col-xs-3 col-sm-2">
+          <label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>
+          <p id="socialGroupMembershipStart"></p>
+        </div>
+
+        <div class="col-xs-3 col-sm-2">
+          <label><strong><%=props.getProperty("socialGroupMembershipEnd") %></strong></label>
+          <p id="socialGroupMembershipEnd"></p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+
+
         <br/>
         <div id="editOrCreateMembership" class="hidden socialUnitEditForm">
           <div class="form-group row">
@@ -1432,6 +1463,7 @@ if (sharky.getNames() != null) {
                 success: function(d) {
                     console.info('Success! Got back '+JSON.stringify(d));
                     $("#membershipActionResponse").text("Success in DeleteMembership!");
+                    $("#displayMembership").remove();
                 },
                 //error: function(x,y,z) {
                   error: function(d) {
@@ -1443,22 +1475,33 @@ if (sharky.getNames() != null) {
         }
 
         function updateSocialUnitMembershipFields(json) {
-          let role = json["role"];
-          let groupName = json["groupName"];
-          let startDate = json["startDate"];
-          let endDate = json["endDate"];
 
-          $("#socialGroupNameField").text(toString(groupName));
-          $("#socialGroupName").text(toString(groupName));
+          console.log("Yet again,,,,, the JSON: "+JSON.stringify(json));
 
-          $("#socialRoleNameField").text(toString(role));
-          $("#socialRoleName").text(toString(role));
+          var role = json["role"];
+          var groupName = json["groupName"];
+          var startDate = json["startDate"];
+          var endDate = json["endDate"];
 
-          $("#socialGroupMembershipStart").text(toString(startDate));
-          $("#socialGroupMembershipStartField").text(toString(startDate));
+          if ($("#allDisplayMemberships","#displayMembership").length < 1) {
+            let dnm = $("#displayNewMembership");
+            dnm.removeClass("hidden");
+            dnm.attr("id", 'displayMembership');
+          }
 
-          $("#socialGroupMembershipEnd").text(toString(endDate));
-          $("#socialGroupMembershipEndField").text(toString(endDate));
+          $("#socialGroupName").css("background-color", "red");
+
+          $("#socialGroupNameField").text(groupName);
+          $("#socialGroupName").text(groupName);
+
+          $("#socialRoleNameField").text(role);
+          $("#socialRoleName").text(role);
+
+          $("#socialGroupMembershipStart").text(startDate);
+          $("#socialGroupMembershipStartField").text(startDate);
+
+          $("#socialGroupMembershipEnd").text(endDate);
+          $("#socialGroupMembershipEndField").text(endDate);
         }
 
         function clearSocialUnitMembershipFields() {
