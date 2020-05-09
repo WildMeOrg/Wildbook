@@ -369,6 +369,36 @@ public class Shepherd {
     }
   }
 
+  public boolean storeNewSocialUnit(SocialUnit su) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(su);
+      commitDBTransaction();
+			return true;
+
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new SocialUnit in shepherd.storeNewSocialUnit().");
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  public boolean storeNewMembership(Membership mem) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(mem);
+      commitDBTransaction();
+			return true;
+
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new social unit Membership in shepherd.storeNewMembership().");
+      e.printStackTrace();
+      return false;
+    }
+  }
+  
   public List getAllCollaborations() {
     Collection c;
     try {
@@ -405,6 +435,11 @@ public class Shepherd {
   public void throwAwayWorkspace(Workspace wSpace) {
     pm.deletePersistent(wSpace);
   }
+
+  public void throwAwayMembership(Membership mShip) {
+    pm.deletePersistent(mShip);
+  }
+
 
   public void throwAwayCollaboration(Collaboration collab) {
     pm.deletePersistent(collab);
@@ -749,6 +784,56 @@ public class Shepherd {
     return tempCom;
   }
 
+  // public ArrayList<Membership> getMembershipsForMarkedIndividual(MarkedIndividual mi) {
+    
+  // }
+
+  public List<SocialUnit> getAllSocialUnitsForMarkedIndividual(MarkedIndividual mi) {
+    List<SocialUnit> units = getAllSocialUnits();
+    List<SocialUnit> matches = null;
+    if (units!=null) {
+      for (SocialUnit su : units) {
+        if (su.hasMarkedIndividualAsMember(mi)) {
+          if (matches==null) {
+            matches = new ArrayList<SocialUnit>();
+          }
+          matches.add(su);
+        }
+      }
+    }
+    return matches;
+  }
+
+  public ArrayList<SocialUnit> getAllSocialUnits() {
+    ArrayList<SocialUnit> units = null;
+    Query q = pm.newQuery(SocialUnit.class);
+    try{
+      Collection results = (Collection) q.execute();
+      units = new ArrayList<SocialUnit>(results);
+    } catch (Exception e){
+      e.printStackTrace();
+    }
+    q.closeAll();
+    return units;
+  }
+
+  public ArrayList<Membership> getAllMemberships() {
+    ArrayList<Membership> mships = null;
+    Query q = pm.newQuery(Membership.class);
+    try{
+      Collection results = (Collection) q.execute();
+      mships = new ArrayList<Membership>(results);
+    } catch (Exception e){
+      e.printStackTrace();
+    }
+    q.closeAll();
+    return mships;
+  }
+
+  public SocialUnit getSocialUnit(String name) {
+    return getCommunity(name);
+  }
+
   public SinglePhotoVideo getSinglePhotoVideo(String num) {
     SinglePhotoVideo tempEnc = null;
     try {
@@ -758,6 +843,7 @@ public class Shepherd {
     }
     return tempEnc;
   }
+
 
   public Role getRole(String rolename, String username, String context) {
 
@@ -4474,6 +4560,8 @@ public class Shepherd {
 
   public List<MarkedIndividual> getAllMarkedIndividualsInCommunity(String communityName){
     ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
+
+    // this will get all indy's from group based on the Reletionship class.
     Extent encClass = pm.getExtent(Relationship.class, true);
     String filter2use = "this.relatedSocialUnitName == \""+communityName+"\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter2use);
@@ -4494,6 +4582,15 @@ public class Shepherd {
         if(isMarkedIndividual(name2)){
           MarkedIndividual indie=getMarkedIndividual(name2);
           if(!indies.contains(indie)){indies.add(indie);}
+        }
+      }
+
+      // We also need all Indy's that have a Membership in a SocialUnit, and may not have a pairwise Relationship object. 
+      SocialUnit su = getSocialUnit(communityName);
+      List<MarkedIndividual> socMis = su.getMarkedIndividuals();
+      for (MarkedIndividual mi : socMis) {
+        if (!indies.contains(mi)) {
+          indies.add(mi);
         }
       }
 
