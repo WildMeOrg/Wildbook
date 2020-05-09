@@ -20,6 +20,8 @@ public class SocialUnit implements java.io.Serializable {
   private static final long serialVersionUID = 3996955430559204532L;
 
   private String socialUnitName;
+
+  private List<Membership> members = new ArrayList<>();
   
   //default constructor for JDO
   public SocialUnit(){}
