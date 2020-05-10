@@ -309,7 +309,13 @@
 				{ "name":"Bahamas-LBB", "id":"Bahamas-LBB", "locationID":[] },
 				{ "name":"Dominica", "id":"Dominica", "locationID":[] },
 				{ "name":"Guadeloupe", "id":"Guadeloupe", "locationID":[] },
-				{ "name":"Martinique", "id":"Martinique", "locationID":[] }
+				{ "name":"Martinique", "id":"Martinique", "locationID":[] },
+				{ "name":"Montserrat", "id":"Montserrat", "locationID":[] },
+				{ "name":"St. Lucia", "id":"StLuciaCaribbean", "locationID":[] },
+				{ "name":"Montserrat", "id":"Montserrat", "locationID":[] },
+				{ "name":"St.Vincent", "id":"St.Vincent", "locationID":[] },
+				{ "name":"The Grenadines", "id":"the Grenadines", "locationID":[] }
+				
 			  ] 
 			  },
 			 {
@@ -966,7 +972,7 @@
 
 		{ "name":"RICHARDS BAY", "id":"RICHARDSBAY", "locationID":[] },
 
-		{ "name":"ST. LUCIA", "id":"STLUCIA", "locationID":[] },
+		{ "name":"ST. LUCIA (South Africa)", "id":"STLUCIA", "locationID":[] },
 
 		{ "name":"TSITSIKAMA", "id":"TSITSIKAMA", "locationID":[] }
 
