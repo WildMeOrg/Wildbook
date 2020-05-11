@@ -37,8 +37,8 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("remote.jsp");
 myShepherd.beginDBTransaction();
 
-/*
 User thisUser = AccessControl.getUser(request, myShepherd);
+/*
 if (Util.requestParameterSet(request.getParameter("recordQuiz"))) {
     if (thisUser == null) {
         Object u = session.getAttribute("user");
@@ -94,7 +94,26 @@ System.out.println("survey response: " + resp.toString());
             return;
         }
 
-        boolean reg_terms = !(request.getParameter("agree-terms") == null);
+        boolean reg_terms = "true".equals(request.getParameter("agree-terms"));
+        if (thisUser != null) {
+            System.out.println("register.jsp: saving survey as logged in " + thisUser);
+            if (!reg_terms) {
+                System.out.println(" ... but did not agree-terms");
+                rtn.put("error", "Please agree to terms and conditions");
+                out.println(rtn.toString());
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+            } else {
+                rtn.put("success", true);
+                String surv_key = "survey_response_phase3_" + thisUser.getUUID();
+                SystemValue.set(myShepherd, surv_key, resp);
+                out.println(rtn.toString());
+                myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
+            }
+            return;
+        }
+
         String reg_username = request.getParameter("username");
         String reg_email = request.getParameter("email");
         String reg_password1 = request.getParameter("password1");
