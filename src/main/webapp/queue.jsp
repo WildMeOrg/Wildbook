@@ -367,7 +367,10 @@ if (!forceList && (encs.size() > 0)) {
 
     //this will find the least-served pages find available one in order of need
     String foundId = "ERROR";  //snh
-    query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select \"ENCOUNTER_CATALOGNUMBER_OID\" as id, count(*) as ct from \"DECISION\" group by id order by ct, random()");
+    String sql = "select \"ENCOUNTER_CATALOGNUMBER_OID\" as id, count(*) as ct from \"DECISION\" ";
+    sql += " WHERE \"USER_UUID_OID\" NOT IN ('b58ef0c1-3b55-42f8-a287-fcfe399e49e0', '0ec86cc2-bd75-4b11-a388-1e4e929bfbe0', 'a9394426-9c5d-4228-a32b-ca420318d2ec', '80293db3-0a84-4349-bb04-de3dbaeaeeb1', '58e45607-1a4f-4873-b295-41f1091a1992', 'b12e70a2-1e4d-455c-8fc4-e8543d343531') ";
+    sql += " group by id order by ct, random()";
+    query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
     List results = (List)query.execute();
     Iterator it = results.iterator();
     IDFOUND: while (it.hasNext()) {
