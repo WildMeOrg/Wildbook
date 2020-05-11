@@ -2307,7 +2307,7 @@
    </servlet>
  <servlet-mapping>
     <servlet-name>LoginUserJson</servlet-name>
-    <url-pattern>/LoginUserJson</url-pattern>
+    <url-pattern>/LoginUserJson/*</url-pattern>
   </servlet-mapping>
 
   <servlet>

@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
 import org.ecocean.User;
+import org.ecocean.SystemValue;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -48,6 +49,8 @@ public class LoginUserJson extends HttpServlet {
         String[] parts = request.getPathInfo().split("/");  //dont forget has leading / like:  "/class/id"
         if (parts.length > 1) inJson.put("class", parts[1]);
         if (parts.length > 2) inJson.put("id", parts[2]);
+        inJson.put("login", request.getParameter("login"));
+        inJson.put("password", request.getParameter("password"));
         return inJson;
     }
 
@@ -140,7 +143,10 @@ public class LoginUserJson extends HttpServlet {
 /*   FIXME
 		  	if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(CommonConfiguration.getProperty("userAgreementURL",context)!=null)&&(CommonConfiguration.getProperty("showUserAgreement",context).equals("true"))&&(!user.getAcceptedUserAgreement())){
 */
-        rtn.put("needsUserAgreement", false);
+        JSONObject surv = SystemValue.getJSONObject(myShepherd, "survey_response_phase3_" + user.getUUID());
+        rtn.put("submittedSurvey", !(surv == null));
+        //rtn.put("needsUserAgreement", false);
+        rtn.put("id", user.getUUID());
         rtn.put("previousLogin", user.getLastLogin());
         rtn.put("success", true);
         _log(instanceId, "successful login user=" + user);
