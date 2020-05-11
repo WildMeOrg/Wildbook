@@ -2302,6 +2302,15 @@
   </servlet-mapping>
 
   <servlet>
+	<servlet-name>LoginUserJson</servlet-name>
+      	<servlet-class>org.ecocean.servlet.LoginUserJson</servlet-class>
+   </servlet>
+ <servlet-mapping>
+    <servlet-name>LoginUserJson</servlet-name>
+    <url-pattern>/LoginUserJson</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>EncounterVMData</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterVMData</servlet-class>
   </servlet>
