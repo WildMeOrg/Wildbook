@@ -257,6 +257,7 @@ System.out.println("about to do enc()");
         enc.setDecimalLatitude(Util.getDecimalCoordFromString(getVal(fv, "lat")));
         enc.setDecimalLongitude(Util.getDecimalCoordFromString(getVal(fv, "lon")));
         enc.setLocationID(getVal(fv, "locationID"));
+        enc.setBehavior(getVal(fv, "behavior"));
 
     DateTime dt = null;
     try {
