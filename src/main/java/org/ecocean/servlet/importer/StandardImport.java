@@ -1768,7 +1768,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       return null;
     }
     feedback.logParseValue(i, str, row);
-    return str;
+    return str.trim();
   }
 
   public Boolean getBooleanFromString(Row row, int i) {
