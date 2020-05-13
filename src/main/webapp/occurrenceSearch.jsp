@@ -575,7 +575,7 @@ function FSControl(controlDiv, map) {
               listVals.add("fieldStudySite");
               listVals.add("fieldSurveyCode");
               listVals.add("sightingPlatform");
-              listVals.add("seaState");
+              
 
               for (String fieldName : listVals) {
                 List<String> posVals = (useCustomProperties)
@@ -589,8 +589,10 @@ function FSControl(controlDiv, map) {
               List<String> allTaxonomyNames = myShepherd.getAllTaxonomyNames();
               printStringFieldSearchRow("taxonomy0",allTaxonomyNames,out, occProps);
 
-
-              for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
+              //hack: put this here because there's no way to create an exclude field on the type of method below without some more thought
+			  listVals.add("seaState");
+              
+			  for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
                 if (listVals.contains(fieldName)) continue; // already printed
                 printStringFieldSearchRow(fieldName, out, occProps);
               }
