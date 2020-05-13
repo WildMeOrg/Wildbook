@@ -1693,7 +1693,9 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with n
 System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
         //this is to tell IA to update species on the newly-created annot on its side
         String taxonomyString = enc.getTaxonomyString();
-        if (Util.stringExists(taxonomyString)) {
+        System.out.println("[INFO]: Checking if iaUpdateSpecies should be used for "+taxonomyString+"...");
+        if (Util.stringExists(taxonomyString)&&shouldUpdateSpeciesFromIa(taxonomyString, context)) {
+            System.out.println("[INFO]: iaUpdateSpecies is active for "+taxonomyString+".");
             List<String> uuids = new ArrayList<String>();
             List<String> species = new ArrayList<String>();
             uuids.add(ann.getAcmId());
@@ -1706,6 +1708,12 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
             }
         }
         return ann;
+    }
+
+    public static boolean shouldUpdateSpeciesFromIa(String taxonomyString, String context) {
+        if (taxonomyString==null||"".equals(taxonomyString)) return false;
+        String taxKey = taxonomyString.replaceAll(" ", "_");
+        return Util.booleanNotFalse(IA.getProperty(context, "useIaUpdateSpecies_"+taxKey));
     }
 
     // here's where we'll attach viewpoint from IA's detection results
