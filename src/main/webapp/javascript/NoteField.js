@@ -23,6 +23,13 @@ wildbook.NoteField = {
         Quill.register(MyLink);
 
         wildbook.NoteField.quill[id] = new Quill('#id-' + id, {
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    [{ 'list': 'bullet' }, 'bold', 'italic', 'underline'],
+                    ['link', 'image']
+                ]
+            },
             theme: 'snow'
         });
         var menus = '<span class="ql-formats">';
