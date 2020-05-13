@@ -1705,24 +1705,32 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with n
         }
         myShepherd.getPM().makePersistent(enc);
         if (occ != null) myShepherd.getPM().makePersistent(occ);
-	System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
-        
-	//this is to tell IA to update species on the newly-created annot on its side
-	//String taxonomyString = enc.getTaxonomyString();
-        //if (Util.stringExists(taxonomyString)) {
-        //    List<String> uuids = new ArrayList<String>();
-        //    List<String> species = new ArrayList<String>();
-        //    uuids.add(ann.getAcmId());
-        //    species.add(taxonomyString);
-        //    try {
-        //        iaUpdateSpecies(uuids, species, context);
-        //    } catch (Exception ex) {
-        //        System.out.println("ERROR: iaUpdateSpecies() failed! " + ex.toString());
-        //        ex.printStackTrace();
-        //    }
-        //}
-
+System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
+        //this is to tell IA to update species on the newly-created annot on its side
+        String taxonomyString = enc.getTaxonomyString();
+        System.out.println("[INFO]: Checking if iaUpdateSpecies should be used for "+taxonomyString+"...");
+        if (Util.stringExists(taxonomyString)&&shouldUpdateSpeciesFromIa(taxonomyString, context)) {
+            System.out.println("[INFO]: iaUpdateSpecies is active for "+taxonomyString+".");
+            List<String> uuids = new ArrayList<String>();
+            List<String> species = new ArrayList<String>();
+            uuids.add(ann.getAcmId());
+            species.add(taxonomyString);
+            try {
+                iaUpdateSpecies(uuids, species, context);
+            } catch (Exception ex) {
+                System.out.println("ERROR: iaUpdateSpecies() failed! " + ex.toString());
+                ex.printStackTrace();
+            }
+        } else {
+            System.out.println("WARNING: cannot update IA, no taxonomy on " + ann);
+        }
         return ann;
+    }
+
+    public static boolean shouldUpdateSpeciesFromIa(String taxonomyString, String context) {
+        if (taxonomyString==null||"".equals(taxonomyString)) return false;
+        String taxKey = taxonomyString.replaceAll(" ", "_");
+        return Util.booleanNotFalse(IA.getProperty(context, "useIaUpdateSpecies_"+taxKey));
     }
 
     // here's where we'll attach viewpoint from IA's detection results
