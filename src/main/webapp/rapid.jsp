@@ -5,6 +5,7 @@ org.ecocean.servlet.importer.ImportTask,
 org.ecocean.ia.Task,
 org.ecocean.media.MediaAsset,
 javax.jdo.Query,
+org.json.JSONObject,
 org.json.JSONArray,
 java.util.Map,
 java.util.HashMap,
@@ -15,7 +16,7 @@ java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%!
 private static String encDiv(Annotation ann, Encounter enc) {
     if (enc == null) return "<!-- null enc -->";
-    return "<div class=\"enc-div\">[enc:" + enc.getCatalogNumber() + "]</div>";
+    return "<div class=\"enc-div\">[enc:" + shortId(enc.getCatalogNumber()) + "]</div>";
 }
 
 private static String procStateCode(Annotation ann, List<Task> tasks) {
@@ -26,6 +27,10 @@ private static String procStateCode(Annotation ann, List<Task> tasks) {
 }
 private static String procStateDisplay(Annotation ann, List<Task> tasks) {
     return "<div class=\"proc-state\">" + procStateCode(ann, tasks) + "</div>";
+}
+
+private static String shortId(String id) {
+    return id.substring(0,8);
 }
 
 %>
@@ -54,34 +59,10 @@ boolean adminMode = ("admin".equals(user.getUsername()));
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <style>
-.bootstrap-table {
-    height: min-content;
-}
-.dim, .ct0 {
-    color: #AAA;
-}
-
-.yes {
-    color: #0F5;
-}
-.no {
-    color: #F20;
-}
-
-.smaller {
-    font-size: 0.84em;
-}
-.fname-toggle-true {
-    background-color: rgba(255,255,0,0.2);
-}
-.has-trivial {
-    font-style: oblique;
-    color: #A80;
-}
 
 a.button {
     font-weight: bold;
-    font-size: 0.9em;
+    font-size: 0.8em;
     background-color: #AAA;
     border-radius: 4px;
     padding: 0 6px;
@@ -89,9 +70,76 @@ a.button {
     cursor: pointer;
 }
 a.button:hover {
-    background-color: #DDA;
+    background-color: #999;
     text-decoration: none;
 }
+
+.asset-row {
+    display: flex;
+    margin-top: 20px;
+}
+
+.asset-wrapper {
+    min-width: 450px;
+    position: relative;
+    xdisplay: inline-block;
+}
+.asset-wrapper img {
+    height: 300px;
+}
+.asset-filename {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(255,255,255,0.3);
+    color: black;
+    text-align: center;
+}
+
+.annotlist {
+    xdisplay: inline-block;
+    flex: 1;
+    overflow: hidden;
+}
+
+.annot-row {
+    margin: 6px;
+    padding: 4px;
+    border-radius: 7px;
+    background-color: #DDD;
+}
+.annot-row:hover {
+    background-color: #DDA;
+}
+
+.annot-id, .annot-indiv, .enc-div, .proc-state, .annot-action {
+    display: inline-block;
+    margin: 0 3px;
+}
+.proc-state, .annot-action {
+    float: right;
+}
+
+.proc-state {
+    border-radius: 12px;
+    width: 1.8em;
+    text-align: center;
+    background-color: #888;
+    color: #FFF;
+}
+
+.proc-state-complete {
+    background-color: #4D8;
+}
+.proc-state-review {
+    background-color: #86ca3c;
+}
+
+.annot-action {
+    width: 10em;
+}
+
 </style>
 
 
@@ -111,13 +159,15 @@ if (taskId != null) {
     try {
         itask = (ImportTask) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(ImportTask.class, taskId), true));
     } catch (Exception ex) {}
-/*
     if ((itask == null) || !(adminMode || user.equals(itask.getCreator()))) {
         out.println("<h1 class=\"error\">taskId " + taskId + " is invalid</h1>");
         return;
     }
-*/
 }
+
+String svKey = "rapid_completed_" + taskId;
+JSONObject completedMap = SystemValue.getJSONObject(myShepherd, svKey);
+if (completedMap == null) completedMap = new JSONObject();
 
 Map<String,Encounter> encMap = new HashMap<String,Encounter>();
 List<MediaAsset> mas = new ArrayList<MediaAsset>();
@@ -146,13 +196,38 @@ for (Annotation ann : ma.getAnnotations()) {
     int tsize = Util.collectionSize(tasks);
     Encounter enc = encMap.get(ann.getId());
     MarkedIndividual indiv = (enc == null) ? null : enc.getIndividual();
-    String state = procStateCode(ann, tasks);
+    String state = "processing";
+    if (completedMap.optBoolean(ann.getId(), false)) {
+        state = "complete";
+    } else if (tsize > 0) {
+        state = "review";
+    }
 %>
         <div class="annot-row annot-state-<%=state%>" id="annot-row-<%=ann.getId()%>">
-            <div class="annot-id"><%=ann.getId()%></div>
+<% if (adminMode) { %>
+            <div class="annot-id"><a target="_new" href="obrowse.jsp?type=Annotation&id=<%=ann.getId()%>"><%=shortId(ann.getId())%></a></div>
+<% } else { %>
+            <div class="annot-id"><%=shortId(ann.getId())%></div>
+<% } %>
             <div class="annot-indiv"><%=(indiv == null) ? "unnamed" : indiv.getDisplayName(request)%></div>
             <%=encDiv(ann, enc)%>
-            <%=procStateDisplay(ann, tasks)%>
+            <div class="annot-action">
+<% if (state.equals("review")) { %>
+                <a class="button" target="_new" href="iaResults.jsp?taskId=<%=tasks.get(0).getId()%>">Review</a>
+<% }
+if (!state.equals("complete")) { %>
+                <a class="button" target="_new" href="rapid.jsp?taskId=<%=taskId%>&complete=<%=ann.getId()%>">Mark Complete</a>
+<% } %>
+            </div>
+            <div class="proc-state proc-state-<%=state%>" title="status=<%=ann.getIdentificationStatus()%>; tasks=<%=tsize%>">
+<% if (state.equals("review")) { %>
+                <i class="el el-eye-open"></i>
+<% } else if (state.equals("complete")) { %>
+                <i class="el el-ok"></i>
+<% } else { %>
+                <i class="el el-hourglass"></i>
+<% } %>
+            </div>
         </div>
 <% } %>
     </div>
