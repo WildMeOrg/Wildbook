@@ -26,6 +26,8 @@ import com.oreilly.servlet.multipart.Part;
 
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.Keyword;
+import org.ecocean.Annotation;
 import org.ecocean.ActionResult_Encounter;
 import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
@@ -55,11 +57,13 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.List;
 
+import org.json.JSONObject;
+
 //import javax.imageio.spi.ImageReaderWriterSpi;
 
 
 /**
- * 
+ *
  * This servlet allows the user to upload a processed patterning file for use with the MantaMatcher algorithm.
  * @author jholmber
  * @author Giles Winstanley
@@ -82,7 +86,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-    
+
     String context="context0";
     context=ServletUtilities.getContext(request);
 
@@ -92,13 +96,13 @@ public class EncounterAddMantaPattern extends HttpServlet {
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("EncounterAddMantaPattern.class");
     myShepherd.beginDBTransaction();
-    
+
     //setup data dir
     File shepherdDataDir = CommonConfiguration.getDataDirectory(getServletContext(), context);
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdir();}
     //File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     //if(!encountersDir.exists()){encountersDir.mkdir();}
-    
+
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -109,9 +113,15 @@ public class EncounterAddMantaPattern extends HttpServlet {
     Map<String, File> mmFiles = null;
     MantaMatcherScan scan = null;
     String action = "imageadd";
-    
+
     StringBuilder resultComment = new StringBuilder();
-    
+
+    // we'll write any new image file here
+    File write2me = null;
+    String newFilePath = null;
+
+    Encounter enc = null;
+
     if (request.getParameter("action") != null && request.getParameter("action").equals("imageremove")) {
       action = "imageremove";
     }
@@ -132,7 +142,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
         encounterNumber = request.getParameter("number");
         try {
-          Encounter enc = myShepherd.getEncounter(encounterNumber);
+          enc = myShepherd.getEncounter(encounterNumber);
           ma = myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
           MantaMatcherUtilities.removeMatcherFiles(context,ma,enc );
 
@@ -142,7 +152,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             enc.setMmaCompatible(false);
             myShepherd.commitDBTransaction();
           }
-        } 
+        }
         catch (SecurityException thisE) {
           thisE.printStackTrace();
           System.out.println("Error attempting to delete the old version of a submitted manta data image!!!!");
@@ -154,10 +164,10 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
         encounterNumber = request.getParameter("number");
         try {
-          Encounter enc = myShepherd.getEncounter(encounterNumber);
+          enc = myShepherd.getEncounter(encounterNumber);
           //File encDir = new File(encountersDir, enc.getEncounterNumber());
           //File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
-          
+
           ma = myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
           //File file=new File(enc.subdir()+File.separator+ma.getFilename());
           File spvFile = ma.localPath().toFile();
@@ -191,11 +201,11 @@ public class EncounterAddMantaPattern extends HttpServlet {
           FileWriter pw = new FileWriter(scanInput);
           BufferedWriter bw=new BufferedWriter(pw);
           try {
-            
+
             bw.write(inputText);
             bw.flush();
-            
-            
+
+
           }
           catch(Exception e){
             e.printStackTrace();
@@ -203,11 +213,11 @@ public class EncounterAddMantaPattern extends HttpServlet {
           finally{
             bw.close();
           }
-          
+
           if(scanInput.exists()){System.out.println("...Hooray! The file was written! ");}
           else{System.out.println("...Uh oh! The file was NOT written! ");}
-          
-          
+
+
 
           // Run algorithm.
           List<String> procArg = ListHelper.create("/usr/bin/mmatch")
@@ -223,7 +233,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           System.out.println("...rescan3");
           pb2.redirectErrorStream();
           System.out.println("...rescan4");
-          
+
           String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
           System.out.println("...rescan5");
           resultComment.append("<br />").append(procArgStr).append("<br /><br />");
@@ -272,7 +282,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
         encounterNumber = request.getParameter("number");
         try {
-          Encounter enc = myShepherd.getEncounter(encounterNumber);
+          enc = myShepherd.getEncounter(encounterNumber);
           File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
 
           ma = myShepherd.getMediaAsset(request.getParameter("dataCollectionEventID"));
@@ -301,7 +311,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
       }
       // ====================================================================
       else if (action.equals("imageadd")) {
-        
+
         MultipartParser mp = new MultipartParser(request, CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576);
         Part part = null;
         while ((part = mp.readNextPart()) != null) {
@@ -313,7 +323,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             // Determine encounter to which to assign new CR image.
             if (name.equals("number")) {
               encounterNumber = value;
-            } 
+            }
             // Determine existing image to which to assign new CR image.
             if (name.equals("photoNumber")){
               ma = myShepherd.getMediaAsset(value);
@@ -340,7 +350,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             }
 
             // Save new image to file ready for processing.
-            File write2me = mmFiles.get("CR");
+            write2me = mmFiles.get("CR");
             filePart.writeTo(write2me);
             resultComment.append("Successfully saved the new feature image.<br />");
 
@@ -359,24 +369,24 @@ public class EncounterAddMantaPattern extends HttpServlet {
             // Read ouput from process.
             resultComment.append("mmprocess reported the following when trying to create the enhanced image file:<br />");
             BufferedReader brProc = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            try { 
+            try {
               String temp = null;
               while ((temp = brProc.readLine()) != null) {
                 resultComment.append(temp).append("<br />");
-              } 
-            } 
+              }
+            }
             catch (IOException iox) {
               iox.printStackTrace();
               locked = true;
               resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
               resultComment.append(iox.getStackTrace().toString());
-            } 
+            }
             process.waitFor();
 
-            
+
             // Set MMA-compatible flag if appropriate.
             String encID = request.getParameter("encounterID");
-            Encounter enc = null;
+            enc = null;
             if (encID != null)
               enc = myShepherd.getEncounter(encID);
             if (enc != null && MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir)) {
@@ -387,14 +397,14 @@ public class EncounterAddMantaPattern extends HttpServlet {
         }
       }
       // ====================================================================
-      
+
       // ====================================================================
     //imageadd2 is added for the new candidate region selection tool and should eventually replace the original imageadd action
-      
+
       else if (action.equals("imageadd2")) {
-        
+
         System.out.println("STarting EncounterAddMantaPattern.imageadd2");
-        
+
 				encounterNumber = request.getParameter("encounterID");
 				System.out.println("...encounter number: "+encounterNumber);
 				ma = myShepherd.getMediaAsset(request.getParameter("photoNumber"));
@@ -419,24 +429,24 @@ public class EncounterAddMantaPattern extends HttpServlet {
           locked=true;
         }
 
-					String pngData = request.getParameter("pngData");
+				String pngData = request.getParameter("pngData");
 
-					byte[] rawPng = null;
-					try {
-						rawPng = DatatypeConverter.parseBase64Binary(pngData);
-					} catch (IllegalArgumentException ex) {
-						errorMessage = "could not parse image data";
-					}
+				byte[] rawPng = null;
+				try {
+					rawPng = DatatypeConverter.parseBase64Binary(pngData);
+				} catch (IllegalArgumentException ex) {
+					errorMessage = "could not parse image data";
+				}
 
-					Encounter enc = null;
-					File write2me = null;
+					enc = null;
+					write2me = null;
 
 					if (rawPng != null) {
 						// rawPng may be jpeg or png; so lets find out
 						String crImageFormat = null;
 						ByteArrayInputStream bis = new ByteArrayInputStream(rawPng);
-						Object source = bis; 
-						ImageInputStream iis = ImageIO.createImageInputStream(source); 
+						Object source = bis;
+						ImageInputStream iis = ImageIO.createImageInputStream(source);
 						Iterator<?> readers = ImageIO.getImageReaders(iis);
 						ImageReader useReader = null;
 						while (readers.hasNext()) {
@@ -487,17 +497,18 @@ System.out.println("cr format (" + crImageFormat + ") differs from target format
 System.out.println("looks like cr format and target format are the same! -> " + targetFormat);
                 Files.write(write2me.toPath(), rawPng);
 							}
-                
-						}
 
 						}
+
+					}
+System.out.println("A: write2me -> " + write2me.toString());
 
 						if (errorMessage != null) {  //had a problem
 							resultComment.append("error: " + errorMessage);
 
 						} else {
                 //myShepherd.commitDBTransaction();
-            
+
                 resultComment.append("Successfully saved the new feature image: "+write2me.getAbsolutePath()+"<br />");
 
                 // Run 'mmprocess' for image enhancement & to create feature files.
@@ -515,22 +526,24 @@ System.out.println("looks like cr format and target format are the same! -> " + 
                 // Read ouput from process.
                 resultComment.append("mmprocess reported the following when trying to create the enhanced image file:<br />");
                 BufferedReader brProc = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                try { 
+                try {
                   String temp = null;
                   while ((temp = brProc.readLine()) != null) {
                     resultComment.append(temp).append("<br />");
-                  } 
-                } 
+                  }
+                }
                 catch (IOException iox) {
                     iox.printStackTrace();
                     locked = true;
                     resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
                     resultComment.append(iox.getStackTrace().toString());
-                } 
+                }
                 process.waitFor();
+System.out.println("B: write2me -> " + write2me.toString());
 
                 // Set MMA-compatible flag if appropriate.
                 if (enc != null && MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir)) {
+                  enc.setMmaCompatible(true);
 /*
 
 [WB-285]
@@ -550,7 +563,45 @@ we need to:
 
 */
 
-                  enc.setMmaCompatible(true);
+                  // we should only make a new MA if we've made the write2me file above
+                  if (write2me!=null && enc!=null) {
+System.out.println("C: write2me -> " + write2me.toString());
+                    System.out.println("EncounterAddMantaPattern: making CR media asset and trivial annot");
+                    AssetStore astore = AssetStore.getDefault(myShepherd);
+
+                    // the problem here is that write2me is the original file, not the new one that was written
+
+System.out.println("D: write2me -> " + write2me.toString());
+
+                    JSONObject params = astore.createParameters(write2me);
+System.out.println("params.get(\"path\") -> " + params.get("path"));
+
+                    boolean alreadyExists = (astore.find(params, myShepherd) != null);
+                    if (!alreadyExists) {
+
+                      MediaAsset crMa = new MediaAsset(astore, params);
+                      System.out.println("    + just made media asset w fpath "+crMa.getFilename());
+                      Keyword crKeyword = myShepherd.getOrCreateKeyword("CR Image");
+                      String crParentId = request.getParameter("dataCollectionEventID");
+                      crMa.addDerivationMethod("crParentId", crParentId);
+                      crMa.addLabel("CR");
+                      crMa.addKeyword(crKeyword);
+                      crMa.updateMinimalMetadata();
+                      System.out.println("    + updated made media asset");
+                      MediaAssetFactory.save(crMa, myShepherd);
+                      System.out.println("    + saved media asset "+crMa.toString());
+
+                      String speciesString = enc.getTaxonomyString();
+                      Annotation ann = new Annotation(speciesString, crMa);
+                      String iaClass = "mantaCR"; // should we change this?
+                      ann.setIAClass(iaClass);
+                      enc.addAnnotation(ann);
+                      System.out.println("    + made annotation "+ann.toString());
+                      myShepherd.getPM().makePersistent(ann);
+                      System.out.println("    + saved annotation");
+                    }
+
+                  }
                   myShepherd.commitDBTransaction();
                 }
 
@@ -580,7 +631,7 @@ we need to:
           else {
             add2shark.addComments("<p><em>" + user + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed mantamatcher data image.</p>");
           }
-        } 
+        }
         catch (Exception le) {
           locked = true;
           myShepherd.rollbackDBTransaction();
@@ -591,7 +642,7 @@ we need to:
 
         if (!locked) {
           myShepherd.commitDBTransaction();
-          
+
           if ((action.equals("imageadd"))||(action.equals("imageadd2"))) {
             String link = ServletUtilities.getEncounterURL(request, context, encounterNumber);
             ActionResult actRes = new ActionResult_Encounter(locale, "encounter.mma.addCR", true, link)
@@ -606,10 +657,10 @@ we need to:
             String paramSPV = String.format("%s=%s", MantaMatcher.PARAM_KEY_SPV, URLEncoder.encode(new Integer(ma.getId()).toString()));
             String paramScanId = String.format("%s=%s", MantaMatcher.PARAM_KEY_SCANID, URLEncoder.encode(scan.getId()));
             String encN = String.format("%s=%s", "encounterNumber", URLEncoder.encode(encounterNumber));
-            
+
             String resultsURL = String.format("%s/MantaMatcher/displayResults?%s&%s&%s", request.getContextPath(), paramSPV, paramScanId, encN);
             System.out.println("...successfully trying to redirect user to: "+resultsURL);
-            
+
             response.sendRedirect(resultsURL);
           }
           else if (action.equals("removeScan")) {
@@ -637,14 +688,14 @@ we need to:
           out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
           out.println(ServletUtilities.getFooter(context));
         }
-      } 
+      }
       else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to execute this action. I cannot find the encounter that you intended it for in the database.");
         out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
         out.println(ServletUtilities.getFooter(context));
       }
-    } 
+    }
     catch (IOException lEx) {
       lEx.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
@@ -667,4 +718,4 @@ we need to:
   }
 
 }
-  
+
