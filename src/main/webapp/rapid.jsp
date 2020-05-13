@@ -38,7 +38,7 @@ private static String shortId(String id) {
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("imports.jsp");
+myShepherd.setAction("rapid.jsp");
 User user = AccessControl.getUser(request, myShepherd);
 if (user == null) {
     response.sendError(401, "access denied");
@@ -54,6 +54,37 @@ boolean adminMode = ("admin".equals(user.getUsername()));
   props = ShepherdProperties.getProperties("login.properties", langCode,context);
 */
   
+String taskId = request.getParameter("taskId");
+String jdoql = null;
+ImportTask itask = null;
+
+if (taskId != null) {
+    try {
+        itask = (ImportTask) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(ImportTask.class, taskId), true));
+    } catch (Exception ex) {}
+    if ((itask == null) || !(adminMode || user.equals(itask.getCreator()))) {
+        out.println("<h1 class=\"error\">taskId " + taskId + " is invalid</h1>");
+        return;
+    }
+}
+
+String svKey = "rapid_completed_" + taskId;
+
+String setComplete = request.getParameter("complete");
+if (setComplete != null) {
+    myShepherd.beginDBTransaction();
+    JSONObject m = SystemValue.getJSONObject(myShepherd, svKey);
+    if (m == null) m = new JSONObject();
+    m.put(setComplete, true);
+    SystemValue.set(myShepherd, svKey, m);
+    myShepherd.commitDBTransaction();
+    myShepherd.closeDBTransaction();
+    response.sendRedirect("rapid.jsp?taskId=" + taskId);
+    return;
+}
+
+JSONObject completedMap = SystemValue.getJSONObject(myShepherd, svKey);
+if (completedMap == null) completedMap = new JSONObject();
 
 
 %>
@@ -151,24 +182,6 @@ a.button:hover {
 
 <%
 
-String taskId = request.getParameter("taskId");
-String jdoql = null;
-ImportTask itask = null;
-
-if (taskId != null) {
-    try {
-        itask = (ImportTask) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(ImportTask.class, taskId), true));
-    } catch (Exception ex) {}
-    if ((itask == null) || !(adminMode || user.equals(itask.getCreator()))) {
-        out.println("<h1 class=\"error\">taskId " + taskId + " is invalid</h1>");
-        return;
-    }
-}
-
-String svKey = "rapid_completed_" + taskId;
-JSONObject completedMap = SystemValue.getJSONObject(myShepherd, svKey);
-if (completedMap == null) completedMap = new JSONObject();
-
 Map<String,Encounter> encMap = new HashMap<String,Encounter>();
 List<MediaAsset> mas = new ArrayList<MediaAsset>();
 for (Encounter enc : itask.getEncounters()) {
@@ -216,7 +229,7 @@ for (Annotation ann : ma.getAnnotations()) {
                 <a class="button" target="_new" href="iaResults.jsp?taskId=<%=tasks.get(0).getId()%>">Review</a>
 <% }
 if (!state.equals("complete")) { %>
-                <a class="button" target="_new" href="rapid.jsp?taskId=<%=taskId%>&complete=<%=ann.getId()%>">Mark Complete</a>
+                <a class="button" href="rapid.jsp?taskId=<%=taskId%>&complete=<%=ann.getId()%>">Mark Complete</a>
 <% } %>
             </div>
             <div class="proc-state proc-state-<%=state%>" title="status=<%=ann.getIdentificationStatus()%>; tasks=<%=tsize%>">
