@@ -593,6 +593,7 @@ System.out.println("params.get(\"path\") -> " + params.get("path"));
 
                       String speciesString = enc.getTaxonomyString();
                       Annotation ann = new Annotation(speciesString, crMa);
+                      ann.setMatchAgainst(true);
                       String iaClass = "mantaCR"; // should we change this?
                       ann.setIAClass(iaClass);
                       enc.addAnnotation(ann);
