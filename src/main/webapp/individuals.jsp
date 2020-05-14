@@ -1133,7 +1133,7 @@ if (sharky.getNames() != null) {
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupName") %></strong></label>
-              <p id="socialGroupName"><%=unitName%></p>
+              <p id="socialGroupName"><a href="socialUnit.jsp?name=<%=unitName%>"><%=unitName%></a></p>
             </div>
 
             <div class="col-xs-3 col-sm-2">
