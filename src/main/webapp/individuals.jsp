@@ -1422,7 +1422,7 @@ if (sharky.getNames() != null) {
               }
 
               $.ajax({
-                  url: '../MembershipCreate',
+                  url: 'MembershipCreate',
                   type: 'POST',
                   dataType: 'json',
                   contentType: 'application/javascript',
@@ -1454,7 +1454,7 @@ if (sharky.getNames() != null) {
             console.warn("Sending to delete???? -------> "+JSON.stringify(membershipDeleteJSON))
 
             $.ajax({
-                url: '../MembershipDelete',
+                url: 'MembershipDelete',
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/javascript',
