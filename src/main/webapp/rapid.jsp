@@ -144,6 +144,9 @@ a.button:hover {
     background-color: #DDA;
 }
 
+.annot-id {
+    font-size: 0.7em;
+}
 .annot-id, .annot-indiv, .enc-div, .proc-state, .annot-action {
     display: inline-block;
     margin: 0 3px;
@@ -222,16 +225,14 @@ for (Annotation ann : ma.getAnnotations()) {
 <% } else { %>
             <div class="annot-id"><%=shortId(ann.getId())%></div>
 <% } %>
-            <div class="annot-indiv"><%=(indiv == null) ? "unnamed" : indiv.getDisplayName(request)%></div>
-            <%=encDiv(ann, enc)%>
-            <div class="annot-action">
-<% if (state.equals("review")) { %>
-                <a class="button" target="_new" href="iaResults.jsp?taskId=<%=tasks.get(0).getId()%>">Review</a>
-<% }
-if (!state.equals("complete")) { %>
-                <a class="button" href="rapid.jsp?taskId=<%=taskId%>&complete=<%=ann.getId()%>">Mark Complete</a>
+            <div class="annot-indiv">
+<% if (indiv == null) { %>
+                <span style="color: #AAA">unnamed</span>
+<% } else { %>
+                <a target="_new" href="individuals.jsp?id=<%=indiv.getIndividualID()%>"><b><%=indiv.getDisplayName(request)%></b></a>
 <% } %>
             </div>
+            <%=encDiv(ann, enc)%>
             <div class="proc-state proc-state-<%=state%>" title="status=<%=ann.getIdentificationStatus()%>; tasks=<%=tsize%>">
 <% if (state.equals("review")) { %>
                 <i class="el el-eye-open"></i>
@@ -239,6 +240,14 @@ if (!state.equals("complete")) { %>
                 <i class="el el-ok"></i>
 <% } else { %>
                 <i class="el el-hourglass"></i>
+<% } %>
+            </div>
+            <div class="annot-action">
+<% if (state.equals("review")) { %>
+                <a class="button" target="_new" href="iaResults.jsp?taskId=<%=tasks.get(0).getId()%>">Review</a>
+<% }
+if (!state.equals("complete")) { %>
+                <a class="button" href="rapid.jsp?taskId=<%=taskId%>&complete=<%=ann.getId()%>">Mark Complete</a>
 <% } %>
             </div>
         </div>
