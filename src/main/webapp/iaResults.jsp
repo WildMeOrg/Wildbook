@@ -2,10 +2,38 @@
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
+org.ecocean.servlet.importer.ImportTask,
 org.ecocean.identity.IdentityServiceLog,
+org.ecocean.SystemValue,
+javax.jdo.Query,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
-
+<%!
+//try to see if encounter was part of ImportTask so we can mark complete
+//  note: this sets *all annots* on that encounter!  clever or stupid?  tbd!
+private static void setImportTaskComplete(Shepherd myShepherd, Encounter enc) {
+    if ((enc == null) || (enc.numAnnotations() < 1)) return;
+    String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber =='" + enc.getCatalogNumber() + "'";
+    Query query = myShepherd.getPM().newQuery(jdoql);
+    query.setOrdering("created desc");
+    List results = (List)query.execute();
+    ImportTask itask = null;
+    if (!Util.collectionIsEmptyOrNull(results)) itask = (ImportTask)results.get(0);
+    query.closeAll();
+System.out.println("setImportTaskComplete(" + enc + ") => " + itask);
+    if (itask == null) return;
+    String svKey = "rapid_completed_" + itask.getId();
+    myShepherd.beginDBTransaction();
+    JSONObject m = SystemValue.getJSONObject(myShepherd, svKey);
+    if (m == null) m = new JSONObject();
+    for (Annotation ann : enc.getAnnotations()) {
+        m.put(ann.getId(), true);
+System.out.println("setImportTaskComplete() setting true for annot " + ann.getId());
+    }
+    SystemValue.set(myShepherd, svKey, m);
+    myShepherd.commitDBTransaction();
+}
+%>
 <%
 
 String context = ServletUtilities.getContext(request);
@@ -191,6 +219,8 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
 					myShepherd.updateDBTransaction();
+                                        setImportTaskComplete(myShepherd, enc);
+                                        setImportTaskComplete(myShepherd, enc2);
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
@@ -203,6 +233,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv.addEncounter(enc2);
 				res.put("individualName", indiv.getDisplayName());
 				myShepherd.updateDBTransaction();
+                                setImportTaskComplete(myShepherd, enc2);
 			} 	
 
 			// target enc has indy
@@ -212,6 +243,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv2.addEncounter(enc);
 				res.put("individualName", indiv2.getDisplayName());
 				myShepherd.updateDBTransaction();
+                                setImportTaskComplete(myShepherd, enc);
 			} 
 
 
