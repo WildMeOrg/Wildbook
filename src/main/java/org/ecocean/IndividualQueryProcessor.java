@@ -17,6 +17,7 @@ import javax.jdo.Query;
 
 import org.ecocean.Util.MeasurementDesc;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.social.SocialUnit;
 
 import java.util.Iterator;
 
@@ -1314,11 +1315,14 @@ public class IndividualQueryProcessor extends QueryProcessor {
         prettyPrint.append("Social unit is one of the following: ");
         for(int i=0;i<numCommunities;i++){
           prettyPrint.append(communities[i]+" ");
-          for (int q = 0; q < rIndividuals.size(); q++) {
-            MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
-            if(!myShepherd.getAllMarkedIndividualsInSocialUnit(communities[i]).contains(tShark)) {
-              rIndividuals.remove(q);
-              q--;
+          SocialUnit su=myShepherd.getSocialUnit(communities[i]);
+          if(su!=null) {
+            for (int q = 0; q < rIndividuals.size(); q++) {
+              MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
+              if(!su.hasMarkedIndividualAsMember(tShark)) {
+                rIndividuals.remove(q);
+                q--;
+              }
             }
           }
         }
