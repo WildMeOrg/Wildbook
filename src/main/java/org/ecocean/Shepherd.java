@@ -788,20 +788,15 @@ public class Shepherd {
     
   // }
 
-  public List<SocialUnit> getAllSocialUnitsForMarkedIndividual(MarkedIndividual mi) {
-    List<SocialUnit> units = getAllSocialUnits();
-    List<SocialUnit> matches = null;
-    if (units!=null) {
-      for (SocialUnit su : units) {
-        if (su.hasMarkedIndividualAsMember(mi)) {
-          if (matches==null) {
-            matches = new ArrayList<SocialUnit>();
-          }
-          matches.add(su);
-        }
-      }
-    }
-    return matches;
+  public List<SocialUnit> getAllSocialUnitsForMarkedIndividual(MarkedIndividual indie){
+    
+    String filter2use = "SELECT FROM org.ecocean.social.SocialUnit WHERE members.contains(member) && member.mi.individualID == '"+indie.getIndividualID()+"' VARIABLES org.ecocean.social.Membership member";
+    Query query = pm.newQuery(filter2use);
+    Collection c = (Collection) (query.execute());
+    ArrayList<SocialUnit> listy = new ArrayList<SocialUnit>();
+    if(c!=null)listy = new ArrayList<SocialUnit>(c);
+    query.closeAll();
+    return listy;
   }
 
   public ArrayList<SocialUnit> getAllSocialUnits() {
@@ -4545,46 +4540,6 @@ public class Shepherd {
   }
 
 
-  public List<MarkedIndividual> getAllMarkedIndividualsInCommunity(String communityName){
-    ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
-
-    // this will get all indy's from group based on the Reletionship class.
-    Extent encClass = pm.getExtent(Relationship.class, true);
-    String filter2use = "this.relatedSocialUnitName == \""+communityName+"\"";
-    Query acceptedEncounters = pm.newQuery(encClass, filter2use);
-    Collection c = (Collection) (acceptedEncounters.execute());
-    ArrayList listy = new ArrayList(c);
-    int listySize=listy.size();
-    for(int i=0;i<listySize;i++){
-      Relationship rely=(Relationship)listy.get(i);
-      if(rely.getMarkedIndividualName1()!=null){
-        String name1=rely.getMarkedIndividualName1();
-        if(isMarkedIndividual(name1)){
-          MarkedIndividual indie=getMarkedIndividual(name1);
-          if(!indies.contains(indie)){indies.add(indie);}
-        }
-      }
-      if(rely.getMarkedIndividualName2()!=null){
-        String name2=rely.getMarkedIndividualName2();
-        if(isMarkedIndividual(name2)){
-          MarkedIndividual indie=getMarkedIndividual(name2);
-          if(!indies.contains(indie)){indies.add(indie);}
-        }
-      }
-
-      // We also need all Indy's that have a Membership in a SocialUnit, and may not have a pairwise Relationship object. 
-      SocialUnit su = getSocialUnit(communityName);
-      List<MarkedIndividual> socMis = su.getMarkedIndividuals();
-      for (MarkedIndividual mi : socMis) {
-        if (!indies.contains(mi)) {
-          indies.add(mi);
-        }
-      }
-
-    }
-    acceptedEncounters.closeAll();
-    return indies;
-  }
 
   public ArrayList<Relationship> getAllRelationshipsForMarkedIndividual(String indieName){
     Extent encClass = pm.getExtent(Relationship.class, true);
@@ -4598,11 +4553,9 @@ public class Shepherd {
   }
 
   public ArrayList<String> getAllSocialUnitsForMarkedIndividual(String indieName){
-    Extent encClass = pm.getExtent(Relationship.class, true);
-
-    String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
-    Query query = pm.newQuery(encClass, filter2use);
-    query.setResult("distinct relatedSocialUnitName");
+    String filter2use = "SELECT FROM org.ecocean.social.SocialUnit WHERE members.contains(member) && member.mi.individualID == '"+indieName+"' VARIABLES org.ecocean.social.Membership member";
+    Query query = pm.newQuery(filter2use);
+    query.setResult("distinct socialUnitName");
     Collection c = (Collection) (query.execute());
     //System.out.println("Num relationships for MarkedIndividual "+indieName+": "+c.size());
     ArrayList<String> listy = new ArrayList<String>();

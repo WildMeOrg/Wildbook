@@ -51,8 +51,6 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("OccurrenceRemoveEncounter.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -63,18 +61,25 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
     //remove Encounter from Occurrence
 
     if ((request.getParameter("number") != null)) {
+      
+      Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("OccurrenceRemoveEncounter.class");
+      
       myShepherd.beginDBTransaction();
       Encounter enc2remove = myShepherd.getEncounter(request.getParameter("number"));
-      setDateLastModified(enc2remove);
-      if (myShepherd.getOccurrenceForEncounter(enc2remove.getCatalogNumber())!=null) {
+      
+      if (enc2remove!=null && myShepherd.getOccurrenceForEncounter(enc2remove.getCatalogNumber())!=null) {
+        setDateLastModified(enc2remove);
         String old_name = myShepherd.getOccurrenceForEncounter(enc2remove.getCatalogNumber()).getOccurrenceID();
         boolean wasRemoved = false;
         String name_s = "";
         try {
           Occurrence removeFromMe = myShepherd.getOccurrenceForEncounter(enc2remove.getCatalogNumber());
           name_s = removeFromMe.getOccurrenceID();
-          while (removeFromMe.getEncounters().contains(enc2remove)) {
-            removeFromMe.removeEncounter(enc2remove);
+          if(removeFromMe.getEncounters()!=null) {
+            while (removeFromMe.getEncounters().contains(enc2remove)) {
+              removeFromMe.removeEncounter(enc2remove);
+            }
           }
 
 
@@ -87,12 +92,14 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
             wasRemoved = true;
           }
 
-        } catch (java.lang.NullPointerException npe) {
+        } 
+        catch (java.lang.NullPointerException npe) {
           npe.printStackTrace();
           locked = true;
           myShepherd.rollbackDBTransaction();
 
-        } catch (Exception le) {
+        } 
+        catch (Exception le) {
           le.printStackTrace();
           locked = true;
           myShepherd.rollbackDBTransaction();
@@ -121,22 +128,26 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
 
         }
 
-      } else {
+      } 
+      else {
         myShepherd.rollbackDBTransaction();
         //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> You can't remove this encounter from an occurrence because it is not assigned to one.");
         //out.println(ServletUtilities.getFooter(context));
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
+      
+      myShepherd.closeDBTransaction();
 
 
-    } else {
+    } 
+    else {
       out.println("I did not receive enough data to remove this encounter from an occurrence.");
     }
 
 
     out.close();
-    myShepherd.closeDBTransaction();
+
   }
 
 }
