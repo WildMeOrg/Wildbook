@@ -512,7 +512,7 @@ finally{
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
                                 <% } %>
-                                <li><a target="_blank" href="http://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
+                                <li><a target="_blank" href="https://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
                                 <% if(CommonConfiguration.isCatalogEditable(context)) { %>
                                   <li class="divider"></li>
                                   <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
@@ -523,9 +523,9 @@ finally{
 
                             } //end if admin
                             %>
-                            <li class="dropdown">
-                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
-                              <ul class="dropdown-menu solid-menu-background" role="menu">
+                           
+   
+                        
                               <%
                               if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
                               %>
@@ -537,8 +537,7 @@ finally{
 
 
 
-                              </ul>
-                            </li>
+                              
 
                             
                             <%
