@@ -108,6 +108,11 @@ a.button:hover {
 .asset-row {
     display: flex;
     margin-top: 20px;
+    padding: 5px;
+}
+
+.asset-row-complete {
+    background-color: #d8fdf0;
 }
 
 .asset-wrapper {
@@ -123,7 +128,7 @@ a.button:hover {
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: rgba(255,255,255,0.3);
+    background-color: rgba(255,255,255,0.7);
     color: black;
     text-align: center;
 }
@@ -167,34 +172,83 @@ a.button:hover {
     background-color: #4D8;
 }
 .proc-state-review {
-    background-color: #86ca3c;
+    background-color: #0c77c3;
 }
 
 .annot-action {
     width: 10em;
 }
 
+
+#summary {
+    display: inline-block;
+    margin: 0 10px;
+}
 </style>
 
 
+<!--
     <script src="javascript/bootstrap-table/bootstrap-table.min.js"></script>
     <link rel="stylesheet" href="javascript/bootstrap-table/bootstrap-table.min.css" />
+-->
+<script>
+function checkRows() {
+    $('.asset-row').each(function(i, el) {
+        var jel = $(el);
+        var incomplete = jel.find('.annot-row').length - jel.find('.annot-state-complete').length;
+        if (incomplete < 1) jel.addClass('asset-row-complete');
+    });
+    updateSummary();
+}
+
+
+function updateSummary() {
+    var total = $('.asset-row').length;
+    var complete = $('.asset-row-complete').length;
+    var h = '<b>' + complete + '</b> complete | ';
+    h += '<b>' + (total - complete) + '</b> pending | ';
+    h += '<b>' + total + '</b> total';
+    $('#summary').html(h);
+}
+
+function toggleComplete() {
+    $('.asset-row-complete').toggle();
+}
+
+</script>
 
 
 <div class="container maincontent">
 
+<div>
+    <input type="button" onClick="toggleComplete();" value="Toggle complete visibility" />
+    <div id="summary"></div>
+</div>
+
 <%
 
 Map<String,Encounter> encMap = new HashMap<String,Encounter>();
+List<Annotation> anns = new ArrayList<Annotation>();
 List<MediaAsset> mas = new ArrayList<MediaAsset>();
 for (Encounter enc : itask.getEncounters()) {
     if (!enc.hasAnnotations()) continue;
     for (Annotation ann : enc.getAnnotations()) {
+        if (!anns.contains(ann)) anns.add(ann);
         encMap.put(ann.getId(), enc);
         MediaAsset ma = ann.getMediaAsset();
-        if ((ma != null) && !mas.contains(ma)) mas.add(ma);
-        //out.println(ann.getId() + "<br />");
+        if (ma == null) continue;
+        if (!mas.contains(ma)) mas.add(ma);
+        for (Annotation a : ma.getAnnotations()) {  //this catches second+ annots made via detection!
+            if (!anns.contains(a)) anns.add(a);
+        }
     }
+}
+
+//now we find encs for those secondary+ annots
+for (Annotation ann : anns) {
+    if (encMap.containsKey(ann.getId())) continue;
+    Encounter enc = ann.findEncounter(myShepherd);
+    if (enc != null) encMap.put(ann.getId(), enc);
 }
 
 for (MediaAsset ma : mas) {
@@ -262,6 +316,7 @@ if (!state.equals("complete")) { %>
 %>
 
 </div>
+<script> checkRows(); </script>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
