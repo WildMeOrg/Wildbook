@@ -206,6 +206,7 @@ public class Collaboration implements java.io.Serializable {
 		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ";
 		queryString += "(username1 == '"+username1+"' && username2 == '"+username2+"') || ";
 		queryString += "(username1 == '"+username2+"' && username2 == '"+username1+"')";
+		Shepherd myShepherd = new Shepherd(context);
 		myShepherd.setAction("collaborationBetweenUsers");
 		myShepherd.beginDBTransaction();
 		Query query = myShepherd.getPM().newQuery(queryString);
