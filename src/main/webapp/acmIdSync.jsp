@@ -19,7 +19,7 @@ Shepherd myShepherd = new Shepherd(context);
 
 if (request.getParameter("annotations") == null) {
     out.println("[");
-    String sql = "SELECT DISTINCT(\"ACMID\") AS acmId FROM \"MEDIAASSET\" WHERE \"ACMID\" IS NOT NULL ORDER BY acmId LIMIT 30;";
+    String sql = "SELECT DISTINCT(\"ACMID\") AS acmId FROM \"MEDIAASSET\" WHERE \"ACMID\" IS NOT NULL ORDER BY acmId; ";
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
     List results = (List)q.execute();
     Iterator it = results.iterator();
@@ -47,7 +47,7 @@ if (request.getParameter("annotations") == null) {
         "join \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") " +
         "join \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") " + 
         " where \"ANNOTATION\".\"ACMID\" is not null " +
-        " order by \"ACMID\"  LIMIT 100; ";
+        " order by \"ACMID\" ;";
     Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
     List results = (List)q.execute();
     Iterator it = results.iterator();
