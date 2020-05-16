@@ -17,7 +17,13 @@ java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%!
 private static String encDiv(Annotation ann, Encounter enc) {
     if (enc == null) return "<!-- null enc -->";
-    return "<div class=\"enc-div\">[enc:" + shortId(enc.getCatalogNumber()) + "]</div>";
+    String h = shortId(enc.getCatalogNumber());
+    Long m = enc.getDateInMilliseconds();
+    if (m != null) h = (new DateTime(m)).toString().substring(0,10);
+    h = "<a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + h + "</a>";
+    if (enc.getSex() != null) h += " / " + enc.getSex();
+    if (enc.getLifeStage() != null) h += " / " + enc.getLifeStage();
+    return "<div class=\"enc-div\">" + h + "</div>";
 }
 
 private static String procStateCode(Annotation ann, List<Task> tasks) {
@@ -130,6 +136,7 @@ a.button:hover {
     left: 0;
     width: 100%;
     background-color: rgba(255,255,255,0.7);
+    font-weight: bold;
     color: black;
     text-align: center;
 }
