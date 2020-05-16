@@ -4,6 +4,7 @@ org.joda.time.DateTime,
 org.ecocean.servlet.importer.ImportTask,
 org.ecocean.ia.Task,
 org.ecocean.media.MediaAsset,
+org.ecocean.media.Feature,
 javax.jdo.Query,
 org.json.JSONObject,
 org.json.JSONArray,
@@ -145,8 +146,9 @@ a.button:hover {
     border-radius: 7px;
     background-color: #DDD;
 }
-.annot-row:hover {
-    background-color: #DDA;
+.annot-row:hover, .annot-hilite {
+    background-color: #DDA !important;
+    outline: solid #444 1px;
 }
 
 .annot-id {
@@ -179,6 +181,26 @@ a.button:hover {
     width: 10em;
 }
 
+.feature-box {
+    position: absolute;
+    border: dashed 2px yellow;
+    opacity: 0.4;
+    cursor: pointer;
+}
+.feature-box:hover, .feature-hilite {
+    opacity: 1.0 !important;
+}
+.feature-note {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    font-size: 0.75em;
+    font-weight: bold;
+    background-color: rgba(255,255,255,0.7);
+    color: black;
+    text-align: center;
+}
 
 #summary {
     display: inline-block;
@@ -192,6 +214,7 @@ a.button:hover {
     <link rel="stylesheet" href="javascript/bootstrap-table/bootstrap-table.min.css" />
 -->
 <script>
+var assetData = {};
 function checkRows() {
     $('.asset-row').each(function(i, el) {
         var jel = $(el);
@@ -199,6 +222,14 @@ function checkRows() {
         if (incomplete < 1) jel.addClass('asset-row-complete');
     });
     updateSummary();
+    $('.annot-row').on('mouseover', function(ev) {
+        var aid = ev.currentTarget.id.substring(10);
+        $('.feature-' + aid).addClass('feature-hilite');
+    });
+    $('.annot-row').on('mouseout', function(ev) {
+        var aid = ev.currentTarget.id.substring(10);
+        $('.feature-' + aid).removeClass('feature-hilite');
+    });
 }
 
 
@@ -213,6 +244,37 @@ function updateSummary() {
 
 function toggleComplete() {
     $('.asset-row-complete').toggle();
+}
+
+
+function assetLoaded(imgEl) {
+    var jel = $(imgEl);
+    var scale = imgEl.height / imgEl.naturalHeight;
+    var wrap = jel.closest('.asset-wrapper');
+    var mid = wrap.attr('id').substring(14);
+    if (!assetData[mid] || (Object.keys(assetData[mid]).length < 2)) return;
+    for (var annId in assetData[mid]) {
+        for (var i = 0 ; i < assetData[mid][annId].length ; i++) {
+            if (assetData[mid][annId][i].type != 'org.ecocean.boundingBox') continue;
+            if (!assetData[mid][annId][i].parameters) continue;
+            var fbox = $('<div data-annotid="' + annId + '" class="feature-' + annId + ' feature-box"><div class="feature-note">' + annId.substring(0,8) + '</div></div>');
+            fbox.css('width', (assetData[mid][annId][i].parameters.width * scale) + 'px');
+            fbox.css('height', (assetData[mid][annId][i].parameters.height * scale) + 'px');
+            fbox.css('left', (assetData[mid][annId][i].parameters.x * scale) + 'px');
+            fbox.css('top', (assetData[mid][annId][i].parameters.y * scale) + 'px');
+            if (assetData[mid][annId][i].parameters.theta) fbox.css('transform', 'rotate(' +  assetData[mid][annId][i].parameters.theta + 'rad)');
+            //console.log('%s %d: %o', annId, i, assetData[mid][annId][i]);
+            wrap.append(fbox);
+            fbox.on('mouseover', function(ev) {
+                var aid = ev.currentTarget.getAttribute('data-annotid');
+                $('#annot-row-' + aid).addClass('annot-hilite');
+            });
+            fbox.on('mouseout', function(ev) {
+                var aid = ev.currentTarget.getAttribute('data-annotid');
+                $('#annot-row-' + aid).removeClass('annot-hilite');
+            });
+        }
+    }
 }
 
 </script>
@@ -255,13 +317,23 @@ for (MediaAsset ma : mas) {
 %>
 <div class="asset-row" id="asset-row-<%=ma.getId()%>">
     <div class="asset-wrapper" id="asset-wrapper-<%=ma.getId()%>">
-        <img src="<%=ma.safeURL(request)%>" />
+        <img onLoad="assetLoaded(this);" src="<%=ma.safeURL(request)%>" />
         <div class="asset-filename"><%=ma.getFilename()%></div>
     </div>
 
     <div class="annotlist">
 <%
-for (Annotation ann : ma.getAnnotations()) { 
+JSONObject adata = new JSONObject();
+for (Annotation ann : ma.getAnnotations()) {
+    JSONArray fts = new JSONArray();
+    for (Feature ft : ann.getFeatures()) {
+        JSONObject jf = new JSONObject();
+        jf.put("type", ft.getType());
+        String foo = ft.getParametersAsString();  //silly dn busting
+        jf.put("parameters", ft.getParameters());
+        fts.put(jf);
+    }
+    adata.put(ann.getId(), fts);
     List<Task> tasks = ann.getRootIATasks(myShepherd);
     int tsize = Util.collectionSize(tasks);
     Encounter enc = encMap.get(ann.getId());
@@ -306,6 +378,9 @@ if (!state.equals("complete")) { %>
             </div>
         </div>
 <% } %>
+<script>
+    assetData['<%=ma.getId()%>'] = <%=adata.toString()%>;
+</script>
     </div>
 
 </div>
