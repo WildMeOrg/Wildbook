@@ -45,8 +45,7 @@ public class MembershipCreate extends HttpServlet {
 
         response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
         String context= ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("MembershipCreate.java");
+
 
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
@@ -58,6 +57,11 @@ public class MembershipCreate extends HttpServlet {
         String startDate;
         String endDate;
 
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MembershipCreate.java");
+        myShepherd.beginDBTransaction();
+        
+        
         MarkedIndividual mi = null;
         try {            
             JSONObject res = new JSONObject();
@@ -69,7 +73,12 @@ public class MembershipCreate extends HttpServlet {
                 groupName = j.optString("groupName", "").trim();
                 roleName = j.optString("roleName", "").trim();
                 startDate = j.optString("startDate", null);
+                System.out.println("miID: "+miId);
                 endDate = j.optString("endDate", null);
+                
+                System.out.println("startDate: "+startDate);
+                System.out.println("endDate: "+endDate);
+                
                 SocialUnit su = myShepherd.getSocialUnit(groupName);
                 boolean isNew = false;
                 if (su==null) {
@@ -77,14 +86,29 @@ public class MembershipCreate extends HttpServlet {
                     su = new SocialUnit(groupName);
                     myShepherd.storeNewSocialUnit(su);
                 }
+                DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-mm-dd'T'HH:mm:ss.SSS'Z'");
+                
                 Membership membership = null;
                 if (su.hasMarkedIndividualAsMember(mi)) {
                     membership = su.getMembershipForMarkedIndividual(mi);
+                    if (startDate!=null&&!"".equals(startDate)) {
+                      DateTime startDT = DateTime.parse(startDate, formatter); 
+                      Long startLong = startDT.getMillis();   
+                      membership.setStartDate(startLong.longValue());
+                    } 
+                    if (endDate!=null&&!"".equals(endDate)) {
+                      DateTime endDT = DateTime.parse(endDate, formatter);
+                      Long endLong = endDT.getMillis(); 
+                      membership.setEndDate(endLong.longValue());
+                    }
+                    if (roleName!=null&&!"".equals(roleName)) { 
+                      membership.setRole(roleName);
+                    }
+                    myShepherd.updateDBTransaction();
                 } else {
                     System.out.println("New membership!");
                     Long startLong = null;
                     Long endLong = null;
-                    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
                     
                     if (startDate!=null&&!"".equals(startDate)) {
                         DateTime startDT = DateTime.parse(startDate, formatter); 
@@ -121,7 +145,7 @@ public class MembershipCreate extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            myShepherd.commitDBTransaction();
+            myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
         }
 
