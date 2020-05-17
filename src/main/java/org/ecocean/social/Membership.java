@@ -84,16 +84,16 @@ public class Membership implements java.io.Serializable {
     public String getStartDate() { 
         if (startDate!=null) {
             DateTime dt = new DateTime(startDate);
-            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
+            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
             return dt.toString(fmt);
         }
         return null;
     }
 
     public String getEndDate() {
-        if (startDate!=null) {
-            DateTime dt = new DateTime(startDate);
-            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
+        if (endDate!=null) {
+            DateTime dt = new DateTime(endDate);
+            DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
             return dt.toString(fmt);
         }
         return null;
