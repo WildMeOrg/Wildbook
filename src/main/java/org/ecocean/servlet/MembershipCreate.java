@@ -17,6 +17,7 @@ import org.ecocean.social.SocialUnit;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -76,8 +77,18 @@ public class MembershipCreate extends HttpServlet {
                 System.out.println("miID: "+miId);
                 endDate = j.optString("endDate", null);
                 
+                //we only need the year-month-day
+                if(startDate.indexOf("T")!=-1) {
+                  startDate=startDate.substring(0,startDate.indexOf("T"));
+                }
+                if(endDate.indexOf("T")!=-1) {
+                  endDate=endDate.substring(0,endDate.indexOf("T"));
+                }
+                
                 System.out.println("startDate: "+startDate);
                 System.out.println("endDate: "+endDate);
+                
+                
                 
                 SocialUnit su = myShepherd.getSocialUnit(groupName);
                 boolean isNew = false;
@@ -86,18 +97,21 @@ public class MembershipCreate extends HttpServlet {
                     su = new SocialUnit(groupName);
                     myShepherd.storeNewSocialUnit(su);
                 }
-                DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-mm-dd'T'HH:mm:ss.SSS'Z'");
+                //DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                DateTimeFormatter formatter = ISODateTimeFormat.dateOptionalTimeParser();
                 
                 Membership membership = null;
                 if (su.hasMarkedIndividualAsMember(mi)) {
                     membership = su.getMembershipForMarkedIndividual(mi);
                     if (startDate!=null&&!"".equals(startDate)) {
                       DateTime startDT = DateTime.parse(startDate, formatter); 
+                      System.out.println("StartDate parsed: "+startDT.toString());
                       Long startLong = startDT.getMillis();   
                       membership.setStartDate(startLong.longValue());
                     } 
                     if (endDate!=null&&!"".equals(endDate)) {
                       DateTime endDT = DateTime.parse(endDate, formatter);
+                      System.out.println("EndDate parsed: "+endDT.toString());
                       Long endLong = endDT.getMillis(); 
                       membership.setEndDate(endLong.longValue());
                     }
@@ -122,6 +136,7 @@ public class MembershipCreate extends HttpServlet {
                     membership = new Membership(mi, roleName, startLong, endLong);
                     myShepherd.storeNewMembership(membership);
                     su.addMember(membership);
+                    myShepherd.updateDBTransaction();
                 }
     
                 response.setContentType("text/plain");
