@@ -25,9 +25,20 @@ wildbook.NoteField = {
         wildbook.NoteField.quill[id] = new Quill('#id-' + id, {
             modules: {
                 toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    [{ 'list': 'bullet' }, 'bold', 'italic', 'underline'],
-                    ['link', 'image']
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['image', 'blockquote'],
+	            ['link','table'],
+	            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+	            [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+	            [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+	            [{ 'direction': 'rtl' }],                         // text direction
+
+	            [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+	            [{ 'font': [] }],
+	            [{ 'align': [] }],
+
+	            ['clean']      
                 ]
             },
             theme: 'snow'
@@ -106,34 +117,37 @@ wildbook.NoteField = {
 		$("#imgHeight").val('');
 		$("#imgVspace").val('');
 		$("#imgHspace").val('');
+		$("#imAlign").val('');
+		$imgid = this.id = "img_" + Math.round(e.timeStamp)
+		var elem = this;
 		
 		$("#imgWidth").change(function(){
 			var imWidth = $("#imgWidth").val();
 			if(imWidth > 99)
-				imgElem.attr('width',imWidth);
+				$("#" + $imgid).attr('width',imWidth);
 			else
 				alert("Width Must be greater than 100")
 		})
 		$("#imgHeight").change(function(){
 			var imgHeight = $("#imgHeight").val();
 			if(imgHeight > 99)
-				imgElem.attr('height',imgHeight);
+				$("#" + $imgid).attr('height',imgHeight);
 			else
 				alert("Height Must be greater than 100")
 		})
 		$("#imgVspace").change(function(){
 			var imgVspace = $("#imgVspace").val();
 			if(imgVspace > 1)
-				imgElem.attr('vspace',imgVspace);
+				$("#" + $imgid).attr('vspace',imgVspace);
 		})
 		$("#imgHspace").change(function(){
 			var imgHspace = $("#imgHspace").val();
 			if(imgHspace > 1)
-				imgElem.attr('hspace',imgHspace);
+				$("#" + $imgid).attr('hspace',imgHspace);
 		})
 		$("#imAlign").change(function(){
 			var imAlign = $("#imAlign").val();
-			imgElem.attr('align',imAlign);
+			$("#" + $imgid).attr('align', imAlign);
 		})
 		$("#imgSetBtn").click(function(){
 			$('#addImgAttr').hide();
@@ -146,12 +160,13 @@ wildbook.NoteField = {
 		$('#addLinkAttr').css( 'left', e.pageX );
 		$('#addLinkAttr').css( 'z-index','1');
 		$('#addLinkAttr').show();
+		$id = this.id = "link_" + Math.round(e.timeStamp)
+		var linkElem =this;
 		
-		var linkElem = $(this);
 		$("#linkAttr").val('')
-		$("#linkAttr").change(function(){
+		$("#linkAttr").bind('click',function(e){
 			var t = $("#linkAttr").val();
-			linkElem.attr('target',t);
+			$("#" + $id).attr('target',t)
 		})
 		$("#linkSetBtn").click(function(){
 			$('#addLinkAttr').hide();
@@ -159,7 +174,7 @@ wildbook.NoteField = {
 		
 	})
 
-	$('body').append("<div id='addImgAttr'>	<table><tr><td><input type='number' placeholder='width' id='imgWidth' min='100' style='width:60px;height:30px' /></td><td><input type='number' placeholder='height' id='imgHeight' style='width:60px;height:30px' /></td><td><input type='number' placeholder='hspace' id='imgHspace' style='width:60px;height:30px' /></td><td><input type='number' placeholder='vspace' id='imgVspace' style='width:60px;height:30px' /></td><td><select id='imAlign' style='width:60px;height:30px'><option value='unset'>Unset</option><option value='left'>Left</option><option value='right'>Right</option><option value='top'>Top</option><option value='bottom'>Bottom</option><option value='middle'>Middle</option></select></td><td><input type='button' value='Close' id='imgSetBtn' style='width:60px;height:30px' /></td></tr></table></div>");
+	$('body').append("<div id='addImgAttr'>	<table><tr><td><input type='number' placeholder='width' id='imgWidth' min='100' style='width:60px;height:30px' /></td><td><input type='number' placeholder='height' id='imgHeight' style='width:60px;height:30px' /></td></tr><tr><td><input type='number' placeholder='hspace' id='imgHspace' style='width:60px;height:30px' /></td><td><input type='number' placeholder='vspace' id='imgVspace' style='width:60px;height:30px' /></td></tr><tr><td><select id='imAlign' style='width:60px;height:30px'><option value='unset'>Unset</option><option value='left'>Left</option><option value='right'>Right</option><option value='top'>Top</option><option value='bottom'>Bottom</option><option value='middle'>Middle</option></select></td><td><input type='button' value='Close' id='imgSetBtn' style='width:60px;height:30px' /></td></tr></table></div>");
 	$('#addImgAttr').hide();
 	$('body').append("<div id='addLinkAttr'><table><tr><td><select id='linkAttr' style='width:60px;height:30px'><option value=''>Default</option><option value='_blank'>Blank</option><option value='_self'>Self</option></select></td><td><input type='button' value='Close' id='linkSetBtn' style='width:60px;height:30px' /></td></tr></table></div>");
 	$('#addLinkAttr').hide();
