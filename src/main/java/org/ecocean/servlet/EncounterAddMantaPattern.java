@@ -35,6 +35,7 @@ import org.ecocean.media.*;
 import org.ecocean.mmutil.ListHelper;
 import org.ecocean.mmutil.MantaMatcherScan;
 import org.ecocean.mmutil.MantaMatcherUtilities;
+import org.ecocean.identity.IBEISIA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -590,7 +591,10 @@ System.out.println("params.get(\"path\") -> " + params.get("path"));
                       System.out.println("    + updated made media asset");
                       MediaAssetFactory.save(crMa, myShepherd);
                       System.out.println("    + saved media asset "+crMa.toString());
-
+                      myShepherd.updateDBTransaction();
+                      System.out.println("    + updated transaction, about to make children");
+                      crMa.updateStandardChildren(myShepherd);
+                      System.out.println("    + updated children for asset "+crMa.toString()+"; hasFamily = "+crMa.hasFamily(myShepherd));
                       String speciesString = enc.getTaxonomyString();
                       Annotation ann = new Annotation(speciesString, crMa);
                       ann.setMatchAgainst(true);
@@ -600,6 +604,24 @@ System.out.println("params.get(\"path\") -> " + params.get("path"));
                       System.out.println("    + made annotation "+ann.toString());
                       myShepherd.getPM().makePersistent(ann);
                       System.out.println("    + saved annotation");
+
+                      // we need to intake mediaassets so they get acmIds and are matchable
+                      ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
+                      maList.add(crMa);
+                      ArrayList<Annotation> annList = new ArrayList<Annotation>();
+                      annList.add(ann);
+                      try {
+                        System.out.println("    + sending asset to IA");
+                        IBEISIA.sendMediaAssetsNew(maList, context);
+                        System.out.println("    + asset sent, sending annot");
+                        IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
+                        System.out.println("    + annot sent.");
+                      } catch (Exception e) {
+                        e.printStackTrace();
+                        System.out.println("hit above exception while trying to send CR ma & annot to IA");
+                      }
+                      System.out.println("    + done processing new CR annot");
+
                     }
 
                   }
