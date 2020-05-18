@@ -79,10 +79,10 @@ public class MembershipCreate extends HttpServlet {
                 endDate = j.optString("endDate", null);
                 
                 //we only need the year-month-day
-                if(startDate.indexOf("T")!=-1) {
+                if(startDate !=null && startDate.indexOf("T")!=-1) {
                   startDate=startDate.substring(0,startDate.indexOf("T"));
                 }
-                if(endDate.indexOf("T")!=-1) {
+                if(endDate != null && endDate.indexOf("T")!=-1) {
                   endDate=endDate.substring(0,endDate.indexOf("T"));
                 }
                 
