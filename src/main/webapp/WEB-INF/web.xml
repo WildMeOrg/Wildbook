@@ -407,6 +407,7 @@
 				/AnnotationSetMatchAgainst = authc, roles[admin]
 				
 				/MembershipCreate = authc
+				/MembershipDelete = authc
 				
             </param-value>
         </init-param>
