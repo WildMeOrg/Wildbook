@@ -1129,7 +1129,7 @@ if (sharky.getNames() != null) {
         <!--display current social unit membership-->
         <br/>
         <div id="displayMembership" class="socialUnitEditForm">
-          <div class="form-group row">
+          <div class="form-group row" style="padding: 5px;">
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupName") %></strong></label>
