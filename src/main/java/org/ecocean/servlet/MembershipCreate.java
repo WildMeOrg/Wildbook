@@ -148,6 +148,7 @@ public class MembershipCreate extends HttpServlet {
               res.put("success","false");
               res.put("error","Unknown MarkedIndividual.");
               response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+              
             }
             
             
