@@ -5,6 +5,8 @@ org.ecocean.servlet.importer.ImportTask,
 org.ecocean.media.MediaAsset,
 javax.jdo.Query,
 org.json.JSONArray,
+java.util.Set,
+java.util.HashSet,
 java.util.List,
 java.util.Collection,
 java.util.ArrayList,
@@ -103,6 +105,7 @@ if (taskId != null) {
     }
 }
 
+Set<String> locationIds = new HashSet<String>();
 
 if (itask == null) {
     DateTime cutoff = new DateTime(System.currentTimeMillis() - (31L * 24L * 60L * 60L * 1000L));
@@ -200,6 +203,7 @@ if (itask == null) {
     String fnameBlockPrev = "";
     boolean fnameToggle = true;
     if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
+        if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
         out.println("<tr>");
         out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
         out.println("<td>" + enc.getDate() + "</td>");
@@ -260,14 +264,51 @@ if (itask == null) {
 </tbody></table>
 <p>
 Total images: <b><%=allAssets.size()%></b>
-<script>var allAssetIds = <%=jarr.toString(4)%>;</script>
+<script>
+var allAssetIds = <%=jarr.toString(4)%>;
+
+function sendToIA() {
+    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
+    var locIds = $('#id-locationids').val();
+    var data = {
+        v2: true,
+        mediaAssetIds: allAssetIds
+    };
+    if (locIds && (locIds.indexOf('') < 0)) data.taskParameters = { matchingSetFilter: { locationIds: locIds } };
+    console.log('locIds=%o allAssetIds=%o data=%o', locIds, allAssetIds, data);
+    $.ajax({
+        url: 'ia',
+        dataType: 'json',
+        data: JSON.stringify(data),
+        type: 'POST',
+        contentType: 'application/javascript',
+        complete: function(x) {
+            console.log('response: %o', x);
+            if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+                $('#ia-send-wait').html('<i>sent.</i> <a class="button" target="_new" href="rapid.jsp?taskId=<%=itask.getId()%>">Continue to Rapid Assessment</a>');
+            } else {
+                $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+            }
+        }
+    });
+}
+
+</script>
 </p>
 
 <p>
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
 <% if ((numIA < 1) && (allAssets.size() > 0)) { %>
-    <a style="margin-left: 20px;" class="button">send to IA (detection only)</a>
-    <a class="button">send to IA (with ID)</a>
+    <div id="ia-send-div">
+    <a class="button" style="margin-left: 20px;" onClick="sendToIA(); return false;">Send to identification</a> matching against <b>location(s):</b>
+    <select multiple id="id-locationids">
+        <option selected><%= String.join("</option><option>", locationIds) %></option>
+        <option value="">ALL locations</option>
+    </select>
+    </div>
+<% } else { %>
+    <p id="rap-link"><a class="button" target="_new" href="rapid.jsp?taskId=<%=itask.getId()%>">View Rapid Assessment</a></p>
+<script>$(document).ready(function() { $('.bootstrap-table').before('<div style="padding: 10px;">' + $('#rap-link').html() + '</div>'); });</script>
 <% } %>
 </p>
 
