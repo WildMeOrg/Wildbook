@@ -127,11 +127,11 @@ if((CommonConfiguration.getProperty("allowSocialMediaAccountCreation", "context0
 }
 %>
 
-        <tr><td colspan="2" align="left">
+      <tr><td colspan="2" align="left">
         
         <strong><%=props.getProperty("passwordHelp") %></strong><br />
         <a href="resetPassword.jsp"><%=props.getProperty("forgotPassword") %></a>
-     </td></tr>
+      </td></tr>
 
 
       <tr><td colspan="2" align="left">
@@ -141,6 +141,25 @@ if((CommonConfiguration.getProperty("allowSocialMediaAccountCreation", "context0
           <a href="contactus.jsp">Contact us here to request an account.</a>
         </p>
       </td></tr>
+
+      <br/>
+
+      <tr><td colspan="2" align="left">
+        <p class="login-strong"><%=props.getProperty("privacyPolicy") %></p>
+        <p>
+          <a target="_blank" href="privacyPolicy.jsp"><%=props.getProperty("policyReview") %></a>
+        </p>
+      </td></tr>
+
+      <tr><td colspan="2" align="left">
+        <p class="login-strong"><%=props.getProperty("termsOfUse") %></p>
+        <p>
+          <a target="_blank" href="termsOfUse.jsp"><%=props.getProperty("termsReview") %></a>
+        </p>
+      </td></tr>
+
+
+
      
     </table>
 

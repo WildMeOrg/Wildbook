@@ -1270,6 +1270,18 @@ if (hasTags) {
 
         </div> <!-- closes out advanced info accordion -->
 
+
+        <!-- <p><strong><%=props.getProperty("pleaseReview")%></strong></p> -->
+
+        <p class="text-center">
+          <%=props.getProperty("pleaseReview")%> <a target="_blank" href="termsOfUse.jsp"><%=props.getProperty("termsOfUse")%></a> <%=props.getProperty("and")%> <a target="_blank" href="privacyPolicy.jsp"><%=props.getProperty("privacyPolicy")%></a> <%=props.getProperty("beforeSubmitting")%>
+        </p>
+        
+        <!-- <p>
+          <a target="_blank" href="termsOfUse.jsp"><%=props.getProperty("termsOfUse")%></a>
+          <a target="_blank" href="privacyPolicy.jsp"><%=props.getProperty("privacyPolicy")%></a>
+        </p> -->
+
         <%
         if(request.getRemoteUser()!=null){
         %>
@@ -1355,7 +1367,6 @@ function sendButtonClicked() {
 	return true;
 }
 </script>
-
       <p class="text-center">
         <button id="submitEncounterButton" class="large" type="submit" onclick="return sendButtonClicked();">
           <%=props.getProperty("submit_send") %>
