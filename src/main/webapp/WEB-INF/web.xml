@@ -401,6 +401,9 @@
 				/merge.jsp = authc, roles[researcher]
 				/mergeComplete.jsp = authc, roles[researcher]
 				/AnnotationSetMatchAgainst = authc, roles[admin]
+				
+				/MembershipCreate = authc
+				
             </param-value>
         </init-param>
     </filter>
