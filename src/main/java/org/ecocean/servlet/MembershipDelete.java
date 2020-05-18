@@ -44,11 +44,12 @@ public class MembershipDelete extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+        response.setContentType("application/json");  
         response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MembershipDelete.java");
-
+        myShepherd.beginDBTransaction();
 
 
         JSONObject j = null;
@@ -76,12 +77,20 @@ public class MembershipDelete extends HttpServlet {
                         res.put("success", "true"); 
                     }
                     myShepherd.commitDBTransaction();
-        
+                    response.setStatus(HttpServletResponse.SC_OK);
                     System.out.println("I think I removed the indy from the SocialUnit: "+(!su.hasMarkedIndividualAsMember(mi)));
+                }
+                else {
+                  
+                  res.put("success","false");
+                  res.put("error","Unknown MarkedIndividual.");
+                  response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                  
                 }
     
             } catch (Exception e) {
                 myShepherd.rollbackAndClose();
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 e.printStackTrace();
             } finally {
                 myShepherd.closeDBTransaction();
