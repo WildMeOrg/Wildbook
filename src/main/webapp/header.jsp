@@ -392,7 +392,7 @@ finally{
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
+                        <ul class="dropdown-menu solid-menu-background" role="menu">
                             
                             <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
                             
