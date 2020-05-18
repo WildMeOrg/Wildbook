@@ -44,9 +44,10 @@ public class MembershipCreate extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+        response.setContentType("application/json");
         response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
         String context= ServletUtilities.getContext(request);
-
+        PrintWriter out = response.getWriter();
 
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
@@ -62,10 +63,10 @@ public class MembershipCreate extends HttpServlet {
         myShepherd.setAction("MembershipCreate.java");
         myShepherd.beginDBTransaction();
         
-        
+        JSONObject res = new JSONObject();
         MarkedIndividual mi = null;
         try {            
-            JSONObject res = new JSONObject();
+            
             res.put("success","false");
             miId = j.optString("miId", "").trim();
             System.out.println("miID: "+miId);
@@ -88,14 +89,13 @@ public class MembershipCreate extends HttpServlet {
                 System.out.println("startDate: "+startDate);
                 System.out.println("endDate: "+endDate);
                 
-                
-                
                 SocialUnit su = myShepherd.getSocialUnit(groupName);
                 boolean isNew = false;
                 if (su==null) {
                     isNew = true;
                     su = new SocialUnit(groupName);
                     myShepherd.storeNewSocialUnit(su);
+                    myShepherd.updateDBTransaction();
                 }
                 //DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
                 DateTimeFormatter formatter = ISODateTimeFormat.dateOptionalTimeParser();
@@ -103,43 +103,37 @@ public class MembershipCreate extends HttpServlet {
                 Membership membership = null;
                 if (su.hasMarkedIndividualAsMember(mi)) {
                     membership = su.getMembershipForMarkedIndividual(mi);
-                    if (startDate!=null&&!"".equals(startDate)) {
-                      DateTime startDT = DateTime.parse(startDate, formatter); 
-                      System.out.println("StartDate parsed: "+startDT.toString());
-                      Long startLong = startDT.getMillis();   
-                      membership.setStartDate(startLong.longValue());
-                    } 
-                    if (endDate!=null&&!"".equals(endDate)) {
-                      DateTime endDT = DateTime.parse(endDate, formatter);
-                      System.out.println("EndDate parsed: "+endDT.toString());
-                      Long endLong = endDT.getMillis(); 
-                      membership.setEndDate(endLong.longValue());
-                    }
-                    if (roleName!=null&&!"".equals(roleName)) { 
-                      membership.setRole(roleName);
-                    }
-                    myShepherd.updateDBTransaction();
                 } else {
                     System.out.println("New membership!");
-                    Long startLong = null;
-                    Long endLong = null;
-                    
-                    if (startDate!=null&&!"".equals(startDate)) {
-                        DateTime startDT = DateTime.parse(startDate, formatter); 
-                        startLong = startDT.getMillis();   
-                    } 
-                    if (endDate!=null&&!"".equals(endDate)) {
-                        DateTime endDT = DateTime.parse(endDate, formatter);
-                        endLong = endDT.getMillis(); 
-                    }
+             
                     // yer one of us now, mate
-                    membership = new Membership(mi, roleName, startLong, endLong);
+                    membership = new Membership(mi);
                     myShepherd.storeNewMembership(membership);
                     su.addMember(membership);
                     myShepherd.updateDBTransaction();
                 }
+                
+                if (startDate!=null&&!"".equals(startDate)) {
+                  DateTime startDT = DateTime.parse(startDate, formatter); 
+                  System.out.println("StartDate parsed: "+startDT.toString());
+                  Long startLong = startDT.getMillis();   
+                  membership.setStartDate(startLong.longValue());
+                } 
+                if (endDate!=null&&!"".equals(endDate)) {
+                  DateTime endDT = DateTime.parse(endDate, formatter);
+                  System.out.println("EndDate parsed: "+endDT.toString());
+                  Long endLong = endDT.getMillis(); 
+                  membership.setEndDate(endLong.longValue());
+                }
+                if (roleName!=null&&!"".equals(roleName)) { 
+                  membership.setRole(roleName);
+                }
+                
+                myShepherd.updateDBTransaction();
+                
     
                 response.setContentType("text/plain");
+                response.setStatus(HttpServletResponse.SC_OK);
                 res.put("isNewSocialUnit",isNew);
                 res.put("membershipId",membership.getId());
                 res.put("role", roleName);
@@ -148,23 +142,41 @@ public class MembershipCreate extends HttpServlet {
                 res.put("endDate", endDate);
                 res.put("success","true");
             } 
+            //don't know which MarkedIndividual this is
+            else {
+              
+              res.put("success","false");
+              res.put("error","Unknown MarkedIndividual.");
+              response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            }
+            
+            
 
-            PrintWriter out = response.getWriter();
             out.println(res);
             out.close();
 
         } catch (NullPointerException npe) {
             npe.printStackTrace();
+            res.put("success","false");
+            res.put("error","NullPointerException npe");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (JSONException je) {
-            je.printStackTrace();
+          je.printStackTrace();
+          res.put("success","false");
+          res.put("error","JSONException je");
+          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             e.printStackTrace();
+            res.put("success","false");
+            res.put("error","Exception e");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } finally {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
+            out.println(res);
         }
 
-        System.out.println("prototype MembershipCreate servlet end");
+        //System.out.println("prototype MembershipCreate servlet end");
     
     }
 
