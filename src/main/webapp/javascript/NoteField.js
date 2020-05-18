@@ -104,6 +104,10 @@ wildbook.NoteField = {
     },
 
     kitsciExtend: function() {
+	$('body').append("<textarea id='code'></textarea>");
+	$("#code").hide();
+	$(".ql-toolbar").append("<button style='color: black;float:right;margin-right:20px;width:auto;' id='switchCode'>SHOW HTML</button>");
+
 	$(".ql-editor").on("click", "img", function (e){
 		e.preventDefault();
 		$('#addImgAttr').css( 'position', 'absolute' );
@@ -172,6 +176,27 @@ wildbook.NoteField = {
 			$('#addLinkAttr').hide();
 		})
 		
+	})
+
+	$codeEnabled = 0;
+	$("#switchCode").click(function(){
+		if($codeEnabled == 0){
+			$codeEnabled = 1;
+			var s = $(".ql-editor").html();
+			$("#code").val(s);
+			var d = $("#code").val();
+			$(".ql-editor").text(d);
+			
+			$("#switchCode").text("SHOW TEXT");
+		}
+		else{
+			$codeEnabled = 0;
+			var s = $(".ql-editor").text();
+			$("#code").val(s);
+			var d = $("#code").val();
+			$(".ql-editor").html(d);
+			$("#switchCode").text("SHOW HTML");
+		}
 	})
 
 	$('body').append("<div id='addImgAttr'>	<table><tr><td><input type='number' placeholder='width' id='imgWidth' min='100' style='width:60px;height:30px' /></td><td><input type='number' placeholder='height' id='imgHeight' style='width:60px;height:30px' /></td></tr><tr><td><input type='number' placeholder='hspace' id='imgHspace' style='width:60px;height:30px' /></td><td><input type='number' placeholder='vspace' id='imgVspace' style='width:60px;height:30px' /></td></tr><tr><td><select id='imAlign' style='width:60px;height:30px'><option value='unset'>Unset</option><option value='left'>Left</option><option value='right'>Right</option><option value='top'>Top</option><option value='bottom'>Bottom</option><option value='middle'>Middle</option></select></td><td><input type='button' value='Close' id='imgSetBtn' style='width:60px;height:30px' /></td></tr></table></div>");
