@@ -68,6 +68,7 @@ public abstract class ApiBase implements java.io.Serializable {
 
     public abstract String description();
 
+    //note: you probably really want getCustomFieldValues(foo) below
     public List<CustomFieldValue> getCustomFieldValues() {
         return customFieldValues;
     }
@@ -78,10 +79,34 @@ public abstract class ApiBase implements java.io.Serializable {
         if (customFieldValues == null) customFieldValues = new ArrayList<CustomFieldValue>();
         customFieldValues.add(val);
     }
+    public List<Object> getCustomFieldValues(String cfdId) {
+        List<Object> rtn = new ArrayList<Object>();
+        if (cfdId == null) return rtn;
+        if (Util.collectionIsEmptyOrNull(customFieldValues)) return rtn;
+        for (CustomFieldValue cfv : customFieldValues) {
+            if ((cfv.getDefinition() != null) && cfdId.equals(cfv.getDefinition().getId())) rtn.add(cfv.getValue());
+        }
+        return rtn;
+    }
+    public List<Object> getCustomFieldValues(CustomFieldDefinition cfd) {
+        return getCustomFieldValues((cfd == null) ? (String)null : cfd.getId());
+    }
+    //this sorts them by definitions
+    public Map<CustomFieldDefinition,List<Object>> getCustomFieldValuesMap() {
+        Map<CustomFieldDefinition,List<Object>> map = new HashMap<CustomFieldDefinition,List<Object>>();
+        if (Util.collectionIsEmptyOrNull(customFieldValues)) return map;
+        for (CustomFieldValue cfv : customFieldValues) {
+            if (cfv.getDefinition() == null) continue;  //snh
+            if (map.get(cfv.getDefinition()) == null) map.put(cfv.getDefinition(), new ArrayList<Object>());
+            map.get(cfv.getDefinition()).add(cfv.getValue());
+        }
+        return map;
+    }
 
     //ignore these ones
     private static final List<String> skipGetters = Arrays.asList(new String[]{
-            "getClass", "getGetters", "getSetters", "getProperties", "getApiValueForJSONObject"
+            "getClass", "getGetters", "getSetters", "getProperties", "getApiValueForJSONObject",
+            "getCustomFieldValues", "getCustomFieldValuesMap"
         });
     //this effectively exposes all getters and setters
     // so consider overriding if desired
@@ -177,6 +202,24 @@ public abstract class ApiBase implements java.io.Serializable {
                 noAccess.put(prop);
             }
         }
+
+        Map<CustomFieldDefinition,List<Object>> cmap = this.getCustomFieldValuesMap();
+        JSONObject cust = new JSONObject();
+        for (CustomFieldDefinition cfd : cmap.keySet()) {
+            JSONObject c = new JSONObject();
+            //should prob ignore className cuz we are *in* a class!  or... sanity check?
+            c.put("multiple", cfd.getMultiple());
+            c.put("type", cfd.getType());
+            if (Util.collectionIsEmptyOrNull(cmap.get(cfd))) {
+                c.put("error", "empty values list");  //snh
+            } else if (cfd.getMultiple()) {
+                c.put("values", new JSONArray(cmap.get(cfd)));
+            } else {  //single value
+                c.put("value", cmap.get(cfd).get(0));
+            }
+            cust.put(cfd.getId(), c);
+        }
+        rtn.put("customFields", cust);
 
         if (debug != null) {
             debug.put("class", this.getClass().getName());

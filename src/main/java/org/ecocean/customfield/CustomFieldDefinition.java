@@ -25,6 +25,7 @@ public class CustomFieldDefinition implements java.io.Serializable {
     private String id = null;
     private String className = null;
     private String type = null;
+    private boolean multiple = false;
 
     public CustomFieldDefinition() {
         id = Util.generateUUID();
@@ -33,6 +34,12 @@ public class CustomFieldDefinition implements java.io.Serializable {
         this();
         this.className = className;
         this.type = type;
+    }
+    public CustomFieldDefinition(String className, String type, boolean mult) {
+        this();
+        this.className = className;
+        this.type = type;
+        this.multiple = mult;
     }
 
     public String getId() {
@@ -52,6 +59,12 @@ public class CustomFieldDefinition implements java.io.Serializable {
     }
     public void setClassName(String c) {
         className = c;
+    }
+    public boolean getMultiple() {
+        return multiple;
+    }
+    public void setMultiple(boolean m) {
+        multiple = m;
     }
 
     //public String toString() {  return this.getClass().getName() + ":" + this.id; }

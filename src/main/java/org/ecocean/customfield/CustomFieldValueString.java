@@ -21,9 +21,6 @@ public class CustomFieldValueString extends CustomFieldValue {
         } else {
             this.value = obj.toString();
         }
-System.out.println(this + "=>" + this.value);
     }
-
-    //public String toString() {  return this.getClass().getName() + ":" + this.id; }
 }
 

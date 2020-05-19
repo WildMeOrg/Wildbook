@@ -24,18 +24,28 @@
         			<column length="36"/>
 			</field>
 			<field name="type" />
+			<field name="multiple" />
 			<field name="className" />
 		</class>
 
-		<class name="CustomFieldValue" identity-type="application" >
-			<field name="id" primary-key="true" value-strategy="identity"/>
+		<class name="CustomFieldValue" identity-type="application">
+			<field name="id" primary-key="true" value-strategy="identity" />
 			<inheritance strategy="complete-table"/>
 			<field name="definition" persistence-modifier="persistent" element-type="org.ecocean.customfield.CustomFieldDefinition" default-fetch-group="true" />
 		</class>
-		<class name="CustomFieldValueString" identity-type="application" >
+
+		<class name="CustomFieldValueString" identity-type="application">
 			<field name="value" peristence-modifier="persistent">
         			<column jdbc-type="LONGVARCHAR"/>
 			</field>
+		</class>
+
+		<class name="CustomFieldValueInteger" identity-type="application">
+			<field name="value" peristence-modifier="persistent" />
+		</class>
+
+		<class name="CustomFieldValueDouble" identity-type="application">
+			<field name="value" peristence-modifier="persistent" />
 		</class>
 
 	</package>
