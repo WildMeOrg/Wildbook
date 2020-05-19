@@ -5,6 +5,7 @@
 <jdo>
 	<package name="org.ecocean.api">
 
+<!-- non external flavors -->
 		<class name="ApiBase" identity-type="application">
 			<inheritance strategy="complete-table"/>
 			<field name="id" primary-key="true">
@@ -15,11 +16,36 @@
 			</field>
 			<field name="owner" persistence-modifier="persistent" element-type="org.ecocean.User" default-fetch-group="true" />
 			<field name="organizationSet" persistence-modifier="persistent" element-type="org.ecocean.api.OrganizationSet" default-fetch-group="true" />
+
+			<field name="customFieldValues" persistence-modifier="persistent" default-fetch-group="true">
+				<collection element-type="org.ecocean.customfield.CustomFieldValue" dependent-element="true" />
+				<join />
+			</field>
 		</class>
 
 		<class name="OrganizationSet" identity-type="datastore">
 			<field name="set" persistence-modifier="persistent" default-fetch-group="true">
 				<collection element-type="org.ecocean.Organization" dependent-element="false" />
+				<join />
+			</field>
+		</class>
+
+<!-- external flavors -->
+		<class name="ApiBaseExternal" identity-type="application">
+			<inheritance strategy="complete-table"/>
+			<field name="id" primary-key="true">
+        			<column length="36"/>
+			</field>
+			<field name="version">
+                		<column jdbc-type="BIGINT" allows-null="false"/>
+			</field>
+			<field name="owner" persistence-modifier="persistent" element-type="org.ecocean.external.ExternalUser" default-fetch-group="true" />
+			<field name="organizationSet" persistence-modifier="persistent" element-type="org.ecocean.api.ExternalOrganizationSet" default-fetch-group="true" />
+		</class>
+
+		<class name="ExternalOrganizationSet" identity-type="datastore">
+			<field name="set" persistence-modifier="persistent" default-fetch-group="true">
+				<collection element-type="org.ecocean.external.ExternalOrganization" dependent-element="false" />
 				<join />
 			</field>
 		</class>

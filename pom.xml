@@ -827,6 +827,8 @@ https://github.com/datanucleus/datanucleus-rdbms/issues/336
             <argument>target/classes/org/ecocean/identity/package.jdo</argument>
             <argument>target/classes/org/ecocean/ia/package.jdo</argument>
             <argument>target/classes/org/ecocean/configuration/package.jdo</argument>
+            <argument>target/classes/org/ecocean/external/package.jdo</argument>
+            <argument>target/classes/org/ecocean/customfield/package.jdo</argument>
             <argument>target/classes/org/ecocean/servlet/importer/package.jdo</argument>
             <argument>target/classes/org/ecocean/social/package.jdo</argument>
 			<argument>target/classes/org/ecocean/movement/package.jdo</argument>

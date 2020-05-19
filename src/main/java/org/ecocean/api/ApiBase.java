@@ -3,6 +3,7 @@ package org.ecocean.api;
 import org.ecocean.Util;
 import org.ecocean.User;
 import org.ecocean.Organization;
+import org.ecocean.customfield.*;
 
 import java.util.Set;
 import java.util.List;
@@ -26,6 +27,7 @@ public abstract class ApiBase implements java.io.Serializable {
     private long version = 0l;
     private User owner = null;
     private OrganizationSet organizationSet = null;
+    private List<CustomFieldValue> customFieldValues = null;
 
 
     public ApiBase() {
@@ -66,6 +68,16 @@ public abstract class ApiBase implements java.io.Serializable {
 
     public abstract String description();
 
+    public List<CustomFieldValue> getCustomFieldValues() {
+        return customFieldValues;
+    }
+    public void setCustomFieldValues(List<CustomFieldValue> vals) {
+        customFieldValues = vals;
+    }
+    public void addCustomFieldValue(CustomFieldValue val) {
+        if (customFieldValues == null) customFieldValues = new ArrayList<CustomFieldValue>();
+        customFieldValues.add(val);
+    }
 
     //ignore these ones
     private static final List<String> skipGetters = Arrays.asList(new String[]{
