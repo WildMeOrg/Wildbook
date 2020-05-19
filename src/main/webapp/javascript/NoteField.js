@@ -106,7 +106,7 @@ wildbook.NoteField = {
     kitsciExtend: function() {
 	$('body').append("<textarea id='code'></textarea>");
 	$("#code").hide();
-	$(".ql-toolbar").append("<button style='float:right;margin-right:20px;width:auto;' id='switchCode'>SHOW HTML</button>");
+	$(".ql-toolbar").append("<button style='color: black; float:right;margin-right:20px;width:auto;' id='switchCode'>SHOW HTML</button>");
 
 	$(".ql-editor").on("click", "img", function (e){
 		e.preventDefault();
