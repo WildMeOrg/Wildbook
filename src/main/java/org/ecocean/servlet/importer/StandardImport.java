@@ -979,7 +979,12 @@ public class StandardImport extends HttpServlet {
       enc.setDynamicProperty("caudal type",caudalType);
     }
 
-  	enc.setState("approved");
+    String state = getString(row, "Encounter.state");
+    if (state!=null && !state.trim().equals("")) enc.setState(state);
+    else {
+      enc.setState("approved");
+    }
+  	
   	return enc;
   }
 
