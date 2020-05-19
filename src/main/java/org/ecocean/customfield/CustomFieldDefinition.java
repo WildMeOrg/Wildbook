@@ -24,20 +24,23 @@ import java.lang.reflect.Constructor;
 public class CustomFieldDefinition implements java.io.Serializable {
     private String id = null;
     private String className = null;
+    private String name = null;  //this is a human-readable name which is required and needs to be unique
     private String type = null;
     private boolean multiple = false;
 
     public CustomFieldDefinition() {
         id = Util.generateUUID();
     }
-    public CustomFieldDefinition(String className, String type) {
+    public CustomFieldDefinition(String className, String type, String name) {
         this();
         this.className = className;
+        this.name = name;
         this.type = type;
     }
-    public CustomFieldDefinition(String className, String type, boolean mult) {
+    public CustomFieldDefinition(String className, String type, String name, boolean mult) {
         this();
         this.className = className;
+        this.name = name;
         this.type = type;
         this.multiple = mult;
     }
@@ -59,6 +62,12 @@ public class CustomFieldDefinition implements java.io.Serializable {
     }
     public void setClassName(String c) {
         className = c;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String n) {
+        className = n;
     }
     public boolean getMultiple() {
         return multiple;

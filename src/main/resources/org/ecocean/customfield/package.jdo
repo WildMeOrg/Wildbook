@@ -25,6 +25,9 @@
 			</field>
 			<field name="type" />
 			<field name="multiple" />
+			<field name="name" unique="true">
+                		<column allows-null="false"/>
+			</field>
 			<field name="className" />
 		</class>
 

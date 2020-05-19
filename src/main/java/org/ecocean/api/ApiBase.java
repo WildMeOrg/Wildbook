@@ -208,12 +208,13 @@ public abstract class ApiBase implements java.io.Serializable {
         for (CustomFieldDefinition cfd : cmap.keySet()) {
             JSONObject c = new JSONObject();
             //should prob ignore className cuz we are *in* a class!  or... sanity check?
-            c.put("multiple", cfd.getMultiple());
+            //c.put("multiple", cfd.getMultiple());
             c.put("type", cfd.getType());
+            c.put("label", cfd.getName());
             if (Util.collectionIsEmptyOrNull(cmap.get(cfd))) {
-                c.put("error", "empty values list");  //snh
+                c.put("error", "empty value list");  //snh
             } else if (cfd.getMultiple()) {
-                c.put("values", new JSONArray(cmap.get(cfd)));
+                c.put("value", new JSONArray(cmap.get(cfd)));
             } else {  //single value
                 c.put("value", cmap.get(cfd).get(0));
             }
