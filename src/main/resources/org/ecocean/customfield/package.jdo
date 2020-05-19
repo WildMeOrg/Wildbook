@@ -30,21 +30,24 @@
 
 		<class name="CustomFieldValue" identity-type="application">
 			<field name="id" primary-key="true" value-strategy="identity" />
-			<inheritance strategy="complete-table"/>
+			<inheritance strategy="new-table"/>
 			<field name="definition" persistence-modifier="persistent" element-type="org.ecocean.customfield.CustomFieldDefinition" default-fetch-group="true" />
 		</class>
 
 		<class name="CustomFieldValueString" identity-type="application">
+			<inheritance strategy="new-table"/>
 			<field name="value" peristence-modifier="persistent">
         			<column jdbc-type="LONGVARCHAR"/>
 			</field>
 		</class>
 
 		<class name="CustomFieldValueInteger" identity-type="application">
+			<inheritance strategy="new-table"/>
 			<field name="value" peristence-modifier="persistent" />
 		</class>
 
 		<class name="CustomFieldValueDouble" identity-type="application">
+			<inheritance strategy="new-table"/>
 			<field name="value" peristence-modifier="persistent" />
 		</class>
 

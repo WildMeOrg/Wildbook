@@ -1,6 +1,6 @@
 package org.ecocean.customfield;
 
-public class CustomFieldValue implements java.io.Serializable {
+public abstract class CustomFieldValue implements java.io.Serializable {
     private int id;
     private CustomFieldDefinition definition = null;
 
@@ -19,12 +19,16 @@ public class CustomFieldValue implements java.io.Serializable {
     public CustomFieldDefinition getDefinition() {
         return definition;
     }
+    public abstract Object getValue();
+    public abstract void setValue(Object obj);
+/*
     public Object getValue() {
         return null;
     }
     public void setValue(Object obj) {
         return;
     }
+*/
 
     //public String toString() {  return this.getClass().getName() + ":" + this.id; }
 }
