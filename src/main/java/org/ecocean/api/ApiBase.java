@@ -209,7 +209,7 @@ public abstract class ApiBase implements java.io.Serializable {
             JSONObject c = new JSONObject();
             //should prob ignore className cuz we are *in* a class!  or... sanity check?
             //c.put("multiple", cfd.getMultiple());
-            c.put("type", cfd.getType());
+            //c.put("type", cfd.getType());
             c.put("label", cfd.getName());
             if (Util.collectionIsEmptyOrNull(cmap.get(cfd))) {
                 c.put("error", "empty value list");  //snh
