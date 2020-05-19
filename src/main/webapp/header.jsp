@@ -406,6 +406,7 @@ src="images/innovation-logo.jpg" /></a>
                     <ul class="dropdown-menu" role="menu">
                         <li><a href="<%=urlLoc %>/mission.jsp">Mission, Questions, Timeline</a></li>
                         <li><a href="<%=urlLoc %>/whoAreWe.jsp">Who We Are</a></li>
+                        <li><a href="<%=urlLoc %>/financial.jsp">Our Financial Supporters</a></li>
                     </ul>
             </li>
 
@@ -421,7 +422,7 @@ src="images/innovation-logo.jpg" /></a>
                       <!-- submit encounter, survey -->
 
                       <li class="dropdown" style="display: none;">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Volunteer <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 							              <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
@@ -446,8 +447,12 @@ src="images/innovation-logo.jpg" /></a>
                         </ul>
                       </li>
 
+                      <li>
+                        <a href="<%=urlLoc %>/locations.jsp">Locations</a>
+                      </li>
+
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Volunteer <span class="caret"></span></a>
                     <ul class="dropdown-menu" role="menu">
 <!-- TODO make this only show to non-logged in -->
 <% if (isAnonymous) { %>
@@ -507,7 +512,11 @@ src="images/innovation-logo.jpg" /></a>
                       </li>
 
                       <li>
-                        <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%></a>
+                        <a href="<%=urlLoc %>/collaborate.jsp">Collaborate</a>
+                      </li>
+
+                      <li>
+                        <a href="<%=urlLoc %>/contactus.jsp">Contact</a>
                       </li>
 
                       <li>
