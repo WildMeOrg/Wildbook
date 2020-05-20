@@ -216,7 +216,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
             
             }
             featureBuilder.set("Haplotype",haploString);
-            featureBuilder.set("URL",("//"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+enc.getCatalogNumber()));
+            featureBuilder.set("URL",("https://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+enc.getCatalogNumber()));
             
             //featureBuilder.add(enc.getDecimalLatitudeAsDouble());
             //featureBuilder.add(enc.getDecimalLongitudeAsDouble());
