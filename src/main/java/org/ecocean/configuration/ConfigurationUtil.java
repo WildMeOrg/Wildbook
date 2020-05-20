@@ -3,6 +3,8 @@ package org.ecocean.configuration;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.ContextConfiguration;
+import org.ecocean.DataDefinition;
+import org.ecocean.DataDefinitionException;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +26,7 @@ public class ConfigurationUtil {
     public static final String ID_DELIM = ".";
     public static final String META_KEY = "__meta";
     public static final String VALUE_KEY = "__value";
+/*
     public static final String[] TYPES = new String[]{
         "string",
         "integer",
@@ -40,6 +43,7 @@ public class ConfigurationUtil {
         "locationIds",   //  same
         "taxonomy"
     };
+*/
 
     private static Map<String,JSONObject> meta = new HashMap<String,JSONObject>();
     private static Map<String,JSONObject> valueCache = new HashMap<String,JSONObject>();
@@ -125,7 +129,7 @@ public class ConfigurationUtil {
     }
 
 ///////////// TODO handle isMultiple !!!
-    public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException {
+    public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException, DataDefinitionException {
         if (!idHasValidRoot(id)) throw new ConfigurationException("setConfigurationValue() passed invalid id=" + id);
         Object cvalue = handleValue(id, value);
         List<String> path = idPath(id);
@@ -213,12 +217,9 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
     public static String getType(String id) {
         return getType(getMeta(id));
     }
+    //right now we piggyback off all DataDefinition types, but we could filter this a bit
     public static boolean isValidType(String t) {
-        if (t == null) return false;
-        for (int i = 0 ; i < TYPES.length ; i++) {
-            if (t.equals(TYPES[i])) return true;
-        }
-        return false;
+        return DataDefinition.isValidType(t);
     }
 
     private static JSONObject _traverse(final JSONObject j, final List<String> path) {
@@ -327,6 +328,14 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         return idToKey(id).toUpperCase();
     }
 
+    public static Object handleValue(String id, Object inVal) throws DataDefinitionException {
+        JSONObject meta = getMeta(id);
+        if (meta == null) throw new DataDefinitionException("ConfigurationUtil.handleValue() has null meta on id=" + id);
+        DataDefinition ddef = new DataDefinition(meta);
+        return ddef.handleValue(inVal);
+    }
+
+/*
     //a whole bunch of these based on diff incoming types
     // TODO make these actually verify against meta!!!
     /// TODO support .allowEmpty as option *when require=T*
