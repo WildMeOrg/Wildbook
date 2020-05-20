@@ -130,7 +130,7 @@ public class EncounterSearchExportKML extends HttpServlet{
             if(!bareBonesPlacemarks){
               Element description = placeMark.addElement("description");
 
-              String descHTML = "<p><a href=\"//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\">Direct Link</a></p>";
+              String descHTML = "<p><a href=\"https://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\">Direct Link</a></p>";
               descHTML += "<p> <strong>Date:</strong> " + enc.getDate() + "</p>";
               if(enc.getLocation()!=null){
                 descHTML += "<p> <strong>Location:</strong><br>" + enc.getLocation() + "</p>";
@@ -154,7 +154,7 @@ public class EncounterSearchExportKML extends HttpServlet{
               List<SinglePhotoVideo> imgs = enc.getImages();
               int imgsNum = imgs.size();
               for (int imgNum = 0; imgNum < imgsNum; imgNum++) {
-                descHTML += ("<br />" + "<a href=\"//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\"><img src=\"http://" + request.getServerName() +"/"+CommonConfiguration.getDataDirectoryName(context) + "/encounters/" + enc.getEncounterNumber() + "/" + imgs.get(imgNum).getDataCollectionEventID() + ".jpg\" /></a>");
+                descHTML += ("<br />" + "<a href=\"https://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\"><img src=\"http://" + request.getServerName() +"/"+CommonConfiguration.getDataDirectoryName(context) + "/encounters/" + enc.getEncounterNumber() + "/" + imgs.get(imgNum).getDataCollectionEventID() + ".jpg\" /></a>");
               }
 
               description.addCDATA(descHTML);
