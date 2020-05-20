@@ -23,6 +23,18 @@ Shepherd myShepherd = new Shepherd(context);
 
 <%= NoteField.buildHtmlDiv("e41428e0-da9d-40a5-b01c-e952fd24f586", request, myShepherd) %>
 
+
+<div style="text-align: center">
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+  <div align="center">
+  <input type="hidden" name="cmd" value="_s-xclick" />
+  <input type="hidden" name="hosted_button_id" value="ZUPNYWQ7YRGGE" />
+  <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+  <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
+  </div>
+</form>
+</div>
+
 </div>
 
 

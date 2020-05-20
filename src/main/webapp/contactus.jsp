@@ -19,6 +19,7 @@ Shepherd myShepherd = new Shepherd(context);
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
+
 <div class="container maincontent">
 
 <%= NoteField.buildHtmlDiv("63c3d6ad-6a3b-4384-9e5f-aabb665f7c7e", request, myShepherd) %>
