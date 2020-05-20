@@ -22,9 +22,11 @@
 <div class="container maincontent">
 
 
+<div>
 <h2><img src="images/cat_browntabby.jpg" alt="" width="375" height="242" hspace="10" vspace="10" align="right" />Who We Are</h2>
 <p>Follow us on social media: <a href="https://www.facebook.com/kitizenscience/" target="_blank">Facebook</a>, <a href="https://twitter.com/kitizenscience" target="_blank">Twitter</a>, <a href="https://www.instagram.com/kitizenscience/" target="_blank">Instagram</a>. </p>
 <p>Join our mailing list for news and updates:</p>
+</div>
 
 <div align="center">
   <table width="400" border="0" align="left" cellpadding="0" cellspacing="0">
@@ -66,6 +68,7 @@
   </table>
 </div>
 
+<div style="clear: both"></div>
 
 <%= NoteField.buildHtmlDiv("32ce5f32-fb60-491b-a537-787fa806b3c3", request, myShepherd) %>
 
