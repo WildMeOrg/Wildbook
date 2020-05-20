@@ -35,6 +35,9 @@ public class ConfigurationUtil {
         "image",
         "color",
         "geo",
+        "json",
+        "customFields",  //data is actually json
+        "locationIds",   //  same
         "taxonomy"
     };
 
