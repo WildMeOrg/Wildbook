@@ -148,9 +148,6 @@
 		</p>
 		
 
-
-		<p>CRC Excel Matching Summary <a href="<%=serverUrl%>/CRCExportReport?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
-		</p>
 		
 		<p><%=map_props.getProperty("exportedOBIS")%>: <a href="<%=serverUrl%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a><br />
 		<%=map_props.getProperty("exportedOBISLocales")%>: <a href="<%=serverUrl%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=map_props.getProperty("clickHere")%></a>
@@ -161,9 +158,6 @@
 		</a>
 		</p>
 		
-		<p><%=map_props.getProperty("exportedGeneGIS")%>: <a href="<%=serverUrl%>/EncounterSearchExportGeneGISFormat?<%=request.getQueryString()%>">
-		<%=map_props.getProperty("clickHere")%></a>
-		</p>
 		 
 		  <p><strong><%=map_props.getProperty("gisExportOptions")%></strong></p>
 		
