@@ -12,6 +12,8 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.ArrayList;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
 import org.ecocean.User;
@@ -70,6 +72,10 @@ public class RestServletV2 extends HttpServlet {
             handleLogout(request, response, payload, instanceId, context);
             return;
         }
+        if (payload.optString("class", "__FAIL__").equals("configuration")) {  //special case
+            handleConfiguration(request, response, payload, instanceId, context);
+            return;
+        }
 
         JSONObject rtn = new JSONObject();
         rtn.put("success", false);
@@ -81,7 +87,8 @@ public class RestServletV2 extends HttpServlet {
 */
 
 
-        rtn.put("__instanceId", instanceId);
+        rtn.put("transactionId", instanceId);
+        rtn.put("message", _rtnMessage("error"));
         if (debug) {
             _log(instanceId, "rtn: " + rtn.toString());
             JSONObject jbug = new JSONObject();
@@ -107,10 +114,11 @@ public class RestServletV2 extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         rtn.put("success", false);
+        rtn.put("transactionId", instanceId);
         User user = myShepherd.getUserByWhatever(payload.optString("login", null));
         if (user == null) {
             _log(instanceId, "invalid login with payload=" + payload);
-            rtn.put("message", "access denied");
+            rtn.put("message", _rtnMessage("access_denied"));
             response.setStatus(401);
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
@@ -128,7 +136,7 @@ public class RestServletV2 extends HttpServlet {
             subject.login(token);
         } catch (Exception ex) {
             _log(instanceId, "invalid login with payload=" + payload + "; threw " + ex.toString());
-            rtn.put("message", "access denied");
+            rtn.put("message", _rtnMessage("access_denied"));
             response.setStatus(401);
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
@@ -143,6 +151,7 @@ public class RestServletV2 extends HttpServlet {
         rtn.put("needsUserAgreement", false);
         rtn.put("previousLogin", user.getLastLogin());
         rtn.put("success", true);
+        rtn.put("message", _rtnMessage("success"));
         _log(instanceId, "successful login user=" + user);
         user.setLastLogin(System.currentTimeMillis());
         myShepherd.commitDBTransaction();
@@ -161,10 +170,66 @@ public class RestServletV2 extends HttpServlet {
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
         rtn.put("success", true);
+        rtn.put("transactionId", instanceId);
+        rtn.put("message", _rtnMessage("success"));
         out.println(rtn.toString());
         out.close();
     }
 
+    private void handleConfiguration(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
+        payload.remove("class");
+        payload.remove("_queryString");
+////////////// TODO security duh!!
+        JSONObject rtn = new JSONObject();
+        rtn.put("success", false);
+        rtn.put("transactionId", instanceId);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RestServletV2.handleConfiguration");
+        myShepherd.beginDBTransaction();
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+        List<String> updated = new ArrayList<String>();
+rtn.put("_payload", payload);
+
+        try {
+            for (Object k : payload.keySet()) {
+                String key = (String)k;
+                updated.add(key);
+                if (key.equals("foo")) throw new org.ecocean.DataDefinitionException("fake foo blah");
+System.out.println(">>>> FAKE SET key=" + key + " <= " + payload.get(key));
+            }
+        } catch (Exception ex) {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            rtn.put("message", _rtnMessage("configuration_set_error", null, ex.toString()));
+            out.println(rtn.toString());
+            out.close();
+            return;
+        }
+
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        rtn.put("updated", new JSONArray(updated));
+        rtn.put("message", _rtnMessage("success"));
+        out.println(rtn.toString());
+        out.close();
+    }
+
+    private JSONObject _rtnMessage(String key, JSONArray args, String details) {
+        if (key == null) return null;
+        JSONObject m = new JSONObject();
+        m.put("key", key);
+        if (args != null) m.put("args", args);
+        if (details != null) m.put("details", details);
+        return m;
+    }
+    private JSONObject _rtnMessage(String key, JSONArray args) {
+        return _rtnMessage(key, args, null);
+    }
+    private JSONObject _rtnMessage(String key) {
+        return _rtnMessage(key, null, null);
+    }
     private void _log(String msg) {
         _log("-", msg);
     }
