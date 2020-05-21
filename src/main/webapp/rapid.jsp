@@ -324,7 +324,7 @@ for (MediaAsset ma : mas) {
 %>
 <div class="asset-row" id="asset-row-<%=ma.getId()%>">
     <div class="asset-wrapper" id="asset-wrapper-<%=ma.getId()%>">
-        <img onLoad="assetLoaded(this);" src="<%=ma.safeURL(request)%>" />
+        <img onLoad="assetLoaded(this);" data-src="<%=ma.safeURL(request)%>" />
         <div class="asset-filename"><%=ma.getFilename()%></div>
     </div>
 
@@ -398,7 +398,15 @@ if (!state.equals("complete")) { %>
 %>
 
 </div>
-<script> checkRows(); </script>
+<script>
+$(document).ready(function() {
+    $('.asset-row img').each(function(i, el) {
+        var s = el.getAttribute('data-src');
+        if (s) el.src = s;
+    });
+    checkRows();
+});
+</script>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
