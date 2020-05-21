@@ -86,7 +86,7 @@ if (setComplete != null) {
     SystemValue.set(myShepherd, svKey, m);
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
-    response.sendRedirect("rapid.jsp?taskId=" + taskId);
+    response.sendRedirect("rapid.jsp?taskId=" + taskId + "#row-" + setComplete);
     return;
 }
 
@@ -352,6 +352,7 @@ for (Annotation ann : ma.getAnnotations()) {
         state = "review";
     }
 %>
+        <a name="row-<%=ann.getId()%>"></a>
         <div class="annot-row annot-state-<%=state%>" id="annot-row-<%=ann.getId()%>">
 <% if (adminMode) { %>
             <div class="annot-id"><a target="_new" href="obrowse.jsp?type=Annotation&id=<%=ann.getId()%>"><%=shortId(ann.getId())%></a></div>
