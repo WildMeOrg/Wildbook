@@ -90,6 +90,16 @@ if (setComplete != null) {
     return;
 }
 
+if (request.getParameter("status") != null) {
+    myShepherd.beginDBTransaction();
+    JSONObject m = SystemValue.getJSONObject(myShepherd, svKey);
+    if (m == null) m = new JSONObject();
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+    out.println(m.toString(4));
+    return;
+}
+
 JSONObject completedMap = SystemValue.getJSONObject(myShepherd, svKey);
 if (completedMap == null) completedMap = new JSONObject();
 
@@ -209,9 +219,13 @@ a.button:hover {
     text-align: center;
 }
 
+#info-panel {
+    position: fixed;
+    left: 10px;
+    padding: 10px;
+}
 #summary {
-    display: inline-block;
-    margin: 0 10px;
+    padding: 10px;
 }
 </style>
 
@@ -221,6 +235,7 @@ a.button:hover {
     <link rel="stylesheet" href="javascript/bootstrap-table/bootstrap-table.min.css" />
 -->
 <script>
+var taskId = '<%=taskId%>';
 var assetData = {};
 function checkRows() {
     $('.asset-row').each(function(i, el) {
@@ -289,7 +304,7 @@ function assetLoaded(imgEl) {
 
 <div class="container maincontent">
 
-<div>
+<div id="info-panel">
     <input type="button" onClick="toggleComplete();" value="Toggle complete visibility" />
     <div id="summary"></div>
 </div>
@@ -400,6 +415,35 @@ if (!state.equals("complete")) { %>
 
 </div>
 <script>
+function markComplete(annotId) {
+    $('#annot-row-' + annotId).removeClass('annot-state-review').removeClass('annot-state-processing').addClass('annot-state-complete');
+    $('#annot-row-' + annotId + ' .annot-action').remove();
+    $('#annot-row-' + annotId + ' .proc-state').attr('class', 'proc-state proc-state-complete').html('<i class="el el-ok"></i>');
+}
+
+var updateInProgress = false;
+$(window).on('focus', function() {
+    if (updateInProgress) return;
+    updateInProgress = true;
+    $('#wild-me-badge').css('transform', 'rotate(1.0rad)');
+    $.ajax({
+        url: 'rapid.jsp?taskId=' + taskId + '&status',
+        type: 'GET',
+        dataType: 'json',
+        complete: function(d) {
+            if (d.responseJSON) {
+console.log('updating %o', d.responseJSON);
+                for (var aid in d.responseJSON) {
+                    if (d.responseJSON[aid]) markComplete(aid);
+                }
+                checkRows();
+                updateSummary();
+            }
+            $('#wild-me-badge').css('transform', 'rotate(0.0rad)');
+            updateInProgress = false;
+        }
+    });
+});
 $(document).ready(function() {
     $('.asset-row img').each(function(i, el) {
         var s = el.getAttribute('data-src');
