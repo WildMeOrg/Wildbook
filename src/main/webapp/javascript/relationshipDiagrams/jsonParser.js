@@ -132,7 +132,7 @@ class JSONQuerier {
     queryRelationshipData(genus) {
 	let query;
 	if (!this.localFiles) {
-		query = "//"+window.location.host + "/encounters/relationshipJson.jsp?"
+		query = "//"+window.location.host + "/encounters/relationshipJSON.jsp?"
 		if (genus) query += "genus=" + genus;
 	    //query = "//"+window.location.host + "/api/jdoql?" +
 		//encodeURIComponent(
