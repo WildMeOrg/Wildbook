@@ -221,7 +221,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			enc.setMatchedBy(matchMsg); 
 			enc2.setMatchedBy(matchMsg);
 
-			res.put("success", true);
+			if (res.optString("error", null) == null) res.put("success", true);
 			
 		} catch (Exception e) {
 			enc.setState("unapproved");
