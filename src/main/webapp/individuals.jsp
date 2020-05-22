@@ -1429,8 +1429,6 @@ if (sharky.getNames() != null) {
                         $("#membershipActionResponse").text("Success!");
                         clearSocialUnitMembershipFields()
                         updateSocialUnitMembershipFields(d);
-                        // make sure we have a new dropdown option to edit the new SU
-                        $('#socialGroupNameSelect').append('<option value="'+d.groupName+'">edit: '+d.groupName+'</option>');
                     },
                     error: function(x,y,z) {
                         $("#membershipActionResponse").text("An error has occurred.");
@@ -1510,7 +1508,8 @@ if (sharky.getNames() != null) {
             console.log("looking for this social unit div to modify: displayMembership"+json.groupName);
             //$("#displayMembership"+json.groupName+" .socialGroupName").css("background-color", "red");
             $("#displayMembership"+json.groupName+" .socialGroupNameField").text(groupName);
-            $("#displayMembership"+json.groupName+" .socialGroupName").text(groupName);
+            $("#displayMembership"+json.groupName+" .socialGroupName").html('<p class="socialGroupName"><a href="socialUnit.jsp?name='+groupName+'">'+groupName+'</a>');
+            
             $("#displayMembership"+json.groupName+" .socialRoleNameField").text(role);
             $("#displayMembership"+json.groupName+" .socialRoleName").text(role);
             $("#displayMembership"+json.groupName+" .socialGroupMembershipStart").text(startDate);
@@ -1520,6 +1519,8 @@ if (sharky.getNames() != null) {
           } else {
             //generate and append div for new social unit
             console.log("appending div for new social unit: "+json.groupName);
+
+            $('#socialGroupNameSelect').append('<option value="'+json.groupName+'">edit: '+json.groupName+'</option>');
 
             let newMembershipDiv = "";
             //newMembershipDiv+= '<br/>';
@@ -1587,6 +1588,7 @@ if (sharky.getNames() != null) {
         function toggleEditSocialGroup() {
             $("#membershipActionResponse").text();
             $("select option[value='new']").prop("selected",true);
+            $("#newSocialGroupNameInput").show();
             $("#deleteSocialMembership").hide();
             clearSocialUnitMembershipFields();
             if ($("#editOrCreateMembership").hasClass("hidden")) {
