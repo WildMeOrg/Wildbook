@@ -115,7 +115,7 @@ if (request.getParameter("number")!=null) {
 		myShepherd.beginDBTransaction();
         Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"LEGACYINDIVIDUALID\" = ? OR \"ALTERNATEID\" LIKE ? OR \"INDIVIDUALID\" = ?");
         List results = (List) q.execute(oldWorld, "%" + oldWorld + "%", oldWorld);
-        
+
         String tryId = null;
         if (results.iterator().hasNext()) tryId = (String) results.iterator().next();
         q.closeAll();
@@ -299,14 +299,19 @@ input.nameKey, input.nameValue {
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
 <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
-<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/d3.v4.min.js"></script>
 <script src="javascript/bubbleDiagram/extarray.js"></script>
 <script src="javascript/bubbleDiagram/misc.js"></script>
 <script src="javascript/bubbleDiagram/micro-observer.js"></script>
 <script src="javascript/bubbleDiagram/microplugin.js"></script>
-<script src="javascript/bubbleDiagram/bubble-chart.js"></script>
+<script src="javascript/kdTree.js"></script>
+<script src="javascript/relationshipDiagrams/jsonParser.js"></script>
+<script src="javascript/relationshipDiagrams/graphAbstract.js"></script>
+<script src="javascript/relationshipDiagrams/forceLayoutAbstract.js"></script>
+<script src="javascript/bubbleDiagram/coOccurrenceGraph.js"></script>
+<script src="javascript/relationshipDiagrams/socialGraph.js"></script>
 <script src="javascript/bubbleDiagram/encounter-calls.js"></script>
-<script src="javascript/relationshipDiagrams/familyTree.js"></script>
+
 
 
 <style>
@@ -318,26 +323,22 @@ input.nameKey, input.nameValue {
 
 
 <script type="text/javascript">
-
-
   $(document).ready( function() {
-
     $("input.nameKey, input.nameValue").hide();
 
-  	// wildbook.init(function() { doTable(); });
-    $("#familyDiagramTab").click(function (e) {
-      e.preventDefault()
-      $("#familyDiagram").show();
-      $("#communityTable").hide();
-      $("#familyDiagramTab").addClass("active");
-      $("#communityTableTab").removeClass("active");
+    $("#socialDiagramTab").click(e => {
+      e.preventDefault();
+      $(".socialVis").hide();
+      $("#socialDiagram").show();
+      $(".socialVisTab").removeClass("active");
+      $("#socialDiagramTab").addClass("active");
     });
 
-    $("#communityTableTab").click(function (e) {
-      e.preventDefault()
-      $("#familyDiagram").hide();
+    $("#communityTableTab").click(e => {
+      e.preventDefault();
+      $(".socialVis").hide();
       $("#communityTable").show();
-      $("#familyDiagramTab").removeClass("active");
+      $(".socialVisTab").removeClass("active");
       $("#communityTableTab").addClass("active");
     });
 
@@ -547,17 +548,17 @@ if (sharky.getNames() != null) {
 	      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
 	      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
 	      String nameValue = sharky.getName(nameKey);
-	
+
 	      %>
 	      <div class="namesection <%=nameKey%>">
 	        <span class="nameKey" data-oldkey="<%=nameKey%>"><em><%=nameLabel%></em></span>
 	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%=nameKey%>" placeholder="<%=nameKey %>" >
 	        <span id="nameColon">:</span>
-	
+
 	        <span class="nameValue <%=nameKey%>" data-oldvalue="<%=nameValue%>"><%=nameValue%></span>
 	        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=nameValue%>" placeholder="<%=nameValue %>" >
 	        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
-	
+
 	        <span class="nameCheck">&check;</span>
 	        <span class="nameError">X</span>
 	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
@@ -579,7 +580,7 @@ if (sharky.getNames() != null) {
       <span class="nameValue newname"></span>
       <input class="form-control nameValue name" name="nameValue" type="text" id="nameValue" value="" placeholder="" >
       <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
-      
+
       <span class="nameCheck">&check;</span>
       <span class="nameError">X</span>
 
@@ -728,7 +729,7 @@ if (sharky.getNames() != null) {
 
 }
             %></p>
-            
+
 
             <%
             String sexValue="";
@@ -759,7 +760,6 @@ if (sharky.getNames() != null) {
                     $("#displaySex").html(sex);
                     $("svg.bubbleChart").remove();
                     getData(individual, null);
-
                   })
                   .fail(function(response) {
                     $("#sexError, #sexErrorDiv").show();
@@ -799,7 +799,7 @@ if (sharky.getNames() != null) {
             if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
             String genusSpeciesFound=props.getProperty("notAvailable");
-            if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
+            if(sharky.getGenusSpeciesDeep()!=null){genusSpeciesFound=sharky.getGenusSpeciesDeep();}
             %>
             <p>
               <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
@@ -1050,7 +1050,7 @@ if (sharky.getNames() != null) {
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
         JSONObject newMaJson = new JSONObject();
         newMaJson = photoObjectArray.get(extraImgNo);
-	String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/main-background.jpg");
+	String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
 
         %>
         <div class="crop-outer">
@@ -1227,6 +1227,140 @@ if (sharky.getNames() != null) {
       <%  
       }
       %>
+
+            <%-- Start Encounter Table --%>
+      <p><strong><%=numencounters %> &amp; <%=props.getProperty("tissueSamples") %></strong></p>
+      <div class="encountersBioSamples">
+        <div role="navigation">
+          <ul class="nav nav-tabs">
+            <li id="encountersTableTab"  class="active">
+              <a href="#encountersTable"><%=sharky.totalEncounters()%> <%=numencounters %></a>
+            </li>
+            <li id="bioSamplesTableTab">
+              <a href="#bioSamplesTable"><%=props.getProperty("tissueSamples") %></a>
+            </li>
+          </ul>
+        </div>
+
+        <div id="encountersTable" class="mygrid-wrapper-div">
+
+          <table id="encountTable" class="table table-bordered table-striped table-sm table-hover">
+            <thead id="encountHead"></thead>
+            <tbody id="encountBody"></tbody>
+          </table>
+        </div>
+        <%-- End Encounter Table --%>
+
+        <!-- Start genetics -->
+        <div id="bioSamplesTable">
+          <a name="tissueSamples"></a>
+          <p>
+            <%
+            List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForMarkedIndividual(sharky);
+
+            int numTissueSamples=tissueSamples.size();
+            if(numTissueSamples>0){
+              %>
+              <table width="100%" class="table table-striped table-bordered table-sm">
+                <tr>
+                  <th><%=props.getProperty("sampleID") %></th>
+                  <th><%=props.getProperty("correspondingEncounterNumber") %></th>
+                  <th><%=props.getProperty("values") %></th>
+                  <th><%=props.getProperty("analyses") %></th></tr>
+                  <%
+                  for(int j=0;j<numTissueSamples;j++){
+                    TissueSample thisSample=tissueSamples.get(j);
+                    %>
+                    <tr>
+                      <td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td>
+                      <td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getCorrespondingEncounterNumber()%></a></span></td>
+                      <td><span class="caption"><%=thisSample.getHTMLString() %></span>
+                    </td>
+
+                    <td><table>
+                      <%
+                      int numAnalyses=thisSample.getNumAnalyses();
+                      List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+                      for(int g=0;g<numAnalyses;g++){
+                        GeneticAnalysis ga = gAnalyses.get(g);
+                        if(ga.getAnalysisType().equals("MitochondrialDNA")){
+                          MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
+                          %>
+                          <tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %></span></td></tr></li>
+                          <%
+                        }
+                        else if(ga.getAnalysisType().equals("SexAnalysis")){
+                          SexAnalysis mito=(SexAnalysis)ga;
+                          %>
+                          <tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %></span></td></tr></li>
+                          <%
+                        }
+                        else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+                          MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
+
+                          %>
+                          <tr>
+                            <td style="border-style: none;">
+                              <p><span class="caption"><strong><%=props.getProperty("msMarkers") %></strong></span>&nbsp;
+                              <%
+                                if(request.getUserPrincipal()!=null){
+                                %>
+                                <a href="individualSearch.jsp?individualDistanceSearch=<%=sharky.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" alt="Individual-to-Individual Genetic Distance Search" src="images/Crystal_Clear_app_xmag.png"></img></a>
+                                <%
+                                  }
+                                  %>
+                                </p>
+                                <span class="caption"><%=mito.getAllelesHTMLString() %></span>
+                              </td>
+                            </tr></li>
+
+                            <%
+                              }
+                              else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
+                              BiologicalMeasurement mito=(BiologicalMeasurement)ga;
+                              %>
+                              <tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=props.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
+                              <%
+                                if(!mito.getSuperHTMLString().equals("")){
+                                %>
+                                <em>
+                                  <br /><%=props.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+                                  <br /><%=mito.getSuperHTMLString()%>
+                                </em>
+                                <%
+                                  }
+                                  %>
+                                </span></td></tr></li>
+                                <%
+                                  }
+                                  }
+                                  %>
+                                </table>
+
+                              </td>
+
+
+                            </tr>
+                            <%
+                              }
+                              %>
+                            </table>
+                          </p>
+                          <%
+                            }
+                            else {
+                            %>
+                            <p class="para"><%=props.getProperty("noTissueSamples") %></p>
+                            <%
+                              }
+                              %>
+        </div>
+        <!-- End genetics -->
+      </div>
+      <br></br>
+
+      <%-- Relationship Graphs --%>
+      <div>
         <a name="socialRelationships"></a>
         <p><strong><%=props.getProperty("social")%></strong></p>
 
@@ -1731,47 +1865,96 @@ if (sharky.getNames() != null) {
             <input class="btn btn-md" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
             <input class="btn btn-md" type="button" id="closeRelationshipForm" value="Cancel">
           </form>
-          
+
           		<script type="text/javascript">
 	                    $(document).ready(function() {
-	                    	
+
 	                    	//set autocomplete on #individualAddEncounterInput above
 	                    	setIndivAutocomplete($('#individual2'));
-	                    	
-	                    	
-	                    	
+
+
+
 	                    });
                 </script>
-          
+
         </div>
 
         <%
           	}
 
-          //end relationship code
-
-          List<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
-
-          if(relationships.size()>0){
           %>
 
         <div role="navigation" id="socialNavigation">
           <ul class="nav nav-tabs">
-            <li id="familyDiagramTab"  class="active">
-              <a href="#familyDiagram">Familial Diagram</a>
-            </li>
-            <li id="communityTableTab">
+	    <li id="socialDiagramTab" class="active socialVisTab">
+	      <a href="#socialDiagram">Social Diagram</a>
+	    </li>
+            <li id="communityTableTab" class="socialVisTab">
               <a href="#communityTable"><%=props.getProperty("social")%> Table</a>
             </li>
           </ul>
         </div>
 
-        <div id="familyDiagram">
-          <% String individualID = sharky.getIndividualID();%>
-          <script type="text/javascript">
-            setupFamilyTree("<%=individualID%>","<%=sharky.getDisplayName() %>");
-          </script>
-        </div>
+	<div id="socialDiagram" class="socialVis">
+	  <div id="familyChart">
+	    <div id="graphFilters">
+	      <div id="graphOptions">
+    	        <button type="button" id="reset">Reset Filters</button>
+	        <button type="button" id="gZoomIn">Zoom In</button>
+	        <button type="button" id="gZoomOut">Zoom Out</button>
+	      </div>
+	      <div id="filterGender" class="filterOptions">
+	        <label>
+	          <input type="checkbox" id="maleBox">
+	          <span>Male</span>
+	          </label>
+	        <label>
+	          <input type="checkbox" id="femaleBox">
+	          <span>Female</span>
+	        </label>
+	        <label>
+	          <input type="checkbox" id="unknownGenderBox">
+	          <span>Unknown Gender</span>
+	        </label>
+	      </div>
+	      <div id="filterSocialRole" class="filterOptions">
+	        <label>
+	          <input type="checkbox" id="alphaBox">
+	          <span>Alpha</span>
+	        </label>
+	        <label>
+	          <input type="checkbox" id="unknownRoleBox">
+	          <span>Unknown Role</span>
+	        </label>
+	      </div>
+	      <div class="filterOptions">
+	        <label>
+	          <input type="checkbox" id="selectFamilyBox">
+	          <span>Select Family</span>
+	        </label>
+                <label>
+	          <input type="checkbox" id="filterFamilyBox">
+	          <span>Filter Family</span>
+	        </label>
+	      </div>
+	    </div>
+	    <div class="loadingIcon">
+	      <img src="loadingSpinner.svg">
+            </div>
+	  </div>
+
+          <div class="graphSliders">
+      	    <div class="sliderWrapper">
+	      <label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
+	      <input type="range" min=0 class="graphSlider" id="nodeCount">
+	    </div>
+	    <div class="sliderWrapper">
+	      <label for="nodeDist"> Node Distance (Geodesic) - <span class="sliderLabel" id="nodeDistVal"></span></label>
+	      <input type="range" min=0 class="graphSlider" id="nodeDist">
+	    </div>
+          </div>
+	  <% String individualID = sharky.getIndividualID();%>
+	</div>
 
         <%
         if (!(isOwner && CommonConfiguration.isCatalogEditable(context))) {
@@ -1858,45 +2041,42 @@ if (sharky.getNames() != null) {
           });
         </script>
 
-        <div id="communityTable" class="mygrid-wrapper-div">
+        <div id="communityTable" class="mygrid-wrapper-div socialVis">
           <table id="relationshipTable" class="table table-bordered table-sm table-striped">
               <thead id="relationshipHead"></thead>
               <tbody id="relationshipBody"></tbody>
           </table>
         </div>
         <br/>
-        <%
-        }
-        else {
-        %>
-        	<p id="noCurrentData" class="para"><%=props.getProperty("noSocial") %></p><br/>
-        <%
-        }
-        //
-
-        %>
 
         <br>
         <%-- Cooccurrence table starts here --%>
         <a name="cooccurrence"></a>
-        <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
+	<p><strong><%=props.getProperty("cooccurrence")%></strong></p>
+	<script type="text/javascript">
+        <% String occurrenceIndividualID = sharky.getIndividualID();%>
+        <% 
+        
+        
+        
+        String individualGenus = sharky.getGenus();
+		String individualEpithet = sharky.getSpecificEpithet();
+		if(individualGenus == null || individualEpithet==null){
+			if(sharky.getGenusSpeciesDeep()!=null){
+				
+				StringTokenizer str=new StringTokenizer(sharky.getGenusSpeciesDeep()," ");
+				if(str.hasMoreTokens()){individualGenus=str.nextToken();}
+				if(str.hasMoreTokens()){individualEpithet=str.nextToken();}
+			}
+		}
+	
+		%>
 
-
-        <script type="text/javascript">
-        // <% String individualID = sharky.getIndividualID();%>
         $(document).ready(function() {
-
-          getData("<%=individualID%>", "<%=sharky.getDisplayName() %>");
+          getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName() %>");
         });
         </script>
 
-        <%
-          List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky);
-
-        if(otherIndies.size()>0){
-
-        //ok, let's iterate the social relationships
-        %>
         <div class="cooccurrences">
 
           <div role="navigation">
@@ -1911,13 +2091,72 @@ if (sharky.getNames() != null) {
           </div>
 
           <div id="cooccurrenceDiagram">
-              <div class="bubbleChart">
-                <div id="buttons" class="btn-group btn-group-sm" role="group">
-                  <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-                  <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
-                  <button type="button" class="btn btn-default" id="reset">Reset</button>
-                </div>
+            <div id="bubbleChart">
+	      <div id="graphFilters">
+	      	<div id="graphOptions">
+    	          <button type="button" id="reset">Reset Filters</button>
+	          <button type="button" id="gZoomIn">Zoom In</button>
+	          <button type="button" id="gZoomOut">Zoom Out</button>
+	        </div>
+	        <div id="filterGender" class="filterOptions">
+	          <label>
+	            <input type="checkbox" id="maleBox">
+	            <span>Male</span>
+	            </label>
+	          <label>
+	            <input type="checkbox" id="femaleBox">
+	            <span>Female</span>
+	          </label>
+	          <label>
+	            <input type="checkbox" id="unknownGenderBox">
+	            <span>Unknown Gender</span>
+	          </label>
+	        </div>
+	        <div id="filterSocialRole" class="filterOptions">
+	          <label>
+	            <input type="checkbox" id="alphaBox">
+	            <span>Alpha</span>
+	          </label>
+	          <label>
+	            <input type="checkbox" id="unknownRoleBox">
+	            <span>Unknown Role</span>
+	          </label>
+	        </div>
+	        <div class="filterOptions">
+	          <label>
+	            <input type="checkbox" id="selectFamilyBox">
+	            <span>Select Family</span>
+	          </label>
+                  <label>
+	            <input type="checkbox" id="filterFamilyBox">
+	            <span>Filter Family</span>
+	          </label>
+	        </div>
+	      </div>
+	      <div class="loadingIcon">
+	        <img src="loadingSpinner.svg">
               </div>
+            </div>
+	    <div class="graphSliders">
+      	      <div class="coOccurrenceSliderWrapper">
+	        <label for="nodeCount"> Nodes Displayed (Count) - <span class="sliderLabel" id="nodeCountVal"></span></label>
+	  	<input type="range" min=0 class="graphSlider" id="nodeCount">
+      	      </div>
+              <div class="coOccurrenceSliderWrapper">
+	        <label for="temporal">Temporal Threshold (Minutes) - <span class="sliderLabel" id="temporalVal"></span></label>
+	  	<input type="range" min=0 class="graphSlider" id="temporal">
+      	      </div>
+      	      <div class="coOccurrenceSliderWrapper">
+	        <label for="spatial">Spatial Threshold (Milli-Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
+		<input type="range" min=0 class="graphSlider" id="spatial">
+      	      </div>
+    	    </div>
+	      <script type="text/javascript">
+	        let querier = new JSONQuerier(wildbookGlobals);
+	        querier.preFetchData("<%=occurrenceIndividualID%>", "<%=individualGenus%>", "<%=individualEpithet%>",
+			     [setupSocialGraph, setupOccurrenceGraph],
+			     ["#socialDiagram", "#bubbleChart"]);
+            </script>
           </div>
 
           <div id="cooccurrenceTable" class="table-responsive mygrid-wrapper-div">
@@ -1927,17 +2166,6 @@ if (sharky.getNames() != null) {
             </table>
           </div>
         </div>
-
-        <%
-        }
-        else {
-        %>
-        	<p class="para"><%=props.getProperty("noCooccurrences") %></p><br />
-        <%
-        }
-
-
-        %>
 
         </td>
         </tr>
@@ -1951,136 +2179,7 @@ if (sharky.getNames() != null) {
       </div>
       <%-- End of Relationship Graphs --%>
       <br>
-      <%-- Start Encounter Table --%>
-      <p><strong><%=props.getProperty("tissueSamples") %> &amp; <%=numencounters %></strong></p>
-      <div class="encountersBioSamples">
-        <div role="navigation">
-          <ul class="nav nav-tabs">
-            <li id="encountersTableTab"  class="active">
-              <a href="#encountersTable"><%=sharky.totalEncounters()%> <%=numencounters %></a>
-            </li>
-            <li id="bioSamplesTableTab">
-              <a href="#bioSamplesTable"><%=props.getProperty("tissueSamples") %></a>
-            </li>
-          </ul>
-        </div>
 
-        <div id="encountersTable" class="mygrid-wrapper-div">
-
-          <table id="encountTable" class="table table-bordered table-striped table-sm table-hover">
-            <thead id="encountHead"></thead>
-            <tbody id="encountBody"></tbody>
-          </table>
-        </div>
-        <%-- End Encounter Table --%>
-
-        <!-- Start genetics -->
-        <div id="bioSamplesTable">
-          <a name="tissueSamples"></a>
-          <p>
-            <%
-            List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForMarkedIndividual(sharky);
-
-            int numTissueSamples=tissueSamples.size();
-            if(numTissueSamples>0){
-              %>
-              <table width="100%" class="table table-striped table-bordered table-sm">
-                <tr>
-                  <th><%=props.getProperty("sampleID") %></th>
-                  <th><%=props.getProperty("correspondingEncounterNumber") %></th>
-                  <th><%=props.getProperty("values") %></th>
-                  <th><%=props.getProperty("analyses") %></th></tr>
-                  <%
-                  for(int j=0;j<numTissueSamples;j++){
-                    TissueSample thisSample=tissueSamples.get(j);
-                    %>
-                    <tr>
-                      <td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td>
-                      <td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getCorrespondingEncounterNumber()%></a></span></td>
-                      <td><span class="caption"><%=thisSample.getHTMLString() %></span>
-                    </td>
-
-                    <td><table>
-                      <%
-                      int numAnalyses=thisSample.getNumAnalyses();
-                      List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
-                      for(int g=0;g<numAnalyses;g++){
-                        GeneticAnalysis ga = gAnalyses.get(g);
-                        if(ga.getAnalysisType().equals("MitochondrialDNA")){
-                          MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
-                          %>
-                          <tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %></span></td></tr></li>
-                          <%
-                        }
-                        else if(ga.getAnalysisType().equals("SexAnalysis")){
-                          SexAnalysis mito=(SexAnalysis)ga;
-                          %>
-                          <tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %></span></td></tr></li>
-                          <%
-                        }
-                        else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
-                          MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
-
-                          %>
-                          <tr>
-                            <td style="border-style: none;">
-                              <p><span class="caption"><strong><%=props.getProperty("msMarkers") %></strong></span>&nbsp;
-                              <%
-                                if(request.getUserPrincipal()!=null){
-                                %>
-                                <a href="individualSearch.jsp?individualDistanceSearch=<%=sharky.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" alt="Individual-to-Individual Genetic Distance Search" src="images/Crystal_Clear_app_xmag.png"></img></a>
-                                <%
-                                  }
-                                  %>
-                                </p>
-                                <span class="caption"><%=mito.getAllelesHTMLString() %></span>
-                              </td>
-                            </tr></li>
-
-                            <%
-                              }
-                              else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
-                              BiologicalMeasurement mito=(BiologicalMeasurement)ga;
-                              %>
-                              <tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=props.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
-                              <%
-                                if(!mito.getSuperHTMLString().equals("")){
-                                %>
-                                <em>
-                                  <br /><%=props.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
-                                  <br /><%=mito.getSuperHTMLString()%>
-                                </em>
-                                <%
-                                  }
-                                  %>
-                                </span></td></tr></li>
-                                <%
-                                  }
-                                  }
-                                  %>
-                                </table>
-
-                              </td>
-
-
-                            </tr>
-                            <%
-                              }
-                              %>
-                            </table>
-                          </p>
-                          <%
-                            }
-                            else {
-                            %>
-                            <p class="para"><%=props.getProperty("noTissueSamples") %></p>
-                            <%
-                              }
-                              %>
-        </div>
-        <!-- End genetics -->
-      </div>
-      <br></br>
 
       <%-- Map --%>
       <br>
@@ -2117,16 +2216,16 @@ if (sharky.getNames() != null) {
 
           <%}%>
         </table>
-        <%} 
+        <%}
         else {
-        	%> 
+        	%>
         	<%=none %></p>
         	<%
           }
         if (CommonConfiguration.isCatalogEditable(context)) {
         %>
         <form action="IndividualAddFile" method="post" enctype="multipart/form-data" name="addDataFiles">
-        	<input name="action" type="hidden" value="fileadder" id="action"> 
+        	<input name="action" type="hidden" value="fileadder" id="action">
           	<input name="individual" type="hidden" value="<%=sharky.getId()%>" id="individual">
           	<p><%=addDataFile %>:</p>
           	<p><input name="file2add" type="file" size="50"></p>

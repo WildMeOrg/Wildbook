@@ -52,15 +52,17 @@ public class RowFeedback {
           } 
           logParseError(colNum, valueString, row);
           return;
+        }
+        if (colNum<this.cells.length) {
+          this.cells[colNum] = new CellFeedback(value, true, false);
         } 
-        this.cells[colNum] = new CellFeedback(value, true, false);
       }
     }
 
     public void logParseError(int colNum, Object value, Row row) {
       try {
         if (!committing) {
-          if (this.cells[colNum]!=null) {
+          if (colNum<this.cells.length&&this.cells[colNum]!=null) {
             CellFeedback cellFeedback = this.cells[colNum];
             System.out.println("Setting ERROR value on OLD CellFeedback for col "+colNum+" val "+String.valueOf(value)+" row "+row.getRowNum());
             // I think we can assume a BLANK or NULL cell doesn't need to get overwritten with an error. 

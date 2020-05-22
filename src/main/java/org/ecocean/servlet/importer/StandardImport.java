@@ -26,6 +26,8 @@ import java.lang.NumberFormatException;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
+import org.ecocean.social.Membership;
+import org.ecocean.social.SocialUnit;
 import org.ecocean.importutils.*;
 import org.ecocean.social.Membership;
 import org.ecocean.social.SocialUnit;
@@ -372,35 +374,40 @@ public class StandardImport extends HttpServlet {
       
       Shepherd myShepherd = new Shepherd(context);
       myShepherd.setAction("StandardImport.java_iTaskCommit");
-      myShepherd.beginDBTransaction();
-      
-      User creator = AccessControl.getUser(request, myShepherd);
-      ImportTask itask = new ImportTask(creator);
-      itask.setPassedParameters(request);
-      
-      myShepherd.getPM().makePersistent(itask);
-      myShepherd.updateDBTransaction();
-      
-      System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
-      
-      
-      List<Encounter> actualEncsCreated = new ArrayList<Encounter>();
-      for(String encid:encsCreated) {
-        if(myShepherd.getEncounter(encid)!=null) {
-          itask.addEncounter(myShepherd.getEncounter(encid));
-          myShepherd.updateDBTransaction();
+      try {
+        myShepherd.beginDBTransaction();
+        
+        User creator = AccessControl.getUser(request, myShepherd);
+        ImportTask itask = new ImportTask(creator);
+        itask.setPassedParameters(request);
+        
+        myShepherd.getPM().makePersistent(itask);
+        myShepherd.updateDBTransaction();
+        
+        System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
+        
+        List<Encounter> actualEncsCreated = new ArrayList<Encounter>();
+        for(String encid:encsCreated) {
+          if(myShepherd.getEncounter(encid)!=null) {
+            itask.addEncounter(myShepherd.getEncounter(encid));
+            myShepherd.updateDBTransaction();
+          }
         }
+
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+          
+        out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+      
+      } catch (Exception e) {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        e.printStackTrace();
       }
 
-      myShepherd.commitDBTransaction();
-      myShepherd.closeDBTransaction();
-        
-
-      out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
-
-
+    } else { 
+      feedback.printEndTable();
     }
-    else{feedback.printEndTable();}
 
     out.println("<div class=\"col-sm-12 col-md-6 col-lg-6 col-xl-6\">"); // half page bootstrap column
     out.println("<h2>Import Overview: </h2>");
@@ -614,6 +621,9 @@ public class StandardImport extends HttpServlet {
     Double effortCode = getDouble(row, "Occurrence.effortCode");
     if (effortCode!=null) occ.setEffortCode(effortCode);
 
+    String observer = getString(row, "Occurrence.observer");
+    if (observer!=null&&!"".equals(observer)) occ.setObserver(observer);
+
     Taxonomy taxy = loadTaxonomy0(row, myShepherd);
     if (taxy!=null) occ.addTaxonomy(taxy);
 
@@ -787,8 +797,13 @@ public class StandardImport extends HttpServlet {
      */
     List<String> measureVals=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurement", context);
     List<String> measureUnits=(List<String>)CommonConfiguration.getIndexedPropertyValues("measurementUnits", context);
+    // measurements by index number in cc.properties OR verbatim name
+    // you can do both I guess if you are chaotic alignment
+
     int numMeasureVals=measureVals.size();
     for(int bg=0;bg<numMeasureVals;bg++){
+
+      // by index
       String colName="Encounter.measurement"+bg;
       Double val = getDouble(row, colName);
       if (val!=null) {
@@ -797,7 +812,18 @@ public class StandardImport extends HttpServlet {
         if (unusedColumns!=null) unusedColumns.remove(colName);
       }
 
+      // by name
+      colName = "Encounter.measurement."+measureVals.get(bg);
+      val = getDouble(row, colName);
+      if (val!=null) {
+        Measurement valMeas = new Measurement(encID, measureVals.get(bg), val, measureUnits.get(bg), "");
+        if (committing) enc.setMeasurement(valMeas, myShepherd);
+        if (unusedColumns!=null) unusedColumns.remove(colName);
+      }
     }
+
+
+
     /*
      * End measurements import
      */
@@ -956,7 +982,12 @@ public class StandardImport extends HttpServlet {
       enc.setDynamicProperty("caudal type",caudalType);
     }
 
-  	enc.setState("approved");
+    String state = getString(row, "Encounter.state");
+    if (state!=null && !state.trim().equals("")) enc.setState(state);
+    else {
+      enc.setState("approved");
+    }
+  	
   	return enc;
   }
 
@@ -1112,7 +1143,7 @@ public class StandardImport extends HttpServlet {
   }
 
   public MediaAsset getMediaAsset(Row row, int i, AssetStore astore, Shepherd myShepherd, Map<String,MediaAsset> myAssets) {
-        
+     
     try {
       if (emptyAssetColumn(i)) {
         feedback.logParseNoValue(assetColIndex(i));
@@ -1155,7 +1186,7 @@ public class StandardImport extends HttpServlet {
     //System.out.println("==============> getMediaAsset resolvedPath is: "+resolvedPath);
     if (resolvedPath==null||"null".equals(resolvedPath)) {
       try {
-        missingPhotos.add(fullPath);
+        feedback.addMissingPhoto(localPath);
         foundPhotos.remove(fullPath);
         feedback.logParseError(assetColIndex(i), localPath, row);
       } catch (NullPointerException npe) {  
@@ -1173,6 +1204,7 @@ public class StandardImport extends HttpServlet {
             System.out.println("WARNING: got hash match, but DIFFERENT FILENAME for " + f + " with " + existMA + "; allowing new MediaAsset to be created");
         } else {
             System.out.println("INFO: " + f + " got hash and filename match on " + existMA);
+            feedback.addFoundPhoto(localPath);
             return existMA;
         }
     }
@@ -1197,8 +1229,8 @@ public class StandardImport extends HttpServlet {
 
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
       ioEx.printStackTrace();
-      
       feedback.addMissingPhoto(localPath);
+      missingPhotos.add(localPath);
       feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
 	  	foundPhotos.remove(fullPath);
       return null;
@@ -1300,8 +1332,11 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     String candidatePath = uppercaseJpg(fullPath);
     if (Util.fileExists(candidatePath)) return candidatePath;
 
-    candidatePath = noExtension(candidatePath);
-    if (Util.fileExists(candidatePath)) return candidatePath;
+    String candidatePathMissing = noExtension(candidatePath);
+    if (Util.fileExists(candidatePathMissing)) return candidatePathMissing;
+
+    candidatePathMissing = noExtensionUpper(candidatePath);
+    if (Util.fileExists(candidatePathMissing)) return candidatePathMissing;
 
     String candidatePath2 = uppercaseBeforeJpg(candidatePath);
     if (Util.fileExists(candidatePath2)) return candidatePath2;
@@ -1323,8 +1358,12 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
     //not sure how cool this is.  but probably same can be said about all this!
     private String noExtension(String filename) {
-        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;
+        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;  //has ext
         return filename + ".jpg";  // :(
+    }
+    private String noExtensionUpper(String filename) {
+        if (filename.toLowerCase().matches(".*\\.(jpg|jpeg|png|tiff|mp4|gif)$")) return filename;  //has ext
+        return filename + ".JPG";  // :(
     }
 
   private String uppercaseBeforeJpg(String filename) {
@@ -1826,7 +1865,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     User u = null;
     if (submitterID!=null) {
       submitterID = submitterID.trim();
-      u = myShepherd.getUserByUsername(submitterID);
+      u = myShepherd.getUser(submitterID);
     }
     if (u==null){
       u = AccessControl.getUser(request, myShepherd); // fall back to logged in user

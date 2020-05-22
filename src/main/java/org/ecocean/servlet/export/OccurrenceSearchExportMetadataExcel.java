@@ -151,9 +151,9 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
           "groupComposition",
           "humanActivityNearby",
           "initialCue",
-          "seaState",
-          "seaSurfaceTemp",
-          "swellHeight",
+          //"seaState",
+          //"seaSurfaceTemp",
+          //"swellHeight",
           "visibilityIndex",
           "effortCode",
           "transectName",
@@ -165,7 +165,7 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
           "bestGroupSizeEstimate",
           "numAdults",
           "numJuveniles",
-          "numCalves",
+          //"numCalves",
           "observer",
           "submitterID",
           "encounterIDs"
@@ -207,9 +207,9 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
             writeCell("groupComposition", occ.getGroupComposition());
             writeCell("humanActivityNearby", occ.getHumanActivityNearby());
             writeCell("initialCue", occ.getInitialCue());
-            writeCell("seaState", occ.getSeaState());
-            writeCell("seaSurfaceTemp", occ.getSeaSurfaceTemp());
-            writeCell("swellHeight", occ.getSwellHeight());
+            //writeCell("seaState", occ.getSeaState());
+            //writeCell("seaSurfaceTemp", occ.getSeaSurfaceTemp());
+            //writeCell("swellHeight", occ.getSwellHeight());
             writeCell("visibilityIndex", occ.getVisibilityIndex());
             writeCell("effortCode", occ.getEffortCode());
             writeCell("transectName", occ.getTransectName());
@@ -221,7 +221,7 @@ public class OccurrenceSearchExportMetadataExcel extends HttpServlet {
             writeCell("bestGroupSizeEstimate", occ.getBestGroupSizeEstimate());
             writeCell("numAdults", occ.getNumAdults());
             writeCell("numJuveniles", occ.getNumJuveniles());
-            writeCell("numCalves", occ.getNumCalves());
+            //writeCell("numCalves", occ.getNumCalves());
             writeCell("observer", occ.getObserver());
             writeCell("submitterID", occ.getSubmitterID());
             writeCell("encounterIDs", occ.getEncounterIDs());
