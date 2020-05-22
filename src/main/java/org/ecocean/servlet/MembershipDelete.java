@@ -65,7 +65,9 @@ public class MembershipDelete extends HttpServlet {
         if (j!=null) {
             String groupName = j.optString("groupName");
             String individualId = j.optString("miId");
-    
+            // keep these around in response for usage if error
+            res.put("groupName", groupName);
+            res.put("miId", individualId);
             try {
                 MarkedIndividual mi = myShepherd.getMarkedIndividual(individualId);
                 if (mi!=null) {
@@ -79,15 +81,18 @@ public class MembershipDelete extends HttpServlet {
                     myShepherd.commitDBTransaction();
                     response.setStatus(HttpServletResponse.SC_OK);
                     System.out.println("I think I removed the indy from the SocialUnit: "+(!su.hasMarkedIndividualAsMember(mi)));
+                    
+                    if (su.getMarkedIndividuals().size()<1) {
+                        System.out.println("[INFO]: No more members left in SocialUnit "+su.getSocialUnitName()+", deleting.");
+                        myShepherd.throwAwaySocialUnit(su);
+                    }
+
+                } else {
+                    res.put("success","false");
+                    res.put("error","Unknown MarkedIndividual.");
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
-                else {
-                  
-                  res.put("success","false");
-                  res.put("error","Unknown MarkedIndividual.");
-                  response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                  
-                }
-    
+                
             } catch (Exception e) {
                 myShepherd.rollbackAndClose();
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
