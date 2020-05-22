@@ -191,6 +191,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
 					myShepherd.updateDBTransaction();
+                                        indiv.refreshNamesCache();
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
