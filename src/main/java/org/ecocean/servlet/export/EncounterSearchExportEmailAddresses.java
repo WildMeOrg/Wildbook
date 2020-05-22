@@ -71,8 +71,8 @@ public class EncounterSearchExportEmailAddresses extends HttpServlet{
 				out.println("<html><body><p><strong>Access denied. Not all data is owned by you.</strong></p>");
 				out.println(ServletUtilities.getFooter(context));
 				out.close();
-				myShepherd.rollbackDBTransaction();
-				myShepherd.closeDBTransaction();
+		    myShepherd.rollbackDBTransaction();
+		    myShepherd.closeDBTransaction();
 				return;
 			}
       

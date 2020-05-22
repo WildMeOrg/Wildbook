@@ -151,6 +151,8 @@ public class EncounterSearchExportShapefile extends HttpServlet{
 					out.println("<html><body><p><strong>Access denied.</strong></p>");
 					out.println(ServletUtilities.getFooter(context));
 					out.close();
+			    myShepherd.rollbackDBTransaction();
+			    myShepherd.closeDBTransaction();
 					return;
 				}
       

@@ -52,8 +52,7 @@ public class EncounterSearchExportKML extends HttpServlet{
     boolean bareBonesPlacemarks=false;
     if(request.getParameter("barebones")!=null){bareBonesPlacemarks=true;}
     
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("EncounterSearchExportKML.class");
+
     Vector rEncounters = new Vector();
     
     //set up the files
@@ -73,30 +72,33 @@ public class EncounterSearchExportKML extends HttpServlet{
       addTimeStamp = true;
     }
     
-    
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSearchExportKML.class");
     myShepherd.beginDBTransaction();
       
       try{
       
-      if(request.getParameter("encounterSearchUse")!=null){
-        Collection c=(Collection)myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null").execute();
-        rEncounters=new Vector(c);
-      }
-      else{
-        EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
-        rEncounters = queryResult.getResult();
-      }
-
-			Vector blocked = Encounter.blocked(rEncounters, request);
-			if (blocked.size() > 0) {
-				response.setContentType("text/html");
-				PrintWriter out = response.getWriter();
-				out.println(ServletUtilities.getHeader(request));  
-				out.println("<html><body><p><strong>Access denied.</strong></p>");
-				out.println(ServletUtilities.getFooter(context));
-				out.close();
-				return;
-			}
+        if(request.getParameter("encounterSearchUse")!=null){
+          Collection c=(Collection)myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null").execute();
+          rEncounters=new Vector(c);
+        }
+        else{
+          EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+          rEncounters = queryResult.getResult();
+        }
+  
+  			Vector blocked = Encounter.blocked(rEncounters, request);
+  			if (blocked.size() > 0) {
+  				response.setContentType("text/html");
+  				PrintWriter out = response.getWriter();
+  				out.println(ServletUtilities.getHeader(request));  
+  				out.println("<html><body><p><strong>Access denied.</strong></p>");
+  				out.println(ServletUtilities.getFooter(context));
+  				out.close();
+  		    myShepherd.rollbackDBTransaction();
+  		    myShepherd.closeDBTransaction();
+  				return;
+  			}
       
         int numMatchingEncounters=rEncounters.size();
       

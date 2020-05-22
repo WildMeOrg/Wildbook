@@ -146,7 +146,6 @@
 		
 		<p><br>Standard Format Export <a href="<%=serverUrl%>/EncounterSearchExportMetadataExcel?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
-		
 
 		
 		<p><%=map_props.getProperty("exportedOBIS")%>: <a href="<%=serverUrl%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a><br />

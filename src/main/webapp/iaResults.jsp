@@ -30,7 +30,6 @@ myShepherd.rollbackAndClose();
 //myShepherd.closeDBTransaction();
 //System.out.println("IARESULTS: New nameKey block got key, value "+nextNameKey+", "+nextName+" for user "+user);
 
-
 try {
 	nResults = Integer.parseInt(nResultsStr);
 } catch (Exception e) {}
@@ -112,6 +111,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	if (request.getParameter("enc2") != null) {
 		enc2 = myShepherd.getEncounter(request.getParameter("enc2"));
 		myShepherd.getPM().refresh(enc2);
+
 		if (enc2 == null) {
 			res.put("error", "no such encounter: " + request.getParameter("enc2"));
 			out.println(res.toString());
@@ -191,6 +191,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
 					myShepherd.updateDBTransaction();
+                                        indiv.refreshNamesCache();
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
@@ -221,7 +222,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			enc.setMatchedBy(matchMsg); 
 			enc2.setMatchedBy(matchMsg);
 
-			res.put("success", true);
+			if (res.optString("error", null) == null) res.put("success", true);
 			
 		} catch (Exception e) {
 			enc.setState("unapproved");
