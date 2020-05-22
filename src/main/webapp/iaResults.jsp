@@ -5,6 +5,7 @@ org.ecocean.media.*,
 org.ecocean.servlet.importer.ImportTask,
 org.ecocean.identity.IdentityServiceLog,
 org.ecocean.SystemValue,
+org.ecocean.ia.Task,
 javax.jdo.Query,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
@@ -33,11 +34,22 @@ System.out.println("setImportTaskComplete() setting true for annot " + ann.getId
     SystemValue.set(myShepherd, svKey, m);
     myShepherd.commitDBTransaction();
 }
+
+
+private static String nextNameFromLocation(Encounter enc) {
+    if (enc == null) return null;
+    String prefix = enc.getLocationID();
+    if (prefix == null) return null;
+    if (prefix.length() > 3) prefix = prefix.substring(0,3);
+    return MarkedIndividual.nextNameByPrefix(prefix.toLowerCase());
+}
+
 %>
 <%
 
 String context = ServletUtilities.getContext(request);
 org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+String NEXT_NAME_LOCATION = "__NEXT_NAME_LOCATION__";
 
 String scoreType = request.getParameter("scoreType");
 // we'll show individualScores unless the url specifies scoreType = image (aka annotation)
@@ -208,10 +220,22 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
+                                // giraffespotter specific (for now?)
+                                if (NEXT_NAME_LOCATION.equals(displayName)) {
+                                    String nn = nextNameFromLocation(enc);
+                                    if (nn == null) {
+                                        displayName = null;  //so it will fail
+                                        System.out.println("WARNING: nextNameByPrefix() impossible due to no locationID");  //snh cuz ui wont show this option; but....
+                                    } else {
+                                        displayName = nn;
+                                        System.out.println("INFO: nextNameByPrefix(" + enc.getLocationID() + ") using name=" + displayName);
+                                    }
+                                }
 				if (Util.stringExists(displayName)) {
 					System.out.println("CASE 1: both indy null");
 					indiv = new MarkedIndividual(displayName, enc);
 					res.put("newIndividualUUID", indiv.getId());
+					res.put("individualId", indiv.getId());
 					res.put("individualName", displayName);
 					myShepherd.getPM().makePersistent(indiv);
 					myShepherd.updateDBTransaction();
@@ -221,6 +245,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					myShepherd.updateDBTransaction();
                                         setImportTaskComplete(myShepherd, enc);
                                         setImportTaskComplete(myShepherd, enc2);
+                                        indiv.refreshNamesCache();
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
@@ -231,6 +256,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				System.out.println("CASE 2: query enc indy is null");
 				enc2.setIndividual(indiv);
 				indiv.addEncounter(enc2);
+				res.put("individualId", indiv.getId());
 				res.put("individualName", indiv.getDisplayName());
 				myShepherd.updateDBTransaction();
                                 setImportTaskComplete(myShepherd, enc2);
@@ -241,6 +267,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				System.out.println("CASE 3: target enc indy is null");
 				enc.setIndividual(indiv2);					
 				indiv2.addEncounter(enc);
+				res.put("individualId", indiv2.getId());
 				res.put("individualName", indiv2.getDisplayName());
 				myShepherd.updateDBTransaction();
                                 setImportTaskComplete(myShepherd, enc);
@@ -253,7 +280,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			enc.setMatchedBy(matchMsg); 
 			enc2.setMatchedBy(matchMsg);
 
-			res.put("success", true);
+			if (res.optString("error", null) == null) res.put("success", true);
 			
 		} catch (Exception e) {
 			enc.setState("unapproved");
@@ -331,7 +358,32 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 
   //session.setMaxInactiveInterval(6000);
 
+
+//we need to get this now for next names (giraffespotter only)
+JSONObject nextNames = new JSONObject();
+if (request.getParameter("taskId") != null) {
+    myShepherd = new Shepherd(request);
+    myShepherd.setAction("iaResults.jsp - getting next name");
+    myShepherd.beginDBTransaction();
+    Task task = myShepherd.getTask(request.getParameter("taskId"));
+    if ((task != null) && task.hasObjectMediaAssets()) {
+        for (MediaAsset ma : task.getObjectMediaAssets()) {
+            if (!ma.hasAnnotations()) continue;
+            for (Annotation ann : ma.getAnnotations()) {
+                Encounter enc = ann.findEncounter(myShepherd);
+                String nn = nextNameFromLocation(enc);
+                if (nn != null) nextNames.put(enc.getCatalogNumber(), nn);
+            }
+        }
+    }
+System.out.println("nextNames ===> " + nextNames.toString(4));
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+}
+
+
 %>
+<script type="text/javascript">var nextNamesByLocation = <%=nextNames.toString()%>;</script>
 
 <script type="text/javascript" src="javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
@@ -551,6 +603,7 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 <script>
+var NEXT_NAME_LOCATION = '<%=NEXT_NAME_LOCATION%>';
 var serverTimestamp = <%= System.currentTimeMillis() %>;
 var pageStartTimestamp = new Date().getTime();
 var taskIds = [];
@@ -1154,7 +1207,11 @@ function annotCheckbox(el) {
 		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
+                h += ' id="new-name-both" ';
 		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
+                if (nextNamesByLocation[queryAnnotation.encId]) {
+		    h += ' <input type="button" value="Set new name [ ' + nextNamesByLocation[queryAnnotation.encId] + ' ] on both" onClick="$(\'#new-name-both\').val(NEXT_NAME_LOCATION); approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
+                }
 	}
 	$('#enc-action').html(h);
         setIndivAutocomplete($('#enc-action .needs-autocomplete'));
@@ -1390,11 +1447,11 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 			console.warn(d);
 			if (d.success) {
 				jQuery(msgTarget).html('<i><b>Update successful</b></i>');
-				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + d.individualName + '</a>';
+				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a>';
 				if (encID2) {
 					$(".enc-title .indiv-link").remove();
 					$(".enc-title #enc-action").remove();
-					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + d.individualName + '</a></span>');
+					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a></span>');
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
 					
 					// updates encounters in results list with name and link to indy
