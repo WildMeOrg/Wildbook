@@ -132,10 +132,12 @@ class JSONQuerier {
     queryRelationshipData(genus) {
 	let query;
 	if (!this.localFiles) {
-	    query = "//"+window.location.host + "/api/jdoql?" +
+		query = "//"+window.location.host + "/encounters/relationshipJson.jsp?"
+		if (genus) query += "genus=" + genus;
+	    //query = "//"+window.location.host + "/api/jdoql?" +
 		//encodeURIComponent(
-				"SELECT FROM org.ecocean.social.Relationship " +
-				   "WHERE (this.type != null )"
+		//		"SELECT FROM org.ecocean.social.Relationship " +
+		//		   "WHERE (this.type != null )"
 		//)
 		;
 	}
