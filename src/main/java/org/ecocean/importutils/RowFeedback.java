@@ -52,26 +52,32 @@ public class RowFeedback {
           } 
           logParseError(colNum, valueString, row);
           return;
+        }
+        if (colNum<this.cells.length) {
+          this.cells[colNum] = new CellFeedback(value, true, false);
         } 
-        this.cells[colNum] = new CellFeedback(value, true, false);
       }
     }
 
     public void logParseError(int colNum, Object value, Row row) {
-      if (!committing) {
-        if (this.cells[colNum]!=null) {
-          CellFeedback cellFeedback = this.cells[colNum];
-          System.out.println("Setting ERROR value on OLD CellFeedback for col "+colNum+" val "+String.valueOf(value)+" row "+row.getRowNum());
-          // I think we can assume a BLANK or NULL cell doesn't need to get overwritten with an error. 
-          if (!cellFeedback.isBlank()) {
-            this.cells[colNum].setSuccess(false);
-            //TODO replace this universal NOT FOUND for an overwrite with something specific.
-            this.cells[colNum].setValueString(value+" NOT FOUND");
+      try {
+        if (!committing) {
+          if (colNum<this.cells.length&&this.cells[colNum]!=null) {
+            CellFeedback cellFeedback = this.cells[colNum];
+            System.out.println("Setting ERROR value on OLD CellFeedback for col "+colNum+" val "+String.valueOf(value)+" row "+row.getRowNum());
+            // I think we can assume a BLANK or NULL cell doesn't need to get overwritten with an error. 
+            if (!cellFeedback.isBlank()) {
+              this.cells[colNum].setSuccess(false);
+              //TODO replace this universal NOT FOUND for an overwrite with something specific.
+              this.cells[colNum].setValueString(value+" NOT FOUND");
+            }
+          } else {
+            System.out.println("Setting ERROR value on NEW CellFeedback for col "+colNum+" val "+String.valueOf(value)+" row "+row.getRowNum());
+            this.cells[colNum] = new CellFeedback(value, false, false);
           }
-        } else {
-          System.out.println("Setting ERROR value on NEW CellFeedback for col "+colNum+" val "+String.valueOf(value)+" row "+row.getRowNum());
-          this.cells[colNum] = new CellFeedback(value, false, false);
         }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
     }
 

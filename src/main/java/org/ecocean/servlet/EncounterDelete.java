@@ -121,20 +121,28 @@ public class EncounterDelete extends HttpServlet {
           }
           
           if(occ!=null) {
-
-            Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
-            occur.removeEncounter(enc2trash);
+            occ.removeEncounter(enc2trash);
             enc2trash.setOccurrenceID(null);
             
             //delete Occurrence if it's last encounter has been removed.
-            if(occur.getNumberEncounters()==0){
-              myShepherd.throwAwayOccurrence(occur);
+            if(occ.getNumberEncounters()==0){
+              myShepherd.throwAwayOccurrence(occ);
             }
             
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
      
           }
+          
+          //Remove it from an ImportTask if needed
+          ImportTask task=myShepherd.getImportTaskForEncounter(enc2trash.getCatalogNumber());
+          if(task!=null) {
+            task.removeEncounter(enc2trash);
+            task.addLog("Servlet EncounterDelete removed Encounter: "+enc2trash.getCatalogNumber());
+            myShepherd.updateDBTransaction();
+          }
+          
+          
 
           if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
             ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);

@@ -191,6 +191,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
 					myShepherd.updateDBTransaction();
+                                        indiv.refreshNamesCache();
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
@@ -221,7 +222,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			enc.setMatchedBy(matchMsg); 
 			enc2.setMatchedBy(matchMsg);
 
-			res.put("success", true);
+			if (res.optString("error", null) == null) res.put("success", true);
 			
 		} catch (Exception e) {
 			enc.setState("unapproved");

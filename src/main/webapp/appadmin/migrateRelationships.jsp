@@ -19,7 +19,7 @@ Shepherd myShepherd=new Shepherd(context);
 
 <html>
 <head>
-<title>Fix Some Fields</title>
+<title>Migrate Relationships</title>
 
 </head>
 
@@ -43,16 +43,64 @@ try {
 			MarkedIndividual individual1=myShepherd.getMarkedIndividual(rel.getMarkedIndividualName1());
 			MarkedIndividual individual2=myShepherd.getMarkedIndividual(rel.getMarkedIndividualName2());
 			if(individual1!=null && individual2!=null){
-				rel.setIndividual1(individual1);
-				rel.setIndividual2(individual2);
+				
+				if(rel.getMarkedIndividual1()==null || rel.getMarkedIndividual2()==null){
+					rel.setIndividual1(individual1);
+					rel.setIndividual2(individual2);
 
-				myShepherd.updateDBTransaction();
-				%>
+					myShepherd.updateDBTransaction();
+					%>
+					
+					
+					<li>Migrated!</li>
+					
+					<%
+				}
+
+				
+				//OK, let's migrate social memberships to social units with the new code
+				
+				//"type":"CommunityMembership","relatedSocialUnitName":"C",
+				if(rel.getType()!=null&&rel.getRelatedSocialUnitName()!=null&&rel.getType().equals("CommunityMembership")){
+					
+					String socName=rel.getRelatedSocialUnitName();
+					SocialUnit su=myShepherd.getSocialUnit(socName);
+					if(su==null){
+						
+						%>
+						<li>Warning: SocialUnit <%=socName %> is referenced but does not exist.</li>
+						<%
+						
+					}
+					if(su!=null){
+						
+						if(!su.hasMarkedIndividualAsMember(individual1)){
+							Membership member=new Membership(individual1);
+							myShepherd.getPM().makePersistent(member);
+							su.addMember(member);
+							myShepherd.updateDBTransaction();
+							%>
+							<li>Added <%=individual1.getDisplayName() %> to social unit name: <%=su.getSocialUnitName() %></li>
+							<%
+						}
+						if(!su.hasMarkedIndividualAsMember(individual2)){
+							Membership member=new Membership(individual2);
+							myShepherd.getPM().makePersistent(member);
+							su.addMember(member);
+							myShepherd.updateDBTransaction();
+							%>
+							<li>Added <%=individual2.getDisplayName() %> to social unit name: <%=su.getSocialUnitName() %></li>
+							<%
+						}
+							
+					}
+					
+					
+					
+				}
 				
 				
-				<li>Needs migration!</li>
 				
-				<%
 			}
 			else{
 					%>

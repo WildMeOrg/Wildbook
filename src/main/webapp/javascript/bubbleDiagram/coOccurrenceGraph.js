@@ -5,11 +5,12 @@
  *   compatibility with individuals.jsp
  * @param {parser} [JSONParser] - Optional parser specification. Defaults to null
  */	
-function setupOccurrenceGraph(individualID, globals, parser=null) {
+function setupOccurrenceGraph(individualId, containerId, globals, parser=null) {
     let focusedScale = 1.75;
-    let occ = new OccurrenceGraph(individualID, "#bubbleChart", globals, focusedScale, parser);
+    let occ = new OccurrenceGraph(individualId, containerId, globals, focusedScale, parser);
     occ.applyOccurrenceData();
 }
+
 
 //Sparse-tree mapping co-occurrence relationships between a focused individual and its species
 class OccurrenceGraph extends ForceLayoutAbstract {
@@ -17,9 +18,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	super(individualId, containerId, globals);
 
 	this.focusedScale = focusedScale;
-	
 	if (parser) this.parser = parser;
-	else this.parser = new JSONParser(globals, null, true, 30);
+	else this.parser = new JSONParser(null, true, 30);
 
 	//Expand upon graphAbstract's {this.sliders} attribute
 	this.sliders = {...this.sliders, "temporal": {"filter": this.filterByOccurrence},
@@ -30,8 +30,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * Wrapper function to gather species data and generate a graph
      */	   
     applyOccurrenceData() {
-	this.parser.parseJSON((nodes, links) => this.graphOccurrenceData(nodes, links),
-			      this.id, true);
+	this.parser.processJSON((nodes, links) => this.graphOccurrenceData(nodes, links),
+			        this.id, true);
     }
     
     /**
@@ -41,10 +41,15 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @param {links} [obj list] - A list of link objects queried from the Relationship psql table
      */	
     graphOccurrenceData(nodes, links) {
+        //Clear loading icon
+	$("#bubbleChart").children(".loadingIcon").empty();
+	$("#bubbleChart").children(".loadingIcon").remove();
+
 	//Create graph w/ forces
 	if (nodes.length >= 1) { 
 	    this.setupGraph(links, nodes);
 	    this.updateGraph(links, nodes);
+	    //$(this.containId).children('.loading').remove();
 	}
 	else this.showTable("#cooccurrenceDiagram", "#cooccurrenceTable");
     }

@@ -798,6 +798,10 @@ System.out.println("[1] getMatchingSet params=" + params);
         return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null");
     }
 
+    static public ArrayList<Annotation> getAllMatchAgainstTrue(Shepherd myShepherd) {
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst");
+    }
+
     // will construnct "&& (viewpoint == null || viewpoint == 'x' || viewpoint == 'y')" for use above
     //   note: will return "" when this annot has no (valid) viewpoint
     private String getMatchingSetFilterViewpointClause(Shepherd myShepherd) {
@@ -1054,6 +1058,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.resetDateInMilliseconds();
             newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
             newEnc.setGenus(someEnc.getGenus());
+            newEnc.setSex(null);
 
             Occurrence occ = myShepherd.getOccurrence(someEnc);
             if (occ==null) {

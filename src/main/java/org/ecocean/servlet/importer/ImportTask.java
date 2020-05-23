@@ -55,12 +55,6 @@ public class ImportTask implements java.io.Serializable {
         if (!encounters.contains(enc)) encounters.add(enc);
     }
 
-    public void removeEncounter(Encounter enc) {
-        if (encounters.contains(enc)) {
-            encounters.remove(enc);
-        }
-    }
-
     public void setCreator(User u) {
         creator = u;
     }
@@ -154,6 +148,12 @@ public class ImportTask implements java.io.Serializable {
                 .append("creator", (creator == null) ? (String)null : creator.getDisplayName())
                 .append("numEncs", Util.collectionSize(encounters))
                 .toString();
+    }
+    
+    public void removeEncounter(Encounter enc) {
+      if (enc == null) return;
+      if (encounters == null) return;
+      if (encounters.contains(enc)) encounters.remove(enc);
     }
 
 
