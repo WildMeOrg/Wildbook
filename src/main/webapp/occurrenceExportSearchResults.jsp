@@ -101,7 +101,9 @@
 		    <div class="container maincontent">
 
 
-		      <h1 class="intro"><%=occProps.getProperty("reports") %></h1>
+		           <h1 class="intro">
+        				<%=occProps.getProperty("OccurrenceSearchResults")%>
+      				</h1>
 
 
 

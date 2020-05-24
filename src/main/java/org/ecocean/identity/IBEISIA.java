@@ -503,7 +503,7 @@ Util.mark("identify process pre-post end");
             map.put("use_labeler_species", uls);
         } else {
             System.out.println("[INFO] sendDetect() use_labeler_species is null; DEFAULT of False will be used");
-        }
+        }        
 
         String u = getDetectUrlByModelTag(context, modelTag);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
@@ -1705,7 +1705,9 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with n
 System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
         //this is to tell IA to update species on the newly-created annot on its side
         String taxonomyString = enc.getTaxonomyString();
-        if (Util.stringExists(taxonomyString)) {
+        System.out.println("[INFO]: Checking if iaUpdateSpecies should be used for "+taxonomyString+"...");
+        if (Util.stringExists(taxonomyString)&&shouldUpdateSpeciesFromIa(taxonomyString, context)) {
+            System.out.println("[INFO]: iaUpdateSpecies is active for "+taxonomyString+".");
             List<String> uuids = new ArrayList<String>();
             List<String> species = new ArrayList<String>();
             uuids.add(ann.getAcmId());
@@ -1720,6 +1722,12 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
             System.out.println("WARNING: cannot update IA, no taxonomy on " + ann);
         }
         return ann;
+    }
+
+    public static boolean shouldUpdateSpeciesFromIa(String taxonomyString, String context) {
+        if (taxonomyString==null||"".equals(taxonomyString)) return false;
+        String taxKey = taxonomyString.replaceAll(" ", "_");
+        return Util.booleanNotFalse(IA.getProperty(context, "useIaUpdateSpecies_"+taxKey));
     }
 
     // here's where we'll attach viewpoint from IA's detection results
@@ -1978,35 +1986,35 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                         System.out.println("WARN: could not find MediaAsset for " + iuuid + " in detection results for task " + taskID);
                         continue;
                     }
-
-
+                    
+                    
                     JSONArray newAnns = new JSONArray();
                     if(janns.length()==0) {
-                      //OK, for some species and conditions we may just want to trust the user
+                      //OK, for some species and conditions we may just want to trust the user 
                       //that there is an animal in the image and set trivial annot to matchAgainst=true
-
+                      
                       if(asset.getAnnotations()!=null && asset.getAnnotations().size()==1 && asset.getAnnotations().get(0).isTrivial()) {
-
+                        
                         //so this media asset currently only has one trivial annot
                         Annotation annot=asset.getAnnotations().get(0);
                         Encounter enc=annot.findEncounter(myShepherd);
                         if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null && IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd))!=null ) {
                           if(IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd)).equals("true")) {
-
+                            
                             annot.setMatchAgainst(true);
                             myShepherd.updateDBTransaction();
-
+                            
                             allAnns.add(annot);  //this is cumulative over *all MAs*
 
                           }
                         }
-
+                        
                       }
                     }
-
-
+                    
+                    
                     boolean needsReview = false;
-
+                    
                     boolean skipEncounters = asset.hasLabel("_frame");
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
@@ -2042,6 +2050,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 if (amap.length() > 0) rtn.put("annotations", amap);  //needed to kick off ident jobs with return value
+  
 
 
                 JSONObject jlog = new JSONObject();
