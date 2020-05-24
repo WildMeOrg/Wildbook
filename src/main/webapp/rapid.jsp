@@ -20,7 +20,7 @@ private static String encDiv(Annotation ann, Encounter enc) {
     String h = shortId(enc.getCatalogNumber());
     Long m = enc.getDateInMilliseconds();
     if (m != null) h = (new DateTime(m)).toString().substring(0,10);
-    h = "<a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + h + "</a>";
+    h = "<a target=\"_new\" title=\"Go to Encounter\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + h + "</a>";
     if (enc.getSex() != null) h += " / " + enc.getSex();
     if (enc.getLifeStage() != null) h += " / " + enc.getLifeStage();
     return "<div class=\"enc-div\">" + h + "</div>";
