@@ -133,6 +133,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	res.put("encounterId2", request.getParameter("enc2"));
 	res.put("individualId", request.getParameter("individualID"));
         res.put("taskId", taskId);
+System.out.println("RES=" + res.toString(4));
 
 	myShepherd = new Shepherd(context);
 	myShepherd.setAction("iaResults.jsp2");
@@ -233,7 +234,16 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
                                 }
 				if (Util.stringExists(displayName)) {
 					System.out.println("CASE 1: both indy null");
-					indiv = new MarkedIndividual(displayName, enc);
+                                        if (Util.isUUID(displayName)) {
+                                            System.out.println("INFO: iaResults trying to load existing indiv with uuid displayName=[" + displayName + "]");
+			                    indiv = myShepherd.getMarkedIndividualQuiet(displayName);
+                                            if (indiv != null) {
+                                                System.out.println("INFO: iaResults loaded existing indiv=" + indiv);
+                                                displayName = indiv.getDisplayName(request);
+                                                indiv.addEncounter(enc);
+                                            }
+                                        }
+					if (indiv == null) indiv = new MarkedIndividual(displayName, enc);
 					res.put("newIndividualUUID", indiv.getId());
 					res.put("individualId", indiv.getId());
 					res.put("individualName", displayName);
@@ -246,6 +256,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
                                         setImportTaskComplete(myShepherd, enc);
                                         setImportTaskComplete(myShepherd, enc2);
                                         indiv.refreshNamesCache();
+System.out.println("RES=" + res.toString(4));
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
