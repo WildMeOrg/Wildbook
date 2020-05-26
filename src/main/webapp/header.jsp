@@ -402,12 +402,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                          <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
+                        <a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a>
+                        <!-- <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a> -->
+                        <!-- <ul class="dropdown-menu" role="menu"> -->
+                          <!-- <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li> -->
 
-                          <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
-                        </ul>
+                          <!-- <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li> -->
+                        <!-- </ul> -->
                       </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="encounter-dropdown"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
@@ -427,8 +428,8 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                                  }
                             } //end while %>
                           <li class="divider"></li>
-                          <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
-                          <li><a href="<%=urlLoc %>/xcalendar/calendar2.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
+                          <!-- <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li> -->
+                          <!-- <li><a href="<%=urlLoc %>/xcalendar/calendar2.jsp"><%=props.getProperty("encounterCalendar")%></a></li> -->
                           <% if(request.getUserPrincipal()!=null) { %>
                             <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySubmissions")%></a></li>
                           <% } %>
