@@ -989,6 +989,10 @@ public class MediaAsset implements java.io.Serializable {
                                 if (!Util.stringExists(displayName)) displayName = enc.getIndividualID();
                                 jf.put("displayName", displayName);
                             }
+                            if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null) {
+                              jf.put("genus",enc.getGenus());
+                              jf.put("specificEpithet",enc.getSpecificEpithet());
+                            }
                         }
                     }
 
