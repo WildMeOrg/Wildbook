@@ -354,13 +354,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                       <!-- submit encounter, survey -->
 
-                      <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-                      // <li class="dropdown">
-                      //   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
-                      //   // <ul class="dropdown-menu" role="menu">
-							        //   //     // <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
-                      //   // </ul>
-                      // </li>
+                      <!--  <li><a href<!--  ="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li> -->
+                      <!--  <li class="dropdown"> -->
+                        <!--  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a> -->
+                        <!--  <ul class="dropdown-menu" role="menu"> -->
+							              <!--  <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li> -->
+                        <!--  </ul> -->
+                      <!--  </li> -->
 
                       <!-- end submit -->
 
@@ -368,39 +368,31 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-
-                        	<!--
-                        	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-
-                               <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li>
-							-->
-                             <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
-
-
+                        	<!-- <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li> -->
+                          <!-- <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li> -->
+                               <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         	<li class="divider"></li>
                         </ul>
                       </li>
 
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
+                      <!-- <li class="dropdown"> -->
+                        <!-- <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a> -->
+                        <!-- <ul class="dropdown-menu" role="menu"> -->
                         <%
-                        if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+                        //if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
                         %>
-                          <li><a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a></li>
+                          <!-- <li><a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a></li> -->
                         <%
-                        }
+                        //}
                         %>
-                          <li><a href="http://wiki.whaleshark.org/doku.php?id=user_agreement" target="_blank"><%=props.getProperty("userAgreement")%></a></li>
+                          <!-- <li><a href="http://wiki.whaleshark.org/doku.php?id=user_agreement" target="_blank"><%=props.getProperty("userAgreement")%></a></li> -->
+                          <!--  examples of navigation dividers -->
+                          <!-- <li class="divider"></li> -->
+                          <!-- <li class="dropdown-header">Nav header</li> -->
+                        <!-- </ul> -->
+                      <!-- </li> -->
 
-                          <!--  examples of navigation dividers
-                          <li class="divider"></li>
-                          <li class="dropdown-header">Nav header</li>
-                           -->
-
-                        </ul>
-                      </li>
                       <li class="dropdown">
                         <a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a>
                         <!-- <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a> -->
@@ -457,13 +449,13 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                        </li>
 
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="search-dropdown"><%=props.getProperty("search")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                              <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp"><%=props.getProperty("surveySearch")%></a></li>
-                           </ul>
+                      <a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a>
+                        <!-- <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="search-dropdown"><%=props.getProperty("search")%> <span class="caret"></span></a> -->
+                        <!-- <ul class="dropdown-menu" role="menu"> -->
+                              <!-- <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li> -->
+                              <!-- <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li> -->
+                              <!-- <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp"><%=props.getProperty("surveySearch")%></a></li> -->
+                        <!-- </ul> -->
                       </li>
 
                       <li>
