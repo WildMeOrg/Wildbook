@@ -410,7 +410,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="encounter-dropdown"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li class="dropdown-header"><%=props.getProperty("states")%></li>
 
