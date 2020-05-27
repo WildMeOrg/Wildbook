@@ -100,27 +100,27 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
-      
-      
+
+
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
-      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
+      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
 
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
   	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
-  	<!-- End Open Graph Tags -->    
-    
+  	<!-- End Open Graph Tags -->
+
 
 
 	<!-- Clockpicker on creatSurvey jsp -->
     <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
-    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" /> 
-   
+    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" />
+
     <style>
       ul.nav.navbar-nav {
         width: 100%;
@@ -145,7 +145,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
                   <%
                   }
-                  %> 
+                  %>
                     <%-- <a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a> --%>
                     <ul class="secondary-nav hor-ul no-bullets">
 
@@ -347,7 +347,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     <ul class="nav navbar-nav">
 
 
-                      <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->                        
+                      <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
@@ -368,8 +368,8 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        	
-                        	<!--  
+
+                        	<!--
                         	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
 
                                <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li>
@@ -435,28 +435,28 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
 
-                      <li class="dropdown">	
-                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("studySites")%> <span class="caret"></span></a>	
-                         <ul class="dropdown-menu" role="menu">	
-                           <li>	
-                             <a href="<%=urlLoc %>/studySite.jsp"><%=props.getProperty("newStudySite")%></a>	
-                           </li>	
-                           <li>	
-                             <a href="<%=urlLoc %>/studySiteSearch.jsp"><%=props.getProperty("searchStudySites")%></a>	
-                           </li>	
-                           <li>	
-                             <a href="<%=urlLoc %>/studySiteSearchResults.jsp"><%=props.getProperty("allStudySites")%></a>	
+                      <li class="dropdown">
+                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("studySites")%> <span class="caret"></span></a>
+                         <ul class="dropdown-menu" role="menu">
+                           <li>
+                             <a href="<%=urlLoc %>/studySite.jsp"><%=props.getProperty("newStudySite")%></a>
+                           </li>
+                           <li>
+                             <a href="<%=urlLoc %>/studySiteSearch.jsp"><%=props.getProperty("searchStudySites")%></a>
+                           </li>
+                           <li>
+                             <a href="<%=urlLoc %>/studySiteSearchResults.jsp"><%=props.getProperty("allStudySites")%></a>
                            </li>
                            <% if (request.isUserInRole("admin")) { %>
-                           <li>	
-                             <a href="<%=urlLoc %>/mergeStudySites.jsp"><%=stuprops.getProperty("mergeHeader")%></a>	
+                           <li>
+                             <a href="<%=urlLoc %>/mergeStudySites.jsp"><%=stuprops.getProperty("mergeHeader")%></a>
                            </li>
                            <% } %>
-                         </ul>	
+                         </ul>
                        </li>
 
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="search-dropdown"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
@@ -499,11 +499,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             <li class="dropdown-header">Admins Only</li>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-                         
+
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 								<li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
-								
-                                <% 
+
+                                <%
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
                                 <% } %>
@@ -514,7 +514,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
-                                <% } 
+                                <% }
                             } //end if admin %>
                         </ul>
                       </li>
