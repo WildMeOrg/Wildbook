@@ -152,6 +152,15 @@ return null; ///FIXME
         return DataDefinition.isReadOnly(meta);
     }
 
+    //covers both the VALUE and the META (e.g. to public)
+    public boolean isPrivate() {
+        return isPrivate(this.getMeta());
+    }
+    public boolean isPrivate(JSONObject meta) {
+        if (!this.isValid(meta)) return true;  //kinda wonky; but also true!
+        return DataDefinition.isPrivate(meta);
+    }
+
     public JSONObject getMeta() {
         return ConfigurationUtil.getMeta(this.id);
     }
@@ -232,6 +241,7 @@ return null; ///FIXME
         JSONObject c = this.getContent();
         if (c != null) j.put("currentValue", c.opt(ConfigurationUtil.VALUE_KEY));  //FIXME probably
         j.put("settable", true);
+        j.put("isPrivate", this.isPrivate(m));
         j.put("defaultValue", m.opt("defaultValue"));
         String type = ConfigurationUtil.getType(m);
         j.put("fieldType", type);
@@ -302,6 +312,7 @@ return null; ///FIXME
         j.put("readOnly", this.isReadOnly(m));
         j.put("hasValue", this.hasValue());
         j.put("isMultiple", this.isMultiple());
+        j.put("isPrivate", this.isPrivate());
         j.put("validRoot", this.hasValidRoot());
         j.put("content", this.getContent());
 /*

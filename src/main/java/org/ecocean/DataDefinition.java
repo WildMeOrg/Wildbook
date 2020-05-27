@@ -294,6 +294,13 @@ public class DataDefinition {
         if (meta == null) return true;  //kinda weird?
         return meta.optBoolean("readOnly", false);
     }
+    public boolean isPrivate() {
+        return isPrivate(this.meta);
+    }
+    public static boolean isPrivate(JSONObject meta) {
+        if (meta == null) return true;  //kinda weird?
+        return meta.optBoolean("private", false);
+    }
 /*
     // this is the "inverse" of handleValue() above, in that it tries to get the right kind of object out of this
     public static Object coerceValue(Configuration conf) throws DataDefinitionException {

@@ -14,9 +14,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
 import org.ecocean.User;
+import org.ecocean.configuration.*;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -176,11 +178,16 @@ public class RestServletV2 extends HttpServlet {
         out.close();
     }
 
+/*
+    if payload.id exists, this is considered a GET of that value.  otherwise, payload *keys* will be considered ids, with values
+    representing what to SET on those ids.
+*/
     private void handleConfiguration(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
         if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
         payload.remove("class");
         payload.remove("_queryString");
-////////////// TODO security duh!!
+////////////// TODO security duh!!  only admin may SET
+        boolean isAdmin = true;  //// FIXME debug only!
         JSONObject rtn = new JSONObject();
         rtn.put("success", false);
         rtn.put("transactionId", instanceId);
@@ -189,15 +196,57 @@ public class RestServletV2 extends HttpServlet {
         myShepherd.beginDBTransaction();
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
+
+        String id = payload.optString("id", null);
+        if (id != null) {  //get value
+            Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, id);
+            JSONObject meta = conf.getMeta();
+            if (!conf.isValid(meta)) {
+                rtn.put("message", _rtnMessage("invalid_configuration_id", new JSONArray(Arrays.asList(id))));
+            } else if (conf.isPrivate(meta)) {
+                rtn.put("message", _rtnMessage("access_denied_configuration", new JSONArray(Arrays.asList(id))));
+                response.setStatus(401);
+            } else {
+                rtn.put("success", true);
+                if (conf.hasValue()) {
+                    rtn.put("value", conf.getContent().get(ConfigurationUtil.VALUE_KEY));
+                } else if (meta.has("defaultValue")) {
+                    rtn.put("valueNotSet", true);
+                    rtn.put("usingDefault", true);
+                    rtn.put("value", meta.get("defaultValue"));
+                } else {
+                    rtn.put("valueNotSet", true);
+                    rtn.put("message", _rtnMessage("configuration_no_value"));
+                }
+            }
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            out.println(rtn.toString());
+            out.close();
+            return;
+        }
+
+        if (!isAdmin) {
+            _log(instanceId, "invalid config set with payload=" + payload);
+            rtn.put("message", _rtnMessage("access_denied"));
+            response.setStatus(401);
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            out.println(rtn.toString());
+            out.close();
+            return;
+        }
+
         List<String> updated = new ArrayList<String>();
 rtn.put("_payload", payload);
 
         try {
             for (Object k : payload.keySet()) {
                 String key = (String)k;
-                updated.add(key);
                 if (key.equals("foo")) throw new org.ecocean.DataDefinitionException("fake foo blah");
+                //Configuration conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
 System.out.println(">>>> FAKE SET key=" + key + " <= " + payload.get(key));
+                updated.add(key);
             }
         } catch (Exception ex) {
             myShepherd.rollbackDBTransaction();
