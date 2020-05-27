@@ -4,7 +4,7 @@ javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.ExecutionContext,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
-org.datanucleus.api.rest.RESTUtils, 
+org.datanucleus.api.rest.RESTUtils,
 org.datanucleus.api.jdo.JDOPersistenceManager,
 java.text.SimpleDateFormat" %>
 
@@ -1334,9 +1334,9 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
 
           <div role="navigation">
             <ul class="nav nav-tabs">
-              <li id="cooccurrenceDiagramTab" class="active">
-                <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a>
-              </li>
+              <!-- <li id="cooccurrenceDiagramTab" class="active"> -->
+                <!-- <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a> -->
+              <!-- </li> -->
               <li id="cooccurrenceTableTab">
                 <a href="#cooccurrenceTable"><%=props.getProperty("cooccurrence")%> Table</a>
               </li>
