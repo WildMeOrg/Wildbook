@@ -138,7 +138,7 @@ public class ConfigurationUtil {
         if (!conf.isValid()) throw new ConfigurationException("setConfigurationValue() on invalid " + conf);
         if (conf.isReadOnly()) throw new ConfigurationException("setConfigurationValue() on readOnly " + conf);
         JSONObject content = null;
-        Configuration rconf = getConfiguration(myShepherd, root);  //root conf (to change value)
+        Configuration rconf = myShepherd.getConfiguration(root);  //root conf (to change value); must be from datastore tho!
         if (rconf == null) {
             rconf = new Configuration(root, new JSONObject());
         } else {
