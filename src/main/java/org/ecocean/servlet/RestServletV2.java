@@ -230,7 +230,7 @@ public class RestServletV2 extends HttpServlet {
         }
 
         if (!isAdmin) {
-            _log(instanceId, "invalid config set with payload=" + payload);
+            _log(instanceId, "invalid config set access with payload=" + payload);
             rtn.put("message", _rtnMessage("access_denied"));
             response.setStatus(401);
             myShepherd.rollbackDBTransaction();
@@ -247,8 +247,8 @@ rtn.put("_payload", payload);
             for (Object k : payload.keySet()) {
                 String key = (String)k;
                 if (key.equals("foo")) throw new org.ecocean.DataDefinitionException("fake foo blah");
-                //Configuration conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
-System.out.println(">>>> FAKE SET key=" + key + " <= " + payload.get(key));
+                Configuration conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
+                _log(instanceId, ">>>> SET key=" + key + " <= " + payload.get(key) + " => " + conf);
                 rtn.put("success", true);
                 updated.add(key);
             }
