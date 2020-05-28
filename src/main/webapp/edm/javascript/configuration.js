@@ -195,7 +195,7 @@ clickSet: function(id) {
     if (!wbConf.cache[id]) return false;  //snh cuz we got here post-build
     $('#c_set_' + wbConf.cache[id].name + ' .set-button').hide().after('<i class="set-message">saving</i>');
     var d = {};
-    d[id] = $('#c_' + wbConf.cache[id].name + ' .c-settable input').val(); //TODO handle multiple?
+    d[id] = $('#c_set_' + wbConf.cache[id].name + ' input').val(); //TODO handle multiple?
 console.log('DATA TO SAVE d=%o', d);
     $.ajax({
         url: '../api/v0/configuration',
@@ -237,14 +237,14 @@ makeUI: {
 
     color: function(j) {
         var h = '<div class="c-settable" id="c_set_' + j.name + '">';
-        h += '<input type="color" name="' + j.name + '" />';
+        h += '<input type="color" name="' + j.name + '" value="' + (j.currentValue || j.defaultValue || '') + '" />';
         h += '<div><input class="set-button" type="button" value="set" onClick="return wbConf.clickSet(\'' + j.configurationId + '\');" /></div>';
         h += '</div>';
         return h;
     },
     string: function(j) {
         var h = '<div class="c-settable" id="c_set_' + j.name + '">';
-        h += '<input name="' + j.name + '" />';
+        h += '<input name="' + j.name + '" value="' + (j.currentValue || j.defaultValue || '') + '" />';
         h += '<div><input class="set-button" type="button" value="set" onClick="return wbConf.clickSet(\'' + j.configurationId + '\');" /></div>';
         h += '</div>';
         return h;
