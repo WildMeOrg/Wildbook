@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
 import org.ecocean.User;
@@ -202,9 +201,13 @@ public class RestServletV2 extends HttpServlet {
             Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, id);
             JSONObject meta = conf.getMeta();
             if (!conf.isValid(meta)) {
-                rtn.put("message", _rtnMessage("invalid_configuration_id", new JSONArray(Arrays.asList(id))));
+                JSONObject jerr = new JSONObject();
+                jerr.put("id", id);
+                rtn.put("message", _rtnMessage("invalid_configuration_id", jerr));
             } else if (conf.isPrivate(meta)) {
-                rtn.put("message", _rtnMessage("access_denied_configuration", new JSONArray(Arrays.asList(id))));
+                JSONObject jerr = new JSONObject();
+                jerr.put("id", id);
+                rtn.put("message", _rtnMessage("access_denied_configuration", jerr));
                 response.setStatus(401);
             } else {
                 rtn.put("success", true);
@@ -266,7 +269,7 @@ System.out.println(">>>> FAKE SET key=" + key + " <= " + payload.get(key));
         out.close();
     }
 
-    private JSONObject _rtnMessage(String key, JSONArray args, String details) {
+    private JSONObject _rtnMessage(String key, JSONObject args, String details) {
         if (key == null) return null;
         JSONObject m = new JSONObject();
         m.put("key", key);
@@ -274,7 +277,7 @@ System.out.println(">>>> FAKE SET key=" + key + " <= " + payload.get(key));
         if (details != null) m.put("details", details);
         return m;
     }
-    private JSONObject _rtnMessage(String key, JSONArray args) {
+    private JSONObject _rtnMessage(String key, JSONObject args) {
         return _rtnMessage(key, args, null);
     }
     private JSONObject _rtnMessage(String key) {
