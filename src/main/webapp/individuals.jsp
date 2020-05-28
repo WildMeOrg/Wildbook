@@ -1311,8 +1311,8 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
 
         <br>
         <%-- Cooccurrence table starts here --%>
-        <a name="cooccurrence"></a>
-        <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
+        <!-- <a name="cooccurrence"></a> -->
+        <!-- <p><strong><%=props.getProperty("cooccurrence")%></strong></p> -->
 
 
         <script type="text/javascript">
@@ -1324,50 +1324,50 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         </script>
 
         <%
-          List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
-
-        if(otherIndies.size()>0){
+        //   List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
+        //
+        // if(otherIndies.size()>0){
 
         //ok, let's iterate the social relationships
         %>
-        <div class="cooccurrences">
+        <!-- <div class="cooccurrences">-->
 
-          <div role="navigation">
-            <ul class="nav nav-tabs">
+          <!-- <div role="navigation">-->
+            <!-- <ul class="nav nav-tabs">-->
               <!-- <li id="cooccurrenceDiagramTab" class="active"> -->
                 <!-- <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a> -->
               <!-- </li> -->
-              <li id="cooccurrenceTableTab">
-                <a href="#cooccurrenceTable"><%=props.getProperty("cooccurrence")%> Table</a>
-              </li>
-            </ul>
-          </div>
+              <!-- <li id="cooccurrenceTableTab">-->
+                <!-- <a href="#cooccurrenceTable"><%=props.getProperty("cooccurrence")%> Table</a>-->
+              <!-- </li>-->
+            <!-- </ul>-->
+          <!-- </div>-->
 
-          <div id="cooccurrenceDiagram">
-              <div class="bubbleChart">
-                <div id="buttons" class="btn-group btn-group-sm" role="group">
-                  <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
-                  <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
-                  <button type="button" class="btn btn-default" id="reset">Reset</button>
-                </div>
-              </div>
-          </div>
+          <!-- <div id="cooccurrenceDiagram">-->
+              <!-- <div class="bubbleChart">-->
+                <!-- <div id="buttons" class="btn-group btn-group-sm" role="group">-->
+                  <!-- <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>-->
+                  <!-- <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>-->
+                  <!-- <button type="button" class="btn btn-default" id="reset">Reset</button>-->
+                <!-- </div>-->
+              <!-- </div>-->
+          <!-- </div>-->
 
-          <div id="cooccurrenceTable" class="table-responsive mygrid-wrapper-div">
-            <table id="coTable" class="table table-striped table-bordered table-sm table-hover">
-                <thead id="coHead"></thead>
-                <tbody id="coBody"></tbody>
-            </table>
-          </div>
-        </div>
+          <!-- <div id="cooccurrenceTable" class="table-responsive mygrid-wrapper-div">-->
+            <!-- <table id="coTable" class="table table-striped table-bordered table-sm table-hover">-->
+                <!-- <thead id="coHead"></thead>-->
+                <!-- <tbody id="coBody"></tbody>-->
+            <!-- </table>-->
+          <!-- </div>-->
+        <!-- </div>-->
 
         <%
-        }
-        else {
+        //}
+        // else {
         %>
-        	<p class="para"><%=props.getProperty("noCooccurrences") %></p><br />
+        	<!-- <p class="para"><%=props.getProperty("noCooccurrences") %></p><br />-->
         <%
-        }
+        //}
         //
 
 
@@ -1435,138 +1435,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         </table>
       </div>
       <%-- End of Relationship Graphs --%>
-      <br>
-      <%-- Start Encounter Table --%>
-      <p><strong><%=props.getProperty("tissueSamples") %> &amp; <%=numencounters %></strong></p>
-      <div class="encountersBioSamples">
-        <div role="navigation">
-          <ul class="nav nav-tabs">
-            <li id="encountersTableTab"  class="active">
-              <a href="#encountersTable"><%=sharky.totalEncounters()%> <%=numencounters %></a>
-            </li>
-            <li id="bioSamplesTableTab">
-              <a href="#bioSamplesTable"><%=props.getProperty("tissueSamples") %></a>
-            </li>
-          </ul>
-        </div>
-
-        <div id="encountersTable" class="mygrid-wrapper-div">
-
-          <table id="encountTable" class="table table-bordered table-striped table-sm table-hover">
-            <thead id="encountHead"></thead>
-            <tbody id="encountBody"></tbody>
-          </table>
-        </div>
-        <%-- End Encounter Table --%>
-
-        <!-- Start genetics -->
-        <div id="bioSamplesTable">
-          <a name="tissueSamples"></a>
-          <p>
-            <%
-            List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForMarkedIndividual(sharky);
-
-            int numTissueSamples=tissueSamples.size();
-            if(numTissueSamples>0){
-              %>
-              <table width="100%" class="table table-striped table-bordered table-sm">
-                <tr>
-                  <th><%=props.getProperty("sampleID") %></th>
-                  <th><%=props.getProperty("correspondingEncounterNumber") %></th>
-                  <th><%=props.getProperty("values") %></th>
-                  <th><%=props.getProperty("analyses") %></th></tr>
-                  <%
-                  for(int j=0;j<numTissueSamples;j++){
-                    TissueSample thisSample=tissueSamples.get(j);
-                    %>
-                    <tr>
-                      <td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td>
-                      <td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getCorrespondingEncounterNumber()%></a></span></td>
-                      <td><span class="caption"><%=thisSample.getHTMLString() %></span>
-                    </td>
-
-                    <td><table>
-                      <%
-                      int numAnalyses=thisSample.getNumAnalyses();
-                      List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
-                      for(int g=0;g<numAnalyses;g++){
-                        GeneticAnalysis ga = gAnalyses.get(g);
-                        if(ga.getAnalysisType().equals("MitochondrialDNA")){
-                          MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
-                          %>
-                          <tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %></span></td></tr></li>
-                          <%
-                        }
-                        else if(ga.getAnalysisType().equals("SexAnalysis")){
-                          SexAnalysis mito=(SexAnalysis)ga;
-                          %>
-                          <tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %></span></td></tr></li>
-                          <%
-                        }
-                        else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
-                          MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
-
-                          %>
-                          <tr>
-                            <td style="border-style: none;">
-                              <p><span class="caption"><strong><%=props.getProperty("msMarkers") %></strong></span>&nbsp;
-                              <%
-                                if(request.getUserPrincipal()!=null){
-                                %>
-                                <a href="individualSearch.jsp?individualDistanceSearch=<%=sharky.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" alt="Individual-to-Individual Genetic Distance Search" src="images/Crystal_Clear_app_xmag.png"></img></a>
-                                <%
-                                  }
-                                  %>
-                                </p>
-                                <span class="caption"><%=mito.getAllelesHTMLString() %></span>
-                              </td>
-                            </tr></li>
-
-                            <%
-                              }
-                              else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
-                              BiologicalMeasurement mito=(BiologicalMeasurement)ga;
-                              %>
-                              <tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=props.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
-                              <%
-                                if(!mito.getSuperHTMLString().equals("")){
-                                %>
-                                <em>
-                                  <br /><%=props.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
-                                  <br /><%=mito.getSuperHTMLString()%>
-                                </em>
-                                <%
-                                  }
-                                  %>
-                                </span></td></tr></li>
-                                <%
-                                  }
-                                  }
-                                  %>
-                                </table>
-
-                              </td>
-
-
-                            </tr>
-                            <%
-                              }
-                              %>
-                            </table>
-                          </p>
-                          <%
-                            }
-                            else {
-                            %>
-                            <p class="para"><%=props.getProperty("noTissueSamples") %></p>
-                            <%
-                              }
-                              %>
-        </div>
-        <!-- End genetics -->
-      </div>
-      <br></br>
-
+      <%-- Encounter table and bio. sample table used to live here --%>
       <%-- Map --%>
       <br>
       <div>
