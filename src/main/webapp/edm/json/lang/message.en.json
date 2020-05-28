@@ -1,0 +1,9 @@
+{
+	"MESSAGE_SUCCESS": "Success",
+	"MESSAGE_CONFIGURATION_NO_VALUE": "Has no value set",
+	"MESSAGE_CONFIGURATION_SET_ERROR": "Configuration error",
+	"MESSAGE_INVALID_CONFIGURATION_ID": "Invalid configuration id={id}",
+	"MESSAGE_ACCESS_DENIED_CONFIGURATION": "Cannot access configuration id={id}",
+	"MESSAGE_ACCESS_DENIED": "You cannot do this",
+	"MESSAGE_ERROR": "Unknown error"
+}
