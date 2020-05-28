@@ -1,17 +1,17 @@
 
 var wbConf = {
-    lang: null,
+    lang: {},
     cache: {},
 
-loadLang: function(code, callback) {
+loadLang: function(type, code, callback) {
     if (!code) code = 'en';
     $.ajax({
-        url: 'json/lang/configuration.' + code + '.json?' + new Date().getTime(),
+        url: 'json/lang/' + type + '.' + code + '.json?' + new Date().getTime(),
         type: 'GET',
         dataType: 'json',
         success: function(d) {
             wbConf.debug('log lang.json of length ' + Object.keys(d).length);
-            wbConf.lang = d;
+            Object.assign(wbConf.lang, d);
             if (typeof callback == 'function') callback();
         },
         error: function(x) {
@@ -19,14 +19,18 @@ loadLang: function(code, callback) {
             if (code == 'en') {
                 alert('could not load fallback language=en');
             } else {
-                wbConf.loadLang('en', callback);
+                wbConf.loadLang(type, 'en', callback);
             }
         }
     });
 },
 
 init: function() {
-    wbConf.loadLang('en', function() { wbConf.build(''); });
+    wbConf.loadLang('configuration', 'en', function() {
+        wbConf.loadLang('message', 'en', function() {
+            wbConf.build('');
+        });
+    });
 },
 
 linkClicked: function(id) {
@@ -187,9 +191,9 @@ config: function(j) {
 
 //when user clicks SET button
 clickSet: function(id) {
-    console.info('clickSet id=%o', id);
+    console.info('clickSet id=%o, cache=%o', id, wbConf.cache[id]);
     if (!wbConf.cache[id]) return false;  //snh cuz we got here post-build
-    $('#c_' + wbConf.cache[id].name + ' .set-button').hide().after('<i class="set-message">saving</i>');
+    $('#c_set_' + wbConf.cache[id].name + ' .set-button').hide().after('<i class="set-message">saving</i>');
     var d = {};
     d[id] = $('#c_' + wbConf.cache[id].name + ' .c-settable input').val(); //TODO handle multiple?
 console.log('DATA TO SAVE d=%o', d);
@@ -202,10 +206,10 @@ console.log('DATA TO SAVE d=%o', d);
         complete: function(x) {
             wbConf.handleResponse(x,
             function() {
-                $('#c_' + wbConf.cache[id].name + ' .set-message').html('OK!');
+                $('#c_set_' + wbConf.cache[id].name + ' .set-message').html('OK!');
             },
             function() {
-                $('#c_' + wbConf.cache[id].name + ' .set-message').html('failed.  :(');
+                $('#c_set_' + wbConf.cache[id].name + ' .set-message').html('failed.  :(');
             });
         }
     });
@@ -220,24 +224,26 @@ console.info('RESPONSE === %o', xhr);
         if (typeof successCallback == 'function') successCallback(xhr.responseJSON);
         return;
     }
-    var message = (xhr.responseJSON && xhr.responseJSON.message) || { key: 'unknown_error' };
+    var message = (xhr.responseJSON && xhr.responseJSON.message) || { key: 'error' };
+    if (!message.key) message.key = 'error';
     message._status = { code: xhr.status, text: xhr.statusText };
+    message._lang = wbConf.lang['MESSAGE_' + message.key.toUpperCase()];
     //since we dont really have way of handling messages.... oh well!
-    alert('FAKE MESSAGE HANDLER! 😃\n\n' + JSON.stringify(message));
+    alert('FAKE MESSAGE HANDLER! 😃\n' + JSON.stringify(message, null, 4));
     if (typeof failureCallback == 'function') failureCallback(xhr);
 },
 
 makeUI: {
 
     color: function(j) {
-        var h = '<div class="c-settable">';
+        var h = '<div class="c-settable" id="c_set_' + j.name + '">';
         h += '<input type="color" name="' + j.name + '" />';
         h += '<div><input class="set-button" type="button" value="set" onClick="return wbConf.clickSet(\'' + j.configurationId + '\');" /></div>';
         h += '</div>';
         return h;
     },
     string: function(j) {
-        var h = '<div class="c-settable">';
+        var h = '<div class="c-settable" id="c_set_' + j.name + '">';
         h += '<input name="' + j.name + '" />';
         h += '<div><input class="set-button" type="button" value="set" onClick="return wbConf.clickSet(\'' + j.configurationId + '\');" /></div>';
         h += '</div>';
