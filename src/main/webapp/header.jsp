@@ -181,34 +181,21 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 	                      }
 	                      else{
 	                      %>
-
 	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li>
-
 	                      <%
 	                      }
-
                       %>
-
-                       <!--
-                      <li><a href="#" title="">English</a></li>
-                     -->
-
-
-
+                       <!-- <li><a href="#" title="">English</a></li> -->
                       <%
                       if (CommonConfiguration.getWikiLocation(context)!=null) {
                       %>
                         <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
                       <%
                       }
-
-
-
                       List<String> contextNames=ContextConfiguration.getContextNames();
                 		int numContexts=contextNames.size();
                 		if(numContexts>1){
                 		%>
-
                 		<li>
                 						<form>
                 						<%=props.getProperty("switchContext") %>&nbsp;
@@ -218,7 +205,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 			                						String selected="";
 			                						if(ServletUtilities.getContext(request).equals(("context"+h))){selected="selected=\"selected\"";}
 			                					%>
-
 			                						<option value="context<%=h%>" <%=selected %>><%=contextNames.get(h) %></option>
 			                					<%
 			                					}
@@ -368,9 +354,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
+
+
                         	<!-- <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li> -->
-                          <!-- <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li> -->
-                               <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
+                               <!-- <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li> -->
+                             <!-- <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li> -->
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         	<li class="divider"></li>
                         </ul>
