@@ -1327,11 +1327,17 @@ public class Shepherd {
     }
     return null;
   }
+
   public LabeledKeyword getOrCreateLabeledKeyword(String label, String readableName, boolean commit) {
     LabeledKeyword lkw = getLabeledKeyword(label, readableName);
     if (lkw!=null) return lkw;
-    lkw = new LabeledKeyword(label, readableName);
-    if (commit) storeNewKeyword(lkw);
+    try {
+      System.out.println("trying to persist new LabeledKeyword in Shepherd.getOrCreateLabeledKeyword()");
+      lkw = new LabeledKeyword(label, readableName);
+      if (commit) storeNewKeyword(lkw);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     return lkw;
   }
 
