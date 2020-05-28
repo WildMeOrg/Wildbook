@@ -155,6 +155,22 @@ trlang: function(j, key) {
     return wbConf.lang[j.translationId + '_' + key.toUpperCase()] || '';
 },
 
+idPath: function(id) {
+    if (!id) return [];
+    return id.split('.');
+},
+
+_traverse: function(idPath, obj) {
+console.log('idPath=%o, obj=%o', idPath, obj);
+    if (!Array.isArray(idPath)) return false;
+    if (!obj) return false;
+    if (typeof obj != 'object') return obj;
+    if (idPath.length < 1) return obj;
+    var k = idPath.shift();
+    if (!obj[k]) return false;
+    return wbConf._traverse(idPath, obj[k]);
+},
+
 debug: function(msg) {
     $('#debug').append('<div>' + msg + '</div>');
     $("#debug").scrollTop($("#debug")[0].scrollHeight);
@@ -169,14 +185,63 @@ config: function(j) {
     return wbConf.makeUI[j.fieldType](j);
 },
 
+//when user clicks SET button
+clickSet: function(id) {
+    console.info('clickSet id=%o', id);
+    if (!wbConf.cache[id]) return false;  //snh cuz we got here post-build
+    $('#c_' + wbConf.cache[id].name + ' .set-button').hide().after('<i class="set-message">saving</i>');
+    var d = {};
+    d[id] = $('#c_' + wbConf.cache[id].name + ' .c-settable input').val(); //TODO handle multiple?
+console.log('DATA TO SAVE d=%o', d);
+    $.ajax({
+        url: '../api/v0/configuration',
+        type: 'POST',
+        dataType: 'json',
+        data: JSON.stringify(d),
+        contentType: 'application/javascript',
+        complete: function(x) {
+            wbConf.handleResponse(x,
+            function() {
+                $('#c_' + wbConf.cache[id].name + ' .set-message').html('OK!');
+            },
+            function() {
+                $('#c_' + wbConf.cache[id].name + ' .set-message').html('failed.  :(');
+            });
+        }
+    });
+    return true;
+},
+
+handleResponse: function(xhr, successCallback, failureCallback) {
+console.info('RESPONSE === %o', xhr);
+    if (!xhr || !xhr.status) xhr = { status: 999 };
+    if ((xhr.status == 200) && xhr.responseJSON && xhr.responseJSON.success) {
+        console.info('wbConf.handleResponse got 200 OK, message=%o', xhr.responseJSON.message);
+        if (typeof successCallback == 'function') successCallback(xhr.responseJSON);
+        return;
+    }
+    var message = (xhr.responseJSON && xhr.responseJSON.message) || { key: 'unknown_error' };
+    message._status = { code: xhr.status, text: xhr.statusText };
+    //since we dont really have way of handling messages.... oh well!
+    alert('FAKE MESSAGE HANDLER! 😃\n\n' + JSON.stringify(message));
+    if (typeof failureCallback == 'function') failureCallback(xhr);
+},
 
 makeUI: {
 
     color: function(j) {
-        return '<div class="c-settable"><input type="color" name="' + j.name + '" /></div>';
+        var h = '<div class="c-settable">';
+        h += '<input type="color" name="' + j.name + '" />';
+        h += '<div><input class="set-button" type="button" value="set" onClick="return wbConf.clickSet(\'' + j.configurationId + '\');" /></div>';
+        h += '</div>';
+        return h;
     },
     string: function(j) {
-        return '<div class="c-settable"><input name="' + j.name + '" /></div>';
+        var h = '<div class="c-settable">';
+        h += '<input name="' + j.name + '" />';
+        h += '<div><input class="set-button" type="button" value="set" onClick="return wbConf.clickSet(\'' + j.configurationId + '\');" /></div>';
+        h += '</div>';
+        return h;
     },
 
     configuration_site_species: function(j) {

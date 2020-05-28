@@ -246,6 +246,7 @@ rtn.put("_payload", payload);
                 if (key.equals("foo")) throw new org.ecocean.DataDefinitionException("fake foo blah");
                 //Configuration conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
 System.out.println(">>>> FAKE SET key=" + key + " <= " + payload.get(key));
+                rtn.put("success", true);
                 updated.add(key);
             }
         } catch (Exception ex) {
