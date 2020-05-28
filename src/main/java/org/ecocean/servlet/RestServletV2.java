@@ -241,6 +241,7 @@ public class RestServletV2 extends HttpServlet {
         }
 
         List<String> updated = new ArrayList<String>();
+        List<Configuration> updatedConfs = new ArrayList<Configuration>();
 rtn.put("_payload", payload);
 
         try {
@@ -248,6 +249,7 @@ rtn.put("_payload", payload);
                 String key = (String)k;
                 if (key.equals("foo")) throw new org.ecocean.DataDefinitionException("fake foo blah");
                 Configuration conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
+                updatedConfs.add(conf);
                 _log(instanceId, ">>>> SET key=" + key + " <= " + payload.get(key) + " => " + conf);
                 rtn.put("success", true);
                 updated.add(key);
@@ -256,6 +258,7 @@ rtn.put("_payload", payload);
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             rtn.put("message", _rtnMessage("configuration_set_error", null, ex.toString()));
+            _log(instanceId, "ERROR - rolling back db transaction due to exception on SET operation: " + ex.toString());
             out.println(rtn.toString());
             out.close();
             return;
@@ -263,6 +266,10 @@ rtn.put("_payload", payload);
 
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
+        //easiest way to update ROOT caches (let them reload when needed) now that we know we are persisted
+        for (Configuration conf : updatedConfs) {
+            conf.resetRootCache();
+        }
         rtn.put("updated", new JSONArray(updated));
         rtn.put("message", _rtnMessage("success"));
         out.println(rtn.toString());

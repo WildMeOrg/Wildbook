@@ -110,6 +110,7 @@ public class ConfigurationUtil {
         return conf;
     }
 
+    //NOTE!  call updateValueCache() resetValueCache() after *successful* commit to db
     public static Object removeConfiguration(Shepherd myShepherd, String id) throws ConfigurationException {
         if (!idHasValidRoot(id)) throw new ConfigurationException("removeConfiguration() passed invalid id=" + id);
         List<String> path = idPath(id);
@@ -123,12 +124,13 @@ public class ConfigurationUtil {
         if (gone == null) return null;  //removes id, returns what removed if successful
 //System.out.println("OUT_CONT>>> " + cont.toString(8));
         conf.setContent(cont);
-        valueCache.put(root, cont);
         System.out.println("INFO: removeConfiguration(" + id + ") successful; removed: " + gone.toString());
+        //TODO we *could* do a resetValueCache() here and even if this is not persisted, it should be okay? maybe?
         return gone;
     }
 
 ///////////// TODO handle isMultiple !!!
+    //NOTE!  call updateValueCache() or resetValueCache() after *successful* commit to db
     public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException, DataDefinitionException {
         if (!idHasValidRoot(id)) throw new ConfigurationException("setConfigurationValue() passed invalid id=" + id);
         Object cvalue = handleValue(id, value);
@@ -148,16 +150,34 @@ public class ConfigurationUtil {
         content = setDeepJSONObject(content, path, cvalue);
         rconf.setContent(content);
         myShepherd.getPM().makePersistent(rconf);
-        valueCache.put(root, content);
-        conf.setContent(_traverse(conf.getContent(), path));  //now set our content
-        System.out.println("INFO: setConfigurationValue(" + id + ") persisted and inserted into cache [" + ((cvalue == null) ? "NULL" : cvalue.getClass().getName()) + "] cvalue=" + cvalue);
+        JSONObject ccont = _traverse(content, path);
+        conf.setContent(ccont);  //now set our content
+        System.out.println("INFO: setConfigurationValue(" + id + ") persisted [" + ((cvalue == null) ? "NULL" : cvalue.getClass().getName()) + "] cvalue=" + cvalue);
+        //TODO we *could* do a resetValueCache() here and even if this is not persisted, it should be okay? maybe?
         return conf;
     }
 
+    public static void updateValueCache(String root, JSONObject content) {
+        if (!isValidRoot(root)) return;
+        if (content == null) {
+            valueCache.remove(root);
+            System.out.println("INFO: updateValueCache() got null content; removed root=" + root);
+        } else {
+            valueCache.put(root, content);
+            System.out.println("INFO: updateValueCache() updated root=" + root);
+        }
+    }
+    public static void resetValueCache(String root) {
+        if (!isValidRoot(root)) return;
+        valueCache.remove(root);
+        System.out.println("INFO: resetValueCache() removed root=" + root);
+    }
+
     //not really for public consumption!
-    private static JSONObject setDeepJSONObject(final JSONObject jobj, final List<String> path, final Object value) {
+    private static JSONObject setDeepJSONObject(final JSONObject jobj, final List<String> opath, final Object value) {
         if (jobj == null) return null;
 
+        List<String> path = new ArrayList<String>(opath);
         if (path.size() == 1) {  //last one, we set the value
             JSONObject jval = new JSONObject();
             jval.put(VALUE_KEY, value);

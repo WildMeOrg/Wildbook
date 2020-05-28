@@ -127,10 +127,17 @@ return null; ///FIXME
     public boolean hasValidRoot() {
         return ConfigurationUtil.idHasValidRoot(this.id);
     }
+    public String getRoot() {
+        return ConfigurationUtil.idGetRoot(this.id);
+    }
 
     //the only kind that should be persisted to db!!!
     public boolean isRootLevel() {
         return ConfigurationUtil.isValidRoot(this.id);
+    }
+
+    public void resetRootCache() {
+        ConfigurationUtil.resetValueCache(this.getRoot());
     }
 
     //this means it "can" or "should" have a value (e.g. path is good, meta defined etc)
@@ -336,5 +343,14 @@ return null; ///FIXME
                 .append("hasValue", this.hasValue())
                 .append("validRoot", this.hasValidRoot())
                 .toString();
+    }
+
+    //i guess we should have this!  based on sharing same id, sorrynotsorry?
+    public boolean equals(final Object c2) {
+        if (c2 == null) return false;
+        if (!(c2 instanceof Configuration)) return false;
+        Configuration two = (Configuration)c2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
     }
 }
