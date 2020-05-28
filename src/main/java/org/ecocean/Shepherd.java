@@ -3730,8 +3730,9 @@ public class Shepherd {
   }
 
   public Iterator<Keyword> getAllKeywords() {
-    Extent allKeywords = pm.getExtent(Keyword.class, true);
+    Extent allKeywords = pm.getExtent(Keyword.class);
     Query acceptedKeywords = pm.newQuery(allKeywords);
+
     return getAllKeywords(acceptedKeywords);
   }
 
@@ -3745,9 +3746,10 @@ public class Shepherd {
 
   public List<LabeledKeyword> getAllLabeledKeywords() {
     try {
-      Extent extent = pm.getExtent(LabeledKeyword.class);
+      Extent extent = pm.getExtent(LabeledKeyword.class, true);
       Query query = pm.newQuery(extent);
-      List<LabeledKeyword> ans = (List) query.execute();
+      Collection c = (Collection) (query.execute());
+      List<LabeledKeyword> ans = new ArrayList(c);
       query.closeAll();
       return ans;
     } catch (Exception npe) {
@@ -3793,16 +3795,30 @@ public class Shepherd {
     // we find all keywords in the database and note which ones
     // are also listed in the properties file
     ArrayList<Keyword> al = new ArrayList<Keyword>();
+    List<Keyword> finalList = new ArrayList<>();
     try {
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
       if(c!=null) al=new ArrayList<Keyword>(c);
-    }
-    catch (javax.jdo.JDOException x) {
+      List<LabeledKeyword> lkeywords = getAllLabeledKeywords();
+      for (Keyword k : al) {
+        boolean isLk = false;
+        for (Keyword lk : lkeywords) {
+          if (k.getReadableName().equals(lk.getReadableName())) {
+            isLk = true;
+            break;
+          }
+        }
+        if (!isLk) {
+          finalList.add(k);
+        }
+      }
+
+    } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
     }
-    return al;
+    return finalList;
   }
 
   public Set<Keyword> getAllKeywordsSet(Query acceptedKeywords) {
