@@ -573,6 +573,16 @@ h4.intro.accordion .rotate-chevron.down {
 
 <style>
 
+.featurebox {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    outline: dashed 2px rgba(255,255,0,0.8);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
+}
+
 	div.mainContent {
 		padding-top: 50px;
 	}
@@ -1087,8 +1097,11 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
         if (mainAsset) {
 //console.info('mainAsset -> %o', mainAsset);
 //console.info('illustrationUrl '+illustrationUrl);
+            var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
-                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="' + mainAsset.url + '" />');
+                var img = $('<img src="' + mainAsset.url + '" />');
+                img.on('load', function(ev) { imageLoaded(ev.target, ft); });
+                $('#task-' + taskId + ' .annot-' + acmId).append(img);
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
             }
@@ -1101,7 +1114,6 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 if (j > -1) fn = fn.substring(j + 1);
                 imgInfo += ' ' + fn + ' ';
             }
-            var ft = findMyFeature(acmId, mainAsset);
             if (ft) {
                 var encId = ft.encounterId;
 
@@ -1255,9 +1267,9 @@ function annotClick(ev) {
 	//console.log(ev);
 	var acmId = ev.currentTarget.getAttribute('data-acmid');
 	var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
-	//console.warn('%o | %o', taskId, acmId);
 	$('#task-' + taskId + ' .annot-wrapper-dict').hide();
 	$('#task-' + taskId + ' .annot-' + acmId).show();
+	$('#task-' + taskId + ' .annot-' + acmId + ' img').trigger('load');
 }
 
 // function score_sort(cm_dict, topn) {
@@ -1323,6 +1335,27 @@ function findMyFeature(annotAcmId, asset) {
         if (asset.features[i].annotationAcmId == annotAcmId) return asset.features[i];
     }
     return;
+}
+
+function imageLoaded(imgEl, ft) {
+    if (imgEl.getAttribute('data-feature-drawn')) return;
+    drawFeature(imgEl, ft);
+}
+
+function drawFeature(imgEl, ft) {
+    if (!imgEl || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
+    var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
+    var scale = imgEl.height / imgEl.naturalHeight;
+//console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
+    if (scale == 1) return;
+    imgEl.setAttribute('data-feature-drawn', true);
+    f.css('width', (ft.parameters.width * scale) + 'px');
+    f.css('height', (ft.parameters.height * scale) + 'px');
+    f.css('left', (ft.parameters.x * scale) + 'px');
+    f.css('top', (ft.parameters.y * scale) + 'px');
+    if (ft.parameters.theta) f.css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
+//console.info('mmmm %o', f);
+    $(imgEl).parent().append(f);
 }
 
 function checkForResults() {
