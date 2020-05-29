@@ -389,14 +389,29 @@ h2.vidcap {
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedSightings") %></i></p>
             </section>
+            
+            <%
+			if(numUsersWithRoles>0){
+			%>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
                 <p class="brand-primary"><i><span class="massive"><%=numUsersWithRoles %></span> <%=props.getProperty("citizenScientists") %></i></p>
             </section>
+            
+            <%
+}
+            
+            if(numDataContributors>0){
+            
+            %>
             <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
                 <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("researchVolunteers") %></i></p>
             </section>
+            
+            <%
+            }
+            %>
         </div>
 
         <hr/>
