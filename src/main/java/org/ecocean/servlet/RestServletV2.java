@@ -12,11 +12,16 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import java.io.IOException;
 import java.io.PrintWriter;
+import javax.jdo.Query;
 import org.ecocean.Shepherd;
+import org.ecocean.ShepherdRO;
 import org.ecocean.Util;
 import org.ecocean.User;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import java.util.Iterator;
+import java.util.Collection;
+import java.lang.reflect.Method;
 
 
 public class RestServletV2 extends HttpServlet {
@@ -68,6 +73,10 @@ public class RestServletV2 extends HttpServlet {
         }
         if (payload.optString("class", "__FAIL__").equals("logout")) {  //special case
             handleLogout(request, response, payload, instanceId, context);
+            return;
+        }
+        if (payload.optString("id", "__FAIL__").equals("list")) {
+            handleList(request, response, payload, instanceId, context);
             return;
         }
 
@@ -161,6 +170,44 @@ public class RestServletV2 extends HttpServlet {
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
         rtn.put("success", true);
+        out.println(rtn.toString());
+        out.close();
+    }
+
+    private void handleList(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        String className = payload.optString("class", null);
+        if (className == null) throw new ServletException("empty class name");
+        JSONArray rtn = new JSONArray();
+        ShepherdRO myShepherd = new ShepherdRO(context);
+        myShepherd.setAction("RestServletV2.handleList");
+        String jdo = "SELECT FROM " + className;
+///TODO set fetchDepth = 0 or whatever to make fast
+        Query query = myShepherd.getPM().newQuery("JDOQL", jdo);
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            Object obj = it.next();
+            String id = null;
+            Long version = null;
+            try {
+                Method m = obj.getClass().getMethod("getId", new Class[0]);
+                id = (String)m.invoke(obj);
+                m = obj.getClass().getMethod("getVersion", new Class[0]);
+                version = (Long)m.invoke(obj);
+            } catch (Exception ex) {
+                System.out.println("handleList threw " + ex.toString());
+            }
+            if (id == null) break;  //we dont try others cuz if this one failed, they all likely will!
+            JSONObject j = new JSONObject();
+            j.put("id", id);
+            j.put("version", version);
+            rtn.put(j);
+        }
+        query.closeAll();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
         out.println(rtn.toString());
         out.close();
     }
