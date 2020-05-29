@@ -1274,8 +1274,10 @@ console.info("############## mid=%s -> %o", mid, ma);
 
 	if (!ma.keywords) ma.keywords = [];
 	var thisHas = [];
-	var h = '<div class="image-enhancer-keyword-wrapper image-enhancer-keyword-wrapper-hover">';
-	for (var i = 0 ; i < ma.keywords.length ; i++) {
+    let h = '<div class="image-enhancer-keyword-wrapper">';
+
+	h += '<div class="image-enhancer-keyword-wrapper-hover">';    
+    for (var i = 0 ; i < ma.keywords.length ; i++) {
     var kw = ma.keywords[i];
     thisHas.push(kw.indexname);
     if (kw.label) {
@@ -1320,7 +1322,7 @@ console.info("############## mid=%s -> %o", mid, ma);
       h += valueSelectors;
     }
   } else {
-    console.log("your labels are empty dumbass");
+    console.log("No LabeledKeywords were retrieved from the database.");
   }
   h += '</div></div>';
 
@@ -1340,8 +1342,8 @@ console.info("############## mid=%s -> %o", mid, ma);
 	}
 	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
 	h += '</div></div>';
-
-	h += '</div>';
+    // image-enhancer-keyword-wrapper-hover
+	h += '</div></div>';
 	el.append(h);
 	el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
 		ev.stopPropagation();
