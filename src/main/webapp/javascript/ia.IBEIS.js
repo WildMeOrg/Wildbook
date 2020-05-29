@@ -73,7 +73,7 @@ wildbook.IA.plugins.push({
         var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
         var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
         var ma = assetByAnnotationId(aid);
-        if (!mid || !aid || !ma) return false;
+        if (!mid || !aid || !ma || typeof iaMatchFilterAnnotationIds == 'undefined') return false;
         var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(ma);
         var identActive = wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus);
         var requireSpecies = !(wildbook.IA.requireSpeciesForId() == 'false');
