@@ -262,6 +262,11 @@ public class User implements Serializable {
     return this.dateInMilliseconds;
   }
 
+    public Long getVersion() {
+        if (dateInMilliseconds < 1) return null;
+        return dateInMilliseconds;
+    }
+
   public boolean hasSharing() {
     // if you haven't specified a sharing policy YOU'RE SHARING
     if (sharing==null) return true;
@@ -519,8 +524,10 @@ public class User implements Serializable {
             jobj.remove("emailAddress");
             jobj.remove("hashedEmailAddress");
             jobj.remove("userID");
+            jobj.remove("affiliation");
             jobj.remove("dateInMilliseconds");
             jobj.remove("receiveEmails");
+            jobj.put("modified", dateInMilliseconds);
             return jobj;
         }
 }
