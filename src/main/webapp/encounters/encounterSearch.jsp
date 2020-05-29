@@ -986,39 +986,58 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 						</td>
 					</tr>
 					
-		<%
-          int totalKeywords = myShepherd.getNumKeywords();
+		    <%
+          int numStandardKeywords = myShepherd.getAllKeywordsList().size();
+          int numLabeledKeywords = myShepherd.getAllLabeledKeywords().size();
         %>
         <tr><td><strong><%=encprops.getProperty("keywordFilters") %></strong></td></tr>
         <tr>
           <td><p><%=encprops.getProperty("hasKeywordPhotos")%>
           </p>
             <%
-
-              if (totalKeywords > 0) {
-            	  
-            	  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-            	  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
-            	  
-              
+              if (numStandardKeywords> 0) {            	     
             %>
 
             <select multiple name="keyword" id="keyword" size="10">
               <option value="None"></option>
               <%
+                if (numStandardKeywords>0&&numLabeledKeywords>0) {
+                  %>
+                  <option disabled><strong><em><%=encprops.getProperty("standard")%></em></strong></option>
+                  <%
+                }
 
-
-                Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
-                for (int n = 0; n < totalKeywords; n++) {
+                Iterator<Keyword> keys = myShepherd.getAllKeywords();
+                while (keys.hasNext()) { 
                   Keyword word = keys.next();
               %>
               <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
               </option>
               <%
-                }
-
+            }
+            System.out.println("got here to end of keyword section....");
+            System.out.println("prior to closing kw query line... ");
+            //kwQuery.closeAll();
+            
+            if (numStandardKeywords>0&&numLabeledKeywords>0) {
               %>
+              <option disabled><em><i><%=encprops.getProperty("labeled")%></i></em></option>
+              <%
+            }
 
+            // second section here for the labeled keywords
+            if (numLabeledKeywords>0) {
+              List<LabeledKeyword> lkwList = myShepherd.getAllLabeledKeywords();
+
+              for (LabeledKeyword lkw : lkwList) {
+
+                %>
+                <option value="<%=lkw.getIndexname()%>"><%=lkw.getReadableName()%>
+                </option>
+                <%
+              }
+            }
+            %>
             </select>
 
             </td>
@@ -1031,12 +1050,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
             </label> <strong><%=encprops.getProperty("orPhotoKeywords")%> </strong>
       </p>
       </td></tr>
-
-
             <%
-            
-            kwQuery.closeAll();
-            
+            // show if no found keywords
             } else {
             %>
 
@@ -1045,7 +1060,6 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
         </tr>
 
             <%
-
               }
             %>
 					
@@ -1063,7 +1077,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </style>
 
 <script>
+console.log("reaching this block????");  
 var labelsToValues = <%=labeledKwsJson%>;
+
 function selectKeywordLabel(el) {
   var label = $(el).val();
   var number = $(el).closest('tr.labeled-kw-container').data("lkw-no");
@@ -1098,6 +1114,7 @@ function showValueOptions(lkwNumber, label) {
 }
 
 function addLabeledKeyword(el) {
+   console.log("in addLabeledKeyword method...");
 	 var number = $(el).closest('tr.labeled-kw-container').data("lkw-no");
 	 var nextNum = number+1;
 	 // now we need to add the entire tr for a labeled keyword
@@ -1129,7 +1146,7 @@ function addLabeledKeyword(el) {
 	
 </script>
 
-
+<p>begin identity filters???</p>
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
@@ -1552,6 +1569,4 @@ else {
 <script type="text/javascript" src="../javascript/formNullRemover.js"></script>
 
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
 
