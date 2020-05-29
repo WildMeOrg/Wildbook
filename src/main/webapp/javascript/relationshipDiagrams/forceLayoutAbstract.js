@@ -4,7 +4,7 @@ class ForceLayoutAbstract extends GraphAbstract {
 	super(individualId, containerId);
 
 	//Link attributes
-	this.linkWidth = 3;
+	this.linkWidth = 0.25;
 	this.maxLenScalar = 2.5;
 
 	//Link marker attributes

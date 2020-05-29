@@ -1550,7 +1550,7 @@ if (sharky.getNames() != null) {
           });
 
           $("#closeRelationshipForm").click(function() {
-              $("#addRelati onshipForm").hide();
+              $("#addRelationshipForm").hide();
           });
 
           $("#EditRELATIONSHIP").click(function(event) {
