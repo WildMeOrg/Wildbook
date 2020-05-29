@@ -573,7 +573,7 @@ class JSONParser {
 		else if (role === "father") return ["paternal", order];
 	    }
 
-	    if (role1 === "calf" || role2 === "calf") return ["familial", defaultOrder];
+	    if (role1 === "pup" || role2 === "pup" || role1 === "calf" || role2 === "calf") return ["familial", defaultOrder];
 	}
 
 	return ["member", defaultOrder];
