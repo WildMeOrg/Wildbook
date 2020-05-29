@@ -33,7 +33,6 @@ public class LabeledKeyword extends Keyword{
   // ex. values are "Quality", "Distinctiveness", "Viewpoint"
   private String label;
 
-  // just a handy list of standard label values. Might make a .properties later
   public static final Set<String> LABELS;
   static {
       Set<String> labs = new HashSet<String>();
@@ -159,5 +158,9 @@ public class LabeledKeyword extends Keyword{
             .toString();
   }
 
+  @Override
+  public boolean isLabeledKeyword() {
+    return true;
+  }
 
 }
