@@ -1863,6 +1863,15 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
         modified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
     }
 
+    public Long getVersion() {
+        if (modified == null) return null;
+        try {
+            DateTime dt = new DateTime(modified);
+            return dt.getMillis();
+        } catch (Exception ex) {}
+        return null;
+    }
+
   public String getDWCDateAdded() {
     return dwcDateAdded;
   }
@@ -2064,6 +2073,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public String getCatalogNumber() {
     return catalogNumber;
   }
+    public String getId() {
+        return catalogNumber;
+    }
 
   public void setCatalogNumber(String newNumber) {
     this.catalogNumber = newNumber;
