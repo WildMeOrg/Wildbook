@@ -13,10 +13,13 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.jdo.Query;
+import java.util.List;
+import java.util.ArrayList;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdRO;
 import org.ecocean.Util;
 import org.ecocean.User;
+import org.ecocean.configuration.*;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Iterator;
@@ -67,16 +70,22 @@ public class RestServletV2 extends HttpServlet {
         boolean debug = (payload.optBoolean("_debug", false) || ((request.getQueryString() != null) && request.getQueryString().matches(".*_debug.*")));
 
         if (debug) _log(instanceId, "payload: " + payload.toString());
-        if (payload.optString("class", "__FAIL__").equals("login")) {  //special case
+
+        //first handle special cases (where arg is NOT a classname)
+        if (payload.optString("class", "__FAIL__").equals("login")) {
             handleLogin(request, response, payload, instanceId, context);
             return;
         }
-        if (payload.optString("class", "__FAIL__").equals("logout")) {  //special case
+        if (payload.optString("class", "__FAIL__").equals("logout")) {
             handleLogout(request, response, payload, instanceId, context);
             return;
         }
         if (payload.optString("id", "__FAIL__").equals("list")) {
             handleList(request, response, payload, instanceId, context);
+            return;
+        }
+        if (payload.optString("class", "__FAIL__").equals("configuration")) {
+            handleConfiguration(request, response, payload, instanceId, context);
             return;
         }
 
@@ -90,7 +99,8 @@ public class RestServletV2 extends HttpServlet {
 */
 
 
-        rtn.put("__instanceId", instanceId);
+        rtn.put("transactionId", instanceId);
+        rtn.put("message", _rtnMessage("error"));
         if (debug) {
             _log(instanceId, "rtn: " + rtn.toString());
             JSONObject jbug = new JSONObject();
@@ -116,10 +126,11 @@ public class RestServletV2 extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         rtn.put("success", false);
+        rtn.put("transactionId", instanceId);
         User user = myShepherd.getUserByWhatever(payload.optString("login", null));
         if (user == null) {
             _log(instanceId, "invalid login with payload=" + payload);
-            rtn.put("message", "access denied");
+            rtn.put("message", _rtnMessage("access_denied"));
             response.setStatus(401);
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
@@ -137,7 +148,7 @@ public class RestServletV2 extends HttpServlet {
             subject.login(token);
         } catch (Exception ex) {
             _log(instanceId, "invalid login with payload=" + payload + "; threw " + ex.toString());
-            rtn.put("message", "access denied");
+            rtn.put("message", _rtnMessage("access_denied"));
             response.setStatus(401);
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
@@ -152,6 +163,7 @@ public class RestServletV2 extends HttpServlet {
         rtn.put("needsUserAgreement", false);
         rtn.put("previousLogin", user.getLastLogin());
         rtn.put("success", true);
+        rtn.put("message", _rtnMessage("success"));
         _log(instanceId, "successful login user=" + user);
         user.setLastLogin(System.currentTimeMillis());
         myShepherd.commitDBTransaction();
@@ -170,6 +182,107 @@ public class RestServletV2 extends HttpServlet {
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
         rtn.put("success", true);
+        rtn.put("transactionId", instanceId);
+        rtn.put("message", _rtnMessage("success"));
+        out.println(rtn.toString());
+        out.close();
+    }
+
+/*
+    if payload.id exists, this is considered a GET of that value.  otherwise, payload *keys* will be considered ids, with values
+    representing what to SET on those ids.
+*/
+    private void handleConfiguration(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
+        payload.remove("class");
+        payload.remove("_queryString");
+////////////// TODO security duh!!  only admin may SET
+        boolean isAdmin = true;  //// FIXME debug only!
+        JSONObject rtn = new JSONObject();
+        rtn.put("success", false);
+        rtn.put("transactionId", instanceId);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RestServletV2.handleConfiguration");
+        myShepherd.beginDBTransaction();
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+
+        String id = payload.optString("id", null);
+        if (id != null) {  //get value
+            Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, id);
+            JSONObject meta = conf.getMeta();
+            if (!conf.isValid(meta)) {
+                JSONObject jerr = new JSONObject();
+                jerr.put("id", id);
+                rtn.put("message", _rtnMessage("invalid_configuration_id", jerr));
+            } else if (conf.isPrivate(meta)) {
+                JSONObject jerr = new JSONObject();
+                jerr.put("id", id);
+                rtn.put("message", _rtnMessage("access_denied_configuration", jerr));
+                response.setStatus(401);
+            } else {
+                rtn.put("success", true);
+                if (conf.hasValue()) {
+                    rtn.put("value", conf.getContent().get(ConfigurationUtil.VALUE_KEY));
+                } else if (meta.has("defaultValue")) {
+                    rtn.put("valueNotSet", true);
+                    rtn.put("usingDefault", true);
+                    rtn.put("value", meta.get("defaultValue"));
+                } else {
+                    rtn.put("valueNotSet", true);
+                    rtn.put("message", _rtnMessage("configuration_no_value"));
+                }
+            }
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            out.println(rtn.toString());
+            out.close();
+            return;
+        }
+
+        if (!isAdmin) {
+            _log(instanceId, "invalid config set access with payload=" + payload);
+            rtn.put("message", _rtnMessage("access_denied"));
+            response.setStatus(401);
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            out.println(rtn.toString());
+            out.close();
+            return;
+        }
+
+        List<String> updated = new ArrayList<String>();
+        List<Configuration> updatedConfs = new ArrayList<Configuration>();
+rtn.put("_payload", payload);
+
+        try {
+            for (Object k : payload.keySet()) {
+                String key = (String)k;
+                if (key.equals("foo")) throw new org.ecocean.DataDefinitionException("fake foo blah");
+                Configuration conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
+                updatedConfs.add(conf);
+                _log(instanceId, ">>>> SET key=" + key + " <= " + payload.get(key) + " => " + conf);
+                rtn.put("success", true);
+                updated.add(key);
+            }
+        } catch (Exception ex) {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            rtn.put("message", _rtnMessage("configuration_set_error", null, ex.toString()));
+            _log(instanceId, "ERROR - rolling back db transaction due to exception on SET operation: " + ex.toString());
+            out.println(rtn.toString());
+            out.close();
+            return;
+        }
+
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        //easiest way to update ROOT caches (let them reload when needed) now that we know we are persisted
+        for (Configuration conf : updatedConfs) {
+            conf.resetRootCache();
+        }
+        rtn.put("updated", new JSONArray(updated));
+        rtn.put("message", _rtnMessage("success"));
         out.println(rtn.toString());
         out.close();
     }
@@ -210,6 +323,21 @@ public class RestServletV2 extends HttpServlet {
         PrintWriter out = response.getWriter();
         out.println(rtn.toString());
         out.close();
+    }
+
+    private JSONObject _rtnMessage(String key, JSONObject args, String details) {
+        if (key == null) return null;
+        JSONObject m = new JSONObject();
+        m.put("key", key);
+        if (args != null) m.put("args", args);
+        if (details != null) m.put("details", details);
+        return m;
+    }
+    private JSONObject _rtnMessage(String key, JSONObject args) {
+        return _rtnMessage(key, args, null);
+    }
+    private JSONObject _rtnMessage(String key) {
+        return _rtnMessage(key, null, null);
     }
 
     private void _log(String msg) {

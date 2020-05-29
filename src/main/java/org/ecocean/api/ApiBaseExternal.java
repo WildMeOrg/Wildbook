@@ -1,9 +1,8 @@
 package org.ecocean.api;
 
 import org.ecocean.Util;
-import org.ecocean.User;
-import org.ecocean.Organization;
-import org.ecocean.customfield.*;
+import org.ecocean.external.ExternalUser;
+import org.ecocean.external.ExternalOrganization;
 
 import java.util.Set;
 import java.util.List;
@@ -22,15 +21,14 @@ import java.lang.reflect.Constructor;
 /*
     TODO: cache things.  reflection should only be used once, then maybe cache on class or something
 */
-public abstract class ApiBase implements java.io.Serializable {
+public abstract class ApiBaseExternal implements java.io.Serializable {
     private String id = null;
     private long version = 0l;
-    private User owner = null;
-    private OrganizationSet organizationSet = null;
-    private List<CustomFieldValue> customFieldValues = null;
+    private ExternalUser owner = null;
+    private ExternalOrganizationSet organizationSet = null;
 
 
-    public ApiBase() {
+    public ApiBaseExternal() {
         id = Util.generateUUID();
         version = System.currentTimeMillis();
     }
@@ -44,69 +42,34 @@ public abstract class ApiBase implements java.io.Serializable {
     public long getVersion() {
         return version;
     }
-    public User getOwner() {
+    public ExternalUser getOwner() {
         return owner;
     }
-    public void setOwner(User u) {
+    public void setOwner(ExternalUser u) {
         owner = u;
     }
-    public Set<Organization> getOrganizations() {
+    public Set<ExternalOrganization> getOrganizations() {
         if (organizationSet == null) return null;
         return organizationSet.getSet();
     }
-    public void setOrganizations(Set<Organization> orgs) {
+    public void setOrganizations(Set<ExternalOrganization> orgs) {
         if (organizationSet == null) {
-            organizationSet = new OrganizationSet(orgs);
+            organizationSet = new ExternalOrganizationSet(orgs);
         } else {
             organizationSet.setSet(orgs);
         }
     }
-    public void addOrganization(Organization org) {
-        if (organizationSet == null) organizationSet = new OrganizationSet();
+    public void addOrganization(ExternalOrganization org) {
+        if (organizationSet == null) organizationSet = new ExternalOrganizationSet();
         organizationSet.addOrganization(org);
     }
 
     public abstract String description();
 
-    //note: you probably really want getCustomFieldValues(foo) below
-    public List<CustomFieldValue> getCustomFieldValues() {
-        return customFieldValues;
-    }
-    public void setCustomFieldValues(List<CustomFieldValue> vals) {
-        customFieldValues = vals;
-    }
-    public void addCustomFieldValue(CustomFieldValue val) {
-        if (customFieldValues == null) customFieldValues = new ArrayList<CustomFieldValue>();
-        customFieldValues.add(val);
-    }
-    public List<Object> getCustomFieldValues(String cfdId) {
-        List<Object> rtn = new ArrayList<Object>();
-        if (cfdId == null) return rtn;
-        if (Util.collectionIsEmptyOrNull(customFieldValues)) return rtn;
-        for (CustomFieldValue cfv : customFieldValues) {
-            if ((cfv.getDefinition() != null) && cfdId.equals(cfv.getDefinition().getId())) rtn.add(cfv.getValue());
-        }
-        return rtn;
-    }
-    public List<Object> getCustomFieldValues(CustomFieldDefinition cfd) {
-        return getCustomFieldValues((cfd == null) ? (String)null : cfd.getId());
-    }
-    //this sorts them by definitions
-    public Map<CustomFieldDefinition,List<Object>> getCustomFieldValuesMap() {
-        Map<CustomFieldDefinition,List<Object>> map = new HashMap<CustomFieldDefinition,List<Object>>();
-        if (Util.collectionIsEmptyOrNull(customFieldValues)) return map;
-        for (CustomFieldValue cfv : customFieldValues) {
-            if (cfv.getDefinition() == null) continue;  //snh
-            if (map.get(cfv.getDefinition()) == null) map.put(cfv.getDefinition(), new ArrayList<Object>());
-            map.get(cfv.getDefinition()).add(cfv.getValue());
-        }
-        return map;
-    }
 
     //ignore these ones
     private static final List<String> skipGetters = Arrays.asList(new String[]{
-            "getClass", "getGetters", "getSetters", "getProperties", "getApiValueForJSONObject",
-            "getCustomFieldValues", "getCustomFieldValuesMap"
+            "getClass", "getGetters", "getSetters", "getProperties", "getApiValueForJSONObject"
         });
     //this effectively exposes all getters and setters
     // so consider overriding if desired
@@ -131,6 +94,7 @@ public abstract class ApiBase implements java.io.Serializable {
         kinda winging it... maybe value is optional?
         definitely worth considering overriding?
     */
+/**** not yet  
     public boolean hasAccess(User user, String property, int access, Object value) {
         if (user == null) {
             System.out.println("WARNING: .hasAccess() on " + this + " has null user; allowing via ApiBase; please override if needed");
@@ -148,6 +112,7 @@ public abstract class ApiBase implements java.io.Serializable {
     public boolean hasAccess(User user, String property, int access) {
         return hasAccess(user, property, access, null);
     }
+*/
 
     //base on getters... i think?  but overridable
     // .getDeclaredFields is another possibility but it seems .. wrong, we would rather look at
@@ -195,32 +160,13 @@ public abstract class ApiBase implements java.io.Serializable {
         JSONArray noAccess = new JSONArray();  //really only for debug
         for (Method mth : this.getGetters()) {
             String prop = propertyFromGetter(mth.getName());
-            User user = optsUser(opts.get("user"));
-            if (hasAccess(user, prop, ApiAccess.READ)) {
+            //User user = optsUser(opts.get("user"));
+            //if (hasAccess(user, prop, ApiAccess.READ)) {
                 rtn.put(prop, getApiValueForJSONObject(mth, opts));
-            } else if (debug != null) {
-                noAccess.put(prop);
-            }
+            //} else if (debug != null) {
+                //noAccess.put(prop);
+            //}
         }
-
-        Map<CustomFieldDefinition,List<Object>> cmap = this.getCustomFieldValuesMap();
-        JSONObject cust = new JSONObject();
-        for (CustomFieldDefinition cfd : cmap.keySet()) {
-            JSONObject c = new JSONObject();
-            //should prob ignore className cuz we are *in* a class!  or... sanity check?
-            //c.put("multiple", cfd.getMultiple());
-            //c.put("type", cfd.getType());
-            c.put("label", cfd.getName());
-            if (Util.collectionIsEmptyOrNull(cmap.get(cfd))) {
-                c.put("error", "empty value list");  //snh
-            } else if (cfd.getMultiple()) {
-                c.put("value", new JSONArray(cmap.get(cfd)));
-            } else {  //single value
-                c.put("value", cmap.get(cfd).get(0));
-            }
-            cust.put(cfd.getId(), c);
-        }
-        rtn.put("customFields", cust);
 
         if (debug != null) {
             debug.put("class", this.getClass().getName());
@@ -305,10 +251,12 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
         if ((Boolean)val) return true;
         return false;  //covers potential of null Boolean
     }
+/*
     private static User optsUser(Object val) {
         if ((val == null) || !(val instanceof User)) return null;
         return (User)val;
     }
+*/
     private static int incrementTraversalDepth(Map<String,Object> opts) {
         Object td = opts.get("traversalDepth");
         int val = 0;

@@ -3,14 +3,14 @@
 		"__meta" : {
 			"type" : "string",
 			"required" : true,
-			"formSchema": { "displayOrder": 0 }
+			"formSchema": { "displayOrder": 0, "panel": true }
 		}
 	},
 	"url" : {
 		"__meta" : {
 			"type" : "url",
 			"required" : true,
-			"formSchema": { "displayOrder": 0.1 }
+			"formSchema": { "displayOrder": 0.1, "panel": true }
 		}
 	},
 	"species" : {
@@ -32,6 +32,41 @@
 			}
 		},
 		"metaKeywords": {
+		}
+	},
+
+	"custom" : {
+		"__meta" : {
+			"formSchema": { "displayOrder": 1.01 }
+		},
+		"customFields": {
+			"Encounter": {
+				"__meta": {
+					"type": "customFields",
+					"formSchema": { "displayOrder": 10.0 },
+					"required": false
+				}
+			},
+			"Occurrence": {
+				"__meta": {
+					"type": "customFields",
+					"formSchema": { "displayOrder": 11.0 },
+					"required": false
+				}
+			},
+			"MarkedIndividual": {
+				"__meta": {
+					"type": "customFields",
+					"formSchema": { "displayOrder": 12.0 },
+					"required": false
+				}
+			}
+		},
+		"locationIds": {
+			"__meta": {
+				"type": "locationIds",
+				"required": false
+			}
 		}
 	},
 

@@ -3,6 +3,8 @@ package org.ecocean.configuration;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.ContextConfiguration;
+import org.ecocean.DataDefinition;
+import org.ecocean.DataDefinitionException;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +26,7 @@ public class ConfigurationUtil {
     public static final String ID_DELIM = ".";
     public static final String META_KEY = "__meta";
     public static final String VALUE_KEY = "__value";
+/*
     public static final String[] TYPES = new String[]{
         "string",
         "integer",
@@ -35,8 +38,12 @@ public class ConfigurationUtil {
         "image",
         "color",
         "geo",
+        "json",
+        "customFields",  //data is actually json
+        "locationIds",   //  same
         "taxonomy"
     };
+*/
 
     private static Map<String,JSONObject> meta = new HashMap<String,JSONObject>();
     private static Map<String,JSONObject> valueCache = new HashMap<String,JSONObject>();
@@ -103,6 +110,7 @@ public class ConfigurationUtil {
         return conf;
     }
 
+    //NOTE!  call updateValueCache() resetValueCache() after *successful* commit to db
     public static Object removeConfiguration(Shepherd myShepherd, String id) throws ConfigurationException {
         if (!idHasValidRoot(id)) throw new ConfigurationException("removeConfiguration() passed invalid id=" + id);
         List<String> path = idPath(id);
@@ -116,13 +124,14 @@ public class ConfigurationUtil {
         if (gone == null) return null;  //removes id, returns what removed if successful
 //System.out.println("OUT_CONT>>> " + cont.toString(8));
         conf.setContent(cont);
-        valueCache.put(root, cont);
         System.out.println("INFO: removeConfiguration(" + id + ") successful; removed: " + gone.toString());
+        //TODO we *could* do a resetValueCache() here and even if this is not persisted, it should be okay? maybe?
         return gone;
     }
 
 ///////////// TODO handle isMultiple !!!
-    public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException {
+    //NOTE!  call updateValueCache() or resetValueCache() after *successful* commit to db
+    public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException, DataDefinitionException {
         if (!idHasValidRoot(id)) throw new ConfigurationException("setConfigurationValue() passed invalid id=" + id);
         Object cvalue = handleValue(id, value);
         List<String> path = idPath(id);
@@ -131,7 +140,7 @@ public class ConfigurationUtil {
         if (!conf.isValid()) throw new ConfigurationException("setConfigurationValue() on invalid " + conf);
         if (conf.isReadOnly()) throw new ConfigurationException("setConfigurationValue() on readOnly " + conf);
         JSONObject content = null;
-        Configuration rconf = getConfiguration(myShepherd, root);  //root conf (to change value)
+        Configuration rconf = myShepherd.getConfiguration(root);  //root conf (to change value); must be from datastore tho!
         if (rconf == null) {
             rconf = new Configuration(root, new JSONObject());
         } else {
@@ -141,16 +150,34 @@ public class ConfigurationUtil {
         content = setDeepJSONObject(content, path, cvalue);
         rconf.setContent(content);
         myShepherd.getPM().makePersistent(rconf);
-        valueCache.put(root, content);
-        conf.setContent(_traverse(conf.getContent(), path));  //now set our content
-        System.out.println("INFO: setConfigurationValue(" + id + ") persisted and inserted into cache [" + ((cvalue == null) ? "NULL" : cvalue.getClass().getName()) + "] cvalue=" + cvalue);
+        JSONObject ccont = _traverse(content, path);
+        conf.setContent(ccont);  //now set our content
+        System.out.println("INFO: setConfigurationValue(" + id + ") persisted [" + ((cvalue == null) ? "NULL" : cvalue.getClass().getName()) + "] cvalue=" + cvalue);
+        //TODO we *could* do a resetValueCache() here and even if this is not persisted, it should be okay? maybe?
         return conf;
     }
 
+    public static void updateValueCache(String root, JSONObject content) {
+        if (!isValidRoot(root)) return;
+        if (content == null) {
+            valueCache.remove(root);
+            System.out.println("INFO: updateValueCache() got null content; removed root=" + root);
+        } else {
+            valueCache.put(root, content);
+            System.out.println("INFO: updateValueCache() updated root=" + root);
+        }
+    }
+    public static void resetValueCache(String root) {
+        if (!isValidRoot(root)) return;
+        valueCache.remove(root);
+        System.out.println("INFO: resetValueCache() removed root=" + root);
+    }
+
     //not really for public consumption!
-    private static JSONObject setDeepJSONObject(final JSONObject jobj, final List<String> path, final Object value) {
+    private static JSONObject setDeepJSONObject(final JSONObject jobj, final List<String> opath, final Object value) {
         if (jobj == null) return null;
 
+        List<String> path = new ArrayList<String>(opath);
         if (path.size() == 1) {  //last one, we set the value
             JSONObject jval = new JSONObject();
             jval.put(VALUE_KEY, value);
@@ -210,12 +237,9 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
     public static String getType(String id) {
         return getType(getMeta(id));
     }
+    //right now we piggyback off all DataDefinition types, but we could filter this a bit
     public static boolean isValidType(String t) {
-        if (t == null) return false;
-        for (int i = 0 ; i < TYPES.length ; i++) {
-            if (t.equals(TYPES[i])) return true;
-        }
-        return false;
+        return DataDefinition.isValidType(t);
     }
 
     private static JSONObject _traverse(final JSONObject j, final List<String> path) {
@@ -324,6 +348,14 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         return idToKey(id).toUpperCase();
     }
 
+    public static Object handleValue(String id, Object inVal) throws DataDefinitionException {
+        JSONObject meta = getMeta(id);
+        if (meta == null) throw new DataDefinitionException("ConfigurationUtil.handleValue() has null meta on id=" + id);
+        DataDefinition ddef = new DataDefinition(meta);
+        return ddef.handleValue(inVal);
+    }
+
+/*
     //a whole bunch of these based on diff incoming types
     // TODO make these actually verify against meta!!!
     /// TODO support .allowEmpty as option *when require=T*

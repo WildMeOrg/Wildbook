@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.io.File;
 import org.ecocean.Util;
+import org.ecocean.DataDefinition;
+import org.ecocean.DataDefinitionException;
 import org.ecocean.Shepherd;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -54,7 +56,7 @@ public class Configuration implements java.io.Serializable {
         this.setModified();
     }
 
-    public void setValue(Shepherd myShepherd, Object value) throws ConfigurationException {  //but, convenience
+    public void setValue(Shepherd myShepherd, Object value) throws ConfigurationException, DataDefinitionException {  //but, convenience
         ConfigurationUtil.setConfigurationValue(myShepherd, this.id, value);
     }
 
@@ -66,40 +68,42 @@ public class Configuration implements java.io.Serializable {
 
     //we have various flavors.  note the *List ones can be used to grab non-multiple values but as a list
     // we do our best to cast values even if type does not match
-    public String getValueAsString() throws ConfigurationException {
-        return ConfigurationUtil.coerceString(this.getContent(), this._precheckSingle());
+    public String getValueAsString() throws DataDefinitionException {
+        return DataDefinition.coerceString(this.getContent(), this._precheckSingle());
     }
-    public Integer getValueAsInteger() throws ConfigurationException {
-        return ConfigurationUtil.coerceInteger(this.getContent(), this._precheckSingle());
+    public Integer getValueAsInteger() throws DataDefinitionException {
+        return DataDefinition.coerceInteger(this.getContent(), this._precheckSingle());
     }
-    public Double getValueAsDouble() throws ConfigurationException {
-        return ConfigurationUtil.coerceDouble(this.getContent(), this._precheckSingle());
+    public Double getValueAsDouble() throws DataDefinitionException {
+        return DataDefinition.coerceDouble(this.getContent(), this._precheckSingle());
     }
-    public Boolean getValueAsBoolean() throws ConfigurationException {
-        return ConfigurationUtil.coerceBoolean(this.getContent(), this._precheckSingle());
+    public Boolean getValueAsBoolean() throws DataDefinitionException {
+        return DataDefinition.coerceBoolean(this.getContent(), this._precheckSingle());
     }
 
-    public List<String> getValueAsStringList() throws ConfigurationException {
+    public List<String> getValueAsStringList() throws DataDefinitionException {
+/*
         JSONObject meta = this._precheckMultiple();
         if (!this.isMultiple(meta)) {
             List<String> rtn = new ArrayList<String>();
             rtn.add(ConfigurationUtil.coerceString(this.getContent(), meta));
             return rtn;
         }
-        return ConfigurationUtil.coerceStringList(this.getContent(), meta);
+*/
+        return DataDefinition.coerceStringList(this.getContent(), this._precheckMultiple());
     }
 
-    private JSONObject _precheckMultiple() throws ConfigurationException {
-        if (!this.hasValidRoot()) throw new ConfigurationException("invalid root on id=" + this.id);
+    private JSONObject _precheckMultiple() throws DataDefinitionException {
+        if (!this.hasValidRoot()) throw new DataDefinitionException("invalid root on id=" + this.id);
         JSONObject meta = this.getMeta();
-        if (meta == null) throw new ConfigurationException("missing meta on id=" + this.id);
+        if (meta == null) throw new DataDefinitionException("missing meta on id=" + this.id);
         return meta;
     }
-    private JSONObject _precheckSingle() throws ConfigurationException {
-        if (!this.hasValidRoot()) throw new ConfigurationException("invalid root on id=" + this.id);
+    private JSONObject _precheckSingle() throws DataDefinitionException {
+        if (!this.hasValidRoot()) throw new DataDefinitionException("invalid root on id=" + this.id);
         JSONObject meta = this.getMeta();
-        if (meta == null) throw new ConfigurationException("missing meta on id=" + this.id);
-        if (this.isMultiple(meta)) throw new ConfigurationException("calling single value on multiple for id=" + this.id);
+        if (meta == null) throw new DataDefinitionException("missing meta on id=" + this.id);
+        if (this.isMultiple()) throw new DataDefinitionException("calling single value on multiple for id=" + this.id);
         return meta;
     }
 
@@ -123,10 +127,17 @@ return null; ///FIXME
     public boolean hasValidRoot() {
         return ConfigurationUtil.idHasValidRoot(this.id);
     }
+    public String getRoot() {
+        return ConfigurationUtil.idGetRoot(this.id);
+    }
 
     //the only kind that should be persisted to db!!!
     public boolean isRootLevel() {
         return ConfigurationUtil.isValidRoot(this.id);
+    }
+
+    public void resetRootCache() {
+        ConfigurationUtil.resetValueCache(this.getRoot());
     }
 
     //this means it "can" or "should" have a value (e.g. path is good, meta defined etc)
@@ -145,7 +156,16 @@ return null; ///FIXME
     }
     public boolean isReadOnly(JSONObject meta) {
         if (!this.isValid(meta)) return true;  //kinda wonky; but also true!
-        return meta.optBoolean("readOnly", false);
+        return DataDefinition.isReadOnly(meta);
+    }
+
+    //covers both the VALUE and the META (e.g. to public)
+    public boolean isPrivate() {
+        return isPrivate(this.getMeta());
+    }
+    public boolean isPrivate(JSONObject meta) {
+        if (!this.isValid(meta)) return true;  //kinda wonky; but also true!
+        return DataDefinition.isPrivate(meta);
     }
 
     public JSONObject getMeta() {
@@ -199,16 +219,8 @@ return null; ///FIXME
     public String getLang() {
         return ConfigurationUtil.idToLang(this.id);
     }
-    public boolean isMultiple(JSONObject meta) {
-        if (meta == null) return false;
-        if (meta.optBoolean("multiple", false)) return true;  //vanilla
-        int min = meta.optInt("multipleMin", -1);
-        int max = meta.optInt("multipleMax", -1);
-        if ((min > 1) || (max > 1)) return true;
-        return false;
-    }
     public boolean isMultiple() {
-        return isMultiple(this.getMeta());
+        return DataDefinition.isMultiple(this.getMeta());
     }
 
     // based on https://github.com/WildbookOrg/wildbook-frontend/blob/master/src/constants/userSchema.js
@@ -236,6 +248,7 @@ return null; ///FIXME
         JSONObject c = this.getContent();
         if (c != null) j.put("currentValue", c.opt(ConfigurationUtil.VALUE_KEY));  //FIXME probably
         j.put("settable", true);
+        j.put("isPrivate", this.isPrivate(m));
         j.put("defaultValue", m.opt("defaultValue"));
         String type = ConfigurationUtil.getType(m);
         j.put("fieldType", type);
@@ -252,6 +265,7 @@ return null; ///FIXME
             j.put("multiple", true);
             j.put("multipleMax", max);
         }
+        if (this.isMultiple()) j.put("multiple", true);
         if (m.optJSONArray("values") != null) j.put("values", m.getJSONArray("values"));
         JSONObject vobj = m.optJSONObject("values");
         if (vobj != null) {  //got something complex...
@@ -304,7 +318,8 @@ return null; ///FIXME
         j.put("isValid", this.isValid(m));
         j.put("readOnly", this.isReadOnly(m));
         j.put("hasValue", this.hasValue());
-        j.put("isMultiple", this.isMultiple(m));
+        j.put("isMultiple", this.isMultiple());
+        j.put("isPrivate", this.isPrivate());
         j.put("validRoot", this.hasValidRoot());
         j.put("content", this.getContent());
 /*
@@ -328,5 +343,14 @@ return null; ///FIXME
                 .append("hasValue", this.hasValue())
                 .append("validRoot", this.hasValidRoot())
                 .toString();
+    }
+
+    //i guess we should have this!  based on sharing same id, sorrynotsorry?
+    public boolean equals(final Object c2) {
+        if (c2 == null) return false;
+        if (!(c2 instanceof Configuration)) return false;
+        Configuration two = (Configuration)c2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
     }
 }

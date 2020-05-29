@@ -1,0 +1,58 @@
+<!DOCTYPE jdo PUBLIC
+    "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN"
+    "http://java.sun.com/dtd/jdo_2_0.dtd">
+
+<jdo>
+	<package name="org.ecocean.customfield">
+
+<!--
+		<class name="ApiBase" identity-type="application">
+			<inheritance strategy="complete-table"/>
+			<field name="id" primary-key="true">
+        			<column length="36"/>
+			</field>
+			<field name="version">
+                		<column jdbc-type="BIGINT" allows-null="false"/>
+			</field>
+			<field name="owner" persistence-modifier="persistent" element-type="org.ecocean.User" default-fetch-group="true" />
+			<field name="organizationSet" persistence-modifier="persistent" element-type="org.ecocean.api.OrganizationSet" default-fetch-group="true" />
+		</class>
+-->
+
+		<class name="CustomFieldDefinition" identity-type="application">
+			<field name="id" primary-key="true">
+        			<column length="36"/>
+			</field>
+			<field name="type" />
+			<field name="multiple" />
+			<field name="name" unique="true">
+                		<column allows-null="false"/>
+			</field>
+			<field name="className" />
+		</class>
+
+		<class name="CustomFieldValue" identity-type="application">
+			<field name="id" primary-key="true" value-strategy="identity" />
+			<inheritance strategy="new-table"/>
+			<field name="definition" persistence-modifier="persistent" element-type="org.ecocean.customfield.CustomFieldDefinition" default-fetch-group="true" />
+		</class>
+
+		<class name="CustomFieldValueString" identity-type="application">
+			<inheritance strategy="new-table"/>
+			<field name="value" peristence-modifier="persistent">
+        			<column jdbc-type="LONGVARCHAR"/>
+			</field>
+		</class>
+
+		<class name="CustomFieldValueInteger" identity-type="application">
+			<inheritance strategy="new-table"/>
+			<field name="value" peristence-modifier="persistent" />
+		</class>
+
+		<class name="CustomFieldValueDouble" identity-type="application">
+			<inheritance strategy="new-table"/>
+			<field name="value" peristence-modifier="persistent" />
+		</class>
+
+	</package>
+</jdo>

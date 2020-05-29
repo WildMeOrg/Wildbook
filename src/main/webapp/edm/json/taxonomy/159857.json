@@ -1,0 +1,11 @@
+{
+
+"_comment": "i18n of terminology will be like: taxonomy_young_159857, taxonomy_group_159857",
+
+	"scientificName": "Rhincodon typus",
+	"commonNames": {
+		"en": [ "whale shark" ],
+		"es": [ "tiburón ballena", "dámero" ],
+		"jp": [ "ジンベイザメ" ]
+	}
+}
