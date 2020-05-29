@@ -3729,10 +3729,15 @@ public class Shepherd {
     return it;
   }
 
+  public List<Keyword> getAllKeywordsList() {
+    Extent allKeywords = pm.getExtent(Keyword.class);
+    Query acceptedKeywords = pm.newQuery(allKeywords);
+    return getAllKeywordsList(acceptedKeywords);
+  }
+
   public Iterator<Keyword> getAllKeywords() {
     Extent allKeywords = pm.getExtent(Keyword.class);
     Query acceptedKeywords = pm.newQuery(allKeywords);
-
     return getAllKeywords(acceptedKeywords);
   }
 
@@ -3753,9 +3758,10 @@ public class Shepherd {
       query.closeAll();
       return ans;
     } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+      System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning empty array.");
       npe.printStackTrace();
-      return null;
+      // prevents npe's on search pages, counting methods
+      return new ArrayList<LabeledKeyword>();
     }
   }
 
