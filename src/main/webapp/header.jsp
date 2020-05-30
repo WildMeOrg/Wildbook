@@ -340,11 +340,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                       <!-- submit encounter, survey -->
 
-                      <li><a href ="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+                      <li><a href ="<%=urlLoc %>/submit.jsp" id="report-encounter-header"><%=props.getProperty("report")%></a></li>
                       <!--  <li class="dropdown"> -->
                         <!--  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a> -->
                         <!--  <ul class="dropdown-menu" role="menu"> -->
-							              <!--  <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li> -->
+							          <!--  <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li> -->
                         <!--  </ul> -->
                       <!--  </li> -->
 
@@ -450,7 +450,9 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
+                      <% if(request.isUserInRole("admin")) { %>
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
+                      <% } %>
                         <ul class="dropdown-menu" role="menu">
                             <% if (CommonConfiguration.getWikiLocation(context)!=null) { %>
                               <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>/photographing.jsp"><%=props.getProperty("userWiki")%></a></li>
