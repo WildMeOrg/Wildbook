@@ -1,36 +1,70 @@
 
 var wbConf = {
+    currentLangCode: 'en',
     lang: {},
     cache: {},
 
-loadLang: function(type, code, callback) {
+getLangCode: function() { return wbConf.currentLangCode; },
+setLangCode: function(c) { wbConf.currentLangCode = c; },
+
+loadLangFiles: function(flist, code, callback) {
     if (!code) code = 'en';
-    $.ajax({
-        url: 'json/lang/' + type + '.' + code + '.json?' + new Date().getTime(),
-        type: 'GET',
-        dataType: 'json',
-        success: function(d) {
-            wbConf.debug('log lang.json of length ' + Object.keys(d).length);
-            Object.assign(wbConf.lang, d);
-            if (typeof callback == 'function') callback();
-        },
-        error: function(x) {
-            console.warn('error loading lang %s %o', code, x);
-            if (code == 'en') {
-                alert('could not load fallback language=en');
-            } else {
-                wbConf.loadLang(type, 'en', callback);
+    if (!wbConf.__lfcount) wbConf.__lfcount = flist.length;
+    for (var i = 0 ; i < flist.length ; i++) {
+        $.ajax({
+            url: 'json/lang/' + flist[i] + '.' + code + '.json?' + new Date().getTime(),
+            context: { filename: flist[i] + '.' + code + '.json' },
+            type: 'GET',
+            dataType: 'json',
+            success: function(d) {
+                wbConf.debug('lang ' + this.filename + ' of length ' + Object.keys(d).length);
+                Object.assign(wbConf.lang, d);
+                wbConf.__lfcount--;
+                if ((wbConf.__lfcount < 1) && (typeof callback == 'function')) callback();
+            },
+            error: function(x) {
+                console.warn('error loading lang %s %o', code, x);
+                if (code == 'en') {
+                    alert('could not load fallback language=en for ' + flist[i] + '; failing');
+                } else {
+                    wbConf.loadLangFiles([ flist[i] ], 'en', callback);
+                }
             }
-        }
-    });
+        });
+    }
 },
 
-init: function() {
-    wbConf.loadLang('configuration', 'en', function() {
-        wbConf.loadLang('message', 'en', function() {
-            wbConf.build('');
+loadFiles: function(flist, callbackEach, callbackDone) {
+    wbConf.__fcount = flist.length;
+    for (var i = 0 ; i < flist.length ; i++) {
+        $.ajax({
+            url: flist[i] + '?' + new Date().getTime(),
+            context: { filename: flist[i], i: i, len: flist.length },
+            type: 'GET',
+            dataType: 'json',
+            success: function(d) {
+                wbConf.debug('loadFiles loaded [' + this.i + '/' + this.len + '] ' + this.filename + '; content length = ' + Object.keys(d).length);
+                if (typeof callbackEach == 'function') callbackEach(d, this);
+                wbConf.__fcount--;
+                if ((wbConf.__fcount < 1) && (typeof callbackDone == 'function')) callbackDone(this);
+            },
+            error: function(x) {
+                console.warn('error loading file => %o context=%o', x, this);
+                //the whole think just kinda fails... so callbackDone() will never get called
+            }
         });
-    });
+    }
+},
+
+//FIXME i should be using promises, yeah... :(
+init: function() {
+    wbConf.loadLangFiles(
+        ['configuration', 'message'],
+        wbConf.getLangCode(),
+        function() {
+            wbConf.populateTaxonomyData(function() { wbConf.build(''); })
+        }
+    );
 },
 
 linkClicked: function(id) {
@@ -251,11 +285,15 @@ makeUI: {
     },
 
     configuration_site_species: function(j) {
-        var h = '<div id="configuration_site_species_itis">';
+        var h = '<div class="c-settable" id="c_set_' + j.name + '">';
+/*
+        h += '<div id="configuration_site_species_itis">';
         h += '<div id="configuration_site_species_itis_results">';
         h += '</div>';
         h += '<input id="configuration_site_species_itis_term" />';
         h += '<input type="button" value="search" onClick="wbConf.itisSearch();" />';
+        h += '</div>';
+*/
         h += '</div>';
         return h;
     }
@@ -265,6 +303,32 @@ onUpdate: {
     configuration_site_look_textColor: function(d) {
         //change site colors?
     }
+},
+
+taxData: {},
+
+populateTaxonomyData: function(callback) {
+    wbConf.loadFiles(
+        ['json/taxonomy/select.json'],
+        function(selData) {
+            console.info('populateTaxonomyData() loaded selected.json');
+            wbConf.taxData.select = selData; 
+            wbConf.taxData.single = {};
+            if (!selData.single || !selData.single.length) return;
+            //now we get all of the single species files
+            var flist = [];
+            for (var i = 0 ; i < selData.single.length ; i++) {
+                flist.push('json/taxonomy/' + selData.single[i] + '.json');
+            }
+            wbConf.loadFiles(
+                flist,
+                function(d, ctx) {
+                    wbConf.taxData.single[wbConf.taxData.select.single[ctx.i]] = d;
+                },
+                callback
+            );
+        }
+    );
 },
 
 itisSearch: function() {
