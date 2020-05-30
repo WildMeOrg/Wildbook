@@ -2,6 +2,7 @@
 	"single": [
 		159857,
 		180488,
+		180426,
 		180530
 	],
 
@@ -9,6 +10,6 @@
 
 	"bundles": {
 		"cetaceans": [ 180488, 180530, "bundle_dolphins" ],
-		"dolphins": [ ]
+		"dolphins": [ 180426 ]
 	}
 }

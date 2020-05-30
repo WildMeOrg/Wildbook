@@ -190,7 +190,15 @@ plainDiv: function(j, key) {
 },
 
 trlang: function(j, key) {
-    return wbConf.lang[j.translationId + '_' + key.toUpperCase()] || '';
+    var tkey = j;  //assume just passed key
+    if (typeof tkey == 'object') tkey = tkey.translationId;
+    if (key) tkey += '_' + key;
+    tkey = tkey.toUpperCase();
+    return wbConf.lang[tkey] || '';
+/*
+    if (wbConf.lang[tkey] === undefined) return '[' + tkey.toLowerCase() + ']';
+    return wbConf.lang[tkey];
+*/
 },
 
 idPath: function(id) {
@@ -261,7 +269,7 @@ console.info('RESPONSE === %o', xhr);
     var message = (xhr.responseJSON && xhr.responseJSON.message) || { key: 'error' };
     if (!message.key) message.key = 'error';
     message._status = { code: xhr.status, text: xhr.statusText };
-    message._lang = wbConf.lang['MESSAGE_' + message.key.toUpperCase()];
+    message._lang = wbConf.trlang('message_' + message.key.toUpperCase());
     //since we dont really have way of handling messages.... oh well!
     alert('FAKE MESSAGE HANDLER! 😃\n' + JSON.stringify(message, null, 4));
     if (typeof failureCallback == 'function') failureCallback(xhr);
@@ -286,17 +294,53 @@ makeUI: {
 
     configuration_site_species: function(j) {
         var h = '<div class="c-settable" id="c_set_' + j.name + '">';
-/*
+        h += '<div id="c-taxonomy-select-wrapper">';
+        for (var i = 0 ; i < wbConf.taxData.select.single.length ; i++) {
+            var tsn = wbConf.taxData.select.single[i];
+            h += '<div class="c-taxonomy-select" id="c-div-' + tsn + '">';
+            h += '<input title="' + tsn + '" value="' + tsn + '" type="checkbox" id="c-input-' + tsn + '" />';
+            h += '<label for="c-input-' + tsn + '">';
+            h += wbConf.taxonomyDisplayName(tsn);
+            h += '</label>';
+            h += '</div>';
+        }
+        h += '</div>';
+
+        h += '<hr /><div class="c-label">' + wbConf.trlang('CONFIGURATION_SITE_SPECIES_BUNDLESLABEL') + '</div>';
+        h += '<div class="c-description">' + wbConf.trlang('CONFIGURATION_SITE_SPECIES_BUNDLESHELP') + '</div>';
+        h += '<div class="c-taxonomy-bundle-wrapper">';
+        for (var bun in wbConf.taxData.select.bundles) {
+            h += '<div class="c-taxonomy-bundle" id="c-bundle-' + bun + '">';
+            h += wbConf.trlang('CONFIGURATION_TAXONOMY_SELECT_BUNDLE_' + bun);
+            h += '</div>';
+        }
+        h += '</div>';
+
+        h += '<hr /><div class="c-label">' + wbConf.trlang('CONFIGURATION_SITE_SPECIES_ITISLABEL') + '</div>';
+        h += '<div class="c-description">' + wbConf.trlang('CONFIGURATION_SITE_SPECIES_ITISHELP') + '</div>';
         h += '<div id="configuration_site_species_itis">';
         h += '<div id="configuration_site_species_itis_results">';
         h += '</div>';
         h += '<input id="configuration_site_species_itis_term" />';
-        h += '<input type="button" value="search" onClick="wbConf.itisSearch();" />';
+        h += '<input type="button" value="' + wbConf.trlang('general_search') + '" onClick="wbConf.itisSearch();" />';
         h += '</div>';
-*/
+
         h += '</div>';
         return h;
     }
+},
+
+taxonomyDisplayName: function(tsn) {
+    if (!wbConf.taxData.single[tsn]) return tsn;
+    var name = wbConf.taxData.single[tsn].scientificName || tsn;
+    if (!wbConf.taxData.single[tsn].commonNames) return name;
+    if (wbConf.taxData.single[tsn].commonNames[wbConf.getLangCode()]) {
+        return wbConf.taxData.single[tsn].commonNames[wbConf.getLangCode()][0] + ' <i>(' + name + ')</i>';
+    }
+    if (wbConf.taxData.single[tsn].commonNames.en) {
+        return wbConf.taxData.single[tsn].commonNames.en[0] + ' <i>(' + name + ')</i>';
+    }
+    return name;
 },
 
 onUpdate: {
@@ -331,22 +375,53 @@ populateTaxonomyData: function(callback) {
     );
 },
 
+itisAdd: function(tsn) {
+    if (wbConf.taxData.select.single.indexOf(tsn) > -1) return;
+    wbConf.taxData.select.single.push(tsn);
+    var h = '<div class="c-taxonomy-select" id="c-div-' + tsn + '">';
+    h += '<input checked title="' + tsn + '" value="' + tsn + '" type="checkbox" id="c-input-' + tsn + '" />';
+    h += '<label for="c-input-' + tsn + '">';
+    h += wbConf.taxonomyDisplayName(tsn);
+    h += '</label>';
+    h += '</div>';
+    $('#c-taxonomy-select-wrapper').append(h);
+},
+
 itisSearch: function() {
+    $('#configuration_site_species_itis_results').html('<i>searching...</i>');
     var term = $('#configuration_site_species_itis_term').val();
+    $('#configuration_site_species_itis input').hide();
+console.log('itis term=%o', term);
     if (!term) return;
     wbConf.askITIS(term, function(res) {
+        $('#configuration_site_species_itis_results').html('');
+        $('#configuration_site_species_itis input').show();
         var el = $('#configuration_site_species_itis_results');
         if (!res || (res.length < 1)) {
             el.append('<i>no results</i>');
         } else {
             for (var i = 0 ; i < res.length ; i++) {
-                var h = '<div><i>' + res[i].sciName + '</i>';
-                h += ' [<b>' + res[i].tsn + '</b>]';
+                if (wbConf.taxData.select.single.indexOf(res[i].tsn) > -1) continue;
+                wbConf.taxData.single[res[i].tsn] = {
+                    scientificName: res[i].sciName,
+                    commonNames: { en: [ res[i].tsn ] }
+                };
+                var h = '<div onclick="wbConf.itisAdd(' + res[i].tsn + ');">';
+                //h += ' [<b>' + res[i].tsn + '</b>]';
                 var cn = [];
                 if (res[i].commonNameList && res[i].commonNameList.commonNames) for (var j = 0 ; j < res[i].commonNameList.commonNames.length ; j++) {
                     cn.push(res[i].commonNameList.commonNames[j].commonName);
                 }
-                if (cn.length) h += ' (' + cn.join(', ') + ')';
+                if (cn.length) {
+                    h += cn.join(' / ');
+                    if (res[i].sciName) h += ' <i>(' + res[i].sciName + ')</i>';
+                    wbConf.taxData.single[res[i].tsn].commonNames.en = cn;
+                } else if (res[i].sciName) {
+                    h += res[i].sciName;
+                } else {
+                    h += 'TSN ' + res[i].tsn;
+                }
+                h += ' &nbsp; <a target="_new" onclick="event.stopPropagation(); return true;" href="https://itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=' + res[i].tsn + '"> &#x2197; </a>';
                 h += '</div>';
                 el.append(h);
             }

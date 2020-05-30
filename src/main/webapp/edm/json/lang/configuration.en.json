@@ -1,4 +1,8 @@
 {
+	"GENERAL_SEARCH": "search",
+	"GENERAL_CANCEL": "cancel",
+	"GENERAL_RESET": "reset",
+
 	"CONFIGURATION__LABEL": "Wildbook Configurator",
 	"CONFIGURATION__DESCRIPTION": "choose something to change?",
 	"CONFIGURATION__ALT": null,
@@ -116,6 +120,10 @@
 	"CONFIGURATION_SITE_SPECIES_DESCRIPTION": "Select the taxonomies for the animals you will be working with.",
 	"CONFIGURATION_SITE_SPECIES_ALT": null,
 	"CONFIGURATION_SITE_SPECIES_HELP": null,
+	"CONFIGURATION_SITE_SPECIES_BUNDLESLABEL": "Bundles",
+	"CONFIGURATION_SITE_SPECIES_BUNDLESHELP": "Common groupings of multiple species",
+	"CONFIGURATION_SITE_SPECIES_ITISLABEL": "Other",
+	"CONFIGURATION_SITE_SPECIES_ITISHELP": "Add other unsupported species",
 	"CONFIGURATION_SITE_NAME_LABEL": "Site Name",
 	"CONFIGURATION_SITE_NAME_DESCRIPTION": "What do you want to call your Wildbook?",
 	"CONFIGURATION_SITE_NAME_ALT": null,
