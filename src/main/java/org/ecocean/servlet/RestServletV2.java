@@ -196,8 +196,7 @@ public class RestServletV2 extends HttpServlet {
         if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
         payload.remove("class");
         payload.remove("_queryString");
-////////////// TODO security duh!!  only admin may SET
-        boolean isAdmin = true;  //// FIXME debug only!
+        boolean isAdmin = request.isUserInRole("admin");
         JSONObject rtn = new JSONObject();
         rtn.put("success", false);
         rtn.put("transactionId", instanceId);
@@ -215,13 +214,14 @@ public class RestServletV2 extends HttpServlet {
                 JSONObject jerr = new JSONObject();
                 jerr.put("id", id);
                 rtn.put("message", _rtnMessage("invalid_configuration_id", jerr));
-            } else if (conf.isPrivate(meta)) {
+            } else if (conf.isPrivate(meta) && !isAdmin) {
                 JSONObject jerr = new JSONObject();
                 jerr.put("id", id);
                 rtn.put("message", _rtnMessage("access_denied_configuration", jerr));
                 response.setStatus(401);
             } else {
                 rtn.put("success", true);
+                if (conf.isPrivate(meta)) rtn.put("private", true);
                 if (conf.hasValue()) {
                     rtn.put("value", conf.getContent().get(ConfigurationUtil.VALUE_KEY));
                 } else if (meta.has("defaultValue")) {

@@ -25,11 +25,13 @@ pre {
     margin: 6px;
     background-color: #CCC;
 }
-.value {
+.boxy {
     border-radius: 4px;
-    padding: 6px;
-    margin: 2px;
     display: inline-block;
+    padding: 6px;
+}
+.value {
+    margin: 2px;
     color: #FFF;
     background-color: #8AF;
 }
@@ -37,11 +39,8 @@ pre {
     color: #641;
 }
 .set {
-    border-radius: 4px;
     font-size: 0.8em;
-    padding: 6px;
     margin: 3px;
-    display: inline-block;
     color: #888;
     background-color: #8FA;
 }
@@ -68,6 +67,7 @@ pre {
 Shepherd myShepherd = new Shepherd("context0");
 myShepherd.beginDBTransaction();
 
+boolean admin = "admin".equals(AccessControl.simpleUserString(request));
 ConfigurationUtil.init();   //not required, but clears cache for us (for testing)
 
 String id = request.getParameter("id");
@@ -84,16 +84,16 @@ if (pmap.size() > 0) for (String pkey : pmap.keySet()) {
             //this needs to correctly handle List for (only) multi  TODO
             confSet = ConfigurationUtil.setConfigurationValue(myShepherd, pkey, Arrays.asList(pmap.get(pkey)));
         }
-        out.println("<div class=\"set\">set <b><a href=\"configTest.jsp?id=" + pkey + "\">" + pkey + "</a></b></div>");
+        out.println("<div class=\"boxy set\">set <b><a href=\"configTest.jsp?id=" + pkey + "\">" + pkey + "</a></b></div>");
     } catch (ConfigurationException ex) {
-        out.println("<div class=\"set warn\">could not set <b>" + pkey + "</b>: " + ex.toString() + "</div>");
+        out.println("<div class=\"boxy set warn\">could not set <b>" + pkey + "</b>: " + ex.toString() + "</div>");
     }
 }
 
 String rmId = request.getParameter("rmId");
 if (rmId != null) {
     Object rm = ConfigurationUtil.removeConfiguration(myShepherd, rmId);
-    out.println("<div class=\"set\">[" + rmId + "] <i>remove=</i>" + ((rm == null) ? "<b>failed</b>" : rm.toString()) + "</div>");
+    out.println("<div class=\"boxy set\">[" + rmId + "] <i>remove=</i>" + ((rm == null) ? "<b>failed</b>" : rm.toString()) + "</div>");
 }
 
 
@@ -139,8 +139,11 @@ out.println("</ul><hr />");
 if (!conf.isValid()) {
     out.println("<div style=\"color: #666\">does not accept a value</div>");
 
+} else if (conf.isPrivate() && !admin) {
+    out.println("<div class=\"boxy\" style=\"background-color: #B22; color: #FFF;\">value is private</div>");
+
 } else if (conf.hasValue()) {
-    out.println("<div class=\"value\">");
+    out.println("<div class=\"boxy value\">");
     if (conf.isMultiple()) {
         out.println("<ul>");
         try {
@@ -162,14 +165,16 @@ if (!conf.isValid()) {
     }
     out.println("</div>");
 } else {
-    out.println("<div class=\"value warn\"><i>no value set</i></div>");
+    out.println("<div class=\"boxy value warn\"><i>no value set</i></div>");
 }
 
 //JSONObject meta = ConfigurationUtil.getMeta(id);
 out.println("<p>" + conf + "</p>");
 if (conf.getMeta() != null) out.println("<p>our <b>meta</b>:</p><pre>" + conf.getMeta().toString(8) + "</pre>");
 
-out.println("<p>for <b>front end</b>:</p><pre>" + conf.toFrontEndJSONObject(myShepherd).toString(8) + "</pre>");
+JSONObject fej = conf.toFrontEndJSONObject(myShepherd);
+if (!admin && conf.isPrivate()) fej.remove("currentValue");
+out.println("<p>for <b>front end</b>:</p><pre>" + fej.toString(8) + "</pre>");
 
 out.println("<p><b>.toJSONObject()</b>:</p><pre>" + conf.toJSONObject().toString(8) + "</pre>");
 
@@ -180,7 +185,7 @@ out.println("<p>&nbsp;</p>");
 
 if (root != null) {
     Configuration top = ConfigurationUtil.getConfiguration(myShepherd, root);
-    out.println("<pre class=\"value\">" + top.getContent().toString(8) + "</pre>");
+    out.println("<pre class=\"boxy value\">" + top.getContent().toString(8) + "</pre>");
 }
 
 /*
