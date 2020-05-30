@@ -2501,20 +2501,20 @@ public class Shepherd {
 
   public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
     ArrayList<TissueSample> al = new ArrayList<TissueSample>();
-    if(indy.getEncounters()!=null){
-      int numEncounters = indy.getEncounters().size();
-      for (int i = 0; i < numEncounters; i++) {
-        Encounter enc = (Encounter) indy.getEncounters().get(i);
-        if(getAllTissueSamplesForEncounter(enc.getCatalogNumber())!=null){
-          List<TissueSample> list = getAllTissueSamplesForEncounter(enc.getCatalogNumber());
-          if(list.size()>0){
-            al.addAll(list);
-          }
-        }
-      }
-    return al;
+    Query q=getPM().newQuery("SELECT FROM org.ecocean.genetics.TissueSample WHERE indy.individualID == '"+indy.getIndividualID()+"' && indy.encounters.contains(enc) && enc.tissueSamples.contains(this) VARIABLES org.ecocean.Encounter enc;org.ecocean.MarkedIndividual indy");
+    try {
+
+      Collection c=(Collection)q.execute();
+      al=new ArrayList<TissueSample>(c);
     }
-    return null;
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+    finally {
+      q.closeAll();
+    }
+    return al;
+  
   }
 
 
