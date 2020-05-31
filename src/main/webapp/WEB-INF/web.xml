@@ -290,7 +290,20 @@
 				/mergeComplete.jsp = authc, roles[researcher]
 				
 				/EncounterSearchExportMetadataExcel = authc, roles[researcher]
-
+				
+				
+				/AnnotationSetMatchAgainst = authc, roles[admin]
+				
+				/MembershipCreate = authc
+				/MembershipDelete = authc
+				
+				/MergeIndividual = authc
+				
+				/OrganizationEdit = authc
+				
+				/MarkRecaptureEncounters = authc
+				
+				/EncounterSetString = authc
 
             </param-value>
         </init-param>
@@ -2359,5 +2372,75 @@
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
+  
+  		
+		<servlet>
+    <servlet-name>AnnotationSetMatchAgainst</servlet-name>
+    <servlet-class>org.ecocean.servlet.AnnotationSetMatchAgainst</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>AnnotationSetMatchAgainst</servlet-name>
+    <url-pattern>/AnnotationSetMatchAgainst</url-pattern>
+  </servlet-mapping>
+  
+      <servlet>
+    <servlet-name>MembershipCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.MembershipCreate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>MembershipDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.MembershipDelete</servlet-class>
+  </servlet>	
+        <servlet-mapping>
+         <servlet-name>MembershipCreate</servlet-name>
+         <url-pattern>/MembershipCreate</url-pattern>
+      </servlet-mapping>
+
+      <servlet-mapping>
+         <servlet-name>MembershipDelete</servlet-name>
+         <url-pattern>/MembershipDelete</url-pattern>
+      </servlet-mapping>
+	  
+	     <servlet>
+    <servlet-name>MergeIndividual</servlet-name>
+    <servlet-class>org.ecocean.servlet.MergeIndividual</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>MergeIndividual</servlet-name>
+    <url-pattern>/MergeIndividual</url-pattern>
+  </servlet-mapping>
+  
+     <servlet>
+    <servlet-name>OrganizationEdit</servlet-name>
+    <servlet-class>org.ecocean.servlet.OrganizationEdit</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>OrganizationEdit</servlet-name>
+    <url-pattern>/OrganizationEdit</url-pattern>
+  </servlet-mapping>
+  
+  	    <servlet>
+	  <servlet-name>MarkRecaptureEncounters</servlet-name>
+	  <servlet-class>org.ecocean.servlet.export.MarkRecaptureEncounters</servlet-class>
+  </servlet>
+
+	    <servlet-mapping>
+	  <servlet-name>MarkRecaptureEncounters</servlet-name>
+	  <url-pattern>/MarkRecaptureEncounters</url-pattern>
+  </servlet-mapping>
+  
+      <servlet>
+    <servlet-name>EncounterSetString</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetString</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>EncounterSetString</servlet-name>
+    <url-pattern>/EncounterSetString</url-pattern>
+  </servlet-mapping>
+  
 
 </web-app>

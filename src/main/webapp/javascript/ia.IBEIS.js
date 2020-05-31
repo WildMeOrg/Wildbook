@@ -73,13 +73,21 @@ wildbook.IA.plugins.push({
         var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
         var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
         var ma = assetByAnnotationId(aid);
-        if (!mid || !aid || !ma) return false;
+        if (!mid || !aid || !ma || typeof iaMatchFilterAnnotationIds == 'undefined') return false;
         var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(ma);
         var identActive = wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus);
         var requireSpecies = !(wildbook.IA.requireSpeciesForId() == 'false');
 console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identActive=%o, requireSpecies=%o', mode, mid, aid, ma, iaStatus, identActive, requireSpecies);
 
-        if (identActive) {
+	if (identActive && (ma.detectionStatus == 'complete') && ma.annotation && !ma.annotation.identificationStatus) {
+            if (mode == 'textStart') {
+                return '<span class="disabled">no matchable detection</span>';
+            } else if (mode == 'funcStart') {
+                //registerTaskId(iaStatus.taskId);
+                //wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
+                return;
+            }
+	} else if (identActive) {
             if (mode == 'textStart') {
                 return 'match results';
             } else if (mode == 'funcStart') {
@@ -132,7 +140,6 @@ console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identAc
 
     iaStatus: function(ma) {
         if (!ma || !ma.tasks || (ma.tasks.length < 1)) return null;
-        if (!ma || !ma.detectionStatus) return null;
         var rtn = {
             status: ma.detectionStatus,
             statusText: ma.detectionStatus,

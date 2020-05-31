@@ -157,7 +157,7 @@
         <li><a class="active"><%=occProps.getProperty("table")%>
         </a></li>
             <li><a
-           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("permitExport")%>
+           href="occurrenceExportSearchResults.jsp?<%=request.getQueryString() %>"><%=occProps.getProperty("export")%>
          </a></li>
 
       </ul>
@@ -325,7 +325,7 @@ var colDefn = [
 	},
   {
     key: 'effortCode',
-    label: '<%=occProps.getProperty("'effort")%>',
+    label: '<%=occProps.getProperty("effort")%>',
     value: _notUndefined('effortCode'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },

@@ -1,6 +1,4 @@
 
-
-
 /*
   TODO note: this is very ibeis-specific concept of "Annotation"
      we should probably consider a general version which can be manipulated into an ibeis one somehow
@@ -21,8 +19,10 @@ import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
 import java.io.IOException;
+import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 
 //import java.time.LocalDateTime;
@@ -87,7 +88,6 @@ public class Annotation implements java.io.Serializable {
 
     private MediaAsset mediaAsset = null;
 ////// end of what will go away
-
 
     //the "trivial" Annotation - will have a single feature which references the total MediaAsset
     public Annotation(String species, MediaAsset ma) {
@@ -421,6 +421,38 @@ public class Annotation implements java.io.Serializable {
         return sibs;
     }
 
+/*
+    this is an ordering value which equates to "where in the MediaAsset this Annotation lies compared to siblings".
+    what this means is greatly open to interpretation!  "english reading order" (top-down/left-right) might seem a decent choice,
+    but after some discussion, for boundingBox Annotations, i am going to go with left-most x-value of the bounding box.
+    NOTE: this is dependent on FeatureType, so there are loose ends to deal with regarding non-boundingBox Features.
+*/
+    public int relativePosition() {
+        MediaAsset ma = this.getMediaAsset();
+        if (ma == null) return -2;
+        List<Annotation> anns = ma.getAnnotationsSortedPositionally();
+        return anns.indexOf(this);
+    }
+
+    // standard -1, 0, 1 expected
+    //fbow, return 0 if "not comparable"... :/
+    // note that this does not assume they are the same MediaAsset... fwiw?
+    public int comparePositional(Annotation other) {
+        if (other == null) return 0;
+        if ((Util.collectionSize(this.getFeatures()) * Util.collectionSize(other.getFeatures())) == 0) return 0;  //no features, oops
+        // i have *no idea* how we should handle *multiple Features* here... so i am just going to look for any non-zero response as "useful" :(
+        //   thus we do NxM comparing all Feature combinations; which seems like it might suck but i think we "almost always" only have one!
+        for (Feature f1 : this.getFeatures()) {
+            for (Feature f2 : other.getFeatures()) {
+                if (!f1.equals(f2)) {
+                    int c = f1.comparePositional(f2);
+                    if (c != 0) return c;
+                }
+            }
+        }
+        return 0;
+    }
+
     public String getSpecies(Shepherd myShepherd) {
         Encounter enc = this.findEncounter(myShepherd);
         if (enc == null) return null;
@@ -430,8 +462,43 @@ public class Annotation implements java.io.Serializable {
     public String getIAClass() {
         return iaClass;
     }
+
     public void setIAClass(String iaClass) {
         this.iaClass = iaClass;
+    }
+
+    public void setIAExtractedKeywords(Shepherd myShepherd) {
+        try {
+            if (this.getMediaAsset()!=null&&this.getIAClass()!=null&&!"".equals(this.iaClass)) {
+                Properties props = ShepherdProperties.getProperties("IA.properties", "", myShepherd.getContext());
+                List<String> keywords = Util.getIndexedPropertyValues("iaExtractedKeyword", props);
+                List<String> labelValues = Util.getIndexedPropertyValues("iaExtractedKeywordValue", props);
+                MediaAsset ma = this.getMediaAsset();
+
+                for (int i=0;i<keywords.size();i++) {
+                    String keyword = keywords.get(i).trim();
+                    if (!this.iaClass.contains(keyword)) continue;
+                    String labelValue = labelValues.get(i).trim();
+                    if (keyword!=null&&!"".equals(keyword)&&labelValue!=null&&!"".equals(labelValue)) {
+                        
+                        Keyword kw = null;
+                        if (myShepherd.isKeyword(labelValue)) {
+                            kw = myShepherd.getKeyword(labelValue);
+                        } else {
+                            kw = new Keyword(labelValue);
+                            myShepherd.storeNewKeyword(kw);
+                        }
+
+                        myShepherd.beginDBTransaction();
+                        ma.addKeyword(kw);
+                        myShepherd.commitDBTransaction();
+                    }
+                }
+            }
+       } catch (Exception e) {
+           e.printStackTrace();
+           myShepherd.rollbackDBTransaction();
+       }
     }
 
     public String getName() {
@@ -471,6 +538,7 @@ public class Annotation implements java.io.Serializable {
 
     //if this cannot determine a bounding box, then we return null
     public int[] getBbox() {
+        
         if (getMediaAsset() == null) return null;
         Feature found = null;
         for (Feature ft : getFeatures()) {
@@ -500,6 +568,7 @@ public class Annotation implements java.io.Serializable {
             System.out.println("WARNING: Annotation.getBbox() found invalid width/height for id=" + this.getId());
             return null;
         }
+        //System.out.println("Set new Bounding box.");
         return bbox;
     }
 
@@ -643,9 +712,17 @@ System.out.println("[1] getMatchingSet params=" + params);
 
     //note: this also excludes "sibling annots" (in same encounter)
     public ArrayList<Annotation> getMatchingSetForTaxonomyExcludingAnnotation(Shepherd myShepherd, Encounter enc, JSONObject params) {
+        String filter="";  
         if ((enc == null) || !Util.stringExists(enc.getGenus()) || !Util.stringExists(enc.getSpecificEpithet())) return null;
+        else if(enc.getSpecificEpithet().equals("sp.")) {
+          
+          filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterFromParameters(params) + this.getMatchingSetFilterViewpointClause(myShepherd) + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' VARIABLES org.ecocean.Encounter enc";
+          
+        }
         //do we need to worry about our annot living in another encounter?  i hope not!
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterFromParameters(params) + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        else {
+          filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterFromParameters(params) + this.getMatchingSetFilterViewpointClause(myShepherd) + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
+        }
         if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";  //need another VARIABLE declaration
         return getMatchingSetForFilter(myShepherd, filter);
     }
@@ -657,9 +734,15 @@ System.out.println("[1] getMatchingSet params=" + params);
 
     //gets everything, no exclusions (e.g. for cacheing)
     public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, String genus, String specificEpithet, JSONObject params) {
-        if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
-        String filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
-        return getMatchingSetForFilter(myShepherd, filter);
+      String filter="";  
+      if (!Util.stringExists(genus) || !Util.stringExists(specificEpithet)) return null;
+      else if(specificEpithet.equals("sp.")) {
+        filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' VARIABLES org.ecocean.Encounter enc";
+        }
+      else {
+          filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null && enc.annotations.contains(this) && enc.genus == '" + genus + "' && enc.specificEpithet == '" + specificEpithet + "' VARIABLES org.ecocean.Encounter enc";
+      }
+      return getMatchingSetForFilter(myShepherd, filter);
     }
     //figgeritout
     public ArrayList<Annotation> getMatchingSetForTaxonomy(Shepherd myShepherd, JSONObject params) {
@@ -690,18 +773,25 @@ System.out.println("[1] getMatchingSet params=" + params);
 
     // If you don't specify a species, still take into account viewpoint and parts  
     public ArrayList<Annotation> getMatchingSetForAnnotationAllSpeciesUseClauses(Shepherd myShepherd) {
-        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterViewpointClause() + this.getPartClause(myShepherd) + " && acmId != null");
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterViewpointClause(myShepherd) + this.getPartClause(myShepherd) + " && acmId != null");
     }
 
     static public ArrayList<Annotation> getMatchingSetAllSpecies(Shepherd myShepherd) {
         return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null");
     }
 
+    static public ArrayList<Annotation> getAllMatchAgainstTrue(Shepherd myShepherd) {
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst");
+    }
+
     // will construnct "&& (viewpoint == null || viewpoint == 'x' || viewpoint == 'y')" for use above
     //   note: will return "" when this annot has no (valid) viewpoint
-    private String getMatchingSetFilterViewpointClause() {
+    private String getMatchingSetFilterViewpointClause(Shepherd myShepherd) {
         String[] viewpoints = this.getViewpointAndNeighbors();
         if (viewpoints == null) return "";
+        //else if(getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops truncatus")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Orcinus orca"))|| (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops aduncus")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Tursiops sp.")) || (getSpecies(myShepherd)!=null && getSpecies(myShepherd).equals("Delphinus delphis")) return "";
+        //if explicitly told to ignore viewpoint matching, skip this step
+        else if(getTaxonomy(myShepherd)!=null && IA.getProperty(myShepherd.getContext(), "ignoreViewpointMatching",getTaxonomy(myShepherd))!=null && IA.getProperty(myShepherd.getContext(), "ignoreViewpointMatching",getTaxonomy(myShepherd)).equals("true")) return "";
         String clause = "&& (viewpoint == null || viewpoint == '" + String.join("' || viewpoint == '", Arrays.asList(viewpoints)) + "')";
         System.out.println("VIEWPOINT CLAUSE: "+clause);
         return clause;
@@ -747,10 +837,28 @@ System.out.println("[1] getMatchingSet params=" + params);
                 }
             }
         }
+
         //TODO we could have an option to skip expansion (i.e. not include children)
         List<String> expandedLocationIds = LocationID.expandIDs(rawLocationIds);
         String locFilter = "";
-        if (expandedLocationIds.size() > 0) locFilter += "enc.locationID == '" + String.join("' || enc.locationID == '", expandedLocationIds) + "'";
+
+        if (expandedLocationIds.size() > 0) {
+            locFilter += "enc.locationID == ''";
+            // loc ID's were breaking for Hawaiian names with apostrophe(s) and stuff, so overkill now
+            List<String> unsavoryCharacters = Arrays.asList(new String[] {"'", ")", "(", "=", ":", ";", "\""});
+            for (int i=0;i<expandedLocationIds.size();i++) {
+                String expandedLoc = expandedLocationIds.get(i);
+                if (CollectionUtils.containsAny(Arrays.asList(expandedLoc.split("")),unsavoryCharacters)) {
+                    for (String badChar : unsavoryCharacters) {
+                        expandedLoc = expandedLoc.replace(badChar, ".*");
+                    } 
+                    locFilter += " || enc.locationID.matches(\'"+expandedLoc+"\') ";
+                } else {
+                    locFilter +=  " || enc.locationID == '"+expandedLoc+"'";
+                } 
+            }
+        }
+        
         if (useNullLocation) {
             if (!locFilter.equals("")) locFilter += " || ";
             locFilter += "enc.locationID == null";
@@ -866,8 +974,12 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         List<Annotation> sibs = this.getSiblings();
         if ((sibs == null) || (sibs.size() < 1)) {  //no sibs, we make a new Encounter!
             Encounter enc = new Encounter(this);
+            if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
+              enc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
+            }
             //this taxonomy only works when its twitter-sourced data cuz otherwise this is just null 
             enc.setTaxonomy(IBEISIA.taxonomyFromMediaAsset(myShepherd, TwitterUtil.parentTweet(myShepherd, this.getMediaAsset())));
+
             return enc;
         }
         /*
@@ -901,6 +1013,21 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             }
             if (someEnc == null) someEnc = enc;  //use the first one we find to base new one (below) off of, if necessary
         }
+
+        // do we have an an encounter from the sibling?
+        if (someEnc!=null) {
+            for (Annotation ann : sibs) {
+                // TODO lets make this better at handling part designation
+                if (ann.getIAClass().equals(this.getIAClass())) {break;}
+                // if these two intersect and have a different detected class they are allowed to reside on the same encounter
+                if (this.intersects(ann)) {
+                    someEnc.addAnnotation(this);
+                    someEnc.setDWCDateLastModified();
+                    return someEnc;
+                }
+            }
+        }
+
         //if we fall thru, we have no trivial annot, so just get a new Encounter for this Annotation
         Encounter newEnc = null;
         if (someEnc == null) {
@@ -913,6 +1040,24 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.resetDateInMilliseconds();
             newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
             newEnc.setGenus(someEnc.getGenus());
+            newEnc.setSex(null);
+
+            Occurrence occ = myShepherd.getOccurrence(someEnc);
+            if (occ==null) {
+                occ = new Occurrence(Util.generateUUID(), someEnc);
+                try {
+                    myShepherd.beginDBTransaction();
+                    myShepherd.storeNewOccurrence(occ);
+                    myShepherd.commitDBTransaction();
+                } catch (Exception e) {
+                    myShepherd.rollbackDBTransaction();
+                }
+                occ.addEncounter(someEnc);
+            }
+            occ.addEncounter(newEnc);
+        }
+        if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
+          newEnc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
         }
         return newEnc;
 
@@ -1008,6 +1153,75 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
       q.closeAll();
       return conflictingEncs;
     }
+
+
+/*
+    these will update(/create) AnnotationLite.cache for this Annotation
+      note: use sparingly?  i.e. should only happen when (related) taxonomy or individual or validForIdentification changes
+*/
+    public void refreshLiteTaxonomy(String tax) {
+        if (this.acmId == null) return;
+        AnnotationLite annl = AnnotationLite.getCache(this.acmId);
+        if (annl == null) {
+            annl = new AnnotationLite(null, tax);    //indiv = null here, but it is new so its what we got. :/
+        } else {
+            annl.setTaxonomy(tax);
+        }
+Util.mark("Annotation.refreshLiteTaxonomy() refreshing " + this.acmId);
+        AnnotationLite.setCache(this.acmId, annl);
+    }
+    public void refreshLiteIndividual(String indiv) {
+        if (this.acmId == null) return;
+        AnnotationLite annl = AnnotationLite.getCache(this.acmId);
+        if (annl == null) {
+            annl = new AnnotationLite(indiv);
+        } else {
+            annl.setIndividualId(indiv);
+        }
+Util.mark("Annotation.refreshLiteIndividual() refreshing " + this.acmId);
+        AnnotationLite.setCache(this.acmId, annl);
+    }
+    public void refreshLiteValid(Boolean validForId) {
+        if (this.acmId == null) return;
+        AnnotationLite annl = AnnotationLite.getCache(this.acmId);
+        if (annl == null) {
+            annl = new AnnotationLite(validForId);
+        } else {
+            annl.setValidForIdentification(validForId);
+        }
+Util.mark("Annotation.refreshLiteValid() refreshing " + this.acmId);
+        AnnotationLite.setCache(this.acmId, annl);
+    }
+    //TODO ... other permutations?
+
     
     
+
+    public boolean contains(Annotation ann) {
+        Rectangle myRect = getRect(this);
+        Rectangle queryRect = getRect(ann);
+        return myRect.contains(queryRect);
+    }
+
+    public boolean intersects(Annotation ann) {
+        Rectangle myRect = getRect(this);
+        Rectangle queryRect = getRect(ann);
+        return myRect.intersects(queryRect);
+    }
+
+    private Rectangle getRect(Annotation ann) {
+        try {
+            if (ann.getBbox()==null) return null;
+            int[] bBox = ann.getBbox();
+            int x = bBox[0];
+            int y = bBox[1];
+            int width = bBox[2];
+            int height = bBox[3];
+            return new Rectangle(x,y,width,height);
+        } catch (NumberFormatException nfe) {
+            nfe.printStackTrace();
+        }
+        return null;
+    }
+
 }

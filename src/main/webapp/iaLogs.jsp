@@ -44,6 +44,8 @@ if (id != null) {
 
 if (logs == null) {
 	out.println("[]");
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 	return;
 }
 

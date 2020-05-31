@@ -347,6 +347,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
             vals.removeAll(rtn);  //weed out duplicates
             rtn.addAll(vals);
         }
+        q.closeAll();
         return rtn;
     }
 
@@ -2313,13 +2314,13 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   }
 
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames) throws JSONException {
-    return getBestKeywordPhotos(req, kwNames, false);
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, Shepherd myShepherd) throws JSONException {
+    return getBestKeywordPhotos(req, kwNames, false, myShepherd);
   }
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, boolean tryNoKeywords) throws JSONException {
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, boolean tryNoKeywords, Shepherd myShepherd) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
-    Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
-    myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
+    //Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
+    //myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
 
     List<MediaAsset> assets = new ArrayList<MediaAsset>();
     for (String kwName: kwNames) {
@@ -2346,8 +2347,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       }
     }
 
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
+    //myShepherd.rollbackDBTransaction();
+    //myShepherd.closeDBTransaction();
     return al;
   }
 
@@ -2432,6 +2433,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
     // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex, String genus, String specificEpithet) {
+
         int idLimit = 2000;  //this is cuz we get a stack overflow if we have too many.  :(  so kinda have to fail when we have too many
         System.out.println("findByNames regex: "+regex);
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
@@ -2442,14 +2444,16 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             System.out.println("WARNING: MarkedIndividual.findByNames() found too many names; failing (" + nameIds.size() + " > " + idLimit + ")");
             return rtn;
         }
-        System.out.println("findByNames nameIds: "+nameIds.toString());
+        //System.out.println("findByNames nameIds: "+nameIds.toString());
         if (nameIds.size() < 1) return rtn;
-        System.out.println("findByNames: "+genus+" "+specificEpithet);
+        //System.out.println("findByNames: "+genus+" "+specificEpithet);
         String taxonomyStringFilter="";
         if((genus!=null)&&(specificEpithet!=null)) {
+          genus = genus.trim();
+          specificEpithet = specificEpithet.trim();
           taxonomyStringFilter=" && enc.genus == '"+genus+"' && enc.specificEpithet == '"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc";
         }
-        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE (names.id == " + String.join(" || names.id == ", nameIds)+")"+taxonomyStringFilter;
+        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (names.id == " + String.join(" || names.id == ", nameIds)+")"+taxonomyStringFilter;
         System.out.println("findByNames jdoql: "+jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
         Collection c = (Collection) (query.execute());

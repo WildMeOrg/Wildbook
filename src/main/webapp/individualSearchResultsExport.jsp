@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties,java.util.Enumeration, java.util.Vector" %>
-<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
+
 
   <%
 
@@ -16,16 +16,17 @@
     props = ShepherdProperties.getProperties("individualSearchResultsExport.properties", langCode,context);
 
 
+
+
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("individualSearchResultsExport.jsp");
-
-
-
-    int numResults = 0;
-
-
-    Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
     myShepherd.beginDBTransaction();
+    
+    try{
+
+
+
+
     String order = "";
 
     MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
@@ -138,7 +139,7 @@ if(request.getQueryString()!=null){
 </table>
 </p>
 
-
+<!--
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
   <tr><td bgcolor="#CCCCCC"><strong>Picture Book</strong><br/><%=props.getProperty("generatePictureBook") %></td></tr>
@@ -155,6 +156,7 @@ if(request.getQueryString()!=null){
   </tr>
 </table>
 </p>
+-->
 
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
@@ -220,36 +222,45 @@ while(params.hasMoreElements()){
 <p>
 
     <%
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+  	if (request.getParameter("noQuery") == null) {
+	%>
+		<table>
+		  <tr>
+		    <td align="left">
+		
+		      <p><strong><%=props.getProperty("queryDetails")%>
+		      </strong></p>
+		
+		      <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
+		      </strong><br/>
+		        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
+		      </p>
+		
+		      <p class="caption"><strong><%=props.getProperty("jdoql")%>
+		      </strong><br/>
+		        <%=result.getJDOQLRepresentation()%>
+		      </p>
+		
+		    </td>
+		  </tr>
+		</table>
+	<%
+	  }
+	%>
+	
+	<%
+    }
+    catch(Exception e){
+    	e.printStackTrace();
+    }
+    finally{
+  		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+    }
 
-
-  if (request.getParameter("noQuery") == null) {
 %>
-<table>
-  <tr>
-    <td align="left">
+	
 
-      <p><strong><%=props.getProperty("queryDetails")%>
-      </strong></p>
-
-      <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
-      </p>
-
-      <p class="caption"><strong><%=props.getProperty("jdoql")%>
-      </strong><br/>
-        <%=result.getJDOQLRepresentation()%>
-      </p>
-
-    </td>
-  </tr>
-</table>
-<%
-  }
-%>
-</p>
 
 
 </div>

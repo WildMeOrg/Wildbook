@@ -863,6 +863,7 @@ public class Util {
     public static String readFromFile(String path) throws FileNotFoundException, IOException {
       FileInputStream inputStream = new FileInputStream(path);
       String readData = IOUtils.toString(inputStream);
+      inputStream.close();
       return readData;
     }
 
@@ -1060,6 +1061,17 @@ public class Util {
     return list;
   }
 
+    //these are for debugging/timing purposes
+    public static void mark(String msg) {
+        mark(msg, -1);
+    }
+    public static void mark(String msg, long startTime) {
+        long t = System.currentTimeMillis();
+        DateTime now = new DateTime();
+        String diff = "0";
+        if (startTime > 0l) diff = Long.toString(t - startTime);
+        System.out.println(now.toString() + " MARK [" + msg + "," + t + "," + diff + "]");
+    }
 }
 
 

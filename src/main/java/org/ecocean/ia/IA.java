@@ -114,6 +114,7 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         return intakeAnnotations(myShepherd, anns, null);
     }
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
+        //System.out.println("Starting intakeAnnotations");
         if ((anns == null) || (anns.size() < 1)) return null;
 
         Task topTask = new Task();
@@ -141,10 +142,30 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         }
 */
         List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
+        System.out.println("identOpts: "+opts.toString());
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
         JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
-        if (parentTask != null && parentTask.getParameters()!=null) newTaskParams = parentTask.getParameters();
+        if (parentTask != null && parentTask.getParameters()!=null) {
+          newTaskParams = parentTask.getParameters();
+          System.out.println("newTaskParams: "+newTaskParams.toString());
+          if(newTaskParams.optJSONArray("matchingAlgorithms")!=null) {
+            JSONArray matchingAlgorithms=newTaskParams.optJSONArray("matchingAlgorithms");
+            System.out.println("matchingAlgorithms1: "+matchingAlgorithms.toString());
+            ArrayList<JSONObject> newOpts=new ArrayList<JSONObject>();
+            int maLength=matchingAlgorithms.length();
+            for(int y=0;y<maLength;y++) {
+              newOpts.add(matchingAlgorithms.getJSONObject(y));
+            }
+            System.out.println("matchingAlgorithms2: "+newOpts.toString());
+            if(newOpts.size()>0) {
+              opts=newOpts;
+              System.out.println("Swapping opts for newOpts!!");
+            }
+            
+            
+          }
+        }
         if (opts.size() == 1) {
             newTaskParams.put("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
             topTask.setParameters(newTaskParams);
@@ -266,12 +287,16 @@ System.out.println(i + " -> " + ma);
         JSONObject rtn = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IA.handleGet");
+        myShepherd.beginDBTransaction();
         String taskId = request.getParameter("taskId");
 
         if (taskId != null) {
             Task task = Task.load(taskId, myShepherd);
             if (task == null) {
                 response.sendError(404, "Not found: taskId=" + taskId);
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 return;
             }
             rtn.put("success", true);
@@ -283,6 +308,8 @@ System.out.println(i + " -> " + ma);
         PrintWriter out = response.getWriter();
         out.println(rtn.toString());
         out.close();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return;
     }
 

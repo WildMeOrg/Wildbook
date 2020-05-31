@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.lang.Runnable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ScheduledFuture;
+import java.io.IOException;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -72,15 +73,18 @@ public class StartupWildbook implements ServletContextListener {
         Role newRole1=new Role("tomcat","admin");
         newRole1.setContext("context0");
         myShepherd.getPM().makePersistent(newRole1);
+        Role newRole1a=new Role("tomcat","orgAdmin");
+        newRole1a.setContext("context0");
+        myShepherd.getPM().makePersistent(newRole1a);
         Role newRole2=new Role("tomcat","researcher");
         newRole2.setContext("context0");
         myShepherd.getPM().makePersistent(newRole2);
         Role newRole3=new Role("tomcat", "machinelearning");
         newRole3.setContext("context0");
         myShepherd.getPM().makePersistent(newRole3);
-        Role newRole4=new Role("tomcat","destroyer");
-        newRole4.setContext("context0");
-        myShepherd.getPM().makePersistent(newRole4);
+        //Role newRole4=new Role("tomcat","destroyer");
+        //newRole4.setContext("context0");
+        //myShepherd.getPM().makePersistent(newRole4);
         Role newRole5=new Role("tomcat","rest");
         newRole5.setContext("context0");
         myShepherd.getPM().makePersistent(newRole5);
@@ -142,6 +146,8 @@ public class StartupWildbook implements ServletContextListener {
         // actually, i think we want to move this to WildbookIAM.startup() ... probably!!!
         startIAQueues(context); //TODO this should get moved to plugins!!!!  FIXME
         TwitterBot.startServices(context);
+
+        AnnotationLite.startup(sContext, context);
     }
 
 
@@ -177,13 +183,13 @@ public class StartupWildbook implements ServletContextListener {
         Queue queue = null;
         try {
             queue = QueueUtil.getBest(context, "IA");
-        } catch (java.io.IOException ex) {
+        } catch (IOException ex) {
             System.out.println("+ ERROR: IA queue startup exception: " + ex.toString());
         }
         Queue queueCallback = null;
         try {
             queueCallback = QueueUtil.getBest(context, "IACallback");
-        } catch (java.io.IOException ex) {
+        } catch (IOException ex) {
             System.out.println("+ ERROR: IACallback queue startup exception: " + ex.toString());
         }
         if ((queue == null) || (queueCallback == null)) {
@@ -195,14 +201,14 @@ public class StartupWildbook implements ServletContextListener {
         try {
             queue.consume(qh);
             System.out.println("+ StartupWildbook.startIAQueues() queue.consume() started on " + queue.toString());
-        } catch (java.io.IOException iox) {
+        } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() queue.consume() FAILED on " + queue.toString() + ": " + iox.toString());
         }
         IACallbackMessageHandler qh2 = new IACallbackMessageHandler();
         try {
             queueCallback.consume(qh2);
             System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() started on " + queueCallback.toString());
-        } catch (java.io.IOException iox) {
+        } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() FAILED on " + queueCallback.toString() + ": " + iox.toString());
         }
     }
@@ -210,7 +216,10 @@ public class StartupWildbook implements ServletContextListener {
 
     public void contextDestroyed(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
+        String context = "context0";  ///HOW?? (see above) TODO FIXME
         System.out.println("* StartupWildbook destroyed called for: " + servletContextInfo(sContext));
+
+        AnnotationLite.cleanup(sContext, context);
         QueueUtil.cleanup();
         TwitterBot.cleanup();
     }

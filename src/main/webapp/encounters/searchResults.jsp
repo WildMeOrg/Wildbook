@@ -335,7 +335,7 @@ var colDefn = [
 		key: 'individualID',
 		label: '<%=encprops.getProperty("ID")%>',
 		value: _colIndLink,
-		//sortValue: function(o) { return o.individualID.toLowerCase(); },
+		sortValue: function(o) { return o.get("displayName"); },
 	},
 	{
 		key: 'occurrenceID',

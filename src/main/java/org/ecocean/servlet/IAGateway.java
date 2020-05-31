@@ -792,7 +792,7 @@ System.out.println("anns -> " + anns);
         jids.put(ann.getId());  //for now there is only one
         taskRes.put("annotationIds", jids);
 System.out.println("+ starting ident task " + annTaskId);
-        JSONObject shortCut = IAQueryCache.tryTargetAnnotationsCache(context, ann, taskRes);
+        JSONObject shortCut = IAQueryCache.tryTargetAnnotationsCache(context, ann, taskRes, myShepherd);
         if (shortCut != null) return shortCut;
 
         //Shepherd myShepherd = new Shepherd(context);
@@ -1220,10 +1220,12 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
         cts.put("detection", c.size());
+        query.closeAll();
         filter = "SELECT FROM org.ecocean.Annotation WHERE identificationStatus == \"pending\"";
         query = myShepherd.getPM().newQuery(filter);
         c = (Collection) (query.execute());
         cts.put("identification", c.size());
+        query.closeAll();
         return cts;
     }
 

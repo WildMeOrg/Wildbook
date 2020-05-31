@@ -21,11 +21,13 @@ package org.ecocean;
 import org.ecocean.grid.ScanTask;
 import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
 import org.ecocean.ia.Task;
+import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
 
@@ -366,6 +368,36 @@ public class Shepherd {
       return false;
     }
   }
+
+  public boolean storeNewSocialUnit(SocialUnit su) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(su);
+      commitDBTransaction();
+			return true;
+
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new SocialUnit in shepherd.storeNewSocialUnit().");
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  public boolean storeNewMembership(Membership mem) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(mem);
+      commitDBTransaction();
+			return true;
+
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new social unit Membership in shepherd.storeNewMembership().");
+      e.printStackTrace();
+      return false;
+    }
+  }
   
   public List getAllCollaborations() {
     Collection c;
@@ -376,7 +408,9 @@ public class Shepherd {
       List list = new ArrayList(c);
       System.out.println("getAllCollaborations got "+list.size()+" collabs");
       //Collections.reverse(list);
+      acceptedCollabs.closeAll();
       return list;
+      
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllCollaborations(). Returning a null collection.");
       npe.printStackTrace();
@@ -401,6 +435,11 @@ public class Shepherd {
   public void throwAwayWorkspace(Workspace wSpace) {
     pm.deletePersistent(wSpace);
   }
+
+  public void throwAwayMembership(Membership mShip) {
+    pm.deletePersistent(mShip);
+  }
+
 
   public void throwAwayCollaboration(Collaboration collab) {
     pm.deletePersistent(collab);
@@ -540,15 +579,18 @@ public class Shepherd {
   }
   // finds the workspace that user 'owner' created and named 'name'
   public Workspace getWorkspaceForUser(String name, String owner) {
+    Workspace result=null;
     String quotedOwner = (owner==null) ? "null" : ("\""+owner+"\"");
     String filter = "this.name == \""+name+"\" && this.owner == "+quotedOwner;
     Extent allWorkspaces = pm.getExtent(Workspace.class, true);
     Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
     Collection results = (Collection) (workspaceQuery.execute());
+    
     if (!results.isEmpty()) {
-      return (Workspace) (results.iterator().next());
+      result= (Workspace)results.iterator().next();
     }
-    return null;
+    workspaceQuery.closeAll();
+    return result;
   }
 
 
@@ -619,6 +661,7 @@ public class Shepherd {
       return resultList;
     } catch (Exception npe) {
       npe.printStackTrace();
+      mediaAssetQuery.closeAll();
       return null;
     }
   }
@@ -741,6 +784,51 @@ public class Shepherd {
     return tempCom;
   }
 
+  // public ArrayList<Membership> getMembershipsForMarkedIndividual(MarkedIndividual mi) {
+    
+  // }
+
+  public List<SocialUnit> getAllSocialUnitsForMarkedIndividual(MarkedIndividual indie){
+    
+    String filter2use = "SELECT FROM org.ecocean.social.SocialUnit WHERE members.contains(member) && member.mi.individualID == '"+indie.getIndividualID()+"' VARIABLES org.ecocean.social.Membership member";
+    Query query = pm.newQuery(filter2use);
+    Collection c = (Collection) (query.execute());
+    ArrayList<SocialUnit> listy = new ArrayList<SocialUnit>();
+    if(c!=null)listy = new ArrayList<SocialUnit>(c);
+    query.closeAll();
+    return listy;
+  }
+
+  public ArrayList<SocialUnit> getAllSocialUnits() {
+    ArrayList<SocialUnit> units = null;
+    Query q = pm.newQuery(SocialUnit.class);
+    try{
+      Collection results = (Collection) q.execute();
+      units = new ArrayList<SocialUnit>(results);
+    } catch (Exception e){
+      e.printStackTrace();
+    }
+    q.closeAll();
+    return units;
+  }
+
+  public ArrayList<Membership> getAllMemberships() {
+    ArrayList<Membership> mships = null;
+    Query q = pm.newQuery(Membership.class);
+    try{
+      Collection results = (Collection) q.execute();
+      mships = new ArrayList<Membership>(results);
+    } catch (Exception e){
+      e.printStackTrace();
+    }
+    q.closeAll();
+    return mships;
+  }
+
+  public SocialUnit getSocialUnit(String name) {
+    return getCommunity(name);
+  }
+
   public SinglePhotoVideo getSinglePhotoVideo(String num) {
     SinglePhotoVideo tempEnc = null;
     try {
@@ -750,6 +838,7 @@ public class Shepherd {
     }
     return tempEnc;
   }
+
 
   public Role getRole(String rolename, String username, String context) {
 
@@ -1173,13 +1262,15 @@ public class Shepherd {
     return ((al.size()>0) ? ((Taxonomy) al.get(0)) : null);
   }
     public Taxonomy getTaxonomy(int tsn) {
+        Taxonomy tax=null;
         Query query = pm.newQuery("SELECT org.ecocean.Taxonomy WHERE itisTsn == " + tsn);
         try {
             Collection c = (Collection) query.execute();
             Iterator it = c.iterator();
-            if (it.hasNext()) return (Taxonomy)it.next();
+            if (it.hasNext()) tax = (Taxonomy)it.next();
         } catch (Exception ex) {}
-        return null;
+        query.closeAll();
+        return tax;
     }
     //sadly, getTaxonomy(string) signatured already used above. :( so we have to go non-standard name here:
     //  however, checkout the hack to look for a uuid above!
@@ -1225,8 +1316,10 @@ public class Shepherd {
       String filter = "SELECT FROM org.ecocean.LabeledKeyword WHERE this.readableName == \""+readableName+"\" && this.label == \""+label+"\"";
       Query query = pm.newQuery(filter);
       List<Keyword> ans = (List) query.execute();
-      if (ans!=null && ans.size()>0) return (LabeledKeyword) ans.get(0);
+      LabeledKeyword lk = null;
+      if (ans!=null && ans.size()>0) lk = (LabeledKeyword) ans.get(0);
       query.closeAll();
+      return lk;
     }
     catch (Exception e) {
       System.out.println("Exception on getLabeledKeyword("+label+", "+readableName+")!");
@@ -1271,6 +1364,20 @@ public class Shepherd {
 
     }
     return inCommon;
+  }
+
+  public ImportTask getImportTaskForEncounter(Encounter enc) {
+    Query itq = pm.newQuery("SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getID() + "'");
+    Collection c = (Collection) (itq.execute());
+    Iterator it = c.iterator();
+    ImportTask itask = null;
+    if (it.hasNext()) {
+      itask = (ImportTask)it.next();
+      itq.closeAll();
+      return itask;
+    }
+    itq.closeAll();
+    return itask;
   }
 
   public boolean isSurvey(String num) {
@@ -1573,6 +1680,7 @@ public class Shepherd {
    * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
    * @see encounter, java.util.Iterator
    */
+  /*
   public Iterator getUnassignedEncounters() {
     String filter = "this.individual == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
@@ -1580,6 +1688,7 @@ public class Shepherd {
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
+  */
 
   public List<MediaAsset> getMediaAssetsFromStore(int assetStoreId) {
     String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE this.assetStore == as && as.id == "+assetStoreId;
@@ -1588,6 +1697,7 @@ public class Shepherd {
     Query q = pm.newQuery(filter);
     Collection results = (Collection) q.execute();
     ArrayList<MediaAsset> al = new ArrayList(results);
+    q.closeAll();
     return al;
   }
 
@@ -1600,7 +1710,8 @@ public class Shepherd {
     return c.iterator();
   }
   */
-
+  
+/*
   public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
     String filter = "this.individual == null && this.state != \"unidentifiable\"";
     //Extent encClass=pm.getExtent(encounter.class, true);
@@ -1608,6 +1719,7 @@ public class Shepherd {
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
+  */
 
   public Iterator<Encounter> getAllEncountersNoFilter() {
     /*Collection c;
@@ -1636,6 +1748,7 @@ public class Shepherd {
       acceptedEncounters.closeAll();
       return list;
     } catch (Exception npe) {
+      acceptedEncounters.closeAll();
       System.out.println("Error encountered when trying to execute getAllEncountersNoFilter. Returning a null collection because I didn't have a transaction to use.");
       npe.printStackTrace();
       return null;
@@ -2367,25 +2480,26 @@ public class Shepherd {
     
     Collection col = (Collection) (tsQuery.execute());
     ArrayList<TissueSample> samples = new ArrayList<>(col);
+    tsQuery.closeAll();
     return samples;
   }
 
   public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
     ArrayList<TissueSample> al = new ArrayList<TissueSample>();
-    if(indy.getEncounters()!=null){
-      int numEncounters = indy.getEncounters().size();
-      for (int i = 0; i < numEncounters; i++) {
-        Encounter enc = (Encounter) indy.getEncounters().get(i);
-        if(getAllTissueSamplesForEncounter(enc.getCatalogNumber())!=null){
-          List<TissueSample> list = getAllTissueSamplesForEncounter(enc.getCatalogNumber());
-          if(list.size()>0){
-            al.addAll(list);
-          }
-        }
-      }
-    return al;
+    Query q=getPM().newQuery("SELECT FROM org.ecocean.genetics.TissueSample WHERE indy.individualID == '"+indy.getIndividualID()+"' && indy.encounters.contains(enc) && enc.tissueSamples.contains(this) VARIABLES org.ecocean.Encounter enc;org.ecocean.MarkedIndividual indy");
+    try {
+
+      Collection c=(Collection)q.execute();
+      al=new ArrayList<TissueSample>(c);
     }
-    return null;
+    catch(Exception e) {
+      e.printStackTrace();
+    }
+    finally {
+      q.closeAll();
+    }
+    return al;
+  
   }
 
 
@@ -2447,7 +2561,7 @@ public class Shepherd {
 
   public List<MediaAsset> getKeywordPhotosForIndividual(MarkedIndividual indy, String[] kwReadableNames, int maxResults){
 
-    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individualID == \""+indy.getIndividualID()+"\" ";
+    String filter="SELECT FROM org.ecocean.Annotation WHERE enc3_0.annotations.contains(this) && enc3_0.individual.individualID == \""+indy.getIndividualID()+"\" ";
     String vars=" VARIABLES org.ecocean.Encounter enc3_0";
     for(int i=0; i<kwReadableNames.length; i++){
       filter+="  && features.contains(feat"+i+") && feat"+i+".asset.keywords.contains(word"+i+") &&  word"+i+".readableName == \""+kwReadableNames[i]+"\" ";
@@ -3613,6 +3727,7 @@ public class Shepherd {
       Extent extent = pm.getExtent(LabeledKeyword.class);
       Query query = pm.newQuery(extent);
       List<LabeledKeyword> ans = (List) query.execute();
+      query.closeAll();
       return ans;
     } catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
@@ -3635,7 +3750,7 @@ public class Shepherd {
 
     if((allKeywords!=null)&&(propKeywordNames!=null)) {
       //System.out.println("getSortedKeywordList got propKeywordNames: "+propKeywordNames);
-  
+
       for (String propKwName: propKeywordNames) {
         for (Keyword kw: allKeywords) {
           if ((kw.getReadableName()!=null) && kw.getReadableName().equals(propKwName)) {
@@ -4425,35 +4540,6 @@ public class Shepherd {
   }
 
 
-  public List<MarkedIndividual> getAllMarkedIndividualsInCommunity(String communityName){
-    ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
-    Extent encClass = pm.getExtent(Relationship.class, true);
-    String filter2use = "this.relatedSocialUnitName == \""+communityName+"\"";
-    Query acceptedEncounters = pm.newQuery(encClass, filter2use);
-    Collection c = (Collection) (acceptedEncounters.execute());
-    ArrayList listy = new ArrayList(c);
-    int listySize=listy.size();
-    for(int i=0;i<listySize;i++){
-      Relationship rely=(Relationship)listy.get(i);
-      if(rely.getMarkedIndividualName1()!=null){
-        String name1=rely.getMarkedIndividualName1();
-        if(isMarkedIndividual(name1)){
-          MarkedIndividual indie=getMarkedIndividual(name1);
-          if(!indies.contains(indie)){indies.add(indie);}
-        }
-      }
-      if(rely.getMarkedIndividualName2()!=null){
-        String name2=rely.getMarkedIndividualName2();
-        if(isMarkedIndividual(name2)){
-          MarkedIndividual indie=getMarkedIndividual(name2);
-          if(!indies.contains(indie)){indies.add(indie);}
-        }
-      }
-
-    }
-    acceptedEncounters.closeAll();
-    return indies;
-  }
 
   public ArrayList<Relationship> getAllRelationshipsForMarkedIndividual(String indieName){
     Extent encClass = pm.getExtent(Relationship.class, true);
@@ -4467,11 +4553,9 @@ public class Shepherd {
   }
 
   public ArrayList<String> getAllSocialUnitsForMarkedIndividual(String indieName){
-    Extent encClass = pm.getExtent(Relationship.class, true);
-
-    String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
-    Query query = pm.newQuery(encClass, filter2use);
-    query.setResult("distinct relatedSocialUnitName");
+    String filter2use = "SELECT FROM org.ecocean.social.SocialUnit WHERE members.contains(member) && member.mi.individualID == '"+indieName+"' VARIABLES org.ecocean.social.Membership member";
+    Query query = pm.newQuery(filter2use);
+    query.setResult("distinct socialUnitName");
     Collection c = (Collection) (query.execute());
     //System.out.println("Num relationships for MarkedIndividual "+indieName+": "+c.size());
     ArrayList<String> listy = new ArrayList<String>();
@@ -4635,7 +4719,7 @@ public class Shepherd {
     String filter = "individual != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query q = pm.newQuery(encClass, filter);
-    q.setRange(1, numToReturn+1);
+    q.setRange(0, numToReturn+1);
     q.setOrdering("year descending, month descending, day descending");
     Collection c = (Collection) (q.execute());
     if ((c != null) && (c.size() > 0)) {
@@ -4753,6 +4837,19 @@ public class Shepherd {
     }
     return null;
   }
+  
+  public ArrayList<MediaAsset> getMediaAssetsWithACMId(String acmId){
+    String filter = "this.acmId == \""+acmId+"\"";
+    Extent annClass = pm.getExtent(MediaAsset.class, true);
+    Query anns = pm.newQuery(annClass, filter);
+    Collection c = (Collection) (anns.execute());
+    ArrayList<MediaAsset> al = new ArrayList(c);
+    anns.closeAll();
+    if((al!=null)&&(al.size()>0)) {
+      return al;
+    }
+    return null;
+  }
 
   //used to describe where this Shepherd is and what it is supposed to be doing
   public void setAction(String newAction){
@@ -4832,5 +4929,20 @@ public class Shepherd {
     return listy;
   }
 
+  public ImportTask getImportTaskForEncounter(String encounterID){
+    String filter="SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber == \""+encounterID+"\"  VARIABLES org.ecocean.Encounter enc";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+
+    while(it.hasNext()){
+      ImportTask task=(ImportTask)it.next();
+      query.closeAll();
+      return task;
+    }
+    query.closeAll();
+    return null;
+  }
+  
 
 } //end Shepherd class
