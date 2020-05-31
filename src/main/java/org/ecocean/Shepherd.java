@@ -4944,5 +4944,9 @@ public class Shepherd {
     return null;
   }
   
+  public void throwAwaySocialUnit(SocialUnit su) {
+    pm.deletePersistent(su);
+  }
+  
 
 } //end Shepherd class
