@@ -182,8 +182,8 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     	    })
 	    .enter().append("td")
 	    .html(function(d) {
-		console.log("Dxj", d);
-		console.log("Dxk", typeof d);
+		//console.log("Dxj", d);
+		//console.log("Dxk", typeof d);
 		
 		if(d == 'TissueSample') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/>";
@@ -199,12 +199,12 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 		}
 		
 		if(typeof d == "object") {
-			console.log("Dxm it's an object", typeof d);
+			//console.log("Dxm it's an object", typeof d);
 		    if(d.length <= 2) {
-		    	console.log("Dxp it's an array");
-		    	console.log("Dxo", d);
+		    	//console.log("Dxp it's an array");
+		    	//console.log("Dxo", d);
 			if(d[0] == 'edit'){
-				console.log("Dxl it's an edit", d);
+				//console.log("Dxl it's an edit", d);
 			    return "XXY<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
 			} if(d[0] == 'remove') {
 			    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>";
@@ -216,7 +216,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 		    }
 		}
 
-		console.log("Dxz",d);
+		//console.log("Dxz",d);
 		return d; 
 	    });
 	
