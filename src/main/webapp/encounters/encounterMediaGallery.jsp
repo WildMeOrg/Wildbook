@@ -1277,11 +1277,10 @@ console.info("############## mid=%s -> %o", mid, ma);
 //console.info('keyword = %o', ma.keywords[i]);
 	}
 
-  // the labeledKeyword edit form comes from before
-
   var labelsToValues = <%=jobj%>;
   console.log("Labeled keywords %o", labelsToValues);
-  h += '<div class="labeled iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+  let labeledAvailable = (labelsToValues.length>0);
+  h += '<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
   if (!$.isEmptyObject(labelsToValues)) {
       //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
     var hasSome = false;
