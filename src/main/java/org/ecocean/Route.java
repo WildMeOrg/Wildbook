@@ -40,6 +40,7 @@ public class Route implements java.io.Serializable {
         return endTime;
     }
     public void setEndTime(DateTime dt) {
+        endTime = dt;
     }
 
     public String getLocationId() {
