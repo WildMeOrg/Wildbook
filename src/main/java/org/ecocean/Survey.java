@@ -275,7 +275,7 @@ public class Survey implements java.io.Serializable{
   
   public void setEndTimeMilli(Long et) {
     if (et > 0) {
-      startTime = et;
+      endTime = et;
     }
   }
   
