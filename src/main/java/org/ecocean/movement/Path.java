@@ -220,6 +220,19 @@ public class Path implements java.io.Serializable {
   }
   
 
+    public static Path fromJSONArray(JSONArray arr) {
+        ArrayList<PointLocation> pts = new ArrayList<PointLocation>();
+        if (arr == null) return new Path(pts);
+        for (int i = 0 ; i < arr.length() ; i++) {
+            JSONArray parr = arr.optJSONArray(i);
+            if (parr == null) continue;  //  :(
+            PointLocation pl = PointLocation.fromJSONArray(parr);
+            if (pl != null) pts.add(pl);
+        }
+        Path path = new Path(pts);
+        return path;
+    }
+
     public JSONObject toJSONObject() {
         JSONObject rtn = new JSONObject();
         rtn.put("id", getID());

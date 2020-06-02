@@ -557,6 +557,16 @@
       <!-- List<String> commonNames should work naturally since List<String> Encounter.submitterResearchers does -->
     </class>
 
+	<class name="Route" identity-type="application">
+		<field name="id" primary-key="true">
+        		<column length="36"/>
+		</field>
+		<field name="locationId" />
+		<field name="startTime" />
+		<field name="endTime" />
+		<field name="path" persistent-modifier="persistent" />
+	</class>
+
 
 
     <class name="SuperSpot">

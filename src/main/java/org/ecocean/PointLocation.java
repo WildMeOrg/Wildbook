@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.Vector;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 import org.ecocean.*;
 import org.joda.time.DateTime;
@@ -209,6 +210,18 @@ public class PointLocation implements java.io.Serializable {
         if (dateTime != null) rtn.put("dateTime", new DateTime(dateTime));
         if (elevation != null) rtn.put("elevation", elevation.toJSONObject());
         return rtn;
+    }
+
+    public static PointLocation fromJSONArray(JSONArray arr) {
+        if (arr == null) return null;
+        Double lat = arr.optDouble(0, 9999D);
+        if (lat > 1000D) return null;
+        Double lon = arr.optDouble(1, 9999D);
+        if (lon > 1000D) return null;
+        Long dt = arr.optLong(2, 0);
+        if (dt < 1) dt = null;
+        if (dt == null) return new PointLocation(lat, lon);
+        return new PointLocation(lat, lon, dt);
     }
 
     public String toString() {

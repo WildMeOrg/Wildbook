@@ -589,6 +589,10 @@
 		<servlet-name>SurveyCreate</servlet-name>
 		<servlet-class>org.ecocean.servlet.SurveyCreate</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>SurveyCreateJSONObject</servlet-name>
+		<servlet-class>org.ecocean.servlet.SurveyCreateJSONObject</servlet-class>
+	</servlet>
 
   <servlet>
 		<servlet-name>AddOccToTrack</servlet-name>
@@ -2338,6 +2342,11 @@
   <servlet-mapping>
     <servlet-name>SurveyCreate</servlet-name>
     <url-pattern>/SurveyCreate</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>SurveyCreateJSONObject</servlet-name>
+    <url-pattern>/SurveyCreateJSONObject</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
