@@ -597,6 +597,10 @@
 		<servlet-name>UserStatus</servlet-name>
 		<servlet-class>org.ecocean.servlet.UserStatus</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>RemoteRegister</servlet-name>
+		<servlet-class>org.ecocean.servlet.RemoteRegister</servlet-class>
+	</servlet>
 
   <servlet>
 		<servlet-name>AddOccToTrack</servlet-name>
@@ -2356,6 +2360,11 @@
   <servlet-mapping>
     <servlet-name>UserStatus</servlet-name>
     <url-pattern>/UserStatus</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>RemoteRegister</servlet-name>
+    <url-pattern>/RemoteRegister</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
