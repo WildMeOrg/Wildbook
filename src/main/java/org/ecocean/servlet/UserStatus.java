@@ -27,18 +27,21 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.jdo.Query;
+import java.util.Collection;
+import java.util.ArrayList;
 import org.joda.time.DateTime;
 import org.ecocean.Shepherd;
-import org.ecocean.Survey;
-import org.ecocean.movement.SurveyTrack;
+import org.ecocean.Route;
 import org.ecocean.movement.Path;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.AccessControl;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 
-public class SurveyCreateJSONObject extends HttpServlet {
+public class UserStatus extends HttpServlet {
 
     @Override
     public void init(final ServletConfig config) throws ServletException {
@@ -48,19 +51,13 @@ public class SurveyCreateJSONObject extends HttpServlet {
 
     @Override
     public void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
-        doPost(request, response);
-    }
-
-    @Override
-    public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.beginDBTransaction();
-        JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
         PrintWriter out = response.getWriter();
 
         User user = AccessControl.getUser(request, myShepherd);
-        if ((user == null) || (jsonIn == null)) {
+        if (user == null) {
             response.sendError(401, "access denied");
             response.setContentType("text/plain");
             out.println("access denied");
@@ -69,39 +66,38 @@ public class SurveyCreateJSONObject extends HttpServlet {
             return;
         }
 
-System.out.println("SurveyCreate jsonIn => " + jsonIn);
-        JSONObject rtn = new JSONObject("{\"success\": false}");
+        JSONObject rtn = new JSONObject("{\"success\": true}");
+        JSONObject uinfo = new JSONObject();
+        uinfo.put("username", user.getUsername());
+        uinfo.put("fullName", user.getFullName());
+        uinfo.put("id", user.getUUID());
+        rtn.put("info", uinfo);
 
-        DateTime startTime = null;
-        String st = jsonIn.optString("startTime", null);
-        if (st != null) startTime = new DateTime(st);
-        Survey survey = new Survey(startTime);
-        DateTime endTime = null;
-        String et = jsonIn.optString("endTime", null);
-        if (et != null) endTime = new DateTime(et);
-System.out.println(startTime + " --> " + endTime);
-        if (endTime != null) survey.setEndTimeMilli(endTime.getMillis());
-
-        survey.addComments(user.getUUID());  //will be available thru occurrence/encounters more officially
-        survey.setProjectName(jsonIn.optString("routeId", null));
-        survey.setProjectType("route");
-
-        SurveyTrack trk = new SurveyTrack(Path.fromJSONArray(jsonIn.optJSONArray("path")));
-        survey.addSurveyTrack(trk);
-        //TODO add encounters via occurrence, if need be
-
-        myShepherd.getPM().makePersistent(survey);
-        rtn.put("success", true);
-        rtn.put("surveyId", survey.getID());
-        System.out.println(survey + " created by " + user + " for route=" + jsonIn.optString("routeId", null));
-
-        if (rtn.optBoolean("success", false)) {
-            myShepherd.commitDBTransaction();
-        } else {
-            myShepherd.rollbackDBTransaction();
+        //Query q = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Route WHERE startTime .....");
+        Query q = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Route");
+        q.setOrdering("startTime");
+        Collection c = (Collection) (q.execute());
+        JSONArray jarr = new JSONArray();
+        for (Route rt : new ArrayList<Route>(c)) {
+            JSONObject jrt = new JSONObject();
+            jrt.put("id", rt.getId());
+            jrt.put("locationId", rt.getLocationId());
+            jrt.put("startTime", rt.getStartTime());
+            jrt.put("endTime", rt.getEndTime());
+            Path path = rt.getPath();
+            if (path != null) {
+                JSONArray pts = Path.toJSONArray(path.getPointLocations());
+                jrt.put("path", pts);
+            }
+            jarr.put(jrt);
         }
+        q.closeAll();
+        rtn.put("routes", jarr);
+
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         response.setContentType("text/json");
-        out.println(rtn);
+        out.println(rtn.toString(4));
         out.close();
     }
 }
