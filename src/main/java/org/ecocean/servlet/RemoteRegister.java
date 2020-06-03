@@ -62,7 +62,6 @@ public class RemoteRegister extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.beginDBTransaction();
         myShepherd.setAction("RemoteRegister");
-        JSONObject jsonIn = ServletUtilities.jsonFromHttpServletRequest(request);
         PrintWriter out = response.getWriter();
         User thisUser = AccessControl.getUser(request, myShepherd);
 
@@ -131,7 +130,7 @@ System.out.println("RemoteRegister: survey response: " + resp.toString());
         String wantKey = org.ecocean.media.AssetStore.hexStringSHA256(apiKey + ":" + reg_username);
         System.out.println("RemoteRegister: key=[" + key + "] vs wantKey=[" + wantKey + "] on username=[" + reg_username + "]");
 
-        boolean ok = ((key != null) && key.equals(wantKey));
+        boolean ok = ((key != null) && key.toLowerCase().equals(wantKey));  //java lib uses lowercase hex in wantKey
         if (!ok) errorMessage = "Invalid response";
         if (ok && !reg_terms) {
             ok = false;
