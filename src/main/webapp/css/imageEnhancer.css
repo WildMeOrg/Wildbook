@@ -117,13 +117,15 @@ div iek-new-labeled-wrapper {
     margin-left: -18%;
     overflow: hidden;
     padding-bottom: 10px; 
-    transition: .5s all;   
-    transition-delay: .5s;
+    /*transition: .5s all;*/   
+    transition-delay: 1.5s;
+    transition: 0.2s 1s;
 }
 .image-enhancer-keyword-wrapper-hover:hover {
     /* z-index: 200; note: must be higher than highest possible annotation/feature */
     transition-delay: .5s;
-    z-index: 900;
+    transition: 0.2s 1s;
+    z-index: 999;
 }
 .image-enhancer-keyword-wrapper:hover .image-enhancer-keyword {
     background-color: #FFF;
@@ -167,6 +169,8 @@ div iek-new-labeled-wrapper {
 
 
 .iek-new-form, .iek-new-wrapper.iek-autohide, iek-new-labeled-form {
+    transition: .5s all;   
+    transition-delay: 1.5s;
     display: none;
 }
 
