@@ -1146,7 +1146,6 @@ function addLabeledKeyword(el) {
 
 </script>
 
-<p>begin identity filters???</p>
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
