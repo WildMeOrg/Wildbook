@@ -202,12 +202,6 @@ System.out.println("RES=" + res.toString(4));
 		e.printStackTrace();
 	}
 
-if (indiv == null) {
-    System.out.println("indiv=" + indiv);
-    System.out.println("indiv2=" + indiv2);
-    System.out.println("enc=" + enc);
-    System.out.println("enc2=" + enc2);
-}
 	// allow flow either way if one or the other has an ID
 	if ((indiv == null || indiv2 == null) && (enc != null) && (enc2 != null)) {
 
