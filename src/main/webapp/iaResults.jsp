@@ -128,10 +128,12 @@ if (request.getParameter("acmId") != null) {
 //quick hack to set id & approve
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
         String taskId = request.getParameter("taskId");
+	String displayName = request.getParameter("individualID");
+	if (displayName!=null) displayName = displayName.trim();
 	JSONObject res = new JSONObject("{\"success\": false}");
 	res.put("encounterId", request.getParameter("number"));
 	res.put("encounterId2", request.getParameter("enc2"));
-	res.put("individualId", request.getParameter("individualID"));
+	res.put("individualId", displayName);
         res.put("taskId", taskId);
 System.out.println("RES=" + res.toString(4));
 
@@ -172,11 +174,8 @@ System.out.println("RES=" + res.toString(4));
 	String indyUUID = null;
 	MarkedIndividual indiv = null;
 	MarkedIndividual indiv2 = null;
-	String displayName = null;
 	try {
 
-		displayName = request.getParameter("individualID");
-		if (displayName!=null) displayName = displayName.trim();
 		// from query enc
 		indiv = myShepherd.getMarkedIndividual(enc);
 		// from target enc
@@ -203,6 +202,12 @@ System.out.println("RES=" + res.toString(4));
 		e.printStackTrace();
 	}
 
+if (indiv == null) {
+    System.out.println("indiv=" + indiv);
+    System.out.println("indiv2=" + indiv2);
+    System.out.println("enc=" + enc);
+    System.out.println("enc2=" + enc2);
+}
 	// allow flow either way if one or the other has an ID
 	if ((indiv == null || indiv2 == null) && (enc != null) && (enc2 != null)) {
 
@@ -306,6 +311,39 @@ System.out.println("RES=" + res.toString(4));
 		myShepherd.closeDBTransaction();
 		return;
 	} 
+
+        //special case where we just want to name query enc as next available name
+        if ((indiv == null) && (indiv2 == null) && (enc2 == null) && (enc != null) && NEXT_NAME_LOCATION.equals(displayName)) {
+                String nn = nextNameFromLocation(enc);
+                if (nn == null) {
+                    System.out.println("WARNING: nextNameByPrefix() impossible due to no locationID");  //snh cuz ui wont show this option; but....
+		    out.println(res.toString());
+		    myShepherd.rollbackDBTransaction();
+		    myShepherd.closeDBTransaction();
+		    return;
+                }
+
+                System.out.println("INFO: enc-only nextNameByPrefix(" + enc.getLocationID() + ") using name=" + nn);
+                indiv = new MarkedIndividual(nn, enc);
+                res.put("newIndividualUUID", indiv.getId());
+                res.put("individualId", indiv.getId());
+                res.put("individualName", nn);
+                myShepherd.getPM().makePersistent(indiv);
+                myShepherd.updateDBTransaction();
+                enc.setIndividual(indiv);
+                myShepherd.updateDBTransaction();
+                setImportTaskComplete(myShepherd, enc);
+                indiv.refreshNamesCache();
+		String matchMsg = enc.getMatchedBy();
+		if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
+		matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
+		enc.setMatchedBy(matchMsg); 
+		res.put("success", true);
+		out.println(res.toString());
+		myShepherd.commitDBTransaction();
+		myShepherd.closeDBTransaction();
+		return;
+        }
 
 	if (indiv == null && indiv2 == null) {
 		res.put("error", "No valid record could be found or created for name: " + displayName);
@@ -507,6 +545,9 @@ h4.intro.accordion .rotate-chevron.down {
 		.enc-title .enc-link, .enc-title .indiv-link {
 			margin-left: 0;
 		}
+                .enc-title {
+                    position: relative;
+                }
 		</style>
 
 		<%
@@ -1132,6 +1173,9 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 if (encId) {
                 	console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
+                    if (!indivId && nextNamesByLocation[encId]) {
+                        h += '<input style="position: absolute; left: -60px; top: 30px; transform: scale(0.7);" type="button" value="Set new name [ ' + nextNamesByLocation[encId] + ' ] for just this Encounter" onClick="$(this).hide(); return approvalButtonClick(\'' + encId + '\', NEXT_NAME_LOCATION);" />';
+                    }
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
                     
 					if (!indivId) {
@@ -1499,10 +1543,12 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
 					
 					// updates encounters in results list with name and link to indy
-					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter  
+				        $("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter  
 					$("#encnum"+d.encounterId2).append(indivLink); // likely, should be newly matched target encounter(s)
 
-				}
+				} else {
+                                    $('.enc-title').append('<span> of ' + indivLink + '</span>');
+                                }
 			} else {
 				console.warn('error returned: %o', d);
 				jQuery(msgTarget).html('Error updating encounter: <b>' + d.error + '</b>');
