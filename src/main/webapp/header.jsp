@@ -82,7 +82,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
-      <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
+      <link href="<%=urlLoc %>/tools/jquery-ui/jquery-ui.css" rel="stylesheet" type="text/css"/>
      	<%
 	if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
 	%>
@@ -91,7 +91,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 	}
     %>  
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
-	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
       <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
 
@@ -99,7 +98,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
       <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/javascript/core.js"></script>
-      <script type="text/javascript" src="<%=urlLoc %>/tools/jquery-ui/javascript/jquery-ui.min.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/tools/jquery-ui/jquery-ui.min.js"></script>
 
         <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.js"></script>
         <script type="text/javascript" src="<%=urlLoc %>/javascript/ia.IBEIS.js"></script>  <!-- TODO plugin-ier -->
