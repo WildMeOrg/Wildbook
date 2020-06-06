@@ -401,6 +401,10 @@
 				/merge.jsp = authc, roles[researcher]
 				/mergeComplete.jsp = authc, roles[researcher]
 				/AnnotationSetMatchAgainst = authc, roles[admin]
+				
+				/MembershipCreate = authc
+				/MembershipDelete = authc
+				
             </param-value>
         </init-param>
     </filter>
@@ -492,7 +496,17 @@
   <servlet>
     <servlet-name>EncounterCreateSurvey</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterCreateSurvey</servlet-class>
-  </servlet>	
+  </servlet>
+
+  <servlet>
+    <servlet-name>MembershipCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.MembershipCreate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>MembershipDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.MembershipDelete</servlet-class>
+  </servlet>		
 
   <servlet>
     <servlet-name>WriteOutScanTask</servlet-name>
@@ -548,8 +562,6 @@
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
   </servlet>
-
-
 
 <!--
 <servlet>
@@ -1201,17 +1213,6 @@
   </servlet>
 -->
 
-  <servlet>
-    <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
-    <servlet-class>org.ecocean.servlet.TissueSampleSetMicrosatelliteMarkers</servlet-class>
-  </servlet>
-
-    <servlet>
-      <servlet-name>TissueSampleSetSexAnalysis</servlet-name>
-      <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
-  </servlet>
-
-
       <servlet>
         <servlet-name>GenalexExportCodominantMSDataBySize</servlet-name>
         <servlet-class>org.ecocean.servlet.export.GenalexExportCodominantMSDataBySize</servlet-class>
@@ -1759,6 +1760,16 @@
          <url-pattern>/MediaAssetAttach</url-pattern>
       </servlet-mapping>
 
+      <servlet-mapping>
+         <servlet-name>MembershipCreate</servlet-name>
+         <url-pattern>/MembershipCreate</url-pattern>
+      </servlet-mapping>
+
+      <servlet-mapping>
+         <servlet-name>MembershipDelete</servlet-name>
+         <url-pattern>/MembershipDelete</url-pattern>
+      </servlet-mapping>
+
         <servlet-mapping>
           <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
           <url-pattern>/TissueSampleRemoveBiologicalMeasurement</url-pattern>
@@ -1898,10 +1909,17 @@
       <servlet-name>ImportAccess</servlet-name>
       <url-pattern>/ImportAccess</url-pattern>
   </servlet-mapping>
+
   <servlet-mapping>
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
   </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>StandardImport</servlet-name>
+    <url-pattern>/import/standard-upload</url-pattern>
+  </servlet-mapping>
+
   <servlet-mapping>
       <servlet-name>UpdateStandard</servlet-name>
       <url-pattern>/UpdateStandard</url-pattern>
@@ -2331,8 +2349,6 @@
     <servlet-name>IndividualSetNickName</servlet-name>
     <url-pattern>/IndividualSetNickName</url-pattern>
   </servlet-mapping>
-
-
 
   <servlet-mapping>
     <servlet-name>IndividualSetAlternateID</servlet-name>

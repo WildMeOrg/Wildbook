@@ -139,7 +139,7 @@ if(request.getQueryString()!=null){
 </table>
 </p>
 
-
+<!--
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
   <tr><td bgcolor="#CCCCCC"><strong>Picture Book</strong><br/><%=props.getProperty("generatePictureBook") %></td></tr>
@@ -156,6 +156,7 @@ if(request.getQueryString()!=null){
   </tr>
 </table>
 </p>
+-->
 
 <p>
 <table border="1" bordercolor="black" cellspacing="0">

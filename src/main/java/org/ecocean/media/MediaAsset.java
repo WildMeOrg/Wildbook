@@ -47,6 +47,8 @@ import java.util.Set;
 import java.util.List;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Collections;
+import java.util.Comparator;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
@@ -616,6 +618,20 @@ public class MediaAsset implements java.io.Serializable {
         return (getAnnotations().size() > 0);
     }
 
+    public List<Annotation> getAnnotationsSortedPositionally() {
+        List<Annotation> ord = new ArrayList<Annotation>(this.getAnnotations());
+        if (Util.collectionSize(ord) < 2) return ord;  //no sorting necessary
+        Collections.sort(ord, new AnnotationPositionalComparator());
+        return ord;
+    }
+
+        class AnnotationPositionalComparator implements Comparator<Annotation> {
+            @Override
+            public int compare(Annotation annA, Annotation annB) {
+                return annA.comparePositional(annB);
+            }
+        }
+
 /*
         return annotations;
     }
@@ -972,6 +988,10 @@ public class MediaAsset implements java.io.Serializable {
                                 String displayName = enc.getDisplayName();
                                 if (!Util.stringExists(displayName)) displayName = enc.getIndividualID();
                                 jf.put("displayName", displayName);
+                            }
+                            if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null) {
+                              jf.put("genus",enc.getGenus());
+                              jf.put("specificEpithet",enc.getSpecificEpithet());
                             }
                         }
                     }

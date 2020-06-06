@@ -107,6 +107,7 @@ try {
   System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
+	query.closeAll();
   	int numEncs=encs.size();
   System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
@@ -191,7 +192,7 @@ function forceLink(el) {
 		  		
 		  		if (ma != null) {
 		  			System.out.println("    EMG: ma is not null");
-
+                    if (ma.getMetadata() != null) ma.getMetadata().getDataAsString(); //temp hack to make sure metadata available, remove at yer peril
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
@@ -276,6 +277,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
         Query q = imageShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         List results = (List)q.execute();
         Iterator it = results.iterator();
+
         while (it.hasNext()) {
             Object[] row = (Object[]) it.next();
             int aid = (int)row[0];
@@ -288,6 +290,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
             dups.getJSONObject(acm).getJSONObject(eid).put("asset", aid);
             dups.getJSONObject(acm).getJSONObject(eid).put("indiv", iid);
         }
+        q.closeAll();
     }
     out.println("<script> var assetDup = " + dups.toString() + ";</script>");
 
@@ -564,13 +567,13 @@ if(request.getParameter("encounterNumber")!=null){
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
-  
-  console.log("Hey we're workin again!");
+
+  //console.log("Hey we're workin again!");
   var assets = <%=all.toString()%>;
   // <% System.out.println(" Got all size = "+all.length()); %>
   var captions = <%=captions.toString()%>
   captions.forEach( function(elem) {
-    console.log("caption here: "+elem);
+    //console.log("caption here: "+elem);
   })
 
   //
@@ -1214,8 +1217,9 @@ function refreshKeywordsForMediaAsset(mid, data) {
         }
     }
     //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
-    $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {   //update the ui
-        $(el).find('.image-enhancer-keyword-wrapper').remove();
+    $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {
+           //update the ui
+        $(el).find('.image-enhancer-keyword-wrapper-hover').empty();
         imageLayerKeywords($(el), { _mid: mid });
     });
 }
@@ -1236,7 +1240,7 @@ Map<String, List<String>> labelsToValues = LabeledKeyword.labelUIMap(request);
 System.out.println("we got labelsToValues = "+labelsToValues);
 String labelsToValuesStr = labelsToValues.toString();
 labelsToValuesStr = labelsToValuesStr.replaceAll("=",":");
-System.out.println("the stringy version is "+labelsToValuesStr);
+System.out.println("the stringy version is |"+labelsToValuesStr+"| with length() "+labelsToValuesStr.length());
 
 JSONObject jobj = new JSONObject(labelsToValues);
 System.out.println("got jobj "+jobj);
@@ -1257,8 +1261,21 @@ console.info("############## mid=%s -> %o", mid, ma);
 
 	if (!ma.keywords) ma.keywords = [];
 	var thisHas = [];
-	var h = '<div class="image-enhancer-keyword-wrapper">';
-	for (var i = 0 ; i < ma.keywords.length ; i++) {
+    //let h = '<div onmouseover="allVisible(this)" onmouseout="resetVisibility(this)" class="image-enhancer-keyword-wrapper">';
+
+    // if this is a refresh, it will already have this element
+    let hasWrapper = el.has('.image-enhancer-keyword-wrapper').length; 
+
+    let h = '';
+
+    if (!hasWrapper) {
+        h += '<div class="image-enhancer-keyword-wrapper">';
+	    h += '<div class="image-enhancer-keyword-wrapper-hover">';  
+    }
+    
+    // the refresh on 1235 removes the above, and so below
+  
+    for (var i = 0 ; i < ma.keywords.length ; i++) {
     var kw = ma.keywords[i];
     thisHas.push(kw.indexname);
     if (kw.label) {
@@ -1272,11 +1289,10 @@ console.info("############## mid=%s -> %o", mid, ma);
 //console.info('keyword = %o', ma.keywords[i]);
 	}
 
-  // the labeledKeyword edit form comes from before
-
   var labelsToValues = <%=jobj%>;
   console.log("Labeled keywords %o", labelsToValues);
-  h += '<div class="labeled iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+  let labeledAvailable = (labelsToValues.length>0);
+  h += '<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
   if (!$.isEmptyObject(labelsToValues)) {
       //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
     var hasSome = false;
@@ -1303,7 +1319,7 @@ console.info("############## mid=%s -> %o", mid, ma);
       h += valueSelectors;
     }
   } else {
-    console.log("your labels are empty dumbass");
+    console.log("No LabeledKeywords were retrieved from the database.");
   }
   h += '</div></div>';
 
@@ -1324,11 +1340,18 @@ console.info("############## mid=%s -> %o", mid, ma);
 	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
 	h += '</div></div>';
 
-	h += '</div>';
-	el.append(h);
+    // image-enhancer-keyword-wrapper-hover
+    if (!hasWrapper) {
+        h += '</div></div>';
+	    el.append(h);
+    } else {
+        el.find('.image-enhancer-keyword-wrapper-hover').append(h);
+    }
+
 	el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
 		ev.stopPropagation();
 	});
+
 	el.find('.iek-remove').on('click', function(ev) {
 		//ev.stopPropagation();
 		addNewKeyword(ev.target);

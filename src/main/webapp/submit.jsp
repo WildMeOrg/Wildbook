@@ -916,11 +916,25 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
                      if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
+                      
+
                     	for(int q=0;q<numGenusSpeciesProps;q++){
                            String currentGenuSpecies = "genusSpecies"+q;
+
+                           String showCommonNames = CommonConfiguration.getProperty("showCommonSpeciesNames",context);
+
                            if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+
+                            String commonNameLabel = "";
+                             if (showCommonNames!=null&&"true".equals(showCommonNames)) {
+                                String commonNameVal = CommonConfiguration.getProperty("commonName"+q,context);
+                                if (commonNameVal!=null&&!"null".equals(commonNameVal)&&!"".equals(commonNameVal)) {
+                                  commonNameLabel = " ("+commonNameVal+")";
+                                }
+                              }
+
                                %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")+commonNameLabel%></option>
                                <%
 
                         }

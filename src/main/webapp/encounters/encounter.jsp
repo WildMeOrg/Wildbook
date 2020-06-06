@@ -18,7 +18,9 @@
          org.json.JSONObject,
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
-         java.io.File, java.text.DecimalFormat, org.apache.commons.lang.StringEscapeUtils,
+         java.io.File, java.text.DecimalFormat, 
+         org.ecocean.servlet.importer.ImportTask,
+         org.apache.commons.lang.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -2731,11 +2733,7 @@ else {
     									<td>
      										<img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif" /> <%=encprops.getProperty("assigned_user")%>&nbsp;
      									</td>
-        								<%
-      									%>
 
-      									<%
-      									%>
      								</tr>
      								<tr>
      									<td>
@@ -2764,54 +2762,54 @@ else {
                          					}
                                 			%>
 
-     								<div>
-                      <div class="row">
-                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
-                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="border: 1px solid;" />
-                        </div>
-                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
-                          <%-- <p> --%>
-
-                        <%
-                        if(thisUser.getAffiliation()!=null){
-                        %>
-                        <p><strong><%=displayName %></strong></p>
-                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
-                        <%
-                        }
-
-                        if(thisUser.getUserProject()!=null){
-                        %>
-                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
-                        <%
-                        }
-
-                        if(thisUser.getUserURL()!=null){
-                            %>
-                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
-                            <%
-                          }
-
-                        if(thisUser.getUserStatement()!=null){
-                            %>
-                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
-                            <%
-                          }
-                        %>
-                        </div>
-                      </div>
-
-                  </div>
-
-<%
-                         	}
-
-
-                      	else{
-                      	%>
-                      	&nbsp;
-                      	<%
-                      	}
+					     				<div>
+					                      <div class="row">
+					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
+					                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="border: 1px solid;" />
+					                        </div>
+					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
+					                          <%-- <p> --%>
+					
+					                        <%
+					                        if(thisUser.getAffiliation()!=null){
+					                        %>
+					                        <p><strong><%=displayName %></strong></p>
+					                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
+					                        <%
+					                        }
+					
+					                        if(thisUser.getUserProject()!=null){
+					                        %>
+					                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
+					                        <%
+					                        }
+					
+					                        if(thisUser.getUserURL()!=null){
+					                            %>
+					                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
+					                            <%
+					                          }
+					
+					                        if(thisUser.getUserStatement()!=null){
+					                            %>
+					                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
+					                            <%
+					                          }
+					                        %>
+					                        </div>
+					                      </div>
+					
+					                  </div>
+					
+					<%
+					                         	}
+					
+					
+					                      	else{
+					                      	%>
+					                      	&nbsp;
+					                      	<%
+					                      	}
 
                       	}
                          				//insert here
@@ -2996,6 +2994,18 @@ if (isOwner) {
 <!-- END DELETE ENCOUNTER FORM -->
 <%
 }
+
+Query itq = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getEncounterNumber() + "'");
+List ires = (List)itq.execute();
+
+if (ires.size() > 0) {
+    Iterator it = ires.iterator();
+    ImportTask itask = (ImportTask)it.next();
+%>
+    <a target="_new" href="../imports.jsp?taskId=<%=itask.getId()%>" title="<%=itask.getCreated()%>">Imported via <b><%=itask.getId().substring(0,8)%></b></a>
+<%
+}
+itq.closeAll();
 %>
 
 </td>
@@ -6514,7 +6524,6 @@ function iaMatchFilterGo() {
 		}
 		int rootIter=0;
 		while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-
 			String val="HotSpotter";
 			String queryDict="";
 			try {
@@ -6532,7 +6541,7 @@ function iaMatchFilterGo() {
 		}
 		%>
 
-    $('.ia-match-filter-dialog input').each(function(i, el) {
+$('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
         var key = keyMap[el.name] || '_UNKNOWN_';
         if (!data.taskParameters.matchingSetFilter[key]) data.taskParameters.matchingSetFilter[key] = [];
@@ -6543,8 +6552,7 @@ function iaMatchFilterGo() {
         else{
         	data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
         }
-
-
+        
     });
 console.log('SENDING ===> %o', data);
     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -6621,6 +6629,7 @@ Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
 List results = (List)q.execute();
 int c = 0;
 Iterator it = results.iterator();
+
 while (it.hasNext()) {
     Object[] row = (Object[]) it.next();
     String locId = (String)row[0];
@@ -6631,6 +6640,7 @@ while (it.hasNext()) {
         locCount.put(locId, ct);
     }
 }
+q.closeAll();
 
 
 JSONObject locIdTree = LocationID.getLocationIDStructure(request);
@@ -6711,7 +6721,6 @@ $(".search-collapse-header").click(function(){
 
 rootIter=0;
 while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-
 	
 	if(rootIter==0){
 		%>
@@ -6741,7 +6750,6 @@ while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
 	if(val==null || val.trim().equals("")){
 		val="HotSpotter";
 	}
-
 
 	out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + rootIter + "\" name=\"match-filter-algorithm\" value=\"" + rootIter+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + rootIter + "\">" + val + " </label></div>");
 
@@ -6796,6 +6804,7 @@ finally{
 %>
 
 
+</div>
 </div>
 
 <!--db: These are the necessary tools for photoswipe.-->
