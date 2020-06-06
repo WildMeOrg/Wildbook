@@ -127,7 +127,7 @@ div iek-new-labeled-wrapper {
     transition: 0.2s 1s;
     z-index: 999;
 }
-.image-enhancer-keyword-wrapper-hover:hover .image-enhancer-keyword {
+.image-enhancer-keyword-wrapper:hover .image-enhancer-keyword {
     background-color: #FFF;
     border: solid 1px #333;
 }
