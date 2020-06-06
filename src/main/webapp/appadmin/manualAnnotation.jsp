@@ -1,6 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
 org.ecocean.servlet.ServletUtilities,
+javax.jdo.Query,
+java.util.Iterator,
+java.util.List,
 org.json.JSONObject,
 org.ecocean.media.*
               "
@@ -20,7 +23,7 @@ body {
 #img-wrapper {
     overflow: hidden;
     height: <%=imgHeight%>px;
-    float: right;
+    xfloat: right;
     position: relative;
 }
 img.asset {
@@ -122,6 +125,8 @@ try {
 String iaClass = request.getParameter("iaClass");
 String maparam = request.getParameter("matchAgainst");
 boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
+String rtparam = request.getParameter("removeTrivial");
+boolean removeTrivial = (rtparam == null) || Util.booleanNotFalse(rtparam);
 String encounterId = request.getParameter("encounterId");
 ///skipping this for now cuz i dont want to deal with altering the *annot* once we change a feature (i.e. acmId etc so IA thinks is new)
 String featureId = null;///request.getParameter("featureId");
@@ -132,6 +137,29 @@ boolean cloneEncounter = Util.requestParameterSet(request.getParameter("cloneEnc
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.beginDBTransaction();
+
+
+String vlist = "<select name=\"viewpoint\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
+Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"VIEWPOINT\") as v from \"ANNOTATION\" order by v");
+List results = (List)q.execute();
+Iterator it = results.iterator();
+while (it.hasNext()) {
+    String v = (String)it.next();
+    if (!Util.stringExists(v)) continue;
+    vlist += "<option" + (v.equals(viewpoint) ? " selected" : "") + ">" + v + "</option>";
+}
+vlist += "</select>";
+
+String clist = "<select name=\"iaClass\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
+q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
+results = (List)q.execute();
+it = results.iterator();
+while (it.hasNext()) {
+    String v = (String)it.next();
+    if (!Util.stringExists(v)) continue;
+    clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
+}
+clist += "</select>";
 
 Feature ft = null;
 MediaAsset ma = null;
@@ -145,7 +173,9 @@ if (featureId != null) {
         out.println("<p class=\"error\">Invalid <b>featureId=" + featureId + "</b></p>");
         return;
     }
+    removeTrivial = false;
     ma = ft.getMediaAsset();
+    ft.getParametersAsString();
     if (ft.getParameters() != null) {
         xywh = new int[4];
         xywh[0] = (int)Math.round(ft.getParameters().optDouble("x", 10.0));
@@ -196,14 +226,24 @@ double scale = imgHeight / ma.getHeight();
 
 %>
 
-<script>scale = <%=scale%>;</script>
+<script>scale = <%=scale%>;
 
-<div id="img-wrapper">
-    <div class="axis" id="x-axis"></div>
-    <div class="axis" id="y-axis"></div>
-    <img class="asset" src="<%=ma.webURL()%>" />
-    <div style="left: <%=(xywh[0] * scale)%>px; top: <%=(xywh[1] * scale)%>px; width: <%=(xywh[2] * scale)%>px; height: <%=(xywh[3] * scale)%>px;" id="bbox"></div>
-</div>
+function pulldownUpdate(el) {
+//console.info('%o', el.name);
+    var u = window.location.href;
+    var m = u.match(new RegExp(el.name + '=\\w+'));
+    if (!m) {  //was not (yet) in url
+        u += '&' + el.name + '=' + el.value;
+    } else {
+console.log('m = %o', m);
+        u = u.substring(0,m.index) + el.name + '=' + el.value + u.substring(m.index + m[0].length);
+console.log(u);
+    }
+    window.location.href = u;
+}
+
+</script>
+
 
 <p>
 MediaAsset <b><a title="<%=ma.toString()%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
@@ -211,8 +251,8 @@ MediaAsset <b><a title="<%=ma.toString()%>" target="_new" href="../obrowse.jsp?t
 
 <p>
 matchAgainst = <b><%=matchAgainst%></b>;
-viewpoint = <b><%=viewpoint%></b>;
-iaClass = <b><%=iaClass%></b>
+viewpoint = <b><%=vlist%></b>;
+iaClass = <b><%=clist%></b>
 </p>
 
 <p>
@@ -233,6 +273,11 @@ attaching to <b><a target="_new" href="../obrowse.jsp?type=Encounter&id=<%=enc.g
 <% } %>
 </p>
 
+<p>
+<% if (enc != null) { %>
+will <%=(removeTrivial ? "<b>remove</b>" : "<i>not</i> remove")%> trivial Annotation
+<% } %>
+</p>
 <%
 if (save) {
     if (ft != null) {
@@ -269,6 +314,26 @@ if (save) {
     System.out.println("manualAnnotation: added " + ann + " and " + ft + " to enc=" + encMsg);
     myShepherd.getPM().makePersistent(ft);
     myShepherd.getPM().makePersistent(ann);
+
+    if (removeTrivial) {
+        //note this will only remove (at most) ONE
+        Annotation foundTrivial = null;
+        for (Annotation a : ma.getAnnotations()) {
+            if (a.isTrivial()) foundTrivial = a;
+        }
+        if (foundTrivial == null) {
+            System.out.println("manualAnnotation: removeTrivial=true, but no trivial annot on " + ma);
+        } else {
+            foundTrivial.detachFromMediaAsset();
+            if (enc == null) {
+                System.out.println("manualAnnotation: removeTrivial detached " + foundTrivial + " (and Feature) from " + ma);
+            } else {
+                enc.removeAnnotation(foundTrivial);
+                System.out.println("manualAnnotation: removeTrivial detached " + foundTrivial + " (and Feature) from " + ma + " and " + enc);
+            }
+        }
+    }
+
     myShepherd.commitDBTransaction();
 %><hr />
 
@@ -284,6 +349,14 @@ and
 %>
 
 <h2><a href="manualAnnotation.jsp?<%=request.getQueryString()%>&save">SAVE</a></h2>
+
+
+<div id="img-wrapper">
+    <div class="axis" id="x-axis"></div>
+    <div class="axis" id="y-axis"></div>
+    <img class="asset" src="<%=ma.webURL()%>" />
+    <div style="left: <%=(xywh[0] * scale)%>px; top: <%=(xywh[1] * scale)%>px; width: <%=(xywh[2] * scale)%>px; height: <%=(xywh[3] * scale)%>px;" id="bbox"></div>
+</div>
 
 <% } %>
 
