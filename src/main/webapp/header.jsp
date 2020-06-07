@@ -186,10 +186,6 @@ if (thisUser == null) {
               <div class="header-top-wrapper">
                 <div class="container">
                 <!-- wild-me-badge -->
-                    <div class="partners-header">
-<a target="_new" href="https://www.petcofoundation.org/innovation-showdown/"><img
-src="images/innovation-logo.jpg" /></a>
-                    </div>
                   <div class="search-and-secondary-wrapper">
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
