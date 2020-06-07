@@ -41,9 +41,11 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 %>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
     <head>
+	
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-17"></script>
+	
       <title><%=CommonConfiguration.getHTMLTitle(context)%>
       </title>
       <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
