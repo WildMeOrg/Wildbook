@@ -262,7 +262,7 @@ System.out.println("survey response: " + resp.toString());
 
 <div class="container maincontent">
 
-              <h1 class="intro">Participating in Kitizen Science</h1>
+              <h1 class="intro">Participating in Online Tasks</h1>
 
               <p align="left">
 		
@@ -301,12 +301,12 @@ The second of our three validation studies is about testing the online workflow 
 </p>
 
 <p xstyle="display: none;">
-You can <a href="register.jsp?instructions">read the study instructions</a>
+You can <a href="register.jsp?instructions">read the online study instructions</a>
 before deciding whether you want to volunteer.
 </p>
 
 <p>
-This study is open from March 9 to May 31, 2020.
+This study is open from March 9 to June 30, 2020.
 </p>
 
 <p>
