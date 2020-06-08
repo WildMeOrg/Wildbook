@@ -238,7 +238,11 @@ function checkImage(imgEl) {
 		doImageSpots(imgEl);
 	} else {
 		console.info('waiting on img');
-		imgEl.bind('load', function() { doImageSpots(imgEl); });
+		imgEl.bind('load', function() {
+                    if (imgEl.data('load-complete')) return;  //dont run again!
+                    imgEl.data('load-complete', true);
+                    doImageSpots(imgEl);
+                });
 	}
 }
 
