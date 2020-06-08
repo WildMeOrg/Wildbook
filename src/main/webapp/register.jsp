@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" 
+<%@ page contentType="text/html; charset=utf-8"
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,
 java.io.IOException,
@@ -265,7 +265,7 @@ System.out.println("survey response: " + resp.toString());
               <h1 class="intro">Participating in Kitizen Science</h1>
 
               <p align="left">
-		
+
 <div style="padding: 10px;">
 <%
 if (session.getAttribute("error") != null) {
@@ -275,7 +275,7 @@ if (session.getAttribute("error") != null) {
 
 %>
 </div>
-              
+
 <% if (mode < 0) {
     if (uwMode) {
 %>
@@ -349,99 +349,101 @@ if (mode == 0) {
 
 <div id="consent-section">
 <h2>
-UNIVERSITY OF WASHINGTON -
-CONSENT FORM
+Informed Consent for Study of Kitizen Science Volunteers
 </h2>
 
 <h3>Testing the Photo Processing Workflow of an Online Citizen Science Project About Cats</h3>
 
 <p>
-<b>Researcher: Sabrina Aeluro, graduate student at the University of Washington<br />
-Study email: kitizenscience@gmail.com</b>
+<b>Protocol Number: KitizenScience_v1.0
+<br/>
+	Principal Investigator: Sabrina Aeluro, Director of Kitizen Science
+<br>
+	Contact: kitizenscience@gmail.com
+<br>
+<br>
+	This informed consent page covers your agreement to be not just a volunteer, but also a subject of our research.  Kitizen Science and this study is open to all people over the age of 18.
+</b>
 </p>
 
 <h3>
-Researcher's statement and purpose of study
+	Purpose of this study
 </h3>
 
 <p>
-The purpose of this study is to test volunteers' abilities to process photos of cats using the online workflow of a new citizen science program.  The cat photos in this study are of outdoor cats in their normal environment, and no cats were harmed in the collection of these photos.  This study is open to all people over the age of 18 who are interested in cats.
-</p>
-
-<p>
-The purpose of this consent form is to give you the information you will need to help you decide whether to be in the study or not.  Please read the form carefully.  You may ask questions about the purpose of the research, what we would ask you to do, the possible risks and benefits, your rights as a volunteer, and anything else about the research or this form that is not clear.  When we have answered all your questions, you can decide if you want to be in the study or not.  This process is called "informed consent."  You may save a copy of this form for your records.
+	We collect survey and demographic data so we can understand our volunteers and the experience you bring to Kitizen Science, and so we can compare our volunteer demographics with those of other citizen science projects.  We also track volunteer activity on our website and app, including the total amount of time you spend logged in as a volunteer, the number of cat photo submissions you upload or process, and the route and distance you walk if you volunteer to use our app to conduct cat surveys.
 </p>
 
 <h3>
-Study procedures
+How we use this data
 </h3>
 
 <p>
-After registering for an account on the Kitizen Science website (or logging into an existing account for previous volunteers), there is a short survey about a volunteer's background and personal demographics, followed by instructions about how to process cat photo submissions on the website.  After this sign up and brief training process, volunteers are presented with a cat photo submission to be processed.  Volunteers select the attributes of the cat in the photo: its primary color/pattern, its life stage, whether it has an ear tip removed, where it has a collar, and the sex (if the anatomy is visible).  After selecting the cat's attributes, volunteers look to see if there is a match for the cat already in the system by comparing it to similar cats or noting if the cat is new to the system.  Volunteers can process as many or as few photo submissions as they like.
+This data will not be published in a way that makes it identifiable to you as an individual but will be published and shared in discussing our volunteers and how they participate in Kitizen Science.  This includes reporting the average amount of time volunteers spend on Kitizen Science per month, the gender breakdown of our volunteers, and other metrics of engagement and activity.  We also include the routes and distances traveled by app users in the statistical analysis of cat populations.
 </p>
 
 <h3>
-Risks, stress, or discomfort
+Risks and benefits
 </h3>
 
 <p>
-This study is designed with the aim to be minimally intrusive, inoffensive, and is not intended to cause stress or place subjects at risk.
+	Our survey questions are designed to be minimally intrusive, inoffensive, and are not intended to cause stress or place you at risk.
+<br>
+<br>
+	Although this study may not benefit you directly and there is no compensation provided, we appreciate your efforts to support Kitizen Science.
+<br>
+<br>
+	The study does not require the collection of any potentially personally identifying information apart from an email address.  Your email address is confidential and will not be published as part of this research.  While efforts are taken to ensure the privacy and security of your responses, in the event of a data breach, your survey answers and other data could be linked to your email address.  Only the researchers involved in this study and the people overseeing the study including IntegReview IRB will have access to your study records.
 </p>
 
 <h3>
-Alternatives to taking part in this study
+	Other information
 </h3>
 
 <p>
-You have the option to not take part in this study.
+	Please ask questions to decide if you want to be in the study.  You may stop participating at any time and you can do so without penalty or loss of benefits to which you are otherwise entitled.  You will not lose any of your legal rights by agreeing to participate in this study.
 </p>
 
 <h3>
-Benefits of the study
+Research oversight
 </h3>
 
 <p>
-While there is no individual benefit or compensation for participating in this study, your answers will help validate the methods of Kitizen Science, a new citizen science program for monitoring the impacts of spay/neuter programs on free-roaming cat populations.
+If you do not want to contact the investigator or study staff, if you have concerns or complaints about the research, or to ask questions about your rights as a study subject you may contact IntegReview.  IntegReview’s policy indicates that all concerns/complaints are to be submitted in writing for review at a convened IRB meeting to:
+<br>
+<br>
+	Email address:
+<br>
+<br>
+	integreview@integreview.com
+<br>
+<br>
+	Mailing address:
+<br>
+<br>
+	Chairperson
+<br>
+IntegReview IRB
+<br>
+3815 S. Capital of Texas Highway
+<br>
+Suite 320
+<br>
+Austin, Texas 78704
+<br>
+<br>
+	IntegReview has reviewed the information in this consent form.  This does not mean IntegReview has approved your being in the study.  You must consider the information in this consent form for yourself and decide if you want to be in this study.
 </p>
 
 <h3>
-Confidentiality of research information
+Subject's statement
 </h3>
 
 <p>
-The study does not require the collection of any personally identifying information apart from an email address.  Your email address is confidential and will not be published as part of this research.  While efforts are taken to ensure the privacy and security of your responses, in the event of a data breach, your survey answers and cat photo processing data could be linked to your email address.
-</p>
-
-<p>
-Government or university staff sometimes review studies such as this one to make sure they are being done safely and legally.  If a review of this study takes place, your responses may be examined.  The reviewers will protect your privacy.  The study records will not be used to put you at legal risk of harm.
-</p>
-
-<h3>
-Other information
-</h3>
-
-<p>
-You may refuse to participate and you are free to withdraw from this study at any time without penalty or loss of benefits to which you are otherwise entitled.
-</p>
-
-<h3>
-Research-related injury
-</h3>
-
-<p>
-If you think you have been harmed from being in this research, contact Sabrina Aeluro via the study email address: kitizenscience@gmail.com.  The UW does not normally provide compensation for harm except through its discretionary program for medical injury.  However, the law may allow you to seek other compensation if the harm is the fault of the researchers.  You do not waive any right to seek payment by signing this consent form.
-</p>
-
-<h3>
-Subject's statement 
-</h3>
-
-<p>
-This study has been explained to me.  I volunteer to take part in this research.  I have had a chance to ask questions.  If I have questions later about the research, or if I have been harmed by participating in this study, I can contact the researcher listed on this consent form.  If I have questions about my rights as a research subject, I can call the University of Washington Human Subjects Division at 206-543-0098 or call collect at 206-221-5940.
-</p>
-
-<p>
-I consent to participate in this study.
+	Proceeding with this survey and Kitizen Science implies my consent to participate in this research.  I may download or save a copy of this page to keep for my records.
+<br>
+<br>
+	I consent to participate in this study.
 </p>
 
 
@@ -576,7 +578,7 @@ function checkAccount() {
 <input type="button" value="Login" onClick="window.location.href='queue.jsp';" />
 
 </div>
-              
+
 <% }
 if (mode == 2) {
 
@@ -1140,6 +1142,5 @@ if (rollback) {
 
 %>
             </div>
-            
-          <jsp:include page="footer.jsp" flush="true"/>
 
+          <jsp:include page="footer.jsp" flush="true"/>
