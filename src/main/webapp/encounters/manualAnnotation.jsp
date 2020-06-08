@@ -5,7 +5,8 @@
 		java.util.Iterator,
 		java.util.List,
 		org.json.JSONObject,
-		org.ecocean.media.*"
+		org.ecocean.media.*,
+		org.ecocean.Annotation"
 %>
 
 
@@ -16,7 +17,7 @@
 
 <style>
 	body {
-	    font-family: arial, sans;
+	    font-family: "src/main/webapp/encounters/manualAnnotation.jsp"arial, sans;
 	}
 	
 	.error {
@@ -182,6 +183,8 @@ try{
 	    } catch (Exception ex) {}
 	    if (ft == null) {
 	        out.println("<p class=\"error\">Invalid <b>featureId=" + featureId + "</b></p>");
+	        myShepherd.rollbackDBTransaction();
+		    myShepherd.closeDBTransaction();
 	        return;
 	    }
 	    removeTrivial = false;
@@ -199,17 +202,39 @@ try{
 	if (ma == null) ma = MediaAssetFactory.load(assetId, myShepherd);
 	if (ma == null) {
 	    out.println("<p class=\"error\">Invalid <b>assetId=" + assetId + "</b></p>");
+	    myShepherd.rollbackDBTransaction();
+	    myShepherd.closeDBTransaction();
 	    return;
 	}
+	
+	//ok, we now know that we have a MediaAsset
+	//now let's check if we need to force Encounter cloning
 	
 	Encounter enc = null;
 	if (encounterId != null) {
 	    enc = myShepherd.getEncounter(encounterId);
 	    if (enc == null) {
 	        out.println("<p class=\"error\">Invalid <b>encounterId=" + encounterId + "</b></p>");
+	        myShepherd.rollbackDBTransaction();
+		    myShepherd.closeDBTransaction();
 	        return;
 	    }
 	}
+	
+	
+	//ok, we now know that we have a MediaAsset
+	//now let's check if we need to force Encounter cloning
+	List<Annotation> annots=ma.getAnnotations();
+	//we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
+	if(annots.size()>1){
+		cloneEncounter=true;
+	}
+	//if the one annot isn't trivial, then we have to clone the encounter as well
+	else if(annots.size()==1 && !annots.get(0).isTrivial()){
+		cloneEncounter=true;
+	}
+	
+	
 	
 	if (bbox != null) {
 	    String[] parts = bbox.split(",");
@@ -317,6 +342,8 @@ try{
 	if (save) {
 	    if (ft != null) {
 	        out.println("saved(not) " + ft);
+	        myShepherd.rollbackDBTransaction();
+		    myShepherd.closeDBTransaction();
 	        return;
 	    }
 	
