@@ -39,6 +39,12 @@
 	    border: solid 3px rgba(255,255,0,0.5);
 	    position: absolute;
 	}
+        .featurebox {
+            pointer-events: none;
+	    outline: dotted green 2px;
+	    border: solid 2px rgba(255,255,0,0.5);
+	    position: absolute;
+        }
 	.axis {
 	    width: 2000px;
 	    height: 2000px;
@@ -232,7 +238,8 @@ try{
 	%>
 	
 	<script>scale = <%=scale%>;
-	
+        var asset = <%=ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true, myShepherd)%>;
+
 	function pulldownUpdate(el) {
 	//console.info('%o', el.name);
 	    var u = window.location.href;
@@ -246,7 +253,30 @@ try{
 	    }
 	    window.location.href = u;
 	}
-	
+
+
+        function drawFeatures() {
+            if (!asset || !asset.features || !asset.features.length) return;
+            for (var i = 0 ; i < asset.features.length ; i++) {
+                drawFeature(document.getElementById('main-img'), asset.features[i]);
+            }
+        }
+
+        function drawFeature(imgEl, ft) {
+            if (!imgEl || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
+            var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
+            var scale = imgEl.height / imgEl.naturalHeight;
+//console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
+            if (scale == 1) return;
+            imgEl.setAttribute('data-feature-drawn', true);
+            f.css('width', (ft.parameters.width * scale) + 'px');
+            f.css('height', (ft.parameters.height * scale) + 'px');
+            f.css('left', (ft.parameters.x * scale) + 'px');
+            f.css('top', (ft.parameters.y * scale) + 'px');
+            if (ft.parameters.theta) f.css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
+//console.info('mmmm %o', f);
+            $(imgEl).parent().append(f);
+        }
 	</script>
 	
 	
@@ -360,7 +390,7 @@ try{
 		<div id="img-wrapper">
 		    <div class="axis" id="x-axis"></div>
 		    <div class="axis" id="y-axis"></div>
-		    <img class="asset" src="<%=ma.webURL()%>" />
+		    <img class="asset" src="<%=ma.webURL()%>" id="main-img" onLoad="drawFeatures()" />
 		    <div style="left: <%=(xywh[0] * scale)%>px; top: <%=(xywh[1] * scale)%>px; width: <%=(xywh[2] * scale)%>px; height: <%=(xywh[3] * scale)%>px;" id="bbox"></div>
 		</div>
 		
