@@ -186,10 +186,6 @@ if (thisUser == null) {
               <div class="header-top-wrapper">
                 <div class="container">
                 <!-- wild-me-badge -->
-                    <div class="partners-header">
-<a target="_new" href="https://www.petcofoundation.org/innovation-showdown/"><img
-src="images/innovation-logo.jpg" /></a>
-                    </div>
                   <div class="search-and-secondary-wrapper">
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
@@ -456,7 +452,8 @@ src="images/innovation-logo.jpg" /></a>
                     <ul class="dropdown-menu" role="menu">
 <!-- TODO make this only show to non-logged in -->
 <% if (isAnonymous) { %>
-                        <li><a href="<%=urlLoc %>/register.jsp">Sign Up</a></li>
+                        <li><a href="<%=urlLoc %>/register.jsp">Cat and Mouse: Online Tasks</a></li>
+                        <li><a href="<%=urlLoc %>/catwalk.jsp">Cat Walk: Cat Surveys</a></li>
                         <li><a href="<%=urlLoc %>/queue.jsp">Login</a></li>
 <% } else { %>
                         <li><a href="<%=urlLoc %>/register.jsp?instructions">Instructions</a></li>
