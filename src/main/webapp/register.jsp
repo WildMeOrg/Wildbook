@@ -220,7 +220,7 @@ if (thisUser != null) {
         }
 
     } else if (fromMode == 2) {
-        String[] fields = new String[]{"user_uuid", "cat_volunteer", "have_cats", "disability", "citsci", "age", "retired", "gender", "ethnicity", "education", "how_hear"};
+        String[] fields = new String[]{"user_uuid", "cat_volunteer", "have_cats", "disability", "citsci_photos", "citsci_classification", "age", "gender", "ethnicity", "education", "how_hear", "where_live"};
         JSONObject resp = new JSONObject();
         List<String> errors = new ArrayList<String>();
         for (int i = 0 ; i < fields.length ; i++) {
@@ -588,15 +588,16 @@ if (mode == 2) {
 <script>
 //non-uw version
 var surveyRequired = [
+		'where_live',
+		'age',
+		'gender',
+		'ethnicity',
+		'education',
+		'have_cats',
     'cat_volunteer',
     'disability',
-    'have_cats',
-    'citsci',
-    'age',
-    'retired',
-    'ethnicity',
-    'gender',
-    'education',
+    'citsci_classification',
+		'citsci_photos',
     'how_hear'
 ];
 function checkSurvey() {
@@ -610,6 +611,15 @@ function checkSurvey() {
             numChecked = parseInt(el.val());
         }
         if (surveyRequired[i] == 'how_hear') {
+            numChecked = el.val().trim().length;
+        }
+				if (surveyRequired[i] == 'where_live') {
+            numChecked = el.val().trim().length;
+        }
+				if (surveyRequired[i] == 'gender') {
+            numChecked = el.val().trim().length;
+        }
+				if (surveyRequired[i] == 'education') {
             numChecked = el.val().trim().length;
         }
 
@@ -650,79 +660,398 @@ function checkSurvey() {
 }
 %>
 <p>
-We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
+Please answer this short survey about yourself so we can understand our volunteers and the experience you bring to Kitizen Science, and so we can compare our volunteer demographics with those of other citizen science projects.
 </p>
 
 <p>
-Are you currently involved in volunteering with cats in some way?
-<br /><input id="cat_volunteer_yes" type="radio" value="Yes" name="cat_volunteer" /> <label for="cat_volunteer_yes">Yes</label>
-<br /><input id="cat_volunteer_no" type="radio" value="No" name="cat_volunteer" /> <label for="cat_volunteer_no">No</label>
-<br /><input id="cat_volunteer_past" type="radio" value="Not now, but in the past" name="cat_volunteer" /> <label for="cat_volunteer_past">Not now, but in the past</label>
+Where do you live?
+<select class="top" name="where_live">
+  <option value="0">Choose Location</option>
+	<optgroup label="US States/Territories">
+		<option value="AK">Alaska</option>
+		<option value="AL">Alabama</option>
+		<option value="AR">Arkansas</option>
+		<option value="AS">American Samoa</option>
+		<option value="AZ">Arizona</option>
+		<option value="CA">California</option>
+		<option value="CO">Colorado</option>
+		<option value="CT">Connecticut</option>
+		<option value="DC">District of Columbia</option>
+		<option value="DE">Delaware</option>
+		<option value="FL">Florida</option>
+		<option value="GA">Georgia</option>
+		<option value="GU">Guam</option>
+		<option value="HI">Hawaii</option>
+		<option value="IA">Iowa</option>
+		<option value="ID">Idaho</option>
+		<option value="IL">Illinois</option>
+		<option value="IN">Indiana</option>
+		<option value="KS">Kansas</option>
+		<option value="KY">Kentucky</option>
+		<option value="LA">Louisiana</option>
+		<option value="MA">Massachusetts</option>
+		<option value="MD">Maryland</option>
+		<option value="ME">Maine</option>
+		<option value="MI">Michigan</option>
+		<option value="MN">Minnesota</option>
+		<option value="MO">Missouri</option>
+		<option value="MS">Mississippi</option>
+		<option value="MT">Montana</option>
+		<option value="NC">North Carolina</option>
+		<option value="ND">North Dakota</option>
+		<option value="MP">Northern Mariana Islands</option>
+		<option value="NE">Nebraska</option>
+		<option value="NH">New Hampshire</option>
+		<option value="NJ">New Jersey</option>
+		<option value="NM">New Mexico</option>
+		<option value="NV">Nevada</option>
+		<option value="NY">New York</option>
+		<option value="OH">Ohio</option>
+		<option value="OK">Oklahoma</option>
+		<option value="OR">Oregon</option>
+		<option value="PA">Pennsylvania</option>
+		<option value="PR">Puerto Rico</option>
+		<option value="RI">Rhode Island</option>
+		<option value="SC">South Carolina</option>
+		<option value="SD">South Dakota</option>
+		<option value="TN">Tennessee</option>
+		<option value="TX">Texas</option>
+		<option value="UM">United States Minor Outlying Islands</option>
+		<option value="VI">United States Virgin Islands</option>
+		<option value="UT">Utah</option>
+		<option value="VA">Virginia</option>
+		<option value="VT">Vermont</option>
+		<option value="WA">Washington</option>
+		<option value="WI">Wisconsin</option>
+		<option value="WV">West Virginia</option>
+		<option value="WY">Wyoming</option>
+	</optgroup>
+	<optgroup label="Non-US Country">
+		<option value="Afghanistan">Afghanistan</option>
+		<option value="Albania">Albania</option>
+		<option value="Algeria">Algeria</option>
+		<option value="Andorra">Andorra</option>
+		<option value="Angola">Angola</option>
+		<option value="Anguilla">Anguilla</option>
+		<option value="Antigua & Barbuda">Antigua & Barbuda</option>
+		<option value="Argentina">Argentina</option>
+		<option value="Armenia">Armenia</option>
+		<option value="Aruba">Aruba</option>
+		<option value="Australia">Australia</option>
+		<option value="Austria">Austria</option>
+		<option value="Azerbaijan">Azerbaijan</option>
+		<option value="Bahamas">Bahamas</option>
+		<option value="Bahrain">Bahrain</option>
+		<option value="Bangladesh">Bangladesh</option>
+		<option value="Barbados">Barbados</option>
+		<option value="Belarus">Belarus</option>
+		<option value="Belgium">Belgium</option>
+		<option value="Belize">Belize</option>
+		<option value="Benin">Benin</option>
+		<option value="Bermuda">Bermuda</option>
+		<option value="Bhutan">Bhutan</option>
+		<option value="Bolivia">Bolivia</option>
+		<option value="Bonaire">Bonaire</option>
+		<option value="Bosnia & Herzegovina">Bosnia & Herzegovina</option>
+		<option value="Botswana">Botswana</option>
+		<option value="Brazil">Brazil</option>
+		<option value="British Indian Ocean Terr">British Indian Ocean Terr</option>
+		<option value="Brunei">Brunei</option>
+		<option value="Bulgaria">Bulgaria</option>
+		<option value="Burkina Faso">Burkina Faso</option>
+		<option value="Burundi">Burundi</option>
+		<option value="Cambodia">Cambodia</option>
+		<option value="Cameroon">Cameroon</option>
+		<option value="Canada">Canada</option>
+		<option value="Canary Islands">Canary Islands</option>
+		<option value="Cape Verde">Cape Verde</option>
+		<option value="Cayman Islands">Cayman Islands</option>
+		<option value="Central African Republic">Central African Republic</option>
+		<option value="Chad">Chad</option>
+		<option value="Channel Islands">Channel Islands</option>
+		<option value="Chile">Chile</option>
+		<option value="China">China</option>
+		<option value="Christmas Island">Christmas Island</option>
+		<option value="Cocos Island">Cocos Island</option>
+		<option value="Colombia">Colombia</option>
+		<option value="Comoros">Comoros</option>
+		<option value="Congo">Congo</option>
+		<option value="Cook Islands">Cook Islands</option>
+		<option value="Costa Rica">Costa Rica</option>
+		<option value="Cote d'Ivoire">Cote d'Ivoire</option>
+		<option value="Croatia">Croatia</option>
+		<option value="Cuba">Cuba</option>
+		<option value="Curacao">Curacao</option>
+		<option value="Cyprus">Cyprus</option>
+		<option value="Czech Republic">Czech Republic</option>
+		<option value="Denmark">Denmark</option>
+		<option value="Djibouti">Djibouti</option>
+		<option value="Dominica">Dominica</option>
+		<option value="Dominican Republic">Dominican Republic</option>
+		<option value="East Timor">East Timor</option>
+		<option value="Ecuador">Ecuador</option>
+		<option value="Egypt">Egypt</option>
+		<option value="El Salvador">El Salvador</option>
+		<option value="Equatorial Guinea">Equatorial Guinea</option>
+		<option value="Eritrea">Eritrea</option>
+		<option value="Estonia">Estonia</option>
+		<option value="Ethiopia">Ethiopia</option>
+		<option value="Falkland Islands">Falkland Islands</option>
+		<option value="Faroe Islands">Faroe Islands</option>
+		<option value="Fiji">Fiji</option>
+		<option value="Finland">Finland</option>
+		<option value="France">France</option>
+		<option value="French Guiana">French Guiana</option>
+		<option value="French Polynesia">French Polynesia</option>
+		<option value="French Southern Terr">French Southern Terr</option>
+		<option value="Gabon">Gabon</option>
+		<option value="Gambia">Gambia</option>
+		<option value="Georgia">Georgia</option>
+		<option value="Germany">Germany</option>
+		<option value="Ghana">Ghana</option>
+		<option value="Gibraltar">Gibraltar</option>
+		<option value="Greece">Greece</option>
+		<option value="Greenland">Greenland</option>
+		<option value="Grenada">Grenada</option>
+		<option value="Guadeloupe">Guadeloupe</option>
+		<option value="Guatemala">Guatemala</option>
+		<option value="Guinea">Guinea</option>
+		<option value="Guyana">Guyana</option>
+		<option value="Haiti">Haiti</option>
+		<option value="Hawaii">Hawaii</option>
+		<option value="Honduras">Honduras</option>
+		<option value="Hong Kong">Hong Kong</option>
+		<option value="Hungary">Hungary</option>
+		<option value="Iceland">Iceland</option>
+		<option value="Indonesia">Indonesia</option>
+		<option value="India">India</option>
+		<option value="Iran">Iran</option>
+		<option value="Iraq">Iraq</option>
+		<option value="Ireland">Ireland</option>
+		<option value="Isle of Man">Isle of Man</option>
+		<option value="Israel">Israel</option>
+		<option value="Italy">Italy</option>
+		<option value="Jamaica">Jamaica</option>
+		<option value="Japan">Japan</option>
+		<option value="Jordan">Jordan</option>
+		<option value="Kazakhstan">Kazakhstan</option>
+		<option value="Kenya">Kenya</option>
+		<option value="Kiribati">Kiribati</option>
+		<option value="Kuwait">Kuwait</option>
+		<option value="Kyrgyzstan">Kyrgyzstan</option>
+		<option value="Laos">Laos</option>
+		<option value="Latvia">Latvia</option>
+		<option value="Lebanon">Lebanon</option>
+		<option value="Lesotho">Lesotho</option>
+		<option value="Liberia">Liberia</option>
+		<option value="Libya">Libya</option>
+		<option value="Liechtenstein">Liechtenstein</option>
+		<option value="Lithuania">Lithuania</option>
+		<option value="Luxembourg">Luxembourg</option>
+		<option value="Macau">Macau</option>
+		<option value="Macedonia">Macedonia</option>
+		<option value="Madagascar">Madagascar</option>
+		<option value="Malaysia">Malaysia</option>
+		<option value="Malawi">Malawi</option>
+		<option value="Maldives">Maldives</option>
+		<option value="Mali">Mali</option>
+		<option value="Malta">Malta</option>
+		<option value="Marshall Islands">Marshall Islands</option>
+		<option value="Martinique">Martinique</option>
+		<option value="Mauritania">Mauritania</option>
+		<option value="Mauritius">Mauritius</option>
+		<option value="Mayotte">Mayotte</option>
+		<option value="Mexico">Mexico</option>
+		<option value="Midway Islands">Midway Islands</option>
+		<option value="Moldova">Moldova</option>
+		<option value="Monaco">Monaco</option>
+		<option value="Mongolia">Mongolia</option>
+		<option value="Montserrat">Montserrat</option>
+		<option value="Morocco">Morocco</option>
+		<option value="Mozambique">Mozambique</option>
+		<option value="Myanmar">Myanmar</option>
+		<option value="Namibia">Namibia</option>
+		<option value="Nauru">Nauru</option>
+		<option value="Nepal">Nepal</option>
+		<option value="Netherland Antilles">Netherland Antilles</option>
+		<option value="Netherlands">Netherlands</option>
+		<option value="Nevis">Nevis</option>
+		<option value="New Caledonia">New Caledonia</option>
+		<option value="New Zealand">New Zealand</option>
+		<option value="Nicaragua">Nicaragua</option>
+		<option value="Niger">Niger</option>
+		<option value="Nigeria">Nigeria</option>
+		<option value="Niue">Niue</option>
+		<option value="Norfolk Island">Norfolk Island</option>
+		<option value="Norway">Norway</option>
+		<option value="North Korea">North Korea</option>
+		<option value="Oman">Oman</option>
+		<option value="Pakistan">Pakistan</option>
+		<option value="Palau Island">Palau Island</option>
+		<option value="Palestine">Palestine</option>
+		<option value="Panama">Panama</option>
+		<option value="Papua New Guinea">Papua New Guinea</option>
+		<option value="Paraguay">Paraguay</option>
+		<option value="Peru">Peru</option>
+		<option value="Philippines">Philippines</option>
+		<option value="Pitcairn Island">Pitcairn Island</option>
+		<option value="Poland">Poland</option>
+		<option value="Portugal">Portugal</option>
+		<option value="Qatar">Qatar</option>
+		<option value="Republic of Montenegro">Republic of Montenegro</option>
+		<option value="Republic of Serbia">Republic of Serbia</option>
+		<option value="Reunion">Reunion</option>
+		<option value="Romania">Romania</option>
+		<option value="Russia">Russia</option>
+		<option value="Rwanda">Rwanda</option>
+		<option value="St Barthelemy">St Barthelemy</option>
+		<option value="St Eustatius">St Eustatius</option>
+		<option value="St Helena">St Helena</option>
+		<option value="St Kitts & Nevis">St Kitts & Nevis</option>
+		<option value="St Lucia">St Lucia</option>
+		<option value="St Maarten">St Maarten</option>
+		<option value="St Pierre & Miquelon">St Pierre & Miquelon</option>
+		<option value="St Vincent & Grenadines">St Vincent & Grenadines</option>
+		<option value="Saipan">Saipan</option>
+		<option value="Samoa">Samoa</option>
+		<option value="Samoa American">Samoa American</option>
+		<option value="San Marino">San Marino</option>
+		<option value="Sao Tome & Principe">Sao Tome & Principe</option>
+		<option value="Saudi Arabia">Saudi Arabia</option>
+		<option value="Senegal">Senegal</option>
+		<option value="Seychelles">Seychelles</option>
+		<option value="Sierra Leone">Sierra Leone</option>
+		<option value="Singapore">Singapore</option>
+		<option value="Slovakia">Slovakia</option>
+		<option value="Slovenia">Slovenia</option>
+		<option value="Solomon Islands">Solomon Islands</option>
+		<option value="Somalia">Somalia</option>
+		<option value="South Africa">South Africa</option>
+		<option value="South Korea">South Korea</option>
+		<option value="Spain">Spain</option>
+		<option value="Sri Lanka">Sri Lanka</option>
+		<option value="Sudan">Sudan</option>
+		<option value="Suriname">Suriname</option>
+		<option value="Swaziland">Swaziland</option>
+		<option value="Sweden">Sweden</option>
+		<option value="Switzerland">Switzerland</option>
+		<option value="Syria">Syria</option>
+		<option value="Tahiti">Tahiti</option>
+		<option value="Taiwan">Taiwan</option>
+		<option value="Tajikistan">Tajikistan</option>
+		<option value="Tanzania">Tanzania</option>
+		<option value="Thailand">Thailand</option>
+		<option value="Togo">Togo</option>
+		<option value="Tokelau">Tokelau</option>
+		<option value="Tonga">Tonga</option>
+		<option value="Trinidad & Tobago">Trinidad & Tobago</option>
+		<option value="Tunisia">Tunisia</option>
+		<option value="Turkey">Turkey</option>
+		<option value="Turkmenistan">Turkmenistan</option>
+		<option value="Turks & Caicos">Turks & Caicos</option>
+		<option value="Tuvalu">Tuvalu</option>
+		<option value="Uganda">Uganda</option>
+		<option value="United Kingdom">United Kingdom</option>
+		<option value="Ukraine">Ukraine</option>
+		<option value="United Arab Emirates">United Arab Emirates</option>
+		<option value="United Kingdom">United Kingdom</option>
+		<option value="Uruguay">Uruguay</option>
+		<option value="Uzbekistan">Uzbekistan</option>
+		<option value="Vanuatu">Vanuatu</option>
+		<option value="Vatican City">Vatican City</option>
+		<option value="Venezuela">Venezuela</option>
+		<option value="Vietnam">Vietnam</option>
+		<option value="Virgin Islands (British)">Virgin Islands (British)</option>
+		<option value="Wake Island">Wake Island</option>
+		<option value="Wallis & Futuna">Wallis & Futuna</option>
+		<option value="Yemen">Yemen</option>
+		<option value="Zaire">Zaire</option>
+		<option value="Zambia">Zambia</option>
+		<option value="Zimbabwe">Zimbabwe</option>
+	</optgroup>
+</select>
 </p>
 
 <p>
-Do you have a disability or personal limitation (such as being a parent/caregiver) that prevents you from volunteering with cats in a typical offline setting like a shelter?
-<br /><input id="disability_no" type="radio" value="No" name="disability" /> <label for="disability_no">No</label>
-<br /><input id="disability_yes" type="radio" value="Yes" name="disability" /> <label for="disability_yes">Yes</label>
-<br /><input id="disability_sometimes" type="radio" value="Sometimes" name="disability" /> <label for="disability_sometimes">Sometimes</label>
+	What is your current age?
+	<select class="top" name="age">
+	    <option value="0">Choose Age</option>
+	<%
+	    for (int i = 18 ; i <= 100 ; i++) {
+	        out.println("<option>" + i + "</option>\n");
+	    }
+	%>
+	</select>
 </p>
 
 <p>
-Do you currently have a cat/cats in your care?
+	What is your gender?
+	<select class="top" name="gender">
+	    <option value="0">Choose Gender</option>
+	<%
+			String[] genders = {"Woman", "Man", "Nonbinary/Other"};
+	    for (int i = 0 ; i < genders.length ; i++) {
+	        out.println("<option>" + genders[i] + "</option>\n");
+	    }
+	%>
+	</select>
+</p>
+
+<p>
+	What is your race/ethnicity (select multiple if appropriate)?
+	<%
+			String[] raceEthnicities = {"American Indian or Alaska Native", "Asian", "Black or African American", "Hispanic or Latino", "Middle Eastern", "Native Hawaiian or Pacific Islander", "White"};
+	    for (int i = 0 ; i < raceEthnicities.length ; i++) {
+	        out.println("<br /><input id='" + raceEthnicities[i] + "_input' type='checkbox' value='" + raceEthnicities[i] + "' name='ethnicity' /> <label for='" + raceEthnicities[i] + "'>" + raceEthnicities[i] + "</label>\n");
+	    }
+	%>
+	</select>
+</p>
+
+<p>
+	What is your highest level of education?
+	<select class="top" name="education">
+	    <option value="0">Choose Education Level</option>
+	<%
+			String[] educationLevel = {"Less than high school", "High school", "Technical/Associate's degree or some college", "Bachelor's degree", "Graduate/professional degree"};
+	    for (int i = 0 ; i < educationLevel.length ; i++) {
+	        out.println("<option>" + educationLevel[i] + "</option>\n");
+	    }
+	%>
+	</select>
+</p>
+
+<p>
+Do you currently have a cat/cats?
 <br /><input id="have_cats_yes_pet" type="checkbox" value="Yes, a pet cat/cats" name="have_cats" /> <label for="have_cats_yes_pet">Yes, a pet cat/cats</label>
 <br /><input id="have_cats_yes_feral" type="checkbox" value="Yes, I care for feral/free-roaming cats" name="have_cats" /> <label for="have_cats_yes_feral">Yes, I care for feral/free-roaming cats</label>
 <br /><input id="have_cats_no" type="checkbox" value="No" name="have_cats" /> <label for="have_cats_no">No</label>
 </p>
 
 <p>
-Have you ever participated in an online citizen science project doing image identification or classification (NOT including our 2019 cat matching study)?
-<br /><input id="citsci_no" type="radio" value="No" name="citsci" /> <label for="citsci_no">No</label>
-<br /><input id="citsci_yes" type="radio" value="Yes" name="citsci" /> <label for="citsci_yes">Yes</label>
+Are you currently involved in volunteering with cats?
+<br /><input id="cat_volunteer_yes" type="radio" value="Yes" name="cat_volunteer" /> <label for="cat_volunteer_yes">Yes</label>
+<br /><input id="cat_volunteer_no" type="radio" value="No" name="cat_volunteer" /> <label for="cat_volunteer_no">No</label>
+<br /><input id="cat_volunteer_past" type="radio" value="Not now, but in the past" name="cat_volunteer" /> <label for="cat_volunteer_past">Not now, but in the past</label>
 </p>
 
 <p>
-What is your current age?
-<select class="top" name="age">
-    <option value="0">choose age</option>
-<%
-    for (int i = 18 ; i <= 100 ; i++) {
-        out.println("<option>" + i + "</option>\n");
-    }
-%>
-</select>
+Do you have a disability or personal limitation (such as being a parent/caregiver) that prevents you from volunteering with cats in a typical setting like a shelter?
+<br /><input id="disability_no" type="radio" value="No" name="disability" /> <label for="disability_no">No</label>
+<br /><input id="disability_yes" type="radio" value="Yes" name="disability" /> <label for="disability_yes">Yes</label>
+<br /><input id="disability_sometimes" type="radio" value="Sometimes" name="disability" /> <label for="disability_sometimes">Sometimes</label>
 </p>
 
 <p>
-Are you retired?
-<br /><input id="retired_no" type="radio" value="No" name="retired" /> <label for="retired_no">No</label>
-<br /><input id="retired_yes" type="radio" value="Yes" name="retired" /> <label for="retired_yes">Yes</label>
+Have you ever participated in an online citizen science project doing image identification or classification (apart from Kitizen Science's validation studies)?
+<br /><input id="citsci_classification_no" type="radio" value="No" name="citsci_classification" /> <label for="citsci_classification_no">No</label>
+<br /><input id="citsci_classification_yes" type="radio" value="Yes" name="citsci_classification" /> <label for="citsci_classification_yes">Yes</label>
 </p>
 
 <p>
-What is your gender?
-<br /><input id="gender_woman" type="radio" value="Woman" name="gender" /> <label for="gender_woman">Woman</label>
-<br /><input id="gender_man" type="radio" value="Man" name="gender" /> <label for="gender_man">Man</label>
-<br /><input id="gender_other" type="radio" value="Other" name="gender" /> <label for="gender_other">Non-binary/Other</label>
-</p>
-
-<p>
-What is your race/ethnicity (select multiple if appropriate):
-<br /><input id="ethnicity_aian" type="checkbox" value="American Indian or Alaska Native" name="ethnicity" /> <label for="ethnicity_aian">American Indian or Alaska Native</label>
-<br /><input id="ethnicity_asian" type="checkbox" value="Asian" name="ethnicity" /> <label for="ethnicity_asian">Asian</label>
-<br /><input id="ethnicity_baa" type="checkbox" value="Black or African American" name="ethnicity" /> <label for="ethnicity_baa">Black or African American</label>
-<br /><input id="ethnicity_hisp" type="checkbox" value="Hispanic or Latino" name="ethnicity" /> <label for="ethnicity_hisp">Hispanic or Latino</label>
-<br /><input id="ethnicity_me" type="checkbox" value="Middle Eastern" name="ethnicity" /> <label for="ethnicity_me">Middle Eastern</label>
-<br /><input id="ethnicity_nhpi" type="checkbox" value="Native Hawaiian or Pacific Islander" name="ethnicity" /> <label for="ethnicity_nhpi">Native Hawaiian or Pacific Islander</label>
-<br /><input id="ethnicity_white" type="checkbox" value="White" name="ethnicity" /> <label for="ethnicity_white">White</label>
-</p>
-
-<p>
-Highest level of education:
-<br /><input id="education_less" type="radio" value="Less than high school" name="education" /> <label for="education_less">Less than high school</label>
-<br /><input id="education_hs" type="radio" value="High school" name="education" /> <label for="education_hs">High School</label>
-<br /><input id="education_some" type="radio" value="some college" name="education" /> <label for="education_some">Technical school, Associate's degree, or some college</label>
-<br /><input id="education_bach" type="radio" value="Bachelor's degree" name="education" /> <label for="education_bach">Bachelor's degree</label>
-<br /><input id="education_grad" type="radio" value="Graduate/professional degree" name="education" /> <label for="education_grad">Graduate/professional degree</label>
+Have you previously participated in a citizen science project collecting photos or data about animals or nature?
+<br /><input id="citsci_photos_no" type="radio" value="No" name="citsci_photos" /> <label for="citsci_photos_no">No</label>
+<br /><input id="citsci_photos_yes" type="radio" value="Yes" name="citsci_photos" /> <label for="citsci_photos_yes">Yes</label>
 </p>
 
 <p>
