@@ -5021,5 +5021,31 @@ public class Shepherd {
     pm.deletePersistent(su);
   }
   
+  public User getUserByTwitterHandle(String handle) {
+    User user= null;
+    String filter="SELECT FROM org.ecocean.User WHERE twitterHandle == \""+handle.trim()+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      user=(User)it.next();
+    }
+    query.closeAll();
+    return user;
+  }
+  
+  
+      //this tries (in this order) username, uuid, email and returns first user it finds
+    // note: we do *not* check validity of either uuid or email address, given that (undoubtedly) we have
+    //       malformed values for both in the db.  is this a bug or a feature?  #philosophy
+    public User getUserByWhatever(String value) {
+        if (value == null) return null;
+        User u = getUser(value);
+        if (u != null) return u;
+        u = getUserByUUID(value);
+        if (u != null) return u;
+        return getUserByEmailAddress(value);  //see note below about uniqueness, alas
+    }
+  
 
 } //end Shepherd class
