@@ -145,10 +145,11 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 }
 
 .match-side-img-wrapper {
-    width: 100%;
+    width: 1000px;
     display: inline-block;
     position: relative;
     cursor: crosshair;
+    height: 400px;
 }
 
 .match-side-spot {
@@ -171,13 +172,13 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     display: inline-block;
     position: relative;
     width: 49%;
-    height: 400px;
-    background-color: #DDD;
+
 }
 .match-side img {
     position: absolute;
     left: 0;
     top: 0;
+    height: 400px;
 }
 .match-side-info {
     height: 9.1em;
