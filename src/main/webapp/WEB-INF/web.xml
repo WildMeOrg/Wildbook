@@ -405,6 +405,8 @@
 				/MembershipCreate = authc
 				/MembershipDelete = authc
 				
+				/encounters/manualAnnotation.jsp = authc, roles[researcher]
+				
             </param-value>
         </init-param>
     </filter>
