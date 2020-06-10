@@ -92,13 +92,25 @@ function updatePoints(pts) {
 }
 
 function saveData() {
+    var pathArr = null;
+    try {
+        pathArr = JSON.parse($('#pt-data').val());
+    } catch(err) {
+        alert('error in path value: ' + err);
+        return;
+    }
+    if (!pathArr || !Array.isArray(pathArr)) {
+        alert('error in path value - bad array');
+        return;
+    }
+
     $('#save-status input').hide();
     var data = {
         locationId: $('#locationId').val(),
         name: $('#name').val(),
         startTime: $('#startTime').val(),
         endTime: $('#endTime').val(),
-        path: JSON.parse($('#pt-data').val())
+        path: pathArr
     };
 console.log('data=%o', data);
     $.ajax({
