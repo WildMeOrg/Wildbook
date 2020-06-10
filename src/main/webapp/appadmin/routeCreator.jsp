@@ -166,9 +166,6 @@ margin: 10px;
 <input id="name" /> name
 </div>
 
-<xmp>
-</xmp>
-
 <div>
 <p><div id="pt-info"></div></p>
 <textarea id="pt-data" style="padding-top: 20px; width: 700px; height: 20em;"></textarea>
