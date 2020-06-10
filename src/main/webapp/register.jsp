@@ -610,16 +610,7 @@ function checkSurvey() {
         if (surveyRequired[i] == 'age') {
             numChecked = parseInt(el.val());
         }
-        if (surveyRequired[i] == 'how_hear') {
-            numChecked = el.val().trim().length;
-        }
-				if (surveyRequired[i] == 'where_live') {
-            numChecked = el.val().trim().length;
-        }
-				if (surveyRequired[i] == 'gender') {
-            numChecked = el.val().trim().length;
-        }
-				if (surveyRequired[i] == 'education') {
+        if ((surveyRequired[i] == 'how_hear') || (surveyRequired[i] == 'where_live') || (surveyRequired[i] == 'gender') || (surveyRequired[i] == 'education')) {
             numChecked = el.val().trim().length;
         }
 
@@ -666,7 +657,7 @@ Please answer this short survey about yourself so we can understand our voluntee
 <p>
 Where do you live?
 <select class="top" name="where_live">
-  <option value="0">Choose Location</option>
+  <option value="">Choose Location</option>
 	<optgroup label="US States/Territories">
 		<option value="AK">Alaska</option>
 		<option value="AL">Alabama</option>
@@ -987,7 +978,7 @@ Where do you live?
 <p>
 	What is your gender?
 	<select class="top" name="gender">
-	    <option value="0">Choose Gender</option>
+	    <option value="">Choose Gender</option>
 	<%
 			String[] genders = {"Woman", "Man", "Nonbinary/Other"};
 	    for (int i = 0 ; i < genders.length ; i++) {
@@ -1011,7 +1002,7 @@ Where do you live?
 <p>
 	What is your highest level of education?
 	<select class="top" name="education">
-	    <option value="0">Choose Education Level</option>
+	    <option value="">Choose Education Level</option>
 	<%
 			String[] educationLevel = {"Less than high school", "High school", "Technical/Associate's degree or some college", "Bachelor's degree", "Graduate/professional degree"};
 	    for (int i = 0 ; i < educationLevel.length ; i++) {
