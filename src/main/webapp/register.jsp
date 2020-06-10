@@ -220,7 +220,7 @@ if (thisUser != null) {
         }
 
     } else if (fromMode == 2) {
-        String[] fields = new String[]{"user_uuid", "cat_volunteer", "have_cats", "disability", "citsci_photos", "citsci_classification", "age", "gender", "ethnicity", "education", "how_hear", "where_live"};
+        String[] fields = new String[]{"user_uuid", "cat_volunteer", "have_cats", "disability", "citsci", "citsci_collecting", "age", "gender", "ethnicity", "education", "how_hear", "where_live"};
         JSONObject resp = new JSONObject();
         List<String> errors = new ArrayList<String>();
         for (int i = 0 ; i < fields.length ; i++) {
@@ -596,8 +596,8 @@ var surveyRequired = [
 		'have_cats',
     'cat_volunteer',
     'disability',
-    'citsci_classification',
-		'citsci_photos',
+    'citsci',
+		'citsci_collecting',
     'how_hear'
 ];
 function checkSurvey() {
@@ -1044,14 +1044,14 @@ Do you have a disability or personal limitation (such as being a parent/caregive
 
 <p>
 Have you ever participated in an online citizen science project doing image identification or classification (apart from Kitizen Science's validation studies)?
-<br /><input id="citsci_classification_no" type="radio" value="No" name="citsci_classification" /> <label for="citsci_classification_no">No</label>
-<br /><input id="citsci_classification_yes" type="radio" value="Yes" name="citsci_classification" /> <label for="citsci_classification_yes">Yes</label>
+<br /><input id="citsci_no" type="radio" value="No" name="citsci" /> <label for="citsci_no">No</label>
+<br /><input id="citsci_yes" type="radio" value="Yes" name="citsci" /> <label for="citsci_yes">Yes</label>
 </p>
 
 <p>
 Have you previously participated in a citizen science project collecting photos or data about animals or nature?
-<br /><input id="citsci_photos_no" type="radio" value="No" name="citsci_photos" /> <label for="citsci_photos_no">No</label>
-<br /><input id="citsci_photos_yes" type="radio" value="Yes" name="citsci_photos" /> <label for="citsci_photos_yes">Yes</label>
+<br /><input id="citsci_collecting_no" type="radio" value="No" name="citsci_collecting" /> <label for="citsci_collecting_no">No</label>
+<br /><input id="citsci_collecting_yes" type="radio" value="Yes" name="citsci_collecting" /> <label for="citsci_collecting_yes">Yes</label>
 </p>
 
 <p>

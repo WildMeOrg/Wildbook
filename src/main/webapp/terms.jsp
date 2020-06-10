@@ -33,7 +33,7 @@
 
 <p class="Standard"><span class="T2">The Kitizen Science's Wildbook (the "Library") is a suite of online informational services (the "Services") provided by Kitizen Science and Wild Me, consisting of software applications and content provided by members of Kitizen Science and Wild Me, and members of the general public. "You" or "yours" refers to each person or entity, as applicable, that subscribes to the Kitizen Science Wildbook (the "Subscriber"). </span></p>
 
-<p class="Standard"><h2>Authorized Users</h2></p>
+<p class="Standard"><h3>Authorized Users</h3></p>
 
 <p class="Standard"><span class="T2">Authorized users are those persons, and only those persons, who have been issued a user identifier and password by Kitizen Science.</span></p>
 
@@ -44,7 +44,7 @@
 <p class="Standard"><span class="T2">All Subscribers are authorized to provide remote access to Services only to Authorized Users as long as reasonable security procedures are undertaken that will prevent remote access by institutions or individuals that are not Authorized Users under this Usage Agreement.
 </span></p>
 
-<p class="Standard"><h2>Restrictions</h2></p>
+<p class="Standard"><h3>Restrictions</h3></p>
 
 <p class="Standard"><span class="T2">Any use of Kitizen Science or Wild Me other than as specifically authorized herein, without the express prior written permission of Kitizen Science and Wild Me is prohibited.  No other rights are implied with respect to Kitizen Science or Wild Me.  You shall not use Kitizen Science or Wild Me to engage in any of the following prohibited activities:</span></p>
 <p class="P1"> </p>

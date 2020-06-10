@@ -70,7 +70,7 @@ public class RemoteRegister extends HttpServlet {
         JSONObject rtn = new JSONObject();
         rtn.put("success", false);
         String errorMessage = "Unknown error message";
-        String[] fields = new String[]{"cat_volunteer", "have_cats", "disability", "citsci_classification", "age", "gender", "ethnicity", "education", "how_hear", "where_live", "citsci_collecting", "citsci_photos"};
+        String[] fields = new String[]{"cat_volunteer", "have_cats", "disability", "citsci", "age", "gender", "ethnicity", "education", "how_hear", "where_live", "citsci_collecting"};
         JSONObject resp = new JSONObject();
         List<String> errors = new ArrayList<String>();
         for (int i = 0 ; i < fields.length ; i++) {
