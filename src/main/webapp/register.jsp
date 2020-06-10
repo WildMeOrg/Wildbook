@@ -262,7 +262,7 @@ System.out.println("survey response: " + resp.toString());
 
 <div class="container maincontent">
 
-              <h1 class="intro">Participating in Online Tasks</h1>
+              <h2 class="intro">Participating in Online Tasks</h2>
 
               <p align="left">
 
@@ -478,7 +478,7 @@ if (mode == 1) {
 %>
 
 <div id="register-section">
-<h2>Register a new account</h2>
+<h3>Register a new account</h3>
 
 <script>
 var regexUsername = new RegExp('^[a-z0-9]+$');
@@ -572,7 +572,7 @@ function checkAccount() {
 
 </form>
 
-<h2>Login to an existing account</h2>
+<h3>Login to an existing account</h3>
 <p>Already have an account from a previous study on Kitizen Science?</p>
 
 <input type="button" value="Login" onClick="window.location.href='queue.jsp';" />
@@ -1069,7 +1069,6 @@ How did you hear about Kitizen Science?
 <h1>Instructions for the Online Workflow Study</h1>
 
 <p>The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.  You will receive a short survey via email after this study ends asking for your feedback and for you to rate aspects of the website.</p>
-<p class="style2">This study is open from March 9 to May 31, 2020.</p>
 <h2><a name="requirements" id="requirements"></a>Computer requirements</h2></a>
 <p>
 Because of the small screen size of web browsers on smart phones and small tablets, we do not want you to process submissions on smaller devices. Please use a desktop or laptop computer.

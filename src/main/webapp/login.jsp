@@ -41,8 +41,8 @@ context=ServletUtilities.getContext(request);
 
 <div class="container maincontent">
 
-              <h1 class="intro">Volunteer login
-              </h1>
+              <h2 class="intro">Volunteer login
+              </h2>
 
               <p align="left">
 		
