@@ -22,6 +22,7 @@ if (request.getParameter("save") != null) {
     myShepherd.setAction("routeCreator-save");
     myShepherd.beginDBTransaction();
     Route route = new Route();
+    route.setName(jsonIn.optString("name", null));
     route.setStartTime(new DateTime(jsonIn.optString("startTime", null)));
     route.setEndTime(new DateTime(jsonIn.optString("endTime", null)));
     route.setLocationId(jsonIn.optString("locationId", null));
@@ -91,8 +92,10 @@ function updatePoints(pts) {
 }
 
 function saveData() {
+    $('#save-status input').hide();
     var data = {
         locationId: $('#locationId').val(),
+        name: $('#name').val(),
         startTime: $('#startTime').val(),
         endTime: $('#endTime').val(),
         path: JSON.parse($('#pt-data').val())
@@ -106,6 +109,11 @@ console.log('data=%o', data);
         type: 'POST',
         complete: function(x) {
             console.log(x);
+            if (x && x.responseJSON && x.responseJSON.success && x.responseJSON.routeId) {
+                $('#save-status').html('saved Route id=<b>' + x.responseJSON.routeId + '</b>');
+            } else {
+                $('#save-status').html('<div class="error">error saving</div>');
+            }
         }
     });
 }
@@ -125,23 +133,38 @@ margin: 10px;
 
 <div>
 <select id="locationId">
-<option>fix</option>
-<option>me</option>
-<option>please</option>
+<%
+    JSONObject lj = LocationID.getLocationIDStructure();
+    JSONArray jarr = lj.optJSONArray("locationID");
+    if (jarr != null) for (int i = 0 ; i < jarr.length() ; i++) {
+        JSONObject jloc = jarr.optJSONObject(i);
+        if (jloc == null) continue;
+        String lid = jloc.optString("id", null);
+        if (lid == null) continue;
+        String name = jloc.optString("name", lid);
+        out.println("<option value=\"" + lid + "\">" + name + "</option>");
+    }
+%>
 </select>
 </div>
 
 <div>
 <input id="startTime" /> start time <br />
-<input id="endTime" /> end time
+<input id="endTime" /> end time <br />
+<input id="name" /> name
 </div>
-<div id="pt-info"></div>
 
-<input type="button" value="save" onclick="saveData()" />
+<xmp>
+</xmp>
 
 <div>
+<p><div id="pt-info"></div></p>
 <textarea id="pt-data" style="padding-top: 20px; width: 700px; height: 20em;"></textarea>
 </div>
+
+<p id="save-status">
+<input type="button" value="save" onclick="saveData()" />
+</p>
 
 </body>
 </html>

@@ -562,6 +562,7 @@
         		<column length="36"/>
 		</field>
 		<field name="locationId" />
+		<field name="name" />
 		<field name="startTime" />
 		<field name="endTime" />
 		<field name="path" persistent-modifier="persistent" />

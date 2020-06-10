@@ -16,6 +16,7 @@ import java.util.Collection;
 public class Route implements java.io.Serializable {
 
     private String id;
+    private String name;
     private String locationId;
     private DateTime startTime;
     private DateTime endTime;
@@ -63,6 +64,13 @@ public class Route implements java.io.Serializable {
         users.add(user);
     }
 */
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String n) {
+        name = n;
+    }
 
     public Path getPath() {
         return path;

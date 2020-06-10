@@ -81,6 +81,7 @@ public class UserStatus extends HttpServlet {
         for (Route rt : new ArrayList<Route>(c)) {
             JSONObject jrt = new JSONObject();
             jrt.put("id", rt.getId());
+            jrt.put("name", rt.getName());
             jrt.put("locationId", rt.getLocationId());
             jrt.put("startTime", rt.getStartTime());
             jrt.put("endTime", rt.getEndTime());
