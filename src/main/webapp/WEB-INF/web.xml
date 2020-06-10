@@ -389,8 +389,7 @@
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
 
-				
-				/IndividualSetName = authc, roles[researcher]
+	
 				
 				/AnnotationEdit = authc, roles[admin]
 				
@@ -566,11 +565,7 @@
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
   </servlet>
-  
-  <servlet>
-      <servlet-name>IndividualSetName</servlet-name>
-      <servlet-class>org.ecocean.servlet.IndividualSetName</servlet-class>
-  </servlet>
+
 
 <!--
 <servlet>
@@ -1701,10 +1696,7 @@
           <url-pattern>/IndividualSetName</url-pattern>
   </servlet-mapping>
   
-  <servlet-mapping>
-          <servlet-name>IndividualSetName</servlet-name>
-          <url-pattern>/IndividualSetName</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
 	  <servlet-name>MarkRecaptureEncounters</servlet-name>
