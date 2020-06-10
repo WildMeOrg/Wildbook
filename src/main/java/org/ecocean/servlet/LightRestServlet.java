@@ -27,9 +27,12 @@ import java.util.StringTokenizer;
 
 import org.ecocean.ShepherdPMF;
 import org.ecocean.Util;
+import org.ecocean.CommonConfiguration;
 // import each class we have capability for
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
+
+import org.ecocean.security.Collaboration;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
@@ -950,7 +953,7 @@ System.out.println(thisRequest);
 
             if (isEnc) {
 
-                JSONObject jobj = getEncLightJson((Encounter) obj);
+                JSONObject jobj = getEncLightJson((Encounter) obj,req);
                 return jobj;
 
             }
@@ -978,9 +981,13 @@ System.out.println(thisRequest);
             JSONArray jarr = new JSONArray();
             for (Object o : coll) {
                 if (o instanceof Collection) {
-                    jarr.put(convertToJson(req, (Collection)o, ec));
+                    JSONArray j = convertToJson(req, (Collection)o, ec);
+                    jarr.put(j);
                 } else {  //TODO can it *only* be an JSONObject-worthy object at this point?
-                    jarr.put(convertToJson(req, o, ec));
+                    JSONObject j = convertToJson(req, o, ec);
+                    if (j.keys().hasNext()) {
+                        jarr.put(j);
+                    }
                 }
             }
             return jarr;
@@ -1035,8 +1042,17 @@ System.out.println("??? TRY COMPRESS ??");
             thisRequest = req;
         }
 
-        private JSONObject getEncLightJson(Encounter enc) {
+        private JSONObject getEncLightJson(Encounter enc, HttpServletRequest req) {
             JSONObject jobj = new JSONObject();
+
+            // if user cannot access, just return empty object (if desired in cc.props)
+            String omitNonCollaboratingEncs = CommonConfiguration.getProperty("omitNonCollaboratingEncs", ServletUtilities.getContext(req));
+            System.out.println(" omit Non collaborating encs? "+omitNonCollaboratingEncs);
+            if (omitNonCollaboratingEncs!=null&&"true".equals(omitNonCollaboratingEncs.trim())) {
+                boolean canAccess = Collaboration.canUserAccessEncounter(enc, req);
+                if (!canAccess) return jobj;
+            } 
+
             for (String fieldName: Encounter_Light_Str_Fields) {
                 try {
                     Method getter = Encounter.class.getMethod(getterName(fieldName));
