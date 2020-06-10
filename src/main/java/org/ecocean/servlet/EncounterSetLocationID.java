@@ -22,6 +22,8 @@ package org.ecocean.servlet;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.LocationID;
+import org.ecocean.MarkedIndividual;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -101,6 +103,13 @@ public class EncounterSetLocationID extends HttpServlet {
         changeMe.setLocationCode(request.getParameter("code").trim());
         changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed location code from " + oldCode + " to " + request.getParameter("code") + ".</p>");
 
+        //update numberLocations on  a dependent MarkedIndividual too
+        if(changeMe.getIndividual()!=null) {
+          MarkedIndividual indy=changeMe.getIndividual();
+          indy.refreshDependentProperties();
+        }
+        
+        
       } catch (Exception le) {
         locked = true;
         le.printStackTrace();
@@ -110,14 +119,16 @@ public class EncounterSetLocationID extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         //out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success:</strong> Encounter location has been updated from " + oldCode + " to " + request.getParameter("code") + ".");
+        //out.println("<strong>Success:</strong> Encounter location has been updated from " + oldCode + " to " + request.getParameter("code") + ".");
         //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json");
+        out.println("{\"locationID\":\""+request.getParameter("code")+"\",\"name\":\""+LocationID.getNameForLocationID(request.getParameter("code"), null)+"\"}");
        
         //out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         //out.println(ServletUtilities.getFooter(context));
-        String message = "Encounter #" + request.getParameter("number") + " location code has been updated from " + oldCode + " to " + request.getParameter("code") + ".";
-        ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
+        //String message = "Encounter #" + request.getParameter("number") + " location code has been updated from " + oldCode + " to " + request.getParameter("code") + ".";
+        //ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } 
       else {
         //out.println(ServletUtilities.getHeader(request));

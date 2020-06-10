@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, 
          com.google.gson.Gson,
+         org.ecocean.datacollection.Instant,
          org.ecocean.*,
          org.ecocean.tag.*,
          org.datanucleus.api.rest.orgjson.JSONObject
@@ -8,6 +9,8 @@
 
 <%
 
+boolean isLoggedIn=false;
+if(request.getUserPrincipal()!=null)isLoggedIn=true;
 String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -96,7 +99,7 @@ context=ServletUtilities.getContext(request);
 	
 				if (possible.size() > 0) {
 	   			String arr = new Gson().toJson(possible);
-					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
 				} else {
 					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
 					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
@@ -258,6 +261,15 @@ context=ServletUtilities.getContext(request);
 %>
 </p>
 
+<%
+if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
+    out.println("<p>" + props.getProperty("behaviors") + ":<ul>");
+    for (Instant behav : occ.getBehaviors()) {
+        out.println("<li>" + behav.getValue().toString().substring(0,19) + " <b>" + behav.getName() + "</b></li>");
+    }
+    out.println("</ul></p>");
+}
+%>
 		<p><%=props.getProperty("groupBehavior") %>: 
 			<%if(occ.getGroupBehavior()!=null){%>
 				<%=occ.getGroupBehavior() %>
@@ -364,10 +376,12 @@ context=ServletUtilities.getContext(request);
 <p>
     <%=props.getProperty("latitude")%> /
     <%=props.getProperty("longitude")%> /
-    <%=props.getProperty("bearing")%> :
+    <%=props.getProperty("bearing")%> /
+    <%=props.getProperty("distance")%> :
     <%=occ.getDecimalLatitude()%>,
-    <%=occ.getDecimalLongitude()%>
-    <%=occ.getBearing()%>m
+    <%=occ.getDecimalLongitude()%> /
+    <%=occ.getBearing()%> m /
+    <%=occ.getDistance()%> m
 </p>
 
 <%

@@ -176,6 +176,7 @@ public class MarkedIndividual implements java.io.Serializable {
         return getDisplayName(null);
     }
     public String getDisplayName(Object keyHint) {
+        if (names == null) return null;
         List<String> nameVals = getNamesList(keyHint);
         // default case: just return the first name for the keyhint.
         if (!Util.isEmpty(nameVals)) return nameVals.get(0);
@@ -346,6 +347,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
             vals.removeAll(rtn);  //weed out duplicates
             rtn.addAll(vals);
         }
+        q.closeAll();
         return rtn;
     }
 
@@ -2120,7 +2122,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-            if (this.canUserAccess(request)) return jobj;
+	          jobj.put("displayName", this.getDisplayName());
+	          if (this.canUserAccess(request)) return jobj;
             jobj.remove("numberLocations");
             jobj.remove("sex");
             jobj.remove("numberEncounters");
@@ -2137,32 +2140,39 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   
   public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-    jobj.put("displayName", this.getDisplayName());
     jobj.remove("nickName");
     jobj.put("nickName", this.getNickName());
     //System.out.println("Put displayName in sanitizeJSON: "+jobj.get("displayName"));
     return jobj;
   }
 
+  
+//Returns a somewhat rest-like JSON object containing the metadata
+ public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+   return uiJson(request, true);
+ }
   // Returns a somewhat rest-like JSON object containing the metadata
-  public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+  public JSONObject uiJson(HttpServletRequest request, boolean includeEncounters) throws JSONException {
     JSONObject jobj = new JSONObject();
     jobj.put("individualID", this.getIndividualID());
+    jobj.put("displayName", this.getDisplayName());
     jobj.put("id", this.getId());
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
-    jobj.put("nickname", this.nickName);
+    jobj.put("nickname", this.getNickName());
     jobj.put("numberEncounters", this.getNumEncounters());
     jobj.put("numberLocations", this.getNumberLocations());
     jobj.put("maxYearsBetweenResightings", getMaxNumYearsBetweenSightings());
     // note this does not re-compute thumbnail url (so we can get thumbnails on searchResults in a reasonable time)
     jobj.put("thumbnailUrl", this.thumbnailUrl);
 
-    Vector<String> encIDs = new Vector<String>();
-    for (Encounter enc : this.encounters) {
-      encIDs.add(enc.getCatalogNumber());
+    if(includeEncounters) {
+      Vector<String> encIDs = new Vector<String>();
+      for (Encounter enc : this.encounters) {
+        encIDs.add(enc.getCatalogNumber());
+      }
+      jobj.put("encounterIDs", encIDs.toArray());
     }
-    jobj.put("encounterIDs", encIDs.toArray());
     return sanitizeJson(request,decorateJson(request, jobj));
   }
 
@@ -2304,13 +2314,13 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   }
 
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames) throws JSONException {
-    return getBestKeywordPhotos(req, kwNames, false);
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, Shepherd myShepherd) throws JSONException {
+    return getBestKeywordPhotos(req, kwNames, false, myShepherd);
   }
-  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, boolean tryNoKeywords) throws JSONException {
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getBestKeywordPhotos(HttpServletRequest req, List<String> kwNames, boolean tryNoKeywords, Shepherd myShepherd) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
-    Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
-    myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
+    //Shepherd myShepherd = new Shepherd(ServletUtilities.getContext(req));
+    //myShepherd.setAction("MarkedIndividual.getBestKeywordPhotos");
 
     List<MediaAsset> assets = new ArrayList<MediaAsset>();
     for (String kwName: kwNames) {
@@ -2337,8 +2347,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       }
     }
 
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
+    //myShepherd.rollbackDBTransaction();
+    //myShepherd.closeDBTransaction();
     return al;
   }
 
@@ -2423,6 +2433,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     // to find an *exact match* on a name, you can use:   regex = "(^|.*;)NAME(;.*|$)";
     // NOTE: this is case-insentitive, and as such it squashes the regex as well, sorry!
     public static List<MarkedIndividual> findByNames(Shepherd myShepherd, String regex, String genus, String specificEpithet) {
+
         int idLimit = 2000;  //this is cuz we get a stack overflow if we have too many.  :(  so kinda have to fail when we have too many
         System.out.println("findByNames regex: "+regex);
         List<MarkedIndividual> rtn = new ArrayList<MarkedIndividual>();
@@ -2433,14 +2444,16 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             System.out.println("WARNING: MarkedIndividual.findByNames() found too many names; failing (" + nameIds.size() + " > " + idLimit + ")");
             return rtn;
         }
-        System.out.println("findByNames nameIds: "+nameIds.toString());
+        //System.out.println("findByNames nameIds: "+nameIds.toString());
         if (nameIds.size() < 1) return rtn;
-        System.out.println("findByNames: "+genus+" "+specificEpithet);
+        //System.out.println("findByNames: "+genus+" "+specificEpithet);
         String taxonomyStringFilter="";
         if((genus!=null)&&(specificEpithet!=null)) {
-          taxonomyStringFilter=" && enc.genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc";
+          genus = genus.trim();
+          specificEpithet = specificEpithet.trim();
+          taxonomyStringFilter=" && enc.genus == '"+genus+"' && enc.specificEpithet == '"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc";
         }
-        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE (names.id == " + String.join(" || names.id == ", nameIds)+")"+taxonomyStringFilter;
+        String jdoql = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (names.id == " + String.join(" || names.id == ", nameIds)+")"+taxonomyStringFilter;
         System.out.println("findByNames jdoql: "+jdoql);
         Query query = myShepherd.getPM().newQuery(jdoql);
         Collection c = (Collection) (query.execute());
@@ -2499,6 +2512,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             NAMES_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.names.getAllValues()).toLowerCase());
             NAMES_KEY_CACHE.put(ind.names.getId(), ind.getId() + ";" + String.join(";", ind.getNameKeys()).toLowerCase());
         }
+        query.closeAll();
         return NAMES_CACHE;
     }
 

@@ -93,8 +93,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
  if(!langCode.equals("en")){
  %>
 
-<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
-<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+<script src="../javascript/timepicker/datepicker-<%=langCode %>.js"></script>
+<script src="../javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
 
  <%
  }
@@ -526,36 +526,13 @@ function useData(doc){
         </em>)</p>
 
       <%
-        List<String> locIDs = useCustomProperties
-        	? CommonConfiguration.getIndexedPropertyValues("locationID", request)
-        	: myShepherd.getAllLocationIDs();
-        int totalLocIDs = locIDs.size();
-        if (totalLocIDs >= 1) {
-      %>
+      String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+      if(qualifier==null) {qualifier="default";}
+      else{qualifier=qualifier.replaceAll(".properties","");}
 
-      <select multiple name="locationCodeField" id="locationCodeField" size="10">
-        <option value="None"></option>
-        <%
-          for (int n = 0; n < totalLocIDs; n++) {
-            String word = locIDs.get(n);
-            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
-        %>
-        <option value="<%=word%>"><%=word%></option>
-        <%
-            }
-          }
-        %>
-      </select>
-      <%
-      } else {
       %>
-      <p><em><%=encprops.getProperty("noLocationIDs")%>
-      </em></p>
-      <%
-        }
-      %>
-      
-      
+		<%=LocationID.getHTMLSelector(true, "",qualifier,"locationCodeField","locationCodeField","") %>
+
       <%
 
 if(CommonConfiguration.showProperty("showCountry",context)){
@@ -569,7 +546,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 </td></tr><tr><td>
   
   <select name="country" id="country" multiple="multiple" size="5">
-  	<option value="None" selected="selected"></option>
+  	<option value="" selected="selected"></option>
   		<%
   		List<String> countries = (useCustomProperties)
   			? CommonConfiguration.getIndexedPropertyValues("country", request)
@@ -952,14 +929,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </c:forEach>
 <tr><td></td></tr>
 </c:if>
-<tr><td>
-      <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
-            <label> 
-            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
-            </label>
-      </p>
-      </td></tr>
-  
+
+
 </table>
 </p>
 </div>
@@ -971,11 +942,20 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   <td>
     <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
-      Labeled Keywords</a></h4>
+      <%=encprops.getProperty("imageLabelFilters") %></a></h4>
 
     <div id="keywords" style="display:none; ">
     	<table id="labeled-kw-table">
-				<tr><strong>Labeled Keywords</strong></tr>
+    		<tr>
+	    		<td>
+			      <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
+			            <label>
+			            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+			            </label>
+			      </p>
+			    </td>
+		      </tr>
+				<tr><td><strong><%=encprops.getProperty("imageLabelFilters") %></strong></td></tr>
 				<tr><td colspan="3"><p><em>Filter by Labeled Keywords on an Encounter's photos. Select labels and (optionally) values for Labeled Keywords below.</em>
 					<ul>
 						<li>If you select a label and no values, the search will include all possible values for that label.</li>
@@ -1005,6 +985,85 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 							<input type="button" class="new-lkw <%=kwNo%>" value="Add Keyword" onclick="addLabeledKeyword(this);" style="display:none">
 						</td>
 					</tr>
+					
+		    <%
+          int numStandardKeywords = myShepherd.getAllKeywordsList().size();
+          int numLabeledKeywords = myShepherd.getAllLabeledKeywords().size();
+        %>
+        <tr><td><strong><%=encprops.getProperty("keywordFilters") %></strong></td></tr>
+        <tr>
+          <td><p><%=encprops.getProperty("hasKeywordPhotos")%>
+          </p>
+            <%
+              if (numStandardKeywords> 0) {            	     
+            %>
+
+            <select multiple name="keyword" id="keyword" size="10">
+              <option value="None"></option>
+              <%
+                if (numStandardKeywords>0&&numLabeledKeywords>0) {
+                  %>
+                  <option disabled><strong><em><%=encprops.getProperty("standard")%></em></strong></option>
+                  <%
+                }
+
+                Iterator<Keyword> keys = myShepherd.getAllKeywords();
+                while (keys.hasNext()) { 
+                  Keyword word = keys.next();
+              %>
+              <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
+              </option>
+              <%
+            }
+            System.out.println("got here to end of keyword section....");
+            System.out.println("prior to closing kw query line... ");
+            //kwQuery.closeAll();
+            
+            if (numStandardKeywords>0&&numLabeledKeywords>0) {
+              %>
+              <option disabled><em><i><%=encprops.getProperty("labeled")%></i></em></option>
+              <%
+            }
+
+            // second section here for the labeled keywords
+            if (numLabeledKeywords>0) {
+              List<LabeledKeyword> lkwList = myShepherd.getAllLabeledKeywords();
+
+              for (LabeledKeyword lkw : lkwList) {
+
+                %>
+                <option value="<%=lkw.getIndexname()%>"><%=lkw.getReadableName()%>
+                </option>
+                <%
+              }
+            }
+            %>
+            </select>
+
+            </td>
+        </tr>
+
+            <tr><td>
+      <p>
+            <label>
+            	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
+            </label> <strong><%=encprops.getProperty("orPhotoKeywords")%> </strong>
+      </p>
+      </td></tr>
+            <%
+            // show if no found keywords
+            } else {
+            %>
+
+            <p><em><%=encprops.getProperty("noKeywords")%>
+            </em></p></td>
+        </tr>
+
+            <%
+              }
+            %>
+					
+					
 			</table>
 		</div>
 	</td>
@@ -1018,7 +1077,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </style>
 
 <script>
+console.log("reaching this block????");  
 var labelsToValues = <%=labeledKwsJson%>;
+
 function selectKeywordLabel(el) {
   var label = $(el).val();
   var number = $(el).closest('tr.labeled-kw-container').data("lkw-no");
@@ -1053,6 +1114,7 @@ function showValueOptions(lkwNumber, label) {
 }
 
 function addLabeledKeyword(el) {
+   console.log("in addLabeledKeyword method...");
 	 var number = $(el).closest('tr.labeled-kw-container').data("lkw-no");
 	 var nextNum = number+1;
 	 // now we need to add the entire tr for a labeled keyword
@@ -1083,7 +1145,6 @@ function addLabeledKeyword(el) {
 
 	
 </script>
-
 
 <tr>
   <td>
@@ -1135,12 +1196,10 @@ function addLabeledKeyword(el) {
               href="<%=CommonConfiguration.getWikiLocation(context)%>individualID"
               target="_blank"><img src="../images/information_icon_svg.gif"
                                    alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
-              <br />
-              
-              <%=encprops.getProperty("multipleIndividualID")%></em></p>
-        
-      
-        
+        	</em></p>
+
+
+
     </div>
   </td>
 </tr>
@@ -1509,6 +1568,4 @@ else {
 <script type="text/javascript" src="../javascript/formNullRemover.js"></script>
 
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
 

@@ -18,6 +18,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import javax.jdo.Query;
+import java.util.Collection;
 
 public class Task implements java.io.Serializable {
 
@@ -245,8 +246,12 @@ public class Task implements java.io.Serializable {
     public static List<Task> getTasksFor(Annotation ann, Shepherd myShepherd) {
         String qstr = "SELECT FROM org.ecocean.ia.Task WHERE objectAnnotations.contains(obj) && obj.id == \"" + ann.getId() + "\" VARIABLES org.ecocean.Annotation obj";
         Query query = myShepherd.getPM().newQuery(qstr);
+        query.setIgnoreCache(true);
         query.setOrdering("created");
-        return (List<Task>) query.execute();
+        Collection c = (Collection)query.execute();
+        List<Task> listy=new ArrayList<Task>(c);
+        query.closeAll();
+        return listy;
     }
     public static List<Task> getRootTasksFor(Annotation ann, Shepherd myShepherd) {
         return onlyRoots(getTasksFor(ann, myShepherd));
@@ -255,8 +260,12 @@ public class Task implements java.io.Serializable {
     public static List<Task> getTasksFor(MediaAsset ma, Shepherd myShepherd) {
         String qstr = "SELECT FROM org.ecocean.ia.Task WHERE objectMediaAssets.contains(obj) && obj.id == " + ma.getId() + " VARIABLES org.ecocean.media.MediaAsset obj";
         Query query = myShepherd.getPM().newQuery(qstr);
+        query.setIgnoreCache(true);
         query.setOrdering("created");
-        return (List<Task>) query.execute();
+        Collection c = (Collection)query.execute();
+        List<Task> listy=new ArrayList<Task>(c);
+        query.closeAll();
+        return listy;
     }
     public static List<Task> getRootTasksFor(MediaAsset ma, Shepherd myShepherd) {
         return onlyRoots(getTasksFor(ma, myShepherd));

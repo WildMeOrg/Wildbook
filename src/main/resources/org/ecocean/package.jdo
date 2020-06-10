@@ -188,6 +188,12 @@
       <fetch-group name="allSharks_min">
         <field name="encounters"/>
       </fetch-group>
+	  
+	  
+	      <fetch-group name="indymin">
+        <field name="individualID"/>
+      </fetch-group>
+	 
       <fetch-group name="count"/>
 
     </class>
@@ -258,6 +264,13 @@
       </field>
 
       <fetch-group name="count"/>
+	 
+	  <fetch-group name="occurmin">
+        <field name="encounters" />
+		<field name="occurrenceID"/>
+      </fetch-group>
+	 
+
 
     </class>
 
@@ -469,9 +482,34 @@
       
       <field name="digitalArchiveTag" persistence-modifier="persistent"></field>
 
-      <fetch-group name="allSharks_min">
-        <field name="approved"/>
+	
+	  <fetch-group name="searchResults">
+	  
+        <field name="individual"/>
+		<field name="occurrenceID"/>
+		<field name="year"/>
+		<field name="month"/>
+		<field name="day"/>
+		<field name="hour"/>
+		<field name="minutes"/>
+		<field name="catalogNumber"/>
+		<field name="locationID"/>
+		<field name="modified"/>
+		<field name="dwcDateAdded"/>
+		<field name="dwcDateAddedLong"/>
+		<field name="submitterID"/>
+		<field name="genus"/>
+		<field name="specificEpithet"/>
+		<field name="otherCatalogNumbers"/>
+		
       </fetch-group>
+	
+	
+      <fetch-group name="encmin">
+	  
+        <field name="individual"/>
+      </fetch-group>
+	 
       <fetch-group name="count"/>
     </class>
 
@@ -919,6 +957,9 @@
 		<field name="key" primary-key="true" />
 		<field name="version">
 			<column allows-null="true" />
+		</field>
+		<field name="value">
+			<column jdbc-type="LONGVARCHAR" />
 		</field>
 	</class>
 

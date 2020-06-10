@@ -3,12 +3,30 @@ $('#search').submit(function() {
   $(this)
     .find('input[name]')
     .filter(function () {
-        return !this.value;
+    	if(!this.value || this.value.trim() === ""){return true;}
+    	else{return false;}
+        return !this.value ;
     })
     .prop('name', '');
-	console.log('');;
-	console.log('===============');;
-  console.log("formNullRemover was called on elem id "+$(this).attr('id')+" and name "+$(this).attr('name'));
- 	console.log('');;
+	//console.log('');;
+	//console.log('===============');;
+    //alert("formNullRemover was called on elem id "+$(this).attr('id')+" and name "+$(this).attr('name'));
+ 	//console.log('');;
+ 	
+ 	  $(this)
+ 	    .find('select[name]')
+ 	    .filter(function () {
+ 	    	if(!this.value || this.value.trim() === ""){return true;}
+ 	    	else{return false;}
+ 	        return !this.value ;
+ 	    })
+ 	    .prop('name', '');
+ 		//console.log('');;
+ 		//console.log('===============');;
+ 	    //alert("formNullRemover was called on elem id "+$(this).attr('id')+" and name "+$(this).attr('name'));
+ 	 	//console.log('');;
+ 	 	
+ 	 	  $(this)
+ 	 	    .find('select[name=\"submitSearch\"]').prop('name', '');
 
  });
