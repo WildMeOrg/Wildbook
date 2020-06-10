@@ -550,6 +550,7 @@ if (thisUser == null) {
 
 
                             <li class="dropdown-header">Admins Only</li>
+                              <li><a href="<%=urlLoc %>/appadmin/routeCreator.jsp">Route Creator</a></li>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                          
