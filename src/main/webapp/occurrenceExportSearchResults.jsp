@@ -22,6 +22,7 @@
 
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("occurrenceExportSearchResults.jsp");
 
     //set up the vector for matching encounters
     Vector rOccurrences = new Vector();
@@ -100,7 +101,9 @@
 		    <div class="container maincontent">
 
 
-		      <h1 class="intro"><%=occProps.getProperty("reports") %></h1>
+		           <h1 class="intro">
+        				<%=occProps.getProperty("OccurrenceSearchResults")%>
+      				</h1>
 
 
 

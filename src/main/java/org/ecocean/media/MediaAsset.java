@@ -47,6 +47,8 @@ import java.util.Set;
 import java.util.List;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Collections;
+import java.util.Comparator;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
@@ -594,19 +596,13 @@ public class MediaAsset implements java.io.Serializable {
     //if unity feature is appropriate, generates that; otherwise does a boundingBox one
     //   'params' is extra params to use, and can be null
     public Feature generateFeatureFromBbox(double w, double h, double x, double y, JSONObject params) {
-        Feature f = null;
-        if ((x != 0) || (y != 0) || (w != this.getWidth()) || (h != this.getHeight())) {
-            if (params == null) params = new JSONObject();
-            params.put("width", w);
-            params.put("height", h);
-            params.put("x", x);
-            params.put("y", y);
-            f = new Feature("org.ecocean.boundingBox", params);
-            this.addFeature(f);
-        } else {
-            //oopsy this ignores extra params!   TODO FIXME should we change this?
-            f = this.generateUnityFeature();
-        }
+        if (params == null) params = new JSONObject();
+        params.put("width", w);
+        params.put("height", h);
+        params.put("x", x);
+        params.put("y", y);
+        Feature f = new Feature("org.ecocean.boundingBox", params);
+        this.addFeature(f);
         return f;
     }
 
@@ -621,6 +617,20 @@ public class MediaAsset implements java.io.Serializable {
     public boolean hasAnnotations() {
         return (getAnnotations().size() > 0);
     }
+
+    public List<Annotation> getAnnotationsSortedPositionally() {
+        List<Annotation> ord = new ArrayList<Annotation>(this.getAnnotations());
+        if (Util.collectionSize(ord) < 2) return ord;  //no sorting necessary
+        Collections.sort(ord, new AnnotationPositionalComparator());
+        return ord;
+    }
+
+        class AnnotationPositionalComparator implements Comparator<Annotation> {
+            @Override
+            public int compare(Annotation annA, Annotation annB) {
+                return annA.comparePositional(annB);
+            }
+        }
 
 /*
         return annotations;
@@ -978,6 +988,10 @@ public class MediaAsset implements java.io.Serializable {
                                 String displayName = enc.getDisplayName();
                                 if (!Util.stringExists(displayName)) displayName = enc.getIndividualID();
                                 jf.put("displayName", displayName);
+                            }
+                            if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null) {
+                              jf.put("genus",enc.getGenus());
+                              jf.put("specificEpithet",enc.getSpecificEpithet());
                             }
                         }
                     }

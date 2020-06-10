@@ -91,7 +91,7 @@ public class WildbookIAM extends IAPlugin {
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("WildbookIAM.prime");
                 myShepherd.beginDBTransaction();
-                ArrayList<Annotation> matchingSet = Annotation.getMatchingSetAllSpecies(myShepherd);
+                ArrayList<Annotation> matchingSet = Annotation.getAllMatchAgainstTrue(myShepherd);
                 ArrayList<Annotation> sendAnns = new ArrayList<Annotation>();
                 ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
                 for (Annotation ann : matchingSet) {
@@ -107,7 +107,7 @@ public class WildbookIAM extends IAPlugin {
                 try {
                     //think we can checkFirst on both of these -- no need to re-send anything during priming
                     sendMediaAssets(mas, true);
-                    sendAnnotations(sendAnns, true);
+                    sendAnnotations(sendAnns, true, myShepherd);
                 } catch (Exception ex) {
                     IA.log("ERROR: WildbookIAM.prime() failed due to " + ex.toString());
                     ex.printStackTrace();
@@ -209,20 +209,23 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
         return allRtn;
     }
 
-    public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public JSONObject sendAnnotations(ArrayList<Annotation> anns, boolean checkFirst, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = IA.getProperty(context, "IBEISIARestUrlAddAnnotations");
         if (u == null) throw new MalformedURLException("WildbookIAM configuration value IBEISIARestUrlAddAnnotations is not set");
         URL url = new URL(u);
         int ct = 0;
         //may be different shepherd, but findIndividualId() below will only work if its all persisted anyway. :/
+        /*
         Shepherd myShepherd = null;
         try {
             myShepherd = new Shepherd(context);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         myShepherd.setAction("WildbookIAM.sendAnnotations");
         myShepherd.beginDBTransaction();
+        */
 
         //sometimes (i.e. when we already did the work, like priming) we dont want to check IA first
         List<String> iaAnnotIds = new ArrayList<String>();
@@ -266,7 +269,7 @@ System.out.println(batchCt + "]  sendMediaAssets() -> " + rtn);
             map.get("annot_name_list").add((name == null) ? "____" : name);
             ct++;
         }
-        myShepherd.rollbackDBTransaction();
+        //myShepherd.rollbackDBTransaction();
 
         IA.log("INFO: WildbookIAM.sendAnnotations() is sending " + ct);
         if (ct < 1) return null;  //null for "none to send" ?  is this cool?
@@ -380,16 +383,24 @@ System.out.println("fromResponse ---> " + ids);
     private static Object mediaAssetToUri(MediaAsset ma) {
         //URL curl = ma.containerURLIfPresent();  //what is this??
         //if (curl == null) curl = ma.webURL();
+
         URL curl = ma.webURL();
-        if (ma.getStore() instanceof LocalAssetStore) {
-            if (curl == null) return null;
-            return curl.toString();
-        } else if (ma.getStore() instanceof S3AssetStore) {
-            return ma.getParameters();
-        } else {
-            if (curl == null) return null;
-            return curl.toString();
+        
+        String urlStr = curl.toString();
+        // THIS WILL BREAK if you need to append a query to the filename... 
+        // we are double encoding the '?' in order to allow filenames that contain it to go to IA   
+        if (urlStr!=null) {
+            urlStr = urlStr.replaceAll("\\?", "%3F");
+            if (ma.getStore() instanceof LocalAssetStore) {
+                return urlStr;
+            } else if (ma.getStore() instanceof S3AssetStore) {
+                return ma.getParameters();
+            } else {
+                return urlStr;
+            }
         }
+        return null;
+        
     }
 
     //basically "should we send to IA?"

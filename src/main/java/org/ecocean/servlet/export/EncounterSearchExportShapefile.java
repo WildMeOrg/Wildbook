@@ -151,6 +151,8 @@ public class EncounterSearchExportShapefile extends HttpServlet{
 					out.println("<html><body><p><strong>Access denied.</strong></p>");
 					out.println(ServletUtilities.getFooter(context));
 					out.close();
+			    myShepherd.rollbackDBTransaction();
+			    myShepherd.closeDBTransaction();
 					return;
 				}
       
@@ -216,7 +218,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
             
             }
             featureBuilder.set("Haplotype",haploString);
-            featureBuilder.set("URL",("//"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+enc.getCatalogNumber()));
+            featureBuilder.set("URL",("https://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+enc.getCatalogNumber()));
             
             //featureBuilder.add(enc.getDecimalLatitudeAsDouble());
             //featureBuilder.add(enc.getDecimalLongitudeAsDouble());

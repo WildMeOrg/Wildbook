@@ -107,6 +107,7 @@ try {
   System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
+	query.closeAll();
   	int numEncs=encs.size();
   System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
@@ -166,7 +167,7 @@ function forceLink(el) {
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
-		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a><br>";
+		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName()+"</a><br>";
 		      }
 		      	System.out.println("    EMG: got indID element "+individualID);
 
@@ -191,21 +192,33 @@ function forceLink(el) {
 		  		
 		  		if (ma != null) {
 		  			System.out.println("    EMG: ma is not null");
-
+                    if (ma.getMetadata() != null) ma.getMetadata().getDataAsString(); //temp hack to make sure metadata available, remove at yer peril
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
                                                 List<Task> tasks = ann.getRootIATasks(imageShepherd);
+
                                                 for (Task t : ma.getRootIATasks(imageShepherd)) {
                                                     if (!tasks.contains(t)) tasks.add(t);
+                                                    //System.out.println("Task ID: "+t.getId());
                                                 }
+
+                                                Collections.sort(tasks, new Comparator<Task>() {
+                                                    @Override public int compare(Task tsk1, Task tsk2) {
+                                                        return Long.compare(tsk1.getCreatedLong(), tsk2.getCreatedLong()); // first asc
+                                                    }
+                                                });
+                                                Collections.reverse(tasks); // now desc, ez
+
                                                 JSONArray jt = new JSONArray();
                                                 for (Task t : tasks) {
                                                     jt.put(Util.toggleJSONObject(t.toJSONObject()));
                                                 }
+                                                //System.out.println("Root tasks returned...");
                                                 j.put("tasks", jt);
                                                 JSONObject ja = new JSONObject();
 						ja.put("id", ann.getId());
+						ja.put("matchAgainst", ann.getMatchAgainst());
                                                 //ja.put("acmId", ann.getAcmId());
                                                 ja.put("iaClass", ann.getIAClass());
                                                 ja.put("identificationStatus", ann.getIdentificationStatus());
@@ -264,6 +277,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
         Query q = imageShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         List results = (List)q.execute();
         Iterator it = results.iterator();
+
         while (it.hasNext()) {
             Object[] row = (Object[]) it.next();
             int aid = (int)row[0];
@@ -276,6 +290,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
             dups.getJSONObject(acm).getJSONObject(eid).put("asset", aid);
             dups.getJSONObject(acm).getJSONObject(eid).put("indiv", iid);
         }
+        q.closeAll();
     }
     out.println("<script> var assetDup = " + dups.toString() + ";</script>");
 
@@ -362,6 +377,16 @@ figcaption div {
 
 .image-enhancer-wrapper:hover .pointer-arrow {
     display: none;
+}
+
+
+/* removes the (at writing) incomplete labeled keyword adder */
+.iek-new-wrapper.labeled {
+  display: none;
+}
+
+.image-enhancer-keyword.labeled-keyword span.keyword-label, span.keyword-label {
+  font-weight: bold; 
 }
 
 .caption-youtube {
@@ -542,13 +567,13 @@ if(request.getParameter("encounterNumber")!=null){
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
-  
-  console.log("Hey we're workin again!");
+
+  //console.log("Hey we're workin again!");
   var assets = <%=all.toString()%>;
   // <% System.out.println(" Got all size = "+all.length()); %>
   var captions = <%=captions.toString()%>
   captions.forEach( function(elem) {
-    console.log("caption here: "+elem);
+    //console.log("caption here: "+elem);
   })
 
   //
@@ -969,6 +994,7 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         fel.addClass('image-enhancer-feature-aoi');
         tooltip += '<br /><i style="color: #280; font-size: 0.8em;">Annotation of Interest</i>';
     }
+    if (feat.parameters.viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + feat.parameters.viewpoint + '</b></i>';
     if (focused) fel.addClass('image-enhancer-feature-focused');
     fel.prop('data-tooltip', tooltip);
     fel.css({
@@ -1009,6 +1035,75 @@ function checkImageEnhancerResize() {
 	});
 	if (needUpdate) doImageEnhancer('figure img');
 }
+
+
+function updateLabeledKeywordLabel(el) {
+  var label = $(el).val();
+  $('select.value-selector').hide();
+  $('select.value-selector.'+label).show();
+}
+function updateLabeledKeywordValue(el) {
+  var jel = $(el);
+  var label = jel.data("kw-label");
+  var value = jel.val();
+  var wrapper = jel.closest('.image-enhancer-wrapper');
+  if (!wrapper.length) {
+    console.error("could not find MediaAsset id from closest wrapper");
+    return;
+  }
+  var mid = imageEnhancer.mediaAssetIdFromElement(wrapper);
+  if (!assetById(mid)) {
+    console.error("could not find MediaAsset byId(%o)", mid);
+    return;
+  }
+  console.log("updateLabeledKeywordValue got values %s, %s for media asset %s",label,value,mid);
+  var dataObj = {
+    "label": label,
+    "value": value,
+    "mid"  : mid
+  }
+  console.log("dataObj = %o",dataObj);
+
+  var urlWithArgs = wildbookGlobals.baseUrl + '/AddLabeledKeyword?label='+label+'&value='+value+'&mid='+mid;
+
+  $.ajax({
+    url: urlWithArgs,
+    //data: JSON.stringify(dataObj),
+    contentType: 'application/javascript',
+    success: function(d) {
+      console.info("Success on AddLabeledKeyword. d=%o",d);
+      if (d.success) {
+        if (d.newKeywords) {
+          for (var id in d.newKeywords) {
+            // wildbookGlobals.keywords[id] = d.newKeywords[id];
+          }
+        }
+        var mainMid = false;
+        if (d.results) {
+          for (var mid in d.results) {
+            wildbookGlobals.keywords[id] = d.newKeywords[id];
+            refreshKeywordsForMediaAsset(mid, d);
+          }
+        }
+      if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
+      } else {
+        var msg = d.error || 'ERROR could not make change';
+        $('.popup-content').append('<p class="error">' + msg + '</p>');
+      }
+    },
+    error: function(x,a,b) {
+      console.error('%o %o %o', x, a, b);
+      $('.popup-content').append('<p class="error">ERROR making change: ' + b + '</p>');
+    },
+    type: 'POST',
+    dataType: 'json'
+  });
+
+
+  return false;
+}
+
+
 
 
 var popupStartTime = 0;
@@ -1069,7 +1164,7 @@ console.info(d);
 				var mainMid = false;
 				if (d.results) {
 					for (var mid in d.results) {
-                                            refreshKeywordsForMediaAsset(mid, d);
+            refreshKeywordsForMediaAsset(mid, d);
 					}
 				}
                                 if (d.newKeywords) refreshAllKeywordPulldowns();  //has to be done *after* refreshKeywordsForMediaAsset()
@@ -1107,6 +1202,7 @@ console.info(d);
 */
 
 function refreshKeywordsForMediaAsset(mid, data) {
+  console.log("refreshKeywordsForMediaAsset called on mid %s and data %o",mid,data);
     for (var i = 0 ; i < assets.length ; i++) {
         if (assets[i].id != mid) continue;
         //if (!assets[i].keywords) assets[i].keywords = [];
@@ -1115,14 +1211,15 @@ function refreshKeywordsForMediaAsset(mid, data) {
             assets[i].keywords.push({
                 indexname: id,
                 readableName: data.results[mid][id],
-                displayName: data.results[mid][displayName],
-                label: data.results[mid][label]
+                //displayName: data.results[mid][displayName],
+                //label: data.results[mid][label]
             });
         }
     }
     //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
-    $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {   //update the ui
-        $(el).find('.image-enhancer-keyword-wrapper').remove();
+    $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {
+           //update the ui
+        $(el).find('.image-enhancer-keyword-wrapper-hover').empty();
         imageLayerKeywords($(el), { _mid: mid });
     });
 }
@@ -1137,6 +1234,20 @@ function refreshAllKeywordPulldowns() {
     });
 }
 
+<%
+// alright folks, lets get our map of labels to values!
+Map<String, List<String>> labelsToValues = LabeledKeyword.labelUIMap(request);
+System.out.println("we got labelsToValues = "+labelsToValues);
+String labelsToValuesStr = labelsToValues.toString();
+labelsToValuesStr = labelsToValuesStr.replaceAll("=",":");
+System.out.println("the stringy version is |"+labelsToValuesStr+"| with length() "+labelsToValuesStr.length());
+
+JSONObject jobj = new JSONObject(labelsToValues);
+System.out.println("got jobj "+jobj);
+
+%>
+
+
 function imageLayerKeywords(el, opt) {
 	var mid;
 	if (opt && opt._mid) {  //hack!
@@ -1150,12 +1261,69 @@ console.info("############## mid=%s -> %o", mid, ma);
 
 	if (!ma.keywords) ma.keywords = [];
 	var thisHas = [];
-	var h = '<div class="image-enhancer-keyword-wrapper">';
-	for (var i = 0 ; i < ma.keywords.length ; i++) {
-		thisHas.push(ma.keywords[i].indexname);
+    //let h = '<div onmouseover="allVisible(this)" onmouseout="resetVisibility(this)" class="image-enhancer-keyword-wrapper">';
+
+    // if this is a refresh, it will already have this element
+    let hasWrapper = el.has('.image-enhancer-keyword-wrapper').length; 
+
+    let h = '';
+
+    if (!hasWrapper) {
+        h += '<div class="image-enhancer-keyword-wrapper">';
+	    h += '<div class="image-enhancer-keyword-wrapper-hover">';  
+    }
+    
+    // the refresh on 1235 removes the above, and so below
+  
+    for (var i = 0 ; i < ma.keywords.length ; i++) {
+    var kw = ma.keywords[i];
+    thisHas.push(kw.indexname);
+    if (kw.label) {
+      console.info("Have labeled keyword %o", kw);
+      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" title="remove keyword">X</span></div>';
+    } else {
+      //h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
+
+    }
 //console.info('keyword = %o', ma.keywords[i]);
-		h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
 	}
+
+  var labelsToValues = <%=jobj%>;
+  console.log("Labeled keywords %o", labelsToValues);
+  let labeledAvailable = (labelsToValues.length>0);
+  h += '<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+  if (!$.isEmptyObject(labelsToValues)) {
+      //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
+    var hasSome = false;
+    var labelSelector = '<select onChange="return updateLabeledKeywordLabel(this);"  style="width: 100%" class="label-selector"><option value="">select label</option>';
+    var valueSelectors = '';
+    for (var label in labelsToValues) {
+      var valueSelector = '<select onChange="return updateLabeledKeywordValue(this);" style="width: 100%; display: none;" class="value-selector '+label+'" data-kw-label="'+label+'"><option value="">select value</option>';
+      var values = labelsToValues[label];
+      //console.log("in labelsToValues loop with label %s and values %s",label, values);
+      for (var i in values) {
+        var value = values[i];
+        //console.log("in labelsToValues loop with label %s and value %s",label, value);
+        //if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
+        valueSelector += '<option class="labeledKeywordValue '+label+'" value="' + value + '">' + value + '</option>';
+        hasSome = true;
+      }
+      valueSelector += '</select>';
+      valueSelectors += valueSelector
+      labelSelector += '<option value="' + label + '">' + label + '</option>';
+    }
+    labelSelector += '</select>';
+    if (hasSome) {
+      h += labelSelector;
+      h += valueSelectors;
+    }
+  } else {
+    console.log("No LabeledKeywords were retrieved from the database.");
+  }
+  h += '</div></div>';
+
+
 
 	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
 	if (wildbookGlobals.keywords) {
@@ -1172,11 +1340,18 @@ console.info("############## mid=%s -> %o", mid, ma);
 	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
 	h += '</div></div>';
 
-	h += '</div>';
-	el.append(h);
+    // image-enhancer-keyword-wrapper-hover
+    if (!hasWrapper) {
+        h += '</div></div>';
+	    el.append(h);
+    } else {
+        el.find('.image-enhancer-keyword-wrapper-hover').append(h);
+    }
+
 	el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
 		ev.stopPropagation();
 	});
+
 	el.find('.iek-remove').on('click', function(ev) {
 		//ev.stopPropagation();
 		addNewKeyword(ev.target);

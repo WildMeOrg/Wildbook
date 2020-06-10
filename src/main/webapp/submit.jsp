@@ -3,7 +3,7 @@
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.List,
+                 java.util.List,java.util.ArrayList,
                  java.util.Locale" %>
 
 
@@ -51,7 +51,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
 
-    
+    boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
+
 
 %>
 
@@ -529,7 +530,7 @@ console.log('llList => %o', llList);
         }
         h += '</p>';
     }
-    $('#comments').val(h);
+    //$('#comments').val(h);
 }
 
 
@@ -677,19 +678,22 @@ if(CommonConfiguration.showReleaseDate(context)){
         <input name="location" type="text" id="location" size="40" class="form-control">
       </div>
     </div>
+
+
     <%
     //let's pre-populate important info for logged in users
-    boolean useCustomProperties=false;
     String submitterName="";
     String submitterEmail="";
     String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
     String project="";
+    Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("submit.jsp1");
+    myShepherd.beginDBTransaction();
+    String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+    if(qualifier==null) {qualifier="default";}
+    else{qualifier=qualifier.replaceAll(".properties","");}
     if(request.getRemoteUser()!=null){
         submitterName=request.getRemoteUser();
-        Shepherd myShepherd=new Shepherd(context);
-        myShepherd.setAction("submit.jsp1");
-        myShepherd.beginDBTransaction();
-        useCustomProperties = User.hasCustomProperties(request,myShepherd); // don't want to call this a bunch
 
         if(myShepherd.getUser(submitterName)!=null){
             User user=myShepherd.getUser(submitterName);
@@ -698,36 +702,26 @@ if(CommonConfiguration.showReleaseDate(context)){
             if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
             if(user.getUserProject()!=null){project=user.getUserProject();}
         }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+
     }
-    
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+
 //add locationID to fields selectable
 
-
-if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("studySites") %></label>
+        <label class="control-label"><%=props.getProperty("locationID") %></label>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
-          <option value="" selected="selected"></option>
-          <%
-          List<String> locationIDs = (useCustomProperties)
-            ? CommonConfiguration.getIndexedPropertyValues("locationID", request)
-            : CommonConfiguration.getIndexedPropertyValues("locationID", context); //passing context doesn't check for custom props
-          for (String locationID: locationIDs) {
-            %><option value="<%=locationID%>"><%=locationID%></option><%
-          }
-          %>
-        </select>
+          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
+              
       </div>
     </div>
 <%
-}
+
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
@@ -740,22 +734,13 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="country" id="country" class="form-control">
           <option value="" selected="selected"></option>
-          <% if (useCustomProperties) {
+          <% 
             List<String> countries = (useCustomProperties)
             ? CommonConfiguration.getIndexedPropertyValues("country", request)
             : CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
             for (String country: countries) {
               %><option value="<%=country%>"><%=country%></option><%
-            }
-          }
-          else {
-            String[] locales = Locale.getISOCountries();
-            for (String countryCode : locales) {
-              Locale obj = new Locale("", countryCode);
-              String currentCountry = obj.getDisplayCountry();
-              %><option value="<%=currentCountry %>"><%=currentCountry%></option><%
-            }      
-          }%>
+            }%>
         </select>
       </div>
     </div>
@@ -780,12 +765,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
           <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude") %>&nbsp;</label>
-          <input class="form-control" name="lat" type="text" id="lat" onChange="return updateMap()"> &deg;
+          <input class="form-control" name="lat" type="text" id="lat"> &deg;
         </div>
 
         <div class="col-xs-12 col-sm-6">
           <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude") %>&nbsp;</label>
-          <input class="form-control" name="longitude" type="text" id="longitude" onChange="return updateMap();"> &deg;
+          <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
         </div>
       </div>
 
@@ -818,6 +803,10 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 </fieldset>
 <hr />
+
+
+
+
 
 
   <fieldset>
@@ -927,17 +916,25 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
                      if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
+                      
+
                     	for(int q=0;q<numGenusSpeciesProps;q++){
                            String currentGenuSpecies = "genusSpecies"+q;
+
+                           String showCommonNames = CommonConfiguration.getProperty("showCommonSpeciesNames",context);
+
                            if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-				String commonValue = CommonConfiguration.getProperty("genusSpeciesCommon" + q, context);
-				if (commonValue == null) {
-					commonValue = "";
-				} else {
-					commonValue = " (" + commonValue + ")";
-				}
+
+                            String commonNameLabel = "";
+                             if (showCommonNames!=null&&"true".equals(showCommonNames)) {
+                                String commonNameVal = CommonConfiguration.getProperty("commonName"+q,context);
+                                if (commonNameVal!=null&&!"null".equals(commonNameVal)&&!"".equals(commonNameVal)) {
+                                  commonNameLabel = " ("+commonNameVal+")";
+                                }
+                              }
+
                                %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%><%=commonValue%></option>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")+commonNameLabel%></option>
                                <%
 
                         }
@@ -1004,6 +1001,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
         </div>
         
+        <!--
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("manual_id") %></label>
@@ -1013,6 +1011,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="manualID" type="text" id="manualID" size="75">
           </div>
         </div>
+        -->
 
 
 				<div class="form-group">
@@ -1035,39 +1034,15 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
         </div>
 
-
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <%
-            List<String> behaviors = CommonConfiguration.getSequentialPropertyValues("behavior", context);
-            if (behaviors.size()>0) {
-            %>
-              <select class="form-control" name="lifeStage" id="lifeStage"> 
-                <option value="" selected="selected"></option>
-            <%
-            for (int i=0;i<behaviors.size();i++) {
-              String thisBehavior = behaviors.get(i);
-            %>
-                <option value="<%=thisBehavior%>"><%=thisBehavior%></option>
-            <%
-            }
-            %>
-              </select> 
-            <%
-            } else {
-            //if nothing is defined just give regualr string input
-            %>
-              <input class="form-control" name="behavior" type="text" id="behavior" size="75">
-            <%
-            }
-            %>
+            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
           </div>
         </div>
-
 
 
 
@@ -1091,7 +1066,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             <label class="control-label"><%=props.getProperty("lifeStage") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-  <select class="form-control" name="lifeStage" id="lifeStage">
+  <select name="lifeStage" id="lifeStage">
       <option value="" selected="selected"></option>
   <%
                      boolean hasMoreStages=true;

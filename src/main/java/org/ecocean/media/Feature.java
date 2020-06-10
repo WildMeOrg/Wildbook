@@ -203,4 +203,41 @@ public class Feature implements java.io.Serializable {
         return this.sanitizeJson(request, false);
     }
 
+    //our standard will be 0 ("same") when things are not-comparable for any reason.  :/
+    public int comparePositional(Feature other) {
+        if (other == null) return 0;
+        //it might be kinda silly to use "left edge" of unity (i.e. 0) but i am going for it!
+        //right now only support bounding box.  have fun in the future!
+        int x1 = -1;
+        int y1 = -1;
+        int x2 = -1;
+        int y2 = -1;
+        if (this.isUnity()) {
+            x1 = 0;
+            y1 = 0;
+        } else if (this.isType("org.ecocean.boundingBox") && (this.getParameters() != null)) {
+            x1 = this.getParameters().optInt("x", 0);
+            y1 = this.getParameters().optInt("y", 0);
+        } else {
+            return 0;
+        }
+        if (other.isUnity()) {
+            x2 = 0;
+            y2 = 0;
+        } else if (other.isType("org.ecocean.boundingBox") && (other.getParameters() != null)) {
+            x2 = other.getParameters().optInt("x", 0);
+            y2 = other.getParameters().optInt("y", 0);
+        } else {
+            return 0;
+        }
+        if (x1 == x2) return (y1 - y2);
+        return (x1 - x2);
+    }
+
+    public boolean equals(Feature other) {
+        if (other == null) return false;
+        if (id == null) return false;  //snh
+        return id.equals(other.getId());
+    }
+
 }

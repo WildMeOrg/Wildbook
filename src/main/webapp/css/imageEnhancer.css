@@ -93,7 +93,7 @@
     z-index: 40;
 }
 
-.image-enhancer-keyword, .iek-new-wrapper {
+.image-enhancer-keyword, .iek-new-wrapper, iek-new-labeled-wrapper {
     border: solid 1px rgba(255,255,255,0.0);
     border-radius: 3px;
     padding: 1px 5px;
@@ -102,10 +102,30 @@
     font-size: 0.8em;
     position: relative;
     /*height: 2.0em;*/
-	width: 150px;
+    width: 150px;
+    margin-left: 11%;
 }
-.image-enhancer-keyword-wrapper:hover {
-    z-index: 200;  /* note: must be higher than highest possible annotation/feature */
+
+div iek-new-labeled-wrapper {
+    background-color: rgba(255,255,255,0.8);
+}
+
+.image-enhancer-keyword-wrapper-hover {
+    /* padding: 60px;
+    padding-bottom: 120px; */
+    width: 150%;
+    margin-left: -18%;
+    overflow: hidden;
+    padding-bottom: 10px; 
+    /*transition: .5s all;*/   
+    transition-delay: 1.5s;
+    transition: 0.2s 1s;
+}
+.image-enhancer-keyword-wrapper-hover:hover {
+    /* z-index: 200; note: must be higher than highest possible annotation/feature */
+    transition-delay: .5s;
+    transition: 0.2s 1s;
+    z-index: 999;
 }
 .image-enhancer-keyword-wrapper:hover .image-enhancer-keyword {
     background-color: #FFF;
@@ -122,7 +142,7 @@
     padding-bottom: 7px;
 }
 
-.image-enhancer-keyword-wrapper:hover .iek-new-form input {
+.image-enhancer-keyword-wrapper:hover .iek-new-form input, .image-enhancer-keyword-wrapper:hover .iek-new-labeled-form input  {
   margin-top: 5px;
   width: 100%;
 }
@@ -148,7 +168,9 @@
 
 
 
-.iek-new-form, .iek-new-wrapper.iek-autohide {
+.iek-new-form, .iek-new-wrapper.iek-autohide, iek-new-labeled-form {
+    transition: .5s all;   
+    transition-delay: 1.5s;
     display: none;
 }
 

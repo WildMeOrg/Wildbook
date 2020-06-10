@@ -33,7 +33,6 @@ public class LabeledKeyword extends Keyword{
   // ex. values are "Quality", "Distinctiveness", "Viewpoint"
   private String label;
 
-  // just a handy list of standard label values. Might make a .properties later
   public static final Set<String> LABELS;
   static {
       Set<String> labs = new HashSet<String>();
@@ -81,29 +80,64 @@ public class LabeledKeyword extends Keyword{
   }
 
   public static Map<String,List<String>> labelUIMap(HttpServletRequest request) {
-    Shepherd readOnlyShep = Shepherd.newActiveShepherd(request, "labelUIMap");
-    Map<String,List<String>> ans = labelUIMap(readOnlyShep, request);
-    readOnlyShep.rollbackAndClose();
-    return ans;
+    try {
+      Shepherd readOnlyShep = Shepherd.newActiveShepherd(request, "labelUIMap");
+      Map<String,List<String>> ans = labelUIMap(readOnlyShep, request);
+      readOnlyShep.rollbackAndClose();
+      return ans;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   public static Map<String,List<String>> labelUIMapFromProperties(Shepherd myShepherd, HttpServletRequest request) {
+    Map<String,List<String>> propLabels = new LinkedHashMap<String,List<String>>(); //linkedHashMap to preserve order
     List<String> labels = CommonConfiguration.getIndexedPropertyValues("kwLabel", request);
-    if (Util.isEmpty(labels)) return labelUIMapFromDB(myShepherd, request);
-    Map<String,List<String>> labelsToValues = new LinkedHashMap<String,List<String>>(); //linkedHashMap to preserve order
-    for (String label: labels) {
-      List<String> values = CommonConfiguration.getIndexedPropertyValues(label, request);
-      if (!Util.isEmpty(values)) labelsToValues.put(label, values);
+    if (!Util.isEmpty(labels)) {
+      System.out.println(" got labels in labelUIMapFromProperties : "+labels.size());
+      for (String label: labels) {
+        List<String> values = CommonConfiguration.getIndexedPropertyValues(label, request);
+        if (!Util.isEmpty(values)) propLabels.put(label, values);
+      }
     }
-    return labelsToValues;
+    
+    Map<String,List<String>> dbLabels = labelUIMapFromDB(myShepherd, request);
+    System.out.println(" got labels in labelUIMapFromDB : "+dbLabels.size());
+
+    for (String key : propLabels.keySet()) {
+      if (!dbLabels.containsKey(key)) {
+        dbLabels.put(key, propLabels.get(key));
+        // new key to the db, add it and all found values the return and persist
+        for (String eachVal : propLabels.get(key)) {
+          myShepherd.getOrCreateLabeledKeyword(key, eachVal, true);
+        }
+      }
+      
+      //adding new values for a key from props to the db if key already exists in db, updating return values for key also
+      if (dbLabels.containsKey(key)&&propLabels.containsKey(key)&&!dbLabels.get(key).containsAll(propLabels.get(key))) {
+        List<String> tempVals = dbLabels.get(key);
+        for (String value : propLabels.get(key)) {
+          if (!tempVals.contains(value)) {
+            tempVals.add(value);
+            dbLabels.get(key).add(value);
+            myShepherd.getOrCreateLabeledKeyword(key, value, true);
+          }
+        }
+      }
+    }
+    return dbLabels;
   }
 
   public static Map<String,List<String>> labelUIMapFromDB(Shepherd myShepherd, HttpServletRequest request) {
+    myShepherd.beginDBTransaction();
     List<LabeledKeyword> lkws = myShepherd.getAllLabeledKeywords();
+
     Map<String, Set<String>> labelsToValues = new HashMap<String, Set<String>>();
     for (LabeledKeyword lkw: lkws) {
       Util.addToMultimap(labelsToValues, lkw.getLabel(), lkw.getValue());
     }
+    myShepherd.rollbackDBTransaction();
     // now sort them for returning
     Map<String,List<String>> sorted = new LinkedHashMap<String,List<String>>(); //linkedHashMap to preserve order
     for (String label: Util.asSortedList(labelsToValues.keySet())) { // sort the labels
@@ -124,5 +158,9 @@ public class LabeledKeyword extends Keyword{
             .toString();
   }
 
+  @Override
+  public boolean isLabeledKeyword() {
+    return true;
+  }
 
 }

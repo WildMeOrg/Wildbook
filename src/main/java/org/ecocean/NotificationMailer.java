@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
+
+import org.ecocean.servlet.EncounterDelete;
 import org.ecocean.servlet.ServletUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,7 +168,8 @@ public final class NotificationMailer implements Runnable {
   private EmailTemplate mailer;
   /** Flag indicating whether setup failed. */
   private boolean failedSetup;
-  private String urlScheme="http";
+  private List<String> types=null;
+  private String urlScheme="https";
 
   /**
    * Creates a new NotificationMailer instance.
@@ -178,8 +181,13 @@ public final class NotificationMailer implements Runnable {
    * @param map map of search/replace strings for email template (if order is important, supply {@code LinkedHashMap}
    */
   public NotificationMailer(String context, String langCode, Collection<String> to, List<String> types, Map<String, String> map) {
+    this(context, langCode, to, types, map, false);
+  }
+  public NotificationMailer(String context, String langCode, Collection<String> to, List<String> types, Map<String, String> map, boolean overrideReceiveEmails) {
     Objects.requireNonNull(context);
     Objects.requireNonNull(to);
+    
+    this.types=types;
     
     //Start checking if we should throw out some of these emails
     ArrayList<String> recips=new ArrayList<String>(to);
@@ -192,7 +200,8 @@ public final class NotificationMailer implements Runnable {
         myShepherd.setAction("NotificationMailer.class");
         myShepherd.beginDBTransaction();
         try{
-          if((myShepherd.getUserByEmailAddress(s)!=null)&&(!myShepherd.getUserByEmailAddress(s).getReceiveEmails())){
+            // note we also remove from recips if there is no user with that email
+          if ((myShepherd.getUserByEmailAddress(s) == null) || (!overrideReceiveEmails && !myShepherd.getUserByEmailAddress(s).getReceiveEmails())) {
             recips.remove(s);
             i--;
           }
@@ -246,12 +255,15 @@ public final class NotificationMailer implements Runnable {
             mailer.replaceInHtmlText("<!--@REMOVEME_START@-->", null, false);
             mailer.replaceInHtmlText("<!--@REMOVEME_END@-->", null, false);
           }
+/*
+    re: discussion with jh 2020-03-18, this is deprecated usage so commenting out -jv
           // Extra layer to help prevent chance of URL spoof attacks.
           String noTrack = map.get(EMAIL_NOTRACK);
           if (noTrack.matches("([a-z]+)=(.+)")) {
-            String link = String.format(urlScheme+"://%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
+            String link = String.format("%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
             mailer.replace("@REMOVEME_LINK@", link, true);
           }
+*/
         } else {
           mailer.replaceRegexInPlainText("(?s)@REMOVEME_START@.*@REMOVEME_END@", null, false);
           if (mailer.hasHtmlText())
@@ -305,6 +317,9 @@ public final class NotificationMailer implements Runnable {
    */
   public NotificationMailer(String context, String langCode, String to, String type, Map<String, String> map) {
     this(context, langCode, Arrays.asList(to), type, map);
+  }
+  public NotificationMailer(String context, String langCode, String to, String type, Map<String, String> map, boolean overrideReceiveEmails) {
+    this(context, langCode, Arrays.asList(to), Arrays.asList(type), map, overrideReceiveEmails);
   }
 
   /**
@@ -541,6 +556,9 @@ public final class NotificationMailer implements Runnable {
       if (!"".equals(host.trim()) && !"none".equalsIgnoreCase(host)) {
         try {
           mailer.sendSingle(sender, recipients);
+          //log it
+          log.info("Sending email of type(s) "+types.toString()+" from "+sender+" to: "+recipients);
+
         }
         catch (Exception ex) {
           ex.printStackTrace();
@@ -701,6 +719,7 @@ public final class NotificationMailer implements Runnable {
     if (ind != null) {
       map.put("@INDIVIDUAL_LINK@", String.format("%s/individuals.jsp?id=%s", map.get("@URL_LOCATION@"), ind.getIndividualID()));
       map.put("@INDIVIDUAL_ID@", ind.getIndividualID());
+      map.put("@INDIVIDUAL_DISPLAYNAME@", ind.getDisplayName());
       map.put("@INDIVIDUAL_SEX@", ind.getSex());
       map.put("@INDIVIDUAL_NAME@", ind.getName());
       map.put("@INDIVIDUAL_NICKNAME@", ind.getNickName());
