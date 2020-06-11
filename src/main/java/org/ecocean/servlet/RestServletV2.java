@@ -137,16 +137,17 @@ public class RestServletV2 extends HttpServlet {
         myShepherd.setAction("RestServletV2.handleGetObject");
         myShepherd.beginDBTransaction();
 
-//Employee e = pm.getObjectById(Employee.class, "Alfred.Smith@example.com"
-
         switch (cls) {
             case "org.ecocean.Occurrence":
                 Occurrence occ = myShepherd.getPM().getObjectById(Occurrence.class, id);
                 if (occ != null) {
                     try {
-                        rtn = Util.toggleJSONObject(occ.uiJson(request));
+                        // TODO make a generic way to do "sizeable" expansion here
+                        rtn = new JSONObject();
+                        rtn.put("id", occ.getId());
                         rtn.put("version", occ.getVersion());
-                    } catch (org.datanucleus.api.rest.orgjson.JSONException ex) {
+                        rtn.put("_fixme", true);
+                    } catch (Exception ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
                         throw new IOException("JSONConversion - " + ex.toString());
