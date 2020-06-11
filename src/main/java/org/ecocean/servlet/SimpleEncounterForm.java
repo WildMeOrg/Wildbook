@@ -259,10 +259,16 @@ System.out.println("about to do enc()");
         enc.setLocationID(getVal(fv, "locationID"));
         enc.setBehavior(getVal(fv, "behavior"));
 
+    String origDateTime = getVal(fv, "datetime");
+    enc.setVerbatimEventDate(origDateTime);
+    System.out.println("SimpleEncounterForm[" + encID + "]: origDateTime=" + origDateTime);
     DateTime dt = null;
     try {
-        dt = new DateTime(getVal(fv, "datetime"));
-    } catch (Exception ex) {}
+        dt = new DateTime(origDateTime);
+        System.out.println("SimpleEncounterForm[" + encID + "]: " + origDateTime + " => " + dt);
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
     if (dt != null) enc.setDateInMilliseconds(dt.getMillis());
 
       //enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + ServletUtilities.getRemoteHost(request) + "</p>");
