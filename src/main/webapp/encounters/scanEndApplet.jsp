@@ -138,7 +138,95 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     border: 1px solid black;
     padding: 5px;
 }
-  
+
+.tr-location-nonlocal {
+    opacity: 0.6;
+    display: none;
+}
+
+.match-side-img-wrapper {
+    width: 1000px;
+    display: inline-block;
+    position: relative;
+    cursor: crosshair;
+    height: 400px;
+}
+
+.match-side-spot {
+    width: 9px;
+    height: 9px;
+    border-radius: 5px;
+    background-color: #888;
+    position: absolute;
+    border: solid 1px black;
+    transform: scale(1.5);
+}
+.match-spot-highlight {
+    border-color: yellow;
+    transform: scale(3.0);
+}
+
+#spot-display {}
+.match-side {
+    text-align: center;
+    display: inline-block;
+    position: relative;
+    width: 49%;
+
+}
+.match-side img {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 400px;
+}
+.match-side-info {
+    height: 9.1em;
+    background-color: #DDD;
+}
+
+#match-controls {
+    height: 5em;
+}
+#match-info {
+    width: 70%;
+    display: inline-block;
+}
+#match-controls input {
+    position: absolute;
+    display: none;
+}
+#match-button-next {
+    right: 0px;
+}
+#match-button-prev {
+    left: 0px;
+}
+
+.match-side-attribute-label,
+.match-side-attribute-value {
+    line-height: 1.3em;
+    display: inline-block;
+    vertical-align: middle;
+}
+.match-side-attribute-value {
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 60%;
+}
+.match-side-attribute-label {
+    width: 39%;
+    font-weight: bold;
+    font-size: 0.8em;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.table-row-highlight {
+    background-color: #FF8;
+}
+
 </style>
 
 
