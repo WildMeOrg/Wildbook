@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdRO;
 import org.ecocean.Util;
+import org.ecocean.Occurrence;
 import org.ecocean.User;
 import org.ecocean.configuration.*;
 import org.json.JSONObject;
@@ -91,16 +92,24 @@ public class RestServletV2 extends HttpServlet {
 
         JSONObject rtn = new JSONObject();
         rtn.put("success", false);
+
+        try {
+            JSONObject result = handleGetObject(request, response, payload, instanceId, context);
+            rtn.put("result", result);
+            rtn.put("success", true);
+        } catch (Exception ex) {
+            rtn.put("message", _rtnMessage("error", payload, ex.toString()));
+        }
 /*
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("RestServletV2.handleContent");
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        String id = payload.optString("id", null);
+        if (id == null) {
+            rtn.put("message", _rtnMessage("error"));
+        } else {
+        }
 */
 
 
         rtn.put("transactionId", instanceId);
-        rtn.put("message", _rtnMessage("error"));
         if (debug) {
             _log(instanceId, "rtn: " + rtn.toString());
             JSONObject jbug = new JSONObject();
@@ -117,6 +126,70 @@ public class RestServletV2 extends HttpServlet {
         out.println(rtn.toString());
         out.close();
     }
+
+    private JSONObject handleGetObject(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        String id = payload.optString("id", null);
+        if (id == null) throw new IOException("null id value");
+        String cls = payload.optString("class", null);
+        if (cls == null) throw new IOException("null class value");
+        JSONObject rtn = null;
+        ShepherdRO myShepherd = new ShepherdRO(context);
+        myShepherd.setAction("RestServletV2.handleGetObject");
+        myShepherd.beginDBTransaction();
+
+//Employee e = pm.getObjectById(Employee.class, "Alfred.Smith@example.com"
+
+        switch (cls) {
+            case "org.ecocean.Occurrence":
+                Occurrence occ = myShepherd.getPM().getObjectById(Occurrence.class, id);
+                if (occ != null) {
+                    try {
+                        rtn = Util.toggleJSONObject(occ.uiJson(request));
+                        rtn.put("version", occ.getVersion());
+                    } catch (org.datanucleus.api.rest.orgjson.JSONException ex) {
+                        myShepherd.rollbackDBTransaction();
+                        myShepherd.closeDBTransaction();
+                        throw new IOException("JSONConversion - " + ex.toString());
+                    }
+                }
+                break;
+            default:
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                throw new IOException("bad class");
+        }
+/*
+
+        String jdo = "SELECT FROM " + className;
+///TODO set fetchDepth = 0 or whatever to make fast
+        Query query = myShepherd.getPM().newQuery("JDOQL", jdo);
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            Object obj = it.next();
+            String id = null;
+            Long version = null;
+            try {
+                Method m = obj.getClass().getMethod("getId", new Class[0]);
+                id = (String)m.invoke(obj);
+                m = obj.getClass().getMethod("getVersion", new Class[0]);
+                version = (Long)m.invoke(obj);
+            } catch (Exception ex) {
+                System.out.println("handleList threw " + ex.toString());
+            }
+            if (id == null) break;  //we dont try others cuz if this one failed, they all likely will!
+            JSONObject j = new JSONObject();
+            j.put("id", id);
+            j.put("version", version);
+            rtn.put(j);
+        }
+        query.closeAll();
+*/
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        return rtn;
+    }
+
     private void handleLogin(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
         if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
         JSONObject rtn = new JSONObject();
