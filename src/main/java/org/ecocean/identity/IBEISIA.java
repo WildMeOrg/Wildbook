@@ -1732,8 +1732,22 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 
     // here's where we'll attach viewpoint from IA's detection results
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult, Shepherd myShepherd, String context, String rootDir) {
-        if (iaResult == null||duplicateDetection(ma, iaResult)) return null;
+
+        if (iaResult == null) return null;
         String iaClass = iaResult.optString("class", "_FAIL_");
+        if (isDuplicateDetection(ma, iaResult)) {
+            
+            Annotation existingAnn = getDuplicateDetection(ma, iaResult);
+
+            // if there is a new iaClass from a new model, set it.
+            if (!existingAnn.getIAClass().equals(iaClass)) {
+                existingAnn.setIAClass(iaClass);
+                // if there are new keywords from the new iaClass, set them  
+                existingAnn.setIAExtractedKeywords(myShepherd);
+            }
+            return null;
+        }
+
         Taxonomy tax = iaTaxonomyMap(myShepherd).get(iaClass);
         if (tax == null) {  //null could mean "invalid IA taxonomy"
             System.out.println("WARNING: bailing on IA results due to invalid species detected -- " + iaResult.toString());
@@ -1773,7 +1787,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         return ann;
     }
 
-    private static boolean duplicateDetection(MediaAsset ma, JSONObject iaResult ) {
+    private static Annotation getDuplicateDetection(MediaAsset ma, JSONObject iaResult ) {
         // jann is iaResult
         System.out.println("-- Verifying that we do not have a feature for this detection already...");
         if (ma.getFeatures()!=null&&ma.getFeatures().size()>0) {
@@ -1794,13 +1808,18 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
                         if (ftHeight==0||ftHeight==0||height==0||width==0) {continue;}
                         if ((width==ftWidth)&&(height==ftHeight)&&(ytl==ftYtl)&&(xtl==ftXtl)) {
                             System.out.println("We have an Identicle detection feature! Skip this ann.");
-                            return true;
+                            return ft.getAnnotation();
                         }
                     }
                 } catch (NullPointerException npe) {continue;}
             }
         }
-        System.out.println("---- Did not find an identicle feature.");
+        System.out.println("---- Did not find an identical feature.");
+        return null;
+    }
+
+    private static boolean isDuplicateDetection(MediaAsset ma, JSONObject iaResult ) {
+        if (getDuplicateDetection(ma, iaResult)!=null) return true;
         return false;
     }
 
