@@ -110,7 +110,7 @@ console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identAc
         }
 
         //this should be the only thing we see until detection is done
-        if (!identActive && ma.detectionStatus && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
+        if (!identActive && ma.detectionStatus && (ma.detectionStatus != 'complete') && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
             if (mode == 'textStart') {
                 return '<span class="disabled">Still waiting for detection. Refresh to see updates.</span>';
             } else {
