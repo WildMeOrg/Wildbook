@@ -171,6 +171,9 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
         sheet.addCell(label29);
         Label label30 = new Label(30, 0, "Submitter Email Address");
         sheet.addCell(label30);
+
+        Label label31 = new Label(31, 0, "Date Encounter Submitted");
+        sheet.addCell(label31);
         
         // Excel export =========================================================
         int count = 0;
@@ -310,6 +313,11 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
                 Label lNumberx30 = new Label(30, count, enc.getSubmitterEmail());
                 sheet.addCell(lNumberx30);
             }
+
+            if (enc.getDWCDateAdded() != null) {
+              Label lNumberx31 = new Label(31, count, enc.getDWCDateAdded());
+              sheet.addCell(lNumberx31);
+          }
 
          } //end for loop iterating encounters   
          
