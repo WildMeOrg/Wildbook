@@ -204,6 +204,10 @@
         <column length="100"/>
       </field>
 
+      <field name="version">
+        <column jdbc-type="BIGINT" allows-null="false"/>
+      </field>
+
       <field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.Encounter"/>
         <join/>

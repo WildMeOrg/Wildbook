@@ -108,9 +108,8 @@ public class Occurrence implements java.io.Serializable {
   // this is helpful for sorting but isn't (for now) intended to be UI-facing
   // rather it's set from Encounters
   private Long millis;
-
-
   private Long dateTimeLong; // this is for searching
+    private Long version;
 
 
   //empty constructor used by the JDO enhancer
@@ -381,6 +380,9 @@ public class Occurrence implements java.io.Serializable {
     return getWebUrl(getOccurrenceID(), req);
   }
   
+    public String getId() {
+        return occurrenceID;
+    }
   public String getOccurrenceID(){
     return occurrenceID;
   }
@@ -480,6 +482,13 @@ public class Occurrence implements java.io.Serializable {
   public void setMillisFromEncounters() {
     this.millis = getMillisFromEncounters();
   }
+
+    public Long getVersion() {
+        return version;
+    }
+    public void setVersion(Long v) {
+        version = v;
+    }
 
   public Long getMillisFromEncounters() {
     for (Encounter enc: encounters) {
