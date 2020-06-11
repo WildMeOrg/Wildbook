@@ -108,7 +108,7 @@ public class OccurrenceSetObservation extends HttpServlet {
             System.out.println("Resetting value for Observation named "+name+" with new value "+newValue);
             System.out.println("Did the value stick??? Name:"+existing.getName()+" Value: "+existing.getValue());
           } else {
-            obs = new Observation(name, newValue, occ.getClass().getSimpleName(), occ.getID());
+            obs = new Observation(name, newValue, occ.getClass().getSimpleName(), occ.getId());
             occ.addObservation(obs);
             System.out.println("Success setting Observation!");       
           }

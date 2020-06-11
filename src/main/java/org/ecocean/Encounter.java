@@ -2081,11 +2081,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     this.catalogNumber = newNumber;
   }
 
-  public String getID() {
-    return catalogNumber;
-  }
-
-  public void setID(String newNumber) {
+  public void setId(String newNumber) {
     this.catalogNumber = newNumber;
   }
 
