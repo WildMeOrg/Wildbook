@@ -1,6 +1,4 @@
 
-
-
 /*
   TODO note: this is very ibeis-specific concept of "Annotation"
      we should probably consider a general version which can be manipulated into an ibeis one somehow
@@ -24,6 +22,7 @@ import java.io.IOException;
 import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -431,8 +430,43 @@ public class Annotation implements java.io.Serializable {
     public String getIAClass() {
         return iaClass;
     }
+
     public void setIAClass(String iaClass) {
         this.iaClass = iaClass;
+    }
+
+    public void setIAExtractedKeywords(Shepherd myShepherd) {
+        try {
+            if (this.getMediaAsset()!=null&&this.getIAClass()!=null&&!"".equals(this.iaClass)) {
+                Properties props = ShepherdProperties.getProperties("IA.properties", "", myShepherd.getContext());
+                List<String> keywords = Util.getIndexedPropertyValues("iaExtractedKeyword", props);
+                List<String> labelValues = Util.getIndexedPropertyValues("iaExtractedKeywordValue", props);
+                MediaAsset ma = this.getMediaAsset();
+
+                for (int i=0;i<keywords.size();i++) {
+                    String keyword = keywords.get(i);
+                    if (!this.iaClass.contains(keyword)) continue;
+                    String labelValue = labelValues.get(i);
+                    if (keyword!=null&&!"".equals(keyword)&&labelValue!=null&&!"".equals(labelValue)) {
+                        
+                        Keyword kw = null;
+                        if (myShepherd.isKeyword(labelValue)) {
+                            kw = myShepherd.getKeyword(labelValue);
+                        } else {
+                            kw = new Keyword(labelValue);
+                            myShepherd.storeNewKeyword(kw);
+                        }
+
+                        myShepherd.beginDBTransaction();
+                        ma.addKeyword(kw);
+                        myShepherd.commitDBTransaction();
+                    }
+                }
+            }
+       } catch (Exception e) {
+           e.printStackTrace();
+           myShepherd.rollbackDBTransaction();
+       }
     }
 
     public String getName() {

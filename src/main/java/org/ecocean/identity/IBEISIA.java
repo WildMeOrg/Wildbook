@@ -1762,6 +1762,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
+        ann.setIAExtractedKeywords(myShepherd);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
         String vp = iaResult.optString("viewpoint", null);  //not always supported by IA
         if ("None".equals(vp)) vp = null;  //the ol' "None" means null joke!
@@ -2388,6 +2389,7 @@ System.out.println("identification most recent action found is " + action);
             // iaClass... not your scientific name species
             String iaClass = rtn.getJSONArray("response").optString(0, null);
             Annotation ann = new Annotation(convertSpeciesToString(iaClass), ft, iaClass);
+            ann.setIAExtractedKeywords(myShepherd);
             //note: ann.id is a random UUID at this point; should we set to acmId??
             //   ann.setId(acmId);
             ann.setAcmId(acmId);
