@@ -541,6 +541,16 @@ public class Shepherd {
     return tempEnc;
   }
   
+  public ImportTask getImportTask(String num) {
+    ImportTask tempEnc = null;
+    try {
+      tempEnc = ((ImportTask) (pm.getObjectById(pm.newObjectIdInstance(ImportTask.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempEnc;
+  }
+  
   public Annotation getAnnotation(String uuid) {
     Annotation annot = null;
     try {

@@ -48,6 +48,7 @@ import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -131,6 +132,8 @@ public class StandardImport extends HttpServlet {
     
     isUserUpload = Boolean.valueOf(request.getParameter("isUserUpload"));
     
+    committing = Util.requestParameterSet(request.getParameter("commit"));
+    
     // WHY ISN"T THE URL MAKING IT AAUUUGHGHHHHH
     if (isUserUpload) {
       uploadDirectory = UploadServlet.getUploadDir(request);
@@ -146,8 +149,8 @@ public class StandardImport extends HttpServlet {
     out = response.getWriter();
 
     response.setContentType("text/html; charset=UTF-8");
-    this.getServletContext().getRequestDispatcher("/header.jsp").include(request, response);
-    this.getServletContext().getRequestDispatcher("/import/uploadHeader.jsp").include(request, response);
+    if(!committing)this.getServletContext().getRequestDispatcher("/header.jsp").include(request, response);
+    if(!committing)this.getServletContext().getRequestDispatcher("/import/uploadHeader.jsp").include(request, response);
 
     context = ServletUtilities.getContext(request);
   
@@ -196,7 +199,7 @@ public class StandardImport extends HttpServlet {
 		numFolderRows = 0;
     numAnnots = 0;
 
-    committing = Util.requestParameterSet(request.getParameter("commit"));
+    
 
     if (dataFound) {
       doImport(filename, dataFile, request, response);
@@ -210,8 +213,8 @@ public class StandardImport extends HttpServlet {
     // eh?
     System.out.println("Trying to take you to the results...");
       //sc.getRequestDispatcher("/import/results.jsp").forward(request, response);
-      sc.getRequestDispatcher("/import/uploadFooter.jsp").include(request, response);
-      sc.getRequestDispatcher("/footer.jsp").include(request, response);
+      if(!committing)sc.getRequestDispatcher("/import/uploadFooter.jsp").include(request, response);
+      if(!committing)sc.getRequestDispatcher("/footer.jsp").include(request, response);
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
@@ -280,7 +283,47 @@ public class StandardImport extends HttpServlet {
         return;
       }
     }
-
+    
+    //if we're committing, now is the time to do the ImportTask and redirect users there
+    User creator = null;
+    ImportTask itask = null;
+    String taskID=null;
+    if (committing) {
+      
+      Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("StandardImport.java_iTaskCommit1");
+      try {
+        myShepherd.beginDBTransaction();
+        
+        creator = AccessControl.getUser(request, myShepherd);
+        itask = new ImportTask(creator);
+        itask.setPassedParameters(request);
+        itask.setStatus("started");
+        
+        if(request.getParameter("taskID")!=null) {itask.setId(request.getParameter("taskID"));}
+        
+        myShepherd.getPM().makePersistent(itask);
+        myShepherd.updateDBTransaction();
+        
+        taskID=itask.getId();
+        //response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/imports.jsp?taskId=" + taskID);
+        //RequestDispatcher dispatcher = this.getServletContext()
+        //    .getRequestDispatcher("/imports.jsp?taskId=" + taskID);
+        // dispatcher.forward(request, response);
+        
+        
+      }
+      catch(Exception e) {
+        e.printStackTrace();
+        myShepherd.rollbackDBTransaction();
+        return;
+      }
+      finally {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+      }
+    }
+    
     int printPeriod = 1;
     //if (committing) myShepherd.beginDBTransaction();
     outPrnt("<h2>Parsed Import Table</h2>"); 
@@ -301,6 +344,8 @@ public class StandardImport extends HttpServlet {
       Shepherd myShepherd = new Shepherd(context);
       myShepherd.setAction("StandardImport.java_rowLoopNum_"+i);
       myShepherd.beginDBTransaction();
+      if(taskID!=null)itask=myShepherd.getImportTask(taskID);
+      if(itask!=null)itask.setStatus("Importing "+i);
       
       try {
 
@@ -337,6 +382,10 @@ public class StandardImport extends HttpServlet {
           encsCreated.add(enc.getCatalogNumber());
           if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
           if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
+          myShepherd.updateDBTransaction();
+          
+          //add it to the ImportTask
+          if(itask!=null)itask.addEncounter(enc);
           myShepherd.commitDBTransaction();
 
         }
@@ -373,31 +422,31 @@ public class StandardImport extends HttpServlet {
     if (committing) {
       
       Shepherd myShepherd = new Shepherd(context);
-      myShepherd.setAction("StandardImport.java_iTaskCommit");
+      myShepherd.setAction("StandardImport.java_iTaskCommit2");
       try {
         myShepherd.beginDBTransaction();
         
-        User creator = AccessControl.getUser(request, myShepherd);
-        ImportTask itask = new ImportTask(creator);
-        itask.setPassedParameters(request);
+        //User creator = AccessControl.getUser(request, myShepherd);
+        //ImportTask itask = new ImportTask(creator);
+        //itask.setPassedParameters(request);
         
-        myShepherd.getPM().makePersistent(itask);
-        myShepherd.updateDBTransaction();
-        
-        System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
+        //myShepherd.getPM().makePersistent(itask);
+        //myShepherd.updateDBTransaction();
+        if(taskID!=null)itask=myShepherd.getImportTask(taskID);
+        if(itask!=null)System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
         
         List<Encounter> actualEncsCreated = new ArrayList<Encounter>();
         for(String encid:encsCreated) {
           if(myShepherd.getEncounter(encid)!=null) {
-            itask.addEncounter(myShepherd.getEncounter(encid));
+            if(itask!=null)itask.addEncounter(myShepherd.getEncounter(encid));
             myShepherd.updateDBTransaction();
           }
         }
-
+        if(itask!=null)itask.setStatus("complete");
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
           
-        out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+        if(itask!=null)out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
       
       } catch (Exception e) {
         myShepherd.rollbackDBTransaction();
