@@ -17,6 +17,8 @@
       <field name="creator" persistence-modifier="persistent" element-type="org.ecocean.User" />
 
       <field name="created" persistence-modifier="persistent" />
+	  
+	  <field name="status" persistence-modifier="persistent" />
 
       <field name="parameters" persistence-modifier="persistent" />
 

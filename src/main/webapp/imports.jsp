@@ -108,7 +108,7 @@ if (itask == null) {
     query.closeAll();
 
     String[] headers = new String[]{"Import ID", "Date", "#Enc", "w/Indiv", "#Images", "Img Proc?", "IA?"};
-    if (adminMode) headers = new String[]{"Import ID", "User", "Date", "#Enc", "w/Indiv", "#Images", "Img Proc?", "IA?"};
+    if (adminMode) headers = new String[]{"Import ID", "User", "Date", "#Enc", "w/Indiv", "#Images", "Img Proc?", "IA?", "Status"};
     for (int i = 0 ; i < headers.length ; i++) {
         out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
     }
@@ -161,6 +161,7 @@ if (itask == null) {
             int percent = Math.round(iaStatus / Util.collectionSize(mas) * 100);
             out.println("<td class=\"yes\" title=\"" + iaStatus + " of " + Util.collectionSize(mas) + " (" + percent + "%)\">yes</td>");
         }
+        out.println("<td>"+task.getStatus()+"</td>");
         out.println("</tr>");
     }
 
@@ -172,7 +173,9 @@ if (itask == null) {
 } else { //end listing
 
     out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
-    out.println("<table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
+    out.println("<br>Status: "+itask.getStatus());
+    out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+	out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
     String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
     if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images"};
     for (int i = 0 ; i < headers.length ; i++) {
@@ -180,6 +183,27 @@ if (itask == null) {
     }
 
     out.println("</tr></thead><tbody>");
+    
+    
+    //if incomplete refresh
+    if(itask.getStatus()!=null && !itask.getStatus().equals("complete")){
+    %>
+	    
+	    <p class="caption">Refreshing results in <span id="countdown"></span> seconds.</p>
+	  <script type="text/javascript">
+	  (function countdown(remaining) {
+		    if(remaining === 0)location.reload(true);
+		    document.getElementById('countdown').innerHTML = remaining;
+		    setTimeout(function(){ countdown(remaining - 1); }, 1000);
+	
+		})
+		    (60);	
+		    
+	  </script>
+	    
+	    
+	    <%
+    }
 
     List<MediaAsset> allAssets = new ArrayList<MediaAsset>();
     int numIA = 0;
