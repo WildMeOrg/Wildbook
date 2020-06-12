@@ -4,6 +4,7 @@ org.ecocean.media.*,
 org.ecocean.*,
 org.ecocean.identity.IBEISIA,
 org.ecocean.ia.Task,
+org.ecocean.security.Collaboration,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
@@ -79,8 +80,15 @@ List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
 	//we can have *more than one* encounter here, e.g. when used in thumbnailSearchResults.jsp !!
-	Collection c = (Collection) (query.execute());
-	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
+    Collection c = (Collection) (query.execute());
+    
+    ArrayList<Encounter> tempEncs = new ArrayList<Encounter>(c);
+    ArrayList<Encounter> encs=new ArrayList<Encounter>();
+    for (Encounter tempEnc : tempEncs) {
+        if (Collaboration.canUserAccessEncounter(tempEnc, request)) {
+            encs.add(tempEnc);
+        }
+    }
   	int numEncs=encs.size();
 
   %><script>
