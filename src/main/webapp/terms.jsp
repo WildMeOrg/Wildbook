@@ -24,11 +24,11 @@
 <div class="container maincontent">
 
 
-<h1>Kitizen Science Usage and Volunteer Agreement</h1>
+<h2>Kitizen Science Usage and Volunteer Agreement</h2>
 <p class="Standard"><span class="T2">Please read the following prior to logging into Kitizen Science. By doing so, you agree to all of the terms and conditions of this Kitizen Science Usage and Volunteer Agreement ("Agreement"). If you do not agree with ANY of the terms or conditions contained herein, please do not use Kitizen Science. Please contact kitizenscience@gmail.com with any questions related to this Agreement.</span></p>
 <p class="Standard"><span class="T2">Kitizen Science reserves the right to change, add, or remove portions of this Agreement. If you, the Subscriber, will no longer be able to meet their obligations under the Agreement or will no longer be able to use or access the Service in a useful manner, you must inform Kitizen Science directly and no longer use Kitizen Science in any fashion.</span></p>
 
-<p class="Standard"><h2>Usage Agreement: Software and Website Terms and Conditions</h2></p>
+<p class="Standard"><h3>Usage Agreement: Software and Website Terms and Conditions</h3></p>
 <p class="Standard"><h3>1. Definitions</h3></p>
 
 <p class="Standard"><span class="T2">The Kitizen Science's Wildbook (the "Library") is a suite of online informational services (the "Services") provided by Kitizen Science and Wild Me, consisting of software applications and content provided by members of Kitizen Science and Wild Me, and members of the general public. "You" or "yours" refers to each person or entity, as applicable, that subscribes to the Kitizen Science Wildbook (the "Subscriber"). </span></p>
@@ -207,7 +207,7 @@
 <hr>
 
 	<div id="volunteer-agreement">
-		<h2>Volunteer Agreement</h2>
+		<h3>Volunteer Agreement</h3>
 		<p class="Standard"><span class="T2">I wish to assist nonprofit corporation Kitizen Science in its cat population monitoring research endeavors. In consideration of being given access to Kitizen Science’s app-based photographing platform; uploading, sieving, categorizing, and processing imagery and data in Kitizen Science’s project cloud database; and any other tasks assigned in the sole discretion of Kitizen Science, I agree to the following terms and conditions:
 		</span></p>
 		<p class="Standard"><h3>1. Research Volunteer Terms and Conditions</h3></p>
