@@ -170,8 +170,9 @@ public class Occurrence implements java.io.Serializable {
       }
     }
     if(isNew){
-      encounters.add(enc);
+      //encounters.add(enc);
       //updateNumberOfEncounters();
+      addEncounterAndUpdateIt(enc);
     }
     //if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     return isNew;
