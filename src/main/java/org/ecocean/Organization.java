@@ -335,6 +335,9 @@ public class Organization implements java.io.Serializable {
     }
 
 
+    public Long getVersion() {
+        return modified;
+    }
 
     public void updateModified() {
         modified = System.currentTimeMillis();
