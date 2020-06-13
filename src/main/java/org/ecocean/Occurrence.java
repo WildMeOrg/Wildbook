@@ -365,13 +365,9 @@ public class Occurrence implements java.io.Serializable {
     return names;
   }
 
-    public void setID(String id) {
+    public void setId(String id) {
         occurrenceID = id;
     }
-
-  public String getID(){
-    return occurrenceID;
-  }
 
   public static String getWebUrl(String occId, HttpServletRequest req) {
     return (CommonConfiguration.getServerURL(req)+"/occurrence.jsp?number="+occId);

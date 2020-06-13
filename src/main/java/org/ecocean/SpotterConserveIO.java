@@ -600,7 +600,7 @@ System.out.println("wa.tax => " + tax);
         enc.addSubmitter(sub);
         enc.setCatalogNumber(Util.generateUUID());
         //enc.setGroupSize(???)
-        enc.setOccurrenceID(occ.getID());
+        enc.setOccurrenceID(occ.getId());
 
         //we have a start_date and end_date in *very top level* (not occJson!) but it seems (!??) to always be the
         //  same timestamp throughout as create_date as well!!  so we are going to use this value for:
@@ -773,7 +773,7 @@ System.out.println("waToUser -> " + jin);
         Encounter enc = new Encounter();
         enc.setCatalogNumber(Util.generateUUID());
         //enc.setGroupSize(???)
-        enc.setOccurrenceID(occ.getID());
+        enc.setOccurrenceID(occ.getId());
 
         User sub = oaToUser(occJson, myShepherd, occ);
         enc.addSubmitter(sub);
