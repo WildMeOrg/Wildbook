@@ -46,7 +46,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 %>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+
     <head>
       <title><%=CommonConfiguration.getHTMLTitle(context)%>
       </title>
@@ -351,7 +351,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-							            
+							<li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
                         </ul>
                       </li>
 
@@ -467,6 +467,14 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
                                 <% } 
+                                
+                                if(CommonConfiguration.isCatalogEditable(context)) { %>
+                                	<li class="divider"></li>
+                                	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                                	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                                <%
+                              	}
+                                
                             } //end if admin %>
                         </ul>
                       </li>
