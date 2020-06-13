@@ -15,11 +15,18 @@ import java.io.PrintWriter;
 import javax.jdo.Query;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdRO;
 import org.ecocean.Util;
 import org.ecocean.Occurrence;
 import org.ecocean.User;
+import org.ecocean.Role;
+import org.ecocean.Organization;
+import org.ecocean.security.Collaboration;
 import org.ecocean.configuration.*;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -137,11 +144,10 @@ public class RestServletV2 extends HttpServlet {
         myShepherd.setAction("RestServletV2.handleGetObject");
         myShepherd.beginDBTransaction();
 
-//Employee e = pm.getObjectById(Employee.class, "Alfred.Smith@example.com"
-
         switch (cls) {
             case "org.ecocean.Occurrence":
-                Occurrence occ = myShepherd.getPM().getObjectById(Occurrence.class, id);
+                //Occurrence occ = myShepherd.getPM().getObjectById(Occurrence.class, id);
+                Occurrence occ = myShepherd.getOccurrence(id);
                 if (occ != null) {
                     try {
                         rtn = Util.toggleJSONObject(occ.uiJson(request));
@@ -153,6 +159,48 @@ public class RestServletV2 extends HttpServlet {
                     }
                 }
                 break;
+
+            case "org.ecocean.User":
+                User user = myShepherd.getUserByUUID(id);
+                if (user != null) {
+                    try {
+                        rtn = Util.toggleJSONObject(user.uiJson(request, true));
+                        rtn.put("lastLogin", user.getLastLogin());
+                        rtn.put("version", user.getVersion());
+                        rtn.remove("uuid");
+                        rtn.remove("organizations");
+                        rtn.put("id", user.getUUID());
+                        rtn.put("userURL", user.getUserURL());
+                        rtn.put("acceptedUserAgreement", user.getAcceptedUserAgreement());
+                        rtn.put("receiveEmails", user.getReceiveEmails());
+                        rtn.put("sharing", user.hasSharing());
+                        if (!Util.collectionIsEmptyOrNull(user.getOrganizations())) {
+                            JSONArray jarr = new JSONArray();
+                            for (Organization org : user.getOrganizations()) {
+                                if (org == null) continue;
+                                JSONObject jo = new JSONObject();
+                                jo.put("id", org.getId());
+                                jo.put("version", org.getVersion());
+                                jarr.put(jo);
+                            }
+                            rtn.put("organizations", jarr);
+                        }
+                    } catch (org.datanucleus.api.rest.orgjson.JSONException ex) {
+                        myShepherd.rollbackDBTransaction();
+                        myShepherd.closeDBTransaction();
+                        throw new IOException("JSONConversion - " + ex.toString());
+                    }
+                }
+                break;
+
+            case "org.ecocean.Organization":
+                Organization org = myShepherd.getOrganization(id);
+                if (org != null) {
+                    rtn = org.toJSONObject();
+                    rtn.put("version", org.getVersion());
+                }
+                break;
+
             default:
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
@@ -366,6 +414,16 @@ rtn.put("_payload", payload);
         JSONArray rtn = new JSONArray();
         ShepherdRO myShepherd = new ShepherdRO(context);
         myShepherd.setAction("RestServletV2.handleList");
+
+        if (className.equals("org.ecocean.security.Collaboration")) {
+            handleListCollaboration(myShepherd, response);
+            return;
+        }
+        if (className.equals("org.ecocean.Role")) {
+            handleListRole(myShepherd, response);
+            return;
+        }
+
         String jdo = "SELECT FROM " + className;
 ///TODO set fetchDepth = 0 or whatever to make fast
         Query query = myShepherd.getPM().newQuery("JDOQL", jdo);
@@ -395,6 +453,66 @@ rtn.put("_payload", payload);
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
         out.println(rtn.toString());
+        out.close();
+    }
+
+    private void handleListCollaboration(Shepherd myShepherd, HttpServletResponse response) throws ServletException, IOException {
+        JSONArray jarr = new JSONArray();
+        String jdo = "SELECT FROM org.ecocean.security.Collaboration";
+        Query query = myShepherd.getPM().newQuery("JDOQL", jdo);
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            Object obj = it.next();
+            Collaboration collab = (Collaboration)obj;
+            JSONObject jc = new JSONObject();
+            jc.put("version", collab.getDateTimeCreated());
+            jc.put("state", collab.getState());
+            jc.put("_legacyId", collab.getUsername1() + ":" + collab.getUsername2());
+            User u1 = myShepherd.getUser(collab.getUsername1());
+            User u2 = myShepherd.getUser(collab.getUsername2());
+            if ((u1 == null) || (u2 == null)) {
+                jc.put("error", "invalid username");
+            } else {
+                JSONArray uarr = new JSONArray();
+                uarr.put(u1.getId());
+                uarr.put(u2.getId());
+                jc.put("userIds", uarr);
+            }
+            jarr.put(jc);
+        }
+        query.closeAll();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+        out.println(jarr.toString());
+        out.close();
+    }
+
+    private void handleListRole(Shepherd myShepherd, HttpServletResponse response) throws ServletException, IOException {
+        String jdo = "SELECT FROM org.ecocean.Role";
+        Map<String,Set<String>> rmap = new HashMap<String,Set<String>>();
+        Query query = myShepherd.getPM().newQuery("JDOQL", jdo);
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            Object obj = it.next();
+            Role role = (Role)obj;
+            User user = myShepherd.getUser(role.getUsername());
+            if (user == null) continue;
+            if (!rmap.containsKey(role.getRolename())) rmap.put(role.getRolename(), new HashSet<String>());
+            rmap.get(role.getRolename()).add(user.getUUID());
+        }
+        JSONObject rtn = new JSONObject();
+        rtn.put("success", true);
+        rtn.put("result", new JSONObject(rmap));
+        query.closeAll();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+        out.println(rtn);
         out.close();
     }
 
