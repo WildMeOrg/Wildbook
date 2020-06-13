@@ -472,6 +472,7 @@ rtn.put("_payload", payload);
             jc.put("version", collab.getDateTimeCreated());
             jc.put("state", collab.getState());
             jc.put("_legacyId", collab.getUsername1() + ":" + collab.getUsername2());
+            jc.put("id", Util.stringToUUID(collab.getUsername1() + ":" + collab.getUsername2()));
             User u1 = myShepherd.getUser(collab.getUsername1());
             User u2 = myShepherd.getUser(collab.getUsername2());
             if ((u1 == null) || (u2 == null)) {
@@ -507,9 +508,15 @@ rtn.put("_payload", payload);
             if (!rmap.containsKey(role.getRolename())) rmap.put(role.getRolename(), new HashSet<String>());
             rmap.get(role.getRolename()).add(user.getUUID());
         }
-        JSONObject rtn = new JSONObject();
-        rtn.put("success", true);
-        rtn.put("result", new JSONObject(rmap));
+        JSONArray rtn = new JSONArray();
+        for (String rname : rmap.keySet()) {
+            JSONObject r = new JSONObject();
+            r.put("name", rname);
+            r.put("id", Util.stringToUUID(rname));
+            r.put("users", new JSONArray(rmap.get(rname)));
+            r.put("version", 0);
+            rtn.put(r);
+        }
         query.closeAll();
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
