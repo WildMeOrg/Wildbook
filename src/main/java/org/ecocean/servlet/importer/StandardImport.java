@@ -9,7 +9,6 @@ import java.net.*;
 import java.text.SimpleDateFormat;
 import org.apache.poi.ss.usermodel.DateUtil;
 
-import org.ecocean.grid.*;
 
 import org.ecocean.resumableupload.UploadServlet;
 
@@ -329,12 +328,13 @@ public class StandardImport extends HttpServlet {
     if (!committing) feedback.printStartTable();
     //System.out.println("debug1");
     // one encounter per-row. We keep these running.
-    Occurrence occ = null;
+    
     List<String> encsCreated = new ArrayList<String>();
     int maxRows = 50000;
     int offset = 0;
     for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
 
+      Occurrence occ = null;
       MarkedIndividual mark = null;
       verbose = ((i%printPeriod)==0);
       
@@ -377,9 +377,12 @@ public class StandardImport extends HttpServlet {
 
           myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
           encsCreated.add(enc.getCatalogNumber());
-          if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
+          if (occ!=null && !myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
           if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
           myShepherd.updateDBTransaction();
+          
+          //connect the Encounter back toward the Occurrence too
+          if (occ!=null && !myShepherd.isOccurrence(occ)) enc.setOccurrenceID(occ.getOccurrenceID());
           
           //add it to the ImportTask
           if(itask!=null)itask.addEncounter(enc);

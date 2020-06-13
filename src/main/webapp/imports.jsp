@@ -22,7 +22,7 @@ if (user == null) {
     myShepherd.closeDBTransaction();
     return;
 }
-boolean adminMode = ("admin".equals(user.getUsername()));
+boolean adminMode = request.isUserInRole("admin");
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -90,7 +90,7 @@ if (taskId != null) {
         itask = (ImportTask) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(ImportTask.class, taskId), true));
     } catch (Exception ex) {}
     if ((itask == null) || !(adminMode || user.equals(itask.getCreator()))) {
-        out.println("<h1 class=\"error\">taskId " + taskId + " is invalid</h1>");
+        out.println("<h1 class=\"error\">taskId " + taskId + " may be invalid</h1><p>Try refreshing this page if you arrived on this page from an import that you just kicked off.</p>");
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         return;
