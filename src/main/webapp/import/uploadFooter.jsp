@@ -19,7 +19,7 @@ function confirmCommit() {
 	confirm("Start full import? This process may take a long time. Do not close this browser window if you continue.");
 }
 
-function sendAndRedirect(link, uuid){
+async function sendAndRedirect(link, uuid){
 	
     $.ajax({
         url: link,
@@ -27,7 +27,9 @@ function sendAndRedirect(link, uuid){
             cosole.log("finished task");
         }
     });
-    
+    $("body").css("cursor", "progress");
+    await new Promise(r => setTimeout(r, 3000));
+    $("body").css("cursor", "default");
     window.location.href = "../imports.jsp?taskId="+uuid;
 	
 }
