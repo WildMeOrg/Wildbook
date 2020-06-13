@@ -152,6 +152,11 @@ public class Util {
 		return UUID.randomUUID().toString();
 	}
 
+    public static String stringToUUID(String s) {
+        if (s == null) return null;
+        return UUID.nameUUIDFromBytes(s.getBytes()).toString();
+    }
+
   public static String prettyUUID(String uuid) {
     if (!isUUID(uuid)) return uuid;
     return(uuid.substring(0,8)+"...");
