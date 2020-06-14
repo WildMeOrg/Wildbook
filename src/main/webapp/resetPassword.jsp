@@ -39,8 +39,8 @@ context=ServletUtilities.getContext(request);
 <div class="container maincontent">
 
     
-              <h1><%=props.getProperty("resetPassword")%>
-              </h1>
+              <h2><%=props.getProperty("resetPassword")%>
+              </h2>
 
               <p><%=props.getProperty("resetPasswordDescription")%>
               </p>

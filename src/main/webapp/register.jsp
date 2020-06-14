@@ -1066,20 +1066,20 @@ How did you hear about Kitizen Science?
 %>
 <div id="instructions">
 
-<h1>Instructions for the Online Workflow Study</h1>
+<h3>Instructions for the Online Workflow Study</h3>
 
 <p>The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.  You will receive a short survey via email after this study ends asking for your feedback and for you to rate aspects of the website.</p>
-<h2><a name="requirements" id="requirements"></a>Computer requirements</h2></a>
+<h3><a name="requirements" id="requirements"></a>Computer requirements</h3></a>
 <p>
 Because of the small screen size of web browsers on smart phones and small tablets, we do not want you to process submissions on smaller devices. Please use a desktop or laptop computer.
 </p>
-<h2>Rules</h2>
+<h3>Rules</h3>
 <p>We ask that you create only one login for Kitizen Science, and each login only has one person using it.  We are looking at how participant demographics might change your success at processing submissions, so we need one set of demographic information to be tied to one user account.  We also ask that you don't ask friends for help during your participation – we want to see how successful you are while working on your own.</p>
 <p>There is a quiz at the end of this instruction page to ensure that you have read the instructions and understand what is being asked of you. </p>
-<h2>General instructions</h2>
+<h3>General instructions</h3>
 <p>In this study, you will be presented with a cat photo submission and asked to do two things: to assign attributes to the cat in the photo (primary color/pattern, life stage, ear tip, collar, and sex if visible), and then to decide if the cat has a match in the system  or if they are a new cat to the system. These test photos were obtained in the same way that our project will gather data in the real world.  That means some cats are harder to see than others, and you won't always get to see good details.</p>
 <p class="style2">There are 168 submissions in the system, and you'll be presented with one randomly.  You can complete all of them or only a few – either way, we value your time and energy and Kitizen Science always aims to make participation flexible.  We estimate each submission will each take a few minutes to process once you become familiar with the workflow.  You can process a maximum of 24 submissions per day.  (Observer fatigue can cause people to become less successful when they have been staring at photos for extended periods of time.)</p>
-<h2>Step 1: assigning cat attributes</h2>
+<h3>Step 1: assigning cat attributes</h3>
 <p>For each submission, you start out by assigning attributes to a cat. You may have one, two, or three photos of the cat, and you may or may not be able to see the cat's whole body. Base your attribute assignments only on what you are sure you can see.</p>
 <p>Some photos will have more than one cat. The  cat whose attributes you are assigning and  matching  will be highlighted  in a green box.</p>
 <p>First, select a cat's primary color or pattern group.  These are our 8 categories:</p>
@@ -1212,10 +1212,10 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<h2>Step 2: cat matching</h2>
+<h3>Step 2: cat matching</h3>
 <p>After saving a cat's attributes, our system will look for likely potential matches based on those attributes, showing you cats that are most likely to be a match.  Some cat submissions will have a match in the system, and some won't.  You decide if one of the potential matches is the same cat, or click to decide that the submission is a new cat to the system without a match.</p>
 <p>&nbsp;</p>
-<h2>How to compare similar cats</h2><p>Even two similar-looking cats can be separated if you examine them closely.  Here are some details to look for when comparing two cats.</p>
+<h3>How to compare similar cats</h3><p>Even two similar-looking cats can be separated if you examine them closely.  Here are some details to look for when comparing two cats.</p>
 <table width="80%" border="0" align="center" cellpadding="10" cellspacing="0">
   <tr>
     <td width="551" valign="top"><div align="center">Is the cat's ear tip removed (a marker  of sterilization)?  These can be hard to see at a distance or in cats with a small amount of  ear tip removed. Either ear may be tipped.</div></td>
@@ -1274,7 +1274,7 @@ Because of the small screen size of web browsers on smart phones and small table
   </tr>
 </table>
 <p>&nbsp;</p>
-<h2>That's everything!</h2><p>We hope this is a fun and straightforward study.  If you have any questions, please email kitizenscience@gmail.com.</p>
+<h3>That's everything!</h3><p>We hope this is a fun and straightforward study.  If you have any questions, please email kitizenscience@gmail.com.</p>
 <p>&nbsp;</p>
 
 <div id="register-quiz">
