@@ -538,6 +538,16 @@ public class Shepherd {
     return tempEnc;
   }
   
+  public ImportTask getImportTask(String num) {
+    ImportTask tempEnc = null;
+    try {
+      tempEnc = ((ImportTask) (pm.getObjectById(pm.newObjectIdInstance(ImportTask.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempEnc;
+  }
+  
   public Annotation getAnnotation(String uuid) {
     Annotation annot = null;
     try {
@@ -1327,11 +1337,17 @@ public class Shepherd {
     }
     return null;
   }
+
   public LabeledKeyword getOrCreateLabeledKeyword(String label, String readableName, boolean commit) {
     LabeledKeyword lkw = getLabeledKeyword(label, readableName);
     if (lkw!=null) return lkw;
-    lkw = new LabeledKeyword(label, readableName);
-    if (commit) storeNewKeyword(lkw);
+    try {
+      System.out.println("trying to persist new LabeledKeyword in Shepherd.getOrCreateLabeledKeyword()");
+      lkw = new LabeledKeyword(label, readableName);
+      if (commit) storeNewKeyword(lkw);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     return lkw;
   }
 
@@ -3708,8 +3724,14 @@ public class Shepherd {
     return it;
   }
 
+  public List<Keyword> getAllKeywordsList() {
+    Extent allKeywords = pm.getExtent(Keyword.class);
+    Query acceptedKeywords = pm.newQuery(allKeywords);
+    return getAllKeywordsList(acceptedKeywords);
+  }
+
   public Iterator<Keyword> getAllKeywords() {
-    Extent allKeywords = pm.getExtent(Keyword.class, true);
+    Extent allKeywords = pm.getExtent(Keyword.class);
     Query acceptedKeywords = pm.newQuery(allKeywords);
     return getAllKeywords(acceptedKeywords);
   }
@@ -3724,15 +3746,17 @@ public class Shepherd {
 
   public List<LabeledKeyword> getAllLabeledKeywords() {
     try {
-      Extent extent = pm.getExtent(LabeledKeyword.class);
+      Extent extent = pm.getExtent(LabeledKeyword.class, true);
       Query query = pm.newQuery(extent);
-      List<LabeledKeyword> ans = (List) query.execute();
+      Collection c = (Collection) (query.execute());
+      List<LabeledKeyword> ans = new ArrayList(c);
       query.closeAll();
       return ans;
     } catch (Exception npe) {
-      System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning a null iterator.");
+      System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning empty array.");
       npe.printStackTrace();
-      return null;
+      // prevents npe's on search pages, counting methods
+      return new ArrayList<LabeledKeyword>();
     }
   }
 
@@ -3772,16 +3796,30 @@ public class Shepherd {
     // we find all keywords in the database and note which ones
     // are also listed in the properties file
     ArrayList<Keyword> al = new ArrayList<Keyword>();
+    List<Keyword> finalList = new ArrayList<>();
     try {
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
       if(c!=null) al=new ArrayList<Keyword>(c);
-    } 
-    catch (javax.jdo.JDOException x) {
+      List<LabeledKeyword> lkeywords = getAllLabeledKeywords();
+      for (Keyword k : al) {
+        boolean isLk = false;
+        for (Keyword lk : lkeywords) {
+          if (k.getReadableName().equals(lk.getReadableName())) {
+            isLk = true;
+            break;
+          }
+        }
+        if (!isLk) {
+          finalList.add(k);
+        }
+      }
+
+    } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
     }
-    return al;
+    return finalList;
   }
 
   public Set<Keyword> getAllKeywordsSet(Query acceptedKeywords) {
@@ -4947,6 +4985,32 @@ public class Shepherd {
   public void throwAwaySocialUnit(SocialUnit su) {
     pm.deletePersistent(su);
   }
+  
+  public User getUserByTwitterHandle(String handle) {
+    User user= null;
+    String filter="SELECT FROM org.ecocean.User WHERE twitterHandle == \""+handle.trim()+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      user=(User)it.next();
+    }
+    query.closeAll();
+    return user;
+  }
+  
+  
+      //this tries (in this order) username, uuid, email and returns first user it finds
+    // note: we do *not* check validity of either uuid or email address, given that (undoubtedly) we have
+    //       malformed values for both in the db.  is this a bug or a feature?  #philosophy
+    public User getUserByWhatever(String value) {
+        if (value == null) return null;
+        User u = getUser(value);
+        if (u != null) return u;
+        u = getUserByUUID(value);
+        if (u != null) return u;
+        return getUserByEmailAddress(value);  //see note below about uniqueness, alas
+    }
   
 
 } //end Shepherd class
