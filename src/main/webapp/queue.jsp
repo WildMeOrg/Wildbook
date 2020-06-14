@@ -280,11 +280,17 @@ for (String vr : validRoles) {
 System.out.println("INFO: queue.jsp maxRole=" + maxRole + " for " + user);
 
 //maxRole = "cat_mouse_volunteer";  //faked for testing
-//TODO what to do about cat_walk_volunteer ???
 if (maxRole == null) {
     //response.sendError(401, "access denied - no valid role");
     myShepherd.rollbackDBTransaction();
     response.sendRedirect("register.jsp");
+    return;
+}
+
+if (maxRole.equals("cat_walk_volunteer")) {
+    System.out.println("queue.jsp: sending " + user + " to appUser.jsp");
+    myShepherd.rollbackDBTransaction();
+    response.sendRedirect("appUser.jsp");
     return;
 }
 
