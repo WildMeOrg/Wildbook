@@ -65,7 +65,7 @@
                 <%
                   	
                   int totalKeywords = myShepherd.getNumKeywords();
-                  Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
+                  Iterator<Keyword> keys = myShepherd.getAllKeywords();
                   if(keys!=null){
 	                  while(keys.hasNext()){
 	                    Keyword word = keys.next();
@@ -99,7 +99,7 @@
 
                 <%
 					
-	           keys = myShepherd.getAllKeywords(kwQuery);
+	           keys = myShepherd.getAllKeywords();
                 if(keys!=null){
 	                  while(keys.hasNext()) {
 	                    Keyword word = keys.next();
@@ -123,10 +123,10 @@
       </table>
 
       <%
-        kwQuery.closeAll();
+
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        kwQuery = null;
+
         myShepherd = null;
       %>
       
