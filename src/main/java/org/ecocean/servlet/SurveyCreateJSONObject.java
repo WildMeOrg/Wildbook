@@ -30,12 +30,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.joda.time.DateTime;
 import org.ecocean.Shepherd;
 import org.ecocean.Survey;
+import org.ecocean.Encounter;
+import org.ecocean.Occurrence;
 import org.ecocean.movement.SurveyTrack;
 import org.ecocean.movement.Path;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.AccessControl;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 
 public class SurveyCreateJSONObject extends HttpServlet {
@@ -87,8 +90,28 @@ System.out.println(startTime + " --> " + endTime);
         survey.setProjectType("route");
 
         SurveyTrack trk = new SurveyTrack(Path.fromJSONArray(jsonIn.optJSONArray("path")));
+
+        JSONArray eids = jsonIn.optJSONArray("encounterIds");
+        if (eids != null) for (int i = 0 ; i < eids.length() ; i++) {
+            String eid = eids.optString(i, null);
+            if (eid == null) continue;
+            Encounter enc = myShepherd.getEncounter(eid);
+            if (enc == null) {
+                System.out.println("WARNING: SurveyCreate could not load Encounter for [" + i + "] id=" + eid);
+            } else {
+                Occurrence occ = new Occurrence(Util.generateUUID(), enc);
+                occ.setSubmitterIDFromEncs();
+                occ.setSubmittersFromEncounters();
+                occ.setLatLonFromEncs();
+                occ.setMillisFromEncounters();
+                occ.setDateFromEncounters();
+                occ.setTaxonomiesFromEncounters(myShepherd);
+                myShepherd.getPM().makePersistent(occ);
+                trk.addOccurrence(occ);
+                System.out.println("INFO: SurveyCreate created [" + i + "] " + occ + " for " + enc + " and added to " + trk);
+            }
+        }
         survey.addSurveyTrack(trk);
-        //TODO add encounters via occurrence, if need be
 
         myShepherd.getPM().makePersistent(survey);
         rtn.put("success", true);
