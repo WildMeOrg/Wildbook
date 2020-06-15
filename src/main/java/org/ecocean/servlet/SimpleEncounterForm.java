@@ -89,6 +89,7 @@ import org.ecocean.security.SocialAuth;
 import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
+import org.ecocean.AccessControl;
 import org.ecocean.User;
 import org.pac4j.core.context.J2EContext;
 import org.pac4j.core.context.WebContext;
@@ -143,13 +144,23 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("EncounterForm.class");
 System.out.println("in context " + context);
+    PrintWriter out = response.getWriter();
+
+    User user = AccessControl.getUser(request, myShepherd);
+    if (user == null) {
+        response.sendError(401, "access denied");
+        response.setContentType("text/plain");
+        out.println("access denied");
+        myShepherd.closeDBTransaction();
+        return;
+    }
+
         //request.getSession()getServlet().getServletContext().getRealPath("/"));
         String rootDir = getServletContext().getRealPath("/");
 System.out.println("rootDir=" + rootDir);
 
     //set up for response
     response.setContentType("text/plain");
-    PrintWriter out = response.getWriter();
     boolean locked = false;
 
     String fileName = "None";
@@ -247,8 +258,10 @@ System.out.println("about to do enc()");
             enc.setGenus("Felis");
             enc.setSpecificEpithet("catus");
 
-            //List<User> submitters=new ArrayList<User>();
-            //enc.setSubmitters(submitters);
+            List<User> submitters = new ArrayList<User>();
+            submitters.add(user);
+            enc.setSubmitters(submitters);
+            enc.setSubmitterID(user.getUsername());
 
       //enc.setComments(getVal(fv, "comments").replaceAll("\n", "<br>"));
               //enc.setLifeStage(fv.get("lifeStage").toString());
