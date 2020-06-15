@@ -3725,15 +3725,46 @@ public class Shepherd {
   }
 
   public List<Keyword> getAllKeywordsList() {
-    Extent allKeywords = pm.getExtent(Keyword.class);
-    Query acceptedKeywords = pm.newQuery(allKeywords);
-    return getAllKeywordsList(acceptedKeywords);
+    Extent allOccurs = null;
+    ArrayList<Keyword> al=new ArrayList<Keyword>();
+    try {
+      allOccurs = pm.getExtent(Keyword.class, true);
+      Query acceptedOccurs = pm.newQuery(allOccurs);
+      Collection c = (Collection) (acceptedOccurs.execute());
+      al=new ArrayList<Keyword>(c);
+      acceptedOccurs.closeAll();
+    } 
+    catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return null;
+    }
+    return al;
   }
 
+  /*
   public Iterator<Keyword> getAllKeywords() {
     Extent allKeywords = pm.getExtent(Keyword.class);
     Query acceptedKeywords = pm.newQuery(allKeywords);
     return getAllKeywords(acceptedKeywords);
+  }
+  */
+  
+  public Iterator<Keyword> getAllKeywords() {
+    Extent allOccurs = null;
+    Iterator<Keyword> it = null;
+    try {
+      allOccurs = pm.getExtent(Keyword.class, true);
+      Query acceptedOccurs = pm.newQuery(allOccurs);
+      Collection c = (Collection) (acceptedOccurs.execute());
+      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
+      acceptedOccurs.closeAll();
+      it = al.iterator();
+    } 
+    catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return null;
+    }
+    return it;
   }
 
   public List<String> getAllKeywordLabels() {
@@ -3752,7 +3783,8 @@ public class Shepherd {
       List<LabeledKeyword> ans = new ArrayList(c);
       query.closeAll();
       return ans;
-    } catch (Exception npe) {
+    } 
+    catch (Exception npe) {
       System.out.println("Error encountered when trying to execute getAllEncountersNoQuery. Returning empty array.");
       npe.printStackTrace();
       // prevents npe's on search pages, counting methods
@@ -3760,15 +3792,16 @@ public class Shepherd {
     }
   }
 
+/*
   public Iterator<Keyword> getAllKeywords(Query acceptedKeywords) {
     List<Keyword> words = getSortedKeywordList(acceptedKeywords);
     return ((words==null) ? null : words.iterator());
   }
-
+*/
   // allows keywords to be defined in properties file and appear at the top
   // of the list of all keywords
-  public List<Keyword> getSortedKeywordList(Query acceptedKeywords) {
-    List<Keyword> allKeywords = getAllKeywordsList(acceptedKeywords);
+  public List<Keyword> getSortedKeywordList() {
+    List<Keyword> allKeywords = getAllKeywordsNoLabeledKeywords();
     List<String> propKeywordNames = CommonConfiguration.getIndexedPropertyValues("keyword",getContext());
     List<Keyword> propKeywords = new ArrayList<Keyword>();
 
@@ -3792,15 +3825,18 @@ public class Shepherd {
 
   }
 
-  public List<Keyword> getAllKeywordsList(Query acceptedKeywords) {
+  public List<Keyword> getAllKeywordsNoLabeledKeywords() {
     // we find all keywords in the database and note which ones
     // are also listed in the properties file
     ArrayList<Keyword> al = new ArrayList<Keyword>();
     List<Keyword> finalList = new ArrayList<>();
     try {
+      Extent allOccurs = pm.getExtent(Keyword.class, true);
+      Query acceptedKeywords=pm.newQuery(allOccurs);
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
       if(c!=null) al=new ArrayList<Keyword>(c);
+      acceptedKeywords.closeAll();
       List<LabeledKeyword> lkeywords = getAllLabeledKeywords();
       for (Keyword k : al) {
         boolean isLk = false;
@@ -3822,23 +3858,30 @@ public class Shepherd {
     return finalList;
   }
 
-  public Set<Keyword> getAllKeywordsSet(Query acceptedKeywords) {
+  public Set<Keyword> getAllKeywordsSet() {
+    Extent extent = pm.getExtent(Keyword.class, true);
+    Query acceptedKeywords = pm.newQuery(extent);
     HashSet<Keyword> al = null;
     System.out.println("I started getAllKeywordsSet.");
     try {
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
       al=new HashSet<Keyword>(c);
-    } catch (javax.jdo.JDOException x) {
+      acceptedKeywords.closeAll();
+    } 
+    catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
+    }
+    finally {
+      acceptedKeywords.closeAll();
     }
     System.out.println("got a set of size "+(al!=null ? al.size() : "ERROR"));
     return al;
   }
 
-  public Set<String> getAllKeywordNames(Query acceptedKeywords) {
-    Set<Keyword> keywords = getAllKeywordsSet(acceptedKeywords);
+  public Set<String> getAllKeywordNames() {
+    Set<Keyword> keywords = getAllKeywordsSet();
     Set<String> kwNames = new HashSet<String>();
     for (Keyword kword: keywords) {
       kwNames.add(kword.getReadableName());
