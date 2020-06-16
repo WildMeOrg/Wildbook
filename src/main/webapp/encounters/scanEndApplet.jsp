@@ -148,8 +148,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     width: 1000px;
     display: inline-block;
     position: relative;
-    height: 400px;
     cursor: crosshair;
+    height: 400px;
 }
 
 .match-side-spot {
@@ -172,6 +172,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     display: inline-block;
     position: relative;
     width: 49%;
+
 }
 .match-side img {
     position: absolute;

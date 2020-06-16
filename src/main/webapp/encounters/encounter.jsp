@@ -14,11 +14,14 @@
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
+         org.ecocean.servlet.importer.ImportTask,
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
-         java.io.File, java.text.DecimalFormat, org.apache.commons.lang.StringEscapeUtils,
+         java.io.File, java.text.DecimalFormat, 
+         org.ecocean.servlet.importer.ImportTask,
+         org.apache.commons.lang.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -5451,27 +5454,47 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
 
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-<tr>
-  <td>
-
-      <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
-      <%
-      SexAnalysis mtDNA=mito;
-      String analysisIDString=mtDNA.getAnalysisID();
-      %>
-      </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
-      </td></tr>
-      <tr><td>
-      <%
-      String haplotypeString="";
-      try{
-      	if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
-      }
-      catch(NullPointerException npe34){}
-      %>
-      <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
-      </td><td><input name="sex" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" />
-		</td></tr>
+  <tr>
+    <td>
+  
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+        <%
+        SexAnalysis mtDNA=new SexAnalysis();
+        String analysisIDString="";
+        %>
+        </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+        </td></tr>
+        <tr><td>
+        <%
+        String haplotypeString="";
+  
+        try{
+          if(mito.getSex()!=null){haplotypeString=mito.getSex();}
+        } catch (NullPointerException npe34){}
+  
+        ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
+  
+        if (sexDefs!=null&&haplotypeString!=null) {
+          //System.out.println(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ mito.getSex() "+mito.getSex());
+          System.out.println("haplotypeString??? "+haplotypeString);
+          System.out.println("sexDefs:  "+Arrays.toString(sexDefs.toArray()));
+          sexDefs.remove(haplotypeString);
+        }
+        %>
+        <strong>TESTTESTTESTTESTTEST</strong>
+        <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
+        </td><td>
+          <select name="sex" id="geneticSexSelect">
+            <option value="<%=haplotypeString%>" selected><%=haplotypeString%></option>
+            <%
+            for (String sexDef : sexDefs) {
+            %>
+              <option value="<%=sexDef%>"><%=sexDef%></option>
+            <%
+            }
+            %>
+          </select>
+        </td></tr>
 
 		<tr><td>
 		 <%
@@ -6178,27 +6201,47 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
 
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-<tr>
-  <td>
-
-      <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
-      <%
-      SexAnalysis mtDNA=new SexAnalysis();
-      String analysisIDString="";
-      %>
-      </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
-      </td></tr>
-      <tr><td>
-      <%
-      String haplotypeString="";
-      try{
-      	if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
-      }
-      catch(NullPointerException npe34){}
-      %>
-      <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
-      </td><td><input name="sex" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" />
-		</td></tr>
+  <tr>
+    <td>
+  
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+        <%
+        SexAnalysis mtDNA=new SexAnalysis();
+        String analysisIDString="";
+        %>
+        </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+        </td></tr>
+        <tr><td>
+        <%
+        String haplotypeString="";
+  
+        try{
+          if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
+        } catch (NullPointerException npe34){}
+  
+        ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
+  
+        if (sexDefs!=null&&haplotypeString!=null&&sexDefs.contains(haplotypeString)) {
+          sexDefs.remove(haplotypeString);
+        }
+        %>
+        <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
+        </td><td>
+          <select name="sex" id="geneticSexSelect">
+            <%
+            if (sexDefs!=null&&haplotypeString!=null&&sexDefs.contains(haplotypeString)) {
+              %>
+              <option value="<%=haplotypeString%>" selected><%=haplotypeString%></option>
+              <%
+            }
+            for (String sexDef : sexDefs) {
+            %>
+              <option value="<%=sexDef%>"><%=sexDef%></option>
+            <%
+            }
+            %>
+          </select>
+        </td></tr>
 
 		<tr><td>
 		 <%
@@ -6522,7 +6565,6 @@ function iaMatchFilterGo() {
 		}
 		int rootIter=0;
 		while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-
 			String val="HotSpotter";
 			String queryDict="";
 			try {
@@ -6540,7 +6582,7 @@ function iaMatchFilterGo() {
 		}
 		%>
 
-    $('.ia-match-filter-dialog input').each(function(i, el) {
+$('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
         var key = keyMap[el.name] || '_UNKNOWN_';
         if (!data.taskParameters.matchingSetFilter[key]) data.taskParameters.matchingSetFilter[key] = [];
@@ -6551,8 +6593,7 @@ function iaMatchFilterGo() {
         else{
         	data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
         }
-
-
+        
     });
 console.log('SENDING ===> %o', data);
     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -6721,7 +6762,6 @@ $(".search-collapse-header").click(function(){
 
 rootIter=0;
 while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-
 	
 	if(rootIter==0){
 		%>
@@ -6751,7 +6791,6 @@ while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
 	if(val==null || val.trim().equals("")){
 		val="HotSpotter";
 	}
-
 
 	out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + rootIter + "\" name=\"match-filter-algorithm\" value=\"" + rootIter+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + rootIter + "\">" + val + " </label></div>");
 

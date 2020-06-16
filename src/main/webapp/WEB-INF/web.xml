@@ -401,6 +401,12 @@
 				/merge.jsp = authc, roles[researcher]
 				/mergeComplete.jsp = authc, roles[researcher]
 				/AnnotationSetMatchAgainst = authc, roles[admin]
+				
+				/MembershipCreate = authc
+				/MembershipDelete = authc
+				
+				/encounters/manualAnnotation.jsp = authc, roles[researcher]
+				
             </param-value>
         </init-param>
     </filter>
@@ -492,7 +498,17 @@
   <servlet>
     <servlet-name>EncounterCreateSurvey</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterCreateSurvey</servlet-class>
-  </servlet>	
+  </servlet>
+
+  <servlet>
+    <servlet-name>MembershipCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.MembershipCreate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>MembershipDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.MembershipDelete</servlet-class>
+  </servlet>		
 
   <servlet>
     <servlet-name>WriteOutScanTask</servlet-name>
@@ -548,8 +564,6 @@
       <servlet-name>UserAddProfileImage</servlet-name>
       <servlet-class>org.ecocean.servlet.UserAddProfileImage</servlet-class>
   </servlet>
-
-
 
 <!--
 <servlet>
@@ -1763,6 +1777,16 @@
          <url-pattern>/MediaAssetAttach</url-pattern>
       </servlet-mapping>
 
+      <servlet-mapping>
+         <servlet-name>MembershipCreate</servlet-name>
+         <url-pattern>/MembershipCreate</url-pattern>
+      </servlet-mapping>
+
+      <servlet-mapping>
+         <servlet-name>MembershipDelete</servlet-name>
+         <url-pattern>/MembershipDelete</url-pattern>
+      </servlet-mapping>
+
         <servlet-mapping>
           <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
           <url-pattern>/TissueSampleRemoveBiologicalMeasurement</url-pattern>
@@ -2342,8 +2366,6 @@
     <servlet-name>IndividualSetNickName</servlet-name>
     <url-pattern>/IndividualSetNickName</url-pattern>
   </servlet-mapping>
-
-
 
   <servlet-mapping>
     <servlet-name>IndividualSetAlternateID</servlet-name>
