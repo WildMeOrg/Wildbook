@@ -47,7 +47,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
 %>
 
-<html>
+
     <head>
       <title><%=CommonConfiguration.getHTMLTitle(context)%>
       </title>

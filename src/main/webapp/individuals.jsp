@@ -111,7 +111,7 @@ else{
   String edit = props.getProperty("edit");
   String remove = props.getProperty("remove");
   String occurrenceNumber = props.getProperty("occurrenceNumber");
-  String locationID = props.getProperty("locationID");
+  //String locationID = props.getProperty("locationID");
   String id = request.getParameter("number");
 
   List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
