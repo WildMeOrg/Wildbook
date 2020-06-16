@@ -1394,7 +1394,7 @@ public class Shepherd {
   }
 
   public ImportTask getImportTaskForEncounter(Encounter enc) {
-    Query itq = pm.newQuery("SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getID() + "'");
+    Query itq = pm.newQuery("SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getId() + "'");
     Collection c = (Collection) (itq.execute());
     Iterator it = c.iterator();
     ImportTask itask = null;
@@ -5065,19 +5065,6 @@ public class Shepherd {
     query.closeAll();
     return user;
   }
-  
-  
-      //this tries (in this order) username, uuid, email and returns first user it finds
-    // note: we do *not* check validity of either uuid or email address, given that (undoubtedly) we have
-    //       malformed values for both in the db.  is this a bug or a feature?  #philosophy
-    public User getUserByWhatever(String value) {
-        if (value == null) return null;
-        User u = getUser(value);
-        if (u != null) return u;
-        u = getUserByUUID(value);
-        if (u != null) return u;
-        return getUserByEmailAddress(value);  //see note below about uniqueness, alas
-    }
   
 
     public Configuration getConfiguration(String id) {
