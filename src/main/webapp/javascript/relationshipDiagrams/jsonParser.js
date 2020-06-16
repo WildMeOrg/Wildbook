@@ -273,7 +273,7 @@ class JSONParser {
 	let [graphNodes, groupNum] = this.traverseRelationshipTree(iId, nodes, relationships);
 
 	//Ensure iId is in graphNodes
-	if (iId && !graphNodes[iId]) graphNodes[iId] = this.updateNodeData(nodes[iId], ++groupNum, this.getNodeId(), 0, true);
+	if (iId && !graphNodes[iId] && nodes[iId]) graphNodes[iId] = this.updateNodeData(nodes[iId], ++groupNum, this.getNodeId(), 0, true);
 	
 	//Update id and group attributes for all disconnected nodes
 	let numNodes = Object.keys(graphNodes).length;
