@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
+import org.ecocean.servlet.importer.ImportTask;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -93,7 +94,6 @@ public class EncounterDelete extends HttpServlet {
         //myShepherd.beginDBTransaction();
 
         try {
-
           Encounter backUpEnc = myShepherd.getEncounterDeepCopy(enc2trash.getEncounterNumber());
 
           String savedFilename = request.getParameter("number") + ".dat";
@@ -101,30 +101,56 @@ public class EncounterDelete extends HttpServlet {
           if(!thisEncounterDir.exists()){
             thisEncounterDir.mkdirs();
             System.out.println("Trying to create the folder to store a dat file in EncounterDelete2: "+thisEncounterDir.getAbsolutePath());
-          
+            File serializedBackup = new File(thisEncounterDir, savedFilename);
+            FileOutputStream fout = new FileOutputStream(serializedBackup);
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+            oos.writeObject(backUpEnc);
+            oos.close();  
           }
+        
+        } catch (NotSerializableException nse) {
+          System.out.println("[WARN]: The encounter "+enc2trash.getCatalogNumber()+" could not be serialized.");
+          nse.printStackTrace();
+        }
 
-          File serializedBackup = new File(thisEncounterDir, savedFilename);
-          FileOutputStream fout = new FileOutputStream(serializedBackup);
-          ObjectOutputStream oos = new ObjectOutputStream(fout);
-          oos.writeObject(backUpEnc);
-          oos.close();
+        try {
+
+          Occurrence occ = myShepherd.getOccurrenceForEncounter(enc2trash.getID());
+          if (occ==null&&(enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
+            occ = myShepherd.getOccurrence(enc2trash.getOccurrenceID());
+          }
           
-          if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
-            Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
-            occur.removeEncounter(enc2trash);
+          if(occ!=null) {
+            occ.removeEncounter(enc2trash);
             enc2trash.setOccurrenceID(null);
             
             //delete Occurrence if it's last encounter has been removed.
-            if(occur.getNumberEncounters()==0){
-              myShepherd.throwAwayOccurrence(occur);
+            if(occ.getNumberEncounters()==0){
+              myShepherd.throwAwayOccurrence(occ);
             }
             
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
      
           }
+          
+          //Remove it from an ImportTask if needed
+          ImportTask task=myShepherd.getImportTaskForEncounter(enc2trash.getCatalogNumber());
+          if(task!=null) {
+            task.removeEncounter(enc2trash);
+            task.addLog("Servlet EncounterDelete removed Encounter: "+enc2trash.getCatalogNumber());
+            myShepherd.updateDBTransaction();
+          }
+          
+          
 
+          if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
+            ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);
+            itask.removeEncounter(enc2trash);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
+          
           //Set all associated annotations matchAgainst to false
           enc2trash.useAnnotationsForMatching(false);
           
@@ -176,10 +202,9 @@ public class EncounterDelete extends HttpServlet {
 
 
 
-        } 
-        catch (Exception edel) {
+        } catch (Exception edel) {
           locked = true;
-          log.warn("Failed to serialize encounter: " + request.getParameter("number"), edel);
+          //log.warn("Failed to serialize encounter: " + request.getParameter("number"), edel);
           edel.printStackTrace();
           myShepherd.rollbackDBTransaction();
 

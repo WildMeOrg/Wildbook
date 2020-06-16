@@ -68,9 +68,11 @@ public class EncounterSearchExportEmailAddresses extends HttpServlet{
 				response.setContentType("text/html");
 				PrintWriter out = response.getWriter();
 				out.println(ServletUtilities.getHeader(request));  
-				out.println("<html><body><p><strong>Access denied.</strong></p>");
+				out.println("<html><body><p><strong>Access denied. Not all data is owned by you.</strong></p>");
 				out.println(ServletUtilities.getFooter(context));
 				out.close();
+		    myShepherd.rollbackDBTransaction();
+		    myShepherd.closeDBTransaction();
 				return;
 			}
       
@@ -132,37 +134,15 @@ public class EncounterSearchExportEmailAddresses extends HttpServlet{
       Encounter tempEnc = (Encounter) encs.get(f);
 
       //calculate the number of submitter contributors
-      if ((tempEnc.getSubmitterEmail() != null) && (!tempEnc.getSubmitterEmail().equals(""))) {
-        //check for comma separated list
-        if (tempEnc.getSubmitterEmail().indexOf(",") != -1) {
-          //break up the string
-          StringTokenizer stzr = new StringTokenizer(tempEnc.getSubmitterEmail(), ",");
-          while (stzr.hasMoreTokens()) {
-            String token = stzr.nextToken();
-            if (contributors.indexOf(token) == -1) {
-              contributors.append(token + "\n");
-            }
-          }
-        } else if (contributors.indexOf(tempEnc.getSubmitterEmail()) == -1) {
-          contributors.append(tempEnc.getSubmitterEmail() + "\n");
-        }
+      if (tempEnc.getSubmitters()!=null) {
+        List<String> subs=tempEnc.getSubmitterEmails();
+        for(String email:subs) {if(!contributors.toString().contains(email))contributors.append(email+ "\n");}
       }
 
       //calculate the number of photographer contributors
-      if ((tempEnc.getPhotographerEmail() != null) && (!tempEnc.getPhotographerEmail().equals(""))) {
-        //check for comma separated list
-        if (tempEnc.getPhotographerEmail().indexOf(",") != -1) {
-          //break up the string
-          StringTokenizer stzr = new StringTokenizer(tempEnc.getPhotographerEmail(), ",");
-          while (stzr.hasMoreTokens()) {
-            String token = stzr.nextToken();
-            if (contributors.indexOf(token) == -1) {
-              contributors.append(token + "\n");
-            }
-          }
-        } else if (contributors.indexOf(tempEnc.getPhotographerEmail()) == -1) {
-          contributors.append(tempEnc.getPhotographerEmail() + "\n");
-        }
+      if (tempEnc.getPhotographers()!=null) {
+        List<String> subs=tempEnc.getPhotographerEmails();
+        for(String email:subs) {if(!contributors.toString().contains(email))contributors.append(email+ "\n");}
       }
 
 

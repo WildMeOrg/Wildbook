@@ -166,4 +166,34 @@ public class Relationship implements java.io.Serializable{
     return jobj;
   }
   
+  public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+    JSONObject jobj = new JSONObject();
+    if(this.getMarkedIndividualName1()!=null)jobj.put("markedIndividualName1", this.getMarkedIndividualName1());
+    if(this.getMarkedIndividualName2()!=null)jobj.put("markedIndividualName2", this.getMarkedIndividualName2());
+    if(this.getType()!=null)jobj.put("type", this.getType());
+    if(this.getMarkedIndividualRole1()!=null)jobj.put("markedIndividualRole1", this.getMarkedIndividualRole1());
+    if(this.getMarkedIndividualRole2()!=null)jobj.put("markedIndividualRole2", this.getMarkedIndividualRole2());
+    if(this.getBidirectional()!=null)jobj.put("bidirectional", this.getBidirectional());
+    if(this.getRelatedComments()!=null)jobj.put("relatedComments", this.getRelatedComments());
+    jobj.put("startTime", this.getStartTime());
+    jobj.put("endTime", this.getEndTime());
+    if(this.getRelatedSocialUnitName()!=null)jobj.put("relatedSocialUnitName", this.getRelatedSocialUnitName());
+    
+    
+    return sanitizeJson(request, decorateJson(request,decorateJson(request, jobj)));
+  }
+  
+  public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+    
+
+    if(getMarkedIndividual1()!=null && !getMarkedIndividual1().canUserAccess(request))jobj.remove("individual1");
+    if(getMarkedIndividual2()!=null && !getMarkedIndividual2().canUserAccess(request))jobj.remove("individual2");
+
+    jobj.put("_sanitized", true);
+
+    return jobj;
+}
+  
+  
+  
 }

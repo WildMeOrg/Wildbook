@@ -47,13 +47,13 @@ wildbook.IA.plugins.push({
         //TODO could have conditional etc to turn on/off visual matcher i guess
         items.push([
             function(enh) {  //the menu text
-	        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+            	var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
                 if (!ma.taxonomyString) return false;  //this just skips this item
                 return 'visual matcher';
             },
             function(enh) {  //the menu action
-	        var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+            	var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
                 var ma = assetById(mid);
                 if (!ma.taxonomyString) {
                     imageEnhancer.popup('Set <b>genus</b> and <b>specific epithet</b> on this encounter before using visual matcher.');
@@ -61,6 +61,18 @@ wildbook.IA.plugins.push({
                 }
                 //TODO how should we *really* get encounter number!
                 wildbook.openInTab('encounterVM.jsp?number=' + encounterNumberFromElement(enh.imgEl) + '&mediaAssetId=' + mid);
+            }
+        ]);
+        
+        //manual annotation.jsp
+        items.push([
+            function(enh) {  //the menu text
+            	return 'add annotation';
+            },
+            function(enh) {  //the menu action
+            	var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                var ma = assetById(mid);
+                wildbook.openInTab('manualAnnotation.jsp?encounterId=' + encounterNumberFromElement(enh.imgEl) + '&assetId=' + mid);
             }
         ]);
 
@@ -73,7 +85,7 @@ wildbook.IA.plugins.push({
         var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
         var aid = imageEnhancer.annotationIdFromElement(enh.imgEl);
         var ma = assetByAnnotationId(aid);
-        if (!mid || !aid || !ma) return false;
+        if (!mid || !aid || !ma || typeof iaMatchFilterAnnotationIds == 'undefined') return false;
         var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(ma);
         var identActive = wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus);
         var requireSpecies = !(wildbook.IA.requireSpeciesForId() == 'false');

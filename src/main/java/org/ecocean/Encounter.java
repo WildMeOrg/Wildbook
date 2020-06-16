@@ -195,15 +195,14 @@ public class Encounter implements java.io.Serializable {
     */
 
   //An URL to a thumbnail image representing the encounter.
-  //This is
   private String dwcImageURL;
 
   //Defines whether the sighting represents a living or deceased individual.
   //Currently supported values are: "alive" and "dead".
   private String livingStatus;
 
-    //observed age (if any) via IBEIS zebra projects
-    private Double age;
+  //observed age (if any) via IBEIS zebra projects
+  private Double age;
 
   //Date the encounter was added to the library.
   private String dwcDateAdded;
@@ -221,7 +220,7 @@ public class Encounter implements java.io.Serializable {
   private String researcherComments = "None";
 
   //username of the logged in researcher assigned to the encounter
-  //this STring is matched to an org.ecocean.User object to obtain more information
+  //this String is matched to an org.ecocean.User object to obtain more information
   private String submitterID;
 
   //name, email, phone, address of the encounter reporter
@@ -230,12 +229,16 @@ public class Encounter implements java.io.Serializable {
   private String hashedPhotographerEmail;
   private String hashedInformOthers;
   private String informothers;
+	
   //name, email, phone, address of the encounter photographer
   private String photographerName, photographerEmail, photographerPhone, photographerAddress;
+	
   //a Vector of Strings defining the relative path to each photo. The path is relative to the servlet base directory
   public Vector additionalImageNames = new Vector();
+	
   //a Vector of Strings of email addresses to notify when this encounter is modified
   private Vector interestedResearchers = new Vector();
+	
   //time metrics of the report
   private int hour = 0;
   private String minutes = "00";
@@ -245,15 +248,16 @@ public class Encounter implements java.io.Serializable {
   //the globally unique identifier (GUID) for this Encounter
   private String guid;
 
-  
-  
   private Long endDateInMilliseconds;
   private Long dateInMilliseconds;
+	
   //describes how the shark was measured
   private String size_guess = "none provided";
+	
   //String reported GPS values for lat and long of the encounter
   private String gpsLongitude = "", gpsLatitude = "";
   private String gpsEndLongitude = "", gpsEndLatitude = "";
+	
   //whether this encounter has been rejected and should be hidden from public display
   //unidentifiable encounters generally contain some data worth saving but not enough for accurate photo-identification
   //private boolean unidentifiable = false;
@@ -261,16 +265,20 @@ public class Encounter implements java.io.Serializable {
   //public boolean hasSpotImage = false;
   //whether this encounter has a right-side spot image extracted
   //public boolean hasRightSpotImage = false;
+	
   //Indicates whether this record can be exposed via TapirLink
   private boolean okExposeViaTapirLink = false;
+	
   //whether this encounter has been approved for public display
   //private boolean approved = true;
   //integers of the latitude and longitude degrees
   //private int lat=-1000, longitude=-1000;
   //name of the stored file from which the left-side spots were extracted
   public String spotImageFileName = "";
+	
   //name of the stored file from which the right-side spots were extracted
   public String rightSpotImageFileName = "";
+	
   //string descriptor of the most obvious scar (if any) as reported by the original submitter
   //we also use keywords to be more specific
   public String distinguishingScar = "None";
@@ -1381,6 +1389,7 @@ public class Encounter implements java.io.Serializable {
     public void setIndividual(MarkedIndividual indiv) {
         if(indiv==null) {this.individual=null;}
         else{this.individual = indiv;}
+        this.refreshAnnotationLiteIndividual();
     }
 
     public MarkedIndividual getIndividual() {
@@ -2310,13 +2319,16 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setGenus(String newGenus) {
     if(newGenus!=null){genus = newGenus;}
 	  else{genus=null;}
+    this.refreshAnnotationLiteTaxonomy();
   }
   // we need these methods because our side-effected setGenus will silently break an import (!!!!!) in an edge case I cannot identify
   public void setGenusOnly(String genus) {
     this.genus = genus;
+    this.refreshAnnotationLiteTaxonomy();
   }
   public void setSpeciesOnly(String species) {
     this.specificEpithet = species;
+    this.refreshAnnotationLiteTaxonomy();
   }
 
   public String getSpecificEpithet() {
@@ -2326,6 +2338,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setSpecificEpithet(String newEpithet) {
     if(newEpithet!=null){specificEpithet = newEpithet;}
 	  else{specificEpithet=null;}
+    this.refreshAnnotationLiteTaxonomy();
   }
 
   public String getTaxonomyString() {
@@ -2353,6 +2366,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
             this.genus = gs[0];
             this.specificEpithet = gs[1];
         }
+        this.refreshAnnotationLiteTaxonomy();
     }
     public void setTaxonomyFromString(String s) {  //basically scientific name (will get split on space)
         String[] gs = Util.stringToGenusSpecificEpithet(s);
@@ -2364,6 +2378,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
             this.genus = gs[0];
             this.specificEpithet = gs[1];
         }
+        this.refreshAnnotationLiteTaxonomy();
     }
     public void setTaxonomyFromIAClass(String iaClass, Shepherd myShepherd) {
         setTaxonomy(IBEISIA.iaClassToTaxonomy(iaClass, myShepherd));
@@ -3842,5 +3857,21 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     }
     return Util.asSortedList(idSet);
   }
+
+    public void refreshAnnotationLiteTaxonomy() {
+        if (!this.hasAnnotations()) return;
+        String tax = this.getTaxonomyString();
+        for (Annotation ann : this.annotations) {
+            ann.refreshLiteTaxonomy(tax);
+        }
+    }
+    public void refreshAnnotationLiteIndividual() {
+        if (!this.hasAnnotations()) return;
+        String indivId = "____";
+        if (this.individual != null) indivId = this.individual.getIndividualID();
+        for (Annotation ann : this.annotations) {
+            ann.refreshLiteIndividual(indivId);
+        }
+    }
 
 }
