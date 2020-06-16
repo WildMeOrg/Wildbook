@@ -1,4 +1,4 @@
-<%@ page contentType="application/json; charset=utf-8"" language="java" import="org.joda.time.LocalDateTime,
+<%@ page contentType="application/json; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.ia.*,java.util.*,

@@ -7,7 +7,6 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individualSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1)+1;
@@ -969,7 +968,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
           </p>
             <%
 
-            Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
+            Iterator<Keyword> keys = myShepherd.getAllKeywords();
             if (keys.hasNext()) {
               %>
               
@@ -1596,8 +1595,8 @@ else {
 
 
 <%
-  kwQuery.closeAll();
+
   myShepherd.closeDBTransaction();
-  kwQuery = null;
+
   myShepherd = null;
 %>
