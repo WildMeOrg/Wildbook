@@ -12,6 +12,14 @@
 				{ "name":"Mpala.South", "id":"Mpala.South", "locationID":[] }
 		
 		
+		] },
+		
+		{ "name":"Ol Pejeta", "id":"Ol Pejeta", "locationID":[
+		
+				{ "name":"Ol Pejeta.East", "id":"Ol Pejeta.East", "locationID":[] },
+				{ "name":"Ol Pejeta.West", "id":"Ol Pejeta.West", "locationID":[] }
+		
+		
 		] }
 
 
