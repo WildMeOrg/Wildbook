@@ -66,15 +66,21 @@
               <p><%=props.getProperty("kw.remove.keyword")%> <select name="keyword" id="keyword">
 
                 <%
+                  	
                   int totalKeywords = myShepherd.getNumKeywords();
-                  Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
-                  for (int n = 0; n < totalKeywords; n++) {
-                    Keyword word = keys.next();
+                  Iterator<Keyword> keys = myShepherd.getAllKeywords();
+                  if(keys!=null){
+	                  while(keys.hasNext()){
+	                    Keyword word = keys.next();
+	                	%>
+	
+	                	<option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
+	                	</option>
+	                	<%
+	               		 }
+                
+                  }
                 %>
-
-                <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
-                </option>
-                <%}%>
 
               </select> 
               <input name="action" type="hidden" id="action" value="removeWord"></p>
@@ -93,15 +99,19 @@
               <p><%=props.getProperty("kw.rename.keyword")%> <select name="keyword" id="keyword">
 
                 <%
-
-                  keys = myShepherd.getAllKeywords(kwQuery);
-                  for (int w = 0; w < totalKeywords; w++) {
-                    Keyword word = keys.next();
+					
+	           keys = myShepherd.getAllKeywords();
+                if(keys!=null){
+	                  while(keys.hasNext()) {
+	                    Keyword word = keys.next();
+	                %>
+	
+	                <option value="<%=word.getReadableName()%>"><%=word.getReadableName()%>
+	                </option>
+	                <%}
+                
+                  }
                 %>
-
-                <option value="<%=word.getReadableName()%>"><%=word.getReadableName()%>
-                </option>
-                <%}%>
 
               </select>
               <p><%=props.getProperty("kw.rename.new")%> <input
@@ -114,10 +124,10 @@
       </table>
 
       <%
-        kwQuery.closeAll();
+
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        kwQuery = null;
+
         myShepherd = null;
       %>
       

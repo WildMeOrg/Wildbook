@@ -136,4 +136,8 @@ public class Keyword {
                 .toString();
     }
 
+    public boolean isLabeledKeyword() {
+      return false;
+    }
+
 }

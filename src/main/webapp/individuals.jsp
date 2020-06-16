@@ -7,15 +7,32 @@ org.datanucleus.ExecutionContext,java.text.SimpleDateFormat,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager, java.text.SimpleDateFormat" %>
 
 
-<jsp:include page="header.jsp" flush="true"/>
-
 <%
-
-boolean isLoggedIn=false;
-if(request.getUserPrincipal()!=null)isLoggedIn=true;
-String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("individuals.jsp");
+
+if (request.getParameter("number")!=null) {
+	String oldWorld = request.getParameter("number").trim();
+        //we also check individualID (uuid) too, just in case some href in jsp is still using number=
+		myShepherd.beginDBTransaction();
+        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"LEGACYINDIVIDUALID\" = ? OR \"ALTERNATEID\" LIKE ? OR \"INDIVIDUALID\" = ?");
+        List results = (List) q.execute(oldWorld, "%" + oldWorld + "%", oldWorld);
+
+        String tryId = null;
+        if (results.iterator().hasNext()) tryId = (String) results.iterator().next();
+        q.closeAll();
+        myShepherd.rollbackAndClose();
+        response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        response.setHeader("Location", "individuals.jsp?id=" + tryId);
+        response.flushBuffer();
+}
+else{
+
+  boolean isLoggedIn=false;
+  if(request.getUserPrincipal()!=null)isLoggedIn=true;
+  String blocker = "";
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -31,7 +48,7 @@ context=ServletUtilities.getContext(request);
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
   //File thisEncounterDir = new File(encountersDir, number);
 
-//setup our Properties object to hold all properties
+  //setup our Properties object to hold all properties
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
@@ -40,11 +57,11 @@ context=ServletUtilities.getContext(request);
 
   //load our variables for the submit page
 
- // props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
+  // props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
   props = ShepherdProperties.getProperties("individuals.properties", langCode,context);
 
-	Properties collabProps = new Properties();
- 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+  Properties collabProps = new Properties();
+  collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
 
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
@@ -93,40 +110,18 @@ context=ServletUtilities.getContext(request);
   String edit = props.getProperty("edit");
   String remove = props.getProperty("remove");
   String occurrenceNumber = props.getProperty("occurrenceNumber");
-  //System.out.println("We got occurrenceNumber = "+occurrenceNumber);
-  //System.out.println("We got sex = "+sex);
-	String locationID = props.getProperty("locationID");
-    //String id = null;
+  String locationID = props.getProperty("locationID");
   String id = request.getParameter("number");
-  Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("individuals.jsp");
 
-	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+  List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
-
-
+  boolean visible = false;
 
 %>
-
+<jsp:include page="header.jsp" flush="true"/>
 <%
-if (request.getParameter("number")!=null) {
-	String oldWorld = request.getParameter("number").trim();
-        //we also check individualID (uuid) too, just in case some href in jsp is still using number=
-		myShepherd.beginDBTransaction();
-        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"LEGACYINDIVIDUALID\" = ? OR \"ALTERNATEID\" LIKE ? OR \"INDIVIDUALID\" = ?");
-        List results = (List) q.execute(oldWorld, "%" + oldWorld + "%", oldWorld);
-
-        String tryId = null;
-        if (results.iterator().hasNext()) tryId = (String) results.iterator().next();
-        q.closeAll();
-        myShepherd.rollbackAndClose();
-        response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        response.setHeader("Location", "individuals.jsp?id=" + tryId);
-        response.flushBuffer();
-}
-
 if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
-                                  System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
+    System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
     id = request.getParameter("id");
     if (id==null) id = request.getParameter("number");
 	myShepherd.beginDBTransaction();
@@ -136,86 +131,84 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 		if (indie != null) {
 			Vector myEncs=indie.getEncounters();
 
-      HiddenEncReporter hiddenData = new HiddenEncReporter(myEncs, request, myShepherd);
-      myEncs = hiddenData.securityScrubbedResults(myEncs);
+      		HiddenEncReporter hiddenData = new HiddenEncReporter(myEncs, request, myShepherd);
+      		myEncs = hiddenData.securityScrubbedResults(myEncs);
 
 			int numEncs=myEncs.size();
 
-      // This is a big hack to make sure an encounter's annotations are loaded into the JDO cache
-      // without this hack
-      int numAnns = 0;
-      for (Object obj: myEncs) {
-        Encounter enc = (Encounter) obj;
-        if (enc!=null && enc.getAnnotations()!=null) {
-          for (Annotation ann: enc.getAnnotations()) {
-            if (ann!=null) {
-              String makeSureWeHaveIt = ann.getIAClass();
-              numAnns++;
-            }
-          }
-        }
-      }
-      System.out.println("");
-      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
-      System.out.println("This marked individual has "+numAnns+" anotations");
+	      	// This is a big hack to make sure an encounter's annotations are loaded into the JDO cache
+	      	// without this hack
+	      	int numAnns = 0;
+		      for (Object obj: myEncs) {
+		        Encounter enc = (Encounter) obj;
+		        if (enc!=null && enc.getAnnotations()!=null) {
+		          for (Annotation ann: enc.getAnnotations()) {
+		            if (ann!=null) {
+		              String makeSureWeHaveIt = ann.getIAClass();
+		              numAnns++;
+		            }
+		          }
+		        }
+		      }
+		      System.out.println("");
+		      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+		      System.out.println("This marked individual has "+numAnns+" anotations");
+		
+					//boolean visible = indie.canUserAccess(request);
+		      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
+		      System.out.println("We got visible = "+visible);
+		
+		      String ipAddress = request.getHeader("X-FORWARDED-FOR");
+		      if (ipAddress == null) ipAddress = request.getRemoteAddr();
+		      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
+		      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+		      System.out.println("    From IP: "+ipAddress);
+		      System.out.println("    "+currentTimeString);
+		      System.out.println("    Individual: "+indie);
+		      System.out.println("    is visible: "+visible);
+		      System.out.println("    request.getAuthType(): "+request.getAuthType());
+		      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
+		      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
+		      System.out.println("");
+	
 
-			//boolean visible = indie.canUserAccess(request);
-      boolean visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
-      System.out.println("We got visible = "+visible);
+				if (!visible) {
+	
+			        // remove any potentially-sensitive data, labeled with the secure-field class
+			        System.out.println("Not visible! Printing stuff!");
+			        %>
+			        <script src="javascript/hide-secure-fields.js"></script>
+			        <%
+			  			ArrayList<String> uids = indie.getAllAssignedUsers();
+							ArrayList<String> possible = new ArrayList<String>();
+							for (String u : uids) {
+								Collaboration c = null;
+								if (collabs != null) c = Collaboration.findCollaborationWithUser(u, collabs);
+								if ((c == null) || (c.getState() == null)) {
+									User user = myShepherd.getUser(u);
+									String fullName = u;
+									if (user!=null && user.getFullName()!=null) fullName = user.getFullName();
+									possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
+								}
+							}
+							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
+							cmsg = cmsg.replace("'", "\\'");
+			
+							if (possible.size() > 0) {
+			    			String arr = new Gson().toJson(possible);
+								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
+							} else {
+								cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
+								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
+							}
+				} //end if visible
 
-      String ipAddress = request.getHeader("X-FORWARDED-FOR");
-      if (ipAddress == null) ipAddress = request.getRemoteAddr();
-      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
-      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
-      System.out.println("    From IP: "+ipAddress);
-      System.out.println("    "+currentTimeString);
-      System.out.println("    Individual: "+indie);
-      System.out.println("    is visible: "+visible);
-      System.out.println("    request.getAuthType(): "+request.getAuthType());
-      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
-      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
-      System.out.println("");
-
-
-			if (!visible) {
-
-        // remove any potentially-sensitive data, labeled with the secure-field class
-        System.out.println("Not visible! Printing stuff!");
-        %>
-        <script src="/javascript/hide-secure-fields.js"></script>
-        <%
-  			ArrayList<String> uids = indie.getAllAssignedUsers();
-				ArrayList<String> possible = new ArrayList<String>();
-				for (String u : uids) {
-					Collaboration c = null;
-					if (collabs != null) c = Collaboration.findCollaborationWithUser(u, collabs);
-					if ((c == null) || (c.getState() == null)) {
-						User user = myShepherd.getUser(u);
-						String fullName = u;
-						if (user!=null && user.getFullName()!=null) fullName = user.getFullName();
-						possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
-					}
-				}
-				String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
-				cmsg = cmsg.replace("'", "\\'");
-
-				if (possible.size() > 0) {
-    			String arr = new Gson().toJson(possible);
-					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
-				} else {
-					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
-					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
-				}
-			}
-
-
-
+			} //end if is an individual
 		}
-	}
-	catch(Exception e){e.printStackTrace();}
-	finally{
-		myShepherd.rollbackDBTransaction();
-	}
+		catch(Exception e){e.printStackTrace();}
+		finally{
+			myShepherd.rollbackDBTransaction();
+		}
 }
 
 %>
@@ -232,14 +225,7 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
   fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
 
-<!-- GOOGLE PLUS-ONE BUTTON -->
-<script type="text/javascript">
-  (function() {
-    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-    po.src = 'https://apis.google.com/js/plusone.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-  })();
-</script>
+
 
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
@@ -437,7 +423,7 @@ $(document).ready(function() {
   <%
   myShepherd.beginDBTransaction();
   try {
-    if (myShepherd.isMarkedIndividual(id)) { %>
+    if (myShepherd.isMarkedIndividual(id) && visible) { %>
   <%-- Header Row --%>
   <div class="row mainHeader secure-field" style="position:relative;">
     <div class="col-sm-6">
@@ -1550,7 +1536,7 @@ if (sharky.getNames() != null) {
           });
 
           $("#closeRelationshipForm").click(function() {
-              $("#addRelati onshipForm").hide();
+              $("#addRelationshipForm").hide();
           });
 
           $("#EditRELATIONSHIP").click(function(event) {
@@ -2359,81 +2345,26 @@ if (sharky.getNames() != null) {
    </script>
 
 
-
+</div>
 
   <%
   }
 
   //could not find the specified individual!
   else {
-
-  //let's check if the entered name is actually an alternate ID
-/*  currently not supported (yet) due to indiv id stuff!  FIXME
-  List<MarkedIndividual> al = myShepherd.getMarkedIndividualsByAlternateID(name);
-  List<MarkedIndividual> al2 = myShepherd.getMarkedIndividualsByNickname(name);
-  List<Encounter> al3 = myShepherd.getEncountersByAlternateID(name);
-*/
-
-  if (myShepherd.isEncounter(id)) {
-    %>
-    <meta http-equiv="REFRESH"
-      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=id%>">
-    </HEAD>
-    <%
-  }
-  else if(myShepherd.isOccurrence(id)) {
-    %>
-      <meta http-equiv="REFRESH"
-      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=id%>">
-      </HEAD>
-      <%
-  } else {
-    %>
-    <p><%=matchingRecord %>: <strong><%=id%></strong></p>
-    <p>
-      <%=tryAgain %>
-    </p>
-
-    <p>
-
-      <form action="individuals.jsp" method="get" name="sharks"><strong><%=record %>:</strong>
-      <input name="number" type="text" id="number" value=<%=id%>> <input
-      name="sharky_button" type="submit" id="sharky_button"
-      value="<%=getRecord %>"></form>
-    </p>
-    <p>
-      <font color="#990000">
-        <a href="encounters/encounterSearch.jsp">
-          <%=props.getProperty("searchEncounters") %>
-        </a>
-      </font>
-    </p>
-
-    <p>
-      <font color="#990000">
-        <a href="individualSearch.jsp">
-          <%=props.getProperty("searchIndividuals") %>
-        </a>
-      </font>
-    </p>
-  <%
-  }
-  %>
-
-  <%
-  }
+	    %>
+	    <p><%=matchingRecord %> <strong><%=id%></strong></p>
+	  	<%
+  	}
   }
 
   catch (Exception eSharks_jsp) {
-  System.out.println("Caught and handled an exception in individuals.jsp!");
-  eSharks_jsp.printStackTrace();
+  	System.out.println("Caught and handled an exception in individuals.jsp!");
+  	eSharks_jsp.printStackTrace();
   }
-
-
 
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
-
 
   %>
 
@@ -2455,3 +2386,7 @@ String pswipedir = urlLoc+"/photoswipe";
 
 <%-- Import Footer --%>
 <jsp:include page="footer.jsp" flush="true"/>
+
+<% 
+  } //end if ! ?number=
+%>
