@@ -5,7 +5,7 @@
 
 	{"name":"Africa - All","id":"Africa","locationID":[
 
-		{"name":"Africa - South","id":"Africa","locationID":[
+		{"name":"Africa - South","id":"Africa - South","locationID":[
 
 
 			{ "name":"Angola", "id":"Angola", "locationID":[] },
@@ -19,7 +19,7 @@
 			
 			]}, 
 			
-			{"name":"Africa - East","id":"Africa","locationID":[
+			{"name":"Africa - East","id":"Africa - East","locationID":[
 				
 				{ "name":"Kenya", "id":"Kenya", "locationID":[] },
 				{ "name":"Malawi", "id":"Malawi", "locationID":[] },
