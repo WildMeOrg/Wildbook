@@ -15,6 +15,7 @@
          org.ecocean.Util,org.ecocean.Measurement,
         org.ecocean.servlet.importer.ImportTask,
          org.ecocean.Util.*, org.ecocean.genetics.*,
+         org.ecocean.servlet.importer.ImportTask,
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
          org.json.JSONArray,
@@ -5454,27 +5455,47 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
 
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-<tr>
-  <td>
-
-      <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
-      <%
-      SexAnalysis mtDNA=mito;
-      String analysisIDString=mtDNA.getAnalysisID();
-      %>
-      </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
-      </td></tr>
-      <tr><td>
-      <%
-      String haplotypeString="";
-      try{
-      	if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
-      }
-      catch(NullPointerException npe34){}
-      %>
-      <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
-      </td><td><input name="sex" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" />
-		</td></tr>
+  <tr>
+    <td>
+  
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+        <%
+        SexAnalysis mtDNA=new SexAnalysis();
+        String analysisIDString="";
+        %>
+        </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+        </td></tr>
+        <tr><td>
+        <%
+        String haplotypeString="";
+  
+        try{
+          if(mito.getSex()!=null){haplotypeString=mito.getSex();}
+        } catch (NullPointerException npe34){}
+  
+        ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
+  
+        if (sexDefs!=null&&haplotypeString!=null) {
+          //System.out.println(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ mito.getSex() "+mito.getSex());
+          System.out.println("haplotypeString??? "+haplotypeString);
+          System.out.println("sexDefs:  "+Arrays.toString(sexDefs.toArray()));
+          sexDefs.remove(haplotypeString);
+        }
+        %>
+        <strong>TESTTESTTESTTESTTEST</strong>
+        <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
+        </td><td>
+          <select name="sex" id="geneticSexSelect">
+            <option value="<%=haplotypeString%>" selected><%=haplotypeString%></option>
+            <%
+            for (String sexDef : sexDefs) {
+            %>
+              <option value="<%=sexDef%>"><%=sexDef%></option>
+            <%
+            }
+            %>
+          </select>
+        </td></tr>
 
 		<tr><td>
 		 <%
@@ -6181,27 +6202,47 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
 
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-<tr>
-  <td>
-
-      <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
-      <%
-      SexAnalysis mtDNA=new SexAnalysis();
-      String analysisIDString="";
-      %>
-      </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
-      </td></tr>
-      <tr><td>
-      <%
-      String haplotypeString="";
-      try{
-      	if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
-      }
-      catch(NullPointerException npe34){}
-      %>
-      <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
-      </td><td><input name="sex" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" />
-		</td></tr>
+  <tr>
+    <td>
+  
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+        <%
+        SexAnalysis mtDNA=new SexAnalysis();
+        String analysisIDString="";
+        %>
+        </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+        </td></tr>
+        <tr><td>
+        <%
+        String haplotypeString="";
+  
+        try{
+          if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
+        } catch (NullPointerException npe34){}
+  
+        ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
+  
+        if (sexDefs!=null&&haplotypeString!=null&&sexDefs.contains(haplotypeString)) {
+          sexDefs.remove(haplotypeString);
+        }
+        %>
+        <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
+        </td><td>
+          <select name="sex" id="geneticSexSelect">
+            <%
+            if (sexDefs!=null&&haplotypeString!=null&&sexDefs.contains(haplotypeString)) {
+              %>
+              <option value="<%=haplotypeString%>" selected><%=haplotypeString%></option>
+              <%
+            }
+            for (String sexDef : sexDefs) {
+            %>
+              <option value="<%=sexDef%>"><%=sexDef%></option>
+            <%
+            }
+            %>
+          </select>
+        </td></tr>
 
 		<tr><td>
 		 <%
