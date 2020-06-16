@@ -1,5 +1,4 @@
-
-<%@ page contentType="application/json; charset=UTF-8" language="java" import="org.joda.time.LocalDateTime,
+<%@ page contentType="application/json; charset=utf-8"" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.ia.*,java.util.*,
@@ -15,8 +14,6 @@ org.datanucleus.api.jdo.JDOPersistenceManager,
 org.ecocean.cache.*,
 java.util.zip.GZIPOutputStream,
 java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
-
-
 <%!
 
 // Returns a somewhat rest-like JSON object containing the metadata
@@ -50,9 +47,6 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request) thro
 }
 
 %>
-
-
-
 <%!
 
 void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo, boolean useComp) throws IOException, JSONException {
@@ -73,11 +67,6 @@ void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo,
 }
 
 %>
-
-
-
-
-
 <%
 
 response.setHeader("Access-Control-Allow-Origin", "*"); 
@@ -89,18 +78,6 @@ Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("socialJson.jsp");
 
 
-%>
-
-<html>
-<head>
-<title>Fix Some Fields</title>
-
-</head>
-
-
-<body>
-
-<%
 
 
 
@@ -180,10 +157,4 @@ finally{
 	myShepherd.closeDBTransaction();
 
 }
-
 %>
-
-
-
-</body>
-</html>
