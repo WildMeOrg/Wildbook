@@ -132,10 +132,12 @@ class JSONQuerier {
     queryRelationshipData(genus) {
 	let query;
 	if (!this.localFiles) {
-	    query = "//"+window.location.host + "/api/jdoql?" +
+		query = "//"+window.location.host + "/encounters/relationshipJSON.jsp?"
+		if (genus) query += "genus=" + genus;
+	    //query = "//"+window.location.host + "/api/jdoql?" +
 		//encodeURIComponent(
-				"SELECT FROM org.ecocean.social.Relationship " +
-				   "WHERE (this.type != null )"
+		//		"SELECT FROM org.ecocean.social.Relationship " +
+		//		   "WHERE (this.type != null )"
 		//)
 		;
 	}
@@ -271,7 +273,7 @@ class JSONParser {
 	let [graphNodes, groupNum] = this.traverseRelationshipTree(iId, nodes, relationships);
 
 	//Ensure iId is in graphNodes
-	if (iId && !graphNodes[iId]) graphNodes[iId] = this.updateNodeData(nodes[iId], ++groupNum, this.getNodeId(), 0, true);
+	if (iId && !graphNodes[iId] && nodes[iId] && this.getNodeId()) graphNodes[iId] = this.updateNodeData(nodes[iId], ++groupNum, this.getNodeId(), 0, true);
 	
 	//Update id and group attributes for all disconnected nodes
 	let numNodes = Object.keys(graphNodes).length;
@@ -571,7 +573,7 @@ class JSONParser {
 		else if (role === "father") return ["paternal", order];
 	    }
 
-	    if (role1 === "calf" || role2 === "calf") return ["familial", defaultOrder];
+	    if (role1 === "pup" || role2 === "pup" || role1 === "calf" || role2 === "calf") return ["familial", defaultOrder];
 	}
 
 	return ["member", defaultOrder];

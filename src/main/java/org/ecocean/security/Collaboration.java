@@ -4,6 +4,7 @@ package org.ecocean.security;
 import java.util.*;
 import java.io.Serializable;
 import org.ecocean.*;
+import org.ecocean.social.*;
 import org.ecocean.servlet.ServletUtilities;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -209,7 +210,8 @@ public class Collaboration implements java.io.Serializable {
 		myShepherd.setAction("collaborationBetweenUsers");
 		myShepherd.beginDBTransaction();
 		Query query = myShepherd.getPM().newQuery(queryString);
-		List results=myShepherd.getAllOccurrences(query);
+		Collection c=(Collection)query.execute();
+		ArrayList<Collaboration> results=new ArrayList<Collaboration>(c);;
 		query.closeAll();
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
@@ -364,6 +366,15 @@ public class Collaboration implements java.io.Serializable {
 		}
 		return false;
 	}
+	
+	 public static boolean canUserAccessSocialUnit(SocialUnit su, HttpServletRequest request) {
+	    List<MarkedIndividual> all = su.getMarkedIndividuals();
+	    if ((all == null) || (all.size() < 1)) return true;
+	    for (MarkedIndividual indy : all) {
+	      if (canUserAccessMarkedIndividual(indy, request)) return true;  //one is good enough (either owner or in collab or no security etc)
+	    }
+	    return false;
+	  }
 
   public String toString() {
       return new ToStringBuilder(this)

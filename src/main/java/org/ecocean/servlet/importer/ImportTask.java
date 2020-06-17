@@ -23,6 +23,7 @@ public class ImportTask implements java.io.Serializable {
     private List<Encounter> encounters;
     private String parameters;
     private List<String> log;
+    private String status;
 
     public ImportTask() {
         this((User)null);
@@ -53,12 +54,6 @@ public class ImportTask implements java.io.Serializable {
         if (enc == null) return;
         if (encounters == null) encounters = new ArrayList<Encounter>();
         if (!encounters.contains(enc)) encounters.add(enc);
-    }
-
-    public void removeEncounter(Encounter enc) {
-        if (encounters.contains(enc)) {
-            encounters.remove(enc);
-        }
     }
 
     public void setCreator(User u) {
@@ -155,6 +150,17 @@ public class ImportTask implements java.io.Serializable {
                 .append("numEncs", Util.collectionSize(encounters))
                 .toString();
     }
+    
+    public void removeEncounter(Encounter enc) {
+      if (enc == null) return;
+      if (encounters == null) return;
+      if (encounters.contains(enc)) encounters.remove(enc);
+    }
+    
+    public String getStatus() {return status;}
+    public void setStatus(String status) {this.status=status;}
+    
+    public void setId(String id) {this.id=id;}
 
 
 }

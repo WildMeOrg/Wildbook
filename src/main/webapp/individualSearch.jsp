@@ -7,7 +7,6 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individualSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1)+1;
@@ -959,23 +958,24 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       	</tr>
       	<tr><td><strong><%=props.getProperty("keywordFilters") %></strong></td></tr>
         <%
-          int totalKeywords = myShepherd.getNumKeywords();
+          //int totalKeywords = myShepherd.getNumKeywords();
         %>
         <tr>
           <td><p><%=props.getProperty("hasKeywordPhotos")%>
           </p>
             <%
 
-              if (totalKeywords > 0) {
-            %>
+            Iterator<Keyword> keys = myShepherd.getAllKeywords();
+            if (keys.hasNext()) {
+              %>
+              
+              <select multiple name="keyword" id="keyword" size="10">
+                <option value="None"></option>
+                <%
+                
 
-            <select multiple name="keyword" id="keyword" size="10">
-              <option value="None"></option>
-              <%
-
-
-                Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
-                for (int n = 0; n < totalKeywords; n++) {
+                while (keys.hasNext()) {  
+                //for (int n = 0; n < totalKeywords; n++) {
                   Keyword word = keys.next();
               %>
               <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
@@ -1592,8 +1592,8 @@ else {
 
 
 <%
-  kwQuery.closeAll();
+
   myShepherd.closeDBTransaction();
-  kwQuery = null;
+
   myShepherd = null;
 %>

@@ -156,9 +156,6 @@
 		</a>
 		</p>
 		
-		<p><%=map_props.getProperty("exportedGeneGIS")%>: <a href="<%=serverUrl%>/EncounterSearchExportGeneGISFormat?<%=request.getQueryString()%>">
-		<%=map_props.getProperty("clickHere")%></a>
-		</p>
 		 
 		  <p><strong><%=map_props.getProperty("gisExportOptions")%></strong></p>
 		

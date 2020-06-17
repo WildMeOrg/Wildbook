@@ -1158,6 +1158,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 var encId = ft.encounterId;
 
                 var encDisplay = encId;
+                var taxonomy = ft.genus+' '+ft.specificEpithet;
+                console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
                 var indivId = ft.individualId;
 		console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
@@ -1182,8 +1184,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
 					}
                 }
                 if (indivId) {
-                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>');
+                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName.substring(0,10) + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,10) + '</a>');
+                }
+                if (taxonomy && taxonomy=='Eubalaena glacialis') {
+                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">DIGITS</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">DIGITS</a>');
                 }
 
                 if (encId || indivId) {
