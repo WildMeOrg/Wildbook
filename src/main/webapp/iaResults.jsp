@@ -229,6 +229,9 @@ System.out.println("RES=" + res.toString(4));
                                     } else {
                                         displayName = nn;
                                         System.out.println("INFO: nextNameByPrefix(" + enc.getLocationID() + ") using name=" + displayName);
+                                        String dpkey = "newNameMatch_" + System.currentTimeMillis();
+                                        enc.setDynamicProperty(dpkey, displayName);
+                                        enc2.setDynamicProperty(dpkey, displayName);
                                     }
                                 }
 				if (Util.stringExists(displayName)) {
@@ -318,6 +321,8 @@ System.out.println("RES=" + res.toString(4));
                 }
 
                 System.out.println("INFO: enc-only nextNameByPrefix(" + enc.getLocationID() + ") using name=" + nn);
+                enc.setDynamicProperty("newName_" + System.currentTimeMillis(), nn);
+                enc.setState("approved");
                 indiv = new MarkedIndividual(nn, enc);
                 res.put("newIndividualUUID", indiv.getId());
                 res.put("individualId", indiv.getId());
