@@ -5462,6 +5462,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         <%
         SexAnalysis mtDNA=new SexAnalysis();
         String analysisIDString="";
+        if (mito.getAnalysisID()!=null) analysisIDString = mito.getAnalysisID();
         %>
         </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
         </td></tr>
@@ -5498,7 +5499,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
 		 <%
       String processingLabTaskID="";
-      if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+      if(mito.getProcessingLabTaskID()!=null){processingLabTaskID=mito.getProcessingLabTaskID();}
       %>
       <%=encprops.getProperty("processingLabTaskID")%><br />
       </td><td><input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" />
@@ -5507,7 +5508,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
 		 <%
       String processingLabName="";
-      if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+      if(mito.getProcessingLabName()!=null){processingLabName=mito.getProcessingLabName();}
       %>
       <%=encprops.getProperty("processingLabName")%><br />
       </td><td><input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" />
@@ -5516,7 +5517,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
  		 <%
       String processingLabContactName="";
-      if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+      if(mito.getProcessingLabContactName()!=null){processingLabContactName=mito.getProcessingLabContactName();}
       %>
       <%=encprops.getProperty("processingLabContactName")%><br />
       </td><td><input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" />
@@ -5525,7 +5526,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
  		 <%
       String processingLabContactDetails="";
-      if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+      if(mito.getProcessingLabContactDetails()!=null){processingLabContactDetails=mito.getProcessingLabContactDetails();}
       %>
       <%=encprops.getProperty("processingLabContactDetails")%><br />
       </td><td><input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" />
