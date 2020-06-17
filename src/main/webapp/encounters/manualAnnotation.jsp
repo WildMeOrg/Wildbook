@@ -345,9 +345,9 @@ try{
 	<% } else if (enc == null) { %>
 	<i>will <b>not attach (or clone)</b> to any Encounter</i>
 	<% } else if (cloneEncounter) { %>
-	will <i>clone</i> <b><a target="_new" href="../obrowse.jsp?type=Encounter&id=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b> and attach to clone
+	will <i>clone</i> <b><a target="_new" href="encounter.jsp?number=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b> and attach to clone
 	<% } else { %>
-	attaching to <b><a target="_new" href="../obrowse.jsp?type=Encounter&id=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b>
+	attaching to <b><a target="_new" href="encounter.jsp?number=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b>
 	<% } %>
 	</p>
 	
