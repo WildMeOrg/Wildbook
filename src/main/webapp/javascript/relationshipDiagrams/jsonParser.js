@@ -115,7 +115,7 @@ class JSONQuerier {
     queryNodeData(genus, epithet) {
 	let query;
 	if (!this.localFiles) {
-	    query = "//"+window.location.host + "/encounters/socialJson.jsp?";
+	    query = wildbookGlobals.baseUrl + "/encounters/socialJson.jsp?";
 	    if (genus) query += "genus=" + genus + "&";
 	    if (epithet) query += "specificEpithet=" + epithet + "&";
 	}
@@ -132,7 +132,7 @@ class JSONQuerier {
     queryRelationshipData(genus) {
 	let query;
 	if (!this.localFiles) {
-		query = "//"+window.location.host + "/encounters/relationshipJSON.jsp?"
+		query = wildbookGlobals.baseUrl + "/encounters/relationshipJSON.jsp?"
 		if (genus) query += "genus=" + genus;
 	    //query = "//"+window.location.host + "/api/jdoql?" +
 		//encodeURIComponent(
