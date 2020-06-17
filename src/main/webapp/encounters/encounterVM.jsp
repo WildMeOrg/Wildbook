@@ -22,9 +22,7 @@
 <%@ page import="javax.jdo.Extent" %>
 <%@ page import="javax.jdo.Query" %>
 <%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>    
 
 
 <%
