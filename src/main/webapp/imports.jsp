@@ -192,16 +192,11 @@ if (itask == null) {
 } else { //end listing
 
     out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
-/*
-    out.println("<table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
-    String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images", "Images"};
-    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images", "Images"};
-*/
     out.println("<br>Status: "+itask.getStatus());
     out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
-	out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
-    String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
-    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images"};
+    out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
+    String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images", "Images"};
+    if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images", "Images"};
     for (int i = 0 ; i < headers.length ; i++) {
         out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
     }
