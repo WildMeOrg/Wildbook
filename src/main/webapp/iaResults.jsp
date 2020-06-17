@@ -1230,7 +1230,7 @@ console.warn('score_sort() cm_dict %o and algo_name %s', cm_dict, algo_name);
 	//for (var i = 0 ; i < cm_dict.score_list.length ; i++) {
 	for (var i = 0 ; i < score_list.length ; i++) {
 		if (score_list[i] < 0) continue;
-		sorta.push(score_list[i] * 1000 + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']);
+		sorta.push(score_list[i] * 1000 + ' ' + cm_dict.dannot_uuid_list[i]['__UUID__']+ ' ' + dannot_extern_list[i]);
 	}
 	sorta.sort(function(a,b) { return parseFloat(a) - parseFloat(b); }).reverse();
 	return sorta;
