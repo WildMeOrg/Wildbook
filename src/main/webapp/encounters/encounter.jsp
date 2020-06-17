@@ -5476,13 +5476,11 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
   
         if (sexDefs!=null&&haplotypeString!=null) {
-          //System.out.println(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ mito.getSex() "+mito.getSex());
           System.out.println("haplotypeString??? "+haplotypeString);
           System.out.println("sexDefs:  "+Arrays.toString(sexDefs.toArray()));
           sexDefs.remove(haplotypeString);
         }
         %>
-        <strong>TESTTESTTESTTESTTEST</strong>
         <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
         </td><td>
           <select name="sex" id="geneticSexSelect">
