@@ -172,12 +172,12 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			// if there is a newIndividualID set in the URL, lets get it.
 			// getting the indy using it will be easier than trying to get around caching of the retrieved encounters
 			//if (indyUUID!=null&&!"".equals(indyUUID)) {
-			//
+			//	
 			//}
-
+ 
 			enc.setState("approved");
 			enc2.setState("approved");
-
+			
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
 				if (Util.stringExists(displayName)) {
@@ -204,22 +204,22 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv.addEncounter(enc2);
 				res.put("individualName", indiv.getDisplayName());
 				myShepherd.updateDBTransaction();
-			}
+			} 	
 
 			// target enc has indy
 			if (indiv==null&&indiv2!=null) {
 				System.out.println("CASE 3: target enc indy is null");
-				enc.setIndividual(indiv2);
+				enc.setIndividual(indiv2);					
 				indiv2.addEncounter(enc);
 				res.put("individualName", indiv2.getDisplayName());
 				myShepherd.updateDBTransaction();
-			}
+			} 
 
 
 			String matchMsg = enc.getMatchedBy();
 			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
 			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-			enc.setMatchedBy(matchMsg);
+			enc.setMatchedBy(matchMsg); 
 			enc2.setMatchedBy(matchMsg);
 
 			if (res.optString("error", null) == null) res.put("success", true);
@@ -236,7 +236,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 		return;
-	}
+	} 
 
 	if (indiv == null && indiv2 == null) {
 		res.put("error", "No valid record could be found or created for name: " + displayName);
@@ -795,9 +795,8 @@ function showAdvancedAlgInfo() {
 	// Deepsense
 	var deepsenseInfoSpan = grabAlgInfoSpan('deepsense');
 	var deepsenseMsg = '<br><ul class="advancedAlgoInfo">';
-	var trainginDateString = '1 March, 2020'
-	deepsenseMsg += '<li>This algorithm can only match individuals that were present in its training set. The latest training set includes all right whales on Flukebook on '+trainginDateString+', as well as (for northern right whales only) the <a href="http://rwcatalog.neaq.org">North Atlantic Right Whale Catalog</a> operated by the New England Aquarium.</li>'
-	deepsenseMsg += '<li>If applicable, the matches on this page are preliminary and must be confirmed by the New England Aquarium before they are added to the NARWC.</li>'
+	deepsenseMsg += '<li>The deepsense.ai algorithm for right whale matching works only on individuals in the <a href="http://rwcatalog.neaq.org">North Atlantic Right Whale Catalog</a> operated by the New England Aquarium. This is because it is a pre-trained algorithm that can only identify the whales in its training set.</li>'
+	deepsenseMsg += '<li>The matches on this page are preliminary and must be confirmed by the New England Aquarium before they are added to the NARWC.</li>'
 	// This noImageScoresMessage is shown/hidden with css using an imageScores class on the task container div
 	deepsenseMsg += '<li class="noImageScoresMessage">This algorithm does not return per-image match scores, so only name scores are displayed.</li>'
 	deepsenseMsg += '</ul>'
@@ -1039,16 +1038,16 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
 				}
                 if (encId) {
                 	console.log("Main asset encId = "+encId);
-                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
-
+                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter</a>');
+                    
 					if (!indivId) {
-						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');
+						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
 					}
                 }
                 if (indivId) {
-                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>');
+                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName.substring(0,10) + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,10) + '</a>');
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">DIGITS</a>';
@@ -1406,9 +1405,9 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 					$(".enc-title #enc-action").remove();
 					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + d.individualName + '</a></span>');
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
-
+					
 					// updates encounters in results list with name and link to indy
-					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter
+					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter  
 					$("#encnum"+d.encounterId2).append(indivLink); // likely, should be newly matched target encounter(s)
 
 				}
