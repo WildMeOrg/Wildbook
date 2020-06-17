@@ -1051,7 +1051,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
                     //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">NARW Cat.</a>');
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
                 }
 
                 if (encId || indivId) {
