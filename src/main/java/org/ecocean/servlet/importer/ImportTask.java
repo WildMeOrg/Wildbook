@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
+import org.ecocean.Annotation;
 import org.ecocean.Occurrence;
 import org.ecocean.User;
 import org.ecocean.Util;
@@ -47,6 +48,23 @@ public class ImportTask implements java.io.Serializable {
     public List<Encounter> getEncounters() {
         return encounters;
     }
+
+    //this gets encounters *added later* (via detection) so is more complete record of what was ultimately created
+    public List<Encounter> getAllEncounters(Shepherd myShepherd) {
+        List<Encounter> encs = new ArrayList<Encounter>(encounters);
+        for (Encounter enc : encounters) {
+            ArrayList<MediaAsset> assets = enc.getMedia();
+            if (Util.collectionIsEmptyOrNull(assets)) continue;
+            for (MediaAsset ma : assets) {
+                for (Annotation ann : ma.getAnnotations()) {
+                    Encounter aenc = ann.findEncounter(myShepherd);
+                    if (!encs.contains(aenc)) encs.add(aenc);
+                }
+            }
+        }
+        return encs;
+    }
+
     public void setEncounters(List<Encounter> encs) {
         encounters = encs;
     }
