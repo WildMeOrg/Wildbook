@@ -3874,4 +3874,17 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         }
     }
 
+    //basically mean id-equivalent, so deal
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof Encounter)) return false;
+        Encounter two = (Encounter)u2;
+        if ((this.catalogNumber == null) || (two == null) || (two.getCatalogNumber() == null)) return false;
+        return this.catalogNumber.equals(two.getCatalogNumber());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (catalogNumber == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two Encounters with no catalogNumber equals! :/
+        return catalogNumber.hashCode();
+    }
+
 }
