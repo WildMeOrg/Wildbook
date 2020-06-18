@@ -172,4 +172,46 @@ System.out.println("no such method for column " + mname + " (" + columns[i] + ")
 
   }
 
+    //the idea here is you can pass a list of "rows" -- which will be types of multiple-value objects as needed (e.g. String[] perhaps)
+    public static WritableSheet quickExcel(List rows, File excelFile) throws IOException {
+        if ((excelFile == null) || Util.collectionIsEmptyOrNull(rows)) return null;
+        WritableWorkbook workbook = Workbook.createWorkbook(excelFile);
+        WritableSheet sheet = workbook.createSheet("worksheet", 0);
+        int rowNum = 0;
+        for (Object rowObj : rows) {
+            if (rowObj instanceof String[]) {
+                String[] row = (String[])rowObj;
+                for (int i = 0 ; i < row.length ; i++) {
+                    Label l = new Label(i, rowNum, row[i]);
+                    try {
+                        sheet.addCell(l);
+                    } catch (jxl.write.WriteException ex) {
+                        System.out.println("WARNING: quickExcel() got exception on value '" + row[i] + "', " + ex.toString());
+                    }
+                }
+                rowNum++;
+            } else if (rowObj instanceof List) {
+                List<String> row = (List<String>)rowObj;
+                int colNum = 0;
+                for (String cellVal : row) {
+                    Label l = new Label(colNum, rowNum, cellVal);
+                    try {
+                        sheet.addCell(l);
+                    } catch (jxl.write.WriteException ex) {
+                        System.out.println("WARNING: quickExcel() got exception on value '" + cellVal + "', " + ex.toString());
+                    }
+                    colNum++;
+                }
+                rowNum++;
+            }
+        }
+        try {
+            workbook.write();
+            workbook.close();
+        } catch (jxl.write.WriteException ex) {
+            throw new IOException("writing " + excelFile + " threw " + ex.toString());
+        }
+        return sheet;
+    }
+
 }
