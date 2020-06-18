@@ -87,9 +87,9 @@ class JSONQuerier {
 	this.localFiles = localFiles;
     }
 
-        /**
+    /**
      * Static function used to populate the {nodeData} and {relationshipData} fields prior to
-     * generating graphs s.t. data is guarenteed to only be queried once
+     * generating graphs s.t. data is guaranteed to only be queried once
      * @param {iId} [String] - The id of the central node
      * @param {genus} [String] - The genus of the central node
      * @param {callbacks} [List] - Graphing functions to call
@@ -98,6 +98,7 @@ class JSONQuerier {
     async preFetchData(iId, genus, epithet, callbacks, diagramIds, parsers=[]) {
 	await this.queryNodeData(genus, epithet);
 	await this.queryRelationshipData(genus);
+	await this.queryOccurrences();
 	
 	//Graph data
 	for (let i = 0; i < callbacks.length; i ++) {
@@ -115,12 +116,17 @@ class JSONQuerier {
     queryNodeData(genus, epithet) {
 	let query;
 	if (!this.localFiles) {
-	    query = "//"+window.location.host + "/encounters/socialJson.jsp?";
+	    let hostname = window.location.host;
+
+	    //Localhost compatability
+	    if (hostname.includes("localhost") && !hostname.includes("wildbook"))
+		hostname += "/wildbook";
+
+	    query = "http://" + hostname  + "/encounters/socialJson.jsp?";
 	    if (genus) query += "genus=" + genus + "&";
 	    if (epithet) query += "specificEpithet=" + epithet + "&";
 	}
 	else query = "./MarkedIndividual.json";
-	console.log(query);
 	return this.queryData("nodeData", query, this.storeQueryAsDict);
     }
 
@@ -132,17 +138,33 @@ class JSONQuerier {
     queryRelationshipData(genus) {
 	let query;
 	if (!this.localFiles) {
-		query = "//"+window.location.host + "/encounters/relationshipJSON.jsp?"
-		if (genus) query += "genus=" + genus;
-	    //query = "//"+window.location.host + "/api/jdoql?" +
-		//encodeURIComponent(
-		//		"SELECT FROM org.ecocean.social.Relationship " +
-		//		   "WHERE (this.type != null )"
-		//)
-		;
+	    let hostname = window.location.host;
+
+	    //Localhost compatability
+	    if (hostname.includes("localhost") && !hostname.includes("wildbook"))
+		hostname += "/wildbook"
+
+	    query = "http://" + hostname + "/encounters/relationshipJSON.jsp?"
+	    if (genus) query += "genus=" + genus;
 	}
 	else query = "./Relationship.json";
 	return this.queryData("relationshipData", query);
+    }
+
+    /**
+     * Query wrapper for the storage of Occurrence data
+     * @param {genus} [String] - The genus of the central node being graphed
+     * @returns {queryData} [array] - All Relationship data in the Wildbook DB
+     */
+    queryOccurrences() {
+	let hostname = window.location.host;
+	
+	//Localhost compatability
+	if (hostname.includes("localhost") && !hostname.includes("wildbook"))
+	    hostname += "/wildbook"
+
+	let query = `http://${hostname}/api/jdoql?SELECT FROM org.ecocean.Occurrence`;
+	return this.queryData("occurrenceData", query);
     }
 
     /**
@@ -156,10 +178,7 @@ class JSONQuerier {
 	return new Promise((resolve, reject) => {
 	    if (!JSONParser[type]) { //Memoize the result
 		d3.json(query, (error, json) => {
-		    if (error) {
-			console.log(error);
-			reject(error);
-		    }
+		    if (error) reject(error);
 		    else if (callback) callback(json, type, resolve);
 		    else {
 			JSONParser[type] = json;
@@ -273,7 +292,7 @@ class JSONParser {
 	let [graphNodes, groupNum] = this.traverseRelationshipTree(iId, nodes, relationships);
 
 	//Ensure iId is in graphNodes
-	if (iId && !graphNodes[iId] && nodes[iId] && this.getNodeId()) graphNodes[iId] = this.updateNodeData(nodes[iId], ++groupNum, this.getNodeId(), 0, true);
+	if (iId && !graphNodes[iId]) graphNodes[iId] = this.updateNodeData(nodes[iId], ++groupNum, this.getNodeId(), 0, true);
 	
 	//Update id and group attributes for all disconnected nodes
 	let numNodes = Object.keys(graphNodes).length;
@@ -318,7 +337,6 @@ class JSONParser {
 		if (this.maxNumNodes > 0 && numNodes >= this.maxNumNodes) return [graphNodes, groupNum];
 
 		//Update the node
-		console.log(name);
 		graphNodes[name] = this.updateNodeData(nodes[name], group, this.getNodeId(), depth, iIdLinked);
 		numNodes++;
 
@@ -419,6 +437,8 @@ class JSONParser {
      * @return {modifiedLinks} [array] - Represents one link from each node to the {iId} central node
      */
     modifyOccurrenceData(iId, nodeDict, links) {
+	let occIds = this.getOccurrenceIds(iId);
+	
 	//Add sightings data to each existing node
 	let nodes = Object.values(nodeDict);
 	nodes.forEach(node => {
@@ -431,27 +451,33 @@ class JSONParser {
 		let lat = enc.decimalLatitude;
 		let lon = enc.decimalLongitude;
 
-		if (typeof lat === "number" && typeof lon === "number" &&
-		    typeof millis === "number") {
-		    let minutes = (millis / 1000) / 60;
+		if (this.isNumeric(lat) && this.isNumeric(lon) &&
+		     this.isNumeric(millis)) {
+		    let minutes = (parseInt(millis) / 1000) / 60;
 		    node.data.sightings.push({
 			"time": {
 			    "datetime": minutes,
-			    "year": enc.year,
-			    "month": enc.month,
-			    "day": enc.day
+			    "year": parseInt(enc.year),
+			    "month": parseInt(enc.month),
+			    "day": parseInt(enc.day)
 			},
 			"location": {
-			    "lat": lat * 1000,
-			    "lon": lon * 1000
+			    "lat": parseInt(lat) * 1000,
+			    "lon": parseInt(lon) * 1000
 			}
 		    });
 		}
 	    });
+
+	    //Include explicit occurrences
+	    if (occIds.has(node.data.individualID)) {
+		node.data.sightings.explicit = true;
+	    }
 	});
 
 	//Remove nodes with no valid sightings
-	let modifiedNodes = nodes.filter(node => node.data.sightings.length > 0);
+	let modifiedNodes = nodes.filter(node => node.data.sightings.length > 0 ||
+					 node.data.sightings.explicit);
 	let modifiedNodeMap = new Set(modifiedNodes.map(node => node.id));
 
 	//Record all links connected to the central focusedNode
@@ -482,6 +508,22 @@ class JSONParser {
 	});
 
 	return [modifiedNodes, modifiedLinks];
+    }
+
+    /**
+     * Returns a set of nodes (by id) which explicitly occur with the central node {iId}
+     * @param {iId} [string] - The id of the central node
+     * @return {idSet} [set] - All nodes (by id) which explicitly occur with the central node {iId} 
+     */
+    getOccurrenceIds(iId) {
+	var idSet = new Set();
+	JSONParser.occurrenceData.forEach(occ => {
+	    var occIds = occ.encounters.map(enc => enc.individualID);
+	    if (occIds.includes(iId)) {
+		occIds.forEach(id => idSet.add(id));
+	    }
+	});
+	return idSet;
     }
 
     /**
@@ -573,9 +615,18 @@ class JSONParser {
 		else if (role === "father") return ["paternal", order];
 	    }
 
-	    if (role1 === "pup" || role2 === "pup" || role1 === "calf" || role2 === "calf") return ["familial", defaultOrder];
+	    if (role1 === "calf" || role2 === "calf") return ["familial", defaultOrder];
 	}
 
 	return ["member", defaultOrder];
+    }
+
+    /**
+     * Determines if {num} represents a numeric value
+     * @param {num} [obj] - An object of unknown value/type
+     * @return {type} [boolean] - Whether {num} represents a numeric value
+     */
+    isNumeric(num) {
+	return !isNaN(num);
     }
 }
