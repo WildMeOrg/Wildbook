@@ -1,8 +1,9 @@
 /**
  * Occurence graph global API (used in individuals.jsp)
- * @param {individualID} [string] - Identifies the central node
+ * @param {individualId} [string] - Identifies the central node
  * @param {globals} [list] - Global variables passed in to maintain 
  *   compatibility with individuals.jsp
+ * @param containerId - Html element the graph will be appended to
  * @param {parser} [JSONParser] - Optional parser specification. Defaults to null
  */	
 function setupOccurrenceGraph(individualId, containerId, globals, parser=null) {
@@ -23,7 +24,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 
 	//Expand upon graphAbstract's {this.sliders} attribute
 	this.sliders = {...this.sliders, "temporal": {"filter": this.filterByOccurrence},
-			"spatial": {"filter": this.filterByOccurrence}};	
+			"spatial": {"filter": this.filterByOccurrence}};
     }
 
     /**
@@ -210,6 +211,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 								    spatialThresh, temporalThresh);
 		link.validEncounters = threshEncounters;
 		link.count = threshEncounters.length;
+		link.explicitOccurrence = node.data.sightings.explicit;
 	    }
 	});
     }
@@ -298,9 +300,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	$("#" + occType + "Val").text(thresh)
 	
 	let focusedNode = self.nodeData.find(d => d.data.isFocused);
-	let nodeFilter = (d) => (self.getNodeMinType(focusedNode, d, occType) <= thresh)
-	let linkFilter = (d) => (self.getNodeMinType(focusedNode, d.source, occType) <= thresh) &&
-	    (self.getNodeMinType(focusedNode, d.target, occType) <= thresh)
+	let nodeFilter = (d) => (self.getNodeMinType(focusedNode, d, occType) <= thresh || d.data.sightings.explicit)
+	let linkFilter = (d) => ((self.getNodeMinType(focusedNode, d.source, occType) <= thresh) && (self.getNodeMinType(focusedNode, d.target, occType) <= thresh) || d.explicitOccurrence)
 
 	let validFilters = self.validFilters.concat([occType]);
 	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
@@ -365,13 +366,14 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    .style("text-anchor", "middle")
 	    .attr("font-size", 15)
 	    .attr("font-weight", "bold")
-	    .text(d => d.count);
+	    .text(d => (d.explicitOccurrence) ? `${d.count}*` : d.count);
 
 	newLabels.transition()
 	    .duration(this.transitionDuration)
 	    .attr("opacity", 1);
 
-	linkLabels.select("text").text(d => d.count);
+	linkLabels.select("text")
+	    .text(d => (d.explicitOccurrence) ? `${d.count}*` : d.count);
 
 	this.linkLabels = newLabels.merge(linkLabels);
 	

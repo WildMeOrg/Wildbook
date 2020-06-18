@@ -822,6 +822,14 @@ public class StandardImport extends HttpServlet {
 
   	String lifeStage = getString(row, "Encounter.lifeStage");
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);
+  	
+  	//WB-466
+    String livingStatus = getString(row, "Encounter.livingStatus");
+    if (livingStatus!=null) enc.setLivingStatus(livingStatus);
+    
+    //WB-468
+    String identificationRemarks = getString(row, "Encounter.identificationRemarks");
+    if (identificationRemarks!=null) enc.setIdentificationRemarks(identificationRemarks);
 
     String groupRole = getString(row, "Encounter.groupRole");
     if (groupRole!=null) enc.setGroupRole(groupRole);
@@ -971,6 +979,53 @@ public class StandardImport extends HttpServlet {
       * End Photographer imports
       */
      
+      
+      //WB-467
+      /*
+       * Start informOther imports
+       */
+       boolean hasInformOthers=true;
+       startIter=0;
+       while(hasInformOthers){
+         String colEmail="Encounter.informOther"+startIter+".emailAddress";
+         String val=getString(row,colEmail);
+         if(val!=null){
+           if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+             User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
+             if((enc.getInformOthers()==null) ||!enc.getInformOthers().contains(thisPerson)){
+               if (committing) enc.addInformOther(thisPerson);
+               if (unusedColumns!=null) unusedColumns.remove(colEmail);
+             }
+           }
+           else{
+             //create a new User
+             User thisPerson=new User(val.trim(),Util.generateUUID());
+             if (committing) enc.addInformOther(thisPerson);
+             if (unusedColumns!=null) unusedColumns.remove(colEmail);
+
+             String colFullName="Encounter.informOther"+startIter+".fullName";
+             String val2=getString(row,colFullName);
+             if(val2!=null) thisPerson.setFullName(val2.trim()); 
+             if (unusedColumns!=null) unusedColumns.remove(colFullName);
+
+             String colAffiliation="Encounter.informOther"+startIter+".affiliation";
+             String val3=getString(row,colAffiliation);
+             if(val3!=null) thisPerson.setAffiliation(val3.trim());
+             if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
+
+
+           }
+           startIter++;
+         }
+         else{
+           hasInformOthers=false;
+         }
+       }
+
+      /*
+       * End informOther imports
+       */
+      
 
 
   	String scar = getIntAsString(row, "Encounter.distinguishingScar");
