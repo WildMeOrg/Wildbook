@@ -91,6 +91,8 @@ if(request.getParameter("specificEpithet")!=null){
 	specificEpithet=request.getParameter("specificEpithet");
 }
 
+String cacheName="socialJson_"+genus+"_"+specificEpithet;
+
 String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contains(enc1) && enc1.genus==\'"+genus+"' && enc1.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc1";
 
 Query query=null;
@@ -103,8 +105,8 @@ try {
 
 	
 	QueryCache qc=QueryCacheFactory.getQueryCache(context);
-	if(qc.getQueryByName("socialJson")!=null && System.currentTimeMillis()<qc.getQueryByName("socialJson").getNextExpirationTimeout() && request.getParameter("refresh")==null){
-		jsonobj=Util.toggleJSONObject(qc.getQueryByName("socialJson").getJSONSerializedQueryResult());
+	if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
+		jsonobj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
 		System.out.println("Getting socialJson cache!");
 	}
 	else{
@@ -143,7 +145,7 @@ try {
 
         
         tryCompress(request, response, jsonobj.getJSONArray("results"), true);
-        CachedQuery cq=new CachedQuery("socialJson",Util.toggleJSONObject(jsonobj), false, myShepherd);
+        CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(jsonobj), false, myShepherd);
         cq.nextExpirationTimeout=System.currentTimeMillis()+300000;
         qc.addCachedQuery(cq);
 
