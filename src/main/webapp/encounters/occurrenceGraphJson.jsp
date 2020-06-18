@@ -17,7 +17,27 @@ org.ecocean.social.*,
 java.util.zip.GZIPOutputStream,
 java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
+<%!
 
+// Returns a somewhat rest-like JSON object containing the metadata
+public JSONObject uiJson(Occurrence indy, HttpServletRequest request) throws JSONException {
+  JSONObject jobj = new JSONObject();
+
+  jobj.put("occurrenceID", indy.getOccurrenceID());
+
+  	JSONArray jArray =new JSONArray();
+    for (Encounter enc : indy.getEncounters()) {
+    	JSONObject jobjEnc = new JSONObject();
+    	boolean hasIDs=false;
+		if(enc.getIndividual()!=null)jobjEnc.put("individualID", enc.getIndividual().getIndividualID());
+		
+    	jArray.put(jobjEnc);
+    }
+    jobj.put("encounters",jArray);
+  	return jobj;
+}
+
+%>
 <%!
 
 void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo, boolean useComp) throws IOException, JSONException {
@@ -51,15 +71,18 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
 Shepherd myShepherd=new Shepherd(context);
-myShepherd.setAction("relationshipJson.jsp");
+myShepherd.setAction("occurrenceGraphJson.jsp");
 
 
+String genusFilter="";
+if(request.getParameter("genus")!=null){
+	genusFilter="&& enc.genus == '"+request.getParameter("genus")+"'";
+}
 
-String filter="SELECT FROM org.ecocean.social.Relationship where type != 'CommunityMembership'";
-String filter2="SELECT FROM org.ecocean.social.SocialUnit";
+
+String filter="SELECT FROM org.ecocean.Occurrence where encounters.size() > 1 && encounters.contains(enc) && enc.individual != null "+genusFilter+" VARIABLES org.ecocean.Encounter enc";
 
 Query query=null;
-Query query2=null;
 
 
 try {
@@ -71,16 +94,17 @@ try {
 	
 	QueryCache qc=QueryCacheFactory.getQueryCache(context);
 	
-	//individual
-	javax.jdo.FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "individualSearchResults");
-	grp.addMember("individualID").addMember("sex").addMember("names").addMember("numberEncounters").addMember("timeOfBirth").addMember("timeOfDeath").addMember("dateFirstIdentified").addMember("dateTimeLatestSighting").addMember("encounters");
-
+	
+	javax.jdo.FetchGroup grp = pmf.getFetchGroup(Occurrence.class, "occurrenceResults");
+	grp.addMember("encounters").addMember("occurrenceID");
+	javax.jdo.FetchGroup grp2 = pmf.getFetchGroup(Encounter.class, "indyResults");
+	grp2.addMember("individual");
 	
 	
 	//GET FORMAL RELATIONSHIPS BUT IGNORE OLD FORMAT COMMUNITYMEMBERSHIP THAT IS NOW REPLACED WITH SOCIALUNIT and MEMBERSHIP objects
-	if(qc.getQueryByName("relationshipJson")!=null && System.currentTimeMillis()<qc.getQueryByName("relationshipJson").getNextExpirationTimeout() && request.getParameter("refresh")==null){
-		jsonobj=Util.toggleJSONObject(qc.getQueryByName("relationshipJson").getJSONSerializedQueryResult());
-		System.out.println("Getting relationshipJson cache!");
+	if(qc.getQueryByName("occurrenceJson")!=null && System.currentTimeMillis()<qc.getQueryByName("occurrenceJson").getNextExpirationTimeout() && request.getParameter("refresh")==null){
+		jsonobj=Util.toggleJSONObject(qc.getQueryByName("occurrenceJson").getJSONSerializedQueryResult());
+		System.out.println("Getting occurrenceJson cache!");
 	}
 	else{
 		System.out.println("Refreshing relationshipJson cache!");
@@ -88,47 +112,27 @@ try {
 
 		query=myShepherd.getPM().newQuery(filter);
 	
-		myShepherd.getPM().getFetchPlan().setGroup("individualSearchResults");
-
+		myShepherd.getPM().getFetchPlan().setGroup("occurrenceResults");
+		myShepherd.getPM().getFetchPlan().addGroup("indyResults");
 		
 		myShepherd.beginDBTransaction();
 	
 		Collection result = (Collection)query.execute();
-		ArrayList<Relationship> rels=new ArrayList<Relationship>(result);
+		ArrayList<Occurrence> rels=new ArrayList<Occurrence>(result);
 		
 		
 	        
-	        for(Relationship rel:rels){
-	        	jarray.put(rel.uiJson(request));
+	        for(Occurrence rel:rels){
+	        	jarray.put(uiJson(rel,request));
 	        }
 	        
 
-		query2=myShepherd.getPM().newQuery(filter2);
-	
-	
-		Collection result2 = (Collection)query2.execute();
-		ArrayList<SocialUnit> rels2=new ArrayList<SocialUnit>(result2);
-		
-	        
-	        for(SocialUnit su:rels2){
-	        	List<MarkedIndividual> indies=su.getMarkedIndividuals();
-	        	int indiesSize=indies.size();
-	        	for(int i=0;i<(indiesSize-1);i++){
-	        		for(int j=i+1;j<indiesSize;j++){
-	        			Relationship rel=new Relationship("CommunityMembership", indies.get(i),indies.get(j));
-	        			rel.setRelatedSocialUnitName(su.getSocialUnitName());
-	        			jarray.put(rel.uiJson(request));
-	        		}
-	        		
-	        	}
-	        }
-	        
 	        
 	      //somehow add jsonobjSU to jsonobj results jarray
 	      
 	        jsonobj.put("results",jarray);
 	      
-	        CachedQuery cq=new CachedQuery("relationshipJson",Util.toggleJSONObject(jsonobj), false, myShepherd);
+	        CachedQuery cq=new CachedQuery("occurrenceJson",Util.toggleJSONObject(jsonobj), false, myShepherd);
 	        cq.nextExpirationTimeout=System.currentTimeMillis()+300000;
 	        qc.addCachedQuery(cq);
 	        		
@@ -148,7 +152,6 @@ catch(Exception e){
 }
 finally{
 	if(query!=null)query.closeAll();
-	if(query2!=null)query2.closeAll();
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 

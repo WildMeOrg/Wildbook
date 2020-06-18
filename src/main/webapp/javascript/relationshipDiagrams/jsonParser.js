@@ -98,7 +98,7 @@ class JSONQuerier {
     async preFetchData(iId, genus, epithet, callbacks, diagramIds, parsers=[]) {
 	await this.queryNodeData(genus, epithet);
 	await this.queryRelationshipData(genus);
-	await this.queryOccurrences();
+	await this.queryOccurrences(genus);
 	
 	//Graph data
 	for (let i = 0; i < callbacks.length; i ++) {
@@ -122,7 +122,7 @@ class JSONQuerier {
 	    if (hostname.includes("localhost") && !hostname.includes("wildbook"))
 		hostname += "/wildbook";
 
-	    query = "http://" + hostname  + "/encounters/socialJson.jsp?";
+	    query = wildbookGlobals.baseUrl  + "/encounters/socialJson.jsp?";
 	    if (genus) query += "genus=" + genus + "&";
 	    if (epithet) query += "specificEpithet=" + epithet + "&";
 	}
@@ -144,7 +144,7 @@ class JSONQuerier {
 	    if (hostname.includes("localhost") && !hostname.includes("wildbook"))
 		hostname += "/wildbook"
 
-	    query = "http://" + hostname + "/encounters/relationshipJSON.jsp?"
+	    query = wildbookGlobals.baseUrl + "/encounters/relationshipJSON.jsp?"
 	    if (genus) query += "genus=" + genus;
 	}
 	else query = "./Relationship.json";
@@ -156,14 +156,14 @@ class JSONQuerier {
      * @param {genus} [String] - The genus of the central node being graphed
      * @returns {queryData} [array] - All Relationship data in the Wildbook DB
      */
-    queryOccurrences() {
+    queryOccurrences(genus) {
 	let hostname = window.location.host;
 	
 	//Localhost compatability
 	if (hostname.includes("localhost") && !hostname.includes("wildbook"))
 	    hostname += "/wildbook"
 
-	let query = `http://${hostname}/api/jdoql?SELECT FROM org.ecocean.Occurrence`;
+	let query = wildbookGlobals.baseUrl+'/encounters/occurrenceGraphJson.jsp?genus='+genus;
 	return this.queryData("occurrenceData", query);
     }
 
