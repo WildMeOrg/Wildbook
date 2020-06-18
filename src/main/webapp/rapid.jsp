@@ -79,6 +79,7 @@ private String isResighted(Encounter enc, List<Encounter> encs, Shepherd mySheph
     int numEnc = indiv.numEncounters();
     if (numEnc < 2) return "no-only";  //easy but should never actually be 0
     System.out.println("isResighted(): " + enc.getCatalogNumber() + " one of " + numEnc + " encs for indiv=" + indiv.getId());
+    boolean badComp = false;
     Long encMillis = enc.getDateInMilliseconds();
     if (encMillis == null) return "error";
     for (Encounter otherEnc : indiv.getEncounters()) {
@@ -88,8 +89,9 @@ private String isResighted(Encounter enc, List<Encounter> encs, Shepherd mySheph
         }
         Long otherMillis = otherEnc.getDateInMilliseconds();
         if (otherMillis == null) {
-            System.out.println("isResighted(): " + otherEnc.getCatalogNumber() + " has no comparable timestamp! failing");
-            return "error";
+            System.out.println("isResighted(): " + otherEnc.getCatalogNumber() + " has no comparable timestamp! skipping");
+            badComp = true;
+            continue;
         }
         if (otherMillis < encMillis) {
             System.out.println("isResighted(): " + otherEnc.getCatalogNumber() + " is OLDER; resighted!");
@@ -97,6 +99,7 @@ private String isResighted(Encounter enc, List<Encounter> encs, Shepherd mySheph
         }
         //otherwise, must be newer?  so we just continue....
     }
+    if (badComp) return "error-badcomp";
     return "no-fellthru";  //make it here, we must be new
 }
 
@@ -161,13 +164,16 @@ if (request.getParameter("status") != null) {
 }
 
 if (Util.requestParameterSet(request.getParameter("export"))) {
+/*
 JSONArray jarr = new JSONArray();
     jarr.put(new JSONArray(Arrays.asList(new String[]{"Encounter", "Indiv", "Image(s)", "New name", "Resight"})));
+*/
+    out.println("<table border=\"1\"><tr><td>" + String.join("</td><td>", Arrays.asList(new String[]{"Encounter", "Indiv", "Image(s)", "New name", "Resight"})) + "</td></tr>");
     myShepherd.beginDBTransaction();
     List<Encounter> allEncs = itask.getAllEncounters(myShepherd);
     for (Encounter enc : allEncs) {
         List<String> row = new ArrayList<String>();
-        row.add(enc.getCatalogNumber());
+        row.add("<a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber() + "</a>");
         if (enc.hasMarkedIndividual()) {
             row.add(enc.getIndividual().getDisplayName());
         } else {
@@ -185,11 +191,12 @@ JSONArray jarr = new JSONArray();
         }
         row.add(isNewName(enc, allEncs, myShepherd));
         row.add(isResighted(enc, allEncs, myShepherd));
-        jarr.put(new JSONArray(row));
+        //jarr.put(new JSONArray(row));
+        out.println("<tr><td>" + String.join("</td><td>", row) + "</td></tr>");
     }
-    out.println(jarr);
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
+    out.println("</table>");
     return;
 }
 
