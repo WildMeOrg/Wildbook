@@ -8,6 +8,7 @@ org.ecocean.media.Feature,
 javax.jdo.Query,
 org.json.JSONObject,
 org.json.JSONArray,
+java.util.Arrays,
 java.util.Map,
 java.util.HashMap,
 java.util.List,
@@ -38,6 +39,65 @@ private static String procStateDisplay(Annotation ann, List<Task> tasks) {
 
 private static String shortId(String id) {
     return id.substring(0,8);
+}
+
+private boolean taggedNew(Encounter enc) {
+    if (enc == null) return false;
+    if (enc.getDynamicProperties() == null) return false;
+System.out.println(">>>>>> " + enc.getDynamicProperties());
+    if (enc.getDynamicProperties().matches(".*newNameMatch_\\d+=.*")) return true;
+    if (enc.getDynamicProperties().matches(".*newName_\\d+=.*")) return true;
+    return false;
+}
+
+private String isNewName(Encounter enc, List<Encounter> encs, Shepherd myShepherd) {
+    if ((enc == null) || !enc.hasMarkedIndividual() || Util.collectionIsEmptyOrNull(encs)) return "";
+    if (!taggedNew(enc)) {
+        System.out.println("isNewName(): " + enc.getCatalogNumber() + " is not tagged newName");
+        return "NO-TAG";
+    }
+    MarkedIndividual indiv = enc.getIndividual();
+    int numEnc = indiv.numEncounters();
+    if (numEnc < 2) return "Y";  //easy but should never actually be 0
+    System.out.println("isNewName(): " + enc.getCatalogNumber() + " one of " + numEnc + " encs for indiv=" + indiv.getId());
+    for (Encounter otherEnc : indiv.getEncounters()) {
+        if (encs.contains(otherEnc)) {
+            System.out.println("isNewName(): " + otherEnc.getCatalogNumber() + " exists in this import");
+        } else if (!taggedNew(otherEnc)) {
+            System.out.println("isNewName(): " + otherEnc.getCatalogNumber() + " not tagged newName; assuming matched later???");
+        } else {
+            System.out.println("isNewName(): " + otherEnc.getCatalogNumber() + " IS tagged newName, but NOT in import; not new!");
+            return "no-previous";
+        }
+    }
+    return "Yes-fellthru";
+}
+
+private String isResighted(Encounter enc, List<Encounter> encs, Shepherd myShepherd) {
+    if ((enc == null) || !enc.hasMarkedIndividual() || Util.collectionIsEmptyOrNull(encs)) return "";
+    MarkedIndividual indiv = enc.getIndividual();
+    int numEnc = indiv.numEncounters();
+    if (numEnc < 2) return "no-only";  //easy but should never actually be 0
+    System.out.println("isResighted(): " + enc.getCatalogNumber() + " one of " + numEnc + " encs for indiv=" + indiv.getId());
+    Long encMillis = enc.getDateInMilliseconds();
+    if (encMillis == null) return "error";
+    for (Encounter otherEnc : indiv.getEncounters()) {
+        if (encs.contains(otherEnc)) {
+            System.out.println("isResighted(): " + otherEnc.getCatalogNumber() + " exists in this import");
+            continue;
+        }
+        Long otherMillis = otherEnc.getDateInMilliseconds();
+        if (otherMillis == null) {
+            System.out.println("isResighted(): " + otherEnc.getCatalogNumber() + " has no comparable timestamp! failing");
+            return "error";
+        }
+        if (otherMillis < encMillis) {
+            System.out.println("isResighted(): " + otherEnc.getCatalogNumber() + " is OLDER; resighted!");
+            return "Y";
+        }
+        //otherwise, must be newer?  so we just continue....
+    }
+    return "no-fellthru";  //make it here, we must be new
 }
 
 %>
@@ -97,6 +157,39 @@ if (request.getParameter("status") != null) {
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
     out.println(m.toString(4));
+    return;
+}
+
+if (Util.requestParameterSet(request.getParameter("export"))) {
+JSONArray jarr = new JSONArray();
+    jarr.put(new JSONArray(Arrays.asList(new String[]{"Encounter", "Indiv", "Image(s)", "New name", "Resight"})));
+    myShepherd.beginDBTransaction();
+    List<Encounter> allEncs = itask.getAllEncounters(myShepherd);
+    for (Encounter enc : allEncs) {
+        List<String> row = new ArrayList<String>();
+        row.add(enc.getCatalogNumber());
+        if (enc.hasMarkedIndividual()) {
+            row.add(enc.getIndividual().getDisplayName());
+        } else {
+            row.add("");
+        }
+        ArrayList<MediaAsset> assets = enc.getMedia();
+        if (Util.collectionIsEmptyOrNull(assets)) {
+            row.add("");
+        } else {
+            List<String> fn = new ArrayList<String>();
+            for (MediaAsset ma : assets) {
+                fn.add(ma.getFilename());
+            }
+            row.add(String.join(", ", fn));
+        }
+        row.add(isNewName(enc, allEncs, myShepherd));
+        row.add(isResighted(enc, allEncs, myShepherd));
+        jarr.put(new JSONArray(row));
+    }
+    out.println(jarr);
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
     return;
 }
 
