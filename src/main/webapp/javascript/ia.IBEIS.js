@@ -65,6 +65,7 @@ wildbook.IA.plugins.push({
         ]);
         
         //manual annotation.jsp
+        /*
         items.push([
             function(enh) {  //the menu text
             	return 'add annotation';
@@ -75,6 +76,7 @@ wildbook.IA.plugins.push({
                 wildbook.openInTab('manualAnnotation.jsp?encounterId=' + encounterNumberFromElement(enh.imgEl) + '&assetId=' + mid);
             }
         ]);
+        */
 
         return items;
     },
