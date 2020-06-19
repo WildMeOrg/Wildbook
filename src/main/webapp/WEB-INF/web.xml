@@ -394,6 +394,9 @@
 				
 				/EncounterSetString = authc
 				/OrganizationEdit = authc, roles[admin]
+
+        /UserGetSimpleJSON = authc
+
 				/MergeIndividual = authc, roles[researcher]
 
 				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
@@ -1073,6 +1076,16 @@
   <servlet-mapping>
     <servlet-name>OrganizationEdit</servlet-name>
     <url-pattern>/OrganizationEdit</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>UserGetSimpleJSON</servlet-name>
+    <servlet-class>org.ecocean.servlet.UserGetSimpleJSON</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>UserGetSimpleJSON</servlet-name>
+    <url-pattern>/UserGetSimpleJSON</url-pattern>
   </servlet-mapping>
 
       <servlet>
