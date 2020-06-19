@@ -327,7 +327,7 @@ function sendToIA() {
 
 <p>
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
-<% if ((numIA < 1) && (allAssets.size() > 0)) { %>
+<% if ((numIA < 1) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) { %>
     <div id="ia-send-div">
     <a class="button" style="margin-left: 20px;" onClick="sendToIA(); return false;">Send to identification</a> matching against <b>location(s):</b>
     <select multiple id="id-locationids">
