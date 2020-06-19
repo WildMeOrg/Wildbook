@@ -182,8 +182,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     	    })
 	    .enter().append("td")
 	    .html(function(d) {
-		//console.log("Dxj", d);
-		//console.log("Dxk", typeof d);
+		console.log("D", d);
 		
 		if(d == 'TissueSample') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/>";
@@ -197,15 +196,10 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 		if(d == 'both') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
 		}
-		
 		if(typeof d == "object") {
-			//console.log("Dxm it's an object", typeof d);
 		    if(d.length <= 2) {
-		    	//console.log("Dxp it's an array");
-		    	//console.log("Dxo", d);
 			if(d[0] == 'edit'){
-				//console.log("Dxl it's an edit", d);
-			    return "XXY<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
+			    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
 			} if(d[0] == 'remove') {
 			    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>";
 			}
@@ -215,8 +209,9 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 			return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
 		    }
 		}
-
-		//console.log("Dxz",d);
+		if(d == "GOS") {
+		    return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
+		}
 		return d; 
 	    });
 	
@@ -241,23 +236,6 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 		} 
 		if(d == 'both') {
 		    return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
-		}
-		if(typeof d == "object") {
-			//console.log("Dxm it's an object", typeof d);
-		    if(d.length <= 2) {
-		    	//console.log("Dxp it's an array");
-		    	//console.log("Dxo", d);
-			if(d[0] == 'edit'){
-				//console.log("Dxl it's an edit", d);
-			    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
-			} if(d[0] == 'remove') {
-			    return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>";
-			}
-			return d[0].italics() + "-" + d[1];
-		    }
-		    if(d.length > 2) {
-			return "<a target='_blank' href='individuals.jsp?number=" + d[0] + "'>" + d[5] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
-		    }
 		}
 		return d;
 	    });
@@ -483,7 +461,7 @@ var getRelationshipTableData = function(individualID) {
 	    var relatedSocialUnitName = jsonData[i].relatedSocialUnitName;
 	    var type = jsonData[i].type;
 	    var relationship = new Object();
-	    relationship = {"roles": [markedIndividualRole, relationshipWithRole], "relationshipWith": [whaleID], "type": type, "socialUnit": relatedSocialUnitName, "edit": ["edit", relationshipID], "remove": ["remove", relationshipID]};
+	    relationship = {roles: [markedIndividualRole, relationshipWithRole], relationshipWith: [whaleID], type: type, socialUnit: relatedSocialUnitName, edit: ["edit", relationshipID], remove: ["remove", relationshipID]};
 	    relationshipArray.push(relationship);
 	}
 	getIndividualData(relationshipArray);

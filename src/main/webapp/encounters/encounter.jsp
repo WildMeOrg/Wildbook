@@ -5055,7 +5055,7 @@ if(loggedIn){
     <strong><%=encprops.getProperty("tissueSamples") %></strong>
 </p>
     <p class="para">
-    	<a class="addBioSample toggleBtn" class="launchPopup"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a class="addBioSample toggleBtn" class="launchPopup"><%=encprops.getProperty("addTissueSample") %></a>
+    	<a class="addBioSample toggleBtn" class="launchPopup toggleBtn"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a class="addBioSample toggleBtn" class="launchPopup"><%=encprops.getProperty("addTissueSample") %></a>
     </p>
 
 <%
@@ -5436,7 +5436,7 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
 				%>
 				</span></td>
         <td style="border-style: none;">
-          <a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
+          <a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup toggleBtn"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
         </a>
 
 				<%
@@ -5461,6 +5461,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         <%
         SexAnalysis mtDNA=new SexAnalysis();
         String analysisIDString="";
+        if (mito.getAnalysisID()!=null) analysisIDString = mito.getAnalysisID();
         %>
         </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
         </td></tr>
@@ -5475,13 +5476,11 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
   
         if (sexDefs!=null&&haplotypeString!=null) {
-          //System.out.println(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ mito.getSex() "+mito.getSex());
           System.out.println("haplotypeString??? "+haplotypeString);
           System.out.println("sexDefs:  "+Arrays.toString(sexDefs.toArray()));
           sexDefs.remove(haplotypeString);
         }
         %>
-        <strong>TESTTESTTESTTESTTEST</strong>
         <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
         </td><td>
           <select name="sex" id="geneticSexSelect">
@@ -5499,7 +5498,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
 		 <%
       String processingLabTaskID="";
-      if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+      if(mito.getProcessingLabTaskID()!=null){processingLabTaskID=mito.getProcessingLabTaskID();}
       %>
       <%=encprops.getProperty("processingLabTaskID")%><br />
       </td><td><input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" />
@@ -5508,7 +5507,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
 		 <%
       String processingLabName="";
-      if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+      if(mito.getProcessingLabName()!=null){processingLabName=mito.getProcessingLabName();}
       %>
       <%=encprops.getProperty("processingLabName")%><br />
       </td><td><input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" />
@@ -5517,7 +5516,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
  		 <%
       String processingLabContactName="";
-      if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+      if(mito.getProcessingLabContactName()!=null){processingLabContactName=mito.getProcessingLabContactName();}
       %>
       <%=encprops.getProperty("processingLabContactName")%><br />
       </td><td><input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" />
@@ -5526,7 +5525,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
  		 <%
       String processingLabContactDetails="";
-      if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+      if(mito.getProcessingLabContactDetails()!=null){processingLabContactDetails=mito.getProcessingLabContactDetails();}
       %>
       <%=encprops.getProperty("processingLabContactDetails")%><br />
       </td><td><input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" />
@@ -5559,7 +5558,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 			<tr>
 				<td style="border-style: none;">
 					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span>
-					<a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+					<a class="launchPopup toggleBtn" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 
         <a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>">
         <img style="border-style: none;width: 20px;height: 20px;" src="../images/cancel.gif" />
@@ -5739,7 +5738,7 @@ var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a class="launchPopup" id="setBioMeasure<%=thisSample.getSampleID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				</span></td><td style="border-style: none;"><a class="launchPopup toggleBtn" id="setBioMeasure<%=thisSample.getSampleID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 
 						<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
