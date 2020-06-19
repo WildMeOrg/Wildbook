@@ -5028,10 +5028,6 @@ public class Shepherd {
     return null;
   }
   
-  public void throwAwaySocialUnit(SocialUnit su) {
-    pm.deletePersistent(su);
-  }
-  
   public User getUserByTwitterHandle(String handle) {
     User user= null;
     String filter="SELECT FROM org.ecocean.User WHERE twitterHandle == \""+handle.trim()+"\"";
