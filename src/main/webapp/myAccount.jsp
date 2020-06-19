@@ -265,54 +265,6 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	%>
 	</div>
 
-
-	<style>
-		div.state-edit span.state {
-    	background-color: green;
-		}
-		html body div.collab-list input[type="button"] {
-			/*
-			margin-top: 0;
-			margin-left: 4em;
-			*/
-			margin-top: 0;
-			float: right;
-		}
-		html body div.collab-list input[type="button"].no {
-			margin-left:0;
-		}
-		html body div.collab-list input[type="button"].no {
-			margin-left:0;
-		}
-
-		html body div.collab-list span.collab-button {
-			text-align:right;
-		}
-div div div.clear {
-	clear: both;
-	margin: 0;
-	padding: 0;
-}
-div.collab-list div.collabRow {
-	display: table;
-}
-div.collab-list div.collabRow span {
-	display: table-cell;
-	vertical-align: middle;
-}
-div.collab-list div.collabRow span {
-	display: table-cell;
-	vertical-align: middle;
-}
-div.collab-list div.collabRow span.state {
-	width: 5em;
-	height: 2em;
-	text-align: center;
-}
-
-
-	</style>
-
 <%
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
 
