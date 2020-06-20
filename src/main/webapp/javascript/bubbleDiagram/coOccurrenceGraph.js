@@ -135,11 +135,16 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let [min, minCoordPair] = this.getNodeMinKDTree(sights1, sights2,
 							["lat", "lon", "time"],
 							this.calculateSightingsDiff);
-	
-	let minDist = this.calculateDist(minCoordPair[0], minCoordPair[1]);
-	let minTime = this.calculateTime(minCoordPair[0].time, minCoordPair[1].time);
 
-	return [minDist, minTime];
+	try {
+	    let minDist = this.calculateDist(minCoordPair[0], minCoordPair[1]);
+	    let minTime = this.calculateTime(minCoordPair[0].time, minCoordPair[1].time);
+
+	    return [minDist, minTime];
+	}
+	catch(err) {
+	    return [Infinity, Infinity]; //Arbitrarily large min values
+	}
     }
 
     /**
@@ -405,5 +410,4 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     */
     focusNode(node) {}
 }
-
 
