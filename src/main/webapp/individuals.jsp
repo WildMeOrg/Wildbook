@@ -2131,7 +2131,7 @@ if (sharky.getNames() != null) {
 	  	<input type="range" min=0 class="graphSlider" id="nodeCount">
       	      </div>
               <div class="coOccurrenceSliderWrapper">
-	        <label for="temporal">Temporal Threshold (Minutes) - <span class="sliderLabel" id="temporalVal"></span></label>
+	        <label for="temporal">Temporal Threshold (Hours) - <span class="sliderLabel" id="temporalVal"></span></label>
 	  	<input type="range" min=0 class="graphSlider" id="temporal">
       	      </div>
       	      <div class="coOccurrenceSliderWrapper">
