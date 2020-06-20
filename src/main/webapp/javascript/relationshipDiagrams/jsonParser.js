@@ -116,12 +116,6 @@ class JSONQuerier {
     queryNodeData(genus, epithet) {
 	let query;
 	if (!this.localFiles) {
-	    let hostname = window.location.host;
-
-	    //Localhost compatability
-	    if (hostname.includes("localhost") && !hostname.includes("wildbook"))
-		hostname += "/wildbook";
-
 	    query = wildbookGlobals.baseUrl  + "/encounters/socialJson.jsp?";
 	    if (genus) query += "genus=" + genus + "&";
 	    if (epithet) query += "specificEpithet=" + epithet + "&";
@@ -138,12 +132,6 @@ class JSONQuerier {
     queryRelationshipData(genus) {
 	let query;
 	if (!this.localFiles) {
-	    let hostname = window.location.host;
-
-	    //Localhost compatability
-	    if (hostname.includes("localhost") && !hostname.includes("wildbook"))
-		hostname += "/wildbook"
-
 	    query = wildbookGlobals.baseUrl + "/encounters/relationshipJSON.jsp?"
 	    if (genus) query += "genus=" + genus;
 	}
@@ -157,13 +145,8 @@ class JSONQuerier {
      * @returns {queryData} [array] - All Relationship data in the Wildbook DB
      */
     queryOccurrences(genus) {
-	let hostname = window.location.host;
-	
-	//Localhost compatability
-	if (hostname.includes("localhost") && !hostname.includes("wildbook"))
-	    hostname += "/wildbook"
-
-	let query = wildbookGlobals.baseUrl+'/encounters/occurrenceGraphJson.jsp?genus='+genus;
+	let query = wildbookGlobals.baseUrl+'/encounters/occurrenceGraphJson.jsp?'
+	if (genus) query += "genus=" + genus;
 	return this.queryData("occurrenceData", query);
     }
 
