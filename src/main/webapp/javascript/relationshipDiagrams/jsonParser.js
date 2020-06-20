@@ -453,10 +453,10 @@ class JSONParser {
 
 		if (this.isNumeric(lat) && this.isNumeric(lon) &&
 		     this.isNumeric(millis)) {
-		    let minutes = (parseInt(millis) / 1000) / 60;
+		    let hours = (parseInt(millis) / 1000) / 3600;
 		    node.data.sightings.push({
 			"time": {
-			    "datetime": minutes,
+			    "datetime": hours,
 			    "year": parseInt(enc.year),
 			    "month": parseInt(enc.month),
 			    "day": parseInt(enc.day)
