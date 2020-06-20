@@ -250,7 +250,7 @@ class JSONParser {
      *   additional coOccurrence modifications
      */
     processJSON(graphCallback, iId, isCoOccurrence) {
-	let [nodeDict, nodeList] = this.parseNodes(iId);
+	let [nodeDict, nodeList] = this.parseNodes(iId, isCoOccurrence);
 	let [linkDict, linkList] = this.parseLinks(nodeDict);
 
 	if (isCoOccurrence) { //Extract temporal and latitude/longitude encounter data
@@ -262,11 +262,13 @@ class JSONParser {
     /**
      * Extract node data from the MarkedIndividual and Relationship query data
      * @param {iId} [string] - The id of the central node
+     * @param {isCoOccurrence} [boolean] - Determines whether node/link data should feature 
+     *   additional coOccurrence modifications
      * @return {nodes} [obj] - Extracted data relevant to graphing nodes
      */
-    parseNodes(iId) {
+    parseNodes(iId, isCoOccurrence) {
 	//Assign unique ids and groupings to the queried node data
-	let graphNodes = this.processNodeData(iId);
+	let graphNodes = this.processNodeData(iId, isCoOccurrence);
 
 	//Extract meaningful node data
 	let nodes = {};
@@ -283,13 +285,15 @@ class JSONParser {
     /**
      * Assign unique ids and label connected groups for all nodes
      * @param {iId} [string] - The id of the central node
+     * @param {isCoOccurrence} [boolean] - Determines whether node/link data should feature 
+     *   additional coOccurrence modifications
      * @return {graphNodes} [obj list] - List of raw node data to be parsed and graphed
      */
-    processNodeData(iId) {
+    processNodeData(iId, isCoOccurrence) {
 	//Generate a two way mapping of all node relationships
 	let nodes = this.getNodeSelection();
 	let relationships = this.mapRelationships(nodes);
-	let [graphNodes, groupNum] = this.traverseRelationshipTree(iId, nodes, relationships);
+	let [graphNodes, groupNum] = this.traverseRelationshipTree(iId, nodes, relationships, isCoOccurrence);
 
 	//Ensure iId is in graphNodes
 	if (iId && !graphNodes[iId]) graphNodes[iId] = this.updateNodeData(nodes[iId], ++groupNum, this.getNodeId(), 0, true);
@@ -315,10 +319,15 @@ class JSONParser {
      * @param {iId} [string] - The id of the central node
      * @param {nodes} [dict] Dict of nodes
      * @param {relationships} [dict] Map of node relationship data
+     * @param {isCoOccurrence} [boolean] - Determines whether node/link data should feature 
+     *   additional coOccurrence modifications
      * @return {graphNodes, groupNum, numNodes} [dict, int] Dict of nodes to be graphed.
      *   Last group number found
      */
-    traverseRelationshipTree(iId, nodes, relationships) {
+    traverseRelationshipTree(iId, nodes, relationships, isCoOccurrence) {
+	//Ensure coOccurrence graphs grant priority to explicit occurrences
+	if (isCoOccurrence) this.prioritizeOccurrences(iId, nodes);
+	
 	//Update id and group attributes for all nodes with some relationship
 	let graphNodes = {};
 	let groupNum = 0, numNodes = 0;
@@ -358,6 +367,23 @@ class JSONParser {
 	}
 
 	return [graphNodes, groupNum];
+    }
+
+    /**
+     * Removes entries from {nodes} until all explicit occurrences may fit within
+     *   the contextual {this.maxNumNodes} limit
+     * @param {iId} [string] - The id of the central node
+     * @param {nodes} [dict] Dict of nodes
+     * @return {occurrenceNodes} A dict of nodes prioritizing explicit occurrences
+     */
+    prioritizeOccurrences(iId, nodes) {
+	let occIds = this.getOccurrenceIds(iId);
+	for (let id in nodes) {
+	    if (Object.keys(nodes).length <= this.maxNumNodes) break;
+		
+	    if (id == iId) continue; //Ensure central node is included
+	    if (!occIds.has(id)) delete nodes[id];
+	}
     }
 
     /**
@@ -453,10 +479,10 @@ class JSONParser {
 
 		if (this.isNumeric(lat) && this.isNumeric(lon) &&
 		     this.isNumeric(millis)) {
-		    let minutes = (parseInt(millis) / 1000) / 60;
+		    let hours = (parseInt(millis) / 1000) / 3600;
 		    node.data.sightings.push({
 			"time": {
-			    "datetime": minutes,
+			    "datetime": hours,
 			    "year": parseInt(enc.year),
 			    "month": parseInt(enc.month),
 			    "day": parseInt(enc.day)

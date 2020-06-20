@@ -23,8 +23,17 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	else this.parser = new JSONParser(null, true, 30);
 
 	//Expand upon graphAbstract's {this.sliders} attribute
-	this.sliders = {...this.sliders, "temporal": {"filter": this.filterByOccurrence},
-			"spatial": {"filter": this.filterByOccurrence}};
+	this.sliders = {
+	    ...this.sliders,
+	    "temporal": {
+		"filter": this.filterByOccurrence,
+		"def": 0
+	    },
+	    "spatial": {
+		"filter": this.filterByOccurrence,
+		"def": 0
+	    }
+	};
     }
 
     /**
@@ -308,25 +317,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     }
 
     /**
-     * Reset the graph s.t. no filters are applied
-     */
-    resetGraph() {
-	super.resetGraph();
-	this.resetSliders();
-    }
-
-    /**
-     * Reset each slider's text and value
-     */
-    resetSliders() {
-	Object.values(this.sliders).forEach(slider => {
-	    $("#" + slider.ref + "Val").text(slider.max)
-	    $("#" + slider.ref).attr("max", slider.max);
-	    $("#" + slider.ref).val(slider.max)
-	});
-    }
-
-    /**
      * Updates link occurrence counts and visibility
      * @param {linkData} [obj list] - A list of link objects queried from the 
      *   Relationship psql table
@@ -355,7 +345,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    .attr("r", d => {
 		let length = Math.max(d.count.toString().length - 1, 0);
 		let scale = 1 + (0.5 * length);
-		return 8 * scale; //8 px default
+		return 9 * scale; //8 px default
 	    })
 	    .style("fill", "white")
 	    .on("mouseover", d => this.handleMouseOver(d, "link"))				
