@@ -462,17 +462,17 @@ class JSONParser {
 
 		if (this.isNumeric(lat) && this.isNumeric(lon) &&
 		     this.isNumeric(millis)) {
-		    let hours = (parseInt(millis) / 1000) / 3600;
+		    let hours = (parseFloat(millis) / 1000) / 3600;
 		    node.data.sightings.push({
 			"time": {
 			    "datetime": hours,
-			    "year": parseInt(enc.year),
-			    "month": parseInt(enc.month),
-			    "day": parseInt(enc.day)
+			    "year": parseFloat(enc.year),
+			    "month": parseFloat(enc.month),
+			    "day": parseFloat(enc.day)
 			},
 			"location": {
-			    "lat": parseInt(lat) * 1000,
-			    "lon": parseInt(lon) * 1000
+			    "lat": parseFloat(lat),
+			    "lon": parseFloat(lon)
 			}
 		    });
 		}

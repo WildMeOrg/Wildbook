@@ -2066,7 +2066,7 @@ if (sharky.getNames() != null) {
 	  	<input type="range" min=0 class="graphSlider" id="temporal">
       	      </div>
       	      <div class="coOccurrenceSliderWrapper">
-	        <label for="spatial">Spatial Threshold (Milli-Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
+	        <label for="spatial">Spatial Threshold (Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
 		<input type="range" min=0 class="graphSlider" id="spatial">
       	      </div>
     	    </div>

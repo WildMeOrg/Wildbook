@@ -40,6 +40,9 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request) thro
 		jobjEnc.put("dateInMilliseconds", enc.getDateInMilliseconds());
 		jobjEnc.put("decimalLatitude", enc.getDecimalLatitude());
 		jobjEnc.put("decimalLongitude", enc.getDecimalLongitude());
+		jobjEnc.put("year", enc.getYear());
+		jobjEnc.put("month", enc.getMonth());
+		jobjEnc.put("day", enc.getDay());
     	jArray.put(jobjEnc);
     }
     jobj.put("encounters",jArray);

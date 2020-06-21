@@ -331,10 +331,11 @@ class ForceLayoutAbstract extends GraphAbstract {
 	    //Update html slider attributes
 	    let containerRef = $(this.containerId).parent();
 	    let sliderNode = containerRef.find("#" + key);
+	    sliderNode.attr("step", (slider.precision) ? Math.pow(0.1, slider.precision) : 1);
 	    sliderNode.attr("max", slider.max);
 	    sliderNode.val((slider.def != null) ? slider.def : slider.max);
 	    sliderNode.change(() => {
-		slider.filter(this, parseInt(sliderNode.val()), key);
+		slider.filter(this, parseFloat(sliderNode.val()), key);
 	    });
 	    sliderNode.on("click", (e) => e.preventDefault()); //Prevent default scroll-to-focus
 
