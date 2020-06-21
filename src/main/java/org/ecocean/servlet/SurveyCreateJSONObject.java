@@ -111,20 +111,19 @@ System.out.println(startTime + " --> " + endTime);
                 System.out.println("INFO: SurveyCreate created [" + i + "] " + occ + " for " + enc + " and added to " + trk);
             }
         }
+System.out.println("SurveyCreate: out of loop");
         survey.addSurveyTrack(trk);
+System.out.println("SurveyCreate: added SurveyTrack");
 
         myShepherd.getPM().makePersistent(survey);
         rtn.put("success", true);
         rtn.put("surveyId", survey.getID());
         System.out.println(survey + " created by " + user + " for route=" + jsonIn.optString("routeId", null));
-
-        if (rtn.optBoolean("success", false)) {
-            myShepherd.commitDBTransaction();
-        } else {
-            myShepherd.rollbackDBTransaction();
-        }
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
         response.setContentType("text/json");
         out.println(rtn);
         out.close();
+System.out.println("SurveyCreate: exit");
     }
 }
