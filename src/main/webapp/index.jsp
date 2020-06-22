@@ -575,7 +575,7 @@ finally{
 	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
-	                          if(myShepherd.getUser(spotter)!=null){
+	                          if(!spotter.equals("siowamteam") && myShepherd.getUser(spotter)!=null){
 	                        	  String profilePhotoURL="images/empty_profile.jpg";
 	                              User thisUser=myShepherd.getUser(spotter);
 	                              if(thisUser.getUserImage()!=null){
