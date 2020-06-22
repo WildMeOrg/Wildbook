@@ -164,6 +164,7 @@
 		        /OccurrenceRemoveEncounter = authc, roles[researcher]
 		        /IndividualRemoveEncounter = authc, roles[researcher]
 		        /OccurrenceAddEncounter = authc, roles[researcher]
+            /OccurrenceSetMetadataField = authc, roles[researcher]
 		        /IndividualAddEncounter = authc, roles[researcher]
 		         /TissueSampleSetSexAnalysis = authc, roles[researcher]
 		        /TissueSampleRemoveSexAnalysis = authc, roles[researcher]
@@ -501,6 +502,11 @@
   <servlet>
     <servlet-name>EncounterCreateSurvey</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterCreateSurvey</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>OccurrenceSetMetadataField</servlet-name>
+    <servlet-class>org.ecocean.servlet.OccurrenceSetMetadataField</servlet-class>
   </servlet>
 
   <servlet>
@@ -1773,6 +1779,11 @@
       <servlet-mapping>
          <servlet-name>MediaAssetAttach</servlet-name>
          <url-pattern>/MediaAssetAttach</url-pattern>
+      </servlet-mapping>
+
+      <servlet-mapping>
+         <servlet-name>OccurrenceSetMetadataField</servlet-name>
+         <url-pattern>/OccurrenceSetMetadataField</url-pattern>
       </servlet-mapping>
 
       <servlet-mapping>
