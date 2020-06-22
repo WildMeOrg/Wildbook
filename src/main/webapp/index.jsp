@@ -319,14 +319,14 @@ try{
 
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
-    numEncounters=myShepherd.getNumEncounters();
+    numEncounters=numUsers=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
     //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
     //numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
     numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
 	//numUsersWithRoles = numUsers-numDataContributors;
-	numLeafy=qc.getQueryByName("numLeafy").executeCountQuery(myShepherd).intValue();
-	numWeedy=qc.getQueryByName("numWeedy").executeCountQuery(myShepherd).intValue();
+	numLeafy=qc.getQueryByName("numLeafyIndividuals3").executeCountQuery(myShepherd).intValue();
+	numWeedy=qc.getQueryByName("numWeedyIndividuals3").executeCountQuery(myShepherd).intValue();
 
 	if (numEncounters>0) {
 			Encounter oldestEnc = (Encounter) qc.getQueryByName("oldestEncounterMillis").executeQuery(myShepherd).get(0);
@@ -628,7 +628,7 @@ finally{
 			</section>
 
 			<section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=avgSightingsPerYear%></span>avg sightings per year</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters%></span>encounters</i></p>
 			</section>
 	
         </div>

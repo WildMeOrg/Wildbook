@@ -135,6 +135,23 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries();
 	}
+	//dragondsearch custom counters
+	if(qc.getQueryByName("numLeafyIndividuals3")==null){
+		StoredQuery sq=new StoredQuery("numLeafyIndividuals3", "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && enc.genus == 'Phycodurus' && enc.specificEpithet == 'eques' VARIABLES org.ecocean.Encounter enc");
+		sq.setExpirationTimeoutDuration(300000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		qc.loadQueries();
+	}
+	if(qc.getQueryByName("numWeedyIndividuals3")==null){
+		StoredQuery sq=new StoredQuery("numWeedyIndividuals3", "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && enc.genus == 'Phyllopteryx' && enc.specificEpithet == 'taeniolatus' VARIABLES org.ecocean.Encounter enc");
+		sq.setExpirationTimeoutDuration(300000);
+		myShepherd.getPM().makePersistent(sq);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		qc.loadQueries();
+	}
 	if(qc.getQueryByName("oldestEncounterMillis")==null){
 		//StoredQuery sq=new StoredQuery("oldestEncounterMillis", "SELECT min(dwcDateAddedLong) FROM org.ecocean.Encounter");
 		StoredQuery sq=new StoredQuery("oldestEncounterMillis", "SELECT FROM org.ecocean.Encounter ORDER BY dwcDateAddedLong ascending RANGE 1,2");
