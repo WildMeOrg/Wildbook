@@ -331,14 +331,16 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 
 		<!-- add if enabled in cc.props -->
 		<p><%=props.getProperty("visibilityIndex") %>: 
-			<%if(occ.getVisibilityIndex()!=null){
-				String viString = String.valueOf(occ.getVisibilityIndex());
+			<%
+			String viString = "";
+			if(occ.getVisibilityIndex()!=null){
+				viString = String.valueOf(occ.getVisibilityIndex());
 				if (viString.endsWith(".0")) {
 					viString = viString.replace(".0","");
 				} 	
+			}
 			%>
-				<span id="visibilityNum"><%=viString%></span>
-			<%}%>
+			<span id="visibilityNum"><%=viString%></span>
 			&nbsp; 
 			<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%>
 				<a id="visibilityIndexEditButton" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>	
