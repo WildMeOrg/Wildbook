@@ -408,6 +408,9 @@
 				
 				/MembershipCreate = authc
 				/MembershipDelete = authc
+
+        /RemoveDynamicProperty = authc, roles[researcher]
+
 				
 				/encounters/manualAnnotation.jsp = authc, roles[researcher]
 				
@@ -518,6 +521,11 @@
     <servlet-name>MembershipDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.MembershipDelete</servlet-class>
   </servlet>		
+
+  <servlet>
+    <servlet-name>RemoveDynamicProperty</servlet-name>
+    <servlet-class>org.ecocean.servlet.RemoveDynamicProperty</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>WriteOutScanTask</servlet-name>
@@ -1794,6 +1802,11 @@
       <servlet-mapping>
          <servlet-name>MembershipDelete</servlet-name>
          <url-pattern>/MembershipDelete</url-pattern>
+      </servlet-mapping>
+
+      <servlet-mapping>
+         <servlet-name>RemoveDynamicProperty</servlet-name>
+         <url-pattern>/RemoveDynamicProperty</url-pattern>
       </servlet-mapping>
 
         <servlet-mapping>
