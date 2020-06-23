@@ -75,6 +75,10 @@
     display: none;
 }
 
+.task-summary.task-type-identification {
+    counter-reset: rankcounter;
+}
+
 .task-content {
 	/* height: 700px; */
 }
@@ -160,6 +164,14 @@ span.illustrationLink a {
 .annot-wrapper-query .annot-info {
 	display: none;
 }
+
+.annot-info-num::before {
+	
+  counter-increment: rankcounter;
+  content: counter(rankcounter);
+	
+}
+
 .annot-info-num {
 	font-size: 0.8em;
 	color: #666;
