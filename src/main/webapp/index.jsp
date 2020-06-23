@@ -373,8 +373,8 @@ h2.vidcap {
 	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
-	                          if(myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/user-profile-grey-grey.png";
+	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
+	                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
 	                              User thisUser=myShepherd.getUser(spotter);
 	                              if(thisUser.getUserImage()!=null){
 	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
