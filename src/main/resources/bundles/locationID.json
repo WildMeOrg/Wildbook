@@ -130,6 +130,7 @@
 			] },
 
 			{"name":"South Pacific","id":"South Pacific","locationID":[
+				{"name": "Galapagos Islands", "id": "Galapagos Islands" },
 				{"name": "Tasman Sea", "id": "Tasman Sea" },
 				{ "name":"NewZealand", "id":"NewZealand", "locationID":[] }
 			]}

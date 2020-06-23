@@ -453,10 +453,8 @@ try{
 	
 	                String copyright = newMaJson.optString("photographer");
 	                if ((copyright!=null)&&!copyright.equals("")) {
-	                  copyright =  "&copy; " +copyright+" / WWF";
-	                } else {
-	                  copyright = "&copy; WWF";
-	                }
+	                  copyright =  "&copy; " +copyright;
+	                } 
 	
 	
 	

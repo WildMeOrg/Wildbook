@@ -28,6 +28,10 @@ src/main/caribwhale_data_dir
 /node_modules
 .vscode/
 *.swp
+
+src/main/webapp/javascript/dev/MarkedIndividual.json
+src/main/webapp/javascript/dev/Relationship.json
+
 \.classpath
 .classpath
 \.factorypath

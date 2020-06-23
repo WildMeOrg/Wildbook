@@ -46,6 +46,7 @@ public class BiologicalMeasurement extends GeneticAnalysis implements java.io.Se
   public void setSamplingProtocol(String protocol){this.samplingProtocol=protocol;}
 
   public String getMeasurementEventType(){return measurementType;}
+  public String getMeasurementType(){return getMeasurementEventType();}
   public void setMeasurementEventType(String newType){this.measurementType=newType;}
 
   public static String getType(){return type;}

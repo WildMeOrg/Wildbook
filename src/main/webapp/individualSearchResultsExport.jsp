@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties,java.util.Enumeration, java.util.Vector" %>
-<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
+
 
   <%
 
@@ -16,63 +16,22 @@
     props = ShepherdProperties.getProperties("individualSearchResultsExport.properties", langCode,context);
 
 
-    int startNum = 1;
-    int endNum = 10;
-
-
-    try {
-
-      if (request.getParameter("startNum") != null) {
-        startNum = (new Integer(request.getParameter("startNum"))).intValue();
-      }
-      if (request.getParameter("endNum") != null) {
-        endNum = (new Integer(request.getParameter("endNum"))).intValue();
-      }
-
-    } catch (NumberFormatException nfe) {
-      startNum = 1;
-      endNum = 10;
-    }
-    int listNum = endNum;
-
-    int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
-    try {
-      month1 = (new Integer(request.getParameter("month1"))).intValue();
-    } catch (NumberFormatException nfe) {
-    }
-    try {
-      month2 = (new Integer(request.getParameter("month2"))).intValue();
-    } catch (NumberFormatException nfe) {
-    }
-    try {
-      year1 = (new Integer(request.getParameter("year1"))).intValue();
-    } catch (NumberFormatException nfe) {
-    }
-    try {
-      year2 = (new Integer(request.getParameter("year2"))).intValue();
-    } catch (NumberFormatException nfe) {
-    }
 
 
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("individualSearchResultsExport.jsp");
-
-
-
-    int numResults = 0;
-
-
-    Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
     myShepherd.beginDBTransaction();
+    
+    try{
+
+
+
+
     String order = "";
 
     MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
-    rIndividuals = result.getResult();
 
 
-    if (rIndividuals.size() < listNum) {
-      listNum = rIndividuals.size();
-    }
   %>
   
 <style type="text/css">
@@ -180,7 +139,7 @@ if(request.getQueryString()!=null){
 </table>
 </p>
 
-
+<!--
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
   <tr><td bgcolor="#CCCCCC"><strong>Picture Book</strong><br/><%=props.getProperty("generatePictureBook") %></td></tr>
@@ -197,6 +156,7 @@ if(request.getQueryString()!=null){
   </tr>
 </table>
 </p>
+-->
 
 <p>
 <table border="1" bordercolor="black" cellspacing="0">
@@ -257,86 +217,50 @@ while(params.hasMoreElements()){
 	<form>
 </p>
 
-<%
-  myShepherd.rollbackDBTransaction();
-  startNum += 10;
-  endNum += 10;
-  if (endNum > numResults) {
-    endNum = numResults;
-  }
 
-
-%>
-<table width="810px">
-  <tr>
-    <%
-      if ((startNum - 10) > 1) {%>
-    <td align="left">
-      <p>
-        <a
-          href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><img
-          src="images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
-          title="<%=props.getProperty("seePreviousResults")%>"/></a> <a
-        href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=(startNum-20)%>&endNum=<%=(startNum-11)%>&sort=<%=request.getParameter("sort")%>"><%=(startNum - 20)%>
-        - <%=(startNum - 11)%>
-      </a>
-      </p>
-    </td>
-    <%
-      }
-
-      if (startNum < numResults) {
-    %>
-    <td align="right">
-      <p>
-        <a
-          href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><%=startNum%>
-          - <%=endNum%>
-        </a> <a
-        href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>&startNum=<%=startNum%>&endNum=<%=endNum%>&sort=<%=request.getParameter("sort")%>"><img
-        src="images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle"
-        title="<%=props.getProperty("seeNextResults")%>"/></a>
-      </p>
-    </td>
-    <%
-      }
-    %>
-  </tr>
-</table>
 
 <p>
 
     <%
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+  	if (request.getParameter("noQuery") == null) {
+	%>
+		<table>
+		  <tr>
+		    <td align="left">
+		
+		      <p><strong><%=props.getProperty("queryDetails")%>
+		      </strong></p>
+		
+		      <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
+		      </strong><br/>
+		        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
+		      </p>
+		
+		      <p class="caption"><strong><%=props.getProperty("jdoql")%>
+		      </strong><br/>
+		        <%=result.getJDOQLRepresentation()%>
+		      </p>
+		
+		    </td>
+		  </tr>
+		</table>
+	<%
+	  }
+	%>
+	
+	<%
+    }
+    catch(Exception e){
+    	e.printStackTrace();
+    }
+    finally{
+  		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+    }
 
-
-  if (request.getParameter("noQuery") == null) {
 %>
-<table>
-  <tr>
-    <td align="left">
+	
 
-      <p><strong><%=props.getProperty("queryDetails")%>
-      </strong></p>
-
-      <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
-      </p>
-
-      <p class="caption"><strong><%=props.getProperty("jdoql")%>
-      </strong><br/>
-        <%=result.getJDOQLRepresentation()%>
-      </p>
-
-    </td>
-  </tr>
-</table>
-<%
-  }
-%>
-</p>
 
 
 </div>

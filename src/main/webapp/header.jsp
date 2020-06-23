@@ -348,7 +348,7 @@ myShepherd.closeDBTransaction();
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
-                      <% if(request.isUserInRole("admin")) { %>
+                      <% if(request.isUserInRole("researcher")) { %>
 
                           <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>

@@ -2,6 +2,7 @@ package org.ecocean.identity;
 
 import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
+import org.ecocean.AnnotationLite;
 import org.ecocean.Util;
 import org.ecocean.YouTube;
 import org.ecocean.ai.nlp.SUTime;
@@ -28,6 +29,7 @@ import org.ecocean.TwitterUtil;
 import org.ecocean.TwitterBot;
 
 import java.text.SimpleDateFormat;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -37,6 +39,7 @@ import java.util.Iterator;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -217,7 +220,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
                 continue;
             }
             // Try and get an iaClass from the  annotation. If detection ran correctly.. it should be there.
-            // I guess fall back on the species from ann if you don't find anything? Maybe you shouldn't... because detect shouldn't have anything to do 
+            // I guess fall back on the species from ann if you don't find anything? Maybe you shouldn't... because detect shouldn't have anything to do
             // with the human friendly "species", just ia class. Oh well, doing it anyway for now.. FIGHT ME ABOUT IT
             String iaClass = null;
             if (Util.stringExists(ann.getIAClass())) {
@@ -262,6 +265,8 @@ System.out.println("sendAnnotations(): sending " + ct);
         String u = IA.getProperty(context, "IBEISIARestUrlStartIdentifyAnnotations");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
+long startTime = System.currentTimeMillis();
+Util.mark("sendIdentify-0  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()), startTime);
 
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IBEISIA.sendIdentify");
@@ -281,6 +286,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
         //String species = null;
         String iaClass = null;
+Util.mark("sendIdentify-1", startTime);
         for (Annotation ann : qanns) {
             if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [qanns] skipping invalid " + ann);
@@ -305,6 +311,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 
             qnlist.add(IA_UNKNOWN_NAME);
         }
+Util.mark("sendIdentify-2", startTime);
         // Do we have a qaan? We need one, or load a failure response.
         if (qlist.isEmpty()) {
 	        JSONObject noQueryAnn = new JSONObject();
@@ -313,18 +320,24 @@ System.out.println("sendAnnotations(): sending " + ct);
             return noQueryAnn;
         }
 
+Util.mark("sendIdentify-A", startTime);
         boolean setExemplarCaches = false;
         if (tanns == null) {
 System.out.println("--- sendIdentify() passed null tanns..... why???");
 System.out.println("     gotta compute :(");
             tanns = qanns.get(0).getMatchingSet(myShepherd);
         }
+Util.mark("sendIdentify-B  tanns.size()=" + ((tanns == null) ? "null" : tanns.size()), startTime);
 
+//int ct = 0;
         if (tanns != null) for (Annotation ann : tanns) {
+//Util.mark(ct + "]  sib-1 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
             if (!validForIdentification(ann, context)) {
                 System.out.println("WARNING: IBEISIA.sendIdentify() [tanns] skipping invalid " + ann);
                 continue;
             }
+//Util.mark("      sib-2 ann=" + ann.getId() + "/" + ann.getAcmId(), startTime);
+//ct++;
             tlist.add(toFancyUUID(ann.getAcmId()));
             String indivId = annotGetIndiv(ann, myShepherd);
 /*  see note above about names
@@ -345,10 +358,11 @@ System.out.println("     gotta compute :(");
         }
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
+Util.mark("sendIdentify-C", startTime);
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
-        //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing.. 
-        // If the list is null it will check against everything. 
+        //We need to send IA null in this case. If you send it an empty list of annotation names or uuids it will check against nothing..
+        // If the list is null it will check against everything.
         map.put("query_annot_name_list", qnlist);
         //if we have no target lists, pass null for "all"
         if (Util.collectionIsEmptyOrNull(tlist)) {
@@ -361,6 +375,7 @@ System.out.println("     gotta compute :(");
         } else {
             map.put("database_annot_name_list", tnlist);
         }
+Util.mark("sendIdentify-D", startTime);
 
 
 		System.out.println("===================================== qlist & tlist =========================");
@@ -374,6 +389,7 @@ System.out.println("     gotta compute :(");
 		System.out.println(map);
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
+Util.mark("identify process pre-post end");
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
@@ -391,16 +407,16 @@ System.out.println("     gotta compute :(");
             if (labelerAlgo!=null) {
                 map.put("labeler_algo",labelerAlgo);
                 System.out.println("[INFO] sendDetect() labeler_algo set to " + labelerAlgo);
-            } else {System.out.println("[INFO] sendDetect() labeler_algo is null; skipping");} 
+            } else {System.out.println("[INFO] sendDetect() labeler_algo is null; skipping");}
         } else {
             System.out.println("[INFO] sendDetect() labeler_model_tag is null. Viewpoint detection not available.");
         }
 
-        
+
         map.put("callback_url", callbackUrl(baseUrl));
         System.out.println("sendDetect() baseUrl = " + baseUrl);
         ArrayList<JSONObject> malist = new ArrayList<JSONObject>();
-        
+
         for (MediaAsset ma : mas) {
             if (ma == null) continue;
             if (ma.getAcmId() == null) {  //usually this means it was not able to be added to IA (e.g. a video etc)
@@ -411,7 +427,7 @@ System.out.println("     gotta compute :(");
             malist.add(toFancyUUID(ma.getAcmId()));
         }
         map.put("image_uuid_list", malist);
-        
+
         //String modelTag = IA.getProperty(context, "modelTag");
         String modelTag = getModelTag(context, taxy);
         if (modelTag != null) {
@@ -420,8 +436,11 @@ System.out.println("     gotta compute :(");
         } else {
             System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
         }
-        
-        String sensitivity = IA.getProperty(context, "sensitivity");
+
+        // taxonomyPropString looks like _Fuus_baarus
+        String taxonomyPropString = (taxy!=null) ? "_"+taxy.getScientificName().replaceAll(" ", "_") : "";
+        String sensitivityKey = "sensitivity"+taxonomyPropString;
+        String sensitivity = IA.getProperty(context, sensitivityKey);
         if (sensitivity != null) {
             System.out.println("[INFO] sendDetect() sensitivity set to " + sensitivity);
             map.put("sensitivity", sensitivity);
@@ -429,7 +448,8 @@ System.out.println("     gotta compute :(");
             System.out.println("[INFO] sendDetect() sentivity is null; DEFAULT will be used");
         }
 
-        String nms_thresh = IA.getProperty(context, "nms_thresh");
+        String nmsThreshKey = "nms_thresh"+taxonomyPropString;
+        String nms_thresh = IA.getProperty(context, nmsThreshKey);
         if (nms_thresh != null) {
             System.out.println("[INFO] sendDetect() nms_thresh set to " + nms_thresh);
             map.put("nms_thresh", nms_thresh);
@@ -437,7 +457,30 @@ System.out.println("     gotta compute :(");
             System.out.println("[INFO] sendDetect() nms_thresh is null; DEFAULT will be used");
         }
 
-	        String nms_aware = IA.getProperty(context, "nms_aware");
+
+        String orienterAlgoKey = "orienter_algo"+taxonomyPropString;
+        String orienterAlgo = IA.getProperty(context, orienterAlgoKey);
+        if (orienterAlgo != null) {
+            System.out.println("[INFO] sendDetect() orienter_algo set to " + orienterAlgo);
+            map.put("orienter_algo", orienterAlgo);
+        } else {
+            System.out.println("[INFO] sendDetect() orienter_algo is null; DEFAULT will be used");
+        }
+
+
+        /*
+	      String nms_aware = IA.getProperty(context, "nms_aware");
+        if (nms_aware != null) {
+            System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
+            map.put("nms_aware", nms_aware);
+        } else {
+            System.out.println("[INFO] sendDetect() nms_aware is null; DEFAULT will be used");
+        }
+        */
+        
+        //nms_aware
+        String nmsAwareKey = "nms_aware"+taxonomyPropString;
+        String nms_aware = IA.getProperty(context, nmsAwareKey);
         if (nms_aware != null) {
             System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
             map.put("nms_aware", nms_aware);
@@ -452,13 +495,22 @@ System.out.println("     gotta compute :(");
         } else {
             System.out.println("[INFO] sendDetect() nms is null; DEFAULT will be used");
         }
-        
+
+        String ulsKey = "use_labeler_species"+taxonomyPropString;
+        String uls = IA.getProperty(context, ulsKey);
+        if (uls != null) {
+            System.out.println("[INFO] sendDetect() use_labeler_species set to " + uls);
+            map.put("use_labeler_species", uls);
+        } else {
+            System.out.println("[INFO] sendDetect() use_labeler_species is null; DEFAULT of False will be used");
+        }        
+
         String u = getDetectUrlByModelTag(context, modelTag);
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
         URL url = new URL(u);
         return RestClient.post(url, new JSONObject(map));
     }
-    
+
     //DUPLICATE
     /*
     public static String getModelTag(String context, Taxonomy tax) {
@@ -479,7 +531,7 @@ System.out.println("     gotta compute :(");
     }
 
 
-    
+
     public static String getViewpointTag(String context, Taxonomy tax) {
         if (tax==null&&IA.getProperty(context, "viewpointModelTag")==null) return null; //got nothin
         if ((tax == null) || (tax.getScientificName() == null)) return IA.getProperty(context, "viewpointModelTag").trim();  //best we can hope for
@@ -506,7 +558,7 @@ System.out.println("     gotta compute :(");
     THIS IS NOW UNUSED BY ABOVE (see note above)
     note: this is "for internal use only" -- i.e. this is used for getModelTag above, so re-use with caution?
     (that is, it is meant to generate a string to derive a property key in IA.properties and not much else)
-    
+
     */
 
     public static String inferIaClass(Annotation ann, Shepherd myShepherd) {
@@ -633,14 +685,12 @@ System.out.println("     gotta compute :(");
         for (MediaAsset ma : mas) {
             Taxonomy tax = taxonomyFromMediaAsset(myShepherd, ma);
             if (tax != null) {
-                myShepherd.rollbackDBTransaction();
-                myShepherd.closeDBTransaction();
+            	myShepherd.rollbackAndClose();
                 return tax;
             }
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        return null;
+        } 
+       myShepherd.rollbackAndClose();
+       return null;
     }
     
     public static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas, Shepherd myShepherd) {
@@ -656,14 +706,14 @@ System.out.println("     gotta compute :(");
 
 
 
-    
+
     public static JSONObject getJobStatus(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = IA.getProperty(context, "IBEISIARestUrlGetJobStatus");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobStatus is not set");
         URL url = new URL(u + "?jobid=" + jobID);
         return RestClient.get(url);
     }
-    
+
     //note: this passes directly to IA so can be problematic! (ia down? and more importantly: ia restarted so job # is diff and old job is gone!)
     //  better(?) to use getJobResultLogged() below!
     public static JSONObject getJobResult(String jobID, String context) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
@@ -672,7 +722,7 @@ System.out.println("     gotta compute :(");
         URL url = new URL(u + "?jobid=" + jobID);
         return RestClient.get(url);
     }
-    
+
     public static JSONObject getJobResultLogged(String jobID, String context) {
         String taskId = findTaskIDFromJobID(jobID, context);
         if (taskId == null) {
@@ -688,8 +738,8 @@ System.out.println("     gotta compute :(");
             tr.getJSONObject("_debug").getJSONObject("_response").put("_objectIds", tr.getJSONArray("_objectIds"));
             return tr.getJSONObject("_debug").getJSONObject("_response");
         }
-        
-        
+
+
         /*
         //null return means we are still waiting... JSONObject will have success property = true/false (and results or error)
         /*
@@ -707,7 +757,7 @@ System.out.println("     gotta compute :(");
         rtn.remove("_json_result");
         return rtn;
         /*
-        
+
         for (int i = 0 ; i < res.length() ; i++) {
             JSONObject el = new JSONObject();
             el.put("score_list", res.getJSONObject(i).get("score_list"));
@@ -1036,13 +1086,13 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
 /*  i think this method is unused???   -jon
     private static String getAnnotationSpeciesFromArray(ArrayList<Annotation> qanns, Shepherd myShepherd) {
-        // Accept the species from the first Ann in the list, complain if inconsistancies. 
+        // Accept the species from the first Ann in the list, complain if inconsistancies.
         String species = null;
         for (Annotation ann : qanns) {
             Encounter enc = ann.findEncounter(myShepherd);
             String tempSpecies = enc.getGenus()+" "+enc.getSpecificEpithet();
             //AAAAACCCKKKK squishy
-            if (species!=null&&species!=tempSpecies) {    
+            if (species!=null&&species!=tempSpecies) {
                 System.out.println("WARNING:SEVERE: beginIdentifyAnnotations called on qann array with inconsistant species at Encounter level!");
                 System.out.println("Species A: "+species+" Species B: "+tempSpecies);
             } else {
@@ -1053,7 +1103,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
     }
 */
 
-    // If you realllllly want to send species I'll just swallow it. 
+    // If you realllllly want to send species I'll just swallow it.
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONObject userConfidence, Shepherd myShepherd, String species, Task task, String baseUrl) {
         System.out.println("INFO: You no longer need to send species with call to beginIdentifyAnnotations. It is derived from the Annotation's Encounters.");
         return beginIdentifyAnnotations(qanns,tanns,queryConfigDict, userConfidence, myShepherd, task, baseUrl);
@@ -1061,9 +1111,10 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
     //actually ties the whole thing together and starts a job with all the pieces needed
     // note: if tanns is null, that means we get all exemplar for species
-    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
+    public static JSONObject beginIdentifyAnnotationsOriginal(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                                       JSONObject userConfidence, Shepherd myShepherd, Task task, String baseUrl) {
-                                            
+
+long tt = System.currentTimeMillis();
         if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
@@ -1071,12 +1122,13 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         results.put("success", false);  //pessimism!
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
-        
+
         String taskID = "_UNKNOWN_";
         if (task != null) taskID = task.getId();  //"should never happen"
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), myShepherd.getContext());
         String curvrankDailyTag = null;
 
+Util.mark("identify process start", tt);
         try {
             for (Annotation ann : qanns) {
                 if (validForIdentification(ann, myShepherd.getContext())) {
@@ -1086,16 +1138,23 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                     if (ma != null) {
                         mas.add(ma);
                         System.out.println("Adding MA to list for sending to sendMediaAssetsNew...");
-                    }    
+                    }
                 }
             }
-            
+
+            //this voodoo via JH will insure that .acmId is on the MediaAssets which are loaded via getMatchingSet() below (for speed)
+            javax.jdo.FetchGroup grp = myShepherd.getPM().getPersistenceManagerFactory().getFetchGroup(MediaAsset.class, "BIA");
+            grp.addMember("acmId").addMember("store").addMember("id").addMember("parametersAsString").addMember("parameters").addMember("metadata").addMember("labels").addMember("userLatitude").addMember("userLongitude").addMember("userDateTime").addMember("features");
+            myShepherd.getPM().getFetchPlan().addGroup("BIA");
+
+Util.mark("bia 2", tt);
             if (tanns==null||tanns.isEmpty()) {
                 String iaClass = qanns.get(0).getIAClass();
 System.out.println("beginIdentifyAnnotations(): have to set tanns. Matching set being built from the first ann in the list.");
                 tanns = qanns.get(0).getMatchingSet(myShepherd, (task == null) ? null : task.getParameters());
                 curvrankDailyTag = qanns.get(0).getCurvrankDailyTag((task == null) ? null : task.getParameters());
             }
+Util.mark("bia 3", tt);
 
 System.out.println("- mark 2");
             if (tanns!=null&&!tanns.isEmpty()) {
@@ -1107,9 +1166,12 @@ System.out.println("- mark 2");
                     if (ma != null) mas.add(ma);
                 }
             }
+Util.mark("bia 4", tt);
 
             results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
+Util.mark("bia 4A", tt);
             results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext(),myShepherd));
+Util.mark("bia 4B", tt);
 
             if (tanns!=null) {
                 System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
@@ -1119,26 +1181,35 @@ System.out.println("- mark 2");
 
             if (curvrankDailyTag != null) {
                 if (queryConfigDict == null) queryConfigDict = new JSONObject();
-                queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
+                
+                //from JP on 12/27/2019 - if we want to specify an unfiltered list, just omit the tag
+                if(!curvrankDailyTag.toLowerCase().equals("user:any") && !curvrankDailyTag.toLowerCase().equals("user:any;locs:")) {
+                  queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
+                }
             }
 
+Util.mark("bia 4C", tt);
             //this should attempt to repair missing Annotations
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
                 identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
-                System.out.println("identRtn contains ========> "+identRtn.toString());
-                if (identRtn!=null&&identRtn.getJSONObject("status")!=null&&!identRtn.getJSONObject("status").getString("message").equals("rejected")) {
+                System.out.println("identRtn contains ========> "+identRtn);
+                if (identRtn == null) {
+                    results.put("error", "identRtn == NULL");
+                    results.put("success", false);
+                    return results;
+                } else if (identRtn!=null&&identRtn.getJSONObject("status")!=null&&!identRtn.getJSONObject("status").getString("message").equals("rejected")) {
                     tryAgain = iaCheckMissing(identRtn, myShepherd.getContext(), myShepherd);
                 } else {
                     results.put("error", identRtn.get("status"));
                     results.put("success", false);
-                    return results; 
+                    return results;
                 }
 
 
             }
-		
+
 
             results.put("sendIdentify", identRtn);
 
@@ -1169,6 +1240,145 @@ System.out.println("beginIdentifyAnnotations() unsuccessful on sendIdentify(): "
         return results;
     }
 
+
+//trying to optimize the original beginIdentifyAnnotations()  [above]
+
+    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
+                                                      JSONObject userConfidence, Shepherd myShepherd, Task task, String baseUrl) {
+
+long tt = System.currentTimeMillis();
+        if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
+        //TODO possibly could exclude qencs from tencs?
+        String jobID = "-1";
+        JSONObject results = new JSONObject();
+        results.put("success", false);  //pessimism!
+        //ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
+        ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
+
+        String taskID = "_UNKNOWN_";
+        if (task != null) taskID = task.getId();  //"should never happen"
+        log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), myShepherd.getContext());
+        String curvrankDailyTag = null;
+
+Util.mark("OPTIMIZED identify process start", tt);
+        try {
+            for (Annotation ann : qanns) {
+                if (validForIdentification(ann, myShepherd.getContext())) {
+                    allAnns.add(ann);
+/*
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) {
+                        mas.add(ma);
+                        System.out.println("Adding MA to list for sending to sendMediaAssetsNew...");
+                    }
+*/
+                }
+            }
+
+            //this voodoo via JH will insure that .acmId is on the MediaAssets which are loaded via getMatchingSet() below (for speed)
+            javax.jdo.FetchGroup grp = myShepherd.getPM().getPersistenceManagerFactory().getFetchGroup(MediaAsset.class, "BIA");
+            grp.addMember("acmId").addMember("store").addMember("id").addMember("parametersAsString").addMember("parameters").addMember("metadata").addMember("labels").addMember("userLatitude").addMember("userLongitude").addMember("userDateTime").addMember("features");
+            myShepherd.getPM().getFetchPlan().addGroup("BIA");
+
+Util.mark("OPT bia 2", tt);
+            if (tanns==null||tanns.isEmpty()) {
+                String iaClass = qanns.get(0).getIAClass();
+System.out.println("beginIdentifyAnnotations(): have to set tanns. Matching set being built from the first ann in the list.");
+                tanns = qanns.get(0).getMatchingSet(myShepherd, (task == null) ? null : task.getParameters());
+                curvrankDailyTag = qanns.get(0).getCurvrankDailyTag((task == null) ? null : task.getParameters());
+            }
+Util.mark("OPT bia 3", tt);
+
+System.out.println("- mark 2");
+            if (tanns!=null&&!tanns.isEmpty()) {
+                System.out.println("INFO: tanns, (matchingSet) is not null. Contains "+tanns.size()+" annotations.");
+                for (Annotation ann : tanns) {
+                    allAnns.add(ann);
+/*
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) mas.add(ma);
+*/
+                }
+            }
+Util.mark("OPT bia 4", tt);
+
+/*
+            results.put("sendMediaAssets", sendMediaAssetsNew(mas, myShepherd.getContext()));
+Util.mark("bia 4A", tt);
+            results.put("sendAnnotations", sendAnnotationsNew(allAnns, myShepherd.getContext(),myShepherd));
+Util.mark("bia 4B", tt);
+*/
+            results.put("sendAnnotationsAsNeeded", sendAnnotationsAsNeeded(allAnns, myShepherd));
+Util.mark("OPT bia 4X", tt);
+
+            if (tanns!=null) {
+                System.out.println("                               ... qanns has: "+qanns.size()+" ... taans has: "+tanns.size());
+            } else {
+                System.out.println("                               ... qanns has: "+qanns.size()+" ... taans is null! Target is all annotations.");
+            }
+
+            if (curvrankDailyTag != null) {
+                if (queryConfigDict == null) queryConfigDict = new JSONObject();
+                
+                //from JP on 12/27/2019 - if we want to specify an unfiltered list, just omit the tag
+                if(!curvrankDailyTag.toLowerCase().equals("user:any") && !curvrankDailyTag.toLowerCase().equals("user:any;locs:")) {
+                  queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
+                }
+            }
+
+Util.mark("bia 4C", tt);
+            //this should attempt to repair missing Annotations
+            boolean tryAgain = true;
+            JSONObject identRtn = null;
+            while (tryAgain) {
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl, myShepherd.getContext());
+                System.out.println("identRtn contains ========> "+identRtn);
+                if (identRtn == null) {
+                    results.put("error", "identRtn == NULL");
+                    results.put("success", false);
+                    return results;
+                } else if (identRtn!=null&&identRtn.getJSONObject("status")!=null&&!identRtn.getJSONObject("status").getString("message").equals("rejected")) {
+                    tryAgain = iaCheckMissing(identRtn, myShepherd.getContext(), myShepherd);
+                } else {
+                    results.put("error", identRtn.get("status"));
+                    results.put("success", false);
+                    return results;
+                }
+
+
+            }
+
+
+            results.put("sendIdentify", identRtn);
+
+System.out.println("sendIdentify ---> " + identRtn);
+            //if ((identRtn != null) && (identRtn.get("status") != null) && identRtn.get("status")  //TODO check success == true  :/
+//########## iaCheckMissing res -> {"response":[],"status":{"message":"","cache":-1,"code":200,"success":true}}
+            if ((identRtn != null) && identRtn.has("status") && identRtn.getJSONObject("status").getBoolean("success")) {
+                jobID = identRtn.get("response").toString();
+                results.put("success", true);
+            } else {
+System.out.println("beginIdentifyAnnotations() unsuccessful on sendIdentify(): " + identRtn);
+                results.put("error", identRtn.get("status"));
+                results.put("success", false);
+            }
+
+        } catch (Exception ex) {  //most likely from sendFoo()
+            System.out.println("WARN: IBEISIA.beginIdentity() failed due to an exception: " + ex.toString());
+            ex.printStackTrace();
+            results.put("success", false);
+            results.put("error", ex.toString());
+        }
+
+        JSONObject jlog = new JSONObject();
+        jlog.put("_action", "sendIdentify");
+        jlog.put("_response", results);
+        log(taskID, jobID, jlog, myShepherd.getContext());
+
+        return results;
+    }
 
     //a slightly different flavor -- we can explicitely pass the query annotation
     //  NOTE!!! TODO this might be redundant with beginIdentifyAnnotations above. (this came from crc)
@@ -1282,7 +1492,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 
     //this finds the *most recent* taskID associated with this IBEIS-IA jobID
     public static String findTaskIDFromJobID(String jobID, String context) {
-      Shepherd myShepherd=new Shepherd(context);    
+      Shepherd myShepherd=new Shepherd(context);
       myShepherd.setAction("IBEISIA.findTaskIDFromJobID");
       myShepherd.beginDBTransaction();
       ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByServiceJobID(SERVICE_NAME, jobID, myShepherd);
@@ -1495,24 +1705,32 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with n
         }
         myShepherd.getPM().makePersistent(enc);
         if (occ != null) myShepherd.getPM().makePersistent(occ);
-	System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
-        
-	//this is to tell IA to update species on the newly-created annot on its side
-	//String taxonomyString = enc.getTaxonomyString();
-        //if (Util.stringExists(taxonomyString)) {
-        //    List<String> uuids = new ArrayList<String>();
-        //    List<String> species = new ArrayList<String>();
-        //    uuids.add(ann.getAcmId());
-        //    species.add(taxonomyString);
-        //    try {
-        //        iaUpdateSpecies(uuids, species, context);
-        //    } catch (Exception ex) {
-        //        System.out.println("ERROR: iaUpdateSpecies() failed! " + ex.toString());
-        //        ex.printStackTrace();
-        //    }
-        //}
-
+System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
+        //this is to tell IA to update species on the newly-created annot on its side
+        String taxonomyString = enc.getTaxonomyString();
+        System.out.println("[INFO]: Checking if iaUpdateSpecies should be used for "+taxonomyString+"...");
+        if (Util.stringExists(taxonomyString)&&shouldUpdateSpeciesFromIa(taxonomyString, context)) {
+            System.out.println("[INFO]: iaUpdateSpecies is active for "+taxonomyString+".");
+            List<String> uuids = new ArrayList<String>();
+            List<String> species = new ArrayList<String>();
+            uuids.add(ann.getAcmId());
+            species.add(taxonomyString);
+            try {
+                iaUpdateSpecies(uuids, species, context);
+            } catch (Exception ex) {
+                System.out.println("ERROR: iaUpdateSpecies() failed! " + ex.toString());
+                ex.printStackTrace();
+            }
+        } else {
+            System.out.println("WARNING: cannot update IA, no taxonomy on " + ann);
+        }
         return ann;
+    }
+
+    public static boolean shouldUpdateSpeciesFromIa(String taxonomyString, String context) {
+        if (taxonomyString==null||"".equals(taxonomyString)) return false;
+        String taxKey = taxonomyString.replaceAll(" ", "_");
+        return Util.booleanNotFalse(IA.getProperty(context, "useIaUpdateSpecies_"+taxKey));
     }
 
     // here's where we'll attach viewpoint from IA's detection results
@@ -1548,6 +1766,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
 
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
+        ann.setIAExtractedKeywords(myShepherd);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
         ann.setViewpoint(iaResult.optString("viewpoint", null));  //not always supported by IA
         System.out.println("Verifying that new Ann can be matched against with iaClass...");
@@ -1556,7 +1775,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         if ("None".equals(vp)) vp = null;  //the ol' "None" means null joke!
         ann.setViewpoint(vp);
         if (validForIdentification(ann, context)) {
-            ann.setMatchAgainst(true); 
+            ann.setMatchAgainst(true);
         }
         
         return ann;
@@ -1672,7 +1891,7 @@ System.out.println("**** type ---------------> [" + type + "]");
             myShepherd2.setAction("IBEISIA.processCallback-IA.intake");
             myShepherd2.beginDBTransaction();
             Task parentTask = Task.load(taskID, myShepherd2);
-            //Task parametersSkipIdent looks at the parent task.. It works for non-ID Wildbooks. If you are sending multiple annotations from a single image, and some need 
+            //Task parametersSkipIdent looks at the parent task.. It works for non-ID Wildbooks. If you are sending multiple annotations from a single image, and some need
             // ID, some don't, you need to check downstream.
             if (taskParametersSkipIdent(parentTask)) {
                 System.out.println("NOTICE: IBEISIA.processCallback() " + parentTask + " skipped identification");
@@ -1697,7 +1916,7 @@ System.out.println("     ---> " + annIds);
             if (needIdentifying.size() > 0) {
                 Task task = IA.intakeAnnotations(myShepherd2, needIdentifying, parentTask);
                 // Here is a place we check downstream. IA.intakeAnnotations() will check the anns vs the identification classes in IA.properties,
-                // and return null if nobody was valid. 
+                // and return null if nobody was valid.
                 if (task!=null) {
                     rtn.put("identificationTaskId", task.getId());
                     if (parentTask != null) parentTask.addChild(task);
@@ -1777,12 +1996,41 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                         System.out.println("WARN: could not find MediaAsset for " + iuuid + " in detection results for task " + taskID);
                         continue;
                     }
-                    boolean needsReview = false;
+                    
+                    
                     JSONArray newAnns = new JSONArray();
+                    if(janns.length()==0) {
+                      //OK, for some species and conditions we may just want to trust the user 
+                      //that there is an animal in the image and set trivial annot to matchAgainst=true
+                      
+                      if(asset.getAnnotations()!=null && asset.getAnnotations().size()==1 && asset.getAnnotations().get(0).isTrivial()) {
+                        
+                        //so this media asset currently only has one trivial annot
+                        Annotation annot=asset.getAnnotations().get(0);
+                        Encounter enc=annot.findEncounter(myShepherd);
+                        if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null && IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd))!=null ) {
+                          if(IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd)).equals("true")) {
+                            
+                            annot.setMatchAgainst(true);
+                            myShepherd.updateDBTransaction();
+                            
+                            allAnns.add(annot);  //this is cumulative over *all MAs*
+
+                          }
+                        }
+                        
+                      }
+                    }
+                    
+                    
+                    boolean needsReview = false;
+                    
                     boolean skipEncounters = asset.hasLabel("_frame");
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
-                        if (jann == null) continue;
+                        if (jann == null) {
+                          continue;
+                        }
                         if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue(context, task)) {
                             needsReview = true;
                             continue;
@@ -1812,6 +2060,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 if (amap.length() > 0) rtn.put("annotations", amap);  //needed to kick off ident jobs with return value
+  
 
                 JSONObject jlog = new JSONObject();
 
@@ -2171,10 +2420,11 @@ System.out.println("identification most recent action found is " + action);
 
             rtn = RestClient.get(iaURL(context, "/api/annot/species/json/" + idSuffix));
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) throw new RuntimeException("could not get annot species for iaClass");
-            
+
             // iaClass... not your scientific name species
             String iaClass = rtn.getJSONArray("response").optString(0, null);
             Annotation ann = new Annotation(convertSpeciesToString(iaClass), ft, iaClass);
+            ann.setIAExtractedKeywords(myShepherd);
             //note: ann.id is a random UUID at this point; should we set to acmId??
             //   ann.setId(acmId);
             ann.setAcmId(acmId);
@@ -3026,11 +3276,11 @@ System.out.println(">>>>>>>> age -> " + rtn);
         rtn.put("timestamp", System.currentTimeMillis());
         JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
         settings.put("IBEISIARestUrlAddAnnotations", IA.getProperty(context, "IBEISIARestUrlAddAnnotations"));
-        
-        String boolString = IA.getProperty(context, "requireSpeciesForId"); 
-        if (boolString==null||boolString=="") boolString = "false"; 
+
+        String boolString = IA.getProperty(context, "requireSpeciesForId");
+        if (boolString==null||boolString=="") boolString = "false";
         settings.put("requireSpeciesForId", boolString);
-        rtn.put("settings", settings);    
+        rtn.put("settings", settings);
         rtn.put("identOpts", identOpts(context));
         return rtn;
     }
@@ -3193,10 +3443,20 @@ System.out.println("queryConfigDict() get opt = " + opt);
     }
 
     private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
+        if (ann == null) return null;
+        AnnotationLite annl = AnnotationLite.getCache(ann.getAcmId());
+        if ((annl != null) && (annl.getIndividualId() != null)) return annl.getIndividualId();
         String id = cacheAnnotIndiv.get(ann.getId());
-        if (id != null) return id;
-        id = ann.findIndividualId(myShepherd);
-        cacheAnnotIndiv.put(ann.getId(), id);
+        if (id == null) {
+            id = ann.findIndividualId(myShepherd);
+            cacheAnnotIndiv.put(ann.getId(), id);
+        }
+        if (annl == null) {
+            annl = new AnnotationLite((id == null) ? "____" : id);
+        } else {
+            annl.setIndividualId((id == null) ? "____" : id);
+        }
+        AnnotationLite.setCache(ann.getAcmId(), annl);
         return id;
     }
 
@@ -3343,13 +3603,13 @@ return Util.generateUUID();
     public static void fromDetection(Occurrence occ, Shepherd myShepherd, String context, String rootDir)  {
         System.out.println(">>>>>> detection created " + occ.toString());
 
-        
-        
-        
+
+
+
         //prep the YouTube video date for SUTimee analysis
         String relativeDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         String tempRelativeDate=null;
-        try{    
+        try{
           tempRelativeDate=YouTube.getVideoPublishedAt(occ, context);
         }
         catch(Exception e){}
@@ -3359,10 +3619,10 @@ return Util.generateUUID();
         if((tempRelativeDate!=null)&&(!tempRelativeDate.equals(""))){
           DateTimeFormatter parser2 = DateTimeFormat.forPattern("yyyy-MM-dd");
           DateTime time = parser2.parseDateTime(tempRelativeDate);
-          relativeDate=time.toString(parser2);  
+          relativeDate=time.toString(parser2);
         }
-        
-        
+
+
         //set the locationID/location/date on all encounters by inspecting detected comments on the first encounter
         if((occ.getEncounters()!=null)&&(occ.getEncounters().get(0)!=null)){
 
@@ -3376,16 +3636,16 @@ return Util.generateUUID();
           int numEncounters=encounters.size();
           Encounter enc=encounters.get(0);
           String ytRemarks="";
-          
-          
+
+
           //GET AND TRANSLATE VIDEO COMMENTS
           if(YouTube.getVideoDescription(occ, myShepherd)!=null) {
             ytRemarks=YouTube.getVideoDescription(occ, myShepherd);
           }
-          
+
           String detectedLanguage="en";
           try{
-            
+
             detectedLanguage= DetectTranslate.detectLanguage(ytRemarks);
             System.out.println("Video description suggests language: "+detectedLanguage);
 
@@ -3397,20 +3657,20 @@ return Util.generateUUID();
             System.out.println("I hit an exception trying to detect language.");
             e.printStackTrace();
           }
-          
+
           //GET AND TRANSLATE VIDEO TITLE
           String videoTitle="";
           if(YouTube.getVideoTitle(occ, myShepherd)!=null) {
             videoTitle=YouTube.getVideoTitle(occ, myShepherd);
           }
-          
-          
+
+
           try{
             String titleLanguage="en";
             titleLanguage= DetectTranslate.detectLanguage(videoTitle);
             System.out.println("Video title "+videoTitle+" suggests language: "+titleLanguage);
 
-            
+
             //use the title language if there were no comments
             if(ytRemarks.equals("")) {
               detectedLanguage=titleLanguage;
@@ -3424,12 +3684,12 @@ return Util.generateUUID();
             System.out.println("I hit an exception trying to detect language in the video title.");
             e.printStackTrace();
           }
-          
+
           System.out.println("Final detectedLanguage: "+detectedLanguage);
-          
-          
-          
-          
+
+
+
+
           //GET AND TRANSLATE OCR TEXT EMBEDDED IN VIDEO FRAMES
           //grab texts from yt videos through OCR (before we parse for location/ID and Date) and add it to remarks variable.
           String ocrRemarks="";
@@ -3443,7 +3703,7 @@ return Util.generateUUID();
                 if(parent!=null){
                   ArrayList<MediaAsset> frames= YouTubeAssetStore.findFrames(parent, myShepherd);
                   if((frames!=null)&&(frames.size()>0)){
-                      
+
 
                       //Google OCR
                       //ArrayList<byte[]> bytesFrames= new ArrayList<byte[]>(GoogleOcr.makeBytesFrames(frames));
@@ -3451,7 +3711,7 @@ return Util.generateUUID();
                       //if(ocrRemarks==null)ocrRemarks="";
                       //System.out.println("I found Google OCR remarks: "+ocrRemarks);
 
-                      //Azure OCR 
+                      //Azure OCR
                       ocrRemarks = AzureOcr.detectText(frames, detectedLanguage);
                       if(ocrRemarks==null)ocrRemarks="";
                       System.out.println("I found Azure OCR remarks: "+ocrRemarks);
@@ -3466,13 +3726,13 @@ return Util.generateUUID();
               e.printStackTrace();
               System.out.println("I hit an exception trying to find ocrRemarks.");
             }
-          
-          
-          
+
+
+
           try{
             String ocrDetectedLanguage="en";
             ocrDetectedLanguage= DetectTranslate.detectLanguage(ocrRemarks);
-            
+
             System.out.println("OCR suggests language: "+ocrDetectedLanguage);
 
 
@@ -3518,9 +3778,9 @@ return Util.generateUUID();
 
               boolean setDate=true;
               if(enc.getDateInMilliseconds()!=null){setDate=false;}
-              
-              
-              
+
+
+
               //next use natural language processing for date
               if(setDate){
                 //boolean NLPsuccess=false;
@@ -3533,7 +3793,7 @@ return Util.generateUUID();
                     //parse through the selected date to grab year, month and day separately.Remove cero from month and day with intValue.
                     if (myDate!=null) {
                         System.out.println(">>>>>> NLP found date: "+myDate);
-     
+
 
                         //current datetime just for quality comparison
                         LocalDateTime dt = new LocalDateTime();
@@ -3546,9 +3806,9 @@ return Util.generateUUID();
                         System.out.println("     StringTokenizer for date has "+numTokens+" tokens for String input "+str.toString());
 
                         if(numTokens>=1){
-                         
+
                           year=reportedDateTime.getYear();
-                            if(year>(dt.getYear()+1)){ 
+                            if(year>(dt.getYear()+1)){
                               year=-1;
                             }
                         }
@@ -3838,21 +4098,31 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
 
     public static boolean validIAClassForIdentification(Annotation ann, String context) {
         ArrayList<String> idClasses = getAllIdentificationClasses(context);
-        if (ann.getIAClass()==null&&(idClasses.isEmpty()||idClasses==null)) return true; 
+        if (ann.getIAClass()==null&&(idClasses.isEmpty()||idClasses==null)) return true;
         if (ann.getIAClass()!=null&&(idClasses.contains(ann.getIAClass())||idClasses.isEmpty()||idClasses==null)) {
             return true;
         }
-        return false; 
+        return false;
     }
 
 
-    public static boolean validForIdentification(Annotation ann)  { 
+    public static boolean validForIdentification(Annotation ann)  {
         return validForIdentification(ann, null);
     }
 
 
     public static boolean validForIdentification(Annotation ann, String context)  {
         if (ann == null) return false;
+        String acmId = ann.getAcmId();
+        /*
+            NOTE: we need to allow for case where ann.acmId is null; namely, this is an annot IA knows nothing about.
+            in this case, we will be keeping this out of AnnotationLite.cache, as it should get added later
+        */
+        AnnotationLite annl = null;
+        if (acmId != null) {
+            annl = AnnotationLite.getCache(acmId);
+            if ((annl != null) && (annl.getValidForIdentification() != null)) return annl.getValidForIdentification();
+        }
         //System.out.println("BBOX features -> " + ann.getFeatures()); //please leave this line in (ask jon... sigh)
         List<Feature> forceJdoToUnpackTheseFeatures = ann.getFeatures();
         String ungodlyHackString = "";
@@ -3860,11 +4130,35 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         int[] bbox = ann.getBbox();
         if (bbox == null) {
             System.out.println("NOTE: IBEISIA.validToSendToIA() failing " + ann.toString() + " - invalid bbox");
+            if (acmId != null) {
+                if (annl == null) {
+                    annl = new AnnotationLite(false);
+                } else {
+                    annl.setValidForIdentification(false);
+                }
+                AnnotationLite.setCache(acmId, annl);
+            }
             return false;
         }
         if (context!=null&&!validIAClassForIdentification(ann, context)&&!ann.isTrivial()) {
             System.out.println("NOTE: IBEISIA.validForIdentification() failing " + ann.toString() + " - annotation does not have valid Identification class.");
+            if (acmId != null) {
+                if (annl == null) {
+                    annl = new AnnotationLite(false);
+                } else {
+                    annl.setValidForIdentification(false);
+                }
+                AnnotationLite.setCache(acmId, annl);
+            }
             return false;
+        }
+        if (acmId != null) {
+            if (annl == null) {
+                annl = new AnnotationLite(true);
+            } else {
+                annl.setValidForIdentification(true);
+            }
+            AnnotationLite.setCache(acmId, annl);
         }
         return true;
     }
@@ -3877,10 +4171,11 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         int i = 0;
         while (className!=null) {
             className = IA.getProperty(context, "identificationClass"+i);
+            if (className==null) break;
             allClasses.add(className);
             i++;
         }
-        return allClasses; 
+        return allClasses;
     }
 
 
@@ -3912,7 +4207,47 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         WildbookIAM plugin = getPluginInstance(context);
         return plugin.sendAnnotations(anns, true, myShepherd);
     }
-    
+
+    public static JSONObject sendAnnotationsAsNeeded(ArrayList<Annotation> anns, Shepherd myShepherd) {
+long tt = System.currentTimeMillis();
+Util.mark("sendAnnotationsAsNeeded -in- ", tt);
+        JSONObject rtn = new JSONObject();
+        rtn.put("numAnnotsTotal", Util.collectionSize(anns));
+        if (Util.collectionIsEmptyOrNull(anns)) return rtn;
+        WildbookIAM plugin = getPluginInstance(myShepherd.getContext());
+        ArrayList<Annotation> annsToSend = new ArrayList<Annotation>();
+        //List<String> iaAnnotIds = plugin.iaAnnotationIds();
+        HashSet<String> iaAnnotIds = new HashSet(plugin.iaAnnotationIds());
+Util.mark("sendAnnotationsAsNeeded 1 ", tt);
+        ArrayList<MediaAsset> masToSend = new ArrayList<MediaAsset>();
+        //List<String> iaImageIds = plugin.iaImageIds();  //in a better world we would do this *after* we have built up masToSend
+        HashSet<String> iaImageIds = null;
+        Util.mark("sendAnnotationsAsNeeded 2-hs ", tt);
+        for (Annotation ann : anns) {
+            if (iaAnnotIds.contains(ann.getAcmId())) continue;
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma == null) continue; //snh #bad
+            annsToSend.add(ann);
+            
+            //get iaImageIds only if we need it
+            if(iaImageIds==null)iaImageIds=new HashSet(plugin.iaImageIds());
+            
+            if (iaImageIds.contains(ma.getAcmId())) continue;
+            masToSend.add(ma);
+        }
+Util.mark("sendAnnotationsAsNeeded 3-hs ", tt);
+        rtn.put("numAnnotsToSend", Util.collectionSize(annsToSend));
+        rtn.put("numAssetsToSend", Util.collectionSize(masToSend));
+        try {
+            if (!Util.collectionIsEmptyOrNull(masToSend)) rtn.put("sendMediaAssets", plugin.sendMediaAssets(masToSend, false));
+Util.mark("sendAnnotationsAsNeeded 4 ", tt);
+            if (!Util.collectionIsEmptyOrNull(annsToSend)) rtn.put("sendAnnotations", plugin.sendAnnotations(annsToSend, false, myShepherd));
+        } catch (Exception ex) {
+            rtn.put("sendAnnotMAException", ex.toString());
+        }
+Util.mark("sendAnnotationsAsNeeded -out- ", tt);
+        return rtn;
+    }
 
     //note, this is (likely) mixed-case with space, so be warned.
     public static Map<String,String> acmIdSpeciesMap(Shepherd myShepherd) {
@@ -3933,13 +4268,23 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
     }
 
     //returns map of acmId=>species where IA was set incorrectly
-    public static Map<String,String> iaSpeciesDiff(Shepherd myShepherd) {
+    //  "cleanup" will set acmId=>_cleanup for IDs which are unknown to wb side
+    public static Map<String,String> iaSpeciesDiff(Shepherd myShepherd, boolean includeCleanup) {
         String context = myShepherd.getContext();
         Map<String,String> ourMap = acmIdSpeciesMap(myShepherd);
         List<String> iaIds = org.ecocean.ia.plugin.WildbookIAM.iaAnnotationIds(context);
         int orig = iaIds.size();
+        List<String> ourIds = new ArrayList<String>(ourMap.keySet());
+
+        List<String> needCleanup = null;
+        if (includeCleanup) {
+            needCleanup = new ArrayList<String>(iaIds);
+            needCleanup.removeAll(ourIds);
+            System.out.println("[INFO] iaSpeciesDiff() wanting cleanup of " + needCleanup.size() + " unknown ia ids");
+        }
+
         //now we need the intersection of ids in IA (iaIds) and what we have -- which ideally should be the same! "ha"
-        iaIds.retainAll(new ArrayList<String>(ourMap.keySet()));
+        iaIds.retainAll(ourIds);
         System.out.println("[INFO] iaSpeciesDiff() locally reduced iaIds from " + orig + " to " + iaIds.size());
         List<String> iaList = null;
         try {
@@ -3974,6 +4319,9 @@ System.out.println("iaList.size = " + iaList.size());
                 System.out.println("[INFO] iaSpeciesDiff() acmId=" + iaIds.get(i) + " got " + ias + " from IA versus local " + ours);
                 diff.put(iaIds.get(i), ours);
             }
+        }
+        if (!Util.collectionIsEmptyOrNull(needCleanup)) for (String id : needCleanup) {
+            diff.put(id, "_cleanup");
         }
         return diff;
     }

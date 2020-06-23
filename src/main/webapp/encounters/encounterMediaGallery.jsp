@@ -108,6 +108,7 @@ try {
   System.out.println("EncounterMediaGallery about to execute query "+query);
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
+	query.closeAll();
   	int numEncs=encs.size();
   System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
@@ -128,14 +129,14 @@ function forceLink(el) {
   for(int f=0;f<numEncs;f++){
 
 		  Encounter enc = encs.get(f);
-		  System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
+		  //System.out.println("EMG: starting for enc "+f+": "+enc.getCatalogNumber());
       if (shouldEvict(enc)) {
         // I believe we need to evict the cache here so that we'll see detection results on the encounter page
         org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
       }
 
       if (!enc.canUserAccess(request)) {
-        System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
+        //System.out.println("   EMG: hiding enc "+enc.getCatalogNumber()+" for security reasons.");
         continue;
       }
 
@@ -146,10 +147,10 @@ function forceLink(el) {
 		    %> <script>console.log('no annotations found for encounter <%=encNum %>'); </script> <%
 		  }
 		  else {
-        System.out.println("EMG: got "+anns.size()+" anns");
+        //System.out.println("EMG: got "+anns.size()+" anns");
 
 		  	for (Annotation ann: anns) {
-		  		System.out.println("    EMG: starting for ann "+ann);
+		  		//System.out.println("    EMG: starting for ann "+ann);
 
 		  		if (ann == null) continue;
 		      //String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
@@ -163,13 +164,13 @@ function forceLink(el) {
                         
 
 		      String filename = ma.getFilename();
-		      System.out.println("    EMG: got ma at "+filename);
+		      //System.out.println("    EMG: got ma at "+filename);
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
 		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName()+"</a><br>";
 		      }
-		      	System.out.println("    EMG: got indID element "+individualID);
+		      	//System.out.println("    EMG: got indID element "+individualID);
 
 		      
 		      //Start caption render JSP side
@@ -182,7 +183,7 @@ function forceLink(el) {
 		      
 		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
 		      captionLinks.add(capos);
-		      System.out.println("    EMG: got capos "+capos[0]);
+		      //System.out.println("    EMG: got capos "+capos[0]);
 
 		      //end caption render JSP side
 		      
@@ -191,8 +192,8 @@ function forceLink(el) {
 
 		  		
 		  		if (ma != null) {
-		  			System.out.println("    EMG: ma is not null");
-
+		  			//System.out.println("    EMG: ma is not null");
+                    if (ma.getMetadata() != null) ma.getMetadata().getDataAsString(); //temp hack to make sure metadata available, remove at yer peril
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
                                                 j.put("taxonomyString", enc.getTaxonomyString());
@@ -230,7 +231,7 @@ function forceLink(el) {
 							//TODO here we skip unity feature annots.  BETTER would be to look at detectionStatus and feature type etc!
 							//   also: prob should check *what* is detected. :) somewhere....
 							if (ann.getFeatures().get(0).isUnity()) continue;  //assume only 1 feature !!
-System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatures().get(0) + " => " + ann.getFeatures().get(0).getParametersAsString());
+//System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatures().get(0) + " => " + ann.getFeatures().get(0).getParametersAsString());
 							j.put("extractFPS", ma.getParameters().optDouble("extractFPS",0));
 							j.put("extractOffset", ma.getParameters().optDouble("extractOffset",0));
 							MediaAsset p = MediaAssetFactory.load(ma.getParentId(), imageShepherd);
@@ -277,6 +278,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
         Query q = imageShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         List results = (List)q.execute();
         Iterator it = results.iterator();
+
         while (it.hasNext()) {
             Object[] row = (Object[]) it.next();
             int aid = (int)row[0];
@@ -289,6 +291,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
             dups.getJSONObject(acm).getJSONObject(eid).put("asset", aid);
             dups.getJSONObject(acm).getJSONObject(eid).put("indiv", iid);
         }
+        q.closeAll();
     }
     out.println("<script> var assetDup = " + dups.toString() + ";</script>");
 

@@ -1223,10 +1223,12 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
         cts.put("detection", c.size());
+        query.closeAll();
         filter = "SELECT FROM org.ecocean.Annotation WHERE identificationStatus == \"pending\"";
         query = myShepherd.getPM().newQuery(filter);
         c = (Collection) (query.execute());
         cts.put("identification", c.size());
+        query.closeAll();
         return cts;
     }
 
