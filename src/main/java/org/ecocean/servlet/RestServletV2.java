@@ -23,6 +23,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.ShepherdRO;
 import org.ecocean.Util;
 import org.ecocean.Occurrence;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.User;
 import org.ecocean.Role;
 import org.ecocean.Organization;
@@ -188,6 +189,7 @@ public class RestServletV2 extends HttpServlet {
                             }
                             rtn.put("organizations", jarr);
                         }
+                        if (user.getUserImage() != null) rtn.put("profileImageUrl", "/" + CommonConfiguration.getDataDirectoryName(context) + "/users/" + user.getUsername() + "/" + user.getUserImage().getFilename());
                     } catch (org.datanucleus.api.rest.orgjson.JSONException ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
