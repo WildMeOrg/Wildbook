@@ -1077,7 +1077,7 @@ console.log("XX %o", displayName);
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
                 } else {
-                    if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
+                    if (imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
                 }
             }  //end if (ft) ....
             // Illustration

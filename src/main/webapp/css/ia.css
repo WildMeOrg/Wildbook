@@ -154,6 +154,13 @@ span.illustrationLink a {
 	padding: 1px 3px;
 	border-radius: 2px;
 }
+
+.annot-info-num::before {
+	
+
+	
+}
+
 .annot-wrapper .img-info-type {
 	background-color: #4F8;
 	color: #222;
