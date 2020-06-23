@@ -440,6 +440,9 @@ public class Shepherd {
     pm.deletePersistent(mShip);
   }
 
+  public void throwAwaySocialUnit(SocialUnit su) {
+    pm.deletePersistent(su);
+  }
 
   public void throwAwayCollaboration(Collaboration collab) {
     pm.deletePersistent(collab);
@@ -5023,10 +5026,6 @@ public class Shepherd {
     }
     query.closeAll();
     return null;
-  }
-  
-  public void throwAwaySocialUnit(SocialUnit su) {
-    pm.deletePersistent(su);
   }
   
   public User getUserByTwitterHandle(String handle) {

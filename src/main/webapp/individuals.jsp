@@ -1095,6 +1095,7 @@ if (sharky.getNames() != null) {
     <br/>
 
     <div id="allDisplayMemberships">
+    <br/>
     <%
       List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(sharky);
       String unitName = "";
@@ -1114,79 +1115,72 @@ if (sharky.getNames() != null) {
       %>  
 
         <!--display current social unit membership-->
-        <br/>
-        <div id="displayMembership" class="socialUnitEditForm">
+        <div id="displayMembership<%=unitName%>" class="socialUnitEditForm socialUnitMargin">
           <div class="form-group row" style="padding: 5px;">
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupName") %></strong></label>
-              <p id="socialGroupName"><a href="socialUnit.jsp?name=<%=unitName%>"><%=unitName%></a></p>
+              <p class="socialGroupName"><a href="socialUnit.jsp?name=<%=unitName%>"><%=unitName%></a></p>
             </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialRoleName") %></strong></label>
-              <p id="socialRoleName"><%=role%></p>
+              <p class="socialRoleName"><%=role%></p>
             </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>
-              <p id="socialGroupMembershipStart"><%=startDate%></p>
+              <p class="socialGroupMembershipStart"><%=startDate%></p>
             </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupMembershipEnd") %></strong></label>
-              <p id="socialGroupMembershipEnd"><%=endDate%></p>
+              <p class="socialGroupMembershipEnd"><%=endDate%></p>
             </div>
 
           </div>
         </div>
-
-        <!-- form to edit or create social unit membership -->
-        
+      
         <%
       }
     }
     %>
-
-    <!-- this section is made visible only when a new membership is created-->
-    <br/>
-    <div id="displayNewMembership" class="socialUnitEditForm hidden newMembershipFromServer">
-      <div class="form-group row">
-
-        <div class="col-xs-3 col-sm-2">
-          <label><strong><%=props.getProperty("socialGroupName") %></strong></label>
-          <p id="socialGroupName"></p>
-        </div>
-
-        <div class="col-xs-3 col-sm-2">
-          <label><strong><%=props.getProperty("socialRoleName") %></strong></label>
-          <p id="socialRoleName"></p>
-        </div>
-
-        <div class="col-xs-3 col-sm-2">
-          <label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>
-          <p id="socialGroupMembershipStart"></p>
-        </div>
-
-        <div class="col-xs-3 col-sm-2">
-          <label><strong><%=props.getProperty("socialGroupMembershipEnd") %></strong></label>
-          <p id="socialGroupMembershipEnd"></p>
-        </div>
-
-      </div>
-    </div>
-
+    
   </div>
-
-
-
+  
+        <!-- form to edit or create social unit membership -->
         <br/>
-        <div id="editOrCreateMembership" class="hidden socialUnitEditForm">
-          <div class="form-group row">
+        <div id="editOrCreateMembership" class="hidden socialUnitEditForm socialUnitMargin">
+          <div class="form-group row" style="padding: 5px;">
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupName") %></strong></label>
-              <input id="socialGroupNameField" class="form-control" value="<%=unitName%>" type="text"></input>
+
+              <!-- if unit name is empty, only display the 'new field. '-->
+              
+              <select id="socialGroupNameSelect" name="socialGroupNameSelect" onchange="socialGroupNameSelectChanged(this)">
+                <option value="new" selected>CREATE NEW</option>
+                <%
+                System.out.println("How many social unit??? "+units.size());
+                if (units!=null&&units.size()>0) {
+                  for (SocialUnit formUnit : units) {
+                    System.out.println("THIS UNIT:  "+formUnit.getSocialUnitName());
+                    String formUnitName = "Unassigned";
+                    if (formUnit.getSocialUnitName()!=null&&!"".equals(formUnit.getSocialUnitName())) formUnitName = formUnit.getSocialUnitName();
+                    %>
+                      <option value="<%=formUnitName%>"><%=props.getProperty("editSocialUnit")%> <%=formUnitName%></option>
+                    <%
+                  }
+                }
+                %>
+              </select>
+
+              <div id="newSocialGroupNameInput">
+                <label><small>New Social Unit Name</small></label>
+                <!-- should show current selection, like other fields, or nothing for new -->
+                <br/>
+                <input id="socialGroupNameField" class="form-control" value="<%=unitName%>" type="text"></input>
+              </div>
             </div>  
 
             <div class="col-xs-3 col-sm-2">
@@ -1204,17 +1198,17 @@ if (sharky.getNames() != null) {
               <input id="socialGroupMembershipEndField" class="form-control" value="<%=endDate%>" type="date"></input>
             </div>  
 
-            <!--feedback from edit/create servlet and response-->
+          </div>
+          <div style="padding: 5px;">  
+            <input class="btn btn-sm btn" type="button" name="button" id="submitSocialMembership" value="<%=props.getProperty("editCreate")%>">
             
-          </div>  
-          <input class="btn btn-sm btn" type="button" name="button" id="submitSocialMembership" value="<%=props.getProperty("editCreate")%>">
-          
-          <input class="btn btn-sm btn" type="button" name="button" id="deleteSocialMembership" value="<%=props.getProperty("deleteMembership")%>">
-          <label id="membershipActionResponse" ></label>
+            <input class="btn btn-sm btn" type="button" name="button" id="deleteSocialMembership" value="<%=props.getProperty("deleteMembership")%>">
+            <!--sucess/fail message from servlet-->
+            <label id="membershipActionResponse" ></label>
+          </div>
           </br>
         </div>
         
-        <br/>
 
       <%  
       }
@@ -1362,7 +1356,6 @@ if (sharky.getNames() != null) {
         <script type="text/javascript">
           $(document).ready(function() {
 
-              console.log("clicked edit social...");
               $(document).on('click', "#editSocialMembership",function(e) {
                   e.preventDefault();
                   console.log("CLICK!");
@@ -1371,19 +1364,16 @@ if (sharky.getNames() != null) {
               });
 
               $(document).on('click', "#submitSocialMembership",function(e) {
-                  console.log("clicked change/create social relationship...");
                   e.preventDefault();
                   console.log("CLICK SUBMIT social group!");
                   createOrEditMembership();
               });
 
               $(document).on('click', "#deleteSocialMembership",function(e) {
-                  console.log("clicked delete social relationship...");
                   e.preventDefault();
                   console.log("CLICK SUBMIT delete membership!");
                   deleteMembership();
                   clearSocialUnitMembershipFields();
-                  toggleEditSocialGroup();
               });
           });
 
@@ -1392,9 +1382,14 @@ if (sharky.getNames() != null) {
               var membershipJSON = {};
 
               let id = "<%=sharky.getIndividualID()%>";
-              console.log("create/edit membership for this ID: "+id);
               membershipJSON["miId"] = id;
-              membershipJSON["groupName"] = $("#socialGroupNameField").val();
+
+              if ($("#socialGroupNameSelect").val()=="new") {
+                membershipJSON["groupName"] = $("#socialGroupNameField").val();
+              } else {
+                membershipJSON["groupName"] = $("#socialGroupNameSelect").val();
+              }
+
               membershipJSON["roleName"] = $("#socialRoleNameField").val();
 
               if ($("#socialGroupMembershipStartField").val()) {
@@ -1407,25 +1402,28 @@ if (sharky.getNames() != null) {
                   membershipJSON["endDate"] = endDate;
               }
 
-              $.ajax({
-                  url: 'MembershipCreate',
-                  type: 'POST',
-                  dataType: 'json',
-                  contentType: 'application/javascript',
-                  data: JSON.stringify(membershipJSON),
-                
-                  success: function(d) {
-                      console.info('Success! Got back '+JSON.stringify(d));
-                      $("#membershipActionResponse").text("Success!");
-
-                      updateSocialUnitMembershipFields(d);
-                  },
-                  error: function(x,y,z) {
-                      console.log("---> Err from MembershipCreate ajax");
-                      $("#membershipActionResponse").text("An error has occurred.");
-                      console.warn('%o %o %o', x, y, z);
-                  }
-              });
+              if (membershipJSON["groupName"].length>0) {
+                $.ajax({
+                    url: 'MembershipCreate',
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/javascript',
+                    data: JSON.stringify(membershipJSON),
+                  
+                    success: function(d) {
+                        console.info('Success! Got back '+JSON.stringify(d));
+                        $("#membershipActionResponse").text("Success!");
+                        clearSocialUnitMembershipFields()
+                        updateSocialUnitMembershipFields(d);
+                    },
+                    error: function(x,y,z) {
+                        $("#membershipActionResponse").text("An error has occurred.");
+                        console.warn('%o %o %o', x, y, z);
+                    }
+                });
+              } else {
+                $("#membershipActionResponse").text("Valid Social Group name required.");
+              }
           }
 
         function deleteMembership() {
@@ -1433,61 +1431,116 @@ if (sharky.getNames() != null) {
             var membershipDeleteJSON = {};
 
             let id = "<%=sharky.getIndividualID()%>";
-            console.log("deleting membership for this id: "+id);
             membershipDeleteJSON["miId"] = id;
-            membershipDeleteJSON["groupName"] = $("#socialGroupNameField").val();
+
+            if ($("#socialGroupNameSelect").val()=="new") {
+              membershipDeleteJSON["groupName"] = $("#socialGroupNameField").val();
+            } else {
+              membershipDeleteJSON["groupName"] = $("#socialGroupNameSelect").val();
+            }
 
             console.warn("Sending to delete???? -------> "+JSON.stringify(membershipDeleteJSON))
 
-            $.ajax({
-                url: 'MembershipDelete',
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/javascript',
-                data: JSON.stringify(membershipDeleteJSON),
-              
-                success: function(d) {
-                    console.info('Success! Got back '+JSON.stringify(d));
-                    $("#membershipActionResponse").text("Success in DeleteMembership!");
-                    $("#displayMembership").remove();
-                },
-                //error: function(x,y,z) {
-                  error: function(d) {
-                    console.log("---> Err from MembershipDelete ajax");
-                    $("#membershipActionResponse").text("An error has occurred in DeleteMembership.");
-                    console.warn(JSON.stringify(d));
-                }
-            });
+            if (membershipDeleteJSON["groupName"].length>0) {
+              $.ajax({
+                  url: 'MembershipDelete',
+                  type: 'POST',
+                  dataType: 'json',
+                  contentType: 'application/javascript',
+                  data: JSON.stringify(membershipDeleteJSON),
+                
+                  success: function(d) {
+                      console.info('Success! Got back '+JSON.stringify(d));
+                      $("#membershipActionResponse").text("Success in DeleteMembership!");
+
+                      // on success remove select option, and display div. leave edit form open
+                      console.log("cleaning up elements for group membership with "+d.groupName);
+                      $("#displayMembership"+d.groupName).remove();
+                      $("#socialGroupNameSelect option[value='"+d.groupName+"']").remove();
+
+                      //cheat a bit to reuse the method
+                      let nameSelect = {};
+                      nameSelect.value = "new";
+                      socialGroupNameSelectChanged(nameSelect);  
+
+                  },
+                  //error: function(x,y,z) {
+                    error: function(d) {
+                      console.log("---> Err from MembershipDelete ajax");
+                      $("#membershipActionResponse").text("An error has occurred in DeleteMembership.");
+                      console.warn(JSON.stringify(d));
+                  }
+              });
+            }
         }
 
         function updateSocialUnitMembershipFields(json) {
 
           console.log("Yet again,,,,, the JSON: "+JSON.stringify(json));
 
-          var role = json["role"];
-          var groupName = json["groupName"];
-          var startDate = json["startDate"];
-          var endDate = json["endDate"];
+          let role = json["role"];
+          if (typeof role == 'undefined') role = ""; 
+          let groupName = json["groupName"];
+          if (typeof groupName == 'undefined') groupName = "";
+          let startDate = json["startDate"];
+          if (typeof startDate == 'undefined') startDate = "";
+          let endDate = json["endDate"];
+          if (typeof endDate == 'undefined') endDate = "";
 
-          if ($("#allDisplayMemberships","#displayMembership").length < 1) {
-            let dnm = $("#displayNewMembership");
-            dnm.removeClass("hidden");
-            dnm.attr("id", 'displayMembership');
+          console.log("typeof endDate: "+(typeof endDate));
+
+          if (json.isNewSocialUnit==false) {
+            // look for existing div with SU name
+            console.log("looking for this social unit div to modify: displayMembership"+json.groupName);
+            //$("#displayMembership"+json.groupName+" .socialGroupName").css("background-color", "red");
+            $("#displayMembership"+json.groupName+" .socialGroupNameField").text(groupName);
+            $("#displayMembership"+json.groupName+" .socialGroupName").html('<p class="socialGroupName"><a href="socialUnit.jsp?name='+groupName+'">'+groupName+'</a>');
+            
+            $("#displayMembership"+json.groupName+" .socialRoleNameField").text(role);
+            $("#displayMembership"+json.groupName+" .socialRoleName").text(role);
+            $("#displayMembership"+json.groupName+" .socialGroupMembershipStart").text(startDate);
+            $("#displayMembership"+json.groupName+" .socialGroupMembershipStartField").text(startDate);
+            $("#displayMembership"+json.groupName+" .socialGroupMembershipEnd").text(endDate);
+            $("#displayMembership"+json.groupName+" .socialGroupMembershipEndField").text(endDate);
+          } else {
+            //generate and append div for new social unit
+            console.log("appending div for new social unit: "+json.groupName);
+
+            $('#socialGroupNameSelect').append('<option value="'+json.groupName+'">edit: '+json.groupName+'</option>');
+
+            let newMembershipDiv = "";
+            //newMembershipDiv+= '<br/>';
+            newMembershipDiv+= '<div id="displayMembership'+json.groupName+'" class="socialUnitEditForm newMembershipFromServer socialUnitMargin">';
+            newMembershipDiv+=   '<div class="form-group row" style="padding: 5px;">';
+
+            newMembershipDiv+=     '<div class="col-xs-3 col-sm-2">';
+            newMembershipDiv+=        '<label><strong><%=props.getProperty("socialGroupName") %></strong></label>';
+            newMembershipDiv+=        '<p class="socialGroupName"><a href="socialUnit.jsp?name='+groupName+'">'+groupName+'</a></p>';
+            newMembershipDiv+=    '</div>';
+
+            newMembershipDiv+=    '<div class="col-xs-3 col-sm-2">';
+            newMembershipDiv+=      '<label><strong><%=props.getProperty("socialRoleName") %></strong></label>';
+            newMembershipDiv+=      '<p class="socialRoleName">'+role+'</p>';
+            newMembershipDiv+=    '</div>';
+
+            newMembershipDiv+=    '<div class="col-xs-3 col-sm-2">';
+            newMembershipDiv+=      '<label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>';
+            newMembershipDiv+=      '<p class="socialGroupMembershipStart">'+startDate+'</p>';
+            newMembershipDiv+=    '</div>';
+
+            newMembershipDiv+=    '<div class="col-xs-3 col-sm-2">';
+            newMembershipDiv+=      '<label><strong><%=props.getProperty("socialGroupMembershipEnd") %></strong></label>';
+            newMembershipDiv+=      '<p class="socialGroupMembershipEnd">'+endDate+'</p>';
+            newMembershipDiv+=    '</div>';
+            newMembershipDiv+=  '</div>';
+            newMembershipDiv+= '</div>';
+            
+            //if (!$("#allDisplayMemberships").last().is("br")) {
+            //  $("#allDisplayMemberships").append('<br/>');
+            //}
+            $("#allDisplayMemberships").append(newMembershipDiv);
+
           }
-
-          $("#socialGroupName").css("background-color", "red");
-
-          $("#socialGroupNameField").text(groupName);
-          $("#socialGroupName").text(groupName);
-
-          $("#socialRoleNameField").text(role);
-          $("#socialRoleName").text(role);
-
-          $("#socialGroupMembershipStart").text(startDate);
-          $("#socialGroupMembershipStartField").text(startDate);
-
-          $("#socialGroupMembershipEnd").text(endDate);
-          $("#socialGroupMembershipEndField").text(endDate);
         }
 
         function clearSocialUnitMembershipFields() {
@@ -1495,23 +1548,39 @@ if (sharky.getNames() != null) {
           $("#socialRoleNameField").val("");
           $("#socialGroupMembershipStartField").val("");
           $("#socialGroupMembershipEndField").val("");
-          $("#socialGroupName").empty();
-          $("#socialRoleName").empty();
-          $("#socialGroupMembershipStart").empty();
-          $("#socialGroupMembershipEnd").empty(); 
+        }
+
+        function socialGroupNameSelectChanged(nameSelect) {
+          $("#membershipActionResponse").empty();
+          console.log("changed social unit name selection in form to "+nameSelect.value);
+          clearSocialUnitMembershipFields();
+          if (nameSelect.value==="new") {
+            $("#newSocialGroupNameInput").show();
+            console.log("hiding delete button?");
+            $("#deleteSocialMembership").hide();
+          } else {
+            // auto fill other fields
+            $("#socialRoleNameField").val($("#displayMembership"+nameSelect.value+" .socialRoleName").html());
+            $("#socialGroupMembershipStartField").val($("#displayMembership"+nameSelect.value+" .socialGroupMembershipStart").html());
+            $("#socialGroupMembershipEndField").val($("#displayMembership"+nameSelect.value+" .socialGroupMembershipEnd").html());
+
+            $("#newSocialGroupNameInput").val("")
+            $("#newSocialGroupNameInput").hide();
+            console.log("showing delete button?");
+            $("#deleteSocialMembership").show();
+          }
         }
 
         function toggleEditSocialGroup() {
-            console.log("in method... ");
+            $("#membershipActionResponse").text();
+            $("select option[value='new']").prop("selected",true);
+            $("#newSocialGroupNameInput").show();
+            $("#deleteSocialMembership").hide();
+            clearSocialUnitMembershipFields();
             if ($("#editOrCreateMembership").hasClass("hidden")) {
-                console.log("============= editOrCreateMembership hasClass shown... ");
                 $("#editOrCreateMembership").removeClass("hidden");
-                $("#displayMembership").addClass("hidden");
-            //} else if (!$("#editOrCreateMembership").hasClass("hidden")) {
             } else {
-              console.log("============= !editOrCreateMembership hasClass hidden... ");
                 $("#editOrCreateMembership").addClass("hidden");
-                $("#displayMembership").removeClass("hidden");
             }
         }
 

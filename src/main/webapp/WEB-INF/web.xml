@@ -164,6 +164,7 @@
 		        /OccurrenceRemoveEncounter = authc, roles[researcher]
 		        /IndividualRemoveEncounter = authc, roles[researcher]
 		        /OccurrenceAddEncounter = authc, roles[researcher]
+            /OccurrenceSetMetadataField = authc, roles[researcher]
 		        /IndividualAddEncounter = authc, roles[researcher]
 		         /TissueSampleSetSexAnalysis = authc, roles[researcher]
 		        /TissueSampleRemoveSexAnalysis = authc, roles[researcher]
@@ -394,6 +395,9 @@
 				
 				/EncounterSetString = authc
 				/OrganizationEdit = authc, roles[admin]
+
+        /UserGetSimpleJSON = authc
+
 				/MergeIndividual = authc, roles[researcher]
 				
 				/UpdateStandard = authc, roles[admin]
@@ -408,6 +412,9 @@
 				
 				/MembershipCreate = authc
 				/MembershipDelete = authc
+
+        /RemoveDynamicProperty = authc, roles[researcher]
+
 				
 				/encounters/manualAnnotation.jsp = authc, roles[researcher]
 				
@@ -505,6 +512,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>OccurrenceSetMetadataField</servlet-name>
+    <servlet-class>org.ecocean.servlet.OccurrenceSetMetadataField</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>MembershipCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.MembershipCreate</servlet-class>
   </servlet>
@@ -513,6 +525,11 @@
     <servlet-name>MembershipDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.MembershipDelete</servlet-class>
   </servlet>		
+
+  <servlet>
+    <servlet-name>RemoveDynamicProperty</servlet-name>
+    <servlet-class>org.ecocean.servlet.RemoveDynamicProperty</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>WriteOutScanTask</servlet-name>
@@ -1077,6 +1094,16 @@
   <servlet-mapping>
     <servlet-name>OrganizationEdit</servlet-name>
     <url-pattern>/OrganizationEdit</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>UserGetSimpleJSON</servlet-name>
+    <servlet-class>org.ecocean.servlet.UserGetSimpleJSON</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>UserGetSimpleJSON</servlet-name>
+    <url-pattern>/UserGetSimpleJSON</url-pattern>
   </servlet-mapping>
 
       <servlet>
@@ -1767,6 +1794,11 @@
       </servlet-mapping>
 
       <servlet-mapping>
+         <servlet-name>OccurrenceSetMetadataField</servlet-name>
+         <url-pattern>/OccurrenceSetMetadataField</url-pattern>
+      </servlet-mapping>
+
+      <servlet-mapping>
          <servlet-name>MembershipCreate</servlet-name>
          <url-pattern>/MembershipCreate</url-pattern>
       </servlet-mapping>
@@ -1774,6 +1806,11 @@
       <servlet-mapping>
          <servlet-name>MembershipDelete</servlet-name>
          <url-pattern>/MembershipDelete</url-pattern>
+      </servlet-mapping>
+
+      <servlet-mapping>
+         <servlet-name>RemoveDynamicProperty</servlet-name>
+         <url-pattern>/RemoveDynamicProperty</url-pattern>
       </servlet-mapping>
 
         <servlet-mapping>
