@@ -26,6 +26,7 @@ for (int i = 0 ; i < xxvals.length ; i++) {
 JSONArray rtn = new JSONArray();
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("findXXHash.jsp");
 myShepherd.beginDBTransaction();
 
 String sql = "SELECT \"MEDIAASSET\".\"ID\", \"CONTENTHASH\", \"PARAMETERS\", \"CATALOGNUMBER_OID\", \"DATEINMILLISECONDS\" FROM \"MEDIAASSET\" JOIN \"MEDIAASSET_FEATURES\" ON (\"ID\" = \"ID_OID\") JOIN \"ANNOTATION_FEATURES\" USING (\"ID_EID\") JOIN \"ENCOUNTER_ANNOTATIONS\" ON (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") JOIN \"ENCOUNTER\" ON (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") WHERE \"CONTENTHASH\" in ('" + String.join("','", xxvals) + "')";
@@ -48,5 +49,8 @@ while (it.hasNext()) {
     rtn.put(jm);
 }
 out.println(rtn.toString());
+q.closeAll();
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
 
 %>
