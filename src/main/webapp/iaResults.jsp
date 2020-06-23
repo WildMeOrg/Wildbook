@@ -479,6 +479,10 @@ h4.intro.accordion .rotate-chevron.down {
 
 <style>
 
+.annot-summary-phantom {
+	display: none;
+}
+
 .featurebox {
     position: absolute;
     width: 100%;
@@ -956,15 +960,16 @@ console.info('%d ===> %s', num, acmId);
 		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl); }
+		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl, acmId); }
 	});
 }
 
-function displayAnnotDetails(taskId, res, num, illustrationUrl) {
+function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 	var isQueryAnnot = (num < 0);
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
-		console.warn('error on (task %s) res = %o', taskId, res);
-		return;
+		console.warn('error on (task %s, acmId=%s) res = %o', taskId, acmIdPassed, res);
+                $('#task-' + taskId + ' .annot-summary-' + acmIdPassed).addClass('annot-summary-phantom');
+                return;
 	}
         /*
             we may have gotten more than one annot back from the acmId, so we have to account for them all.  currently we handle
