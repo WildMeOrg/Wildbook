@@ -271,7 +271,7 @@ h2.vidcap {
             try{
 								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
-                String profilePhotoURL="images/empty_profile.jpg";
+                String profilePhotoURL="images/user-profile-white-transparent.png";
                 if(featuredUser.getUserImage()!=null){
                 	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
                 }
@@ -374,7 +374,7 @@ h2.vidcap {
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
 	                          if(myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/empty_profile.jpg";
+	                        	  String profilePhotoURL="images/user-profile-grey-grey.png";
 	                              User thisUser=myShepherd.getUser(spotter);
 	                              if(thisUser.getUserImage()!=null){
 	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
