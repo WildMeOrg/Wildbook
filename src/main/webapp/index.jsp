@@ -552,7 +552,7 @@ finally{
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
 	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/user-profile-grey-grey.png";
+	                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
 	                              User thisUser=myShepherd.getUser(spotter);
 	                              if(thisUser.getUserImage()!=null){
 	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
