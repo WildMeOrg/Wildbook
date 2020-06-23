@@ -132,7 +132,7 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 	myShepherd.beginDBTransaction();
 	try {
 
-		MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
+		MarkedIndividual indie = myShepherd.getMarkedIndividualQuiet(id);
 		if (indie != null) {
 			Vector myEncs=indie.getEncounters();
 
@@ -441,7 +441,7 @@ $(document).ready(function() {
     <div class="col-sm-6">
 
           <%
-          MarkedIndividual sharky=myShepherd.getMarkedIndividual(id);
+          MarkedIndividual sharky=myShepherd.getMarkedIndividualQuiet(id);
 
           // replace this with canUserViewIndividual?
 //          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
