@@ -320,7 +320,116 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 		$("a#groupB").click(function() {
 		  dlgGroupB.dialog("open");
 		});
-	</script>  
+	</script>
+	
+	<!-- Visibility Index -->
+
+	<%
+	if ("true".equals(CommonConfiguration.getProperty("useVisibilityIndex", request))) {
+	%>
+		<!-- Visible field -->
+
+		<!-- add if enabled in cc.props -->
+		<p><%=props.getProperty("visibilityIndex") %>: 
+			<%
+			String viString = "";
+			if(occ.getVisibilityIndex()!=null){
+				viString = String.valueOf(occ.getVisibilityIndex());
+				if (viString.endsWith(".0")) {
+					viString = viString.replace(".0","");
+				} 	
+			}
+			%>
+			<span id="visibilityNum"><%=viString%></span>
+			&nbsp; 
+			<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%>
+				<a id="visibilityIndexEditButton" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>	
+				<label id="viResponseMessage"></label>
+			<%}%>
+		</p>
+		<!-- end Visible field -->
+
+		<!-- edit field -->
+		<div id="editVisibilityIndexDialog" title="<%=props.getProperty("setVisibilityIndex") %>" style="display:none">
+			<table border="1">
+			  <tr>
+			    <td align="left" valign="top">
+					<%=props.getProperty("visibilityIndex") %>:
+				
+					<%
+					List<String> vIndexes = CommonConfiguration.getIndexedPropertyValues("visibilityIndex",request);
+					System.out.println("getting vIndexes "+vIndexes);
+					if (!Util.isEmpty(vIndexes)) {%>
+						<select name="visibilityIndexSelect" id="visibilityIndexSelect">
+							<option value=""></option>
+								<%
+									for (String vi : vIndexes) {
+										String selected = (vi!=null && occ.getVisibilityIndex()!=null && occ.getVisibilityIndex().equals(vi)) ? "selected=\"selected\"" : ""; %>
+										<option <%=selected %> value="<%=vi%>"><%=vi%></option>
+									<%}%>
+							</select>
+						<%} else {%>
+					<%}%>
+					<!-- switch to call ajax method that closes dialog and updates <p>, axe form -->
+					<input name="visibilityIndexButton" type="button" id="visibilityIndexButton" onclick="occSetGroupBehavior()" value="<%=props.getProperty("set") %>">
+			    </td>
+			  </tr>
+			</table>
+		</div>
+		<!-- end edit field -->
+
+		<script>
+			var viDialog = $("#editVisibilityIndexDialog").dialog({
+			  autoOpen: false,
+			  draggable: false,
+			  resizable: false,
+			  width: 600
+			});
+			
+			$("a#visibilityIndexEditButton").click(function() {
+				viDialog.dialog("open");
+			});
+
+
+			function occSetGroupBehavior() {
+
+				let selectedVI = $("#visibilityIndexSelect").val();
+				let sendJSON = {};
+
+				sendJSON['occId'] = '<%=request.getParameter("number")%>';
+				sendJSON['visibilityIndex'] = selectedVI;
+
+				console.log("SENDING VI : "+selectedVI);
+
+				$.ajax({
+					url: wildbookGlobals.baseUrl + '/OccurrenceSetMetadataField',
+					type: 'POST',
+					dataType: "json",
+					contentType: 'application/javascript',
+					data: JSON.stringify(sendJSON),
+					success: function(d) {
+						console.info('Success! Got back '+JSON.stringify(d));
+						$("#viResponseMessage").text("Success!");
+						$("#visibilityNum").text(d.visibilityIndex);
+
+					},
+					error: function(x,y,z) {
+						$("#collabResp").text("There was an error sending this collaboration request.");
+						$("#viResponseMessage").text("Error, invalid selection.");
+						console.warn('%o %o %o', x, y, z);
+					}
+				});
+			}
+
+		</script>
+
+		<%
+		}
+		%>
+
+	<!-- end Visibility Index -->
+
+
 	
 		<p><%=props.getProperty("numAdults") %>: <%=occ.getNumAdults() %></p>
 

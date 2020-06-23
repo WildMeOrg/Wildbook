@@ -23,8 +23,19 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	else this.parser = new JSONParser(null, true, 30);
 
 	//Expand upon graphAbstract's {this.sliders} attribute
-	this.sliders = {...this.sliders, "temporal": {"filter": this.filterByOccurrence},
-			"spatial": {"filter": this.filterByOccurrence}};
+	this.sliders = {
+	    ...this.sliders,
+	    "temporal": {
+		"filter": this.filterByOccurrence,
+		"def": 0,
+		"precision": 1
+	    },
+	    "spatial": {
+		"filter": this.filterByOccurrence,
+		"def": 0,
+		"precision": 2
+	    }
+	};
     }
 
     /**
@@ -50,7 +61,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	if (nodes.length >= 1) { 
 	    this.setupGraph(links, nodes);
 	    this.updateGraph(links, nodes);
-	    //$(this.containId).children('.loading').remove();
 	}
 	else this.showTable("#cooccurrenceDiagram", "#cooccurrenceTable");
     }
@@ -73,10 +83,34 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      */	
     updateRangeSliderAttr() {
 	super.updateRangeSliderAttr();
-	
+
 	let [distArr, timeArr] = this.analyzeNodeData(this.focusedNode);
-	this.sliders.temporal.max = Math.ceil(Math.max(...timeArr, 1));
-	this.sliders.spatial.max = Math.ceil(Math.max(...distArr, 1));
+	this.calcSliderMax(this.sliders.temporal, timeArr);
+	this.calcSliderMax(this.sliders.spatial, distArr);
+    }
+
+    /**
+     * Calculates the maximum threshold for a given slider (supporting decimal thresholds)
+     * @param {slider} [obj] - The contextual slider being updated
+     * @param {thresholdArr} [list] - A list of threshold values
+     */
+    calcSliderMax(slider, thresholdArr) {
+	let precision = slider.precision;
+	let rawMin = Math.pow(0.1, precision-1);
+	let buffer = Math.pow(0.1, precision+0.5); //Fixes a jquery bug where decimal sliders cannot reach their max value
+	let rawMax = Math.max(...thresholdArr, rawMin) + buffer;
+	slider.max = this.ceilToFixed(rawMax, precision+1);
+    }
+
+    /**
+     * Rounds upwards for a specified decimal precision
+     * @param {value} [float] - A float value to be rounded
+     * @param {precision} [float] - The number of decimals to include
+     * @return {roundedValue} [float] - A rounded version of value
+     */
+    ceilToFixed(value, precision){
+	var ceil = Math.pow(10, precision);
+	return parseFloat((Math.round(value * ceil) / ceil).toFixed(precision));
     }
 
     /**
@@ -126,11 +160,16 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let [min, minCoordPair] = this.getNodeMinKDTree(sights1, sights2,
 							["lat", "lon", "time"],
 							this.calculateSightingsDiff);
-	
-	let minDist = this.calculateDist(minCoordPair[0], minCoordPair[1]);
-	let minTime = this.calculateTime(minCoordPair[0].time, minCoordPair[1].time);
 
-	return [minDist, minTime];
+	try {
+	    let minDist = this.calculateDist(minCoordPair[0], minCoordPair[1]);
+	    let minTime = this.calculateTime(minCoordPair[0].time, minCoordPair[1].time);
+
+	    return [minDist, minTime];
+	}
+	catch(err) {
+	    return [Infinity, Infinity]; //Arbitrarily large min values
+	}
     }
 
     /**
@@ -197,8 +236,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      */
     updateLinkThreshCount(focusedNode) {
 	let focusedId = focusedNode.id;
-	let spatialThresh = parseInt($("#spatial").val());
-	let temporalThresh = parseInt($("#temporal").val());
+	let spatialThresh = parseFloat($("#spatial").val());
+	let temporalThresh = parseFloat($("#temporal").val());
 
 	this.linkData.forEach(link => {
 	    let targetId = link.target.id || link.target;
@@ -308,25 +347,6 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     }
 
     /**
-     * Reset the graph s.t. no filters are applied
-     */
-    resetGraph() {
-	super.resetGraph();
-	this.resetSliders();
-    }
-
-    /**
-     * Reset each slider's text and value
-     */
-    resetSliders() {
-	Object.values(this.sliders).forEach(slider => {
-	    $("#" + slider.ref + "Val").text(slider.max)
-	    $("#" + slider.ref).attr("max", slider.max);
-	    $("#" + slider.ref).val(slider.max)
-	});
-    }
-
-    /**
      * Updates link occurrence counts and visibility
      * @param {linkData} [obj list] - A list of link objects queried from the 
      *   Relationship psql table
@@ -355,7 +375,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    .attr("r", d => {
 		let length = Math.max(d.count.toString().length - 1, 0);
 		let scale = 1 + (0.5 * length);
-		return 8 * scale; //8 px default
+		return 9 * scale; //8 px default
 	    })
 	    .style("fill", "white")
 	    .on("mouseover", d => this.handleMouseOver(d, "link"))				
@@ -415,5 +435,4 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     */
     focusNode(node) {}
 }
-
 
