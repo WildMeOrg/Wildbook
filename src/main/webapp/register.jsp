@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8"
+<%@ page contentType="text/html; charset=utf-8" 
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,
 java.io.IOException,
@@ -220,7 +220,7 @@ if (thisUser != null) {
         }
 
     } else if (fromMode == 2) {
-        String[] fields = new String[]{"user_uuid", "cat_volunteer", "have_cats", "disability", "citsci", "citsci_collecting", "age", "gender", "ethnicity", "education", "how_hear", "where_live"};
+        String[] fields = new String[]{"user_uuid", "cat_volunteer", "have_cats", "disability", "citsci", "age", "retired", "gender", "ethnicity", "education", "how_hear"};
         JSONObject resp = new JSONObject();
         List<String> errors = new ArrayList<String>();
         for (int i = 0 ; i < fields.length ; i++) {
@@ -262,10 +262,10 @@ System.out.println("survey response: " + resp.toString());
 
 <div class="container maincontent">
 
-              <h2 class="intro">Participating in Online Tasks</h2>
+              <h1 class="intro">Participating in Kitizen Science</h1>
 
               <p align="left">
-
+		
 <div style="padding: 10px;">
 <%
 if (session.getAttribute("error") != null) {
@@ -275,7 +275,7 @@ if (session.getAttribute("error") != null) {
 
 %>
 </div>
-
+              
 <% if (mode < 0) {
     if (uwMode) {
 %>
@@ -306,7 +306,7 @@ before deciding whether you want to volunteer.
 </p>
 
 <p>
-This study is open from March 9 to June 30, 2020.
+This study is open from March 9 to July 31, 2020.
 </p>
 
 <p>
@@ -349,101 +349,99 @@ if (mode == 0) {
 
 <div id="consent-section">
 <h2>
-Informed Consent for Study of Kitizen Science Volunteers
+UNIVERSITY OF WASHINGTON -
+CONSENT FORM
 </h2>
 
 <h3>Testing the Photo Processing Workflow of an Online Citizen Science Project About Cats</h3>
 
 <p>
-<b>Protocol Number: KitizenScience_v1.0
-<br/>
-	Principal Investigator: Sabrina Aeluro, Director of Kitizen Science
-<br>
-	Contact: kitizenscience@gmail.com
-<br>
-<br>
-	This informed consent page covers your agreement to be not just a volunteer, but also a subject of our research.  Kitizen Science and this study is open to all people over the age of 18.
-</b>
+<b>Researcher: Sabrina Aeluro, graduate student at the University of Washington<br />
+Study email: kitizenscience@gmail.com</b>
 </p>
 
 <h3>
-	Purpose of this study
+Researcher's statement and purpose of study
 </h3>
 
 <p>
-	We collect survey and demographic data so we can understand our volunteers and the experience you bring to Kitizen Science, and so we can compare our volunteer demographics with those of other citizen science projects.  We also track volunteer activity on our website and app, including the total amount of time you spend logged in as a volunteer, the number of cat photo submissions you upload or process, and the route and distance you walk if you volunteer to use our app to conduct cat surveys.
+The purpose of this study is to test volunteers' abilities to process photos of cats using the online workflow of a new citizen science program.  The cat photos in this study are of outdoor cats in their normal environment, and no cats were harmed in the collection of these photos.  This study is open to all people over the age of 18 who are interested in cats.
+</p>
+
+<p>
+The purpose of this consent form is to give you the information you will need to help you decide whether to be in the study or not.  Please read the form carefully.  You may ask questions about the purpose of the research, what we would ask you to do, the possible risks and benefits, your rights as a volunteer, and anything else about the research or this form that is not clear.  When we have answered all your questions, you can decide if you want to be in the study or not.  This process is called "informed consent."  You may save a copy of this form for your records.
 </p>
 
 <h3>
-How we use this data
+Study procedures
 </h3>
 
 <p>
-This data will not be published in a way that makes it identifiable to you as an individual but will be published and shared in discussing our volunteers and how they participate in Kitizen Science.  This includes reporting the average amount of time volunteers spend on Kitizen Science per month, the gender breakdown of our volunteers, and other metrics of engagement and activity.  We also include the routes and distances traveled by app users in the statistical analysis of cat populations.
+After registering for an account on the Kitizen Science website (or logging into an existing account for previous volunteers), there is a short survey about a volunteer's background and personal demographics, followed by instructions about how to process cat photo submissions on the website.  After this sign up and brief training process, volunteers are presented with a cat photo submission to be processed.  Volunteers select the attributes of the cat in the photo: its primary color/pattern, its life stage, whether it has an ear tip removed, where it has a collar, and the sex (if the anatomy is visible).  After selecting the cat's attributes, volunteers look to see if there is a match for the cat already in the system by comparing it to similar cats or noting if the cat is new to the system.  Volunteers can process as many or as few photo submissions as they like.
 </p>
 
 <h3>
-Risks and benefits
+Risks, stress, or discomfort
 </h3>
 
 <p>
-	Our survey questions are designed to be minimally intrusive, inoffensive, and are not intended to cause stress or place you at risk.
-<br>
-<br>
-	Although this study may not benefit you directly and there is no compensation provided, we appreciate your efforts to support Kitizen Science.
-<br>
-<br>
-	The study does not require the collection of any potentially personally identifying information apart from an email address.  Your email address is confidential and will not be published as part of this research.  While efforts are taken to ensure the privacy and security of your responses, in the event of a data breach, your survey answers and other data could be linked to your email address.  Only the researchers involved in this study and the people overseeing the study including IntegReview IRB will have access to your study records.
+This study is designed with the aim to be minimally intrusive, inoffensive, and is not intended to cause stress or place subjects at risk.
 </p>
 
 <h3>
-	Other information
+Alternatives to taking part in this study
 </h3>
 
 <p>
-	Please ask questions to decide if you want to be in the study.  You may stop participating at any time and you can do so without penalty or loss of benefits to which you are otherwise entitled.  You will not lose any of your legal rights by agreeing to participate in this study.
+You have the option to not take part in this study.
 </p>
 
 <h3>
-Research oversight
+Benefits of the study
 </h3>
 
 <p>
-If you do not want to contact the investigator or study staff, if you have concerns or complaints about the research, or to ask questions about your rights as a study subject you may contact IntegReview.  IntegReview’s policy indicates that all concerns/complaints are to be submitted in writing for review at a convened IRB meeting to:
-<br>
-<br>
-	Email address:
-<br>
-<br>
-	integreview@integreview.com
-<br>
-<br>
-	Mailing address:
-<br>
-<br>
-	Chairperson
-<br>
-IntegReview IRB
-<br>
-3815 S. Capital of Texas Highway
-<br>
-Suite 320
-<br>
-Austin, Texas 78704
-<br>
-<br>
-	IntegReview has reviewed the information in this consent form.  This does not mean IntegReview has approved your being in the study.  You must consider the information in this consent form for yourself and decide if you want to be in this study.
+While there is no individual benefit or compensation for participating in this study, your answers will help validate the methods of Kitizen Science, a new citizen science program for monitoring the impacts of spay/neuter programs on free-roaming cat populations.
 </p>
 
 <h3>
-Subject's statement
+Confidentiality of research information
 </h3>
 
 <p>
-	Proceeding with this survey and Kitizen Science implies my consent to participate in this research.  I may download or save a copy of this page to keep for my records.
-<br>
-<br>
-	I consent to participate in this study.
+The study does not require the collection of any personally identifying information apart from an email address.  Your email address is confidential and will not be published as part of this research.  While efforts are taken to ensure the privacy and security of your responses, in the event of a data breach, your survey answers and cat photo processing data could be linked to your email address.
+</p>
+
+<p>
+Government or university staff sometimes review studies such as this one to make sure they are being done safely and legally.  If a review of this study takes place, your responses may be examined.  The reviewers will protect your privacy.  The study records will not be used to put you at legal risk of harm.
+</p>
+
+<h3>
+Other information
+</h3>
+
+<p>
+You may refuse to participate and you are free to withdraw from this study at any time without penalty or loss of benefits to which you are otherwise entitled.
+</p>
+
+<h3>
+Research-related injury
+</h3>
+
+<p>
+If you think you have been harmed from being in this research, contact Sabrina Aeluro via the study email address: kitizenscience@gmail.com.  The UW does not normally provide compensation for harm except through its discretionary program for medical injury.  However, the law may allow you to seek other compensation if the harm is the fault of the researchers.  You do not waive any right to seek payment by signing this consent form.
+</p>
+
+<h3>
+Subject's statement 
+</h3>
+
+<p>
+This study has been explained to me.  I volunteer to take part in this research.  I have had a chance to ask questions.  If I have questions later about the research, or if I have been harmed by participating in this study, I can contact the researcher listed on this consent form.  If I have questions about my rights as a research subject, I can call the University of Washington Human Subjects Division at 206-543-0098 or call collect at 206-221-5940.
+</p>
+
+<p>
+I consent to participate in this study.
 </p>
 
 
@@ -578,7 +576,7 @@ function checkAccount() {
 <input type="button" value="Login" onClick="window.location.href='queue.jsp';" />
 
 </div>
-
+              
 <% }
 if (mode == 2) {
 
@@ -588,16 +586,15 @@ if (mode == 2) {
 <script>
 //non-uw version
 var surveyRequired = [
-		'where_live',
-		'age',
-		'gender',
-		'ethnicity',
-		'education',
-		'have_cats',
     'cat_volunteer',
     'disability',
+    'have_cats',
     'citsci',
-		'citsci_collecting',
+    'age',
+    'retired',
+    'ethnicity',
+    'gender',
+    'education',
     'how_hear'
 ];
 function checkSurvey() {
@@ -610,7 +607,7 @@ function checkSurvey() {
         if (surveyRequired[i] == 'age') {
             numChecked = parseInt(el.val());
         }
-        if ((surveyRequired[i] == 'how_hear') || (surveyRequired[i] == 'where_live') || (surveyRequired[i] == 'gender') || (surveyRequired[i] == 'education')) {
+        if (surveyRequired[i] == 'how_hear') {
             numChecked = el.val().trim().length;
         }
 
@@ -651,398 +648,79 @@ function checkSurvey() {
 }
 %>
 <p>
-Please answer this short survey about yourself so we can understand our volunteers and the experience you bring to Kitizen Science, and so we can compare our volunteer demographics with those of other citizen science projects.
+We would like you to answer this short survey about yourself so we can understand our audience and your experience.  The demographic questions are included so that we can compare participants in Kitizen Science with other citizen science projects.  Specifically, we are interested in knowing whether the demographics of Kitizen Science are similar, or different, from other projects.
 </p>
 
 <p>
-Where do you live?
-<select class="top" name="where_live">
-  <option value="">Choose Location</option>
-	<optgroup label="US States/Territories">
-		<option value="AK">Alaska</option>
-		<option value="AL">Alabama</option>
-		<option value="AR">Arkansas</option>
-		<option value="AS">American Samoa</option>
-		<option value="AZ">Arizona</option>
-		<option value="CA">California</option>
-		<option value="CO">Colorado</option>
-		<option value="CT">Connecticut</option>
-		<option value="DC">District of Columbia</option>
-		<option value="DE">Delaware</option>
-		<option value="FL">Florida</option>
-		<option value="GA">Georgia</option>
-		<option value="GU">Guam</option>
-		<option value="HI">Hawaii</option>
-		<option value="IA">Iowa</option>
-		<option value="ID">Idaho</option>
-		<option value="IL">Illinois</option>
-		<option value="IN">Indiana</option>
-		<option value="KS">Kansas</option>
-		<option value="KY">Kentucky</option>
-		<option value="LA">Louisiana</option>
-		<option value="MA">Massachusetts</option>
-		<option value="MD">Maryland</option>
-		<option value="ME">Maine</option>
-		<option value="MI">Michigan</option>
-		<option value="MN">Minnesota</option>
-		<option value="MO">Missouri</option>
-		<option value="MS">Mississippi</option>
-		<option value="MT">Montana</option>
-		<option value="NC">North Carolina</option>
-		<option value="ND">North Dakota</option>
-		<option value="MP">Northern Mariana Islands</option>
-		<option value="NE">Nebraska</option>
-		<option value="NH">New Hampshire</option>
-		<option value="NJ">New Jersey</option>
-		<option value="NM">New Mexico</option>
-		<option value="NV">Nevada</option>
-		<option value="NY">New York</option>
-		<option value="OH">Ohio</option>
-		<option value="OK">Oklahoma</option>
-		<option value="OR">Oregon</option>
-		<option value="PA">Pennsylvania</option>
-		<option value="PR">Puerto Rico</option>
-		<option value="RI">Rhode Island</option>
-		<option value="SC">South Carolina</option>
-		<option value="SD">South Dakota</option>
-		<option value="TN">Tennessee</option>
-		<option value="TX">Texas</option>
-		<option value="UM">United States Minor Outlying Islands</option>
-		<option value="VI">United States Virgin Islands</option>
-		<option value="UT">Utah</option>
-		<option value="VA">Virginia</option>
-		<option value="VT">Vermont</option>
-		<option value="WA">Washington</option>
-		<option value="WI">Wisconsin</option>
-		<option value="WV">West Virginia</option>
-		<option value="WY">Wyoming</option>
-	</optgroup>
-	<optgroup label="Non-US Country">
-		<option value="Afghanistan">Afghanistan</option>
-		<option value="Albania">Albania</option>
-		<option value="Algeria">Algeria</option>
-		<option value="Andorra">Andorra</option>
-		<option value="Angola">Angola</option>
-		<option value="Anguilla">Anguilla</option>
-		<option value="Antigua & Barbuda">Antigua & Barbuda</option>
-		<option value="Argentina">Argentina</option>
-		<option value="Armenia">Armenia</option>
-		<option value="Aruba">Aruba</option>
-		<option value="Australia">Australia</option>
-		<option value="Austria">Austria</option>
-		<option value="Azerbaijan">Azerbaijan</option>
-		<option value="Bahamas">Bahamas</option>
-		<option value="Bahrain">Bahrain</option>
-		<option value="Bangladesh">Bangladesh</option>
-		<option value="Barbados">Barbados</option>
-		<option value="Belarus">Belarus</option>
-		<option value="Belgium">Belgium</option>
-		<option value="Belize">Belize</option>
-		<option value="Benin">Benin</option>
-		<option value="Bermuda">Bermuda</option>
-		<option value="Bhutan">Bhutan</option>
-		<option value="Bolivia">Bolivia</option>
-		<option value="Bonaire">Bonaire</option>
-		<option value="Bosnia & Herzegovina">Bosnia & Herzegovina</option>
-		<option value="Botswana">Botswana</option>
-		<option value="Brazil">Brazil</option>
-		<option value="British Indian Ocean Terr">British Indian Ocean Terr</option>
-		<option value="Brunei">Brunei</option>
-		<option value="Bulgaria">Bulgaria</option>
-		<option value="Burkina Faso">Burkina Faso</option>
-		<option value="Burundi">Burundi</option>
-		<option value="Cambodia">Cambodia</option>
-		<option value="Cameroon">Cameroon</option>
-		<option value="Canada">Canada</option>
-		<option value="Canary Islands">Canary Islands</option>
-		<option value="Cape Verde">Cape Verde</option>
-		<option value="Cayman Islands">Cayman Islands</option>
-		<option value="Central African Republic">Central African Republic</option>
-		<option value="Chad">Chad</option>
-		<option value="Channel Islands">Channel Islands</option>
-		<option value="Chile">Chile</option>
-		<option value="China">China</option>
-		<option value="Christmas Island">Christmas Island</option>
-		<option value="Cocos Island">Cocos Island</option>
-		<option value="Colombia">Colombia</option>
-		<option value="Comoros">Comoros</option>
-		<option value="Congo">Congo</option>
-		<option value="Cook Islands">Cook Islands</option>
-		<option value="Costa Rica">Costa Rica</option>
-		<option value="Cote d'Ivoire">Cote d'Ivoire</option>
-		<option value="Croatia">Croatia</option>
-		<option value="Cuba">Cuba</option>
-		<option value="Curacao">Curacao</option>
-		<option value="Cyprus">Cyprus</option>
-		<option value="Czech Republic">Czech Republic</option>
-		<option value="Denmark">Denmark</option>
-		<option value="Djibouti">Djibouti</option>
-		<option value="Dominica">Dominica</option>
-		<option value="Dominican Republic">Dominican Republic</option>
-		<option value="East Timor">East Timor</option>
-		<option value="Ecuador">Ecuador</option>
-		<option value="Egypt">Egypt</option>
-		<option value="El Salvador">El Salvador</option>
-		<option value="Equatorial Guinea">Equatorial Guinea</option>
-		<option value="Eritrea">Eritrea</option>
-		<option value="Estonia">Estonia</option>
-		<option value="Ethiopia">Ethiopia</option>
-		<option value="Falkland Islands">Falkland Islands</option>
-		<option value="Faroe Islands">Faroe Islands</option>
-		<option value="Fiji">Fiji</option>
-		<option value="Finland">Finland</option>
-		<option value="France">France</option>
-		<option value="French Guiana">French Guiana</option>
-		<option value="French Polynesia">French Polynesia</option>
-		<option value="French Southern Terr">French Southern Terr</option>
-		<option value="Gabon">Gabon</option>
-		<option value="Gambia">Gambia</option>
-		<option value="Georgia">Georgia</option>
-		<option value="Germany">Germany</option>
-		<option value="Ghana">Ghana</option>
-		<option value="Gibraltar">Gibraltar</option>
-		<option value="Greece">Greece</option>
-		<option value="Greenland">Greenland</option>
-		<option value="Grenada">Grenada</option>
-		<option value="Guadeloupe">Guadeloupe</option>
-		<option value="Guatemala">Guatemala</option>
-		<option value="Guinea">Guinea</option>
-		<option value="Guyana">Guyana</option>
-		<option value="Haiti">Haiti</option>
-		<option value="Hawaii">Hawaii</option>
-		<option value="Honduras">Honduras</option>
-		<option value="Hong Kong">Hong Kong</option>
-		<option value="Hungary">Hungary</option>
-		<option value="Iceland">Iceland</option>
-		<option value="Indonesia">Indonesia</option>
-		<option value="India">India</option>
-		<option value="Iran">Iran</option>
-		<option value="Iraq">Iraq</option>
-		<option value="Ireland">Ireland</option>
-		<option value="Isle of Man">Isle of Man</option>
-		<option value="Israel">Israel</option>
-		<option value="Italy">Italy</option>
-		<option value="Jamaica">Jamaica</option>
-		<option value="Japan">Japan</option>
-		<option value="Jordan">Jordan</option>
-		<option value="Kazakhstan">Kazakhstan</option>
-		<option value="Kenya">Kenya</option>
-		<option value="Kiribati">Kiribati</option>
-		<option value="Kuwait">Kuwait</option>
-		<option value="Kyrgyzstan">Kyrgyzstan</option>
-		<option value="Laos">Laos</option>
-		<option value="Latvia">Latvia</option>
-		<option value="Lebanon">Lebanon</option>
-		<option value="Lesotho">Lesotho</option>
-		<option value="Liberia">Liberia</option>
-		<option value="Libya">Libya</option>
-		<option value="Liechtenstein">Liechtenstein</option>
-		<option value="Lithuania">Lithuania</option>
-		<option value="Luxembourg">Luxembourg</option>
-		<option value="Macau">Macau</option>
-		<option value="Macedonia">Macedonia</option>
-		<option value="Madagascar">Madagascar</option>
-		<option value="Malaysia">Malaysia</option>
-		<option value="Malawi">Malawi</option>
-		<option value="Maldives">Maldives</option>
-		<option value="Mali">Mali</option>
-		<option value="Malta">Malta</option>
-		<option value="Marshall Islands">Marshall Islands</option>
-		<option value="Martinique">Martinique</option>
-		<option value="Mauritania">Mauritania</option>
-		<option value="Mauritius">Mauritius</option>
-		<option value="Mayotte">Mayotte</option>
-		<option value="Mexico">Mexico</option>
-		<option value="Midway Islands">Midway Islands</option>
-		<option value="Moldova">Moldova</option>
-		<option value="Monaco">Monaco</option>
-		<option value="Mongolia">Mongolia</option>
-		<option value="Montserrat">Montserrat</option>
-		<option value="Morocco">Morocco</option>
-		<option value="Mozambique">Mozambique</option>
-		<option value="Myanmar">Myanmar</option>
-		<option value="Namibia">Namibia</option>
-		<option value="Nauru">Nauru</option>
-		<option value="Nepal">Nepal</option>
-		<option value="Netherland Antilles">Netherland Antilles</option>
-		<option value="Netherlands">Netherlands</option>
-		<option value="Nevis">Nevis</option>
-		<option value="New Caledonia">New Caledonia</option>
-		<option value="New Zealand">New Zealand</option>
-		<option value="Nicaragua">Nicaragua</option>
-		<option value="Niger">Niger</option>
-		<option value="Nigeria">Nigeria</option>
-		<option value="Niue">Niue</option>
-		<option value="Norfolk Island">Norfolk Island</option>
-		<option value="Norway">Norway</option>
-		<option value="North Korea">North Korea</option>
-		<option value="Oman">Oman</option>
-		<option value="Pakistan">Pakistan</option>
-		<option value="Palau Island">Palau Island</option>
-		<option value="Palestine">Palestine</option>
-		<option value="Panama">Panama</option>
-		<option value="Papua New Guinea">Papua New Guinea</option>
-		<option value="Paraguay">Paraguay</option>
-		<option value="Peru">Peru</option>
-		<option value="Philippines">Philippines</option>
-		<option value="Pitcairn Island">Pitcairn Island</option>
-		<option value="Poland">Poland</option>
-		<option value="Portugal">Portugal</option>
-		<option value="Qatar">Qatar</option>
-		<option value="Republic of Montenegro">Republic of Montenegro</option>
-		<option value="Republic of Serbia">Republic of Serbia</option>
-		<option value="Reunion">Reunion</option>
-		<option value="Romania">Romania</option>
-		<option value="Russia">Russia</option>
-		<option value="Rwanda">Rwanda</option>
-		<option value="St Barthelemy">St Barthelemy</option>
-		<option value="St Eustatius">St Eustatius</option>
-		<option value="St Helena">St Helena</option>
-		<option value="St Kitts & Nevis">St Kitts & Nevis</option>
-		<option value="St Lucia">St Lucia</option>
-		<option value="St Maarten">St Maarten</option>
-		<option value="St Pierre & Miquelon">St Pierre & Miquelon</option>
-		<option value="St Vincent & Grenadines">St Vincent & Grenadines</option>
-		<option value="Saipan">Saipan</option>
-		<option value="Samoa">Samoa</option>
-		<option value="Samoa American">Samoa American</option>
-		<option value="San Marino">San Marino</option>
-		<option value="Sao Tome & Principe">Sao Tome & Principe</option>
-		<option value="Saudi Arabia">Saudi Arabia</option>
-		<option value="Senegal">Senegal</option>
-		<option value="Seychelles">Seychelles</option>
-		<option value="Sierra Leone">Sierra Leone</option>
-		<option value="Singapore">Singapore</option>
-		<option value="Slovakia">Slovakia</option>
-		<option value="Slovenia">Slovenia</option>
-		<option value="Solomon Islands">Solomon Islands</option>
-		<option value="Somalia">Somalia</option>
-		<option value="South Africa">South Africa</option>
-		<option value="South Korea">South Korea</option>
-		<option value="Spain">Spain</option>
-		<option value="Sri Lanka">Sri Lanka</option>
-		<option value="Sudan">Sudan</option>
-		<option value="Suriname">Suriname</option>
-		<option value="Swaziland">Swaziland</option>
-		<option value="Sweden">Sweden</option>
-		<option value="Switzerland">Switzerland</option>
-		<option value="Syria">Syria</option>
-		<option value="Tahiti">Tahiti</option>
-		<option value="Taiwan">Taiwan</option>
-		<option value="Tajikistan">Tajikistan</option>
-		<option value="Tanzania">Tanzania</option>
-		<option value="Thailand">Thailand</option>
-		<option value="Togo">Togo</option>
-		<option value="Tokelau">Tokelau</option>
-		<option value="Tonga">Tonga</option>
-		<option value="Trinidad & Tobago">Trinidad & Tobago</option>
-		<option value="Tunisia">Tunisia</option>
-		<option value="Turkey">Turkey</option>
-		<option value="Turkmenistan">Turkmenistan</option>
-		<option value="Turks & Caicos">Turks & Caicos</option>
-		<option value="Tuvalu">Tuvalu</option>
-		<option value="Uganda">Uganda</option>
-		<option value="United Kingdom">United Kingdom</option>
-		<option value="Ukraine">Ukraine</option>
-		<option value="United Arab Emirates">United Arab Emirates</option>
-		<option value="United Kingdom">United Kingdom</option>
-		<option value="Uruguay">Uruguay</option>
-		<option value="Uzbekistan">Uzbekistan</option>
-		<option value="Vanuatu">Vanuatu</option>
-		<option value="Vatican City">Vatican City</option>
-		<option value="Venezuela">Venezuela</option>
-		<option value="Vietnam">Vietnam</option>
-		<option value="Virgin Islands (British)">Virgin Islands (British)</option>
-		<option value="Wake Island">Wake Island</option>
-		<option value="Wallis & Futuna">Wallis & Futuna</option>
-		<option value="Yemen">Yemen</option>
-		<option value="Zaire">Zaire</option>
-		<option value="Zambia">Zambia</option>
-		<option value="Zimbabwe">Zimbabwe</option>
-	</optgroup>
-</select>
-</p>
-
-<p>
-	What is your current age?
-	<select class="top" name="age">
-	    <option value="0">Choose Age</option>
-	<%
-	    for (int i = 18 ; i <= 100 ; i++) {
-	        out.println("<option>" + i + "</option>\n");
-	    }
-	%>
-	</select>
-</p>
-
-<p>
-	What is your gender?
-	<select class="top" name="gender">
-	    <option value="">Choose Gender</option>
-	<%
-			String[] genders = {"Woman", "Man", "Nonbinary/Other"};
-	    for (int i = 0 ; i < genders.length ; i++) {
-	        out.println("<option>" + genders[i] + "</option>\n");
-	    }
-	%>
-	</select>
-</p>
-
-<p>
-	What is your race/ethnicity (select multiple if appropriate)?
-	<%
-			String[] raceEthnicities = {"American Indian or Alaska Native", "Asian", "Black or African American", "Hispanic or Latino", "Middle Eastern", "Native Hawaiian or Pacific Islander", "White"};
-	    for (int i = 0 ; i < raceEthnicities.length ; i++) {
-	        out.println("<br /><input id='" + raceEthnicities[i] + "_input' type='checkbox' value='" + raceEthnicities[i] + "' name='ethnicity' /> <label for='" + raceEthnicities[i] + "'>" + raceEthnicities[i] + "</label>\n");
-	    }
-	%>
-	</select>
-</p>
-
-<p>
-	What is your highest level of education?
-	<select class="top" name="education">
-	    <option value="">Choose Education Level</option>
-	<%
-			String[] educationLevel = {"Less than high school", "High school", "Technical/Associate's degree or some college", "Bachelor's degree", "Graduate/professional degree"};
-	    for (int i = 0 ; i < educationLevel.length ; i++) {
-	        out.println("<option>" + educationLevel[i] + "</option>\n");
-	    }
-	%>
-	</select>
-</p>
-
-<p>
-Do you currently have a cat/cats?
-<br /><input id="have_cats_yes_pet" type="checkbox" value="Yes, a pet cat/cats" name="have_cats" /> <label for="have_cats_yes_pet">Yes, a pet cat/cats</label>
-<br /><input id="have_cats_yes_feral" type="checkbox" value="Yes, I care for feral/free-roaming cats" name="have_cats" /> <label for="have_cats_yes_feral">Yes, I care for feral/free-roaming cats</label>
-<br /><input id="have_cats_no" type="checkbox" value="No" name="have_cats" /> <label for="have_cats_no">No</label>
-</p>
-
-<p>
-Are you currently involved in volunteering with cats?
+Are you currently involved in volunteering with cats in some way?
 <br /><input id="cat_volunteer_yes" type="radio" value="Yes" name="cat_volunteer" /> <label for="cat_volunteer_yes">Yes</label>
 <br /><input id="cat_volunteer_no" type="radio" value="No" name="cat_volunteer" /> <label for="cat_volunteer_no">No</label>
 <br /><input id="cat_volunteer_past" type="radio" value="Not now, but in the past" name="cat_volunteer" /> <label for="cat_volunteer_past">Not now, but in the past</label>
 </p>
 
 <p>
-Do you have a disability or personal limitation (such as being a parent/caregiver) that prevents you from volunteering with cats in a typical setting like a shelter?
+Do you have a disability or personal limitation (such as being a parent/caregiver) that prevents you from volunteering with cats in a typical offline setting like a shelter?
 <br /><input id="disability_no" type="radio" value="No" name="disability" /> <label for="disability_no">No</label>
 <br /><input id="disability_yes" type="radio" value="Yes" name="disability" /> <label for="disability_yes">Yes</label>
 <br /><input id="disability_sometimes" type="radio" value="Sometimes" name="disability" /> <label for="disability_sometimes">Sometimes</label>
 </p>
 
 <p>
-Have you ever participated in an online citizen science project doing image identification or classification (apart from Kitizen Science's validation studies)?
+Do you currently have a cat/cats in your care?
+<br /><input id="have_cats_yes_pet" type="checkbox" value="Yes, a pet cat/cats" name="have_cats" /> <label for="have_cats_yes_pet">Yes, a pet cat/cats</label>
+<br /><input id="have_cats_yes_feral" type="checkbox" value="Yes, I care for feral/free-roaming cats" name="have_cats" /> <label for="have_cats_yes_feral">Yes, I care for feral/free-roaming cats</label>
+<br /><input id="have_cats_no" type="checkbox" value="No" name="have_cats" /> <label for="have_cats_no">No</label>
+</p>
+
+<p>
+Have you ever participated in an online citizen science project doing image identification or classification (NOT including our 2019 cat matching study)?
 <br /><input id="citsci_no" type="radio" value="No" name="citsci" /> <label for="citsci_no">No</label>
 <br /><input id="citsci_yes" type="radio" value="Yes" name="citsci" /> <label for="citsci_yes">Yes</label>
 </p>
 
 <p>
-Have you previously participated in a citizen science project collecting photos or data about animals or nature?
-<br /><input id="citsci_collecting_no" type="radio" value="No" name="citsci_collecting" /> <label for="citsci_collecting_no">No</label>
-<br /><input id="citsci_collecting_yes" type="radio" value="Yes" name="citsci_collecting" /> <label for="citsci_collecting_yes">Yes</label>
+What is your current age?
+<select class="top" name="age">
+    <option value="0">choose age</option>
+<%
+    for (int i = 18 ; i <= 100 ; i++) {
+        out.println("<option>" + i + "</option>\n");
+    }
+%>
+</select>
+</p>
+
+<p>
+Are you retired?
+<br /><input id="retired_no" type="radio" value="No" name="retired" /> <label for="retired_no">No</label>
+<br /><input id="retired_yes" type="radio" value="Yes" name="retired" /> <label for="retired_yes">Yes</label>
+</p>
+
+<p>
+What is your gender?
+<br /><input id="gender_woman" type="radio" value="Woman" name="gender" /> <label for="gender_woman">Woman</label>
+<br /><input id="gender_man" type="radio" value="Man" name="gender" /> <label for="gender_man">Man</label>
+<br /><input id="gender_other" type="radio" value="Other" name="gender" /> <label for="gender_other">Non-binary/Other</label>
+</p>
+
+<p>
+What is your race/ethnicity (select multiple if appropriate):
+<br /><input id="ethnicity_aian" type="checkbox" value="American Indian or Alaska Native" name="ethnicity" /> <label for="ethnicity_aian">American Indian or Alaska Native</label>
+<br /><input id="ethnicity_asian" type="checkbox" value="Asian" name="ethnicity" /> <label for="ethnicity_asian">Asian</label>
+<br /><input id="ethnicity_baa" type="checkbox" value="Black or African American" name="ethnicity" /> <label for="ethnicity_baa">Black or African American</label>
+<br /><input id="ethnicity_hisp" type="checkbox" value="Hispanic or Latino" name="ethnicity" /> <label for="ethnicity_hisp">Hispanic or Latino</label>
+<br /><input id="ethnicity_me" type="checkbox" value="Middle Eastern" name="ethnicity" /> <label for="ethnicity_me">Middle Eastern</label>
+<br /><input id="ethnicity_nhpi" type="checkbox" value="Native Hawaiian or Pacific Islander" name="ethnicity" /> <label for="ethnicity_nhpi">Native Hawaiian or Pacific Islander</label>
+<br /><input id="ethnicity_white" type="checkbox" value="White" name="ethnicity" /> <label for="ethnicity_white">White</label>
+</p>
+
+<p>
+Highest level of education:
+<br /><input id="education_less" type="radio" value="Less than high school" name="education" /> <label for="education_less">Less than high school</label>
+<br /><input id="education_hs" type="radio" value="High school" name="education" /> <label for="education_hs">High School</label>
+<br /><input id="education_some" type="radio" value="some college" name="education" /> <label for="education_some">Technical school, Associate's degree, or some college</label>
+<br /><input id="education_bach" type="radio" value="Bachelor's degree" name="education" /> <label for="education_bach">Bachelor's degree</label>
+<br /><input id="education_grad" type="radio" value="Graduate/professional degree" name="education" /> <label for="education_grad">Graduate/professional degree</label>
 </p>
 
 <p>
@@ -1069,7 +747,8 @@ How did you hear about Kitizen Science?
 <h3>Instructions for the Online Workflow Study</h3>
 
 <p>The second of our three validation studies is about testing the online workflow for Kitizen Science.  This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match.  Now, we are doing a trial of how the online side of Kitizen Science works.  We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.  You will receive a short survey via email after this study ends asking for your feedback and for you to rate aspects of the website.</p>
-<h3><a name="requirements" id="requirements"></a>Computer requirements</h3></a>
+<p class="style2">This study is open from March 9 to July 31, 2020.</p>
+<h2><a name="requirements" id="requirements"></a>Computer requirements</h2></a>
 <p>
 Because of the small screen size of web browsers on smart phones and small tablets, we do not want you to process submissions on smaller devices. Please use a desktop or laptop computer.
 </p>
@@ -1461,5 +1140,6 @@ if (rollback) {
 
 %>
             </div>
-
+            
           <jsp:include page="footer.jsp" flush="true"/>
+
