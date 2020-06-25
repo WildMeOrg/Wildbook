@@ -1140,6 +1140,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
             var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
                 var img = $('<img src="' + mainAsset.url + '" />');
+                ft.metadata = mainAsset.metadata;
                 img.on('load', function(ev) { imageLoaded(ev.target, ft); });
                 $('#task-' + taskId + ' .annot-' + acmId).append(img);
             } else {
@@ -1392,9 +1393,10 @@ function imageLoaded(imgEl, ft) {
 }
 
 function drawFeature(imgEl, ft) {
-    if (!imgEl || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
+    if (!imgEl || !imgEl.clientHeight || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
     var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
     var scale = imgEl.height / imgEl.naturalHeight;
+    if (ft.metadata && ft.metadata.height) scale = imgEl.height / ft.metadata.height;
 //console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
     if (scale == 1) return;
     imgEl.setAttribute('data-feature-drawn', true);
