@@ -8,6 +8,8 @@ org.ecocean.media.Feature,
 javax.jdo.Query,
 org.json.JSONObject,
 org.json.JSONArray,
+org.apache.commons.io.FileUtils,
+java.io.File,
 java.util.Arrays,
 java.util.Map,
 java.util.HashMap,
@@ -54,7 +56,8 @@ private String isNewName(Encounter enc, List<Encounter> encs, Shepherd myShepher
     if ((enc == null) || !enc.hasMarkedIndividual() || Util.collectionIsEmptyOrNull(encs)) return "";
     if (!taggedNew(enc)) {
         System.out.println("isNewName(): " + enc.getCatalogNumber() + " is not tagged newName");
-        return "NO-TAG";
+        return "N";
+        //return "NO-TAG";
     }
     MarkedIndividual indiv = enc.getIndividual();
     int numEnc = indiv.numEncounters();
@@ -67,17 +70,19 @@ private String isNewName(Encounter enc, List<Encounter> encs, Shepherd myShepher
             System.out.println("isNewName(): " + otherEnc.getCatalogNumber() + " not tagged newName; assuming matched later???");
         } else {
             System.out.println("isNewName(): " + otherEnc.getCatalogNumber() + " IS tagged newName, but NOT in import; not new!");
-            return "no-previous";
+            return "N";
+            //return "no-previous";
         }
     }
-    return "Yes-fellthru";
+    return "Y";
+    //return "Yes-fellthru";
 }
 
 private String isResighted(Encounter enc, List<Encounter> encs, Shepherd myShepherd) {
     if ((enc == null) || !enc.hasMarkedIndividual() || Util.collectionIsEmptyOrNull(encs)) return "";
     MarkedIndividual indiv = enc.getIndividual();
     int numEnc = indiv.numEncounters();
-    if (numEnc < 2) return "no-only";  //easy but should never actually be 0
+    if (numEnc < 2) return "N";  // "no-only";  //easy but should never actually be 0
     System.out.println("isResighted(): " + enc.getCatalogNumber() + " one of " + numEnc + " encs for indiv=" + indiv.getId());
     boolean badComp = false;
     Long encMillis = enc.getDateInMilliseconds();
@@ -100,7 +105,7 @@ private String isResighted(Encounter enc, List<Encounter> encs, Shepherd mySheph
         //otherwise, must be newer?  so we just continue....
     }
     if (badComp) return "error-badcomp";
-    return "no-fellthru";  //make it here, we must be new
+    return "N";  // "no-fellthru";  //make it here, we must be new
 }
 
 %>
@@ -164,21 +169,21 @@ if (request.getParameter("status") != null) {
 }
 
 if (Util.requestParameterSet(request.getParameter("export"))) {
-/*
-JSONArray jarr = new JSONArray();
-    jarr.put(new JSONArray(Arrays.asList(new String[]{"Encounter", "Indiv", "Image(s)", "New name", "Resight"})));
-*/
-    out.println("<table border=\"1\"><tr><td>" + String.join("</td><td>", Arrays.asList(new String[]{"Encounter", "Indiv", "Image(s)", "New name", "Resight"})) + "</td></tr>");
+    List<List> rows = new ArrayList<List>();
+    rows.add(Arrays.asList(new String[]{"Encounter", "URL", "Indiv", "New name", "Resight", "Image(s)", "Sex", "Date", "Lat/Lon", "Occurrence"}));
     myShepherd.beginDBTransaction();
     List<Encounter> allEncs = itask.getAllEncounters(myShepherd);
     for (Encounter enc : allEncs) {
         List<String> row = new ArrayList<String>();
-        row.add("<a target=\"_new\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber() + "</a>");
+        row.add(enc.getCatalogNumber());
+        row.add("https://giraffespotter.org/encounters/encounter.jsp?number=" + enc.getCatalogNumber());
         if (enc.hasMarkedIndividual()) {
             row.add(enc.getIndividual().getDisplayName());
         } else {
             row.add("");
         }
+        row.add(isNewName(enc, allEncs, myShepherd));
+        row.add(isResighted(enc, allEncs, myShepherd));
         ArrayList<MediaAsset> assets = enc.getMedia();
         if (Util.collectionIsEmptyOrNull(assets)) {
             row.add("");
@@ -189,14 +194,26 @@ JSONArray jarr = new JSONArray();
             }
             row.add(String.join(", ", fn));
         }
-        row.add(isNewName(enc, allEncs, myShepherd));
-        row.add(isResighted(enc, allEncs, myShepherd));
+        row.add(enc.getSex());
+        String dt = enc.getDate();
+        if (dt != null) dt = dt.substring(0,10);
+        row.add(dt);
+        String ll = "";
+        if ((enc.getDecimalLatitude() != null) && (enc.getDecimalLongitude() != null)) ll = enc.getDecimalLatitude() + ", " + enc.getDecimalLongitude();
+        row.add(ll);
+        row.add(enc.getOccurrenceID());
         //jarr.put(new JSONArray(row));
-        out.println("<tr><td>" + String.join("</td><td>", row) + "</td></tr>");
+        //out.println("<tr><td>" + String.join("</td><td>", row) + "</td></tr>");
+        rows.add(row);
     }
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
-    out.println("</table>");
+    String filename = "giraffespotter_rapid_response_export_" + taskId + "_" + (new DateTime()).toString().substring(0,19) + ".xlsx";
+    File xlsf = new File("/tmp/" + filename);
+    org.ecocean.servlet.export.ExportExcelFile.quickExcel(rows, xlsf);
+    response.setHeader("Content-type", "application/vnd.ms-excel");
+    response.setHeader("Content-disposition", "attachment; filename=\"" + xlsf.getName() + "\"");
+    FileUtils.copyFile(xlsf, response.getOutputStream());
     return;
 }
 
@@ -407,6 +424,7 @@ function assetLoaded(imgEl) {
 <div id="info-panel">
     <input type="button" onClick="toggleComplete();" value="Toggle complete visibility" />
     <div id="summary"></div>
+    <input type="button" onClick="window.location.href='rapid.jsp?taskId=<%=taskId%>&export';" value="Export Excel" />
 </div>
 
 <%
