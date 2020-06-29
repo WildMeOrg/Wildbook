@@ -25,27 +25,30 @@ if (email != null) {
             sentReset = org.ecocean.servlet.UserResetPasswordSendEmail.sendPasswordResetEmail(context, user, email);
         }
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-%>
-<h2>A user for <b><%=email%></b> exists.</h2>
-<% if (sentReset) { %>
-<p>An email confirmation has been sent to this address.  Use it to <b>set a new password</b>.</p>
-<% } %>
-<p>You can <a href="login.jsp?username=<%=email%>">login here</a>.</p>
-<%
-    } else {
+        
+		%>
+		<h2>A user for <b><%=email%></b> exists.</h2>
+		<% if (sentReset) { %>
+		<p>An email confirmation has been sent to this address.  Use it to <b>set a new password</b>.</p>
+		<% } %>
+		<p>You can <a href="login.jsp?username=<%=email%>">login here</a>.</p>
+		<%
+    } 
+    else {
         //SpotterConserveIO.init("context0");
         //SpotterConserveIO.testLogin("wildbook-test", "password-fail")
-        myShepherd.rollbackAndClose();
+        myShepherd.rollbackDBTransaction();
 
-%>
-<h2>
-We are sorry, but we <b>do not</b> have an account associated with this email address.
-</h2>
-
-<%
+		%>
+		<h2>
+		We are sorry, but we <b>do not</b> have an account associated with this email address.
+		</h2>
+		
+		<%
     }
-} else {  //main form
+    myShepherd.closeDBTransaction();
+} 
+else {  //main form
 %>
 
 <h1>Welcome Whale Alert users!</h1>

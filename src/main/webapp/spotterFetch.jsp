@@ -194,6 +194,7 @@ private static String justSomeTrips(String[] tripIds, Shepherd myShepherd) {
 
         String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("spotterFetch.jsp");
     myShepherd.beginDBTransaction();
     FeatureType.initAll(myShepherd);
 
@@ -201,11 +202,13 @@ private static String justSomeTrips(String[] tripIds, Shepherd myShepherd) {
         SpotterConserveIO.init(context);
     } catch (Exception ex) {
         out.println("<p class=\"error\">Warning: SpotterConserveIO.init() threw <b>" + ex.toString() + "</b></p>");
+        myShepherd.rollbackAndClose();
         return;
     }
 
     if (!SpotterConserveIO.hasBeenInitialized()) {
         out.println("<p class=\"error\">Warning: SpotterConserveIO appears to not have been initialized; failing</p>");
+        myShepherd.rollbackAndClose();
         return;
     }
 

@@ -25,7 +25,7 @@ org.ecocean.media.*
 <%
 
 String context = ServletUtilities.getContext(request);
-Shepherd myShepherd = new Shepherd(context);
+
 
 try {
     SpotterConserveIO.init(context);
@@ -43,6 +43,8 @@ out.println("<p><i>Successful init.</i> Using: <b>" + SpotterConserveIO.apiUrlPr
 
 String idString = request.getParameter("id");
 if (idString != null) {
+	Shepherd myShepherd = new Shepherd(context);
+	myShepherd.setAction("spotterTest.jsp");
     myShepherd.beginDBTransaction();
     FeatureType.initAll(myShepherd);
     int id = Integer.parseInt(idString);
@@ -85,7 +87,7 @@ if (idString != null) {
 
     out.println("<p><hr /></p><xmp style=\"font-size: 0.8em; color: #888;\">" + tripData.toString(1) + "</xmp>");
     myShepherd.commitDBTransaction();
-    //myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
     return;
 }
 
