@@ -103,8 +103,12 @@ public class RestServletV2 extends HttpServlet {
 
         try {
             JSONObject result = handleGetObject(request, response, payload, instanceId, context);
-            rtn.put("result", result);
-            rtn.put("success", true);
+            if (result == null) {
+                rtn.put("success", false);
+            } else {
+                rtn.put("result", result);
+                rtn.put("success", true);
+            }
         } catch (Exception ex) {
             rtn.put("message", _rtnMessage("error", payload, ex.toString()));
         }
