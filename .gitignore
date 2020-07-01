@@ -1,4 +1,5 @@
-.settings/org.eclipse*
+.settings
+.factorypath
 *.DS_Store
 target
 bin
@@ -23,4 +24,14 @@ src/main/webapp/encounters/*20*
 src/main/caribwhale_data_dir
 /webapps
 /src/main/webapp/javascript/git-info.json
-/.vscode
+/node_modules
+.vscode/
+*.swp
+
+src/main/webapp/javascript/dev/MarkedIndividual.json
+src/main/webapp/javascript/dev/Relationship.json
+
+\.classpath
+.classpath
+
+catalina.base_IS_UNDEFINED

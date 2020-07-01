@@ -22,19 +22,27 @@ Wildbook&reg; is an open source software framework to support mark-recapture, mo
 <br />
 <h2>Support</h2>
 
-Please see <a href="http://www.wildbook.org">Wildbook.org</a> for documentation and support. Support resources include:
+Please see <a href="https://www.wildbook.org">Wildbook.org</a> for documentation. 
+
+Need direct help?
+
+Wild Me (wildme.org) engineering staff provide support for Wildbook. You can contact us at: support@wildme.org
+
+We provide support during regular office hours on Mondays and Tuesdays.
+
+Support resources include:
 <ul>
-<li><a href="http://www.wildbook.org/doku.php?id=documentation">User Manual</a></li>
-<li><a href="http://www.wildbook.org/doku.php?id=configuration">Configuration Guide</a></li>
-<li><a href="http://www.wildbook.org/forum">Discussion Forum</a></li>
-<li><a href="http://www.wildme.org/services">Wild Me Professional Services</a></li>
+<li><a href="https://www.wildbook.org/doku.php?id=documentation">User Manual</a></li>
+<li><a href="https://www.wildbook.org/doku.php?id=configuration">Configuration Guide</a></li>
+<li><a href="https://www.wildbook.org/forum">Discussion Forum</a></li>
+<li><a href="https://www.wildme.org/services">Wild Me Professional Services</a></li>
 </ul>
 
 <h2>History</h2>
 Wildbook started as a collaborative software platform for globally-coordinated whale shark (Rhincodon typus ) research as deployed in the Wildbook for Whale Sharks (http://www.whaleshark.org). After many requests to use our software outside of whale shark research, it is now an open source, community-maintained standard for mark-recapture studies.
 
 
-<p><img style="float: right;" align="middle" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization.</p> http://www.wildme.org
+<p><img style="float: right;" align="middle" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization.</p> https://www.wildme.org
 
 <h1>Spotting Giant Sea Bass</h1>
 

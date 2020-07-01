@@ -18,6 +18,7 @@
  */
 
 package org.ecocean;
+import org.ecocean.servlet.ServletUtilities;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,14 +31,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.servlet.ServletContext;
-
-
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 
 public class CommonConfiguration {
   
   private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
+  private static final String GOOGLE_CONFIGURATION_PROPERTIES = "googleKeys.properties";
   
   //class setup
   //private static Properties props = new Properties();
@@ -47,13 +48,40 @@ public class CommonConfiguration {
   //private static String currentContext;
 
 
+  private static Map<String, Properties> contextToPropsCache = new HashMap<String,Properties>();
+
   private static Properties initialize(String context) {
-    //set up the file input stream
-    //if ((currentContext==null)||(!currentContext.equals(context))||(propsSize == 0)) {
-      return loadProps(context);
-    //}
+    //if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
+    Properties props = loadProps(context);
+    contextToPropsCache.put(context, props);
+    return props;
   }
 
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
+  private static Properties initialize(HttpServletRequest request) {
+    //if (contextToPropsCache.containsKey(context)) return contextToPropsCache.get(context);
+    Properties props = loadProps(request);
+    contextToPropsCache.put(ServletUtilities.getContext(request), props);
+    return props;
+  }
+
+  // this loads properties with an overwrite file for the user
+  public static synchronized Properties loadProps(HttpServletRequest request) {
+    InputStream resourceAsStream = null;
+    Properties props=new Properties();
+    try {
+      //resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
+      //props.load(resourceAsStream);
+      props=ShepherdProperties.getOrgProperties(COMMON_CONFIGURATION_PROPERTIES, "",request);
+
+    } catch (Exception ioe) {
+      ioe.printStackTrace();
+      //return null;
+    }
+
+  return props;
+
+  }
 
   
   public static synchronized Properties loadProps(String context) {
@@ -133,6 +161,10 @@ public class CommonConfiguration {
   public static URI getServerURI(HttpServletRequest req, String contextPath) throws URISyntaxException {
     return new URI(req.getScheme(), null, req.getServerName(), req.getServerPort(), contextPath, null, null).normalize();
   }
+  // If we want to create full URL links within the webapp, we want to exclude the port used above
+  public static URI getServerURINoPort(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return new URI(req.getScheme(), req.getServerName(), contextPath, null).normalize();
+  }
 
   /**
    * Utility method to return a URL string for the specified
@@ -147,7 +179,126 @@ public class CommonConfiguration {
   public static String getServerURL(HttpServletRequest req, String contextPath) throws URISyntaxException {
     return getServerURI(req, contextPath).toASCIIString();
   }
+  public static String getServerURLNoPort(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return getServerURINoPort(req, contextPath).toASCIIString();
+  }
+  public static String getServerURL(HttpServletRequest req) {
+    try {
+      return getServerURLNoPort(req, req.getContextPath());
+    }
+    catch (URISyntaxException e) {
+      System.out.println("URISyntaxException on CommonConfiguration.getServerURL("+req+"). Returning Null.");
+      return null;
+    }
+  }
 
+    /* these are to provide equivalent URI as above, but *without* the need for the request object, via a bit of
+       magic and persistence in the db (hence the need for context or Shepherd)
+       also, for convenience (and since it seems unlikely that it should ever!), it does NOT throw an exception
+       (but can be null in weird extremes, e.g. very first time tomcat is run)
+    */
+    public static URI getServerURI(String context) {
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("CommonCOnfiguration.getServerURI");
+        myShepherd.beginDBTransaction();
+        URI u = getServerURI(myShepherd);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        return u;
+    }
+    public static String getServerURL(String context) {
+        URI u = getServerURI(context);
+        if (u == null) return null;
+        return u.toASCIIString().replaceFirst(":80\\b", "");  //hide :80 cuz its tacky
+    }
+    public static URI getServerURI(Shepherd myShepherd) {
+        JSONObject info = getServerInfo(myShepherd);
+        if (info == null) return null;
+        try {
+            return new URI(
+                info.optString("scheme", null),
+                null,
+                info.optString("serverName", null),
+                info.optInt("serverPort", 80),
+                info.optString("contextPath", null),
+                null, null
+            ).normalize();
+        } catch (URISyntaxException ex) {
+            System.out.println("CommonConfiguration.getServerURL() threw " + ex.toString());
+            return null;
+        }
+    }
+    public static String getServerURL(Shepherd myShepherd) {
+        URI u = getServerURI(myShepherd);
+        if (u == null) return null;
+        return u.toASCIIString().replaceFirst(":80\\b", "");  //hide :80 cuz its tacky
+    }
+    //TODO maybe these should be private so as not to be overused
+    public static JSONObject getServerInfo(Shepherd myShepherd) {
+        return SystemValue.getJSONObject(myShepherd, "SERVER_INFO");
+    }
+    public static void setServerInfo(Shepherd myShepherd, JSONObject info) {
+        SystemValue.set(myShepherd, "SERVER_INFO", info);
+    }
+
+    public static void ensureServerInfo(Shepherd myShepherd, HttpServletRequest req) {
+      
+      myShepherd.beginDBTransaction();
+      boolean updated = checkServerInfo(myShepherd, req);
+      if (updated) {
+          myShepherd.commitDBTransaction();
+      } else {
+          myShepherd.rollbackDBTransaction();
+      }
+    }
+
+    //does the main sanity check to see if url-info is correct or needs updating
+    public static boolean checkServerInfo(Shepherd myShepherd, HttpServletRequest req) {
+        boolean updated = false;
+        JSONObject info = getServerInfo(myShepherd);
+        if (info == null) info = new JSONObject();
+        if (!info.optString("scheme", "__FAIL__").equals(req.getScheme())) {
+            info.put("scheme", req.getScheme());
+            updated = true;
+        }
+        if (!info.optString("serverName", "__FAIL__").equals(req.getServerName())) {
+            info.put("serverName", req.getServerName());
+            updated = true;
+        }
+        if (info.optInt("serverPort", -1) != req.getServerPort()) {
+            info.put("serverPort", req.getServerPort());
+            updated = true;
+        }
+        if (!info.optString("contextPath", "__FAIL__").equals(req.getContextPath())) {
+            info.put("contextPath", req.getContextPath());
+            updated = true;
+        }
+        if (!updated) return false;
+        if (!isValidServerName(req.getServerName())) return false;  //dont update if we got wonky name like "localhost"
+        info.put("timestamp", System.currentTimeMillis());
+        info.put("context", myShepherd.getContext());
+        setServerInfo(myShepherd, info);
+        System.out.println("INFO: CommonConfiguration.checkServerInfo() has update server info data to " + info.toString());
+        return true;
+    }
+
+    //this is really just for checkServerInfo()
+    private static boolean isValidServerName(String sname) {
+        if (sname == null) return false;
+        if (sname.equals("localhost")) return false;
+        if (sname.matches("[\\d\\.]+")) return false;
+        return true;
+    }
+
+    // this is used in a couple places as a pointer to *this* wildbook
+    //  it is generated (once!) if it doesnt exist
+    public static String getGUID(Shepherd myShepherd) {
+        String guid = SystemValue.getString(myShepherd, "GUID");
+        if (guid != null) return guid;
+        guid = Util.generateUUID();  //now we have one!
+        SystemValue.set(myShepherd, "GUID", guid);
+        return guid;
+    }
 
   public static String getMailHost(String context) {
     String s = getProperty("mailHost", context);
@@ -199,6 +350,12 @@ public class CommonConfiguration {
             dir = System.getProperty("java.io.tmpdir");
             System.out.println("WARNING: no uploadTmpDir property specified in CommonConfiguration; using " + dir + " as default; this may introduce insecurities.");
         }
+        return dir.trim();
+    }
+
+    public static String getImportDir(String context) {
+        String dir = getProperty("importDir", context);
+        if (dir == null) return null;
         return dir.trim();
     }
 
@@ -275,17 +432,32 @@ public class CommonConfiguration {
   }
 
   public static String getGoogleMapsKey(String context) {
-    return getProperty("googleMapsKey",context);
+    return ShepherdProperties.getProperties(GOOGLE_CONFIGURATION_PROPERTIES,"",context).getProperty("googleMapsKey",context);
   }
 
+  /*
   public static String getGoogleSearchKey(String context) {
     return getProperty("googleSearchKey",context);
+  }
+*/
+
+  public static String getDefaultGoogleMapsCenter(String context) {
+    if (getProperty("googleMapsCenter",context)!=null) {
+      return getProperty("googleMapsCenter",context);
+    } else {
+      return "{lat: 35.2195, lng: -75.6903}";
+    }
   }
 
   public static String getProperty(String name, String context) {
     return initialize(context).getProperty(name);
   }
-  
+
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
+  public static String getProperty(String name, HttpServletRequest request) {
+    return initialize(request).getProperty(name);
+  }
+
   public static Enumeration<?> getPropertyNames(String context) {
     return initialize(context).propertyNames();
   }
@@ -531,9 +703,10 @@ public class CommonConfiguration {
     List<String> list = new ArrayList<String>();
     boolean hasMore = true;
     int index = 0;
+    Properties props = initialize(context);
     while (hasMore) {
       String key = baseKey + index++;
-      String value = CommonConfiguration.getProperty(key, context);
+      String value = props.getProperty(key);
       if (value != null) {
         value = value.trim();
         if (value.length() > 0) {
@@ -547,6 +720,41 @@ public class CommonConfiguration {
     return list;
   }
   
+  // Whenever we can pass a request *or* a context, passing a request allows for custom user-level .properties as defined by ShepherdProperties.getOverwriteStringForUser, with graceful default-fallback
+  // Unlike standard getProperties, here we need to separate our overwrite .properties file from CommonConfiguration.properties
+  // (i.e. have separate Properties objects as opposed to a single Properties loaded from our custom file *with CommonConfig as the default/fallback*
+  // This is because, e.g. if custom.properties has 3 locationIDs and CommonConfig has 10 locIDs, naive getIndexedPropertyValues will be 10 items long with the first 3 from our custom file
+  public static List<String> getIndexedPropertyValues(String baseKey, HttpServletRequest request) {
+    List<String> list = new ArrayList<String>();
+    boolean hasMore = true;
+    int index = 0;
+
+    // if the customProps contain the indexedPropertyValues, we return those
+    Properties customProps = ShepherdProperties.getOverwriteProps(request);
+    if (customProps!=null) {
+      list = ShepherdProperties.getIndexedPropertyValues(customProps, baseKey);
+      if (list!=null && list.size()>0) return list;
+    }
+    Properties props = initialize(request);
+    while (hasMore) {
+      String key = baseKey + index++;
+      String value = props.getProperty(key);
+      if (value != null) {
+        value = value.trim();
+        if (value.length() > 0) {
+          list.add(value.trim());
+        }
+      }
+      else {
+        hasMore = false;
+      }
+    }
+    return list;
+  }
+  
+
+
+
   public static Integer getIndexNumberForValue(String baseKey, String checkValue, String context){
     System.out.println("getIndexNumberForValue started for baseKey "+baseKey+" and checkValue "+checkValue);
     boolean hasMore = true;
@@ -667,7 +875,6 @@ public class CommonConfiguration {
   public static boolean isWildbookInitialized(Shepherd myShepherd) {
     List<User> users = myShepherd.getAllUsers();
     if (users.size() == 0) return false;
-
     return true;
   }
 

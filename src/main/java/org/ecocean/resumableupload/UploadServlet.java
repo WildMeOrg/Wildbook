@@ -1,4 +1,4 @@
-package ec.com.mapache.ngflow.servlet;
+package org.ecocean.resumableupload;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +22,7 @@ import ec.com.mapache.ngflow.upload.FlowInfo;
 import ec.com.mapache.ngflow.upload.FlowInfoStorage;
 import ec.com.mapache.ngflow.upload.HttpUtils;
 
+import org.ecocean.Shepherd;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.servlet.ReCAPTCHA;
@@ -37,11 +38,30 @@ public class UploadServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
-
 	/*
 	 * In ORDER to allow CORS  to multiple domains you can set a list of valid domains here
 	 */
 	private List<String> authorizedUrl = Arrays.asList("http://localhost", "http://example.com");
+
+
+	// For user-facing web bulk upload.
+	public static String getSubdirForUpload(Shepherd myShepherd, HttpServletRequest request) {
+		String subdir = ServletUtilities.getParameterOrAttribute("subdir",request);
+		if (subdir==null) {
+			System.out.println("No subidr is set for upload; setting subdir to username");
+			subdir = myShepherd.getUsername(request);
+		}
+		return subdir;
+	}
+	public static void setSubdirForUpload(String subdir, HttpServletRequest request) {
+		if (subdir!=null) {
+			System.out.println("We got a subdir! I'm setting the session 'subdir' attribute to "+subdir);
+			request.getSession().setAttribute("subdir",subdir);
+		} else {
+			System.out.println("We did not get a subdir!");
+		}
+	}
+
 
 
 	public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -55,6 +75,9 @@ public class UploadServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
+			System.out.println("UploadServlet.java. About to Print Params");
+			ServletUtilities.printParams(request);
+			System.out.println("(Those were the params)");
 
 
 
@@ -163,7 +186,9 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
 
 		int flowChunkNumber = getflowChunkNumber(multiparts);
 System.out.println("GET fcn = " + flowChunkNumber);
-		System.out.println("Do Get");
+		System.out.println("Do Get begun on request (about to print params)");
+		ServletUtilities.printParams(request);
+
 
 
 		System.out.println(request.getRequestURL());
@@ -212,9 +237,23 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
             return "pod.scribble.com";
         }
 
-	private String getUploadDir(HttpServletRequest request) {
-            return CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request));
+	public static String getUploadDir(HttpServletRequest request) {
+			System.out.println("UploadServlet is calling getUploadDir on request (about to print): ");
+			ServletUtilities.printParams(request);
+			String subDir = ServletUtilities.getParameterOrAttributeOrSessionAttribute("subdir", request);
+			System.out.println("UploadServlet got subdir "+subDir);
+			if (subDir==null) {subDir = "";}
+			else {subDir = "/"+subDir;}
+			String fullDir = CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request))+subDir;
+			System.out.println("UploadServlet got uploadDir = "+fullDir);
+			ensureDirectoryExists(fullDir);
+            return (fullDir);
         }
+
+    private static void ensureDirectoryExists(String fullPath) {
+    	File directory = new File(fullPath);
+    	if (!directory.isDirectory()) directory.mkdirs();
+    }
 
 	private FlowInfo getFlowInfo(List<FileItem> parts, HttpServletRequest request) throws ServletException {
             int FlowChunkSize = -1;
@@ -246,6 +285,7 @@ System.out.println(item);
             }
 
                 String base_dir = getUploadDir(request);
+System.out.println("[INFO] UploadServlet got base_dir=" + base_dir);
 
 		// Here we add a ".temp" to every upload file to indicate NON-FINISHED
 System.out.println("aaaa ==> " + FlowFilename);

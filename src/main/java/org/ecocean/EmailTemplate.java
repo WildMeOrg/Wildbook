@@ -34,6 +34,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 
 /**
@@ -55,7 +56,7 @@ public final class EmailTemplate {
   /** SLF4J logger instance for writing log entries. */
   private static final Logger log = LoggerFactory.getLogger(EmailTemplate.class);
   /** Default character set encoding for email body texts. */
-  private static final Charset DEFAULT_CHARSET = Charset.forName("ISO-8859-1");
+  private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
   /** Template for message subject. */
   private TemplateFiller subj;
   /** Template for plain text message body. */
@@ -103,6 +104,7 @@ public final class EmailTemplate {
   public EmailTemplate(String subj, File plain, File html, Charset csP, Charset csH, String host, int port, boolean useSSL) throws IOException {
     this.subj = new TemplateFiller(subj);
     this.plainBody = new TemplateFiller(plain);
+    this.plainBody.setText(StringEscapeUtils.unescapeHtml4(this.plainBody.getText()));
     if (html != null)
       this.htmlBody = new TemplateFiller(html);
     this.charsetPlain = csP;
@@ -128,6 +130,7 @@ public final class EmailTemplate {
   public EmailTemplate(String subj, File plain, File html) throws IOException {
     this.subj = new TemplateFiller(subj);
     this.plainBody = new TemplateFiller(plain);
+    this.plainBody.setText(StringEscapeUtils.unescapeHtml4(this.plainBody.getText()));
     if (html != null)
       this.htmlBody = new TemplateFiller(html);
   }
@@ -153,6 +156,7 @@ public final class EmailTemplate {
   public EmailTemplate(String subject, String body, Charset cs) {
     this.subj = new TemplateFiller(subject);
     this.plainBody = new TemplateFiller(body);
+    this.plainBody.setText(StringEscapeUtils.unescapeHtml4(this.plainBody.getText()));
     charsetPlain = cs;
   }
 
@@ -217,6 +221,8 @@ public final class EmailTemplate {
   public void replaceRegex(String search, String replace, int flags, boolean all) {
     subj.replaceRegex(search, replace, all);
     plainBody.replaceRegex(search, replace, all);
+    plainBody.setText(StringEscapeUtils.unescapeHtml4(this.plainBody.getText()));
+    
     if (htmlBody != null)
       htmlBody.replaceRegex(search, replace, all);
   }
@@ -287,6 +293,8 @@ public final class EmailTemplate {
    */
   public void replaceRegexInPlainText(String search, String replace, boolean all) {
     plainBody.replaceRegex(search, replace, all);
+    plainBody.setText(StringEscapeUtils.unescapeHtml4(plainBody.getText()));
+    
   }
 
   /**
@@ -549,10 +557,17 @@ public final class EmailTemplate {
    * @return number of successful messages sent
    */
   public boolean sendSingle(String from, Collection<String> to, Collection<String> cc, Collection<String> bcc, boolean html) {
+    //if from is missing, nothing to do here
     if (from == null || "".equals(from.trim()))
-      throw new IllegalArgumentException();
-    if (to == null || to.isEmpty())
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("from is null!");
+    //if to is missing, nothing to do here
+    if (to == null)
+      throw new IllegalArgumentException("to is null!");
+    //if to is empty, well there could be reasons for that and let's just exit quietly
+    if(to.isEmpty()) {
+      System.out.println("I was told to send emails but the to: list was empty.");
+      return false;
+    }
     ByteArrayOutputStream debugOS = null;
     PrintStream debugPS = null;
     try {

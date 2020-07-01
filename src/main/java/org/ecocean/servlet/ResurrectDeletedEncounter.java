@@ -19,6 +19,7 @@
 
 package org.ecocean.servlet;
 
+import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -30,6 +31,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 //import com.poet.jdo.*;
 
@@ -97,14 +100,38 @@ public class ResurrectDeletedEncounter extends HttpServlet {
 
           Encounter restoreMe = (Encounter) obj_in.readObject();
           restoreMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Restored this encounter after accidental deletion.");
+          
+          //restore annotations only if they're missing
+          List<Annotation> annots=restoreMe.getAnnotations();
+          int numAnnots=annots.size();
+          
+          ArrayList<Annotation> addThese=new ArrayList<Annotation>();
+          
+          for(int i=0;i<numAnnots;i++){
+            Annotation a=annots.get(i);
+            String uuid=a.getUUID();
+            Annotation annot=myShepherd.getAnnotation(uuid);
+            if(annot!=null){addThese.add(annot);}
+          }
+          restoreMe.setAnnotations(null);
+          
           String newnum = myShepherd.storeNewEncounter(restoreMe, (request.getParameter("number")));
           //thisEncounterDat.delete();
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+          restoreMe.setAnnotations(addThese);
+          myShepherd.commitDBTransaction();
+          
 
-        } catch (Exception eres) {
+        } 
+        catch (Exception eres) {
           locked = true;
           myShepherd.rollbackDBTransaction();
-          myShepherd.closeDBTransaction();
+
           eres.printStackTrace();
+        }
+        finally{
+          myShepherd.closeDBTransaction();
         }
 
 
@@ -117,7 +144,8 @@ public class ResurrectDeletedEncounter extends HttpServlet {
           out.println(ServletUtilities.getFooter(context));
           //String message="The matched by type for encounter "+encounterNumber+" was changed from "+prevMatchedBy+" to "+matchedBy+".";
           //informInterestedParties(encounterNumber, message);
-        } else {
+        } 
+        else {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure!</strong> This encounter cannot be restored due to an unknown error. Please contact the webmaster.");
@@ -127,7 +155,8 @@ public class ResurrectDeletedEncounter extends HttpServlet {
 
         }
 
-      } else {
+      } 
+      else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> I could not find the DAT file to restore this encounter from.");
 
@@ -136,7 +165,8 @@ public class ResurrectDeletedEncounter extends HttpServlet {
 
       }
 
-    } else {
+    } 
+    else {
 
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to resurrect the encounter because I did not know which encounter you were referring to, or this encounter still exists in the database!");

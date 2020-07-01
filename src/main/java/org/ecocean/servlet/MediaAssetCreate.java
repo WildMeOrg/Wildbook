@@ -20,6 +20,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.ia.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.ecocean.media.*;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.net.URL;
@@ -89,6 +91,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
 ....
             ]
         },
+    "skipIA": false,  //default is do-not-skipIA, but you may want off when done later (e.g. match.jsp which does in CreateEncounter)
 .... (other types) ...
     ]
 
@@ -126,6 +129,31 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         finally{
           myShepherd.closeDBTransaction();
         }
+
+        //this has to be after commit (so queue can find them from different thread), so we do a little work here
+        if (!j.optBoolean("skipIA", false)) {
+            JSONArray ids = res.optJSONArray("allMediaAssetIds");
+            if ((ids != null) && (ids.length() > 0)) {
+                myShepherd = new Shepherd(context);
+                myShepherd.setAction("MediaAssetCreate.class_IA.intake");
+                myShepherd.beginDBTransaction();
+                List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+                for (int i = 0 ; i < ids.length() ; i++) {
+                    int id = ids.optInt(i, -1);
+                    if (id < 0) continue;
+                    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                    if (ma != null) allMAs.add(ma);
+                }
+                if (allMAs.size() > 0) {
+                    Task task = IA.intakeMediaAssets(myShepherd, allMAs);
+                    myShepherd.storeNewTask(task);
+                    res.put("IATaskId", task.getId());
+                }
+                myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
+            }
+        }
+
         out.println(res.toString());
         out.close();
     }
@@ -266,6 +294,7 @@ System.out.println(i + ") params -> " + params.toString());
          update:  errrr, maybe not.  i think we *must* grab "real" (exif) metadata so we can get (primarily) date/time for image. :/
          but probably still could be done in the background....
 */
+                    targetMA.validateSourceImage();
                     targetMA.updateMetadata();
                     targetMA.addLabel("_original");
                     targetMA.setAccessControl(request);
@@ -284,6 +313,7 @@ System.out.println("no MediaAssetSet; created " + targetMA);
         }
 
         JSONObject js = new JSONObject();
+        JSONArray allMAIds = new JSONArray();
         for (MediaAssetSet s : sets.values()) {
             JSONArray jmas = new JSONArray();
             if ((s.getMediaAssets() != null) && (s.getMediaAssets().size() > 0)) {
@@ -297,6 +327,7 @@ System.out.println("no MediaAssetSet; created " + targetMA);
                     jma.put("_debug", ma.toString());
                     jma.put("_params", ma.getParameters().toString());
                     jmas.put(jma);
+                    allMAIds.put(ma.getId());
                 }
             }
             if (jmas.length() > 0) js.put(s.getId(), jmas);
@@ -318,10 +349,12 @@ System.out.println("no MediaAssetSet; created " + targetMA);
                 jma.put("_debug", ma.toString());
                 jma.put("_params", ma.getParameters().toString());
                 jmas.put(jma);
+                allMAIds.put(ma.getId());
             }
             rtn.put("withoutSet", jmas);
         }
 
+        rtn.put("allMediaAssetIds", allMAIds);
         rtn.put("success", true);
         return rtn;
     }

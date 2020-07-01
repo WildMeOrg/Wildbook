@@ -25,19 +25,24 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 public class Keyword {
 
   //the primary key of the keyword
-  private String indexname;
+  protected String indexname;
 
   //the visible descriptor of the keyword
-  private String readableName;
+  protected String readableName;
 
   //a Vector of String relative paths to the photo file that the keyword applies to
   public Vector photos;
+
+  // hackey! used to remove zombie Keywords. Probs not worth merging to master but we will need to do this cleanup
+  // on Flukebook.
+  private boolean isUsed=false;
 
   /**
    * empty constructor required by JDO Enhancer
    */
   public Keyword() {
   }
+
 
 
   //use this constructor for new keywords
@@ -57,8 +62,16 @@ public class Keyword {
     }
   }
 */
+  public boolean getIsUsed() {return isUsed;}
+  public void setIsUsed(boolean isUsed) {this.isUsed=isUsed;}
+
   public String getReadableName() {
     return readableName;
+  }
+
+  // This method is overwritten by inheriting classes like LabeledKeyword
+  public String getDisplayName() {
+    return getReadableName();
   }
 
   public void setReadableName(String name) {
@@ -86,6 +99,11 @@ public class Keyword {
       }
     }
     return false;
+  }
+
+  // convenience method for removing duplicate keywords
+  public boolean isDuplicateOf(Keyword kw) {
+    return (this.readableName.equals(kw.getReadableName()) && !this.indexname.equals(kw.getIndexname()));
   }
 
 
@@ -116,6 +134,10 @@ public class Keyword {
                 .append(indexname)
                 .append(readableName)
                 .toString();
+    }
+
+    public boolean isLabeledKeyword() {
+      return false;
     }
 
 }

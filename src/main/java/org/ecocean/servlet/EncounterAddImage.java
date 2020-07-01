@@ -148,6 +148,7 @@ public class EncounterAddImage extends HttpServlet {
         if (!locked) {
           myShepherd.commitDBTransaction();
           myShepherd.closeDBTransaction();
+          response.setStatus(HttpServletResponse.SC_OK);
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success!</strong> I have successfully uploaded your new encounter image file.");
           if (positionInList == 1) {
@@ -157,32 +158,40 @@ public class EncounterAddImage extends HttpServlet {
           out.println(ServletUtilities.getFooter(context));
           String message = "An additional image file has been uploaded for encounter #" + encounterNumber + ".";
           ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
-        } else {
+        } 
+        else {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to add this image again.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
         }
-      } else {
+      } 
+      else {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to upload your image file. I cannot find the encounter that you intended it for in the database.");
         out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
       }
-    } catch (IOException lEx) {
+    } 
+    catch (IOException lEx) {
       lEx.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to upload your image file. Please contact the web master about this message.");
       out.println(ServletUtilities.getFooter(context));
-    } catch (NullPointerException npe) {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    } 
+    catch (NullPointerException npe) {
       npe.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to upload an image as no file was specified.");
       out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
     out.close();
   }

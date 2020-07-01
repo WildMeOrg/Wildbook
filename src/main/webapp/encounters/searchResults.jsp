@@ -1,5 +1,22 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager " %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, 
+         org.ecocean.servlet.ServletUtilities, java.io.File, 
+         java.io.FileOutputStream, java.io.OutputStreamWriter, 
+         java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, 
+         org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, 
+         org.datanucleus.api.jdo.JDOPersistenceManager,
+         java.nio.charset.StandardCharsets,
+         java.net.URLEncoder " %>
+
+
+<%!
+
+String dispToString(Integer i) {
+	if (i==null) return "";
+	return i.toString();
+}
+
+%>
 
 
 <%
@@ -22,7 +39,6 @@ context=ServletUtilities.getContext(request);
 
 
 
-  int numResults = 0;
 
 
   //Vector rEncounters = new Vector();
@@ -37,9 +53,9 @@ context=ServletUtilities.getContext(request);
 
 //--let's estimate the number of results that might be unique
 
-  int numUniqueEncounters = 0;
-  int numUnidentifiedEncounters = 0;
-  int numDuplicateEncounters = 0;
+  Integer numUniqueEncounters = null;
+  Integer numUnidentifiedEncounters = null;
+  Integer numDuplicateEncounters = null;
 
 %>
 
@@ -206,8 +222,6 @@ td.tdw:hover div {
 
 <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="../javascript/tablesorter/jquery.tablesorter.js"></script>
-
 <script src="../javascript/underscore-min.js"></script>
 <script src="../javascript/backbone-min.js"></script>
 <script src="../javascript/core.js"></script>
@@ -226,25 +240,32 @@ td.tdw:hover div {
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
 
+<% 
+
+String queryString="";
+if(request.getQueryString()!=null){queryString=request.getQueryString();}
+
+%>
+
 
 <ul id="tabmenu">
 
   <li><a class="active"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=encprops.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=queryString %>"><%=encprops.getProperty("export")%>
    </a></li>
 
 </ul>
@@ -265,34 +286,25 @@ td.tdw:hover div {
 <script type="text/javascript">
 
 	var needIAStatus = false;
+
 /*
-
-
 
     <strong><%=encprops.getProperty("markedIndividual")%>
     <strong><%=encprops.getProperty("number")%>
-  if (CommonConfiguration.showProperty("showTaxonomy",context)) {
-    <strong><%=encprops.getProperty("taxonomy")%>
-    <strong><%=encprops.getProperty("submitterName")%>
-    <strong><%=encprops.getProperty("date")%>
-    <strong><%=encprops.getProperty("location")%>
-    <strong><%=encprops.getProperty("locationID")%>
-    <strong><%=encprops.getProperty("occurrenceID")%>
+    if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
+    	
+	    <strong><%=encprops.getProperty("taxonomy")%>
+	    <strong><%=encprops.getProperty("submitterName")%>
+	    <strong><%=encprops.getProperty("date")%>
+	    <strong><%=encprops.getProperty("location")%>
+	    <strong><%=encprops.getProperty("locationID")%>
+	    <strong><%=encprops.getProperty("occurrenceID")%>
 */
+
 
 <%
 	String encsJson = "false";
-/*
-	JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-	if (rEncounters instanceof Collection) {
-		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, jdopm.getExecutionContext());
-		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, ((JDOPersistenceManager)pm).getExecutionContext());
-		encsJson = jsonobj.toString();
-	} else {
-		JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(rEncounters, jdopm.getExecutionContext());
-		encsJson = jsonobj.toString();
-	}
-*/
+
 
 StringBuffer prettyPrint=new StringBuffer("");
 
@@ -306,25 +318,7 @@ String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, p
 
 var searchResults = <%=encsJson%>;
 
-var jdoql = '<%= filter.replaceAll("'", "\\\\'") %>';
-
-var testColumns = {
-	thumb: { label: 'Thumb', val: _colThumb },
-	individualID: { label: 'ID', val: _colIndLink },
-	date: { label: 'Date', val: _colEncDate },
-	verbatimLocality: { label: 'Location' },
-	locationID: { label: 'Location ID' },
-	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
-	submitterID: { label: 'Submitter' },
-	creationDate: { label: 'Created', val: _colCreationDate },
-	modified: { label: 'Edit Date', val: _colModified },
-};
-
-
-
-
-
-
+var jdoql = '<%= URLEncoder.encode(filter,StandardCharsets.UTF_8.toString()) %>';
 
 $(document).keydown(function(k) {
 	if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
@@ -336,27 +330,22 @@ $(document).keydown(function(k) {
 
 
 var colDefn = [
-// {
-// key: 'thumb',
-// label: 'Thumb',
-// value: _colThumb,
-// nosort: true,
-// },
+
 	{
 		key: 'individualID',
-		label: 'ID',
+		label: '<%=encprops.getProperty("ID")%>',
 		value: _colIndLink,
-		//sortValue: function(o) { return o.individualID.toLowerCase(); },
+		sortValue: function(o) { return o.get("displayName"); },
+	},
+	{
+		key: 'occurrenceID',
+		label: '<%=encprops.getProperty("sightingID")%>',
+		value: _occurrenceID,
 	},
   {
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
   },
- // {
- //   key: 'filename',
- //   label: 'Filename(s)',
- //   value: _colFileName,
- // },
 	{
 		key: 'date',
 		label: '<%=encprops.getProperty("date")%>',
@@ -364,13 +353,14 @@ var colDefn = [
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
-	{
-		key: 'verbatimLocality',
-		label: '<%=encprops.getProperty("location")%>',
-	},
+	// {
+	// 	key: 'verbatimLocality',
+	// 	label: '<%=encprops.getProperty("location")%>',
+	// },
 	{
 		key: 'locationID',
 		label: '<%=encprops.getProperty("locationID")%>',
+		value: _notUndefined('locationID'),
 	},
 // {
 // key: 'taxonomy',
@@ -380,16 +370,17 @@ var colDefn = [
 	{
 		key: 'submitterID',
 		label: '<%=encprops.getProperty("submitterName")%>',
+		value: _notUndefined('submitterID'),
 	},
 	{
 		key: 'creationDate',
-		label: 'Created',
+		label: '<%=encprops.getProperty("created")%>',
 		value: _colCreationDate,
 		sortValue: _colCreationDateSort,
 	},
 	{
 		key: 'modified',
-		label: 'Edit Date',
+		label: '<%=encprops.getProperty("editDate")%>',
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
@@ -401,8 +392,8 @@ var howMany = 10;
 var start = 0;
 var results = [];
 
-var sortCol = -1;
-var sortReverse = false;
+var sortCol = 7;
+var sortReverse = true;
 
 var counts = {
 	total: 0,
@@ -463,7 +454,7 @@ function doTable() {
 		data: searchResults,
 		perPage: howMany,
 		sliderElement: $('#results-slider'),
-		columns: colDefn,
+		columns: colDefn
 	});
 
 	$('#results-table').addClass('tablesorter').addClass('pageableTable');
@@ -495,7 +486,7 @@ function doTable() {
 	sTable.initValues();
 
 
-	newSlice(sortCol);
+	newSlice(sortCol, sortReverse);
 
 	$('#progress').hide();
 	sTable.sliderInit();
@@ -592,9 +583,9 @@ function show() {
 	$('#results-table td').html('');
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
-		var private = searchResults[results[i]].get('_sanitized') || false;
+		var privateResults = searchResults[results[i]].get('_sanitized') || false;
 		var title = 'Encounter ' + searchResults[results[i]].id;
-		if (private) {
+		if (privateResults) {
 			title += ' [private]';
 			$($('#results-table tbody tr')[i]).addClass('collab-private');
 		} else {
@@ -629,7 +620,7 @@ function computeCounts() {
 
 	for (var i = 0 ; i < counts.total ; i++) {
 		var iid = searchResults[sTable.matchesFilter[i]].get('individualID');
-		if (iid == 'Unassigned') {
+		if (!iid) {
 			counts.unid++;
 		} else {
 			var k = iid + ':' + searchResults[sTable.matchesFilter[i]].get('year') + ':' + searchResults[sTable.matchesFilter[i]].get('month') + ':' + searchResults[sTable.matchesFilter[i]].get('day');
@@ -713,6 +704,8 @@ $(document).ready( function() {
 				return xhr;
 			},
 */
+			fetch: "searchResults",
+			noDecorate: true,
 			jdoql: jdoql,
 			success: function() { searchResults = encs.models; doTable(); },
 		});
@@ -724,6 +717,23 @@ function fetchProgress(ev) {
 	if (!ev.lengthComputable) return;
 	var percent = ev.loaded / ev.total;
 console.info(percent);
+}
+
+// a functor!
+function _notUndefined(fieldName) {
+  function _helperFunc(o) {	
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
+  }
+  return _helperFunc;
+}
+// non-functor version!
+function _notUndefinedValue(obj, fieldName) {
+  function _helperFunc(o) {	
+    if (!o.get(fieldName)) return '';
+    return o.get(fieldName);
+  }
+  return _helperFunc(obj);
 }
 
 
@@ -759,8 +769,15 @@ function _colNumberLocations(o) {
 
 
 function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
-	return o.get('genus') + ' ' + o.get('specificEpithet');
+	var genus = _notUndefinedValue(o, 'genus');
+	var species = _notUndefinedValue(o, 'specificEpithet');
+	//console.log('colTaxonomy got genus '+genus+' and species '+species+' for object '+JSON.stringify(o));
+	return genus+' '+species;
+}
+
+function _occurrenceID(o) {
+	if (!o.get('occurrenceID')) return '';
+	return o.get('occurrenceID');
 }
 
 
@@ -785,6 +802,12 @@ function _colModified(o) {
 	return d.toLocaleDateString();
 }
 
+function _submitterID(o) {
+	if (o['submitterID']      != undefined) return o['submitterID'];
+	if (o['submitterProject'] != undefined) return o['submitterProject'];
+	if (o['submitterName']    != undefined) return o['submitterName'];
+	return '';
+}
 
 function _textExtraction(n) {
 	var s = $(n).text();
@@ -802,7 +825,7 @@ var tableContents = document.createDocumentFragment();
 
 function xdoTable() {
 	resultsTable = new pageableTable({
-		columns: testColumns,
+		columns: colDefn,
 		tableElement: $('#results-table'),
 		sliderElement: $('#results-slider'),
 		tablesorterOpts: {
@@ -857,7 +880,7 @@ function _colIndLink(o) {
 	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
 //
 //
-	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
+	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + o.get("displayName") + '</a>';
 }
 
 
@@ -893,16 +916,17 @@ function _colEncDateSort(o) {
 //	return d.getTime();
 //}
 
-function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
-	return o.get('genus') + ' ' + o.get('specificEpithet');
-}
 
 function _colFileName(o) {
   if (!o.get('annotations')) return 'none';
   var outStrings = [];
   for (id in o.get('annotations')) {
     var ann = o.get('annotations')[id];
+    //note: assuming 0th feature "may be bad" ?   TODO
+    if (ann.features && ann.features.length && ann.features[0].mediaAsset && ann.features[0].mediaAsset.filename) {
+      outStrings.push(ann.features[0].mediaAsset.filename);
+    }
+/*
     if (ann.mediaAsset != undefined) {
       var urlString = ann.mediaAsset.url;
       var pieces = urlString.split('/');
@@ -911,6 +935,7 @@ function _colFileName(o) {
       //console.log('\t added url string: '+ann.mediaAsset.url);
     }
     console.log('\t no mediaAsset found in annotation '+JSON.stringify(ann));
+*/
   }
   return outStrings.join(',\n');
 }
@@ -968,7 +993,7 @@ function _colIA(o) {
 
 function _colAnnIASummary(annId, sum) {
 	console.log('%s ------> %o', annId, sum);
-	var mostRecent = 0;
+		var mostRecent = 0;
 	var mostRecentTaskId = false;
 	var flav = ['success-match', 'success-miss', 'pending', 'error', 'unknown'];
 	var r = {};
@@ -1106,11 +1131,11 @@ function _colCreationDate(o) {
 }
 
 function _colCreationDateSort(o) {
-	var m = o.get('dwcDateAdded');
+	var m = o.get('dwcDateAddedLong');
 	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) return 0;
-	return d.getTime();
+	//var d = wildbook.parseDate(m);
+	//if (!wildbook.isValidDate(d)) return 0;
+	return m;
 }
 
 
@@ -1137,9 +1162,9 @@ console.log(t);
 </script>
 
 <p class="table-filter-text">
-<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="filter" />
-<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<input placeholder="<%=encprops.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="<%=encprops.getProperty("filter") %>" />
+<input type="button" value="<%=encprops.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 <div class="pageableTable-wrapper">
@@ -1159,9 +1184,9 @@ console.log(t);
           if (request.getUserPrincipal()!=null) {
         %>
         <br/>
-        <span id="count-ided"><%=numUniqueEncounters%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
-        <span id="count-unid"><%=numUnidentifiedEncounters%></span> <%=encprops.getProperty("unidentified")%><br/>
-        <span id="count-dailydup"><%=(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
+        <span id="count-ided"><%=dispToString(numUniqueEncounters)%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
+        <span id="count-unid"><%=dispToString(numUnidentifiedEncounters)%></span> <%=encprops.getProperty("unidentified")%><br/>
+        <span id="count-dailydup"><%=dispToString(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
         <%
           }
         %>
@@ -1197,10 +1222,7 @@ console.log(t);
     </td>
   </tr>
 </table>
-
-
-</p>
-
+</div>
 
 <%
   }
@@ -1212,5 +1234,7 @@ console.log(t);
   //rEncounters = null;
 
 %>
-</div>
+
+
+
 <jsp:include page="../footer.jsp" flush="true"/>

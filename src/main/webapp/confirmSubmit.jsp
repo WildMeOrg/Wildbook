@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.Dimension, java.io.File, java.util.*, java.util.concurrent.ThreadPoolExecutor, javax.servlet.http.HttpSession" %>
+         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.Dimension, java.io.File, java.util.*, java.util.List, java.util.concurrent.ThreadPoolExecutor, javax.servlet.http.HttpSession" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 <jsp:include page="header.jsp" flush="true"/>
@@ -67,7 +67,7 @@
   String addText = "";
   boolean hasImages = true;
   String submitter = "";
-  String informOthers = "";
+  List<User> informOthers = new ArrayList<User>()  ;
   String informMe = "";
   String rootDir = getServletContext().getRealPath("/");
   String baseDir = ServletUtilities.dataDir(context, rootDir);
@@ -119,7 +119,7 @@
         emailPhoto = true;
       }
 
-      if ((enc.getInformOthers() != null) && (!enc.getInformOthers().equals(""))) {
+      if ((enc.getInformOthers() != null) && (enc.getInformOthers().size()<1)) {
         informOthers = enc.getInformOthers();
       }
 
@@ -507,7 +507,10 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   // Email submitter and photographer
   if (submitter != null) {
     List<String> cOther = NotificationMailer.splitEmails(submitter);
+    
     for (String emailTo : cOther) {
+    //for (User emailU : submitter) {
+      //String emailTo = emailU.getEmailAddress();
       String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
       tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
       NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
@@ -517,7 +520,10 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   }
   if (emailPhoto && photographer != null) {
     List<String> cOther = NotificationMailer.splitEmails(photographer);
+
     for (String emailTo : cOther) {
+    //for (User emailU : photographer) {
+      //String emailTo = emailU.getEmailAddress();
       String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
       tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
       NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);
@@ -528,8 +534,11 @@ if(CommonConfiguration.sendEmailNotifications(context)){
 
   // Email interested others
   if (informOthers != null) {
-    List<String> cOther = NotificationMailer.splitEmails(informOthers);
-    for (String emailTo : cOther) {
+    //List<String> cOther = NotificationMailer.splitEmails(informOthers);
+
+    //for (String emailTo : cOther) {
+    for (User emailU : informOthers) {
+      String emailTo = emailU.getEmailAddress();
       String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
       tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
       NotificationMailer mailer=new NotificationMailer(context, null, emailTo, "newSubmission", tagMap);

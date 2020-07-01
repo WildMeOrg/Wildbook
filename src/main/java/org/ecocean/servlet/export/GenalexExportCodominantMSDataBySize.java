@@ -7,7 +7,7 @@ import java.util.*;
 
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
-import org.springframework.mock.web.MockHttpServletRequest;
+//import org.springframework.mock.web.MockHttpServletRequest;
 
 import jxl.write.*;
 import jxl.Workbook;
@@ -73,7 +73,7 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
 
       //start the query and get the results
       String order = "";
-      HttpServletRequest request1=(MockHttpServletRequest)request.getSession().getAttribute("locationSearch1");
+      HttpServletRequest request1=(HttpServletRequest)request.getSession().getAttribute("locationSearch1");
     
       if((request!=null)&&(request1!=null)){
     

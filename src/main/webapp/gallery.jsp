@@ -1,7 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
-	      org.ecocean.media.MediaAsset,
+	            org.ecocean.media.MediaAsset,
+              org.ecocean.security.HiddenIndividualReporter,
               java.util.ArrayList,
               java.util.List,
               java.util.Map,
@@ -49,7 +50,7 @@ if(request.getParameter("locationCodeField")!=null){
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
 
-int numIndividualsOnPage=18;
+int numIndividualsOnPage=10;
 
 int startNum = 0;
 int endNum = numIndividualsOnPage;
@@ -93,53 +94,48 @@ int numResults = 0;
 
 
 Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
-
-
-myShepherd.beginDBTransaction();
-Iterator<MarkedIndividual> indys = myShepherd.getAllMarkedIndividuals();
-while (indys.hasNext()) {
-  MarkedIndividual indy = indys.next();
-  indy.refreshDateLatestSighting();
-  myShepherd.commitDBTransaction();
   myShepherd.beginDBTransaction();
-  System.out.println("Indy: "+indy.getIndividualID()+"  Has LatestSighting time: "+indy.getDateLatestSighting());
-}
-
-int count = myShepherd.getNumAdoptions();
-int allSharks = myShepherd.getNumMarkedIndividuals();
-int countAdoptable = allSharks - count;
-
-
-if(request.getParameter("adoptableSharks")!=null){
-	//get current time minus two years
-	Long twoYears=new Long("63072000000");
-	long currentDate=System.currentTimeMillis()-twoYears.longValue();
-    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (enc.dateInMilliseconds >= "+currentDate+") && ((nickName == null)||(nickName == '')) VARIABLES org.ecocean.Encounter enc";
-    Query query=myShepherd.getPM().newQuery(filter);
-    query.setOrdering("numberEncounters descending");
-    query.setRange(startNum, endNum);
-    Collection c = (Collection) (query.execute());
-	rIndividuals=new Vector<MarkedIndividual>(c);
-    query.closeAll();
-    if(rIndividuals==null){rIndividuals=new Vector<MarkedIndividual>();}
-} else {
-	String order ="nickName ASC NULLS LAST";
-
-	request.setAttribute("rangeStart", startNum);
-	request.setAttribute("rangeEnd", endNum);
-	MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
-
-	rIndividuals = result.getResult();
-
-	//handle any null errors better
-	if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
-}
-
-
-
-if (rIndividuals.size() < listNum) {
-  listNum = rIndividuals.size();
-}
+    
+    int count = myShepherd.getNumAdoptions();
+    int allSharks = myShepherd.getNumMarkedIndividuals();
+    int countAdoptable = allSharks - count;
+    
+    if(request.getParameter("adoptableSharks")!=null){
+      //get current time minus two years
+      Long twoYears=new Long("63072000000");
+      long currentDate=System.currentTimeMillis()-twoYears.longValue();
+        String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE names.valuesAsString.toLowerCase().indexOf(\"nickname\") == -1";
+        Query query=myShepherd.getPM().newQuery(filter);
+        query.setOrdering("numberEncounters descending");
+        query.setRange(startNum, endNum);
+        Collection c = (Collection) (query.execute());
+      rIndividuals=new Vector<MarkedIndividual>(c);
+        query.closeAll();
+        if(rIndividuals==null){rIndividuals=new Vector<MarkedIndividual>();}
+    }
+    else{
+      String order ="nickName ASC NULLS LAST";
+    
+      request.setAttribute("rangeStart", startNum);
+      request.setAttribute("rangeEnd", endNum);
+      MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+    
+      rIndividuals = result.getResult();
+    
+      //handle any null errors better
+      if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
+    
+    }
+    
+    // security
+    if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
+      HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
+      rIndividuals = hiddenData.viewableResults(rIndividuals, myShepherd);
+    }
+    
+    if (rIndividuals.size() < listNum) {
+      listNum = rIndividuals.size();
+    }
 
 %>
 
@@ -403,7 +399,7 @@ int numDataContributors=0;
               }
             }
           }
-          ArrayList<JSONObject> al = indie.getExemplarImages(request);
+          ArrayList<JSONObject> al = indie.getExemplarImages(myShepherd, request);
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
@@ -461,7 +457,7 @@ int numDataContributors=0;
               </div>
               <%
               // display=none copies of the above for each additional image
-              ArrayList<JSONObject> al = pair[j].getExemplarImages(request);
+              ArrayList<JSONObject> al = pair[j].getExemplarImages(myShepherd, request);
               for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
                 JSONObject newMaJson = new JSONObject();
                 newMaJson = al.get(extraImgNo);

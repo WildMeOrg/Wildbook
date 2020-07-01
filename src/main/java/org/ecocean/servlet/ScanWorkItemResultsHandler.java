@@ -178,7 +178,7 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
         //ScanTask st=myShepherd.getScanTask(scanTaskID);
         
         //if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
-        if ((numComplete > 0) && (gm.getScanTaskSize(scanTaskID)!=null) && (numComplete >= gm.getScanTaskSize(scanTaskID).intValue())) {
+        if ((numComplete > 0)  && (gm.getNumWorkItemsIncompleteForTask(scanTaskID)==0)) {
           
           
           
@@ -187,10 +187,17 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
             Shepherd myShepherd=new Shepherd(context);
             myShepherd.setAction("ScanWorkItemResultsHandler.class");
             myShepherd.beginDBTransaction();
-            ScanTask st=myShepherd.getScanTask(scanTaskID);
-            if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
+            try{
+              ScanTask st=myShepherd.getScanTask(scanTaskID);
+              if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
+            }
+            catch(Exception e){
+              e.printStackTrace();
+            }
+            finally{
+              myShepherd.rollbackDBTransaction();
+              myShepherd.closeDBTransaction();
+            }
             //tasksCompleted.add(scanTaskID);
           //}
           
@@ -266,7 +273,7 @@ private void finishScanTask(String scanTaskID, HttpServletRequest request) {
     try {
       
       
-      u = new URL(request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/"+CommonConfiguration.getProperty("patternMatchingEndPointServletName", ServletUtilities.getContext(request)));
+      u = new URL("https://"+CommonConfiguration.getURLLocation(request)+"/"+CommonConfiguration.getProperty("patternMatchingEndPointServletName", ServletUtilities.getContext(request)));
       String urlParameters  = "number=" + scanTaskID;
       byte[] postData       = urlParameters.getBytes( Charset.forName( "UTF-8" ));
       int    postDataLength = postData.length;

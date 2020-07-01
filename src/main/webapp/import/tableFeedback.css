@@ -1,0 +1,105 @@
+
+div.tableFeedbackWrapper {
+	border: solid 1px;
+  overflow: scroll; /* Scrollbar are always visible */
+}
+
+table.tableFeedback, table.tableFeedback tr, table.tableFeedback tr th {
+  overflow: visible;
+}
+table.tableFeedback {
+  background-color: #fff; /* so transparent colors on the table look good */
+  max-height: 70%;
+  min-height: 69%;
+}
+
+tr.header-row th:last-child {
+  width: 300px;
+}
+
+div.tableFeedbackWrapper td {
+  border: 1px solid #ccc;  
+  padding: 0.25em;
+  text-align: right;
+}
+
+div.tableFeedbackWrapper th {
+  color: #fff;
+}
+
+.tableFeedbackColumnHeader {
+  color: black;
+  text-decoration-color: black;
+  text-decoration: underline;
+  font-family: sans-serif;
+}
+
+/* Rotate table headers */
+th.rotate {
+  /* Something you can count on */
+  height: 220px;
+  white-space: nowrap;
+}
+
+th.rotate > div {
+  transform: 
+  /* Magic Numbers */
+  translate(20px, 90px)
+  rotate(-45deg);
+  width: 30px;
+}
+
+th.rotate > div > span {
+  border-top: 1px solid #fff;
+  padding: 3px 300px 0px 25px;
+  margin: 3px 0px 0px -26px;
+}
+th.rotate > div {
+  line-height: 200px;
+}
+
+td.cellFeedback:hover {
+  border: 1px solid black;
+  cursor: cell;
+}
+  
+td.cellFeedback.success, .importFieldSuccess {
+  background-color: rgba(0, 255, 0, 0.4); /* found green for cells with values and success retrieving them */
+}
+
+td.cellFeedback.error, .importFieldError {
+  background-color: rgba(255, 0, 0, 0.4); /* exception parsing */
+}
+
+td.cellFeedback.blank, .importFieldBlank {
+  background-color: rgba(102,204,255,0.4);    /* blue - fully processed but empty */
+}
+
+td.cellFeedback.null, .importFieldNull {
+  background-color: rgba(255, 200, 0, 0.4); /* yellow... can be okay but not preffered state for 'empty' */
+}
+
+.importFieldBlank, .importFieldError, .importFieldNull, .importFieldSuccess {
+  height: 20px;
+  width: 20px;
+  margin: 3px;
+  display: block;
+}
+
+  /*
+.boxed-list {
+  height: 500rem;
+  width: auto;
+  overflow: hidden;
+  overflow-y: scroll;
+  overflow-x: scroll;
+}
+  */
+
+.import-commiting {
+  color: darkred;
+}
+
+/* .tableTopScrollbar {
+
+} */

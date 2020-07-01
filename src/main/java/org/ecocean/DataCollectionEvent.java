@@ -20,7 +20,8 @@
 package org.ecocean;
 
 import javax.servlet.http.HttpServletRequest;
-
+import java.util.ArrayList;
+import java.util.List;
 /**
  *
  *
@@ -61,7 +62,7 @@ private String institutionCode;
 private String collectionCode;
 private String datasetName;
 
-
+private List<Observation> observations = new ArrayList<>();
 /*
  * Empty constructor required for JDO persistence
  *
@@ -93,6 +94,7 @@ public DataCollectionEvent(String correspondingEncounterNumber, String type, Htt
 }
 
 public String getCorrespondingEncounterNumber(){return correspondingEncounterNumber;}
+
 public void setCorrespondingEncounterNumber(String encounterNumber){
   if(encounterNumber!=null){
     this.correspondingEncounterNumber=encounterNumber;
@@ -100,6 +102,46 @@ public void setCorrespondingEncounterNumber(String encounterNumber){
   else{
     this.correspondingEncounterNumber=null;
   }
+}
+
+public String getCorrespondingOccurrenceNumber(){return correspondingEncounterNumber;}
+
+public void setCorrespondingOccurrenceNumber(String occurrenceNumber){
+  setCorrespondingEncounterNumber(occurrenceNumber);
+}
+
+public void addObservationArrayList(ArrayList<Observation> arr) {
+  if (observations.isEmpty()) {
+    observations=arr;
+  } else {
+   observations.addAll(arr);
+  }
+}
+public void addObservation(Observation obs) {
+  observations.add(obs);
+}
+public Observation getObservationByName(String obName) {
+  System.out.println("Here with "+obName);
+  if (observations != null && observations.size() > 0) {
+    System.out.println("Not null and has > 0...");
+    for (Observation ob : observations) {
+      System.out.println("Matching observation and string? Name : "+ob.getName()+" Value: "+ob.getValue());
+      if (ob.getName() != null && ob.getName().equals(obName)) {
+        return ob;
+      }
+    }
+  }
+  return null;
+}
+public Observation getObservationByID(String obId) {
+  if (observations != null && observations.size() > 0) {
+    for (Observation ob : observations) {
+      if (ob.getID() != null && ob.getID().equals(obId)) {
+        return ob;
+      }
+    }
+  }
+  return null;
 }
 
 public String getDataCollectionEventID(){return dataCollectionEventID;}
@@ -177,7 +219,7 @@ public String getHTMLString(){
   if((this.getFieldNumber()!=null)&&(!this.getFieldNumber().equals(""))){paramValues+="     Field number: "+this.getFieldNumber()+"<br />";}
   if((this.getInstitutionCode()!=null)&&(!this.getInstitutionCode().equals(""))){paramValues+="     Institution code: "+this.getInstitutionCode()+"<br />";}
   if((this.getInstitutionID()!=null)&&(!this.getInstitutionID().equals(""))){paramValues+="     Institution ID: "+this.getInstitutionID()+"<br />";}
-  if((this.getSamplingEffort()!=null)&&(!this.getSamplingEffort().equals(""))){paramValues+="     Sampli]/ng effort: "+this.getSamplingEffort()+"<br />";}
+  if((this.getSamplingEffort()!=null)&&(!this.getSamplingEffort().equals(""))){paramValues+="     Sampling effort: "+this.getSamplingEffort()+"<br />";}
   if((this.getSamplingProtocol()!=null)&&(!this.getSamplingProtocol().equals(""))){paramValues+="     Sampling protocol: "+this.getSamplingProtocol()+"<br />";}
   return paramValues;
 }

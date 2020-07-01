@@ -19,11 +19,12 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.SinglePhotoVideo;
+//import org.ecocean.CommonConfiguration;
+//import org.ecocean.SinglePhotoVideo;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.media.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -42,6 +43,7 @@ import com.google.gson.Gson;
 
 public class EncounterVMData extends HttpServlet {
 
+    public static int MAX_MATCH = 5000;  //most we should send back as matching candidates
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -55,8 +57,7 @@ public class EncounterVMData extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("EncounterVMData.class");
+
     boolean locked = false, isOwner = true;
 
 		HashMap rtn = new HashMap();
@@ -67,121 +68,179 @@ public class EncounterVMData extends HttpServlet {
 		if (request.getUserPrincipal() == null) {
 			rtn.put("error", "no access");
 
-		} else if (request.getParameter("number") != null) {
-			myShepherd.beginDBTransaction();
-			Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
-
-			if (enc == null) {
-				rtn.put("error", "invalid Encounter number");
-
-			} else if (request.getParameter("matchID") != null) {
-				wantJson = false;
-      	if (ServletUtilities.isUserAuthorizedForEncounter(enc, request)) {
-					String matchID = ServletUtilities.cleanFileName(request.getParameter("matchID"));
-					//System.out.println("setting indiv id = " + matchID + " on enc id = " + enc.getCatalogNumber());
-          MarkedIndividual indiv = myShepherd.getMarkedIndividual(matchID);
-					if (indiv == null) {  //must have sent a new one
-						indiv = new MarkedIndividual(matchID, enc);
-						indiv.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + matchID + ".</p>");
-						indiv.setDateTimeCreated(ServletUtilities.getDate());
-						myShepherd.addMarkedIndividual(indiv);
-          } 
-
-					enc.assignToMarkedIndividual(matchID);
-					enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
-					enc.setMatchedBy("Visual Matcher");
-					myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
-					myShepherd.commitDBTransaction();
-					//myShepherd.closeDBTransaction();
-					redirUrl = "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
-				} else {
-					rtn.put("error", "unauthorized");
-				}
-
-			} else if (request.getParameter("candidates") != null) {
-				rtn.put("_wantCandidates", true);
-				ArrayList candidates = new ArrayList();
-				String filter = "this.catalogNumber != \"" + enc.getCatalogNumber() + "\"";
-				String[] fields = {"locationID", "sex", "patterningCode"};
-				for (String f : fields) {
-					String val = request.getParameter(f);
-					if (val != null) filter += " && this." + f + " == \"" + val + "\"";  //TODO safely quote!  sql injection etc
-				}
-				String mma = request.getParameter("mmaCompatible");
-				if ((mma != null) && !mma.equals("")) {
-					if (mma.equals("true")) {
-						filter += " && this.mmaCompatible == true";
-					} else {
-						filter += " && (this.mmaCompatible == false || this.mmaCompatible == null)";
-					}
-				}
-//System.out.println("candidate filter => " + filter);
-
-				Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
-				while (all.hasNext()) {
-					Encounter cand = all.next();
-					HashMap e = new HashMap();
-					e.put("id", cand.getCatalogNumber());
-					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
-					e.put("locationID", cand.getLocationID());
-					e.put("individualID", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividualID())));
-					e.put("patterningCode", cand.getPatterningCode());
-					e.put("sex", cand.getSex());
-					e.put("mmaCompatible", cand.getMmaCompatible());
-
-					List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
-					ArrayList images = new ArrayList();
-					String dataDir = CommonConfiguration.getDataDirectoryName(context);
-					for (SinglePhotoVideo s : spvs) {
-						if (myShepherd.isAcceptableImageFile(s.getFilename())) {
-							HashMap i = new HashMap();
-							i.put("fullsizeUrl", "/" + dataDir + cand.dir("") + "/" + s.getFilename());
- 							i.put("url", "/" + dataDir + cand.dir("") + "/" + s.getDataCollectionEventID() + "-mid.jpg");
- 							i.put("thumbUrl", "/" + dataDir + cand.dir("") + "/" + s.getDataCollectionEventID() + ".jpg");
-							List k = s.getKeywords();
-							i.put("keywords", k);
-							images.add(i);
-						}
-					}
-					if (!images.isEmpty()) e.put("images", images);
-					candidates.add(e);
-				}
-				if (!candidates.isEmpty()) rtn.put("candidates", candidates);
-
-			} else {
-				List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
-				String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
-
-				ArrayList images = new ArrayList();
-				for (SinglePhotoVideo s : spvs) {
-					if (myShepherd.isAcceptableImageFile(s.getFilename())) {
-						HashMap i = new HashMap();
-						i.put("fullsizeUrl", "/" + dataDir + "/" + s.getFilename());
- 						i.put("url", "/" + dataDir + "/" + s.getDataCollectionEventID() + "-mid.jpg");
- 						i.put("thumbUrl", "/" + dataDir + "/" + s.getDataCollectionEventID() + ".jpg");
-						List k = s.getKeywords();
-						i.put("keywords", k);
-						images.add(i);
-					}
-				}
-		
-				rtn.put("id", enc.getCatalogNumber());
-				rtn.put("patterningCode", enc.getPatterningCode());
-				rtn.put("sex", enc.getSex());
-				rtn.put("locationID", enc.getLocationID());
-				rtn.put("individualID", ServletUtilities.handleNullString(enc.getIndividualID()));
-				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
-				rtn.put("mmaCompatible", enc.getMmaCompatible());
-				if (!images.isEmpty()) rtn.put("images", images);
-			}
-
-
-		} else {
+		} 
+		else if (request.getParameter("number") != null) {
+	      Shepherd myShepherd = new Shepherd(context);
+	      myShepherd.setAction("EncounterVMData.class");
+  			myShepherd.beginDBTransaction();
+  			try{
+      			Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
+      
+      			if (enc == null) {
+      				rtn.put("error", "invalid Encounter number");
+      
+      			} 
+      			else if (request.getParameter("matchID") != null) {
+      				wantJson = false;
+      
+                                  //we may also be assigning the candidate encounter (if we are allowed)
+                                  Encounter candEnc = null;
+                                  if (request.getParameter("candidate_number") != null) {
+      			        candEnc = myShepherd.getEncounter(request.getParameter("candidate_number"));
+                                  }
+      
+            	if (ServletUtilities.isUserAuthorizedForEncounter(enc, request)) {
+      					String matchID = ServletUtilities.cleanFileName(request.getParameter("matchID"));
+      					//System.out.println("setting indiv id = " + matchID + " on enc id = " + enc.getCatalogNumber());
+                MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(matchID);
+      					if (indiv == null) {  //must have sent a new one
+      						indiv = new MarkedIndividual(matchID, enc);
+      						myShepherd.getPM().makePersistent(indiv);  
+      						
+      						indiv.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Created " + matchID + ".</p>");
+      						indiv.setDateTimeCreated(ServletUtilities.getDate());
+      						myShepherd.updateDBTransaction();
+                  //candEnc should only ever get assigned for *new indiv* hence this code here
+            	    if ((candEnc != null) && ServletUtilities.isUserAuthorizedForEncounter(candEnc, request)) {
+      					            candEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
+      					            candEnc.setMatchedBy("Visual Matcher");
+                            indiv.addEncounter(candEnc);
+                  }
+            	                                      
+      						//myShepherd.addMarkedIndividual(indiv);
+                }
+      					else {
+      					  enc.setIndividual(indiv);
+      					}
+      					
+      					
+      
+      					//enc.assignToMarkedIndividual(matchID);
+      					enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + matchID + ".</p>");
+      					enc.setMatchedBy("Visual Matcher");
+      					//myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+      					myShepherd.commitDBTransaction();
+      					//myShepherd.closeDBTransaction();
+      					redirUrl = "encounters/encounter.jsp?number=" + enc.getCatalogNumber();
+      				} else {
+      					rtn.put("error", "unauthorized");
+      				}
+      
+      			} else if (request.getParameter("candidates") != null) {
+      				rtn.put("_wantCandidates", true);
+      				ArrayList candidates = new ArrayList();
+      				String filter = "this.catalogNumber != \"" + enc.getCatalogNumber() + "\"";
+                                      filter += " && this.genus == \"" + enc.getGenus() + "\"";
+                                      filter += " && this.specificEpithet == \"" + enc.getSpecificEpithet() + "\"";
+      				String[] fields = {"locationID", "sex", "patterningCode"};
+      				for (String f : fields) {
+      					String val = request.getParameter(f);
+      					if (val != null) filter += " && this." + f + " == \"" + val + "\"";  //TODO safely quote!  sql injection etc
+      				}
+      				String mma = request.getParameter("mmaCompatible");
+      				if ((mma != null) && !mma.equals("")) {
+      					if (mma.equals("true")) {
+      						filter += " && this.mmaCompatible == true";
+      					} else {
+      						filter += " && (this.mmaCompatible == false || this.mmaCompatible == null)";
+      					}
+      				}
+      //System.out.println("candidate filter => " + filter);
+      
+      				Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
+      				while (all.hasNext() && (candidates.size() < MAX_MATCH)) {
+      					Encounter cand = all.next();
+      					HashMap e = new HashMap();
+      					e.put("id", cand.getCatalogNumber());
+      					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
+      					e.put("locationID", cand.getLocationID());
+      					if(cand.getIndividual()!=null) {
+      					  e.put("individualID", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividual().getIndividualID())));
+      					  e.put("displayName", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividual().getDisplayName())));
+      					}
+      					else {
+      					  e.put("individualID", null);
+      					  e.put("displayName",null);
+      					}
+      					e.put("patterningCode", cand.getPatterningCode());
+      					e.put("sex", cand.getSex());
+      					e.put("mmaCompatible", cand.getMmaCompatible());
+      
+      /*
+      					List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
+      					ArrayList images = new ArrayList();
+      					String dataDir = CommonConfiguration.getDataDirectoryName(context);
+      					for (SinglePhotoVideo s : spvs) {
+      						if (myShepherd.isAcceptableImageFile(s.getFilename())) {
+      							HashMap i = new HashMap();
+      							i.put("fullsizeUrl", "/" + dataDir + cand.dir("") + "/" + s.getFilename());
+       							i.put("url", "/" + dataDir + cand.dir("") + "/" + s.getDataCollectionEventID() + "-mid.jpg");
+       							i.put("thumbUrl", "/" + dataDir + cand.dir("") + "/" + s.getDataCollectionEventID() + ".jpg");
+      							List k = s.getKeywords();
+      							i.put("keywords", k);
+      							images.add(i);
+      						}
+      					}
+      					if (!images.isEmpty()) e.put("images", images);
+      */
+                                              addImages(cand, e, myShepherd, request);
+      					candidates.add(e);
+      				}
+                                      rtn.put("maximumCandidatesReached", all.hasNext());
+      				if (!candidates.isEmpty()) rtn.put("candidates", candidates);
+      
+      			} 
+      			else {
+      /*
+      				List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+      				String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
+      
+      				ArrayList images = new ArrayList();
+      				for (SinglePhotoVideo s : spvs) {
+      					if (myShepherd.isAcceptableImageFile(s.getFilename())) {
+      						HashMap i = new HashMap();
+      						i.put("fullsizeUrl", "/" + dataDir + "/" + s.getFilename());
+       						i.put("url", "/" + dataDir + "/" + s.getDataCollectionEventID() + "-mid.jpg");
+       						i.put("thumbUrl", "/" + dataDir + "/" + s.getDataCollectionEventID() + ".jpg");
+      						List k = s.getKeywords();
+      						i.put("keywords", k);
+      						images.add(i);
+      					}
+      				}
+      */
+                                      addImages(enc, rtn, myShepherd, request);
+      				rtn.put("id", enc.getCatalogNumber());
+      				rtn.put("patterningCode", enc.getPatterningCode());
+      				rtn.put("sex", enc.getSex());
+      				rtn.put("locationID", enc.getLocationID());
+      				if(enc.getIndividual()!=null) {
+      				  rtn.put("displayName", ServletUtilities.handleNullString(enc.getIndividual().getDisplayName()));
+      				  rtn.put("individualID", ServletUtilities.handleNullString(enc.getIndividual().getIndividualID()));
+                
+      				}
+      				else {
+      				  rtn.put("displayName",null);
+      				  rtn.put("individualID", null);
+                
+      				}
+      				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
+      				rtn.put("mmaCompatible", enc.getMmaCompatible());
+      				//if (!images.isEmpty()) rtn.put("images", images);
+      			}
+  
+  		} //end try
+  		catch(Exception e){
+  		  e.printStackTrace();
+  		}
+  		finally{
+  		  myShepherd.rollbackDBTransaction();
+  		  myShepherd.closeDBTransaction();
+  		 }
+		} 
+		else {
 			rtn.put("error", "invalid Encounter number");
 		}
 
-		//myShepherd.commitDBTransaction();
-		//myShepherd.closeDBTransaction();
 
 		if (redirUrl != null) {
 			response.sendRedirect(redirUrl);
@@ -205,4 +264,21 @@ public class EncounterVMData extends HttpServlet {
     out.close();
   }
 
+    private void addImages(Encounter enc, HashMap m, Shepherd myShepherd, HttpServletRequest request) {
+        if (enc == null) return;
+        ArrayList mas = new ArrayList();
+        for (MediaAsset ma : enc.getMedia()) {
+            HashMap i = new HashMap();
+            i.put("id", ma.getId());
+            i.put("url", ma.safeURL(myShepherd, request));
+            i.put("thumbUrl", ma.safeURL(myShepherd, request));
+/*
+            i.put("url", ma.webURL());
+            i.put("thumbUrl", ma.webURL());
+*/
+            i.put("keywords", ma.getKeywords());
+            mas.add(i);
+        }
+        if (mas.size() > 0) m.put("images", mas);
+    }
 }

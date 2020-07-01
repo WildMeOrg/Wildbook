@@ -1,5 +1,8 @@
 package org.ecocean;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.json.JSONObject;
+
 public class Measurement extends DataCollectionEvent {
 
   private static final long serialVersionUID = -7934850478287322048L;
@@ -30,5 +33,25 @@ public class Measurement extends DataCollectionEvent {
   public String getUnits() {
     return units;
   }
+  
+  public void setUnits(String u) {
+    if(u==null){this.units=null;}
+    else{this.units = u;}
+  }
 
+    public JSONObject toJSONObject() {
+        JSONObject rtn = new JSONObject();
+        rtn.put("value", value);
+        rtn.put("units", units);
+        rtn.put("samplingProtocol", getSamplingProtocol());
+        return rtn;
+    }
+
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("type", getType())
+            .append("value", value)
+            .append("units", units)
+            .toString();
+    }
 }

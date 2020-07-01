@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
+
+import org.ecocean.servlet.EncounterDelete;
 import org.ecocean.servlet.ServletUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,7 +168,8 @@ public final class NotificationMailer implements Runnable {
   private EmailTemplate mailer;
   /** Flag indicating whether setup failed. */
   private boolean failedSetup;
-  private String urlScheme="http";
+  private List<String> types=null;
+  private String urlScheme="https";
 
   /**
    * Creates a new NotificationMailer instance.
@@ -178,12 +181,40 @@ public final class NotificationMailer implements Runnable {
    * @param map map of search/replace strings for email template (if order is important, supply {@code LinkedHashMap}
    */
   public NotificationMailer(String context, String langCode, Collection<String> to, List<String> types, Map<String, String> map) {
+    this(context, langCode, to, types, map, false);
+  }
+  public NotificationMailer(String context, String langCode, Collection<String> to, List<String> types, Map<String, String> map, boolean overrideReceiveEmails) {
     Objects.requireNonNull(context);
     Objects.requireNonNull(to);
-    for (String s : to) {
-      if (s == null || "".equals(s.trim()))
-        throw new IllegalArgumentException("Invalid email TO address specified");
+    
+    this.types=types;
+    
+    //Start checking if we should throw out some of these emails
+    ArrayList<String> recips=new ArrayList<String>(to);
+    for (int i=0;i<recips.size();i++) {
+      String s=recips.get(i);
+      if (s == null || "".equals(s.trim())){recips.remove(i);i--;}
+      else{
+        //check if this user actually wants to get the email
+        Shepherd myShepherd=new Shepherd(context);
+        myShepherd.setAction("NotificationMailer.class");
+        myShepherd.beginDBTransaction();
+        try{
+            // note we also remove from recips if there is no user with that email
+          if ((myShepherd.getUserByEmailAddress(s) == null) || (!overrideReceiveEmails && !myShepherd.getUserByEmailAddress(s).getReceiveEmails())) {
+            recips.remove(s);
+            i--;
+          }
+        }
+        catch(Exception e){e.printStackTrace();}
+        finally{
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+        }
+      }
     }
+    //end email throw out check
+    to=recips;
     System.out.println("NoteMailerHere2");
     this.context = context;
     this.sender = CommonConfiguration.getAutoEmailAddress(context);
@@ -224,12 +255,15 @@ public final class NotificationMailer implements Runnable {
             mailer.replaceInHtmlText("<!--@REMOVEME_START@-->", null, false);
             mailer.replaceInHtmlText("<!--@REMOVEME_END@-->", null, false);
           }
+/*
+    re: discussion with jh 2020-03-18, this is deprecated usage so commenting out -jv
           // Extra layer to help prevent chance of URL spoof attacks.
           String noTrack = map.get(EMAIL_NOTRACK);
           if (noTrack.matches("([a-z]+)=(.+)")) {
-            String link = String.format(urlScheme+"://%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
+            String link = String.format("%s/DontTrack?%s&email=%s", map.get("@URL_LOCATION@"), noTrack, map.get(EMAIL_HASH_TAG));
             mailer.replace("@REMOVEME_LINK@", link, true);
           }
+*/
         } else {
           mailer.replaceRegexInPlainText("(?s)@REMOVEME_START@.*@REMOVEME_END@", null, false);
           if (mailer.hasHtmlText())
@@ -283,6 +317,9 @@ public final class NotificationMailer implements Runnable {
    */
   public NotificationMailer(String context, String langCode, String to, String type, Map<String, String> map) {
     this(context, langCode, Arrays.asList(to), type, map);
+  }
+  public NotificationMailer(String context, String langCode, String to, String type, Map<String, String> map, boolean overrideReceiveEmails) {
+    this(context, langCode, Arrays.asList(to), Arrays.asList(type), map, overrideReceiveEmails);
   }
 
   /**
@@ -519,6 +556,9 @@ public final class NotificationMailer implements Runnable {
       if (!"".equals(host.trim()) && !"none".equalsIgnoreCase(host)) {
         try {
           mailer.sendSingle(sender, recipients);
+          //log it
+          log.info("Sending email of type(s) "+types.toString()+" from "+sender+" to: "+recipients);
+
         }
         catch (Exception ex) {
           ex.printStackTrace();
@@ -677,9 +717,9 @@ public final class NotificationMailer implements Runnable {
     if (!map.containsKey("@URL_LOCATION@"))
       map.put("@URL_LOCATION@", String.format(scheme+"://%s", CommonConfiguration.getURLLocation(req)));
     if (ind != null) {
-      map.put("@INDIVIDUAL_LINK@", String.format("%s/individuals.jsp?number=%s", map.get("@URL_LOCATION@"), ind.getIndividualID()));
+      map.put("@INDIVIDUAL_LINK@", String.format("%s/individuals.jsp?id=%s", map.get("@URL_LOCATION@"), ind.getIndividualID()));
       map.put("@INDIVIDUAL_ID@", ind.getIndividualID());
-      map.put("@INDIVIDUAL_ALT_ID@", ind.getAlternateID());
+      map.put("@INDIVIDUAL_DISPLAYNAME@", ind.getDisplayName());
       map.put("@INDIVIDUAL_SEX@", ind.getSex());
       map.put("@INDIVIDUAL_NAME@", ind.getName());
       map.put("@INDIVIDUAL_NICKNAME@", ind.getNickName());
@@ -741,13 +781,9 @@ public final class NotificationMailer implements Runnable {
       map.put("@ENCOUNTER_SEX@", enc.getSex());
       map.put("@ENCOUNTER_LIFE_STAGE@", enc.getLifeStage());
       map.put("@ENCOUNTER_COUNTRY@", enc.getCountry());
-      map.put("@ENCOUNTER_SUBMITTER_NAME@", enc.getSubmitterName());
       map.put("@ENCOUNTER_SUBMITTER_ID@", enc.getSubmitterID());
-      map.put("@ENCOUNTER_SUBMITTER_EMAIL@", enc.getSubmitterEmail());
-      map.put("@ENCOUNTER_SUBMITTER_ORGANIZATION@", enc.getSubmitterOrganization());
-      map.put("@ENCOUNTER_SUBMITTER_PROJECT@", enc.getSubmitterProject());
-      map.put("@ENCOUNTER_PHOTOGRAPHER_NAME@", enc.getPhotographerName());
-      map.put("@ENCOUNTER_PHOTOGRAPHER_EMAIL@", enc.getPhotographerEmail());
+      map.put("@ENCOUNTER_SUBMITTER_EMAIL@", enc.getSubmitterEmails().toString());
+      map.put("@ENCOUNTER_PHOTOGRAPHER_EMAIL@", enc.getPhotographerEmails().toString());
       map.put("@ENCOUNTER_COMMENTS@", enc.getComments());
       map.put("@ENCOUNTER_USER@", enc.getAssignedUsername());
     }

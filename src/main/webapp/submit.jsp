@@ -1,10 +1,9 @@
-
 <%@ page contentType="text/html; charset=utf-8"
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.List,
+                 java.util.List,java.util.ArrayList,
                  java.util.Locale" %>
 
 
@@ -14,7 +13,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
-	
+
 <link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 
@@ -22,6 +21,9 @@
 
 <!-- add recaptcha -->
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
+
+<!-- https://github.com/exif-js/exif-js -->
+<script src="javascript/exif.js"></script>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -46,6 +48,10 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
+
+    boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
+
+
 %>
 
 <style type="text/css">
@@ -58,7 +64,12 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
+    }
 
+	.required-missing {
+		outline: solid 4px rgba(255,0,0,0.5);
+		background-color: #FF0;
+	}
 
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
@@ -95,8 +106,13 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
-<script src="javascript/pages/submit.js"></script>
-
+    <%
+	if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+	%>
+	<script src="javascript/pages/submit.js"></script>
+	<%
+	}
+	%>
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
   <script type="text/javascript">
     animatedcollapse.addDiv('advancedInformation', 'fade=1');
@@ -243,6 +259,26 @@ var map;
 var marker;
 var newCenter;
 var mapzoom;
+
+function updateMap() {
+    var latVal = $('#lat').val();
+    var lonVal = $('#longitude').val();
+    var pt = placeMarkerLatLon(latVal, lonVal);
+    if (pt) {
+        map.setCenter(pt);
+        map.setZoom(5);
+    }
+}
+
+function placeMarkerLatLon(lat, lon) {  //convenience
+    var latFloat = parseFloat(lat);
+    var lonFloat = parseFloat(lon);
+    if (isNaN(latFloat) || isNaN(lonFloat)) return;
+    var pt = new google.maps.LatLng(latFloat, lonFloat);
+    if (!pt) return;
+    placeMarker(pt);
+    return pt;
+}
 
 function placeMarker(location) {
     if(marker!=null){marker.setMap(null);}
@@ -452,7 +488,7 @@ function gpsLiveUpdate() {
       target="_self" dir="ltr"
       lang="en"
       onsubmit="return false;"
-      class="form-horizontal" 
+      class="form-horizontal"
       accept-charset="UTF-8"
 >
 
@@ -519,6 +555,110 @@ function updateList(inp) {
     //document.getElementById('input-file-list').innerHTML = fileListHTML;
     document.getElementById('uploadList').innerHTML = fileListHTML;
     // For every file in the length of the final list, add an event listener based on it's index. This listener modifies the array of toRemove files on the backend. 
+}
+
+
+var dtList = [];
+var llList = [];
+var commentJson = {};
+//TODO Bearing, Altitude
+function gotExif(file) {
+    exifFindDateTimes(file.exifdata);
+console.log('dtList => %o', dtList);
+    var dtDiv = $('#dt-div');
+    if (!dtDiv.length) {
+        dtDiv = $('<div class="exif-derived" id="dt-div" />');
+        $('#datepicker').parent().append(dtDiv);
+    }
+    if (dtList.length > 0) {
+        dtList.sort();
+        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifDTSet(this);"><option value="">Select date/time</option>';
+        for (var i = 0 ; i < dtList.length ; i ++) {
+            h += '<option>' + dtList[i] + '</option>';
+        }
+        h += '</select>';
+        dtDiv.html(h);
+    }
+
+    exifFindLatLon(file.exifdata);
+console.log('llList => %o', llList);
+    var llDiv = $('#ll-div');
+    if (!llDiv.length) {
+        llDiv = $('<div class="exif-derived" id="ll-div" />');
+        $('#longitude').parent().parent().append(llDiv);
+    }
+    if (llList.length > 0) {
+        llList.sort();
+        var h = '<%=props.getProperty("fromImageMetadata")%>: <select onChange="return exifLLSet(this);"><option value="">Select lat/lon</option>';
+        for (var i = 0 ; i < llList.length ; i ++) {
+            h += '<option>' + llList[i] + '</option>';
+        }
+        h += '</select>';
+        llDiv.html(h);
+    }
+
+    var fj = {};
+    if (file.exifdata) for (var key in file.exifdata) {
+        if (!key.toLowerCase().match('^(artist|copyright|imagedescription)$')) continue;
+        fj[key] = file.exifdata[key];
+    }
+    if (Object.keys(fj).length) commentJson[file.name] = fj;
+    var h = '';
+    for (var fname in commentJson) {
+        h += '<p class="exif-comment" id="exif-' + fname + '">';
+        for (var k in commentJson[fname]) {
+            h += k + ': <b>' + commentJson[fname][k] + '</b><br />';
+        }
+        h += '</p>';
+    }
+    //$('#comments').val(h);
+}
+
+
+function exifFindDateTimes(exif) {
+    for (var key in exif) {
+        if (key.toLowerCase().indexOf('date') < 0) continue;
+        var clean = cleanupDateTime(exif[key]);
+        if (clean && (dtList.indexOf(clean) < 0)) dtList.push(clean);
+    }
+}
+
+function exifFindLatLon(exif) {
+    //unknown if these keys are "standard".  :(  doubt it.
+    var lat = cleanupLatLon(exif.GPSLatitudeRef, exif.GPSLatitude);
+    var lon = cleanupLatLon(exif.GPSLongitudeRef, exif.GPSLongitude);
+    if (!lat || !lon) return;
+    var clean = lat + ', ' + lon;
+    if (clean && (llList.indexOf(clean) < 0)) llList.push(clean);
+}
+
+function cleanupDateTime(dt) {
+    var f = dt.split(/\D+/);
+    if (f.length == 3) return f.join('-');
+    if ((f.length == 5) || (f.length == 6)) return f.slice(0,3).join('-') + ' ' + f.slice(3,6).join(':');
+    return null;
+}
+
+function cleanupLatLon(llDir, ll) {
+    var sign = ((llDir == 'W' || llDir == 'S') ? -1 : 1);
+    if (!ll || (ll.length != 3)) return null;
+    return Math.round(sign * dms2dd(ll[0], ll[1], ll[2]) * 1000000) / 1000000;
+}
+
+function dms2dd(d, m, s) {
+    return d + (m / 60) + (s / 3600);
+}
+
+function exifDTSet(el) {
+    $('#datepicker').val(el.value);
+}
+
+function exifLLSet(el) {
+    var ll = [ '', '' ];
+    if (el.value.indexOf(', ') >= 0) ll = el.value.split(', ');
+    $('#lat').val(ll[0]);
+    $('#longitude').val(ll[1]);
+    updateMap();
 }
 
 function showUploadBox() {
@@ -662,7 +802,7 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
       </div>
     </div>
 <%
-}
+  }
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
@@ -757,26 +897,33 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 <hr/>
 
     <%
+    System.out.println("93");
     //let's pre-populate important info for logged in users
     String submitterName="";
     String submitterEmail="";
     String affiliation="";
     String project="";
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-        Shepherd myShepherd=new Shepherd(context);
-        myShepherd.setAction("submit.jsp1");
-        myShepherd.beginDBTransaction();
-        if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-    }
+    try {
+
+      if(request.getRemoteUser()!=null){
+          submitterName=request.getRemoteUser();
+          Shepherd myShepherd=new Shepherd(context);
+          myShepherd.setAction("submit.jsp1");
+          myShepherd.beginDBTransaction();
+          if(myShepherd.getUser(submitterName)!=null){
+              User user=myShepherd.getUser(submitterName);
+              if(user.getFullName()!=null){submitterName=user.getFullName();}
+              if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+              if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+              if(user.getUserProject()!=null){project=user.getUserProject();}
+          }
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    } 
     %>
 
 
@@ -872,7 +1019,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="genusSpecies" id="genusSpecies">
+            <select class="form-control" name="genusSpecies" id="genusSpecies" onChange="$('.required-missing').removeClass('required-missing'); return true;">
              	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
   <%
 
@@ -883,11 +1030,25 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
                      if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
+                      
+
                     	for(int q=0;q<numGenusSpeciesProps;q++){
                            String currentGenuSpecies = "genusSpecies"+q;
+
+                           String showCommonNames = CommonConfiguration.getProperty("showCommonSpeciesNames",context);
+
                            if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+
+                            String commonNameLabel = "";
+                             if (showCommonNames!=null&&"true".equals(showCommonNames)) {
+                                String commonNameVal = CommonConfiguration.getProperty("commonName"+q,context);
+                                if (commonNameVal!=null&&!"null".equals(commonNameVal)&&!"".equals(commonNameVal)) {
+                                  commonNameLabel = " ("+commonNameVal+")";
+                                }
+                              }
+
                                %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")+commonNameLabel%></option>
                                <%
 
                         }
@@ -904,6 +1065,42 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 }
 
 %>
+
+
+
+  <h4 class="accordion">
+    <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
+      <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
+      <%=props.getProperty("advancedInformation") %>
+    </a>
+  </h4>
+
+    <div id="advancedInformation" fade="1" style="display: none;">
+
+      <h3><%=props.getProperty("aboutAnimal") %></h3>
+
+      <fieldset>
+
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("submit_sex") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <label class="radio-inline">
+              <input type="radio" name="sex" value="male"> <%=props.getProperty("submit_male") %>
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="sex" value="female"> <%=props.getProperty("submit_female") %>
+            </label>
+            <label class="radio-inline">
+              <input name="sex" type="radio" value="unknown" checked="checked"> <%=props.getProperty("submit_unsure") %>
+            </label>
+          </div>
+        </div>
+        </fieldset>
+        <hr>
+        <fieldset>
 
   <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -940,6 +1137,11 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 <!--  end bracket for hiding altID -->
 
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
+          </div>
+        </div>
+
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
@@ -950,6 +1152,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="behavior" type="text" id="behavior" size="75" data-toggle="tooltip" title="<%=props.getProperty("behaviorTooltip")%>">
           </div>
         </div>
+
 
 
            <div class="form-group">
@@ -1207,11 +1410,11 @@ function sendButtonClicked() {
     	    $("#encounterForm").attr("action", "EncounterForm");
 			submitForm();
    		}
-   		else{	console.log('Here!'); 	
+   		else{	console.log('Here!');
    			    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-   					
+
    					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-   					if(!isEmpty(recaptachaResponse)) {		
+   					if(!isEmpty(recaptachaResponse)) {
    						$("#encounterForm").attr("action", "EncounterForm");
    						
    						
@@ -1233,7 +1436,7 @@ function sendButtonClicked() {
 
 
       <p class="text-center">
-        <button class="large" type="submit" onclick="return sendButtonClicked();">
+        <button id="submitEncounterButton" class="large" type="submit" onclick="return sendButtonClicked();">
           <%=props.getProperty("submit_send") %>
           <span class="button-icon" aria-hidden="true" />
         </button>

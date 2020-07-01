@@ -1,7 +1,7 @@
 
 #vm-wrapper {
 	min-width: 500px;
-	min-height: 400px;
+	min-height: 550px;
 	position: relative;
 	border: solid 3px #333;
 }
@@ -48,7 +48,7 @@
 }
 
 #vm-target-small img {
-	margin: 6px 2px 0 2px;
+	margin: 4px 8px;
 	cursor: pointer;
 	height: 100%;
 }
@@ -70,7 +70,9 @@
 
 #vm-target-small {
 	height: 15%;
-	position: relative;
+	/* position: relative; */
+    position: absolute;
+    bottom: 10px;
 }
 
 #small-note {
@@ -176,18 +178,19 @@
 
 #candidate-full-zoom {
 	position: fixed;
-	top: 0;
+	top: 10%;
 	left: 0;
-	width: 98%;
-	z-index: 200;
+	width: 100%;
+	z-index: 2000;
 	border: solid 4px black;
 	padding: 5px;
-	background: #88A url(../images/wait.gif) no-repeat 75% 20%;
+	/* background: #88A url(../images/wait.gif) no-repeat 75% 20%; */
+        background-color: #88A;
 	display: none;
 }
 
 #candidate-full-zoom img {
-	vertical-align: top;
+	vertical-align: middle;
 	width: 49%;
 }
 
@@ -232,7 +235,7 @@
 
 #match-dialog {
 	position: fixed;
-	top: 15%;
+	top: 40%;
 	width: 50%;
 	min-height: 200px;
 	left: 25%;
@@ -240,10 +243,13 @@
 	background-color: #FFF;
 	padding: 8px;
 	display: none;
-	z-index: 300;
+	z-index: 2001;
 }
 
 
+#cand-count {
+    color: #888;
+}
 
 
 

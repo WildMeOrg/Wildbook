@@ -1,8 +1,9 @@
 package org.ecocean.servlet.export;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -16,6 +17,7 @@ import java.util.Hashtable;
 import org.json.*;
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.security.HiddenIndividualReporter;
 
 import java.util.zip.*;
 import java.io.OutputStream;
@@ -77,6 +79,16 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("GetIndividualSearchGoogleMapsPoints.class");
+    PersistenceManager pm=myShepherd.getPM();
+    PersistenceManagerFactory pmf = pm.getPersistenceManagerFactory();
+    javax.jdo.FetchGroup grp = pmf.getFetchGroup(MarkedIndividual.class, "individualSearchResults");
+    grp.addMember("individualID").addMember("sex").addMember("names").addMember("encounters");
+    
+    javax.jdo.FetchGroup grp2 = pmf.getFetchGroup(Encounter.class, "encSearchResults");
+    grp2.addMember("sex").addMember("genus").addMember("specificEpithet").addMember("decimalLatitude").addMember("decimalLongitude").addMember("decimalLatitude").addMember("catalogNumber").addMember("year").addMember("hour").addMember("month").addMember("minutes").addMember("day");
+
+    myShepherd.getPM().getFetchPlan().setGroup("individualSearchResults");
+    myShepherd.getPM().getFetchPlan().addGroup("encSearchResults");
 
   Random ran= new Random();
 
@@ -92,7 +104,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     //start the query and get the results
     String order = "";
     
-    //determien if we should use locationID to determine some generic mapping points
+    //determine if we should use locationID to determine some generic mapping points
     boolean useLocales=false;
     if(request.getParameter("useLocales")!=null){
       useLocales=true;
@@ -100,6 +112,12 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     else{request.setAttribute("gpsOnly", "yes");}
     MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, order);
     rIndividuals = queryResult.getResult();
+    
+    // viewOnly=true arg means this hiddenData relates to viewing the summary results
+    HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, true, myShepherd);
+    rIndividuals = hiddenData.viewableResults(rIndividuals, true, myShepherd);
+
+
     int numIndividuals=rIndividuals.size();
 
    
@@ -121,6 +139,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
         
         Vector rEncounters=indie.returnEncountersWithGPSData(useLocales,true,context); 
         int numEncs=rEncounters.size();
+        int numEncsWithValidGPS=0;
         
         //set up move path
         JSONArray[] movePathCoords=new JSONArray[numEncs];
@@ -157,13 +176,13 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
           Double thisEncLong=null;
        
         //first check if the Encounter object has lat and long values
-          if((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null)){
+          if((enc.getDecimalLatitude()!=null)&&(enc.getDecimalLongitude()!=null)&&(enc.getDecimalLatitudeAsDouble()>=-90.0)&&(enc.getDecimalLatitudeAsDouble()<=90.0)&&(enc.getDecimalLongitudeAsDouble()<=180.0)&&(enc.getDecimalLongitudeAsDouble()>=-180.0)){
             thisEncLat=enc.getLatitudeAsDouble();
             thisEncLong=enc.getLongitudeAsDouble();
           }
           //let's see if locationIDGPS.properties has a location we can use
-          else{
-            if(useLocales){
+
+          else if(useLocales){
                    try {
                         String lc = enc.getLocationCode();
                         if (localeprops.getProperty(lc) != null) {
@@ -177,54 +196,61 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
                         e.printStackTrace();
                         System.out.println("     I hit an error getting locales in individualMappedSearchResults.jsp.");
                       }
+         }
+
+            
+          //if we have GPS data, let's create the object, otherwise cycle through in the loop
+          if(thisEncLat!=null && thisEncLong!=null) {
+              numEncsWithValidGPS++;
+               JSONObject point = new JSONObject();
+               point.put("type", "Point");
+               
+               // construct a JSONArray from a string; can also use an array or list
+               JSONArray coord = new JSONArray("["+thisEncLong.toString()+","+thisEncLat.toString()+"]");
+               movePathCoords[yh]=coord;
+               point.put("coordinates", coord);
+               point.put("catalogNumber",enc.getCatalogNumber());
+               point.put("encSubdir",enc.subdir());
+               point.put("rootURL",CommonConfiguration.getURLLocation(request));
+               point.put("individualID",ServletUtilities.handleNullString(enc.getIndividual().getIndividualID()));
+               point.put("individualDisplayName",ServletUtilities.handleNullString(enc.getIndividual().getDisplayName()));
+               point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
+               point.put("date",enc.getDate());
+               //point.put("thumbUrl",enc.getThumbnailUrl(context));
+               
+               
+               
+               
+               
+               //end color
+               point.put("color",baseColor);
+               point.put("sexColor",sexColor);
+               point.put("haplotypeColor",haploColor);
+               point.put("speciesColor",speciesColor);
+               
+               JSONObject feature = new JSONObject();
+               feature.put("type", "Feature");
+               JSONObject props = new JSONObject();
+               feature.put("properties", props);
+               
+               feature.put("geometry", point);
+               featureList.put(feature);
             }
-          }
-        //test example
-          // {"geometry": {"type": "Point", "coordinates": [-94.149, 36.33]}
-             JSONObject point = new JSONObject();
-             point.put("type", "Point");
-             
-             // construct a JSONArray from a string; can also use an array or list
-             JSONArray coord = new JSONArray("["+thisEncLong.toString()+","+thisEncLat.toString()+"]");
-             movePathCoords[yh]=coord;
-             point.put("coordinates", coord);
-             point.put("catalogNumber",enc.getCatalogNumber());
-             point.put("encSubdir",enc.subdir());
-             point.put("rootURL",CommonConfiguration.getURLLocation(request));
-             point.put("individualID",ServletUtilities.handleNullString(enc.getIndividualID()));
-             point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
-             point.put("date",enc.getDate());
              
              
-             
-             
-             
-             //end color
-             point.put("color",baseColor);
-             point.put("sexColor",sexColor);
-             point.put("haplotypeColor",haploColor);
-             point.put("speciesColor",speciesColor);
-             
-             JSONObject feature = new JSONObject();
-             feature.put("type", "Feature");
-             JSONObject props = new JSONObject();
-             feature.put("properties", props);
-             
-             feature.put("geometry", point);
-             featureList.put(feature);
              
           
         }
         
         //let's do the move path, one per shark
-        if(numEncs>1){
+        if(numEncsWithValidGPS>1){
           JSONObject lineString = new JSONObject();
           lineString.put("type", "LineString");
           JSONObject lsFeature = new JSONObject();
           
           StringBuffer sumCoords=new StringBuffer("[ ");
           for(int p=0;p<movePathCoords.length;p++){
-            sumCoords.append((movePathCoords[p].toString()+", "));
+            if(movePathCoords[p]!=null)sumCoords.append((movePathCoords[p].toString()+", "));
           }
           sumCoords.append(" ]");
           JSONArray coord = new JSONArray(sumCoords.toString());
@@ -255,7 +281,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
        } //end for
    
 
-      myShepherd.commitDBTransaction();
+      myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
 
       //new compressed way

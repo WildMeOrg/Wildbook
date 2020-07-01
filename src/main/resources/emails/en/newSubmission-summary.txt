@@ -5,8 +5,4 @@ The Spotting Giant Sea Bass library has received a new encounter submission. You
 Location:  @ENCOUNTER_LOCATION@
 Date:  @ENCOUNTER_DATE@
 Sex:  @ENCOUNTER_SEX@
-Submitter:  @ENCOUNTER_SUBMITTER_NAME@
-Submitter Email:  @ENCOUNTER_SUBMITTER_EMAIL@
-Photographer:  @ENCOUNTER_PHOTOGRAPHER_NAME@
-Photographer Email:  @ENCOUNTER_PHOTOGRAPHER_EMAIL@
 Comments:  @ENCOUNTER_COMMENTS@

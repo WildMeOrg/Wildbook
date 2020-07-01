@@ -53,6 +53,13 @@ public class JavascriptGlobals extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    
+    //FIX-prevent caching
+    response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+    response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+    response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+    response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+    
     String context="context0";
     context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
@@ -147,7 +154,13 @@ public class JavascriptGlobals extends HttpServlet {
     myShepherd.closeDBTransaction();
     rtn.put("keywords", kw);
 
-    rtn.put("iaStatus", IBEISIA.iaStatus(request));
+    //this might throw an exception in various ways, so we swallow them here
+    try {
+        rtn.put("iaStatus", IBEISIA.iaStatus(request));
+    } catch (Exception ex) {
+        System.out.println("WARNING: JavascriptGlobals iaStatus threw " + ex.toString());
+        rtn.put("iaStatus", false);
+    }
 
     response.setContentType("text/javascript");
     response.setCharacterEncoding("UTF-8");

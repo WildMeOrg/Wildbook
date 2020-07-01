@@ -26,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 import java.io.*;
 
@@ -51,29 +52,75 @@ public class UserDelete extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
-    String username = request.getParameter("username").trim();
 
 
     myShepherd.beginDBTransaction();
-    if (myShepherd.getUser(username)!=null) {
+    if ((request.getParameter("uuid")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)) {
 
       try {
-        User ad = myShepherd.getUser(username);
+        User ad = myShepherd.getUserByUUID(request.getParameter("uuid"));
+        
+        
+        
+        //first delete the roles
+        if(ad.getUsername()!=null) {
+          List<Role> roles=myShepherd.getAllRolesForUser(ad.getUsername());
+          int numRoles=roles.size();
+          for(int i=0;i<numRoles;i++){
+            Role r=roles.get(i);
+            //if(myShepherd.getUser(r.getUsername())!=null){
+            myShepherd.getPM().deletePersistent(r);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+            //}
+          }
+      }
+        
+        //remove the User from Encounters
+        List<Encounter> encs=myShepherd.getEncountersForSubmitter(ad, myShepherd);
+        
+        for(int l=0;l<encs.size();l++){
+          Encounter enc=encs.get(l);
+
+          List<User> peeps=enc.getSubmitters();
+          peeps.remove(ad);
+          enc.setSubmitters(peeps);
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
+      encs=myShepherd.getEncountersForPhotographer(ad, myShepherd);
+        for(int l=0;l<encs.size();l++){
+          Encounter enc=encs.get(l);
+
+          List<User> peeps=enc.getPhotographers();
+          peeps.remove(ad);
+          enc.setPhotographers(peeps);
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
+        
+        
+        
+        //now delete the user
         myShepherd.getPM().deletePersistent(ad);
+        myShepherd.commitDBTransaction();
 
       } 
       catch (Exception le) {
         locked = true;
         le.printStackTrace();
         myShepherd.rollbackDBTransaction();
+
+      }
+      finally{
         myShepherd.closeDBTransaction();
       }
 
       if (!locked) {
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.commitDBTransaction();
+        //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully removed user account '" + username + "'.");
+        out.println("<strong>Success!</strong> I have successfully removed user account '" + request.getParameter("uuid") + "'.");
 
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
@@ -92,6 +139,7 @@ public class UserDelete extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to remove the user account. I cannot find the user in the database.");
       out.println(ServletUtilities.getFooter(context));
 

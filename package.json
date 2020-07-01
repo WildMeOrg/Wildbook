@@ -1,0 +1,34 @@
+{
+  "name": "wildbook",
+  "version": "1.0.0",
+  "description": "node for cypress testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WildbookOrg/Wildbook.git"
+  },
+  "keywords": [
+    "wildbook",
+    "ai",
+    "machine",
+    "learning",
+    "image",
+    "analysis",
+    "biology",
+    "science",
+    "citizen",
+    "science"
+  ],
+  "author": "",
+  "license": "GPL-2.0-only",
+  "bugs": {
+    "url": "https://github.com/WildbookOrg/Wildbook/issues"
+  },
+  "homepage": "https://github.com/WildbookOrg/Wildbook#readme",
+  "devDependencies": {
+    "cypress": "^3.1.3"
+  }
+}

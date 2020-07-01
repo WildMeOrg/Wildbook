@@ -7,12 +7,19 @@
 
 	<class name="MediaAsset" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity"/>
+		<field name="acmId">
+			<column length="100"/>
+			<index name="MEDIAASSET_ACMID_INDEX" />
+		</field>
 		<field name="uuid">
 			<index name="MEDIAASSET_UUID_INDEX" unique="true" />
 		</field>
 		<field name="store" persistence-modifier="persistent" element-type="org.ecocean.media.AssetStore" />
 		<field name="parentId" persistence-modifier="persistent">
 			<column jdbc-type="INT" allows-null="true"/>
+		</field>
+		<field name="validImageForIA" persistence-modifier="persistent">
+			<column jdbc-type="BIT" allows-null="true"/>
 		</field>
             	<field name="revision" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="false"/>
@@ -24,6 +31,10 @@
 		<property name="derivationMethodAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="derivationMethod" />
 		</property>
+		<field name="contentHash">
+			<column length="30"/>
+			<index name="MEDIAASSET_CONTENTHASH_INDEX" />
+		</field>
 
     <field name="occurrence"/>
 
@@ -53,7 +64,7 @@
 
 
 	<class name="MediaAssetMetadata">
-		<property name="dataAsString" persistence-modifier="persistent">
+		<property name="dataAsString" persistence-modifier="persistent" default-fetch-group="true">
                 	<column jdbc-type="LONGVARCHAR" name="data" />
 		</property>
 	</class>
@@ -104,10 +115,10 @@
 		<field name="id" primary-key="true">
 			<column length="36" />
 		</field>
-            	<field name="assets" persistence-modifier="persistent" default-fetch-group="false">
-                	<collection element-type="org.ecocean.media.MediaAsset" dependent-element="true" />
-                	<join />
-            	</field>
+		<field name="assets" persistence-modifier="persistent" default-fetch-group="false">
+			<collection element-type="org.ecocean.media.MediaAsset" dependent-element="true" />
+			<join />
+		</field>
 	</class>
 
 	<class name="Feature" identity-type="application">

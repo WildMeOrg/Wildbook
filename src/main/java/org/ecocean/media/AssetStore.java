@@ -39,6 +39,17 @@ import java.security.MessageDigest;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.EOFException;
+import java.nio.file.Files;
+import javax.imageio.ImageIO;
+import javax.imageio.IIOException;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.image.BufferedImage;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -284,8 +295,11 @@ public abstract class AssetStore implements java.io.Serializable {
     public abstract AssetStoreType getType();
 
 
-    //subclass can override, but this should work for AssetStores which can handle making a local cached copy of file
     public MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException {
+        return updateChild(parent, type, opts, false); // crop by default
+    }
+    //subclass can override, but this should work for AssetStores which can handle making a local cached copy of file
+    public MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts, boolean skipCropping) throws IOException {
         if (parent == null) return null;
         //right now we strictly bail on non-images. in the future we *should* let various methods try to do whatever this means for their type  TODO
         if (!parent.isMimeTypeMajor("image")) {
@@ -301,9 +315,10 @@ public abstract class AssetStore implements java.io.Serializable {
         } catch (Exception ex) {
             throw new IOException("updateChild() error caching local file: " + ex.toString());
         }
+        if (parent.localPath() == null) throw new IOException("updateChild() found null localPath() on parent");
         File sourceFile = parent.localPath().toFile();
         File targetFile = new File(sourceFile.getParent().toString() + File.separator + Util.generateUUID() + "-" + type + ".jpg");
-        boolean allowed = _updateChildLocalWork(parent, type, opts, sourceFile, targetFile);  //does the heavy lifting
+        boolean allowed = _updateChildLocalWork(parent, type, opts, sourceFile, targetFile, skipCropping);  //does the heavy lifting
         if (!allowed) return null;  //usually means read-only (big trouble throws exception, including targetFile not existing)
         JSONObject sp = this.createParameters(targetFile);
         MediaAsset ma = this.copyIn(targetFile, sp);
@@ -319,9 +334,12 @@ public abstract class AssetStore implements java.io.Serializable {
         return ma;
     }
 
+    protected boolean _updateChildLocalWork(MediaAsset parentMA, String type, HashMap<String,Object> opts, File sourceFile, File targetFile) throws IOException {
+        return _updateChildLocalWork(parentMA, type, opts, sourceFile, targetFile, false); // by default do not skip cropping
+    }
 
     //a helper/utility app for the above (if applicable) that works on localfiles (since many flavors will want that)
-    protected boolean _updateChildLocalWork(MediaAsset parentMA, String type, HashMap<String,Object> opts, File sourceFile, File targetFile) throws IOException {
+    protected boolean _updateChildLocalWork(MediaAsset parentMA, String type, HashMap<String,Object> opts, File sourceFile, File targetFile, boolean skipCropping) throws IOException {
         if (!this.writable) return false; //should we silently fail or throw exception??
         if (!sourceFile.exists()) throw new IOException("updateChild() " + sourceFile.toString() + " does not exist");
 
@@ -339,14 +357,17 @@ public abstract class AssetStore implements java.io.Serializable {
                 height = 4096;
                 break;
             case "thumb":
+                if (!skipCropping) action = "maintainAspectRatio";
                 width = 100;
                 height = 75;
                 break;
             case "mid":
+                if (!skipCropping) action = "maintainAspectRatio";
                 width = 1024;
                 height = 768;
                 break;
             case "watermark":
+                if (!skipCropping) action = "maintainAspectRatio";
                 action = "watermark";
                 width = 250;
                 height = 200;
@@ -644,6 +665,7 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
         }
         File file = ma.localPath().toFile();
         if (!file.exists()) throw new IOException(file + " does not exist");
+        ma.contentHash = Util.fileContentHash(file);
         JSONObject data = new JSONObject();
         JSONObject attr = extractMetadataAttributes(file);
         if (attr != null) data.put("attributes", attr);
@@ -666,6 +688,7 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
     public static JSONObject extractMetadataAttributes(File file) throws IOException {  //some "generic attributes" (i.e. not from specific sources like exif)
         JSONObject j = new JSONObject();
         j.put("contentType", Files.probeContentType(file.toPath()));  //hopefully we can always/atleast get this
+        j.put("length", file.length());
 
         //we only kinda care about bimg failure -- see: non-images
         BufferedImage bimg = null;
@@ -699,5 +722,65 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
         }
         return j;
     }
+
+    //this is really a more "generic" utility, so might want to live elsewhere
+    // h/t https://stackoverflow.com/a/10069478
+    public static boolean isValidImage(final File file) {
+        if (file == null) return false;
+        InputStream digestInputStream = null;
+        try {
+            digestInputStream = new FileInputStream(file);
+            final ImageInputStream imageInputStream = ImageIO.createImageInputStream(digestInputStream);
+            final java.util.Iterator<ImageReader> imageReaders = ImageIO.getImageReaders(imageInputStream);
+            if (!imageReaders.hasNext()) {
+                System.out.println("WARNING: isValidImage(" + file + ") has no image");
+                return false;
+            }
+            final ImageReader imageReader = imageReaders.next();
+            imageReader.setInput(imageInputStream);
+            final BufferedImage image = imageReader.read(0);
+            if (image == null) {
+                System.out.println("WARNING: isValidImage(" + file + ") has null image");
+                return false;
+            }
+            image.flush();
+            String formatName = imageReader.getFormatName();
+            if (formatName.equals("JPEG")) {
+                imageInputStream.seek(imageInputStream.getStreamPosition() - 2);
+                final byte[] lastTwoBytes = new byte[2];
+                imageInputStream.read(lastTwoBytes);
+                if (lastTwoBytes[0] != (byte)0xff || lastTwoBytes[1] != (byte)0xd9) {
+                    System.out.println("WARNING: isValidImage(" + file + ") is truncated[1]");
+                    return false;
+                } else {
+                    System.out.println("INFO: isValidImage(" + file + ") is valid JPEG");
+                    return true;
+                }
+            }
+            System.out.println("INFO: isValidImage(" + file + ") fell thru[1], valid image? formatName=" + formatName);
+            return true;
+        } catch (final IndexOutOfBoundsException e) {
+            System.out.println("WARNING: isValidImage(" + file + ") is truncated[2]");
+            return false;
+        } catch (final java.io.FileNotFoundException e) {
+            System.out.println("WARNING: isValidImage(" + file + ") file not found");
+            return false;
+        } catch (final IIOException e) {
+            if (e.getCause() instanceof EOFException) {
+                System.out.println("WARNING: isValidImage(" + file + ") is truncated[3]");
+                return false;
+            }
+        } catch (final IOException e) {
+            System.out.println("WARNING: isValidImage(" + file + ") threw " + e.toString());
+            return false;
+        } finally {
+            try {
+                digestInputStream.close();
+            } catch (Exception ex) {}
+        }
+        System.out.println("INFO: isValidImage(" + file + ") fell thru[2] - success?");
+        return true;
+    }
+
 
 }

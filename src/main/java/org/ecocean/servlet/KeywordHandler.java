@@ -22,7 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Keyword;
 import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
+import org.ecocean.media.MediaAsset;
 
 import javax.jdo.Query;
 import javax.servlet.ServletConfig;
@@ -76,6 +76,7 @@ public class KeywordHandler extends HttpServlet {
 
         //confirm success
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Success:</strong> The new image indexing keyword <em>" + readableName + "</em> has been added.");
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark <strong>"+request.getParameter("shark")+"</strong></a></p>\n");
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/kwAdmin.jsp\">Return to keyword administration page.</a></p>\n");
@@ -96,10 +97,10 @@ public class KeywordHandler extends HttpServlet {
         String desc = word.getReadableName();
         
         //need to first delete the keyword from all SinglePhotoVIdeos it is assigned to
-        List<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
+        List<MediaAsset> photos=myShepherd.getAllMediAssetsWithKeyword(word);
         int numPhotos=photos.size();
         for(int i=0;i<numPhotos;i++){
-        	SinglePhotoVideo spv=photos.get(i);
+        	MediaAsset spv=photos.get(i);
         	spv.removeKeyword(word);
         	myShepherd.commitDBTransaction();
         	myShepherd.beginDBTransaction();
@@ -113,6 +114,7 @@ public class KeywordHandler extends HttpServlet {
 
         //confirm success
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Success:</strong> The image indexing keyword <i>" + desc + "</i> has been removed.");
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark <strong>"+request.getParameter("shark")+"</strong></a></p>\n");
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/kwAdmin.jsp\">Return to keyword administration page.</a></p>\n");
@@ -139,6 +141,7 @@ public class KeywordHandler extends HttpServlet {
 
         //confirm success
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Success:</strong> The keyword <i>" + oldName + "</i> has been changed to <i>" + request.getParameter("newName") + "</i>.");
         out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/kwAdmin.jsp\">Return to keyword administration.</a></font></p>");
         out.println(ServletUtilities.getFooter(context));
@@ -147,6 +150,7 @@ public class KeywordHandler extends HttpServlet {
       else {
 
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark <strong>"+request.getParameter("shark")+"</strong></a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -165,6 +169,7 @@ public class KeywordHandler extends HttpServlet {
     } 
     else {
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<p>I did not receive enough data to process your command. No action was indicated to me.</p>");
       out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
       out.println(ServletUtilities.getFooter(context));

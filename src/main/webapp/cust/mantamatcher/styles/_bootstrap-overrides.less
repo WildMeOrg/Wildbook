@@ -2,6 +2,14 @@ body { font-weight: 300; }
 
 h1, h2 { color:  @brand-primary; }
 
+h1 {
+ 	/*-webkit-text-fill-color: transparent;*/
+ 	background: -webkit-linear-gradient(transparent, transparent),
+             url(../img/hero_manta.jpg) repeat;
+ 	background: -o-linear-gradient(transparent, transparent);
+ 	-webkit-background-clip: text;
+	}
+
 label { font-weight: normal; }
 
 .container-fluid {
@@ -215,6 +223,14 @@ label { font-weight: normal; }
 .form-inline .form-group { margin-bottom: 8px; }
 
 .form-inline .row { width: 100%; }
+
+.surveyHeader {
+	color: #005589;
+}
+
+
+
+
 
 .page-header {
 	padding-bottom: 5px;

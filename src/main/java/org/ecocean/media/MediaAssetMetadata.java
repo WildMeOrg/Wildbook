@@ -76,6 +76,11 @@ public class MediaAssetMetadata implements java.io.Serializable {
         return getData().getJSONObject("attributes");
     }
 
+    public void addDatum(String name, String value) {
+        if (getData() == null) data = new JSONObject();
+        data.put(name, value);
+    }
+
 
     //for now(?) this just searches down into exif structure, returns HashMap of key:values whose keys match regex
     //  key is "tree-like" as it recurses: "level1:level2:key" => "value" (to help prevent squashing)
@@ -135,23 +140,32 @@ oh, and incidentally GPS block often has time in it too.  :( :( :(   @@
         HashMap<DateTime,Integer> count = new HashMap<DateTime,Integer>();
         SimpleDateFormat dateParser = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");  //note: exif doesnt carry tz :(
         // TODO maybe?  we could also try just yyyy:MM:dd which sometimes exists.  sigh.  (etc x infinity)
-        for (String val : matches.values()) {
+        for (String key : matches.keySet()) {
+            String val = matches.get(key);
             DateTime dt = null;
             try {
                 dt = new DateTime(dateParser.parse(val));
             } catch (java.text.ParseException ex) { }
+//System.out.println("* MediaAssetMetadata.getDateTime(): " + key + "[" + val + "] -> " + dt);
             if (dt == null) continue;
             if (count.get(dt) == null) {
                 count.put(dt, 1);
             } else {
                 count.put(dt, count.get(dt) + 1);
             }
+            //now we do a little quasi-weighting based on key (e.g. "original" is best, "digitized" is kinda good; otherwise sketchy
+            if (key.toLowerCase().indexOf("original") > -1) count.put(dt, count.get(dt) + 2);
+            if (key.toLowerCase().indexOf("digitized") > -1) count.put(dt, count.get(dt) + 1);
         }
+//System.out.println("* MediaAssetMetadata.getDateTime(): summary => " + count);
         if (count.size() < 1) return null;  //no such luck!
         DateTime bestest = null;
         int bestestCount = 0;
         for (DateTime dt : count.keySet()) {
-            if (count.get(dt) > bestestCount) bestest = dt;
+            if (count.get(dt) > bestestCount) {
+                bestest = dt;
+                bestestCount = count.get(dt);
+            }
         }
         return bestest;
     }
@@ -237,6 +251,18 @@ GPS Altitude: "10 metres"
         System.out.println("WARNING: MediaAssetMetadata._parseAltitude() unable to make sense of units, i think: " + alt);
         return dbl;  //meh, whaddya going to do?
     }
+
+/*
+   exif orientation notes   :(
+ -> https://www.daveperrett.com/articles/2012/07/28/exif-orientation-handling-is-a-ghetto/
+  - http://sylvana.net/jpegcrop/exif_orientation.html
+  - https://www.howtogeek.com/254830/why-your-photos-dont-always-appear-correctly-rotated/
+  - https://www.impulseadventure.com/photo/exif-orientation.html
+
+    e.g.  https://iot.wildbook.org/obrowse.jsp?type=MediaAssetMetadata&id=253361
+    gives (only?)  Orientation: "Top, left side (Horizontal / normal)",  ??
+*/
+
 
 /*
     public String toString() {

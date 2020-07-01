@@ -43,7 +43,7 @@ context=ServletUtilities.getContext(request);
 	}
 	String sessionShark = null;
 	if (session.getAttribute( "queryShark") != null) {
-		sessionShark =(String)session.getAttribute( "queryShark");
+		sessionShark =((String)session.getAttribute( "queryShark")).trim();
 	}
 	Boolean sessionPaid = false;
 	if (session.getAttribute( "paid") != null) {
@@ -55,15 +55,16 @@ context=ServletUtilities.getContext(request);
 	boolean hasNickName = true;
 	String nick = "";
 	try {
-		if (sessionShark != null) {
+		if ((sessionShark != null)&&(myShepherd.getMarkedIndividual(sessionShark)!=null)) {
 			MarkedIndividual mi = myShepherd.getMarkedIndividual(sessionShark);
 			nick = mi.getNickName();
-			if ((nick.equals("Unassigned"))||(nick.equals(""))) {
+			if (((nick==null) || nick.equals("Unassigned"))||(nick.equals(""))) {
 				hasNickName = false;
 			}
 		}
-	} catch (Exception e) {
-		System.out.println("Error looking up nickname!!");
+	} 
+	catch (Exception e) {
+		System.out.println("Error looking up nickname: "+sessionShark);
 		e.printStackTrace();
 	}
 
@@ -99,13 +100,18 @@ context=ServletUtilities.getContext(request);
   <section class="centered">
     <h2>Thank you for your support!</h2>
     <h4>After filling out the financial information, you will be able to create your profile and choose your sharks nickname.</h4>
+    
+     <h3>Financial Information</h3>
+		<img src="cust/mantamatcher/img/circle-divider.png"/><br><br>
+ 
   </section>
 
 	<%-- BEGIN STRIPE FORM --%>
 	<form action="StripePayment" method="POST" id="payment-form" accept-charset="UTF-8">
+		
 		<div class="form-header">
-	    <h2>Financial Information</h2>
-			<img src="cust/mantamatcher/img/circle-divider.png"/>
+	    
+			
 	  </div>
 	  <span class="payment-errors"></span>
 		<div class="input-col-1">

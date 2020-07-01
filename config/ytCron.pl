@@ -1,13 +1,17 @@
 #!/usr/bin/perl
+
 use utf8;
+use open ':std', ':encoding(UTF-8)';
 use JSON;
 use URI::Escape;
 use Data::Dumper;
+use File::Slurp;
+
 
 my $BASE_URL = 'http://localhost';
-my $search_keyword = 'whale shark';
-my $max_videos = $ARGV[0] || 1;
-my $tmp_prefix = '/tmp/yt.' . time;
+my $search_keyword = $ARGV[0] || '"whale shark"';
+my $max_videos = $ARGV[1] || 1;
+my $tmp_prefix = '/tmp/yt-ws.' . time;
 
 print "searching on keyword '$search_keyword' at $BASE_URL\n";
 my $search_results = &search_for($search_keyword);
@@ -26,7 +30,7 @@ foreach my $v (@{$search_results->{videos}}) {
 	my $res = &create($v->{id}->{videoId});
 	$ct++;
 	if (!$res || !$res->{success}) {
-		print "     * failed to create MediaAsset; skipping\n";
+		print "     * failed to create MediaAsset (usually means not downloadable); skipping\n";
 		next;
 	}
 	my $vurl = "$BASE_URL/obrowse.jsp?type=MediaAsset&id=" . ($res->{assetId} + 2);
@@ -56,13 +60,18 @@ sub search_for {
 	my $keyword = uri_escape(shift);
 	#my $cmd = "curl -s '$BASE_URL/ytSearch.jsp?keyword=$keyword'";
 	my $raw_file = "$tmp_prefix-search-raw.json";
-	system("curl -s '$BASE_URL/ytSearch.jsp?keyword=$keyword' > $raw_file");
+	my $since = (time - (2.5*60*60*24)) * 1000;
+#$since = 1517097600001;
+#warn "($since)";
+	system("curl -s '$BASE_URL/ytSearch.jsp?keyword=$keyword&since=$since' > $raw_file");
+	return &json_from_file($raw_file);
+
 	open(R, $raw_file) || die "unable to open $raw_file";
 	my $raw = join('', <R>);
 	close(R);
 	my $json;
 	eval { $json = from_json($raw); };
-	die "could not parse json in $raw_file: $@" if $@;
+	print "     !!! could not parse json in $raw_file: $@" if $@;
 	return $json;
 }
 
@@ -70,14 +79,16 @@ sub search_for {
 sub create {
 	my $id = shift;
 	return {} unless $id;
-	my $create_out = "$tmp_prefix-create-out.json";
+	my $create_out = "$tmp_prefix-create-$id-out.json";
 	system("curl -s $BASE_URL/ytCreate.jsp?id=$id > $create_out");
+	return &json_from_file($create_out);
+
 	open(O, $create_out) || die "unable to open $create_out";
 	my $raw = join('', <O>);
 	close(O);
 	my $json;
 	eval { $json = from_json($raw); };
-	die "could not parse json in $create_out: $@" if $@;
+	print "     !!! could not parse json in $create_out: $@" if $@;
 	return $json;
 }
 
@@ -87,12 +98,14 @@ sub extract {
 	return {} unless $id;
 	my $extract_out = "$tmp_prefix-extract-$id-out.json";
 	system("curl -s $BASE_URL/ytExtract.jsp?id=$id > $extract_out");
+	return &json_from_file($extract_out);
+
 	open(O, $extract_out) || die "unable to open $extract_out";
 	my $raw = join('', <O>);
 	close(O);
 	my $json;
 	eval { $json = from_json($raw); };
-	die "could not parse json in $extract_out: $@" if $@;
+	print "     !!! could not parse json in $extract_out: $@" if $@;
 	return $json;
 }
 
@@ -103,13 +116,31 @@ sub ia {
 	my $ia_data = to_json({ detect => { mediaAssetIds => $ids } });
 	my $ia_out = "$tmp_prefix-ia-" . $ids->[0] . "-out.json";
 	system("curl -s -X POST -H 'Content-Type: application/json' -d '$ia_data' $BASE_URL/ia > $ia_out");
+	return &json_from_file($ia_out);
+
 	open(O, $ia_out) || die "unable to open $ia_out";
 	my $raw = join('', <O>);
 	close(O);
 	my $json;
 	eval { $json = from_json($raw); };
-	die "could not parse json in $ia_out: $@" if $@;
+	print "     !!! could not parse json in $ia_out: $@" if $@;
 	return $json;
 }
 
 
+
+sub json_from_file {
+	my $filename = shift;
+	sleep 1;  #cuz i dont trust that system() was done?
+	return unless -e $filename;
+	my $content = read_file($filename);
+	return unless $content;
+	my $json;
+	eval { $json = from_json($content); };
+	if ($@) {
+#print "---------($filename)---------\n" . substr($content, 0, 1000) . "\n-------------------\n";
+		#print "     !!! could not parse json in $filename: $@";
+		print "     !!! could not parse json in $filename\n";
+	}
+	return $json;
+}

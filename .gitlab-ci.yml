@@ -1,0 +1,70 @@
+stages:
+  - setup
+  - test
+  - build
+  - deploy
+
+prepare:
+  stage: setup
+  image: maven:3.3.9-jdk-8
+  tags:
+    - docker
+  cache:
+    key: maven:v1
+    paths:
+      - ./m2Repository
+  script:
+    - cp ./config/docker/settings.xml /root/.m2/settings.xml
+    - mvn dependency:resolve -B -U
+
+test:
+  stage: test
+  image: maven:3.3.9-jdk-8
+  tags:
+    - docker
+  cache:
+    key: maven:v1
+    paths:
+      - ./m2Repository
+  dependencies:
+    - prepare
+  script:
+    - cp ./config/docker/settings.xml /root/.m2/settings.xml
+    - mvn test -B
+
+build:
+  stage: build
+  image: maven:3.3.9-jdk-8
+  tags:
+    - docker
+  cache:
+    key: maven:v1
+    paths:
+      - ./m2Repository
+  artifacts:
+    paths:
+    - ./target/wildbook-6.0.0-EXPERIMENTAL.war
+    expire_in: 1 week
+  dependencies:
+    - test
+  script:
+    - cp ./config/docker/settings.xml /root/.m2/settings.xml
+    - mvn clean install -DskipTests -Dmaven.javadoc.skip=true -B
+
+deploy-container:
+  image: docker:latest
+  variables:
+    DOCKER_DRIVER: overlay2
+  tags:
+    - docker
+  stage: deploy
+  dependencies:
+    - build
+  services:
+    - docker:dind
+  before_script:
+  - docker info
+  script:
+    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+    - docker build -t $DOCKER_ORG/wildbook:latest -f config/docker/Dockerfile .
+    - docker push $DOCKER_ORG/wildbook:latest

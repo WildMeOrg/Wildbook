@@ -6,7 +6,8 @@
               java.util.Map,
               java.util.Iterator,
               java.util.Properties,
-              java.util.StringTokenizer
+              java.util.StringTokenizer,
+              org.ecocean.cache.*
               "
 %>
 
@@ -24,6 +25,15 @@ myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
 
 
+String langCode=ServletUtilities.getLanguageCode(request);
+
+//check for and inject a default user 'tomcat' if none exists
+// Make a properties object for lang support.
+Properties props = new Properties();
+// Grab the properties file with the correct language strings.
+props = ShepherdProperties.getProperties("index.properties", langCode,context);
+
+
 //check for and inject a default user 'tomcat' if none exists
 if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
   System.out.println("WARNING: index.jsp has determined that CommonConfiguration.isWildbookInitialized()==false!");
@@ -34,12 +44,6 @@ if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
   <%
   StartupWildbook.initializeWildbook(request, myShepherd);
 }
-// Make a properties object for lang support.
-Properties props = new Properties();
-// Find what language we are in.
-String langCode = ServletUtilities.getLanguageCode(request);
-// Grab the properties file with the correct language strings.
-props = ShepherdProperties.getProperties("index.properties", langCode,context);
 
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
@@ -381,6 +385,7 @@ $(window).scroll(function(){
 <%
 
 
+
 //let's quickly get the data we need from Shepherd
 int numMarkedIndividuals=0;
 int numIndyLeftID = 0;
@@ -393,7 +398,10 @@ int numDataContributors=0;
 
 int numCitScientists=0;
 
+int numUsersWithRoles=0;
+int numUsers=0;
 myShepherd.beginDBTransaction();
+QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
 //String url = "login.jsp";
 //response.sendRedirect(url);
@@ -428,9 +436,9 @@ try {
 } catch (Exception e){
 	System.out.println("################# Exception retrieving numbers for index.jsp counters.");
     e.printStackTrace();
+	//myShepherd.closeDBTransaction();
 } finally {
    myShepherd.rollbackDBTransaction();
-   myShepherd.closeDBTransaction();
 }
 %>
 
@@ -543,43 +551,42 @@ try {
 
             <!-- Random user profile to select -->
             <%
-            myShepherd.beginDBTransaction();
             try{
-								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
-            if(featuredUser!=null){
-                String profilePhotoURL="images/empty_profile.jpg";
-                if(featuredUser.getUserImage()!=null){
-                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-                }
+			myShepherd.beginDBTransaction();
+			User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+				if(featuredUser!=null){
+					String profilePhotoURL="images/user-profile-white-transparent.png";
+					if(featuredUser.getUserImage()!=null){
+						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+					}
 
-            %>
-                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                    <div class="focusbox-inner opec">
-                        <h2><%=props.getProperty("ourContributors") %></h2>
-                        <div>
-                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
-                            <p><%=featuredUser.getFullName() %>
-                                <%
-                                if(featuredUser.getAffiliation()!=null){
-                                %>
-                                <i><%=featuredUser.getAffiliation() %></i>
-                                <%
-                                }
-                                %>
-                            </p>
-                            <p><%=featuredUser.getUserStatement() %></p>
-                        </div>
-                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
-                    </div>
-                </section>
-            <%
-            } // end if
-
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{
-
-            	myShepherd.rollbackDBTransaction();
+				%>
+					<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+						<div class="focusbox-inner opec">
+							<h2><%=props.getProperty("ourContributors") %></h2>
+							<div>
+								<img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+								<p><%=featuredUser.getFullName() %>
+									<%
+									if(featuredUser.getAffiliation()!=null){
+									%>
+									<i><%=featuredUser.getAffiliation() %></i>
+									<%
+									}
+									%>
+								</p>
+								<p><%=featuredUser.getUserStatement() %></p>
+							</div>
+							<a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
+						</div>
+					</section>
+				<%
+				} // end if
+            } catch (Exception e) {
+				//myShepherd.closeDBTransaction();
+				e.printStackTrace();
+			} finally{
+            	//myShepherd.closeDBTransaction();
             }
             %>
 
@@ -593,8 +600,8 @@ try {
                        <%
                        List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
                        try{
+						   myShepherd.beginDBTransaction();
 	                       for(int i=0;i<numResults;i++){
 	                           Encounter thisEnc=latestIndividuals.get(i);
 	                           %>
@@ -611,17 +618,18 @@ try {
 	                                        %>
 	                                    </time>
 	                                </small>
-	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividualID() %></a></p>
+	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getDisplayName() %></a></p>
 
 
 	                            </li>
 	                        <%
 	                        }
-						}
-                       catch(Exception e){e.printStackTrace();}
-                       finally{
+						} catch (Exception e){
+							e.printStackTrace();
+							//myShepherd.closeDBTransaction();
+						} finally{
                     	   myShepherd.rollbackDBTransaction();
-
+						   //myShepherd.closeDBTransaction();
                        }
 
                         %>
@@ -642,10 +650,10 @@ try {
                     <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    myShepherd.beginDBTransaction();
                     try{
+						myShepherd.beginDBTransaction();
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
-	                    long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
+                            long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
 
 	                    System.out.println("  I think my startTime is: "+startTime);
 
@@ -657,8 +665,8 @@ try {
 	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
-	                          if(myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/empty_profile.jpg";
+	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
+	                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
 	                              User thisUser=myShepherd.getUser(spotter);
 	                              if(thisUser.getUserImage()!=null){
 	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
@@ -684,9 +692,13 @@ try {
 	                           numUsersToDisplay--;
 	                    }
 	                   } //end while
-                    }
-                    catch(Exception e){e.printStackTrace();}
-                    finally{myShepherd.rollbackDBTransaction();}
+                    } catch (Exception e){
+						e.printStackTrace();
+						//myShepherd.closeDBTransaction();
+					} finally{
+						myShepherd.rollbackDBTransaction();
+						//myShepherd.closeDBTransaction();
+					}
 
                    %>
                     </ul>

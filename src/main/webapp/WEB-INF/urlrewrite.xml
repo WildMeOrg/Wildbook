@@ -13,10 +13,10 @@
 <!--
 
     <rule>
-        <name>Domain Name Check EXAMPLE</name>
-        <condition name="host" operator="notequal">www.wildbook.org</condition>
+        <name>Domain Name Check</name>
+        <condition name="host" operator="notequal">www.flukebook.org</condition>
         <from>^(.*)$</from>
-        <to type="redirect">http://www.wildbook.org$1</to>
+        <to type="redirect">http://www.flukebook.org$1</to>
     </rule>
 -->
 

@@ -1,0 +1,404 @@
+
+.ia-debug {
+    font-size: 0.7em;
+    color: #AAA;
+    margin: 20px 0 0 2em;
+    padding: 10px;
+    background-color: #FEE;
+    white-space: pre;
+}
+
+#encounter-info {
+	padding: 2px 10px;
+	background-color: rgba(255,255,0,0.7);
+}
+
+#encounter-info .enc-title {
+	color: #333;
+	font-size: 1.5em;
+}
+
+#encounter-info .enc-link {
+	color: #777;
+}
+
+#enc-action {
+	position: relative;
+	top: -5px;
+	left: 20px;
+	display: inline-block;
+	font-size: 0.7em;
+}
+
+#enc-action input[type="button"] {
+	line-height: 1em;
+	padding: auto;
+	margin: 0;
+}
+
+.throbbing {
+	background: url(../images/throbber.gif) no-repeat left top !important;
+}
+
+.accordion {
+	color: #fff;
+}
+
+.task-title {
+	margin: 15px 0;
+	clear: both;
+	padding: 8px;
+        display: inline-block;
+        width: 100%;
+}
+.task-title-id {
+	font-size: 0.8em;
+}
+
+.task-divider {
+	/* This whole thing is way too hackey for my taste but it gets a margin between the tasks */
+	clear: both;
+	visibility: hidden;
+	margin-bottom: 50px; /* twice the standard iaResults margin so tasks are visual units */
+}
+
+.task-divider:first-of-type {
+	/* task-divider is prepended so we don't want it above the first task */
+	display: none;
+}
+
+/* these hide stuff for detection jobs; but dont hide task-content as it contains children tasks! */
+.task-title.task-type-detection {
+    display: none;
+}
+.task-summary.task-type-detection {
+    display: none;
+}
+
+.task-summary.task-type-identification {
+    counter-reset: rankcounter;
+}
+
+.task-content {
+	/* height: 700px; */
+}
+.annot-wrapper {
+	width: 48%;
+}
+
+.summary-column {
+	display: inline-block;
+	width: 32%;
+	vertical-align: top;
+}
+
+
+.annot-summary-checked {
+	background-color: #FE8;
+}
+
+.annot-summary {
+	/*padding: 1px 10px;*/
+        position: relative;
+	margin: 4px 0;
+}
+
+.annot-summary:hover {
+	background-color: #8E8;
+}
+
+.annot-wrapper {
+	position: relative;
+}
+.annot-wrapper img {
+	width: 100%;
+}
+
+.annot-action-checkbox-active, .annot-action-checkbox-inactive {
+        position: absolute;
+        top: 2px;
+        right: 5px;
+	transform: scale(1.2);
+}
+
+div div .annot-action-checkbox-inactive {
+	visibility: hidden;
+}
+span.illustrationLink {
+	visibility: hidden;
+}
+.annot-summary:hover span.illustrationLink {
+	visibility: visible;
+}
+span.illustrationLink a {
+	margin: 0 3px 0 10px;
+        text-decoration: none;
+        font-size: 0.8em;
+        background-color: #444;
+        border-radius: 3px;
+        padding: 1px 10px;
+        color: #DDD;
+}
+.annot-summary:hover .annot-action-checkbox-inactive {
+	visibility: visible;
+	cursor: pointer;
+	display: inline-block;
+}
+
+.annot-wrapper .img-info {
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	font-size: 0.8em;
+	background-color: rgba(255,255,255,0.7);
+	padding: 1px 3px;
+	border-radius: 2px;
+}
+
+.annot-info-num::before {
+	
+
+	
+}
+
+.annot-wrapper .img-info-type {
+	background-color: #4F8;
+	color: #222;
+	margin-right: 8px;
+	padding: 1px 4px 2px 4px;
+}
+
+.annot-wrapper-query .annot-info {
+	display: none;
+}
+
+.annot-info-num::before {
+	
+  counter-increment: rankcounter;
+  content: counter(rankcounter);
+	
+}
+
+.annot-info-num {
+	font-size: 0.8em;
+	color: #666;
+	display: inline-block;
+	margin-right: 10px;
+	text-align: right;
+	width: 1.3em;
+}
+
+.annot-wrapper-query {
+	float: left;
+}
+.annot-wrapper-dict {
+	float: right;
+	display: none;
+}
+
+.annot-info {
+	display: inline-block;
+}
+
+.annot-info b {
+    width: 2.6em;
+    overflow: hidden;
+    display: inline-flex;
+}
+
+.enc-link, .indiv-link {
+	vertical-align: middle;
+	font-size: 0.8em;
+	padding: 0 3px;
+	border-radius: 4px;
+	margin: 0 3px 0 10px;
+	background-color: #DDD;
+	overflow: hidden;
+	/* display: inline-block;  */
+	white-space: nowrap;
+	max-width: 6em;
+}
+.enc-link:hover, .indiv-link:hover {
+	background-color: #DD4;
+	text-decoration: none;
+}
+
+.task-title .enc-link, .task-title .indiv-link {
+	max-width: none !important;
+}
+
+#approval-buttons {
+	height: 5em;
+}
+
+#link {
+	clear: both;
+}
+
+#results {
+	display: inline-block;
+}
+
+#result-images {
+	margin-bottom: 100px;
+}
+
+td.ptcol-overall_score,
+td.ptcol-score_holmbergIntersection,
+td.ptcol-score_fastDTW,
+td.ptcol-score_I3S,
+td.ptcol-score_proportion {
+	text-align: right;
+}
+
+.ptcol-adaboost_match {
+        display: none !important;
+}
+
+/*
+td.ptcol-encounterID:hover, td.ptcol-individualID:hover {
+	background-color: #FF0 !important;
+	outline: solid black 2px;
+}
+*/
+
+td.ptcol-encounterID, td.ptcol-individualID {
+	position: relative !important;
+}
+tr.clickable:hover .link-button {
+	display: inline-block;
+}
+
+.indiv-button {
+	display: none;
+}
+.enc-button {
+	display: inline-block;
+}
+.link-button, .link-button:hover {
+	position: absolute;
+	right: 2px;
+	bottom: 2px;
+	background-color: #FFA;
+	padding: 1px 4px;
+	border: solid #444 1px;
+	border-radius: 4px;
+	margin: 0 3px;
+	color: #444;
+	text-decoration: none;
+}
+.link-button:hover {
+	color: #000;
+	background-color: #FF0;
+}
+
+#result-images {
+	height: 300px;
+	position: relative;
+}
+
+#image-main {
+	background-color: #02F;
+}
+#image-compare {
+	background-color: #FAFA00;
+}
+.result-image-wrapper {
+	padding: 9px;
+	border-radius: 6px;
+	width: 47%;
+	margin: 4px;
+	float: left;
+	top: 0;
+}
+
+.result-image-wrapper img {
+	top: 0;
+	left: 0;
+	width: 100%;
+}
+
+.result-image-wrapper .note, #chart .note {
+	background-color: rgba(0,0,0,0.5);
+	border-radius: 10px;
+	padding: 5px;
+	margin: 50px 10px 0 10px;
+	text-align: center;
+	color: #FFF;
+	font-size: 0.9em;
+}
+
+
+.image-info {
+	padding: 5px;
+	margin: 8px;
+	margin-bottom: -75px;
+	width: 43%;
+	background-color: rgba(255,255,255,0.7);
+	font-size: 0.8em;
+	position: absolute;
+	bottom: 0;
+}
+
+
+#image-meta {
+	width: 100%;
+	text-align:center;
+}
+#image-meta #score {
+	display: inline-block;
+	padding: 3px 15px;
+	border-radius: 12px;
+	background-color: rgba(0,0,0,0.7);
+	color: #FFF;
+	z-index: 9999 !important;
+	position: relative;
+	margin-bottom: -25px;
+}
+
+
+/* makes up for nudging of chart */
+#chart .note {
+	width: 80%;
+}
+
+#chart {
+	margin: 75px 0 -30px 70px;
+	height: 400px;
+}
+
+/* Results settings */
+button.scoreType.selected {
+	border-style: solid;
+	border-width: medium;
+	border-color: #aaa;
+}
+button.scoreType.selected:hover {
+	cursor: default;
+}
+span#scoreNumInput {
+	vertical-align: middle;
+	padding-top: 7px;
+}
+input#nResultsPicker {
+	width: 3em;
+}
+
+span#scoreNumSettings {
+	float: right;
+}
+
+/* Algorithm styles, pulled out from their inline originals */
+span.algoInstructions {
+	margin-left: 30px;
+	font-size: 1em;
+}
+span.algoTimestamp {
+	color: #FFF;
+	margin: 0 11px;
+	font-size: 1em;
+}
+
+
+
+

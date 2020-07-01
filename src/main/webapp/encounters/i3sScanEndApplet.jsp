@@ -239,13 +239,6 @@ td, th {
 
 
     }
-    if (locationIDXMLFile.exists()) {
-  %>
-  <li><a
-    href="scanEndAppletLocationID.jsp?writeThis=true&number=<%=num%><%=fileSider%>">Locally Filtered Results (Modified Groth)</a></li>
-
-  <%
-    }
 
     if (finalXMLFile.exists()) {
   %>

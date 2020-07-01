@@ -1,8 +1,6 @@
 f<%@ page contentType="text/html; charset=utf-8"
 		language="java"
  		import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration, java.io.FileInputStream, javax.jdo.Extent" %>
-
-
   <%
 
   String context="context0";
@@ -16,9 +14,10 @@ f<%@ page contentType="text/html; charset=utf-8"
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
 
-
+	int encounterIncrementer=10;
+  
     int startNum = 0;
-    int endNum = 45;
+    int endNum = 30;
 
     try {
 
@@ -31,7 +30,7 @@ f<%@ page contentType="text/html; charset=utf-8"
 
     } catch (NumberFormatException nfe) {
       startNum = 0;
-      endNum = 45;
+      endNum = 9;
     }
 
 
@@ -55,8 +54,6 @@ f<%@ page contentType="text/html; charset=utf-8"
   	StringBuffer prettyPrint=new StringBuffer("");
   	Map<String,Object> paramMap = new HashMap<String, Object>();
 
-
-
     String[] keywords = request.getParameterValues("keyword");
     if (keywords == null) {
       keywords = new String[0];
@@ -64,13 +61,9 @@ f<%@ page contentType="text/html; charset=utf-8"
 
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
-
     //if (request.getParameter("noQuery") == null) {
 
-
-    	String queryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
-
-
+    String queryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap) + " ORDER BY annotations.size()";
 
   %>
  <jsp:include page="../header.jsp" flush="true"/>
@@ -192,7 +185,6 @@ f<%@ page contentType="text/html; charset=utf-8"
 
 
 <div class="container maincontent">
-
 <%
   String rq = "";
   if (request.getQueryString() != null) {
@@ -225,7 +217,7 @@ f<%@ page contentType="text/html; charset=utf-8"
     href="mappedSearchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
      href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
@@ -242,6 +234,8 @@ f<%@ page contentType="text/html; charset=utf-8"
       </p>
 
 <%
+
+
   String qString = rq;
   int startNumIndex = qString.indexOf("&startNum");
   if (startNumIndex > -1) {
@@ -252,12 +246,12 @@ f<%@ page contentType="text/html; charset=utf-8"
 <table width="100%">
   <tr>
     <%
-      if (startNum > 1) {
+      if (startNum > 0) {
       %>
     <td align="left">
       <p>
       <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><img
+        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-encounterIncrementer)%>&endNum=<%=(startNum)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/> <%=encprops.getProperty("previous")%></a>
          
@@ -268,7 +262,7 @@ f<%@ page contentType="text/html; charset=utf-8"
     %>
     <td align="right">
       <p><a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum+45%>&endNum=<%=endNum+45%>">
+        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum+10%>&endNum=<%=endNum+10%>">
         <%=encprops.getProperty("next")%> <img
         src="../images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/>
@@ -283,44 +277,42 @@ f<%@ page contentType="text/html; charset=utf-8"
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
 					<jsp:param name="grid" value="true" />
         	<jsp:param name="queryString" value="<%=queryString %>" />
+        	<jsp:param name="order" value="annotations.size() descending" />
         	<jsp:param name="rangeStart" value="<%=startNum %>" />
         	<jsp:param name="rangeEnd" value="<%=endNum %>" />
-
         </jsp:include>
 
-<%
-
-
-  startNum = startNum + 45;
-  endNum = endNum + 45;
-
-%>
 
 <table width="100%">
   <tr>
     <%
-      if ((startNum - 45) > 1) {%>
+      if ((startNum) > 0) {%>
     <td align="left">
-      <p><a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><img
+      <p>
+      <a
+        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-encounterIncrementer)%>&endNum=<%=(startNum)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/> <%=encprops.getProperty("previous")%></a>
-        </p>
+         
+      </p>
     </td>
     <%
       }
     %>
     <td align="right">
       <p><a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("next")%> <img
-        src="../images/Black_Arrow_right.png" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seeNextResults")%>"/></a></p>
+        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum+10%>&endNum=<%=endNum+10%>">
+        <%=encprops.getProperty("next")%> <img
+        src="../images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle"
+        title="<%=encprops.getProperty("seePreviousResults")%>"/>
+      </a>
     </td>
   </tr>
 </table>
 
 
 </div>
+
 
 <!--db: These are the necessary tools for photoswipe.-->
 <%

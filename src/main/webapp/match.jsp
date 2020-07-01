@@ -1,6 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.Dimension, java.io.File, java.util.*, java.util.concurrent.ThreadPoolExecutor,
+java.util.HashMap,
 org.apache.commons.lang3.StringUtils,
+org.ecocean.identity.IBEISIA,
 org.ecocean.servlet.ReCAPTCHA,
 javax.servlet.http.HttpSession" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
@@ -282,7 +284,7 @@ div.file-item div {
 var amHuman = <%=amHuman%>;
 var currentMethod = 'upload';
 var imageData = [];
-var defaultSpecies = 'Megaptera novaeangliae';
+var defaultSpecies = null;  //'Megaptera novaeangliae';
 var accessKey = wildbook.uuid();
 
 function activateStep(num) {
@@ -599,94 +601,9 @@ function processEncounter(data, id) {
 	encIds[id] = data.encounterId;
 	$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div>created <b><a target="_new" title="' + data.encounterId +
 		'" href="encounters/encounter.jsp?number=' + data.encounterId + '&accessKey=' + accessKey + '">new encounter</a></b>.</div>');
-	waitOn('Starting identification...');
-	startIdentify(data.annotations, id);
-return;
-//////////////////////////// the rest is historic cruft (now in _identCallback() )
-	$.ajax({
-		url: 'ia',
-		data: JSON.stringify(iaData),
-		contentType: 'application/javascript',
-		complete: function(x) {
-			waitOff();
-			//this allows us the singular case of just a .taskId being returned
-			if ((x.status == 200) && x.responseJSON && x.responseJSON.taskId) {
-				console.info("converting taskId %s to .tasks array", x.responseJSON.taskId);
-				x.responseJSON.tasks = [ { taskId: x.responseJSON.taskId } ];
-			}
-			if ((x.status != 200) || !x.responseJSON || !x.responseJSON.success || !x.responseJSON.tasks || !x.responseJSON.tasks.length) {
-				var msg = 'unknown error';
-				if (x.status != 200) msg = 'server error: ' + x.status + ' ' + x.statusText;
-				if (x.responseJSON && x.responseJSON.error) msg = x.responseJSON.error;
-				$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div class="error">' + msg + '</div>');
-			} else {
-				var h = '<div>Started task';
-				if (x.responseJSON.tasks.length > 1) {
-					h += 's: <ul>';
-				} else {
-					h += ' ';
-				}
-				for (var i = 0 ; i < x.responseJSON.tasks.length ; i++) {
-					taskIds.push(x.responseJSON.tasks[i].taskId);
-					h += '<li><a target="_new" href="encounters/matchResults.jsp?taskId=' + x.responseJSON.tasks[i].taskId + '">' + x.responseJSON.tasks[i].taskId + '</a></li>';
-				}
-				h += ((x.responseJSON.tasks.length > 1) ? '</ul>' : '') + '</div>';
-				$('#ident-img-wrapper-' + id + ' .ident-img-info').append(h);
-			}
-			numIdentsLeft--;
-			console.warn('[%d] response: %o', numIdentsLeft, x);
-			if (numIdentsLeft < 1) wrapThingsUp();
-		},
-		dataType: 'json',
-		type: 'post'
-	});
-}
-
-
-var identTasks = {};
-function startIdentify(annotIds, id) {
-	//TODO this is tailored for flukebook basically.  see: Great Future Where Multiple IA Plugins Are Seemlessly Supported
-	_identAjax(id, annotIds);  //default; pattern-match
-	_identAjax(id, annotIds, { OC_WDTW: true });  //will do trailing edge match
-}
-
-function _identAjax(id, annotIds, opt) {
-	if (!annotIds) return _identCallback(id, { success: false, error: '_identAjax called without annotation IDs' });
-	var jdata = { identify: { annotationIds: annotIds }, enqueue: true };
-	//var jdata = { identify: { annotationIds: annotIds, limitTargetSize: 10 }, enqueue: true };  //debugging (small set to compare against)
-	if (opt) jdata.identify.opt = opt;
-	jQuery.ajax({
-		url: 'ia',
-		type: 'POST',
-		dataType: 'json',
-		contentType: 'application/javascript',
-		success: function(d) { _identCallback(id, d); },
-		error: function(x,y,z) {
-			console.warn('_identAjax error on %o: %o %o %o', annotIds, x, y, z);
-			_identCallback(id, { success: false, error: 'error ' + x});
-		},
-		data: JSON.stringify(jdata)
-	});
-}
-
-function _identCallback(id, res) {
-console.log("====> _identCallback id=%s got %o", id, res);
-	if (!identTasks[id]) identTasks[id] = [];
-	identTasks[id].push(res);
-	if (identTasks[id].length > 1) {
-console.info('completed _identAjax calls with %o', identTasks[id]);
-		waitOff();
-		var successful = [];
-		for (var i = 0 ; i < identTasks[id].length ; i++) {
-			if (identTasks[id][i].success) successful.push(identTasks[id][i].taskId);
-		}
-		if (successful.length > 0) {
-			$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div>created <a target="_new" href="encounters/matchResultsMulti.jsp?taskId=' + successful.join('&taskId=') + '"><b>ident tasks</b></a></div>');
-		}
-		numIdentsLeft--;
-		console.warn('[%d] response: %o', numIdentsLeft, res);
-		if (numIdentsLeft < 1) wrapThingsUp();
-	}
+	$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div>started <b><a target="_new" title="' + data.IATaskId +
+		'" href="iaResults.jsp?taskId=' + data.IATaskId + '&accessKey=' + accessKey + '">new ID Task</a></b>.</div>');
+	wrapThingsUp();
 }
 
 
@@ -706,6 +623,7 @@ function wrapThingsUp() {
 }
 
 function sendEmail() {
+return;  //TODO fix email thing duh!!!  (maybe part of servlet/EncounterCreate???)
 	waitOn('Finishing...');
 	var data = {
 		accessKey: accessKey,
@@ -819,7 +737,8 @@ console.warn('assetsArr = %o', assetsArr);
         data: JSON.stringify({
           "MediaAssetCreate": [
             {"assets": assetsArr}
-           ]
+           ],
+          "skipIA": true
         }),
 		complete: function(x) {
 			waitOff();
@@ -1189,7 +1108,7 @@ if ((sources != null) && valid) {
 
 <div id="wait-block"><p>Please wait....</p><img src="images/image-processing.gif" /></div>
 
-<h1>Identify humpback fluke images</h1>
+<h1>Identify from images</h1>
 
 <div id="steps">
 	<div id="step-1" class="step step-active">
@@ -1208,6 +1127,35 @@ if ((sources != null) && valid) {
 
 
 <div id="entire-form">
+
+<%
+HashMap<String,Taxonomy> tax = IBEISIA.iaTaxonomyMap(myShepherd);
+if ((tax == null) || (tax.values() == null) || (tax.values().size() < 1)) {
+%>
+<p class="error">Invalid taxonomical choices!</p>
+<%
+} else if (tax.values().size() == 1) {
+    Taxonomy t = tax.values().iterator().next();
+    String cn = t.getCommonName();
+    if (cn == null) cn = t.getScientificName();
+%>
+<script>defaultSpecies = '<%=t.getScientificName()%>';</script>
+<p>Species: <b><i><%=cn%></i></b></p>
+<%
+} else {
+    String def = null;
+    out.println("<select onChange=\"defaultSpecies = this.value;\">");
+    for (Taxonomy t : tax.values()) {
+        if (def == null) def = t.getScientificName();
+        String cn = t.getCommonName();
+        if (cn == null) cn = t.getScientificName();
+        out.println("<option value=\"" + t.getScientificName() + "\">" + cn + "</option>");
+    }
+    out.println("</select>");
+    out.println("<script>defaultSpecies = '" + def + "';</script>");
+}
+%>
+</select>
 <div id="method-control">
 	<b>Upload image files</b>
 	<a onClick="return switchMethod()">Use image URLs instead</a>

@@ -1,7 +1,18 @@
 <%@ page
 		contentType="text/html; charset=utf-8"
 		language="java"
-     	import="org.ecocean.ShepherdProperties,org.ecocean.CommonConfiguration,org.ecocean.ContextConfiguration,java.util.Properties,org.ecocean.servlet.ServletUtilities"
+     	import="org.ecocean.CommonConfiguration,
+      org.ecocean.ContextConfiguration,
+      org.ecocean.ShepherdProperties,
+      org.ecocean.servlet.ServletUtilities,
+      org.ecocean.Shepherd,
+      org.ecocean.User,
+      java.util.ArrayList,
+      java.util.List,
+      java.util.Properties,
+      org.apache.commons.lang.WordUtils,
+      org.ecocean.security.Collaboration
+      "
 %>
         <%
         String urlLoc = "//" + CommonConfiguration.getURLLocation(request);

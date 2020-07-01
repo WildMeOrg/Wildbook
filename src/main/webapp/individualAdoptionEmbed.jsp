@@ -121,9 +121,6 @@ context=ServletUtilities.getContext(request);
   %>
 
   <tr>
-    <td>Why are research and conservation for this species important?</td>
-  </tr>
-  <tr>
     <td><em>"<%=ad.getAdopterQuote()%>"</em></td>
   </tr>
 

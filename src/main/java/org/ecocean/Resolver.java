@@ -24,6 +24,7 @@ public class Resolver implements java.io.Serializable {
     public static String TYPE_SPLIT = "split";
     public static String TYPE_MERGE = "merge";
     public static String TYPE_NEW = "new";
+    public static String TYPE_RENAME = "rename";
 
     private int id;
     private long modified;
@@ -225,7 +226,7 @@ needsReview = false;  // we are only full-auto now!
 
         MarkedIndividual indiv = new MarkedIndividual(Util.generateUUID(), encs.get(0));
         for (int i = 1 ; i < encs.size() ; i++) {
-            indiv.addEncounter(encs.get(i), "context0");
+            indiv.addEncounter(encs.get(i));
         }
 
         res.addResultObject(indiv);
@@ -257,6 +258,10 @@ needsReview = false;  // we are only full-auto now!
             } else if (type.equals("annotations")){
                 FeatureType.initAll(myShepherd);
                 rtn = IBEISIA.arbitraryAnnotationsFromIA(jin.optJSONArray(type), myShepherd);
+/*  this snuck over (we think!) from lewa-master ... so temporarily commenting out.... FIXME eventually!
+            } else if (type.equals("renameIndividuals")) {
+                rtn = MarkedIndividual.renameMultipleJson(jin.optJSONObject(type), myShepherd);
+*/
             } else if (!validType(type)) {
                 rtn.put("success", false);
                 rtn.put(type, "error: invalid type " + type);

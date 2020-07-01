@@ -19,7 +19,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.HashMap;
+import org.joda.time.DateTime;
 
 
 import org.json.JSONObject;
@@ -39,72 +41,92 @@ public class ImportIA extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-    boolean firstTime = false;
-    if (request.getParameter("doInit") != null) firstTime = true;  //TODO FIXME this is very much hardcoded to one installation!
-
     String context="context0";
+    // a "context=context1" in the URL should be enough
     context=ServletUtilities.getContext(request);
+
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("ImportIA");
+    myShepherd.beginDBTransaction();
+
     FeatureType.initAll(myShepherd);
     PrintWriter out = response.getWriter();
 
-    if (firstTime) initFeatureTypeAndAssetStore(myShepherd);
+    User creator = AccessControl.getUser(request, myShepherd);
+    ImportTask itask = new ImportTask(creator);
+    itask.setPassedParameters(request);
+
+    String uid = request.getParameter("uid");
+    User submitter = null;
+    if (uid != null) submitter = myShepherd.getUserByUUID(uid);
 
     int offset = 0;
     if (request.getParameter("offset")!=null) {
       offset = Integer.parseInt(request.getParameter("offset"));
     }
 
-    out.println("\n\nStarting ImportIA servlet...");
-    myShepherd.beginDBTransaction();
+    //by default, we now will NOT create Occurrence(s) out of IA ImageSet(s) as they are fairly different things
+    //  mostly cuz this makes "co-occurring" Encounters where we probably dont want them
+    boolean createOccurrences = Util.requestParameterSet(request.getParameter("createOccurrences"));
 
-    System.out.println("IA-IMPORT: started.....");
-    JSONObject imageSetRes = getFromIA("/api/imageset/json/?is_special=False", context, out);
+    //whether to cluster all annots from an indiv into single encounters; usually related to above (default false)
+    boolean clusterEncounters = Util.requestParameterSet(request.getParameter("clusterEncounters"));
+
+    out.println("<h1>Starting ImportIA servlet | import task=<a href=\"obrowse.jsp?type=ImportTask&id=" + itask.getId() + "\">" + itask.getId() + "</a></h1>");
+    if (uid != null) {
+        out.println("<p>submitter uid = <b>" + uid + "</b> (user => " + ((submitter == null) ? "<i>invalid ID</i>" : submitter.getDisplayName()) + ")</p>");
+    } else {
+        out.println("<p><i>no submitter uid= passed</i></p>");
+    }
+
+    String urlSuffix = "/api/imageset/json/";
+    if (!Util.requestParameterSet(request.getParameter("includeSpecial"))) urlSuffix += "?is_special=False";
+    JSONObject imageSetRes = getFromIA(urlSuffix, context, out);
     JSONArray fancyImageSetUUIDS = imageSetRes.optJSONArray("response");
+
+    if (imageSetRes==null && request.getParameter("doOnly") == null) {
+      log(itask, "Error! getFromIA(\""+urlSuffix+"\", context, out) returned null!");
+      return;
+    } else if (fancyImageSetUUIDS==null) {
+      log(itask, "Got a result from IA but failed to parse fancyImageSetUUIDS. imageSetRes = "+imageSetRes);
+      return;
+    }
+
     int testingLimit = -1;
     if (request.getParameter("testingLimit") != null) {
         try {
             testingLimit = Integer.parseInt(request.getParameter("testingLimit"));
         } catch (Exception ex) {}
-        if (testingLimit > 0) System.out.println("IA-IMPORT: testingLimit=" + testingLimit);
     }
 
+        String onlyOcc = null;
        if (request.getParameter("doOnly") != null) {
-               String onlyOcc = request.getParameter("doOnly");
-               System.out.println("IA-IMPORT: doing only Occurrence " + onlyOcc);
+               onlyOcc = request.getParameter("doOnly");
                fancyImageSetUUIDS = new JSONArray();
                fancyImageSetUUIDS.put(IBEISIA.toFancyUUID(onlyOcc));
        }
 
+//TODO add taxonomy=
+    log(itask, "starting; urlSuffix=" + urlSuffix + "; testingLimit=" + testingLimit + "; doOnly=" + onlyOcc);
+    log(itask, "IA source = " + IBEISIA.iaURL(context, ""));
 
+    // it should be noted this hasEncounter is relative to *this import only* -- the enc might exist previously.
+    //   this is done for expediency
+    Map<String,String> hasEncounter = new HashMap<String,String>();
 
     for (int i = 0; i < fancyImageSetUUIDS.length(); i++) {
-        if ((testingLimit > 0) && (i >= testingLimit)) continue;
         JSONObject fancyID = fancyImageSetUUIDS.getJSONObject(i);
         Occurrence occ = null;
         String occID = IBEISIA.fromFancyUUID(fancyID);
 
-        System.out.println("IA-IMPORT: ImageSet " + occID);
       JSONObject annotRes = getFromIA("/api/imageset/annot/uuid/json/?imageset_uuid_list=[" + fancyID + "]", context, out);
-/////System.out.println("annotRes -----> " + annotRes);
       // it's a singleton list, hence [0]
       JSONArray annotFancyUUIDs = annotRes.getJSONArray("response").getJSONArray(0);
 
-/*
-if (annotFancyUUIDs.length() > 10) {
-    JSONArray x = new JSONArray();
-    for (int j = 0 ; j < 10 ; j++) {
-        x.put(annotFancyUUIDs.getJSONObject(j));
-    }
-    annotFancyUUIDs = x;
-System.out.println("truncated to\n" + x);
-}
-*/
       List<String> annotUUIDs = fromFancyUUIDList(annotFancyUUIDs);
-      //out.println("occID: " + occID + " has annotUUIDs " + annotUUIDs);
-      System.out.println("occID: " + occID + " has " + annotUUIDs.size() + " annotUUIDs");
-
+      if ((testingLimit > 0) && (annotUUIDs.size() >= testingLimit)) annotUUIDs = annotUUIDs.subList(0, testingLimit);
+        out.println("<p>imageset has annotUUIDs.size() = <b>" + annotUUIDs.size() + "</b></p>");
+        log(itask, "imageset has annotUUIDs.size() = " + annotUUIDs.size());
 
         //now we have to break this up a little since there are some pretty gigantic sets of annotations, it turns out.  :(
         // but ultimately we want to fill iaNamesArray and annots
@@ -115,35 +137,22 @@ System.out.println("truncated to\n" + x);
         int acount = 0;
         while (acount < annotUUIDs.size()) {
 
-            //we also only *import* NEW Annotations, cuz sorry this is importing
             List<String> thisBatch = new ArrayList<String>();
             JSONArray thisFancy = new JSONArray();
             while ((thisBatch.size() < annotBatchSize) && (acount < annotUUIDs.size())) {
-/*
-                Annotation exist = null;
-                try {
-                    exist = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annotUUIDs.get(acount)), true)));
-                } catch (Exception ex) {}
-                if (exist != null) {
-System.out.println(" - - - skipping existing " + exist);
-                    acount++;
-                    continue;
-                }
-*/
                 thisBatch.add(annotUUIDs.get(acount));
                 thisFancy.put(IBEISIA.toFancyUUID(annotUUIDs.get(acount)));
                 acount++;
             }
-System.out.println(acount + " of " + annotUUIDs.size() + " ================================================ now have a batch to fetch: " + thisBatch);
             if (thisBatch.size() > 0) {
                 myShepherd.beginDBTransaction();
+                //grabAnnotations() will only create new ones when necessary
                 List<Annotation> these = IBEISIA.grabAnnotations(thisBatch, myShepherd);
                 myShepherd.commitDBTransaction();
                 annots.addAll(these);
 
                 try {
-                    JSONArray thisNames = IBEISIA.iaNamesFromAnnotUUIDs(thisFancy);
-System.out.println(" >>> thisNames length = " + thisNames.length());
+                    JSONArray thisNames = IBEISIA.iaNamesFromAnnotUUIDs(thisFancy, context);
                     for (int ti = 0 ; ti < thisNames.length() ; ti++) {
                         iaNamesArray.put(thisNames.get(ti));
                     }
@@ -154,7 +163,7 @@ System.out.println(" >>> thisNames length = " + thisNames.length());
         }
 
         //at this point we should have annots and iaNamesArray filled
-System.out.println("iaNamesArray ----> " + iaNamesArray);
+out.println("<p><b>iaNamesArray:</b> " + iaNamesArray + "</p>");
 
       List<String> uniqueNames = new ArrayList<String>();
       HashMap<String,ArrayList<Annotation>> annotGroups = new HashMap<String,ArrayList<Annotation>>();
@@ -164,43 +173,81 @@ System.out.println("iaNamesArray ----> " + iaNamesArray);
         uniqueNames.add(thisName);
         annotGroups.put(thisName, new ArrayList<Annotation>());
       }
-        System.out.println("IA-IMPORT: unique names " + uniqueNames);
+
+        log(itask, "uniqueNames -> (" + String.join(", ", uniqueNames) + ")");
 
       for (int j=0; j < annots.size(); j++) {
         annotGroups.get(iaNamesArray.getString(j)).add(annots.get(j));
       }
 
-      for (String uName : uniqueNames) {
-        System.out.println("Number Annotations with "+uName+": "+annotGroups.get(uName).size());
-      }
-
+/*
+    so... for now we clump into Encounter based on name.  this is probably not ideal.  but how else to do it?
+    probably:  time + location, aka "Clumping" (sigh).... TODO FIXME ETC
+*/
       for (String name : uniqueNames) {
-        if (IBEISIA.unknownName(name)) {   // we need one encounter per annot for unknown!
+        if (IBEISIA.unknownName(name) || !clusterEncounters) {   // we need one encounter per annot for unknown!
             for (Annotation ann : annotGroups.get(name)) {
+                if (hasEncounter.get(ann.getAcmId()) != null) {
+                    log(itask, "!! ann.acmId=" + ann.getAcmId() + " already has enc.id=" + hasEncounter.get(ann.getAcmId()) + "; skipping");
+                    continue;
+                }
                 Encounter enc = new Encounter(ann);
+                String sex = null;
+                try {
+                    sex = IBEISIA.iaSexFromAnnotUUID(ann.getAcmId(), context);
+                } catch (Exception ex) {}
+                Double age = null;
+                try {
+                    age = IBEISIA.iaAgeFromAnnotUUID(ann.getAcmId(), context);
+                } catch (Exception ex) {}
+                if (age != null) enc.setAge(age);
+                if (sex != null) enc.setSex(sex);
+                enc.setTaxonomy(IBEISIA.iaClassToTaxonomy(ann.getIAClass(), myShepherd));
                 enc.setMatchedBy("IBEIS IA");
+                enc.setState("approved");
+                enc.addSubmitter(submitter);
                 myShepherd.beginDBTransaction();
                 myShepherd.storeNewEncounter(enc, Util.generateUUID());
                 myShepherd.storeNewAnnotation(ann);
                 myShepherd.commitDBTransaction();
-                myShepherd.beginDBTransaction();
-                System.out.println("IA-IMPORT: " + enc);
-                if (occ == null) {
-                    occ = myShepherd.getOccurrence(occID);
-                    if (occ == null) occ = new Occurrence(occID, enc);
-System.out.println("NEW OCC created (via unnamed) " + occ);
-                } else {
-                    occ.addEncounter(enc);
-System.out.println("using old OCC (via unnamed) " + occ);
+                hasEncounter.put(ann.getAcmId(), enc.getCatalogNumber());
+                log(itask, "created " + enc + " from " + ann);
+                out.println("<p>Enc " + enc.getCatalogNumber() + " from <a href=\"obrowse.jsp?type=Annotation&id=" + ann.getId() + "\">Annot " + ann.getId() + "</a>");
+
+                if (createOccurrences) {
+                    myShepherd.beginDBTransaction();
+                    if (occ == null) {
+                        occ = myShepherd.getOccurrence(occID);
+                        if (occ == null) occ = new Occurrence(occID, enc);
+                    } else {
+                        occ.addEncounter(enc);
+                    }
+                    myShepherd.getPM().makePersistent(occ);
+                    myShepherd.commitDBTransaction();
+                    out.println(" in Occ " + occ.getOccurrenceID());
                 }
-                myShepherd.getPM().makePersistent(occ);
-                System.out.println("IA-IMPORT: " + occ);
-                myShepherd.commitDBTransaction();
+                out.println("</p>");
+                itask.addEncounter(enc);
             }
 
         } else {
-            Encounter enc = new Encounter(annotGroups.get(name));
+            //we only use annots which havent already been used
+            ArrayList<Annotation> usable = new ArrayList<Annotation>();
+            for (Annotation ann : annotGroups.get(name)) {
+                if (hasEncounter.get(ann.getAcmId()) == null) usable.add(ann);
+            }
+            if (usable.size() < 1) continue;  //nothing to do!
+            Encounter enc = new Encounter(usable);
+            for (Annotation ann : usable) {
+                hasEncounter.put(ann.getAcmId(), enc.getCatalogNumber());
+            }
+            enc.setTaxonomy(IBEISIA.iaClassToTaxonomy(usable.get(0).getIAClass(), myShepherd));
             enc.setMatchedBy("IBEIS IA");
+            enc.setState("approved");
+            enc.addSubmitter(submitter);
+
+            // here we have to check if this encounter has been added already
+
         /*
             note: this constructor will set the date/time on the Encounter "based upon the Annotations"
             (which currently means the .getDateTime() of the first MediaAsset -- but this algorithm may change).
@@ -218,101 +265,104 @@ System.out.println("using old OCC (via unnamed) " + occ);
         */
             String sex = null;
             try {
-            sex = IBEISIA.iaSexFromAnnotUUID(annotGroups.get(name).get(0).getId());
-System.out.println("--- sex=" + sex);
+            sex = IBEISIA.iaSexFromAnnotUUID(annotGroups.get(name).get(0).getAcmId(), context);
             } catch (Exception ex) {}
             Double age = null;
             try {
                 //guess this assumes we have at least one annot and it has age; could walk thru if not?
-                age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getId());
+                age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getAcmId(), context);
             } catch (Exception ex) {}
             if (age != null) enc.setAge(age);
+            if (sex != null) enc.setSex(sex);
             myShepherd.beginDBTransaction();
             myShepherd.storeNewEncounter(enc, Util.generateUUID());
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
-            System.out.println("IA-IMPORT: " + enc);
 
-            enc.setIndividualID(name);
+            //enc.setIndividualID(name);
             if (myShepherd.isMarkedIndividual(name)) {
                 MarkedIndividual ind = myShepherd.getMarkedIndividual(name);
                 if ((ind.getSex() == null) && (sex != null)) ind.setSex(sex); //only if not set already
-                ind.addEncounter(enc, context);
+                ind.addEncounter(enc);
+                enc.setIndividual(ind);
             } else {
                 MarkedIndividual ind = new MarkedIndividual(name, enc);
                 if (sex != null) ind.setSex(sex);
                 myShepherd.storeNewMarkedIndividual(ind);
-                System.out.println("IA-IMPORT: new indiv " + ind);
+
+                log(itask, "created new " + ind);
+
+                ind.refreshNamesCache();
+                
             }
 
             for (Annotation ann: annotGroups.get(name)) {
                 myShepherd.storeNewAnnotation(ann);
             }
             myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-            if (occ == null) {
-                occ = myShepherd.getOccurrence(occID);
-                if (occ == null) occ = new Occurrence(occID, enc);
-System.out.println("NEW OCC created " + occ);
-            } else {
-                occ.addEncounter(enc);
-System.out.println("using old OCC " + occ);
+
+            String annLog = "";
+            String annWeb = "";
+            for (Annotation a : annotGroups.get(name)) {
+                annLog += " " + a;
+                annWeb += " <a href=\"obrowse.jsp?type=Annotation&id=" + a.getId() + "\">Annot " + a.getId() + "</a> ";
             }
-            myShepherd.getPM().makePersistent(occ);
-            System.out.println("IA-IMPORT: " + occ);
-            myShepherd.commitDBTransaction();
+            log(itask, "name " + name + " created " + enc + " from " + annLog);
+            out.println("<p><b>Name " + name + "</b> Enc " + enc.getCatalogNumber() + " from " + annWeb);
+
+            if (createOccurrences) {
+                myShepherd.beginDBTransaction();
+                if (occ == null) {
+                    occ = myShepherd.getOccurrence(occID);
+                    if (occ == null) occ = new Occurrence(occID, enc);
+                } else {
+                    occ.addEncounter(enc);
+                }
+                myShepherd.getPM().makePersistent(occ);
+                myShepherd.commitDBTransaction();
+                out.println(" in Occ " + occ.getOccurrenceID());
+            }
+
+            out.println("</p>");
+            itask.addEncounter(enc);
+
         }
 
       }
 
-System.out.println("zzzzzzzzzzzzzzzzzz " + occ);
-        myShepherd.getPM().makePersistent(occ);
+        if (occ != null) myShepherd.getPM().makePersistent(occ);
         myShepherd.commitDBTransaction();
     }
 
-    //myShepherd.closeDBTransaction();
 
-System.out.println(". . . . . . IMPORT COMPLETE . . . . . .");
-out.println("complete");
-
-  }
-
-  private void initFeatureTypeAndAssetStore(Shepherd myShepherd) {
-    FeatureType.initAll(myShepherd);
-    String rootDir = getServletContext().getRealPath("/");
-    String baseDir = ServletUtilities.dataDir("context0", rootDir);
-    String assetStorePath="/data/wildbook_data_dir/encounters";
-    //String rootURL="http://localhost:8080";
-    String rootURL="http://52.38.106.238:8080/wildbook";
-    String assetStoreURL=rootURL+"/wildbook_data_dir/encounters";
-
-
-
-    //////////////// begin local //////////////
-    LocalAssetStore as = new LocalAssetStore("Mpala-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
-    myShepherd.getPM().makePersistent(as);
+    log(itask, "completed");
+    out.println("<p><i>completed</i></p>");
+    myShepherd.getPM().makePersistent(itask);
+    myShepherd.commitDBTransaction();
+    myShepherd.closeDBTransaction();
   }
 
   // I always swallow errors in the interest of clean code!
   private JSONObject getFromIA(String urlSuffix, String context, PrintWriter outForErrors) throws IOException {
     JSONObject res = new JSONObject();
+    URL restGetString = IBEISIA.iaURL(context, urlSuffix);
     try {
-      res = RestClient.get(IBEISIA.iaURL("context0", urlSuffix));
+      res = RestClient.get(restGetString);
     }
     catch (MalformedURLException e) {
-      outForErrors.println("MalformedURLException on getFromIA()"+urlSuffix+")");
+      outForErrors.println("MalformedURLException on getFromIA()"+urlSuffix+"), which tried to GET "+restGetString);
       e.printStackTrace(outForErrors);
     }
     catch (NoSuchAlgorithmException e) {
-      outForErrors.println("NoSuchAlgorithmException on getFromIA()"+urlSuffix+")");
+      outForErrors.println("NoSuchAlgorithmException on getFromIA()"+urlSuffix+"), which tried to GET "+restGetString);
       e.printStackTrace(outForErrors);
     }
     catch (InvalidKeyException e) {
-      outForErrors.println("InvalidKeyException on getFromIA()"+urlSuffix+")");
+      outForErrors.println("InvalidKeyException on getFromIA()"+urlSuffix+"), which tried to GET "+restGetString);
       e.printStackTrace(outForErrors);
     }
     catch (IOException e) {
-      outForErrors.println("IOException on getFromIA()"+urlSuffix+")");
+      outForErrors.println("IOException on getFromIA()"+urlSuffix+"), which tried to GET "+restGetString);
       e.printStackTrace(outForErrors);
     }
     if (res==null) throw new IOException("Could not get "+urlSuffix+"from server");
@@ -326,5 +376,10 @@ out.println("complete");
     }
     return ids;
   }
+
+    private static void log(ImportTask itask, String message) {
+        itask.addLog(message);
+        System.out.println("ImportIA [" + itask.getId() + "] " + Util.prettyPrintDateTime(new DateTime()) + " " + message);
+    }
 
 }

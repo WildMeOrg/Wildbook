@@ -129,9 +129,13 @@ public class RestServlet extends HttpServlet
      */
     private String getNextTokenAfterSlash(HttpServletRequest req)
     {
+       try {
         String path = req.getRequestURI().substring(req.getContextPath().length() + req.getServletPath().length());
         StringTokenizer tokenizer = new StringTokenizer(path, "/");
         return tokenizer.nextToken();
+       }
+       catch(Exception e) {}
+       return null;
     }
 
     /**
@@ -206,24 +210,62 @@ public class RestServlet extends HttpServlet
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
-      resp.setHeader("Access-Control-Allow-Origin", "*");
-      getPMF(req);
+        resp.setHeader("Access-Control-Allow-Origin", "*");
+        String servletID=Util.generateUUID();
+        getPMF(req,servletID);
         // Retrieve any fetch group that needs applying to the fetch
-        String fetchParam = req.getParameter("fetch");
-
+        String[] fetchParams = req.getParameterValues("fetch");
+        String fetchDepth = req.getParameter("fetchDepth");
+        
                 String encodings = req.getHeader("Accept-Encoding");
                 boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
 
+        
+        String queryString="";        
         try
         {
             String token = getNextTokenAfterSlash(req);
-            if (token.equalsIgnoreCase("query") || token.equalsIgnoreCase("jdoql"))
+            if (req.getParameter("query")!=null || token!=null && (token.equalsIgnoreCase("query") || token.equalsIgnoreCase("jdoql")))
             {
+                
+              if(req.getParameter("query")!=null) {
+                queryString = URLDecoder.decode(req.getParameter("query"), "UTF-8");
+              }
+              else {
                 // GET "/query?the_query_details" or GET "/jdoql?the_query_details" where "the_query_details" is "SELECT FROM ... WHERE ... ORDER BY ..."
-                String queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
+                queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
+              }  
+                
                 PersistenceManager pm = pmf.getPersistenceManager();
-                String servletID=Util.generateUUID();
                 ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "new");
+                
+                if(fetchParams!=null) {
+                  int numParams=fetchParams.length;
+                  for(int g=0;g<numParams;g++) {
+                    if(g==0) {
+                      pm.getFetchPlan().setGroup(fetchParams[g]);
+                      //System.out.println("Setting fetch group: "+fetchParams[g]);
+                    }
+                    else {
+                      pm.getFetchPlan().addGroup(fetchParams[g]);
+                      //System.out.println("Adding fetch group: "+fetchParams[g]);
+                    }
+                    
+                  }
+                  //check fetchDepth
+                  if(req.getParameter("fetchDepth")!=null) {
+                    try {
+                      int value=Integer.parseInt(req.getParameter("fetchDepth").trim());
+                      pm.getFetchPlan().setMaxFetchDepth(value);
+                      System.out.println("Setting fetch depth: "+value);
+                    }
+                    catch(Exception nfe) {
+                      nfe.printStackTrace();
+                    }
+                    
+                  }
+                  this.nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();
+                }
                 
                 
                 try
@@ -233,10 +275,22 @@ public class RestServlet extends HttpServlet
                     
 
                     Query query = pm.newQuery("JDOQL", queryString);
-                    if (fetchParam != null)
-                    {
-                        query.getFetchPlan().addGroup(fetchParam);
+                    if(fetchParams!=null) {
+                      int numParams=fetchParams.length;
+                      for(int g=0;g<numParams;g++) {
+                        if(g==0) {
+                          query.getFetchPlan().setGroup(fetchParams[g]);
+                        }
+                        else {
+                          query.getFetchPlan().addGroup(fetchParams[g]);
+                        }
+                        
+                      }
                     }
+                    
+                    System.out.println("Fetch plan class: "+query.getFetchPlan().getGroups().toString());
+                    
+                    
                     Object result = filterResult(query.execute());
                     if (result instanceof Collection)
                     {
@@ -268,13 +322,13 @@ public class RestServlet extends HttpServlet
                         
                     }
                     pm.close();
-                    //ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "close");
                     ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
                     
                     
                 }
                 return;
             }
+            /*
             else if (token.equalsIgnoreCase("jpql"))
             {
                 // GET "/jpql?the_query_details" where "the_query_details" is "SELECT ... FROM ... WHERE ... ORDER BY ..."
@@ -318,6 +372,7 @@ public class RestServlet extends HttpServlet
                 }
                 return;
             }
+            */
             else
             {
                 // GET "/{candidateclass}..."
@@ -338,30 +393,43 @@ public class RestServlet extends HttpServlet
                     resp.getWriter().write(error.toString());
                     resp.setStatus(404);
                     resp.setHeader("Content-Type", "application/json");
+                    ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                    
                     return;
                 }
 
                 Object id = getId(req);
                 if (id == null)
                 {
+                  if(req.getRemoteUser()!=null){
                     // Find objects by type or by query
                     try
                     {
                         // get the whole extent for this candidate
-                        String queryString = "SELECT FROM " + cmd.getFullClassName();
+                        queryString = "SELECT FROM " + cmd.getFullClassName();
                         if (req.getQueryString() != null)
                         {
                             // query by filter for this candidate
                             queryString += " WHERE " + URLDecoder.decode(req.getQueryString(), "UTF-8");
                         }
                         PersistenceManager pm = pmf.getPersistenceManager();
-                        if (fetchParam != null)
-                        {
-                            pm.getFetchPlan().addGroup(fetchParam);
+                        if(fetchParams!=null) {
+                          int numParams=fetchParams.length;
+                          for(int g=0;g<numParams;g++) {
+                            if(g==0) {
+                              pm.getFetchPlan().setGroup(fetchParams[g]);
+                            }
+                            else {
+                              pm.getFetchPlan().addGroup(fetchParams[g]);
+                            }
+                            
+                          }
                         }
                         try
                         {
                             pm.currentTransaction().begin();
+                            ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "begin");      
+                            
                             Query query = pm.newQuery("JDOQL", queryString);
                             List result = (List)filterResult(query.execute());
                             JSONArray jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
@@ -380,6 +448,8 @@ public class RestServlet extends HttpServlet
                                 pm.currentTransaction().rollback();
                             }
                             pm.close();
+                            ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                            
                         }
                         return;
                     }
@@ -390,6 +460,8 @@ public class RestServlet extends HttpServlet
                         resp.getWriter().write(error.toString());
                         resp.setStatus(400);
                         resp.setHeader("Content-Type", "application/json");
+                        ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                        
                         return;
                     }
                     catch (NucleusException ex)
@@ -399,6 +471,7 @@ public class RestServlet extends HttpServlet
                         resp.getWriter().write(error.toString());
                         resp.setStatus(404);
                         resp.setHeader("Content-Type", "application/json");
+                        ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
                         return;
                     }
                     catch (RuntimeException ex)
@@ -409,19 +482,39 @@ public class RestServlet extends HttpServlet
                         resp.getWriter().write(error.toString());
                         resp.setStatus(404);
                         resp.setHeader("Content-Type", "application/json");
+                        ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
                         return;
                     }
+                }
+                else{
+                    JSONObject error = new JSONObject();
+                    error.put("exception", "You have to log in to GET a full class list of objects.");
+                    resp.getWriter().write(error.toString());
+                    resp.setStatus(400);
+                    resp.setHeader("Content-Type", "application/json");
+                    ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                    return;
+                  }
                 }
 
                 // GET "/{candidateclass}/id" - Find object by id
                 PersistenceManager pm = pmf.getPersistenceManager();
-                if (fetchParam != null)
-                {
-                    pm.getFetchPlan().addGroup(fetchParam);
+                if(fetchParams!=null) {
+                  int numParams=fetchParams.length;
+                  for(int g=0;g<numParams;g++) {
+                    if(g==0) {
+                      pm.getFetchPlan().setGroup(fetchParams[g]);
+                    }
+                    else {
+                      pm.getFetchPlan().addGroup(fetchParams[g]);
+                    }
+                    
+                  }
                 }
                 try
                 {
                     pm.currentTransaction().begin();
+                    ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "begin");      
                     Object result = filterResult(pm.getObjectById(id));
                     JSONObject jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
                     //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result,
@@ -429,7 +522,7 @@ public class RestServlet extends HttpServlet
                     tryCompress(req, resp, jsonobj, useCompression);
                     //resp.getWriter().write(jsonobj.toString());
                     resp.setHeader("Content-Type","application/json");
-                    //pm.currentTransaction().commit();
+                    
                     return;
                 }
                 catch (NucleusObjectNotFoundException ex)
@@ -454,6 +547,7 @@ public class RestServlet extends HttpServlet
                         pm.currentTransaction().rollback();
                     }
                     pm.close();
+                    ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
                 }
             }
         }
@@ -488,7 +582,8 @@ public class RestServlet extends HttpServlet
     throws ServletException, IOException
     {
         resp.setHeader("Access-Control-Allow-Origin", "*");
-        getPMF(req);
+        String servletID=Util.generateUUID();
+        getPMF(req, servletID);
         if (req.getContentLength() < 1)
         {
             resp.setContentLength(0);
@@ -649,8 +744,8 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
-
-        getPMF(req);
+      String servletID=Util.generateUUID();
+        getPMF(req,servletID);
         PersistenceManager pm = pmf.getPersistenceManager();
         try
         {
@@ -766,7 +861,9 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
 
     protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-        getPMF(req);
+      
+      String servletID=Util.generateUUID();
+        getPMF(req,servletID);
         String className = getNextTokenAfterSlash(req);
         ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(RestServlet.class.getClassLoader());
         AbstractClassMetaData cmd = nucCtx.getMetaDataManager().getMetaDataForEntityName(className);
@@ -858,9 +955,9 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
     }
 
         boolean restAccessCheck(Object obj, HttpServletRequest req, JSONObject jsonobj) {
-          System.out.println(jsonobj.toString());
-          System.out.println(obj);
-          System.out.println(obj.getClass());
+          //System.out.println(jsonobj.toString());
+          //System.out.println(obj);
+          //System.out.println(obj.getClass());
                       boolean ok = true;
                       Method restAccess = null;
                       try {
@@ -893,33 +990,73 @@ System.out.println(thisRequest);
                 for (Object obj : (Collection)result) {
                     cls = obj.getClass();
                     if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
+                    else if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
+					else if (cls.getName().equals("org.ecocean.Adoption")) throw new NucleusUserException("Cannot access org.ecocean.Adoption objects at this time");
+                    
                 }
             } else {
                 cls = result.getClass();
                 if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
+                else  if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
+				else if (cls.getName().equals("org.ecocean.Adoption")) throw new NucleusUserException("Cannot access org.ecocean.Adoption objects at this time");
             }
             return out;
         }
 
 
         JSONObject convertToJson(HttpServletRequest req, Object obj, ExecutionContext ec) {
-//System.out.println("convertToJson(non-Collection) trying class=" + obj.getClass());
+            
             JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(obj, ec);
+            
             Method sj = null;
-            try {
-                sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
-            } catch (NoSuchMethodException nsm) { //do nothing
-//System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+            //call decorateJson on object
+            if(req.getParameter("noDecorate")==null) {
+              
+              try {
+                  sj = obj.getClass().getMethod("decorateJson", new Class[] { HttpServletRequest.class, JSONObject.class });
+              } 
+              catch (NoSuchMethodException nsm) { //do nothing
+                  //System.out.println("i guess " + obj.getClass() + " does not have decorateJson() method");
+              }
+              if (sj != null) {
+                  //System.out.println("trying decorateJson on "+obj.getClass());
+                  try {
+                      jobj = (JSONObject)sj.invoke(obj, req, jobj);
+                      //System.out.println("decorateJson");
+                  } 
+                  catch (Exception ex) {
+                    ex.printStackTrace();
+                    //System.out.println("got Exception trying to invoke decorateJson: " + ex.toString());
+                  }
+              }
             }
-            if (sj != null) {
-//System.out.println("trying sanitizeJson!");
-                try {
-                    jobj = (JSONObject)sj.invoke(obj, req, jobj);
-                } catch (Exception ex) {
-                  ex.printStackTrace();
-                  System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
-                }
-            }
+            
+            //System.out.println(jobj.toString());
+            
+            //call sanitizeJson on object
+
+              sj = null;
+              try {
+                  sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
+              } 
+              catch (NoSuchMethodException nsm) { //do nothing
+                  //System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+              }
+              if (sj != null) {
+                  //System.out.println("trying sanitizeJson on "+obj.getClass());
+                  try {
+                      jobj = (JSONObject)sj.invoke(obj, req, jobj);
+                      //System.out.println("sanitizeJson result: " +jobj.toString());
+                  } 
+                  catch (Exception ex) {
+                    ex.printStackTrace();
+                    //System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
+                  }
+              }
+
+
+            
+            
             return jobj;
         }
 
@@ -958,7 +1095,7 @@ System.out.println("- scrubJson reporting class=" + jobj.get("class").toString()
 */
 
         void tryCompress(HttpServletRequest req, HttpServletResponse resp, Object jo, boolean useComp) throws IOException, JSONException {
-System.out.println("??? TRY COMPRESS ??");
+//System.out.println("??? TRY COMPRESS ??");
             //String s = scrubJson(req, jo).toString();
             String s = jo.toString();
             if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
@@ -974,9 +1111,10 @@ System.out.println("??? TRY COMPRESS ??");
             }
         }
 
-        private void getPMF(HttpServletRequest req){
+        private void getPMF(HttpServletRequest req, String servletID){
             String context="context0";
             context=ServletUtilities.getContext(req);
+            ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "new");      
             pmf=ShepherdPMF.getPMF(context);
             this.nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();
             thisRequest = req;
