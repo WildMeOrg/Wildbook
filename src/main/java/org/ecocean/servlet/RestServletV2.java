@@ -22,6 +22,7 @@ import java.util.HashMap;
 import org.ecocean.Shepherd;
 import org.ecocean.ShepherdRO;
 import org.ecocean.Util;
+import org.ecocean.SystemLog;
 import org.ecocean.Occurrence;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.User;
@@ -551,7 +552,7 @@ rtn.put("_payload", payload);
         _log("-", msg);
     }
     private void _log(String id, String msg) {
-        System.out.println("[RestServletV2:" + id + "] " + msg);
+        SystemLog.log("[RestServletV2:" + id + "] " + msg);
     }
 
 }
