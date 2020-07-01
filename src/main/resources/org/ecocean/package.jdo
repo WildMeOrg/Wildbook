@@ -958,6 +958,9 @@
 		<field name="version">
 			<column allows-null="true" />
 		</field>
+		<field name="value">
+			<column jdbc-type="LONGVARCHAR" />
+		</field>
 	</class>
 
 

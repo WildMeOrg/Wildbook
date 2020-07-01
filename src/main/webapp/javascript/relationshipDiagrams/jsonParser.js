@@ -87,9 +87,9 @@ class JSONQuerier {
 	this.localFiles = localFiles;
     }
 
-        /**
+    /**
      * Static function used to populate the {nodeData} and {relationshipData} fields prior to
-     * generating graphs s.t. data is guarenteed to only be queried once
+     * generating graphs s.t. data is guaranteed to only be queried once
      * @param {iId} [String] - The id of the central node
      * @param {genus} [String] - The genus of the central node
      * @param {callbacks} [List] - Graphing functions to call
@@ -98,6 +98,7 @@ class JSONQuerier {
     async preFetchData(iId, genus, epithet, callbacks, diagramIds, parsers=[]) {
 	await this.queryNodeData(genus, epithet);
 	await this.queryRelationshipData(genus);
+	await this.queryOccurrences(genus);
 	
 	//Graph data
 	for (let i = 0; i < callbacks.length; i ++) {
@@ -115,12 +116,11 @@ class JSONQuerier {
     queryNodeData(genus, epithet) {
 	let query;
 	if (!this.localFiles) {
-	    query = "//"+window.location.host + "/encounters/socialJson.jsp?";
+	    query = wildbookGlobals.baseUrl  + "/encounters/socialJson.jsp?";
 	    if (genus) query += "genus=" + genus + "&";
 	    if (epithet) query += "specificEpithet=" + epithet + "&";
 	}
 	else query = "./MarkedIndividual.json";
-	console.log(query);
 	return this.queryData("nodeData", query, this.storeQueryAsDict);
     }
 
@@ -132,15 +132,22 @@ class JSONQuerier {
     queryRelationshipData(genus) {
 	let query;
 	if (!this.localFiles) {
-	    query = "//"+window.location.host + "/api/jdoql?" +
-		//encodeURIComponent(
-				"SELECT FROM org.ecocean.social.Relationship " +
-				   "WHERE (this.type != null )"
-		//)
-		;
+	    query = wildbookGlobals.baseUrl + "/encounters/relationshipJSON.jsp?"
+	    if (genus) query += "genus=" + genus;
 	}
 	else query = "./Relationship.json";
 	return this.queryData("relationshipData", query);
+    }
+
+    /**
+     * Query wrapper for the storage of Occurrence data
+     * @param {genus} [String] - The genus of the central node being graphed
+     * @returns {queryData} [array] - All Relationship data in the Wildbook DB
+     */
+    queryOccurrences(genus) {
+	let query = wildbookGlobals.baseUrl+'/encounters/occurrenceGraphJson.jsp?'
+	if (genus) query += "genus=" + genus;
+	return this.queryData("occurrenceData", query);
     }
 
     /**
@@ -154,10 +161,7 @@ class JSONQuerier {
 	return new Promise((resolve, reject) => {
 	    if (!JSONParser[type]) { //Memoize the result
 		d3.json(query, (error, json) => {
-		    if (error) {
-			console.log(error);
-			reject(error);
-		    }
+		    if (error) reject(error);
 		    else if (callback) callback(json, type, resolve);
 		    else {
 			JSONParser[type] = json;
@@ -229,7 +233,7 @@ class JSONParser {
      *   additional coOccurrence modifications
      */
     processJSON(graphCallback, iId, isCoOccurrence) {
-	let [nodeDict, nodeList] = this.parseNodes(iId);
+	let [nodeDict, nodeList] = this.parseNodes(iId, isCoOccurrence);
 	let [linkDict, linkList] = this.parseLinks(nodeDict);
 
 	if (isCoOccurrence) { //Extract temporal and latitude/longitude encounter data
@@ -241,11 +245,13 @@ class JSONParser {
     /**
      * Extract node data from the MarkedIndividual and Relationship query data
      * @param {iId} [string] - The id of the central node
+     * @param {isCoOccurrence} [boolean] - Determines whether node/link data should feature 
+     *   additional coOccurrence modifications
      * @return {nodes} [obj] - Extracted data relevant to graphing nodes
      */
-    parseNodes(iId) {
+    parseNodes(iId, isCoOccurrence) {
 	//Assign unique ids and groupings to the queried node data
-	let graphNodes = this.processNodeData(iId);
+	let graphNodes = this.processNodeData(iId, isCoOccurrence);
 
 	//Extract meaningful node data
 	let nodes = {};
@@ -262,13 +268,15 @@ class JSONParser {
     /**
      * Assign unique ids and label connected groups for all nodes
      * @param {iId} [string] - The id of the central node
+     * @param {isCoOccurrence} [boolean] - Determines whether node/link data should feature 
+     *   additional coOccurrence modifications
      * @return {graphNodes} [obj list] - List of raw node data to be parsed and graphed
      */
-    processNodeData(iId) {
+    processNodeData(iId, isCoOccurrence) {
 	//Generate a two way mapping of all node relationships
 	let nodes = this.getNodeSelection();
 	let relationships = this.mapRelationships(nodes);
-	let [graphNodes, groupNum] = this.traverseRelationshipTree(iId, nodes, relationships);
+	let [graphNodes, groupNum] = this.traverseRelationshipTree(iId, nodes, relationships, isCoOccurrence);
 
 	//Ensure iId is in graphNodes
 	if (iId && !graphNodes[iId]) graphNodes[iId] = this.updateNodeData(nodes[iId], ++groupNum, this.getNodeId(), 0, true);
@@ -294,10 +302,15 @@ class JSONParser {
      * @param {iId} [string] - The id of the central node
      * @param {nodes} [dict] Dict of nodes
      * @param {relationships} [dict] Map of node relationship data
+     * @param {isCoOccurrence} [boolean] - Determines whether node/link data should feature 
+     *   additional coOccurrence modifications
      * @return {graphNodes, groupNum, numNodes} [dict, int] Dict of nodes to be graphed.
      *   Last group number found
      */
-    traverseRelationshipTree(iId, nodes, relationships) {
+    traverseRelationshipTree(iId, nodes, relationships, isCoOccurrence) {
+	//Ensure coOccurrence graphs grant priority to explicit occurrences
+	if (isCoOccurrence) this.prioritizeOccurrences(iId, nodes);
+	
 	//Update id and group attributes for all nodes with some relationship
 	let graphNodes = {};
 	let groupNum = 0, numNodes = 0;
@@ -316,7 +329,6 @@ class JSONParser {
 		if (this.maxNumNodes > 0 && numNodes >= this.maxNumNodes) return [graphNodes, groupNum];
 
 		//Update the node
-		console.log(name);
 		graphNodes[name] = this.updateNodeData(nodes[name], group, this.getNodeId(), depth, iIdLinked);
 		numNodes++;
 
@@ -338,6 +350,23 @@ class JSONParser {
 	}
 
 	return [graphNodes, groupNum];
+    }
+
+    /**
+     * Removes entries from {nodes} until all explicit occurrences may fit within
+     *   the contextual {this.maxNumNodes} limit
+     * @param {iId} [string] - The id of the central node
+     * @param {nodes} [dict] Dict of nodes
+     * @return {occurrenceNodes} A dict of nodes prioritizing explicit occurrences
+     */
+    prioritizeOccurrences(iId, nodes) {
+	let occIds = this.getOccurrenceIds(iId);
+	for (let id in nodes) {
+	    if (Object.keys(nodes).length <= this.maxNumNodes) break;
+		
+	    if (id == iId) continue; //Ensure central node is included
+	    if (!occIds.has(id)) delete nodes[id];
+	}
     }
 
     /**
@@ -417,6 +446,8 @@ class JSONParser {
      * @return {modifiedLinks} [array] - Represents one link from each node to the {iId} central node
      */
     modifyOccurrenceData(iId, nodeDict, links) {
+	let occIds = this.getOccurrenceIds(iId);
+	
 	//Add sightings data to each existing node
 	let nodes = Object.values(nodeDict);
 	nodes.forEach(node => {
@@ -429,27 +460,33 @@ class JSONParser {
 		let lat = enc.decimalLatitude;
 		let lon = enc.decimalLongitude;
 
-		if (typeof lat === "number" && typeof lon === "number" &&
-		    typeof millis === "number") {
-		    let minutes = (millis / 1000) / 60;
+		if (this.isNumeric(lat) && this.isNumeric(lon) &&
+		     this.isNumeric(millis)) {
+		    let hours = (parseFloat(millis) / 1000) / 3600;
 		    node.data.sightings.push({
 			"time": {
-			    "datetime": minutes,
-			    "year": enc.year,
-			    "month": enc.month,
-			    "day": enc.day
+			    "datetime": hours,
+			    "year": parseFloat(enc.year),
+			    "month": parseFloat(enc.month),
+			    "day": parseFloat(enc.day)
 			},
 			"location": {
-			    "lat": lat * 1000,
-			    "lon": lon * 1000
+			    "lat": parseFloat(lat),
+			    "lon": parseFloat(lon)
 			}
 		    });
 		}
 	    });
+
+	    //Include explicit occurrences
+	    if (occIds.has(node.data.individualID)) {
+		node.data.sightings.explicit = true;
+	    }
 	});
 
 	//Remove nodes with no valid sightings
-	let modifiedNodes = nodes.filter(node => node.data.sightings.length > 0);
+	let modifiedNodes = nodes.filter(node => node.data.sightings.length > 0 ||
+					 node.data.sightings.explicit);
 	let modifiedNodeMap = new Set(modifiedNodes.map(node => node.id));
 
 	//Record all links connected to the central focusedNode
@@ -480,6 +517,22 @@ class JSONParser {
 	});
 
 	return [modifiedNodes, modifiedLinks];
+    }
+
+    /**
+     * Returns a set of nodes (by id) which explicitly occur with the central node {iId}
+     * @param {iId} [string] - The id of the central node
+     * @return {idSet} [set] - All nodes (by id) which explicitly occur with the central node {iId} 
+     */
+    getOccurrenceIds(iId) {
+	var idSet = new Set();
+	JSONParser.occurrenceData.forEach(occ => {
+	    var occIds = occ.encounters.map(enc => enc.individualID);
+	    if (occIds.includes(iId)) {
+		occIds.forEach(id => idSet.add(id));
+	    }
+	});
+	return idSet;
     }
 
     /**
@@ -575,5 +628,14 @@ class JSONParser {
 	}
 
 	return ["member", defaultOrder];
+    }
+
+    /**
+     * Determines if {num} represents a numeric value
+     * @param {num} [obj] - An object of unknown value/type
+     * @return {type} [boolean] - Whether {num} represents a numeric value
+     */
+    isNumeric(num) {
+	return !isNaN(num);
     }
 }

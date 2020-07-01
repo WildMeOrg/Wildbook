@@ -1040,6 +1040,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc.resetDateInMilliseconds();
             newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
             newEnc.setGenus(someEnc.getGenus());
+            newEnc.setSex(null);
 
             Occurrence occ = myShepherd.getOccurrence(someEnc);
             if (occ==null) {
