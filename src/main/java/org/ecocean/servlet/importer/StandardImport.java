@@ -895,35 +895,35 @@ public class StandardImport extends HttpServlet {
        String colEmail="Encounter.submitter"+startIter+".emailAddress";
        String val=getString(row,colEmail);
        if(val!=null){
+         boolean newUser = true;
          if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+           newUser = false;
            User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
            if((enc.getSubmitters()==null) || !enc.getSubmitters().contains(thisPerson)){
              if (committing) enc.addSubmitter(thisPerson);
              if (unusedColumns!=null) unusedColumns.remove(colEmail);
            }
-         }
-         else{
-           //create a new User
-           User thisPerson=new User(val.trim(),Util.generateUUID());
-           if (committing) enc.addSubmitter(thisPerson);
-           if (unusedColumns!=null) unusedColumns.remove(colEmail);
-
-           String colFullName="Encounter.submitter"+startIter+".fullName";
-           String val2=getString(row,colFullName);
-           if(val2!=null) thisPerson.setFullName(val2.trim());
-           if (unusedColumns!=null) unusedColumns.remove(colFullName);
-
-           String colAffiliation="Encounter.submitter"+startIter+".affiliation";
-           String val3=getString(row,colAffiliation);
-           if(val3!=null) thisPerson.setAffiliation(val3.trim()); 
-           if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
-
-         }
-         startIter++;
-       }
-       else{
-         hasSubmitters=false;
-       }
+         } 
+          //create a new User
+          String val2 = null;
+          String val3 = null;
+          String colFullName="Encounter.submitter"+startIter+".fullName";
+          String colAffiliation="Encounter.submitter"+startIter+".affiliation";
+          if (newUser) {
+            User thisPerson=new User(val.trim(),Util.generateUUID());
+            if (committing) enc.addSubmitter(thisPerson);
+            val2=getString(row,colFullName);
+            if(val2!=null) thisPerson.setFullName(val2.trim());
+            val3=getString(row,colAffiliation);
+            if(val3!=null) thisPerson.setAffiliation(val3.trim()); 
+          }
+          if (unusedColumns!=null) unusedColumns.remove(colEmail);
+          if (unusedColumns!=null&&val2!=null&&!"".equals(val2)) unusedColumns.remove(colFullName);
+          if (unusedColumns!=null&&val3!=null&&!"".equals(val3)) unusedColumns.remove(colAffiliation);
+        } else {
+          hasSubmitters=false;
+        }
+        startIter++;
      }
 
     /*
@@ -940,38 +940,40 @@ public class StandardImport extends HttpServlet {
         String colEmail="Encounter.photographer"+startIter+".emailAddress";
         String val=getString(row,colEmail);
         if(val!=null){
+          boolean newUser = true;
           if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+            newUser = false;
             User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
             if((enc.getPhotographers()==null) ||!enc.getPhotographers().contains(thisPerson)){
               if (committing) enc.addPhotographer(thisPerson);
               if (unusedColumns!=null) unusedColumns.remove(colEmail);
             }
           }
-          else{
-            //create a new User
-            User thisPerson=new User(val.trim(),Util.generateUUID());
-            if (committing) enc.addPhotographer(thisPerson);
-            if (unusedColumns!=null) unusedColumns.remove(colEmail);
-
+          //create a new User
+          try {
             String colFullName="Encounter.photographer"+startIter+".fullName";
-            String val2=getString(row,colFullName);
-            if(val2!=null) thisPerson.setFullName(val2.trim()); 
-            if (unusedColumns!=null) unusedColumns.remove(colFullName);
-
             String colAffiliation="Encounter.photographer"+startIter+".affiliation";
-            String val3=getString(row,colAffiliation);
-            if(val3!=null) thisPerson.setAffiliation(val3.trim());
-            if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
-
-
+            String val2 = null;
+            String val3 = null;
+            if (newUser) {
+              User thisPerson=new User(val.trim(),Util.generateUUID());
+              if (committing) enc.addPhotographer(thisPerson);
+              val2=getString(row,colFullName);
+              if(val2!=null) thisPerson.setFullName(val2.trim()); 
+              val3=getString(row,colAffiliation);
+              if(val3!=null) thisPerson.setAffiliation(val3.trim());
+            }
+            if (unusedColumns!=null) unusedColumns.remove(colEmail);
+            if (unusedColumns!=null&&val2!=null&&!"".equals(val2)) unusedColumns.remove(colFullName);
+            if (unusedColumns!=null&&val3!=null&&!"".equals(val3)) unusedColumns.remove(colAffiliation);
+          } catch (Exception e) {
+            e.printStackTrace();
           }
           startIter++;
-        }
-        else{
+        } else {
           hasPhotographers=false;
         }
       }
-
      /*
       * End Photographer imports
       */
@@ -981,43 +983,46 @@ public class StandardImport extends HttpServlet {
       /*
        * Start informOther imports
        */
-       boolean hasInformOthers=true;
-       startIter=0;
-       while(hasInformOthers){
-         String colEmail="Encounter.informOther"+startIter+".emailAddress";
-         String val=getString(row,colEmail);
-         if(val!=null){
-           if(myShepherd.getUserByEmailAddress(val.trim())!=null){
-             User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
-             if((enc.getInformOthers()==null) ||!enc.getInformOthers().contains(thisPerson)){
-               if (committing) enc.addInformOther(thisPerson);
-               if (unusedColumns!=null) unusedColumns.remove(colEmail);
-             }
-           }
-           else{
-             //create a new User
-             User thisPerson=new User(val.trim(),Util.generateUUID());
-             if (committing) enc.addInformOther(thisPerson);
-             if (unusedColumns!=null) unusedColumns.remove(colEmail);
-
-             String colFullName="Encounter.informOther"+startIter+".fullName";
-             String val2=getString(row,colFullName);
-             if(val2!=null) thisPerson.setFullName(val2.trim()); 
-             if (unusedColumns!=null) unusedColumns.remove(colFullName);
-
-             String colAffiliation="Encounter.informOther"+startIter+".affiliation";
-             String val3=getString(row,colAffiliation);
-             if(val3!=null) thisPerson.setAffiliation(val3.trim());
-             if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
-
-
-           }
-           startIter++;
-         }
-         else{
-           hasInformOthers=false;
-         }
-       }
+      boolean hasInformOthers=true;
+      startIter=0;
+      while(hasInformOthers){
+        String colEmail="Encounter.informOther"+startIter+".emailAddress";
+        String val=getString(row,colEmail);
+        if(val!=null){
+          boolean newUser = true;
+          if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+            newUser = false;
+            User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
+            if((enc.getInformOthers()==null) ||!enc.getInformOthers().contains(thisPerson)){
+              if (committing) enc.addInformOther(thisPerson);
+              if (unusedColumns!=null) unusedColumns.remove(colEmail);
+            }
+          }
+          //create a new User
+          try {
+            String colFullName="Encounter.informOther"+startIter+".fullName";
+            String colAffiliation="Encounter.informOther"+startIter+".affiliation";
+            String val2 = null;
+            String val3 = null;
+            if (newUser) {
+              User thisPerson=new User(val.trim(),Util.generateUUID());
+              if (committing) enc.addInformOther(thisPerson);
+              val2=getString(row,colFullName);
+              if(val2!=null) thisPerson.setFullName(val2.trim()); 
+              val3=getString(row,colAffiliation);
+              if(val3!=null) thisPerson.setAffiliation(val3.trim());
+            }
+            if (unusedColumns!=null) unusedColumns.remove(colEmail);
+            if (unusedColumns!=null&&val2!=null&&!"".equals(val2)) unusedColumns.remove(colFullName);
+            if (unusedColumns!=null&&val3!=null&&!"".equals(val3)) unusedColumns.remove(colAffiliation);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          startIter++;
+        } else {
+          hasInformOthers = false;
+        }
+      }
 
       /*
        * End informOther imports
