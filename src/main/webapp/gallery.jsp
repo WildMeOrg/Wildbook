@@ -10,7 +10,6 @@
               java.util.Iterator,
               java.util.Properties,
               java.util.StringTokenizer,
-              java.util.HashMap,
               org.datanucleus.api.rest.orgjson.JSONObject,
               org.datanucleus.api.rest.orgjson.JSONArray,
               org.joda.time.DateTime,
@@ -18,8 +17,16 @@
               javax.jdo.*
               "
 %>
+
+
+
 <jsp:include page="header.jsp" flush="true"/>
+
+
+
 <%
+
+
 
 // All this fuss before the html is from individualSearchResults
 String context="context0";
@@ -34,12 +41,9 @@ props = ShepherdProperties.getProperties("individuals.properties", langCode,cont
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 //some sorting and filtering work
-String sortParam = "";
-String sortString = "";
-
-if(request.getParameter("sort")!=null) {
-  sortParam = Util.sanitizeURLParameter(request.getParameter("sort")); 
-	sortString = "&sort="+sortParam;
+String sortString="";
+if(request.getParameter("sort")!=null){
+	sortString="&sort="+request.getParameter("sort");
 }
 //locationCodeField
 String locationCodeFieldString="";
@@ -94,545 +98,477 @@ int numResults = 0;
 
 
 Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
-  myShepherd.beginDBTransaction();
-    
-    int count = myShepherd.getNumAdoptions();
-    int allSharks = myShepherd.getNumMarkedIndividuals();
-    int countAdoptable = allSharks - count;
-    
-    if(request.getParameter("adoptableSharks")!=null){
-      //get current time minus two years
-      Long twoYears=new Long("63072000000");
-      long currentDate=System.currentTimeMillis()-twoYears.longValue();
-        String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE names.valuesAsString.toLowerCase().indexOf(\"nickname\") == -1";
-        Query query=myShepherd.getPM().newQuery(filter);
-        query.setOrdering("numberEncounters descending");
-        query.setRange(startNum, endNum);
-        Collection c = (Collection) (query.execute());
-      rIndividuals=new Vector<MarkedIndividual>(c);
-        query.closeAll();
-        if(rIndividuals==null){rIndividuals=new Vector<MarkedIndividual>();}
-    }
-    else{
-      String order ="nickName ASC NULLS LAST";
-    
-      request.setAttribute("rangeStart", startNum);
-      request.setAttribute("rangeEnd", endNum);
-      MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
-    
-      rIndividuals = result.getResult();
-    
-      //handle any null errors better
-      if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
-    
-    }
-    
-    // security
-    if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
-      HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
-      rIndividuals = hiddenData.viewableResults(rIndividuals, myShepherd);
-    }
-    
-    if (rIndividuals.size() < listNum) {
-      listNum = rIndividuals.size();
-    }
-
-%>
 
 
-<script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
-<script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
-
-
-<style>
-  section.main-section.galleria div.row.gunit-row {
-    background:#e1e1e1;
-    padding-top:15px;
-  }
-
-  .gunit-row {
-    position: relative;
-  }
-
-  .gallery-info {
-    background: #4a494a;
-    padding: 15px;
-  }
-  .gallery-info h2 {
-    color: #16696d;
-  }
-  .gallery-info table {
-    width: 100%;
-  }
-  .gallery-info td {
-    width:50%;
-  }
-
-  .gallery-unit .crop, .gallery-inner .crop {
-    text-align: center;
-    overflow: hidden;
-  }
-
-  // seal-scrolling css
-  .gallery-inner {
-    position: relative;
-  }
-  .seal-scroll {
-    cursor:pointer;
-    position: absolute;
-    top: 40%;
-  }
-  .seal-scroll.scroll-fwd {
-    right: 10%;
-  }
-  .seal-scroll.scroll-back {
-    left: 10%;
-  }
-
-  .super-crop.seal-gallery-pic {
-    display: none;
-  }
-  .super-crop.seal-gallery-pic.active {
-    display: block;
-  }
-
-  p.image-copyright {
-    	text-align: right;
-    	position: absolute;
-    	top: 5px;
-    	right: 25px;
-    	color: #fff;
-    	font-size: 0.8rem;
-  }
-  .gallery-inner p.image-copyright {
-    top: 30px;
-    right: 110px;
-  }
-  @media(max-width: 768px) {
-    .gallery-unit p.image-copyright {
-      display: none;
-    }
-    .gallery-inner p.image-copyright {
-      right: 35px;
-    }
-  }
-
-  .galleryh2 {
-    color: #16696d !important;
-    font-weight: 700 !important;
-    font-size: 36px !important;
-    line-height: 1.3em !important;
-    font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif !important;
-    padding: 27px;
-  }
-
-  .gallery-inner {
-    background: #fff;
-    padding: 10px;
-  }
-
-  @media(min-width: 768px) {
-    .gallery-inner {
-      margin-left: 75px;
-      margin-right: 75px;
-    }
-  }
-
-  .gallery-inner img {
-    display: block;
-    margin: auto;
-  }
-  .gallery-nav {
-    margin-bottom: 0;
-  }
-  div.arrow-up {
-  	width: 0;
-  	height: 0;
-  	border-left: 15px solid transparent;  /* left arrow slant */
-  	border-right: 15px solid transparent; /* right arrow slant */
-  	border-bottom: 15px solid #4a494a; /* bottom, add background color here */
-  	font-size: 0;
-  	line-height: 0;
-    position: absolute;
-    bottom: 0;
-  }
-  div.arrow-up.left {
-    left: 25%;
-  }
-  div.arrow-up.right {
-    left: 75%;
-  }
-
-
-  .gallery-unit {
-    cursor: pointer;
-    cursor: hand;
-  }
-
-</style>
-
-<%
-//let's quickly get the data we need from Shepherd
-int numMarkedIndividuals=0;
-int numEncounters=0;
-int numDataContributors=0;
-//myShepherd.beginDBTransaction();
-
-%>
-
-<div class="container maincontent">
-<h1><%=props.getProperty("gallery") %></h1>
-<nav class="navbar navbar-default gallery-nav">
-  <div class="container-fluid">
-    <button type="button" class="btn-link recentSightings"><a class="recentSightings" href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
-    
-    <button type="button" class="btn-link mostSightings"><a class="mostSightings  " href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
-
-    <button type="button" class="btn-link mostTraveled"><a class="mostTraveled" href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
-
-
-    <!--  Placement for adoptable sharks button, in same format as above. -->
-
-    <p class="pull-right galleryCounter pageCounter"><b>Page: 1</b></p>
-
-  </div>
-</nav>
-
-<script> 
-  $(document).ready(function() {
-    //console.log("----- SortString? "+"<%=sortParam%>");
-
-    if ("dateTimeLatestSighting"==="<%=sortParam%>") {
-      $('.recentSightings').addClass('gallerySortActive');
-      $('.mostTraveled').removeClass('gallerySortActive');
-      $('.mostSightings').removeClass('gallerySortActive');
-    }
-
-    if ("numberLocations"==="<%=sortParam%>") {
-      $('.mostTraveled').addClass('gallerySortActive');
-      $('.recentSightings').removeClass('gallerySortActive');
-      $('.mostSightings').removeClass('gallerySortActive');
-    }
-
-    if ("numberEncounters"==="<%=sortParam%>"||""==="<%=sortParam%>") {
-      $('.mostSightings').addClass('gallerySortActive');
-      $('.mostTraveled').removeClass('gallerySortActive');
-      $('.recentSightings').removeClass('gallerySortActive');
-    }
-
-    //var pageNum = "Page: "+String((parseInt(<%=startNum%>)+1)/parseInt(<%=numIndividualsOnPage%>));
-    var pageNum = String(Math.round(parseInt(<%=endNum%>)/parseInt(<%=numIndividualsOnPage%>))); 
-    $('.pageCounter b').html("Page: "+pageNum);
-
-  }); 
-</script>
-
-<div class="container-fluid">
-  <section class="container-fluid main-section front-gallery galleria">
-
-  <% if (request.getParameter("adoptableSharks")!=null) { %>
-    <h3><%=props.getProperty("numAdoptable").replaceAll("%NUM%", (new Integer(countAdoptable)).toString()) %></h3>
-    <p><%=props.getProperty("adoptOne") %> <strong><a href="adoptashark.jsp"><%=props.getProperty("learnMore") %></a></strong></p>
-  <% } %>
-
-    <% if(request.getParameter("locationCodeField")!=null) {%>
-
-      <style>
-        .row#location-header {
-          padding: 15px 15px 0px 15px;
-          background: #e1e1e1;
-        }
-        .row#location-header h2 {
-          margin-bottom: 0px;
-        }
-      </style>
-
-      <div class="row" id="location-header">
-      <%
-      String locCode=request.getParameter("locationCodeField")
-       		.replaceAll("PS","Pohjois-Saimaa")
-  	   		.replaceAll("HV","Haukivesi")
-            .replaceAll("JV","Joutenvesi")
-         	.replaceAll("PEV","Pyyvesi - Enonvesi")
-			.replaceAll("KV","Kolovesi")
-			.replaceAll("PV","Pihlajavesi")
-			.replaceAll("PUV","Puruvesi")
-			.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
-			.replaceAll("LL","Luonteri – Lietvesi")
-			.replaceAll("ES","Etel&auml;-Saimaa");
-      %>
-
-        <h2><%=locCode %></h2>
-      </div>
-    <% } %>
-
-      <%
-      
-      
-      
-      int maxRows=(int)numIndividualsOnPage/2;
-      for (int i = 0; i < rIndividuals.size()/2 && i < maxRows; i++) {
-        %>
-        <div class="row gunit-row">
-        <%
-        MarkedIndividual[] pair = new MarkedIndividual[2];
-        if(rIndividuals.get(i*2)!=null){
-        	pair[0]=rIndividuals.get(i*2);
-        }
-        if(rIndividuals.get(i*2)!=null){
-        	pair[1]=rIndividuals.get(i*2+1);
-        }
-
-        String[] pairUrl = new String[2];
-        String[] pairName = new String[2];
-        String[] pairNickname = new String[2];
-        String[] pairCopyright = new String[2];
-        String[] pairMediaAssetID = new String[2];
-        // construct a panel showing each individual
-        for (int j=0; j<2; j++) {
-        	if(pair[j]!=null){
-          MarkedIndividual indie = pair[j];
-          for (Encounter enJ : indie.getDateSortedEncounters()) {
-            for (MediaAsset maJ : enJ.getMedia()) {
-              if (maJ.getMetadata() != null) {
-                maJ.getMetadata().getDataAsString();
-              }
-            }
-          }
-          ArrayList<JSONObject> al = indie.getExemplarImages(myShepherd, request);
-          JSONObject maJson=new JSONObject();
-          if(al.size()>0){maJson=al.get(0);}
-          pairCopyright[j] =
-          maJson.optString("photographer");
-          if ((pairCopyright[j]!=null)&&!pairCopyright[j].equals("")) {
-            pairCopyright[j] =  "&copy; " +pairCopyright[j];
-          }
-          pairMediaAssetID[j]=maJson.optString("id");
-          pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
-          pairName[j] = indie.getIndividualID();
-          pairNickname[j] = pairName[j];
-          if (!indie.getNickName().equals("Unassigned") && indie.getNickName()!=null && !indie.getNickName().equals("")) pairNickname[j] = indie.getNickName();
-          %>
-          <div class="col-xs-6">
-            <div class="gallery-unit" id="gunit<%=i*2+j%>">
-              <div class="crop" title="<%=pairName[j]%>">
-                <img class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
-                <%
-                if(pairCopyright[j]!=null){
-               	%>
-                	<p class="image-copyright"> <%=pairCopyright[j]%> </p>
-                <%
-                }
-                %>
-              </div>
-              <p><strong><%=pairNickname[j]%></strong></p>
-            </div>
-          </div>
-          <div id="arrow<%=i*2+j%>" class="arrow-up <%=(j==0) ? "left" : "right"%> " style="display: none"></div>
-          <%
-        }
-        }
-        %>
-        </div>
-        <div class="row">
-        <%
-        // now a second row containing each individual's info panel (hidden at first)
-        for (int j=0; j<2; j++) {
-          %>
-          <div class="col-sm-12 gallery-info" id="ginfo<%=i*2+j%>" style="display: none">
-
-
-            <div class="gallery-inner">
-              <div class="super-crop seal-gallery-pic active">
-                <div class="crop">
-                  <img class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
-                  <%
-                  if(pairCopyright[j]!=null){
-               	  %>
-                	<p class="image-copyright"> <%=pairCopyright[j]%> </p>
-                  <%
-                  }
-                  %>
-                </div>
-              </div>
-              <%
-              // display=none copies of the above for each additional image
-              ArrayList<JSONObject> al = pair[j].getExemplarImages(myShepherd, request);
-              for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
-                JSONObject newMaJson = new JSONObject();
-                newMaJson = al.get(extraImgNo);
-                String newUrl = newMaJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
-
-                String copyright = newMaJson.optString("photographer");
-                if ((copyright!=null)&&!copyright.equals("")) {
-                  copyright =  "&copy; " +copyright+" / WWF";
-                } else {
-                  copyright = "&copy; WWF";
-                }
-
-
-
-                %>
-                <div class="super-crop seal-gallery-pic">
-                  <div class="crop">
-                    <img class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=newUrl%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
-                    <p class="image-copyright"> <%=copyright%> </p>
-                    <script>console.log("<%=pairName[j]%>: added extra image <%=newUrl%>");</script>
-                  </div>
-                </div>
-                <%
-              }
-              if (al.size()>1) {
-              %>
-                <img class="seal-scroll scroll-back" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"/>
-                <img class="seal-scroll scroll-fwd" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/>
-              <%
-              } 
-              %>
-
-
-
-
-
-
-
-
-              <span class="galleryh2"><%=pairNickname[j]%> (<%=props.getProperty("encounters")%>: <%=pair[j].totalEncounters()%>)</span>
-              <span style="font-size:1.5rem;color:#999;text-align:right;float:right;margin-top:4px;bottom:0;">
-                <%
-                String imageURL=pairUrl[j].replaceAll(":", "%3A").replaceAll("/", "%2F").replaceFirst("52.40.15.8", "norppagalleria.wwf.fi");
-                String shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairName[j];
-                if(pairNickname[j]!=null){shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairNickname[j];}
-                %>
-
-                <a href="https://www.facebook.com/sharer/sharer.php?u=<%=urlLoc %>/gallery.jsp&title=<%=shareTitle %>&endorseimage=<%=urlLoc %>/images/image_for_sharing_individual.jpg" title="Wildbook" class="btnx" target="_blank" rel="external" >
-                	<i class="icon icon-facebook-btn" aria-hidden="true"></i>
-                </a>
-
-                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+<%=urlLoc %>/gallery.jsp"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
-                <a target="_blank" rel="external" href="https://plus.google.com/share?url=<%=urlLoc %>/gallery.jsp"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
-              </span>
-              <table><tr>
-                <td>
-                  <p>
-                    <%=props.getProperty("individualID")%>: <%=pairName[j]%>
-                  </p>
-                  <p>
-                    <%=props.getProperty("nickname")%>: <%=pairNickname[j]%>
-                  </p>
-                  <p>
-                    <%
-                      String sexValue = pair[j].getSex();
-                      if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
-                      if (sexValue.equals("unknown")) {
-                    %>
-                    <%=props.getProperty("sex")%> <%=sexValue%>
-                    
-                    <%}%>
-                  </p>
-                </td>
-                <td>
-                  <div class="gallery-btn-group">
-                  <%
-                  if(CommonConfiguration.allowAdoptions(context)){
-                  %>
-                    <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
-                  <%
-                  }
-                  %>  
-                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>"><button class="large adopt"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>
-                  </div>
-                </td>
-                <tr>
-	                <td>
+myShepherd.beginDBTransaction();
+try{
+	
+	int count = myShepherd.getNumAdoptions();
+	int allSharks = myShepherd.getNumMarkedIndividuals();
+	int countAdoptable = allSharks - count;
+	
+	if(request.getParameter("adoptableSharks")!=null){
+		//get current time minus two years
+		Long twoYears=new Long("63072000000");
+		long currentDate=System.currentTimeMillis()-twoYears.longValue();
+	    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE names.valuesAsString.toLowerCase().indexOf(\"nickname\") == -1";
+	    Query query=myShepherd.getPM().newQuery(filter);
+	    query.setOrdering("numberEncounters descending");
+	    query.setRange(startNum, endNum);
+	    Collection c = (Collection) (query.execute());
+		rIndividuals=new Vector<MarkedIndividual>(c);
+	    query.closeAll();
+	    if(rIndividuals==null){rIndividuals=new Vector<MarkedIndividual>();}
+	}
+	else{
+		String order ="nickName ASC NULLS LAST";
+	
+		request.setAttribute("rangeStart", startNum);
+		request.setAttribute("rangeEnd", endNum);
+		MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+	
+		rIndividuals = result.getResult();
+	
+		//handle any null errors better
+		if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
+	
+	}
+	
+	// security
+	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
+		HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(rIndividuals, request, myShepherd);
+		rIndividuals = hiddenData.viewableResults(rIndividuals, myShepherd);
+	}
+	
+	if (rIndividuals.size() < listNum) {
+	  listNum = rIndividuals.size();
+	}
+	
+	%>
+	
+	
+	
+	
+	<style>
+	  section.main-section.galleria div.row.gunit-row {
+	    background:#e1e1e1;
+	    padding-top:15px;
+	  }
+	
+	  .gunit-row {
+	    position: relative;
+	  }
+	
+	  .gallery-info {
+	    background: #4a494a;
+	    padding: 15px;
+	  }
+	  .gallery-info h2 {
+	    color: #16696d;
+	  }
+	  .gallery-info table {
+	    width: 100%;
+	  }
+	  .gallery-info td {
+	    width:50%;
+	  }
+	
+	  .gallery-unit .crop, .gallery-inner .crop {
+	    text-align: center;
+	    overflow: hidden;
+	  }
+	
+	  // seal-scrolling css
+	  .gallery-inner {
+	    position: relative;
+	  }
+	  .seal-scroll {
+	    cursor:pointer;
+	    position: absolute;
+	    top: 40%;
+	  }
+	  .seal-scroll.scroll-fwd {
+	    right: 10%;
+	  }
+	  .seal-scroll.scroll-back {
+	    left: 10%;
+	  }
+	
+	  .super-crop.seal-gallery-pic {
+	    display: none;
+	  }
+	  .super-crop.seal-gallery-pic.active {
+	    display: block;
+	  }
+	
+	  p.image-copyright {
+	    	text-align: right;
+	    	position: absolute;
+	    	top: 5px;
+	    	right: 25px;
+	    	color: #fff;
+	    	font-size: 0.8rem;
+	  }
+	  .gallery-inner p.image-copyright {
+	    top: 30px;
+	    right: 110px;
+	  }
+	  @media(max-width: 768px) {
+	    .gallery-unit p.image-copyright {
+	      display: none;
+	    }
+	    .gallery-inner p.image-copyright {
+	      right: 35px;
+	    }
+	  }
+	
+	
+	  .galleryh2 {
+	    color: #16696d !important;
+	    font-weight: 700 !important;
+	    font-size: 36px !important;
+	    line-height: 1.3em !important;
+	    font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif !important;
+	    padding: 27px;
+	  }
+	
+	
+	  .gallery-inner {
+	    background: #fff;
+	    padding: 10px;
+	  }
+	
+	  @media(min-width: 768px) {
+	    .gallery-inner {
+	      margin-left: 75px;
+	      margin-right: 75px;
+	    }
+	  }
+	
+	  .gallery-inner img {
+	    display: block;
+	    margin: auto;
+	  }
+	  .gallery-nav {
+	    margin-bottom: 0;
+	  }
+	  div.arrow-up {
+	  	width: 0;
+	  	height: 0;
+	  	border-left: 15px solid transparent;  /* left arrow slant */
+	  	border-right: 15px solid transparent; /* right arrow slant */
+	  	border-bottom: 15px solid #4a494a; /* bottom, add background color here */
+	  	font-size: 0;
+	  	line-height: 0;
+	    position: absolute;
+	    bottom: 0;
+	  }
+	  div.arrow-up.left {
+	    left: 25%;
+	  }
+	  div.arrow-up.right {
+	    left: 75%;
+	  }
+	
+	
+	  .gallery-unit {
+	    cursor: pointer;
+	    cursor: hand;
+	  }
+	
+	</style>
+	
+	
+	
+	<%
+	
+	
+	//let's quickly get the data we need from Shepherd
+	
+	int numMarkedIndividuals=0;
+	int numEncounters=0;
+	int numDataContributors=0;
+	
+	
+	%>
+	
+	<div class="container maincontent">
+	<h1><%=props.getProperty("gallery") %></h1>
+	<nav class="navbar navbar-default gallery-nav">
+	  <div class="container-fluid">
+	    <button type="button" class="btn-link"><a href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
+	
+	    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
+	
+	    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
+	
+		<%
+		if(CommonConfiguration.allowAdoptions(context)){
+		%>
+		    <button type="button" class="btn-link"><a href="gallery.jsp?adoptableSharks=true"><%=props.getProperty("adoptableSharks") %></a></button>
+		<%
+		}
+		%>
+	
+	  </div>
+	</nav>
+	
+	<div class="container-fluid">
+	  <section class="container-fluid main-section front-gallery galleria">
+	
+	  <% if (request.getParameter("adoptableSharks")!=null) { %>
+	    <h3><%=props.getProperty("numAdoptable").replaceAll("%NUM%", (new Integer(countAdoptable)).toString()) %></h3>
+	    <p><%=props.getProperty("adoptOne") %> <strong><a href="adoptashark.jsp"><%=props.getProperty("learnMore") %></a></strong></p>
+	  <% } %>
+	
+	    <% if(request.getParameter("locationCodeField")!=null) {%>
+	
+	      <style>
+	        .row#location-header {
+	          padding: 15px 15px 0px 15px;
+	          background: #e1e1e1;
+	        }
+	        .row#location-header h2 {
+	          margin-bottom: 0px;
+	        }
+	      </style>
+	
+	      <div class="row" id="location-header">
+	      <%
+	      String locCode=request.getParameter("locationCodeField")
+	       		.replaceAll("PS","Pohjois-Saimaa")
+	  	   		.replaceAll("HV","Haukivesi")
+	            .replaceAll("JV","Joutenvesi")
+	         	.replaceAll("PEV","Pyyvesi - Enonvesi")
+				.replaceAll("KV","Kolovesi")
+				.replaceAll("PV","Pihlajavesi")
+				.replaceAll("PUV","Puruvesi")
+				.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
+				.replaceAll("LL","Luonteri – Lietvesi")
+				.replaceAll("ES","Etel&auml;-Saimaa");
+	      %>
+	
+	        <h2><%=locCode %></h2>
+	      </div>
+	    <% } %>
+	
+	      <%
+	      int maxRows=(int)numIndividualsOnPage/2;
+	      for (int i = 0; i < rIndividuals.size()/2 && i < maxRows; i++) {
+	        %>
+	        <div class="row gunit-row">
+	        <%
+	        MarkedIndividual[] pair = new MarkedIndividual[2];
+	        ArrayList<JSONObject>[] exemps = new ArrayList[2];
+	        if(rIndividuals.get(i*2)!=null){
+	        	pair[0]=rIndividuals.get(i*2);
+	        }
+	        if(rIndividuals.get(i*2)!=null){
+	        	pair[1]=rIndividuals.get(i*2+1);
+	        }
+	
+	        String[] pairUrl = new String[2];
+	        String[] pairName = new String[2];
+	        String[] pairIndividualID = new String[2];
+	        String[] pairNickname = new String[2];
+	        String[] pairCopyright = new String[2];
+	        String[] pairMediaAssetID = new String[2];
+	        // construct a panel showing each individual
+	        for (int j=0; j<2; j++) {
+	        	if(pair[j]!=null){
+	          MarkedIndividual indie = pair[j];
+	          for (Encounter enJ : indie.getDateSortedEncounters()) {
+	            for (MediaAsset maJ : enJ.getMedia()) {
+	              if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
+	            }
+	          }
+	          ArrayList<JSONObject> al = indie.getExemplarImages(myShepherd,request);
+	          exemps[j]=al;
+	          JSONObject maJson=new JSONObject();
+	          if(al.size()>0){maJson=al.get(0);}
+	          pairCopyright[j] =
+	          maJson.optString("photographer");
+	          if ((pairCopyright[j]!=null)&&!pairCopyright[j].equals("")) {
+	            pairCopyright[j] =  "&copy; " +pairCopyright[j];
+	          }
+	          pairMediaAssetID[j]=maJson.optString("id");
+	          pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+	          pairName[j] = indie.getDisplayName();
+	          pairIndividualID[j] = indie.getIndividualID();
+	          pairNickname[j] = indie.getNickName();
+	          if(pairNickname[j]==null)pairNickname[j]="";
+	          if (indie.getNickName()!=null  && !indie.getNickName().equals("Unassigned") && !indie.getNickName().equals("")) pairNickname[j] = indie.getNickName();
+	          %>
+	          <div class="col-xs-6">
+	            <div class="gallery-unit" id="gunit<%=i*2+j%>">
+	              <div class="crop" title="<%=pairName[j]%>">
+	                <img class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
 	                <%
-	                String thisIndyLoc = null;
-	                String thisIndyDate = null;
-	                try {
-                    MarkedIndividual mi = myShepherd.getMarkedIndividual(pairName[j]);
-                    System.out.println("++++++++++++++++++++ Date Latest Sighting: "+mi.getDateLatestSighting());
-                    Vector<Encounter> encs = mi.getEncounters();
-                    Long tempMillis = 1L;
-                    Encounter bestEnc = null;
-                    for (int k=0;k<encs.size();k++) {
-                      Encounter tempEnc = encs.get(k);
-                      System.out.println("++++++++++++++++++++ Enc All Milli dates #"+k+" : "+tempEnc.getDateInMilliseconds());
-                      if (bestEnc==null||(tempEnc.getDateInMilliseconds()!=null&&tempEnc.getDateInMilliseconds()>tempMillis)) {
-                        bestEnc = tempEnc;
-                        tempMillis = tempEnc.getDateInMilliseconds();
-                      }
-                    }
-                    tempMillis = 1L;
-                    if (bestEnc!=null) {
-                      thisIndyDate = bestEnc.getShortDate();
-                      thisIndyLoc = bestEnc.getLocation();
-
-                      System.out.println("++++++++++++++++++++ This indy Loc: "+thisIndyLoc);
-                      System.out.println("++++++++++++++++++++ This indy Date: "+thisIndyDate);
-                    }
-                    if (thisIndyDate.equals("Unknown")&&mi.getDateLatestSighting()!=null) {
-                      thisIndyDate = mi.getDateLatestSighting().split(" ")[0];
-                    }
-	                } catch (Exception e) {
-	                	e.printStackTrace();
+	                if(pairCopyright[j]!=null){
+	               	%>
+	                	<p class="image-copyright"> <%=pairCopyright[j]%> </p>
+	                <%
 	                }
-	                if (thisIndyLoc!=null&&thisIndyLoc!="") {
 	                %>
-	                	<p>Last Sighted Location: <%=thisIndyLoc%></p>
+	              </div>
+	              <p><strong><%=pairNickname[j]%></strong></p>
+	            </div>
+	          </div>
+	          <div id="arrow<%=i*2+j%>" class="arrow-up <%=(j==0) ? "left" : "right"%> " style="display: none"></div>
+	          <%
+	        }
+	        }
+	        %>
+	        </div>
+	        <div class="row">
+	        <%
+	        // now a second row containing each individual's info panel (hidden at first)
+	        for (int j=0; j<2; j++) {
+	          %>
+	          <div class="col-sm-12 gallery-info" id="ginfo<%=i*2+j%>" style="display: none">
+	
+	
+	            <div class="gallery-inner">
+	              <div class="super-crop seal-gallery-pic active">
+	                <div class="crop">
+	                  <img class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+	                  <%
+	                  if(pairCopyright[j]!=null){
+	               	  %>
+	                	<p class="image-copyright"> <%=pairCopyright[j]%> </p>
+	                  <%
+	                  }
+	                  %>
+	                </div>
+	              </div>
+	              <%
+	              // display=none copies of the above for each additional image
+	              //ArrayList<JSONObject> al = pair[j].getExemplarImages(myShepherd, request);
+	              ArrayList<JSONObject> al =exemps[j];
+	              for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
+	                JSONObject newMaJson = new JSONObject();
+	                newMaJson = al.get(extraImgNo);
+	                String newUrl = newMaJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+	
+	                String copyright = newMaJson.optString("photographer");
+	                if ((copyright!=null)&&!copyright.equals("")) {
+	                  copyright =  "&copy; " +copyright;
+	                } 
+	
+	
+	
+	                %>
+	                <div class="super-crop seal-gallery-pic">
+	                  <div class="crop">
+	                    <img class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=newUrl%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+	                    <p class="image-copyright"> <%=copyright%> </p>
+	                    <script>console.log("<%=pairName[j]%>: added extra image <%=newUrl%>");</script>
+	                  </div>
+	                </div>
 	                <%
-	                }
-	                if (thisIndyDate!=null&&thisIndyDate!="") {
-	                %>		
-	                	<p>Last Sighted Date: <%=thisIndyDate%></p>
+	              }
+	              %>
+	
+	              <img class="seal-scroll scroll-back" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"/>
+	
+	              <img class="seal-scroll scroll-fwd" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/>
+	
+	
+	
+	
+	
+	
+	              <span class="galleryh2"><%=pairNickname[j]%></span>
+	              <span style="font-size:1.5rem;color:#999;text-align:right;float:right;margin-top:4px;bottom:0;">
 	                <%
-                  }
-                  %>
+	                String imageURL=pairUrl[j].replaceAll(":", "%3A").replaceAll("/", "%2F").replaceFirst("52.40.15.8", "norppagalleria.wwf.fi");
+	                String shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairName[j];
+	                if(pairNickname[j]!=null){shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairNickname[j];}
+	                %>
+	
+	                <a href="https://www.facebook.com/sharer/sharer.php?u=<%=urlLoc %>/gallery.jsp&title=<%=shareTitle %>&endorseimage=<%=urlLoc %>/images/image_for_sharing_individual.jpg" title="Wildbook" class="btnx" target="_blank" rel="external" >
+	                	<i class="icon icon-facebook-btn" aria-hidden="true"></i>
+	                </a>
+	
+	                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+<%=urlLoc %>/gallery.jsp"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
+	                <a target="_blank" rel="external" href="https://plus.google.com/share?url=<%=urlLoc %>/gallery.jsp"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
+	              </span>
+	              <table><tr>
+	                <td>
+	                  <p>
+	                    <%=props.getProperty("individualID")%>: <%=pairName[j]%>
+	                  </p>
+	                  <p>
+	                    <%=props.getProperty("nickname")%>: <%=pairNickname[j]%>
+	                  </p>
+	                  <p>
+	                    <%
+	                      String sexValue = pair[j].getSex();
+	                      if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
+	                    %>
+	                    <%=props.getProperty("sex")%> <%=sexValue%>
+	                  </p>
 	                </td>
-                <tr>
-              </tr></table>
-            </div>
-          </div>
-          <%
-        }
-        %>
-        </div>
-        <%
-      }
-
-      %>
-      <div id="gallery-pages" class="row" style="padding-top:10px;">
-
-        <p style="text-align:center">
-
-          <%
-          if (startNum>0) {
-            %>
-            <a class="gallery-arrows btn btn-default" href="<%=urlLoc%>/gallery.jsp?startNum=<%=startNum-numIndividualsOnPage%>&endNum=<%=endNum-numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"><span class="arrow-span"> Previous </span></a> &nbsp;&nbsp;
-            <%
-          }
-          if (endNum<allSharks) {
-            System.out.println("AllSharks number: "+allSharks);
-            %>
-            &nbsp;&nbsp;<a class="gallery-arrows btn btn-default" href= "<%=urlLoc%>/gallery.jsp?startNum=<%=startNum+numIndividualsOnPage%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString%><%=locationCodeFieldString %>"><span class="arrow-span">&nbsp;&nbsp; Next &nbsp;&nbsp;&nbsp;</span><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
-            <%  
-          }
-          %>
-
-
-
-
-        </p>
-        <p id="galleryCounterBottom" class="galleryCounter pageCounter"><b>Page: 1</b></p>
-
-	 </div>
-  </section>
-</div>
-</div>
-
-<%
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-myShepherd=null;
+	                <td>
+	                  <p>
+	                    <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
+	                  </p>
+	                  <div class="gallery-btn-group">
+	                  <%
+	                  if(CommonConfiguration.allowAdoptions(context)){
+	                  %>
+	                    <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairIndividualID[j]%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
+	                  <%
+	                  }
+	                  %>  
+	                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairIndividualID[j]%>"><button class="large adopt"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>
+	                  </div>
+	                </td>
+	              </tr></table>
+	            </div>
+	          </div>
+	          <%
+	        }
+	        %>
+	        </div>
+	        <%
+	      }
+	
+	      %>
+	      <div class="row" style="background:#e1e1e1;">
+	
+	        <p style="text-align:center">
+	
+	          <%
+	          if (startNum>0) {
+	            int newStart = Math.max(startNum-numIndividualsOnPage,0);
+	            %>
+	            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
+	            <%
+	          }
+	          %>
+	
+	          <%=props.getProperty("seeMore") %>
+	
+	&nbsp;&nbsp;&nbsp;&nbsp;<a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+	        </p>
+	
+	      </row>
+	
+	  </section>
+	</div>
+	</div>
+	
+	<%
+}
+catch(Exception e){
+	e.printStackTrace();
+}
+finally{
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+	myShepherd=null;
+}
 %>
 
 
