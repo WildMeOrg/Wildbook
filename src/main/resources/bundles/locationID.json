@@ -6,12 +6,6 @@
 		"name": "Pacific Ocean",
 		"locationID": [
 			 {
-			  "name": "Arafura Sea", "id": "6" },
-			 {
-			  "name": "Bali Sea", "id": "7" },
-			 {
-			  "name": "Banda Sea", "id": "Banda Sea" },
-			 {
 			  "name": "Bering Sea", "id": "Bering Sea" },
 			 {
 			  "name": "Bismarck Sea",  "id": "Bismarck Sea" },
@@ -24,10 +18,6 @@
 			 {
 			  "name": "Camotes Sea", "id": "Camotes Sea" },
 			 {
-			  "name": "Celebes Sea", "id": "Celebes Sea"  },
-			 {
-			  "name": "Ceram Sea", "id": "Ceram Sea" },
-			 {
 			  "name": "Chilean Sea","id":"Chilean Sea" },
 			 {
 			  "name": "Sea of Chiloé", "id": "Sea of Chiloé" },
@@ -35,22 +25,13 @@
 			  "name": "Coral Sea", "id": "Coral Sea"  },
 			 {
 			  "name": "East China Sea", "id": "East China Sea"  },
-			 {
-			  "name": "Flores Sea", "id": "Flores Sea" },
+			 
 			 {
 			  "name": "Gulf of Thailand", "id": "Gulf of Thailand" },
-			 {
-			  "name": "Halmahera Sea", "id": "Halmahera Sea" },
-			 {
-			  "name": "Java Sea", "id": "Java Sea" },
 			 {
 			  "name": "Koro Sea", "id": "Koro Sea"  },
 			 {
 			  "name": "Mar de Grau", "id": "Mar de Grau" },
-			 {
-			  "name": "Molucca Sea", "id": "Molucca Sea" },
-			 {
-			  "name": "Philippine Sea", "id": "Philippine Sea" },
 			 {
 			  "name":"Eastern Pacific","id":"Eastern Pacific","locationID":[
 				
@@ -205,6 +186,33 @@
 				{ "name":"Vaavu", "id":"Vaavu", "locationID":[] }
 				
 		] },
+
+		{
+			"name": "Indonesia", "id": "Indonesia", "locationID":[
+				{
+					"name": "Andaman Sea", "id": "Andaman Sea" },
+				{
+					"name": "Arafura Sea", "id": "6" },
+				{
+					"name": "Banda Sea", "id": "Banda Sea" },
+				{
+					"name": "Bali Sea", "id": "7" },
+				{
+					"name": "Celebes Sea", "id": "Celebes Sea"  },
+				{
+					"name": "Ceram Sea", "id": "Ceram Sea" },
+				{
+					"name": "Flores Sea", "id": "Flores Sea" },
+				{
+					"name": "Halmahera Sea", "id": "Halmahera Sea" },
+				{
+					"name": "Java Sea", "id": "Java Sea" },
+				{
+					"name": "Molucca Sea", "id": "Molucca Sea" },
+				{
+					"name": "Philippine Sea", "id": "Philippine Sea" }
+
+		] },
 		
 		 { "name":"Bangladesh", "id":"BANGLADESH - West", "locationID":[] },
 		
@@ -298,9 +306,6 @@
 			  
 			  {
 			  "name": "ChristmasIsland", "id": "ChristmasIsland" },
-			  
-			   {
-			  "name": "Indonesia", "id": "Indonesia" },
 			  
 			  {
 			  "name": "Malaysia", "id": "Malaysia" },
