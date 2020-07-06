@@ -864,6 +864,7 @@ if(enc.getLocation()!=null){
 		if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
 		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
 	}
+        if (!Util.stringExists(displayPath) && Util.stringExists(enc.getLocationID())) displayPath = enc.getLocationID();
 	%>
 		<%=displayPath %>
 	</span>
