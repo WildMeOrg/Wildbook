@@ -296,14 +296,15 @@ Total images: <b><%=allAssets.size()%></b>
 <script>
 var allAssetIds = <%=jarr.toString(4)%>;
 
-function sendToIA() {
+function sendToIA(skipIdent) {
     $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
     var locIds = $('#id-locationids').val();
     var data = {
         v2: true,
+        taskParameters: { skipIdent: skipIdent },
         mediaAssetIds: allAssetIds
     };
-    if (locIds && (locIds.indexOf('') < 0)) data.taskParameters = { matchingSetFilter: { locationIds: locIds } };
+    if (!skipIdent && locIds && (locIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locIds };
     console.log('locIds=%o allAssetIds=%o data=%o', locIds, allAssetIds, data);
     $.ajax({
         url: 'ia',
@@ -329,8 +330,10 @@ function sendToIA() {
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
 <% if ((numIA < 1) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) { %>
     <div id="ia-send-div">
-    <a class="button" style="margin-left: 20px;" onClick="sendToIA(); return false;">Send to identification</a> matching against <b>location(s):</b>
-    <select multiple id="id-locationids">
+    <div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
+
+    <a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
+    <select multiple id="id-locationids" style="vertical-align: top;">
         <option selected><%= String.join("</option><option>", locationIds) %></option>
         <option value="">ALL locations</option>
     </select>
