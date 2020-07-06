@@ -2954,7 +2954,7 @@ else {
                                 			<%
 
                          					User thisUser=myShepherd.getUser(username);
-                                			String profilePhotoURL="../images/empty_profile.jpg";
+                                			String profilePhotoURL="../images/user-profile-grey-grey.png";
 
                          					if(thisUser.getUserImage()!=null){
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();

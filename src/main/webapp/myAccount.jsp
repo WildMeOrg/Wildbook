@@ -65,7 +65,7 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	    String localAffiliation="";
 	    String localEmail="";
 	    String localFullName="";
-	    String profilePhotoURL="images/empty_profile.jpg";
+	    String profilePhotoURL="images/user-profile-grey-grey.png";
 	    String userProject="";
 	    String userStatement="";
 	    String userURL="";
