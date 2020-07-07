@@ -369,8 +369,13 @@
 			  			  {
 			  "name": "Tanzania", "id": "Tanzania" },
 
-			  {
-			  "name": "Kenya", "id": "Kenya" },
+			  {"name": "Kenya", "id": "Kenya", "locationID":[
+				{"name": "Diani Beach", "id": "Diani Beach" },
+				{"name": "Tiwi Reef", "id": "Tiwi Reef" },
+				{"name": "Kisite-Mpunguti Marine National Park", "id": "Kisite-Mpunguti Marine National Park" },
+				{"name": "Chale Island", "id": "Chale Island" },
+				{"name": "Mombasa Marine Park", "id": "Mombasa Marine Park" }
+			  ]},
 			  
 			  			  {
 			  "name": "SouthAfrica", "id": "SouthAfrica" },
