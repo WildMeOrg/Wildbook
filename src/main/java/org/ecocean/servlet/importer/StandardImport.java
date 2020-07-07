@@ -1290,9 +1290,14 @@ public class StandardImport extends HttpServlet {
     //System.out.println("==============> getMediaAsset resolvedPath is: "+resolvedPath);
     if (resolvedPath==null||"null".equals(resolvedPath)) {
       try {
-        feedback.addMissingPhoto(localPath);
-        foundPhotos.remove(fullPath);
-        feedback.logParseError(assetColIndex(i), localPath, row);
+
+        //feedback.addMissingPhoto(localPath);
+        if (localPath!=null&&!"".equals(localPath)&&!"null".equals(localPath)) { 
+          String locInFile = "Row: "+row.getRowNum()+" Column: "+i+" Filename: ("+localPath+")";
+          feedback.addMissingPhoto(locInFile);
+          foundPhotos.remove(fullPath);
+          feedback.logParseError(assetColIndex(i), localPath, row);
+        }
       } catch (NullPointerException npe) {  
         npe.printStackTrace();
       }
@@ -1333,10 +1338,15 @@ public class StandardImport extends HttpServlet {
 
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
       ioEx.printStackTrace();
-      feedback.addMissingPhoto(localPath);
-      missingPhotos.add(localPath);
-      feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
-	  	foundPhotos.remove(fullPath);
+
+      //feedback.addMissingPhoto(localPath);
+      if (localPath!=null&&!"".equals(localPath)&&!"null".equals(localPath)) {
+        String locInFile = "Row: "+row.getRowNum()+" Column: "+i+" Filename: ("+localPath+")";
+        feedback.addMissingPhoto(locInFile);
+        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
+        missingPhotos.add(localPath);
+        foundPhotos.remove(fullPath);
+      }
       return null;
 	  }
     myAssets.put(fileHash(f), ma);
