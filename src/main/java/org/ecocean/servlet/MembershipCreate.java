@@ -125,8 +125,13 @@ public class MembershipCreate extends HttpServlet {
                   Long endLong = endDT.getMillis(); 
                   membership.setEndDate(endLong.longValue());
                 }
-                if (roleName!=null&&!"".equals(roleName)) { 
-                  membership.setRole(roleName);
+                if (roleName!=null) {
+                  if(roleName.trim().equals("")) {
+                    membership.setRole(null);
+                  }
+                  else {
+                    membership.setRole(roleName);
+                  }
                 }
                 
                 myShepherd.updateDBTransaction();
