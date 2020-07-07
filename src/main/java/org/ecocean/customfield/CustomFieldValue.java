@@ -1,5 +1,7 @@
 package org.ecocean.customfield;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 public abstract class CustomFieldValue implements java.io.Serializable {
     private int id;
     private CustomFieldDefinition definition = null;
@@ -30,6 +32,12 @@ public abstract class CustomFieldValue implements java.io.Serializable {
     }
 */
 
-    //public String toString() {  return this.getClass().getName() + ":" + this.id; }
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("value", this.getValue())
+                .append("definition", definition)
+                .toString();
+    }
 }
 
