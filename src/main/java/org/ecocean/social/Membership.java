@@ -100,7 +100,10 @@ public class Membership implements java.io.Serializable {
     }
 
     public void setRole(String role) {
-        this.role = role;
+      if(role==null) {
+        this.role=null;
+      }
+      else {this.role = role;}
     }
 
     public void setStartDate(long startDate) {
