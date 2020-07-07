@@ -112,6 +112,11 @@ public abstract class ApiBase implements java.io.Serializable {
         if (cfd == null) return;
         this.resetCustomFieldValues(cfd.getId());
     }
+/*
+    TODO if needed?
+    replaceCustomFieldValues(List) could check if single then do add [auto-replace], otherwise do a resetCustomFieldValues() then add()
+    replaceCustomFieldValue(obj) could be singleton flavor
+*/
     public List<Object> getCustomFieldValues(String cfdId) {
         List<Object> rtn = new ArrayList<Object>();
         if (cfdId == null) return rtn;
