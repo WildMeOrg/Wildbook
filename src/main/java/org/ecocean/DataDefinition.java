@@ -30,6 +30,7 @@ public class DataDefinition {
         "double",
         "long",
         "date",
+        "boolean",
         "url",
         "uuid",
         "image",
