@@ -1,6 +1,7 @@
 package org.ecocean.customfield;
 
 import org.ecocean.Util;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 /*
 import org.ecocean.User;
 import org.ecocean.Organization;
@@ -76,6 +77,14 @@ public class CustomFieldDefinition implements java.io.Serializable {
         multiple = m;
     }
 
-    //public String toString() {  return this.getClass().getName() + ":" + this.id; }
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("name", name)
+                .append("className", className)
+                .append("type", type)
+                .append("multiple", multiple)
+                .toString();
+    }
 }
 
