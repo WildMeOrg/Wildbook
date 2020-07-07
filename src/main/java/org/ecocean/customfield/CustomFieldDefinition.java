@@ -77,6 +77,18 @@ public class CustomFieldDefinition implements java.io.Serializable {
         multiple = m;
     }
 
+    public boolean equals(final Object d2) {
+        if (d2 == null) return false;
+        if (!(d2 instanceof CustomFieldDefinition)) return false;
+        CustomFieldDefinition two = (CustomFieldDefinition)d2;
+        if ((this.id == null) || (two == null) || (two.getId() == null)) return false;
+        return this.id.equals(two.getId());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (id == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
+        return id.hashCode();
+    }
+
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)
