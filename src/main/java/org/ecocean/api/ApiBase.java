@@ -6,6 +6,7 @@ import org.ecocean.Organization;
 import org.ecocean.customfield.*;
 
 import java.util.Set;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,9 +76,41 @@ public abstract class ApiBase implements java.io.Serializable {
     public void setCustomFieldValues(List<CustomFieldValue> vals) {
         customFieldValues = vals;
     }
+// note: this will **replace** a value in the list of the same CustomFieldDefinition, if it is non-multiple
     public void addCustomFieldValue(CustomFieldValue val) {
         if (customFieldValues == null) customFieldValues = new ArrayList<CustomFieldValue>();
-        customFieldValues.add(val);
+        if ((customFieldValues.size() < 1) || val.getDefinition().getMultiple()) {  //empty or val is multiple, we just safely add
+            customFieldValues.add(val);
+            return;
+        }
+        int found = -1;
+        for (int i = 0 ; i < customFieldValues.size() ; i++) {
+            if (customFieldValues.get(i).getDefinition().equals(val.getDefinition())) {
+                found = i;
+                break;
+            }
+        }
+        if (found < 0) {
+            customFieldValues.add(val);
+        } else {
+            customFieldValues.set(found, val);
+        }
+    }
+    public void resetCustomFieldValues() {
+        customFieldValues = null;
+    }
+    public void resetCustomFieldValues(String cfdId) {
+        if (cfdId == null) return;
+        if (Util.collectionSize(customFieldValues) < 1) return;
+        Iterator<CustomFieldValue> it = customFieldValues.iterator();
+        while (it.hasNext()) {
+            if (it.next().getDefinition().getId().equals(cfdId)) it.remove();
+        }
+        if (customFieldValues.size() < 1) customFieldValues = null;
+    }
+    public void resetCustomFieldValues(CustomFieldDefinition cfd) {
+        if (cfd == null) return;
+        this.resetCustomFieldValues(cfd.getId());
     }
     public List<Object> getCustomFieldValues(String cfdId) {
         List<Object> rtn = new ArrayList<Object>();
