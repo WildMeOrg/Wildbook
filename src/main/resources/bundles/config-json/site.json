@@ -6,6 +6,21 @@
 			"formSchema": { "displayOrder": 0, "panel": true }
 		}
 	},
+	"needsSetup" : {
+		"__meta" : {
+			"type" : "boolean",
+			"defaultValue": true,
+			"private": true,
+			"readOnly": true
+		}
+	},
+	"private" : {
+		"__meta" : {
+			"type" : "boolean",
+			"defaultValue": true,
+			"formSchema": { "displayOrder": 0.05, "panel": true }
+		}
+	},
 	"url" : {
 		"__meta" : {
 			"type" : "url",
@@ -29,6 +44,18 @@
 				"formSchema": { "displayOrder": 100.0 },
 				"required": true,
 				"readOnly": true
+			}
+		},
+		"tagline": {
+			"__meta": {
+				"type": "string",
+				"formSchema": { "displayOrder": 1.0 }
+			}
+		},
+		"exploreTagline": {
+			"__meta": {
+				"type": "string",
+				"formSchema": { "displayOrder": 2.0 }
 			}
 		},
 		"metaKeywords": {
@@ -62,7 +89,7 @@
 				}
 			}
 		},
-		"locationIds": {
+		"regions": {
 			"__meta": {
 				"type": "locationIds",
 				"required": false
@@ -74,10 +101,28 @@
 		"__meta" : {
 			"formSchema": { "displayOrder": 1 }
 		},
-		"headerLogo": {
+		"lightBackgroundLogo": {
 			"__meta": {
 				"formSchema": { "displayOrder": 0.0 },
 				"type": "image"
+			}
+		},
+		"darkBackgroundLogo": {
+			"__meta": {
+				"formSchema": { "displayOrder": 0.01 },
+				"type": "image"
+			}
+		},
+		"footerLogo": {
+			"__meta": {
+				"formSchema": { "displayOrder": 0.02 },
+				"type": "image"
+			}
+		},
+		"splashVideo": {
+			"__meta": {
+				"formSchema": { "displayOrder": 0.03 },
+				"type": "video"
 			}
 		},
 		"textColor": {

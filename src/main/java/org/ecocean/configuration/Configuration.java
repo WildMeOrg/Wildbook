@@ -234,6 +234,9 @@ return null; ///FIXME
         j.put("parentConfigurationId", this.getParentId());
         j.put("name", this.getKey());
         j.put("translationId", this.getLang());
+        //then some explicit ones for ben:
+        j.put("labelId", this.getLang() + "_LABEL");
+        j.put("descriptionId", this.getLang() + "_DESCRIPTION");
         Set<String> kids = this.getChildKeys();
         if (!Util.collectionIsEmptyOrNull(kids)) j.put("childrenKeys", kids);
         if (m != null) {
@@ -245,12 +248,23 @@ return null; ///FIXME
             return j;  //no need to continue
         }
 
+        String type = ConfigurationUtil.getType(m);
+        j.put("fieldTypeKey", type);  //for ben
+        //now customize for front-end
+        if (type.equals("video")) {
+            j.put("fieldTypeKey", "file");
+            j.put("allowedFileTypes", new JSONArray("[\".webm\", \".mp4\", \".mov\", \".avi\"]"));
+        } else if (type.equals("image")) {
+            j.put("fieldTypeKey", "file");
+            j.put("allowedFileTypes", new JSONArray("[\".jpg\", \".jpeg\", \".png\", \".svg\"]"));
+        }
+
         JSONObject c = this.getContent();
         if (c != null) j.put("currentValue", c.opt(ConfigurationUtil.VALUE_KEY));  //FIXME probably
         j.put("settable", true);
         j.put("isPrivate", this.isPrivate(m));
+        j.put("hidden", this.isPrivate(m));  //for ben
         j.put("defaultValue", m.opt("defaultValue"));
-        String type = ConfigurationUtil.getType(m);
         j.put("fieldType", type);
         j.put("required", m.optBoolean("required", false));
         j.put("readOnly", m.optBoolean("readOnly", false));
