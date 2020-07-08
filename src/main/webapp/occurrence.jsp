@@ -371,7 +371,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 						<%} else {%>
 					<%}%>
 					<!-- switch to call ajax method that closes dialog and updates <p>, axe form -->
-					<input name="visibilityIndexButton" type="button" id="visibilityIndexButton" onclick="occSetGroupBehavior()" value="<%=props.getProperty("set") %>">
+					<input name="visibilityIndexButton" type="button" id="visibilityIndexButton" onclick="occSetVisibilityIndex()" value="<%=props.getProperty("set") %>">
 			    </td>
 			  </tr>
 			</table>
@@ -390,15 +390,11 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 				viDialog.dialog("open");
 			});
 
-
-			function occSetGroupBehavior() {
-
+			function occSetVisibilityIndex() {
 				let selectedVI = $("#visibilityIndexSelect").val();
 				let sendJSON = {};
-
 				sendJSON['occId'] = '<%=request.getParameter("number")%>';
 				sendJSON['visibilityIndex'] = selectedVI;
-
 				console.log("SENDING VI : "+selectedVI);
 
 				$.ajax({
@@ -410,11 +406,11 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 					success: function(d) {
 						console.info('Success! Got back '+JSON.stringify(d));
 						$("#viResponseMessage").text("Success!");
+						setTimeout(function() {$("#viResponseMessage").empty();}, 4000);
 						$("#visibilityNum").text(d.visibilityIndex);
 
 					},
 					error: function(x,y,z) {
-						$("#collabResp").text("There was an error sending this collaboration request.");
 						$("#viResponseMessage").text("Error, invalid selection.");
 						console.warn('%o %o %o', x, y, z);
 					}
@@ -428,6 +424,105 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 		%>
 
 	<!-- end Visibility Index -->
+
+	<!-- begin Group Composition -->
+
+		<%
+		if ("true".equals(CommonConfiguration.getProperty("useGroupComposition", request))) {
+		%>
+			<!-- Visible field -->
+	
+			<!-- add if enabled in cc.props -->
+			<p><%=props.getProperty("groupComposition") %> 
+				<%
+				String gcString = "";
+				if(occ.getGroupComposition()!=null){
+					gcString = String.valueOf(occ.getGroupComposition());
+				}
+				%>
+				<span id="gcString"><%=gcString%></span>
+				&nbsp; 
+				<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%>
+					<a id="groupCompositionEditButton" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>	
+					<label id="gcResponseMessage"></label>
+				<%}%>
+			</p>
+			<!-- end Visible field -->
+	
+			<!-- edit field -->
+			<div id="editGroupCompositionDialog" title="<%=props.getProperty("setGroupComposition") %>" style="display:none">
+				<table border="1">
+				  <tr>
+					<td align="left" valign="top">
+						<%=props.getProperty("groupComposition") %>:
+					
+						<%
+						List<String> gComps = CommonConfiguration.getIndexedPropertyValues("groupComposition",request);
+						System.out.println("getting Group Compositions: "+gComps);
+						if (!Util.isEmpty(gComps)) {%>
+							<select name="groupCompositionSelect" id="groupCompositionSelect">
+								<option value=""></option>
+									<%
+										for (String gComp : gComps) {
+											String selected = (gComp!=null && occ.getGroupComposition()!=null && occ.getGroupComposition().equals(gComp)) ? "selected=\"selected\"" : ""; %>
+											<option <%=selected %> value="<%=gComp%>"><%=gComp%></option>
+										<%}%>
+								</select>
+							<%} else {%>
+						<%}%>
+						<!-- switch to call ajax method that closes dialog and updates <p>, axe form -->
+						<input name="groupCompositionButton" type="button" id="groupCompositionButton" onclick="occSetGroupComposition()" value="<%=props.getProperty("set") %>">
+					</td>
+				  </tr>
+				</table>
+			</div>
+			<!-- end edit field -->
+	
+			<script>
+				var gcDialog = $("#editGroupCompositionDialog").dialog({
+				  autoOpen: false,
+				  draggable: false,
+				  resizable: false,
+				  width: 600
+				});
+				
+				$("a#groupCompositionEditButton").click(function() {
+					gcDialog.dialog("open");
+				});
+	
+				function occSetGroupComposition() {
+					let selectedVI = $("#groupCompositionSelect").val();
+					let sendJSON = {};
+					sendJSON['occId'] = '<%=request.getParameter("number")%>';
+					sendJSON['groupComposition'] = selectedVI;
+					console.log("SENDING Group Composition: "+selectedVI);
+	
+					$.ajax({
+						url: wildbookGlobals.baseUrl + '/OccurrenceSetMetadataField',
+						type: 'POST',
+						dataType: "json",
+						contentType: 'application/javascript',
+						data: JSON.stringify(sendJSON),
+						success: function(d) {
+							console.info('Success! Got back '+JSON.stringify(d));
+							$("#gcResponseMessage").text("Success!");
+							setTimeout(function() {$("#gcResponseMessage").empty();}, 4000);
+							$("#gcString").text(d.groupComposition);
+						},
+						error: function(x,y,z) {
+							$("#gcResponseMessage").text("Error, invalid selection.");
+							console.warn('%o %o %o', x, y, z);
+						}
+					});
+				}
+	
+			</script>
+	
+			<%
+			}
+			%>
+	
+		<!-- end groupComposition -->
 
 
 	
