@@ -78,7 +78,24 @@
 		  },
 		  {
 		  "name": "Anjouan", "id": "Anjouan"
-		  }
+		  },
+
+		  {"name": "Tanzania", "id": "Tanzania", "locationID":[
+
+			  {
+				"name": "Tanzania mainland coast North", "id": "Tanzania mainland coast North" 
+			  },
+	
+			  {
+				"name": "Pemba (Tanzania)", "id": "Pemba (Tanzania)" 
+			  }
+
+		  ]}
+
+
+
+
+
 
 		],
 		"defaultLatitude": -20.0,
