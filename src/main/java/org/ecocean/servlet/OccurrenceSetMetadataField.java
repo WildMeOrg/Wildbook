@@ -62,15 +62,37 @@ public class OccurrenceSetMetadataField extends HttpServlet {
                     resp.put("success", "true");
                     resp.put("visibilityIndex", occ.getVisibilityIndex());
                 } catch (Exception e ) {
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     resp.put("success", "false");
                     myShepherd.rollbackDBTransaction();
                     e.printStackTrace();
                 }
             }
 
-            if ("false".equals(resp.getString("success"))) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            if (j.has("groupComposition")) {
+                String val = j.getString("groupComposition");
+                System.out.println("got "+val+" for groupComposition submitted to OccurrenceSetMetadataField");
+                try {
+                    myShepherd.beginDBTransaction();
+                    if (val!=null&&!"null".equals(val)) {
+                        occ.setGroupComposition(val);
+                    } else {
+                        occ.setGroupComposition("");
+                    }
+                    myShepherd.commitDBTransaction();
+                    resp.put("success", "true");
+                    resp.put("groupComposition", occ.getGroupComposition());
+                } catch (Exception e ) {
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    resp.put("success", "false");
+                    myShepherd.rollbackDBTransaction();
+                    e.printStackTrace();
+                }
             }
+
+            if ("true".equals(resp.getString("success"))) {
+                response.setStatus(HttpServletResponse.SC_ACCEPTED);
+            } 
 
             out.print(resp);
             out.close();
