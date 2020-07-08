@@ -34,6 +34,7 @@ public class DataDefinition {
         "url",
         "uuid",
         "image",
+        "video",
         "color",
         "geo",
         "json",
