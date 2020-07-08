@@ -311,7 +311,8 @@ System.out.println("setDeepJSONObject() ELSE??? " + jobj + " -> " + path);
         File d = new File(dir);
         if (!d.exists()) return all;
         for (File f : d.listFiles()) {
-            if (f.getName().endsWith(".json")) all.add(f);
+            // __bundle_foo.json files are special grouping json, so skip here
+            if (f.getName().endsWith(".json") && !f.getName().startsWith("__")) all.add(f);
         }
         return all;
     }
