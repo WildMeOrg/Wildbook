@@ -325,6 +325,7 @@ public class RestServletV2 extends HttpServlet {
 */
     private void handleConfiguration(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
         if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
+        if (payload.optString("_queryString").equals("tree")) payload.put("tree", true);
         payload.remove("class");
         payload.remove("_queryString");
         boolean isAdmin = request.isUserInRole("admin");
@@ -341,7 +342,10 @@ public class RestServletV2 extends HttpServlet {
         if (id != null) {  //get value
             Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, id);
             JSONObject meta = conf.getMeta();
-            if (!conf.isValid(meta)) {
+            if (!conf.isValid(meta) && payload.optBoolean("tree", false) && conf.hasChildren()) {
+                Util.mergeJSONObjects(rtn, confGetTree(conf, isAdmin));
+                rtn.put("success", true);
+            } else if (!conf.isValid(meta)) {
                 JSONObject jerr = new JSONObject();
                 jerr.put("id", id);
                 rtn.put("message", _rtnMessage("invalid_configuration_id", jerr));
@@ -352,17 +356,7 @@ public class RestServletV2 extends HttpServlet {
                 response.setStatus(401);
             } else {
                 rtn.put("success", true);
-                if (conf.isPrivate(meta)) rtn.put("private", true);
-                if (conf.hasValue()) {
-                    rtn.put("value", conf.getContent().get(ConfigurationUtil.VALUE_KEY));
-                } else if (meta.has("defaultValue")) {
-                    rtn.put("valueNotSet", true);
-                    rtn.put("usingDefault", true);
-                    rtn.put("value", meta.get("defaultValue"));
-                } else {
-                    rtn.put("valueNotSet", true);
-                    rtn.put("message", _rtnMessage("configuration_no_value"));
-                }
+                Util.mergeJSONObjects(rtn, __confJSONObject(conf, meta, isAdmin));
             }
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
@@ -416,6 +410,49 @@ rtn.put("_payload", payload);
         rtn.put("message", _rtnMessage("success"));
         out.println(rtn.toString());
         out.close();
+    }
+
+    //this is just utility to turn conf into a JSONObject for both single and tree modes
+    private JSONObject __confJSONObject(Configuration conf, JSONObject meta, boolean isAdmin) {
+        if (conf == null) return null;
+        JSONObject rtn = new JSONObject();
+        if (meta == null) meta = conf.getMeta();
+        if (conf.isPrivate(meta) && !isAdmin) return null;
+        if (!conf.isValid(meta)) return null;
+        rtn.put("id", conf.getId());
+        if (conf.isPrivate(meta)) rtn.put("private", true);
+        if (conf.hasValue()) {
+            rtn.put("value", conf.getContent().get(ConfigurationUtil.VALUE_KEY));
+        } else if (meta.has("defaultValue")) {
+            rtn.put("valueNotSet", true);
+            rtn.put("usingDefault", true);
+            rtn.put("value", meta.get("defaultValue"));
+        } else {
+            rtn.put("valueNotSet", true);
+            rtn.put("message", _rtnMessage("configuration_no_value"));
+        }
+        return rtn;
+    }
+
+    private JSONObject confGetTree(Configuration conf, boolean isAdmin) {
+        JSONObject me = __confJSONObject(conf, null, isAdmin);
+        if ((conf == null) || !conf.hasChildren()) return me;
+        if (me == null) {  //means i am not valid, but i do have kids
+            me = new JSONObject();
+            me.put("id", conf.getId());
+            me.put("groupingOnly", true);
+        }
+        JSONArray kids = new JSONArray();
+        for (String key : conf.getChildKeys()) {
+            String kidId = conf.getId() + ConfigurationUtil.ID_DELIM + key;
+//System.out.println(key + " => " + conf.getContent());
+            Configuration kconf = new Configuration(kidId, ((conf.getContent() == null) ? null : conf.getContent().optJSONObject(key)));
+//System.out.println(key + " => " + kidId + " ===> " + kconf);
+            JSONObject ktree = confGetTree(kconf, isAdmin);
+            if (ktree != null) kids.put(ktree);
+        }
+        if (kids.length() > 0) me.put("children", kids);
+        return me;
     }
 
     private void handleList(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
