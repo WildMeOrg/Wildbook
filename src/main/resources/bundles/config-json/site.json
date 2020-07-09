@@ -10,7 +10,7 @@
 		"__meta" : {
 			"type" : "boolean",
 			"defaultValue": true,
-			"private": true,
+			"formSchema": { "hidden": true },
 			"readOnly": true
 		}
 	},
