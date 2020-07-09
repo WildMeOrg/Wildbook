@@ -513,6 +513,15 @@ public class Util {
         return jsonArrayToStringList(arr).contains(str);
     }
 
+    //this will (destructively) alter 'change' to have 'add' merge into it.  add.key will overwrite change.key
+    public static void mergeJSONObjects(JSONObject change, JSONObject add) {
+        if ((change == null) || (add == null)) return;
+        for (Object k : add.keySet()) {
+            String key = (String)k;
+            change.put(key, add.get(key));
+        }
+    }
+
     public static org.datanucleus.api.rest.orgjson.JSONObject stringToDatanucleusJSONObject(String s) {
       org.datanucleus.api.rest.orgjson.JSONObject j = null;
       if (s == null) return j;
