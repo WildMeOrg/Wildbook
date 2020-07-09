@@ -263,7 +263,6 @@ return null; ///FIXME
         if (c != null) j.put("currentValue", c.opt(ConfigurationUtil.VALUE_KEY));  //FIXME probably
         j.put("settable", true);
         j.put("isPrivate", this.isPrivate(m));
-        j.put("hidden", this.isPrivate(m));  //for ben
         j.put("defaultValue", m.opt("defaultValue"));
         j.put("fieldType", type);
         j.put("required", m.optBoolean("required", false));
