@@ -438,10 +438,10 @@ function setIndivAutocomplete(el) {
             function initialize() {
 	            //alert("Initializing map!");
 	              //var mapZoom = 1;
-	              var mapZoom = 1;
+	              var mapZoom = 4;
 
 	              //var center = new google.maps.LatLng(10.8, 160.8);
-	              var center = new google.maps.LatLng(0, 0);
+	              var center = new google.maps.LatLng(-25.27, 133.77);
 
 
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
