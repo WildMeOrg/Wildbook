@@ -237,7 +237,9 @@ clickSet: function(id) {
     if (!wbConf.cache[id]) return false;  //snh cuz we got here post-build
     $('#c_set_' + wbConf.cache[id].name + ' .set-button').hide().after('<i class="set-message">saving</i>');
     var d = {};
-    d[id] = $('#c_set_' + wbConf.cache[id].name + ' input').val(); //TODO handle multiple?
+    var inpEl = $('#c_set_' + wbConf.cache[id].name + ' input:first'); //TODO handle multiple?
+    d[id] = inpEl.val();
+    if (wbConf.cache[id].fieldType == 'boolean') d[id] = inpEl.is(':checked');
 console.log('DATA TO SAVE d=%o', d);
     $.ajax({
         url: '../api/v0/configuration',
@@ -287,6 +289,13 @@ makeUI: {
     string: function(j) {
         var h = '<div class="c-settable" id="c_set_' + j.name + '">';
         h += '<input name="' + j.name + '" value="' + (j.currentValue || j.defaultValue || '') + '" />';
+        h += '<div><input class="set-button" type="button" value="set" onClick="return wbConf.clickSet(\'' + j.configurationId + '\');" /></div>';
+        h += '</div>';
+        return h;
+    },
+    'boolean': function(j) {
+        var h = '<div class="c-settable" id="c_set_' + j.name + '">';
+        h += '<input type="checkbox" name="' + j.name + '" checked="' + (j.currentValue || j.defaultValue || false) + '" />';
         h += '<div><input class="set-button" type="button" value="set" onClick="return wbConf.clickSet(\'' + j.configurationId + '\');" /></div>';
         h += '</div>';
         return h;
