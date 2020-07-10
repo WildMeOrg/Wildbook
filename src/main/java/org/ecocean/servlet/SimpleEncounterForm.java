@@ -143,7 +143,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("EncounterForm.class");
-System.out.println("in context " + context);
+//System.out.println("in context " + context);
     PrintWriter out = response.getWriter();
 
     User user = AccessControl.getUser(request, myShepherd);
@@ -154,10 +154,11 @@ System.out.println("in context " + context);
         myShepherd.closeDBTransaction();
         return;
     }
+System.out.println("SimpleEncounterForm: " + new DateTime() + " => " + user);
 
         //request.getSession()getServlet().getServletContext().getRealPath("/"));
         String rootDir = getServletContext().getRealPath("/");
-System.out.println("rootDir=" + rootDir);
+//System.out.println("rootDir=" + rootDir);
 
     //set up for response
     response.setContentType("text/plain");
@@ -266,6 +267,9 @@ System.out.println("about to do enc()");
       //enc.setComments(getVal(fv, "comments").replaceAll("\n", "<br>"));
               //enc.setLifeStage(fv.get("lifeStage").toString());
       //enc.setSex(getVal(fv, "sex"));
+
+        String multipleCats = getVal(fv, "multipleCats");
+        if (Util.stringExists(multipleCats)) enc.setDynamicProperty("multipleCats", multipleCats);
 
         enc.setDecimalLatitude(Util.getDecimalCoordFromString(getVal(fv, "lat")));
         enc.setDecimalLongitude(Util.getDecimalCoordFromString(getVal(fv, "lon")));
