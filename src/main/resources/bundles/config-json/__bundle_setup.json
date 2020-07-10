@@ -1,16 +1,18 @@
-[
-	"site.name",
-	"site.needsSetup",
-	"site.private",
-	"google.googleMapsKey",
-	"site.look.lightBackgroundLogo",
-	"site.look.darkBackgroundLogo",
-	"site.general.tagline",
-	"site.general.exploreTagline",
-	"site.look.splashVideo",
-	"site.look.footerLogo",
-	"site.custom.regions",
-	"site.custom.customFields.Occurrence",
-	"site.custom.customFields.MarkedIndividual",
-	"site.custom.customFields.Encounter"
-]
+{
+	"bundle": [
+		"site.name",
+		"site.needsSetup",
+		"site.private",
+		"google.googleMapsKey",
+		"site.look.lightBackgroundLogo",
+		"site.look.darkBackgroundLogo",
+		"site.general.tagline",
+		"site.general.exploreTagline",
+		"site.look.splashVideo",
+		"site.look.footerLogo",
+		"site.custom.regions",
+		"site.custom.customFields.Occurrence",
+		"site.custom.customFields.MarkedIndividual",
+		"site.custom.customFields.Encounter"
+	]
+}

@@ -10,6 +10,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.jdo.Query;
@@ -342,7 +343,27 @@ public class RestServletV2 extends HttpServlet {
         if (id != null) {  //get value
             Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, id);
             JSONObject meta = conf.getMeta();
-            if (!conf.isValid(meta) && payload.optBoolean("tree", false) && conf.hasChildren()) {
+            if (id.matches("^__bundle_\\w+")) {
+                JSONObject bundle = readConfigBundle(id.substring(9));
+                if (bundle == null) {
+                    rtn.put("message", _rtnMessage("invalid_bundle_id"));
+                } else {
+                    rtn.put("bundleId", id);
+                    JSONArray arr = bundle.optJSONArray("bundle");
+                    if (arr != null) {
+                        JSONArray kids = new JSONArray();
+                        for (int i = 0 ; i < arr.length() ; i++) {
+                            String bid = arr.optString(i, null);
+                            if (bid == null) continue;
+                            conf = ConfigurationUtil.getConfiguration(myShepherd, bid);
+                            JSONObject kid = confGetTree(conf, isAdmin);
+                            if (kid != null) kids.put(kid);
+                        }
+                        rtn.put("children", kids);
+                    }
+                    rtn.put("success", true);
+                }
+            } else if (!conf.isValid(meta) && payload.optBoolean("tree", false) && conf.hasChildren()) {
                 Util.mergeJSONObjects(rtn, confGetTree(conf, isAdmin));
                 rtn.put("success", true);
             } else if (!conf.isValid(meta)) {
@@ -583,6 +604,15 @@ rtn.put("_payload", payload);
     }
     private JSONObject _rtnMessage(String key) {
         return _rtnMessage(key, null, null);
+    }
+
+    // for bundleName=setup, actual file would be: config-json/__bundle_setup.json
+    public static JSONObject readConfigBundle(String bundleName) {
+        String fname = "/__bundle_" + bundleName + ".json";
+        File bfile = new File(ConfigurationUtil.dirOverride() + fname);
+        if (!bfile.exists()) bfile = new File(ConfigurationUtil.dir() + fname);
+        if (!bfile.exists()) return null;
+        return ConfigurationUtil.readJson(bfile);
     }
 
     private void _log(String msg) {
