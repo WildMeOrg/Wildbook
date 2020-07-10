@@ -623,6 +623,17 @@
 		  {
 		  "name": "Anjouan", "id": "Anjouan"
 		  },
+		  {"name": "Tanzania", "id": "Tanzania", "locationID":[
+
+			{
+			  "name": "Tanzania mainland coast North", "id": "Tanzania mainland coast North" 
+			},
+  
+			{
+			  "name": "Pemba (Tanzania)", "id": "Pemba (Tanzania)" 
+			}
+
+		]},
 		  {"name":"Sri Lanka","id":"Sri Lanka", 
 			"locationID":[
 				{"name":"SRI LANKA - East","id":"SRI LANKA - East"},
