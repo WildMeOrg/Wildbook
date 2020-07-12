@@ -149,7 +149,7 @@ wildbook.NoteField = {
 		$("#imAlign").change(function(){
 			var imAlign = $("#imAlign").val();
 			if(imAlign == 'middle'){
-				imgElem.attr('class','center')
+				imgElem.attr('class','org-ecocean-notefield-img-center')
 			}
 			else{
 				imgElem.attr('align',imAlign);

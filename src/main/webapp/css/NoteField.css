@@ -34,6 +34,12 @@
     display: none;
 }
 
+.org-ecocean-notefield-img-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .wb-ql-menu {
     color: black;
 }
