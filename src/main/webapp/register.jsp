@@ -12,11 +12,10 @@ org.ecocean.*, java.util.Properties" %>
 
 private static User registerUser(Shepherd myShepherd, String username, String email, String pw1, String pw2) throws java.io.IOException {
     if (!Util.stringExists(username)) throw new IOException("Invalid username format");
-    username = username.toLowerCase().trim();
+    username = username.trim();
     if (!Util.isValidEmailAddress(email)) throw new IOException("Invalid email format");
     if (!Util.stringExists(pw1) || !Util.stringExists(pw2) || !pw1.equals(pw2)) throw new IOException("Password invalid or do not match");
     if (pw1.length() < 8) throw new IOException("Password is too short");
-    username = username.toLowerCase();
     User exists = myShepherd.getUser(username);
     if (exists == null) exists = myShepherd.getUserByEmailAddress(email);
     if ((exists != null) || username.equals("admin")) throw new IOException("Invalid username/email");
@@ -484,7 +483,7 @@ function checkAccount() {
     var msg = 'Please correct the following problems:';
     var ok = true;
 
-    $('#username').val( $('#username').val().trim().toLowerCase() );
+    $('#username').val( $('#username').val().trim() );
     if (!regexUsername.test($('#username').val())) {
         msg += '\n- Username must be only letters and numbers';
         ok = false;
