@@ -3592,6 +3592,7 @@ throw new Exception();
         enc.setOccurrenceID(this.getOccurrenceID());
         enc.setRecordedBy(this.getRecordedBy());
         enc.setState(this.getState());  //not too sure about this one?
+        enc.setAlternateID(this.getAlternateID());
         return enc;
     }
 
