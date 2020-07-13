@@ -127,6 +127,7 @@ public class Occurrence implements java.io.Serializable {
     this.occurrenceID = occurrenceID;
     encounters=new ArrayList<Encounter>();
     encounters.add(enc);
+    setOccurrenceForEncounterAssets(enc);
     assets = new ArrayList<MediaAsset>();
     setDWCDateLastModified();
     setDateTimeCreated();
@@ -148,6 +149,7 @@ public class Occurrence implements java.io.Serializable {
     setDWCDateLastModified();
     setDateTimeCreated();
   }
+
   public Occurrence(String occurrenceID){
     this.occurrenceID=occurrenceID;
     encounters=new ArrayList<Encounter>();
@@ -171,11 +173,12 @@ public class Occurrence implements java.io.Serializable {
     }
     if(isNew){
       encounters.add(enc);
+      setOccurrenceForEncounterAssets(enc);
+      setDWCDateLastModified();
       //updateNumberOfEncounters();
     }
     //if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
     return isNew;
-
   }
   
   //private void updateNumberOfEncounters() {
@@ -183,6 +186,15 @@ public class Occurrence implements java.io.Serializable {
   //    individualCount = encounters.size();      
   //  }
   //}
+
+  public void setOccurrenceForEncounterAssets(Encounter enc) {
+    ArrayList<MediaAsset> media = enc.getMedia();
+    if (media!=null&&media.size()>0) {
+      for (MediaAsset ma : media) {
+        ma.setOccurrence(this);
+      }
+    }
+  }
 
   // like addEncounter but adds backwards link to this enc
   public void addEncounterAndUpdateIt(Encounter enc){
