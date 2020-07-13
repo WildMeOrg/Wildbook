@@ -76,7 +76,7 @@ $(document).ready(function() {
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 11,
+      zoom: 16,
       center: findCenter(),
       mapTypeId: 'terrain',
       gestureHandling: 'greedy'
