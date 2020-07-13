@@ -37,7 +37,7 @@ myShepherd.beginDBTransaction();
 int pending=0;
 int duped=0;
 
-Query q=myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && enc.locationID == 'Iceland' VARIABLES org.ecocean.Encounter enc");
+Query q=myShepherd.getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && enc.locationID == 'Iceland' && enc.genus == 'Megaptera' VARIABLES org.ecocean.Encounter enc");
 
 try {
 	
@@ -55,7 +55,7 @@ try {
 		ArrayList<MarkedIndividual> alN=new ArrayList<MarkedIndividual>();
 		
 		if(indy.getDisplayName()!=null){
-			String checkDisplayName="SELECT FROM org.ecocean.MarkedIndividual WHERE (individualID != '"+indy.getIndividualID()+"' && names.valuesAsString.toLowerCase().indexOf('"+indy.getDisplayName().toLowerCase()+"') != -1) && encounters.contains(enc) && enc.locationID == 'Iceland' VARIABLES org.ecocean.Encounter enc";
+			String checkDisplayName="SELECT FROM org.ecocean.MarkedIndividual WHERE (individualID != '"+indy.getIndividualID()+"' && names.valuesAsString.toLowerCase().indexOf('"+indy.getDisplayName().toLowerCase()+"') != -1) && encounters.contains(enc) && enc.locationID == 'Iceland' && enc.genus == 'Megaptera' VARIABLES org.ecocean.Encounter enc";
 			
 			Query checkD=myShepherd.getPM().newQuery(checkDisplayName);
 			Collection d=(Collection)checkD.execute();
@@ -66,11 +66,11 @@ try {
 		}
 		
 		if(indy.getNickName()!=null){
-			String checkNickname="SELECT FROM org.ecocean.MarkedIndividual WHERE (individualID != '"+indy.getIndividualID()+"' && names.valuesAsString.toLowerCase().indexOf('"+indy.getNickName().toLowerCase()+"') != -1) && encounters.contains(enc) && enc.locationID == 'Iceland' VARIABLES org.ecocean.Encounter enc";
+			String checkNickname="SELECT FROM org.ecocean.MarkedIndividual WHERE (individualID != '"+indy.getIndividualID()+"' && names.valuesAsString.toLowerCase().indexOf('"+indy.getNickName().toLowerCase()+"') != -1) && encounters.contains(enc) && enc.locationID == 'Iceland' && enc.genus == 'Megaptera' VARIABLES org.ecocean.Encounter enc";
 			
 			Query checkN=myShepherd.getPM().newQuery(checkNickname);
 			Collection n=(Collection)checkN.execute();
-			alN=new ArrayList<MarkedIndividual>();
+			alN=new ArrayList<MarkedIndividual>(n);
 			sizeALN=alN.size();
 			checkN.closeAll();
 		}
