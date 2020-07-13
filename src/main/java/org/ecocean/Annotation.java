@@ -1033,28 +1033,35 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         if (someEnc == null) {
             newEnc = new Encounter(this);
         } else {  //copy some stuff from sibling
-            newEnc = someEnc.cloneWithoutAnnotations();
-            newEnc.addAnnotation(this);
-            newEnc.setDWCDateAdded();
-            newEnc.setDWCDateLastModified();
-            newEnc.resetDateInMilliseconds();
-            newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
-            newEnc.setGenus(someEnc.getGenus());
-            newEnc.setSex(null);
-
-            Occurrence occ = myShepherd.getOccurrence(someEnc);
-            if (occ==null) {
-                occ = new Occurrence(Util.generateUUID(), someEnc);
-                try {
-                    myShepherd.beginDBTransaction();
-                    myShepherd.storeNewOccurrence(occ);
-                    myShepherd.commitDBTransaction();
-                } catch (Exception e) {
-                    myShepherd.rollbackDBTransaction();
-                }
-                occ.addEncounter(someEnc);
+            try {
+                newEnc = someEnc.cloneWithoutAnnotations();
+                newEnc.addAnnotation(this);
+                newEnc.setDWCDateAdded();
+                newEnc.setDWCDateLastModified();
+                newEnc.resetDateInMilliseconds();
+                newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
+                newEnc.setGenus(someEnc.getGenus());
+                newEnc.setSex(null);
+                //myShepherd.storeNewEncounter(newEnc);
+            } catch (Exception e){
+                e.printStackTrace();
             }
-            occ.addEncounter(newEnc);
+
+            try {
+                myShepherd.beginDBTransaction();
+                Occurrence occ = myShepherd.getOccurrence(someEnc);
+                if (occ==null) {
+                    occ = new Occurrence(Util.generateUUID(), someEnc);
+                    myShepherd.storeNewOccurrence(occ);
+                }
+                occ.addEncounter(newEnc);
+                occ.setDWCDateLastModified();
+                myShepherd.commitDBTransaction();
+            } catch (Exception e) {
+                e.printStackTrace();
+                myShepherd.rollbackDBTransaction();
+            }
+
         }
         if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
           newEnc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
