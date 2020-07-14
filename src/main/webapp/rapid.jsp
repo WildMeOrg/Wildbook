@@ -108,6 +108,10 @@ private String isResighted(Encounter enc, List<Encounter> encs, Shepherd mySheph
     return "N";  // "no-fellthru";  //make it here, we must be new
 }
 
+private String intString(Integer i) {
+    if (i == null) return "";
+    return i.toString();
+}
 %>
 <%
 
@@ -184,6 +188,8 @@ if (Util.requestParameterSet(request.getParameter("export"))) {
         "Sex",
         "Life stage",
         "Lat/Lon",
+        "Vegetation",
+        "Terrain",
         "Group sz",
         "Num adults",
         "Num AF",
@@ -229,14 +235,16 @@ if (Util.requestParameterSet(request.getParameter("export"))) {
         if ((enc.getDecimalLatitude() != null) && (enc.getDecimalLongitude() != null)) ll = enc.getDecimalLatitude() + ", " + enc.getDecimalLongitude();
         row.add(ll);
         if (occ != null) {
-            row.add(occ.getGroupSize());
-            row.add(occ.getNumAdults());
-            row.add(occ.getNumAdultFemales());
-            row.add(occ.getNumAdultMales());
-            row.add(occ.getNumSubAdults());
-            row.add(occ.getNumSubFemales());
-            row.add(occ.getNumSubMales());
-            row.add(occ.getNumCalves());
+            row.add(occ.getVegetation());
+            row.add(occ.getTerrain());
+            row.add(intString(occ.getGroupSize()));
+            row.add(intString(occ.getNumAdults()));
+            row.add(intString(occ.getNumAdultFemales()));
+            row.add(intString(occ.getNumAdultMales()));
+            row.add(intString(occ.getNumSubAdults()));
+            row.add(intString(occ.getNumSubFemales()));
+            row.add(intString(occ.getNumSubMales()));
+            row.add(intString(occ.getNumCalves()));
         }
         //jarr.put(new JSONArray(row));
         //out.println("<tr><td>" + String.join("</td><td>", row) + "</td></tr>");
