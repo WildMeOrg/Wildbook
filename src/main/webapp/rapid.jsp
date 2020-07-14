@@ -170,13 +170,41 @@ if (request.getParameter("status") != null) {
 
 if (Util.requestParameterSet(request.getParameter("export"))) {
     List<List> rows = new ArrayList<List>();
-    rows.add(Arrays.asList(new String[]{"Encounter", "URL", "Indiv", "New name", "Resight", "Image(s)", "Sex", "Date", "Lat/Lon", "Occurrence"}));
+    rows.add(Arrays.asList(new String[]{
+        "Encounter",
+        "Date",
+        "URL",
+        "Other Num",
+        "Occur ID",
+        "Indiv",
+        "New name",
+        "Resight",
+        "Image(s)",
+        "Species",
+        "Sex",
+        "Life stage",
+        "Lat/Lon",
+        "Group sz",
+        "Num adults",
+        "Num AF",
+        "Num AM",
+        "Num SubAd",
+        "Num SubF",
+        "Num SubM",
+        "Num calv"
+    }));
     myShepherd.beginDBTransaction();
     List<Encounter> allEncs = itask.getAllEncounters(myShepherd);
     for (Encounter enc : allEncs) {
+        Occurrence occ = myShepherd.getOccurrence(enc);
         List<String> row = new ArrayList<String>();
         row.add(enc.getCatalogNumber());
+        String dt = enc.getDate();
+        if (dt != null) dt = dt.substring(0,10);
+        row.add(dt);
         row.add("https://giraffespotter.org/encounters/encounter.jsp?number=" + enc.getCatalogNumber());
+        row.add(enc.getOtherCatalogNumbers());
+        row.add((occ == null) ? "" : occ.getOccurrenceID());
         if (enc.hasMarkedIndividual()) {
             row.add(enc.getIndividual().getDisplayName());
         } else {
@@ -194,14 +222,22 @@ if (Util.requestParameterSet(request.getParameter("export"))) {
             }
             row.add(String.join(", ", fn));
         }
+        row.add(enc.getTaxonomyString());
         row.add(enc.getSex());
-        String dt = enc.getDate();
-        if (dt != null) dt = dt.substring(0,10);
-        row.add(dt);
+        row.add(enc.getLifeStage());
         String ll = "";
         if ((enc.getDecimalLatitude() != null) && (enc.getDecimalLongitude() != null)) ll = enc.getDecimalLatitude() + ", " + enc.getDecimalLongitude();
         row.add(ll);
-        row.add(enc.getOccurrenceID());
+        if (occ != null) {
+            row.add(occ.getGroupSize());
+            row.add(occ.getNumAdults());
+            row.add(occ.getNumAdultFemales());
+            row.add(occ.getNumAdultMales());
+            row.add(occ.getNumSubAdults());
+            row.add(occ.getNumSubFemales());
+            row.add(occ.getNumSubMales());
+            row.add(occ.getNumCalves());
+        }
         //jarr.put(new JSONArray(row));
         //out.println("<tr><td>" + String.join("</td><td>", row) + "</td></tr>");
         rows.add(row);
