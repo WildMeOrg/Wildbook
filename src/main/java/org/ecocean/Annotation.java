@@ -1054,7 +1054,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
                     occ = new Occurrence(Util.generateUUID(), someEnc);
                     myShepherd.storeNewOccurrence(occ);
                 }
-                occ.addEncounter(newEnc);
+                occ.addEncounterAndUpdateIt(newEnc);
                 occ.setDWCDateLastModified();
                 myShepherd.commitDBTransaction();
             } catch (Exception e) {
