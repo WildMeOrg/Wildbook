@@ -1,4 +1,4 @@
-package org.ecocean.api;
+package org.ecocean.api.query;
 
 import java.util.List;
 import java.util.ArrayList;
