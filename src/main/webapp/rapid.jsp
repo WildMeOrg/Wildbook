@@ -202,11 +202,12 @@ if (Util.requestParameterSet(request.getParameter("export"))) {
     myShepherd.beginDBTransaction();
     List<Encounter> allEncs = itask.getAllEncounters(myShepherd);
     for (Encounter enc : allEncs) {
+        if (enc == null) continue;
         Occurrence occ = myShepherd.getOccurrence(enc);
         List<String> row = new ArrayList<String>();
         row.add(enc.getCatalogNumber());
         String dt = enc.getDate();
-        if (dt != null) dt = dt.substring(0,10);
+        if ((dt != null) && (dt.length() > 10)) dt = dt.substring(0,10);
         row.add(dt);
         row.add("https://giraffespotter.org/encounters/encounter.jsp?number=" + enc.getCatalogNumber());
         row.add(enc.getOtherCatalogNumbers());
