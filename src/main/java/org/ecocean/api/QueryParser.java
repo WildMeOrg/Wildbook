@@ -3,8 +3,10 @@ package org.ecocean.api;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.Collections;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.apache.commons.codec.digest.DigestUtils;
 
 public class QueryParser {
 
@@ -70,6 +72,57 @@ public class QueryParser {
         }
         return String.join(" AND ", ands);
     }
+
+
+    public static String wcHashCode(String s) {
+        if (s == null) return "";
+        //return Integer.toHexString(s.hashCode()) + "[" + s + "]";
+        return Integer.toHexString(s.hashCode());
+    }
+
+    //this should only be called on the top-level qry, not recursed within
+    public static String wcHashSmall(JSONObject qry) throws QueryParserException {
+        String h = wcHash(qry);
+        return DigestUtils.md5Hex(h) + h.length();
+    }
+
+    public static String wcHash(JSONObject qry) throws QueryParserException {
+        if (qry == null) return "<0>";  //snh
+        List<String> ands = new ArrayList<String>();
+        List<String> keys = new ArrayList<String>(qry.keySet());
+        Collections.sort(keys);
+        for (String k : keys) {
+            JSONObject next = qry.optJSONObject(k);
+            if (next != null) {
+                ands.add(wcHashCode(k) + ":" + wcHash(next));
+            } else {
+                JSONArray narr = qry.optJSONArray(k);
+                if (narr != null) {
+                    if (k.equals("$or") || k.equals("$and")) {
+                        List<String> ors = new ArrayList<String>();
+                        for (int i = 0 ; i < narr.length() ; i++) {
+                            JSONObject orj = narr.optJSONObject(i);
+                            if (orj == null) throw new QueryParserException("$or/$and has bad elements");
+                            ors.add(wcHash(orj));
+                        }
+                        Collections.sort(ors);
+                        ands.add(wcHashCode(k) + ":" + String.join(":", ors));
+                    } else {
+                        List<String> list = new ArrayList<String>();
+                        for (int i = 0 ; i < narr.length() ; i++) {
+                            list.add(wcHashCode(narr.get(i).toString()));
+                        }
+                        Collections.sort(list);
+                        ands.add(wcHashCode(k) + ":" + String.join(":", list));
+                    }
+                } else {
+                    ands.add(wcHashCode(k) + ":" + wcHashCode(qry.get(k).toString()));
+                }
+            }
+        }
+        return String.join(":", ands);
+    }
+
 
 }
 
