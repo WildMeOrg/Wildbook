@@ -44,7 +44,7 @@ import org.ecocean.*;
 		System.out.println("Starting LoginUser servlet...");
 		
 		//see /login.jsp for these form fields
-		String username = request.getParameter("username").trim().toLowerCase();
+		String username = request.getParameter("username").trim();
 		String password = request.getParameter("password").trim();
 		
 		String salt="";
