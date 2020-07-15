@@ -4,6 +4,7 @@ package org.ecocean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -28,6 +29,7 @@ import java.util.regex.Pattern;
 import net.jpountz.xxhash.XXHashFactory;
 import net.jpountz.xxhash.StreamingXXHash32;
 import net.jpountz.xxhash.XXHash32;
+import org.apache.commons.codec.digest.DigestUtils;
 
 
 //EXIF-related imports
@@ -521,6 +523,77 @@ public class Util {
             change.put(key, add.get(key));
         }
     }
+
+
+    //these should only be called on the top-level qry, not recursed within
+    public static String jsonHashCodeSmall(JSONObject obj) { return jsonHashCodeSmall(obj, false); }
+    public static String jsonHashCodeSmall(JSONObject obj, boolean orderMatters) {
+        String h = jsonHashCode(obj, orderMatters);
+        return DigestUtils.md5Hex(h) + h.length();
+    }
+    public static String jsonHashCodeSmall(JSONArray arr) { return jsonHashCodeSmall(arr, false); }
+    public static String jsonHashCodeSmall(JSONArray arr, boolean orderMatters) {
+        String h = jsonHashCode(arr, orderMatters);
+        return DigestUtils.md5Hex(h) + h.length();
+    }
+    public static String jsonHashCode(JSONArray arr) {
+        return jsonHashCode(arr, false);
+    }
+    public static String jsonHashCode(JSONArray arr, boolean orderMatters) {
+        if (arr == null) return jsonHashCodeOther("< NULL-arr >");
+        if (arr.length() < 1) return jsonHashCodeOther("< EMPTY-arr >");
+        List<String> els = new ArrayList<String>();
+        for (int i = 0 ; i < arr.length() ; i++) {
+            String el = null;
+            if (arr.isNull(i)) {
+                el = jsonHashCodeOther("< NULL-value >");
+            } else {
+                JSONObject elj = arr.optJSONObject(i);
+                if (elj != null) {  //is element a hash?
+                    el = jsonHashCode(elj);
+                } else {
+                    JSONArray ela = arr.optJSONArray(i);
+                    if (ela != null) {  //is element an array?
+                        el = jsonHashCode(ela);
+                    } else {
+                        el = jsonHashCodeOther(arr.get(i));  // <cross fingers>
+                    }
+                }
+            }
+            els.add(el);
+        }
+        if (!orderMatters) Collections.sort(els);
+        return String.join(":", els);
+    }
+    public static String jsonHashCode(JSONObject obj) {
+        return jsonHashCode(obj, false);
+    }
+    public static String jsonHashCode(JSONObject obj, boolean orderMatters) {  //order of keys dont matter, but it is to pass on arrays
+        if (obj == null) return jsonHashCodeOther("< NULL-obj >");
+        List<String> els = new ArrayList<String>();
+        List<String> keys = new ArrayList<String>(obj.keySet());
+        Collections.sort(keys);  //this will allow identical but scrambled objs to give same value
+        for (String k : keys) {
+            JSONObject next = obj.optJSONObject(k);
+            if (next != null) {
+                els.add(jsonHashCodeOther(k) + ":" + jsonHashCode(next, orderMatters));
+            } else {
+                JSONArray narr = obj.optJSONArray(k);
+                if (narr != null) {
+                    els.add(jsonHashCodeOther(k) + ":" + jsonHashCode(narr, orderMatters));
+                } else {
+                    els.add(jsonHashCodeOther(k) + ":" + jsonHashCodeOther(obj.get(k)));
+                }
+            }
+        }
+        return String.join(":", els);
+    }
+    public static String jsonHashCodeOther(Object obj) {  //we just hope for the best here!
+        if (obj == null) return Integer.toHexString("< NULL-other >".hashCode());
+        //return Integer.toHexString(obj.hashCode()) + "[" + obj + "]";
+        return Integer.toHexString(obj.hashCode());
+    }
+
 
     public static org.datanucleus.api.rest.orgjson.JSONObject stringToDatanucleusJSONObject(String s) {
       org.datanucleus.api.rest.orgjson.JSONObject j = null;
