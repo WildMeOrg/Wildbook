@@ -2134,7 +2134,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   private static String removeNonNumeric(String str) throws NullPointerException {
     str = str.trim();
-    return str.replaceAll("[^\\d.]", "");
+    return str.replaceAll("[^\\d.-]", "");
   }
 
 
