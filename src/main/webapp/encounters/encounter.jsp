@@ -858,6 +858,7 @@ if(enc.getLocation()!=null){
 		if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
 		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
 	}
+        if (!Util.stringExists(displayPath) && Util.stringExists(enc.getLocationID())) displayPath = enc.getLocationID();
 	%>
 		<%=displayPath %>
 	</span>
@@ -2754,7 +2755,7 @@ else {
                                 			<%
 
                          					User thisUser=myShepherd.getUser(username);
-                                			String profilePhotoURL="../images/empty_profile.jpg";
+                                			String profilePhotoURL="../images/user-profile-grey-grey.png";
 
                          					if(thisUser.getUserImage()!=null){
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
