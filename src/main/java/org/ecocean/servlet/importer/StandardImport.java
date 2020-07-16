@@ -1333,9 +1333,18 @@ public class StandardImport extends HttpServlet {
       System.out.println("Trying to create NEW asset!");
 
       ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
+      ArrayList<LabeledKeyword> labels=getLabeledKeywordsForAsset(row, i, myShepherd);
+      
+      
       if (committing) {
         ma = astore.copyIn(f, assetParams);
         if(kws!=null)ma.setKeywords(kws);
+        if(labels!=null) {
+          for(LabeledKeyword lkw:labels) {
+            ma.addKeyword(lkw);
+          }
+        }
+        
       }
 	    // keywording
 
@@ -1386,6 +1395,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         return null;
     }
 
+    /*
   private ArrayList<Keyword> getKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
 
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
@@ -1406,6 +1416,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
     return ans;
   }
+  */
 
   private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
@@ -1433,6 +1444,26 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (kw!=null) ans.add(kw);
     }
     
+    return ans;
+  }
+  
+  private ArrayList<LabeledKeyword> getLabeledKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
+    ArrayList<LabeledKeyword> ans = new ArrayList<LabeledKeyword>();
+    
+    List<String> kwLabels = CommonConfiguration.getIndexedPropertyValues("kwLabel",context);
+    for(String label:kwLabels) {
+      String kwsValue = getString(row, "Encounter.mediaAsset"+n+"."+label);
+      if(kwsValue!=null) {
+          List<String> allowedValues=CommonConfiguration.getIndexedPropertyValues(label,context);
+          if(kwsValue!=null && !kwsValue.trim().equals("") && allowedValues.contains(kwsValue)) {
+            LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword(label, kwsValue, true);
+            if (kw!=null) {
+              ans.add(kw);
+            }
+          }    
+      } 
+    }
+
     return ans;
   }
 
