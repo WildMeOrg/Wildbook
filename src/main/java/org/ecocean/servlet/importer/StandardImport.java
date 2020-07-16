@@ -1452,13 +1452,21 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     
     List<String> kwLabels = CommonConfiguration.getIndexedPropertyValues("kwLabel",context);
     for(String label:kwLabels) {
+      System.out.println("eval "+label);
       String kwsValue = getString(row, "Encounter.mediaAsset"+n+"."+label);
       if(kwsValue!=null) {
+          kwsValue=kwsValue.replaceAll(".0","");
           List<String> allowedValues=CommonConfiguration.getIndexedPropertyValues(label,context);
-          if(kwsValue!=null && !kwsValue.trim().equals("") && allowedValues.contains(kwsValue)) {
-            LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword(label, kwsValue, true);
-            if (kw!=null) {
-              ans.add(kw);
+          System.out.println("eval "+allowedValues.toString());
+          if(kwsValue!=null && !kwsValue.trim().equals("")) {
+            System.out.println("kwsValue is: "+kwsValue);
+            if(allowedValues.contains(kwsValue)) {
+              System.out.println("value allowed");
+              LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword(label, kwsValue, true);
+              if (kw!=null) {
+                System.out.println("setting "+label+":"+kwsValue);
+                ans.add(kw);
+              }
             }
           }    
       } 
