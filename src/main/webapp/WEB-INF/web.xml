@@ -714,26 +714,6 @@
   
   
   
-  <servlet>
-    <servlet-name>MembershipCreate</servlet-name>
-    <servlet-class>org.ecocean.servlet.MembershipCreate</servlet-class>
-  </servlet>
-
-  <servlet>
-    <servlet-name>MembershipDelete</servlet-name>
-    <servlet-class>org.ecocean.servlet.MembershipDelete</servlet-class>
-  </servlet>
-
-
-      <servlet-mapping>
-         <servlet-name>MembershipCreate</servlet-name>
-         <url-pattern>/MembershipCreate</url-pattern>
-      </servlet-mapping>
-
-      <servlet-mapping>
-         <servlet-name>MembershipDelete</servlet-name>
-         <url-pattern>/MembershipDelete</url-pattern>
-      </servlet-mapping>
 
 
 
