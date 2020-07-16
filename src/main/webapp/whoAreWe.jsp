@@ -41,7 +41,7 @@
 
     for (User thisUser : allUsers) {
 
-      String profilePhotoURL="images/empty_profile.jpg";
+      String profilePhotoURL="images/user-profile-grey-grey.png";
 		    
     		if(thisUser.getUserImage()!=null){
     			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();

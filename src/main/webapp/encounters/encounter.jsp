@@ -858,6 +858,7 @@ if(enc.getLocation()!=null){
 		if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
 		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
 	}
+        if (!Util.stringExists(displayPath) && Util.stringExists(enc.getLocationID())) displayPath = enc.getLocationID();
 	%>
 		<%=displayPath %>
 	</span>
@@ -2747,7 +2748,7 @@ else {
                                 			<%
 
                          					User thisUser=myShepherd.getUser(username);
-                                			String profilePhotoURL="../images/empty_profile.jpg";
+                                			String profilePhotoURL="../images/user-profile-grey-grey.png";
 
                          					if(thisUser.getUserImage()!=null){
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
@@ -4666,14 +4667,6 @@ if(isOwner){
       numDynProps++;
 %>
 <p class="para"> <em><%=nm%></em>: <%=vl%>
-  <%
-  %>
-
-  <%
-  %>
-
-  <%
-%>
 <!-- start dynamic form -->
 <div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" class="editFormDynamic">
   <p class="editTextDynamic"><strong><%=encprops.getProperty("set")%> <%=nm %></strong></p>
@@ -4686,11 +4679,14 @@ if(isOwner){
             <div class="col-sm-3">
               <label><%=encprops.getProperty("propertyValue")%>:</label>
             </div>
-            <div class="col-sm-5">
+            <div class="col-sm-3">
               <input name="value" type="text" class="form-control" id="dynInput" value="<%=vl %>"/>
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-3">
               <input name="Set" type="submit" id="dynEdit" value="<%=encprops.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn"/>
+              <span class="glyphicon glyphicon-remove remove-ob-x" onclick="removeDynamicProperty('<%=nm%>')" title="remove dynamic property"></span>
+            </div>
+            <div class="col-sm-3">
             </div>
           </div>
         </form>
@@ -4832,6 +4828,31 @@ button#upload-button {
 </style>
 
 <script>
+
+  function removeDynamicProperty(dPropKey) {
+
+    let removeDPJSON = {};
+    removeDPJSON['encId'] = '<%=num%>';
+    removeDPJSON['dPropKey'] = dPropKey;
+
+    $.ajax({
+        url: '../RemoveDynamicProperty',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        data: JSON.stringify(removeDPJSON),
+      
+        success: function(d) {
+          $("#dialogDP"+dPropKey).remove();
+        },
+          error: function(d) {
+            console.log("---> Err from RemoveDynamicProperty ajax");
+            console.warn(JSON.stringify(d));
+        }
+    });
+
+  }
+
 
   var keyToFilename = {};
   var filenames = [];

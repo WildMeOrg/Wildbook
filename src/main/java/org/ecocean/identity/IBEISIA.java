@@ -1687,21 +1687,23 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
 System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with no Encounter!]");
             return ann;
         }
-        Encounter enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
-        Occurrence occ = asset.getOccurrence();
-        if (occ != null) {
-            enc.setOccurrenceID(occ.getOccurrenceID());
-            occ.addEncounter(enc);
-        }
-        enc.detectedAnnotation(myShepherd, ann);  //this is a stub presently, so meh?
-        myShepherd.getPM().makePersistent(ann);
-        if (ann.getFeatures() != null) {
-            for (Feature ft : ann.getFeatures()) {
-                myShepherd.getPM().makePersistent(ft);
+
+        Encounter enc = null;
+        try {
+            enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
+            myShepherd.getPM().makePersistent(enc);
+
+            enc.detectedAnnotation(myShepherd, ann);  //this is a stub presently, so meh?
+            myShepherd.getPM().makePersistent(ann);
+            if (ann.getFeatures() != null) {
+                for (Feature ft : ann.getFeatures()) {
+                    myShepherd.getPM().makePersistent(ft);
+                }
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        myShepherd.getPM().makePersistent(enc);
-        if (occ != null) myShepherd.getPM().makePersistent(occ);
 System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
         //this is to tell IA to update species on the newly-created annot on its side
         String taxonomyString = enc.getTaxonomyString();
