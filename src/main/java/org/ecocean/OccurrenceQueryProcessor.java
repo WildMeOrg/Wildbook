@@ -80,6 +80,16 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     }
     //end submitterOrganization filter--------------------------------------------------------------------------------------
 
+    // filter for submitterOrganization------------------------------------------
+      if((request.getParameter("submitterOrganization")!=null)&&(!request.getParameter("submitterOrganization").equals(""))) {
+        String submitterOrgString=request.getParameter("submitterOrganization").toLowerCase().replaceAll("%20", " ").trim();
+
+          filter=filterWithCondition(filter,"(enc.submitterOrganization.toLowerCase().indexOf('"+submitterOrgString+"') != -1)");
+
+        prettyPrint.append("Submitter organization contains \""+submitterOrgString+"\".<br />");
+      }
+      //end submitterOrganization filter--------------------------------------------------------------------------------------
+
     //Taxonomies
     List<String> scientificNames = getScientificNames(request);
     int numTaxonomies = scientificNames.size();
