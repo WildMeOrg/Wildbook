@@ -934,7 +934,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 		<%
 		}
 	%>
-	
+
 	</table>
 </p>
 </div>
@@ -971,13 +971,13 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             Iterator<Keyword> keys = myShepherd.getAllKeywords();
             if (keys.hasNext()) {
               %>
-              
+
               <select multiple name="keyword" id="keyword" size="10">
                 <option value="None"></option>
                 <%
-                
 
-                while (keys.hasNext()) {  
+
+                while (keys.hasNext()) {
                 //for (int n = 0; n < totalKeywords; n++) {
                   Keyword word = keys.next();
               %>
@@ -1558,6 +1558,19 @@ else {
         %>
       </select>
 
+      <%
+      User usr = AccessControl.getUser(request, myShepherd);
+      if(usr != null){
+        List<Organization> orgsUserBelongsTo = usr.getOrganizations();
+        ArrayList<String> orgOptions = new ArrayList<String>();
+        for (int i = 0; i < orgsUserBelongsTo.size(); i++) { //TODO how to DRY up? Map function in java is in Streams package; there were issues importing and using said Stream package
+          Organization currentOrg = orgsUserBelongsTo.get(i);
+          String currentOrgName = currentOrg.getName();
+          orgOptions.add(currentOrgName);
+        }
+        printStringFieldSearchRowBoldTitle("submitterOrganization", orgOptions, out, props);
+      }
+      %>
 </div>
 </td>
 </tr>
