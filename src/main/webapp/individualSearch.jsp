@@ -1,6 +1,38 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.util.Collections" %>
+<%@ page import="java.util.Properties, java.io.IOException" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%!
+// methods
+
+public static String getDisplayName(String fieldName, Properties nameLookup) throws IOException, IllegalAccessException {
+  // Tries to lookup a translation and defaults to some string manipulation
+  String defaultName = ClassEditTemplate.prettyFieldName(fieldName);
+  String ans = nameLookup.getProperty(fieldName, ClassEditTemplate.capitalizedPrettyFieldName(fieldName));
+  if (Util.stringExists(ans)) return ans;
+  System.out.println("getDisplayName found no property for "+fieldName+" in "+nameLookup+". Falling back on fieldName");
+  return fieldName;
+}
+
+public static void printStringFieldSearchRowBoldTitle(String fieldName, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+  String displayName = getDisplayName(fieldName, nameLookup);
+  // out.println("<tr id=\""+fieldName+"Row\">");
+  out.println("<br/><strong>"+displayName+"</strong><br/>"); //<td id=\""+fieldName+"Title\"><br/>
+  out.println("<select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
+  out.println("<option value=\"None\" selected=\"selected\"></option>");
+  for (String val: valueOptions) {
+    out.println("<option value=\""+val+"\">"+val+"</option>");
+  }
+  out.println("</select>"); //</td>
+  // out.println("</tr>");
+
+}
+
+%>
+
+
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -1574,10 +1606,6 @@ else {
 </div>
 </td>
 </tr>
-
-
-
-
 <%
   myShepherd.rollbackDBTransaction();
 %>
