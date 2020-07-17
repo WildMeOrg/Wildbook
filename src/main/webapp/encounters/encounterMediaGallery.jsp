@@ -1245,8 +1245,10 @@ System.out.println("the stringy version is |"+labelsToValuesStr+"| with length()
 JSONObject jobj = new JSONObject(labelsToValues);
 System.out.println("got jobj "+jobj);
 
-%>
+String keywords_readable = encprops.getProperty("keywords");
 
+%>
+var kwReadable = '<%=encprops.getProperty("keywords")%>';
 
 function imageLayerKeywords(el, opt) {
 	var mid;
@@ -1269,21 +1271,26 @@ console.info("############## mid=%s -> %o", mid, ma);
     let h = '';
 
     if (!hasWrapper) {
-        h += '<div class="image-enhancer-keyword-wrapper">';
+        h += '<div onmouseleave="hideAssetKeywords(this)" class="image-enhancer-keyword-wrapper">';
 	    h += '<div class="image-enhancer-keyword-wrapper-hover">';  
     }
     
-    // the refresh on 1235 removes the above, and so below
+    //number of keywords for default display, keyword list hidden until hover
+    if (ma.keywords.length>0) {
+        h += '<div onmouseover="showAssetKeywords(this)" class="image-enhancer-keyword keyword-number-cell">'+kwReadable+': '+ma.keywords.length+'</div>';
+    }
   
     for (var i = 0 ; i < ma.keywords.length ; i++) {
     var kw = ma.keywords[i];
     thisHas.push(kw.indexname);
+
+
     if (kw.label) {
       console.info("Have labeled keyword %o", kw);
-      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword labeled-keyword image-enhancer-keyword-hidden" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" title="remove keyword">X</span></div>';
     } else {
       //h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
-      h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword image-enhancer-keyword-hidden" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
 
     }
 //console.info('keyword = %o', ma.keywords[i]);
@@ -1292,7 +1299,9 @@ console.info("############## mid=%s -> %o", mid, ma);
   var labelsToValues = <%=jobj%>;
   console.log("Labeled keywords %o", labelsToValues);
   let labeledAvailable = (labelsToValues.length>0);
+  
   h += '<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+  
   if (!$.isEmptyObject(labelsToValues)) {
       //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
     var hasSome = false;
@@ -1357,6 +1366,19 @@ console.info("############## mid=%s -> %o", mid, ma);
 		addNewKeyword(ev.target);
 	});
 }
+
+function showAssetKeywords(el) {
+    $(el).siblings(".image-enhancer-keyword-hidden").removeClass("image-enhancer-keyword-hidden");
+    $(el).addClass("image-enhancer-keyword-hidden");
+}
+
+function hideAssetKeywords(el) {
+    $(el).find(".image-enhancer-keyword").addClass("image-enhancer-keyword-hidden");
+    let numCell = $(el).find('.keyword-number-cell');
+    numCell.removeClass("image-enhancer-keyword-hidden");
+}
+
+// make sure MA specific
 
 function imagePopupInfo(obj) {
 	if (!obj || !obj.imgEl || !obj.imgEl.context) return;
