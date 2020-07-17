@@ -44,6 +44,42 @@ private static String nextNameFromLocation(Encounter enc) {
     return MarkedIndividual.nextNameByPrefix(prefix.toLowerCase());
 }
 
+private static JSONObject nextNamesFromTask(Shepherd myShepherd, Task task) {
+    JSONObject nextNames = new JSONObject();
+    if (task == null) return nextNames;
+    if (!task.hasObjectMediaAssets() && !task.hasObjectAnnotations()) {  //hopefully a parent task...
+        if (!task.hasChildren()) {
+            return nextNames;
+        } else {
+            //note: this will recurse thru entire tree ... as long as we dont loop, gulp
+            for (Task kid : task.getChildren()) {
+                nextNames = nextNamesFromTask(myShepherd, kid);
+                if (nextNames.length() > 0) return nextNames;  //we take the first match we get?  is cool?
+            }
+            return nextNames;  //give up (empty)
+        }
+    }
+    //if here, we must have either assets or annots
+    if ((task != null) && task.hasObjectMediaAssets()) {
+        for (MediaAsset ma : task.getObjectMediaAssets()) {
+            if (!ma.hasAnnotations()) continue;
+            for (Annotation ann : ma.getAnnotations()) {
+                Encounter enc = ann.findEncounter(myShepherd);
+                String nn = nextNameFromLocation(enc);
+                if (nn != null) nextNames.put(enc.getCatalogNumber(), nn);
+            }
+        }
+    }
+    if ((task != null) && task.hasObjectAnnotations()) {
+        for (Annotation ann : task.getObjectAnnotations()) {
+            Encounter enc = ann.findEncounter(myShepherd);
+            String nn = nextNameFromLocation(enc);
+            if (nn != null) nextNames.put(enc.getCatalogNumber(), nn);
+        }
+    }
+    return nextNames;
+}
+
 %>
 <%
 
@@ -414,16 +450,7 @@ if (request.getParameter("taskId") != null) {
     myShepherd.setAction("iaResults.jsp - getting next name");
     myShepherd.beginDBTransaction();
     Task task = myShepherd.getTask(request.getParameter("taskId"));
-    if ((task != null) && task.hasObjectMediaAssets()) {
-        for (MediaAsset ma : task.getObjectMediaAssets()) {
-            if (!ma.hasAnnotations()) continue;
-            for (Annotation ann : ma.getAnnotations()) {
-                Encounter enc = ann.findEncounter(myShepherd);
-                String nn = nextNameFromLocation(enc);
-                if (nn != null) nextNames.put(enc.getCatalogNumber(), nn);
-            }
-        }
-    }
+    nextNames = nextNamesFromTask(myShepherd, task);
 System.out.println("nextNames ===> " + nextNames.toString(4));
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
