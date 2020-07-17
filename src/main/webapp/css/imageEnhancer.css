@@ -166,7 +166,9 @@ div iek-new-labeled-wrapper {
     display: inline-block;
 }
 
-
+.image-enhancer-keyword-hidden {
+    display: none;
+}
 
 .iek-new-form, .iek-new-wrapper.iek-autohide, iek-new-labeled-form {
     transition: .5s all;   
