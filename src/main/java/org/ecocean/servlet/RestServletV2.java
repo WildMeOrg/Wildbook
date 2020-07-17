@@ -349,7 +349,8 @@ public class RestServletV2 extends HttpServlet {
                 if (bundle == null) {
                     rtn.put("message", _rtnMessage("invalid_bundle_id"));
                 } else {
-                    rtn.put("bundleId", id);
+                    JSONObject res = new JSONObject();
+                    res.put("bundleId", id);
                     JSONArray arr = bundle.optJSONArray("bundle");
                     if (arr != null) {
                         JSONArray kids = new JSONArray();
@@ -360,12 +361,13 @@ public class RestServletV2 extends HttpServlet {
                             JSONObject kid = confGetTree(conf, isAdmin, definition, myShepherd);
                             if (kid != null) kids.put(kid);
                         }
-                        rtn.put("children", kids);
+                        res.put("children", kids);
                     }
+                    rtn.put("response", res);
                     rtn.put("success", true);
                 }
             } else if (!conf.isValid(meta) && payload.optBoolean("tree", false) && conf.hasChildren()) {
-                Util.mergeJSONObjects(rtn, confGetTree(conf, isAdmin, definition, myShepherd));
+                rtn.put("response", confGetTree(conf, isAdmin, definition, myShepherd));
                 rtn.put("success", true);
             } else if (!conf.isValid(meta)) {
                 JSONObject jerr = new JSONObject();
@@ -378,7 +380,7 @@ public class RestServletV2 extends HttpServlet {
                 response.setStatus(401);
             } else {
                 rtn.put("success", true);
-                Util.mergeJSONObjects(rtn, __confJSONObject(conf, meta, isAdmin, definition, myShepherd));
+                rtn.put("response", __confJSONObject(conf, meta, isAdmin, definition, myShepherd));
             }
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
