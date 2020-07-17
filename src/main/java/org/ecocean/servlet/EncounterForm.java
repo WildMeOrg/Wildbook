@@ -331,7 +331,7 @@ System.out.println("*** trying redirect?");
         long maxSizeBytes = maxSizeMB * 1048576;
 
         if (ServletFileUpload.isMultipartContent(request)) {
-          
+
             try {
                 ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
                 upload.setHeaderEncoding("UTF-8");
@@ -370,16 +370,16 @@ System.out.println("*** trying redirect?");
         }
 
 
-        
+
         if (fv.get("social_files_id") != null) {
           System.out.println("BBB: Social_files_id: "+fv.get("social_files_id"));
-          
+
             //TODO better checking of files (size, type etc)
             File socDir = new File(ServletUtilities.dataDir(context, rootDir) + "/social_files/" + fv.get("social_files_id"));
             for (File sf : socDir.listFiles()) {
                 socialFiles.add(sf);
                 System.out.println("BBB: Adding social file : "+sf.getName());
-                
+
                 filesOK.add(sf.getName());
             }
             filesBad = new HashMap<String, String>();
@@ -416,7 +416,7 @@ System.out.println("*** trying redirect?");
       if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
         spamBot = true;
       }
-      
+
       System.out.println("spambot: "+spamBot);
       //else if(spamFields.toString().toLowerCase().indexOf("[url]")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().indexOf("url=")!=-1){spamBot=true;}
@@ -577,7 +577,7 @@ System.out.println("about to do enc()");
             boolean llSet = false;
             //Encounter enc = new Encounter();
             //System.out.println("Submission detected date: "+enc.getDate());
-            
+
             String encID = enc.generateEncounterNumber();
             if ((fv.get("catalogNumber") != null)&&(!fv.get("catalogNumber").toString().trim().equals(""))) {
               if((!myShepherd.isEncounter(fv.get("catalogNumber").toString()))){
@@ -585,8 +585,8 @@ System.out.println("about to do enc()");
               }
             }
             enc.setEncounterNumber(encID);
-            
-            
+
+
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
 System.out.println("enc ?= " + enc.toString());
 
@@ -601,21 +601,21 @@ System.out.println("enc ?= " + enc.toString());
 
             ///////////////////TODO social files also!!!
             System.out.println("BBB: Checking if we have social files...");
-            
+
             if(socialFiles.size()>0){
               int numSocialFiles=socialFiles.size();
               System.out.println("BBB: Trying to persist social files: "+numSocialFiles);
-              
+
               DiskFileItemFactory factory = new DiskFileItemFactory();
-              
+
               for(int q=0;q<numSocialFiles;q++){
                 File item=socialFiles.get(q);
                 makeMediaAssetsFromJavaFileObject(item, encID, astore, enc, newAnnotations, genus, specificEpithet);
-                
+
               }
-              
+
             }
-            
+
 
             if (fv.get("mediaAssetSetId") != null) {
                 MediaAssetSet maSet = ((MediaAssetSet) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAssetSet.class, fv.get("mediaAssetSetId")), true)));
@@ -634,10 +634,11 @@ System.out.println("enc ?= " + enc.toString());
             enc.setGenus(genus);
             enc.setSpecificEpithet(specificEpithet);
 
-            
+
             //User management
             String subN=getVal(fv, "submitterName");
             String subE=getVal(fv, "submitterEmail");
+            subE = subE.toLowerCase();
             String subO=getVal(fv, "submitterOrganization");
             if (Util.stringExists(subO)) enc.setSubmitterOrganization(subO);
             String subP=getVal(fv, "submitterProject");
@@ -645,7 +646,7 @@ System.out.println("enc ?= " + enc.toString());
             //User user=null;
             List<User> submitters=new ArrayList<User>();
             if((subE!=null)&&(!subE.trim().equals(""))) {
-              
+
               StringTokenizer str=new StringTokenizer(subE,",");
               int numTokens=str.countTokens();
               for(int y=0;y<numTokens;y++) {
@@ -656,27 +657,28 @@ System.out.println("enc ?= " + enc.toString());
                   submitters.add(user);
                 }
                 else {
-                  User user=new User(tok,Util.generateUUID());
+                  User user=new User(tok,Util.generateUUID()); //TODO delete TODO comment if this is still here
                   user.setAffiliation(subO);
                   user.setUserProject(subP);
                   if((numTokens==1)&&(subN!=null)){user.setFullName(subN);}
                   myShepherd.getPM().makePersistent(user);
                   myShepherd.commitDBTransaction();
                   myShepherd.beginDBTransaction();
-                  
+
                   submitters.add(user);
                 }
               }
             }
             enc.setSubmitters(submitters);
             //end submitter-user processing
-            
+
             //User management - photographer processing
             String photoN=getVal(fv, "photographerName");
             String photoE=getVal(fv, "photographerEmail");
+            photoE = photoE.toLowerCase();
             List<User> photographers=new ArrayList<User>();
             if((photoE!=null)&&(!photoE.trim().equals(""))) {
-              
+
               StringTokenizer str=new StringTokenizer(photoE,",");
               int numTokens=str.countTokens();
               for(int y=0;y<numTokens;y++) {
@@ -687,7 +689,7 @@ System.out.println("enc ?= " + enc.toString());
                   photographers.add(user);
                 }
                 else {
-                  User user=new User(tok,Util.generateUUID());
+                  User user=new User(tok,Util.generateUUID()); //TODO delete this TODO if still here
                   if((numTokens==1)&&(photoN!=null)){user.setFullName(photoN);}
                   myShepherd.getPM().makePersistent(user);
                   myShepherd.commitDBTransaction();
@@ -698,13 +700,14 @@ System.out.println("enc ?= " + enc.toString());
             }
             enc.setPhotographers(photographers);
             //end photographer-user processing
-            
-            
+
+
             //User management - informOthers processing
             String othersString=getVal(fv, "informothers");
+            othersString = othersString.toLowerCase();
             List<User> informOthers=new ArrayList<User>();
             if((othersString!=null)&&(!othersString.trim().equals(""))) {
-              
+
               StringTokenizer str=new StringTokenizer(othersString,",");
               int numTokens=str.countTokens();
               for(int y=0;y<numTokens;y++) {
@@ -724,9 +727,9 @@ System.out.println("enc ?= " + enc.toString());
             }
             enc.setInformOthers(informOthers);
             //end informOthers-user processing
-            
-            
-            
+
+
+
 /*
             String baseDir = ServletUtilities.dataDir(context, rootDir);
             ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
@@ -797,7 +800,7 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
         }
 
 
-         
+
 
       if (fv.get("manualID") != null && fv.get("manualID").toString().length() > 0) {
             String indID = fv.get("manualID").toString();
@@ -816,7 +819,7 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
             if (ind!=null) enc.setIndividual(ind);
             enc.setFieldID(indID);
         }
-    
+
 
 
       if (fv.get("occurrenceID") != null && fv.get("occurrenceID").toString().length() > 0) {
@@ -1146,10 +1149,10 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
         return;
       }
 
-      
-      
-      
-      
+
+
+
+
 
 
 
@@ -1157,11 +1160,11 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
       //return a forward to display.jsp
       System.out.println("Ending data submission.");
       if (!spamBot) {
-        
+
         //send submitter on to confirmSubmit.jsp
         //response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
         WebUtils.redirectToSavedRequest(request, response, ("/confirmSubmit.jsp?number=" + encID));
-        
+
         //start email appropriate parties
         if(CommonConfiguration.sendEmailNotifications(context)){
           myShepherd.beginDBTransaction();
@@ -1178,7 +1181,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
               mailer.setUrlScheme(request.getScheme());
               es.execute(mailer);
             }
-          
+
             // Email those assigned this location code
             if(enc.getLocationID()!=null) {
               String informMe=null;
@@ -1195,10 +1198,10 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
                 }
               }
             }
-          
+
             // Add encounter dont-track tag for remaining notifications (still needs email-hash assigned).
             tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc.getCatalogNumber());
-          
+
 
             // Email submitter and photographer
             if ((enc.getPhotographerEmails()!=null)&&(enc.getPhotographerEmails().size()>0)) {
@@ -1222,7 +1225,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
                 es.execute(mailer);
               }
             }
-          
+
             // Email interested others
             if ((enc.getInformOthersEmails()!=null)&&(enc.getInformOthersEmails().size()>0)) {
               List<String> cOther = enc.getInformOthersEmails();
@@ -1235,7 +1238,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
                 es.execute(mailer);
               }
             }
-            /*  
+            /*
             if ((enc.getInformOthers() != null) && (!enc.getInformOthers().trim().equals(""))) {
               List<String> cOther = NotificationMailer.splitEmails(enc.getInformOthers());
               for (String emailTo : cOther) {
@@ -1247,8 +1250,8 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
               }
             }
             */
-            
-            
+
+
             es.shutdown();
           }
           catch(Exception e){
@@ -1256,13 +1259,13 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
           }
           finally{
             myShepherd.rollbackDBTransaction();
-            
+
           }
         } //end email appropriate parties
-        
-        
-        
-        
+
+
+
+
       } else {
         response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/spambot.jsp");
       }
@@ -1273,7 +1276,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
     myShepherd.closeDBTransaction();
     //return null;
   }
-  
+
   private void makeMediaAssetsFromJavaFileItemObject(FileItem item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
     JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
     sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
@@ -1288,7 +1291,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
         System.out.println("Could not write " + tmpFile + ": " + ex.toString());
     }
     if (tmpFile.exists()) {
-      
+
       try{
         ma.addLabel("_original");
         ma.copyIn(tmpFile);
@@ -1300,18 +1303,18 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
         System.out.println("Hit an IOException trying to transform file "+item.getName()+" into a MediaAsset in EncounterFom.class.");
         ioe.printStackTrace();
       }
-        
-        
-    } 
+
+
+    }
     else {
         System.out.println("failed to write file " + tmpFile);
     }
   }
-  
+
   private void makeMediaAssetsFromJavaFileObject(File item, String encID, AssetStore astore, Encounter enc, ArrayList<Annotation> newAnnotations, String genus, String specificEpithet){
-    
+
     System.out.println("Entering makeMediaAssetsFromJavaFileObject");
-    
+
     JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
     sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
     MediaAsset ma = new MediaAsset(astore, sp);
@@ -1326,7 +1329,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
         System.out.println("Could not write " + tmpFile + ": " + ex.toString());
     }
     if (tmpFile.exists()) {
-      
+
       try{
         ma.addLabel("_original");
         ma.copyIn(tmpFile);
@@ -1339,9 +1342,9 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
         System.out.println("Hit an IOException trying to transform file "+item.getName()+" into a MediaAsset in EncounterFom.class.");
         ioe.printStackTrace();
       }
-        
-        
-    } 
+
+
+    }
     else {
         System.out.println("failed to write file " + tmpFile);
     }
