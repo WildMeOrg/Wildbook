@@ -23,6 +23,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
+import org.ecocean.social.SocialUnit;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,6 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class IndividualRemoveEncounter extends HttpServlet {
@@ -98,8 +101,21 @@ public class IndividualRemoveEncounter extends HttpServlet {
             }
             removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter#" + request.getParameter("number") + ".</p>");
             if (removeFromMe.totalEncounters() == 0) {
+                
+                //remove from names cache
                 removeFromMe.removeFromNamesCache();  //so name no longer appears in auto-complete
-              myShepherd.throwAwayMarkedIndividual(removeFromMe);
+              
+                //check for social unit membership and remove
+                List<SocialUnit> units=myShepherd.getAllSocialUnitsForMarkedIndividual(removeFromMe);
+                if(units!=null && units.size()>0) {
+                  for(SocialUnit unit:units) {
+                    boolean worked=unit.removeMember(removeFromMe, myShepherd);
+                    if(worked)myShepherd.beginDBTransaction();
+                  }
+                }
+                
+                //now delete the individual
+                myShepherd.throwAwayMarkedIndividual(removeFromMe);
               wasRemoved = true;
             }
           }
