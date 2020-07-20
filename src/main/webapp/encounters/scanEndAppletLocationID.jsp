@@ -266,7 +266,6 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 <p>
 
 <h2>Modified Groth Scan Results Filtered to Location IDs
-<a href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a></h2>
          <%
          if(locationIDs.size()>0){
 	     %>

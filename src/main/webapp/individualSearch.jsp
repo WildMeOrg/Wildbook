@@ -530,10 +530,7 @@ function FSControl(controlDiv, map) {
         </em>
       </p>
 
-      <p><strong><%=props.getProperty("locationID")%></strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>locationID"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+      <p><strong><%=props.getProperty("locationID")%></strong><br/>
 
        <input name="andLocationIDs" type="checkbox" id="andLocationIDs" value="andLocationIDs" /> <%=props.getProperty("andLocationID")%>
 
@@ -591,10 +588,7 @@ function FSControl(controlDiv, map) {
         </tr>
       </table>
 
-      <p><strong><%=props.getProperty("verbatimEventDate")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>verbatimEventDate"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+      <p><strong><%=props.getProperty("verbatimEventDate")%>:</strong></p>
 
       <%
         List<String> vbds = myShepherd.getAllVerbatimEventDates();
@@ -639,10 +633,7 @@ function FSControl(controlDiv, map) {
       </c:if>
 
 <!--  date of birth and death -->
-      <p><strong><%=props.getProperty("timeOfBirth")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>timeOfBirth"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+      <p><strong><%=props.getProperty("timeOfBirth")%>:</strong></p>
 <table>
 
 	<tr>
@@ -650,10 +641,7 @@ function FSControl(controlDiv, map) {
 		<td><%=props.getProperty("end") %> <input type="text" id="DOBend" name="DOBend" /></td>
 	</tr>
 </table>
-	      <p><strong><%=props.getProperty("timeOfDeath")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>timeOfDeath"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+	      <p><strong><%=props.getProperty("timeOfDeath")%>:</strong></p>
 	<table>
 	<tr>
 		<td><%=props.getProperty("start") %> <input type="text" id="DODstart" name="DODstart" /></td>
@@ -753,12 +741,7 @@ function FSControl(controlDiv, map) {
 
          <tr>
           <td valign="top"><strong><%=props.getProperty("behavior")%>:</strong>
-            <em> <span class="para">
-								<a href="<%=CommonConfiguration.getWikiLocation(context)%>behavior" target="_blank">
-                  <img src="images/information_icon_svg.gif" alt="Help" border="0"
-                       align="absmiddle"/>
-                </a>
-							</span>
+            <em>
             </em><br/>
               <%
         List<String> behavs = (useCustomProperties)
@@ -1151,10 +1134,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <br /><p><em><%=props.getProperty("slowOptions") %></em></p>
 
 
-      <p><strong><%=props.getProperty("haplotype")%></strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>haplotype"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+      <p><strong><%=props.getProperty("haplotype")%></strong><br />
                              <br />
         (<em><%=props.getProperty("locationIDExample")%></em>)
    </p>
@@ -1190,10 +1170,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       %>
 
 
-  <p><strong><%=props.getProperty("geneticSex")%>:</strong> <span class="para">
-      <a href="<%=CommonConfiguration.getWikiLocation(context)%>geneticSex"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+  <p><strong><%=props.getProperty("geneticSex")%>:</strong><br/>
                              (<em><%=props.getProperty("locationIDExample")%></em>)
    </p>
 
@@ -1250,11 +1227,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </table>
 
       <p><strong><%=props.getProperty("msmarker")%>:</strong>
-      <span class="para">
-      	<a href="<%=CommonConfiguration.getWikiLocation(context)%>loci" target="_blank">
-      		<img src="images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
-      	</a>
-      </span>
    </p>
 <p>
 
@@ -1336,11 +1308,6 @@ else {
             	<strong><%=props.getProperty("individualID")%></strong>
             	<em>
             		<input name="individualID" type="text" id="individualID" size="40" />&nbsp;
-            		<span class="para">
-            			<a href="<%=CommonConfiguration.getWikiLocation(context)%>individualID" target="_blank">
-            				<img src="images/information_icon_svg.gif" alt="Help" width="15" height="15" border="0" align="absmiddle"/>
-            			</a>
-            		</span>
 
               </em>
               </p>

@@ -840,8 +840,6 @@ if(enc.getLocation()!=null){
 
 <br>
 
-<a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
 <em><%=encprops.getProperty("locationID") %></em>
 <span>
 	<span id="displayLocationID">
@@ -864,8 +862,6 @@ if(enc.getLocation()!=null){
 <br>
 
 
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>country" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
   <em><%=encprops.getProperty("country") %></em>
   <%
   if(enc.getCountry()!=null){
@@ -2906,8 +2902,6 @@ if (isOwner) {
         %>
         <label>TapirLink:</label>&nbsp;
         <input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="tapirApprove" value="<%=encprops.getProperty("change")%>"/>
-        &nbsp;
-        <a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
       </form>
     </div>
 
