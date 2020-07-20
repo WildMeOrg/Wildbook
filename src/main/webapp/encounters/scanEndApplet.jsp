@@ -145,7 +145,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 }
 
 .match-side-img-wrapper {
-    width: 100%;
+    width: 1000px;
     display: inline-block;
     position: relative;
     cursor: crosshair;
