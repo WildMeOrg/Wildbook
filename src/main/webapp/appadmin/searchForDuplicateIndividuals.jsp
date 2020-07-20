@@ -45,70 +45,73 @@ try {
 	ArrayList<MarkedIndividual> al=new ArrayList<MarkedIndividual>(c);
 	
 	for(MarkedIndividual indy:al){
-		
-		System.out.println(indy.getIndividualID());
-		
-		
-		int sizeALD=0;
-		int sizeALN=0;
-		ArrayList<MarkedIndividual> alD=new ArrayList<MarkedIndividual>();
-		ArrayList<MarkedIndividual> alN=new ArrayList<MarkedIndividual>();
-		
-		if(indy.getDisplayName()!=null){
-			String checkDisplayName="SELECT FROM org.ecocean.MarkedIndividual WHERE (individualID != '"+indy.getIndividualID()+"' && names.valuesAsString.toLowerCase().indexOf('"+indy.getDisplayName().toLowerCase()+"') != -1) && encounters.contains(enc) && enc.locationID == 'Iceland' && enc.genus == 'Megaptera' VARIABLES org.ecocean.Encounter enc";
+		try{
+			System.out.println(indy.getIndividualID());
 			
-			Query checkD=myShepherd.getPM().newQuery(checkDisplayName);
-			Collection d=(Collection)checkD.execute();
-			alD=new ArrayList<MarkedIndividual>(d);
-			sizeALD=alD.size();
-			checkD.closeAll();
 			
-		}
-		
-		if(indy.getNickName()!=null){
-			String checkNickname="SELECT FROM org.ecocean.MarkedIndividual WHERE (individualID != '"+indy.getIndividualID()+"' && names.valuesAsString.toLowerCase().indexOf('"+indy.getNickName().toLowerCase()+"') != -1) && encounters.contains(enc) && enc.locationID == 'Iceland' && enc.genus == 'Megaptera' VARIABLES org.ecocean.Encounter enc";
+			int sizeALD=0;
+			int sizeALN=0;
+			ArrayList<MarkedIndividual> alD=new ArrayList<MarkedIndividual>();
+			ArrayList<MarkedIndividual> alN=new ArrayList<MarkedIndividual>();
 			
-			Query checkN=myShepherd.getPM().newQuery(checkNickname);
-			Collection n=(Collection)checkN.execute();
-			alN=new ArrayList<MarkedIndividual>(n);
-			sizeALN=alN.size();
-			checkN.closeAll();
-		}
-		
-		if(sizeALD>0 || sizeALN>0){
-			
-			%>
-			
-			<li><strong>Found duplicates for: <a target="_blank" href="../individuals.jsp?number=<%=indy.getIndividualID() %>">link</a>:<%=indy.getDisplayName() %>:<%=indy.getNickName() %></strong><ul>
-			
-			<%
-		
-			if(sizeALD>0){
-				for(MarkedIndividual dupe:alD){
-					%>
-					<li><a target="_blank" href="../individuals.jsp?number=<%=dupe.getIndividualID() %>">link</a>---<%=dupe.getDisplayName() %>---<%=dupe.getNickName() %>  <a target="_blank" href="../merge.jsp?individualA=<%=indy.getIndividualID() %>&individualB=<%=dupe.getIndividualID() %>">merge?</a></li>
-					<%
-				}
+			if(indy.getDisplayName()!=null){
+				String checkDisplayName="SELECT FROM org.ecocean.MarkedIndividual WHERE (individualID != '"+indy.getIndividualID()+"' && names.valuesAsString.toLowerCase().indexOf('"+indy.getDisplayName().toLowerCase()+"') != -1) && encounters.contains(enc) && enc.locationID == 'Iceland' && enc.genus == 'Megaptera' VARIABLES org.ecocean.Encounter enc";
+				
+				Query checkD=myShepherd.getPM().newQuery(checkDisplayName);
+				Collection d=(Collection)checkD.execute();
+				alD=new ArrayList<MarkedIndividual>(d);
+				sizeALD=alD.size();
+				checkD.closeAll();
+				
 			}
 			
-			
-			if(sizeALN>0){
-				for(MarkedIndividual dupe:alN){
-					%>
-					<li><a target="_blank" href="../individuals.jsp?number=<%=dupe.getIndividualID() %>">link</a>---<%=dupe.getDisplayName() %>---<%=dupe.getNickName() %>  <a target="_blank" href="../merge.jsp?individualA=<%=indy.getIndividualID() %>&individualB=<%=dupe.getIndividualID() %>">merge?</a></li>
-					<%
-				}
+			if(indy.getNickName()!=null){
+				String checkNickname="SELECT FROM org.ecocean.MarkedIndividual WHERE (individualID != '"+indy.getIndividualID()+"' && names.valuesAsString.toLowerCase().indexOf('"+indy.getNickName().toLowerCase()+"') != -1) && encounters.contains(enc) && enc.locationID == 'Iceland' && enc.genus == 'Megaptera' VARIABLES org.ecocean.Encounter enc";
+				
+				Query checkN=myShepherd.getPM().newQuery(checkNickname);
+				Collection n=(Collection)checkN.execute();
+				alN=new ArrayList<MarkedIndividual>(n);
+				sizeALN=alN.size();
+				checkN.closeAll();
 			}
 			
-			%>
-			</ul></li>
-			<%
-		
+			if(sizeALD>0 || sizeALN>0){
+				
+				%>
+				
+				<li><strong>Found duplicates for: <a target="_blank" href="../individuals.jsp?number=<%=indy.getIndividualID() %>">link</a>:<%=indy.getDisplayName() %>:<%=indy.getNickName() %></strong><ul>
+				
+				<%
+			
+				if(sizeALD>0){
+					for(MarkedIndividual dupe:alD){
+						%>
+						<li><a target="_blank" href="../individuals.jsp?number=<%=dupe.getIndividualID() %>">link</a>---<%=dupe.getDisplayName() %>---<%=dupe.getNickName() %>  <a target="_blank" href="../merge.jsp?individualA=<%=indy.getIndividualID() %>&individualB=<%=dupe.getIndividualID() %>">merge?</a></li>
+						<%
+					}
+				}
+				
+				
+				if(sizeALN>0){
+					for(MarkedIndividual dupe:alN){
+						%>
+						<li><a target="_blank" href="../individuals.jsp?number=<%=dupe.getIndividualID() %>">link</a>---<%=dupe.getDisplayName() %>---<%=dupe.getNickName() %>  <a target="_blank" href="../merge.jsp?individualA=<%=indy.getIndividualID() %>&individualB=<%=dupe.getIndividualID() %>">merge?</a></li>
+						<%
+					}
+				}
+				
+				%>
+				</ul></li>
+				<%
+			
+			}
+			
+		}
+		catch(Exception f){
+			f.printStackTrace();
 		}
 		
-
-		
-	}
+	} //end for loop on individuals
 		
 	
 	
