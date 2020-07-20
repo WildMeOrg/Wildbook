@@ -381,9 +381,13 @@
 					{
 					"name": "NC-OUTERBANKS", "id": "NC-OUTERBANKS" },
 			  
-					{ "name":"Montauk NY", "id":"Montauk NY", "locationID":[] },
 					{ "name":"Cape May, NJ", "id":"CapeMay", "locationID":[] },
-					{ "name":"NY Bight", "id":"NY Bight", "locationID":[] },
+					{ "name":"NY Bight", "id":"NY Bight", "locationID":[
+					
+						{ "name":"Montauk NY", "id":"Montauk NY", "locationID":[] }
+					
+					
+					] },
 					{"name":"BOF-BOF","id":"BOF-BOF"},
 					{
 					  "name": "EAST-ESS" ,"id": "EAST-ESS" 
