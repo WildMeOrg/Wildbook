@@ -1,11 +1,11 @@
-<%@ page 
-	contentType="text/html; charset=utf-8" 
-	language="java" 
+<%@ page
+	contentType="text/html; charset=utf-8"
+	language="java"
 	import="org.ecocean.servlet.ServletUtilities,
 			org.ecocean.*,
-			java.util.Properties, 
-			java.io.FileInputStream, 
-			java.io.File, 
+			java.util.Properties,
+			java.io.FileInputStream,
+			java.io.File,
 			java.io.FileNotFoundException,
 			java.util.Iterator
 			" %>
@@ -32,8 +32,8 @@ context=ServletUtilities.getContext(request);
 	<h2>Support cutting edge sand tiger shark research.</h2>
 	<section class="adoption-details">
 		<p>
-		By adopting a sand tiger shark, you can give it a nickname and receive updates each time it is spotted by citizen scientists. 
-		Funds raised through shark adoptions are used to maintain the Spot A Shark USA and Spot A Shark Australia programs and to support additional sand tiger shark research and conservation. 
+		By adopting a sand tiger shark, you can give it a nickname and receive updates each time it is spotted by citizen scientists.
+		Funds raised through shark adoptions are used to maintain the Spot A Shark USA and Spot A Shark Australia programs and to support additional sand tiger shark research and conservation.
 		</p>
 		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a shark<span class="button-icon" aria-hidden="true"></span></button></a>
 	</section>
@@ -90,12 +90,12 @@ context=ServletUtilities.getContext(request);
 			</div>
 		</article>
 	</section> --%>
-	
+
 
 
 	<section class="adopters-featured">
 			<article class="adopter-feature-gallery">
-			
+
 				<%
 				Shepherd myShepherd=new Shepherd(context);
 				myShepherd.beginDBTransaction();
@@ -104,13 +104,13 @@ context=ServletUtilities.getContext(request);
 					Iterator<Adoption> adoptions=myShepherd.getAllAdoptionsNoQuery();
 					int iter=0;
 					while((adoptions.hasNext())&&(iter<4)){
-					
+
 					Adoption ad=adoptions.next();
 					%>
-			
+
 					<div class="adopter" style="width: 190px">
 						<div class="adopter-header" >
-							<p>Tiger Shark Adopter</p>
+							<p>Sand Tiger Shark Adopter</p>
 						</div>
 						<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" alt="" />
 						<div class="adopter-details">
@@ -133,7 +133,7 @@ context=ServletUtilities.getContext(request);
 					myShepherd.closeDBTransaction();
 				}
 				%>
-			
+
 			</article>
 		</section>
 
