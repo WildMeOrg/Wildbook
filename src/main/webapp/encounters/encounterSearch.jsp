@@ -272,9 +272,6 @@ $(".search-collapse-header a").click(function(){
 <p>
 
 <h1 class="intro"><img src="../images/Crystal_Clear_action_find.png" width="50px" height="50px" align="absmiddle"> <%=encprops.getProperty("title")%>
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>searching#encounter_search" target="_blank">
-    <img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
-  </a>
 </h1>
 </p>
 <p><em><%=encprops.getProperty("instructions")%>
