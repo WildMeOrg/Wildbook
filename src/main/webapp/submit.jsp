@@ -892,6 +892,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   </fieldset>
 
 
+<input name="genusSpecies" type="hidden" id="genusSpecies" value="Felis catus" />
 
 <%
 
