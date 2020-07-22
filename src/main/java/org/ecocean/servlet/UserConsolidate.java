@@ -39,14 +39,6 @@ public class UserConsolidate extends HttpServlet {
     doPost(request, response);
   }
 
-  // private String getUserName(HashMap fv) {
-  //   String userName = getVal(fv, "username-input");
-  //   if (userName.length() > 0) {
-  //     return userName;
-  //   }
-  //   return null;
-  // }
-
   public void manualConsolidateByUsername(Shepherd myShepherd, String userNameOfDesiredUseMe){
     System.out.println("manualConsolidateByUsername entered! Username is " + userNameOfDesiredUseMe);
     List<User> potentialUsers = getUsersByUsername(myShepherd, userNameOfDesiredUseMe);
@@ -77,14 +69,14 @@ public class UserConsolidate extends HttpServlet {
         i--;
       }
     } else{
-      System.out.println("More than one user has that username.....aborting");
+      System.out.println("More (or fewer) than one user has that username.....aborting");
       for(int j =0; j<potentialUsers.size(); j++){
         System.out.println(potentialUsers.get(j).toString());
       }
     }
   }
 
-  public void consolidateSubmitters(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
+  public static void consolidateSubmitters(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
     List<User> subs=enc.getSubmitters();
     if(subs.contains(currentUser)){
       subs.remove(currentUser);
@@ -95,7 +87,7 @@ public class UserConsolidate extends HttpServlet {
     myShepherd.beginDBTransaction();
   }
 
-  public List<Encounter> getSubmitterEncountersForUser(Shepherd myShepherd, User user){
+  public static List<Encounter> getSubmitterEncountersForUser(Shepherd myShepherd, User user){
   	String filter="SELECT FROM org.ecocean.Encounter where (submitters.contains(user)) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
   	ArrayList<Encounter> encs=new ArrayList<Encounter>();
     Query query=myShepherd.getPM().newQuery(filter);
@@ -107,7 +99,7 @@ public class UserConsolidate extends HttpServlet {
     return encs;
   }
 
-  public void consolidatePhotographers(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
+  public static void consolidatePhotographers(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
     List<User> photos=enc.getPhotographers();
     if(photos.contains(currentUser)){
       photos.remove(currentUser);
@@ -118,7 +110,7 @@ public class UserConsolidate extends HttpServlet {
     myShepherd.beginDBTransaction();
   }
 
-  public List<Encounter> getPhotographerEncountersForUser(Shepherd myShepherd, User user){
+  public static List<Encounter> getPhotographerEncountersForUser(Shepherd myShepherd, User user){
   	String filter="SELECT FROM org.ecocean.Encounter where (photographers.contains(user)) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
   	ArrayList<Encounter> encs=new ArrayList<Encounter>();
     Query query=myShepherd.getPM().newQuery(filter);
@@ -130,7 +122,7 @@ public class UserConsolidate extends HttpServlet {
     return encs;
   }
 
-  public ArrayList<User> getUsersByUsername(Shepherd myShepherd,String username){
+  public static ArrayList<User> getUsersByUsername(Shepherd myShepherd,String username){
     ArrayList<User> users=new ArrayList<User>();
     String filter="SELECT FROM org.ecocean.User WHERE username == \""+username+"\"";
     Query query=myShepherd.getPM().newQuery(filter);
@@ -141,7 +133,7 @@ public class UserConsolidate extends HttpServlet {
   	return users;
   }
 
-  public ArrayList<User> getUsersByHashedEmailAddress(Shepherd myShepherd,String hashedEmail){
+  public static ArrayList<User> getUsersByHashedEmailAddress(Shepherd myShepherd,String hashedEmail){
     ArrayList<User> users=new ArrayList<User>();
     String filter="SELECT FROM org.ecocean.User WHERE hashedEmailAddress == \""+hashedEmail+"\"";
     Query query=myShepherd.getPM().newQuery(filter);
@@ -187,7 +179,7 @@ public class UserConsolidate extends HttpServlet {
       myShepherd.closeDBTransaction();
       myShepherd=null;
       out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Success:</strong> Records were consolidated under '" + userNameToUse + "!");
+      out.println("<strong>Success:</strong> Records were consolidated under '" + userNameToUse + "'!");
       out.println(ServletUtilities.getFooter(context));
     }
     else{

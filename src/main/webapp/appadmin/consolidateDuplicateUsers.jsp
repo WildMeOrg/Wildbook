@@ -107,48 +107,7 @@ public void consolidateSubmitters(Shepherd myShepherd, Encounter enc, User useMe
 }
 %>
 
-<%!
-public void manualConsolidateByUsername(Shepherd myShepherd, String userNameOfDesiredUseMe){
-  List<User> potentialUsers = getUsersByUsername(myShepherd, userNameOfDesiredUseMe);
-  if(potentialUsers.size() == 1){
-    System.out.println("Heyo just one user has this username!");
-    User useMe = potentialUsers.get(0);
-    String hashedEmail = useMe.getHashedEmailAddress();
-    System.out.println("hashedEmail in manualConsolidate is " + hashedEmail);
-    ArrayList<User> dupesToBeSubsumed =getUsersByHashedEmailAddress(myShepherd,useMe.getHashedEmailAddress());
-    dupesToBeSubsumed.remove(useMe);
-    int numDupes=dupesToBeSubsumed.size();
-    for(int i=0;i<dupesToBeSubsumed.size();i++){
-      User currentDupeUser=dupesToBeSubsumed.get(i);
-      List<Encounter> encs=getPhotographerEncountersForUser(myShepherd,currentDupeUser);
-      for(int j=0;j<encs.size();j++){
-        Encounter currentEncounter=encs.get(j);
-        consolidatePhotographers(myShepherd, currentEncounter, useMe, currentDupeUser);
-      }
-      List<Encounter> encs2=getSubmitterEncountersForUser(myShepherd,currentDupeUser);
-      for(int j=0;j<encs.size();j++){
-        Encounter currentEncounter=encs.get(j);
-        consolidateSubmitters(myShepherd, currentEncounter, useMe, currentDupeUser);
-      }
-      dupesToBeSubsumed.remove(currentDupeUser);
-      myShepherd.getPM().deletePersistent(currentDupeUser);
-      myShepherd.commitDBTransaction();
-      myShepherd.beginDBTransaction();
-      i--;
-    }
-  } else{
-    System.out.println("More than one user has that username.....aborting");
-    for(int j =0; j<potentialUsers.size(); j++){
-      System.out.println(potentialUsers.get(j).toString());
-    }
-  }
-}
-%>
-
 <%
-// Properties props = new Properties();
-// String langCode=ServletUtilities.getLanguageCode(request);
-// props = ShepherdProperties.getProperties("submit.properties", langCode, context);
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd=new Shepherd(context);
@@ -176,12 +135,11 @@ try{
 		if(!weKnowAbout.contains(user)){
 			if(user.getHashedEmailAddress()!=null){
 				List<User> dupes=getUsersByHashedEmailAddress(myShepherd,user.getHashedEmailAddress());
-				//dupes.remove(user);
 				if(dupes.size()>1){
 					%>
 					<li>
 					<%
-					ArrayList<Integer> namesPlace=new ArrayList<Integer>();
+					ArrayList<Integer> namesPlace=new ArrayList<Integer>(); //TODO there has to be a better name for this than namesPlace! What on earth does that mean?
 					for(int k=0;k<dupes.size();k++){
 						String username="";
 						if(dupes.get(k).getUsername()!=null){
@@ -193,14 +151,11 @@ try{
 					<%
 					}
 					if(namesPlace.size()==0){
-						//consolidate to the first User object
 						User useMe=dupes.get(0);
-
 						consolidate(myShepherd,useMe,dupes);
 						%>
 						are now resolved to:&nbsp;<%=useMe.getEmailAddress() %>
 						<%
-
 					}
 					else if(namesPlace.size()==1){
 						User useMe=dupes.get(namesPlace.get(0).intValue());
@@ -221,39 +176,21 @@ try{
 					</li>
 					<%
 					weKnowAbout.addAll(dupes);
-
-
-
-
-
-
 				}
 			}
 	}
-
-
-
 	}
-
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();
 }
 finally{
 	myShepherd.closeDBTransaction();
-
 }
-
-%>
-
-<%!
-  public void processSubmit(){
-    System.out.println("processSubmit called");
-  }
 %>
 
 </ol>
-  <form action="UserConsolidate?context=context0"
+  <form action="../UserConsolidate?context=context0"
   method="post"
   id="manual-consolidate-form"
   name="manual-consolidate-form"
