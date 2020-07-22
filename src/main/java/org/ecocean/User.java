@@ -23,8 +23,8 @@ import javax.servlet.http.HttpServletRequest;
  * @author Ed Stastny
  */
 public class User implements Serializable {
-  
-  
+
+
   private static final long serialVersionUID = -1261710718629763048L;
   // The user's full name
   private String fullName;
@@ -37,12 +37,12 @@ public class User implements Serializable {
   private String phoneNumber;
   //Organization or project affiliation
   private String affiliation;
-  
+
   private String userProject;
   private String userStatement;
   private String userURL;
   private SinglePhotoVideo userImage;
-  
+
   //Misc. information about this user
   private String notes;
   //Date of last update of this record, in ms
@@ -50,31 +50,31 @@ public class User implements Serializable {
   private long userID;
 
   private long lastLogin=-1;
-  
+
 	private String username;
 	private String password ;
 	private String salt;
 	private String uuid;
-	
+
 	//String currentContext;
-  	
+
   	//String currentContext;
-  	
-  	
+
+
     private List<Organization> organizations = null;
 
   	private boolean acceptedUserAgreement=false;
-  
-  private boolean receiveEmails=true; 
+
+  private boolean receiveEmails=true;
 
   // turning this off means the user is greedy and mean: they never share data and nobody ever shares with them
   private Boolean sharing=true;
 
 	private HashMap<String,String> social;
-  	
+
   	//JDOQL required empty instantiator
   	public User(){}
-  	
+
   	public User(String fullName, String emailAddress, String physicalAddress, String phoneNumber, String affiliation, String notes) {
   	  uuid=Util.generateUUID();
   	  setFullName(fullName);
@@ -86,7 +86,7 @@ public class User implements Serializable {
   	  RefreshDate();
   	  this.lastLogin=-1;
   	}
-  	
+
   	public User(String username,String password, String salt){
   	  uuid=Util.generateUUID();
   	  setUsername(username);
@@ -96,7 +96,7 @@ public class User implements Serializable {
   	  RefreshDate();
   	  this.lastLogin=-1;
   	}
-  	
+
     public User(String email,String uuid){
       this.uuid=uuid;
       setEmailAddress(email);
@@ -108,7 +108,7 @@ public class User implements Serializable {
       RefreshDate();
       this.lastLogin=-1;
     }
-    
+
     public User(String uuid){
       this.uuid=uuid;
       setReceiveEmails(false);
@@ -167,7 +167,7 @@ public class User implements Serializable {
     if (user == null) return false;
     return user.hasCustomProperties();
   }
-  
+
   public static boolean hasCustomProperties(HttpServletRequest request) {
      Shepherd myShepherd = new Shepherd(request);
      myShepherd.setAction("User.hasCustomProperties");
@@ -211,7 +211,7 @@ public class User implements Serializable {
   }
   public void setPhysicalAddress (String physicalAddress)
   {
-    
+
     if(physicalAddress!=null){this.physicalAddress = physicalAddress;}
     else{this.physicalAddress=null;}
     RefreshDate();
@@ -287,7 +287,7 @@ public class User implements Serializable {
   	public void setPassword(String password) {
   		this.password = password;
   	}
-  	
+
   	public void setSalt(String salt){this.salt=salt;}
   	public String getSalt(){return salt;}
 
@@ -297,46 +297,46 @@ public class User implements Serializable {
     else{userProject=null;}
     }
     public String getUserProject(){return userProject;}
-    
+
     public void setUserStatement(String newState) {
       if(newState!=null){userStatement = newState;}
     else{userStatement=null;}
     }
     public String getUserStatement(){return userStatement;}
-    
+
     public SinglePhotoVideo getUserImage(){return userImage;}
-    
+
 
     public void setUserImage(SinglePhotoVideo newImage) {
       if(newImage!=null){userImage = newImage;}
     else{userImage=null;}
     }
-    
+
     public void setUserURL(String newURL) {
       if(newURL!=null){userURL = newURL;}
     else{userURL=null;}
     }
     public String getUserURL(){return userURL;}
-  	
+
     public long getLastLogin(){
       return lastLogin;
     }
-    
+
     public String getLastLoginAsDateString(){
       if(lastLogin==-1) return null;
       return (new DateTime(this.lastLogin)).toString();
     }
-    
+
     public void setLastLogin(long lastie){this.lastLogin=lastie;}
-    
+
 
     public boolean getReceiveEmails(){return receiveEmails;}
     public void setReceiveEmails(boolean receive){this.receiveEmails=receive;}
-    
-    
+
+
 
     public boolean getAcceptedUserAgreement(){return acceptedUserAgreement;}
-    
+
     public void setAcceptedUserAgreement(boolean accept){this.acceptedUserAgreement=accept;}
 
 
@@ -368,7 +368,7 @@ public class User implements Serializable {
 
     //public String getCurrentContext(){return currentContext;}
     //public void setCurrentContext(String newContext){currentContext=newContext;}
-		
+
     public String getUUID() {return uuid;}
     public String getId() { return uuid; }  //adding this "synonym"(?) for consistency
 
@@ -460,10 +460,6 @@ public class User implements Serializable {
         return uuid.hashCode();
     }
 
-
-
-
-
     public String toString() {
         return new ToStringBuilder(this)
                 .append("uuid", uuid)
@@ -471,7 +467,7 @@ public class User implements Serializable {
                 .append("fullName", fullName)
                 .toString();
     }
-    
+
     // Returns a somewhat rest-like JSON object containing the metadata
     public JSONObject uiJson(HttpServletRequest request, boolean includeOrganizations) throws JSONException {
       JSONObject jobj = new JSONObject();

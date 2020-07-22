@@ -4,6 +4,7 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,
+org.ecocean.servlet.ServletUtilities,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%!
@@ -16,6 +17,20 @@ public ArrayList<User> getUsersByHashedEmailAddress(Shepherd myShepherd,String h
 	return users;
   }
 %>
+
+<%!
+public ArrayList<User> getUsersByUsername(Shepherd myShepherd,String username){
+    ArrayList<User> users=new ArrayList<User>();
+    String filter="SELECT FROM org.ecocean.User WHERE username == \""+username+"\"";
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      users=new ArrayList<User>(c);
+    }
+	return users;
+  }
+%>
+
 
 <%!
 public List<Encounter> getSubmitterEncountersForUser(Shepherd myShepherd, User user){
@@ -45,20 +60,20 @@ public List<Encounter> getPhotographerEncountersForUser(Shepherd myShepherd, Use
 
 <%!
 public int consolidate(Shepherd myShepherd,User useMe,List<User> dupes){
-	int numSwaps=0; //TODO never used???
+	// int numSwaps=0; //TODO never used???
 	dupes.remove(useMe);
-	// int numDupes=dupes.size(); //TODO never used???
+	int numDupes=dupes.size();
 	for(int i=0;i<dupes.size();i++){
 		User currentDupe=dupes.get(i);
 		List<Encounter> encs=getPhotographerEncountersForUser(myShepherd,currentDupe);
 		for(int j=0;j<encs.size();j++){
 			Encounter currentEncounter=encs.get(j);
-			consolidatePhotographers(currentEncounter, useMe, currentDupe);
+			consolidatePhotographers(myShepherd, currentEncounter, useMe, currentDupe);
 		}
 		List<Encounter> encs2=getSubmitterEncountersForUser(myShepherd,currentDupe);
 		for(int j=0;j<encs.size();j++){
 			Encounter currentEncounter=encs.get(j);
-      consolidateSubmitters(currentEncounter, useMe, currentDupe);
+      consolidateSubmitters(myShepherd, currentEncounter, useMe, currentDupe);
 		}
 		dupes.remove(currentDupe);
 		myShepherd.getPM().deletePersistent(currentDupe);
@@ -66,10 +81,10 @@ public int consolidate(Shepherd myShepherd,User useMe,List<User> dupes){
 		myShepherd.beginDBTransaction();
 		i--;
 	}
-	return numSwaps;
+	return numDupes;
 }
 
-public void consolidatePhotographers(Encounter enc, User useMe, User currentUser){
+public void consolidatePhotographers(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
   List<User> photos=enc.getPhotographers();
   if(photos.contains(currentUser)){
     photos.remove(currentUser);
@@ -80,7 +95,7 @@ public void consolidatePhotographers(Encounter enc, User useMe, User currentUser
   myShepherd.beginDBTransaction();
 }
 
-public void consolidateSubmitters(Encounter enc, User useMe, User currentUser){
+public void consolidateSubmitters(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
   List<User> subs=enc.getSubmitters();
   if(subs.contains(currentUser)){
     subs.remove(currentUser);
@@ -92,9 +107,48 @@ public void consolidateSubmitters(Encounter enc, User useMe, User currentUser){
 }
 %>
 
-
+<%!
+public void manualConsolidateByUsername(Shepherd myShepherd, String userNameOfDesiredUseMe){
+  List<User> potentialUsers = getUsersByUsername(myShepherd, userNameOfDesiredUseMe);
+  if(potentialUsers.size() == 1){
+    System.out.println("Heyo just one user has this username!");
+    User useMe = potentialUsers.get(0);
+    String hashedEmail = useMe.getHashedEmailAddress();
+    System.out.println("hashedEmail in manualConsolidate is " + hashedEmail);
+    ArrayList<User> dupesToBeSubsumed =getUsersByHashedEmailAddress(myShepherd,useMe.getHashedEmailAddress());
+    dupesToBeSubsumed.remove(useMe);
+    int numDupes=dupesToBeSubsumed.size();
+    for(int i=0;i<dupesToBeSubsumed.size();i++){
+      User currentDupeUser=dupesToBeSubsumed.get(i);
+      List<Encounter> encs=getPhotographerEncountersForUser(myShepherd,currentDupeUser);
+      for(int j=0;j<encs.size();j++){
+        Encounter currentEncounter=encs.get(j);
+        consolidatePhotographers(myShepherd, currentEncounter, useMe, currentDupeUser);
+      }
+      List<Encounter> encs2=getSubmitterEncountersForUser(myShepherd,currentDupeUser);
+      for(int j=0;j<encs.size();j++){
+        Encounter currentEncounter=encs.get(j);
+        consolidateSubmitters(myShepherd, currentEncounter, useMe, currentDupeUser);
+      }
+      dupesToBeSubsumed.remove(currentDupeUser);
+      myShepherd.getPM().deletePersistent(currentDupeUser);
+      myShepherd.commitDBTransaction();
+      myShepherd.beginDBTransaction();
+      i--;
+    }
+  } else{
+    System.out.println("More than one user has that username.....aborting");
+    for(int j =0; j<potentialUsers.size(); j++){
+      System.out.println(potentialUsers.get(j).toString());
+    }
+  }
+}
+%>
 
 <%
+// Properties props = new Properties();
+// String langCode=ServletUtilities.getLanguageCode(request);
+// props = ShepherdProperties.getProperties("submit.properties", langCode, context);
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd=new Shepherd(context);
@@ -153,7 +207,7 @@ try{
 						consolidate(myShepherd,useMe,dupes);
 
 						%>
-						are now2 resolved to:&nbsp;&nbsp;<%=useMe.getEmailAddress() %>(<%=useMe.getUsername() %>)
+						are now resolved to:&nbsp;&nbsp;<%=useMe.getEmailAddress() %>(<%=useMe.getUsername() %>)
 						<%
 					}
 					else{
@@ -192,8 +246,29 @@ finally{
 
 %>
 
+<%!
+  public void processSubmit(){
+    System.out.println("processSubmit called");
+  }
+%>
+
 </ol>
-
-
+  <form action="UserConsolidate?context=context0"
+  method="post"
+  id="manual-consolidate-form"
+  name="manual-consolidate-form"
+  lang="en"
+  class="form-horizontal"
+  accept-charset="UTF-8">
+  <h2>Manually Consolidate By Username</h2>
+      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <label class="control-label text-danger" for="username-input">Enter Username You Want to Keep</label>
+        <input class="form-control" type="text" style="position: relative; z-index: 101;" name="username-input" id="username-input"/>
+      </div>
+    <button id="submitManualButton" class="large" type="submit">
+      Send
+      <span class="button-icon" aria-hidden="true" />
+    </button>
+  </form>
 </body>
 </html>
