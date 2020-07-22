@@ -353,15 +353,15 @@ public class RestServletV2 extends HttpServlet {
                     res.put("bundleId", id);
                     JSONArray arr = bundle.optJSONArray("bundle");
                     if (arr != null) {
-                        JSONArray kids = new JSONArray();
+                        JSONObject content = new JSONObject();
                         for (int i = 0 ; i < arr.length() ; i++) {
                             String bid = arr.optString(i, null);
                             if (bid == null) continue;
                             conf = ConfigurationUtil.getConfiguration(myShepherd, bid);
                             JSONObject kid = confGetTree(conf, isAdmin, definition, myShepherd);
-                            if (kid != null) kids.put(kid);
+                            if (kid != null) content.put(conf.getId(), kid);
                         }
-                        res.put("children", kids);
+                        res.put("configuration", content);
                     }
                     rtn.put("response", res);
                     rtn.put("success", true);
