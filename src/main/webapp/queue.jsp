@@ -330,7 +330,8 @@ if (Util.requestParameterSet(dtype)) {
     return;
 }
 
-String jdoql = "SELECT FROM org.ecocean.Encounter";
+//String jdoql = "SELECT FROM org.ecocean.Encounter";
+String jdoql = "SELECT FROM org.ecocean.Encounter WHERE state!='test-archive'";
 if (!isAdmin) jdoql = "SELECT FROM org.ecocean.Encounter WHERE state=='processing'";
 Query query = myShepherd.getPM().newQuery(jdoql);
 query.setOrdering("state, dateInMilliseconds");
@@ -536,7 +537,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
         if (isAdmin) {
             int ct = -1;
             String indivId = null;
-            String indivName = null;
+            String indivName = "";
             String matchphotoNote = "-";
             if (enc.hasMarkedIndividual()) {
                 indivName = enc.getDisplayName();
