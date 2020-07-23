@@ -532,21 +532,22 @@ public class StandardImport extends HttpServlet {
         su = myShepherd.getSocialUnit(suName);
         if (su==null) {
           su = new SocialUnit(suName);
-          myShepherd.storeNewSocialUnit(su);
+          if(committing)myShepherd.storeNewSocialUnit(su);
         }
         
         if (mark!=null) {
           System.out.println("----> have Indy ID for this SocU: "+suName);
           if (!su.hasMarkedIndividualAsMember(mark)) {
             Membership ms = new Membership(mark);
-            myShepherd.storeNewMembership(ms);
+            if(committing)myShepherd.storeNewMembership(ms);
             if (getString(row, "Membership.role")!=null) {
               ms.setRole(getString(row, "Membership.role"));
             }
 
-            myShepherd.beginDBTransaction();
+           // myShepherd.beginDBTransaction();
             su.addMember(ms);
-            myShepherd.commitDBTransaction();
+            //myShepherd.commitDBTransaction();
+            if(committing)myShepherd.updateDBTransaction();
             System.out.println("----> added membership to SocU ");
   
           }
