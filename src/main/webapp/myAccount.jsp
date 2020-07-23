@@ -65,7 +65,7 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	    String localAffiliation="";
 	    String localEmail="";
 	    String localFullName="";
-	    String profilePhotoURL="images/empty_profile.jpg";
+	    String profilePhotoURL="images/user-profile-grey-grey.png";
 	    String userProject="";
 	    String userStatement="";
 	    String userURL="";
@@ -265,54 +265,6 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	%>
 	</div>
 
-
-	<style>
-		div.state-edit span.state {
-    	background-color: green;
-		}
-		html body div.collab-list input[type="button"] {
-			/*
-			margin-top: 0;
-			margin-left: 4em;
-			*/
-			margin-top: 0;
-			float: right;
-		}
-		html body div.collab-list input[type="button"].no {
-			margin-left:0;
-		}
-		html body div.collab-list input[type="button"].no {
-			margin-left:0;
-		}
-
-		html body div.collab-list span.collab-button {
-			text-align:right;
-		}
-div div div.clear {
-	clear: both;
-	margin: 0;
-	padding: 0;
-}
-div.collab-list div.collabRow {
-	display: table;
-}
-div.collab-list div.collabRow span {
-	display: table-cell;
-	vertical-align: middle;
-}
-div.collab-list div.collabRow span {
-	display: table-cell;
-	vertical-align: middle;
-}
-div.collab-list div.collabRow span.state {
-	width: 5em;
-	height: 2em;
-	text-align: center;
-}
-
-
-	</style>
-
 <%
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
 
@@ -329,7 +281,7 @@ div.collab-list div.collabRow span.state {
 			String click = "";
 
 			if (c.getUsername1().equals(me)) {
-				h += "<div class=\"collabRow mine " + cls + "\"><span class=\"who\">to <b>" + c.getUsername2() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span></div>";
+				h += "<div class=\"collabRow mine " + cls + "\"><span class=\"who\">to <b><span class=\"collab-name\">" + c.getUsername2() + "<span></b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span></div>";
 			} else if (state!=null) {
 				if (msg.equals("state_initialized")) {
 					msg = "state_initialized_me";
@@ -350,7 +302,7 @@ div.collab-list div.collabRow span.state {
 				h += "<div class=\"collabRow notmine " + cls + "\"><span class=\"who\">from <b>" + c.getUsername1() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span>" + click + "<div class=\"clear\"></div></div>";
 			}
 		}
-		if (h.equals("")) h = "<p>none</p>";
+		if (h.equals("")) h = "<p id=\"none-line\">none</p>";
 		out.println("<div class=\"collab-list\"><h1>" + collabProps.getProperty("collaborationTitle") + "</h1>" + h + "</div>");
 
 		String rootWebappPath = getServletContext().getRealPath("/");
@@ -385,10 +337,44 @@ div.collab-list div.collabRow span.state {
 			out.println("<div class=\"collab-log\"><h1>Queries by collaborators</h1><div class=\"scrollbox\">" + h + "</div></div>");
 			if (hasOther) out.println("<a href=\"myCollabLog.jsp\">See entire log of queries</a>");
 		}
-	}
 
-%>
-    	
+
+		
+	} // end if collaborationSecurityEnabled
+	
+	%>
+	<br>
+	<div id="init-collab-ui">
+
+		<h4><%=props.getProperty("initiateCollab") %></h4>
+
+		<div class="row">
+			<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+				<label><%=props.getProperty("userLookup") %></label>
+				<input class="form-control" name="collabTarget" type="text" id="collabTarget" placeholder="<%=props.getProperty("typeToSearch") %>">
+			</div>
+
+			<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+				<label><%=props.getProperty("addNote") %></label>
+				<input class="form-control" name="collabNote" type="text" id="collabNote" placeholder="<%=props.getProperty("collabNote") %>">
+			</div>
+
+			<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+				<label><%=props.getProperty("requestCollaboration") %></label>
+				<div class="form-group">
+					<input class="btn collab-init-btn" type="button" value="Initiate" onclick="initiateCollab()" />
+				</div>
+			</div>
+
+			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+				<p id="collabResp"></p>
+			</div>
+
+		</div>
+		
+
+	</div>
+	
     </p> <!-- end content p -->
     
     <h2><%=props.getProperty("myData") %></h2>
@@ -412,6 +398,7 @@ String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+th
 
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
+String alreadySent = props.getProperty("alreadySent");
 %>
 <script>
 if (errorMessage) wildbook.showAlert(errorMessage, '', 'Error');
@@ -426,6 +413,91 @@ function socialConnect(svc) {
 //console.info('connect %s', svc);
 	window.location.href = 'SocialConnect?type=' + svc;
 }
+
+$('#collabTarget').autocomplete({
+	source: function( request, response ) {
+		$.ajax({
+			url: wildbookGlobals.baseUrl + '/UserGetSimpleJSON?searchUser=' + request.term,
+			type: 'GET',
+			dataType: "json",
+			success: function( data ) {
+				console.log("trying autocomplete...");
+				
+				let alreadyCollab = [];
+				$(".collab-name").each(function() {
+					alreadyCollab.push($(this).text());
+				});
+
+				var res = $.map(data, function(item) {
+					let fullName = "";
+					if (item.fullName!=null&&item.fullName!="undefined") fullName = item.fullName;
+					let label = ("name: "+fullName+" user: "+item.username);
+					if (alreadyCollab.indexOf(fullName) > -1) {
+						label += ' (<%=alreadySent%>)';
+					}  
+					return { label: label, value: item.username };
+				});
+				response(res);
+			}
+
+		});
+	}
+});
+
+function initiateCollab() {
+	let collabTarget = $("#collabTarget").val();
+	let paramStr = "";
+	if (collabTarget!=null&&""!=collabTarget) {
+
+		let alreadyCollab = [];
+		$(".collab-name").each(function() {
+			alreadyCollab.push($(this).text());
+		});
+		if (alreadyCollab.indexOf(collabTarget) > -1) {
+			$("#collabResp").text("You already have a collaboration or request with user "+collabTarget+".");
+		} else {
+			paramStr = "?username="+collabTarget;
+			if ($("#collabNote").val()!=null&&""!=$("#collabNote").val()) {
+				paramStr += "&message="+$("#collabNote").val();
+			}
+			$.ajax({
+				url: wildbookGlobals.baseUrl + '/Collaborate'+paramStr,
+				type: 'POST',
+				dataType: "text",
+				contentType: 'application/javascript',
+				success: function(d) {
+					console.info('Success! Got back '+JSON.stringify(d));
+					$("#collabResp").text("The collaboration request has been sent.");
+					appendCollabRequest(collabTarget);
+					clearCollabInitFields()
+				},
+				error: function(x,y,z) {
+					$("#collabResp").text("There was an error sending this collaboration request.");
+					console.log(" got an error....?? ");
+					console.warn('%o %o %o', x, y, z);
+				}
+			});
+		}
+	} else {
+		$("#collabResp").text("You must specify a user to initiate collaboration with.");
+	}
+}
+
+function clearCollabInitFields() {
+	$("#collabTarget").val('');
+	$("#collabNote").val('');
+}
+
+function appendCollabRequest(name) {
+	if ($("#none-line").length > 0) $("#none-line").val('');  
+	let newCollab = "<div class=\"collabRow mine state-initialized\"><span class=\"who\">to <b><span class=\"collab-name\">" +name+ "<span></b></span><span class=\"state\">invitation sent</span></div>";
+	$(".collab-list").append(newCollab);
+}
+
+// end collab type ahead
+
+
+
 
 </script>
 </div>

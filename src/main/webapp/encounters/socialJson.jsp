@@ -1,6 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
+<%@ page contentType="application/json; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,org.ecocean.ia.*,java.util.*,
@@ -16,8 +14,6 @@ org.datanucleus.api.jdo.JDOPersistenceManager,
 org.ecocean.cache.*,
 java.util.zip.GZIPOutputStream,
 java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
-
-
 <%!
 
 // Returns a somewhat rest-like JSON object containing the metadata
@@ -44,6 +40,9 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request) thro
 		jobjEnc.put("dateInMilliseconds", enc.getDateInMilliseconds());
 		jobjEnc.put("decimalLatitude", enc.getDecimalLatitude());
 		jobjEnc.put("decimalLongitude", enc.getDecimalLongitude());
+		jobjEnc.put("year", enc.getYear());
+		jobjEnc.put("month", enc.getMonth());
+		jobjEnc.put("day", enc.getDay());
     	jArray.put(jobjEnc);
     }
     jobj.put("encounters",jArray);
@@ -51,9 +50,6 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request) thro
 }
 
 %>
-
-
-
 <%!
 
 void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo, boolean useComp) throws IOException, JSONException {
@@ -74,11 +70,6 @@ void tryCompress(HttpServletRequest req, HttpServletResponse resp, JSONArray jo,
 }
 
 %>
-
-
-
-
-
 <%
 
 response.setHeader("Access-Control-Allow-Origin", "*"); 
@@ -90,18 +81,6 @@ Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("socialJson.jsp");
 
 
-%>
-
-<html>
-<head>
-<title>Fix Some Fields</title>
-
-</head>
-
-
-<body>
-
-<%
 
 
 
@@ -115,6 +94,8 @@ if(request.getParameter("specificEpithet")!=null){
 	specificEpithet=request.getParameter("specificEpithet");
 }
 
+String cacheName="socialJson_"+genus+"_"+specificEpithet;
+
 String filter="SELECT FROM org.ecocean.MarkedIndividual where encounters.contains(enc1) && enc1.genus==\'"+genus+"' && enc1.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc1";
 
 Query query=null;
@@ -127,8 +108,8 @@ try {
 
 	
 	QueryCache qc=QueryCacheFactory.getQueryCache(context);
-	if(qc.getQueryByName("socialJson")!=null && System.currentTimeMillis()<qc.getQueryByName("socialJson").getNextExpirationTimeout() && request.getParameter("refresh")==null){
-		jsonobj=Util.toggleJSONObject(qc.getQueryByName("socialJson").getJSONSerializedQueryResult());
+	if(qc.getQueryByName(cacheName)!=null && System.currentTimeMillis()<qc.getQueryByName(cacheName).getNextExpirationTimeout() && request.getParameter("refresh")==null){
+		jsonobj=Util.toggleJSONObject(qc.getQueryByName(cacheName).getJSONSerializedQueryResult());
 		System.out.println("Getting socialJson cache!");
 	}
 	else{
@@ -167,7 +148,7 @@ try {
 
         
         tryCompress(request, response, jsonobj.getJSONArray("results"), true);
-        CachedQuery cq=new CachedQuery("socialJson",Util.toggleJSONObject(jsonobj), false, myShepherd);
+        CachedQuery cq=new CachedQuery(cacheName,Util.toggleJSONObject(jsonobj), false, myShepherd);
         cq.nextExpirationTimeout=System.currentTimeMillis()+300000;
         qc.addCachedQuery(cq);
 
@@ -181,10 +162,4 @@ finally{
 	myShepherd.closeDBTransaction();
 
 }
-
 %>
-
-
-
-</body>
-</html>

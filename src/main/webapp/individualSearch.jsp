@@ -1,13 +1,44 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.util.Collections" %>
+<%@ page import="java.util.Properties, java.io.IOException" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%!
+// methods
+
+public static String getDisplayName(String fieldName, Properties nameLookup) throws IOException, IllegalAccessException {
+  // Tries to lookup a translation and defaults to some string manipulation
+  String defaultName = ClassEditTemplate.prettyFieldName(fieldName);
+  String ans = nameLookup.getProperty(fieldName, ClassEditTemplate.capitalizedPrettyFieldName(fieldName));
+  if (Util.stringExists(ans)) return ans;
+  System.out.println("getDisplayName found no property for "+fieldName+" in "+nameLookup+". Falling back on fieldName");
+  return fieldName;
+}
+
+public static void printStringFieldSearchRowBoldTitle(String fieldName, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  // note how fieldName is variously manipulated in this method to make element ids and contents
+  String displayName = getDisplayName(fieldName, nameLookup);
+  // out.println("<tr id=\""+fieldName+"Row\">");
+  out.println("<br/><strong>"+displayName+"</strong><br/>"); //<td id=\""+fieldName+"Title\"><br/>
+  out.println("<select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
+  out.println("<option value=\"None\" selected=\"selected\"></option>");
+  for (String val: valueOptions) {
+    out.println("<option value=\""+val+"\">"+val+"</option>");
+  }
+  out.println("</select>"); //</td>
+  // out.println("</tr>");
+
+}
+
+%>
+
+
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individualSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1)+1;
@@ -935,7 +966,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 		<%
 		}
 	%>
-	
+
 	</table>
 </p>
 </div>
@@ -962,23 +993,24 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       	</tr>
       	<tr><td><strong><%=props.getProperty("keywordFilters") %></strong></td></tr>
         <%
-          int totalKeywords = myShepherd.getNumKeywords();
+          //int totalKeywords = myShepherd.getNumKeywords();
         %>
         <tr>
           <td><p><%=props.getProperty("hasKeywordPhotos")%>
           </p>
             <%
 
-              if (totalKeywords > 0) {
-            %>
+            Iterator<Keyword> keys = myShepherd.getAllKeywords();
+            if (keys.hasNext()) {
+              %>
 
-            <select multiple name="keyword" id="keyword" size="10">
-              <option value="None"></option>
-              <%
+              <select multiple name="keyword" id="keyword" size="10">
+                <option value="None"></option>
+                <%
 
 
-                Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
-                for (int n = 0; n < totalKeywords; n++) {
+                while (keys.hasNext()) {
+                //for (int n = 0; n < totalKeywords; n++) {
                   Keyword word = keys.next();
               %>
               <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
@@ -1558,13 +1590,22 @@ else {
         %>
       </select>
 
+      <%
+      User usr = AccessControl.getUser(request, myShepherd);
+      if(usr != null){
+        List<Organization> orgsUserBelongsTo = usr.getOrganizations();
+        ArrayList<String> orgOptions = new ArrayList<String>();
+        for (int i = 0; i < orgsUserBelongsTo.size(); i++) { //TODO how to DRY up? Map function in java is in Streams package; there were issues importing and using said Stream package
+          Organization currentOrg = orgsUserBelongsTo.get(i);
+          String currentOrgName = currentOrg.getName();
+          orgOptions.add(currentOrgName);
+        }
+        printStringFieldSearchRowBoldTitle("submitterOrganization", orgOptions, out, props);
+      }
+      %>
 </div>
 </td>
 </tr>
-
-
-
-
 <%
   myShepherd.rollbackDBTransaction();
 %>
@@ -1595,8 +1636,8 @@ else {
 
 
 <%
-  kwQuery.closeAll();
+
   myShepherd.closeDBTransaction();
-  kwQuery = null;
+
   myShepherd = null;
 %>

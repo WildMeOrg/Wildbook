@@ -479,6 +479,20 @@ h4.intro.accordion .rotate-chevron.down {
 
 <style>
 
+.annot-summary-phantom {
+	display: none;
+}
+
+.featurebox {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    outline: dashed 2px rgba(255,255,0,0.8);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
+}
+
 	div.mainContent {
 		padding-top: 50px;
 	}
@@ -933,7 +947,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 function displayAnnot(taskId, acmId, num, score, illustrationUrl) {
 console.info('%d ===> %s', num, acmId);
 	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
-	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
+	h += '<div class="annot-info"><span class="annot-info-num"></span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
 
@@ -946,15 +960,16 @@ console.info('%d ===> %s', num, acmId);
 		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl); }
+		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl, acmId); }
 	});
 }
 
-function displayAnnotDetails(taskId, res, num, illustrationUrl) {
+function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 	var isQueryAnnot = (num < 0);
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
-		console.warn('error on (task %s) res = %o', taskId, res);
-		return;
+		console.warn('error on (task %s, acmId=%s) res = %o', taskId, acmIdPassed, res);
+                $('#task-' + taskId + ' .annot-summary-' + acmIdPassed).addClass('annot-summary-phantom');
+                return;
 	}
         /*
             we may have gotten more than one annot back from the acmId, so we have to account for them all.  currently we handle
@@ -992,8 +1007,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
         if (mainAsset) {
 //console.info('mainAsset -> %o', mainAsset);
 //console.info('illustrationUrl '+illustrationUrl);
+            var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
-                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="' + mainAsset.url + '" />');
+                var img = $('<img src="' + mainAsset.url + '" />');
+                ft.metadata = mainAsset.metadata;
+                img.on('load', function(ev) { imageLoaded(ev.target, ft); });
+                $('#task-' + taskId + ' .annot-' + acmId).append(img);
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
             }
@@ -1006,11 +1025,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 if (j > -1) fn = fn.substring(j + 1);
                 imgInfo += ' ' + fn + ' ';
             }
-            var ft = findMyFeature(acmId, mainAsset);
             if (ft) {
                 var encId = ft.encounterId;
 
                 var encDisplay = encId;
+                var taxonomy = ft.genus+' '+ft.specificEpithet;
+                console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
                 var indivId = ft.individualId;
 		console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
@@ -1024,16 +1044,20 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
 				}
                 if (encId) {
                 	console.log("Main asset encId = "+encId);
-                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
+                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter</a>');
                     
 					if (!indivId) {
 						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
 					}
                 }
                 if (indivId) {
-                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>');
+                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
+                }
+                if (taxonomy && taxonomy=='Eubalaena glacialis') {
+                    //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
                 }
 
                 if (encId || indivId) {
@@ -1053,7 +1077,7 @@ console.log("XX %o", displayName);
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
                 } else {
-                    if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
+                    if (imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
                 }
             }  //end if (ft) ....
             // Illustration
@@ -1159,6 +1183,7 @@ function annotClick(ev) {
 	//console.warn('%o | %o', taskId, acmId);
 	$('#task-' + taskId + ' .annot-wrapper-dict').hide();
 	$('#task-' + taskId + ' .annot-' + acmId).show();
+	$('#task-' + taskId + ' .annot-' + acmId + ' img').trigger('load');
 }
 
 // function score_sort(cm_dict, topn) {
@@ -1224,6 +1249,28 @@ function findMyFeature(annotAcmId, asset) {
         if (asset.features[i].annotationAcmId == annotAcmId) return asset.features[i];
     }
     return;
+}
+
+function imageLoaded(imgEl, ft) {
+    if (imgEl.getAttribute('data-feature-drawn')) return;
+    drawFeature(imgEl, ft);
+}
+
+function drawFeature(imgEl, ft) {
+    if (!imgEl || !imgEl.clientHeight || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
+    var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
+    var scale = imgEl.height / imgEl.naturalHeight;
+    if (ft.metadata && ft.metadata.height) scale = imgEl.height / ft.metadata.height;
+//console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
+    if (scale == 1) return;
+    imgEl.setAttribute('data-feature-drawn', true);
+    f.css('width', (ft.parameters.width * scale) + 'px');
+    f.css('height', (ft.parameters.height * scale) + 'px');
+    f.css('left', (ft.parameters.x * scale) + 'px');
+    f.css('top', (ft.parameters.y * scale) + 'px');
+    if (ft.parameters.theta) f.css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
+//console.info('mmmm %o', f);
+    $(imgEl).parent().append(f);
 }
 
 function checkForResults() {

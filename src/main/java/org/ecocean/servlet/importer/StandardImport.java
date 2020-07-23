@@ -9,7 +9,6 @@ import java.net.*;
 import java.text.SimpleDateFormat;
 import org.apache.poi.ss.usermodel.DateUtil;
 
-import org.ecocean.grid.*;
 
 import org.ecocean.resumableupload.UploadServlet;
 
@@ -45,6 +44,7 @@ import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -128,6 +128,8 @@ public class StandardImport extends HttpServlet {
     
     isUserUpload = Boolean.valueOf(request.getParameter("isUserUpload"));
     
+    committing = Util.requestParameterSet(request.getParameter("commit"));
+    
     // WHY ISN"T THE URL MAKING IT AAUUUGHGHHHHH
     if (isUserUpload) {
       uploadDirectory = UploadServlet.getUploadDir(request);
@@ -143,8 +145,8 @@ public class StandardImport extends HttpServlet {
     out = response.getWriter();
 
     response.setContentType("text/html; charset=UTF-8");
-    this.getServletContext().getRequestDispatcher("/header.jsp").include(request, response);
-    this.getServletContext().getRequestDispatcher("/import/uploadHeader.jsp").include(request, response);
+    if(!committing)this.getServletContext().getRequestDispatcher("/header.jsp").include(request, response);
+    if(!committing)this.getServletContext().getRequestDispatcher("/import/uploadHeader.jsp").include(request, response);
 
     context = ServletUtilities.getContext(request);
   
@@ -193,7 +195,7 @@ public class StandardImport extends HttpServlet {
 		numFolderRows = 0;
     numAnnots = 0;
 
-    committing = Util.requestParameterSet(request.getParameter("commit"));
+    
 
     if (dataFound) {
       doImport(filename, dataFile, request, response);
@@ -207,8 +209,8 @@ public class StandardImport extends HttpServlet {
     // eh?
     System.out.println("Trying to take you to the results...");
       //sc.getRequestDispatcher("/import/results.jsp").forward(request, response);
-      sc.getRequestDispatcher("/import/uploadFooter.jsp").include(request, response);
-      sc.getRequestDispatcher("/footer.jsp").include(request, response);
+      if(!committing)sc.getRequestDispatcher("/import/uploadFooter.jsp").include(request, response);
+      if(!committing)sc.getRequestDispatcher("/footer.jsp").include(request, response);
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
@@ -277,7 +279,47 @@ public class StandardImport extends HttpServlet {
         return;
       }
     }
-
+    
+    //if we're committing, now is the time to do the ImportTask and redirect users there
+    User creator = null;
+    ImportTask itask = null;
+    String taskID=null;
+    if (committing) {
+      
+      Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("StandardImport.java_iTaskCommit1");
+      try {
+        myShepherd.beginDBTransaction();
+        
+        creator = AccessControl.getUser(request, myShepherd);
+        itask = new ImportTask(creator);
+        itask.setPassedParameters(request);
+        itask.setStatus("started");
+        
+        if(request.getParameter("taskID")!=null) {itask.setId(request.getParameter("taskID"));}
+        
+        myShepherd.getPM().makePersistent(itask);
+        myShepherd.updateDBTransaction();
+        
+        taskID=itask.getId();
+        //response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/imports.jsp?taskId=" + taskID);
+        //RequestDispatcher dispatcher = this.getServletContext()
+        //    .getRequestDispatcher("/imports.jsp?taskId=" + taskID);
+        // dispatcher.forward(request, response);
+        
+        
+      }
+      catch(Exception e) {
+        e.printStackTrace();
+        myShepherd.rollbackDBTransaction();
+        return;
+      }
+      finally {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+      }
+    }
+    
     int printPeriod = 1;
     //if (committing) myShepherd.beginDBTransaction();
     outPrnt("<h2>Parsed Import Table</h2>"); 
@@ -286,18 +328,21 @@ public class StandardImport extends HttpServlet {
     if (!committing) feedback.printStartTable();
     //System.out.println("debug1");
     // one encounter per-row. We keep these running.
-    Occurrence occ = null;
+    
     List<String> encsCreated = new ArrayList<String>();
     int maxRows = 50000;
     int offset = 0;
     for (int i=1+offset; i<rows&&i<(maxRows+offset); i++) {
 
+      Occurrence occ = null;
       MarkedIndividual mark = null;
       verbose = ((i%printPeriod)==0);
       
       Shepherd myShepherd = new Shepherd(context);
       myShepherd.setAction("StandardImport.java_rowLoopNum_"+i);
       myShepherd.beginDBTransaction();
+      if(taskID!=null)itask=myShepherd.getImportTask(taskID);
+      if(itask!=null)itask.setStatus("Importing "+i);
       
       try {
 
@@ -332,8 +377,15 @@ public class StandardImport extends HttpServlet {
 
           myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
           encsCreated.add(enc.getCatalogNumber());
-          if (!myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
+          if (occ!=null && !myShepherd.isOccurrence(occ))        myShepherd.storeNewOccurrence(occ);
           if (!myShepherd.isMarkedIndividual(mark)) myShepherd.storeNewMarkedIndividual(mark);
+          myShepherd.updateDBTransaction();
+          
+          //connect the Encounter back toward the Occurrence too
+          if (occ!=null && !myShepherd.isOccurrence(occ)) enc.setOccurrenceID(occ.getOccurrenceID());
+          
+          //add it to the ImportTask
+          if(itask!=null)itask.addEncounter(enc);
           myShepherd.commitDBTransaction();
 
         }
@@ -370,31 +422,31 @@ public class StandardImport extends HttpServlet {
     if (committing) {
       
       Shepherd myShepherd = new Shepherd(context);
-      myShepherd.setAction("StandardImport.java_iTaskCommit");
+      myShepherd.setAction("StandardImport.java_iTaskCommit2");
       try {
         myShepherd.beginDBTransaction();
         
-        User creator = AccessControl.getUser(request, myShepherd);
-        ImportTask itask = new ImportTask(creator);
-        itask.setPassedParameters(request);
+        //User creator = AccessControl.getUser(request, myShepherd);
+        //ImportTask itask = new ImportTask(creator);
+        //itask.setPassedParameters(request);
         
-        myShepherd.getPM().makePersistent(itask);
-        myShepherd.updateDBTransaction();
-        
-        System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
+        //myShepherd.getPM().makePersistent(itask);
+        //myShepherd.updateDBTransaction();
+        if(taskID!=null)itask=myShepherd.getImportTask(taskID);
+        if(itask!=null)System.out.println("===== ImportTask id=" + itask.getId() + " (committing=" + committing + ")");
         
         List<Encounter> actualEncsCreated = new ArrayList<Encounter>();
         for(String encid:encsCreated) {
           if(myShepherd.getEncounter(encid)!=null) {
-            itask.addEncounter(myShepherd.getEncounter(encid));
+            if(itask!=null)itask.addEncounter(myShepherd.getEncounter(encid));
             myShepherd.updateDBTransaction();
           }
         }
-
+        if(itask!=null)itask.setStatus("complete");
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
           
-        out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
+        if(itask!=null)out.println("<li>ImportTask id = <b><a href=\"../imports.jsp?taskId=" + itask.getId() + "\">" + itask.getId() + "</a></b></li>");
       
       } catch (Exception e) {
         myShepherd.rollbackDBTransaction();
@@ -477,21 +529,22 @@ public class StandardImport extends HttpServlet {
         su = myShepherd.getSocialUnit(suName);
         if (su==null) {
           su = new SocialUnit(suName);
-          myShepherd.storeNewSocialUnit(su);
+          if(committing)myShepherd.storeNewSocialUnit(su);
         }
         
         if (mark!=null) {
           System.out.println("----> have Indy ID for this SocU: "+suName);
           if (!su.hasMarkedIndividualAsMember(mark)) {
             Membership ms = new Membership(mark);
-            myShepherd.storeNewMembership(ms);
+            if(committing)myShepherd.storeNewMembership(ms);
             if (getString(row, "Membership.role")!=null) {
               ms.setRole(getString(row, "Membership.role"));
             }
 
-            myShepherd.beginDBTransaction();
+           // myShepherd.beginDBTransaction();
             su.addMember(ms);
-            myShepherd.commitDBTransaction();
+            //myShepherd.commitDBTransaction();
+            if(committing)myShepherd.updateDBTransaction();
             System.out.println("----> added membership to SocU ");
   
           }
@@ -767,6 +820,14 @@ public class StandardImport extends HttpServlet {
 
   	String lifeStage = getString(row, "Encounter.lifeStage");
   	if (lifeStage!=null) enc.setLifeStage(lifeStage);
+  	
+  	//WB-466
+    String livingStatus = getString(row, "Encounter.livingStatus");
+    if (livingStatus!=null) enc.setLivingStatus(livingStatus);
+    
+    //WB-468
+    String identificationRemarks = getString(row, "Encounter.identificationRemarks");
+    if (identificationRemarks!=null) enc.setIdentificationRemarks(identificationRemarks);
 
     String groupRole = getString(row, "Encounter.groupRole");
     if (groupRole!=null) enc.setGroupRole(groupRole);
@@ -835,35 +896,35 @@ public class StandardImport extends HttpServlet {
        String colEmail="Encounter.submitter"+startIter+".emailAddress";
        String val=getString(row,colEmail);
        if(val!=null){
+         boolean newUser = true;
          if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+           newUser = false;
            User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
            if((enc.getSubmitters()==null) || !enc.getSubmitters().contains(thisPerson)){
              if (committing) enc.addSubmitter(thisPerson);
              if (unusedColumns!=null) unusedColumns.remove(colEmail);
            }
-         }
-         else{
-           //create a new User
-           User thisPerson=new User(val.trim(),Util.generateUUID());
-           if (committing) enc.addSubmitter(thisPerson);
-           if (unusedColumns!=null) unusedColumns.remove(colEmail);
-
-           String colFullName="Encounter.submitter"+startIter+".fullName";
-           String val2=getString(row,colFullName);
-           if(val2!=null) thisPerson.setFullName(val2.trim());
-           if (unusedColumns!=null) unusedColumns.remove(colFullName);
-
-           String colAffiliation="Encounter.submitter"+startIter+".affiliation";
-           String val3=getString(row,colAffiliation);
-           if(val3!=null) thisPerson.setAffiliation(val3.trim()); 
-           if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
-
-         }
-         startIter++;
-       }
-       else{
-         hasSubmitters=false;
-       }
+         } 
+          //create a new User
+          String val2 = null;
+          String val3 = null;
+          String colFullName="Encounter.submitter"+startIter+".fullName";
+          String colAffiliation="Encounter.submitter"+startIter+".affiliation";
+          if (newUser) {
+            User thisPerson=new User(val.trim(),Util.generateUUID());
+            if (committing) enc.addSubmitter(thisPerson);
+            val2=getString(row,colFullName);
+            if(val2!=null) thisPerson.setFullName(val2.trim());
+            val3=getString(row,colAffiliation);
+            if(val3!=null) thisPerson.setAffiliation(val3.trim()); 
+          }
+          if (unusedColumns!=null) unusedColumns.remove(colEmail);
+          if (unusedColumns!=null&&val2!=null&&!"".equals(val2)) unusedColumns.remove(colFullName);
+          if (unusedColumns!=null&&val3!=null&&!"".equals(val3)) unusedColumns.remove(colAffiliation);
+        } else {
+          hasSubmitters=false;
+        }
+        startIter++;
      }
 
     /*
@@ -880,42 +941,94 @@ public class StandardImport extends HttpServlet {
         String colEmail="Encounter.photographer"+startIter+".emailAddress";
         String val=getString(row,colEmail);
         if(val!=null){
+          boolean newUser = true;
           if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+            newUser = false;
             User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
             if((enc.getPhotographers()==null) ||!enc.getPhotographers().contains(thisPerson)){
               if (committing) enc.addPhotographer(thisPerson);
               if (unusedColumns!=null) unusedColumns.remove(colEmail);
             }
           }
-          else{
-            //create a new User
-            User thisPerson=new User(val.trim(),Util.generateUUID());
-            if (committing) enc.addPhotographer(thisPerson);
-            if (unusedColumns!=null) unusedColumns.remove(colEmail);
-
+          //create a new User
+          try {
             String colFullName="Encounter.photographer"+startIter+".fullName";
-            String val2=getString(row,colFullName);
-            if(val2!=null) thisPerson.setFullName(val2.trim()); 
-            if (unusedColumns!=null) unusedColumns.remove(colFullName);
-
             String colAffiliation="Encounter.photographer"+startIter+".affiliation";
-            String val3=getString(row,colAffiliation);
-            if(val3!=null) thisPerson.setAffiliation(val3.trim());
-            if (unusedColumns!=null) unusedColumns.remove(colAffiliation);
-
-
+            String val2 = null;
+            String val3 = null;
+            if (newUser) {
+              User thisPerson=new User(val.trim(),Util.generateUUID());
+              if (committing) enc.addPhotographer(thisPerson);
+              val2=getString(row,colFullName);
+              if(val2!=null) thisPerson.setFullName(val2.trim()); 
+              val3=getString(row,colAffiliation);
+              if(val3!=null) thisPerson.setAffiliation(val3.trim());
+            }
+            if (unusedColumns!=null) unusedColumns.remove(colEmail);
+            if (unusedColumns!=null&&val2!=null&&!"".equals(val2)) unusedColumns.remove(colFullName);
+            if (unusedColumns!=null&&val3!=null&&!"".equals(val3)) unusedColumns.remove(colAffiliation);
+          } catch (Exception e) {
+            e.printStackTrace();
           }
           startIter++;
-        }
-        else{
+        } else {
           hasPhotographers=false;
         }
       }
-
      /*
       * End Photographer imports
       */
      
+      
+      //WB-467
+      /*
+       * Start informOther imports
+       */
+      boolean hasInformOthers=true;
+      startIter=0;
+      while(hasInformOthers){
+        String colEmail="Encounter.informOther"+startIter+".emailAddress";
+        String val=getString(row,colEmail);
+        if(val!=null){
+          boolean newUser = true;
+          if(myShepherd.getUserByEmailAddress(val.trim())!=null){
+            newUser = false;
+            User thisPerson=myShepherd.getUserByEmailAddress(val.trim());
+            if((enc.getInformOthers()==null) ||!enc.getInformOthers().contains(thisPerson)){
+              if (committing) enc.addInformOther(thisPerson);
+              if (unusedColumns!=null) unusedColumns.remove(colEmail);
+            }
+          }
+          //create a new User
+          try {
+            String colFullName="Encounter.informOther"+startIter+".fullName";
+            String colAffiliation="Encounter.informOther"+startIter+".affiliation";
+            String val2 = null;
+            String val3 = null;
+            if (newUser) {
+              User thisPerson=new User(val.trim(),Util.generateUUID());
+              if (committing) enc.addInformOther(thisPerson);
+              val2=getString(row,colFullName);
+              if(val2!=null) thisPerson.setFullName(val2.trim()); 
+              val3=getString(row,colAffiliation);
+              if(val3!=null) thisPerson.setAffiliation(val3.trim());
+            }
+            if (unusedColumns!=null) unusedColumns.remove(colEmail);
+            if (unusedColumns!=null&&val2!=null&&!"".equals(val2)) unusedColumns.remove(colFullName);
+            if (unusedColumns!=null&&val3!=null&&!"".equals(val3)) unusedColumns.remove(colAffiliation);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          startIter++;
+        } else {
+          hasInformOthers = false;
+        }
+      }
+
+      /*
+       * End informOther imports
+       */
+      
 
 
   	String scar = getIntAsString(row, "Encounter.distinguishingScar");
@@ -1183,9 +1296,14 @@ public class StandardImport extends HttpServlet {
     //System.out.println("==============> getMediaAsset resolvedPath is: "+resolvedPath);
     if (resolvedPath==null||"null".equals(resolvedPath)) {
       try {
-        feedback.addMissingPhoto(localPath);
-        foundPhotos.remove(fullPath);
-        feedback.logParseError(assetColIndex(i), localPath, row);
+
+        //feedback.addMissingPhoto(localPath);
+        if (localPath!=null&&!"".equals(localPath)&&!"null".equals(localPath)) { 
+          String locInFile = "Row: "+row.getRowNum()+" Column: "+i+" Filename: ("+localPath+")";
+          feedback.addMissingPhoto(locInFile);
+          foundPhotos.remove(fullPath);
+          feedback.logParseError(assetColIndex(i), localPath, row);
+        }
       } catch (NullPointerException npe) {  
         npe.printStackTrace();
       }
@@ -1216,9 +1334,18 @@ public class StandardImport extends HttpServlet {
       System.out.println("Trying to create NEW asset!");
 
       ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
+      ArrayList<LabeledKeyword> labels=getLabeledKeywordsForAsset(row, i, myShepherd);
+      
+      
       if (committing) {
         ma = astore.copyIn(f, assetParams);
         if(kws!=null)ma.setKeywords(kws);
+        if(labels!=null) {
+          for(LabeledKeyword lkw:labels) {
+            ma.addKeyword(lkw);
+          }
+        }
+        
       }
 	    // keywording
 
@@ -1226,10 +1353,15 @@ public class StandardImport extends HttpServlet {
 
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
       ioEx.printStackTrace();
-      feedback.addMissingPhoto(localPath);
-      missingPhotos.add(localPath);
-      feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
-	  	foundPhotos.remove(fullPath);
+
+      //feedback.addMissingPhoto(localPath);
+      if (localPath!=null&&!"".equals(localPath)&&!"null".equals(localPath)) {
+        String locInFile = "Row: "+row.getRowNum()+" Column: "+i+" Filename: ("+localPath+")";
+        feedback.addMissingPhoto(locInFile);
+        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
+        missingPhotos.add(localPath);
+        foundPhotos.remove(fullPath);
+      }
       return null;
 	  }
     myAssets.put(fileHash(f), ma);
@@ -1264,6 +1396,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         return null;
     }
 
+    /*
   private ArrayList<Keyword> getKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
 
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
@@ -1284,6 +1417,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
     return ans;
   }
+  */
 
   private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
@@ -1311,6 +1445,34 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (kw!=null) ans.add(kw);
     }
     
+    return ans;
+  }
+  
+  private ArrayList<LabeledKeyword> getLabeledKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
+    ArrayList<LabeledKeyword> ans = new ArrayList<LabeledKeyword>();
+    
+    List<String> kwLabels = CommonConfiguration.getIndexedPropertyValues("kwLabel",context);
+    for(String label:kwLabels) {
+      System.out.println("eval "+label);
+      String kwsValue = getString(row, "Encounter.mediaAsset"+n+"."+label);
+      if(kwsValue!=null) {
+          kwsValue=kwsValue.replaceAll(".0","");
+          List<String> allowedValues=CommonConfiguration.getIndexedPropertyValues(label,context);
+          System.out.println("eval "+allowedValues.toString());
+          if(kwsValue!=null && !kwsValue.trim().equals("")) {
+            System.out.println("kwsValue is: "+kwsValue);
+            if(allowedValues.contains(kwsValue)) {
+              System.out.println("value allowed");
+              LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword(label, kwsValue, true);
+              if (kw!=null) {
+                System.out.println("setting "+label+":"+kwsValue);
+                ans.add(kw);
+              }
+            }
+          }    
+      } 
+    }
+
     return ans;
   }
 
@@ -2019,7 +2181,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
 
   private static String removeNonNumeric(String str) throws NullPointerException {
     str = str.trim();
-    return str.replaceAll("[^\\d.]", "");
+    return str.replaceAll("[^\\d.-]", "");
   }
 
 

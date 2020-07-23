@@ -567,13 +567,13 @@ if(request.getParameter("encounterNumber")!=null){
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
-  
-  console.log("Hey we're workin again!");
+
+  //console.log("Hey we're workin again!");
   var assets = <%=all.toString()%>;
   // <% System.out.println(" Got all size = "+all.length()); %>
   var captions = <%=captions.toString()%>
   captions.forEach( function(elem) {
-    console.log("caption here: "+elem);
+    //console.log("caption here: "+elem);
   })
 
   //
@@ -1217,8 +1217,9 @@ function refreshKeywordsForMediaAsset(mid, data) {
         }
     }
     //TODO do we need to FIXME this for when a single MediaAsset appears multiple times??? (gallery style)
-    $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {   //update the ui
-        $(el).find('.image-enhancer-keyword-wrapper').remove();
+    $('.image-enhancer-wrapper-mid-' + mid).each(function(i,el) {
+           //update the ui
+        $(el).find('.image-enhancer-keyword-wrapper-hover').empty();
         imageLayerKeywords($(el), { _mid: mid });
     });
 }
@@ -1239,13 +1240,15 @@ Map<String, List<String>> labelsToValues = LabeledKeyword.labelUIMap(request);
 System.out.println("we got labelsToValues = "+labelsToValues);
 String labelsToValuesStr = labelsToValues.toString();
 labelsToValuesStr = labelsToValuesStr.replaceAll("=",":");
-System.out.println("the stringy version is "+labelsToValuesStr);
+System.out.println("the stringy version is |"+labelsToValuesStr+"| with length() "+labelsToValuesStr.length());
 
 JSONObject jobj = new JSONObject(labelsToValues);
 System.out.println("got jobj "+jobj);
 
-%>
+String keywords_readable = encprops.getProperty("keywords");
 
+%>
+var kwReadable = '<%=encprops.getProperty("keywords")%>';
 
 function imageLayerKeywords(el, opt) {
 	var mid;
@@ -1260,26 +1263,45 @@ console.info("############## mid=%s -> %o", mid, ma);
 
 	if (!ma.keywords) ma.keywords = [];
 	var thisHas = [];
-	var h = '<div class="image-enhancer-keyword-wrapper">';
-	for (var i = 0 ; i < ma.keywords.length ; i++) {
+    //let h = '<div onmouseover="allVisible(this)" onmouseout="resetVisibility(this)" class="image-enhancer-keyword-wrapper">';
+
+    // if this is a refresh, it will already have this element
+    let hasWrapper = el.has('.image-enhancer-keyword-wrapper').length; 
+
+    let h = '';
+
+    if (!hasWrapper) {
+        h += '<div onmouseleave="hideAssetKeywords(this)" class="image-enhancer-keyword-wrapper">';
+	    h += '<div class="image-enhancer-keyword-wrapper-hover">';  
+    }
+    
+    //number of keywords for default display, keyword list hidden until hover
+    if (ma.keywords.length>0) {
+        h += '<div onmouseover="showAssetKeywords(this)" class="image-enhancer-keyword keyword-number-cell">'+kwReadable+': '+ma.keywords.length+'</div>';
+    }
+  
+    for (var i = 0 ; i < ma.keywords.length ; i++) {
     var kw = ma.keywords[i];
     thisHas.push(kw.indexname);
+
+
     if (kw.label) {
       console.info("Have labeled keyword %o", kw);
-      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword labeled-keyword image-enhancer-keyword-hidden" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" title="remove keyword">X</span></div>';
     } else {
       //h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
-      h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword image-enhancer-keyword-hidden" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
 
     }
 //console.info('keyword = %o', ma.keywords[i]);
 	}
 
-  // the labeledKeyword edit form comes from before
-
   var labelsToValues = <%=jobj%>;
   console.log("Labeled keywords %o", labelsToValues);
-  h += '<div class="labeled iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+  let labeledAvailable = (labelsToValues.length>0);
+  
+  h += '<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+  
   if (!$.isEmptyObject(labelsToValues)) {
       //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
     var hasSome = false;
@@ -1306,7 +1328,7 @@ console.info("############## mid=%s -> %o", mid, ma);
       h += valueSelectors;
     }
   } else {
-    console.log("your labels are empty dumbass");
+    console.log("No LabeledKeywords were retrieved from the database.");
   }
   h += '</div></div>';
 
@@ -1327,16 +1349,36 @@ console.info("############## mid=%s -> %o", mid, ma);
 	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
 	h += '</div></div>';
 
-	h += '</div>';
-	el.append(h);
+    // image-enhancer-keyword-wrapper-hover
+    if (!hasWrapper) {
+        h += '</div></div>';
+	    el.append(h);
+    } else {
+        el.find('.image-enhancer-keyword-wrapper-hover').append(h);
+    }
+
 	el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
 		ev.stopPropagation();
 	});
+
 	el.find('.iek-remove').on('click', function(ev) {
 		//ev.stopPropagation();
 		addNewKeyword(ev.target);
 	});
 }
+
+function showAssetKeywords(el) {
+    $(el).siblings(".image-enhancer-keyword-hidden").removeClass("image-enhancer-keyword-hidden");
+    $(el).addClass("image-enhancer-keyword-hidden");
+}
+
+function hideAssetKeywords(el) {
+    $(el).find(".image-enhancer-keyword").addClass("image-enhancer-keyword-hidden");
+    let numCell = $(el).find('.keyword-number-cell');
+    numCell.removeClass("image-enhancer-keyword-hidden");
+}
+
+// make sure MA specific
 
 function imagePopupInfo(obj) {
 	if (!obj || !obj.imgEl || !obj.imgEl.context) return;

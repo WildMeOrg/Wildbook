@@ -18,43 +18,6 @@
     props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
     occProps = ShepherdProperties.getProperties("occurrence.properties",langCode, context);
 
-    int startNum = 1;
-    int endNum = 10;
-
-
-    try {
-
-      if (request.getParameter("startNum") != null) {
-        startNum = (new Integer(request.getParameter("startNum"))).intValue();
-      }
-      if (request.getParameter("endNum") != null) {
-        endNum = (new Integer(request.getParameter("endNum"))).intValue();
-      }
-
-    } catch (NumberFormatException nfe) {
-      startNum = 1;
-      endNum = 10;
-    }
-    int listNum = endNum;
-
-    int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
-    try {
-      month1 = (new Integer(request.getParameter("month1"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      month2 = (new Integer(request.getParameter("month2"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      year1 = (new Integer(request.getParameter("year1"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      year2 = (new Integer(request.getParameter("year2"))).intValue();
-    } catch (Exception nfe) {
-    }
-
 
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("occurrenceSearchResults.jsp");
@@ -62,23 +25,54 @@
 
 
     int numResults = 0;
+    int numOccurrences=0;
 
 
     Vector<Occurrence> rIndividuals = new Vector<Occurrence>();
-    myShepherd.beginDBTransaction();
     String order ="";
+    String indsJson="";
+    String prettyPrint="";
+    String jdoqlRep="";
+    
+    myShepherd.beginDBTransaction();
+    try{
+    
+    	numOccurrences=myShepherd.getNumOccurrences();
+    
+    	OccurrenceQueryResult result = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
+    
+    	jdoqlRep=result.getJDOQLRepresentation();
+    	
+    	prettyPrint=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")));
+    	rIndividuals = result.getResult();
 
-    OccurrenceQueryResult result = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
-    rIndividuals = result.getResult();
+		// viewOnly=true arg means this hiddenData relates to viewing the summary results
+		HiddenOccReporter hiddenData = new HiddenOccReporter(rIndividuals, request, true,myShepherd);
+		rIndividuals = hiddenData.viewableResults(rIndividuals, true,myShepherd);
 
-	// viewOnly=true arg means this hiddenData relates to viewing the summary results
-	HiddenOccReporter hiddenData = new HiddenOccReporter(rIndividuals, request, true,myShepherd);
-	rIndividuals = hiddenData.viewableResults(rIndividuals, true,myShepherd);
+	
+	   Vector histories = new Vector();
+	    int rIndividualsSize=rIndividuals.size();
+
+	    int count = 0;
+	    int numNewlyMarked = 0;
 
 
-    if (rIndividuals.size() < listNum) {
-      listNum = rIndividuals.size();
+		JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
+		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
+		indsJson = jsonobj.toString();
+
     }
+    catch(Exception e){
+    	e.printStackTrace();
+    }
+	finally{
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+	}
+
+		
+
   %>
 
 <style type="text/css">
@@ -175,25 +169,7 @@
 </table>
 
 
-  <%
 
-    //set up the statistics counters
-
-
-    Vector histories = new Vector();
-    int rIndividualsSize=rIndividuals.size();
-
-    int count = 0;
-    int numNewlyMarked = 0;
-
-
-
-
-	JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-	JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
-	String indsJson = jsonobj.toString();
-
-%>
 
 <style>
 .ptcol-maxYearsBetweenResightings {
@@ -607,44 +583,7 @@ $(document).ready( function() {
 
 var tableContents = document.createDocumentFragment();
 
-/*
-function doTable() {
-	resultsTable = new pageableTable({
-		columns: testColumns,
-		tableElement: $('#results-table'),
-		sliderElement: $('#results-slider'),
-		tablesorterOpts: {
-			headers: { 0: {sorter: false} },
-			textExtraction: _textExtraction,
-		},
-	});
 
-	resultsTable.tableInit();
-
-	inds = new wildbook.Collection.Occurrences();
-	var addedCount = 0;
-	inds.on('add', function(o) {
-		var row = resultsTable.tableCreateRow(o);
-		row.click(function() { var w = window.open('individuals.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
-		row.addClass('clickable');
-		row.appendTo(tableContents);
-		addedCount++;
-var percentage = Math.floor(addedCount / searchResults.length * 100);
-if (percentage % 3 == 0) console.log(percentage);
-		if (addedCount >= searchResults.length) {
-			$('#results-table').append(tableContents);
-		}
-	});
-
-	_.each(searchResults, function(o) {
-		inds.add(new wildbook.Model.Occurrence(o));
-	});
-	$('#progress').remove();
-	resultsTable.tableShow();
-
-
-}
-*/
 
 
 function _colIndividual(o) {
@@ -771,21 +710,11 @@ function applyFilter() {
     if (request.getParameter("subsampleMonths") != null) {
       subsampleMonths = true;
     }
-    numResults = count;
+    //numResults = count;
   %>
 </table>
 
 
-<%
-  myShepherd.rollbackDBTransaction();
-  startNum += 10;
-  endNum += 10;
-  if (endNum > numResults) {
-    endNum = numResults;
-  }
-
-
-%>
 
 <p>
 <table width="810" border="0" cellspacing="0" cellpadding="0">
@@ -794,18 +723,12 @@ function applyFilter() {
       <p><strong><%=occProps.getProperty("matchingOccurrences")%>
       </strong>: <span id="count-total"></span>
       </p>
-      <%
-      myShepherd.beginDBTransaction();
-      %>
+
       <p><strong><%=occProps.getProperty("totalOccurrences")%>
-    </strong>: <%=(myShepherd.getNumOccurrences())%>
+    </strong>: <%=numOccurrences %>
       </p>
     </td>
-    <%
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
 
-    %>
   </tr>
 </table>
 <%
@@ -820,12 +743,12 @@ function applyFilter() {
 
       <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
+        <%=prettyPrint %>
       </p>
 
       <p class="caption"><strong><%=props.getProperty("jdoql")%>
       </strong><br/>
-        <%=result.getJDOQLRepresentation()%>
+        <%=jdoqlRep %>
       </p>
 
     </td>
