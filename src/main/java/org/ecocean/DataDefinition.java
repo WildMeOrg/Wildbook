@@ -80,6 +80,9 @@ public class DataDefinition {
     public boolean checkValidity(ZonedDateTime dt) throws DataDefinitionException {
         return true;
     }
+    public boolean checkValidity(JSONObject j, String flavor) throws DataDefinitionException {
+        return true;
+    }
 
     public String getType() {
         return getType(this.meta);
@@ -103,6 +106,7 @@ public class DataDefinition {
             System.out.println("WARNING: DataDefinition.handleValue() missing meta/type for " + this.toString());
             return inVal;
         }
+System.out.println("type=" + type + " in handleValue() on " + this);
         switch (type) {
             case "string":
                 String s = null;
@@ -161,6 +165,18 @@ public class DataDefinition {
                 }
                 checkValidity(d);
                 return d;
+            //these are JSONObject data
+            case "locationIds":
+            //case "customFields":
+                JSONObject j = null;
+                if (inVal instanceof JSONObject) {
+                    j = (JSONObject)inVal;
+                } else if (inVal instanceof String) {
+                    j = Util.stringToJSONObject((String)inVal);
+                    if (j == null) throw new DataDefinitionException("could not parse JSONObject from " + (String)inVal);
+                }
+                checkValidity(j, type);  //this should vary depending on wassup
+                return j;
             case "date":
                 ZonedDateTime dt = null;
                 if (inVal instanceof ZonedDateTime) {
