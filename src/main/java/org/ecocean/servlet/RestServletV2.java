@@ -389,6 +389,7 @@ public class RestServletV2 extends HttpServlet {
             return;
         }
 
+/*  FIXME!!!!!!!!!!!!!!!!!  temp security hole for pre-houston testing  .. have at it, internet!
         if (definition || !isAdmin) {  //we dont set using configDefinition!
             _log(instanceId, "invalid config set access with payload=" + payload);
             rtn.put("message", _rtnMessage("access_denied"));
@@ -399,6 +400,7 @@ public class RestServletV2 extends HttpServlet {
             out.close();
             return;
         }
+*/
 
         List<String> updated = new ArrayList<String>();
         List<Configuration> updatedConfs = new ArrayList<Configuration>();
