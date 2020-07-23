@@ -3,7 +3,7 @@
 		"__meta" : {
 			"type" : "string",
 			"required" : true,
-			"defaultValue": "Wildbook",
+			"defaultValue": "",
 			"formSchema": { "displayOrder": 0, "panel": true }
 		}
 	},
@@ -18,7 +18,8 @@
 	"private" : {
 		"__meta" : {
 			"type" : "boolean",
-			"defaultValue": true,
+			"required" : true,
+			"defaultValue": false,
 			"formSchema": { "displayOrder": 0.05, "panel": true }
 		}
 	},
@@ -50,12 +51,14 @@
 		"tagline": {
 			"__meta": {
 				"type": "string",
+				"defaultValue": "",
 				"formSchema": { "displayOrder": 1.0 }
 			}
 		},
 		"exploreTagline": {
 			"__meta": {
 				"type": "string",
+				"defaultValue": "",
 				"formSchema": { "displayOrder": 2.0 }
 			}
 		},
