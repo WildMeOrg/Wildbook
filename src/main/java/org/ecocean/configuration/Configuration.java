@@ -249,13 +249,13 @@ return null; ///FIXME
         }
 
         String type = ConfigurationUtil.getType(m);
-        j.put("fieldTypeKey", type);  //for ben
+        j.put("displayType", type);  //for ben
         //now customize for front-end
         if (type.equals("video")) {
-            j.put("fieldTypeKey", "file");
+            j.put("displayType", "file");
             j.put("allowedFileTypes", new JSONArray("[\".webm\", \".mp4\", \".mov\", \".avi\"]"));
         } else if (type.equals("image")) {
-            j.put("fieldTypeKey", "file");
+            j.put("displayType", "file");
             j.put("allowedFileTypes", new JSONArray("[\".jpg\", \".jpeg\", \".png\", \".svg\"]"));
         }
 

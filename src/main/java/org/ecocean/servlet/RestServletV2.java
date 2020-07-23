@@ -453,6 +453,7 @@ rtn.put("_payload", payload);
             rtn.put("usingDefault", true);
             rtn.put("value", meta.get("defaultValue"));
         } else {
+            rtn.put("value", JSONObject.NULL);
             rtn.put("valueNotSet", true);
             rtn.put("message", _rtnMessage("configuration_no_value"));
         }
