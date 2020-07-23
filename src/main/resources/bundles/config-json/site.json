@@ -3,6 +3,7 @@
 		"__meta" : {
 			"type" : "string",
 			"required" : true,
+			"defaultValue": "Wildbook",
 			"formSchema": { "displayOrder": 0, "panel": true }
 		}
 	},
