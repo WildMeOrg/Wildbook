@@ -9,6 +9,9 @@ java.util.HashMap,
 java.util.List,
 java.util.ArrayList,
 java.util.Collection,
+org.ecocean.servlet.export.ExportExcelFile,
+org.apache.commons.io.FileUtils,
+java.io.File,
 java.util.Iterator,
 org.json.JSONObject
 " %><%!
@@ -176,15 +179,15 @@ for (String uid : uids) {
     rows.add(row);
 }
 
-out.println("<table border=\"1\">");
-for (String[] row : rows) {
-    out.println("<tr><td>" + String.join("</td><td>", row) + "</td></tr>");
-}
-out.println("</table>");
-
-
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
+
+File xls = new File("/tmp/kitsci_vlog_export_" + new DateTime().toLocalDate() + "_" + Util.generateUUID().substring(0,6) + ".xls");
+ExportExcelFile.quickExcel(rows, xls);
+response.setHeader("Content-type", "application/vnd.ms-excel");
+response.setHeader("Content-disposition", "attachment; filename=\"" + xls.getName() + "\"");
+FileUtils.copyFile(xls, response.getOutputStream());
+
 
 %>
 
