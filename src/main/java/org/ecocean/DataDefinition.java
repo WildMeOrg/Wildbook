@@ -8,6 +8,7 @@ import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
 import java.time.Instant;
 import java.time.DateTimeException;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 /*
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
@@ -345,5 +346,13 @@ System.out.println("*** coerceValue(key=" + key + ";type=" + type + ") content="
     }
 */
 
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("meta", meta)
+            .append("validType", (meta == null) ? false : isValidType(meta.optString("type", null)))
+            .append("isMultiple", isMultiple(meta))
+            .append("isReadOnly", isReadOnly(meta))
+            .toString();
+    }
 }
 
