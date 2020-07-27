@@ -76,15 +76,15 @@ public class IndividualQueryProcessor extends QueryProcessor {
     }
     //end location filter--------------------------------------------------------------------------------------
 
-    // filter for submitterOrganization------------------------------------------
-      if((request.getParameter("submitterOrganization")!=null)&&(!request.getParameter("submitterOrganization").equals(""))) {
-        String submitterOrgString=request.getParameter("submitterOrganization").toLowerCase().replaceAll("%20", " ").trim();
-
-          filter=filterWithCondition(filter,"(enc.submitterOrganization.toLowerCase().indexOf('"+submitterOrgString+"') != -1)");
-
-        prettyPrint.append("Submitter organization contains \""+submitterOrgString+"\".<br />");
+    // filter for submitter organization ids------------------------------------------
+      if((request.getParameter("organizationId")!=null)&&(!request.getParameter("organizationId").equals("")) && Util.isUUID(request.getParameter("organizationId"))) {
+        String orgId = request.getParameter("organizationId");
+        filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && user.username == enc.submitterID && org.members.contains(user) && org.id == '" + orgId + "'";
+        String variables_statement = " VARIABLES org.ecocean.Encounter enc; org.ecocean.User user; org.ecocean.Organization org";
+        jdoqlVariableDeclaration = addVars(variables_statement, filter);
+        prettyPrint.append("Submitter organization is \""+orgId+"\".<br />");
       }
-      //end submitterOrganization filter--------------------------------------------------------------------------------------
+      //end submitter organization ids filter--------------------------------------------------------------------------------------
 
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
@@ -1576,6 +1576,11 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
     }
     return sb.toString();
+  }
+
+  public static String addVars(String jdoqlVariableDeclaration, String vars){
+    QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, vars);
+    return jdoqlVariableDeclaration;
   }
 
   public static String updateParametersDeclaration(

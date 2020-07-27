@@ -15,15 +15,15 @@ public static String getDisplayName(String fieldName, Properties nameLookup) thr
   return fieldName;
 }
 
-public static void printStringFieldSearchRowBoldTitle(String fieldName, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+public static void printStringFieldSearchRowBoldTitle(String fieldName, List<String> displayOptions, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
   // note how fieldName is variously manipulated in this method to make element ids and contents
   String displayName = getDisplayName(fieldName, nameLookup);
   // out.println("<tr id=\""+fieldName+"Row\">");
   out.println("<br/><strong>"+displayName+"</strong><br/>"); //<td id=\""+fieldName+"Title\"><br/>
   out.println("<select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
   out.println("<option value=\"None\" selected=\"selected\"></option>");
-  for (String val: valueOptions) {
-    out.println("<option value=\""+val+"\">"+val+"</option>");
+  for (int i = 0; i<displayOptions.size(); i++) {
+    out.println("<option value=\""+valueOptions.get(i)+"\">"+displayOptions.get(i)+"</option>");
   }
   out.println("</select>"); //</td>
   // out.println("</tr>");
@@ -1595,12 +1595,15 @@ else {
       if(usr != null){
         List<Organization> orgsUserBelongsTo = usr.getOrganizations();
         ArrayList<String> orgOptions = new ArrayList<String>();
-        for (int i = 0; i < orgsUserBelongsTo.size(); i++) { //TODO how to DRY up? Map function in java is in Streams package; there were issues importing and using said Stream package
+        ArrayList<String> orgIds = new ArrayList<String>();
+        for (int i = 0; i < orgsUserBelongsTo.size(); i++) {
           Organization currentOrg = orgsUserBelongsTo.get(i);
           String currentOrgName = currentOrg.getName();
+          String currentOrgId = currentOrg.getId();
           orgOptions.add(currentOrgName);
+          orgIds.add(currentOrgId);
         }
-        printStringFieldSearchRowBoldTitle("submitterOrganization", orgOptions, out, props);
+        printStringFieldSearchRowBoldTitle("organizationId", orgOptions, orgIds, out, props);
       }
       %>
 </div>
