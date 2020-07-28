@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - automated-build-github-actions
   schedule:
     - cron: '0 0 * * *' # Every day at midnight
   pull_request:
