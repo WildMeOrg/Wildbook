@@ -365,7 +365,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
           }
           filter += obQuery.toString();
           for (int j = 0; j < numObsSearched; j++) {
-            updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + j);
+            QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + j);
           }
           System.out.println("ObQuery: "+obQuery);
           System.out.println("Filter? "+filter);
@@ -408,7 +408,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
       }
       filter += metalTagFilter.toString();
       for (int i = 0; i < metalTagsInQuery; i++) {
-        updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.tag.MetalTag metalTag" + i);
+        QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.tag.MetalTag metalTag" + i);
       }
     }
 
@@ -859,7 +859,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
       // bc if we search for "fluke photo, of quality 3-5" we are talking about one photo with two keywords, not two photos
       if (labelN==0) {
         lkwFilter += "annotations.contains("+annotVar+")";
-        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Annotation "+annotVar);
+        jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Annotation "+annotVar);
 
       }
 
@@ -868,14 +868,14 @@ public class EncounterQueryProcessor extends QueryProcessor {
       if (labelN==0) {
         lkwFilter += " && ";
         lkwFilter += annotVar+".features.contains("+featVar+")";
-        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.media.Feature "+featVar);
+        jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.media.Feature "+featVar);
       }
 
       String wordVar = "word"+kwNum;
       if (labelN==0) lkwFilter += " && ";
       lkwFilter += featVar+".asset.keywords.contains("+wordVar+")";
       // TODO: is jdoql OK with typing wordVar as a LabeledKeyword even though features have a plain Keyword list?
-      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.LabeledKeyword "+wordVar);
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.LabeledKeyword "+wordVar);
       //------ done with variables and declarations for this LKW
 
       lkwFilter += " && "+wordVar+".label == "+Util.quote(label);
