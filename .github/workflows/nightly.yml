@@ -1,0 +1,36 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight
+  pull_request:
+    paths:
+      - '.github/workflows/nightly.yml'
+      - 'devops/**'
+
+jobs:
+  devops:
+    name: DevOps container image build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Build containers
+      - name: Build containers
+        run: bash devops/build.sh
+
+      # Log into container registries
+      - name: Log into Docker Hub
+        run: echo "${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}" | docker login -u wildmebot --password-stdin
+      
+      - name: Log into GitHub Packages
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      # Push containers out to container registries
+      - name: Push to GitHub Packages
+        run: bash devops/publish.sh -t nightly -r docker.pkg.github.com
+      
+      - name: Push to Docker Hub
+        if: github.event_name == 'schedule'
+        run: bash devops/publish.sh -t nightly
