@@ -22,6 +22,7 @@ jobs:
         mvn -B package --file pom.xml
 
     - name: Publish to GitHub Packages
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
       run: mvn -B deploy
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
