@@ -4,7 +4,11 @@ on:
   push:
     branches:
       - master
-      - automated-build-github-actions
+      - 'releases/**'
+    tags:
+      - 'v**'
+  release:
+    types: [created]
   schedule:
     - cron: '0 0 * * *' # Every day at midnight
   pull_request:
