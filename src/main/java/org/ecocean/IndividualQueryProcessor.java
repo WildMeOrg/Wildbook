@@ -494,7 +494,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
         filter += "(enc13.releaseDate >= releaseDateFrom)";
         filter += " && encounters.contains(enc13) ";
         parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateFrom");
-        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
+        jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
         paramMap.put("releaseDateFrom", releaseDateFrom);
         prettyPrint.append("release date >= " + simpleDateFormat.format(releaseDateFrom));
       } catch (Exception e) {
@@ -512,7 +512,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
           filter += " && encounters.contains(enc13) ";
         }
         parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateTo");
-        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
+        jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
         paramMap.put("releaseDateTo", releaseDateTo);
         prettyPrint.append("releaseDate <= " + simpleDateFormat.format(releaseDateTo));
       } catch (Exception e) {
@@ -551,9 +551,9 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
       filter += metalTagFilter.toString();
       for (int i = 0; i < metalTagsInQuery; i++) {
-        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.tag.MetalTag metalTag" + i);
+        jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.tag.MetalTag metalTag" + i);
       }
-      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc12");
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc12");
     }
 
     String satelliteTagFilter = processSatelliteTagFilter(request, prettyPrint);
@@ -563,7 +563,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
       filter += " (encounters.contains(enc10)) && ";
       filter += satelliteTagFilter;
-      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc10");
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc10");
     }
     String acousticTagFilter = processAcousticTagFilter(request, prettyPrint);
     if (acousticTagFilter.length() > 0) {
@@ -572,7 +572,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
       filter += acousticTagFilter;
       filter += " && (encounters.contains(enc11)) ";
-      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc11");
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc11");
     }
 
     // end Tag Filters -------------------------------------------------
@@ -1561,21 +1561,6 @@ public class IndividualQueryProcessor extends QueryProcessor {
       tagFilter.append(')');
     }
     return tagFilter.toString();
-  }
-
-  public static String updateJdoqlVariableDeclaration(String jdoqlVariableDeclaration, String typeAndVariable) {
-    StringBuilder sb = new StringBuilder(jdoqlVariableDeclaration);
-    if (jdoqlVariableDeclaration.length() == 0) {
-      sb.append(" VARIABLES ");
-      sb.append(typeAndVariable);
-    }
-    else {
-      if (!jdoqlVariableDeclaration.contains(typeAndVariable)) {
-        sb.append("; ");
-        sb.append(typeAndVariable);
-      }
-    }
-    return sb.toString();
   }
 
   public static String addVars(String jdoqlVariableDeclaration, String vars){
