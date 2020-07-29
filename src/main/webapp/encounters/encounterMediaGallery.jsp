@@ -1298,9 +1298,9 @@ console.info("############## mid=%s -> %o", mid, ma);
     let outerCounter = '';
     if (ma.keywords.length>0) {
         h += '<div class="image-enhancer-keyword keyword-number-cell">'+kwReadable+': '+ma.keywords.length+'</div>';    
-        outerCounter = '<div class="image-enhancer-keyword keyword-number-cell number-cell-on-asset" title="<%=keywords_focus%>">'+kwReadable+': '+ma.keywords.length+'</div>';
+        outerCounter = '<div class="image-enhancer-keyword keyword-number-cell number-cell-on-asset" title="<%=keywords_focus%>" onclick="showKeywordList(this)">'+kwReadable+': '+ma.keywords.length+'</div>';
     } else {
-        outerCounter = '<div class="labeled iek-new-wrapper">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
+        outerCounter = '<div class="labeled iek-new-wrapper">add new <span class="keyword-label" onclick="showKeywordList(this)">labeled</span> keyword<div class="iek-new-labeled-form">';
     }
   
     for (var i = 0 ; i < ma.keywords.length ; i++) {
@@ -1392,6 +1392,9 @@ console.info("############## mid=%s -> %o", mid, ma);
 }
 
 function showKeywordList(el) {
+    if ($(el).hasClass('image-enhancer-feature-wrapper')) {
+        el = $(el).closest('.image-enhancer-feature-wrapper'); 
+    }
     if (typeof $(el).parent().attr('class') !== undefined && $(el).parent().attr('class') !== false) {
         $(el).parent().attr('class').split(' ').map(function(className){     
             if (className.startsWith('image-enhancer-wrapper-mid-')) {
