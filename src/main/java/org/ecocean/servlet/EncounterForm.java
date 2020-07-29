@@ -819,12 +819,12 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
         String occID = formValues.get("occurrenceID").toString();
         System.out.println("there is an occurenceID, and it is: " + occID);
         enc.setOccurrenceID(occID);
-        createOccurrenceOrAddEncounterToExisting(occID, enc, myShepherd);
+        createOccurrenceIfMissingAndAddEncounter(occID, enc, myShepherd);
       }else{
         System.out.println("OccurrenceID isn't getting fetched from the form");
         String occID = Util.generateUUID();
         enc.setOccurrenceID(occID);
-        createOccurrenceOrAddEncounterToExisting(occID, enc, myShepherd);
+        createOccurrenceIfMissingAndAddEncounter(occID, enc, myShepherd);
       }
 
       List<MetalTag> metalTags = getMetalTags(formValues);
@@ -1293,7 +1293,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
     }
   }
 
-  private void createOccurrenceOrAddEncounterToExisting(String occID, Encounter enc, Shepherd myShepherd){
+  private void createOccurrenceIfMissingAndAddEncounter(String occID, Encounter enc, Shepherd myShepherd){
     Occurrence occ = myShepherd.getOccurrence(occID);
     if (occ==null) {
         occ = new Occurrence(occID, enc);
