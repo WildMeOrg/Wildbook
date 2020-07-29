@@ -781,26 +781,21 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
 
 
       if (formValues.get("flukeType") != null && formValues.get("flukeType").toString().length() > 0) {
-                    System.out.println("        ENCOUNTERFORM:");
-                    System.out.println("        ENCOUNTERFORM:");
-                    System.out.println("        ENCOUNTERFORM:");
-            String kwName = formValues.get("flukeType").toString();
-            Keyword kw = myShepherd.getOrCreateKeyword(kwName);
-            for (Annotation ann: enc.getAnnotations()) {
-                MediaAsset ma = ann.getMediaAsset();
-                if (ma!=null) {
-                    ma.addKeyword(kw);
-
-                    System.out.println("ENCOUNTERFORM: added flukeType keyword to encounter: "+kwName);
-                }
+        System.out.println("        ENCOUNTERFORM:");
+        System.out.println("        ENCOUNTERFORM:");
+        System.out.println("        ENCOUNTERFORM:");
+        String kwName = formValues.get("flukeType").toString();
+        Keyword kw = myShepherd.getOrCreateKeyword(kwName);
+        for (Annotation ann: enc.getAnnotations()) {
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma!=null) {
+              ma.addKeyword(kw);
+              System.out.println("ENCOUNTERFORM: added flukeType keyword to encounter: "+kwName);
             }
-                                System.out.println("        ENCOUNTERFORM:");
-                    System.out.println("        ENCOUNTERFORM:");
-
         }
-
-
-
+          System.out.println("        ENCOUNTERFORM:");
+          System.out.println("        ENCOUNTERFORM:");
+      }
 
       if (formValues.get("manualID") != null && formValues.get("manualID").toString().length() > 0) {
             String indID = formValues.get("manualID").toString();
@@ -820,24 +815,17 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
             enc.setFieldID(indID);
         }
 
-
-
       if (formValues.get("occurrenceID") != null && formValues.get("occurrenceID").toString().length() > 0) {
-            String occID = formValues.get("occurrenceID").toString();
-            enc.setOccurrenceID(occID);
-            Occurrence occ = myShepherd.getOccurrence(occID);
-            if (occ==null) {
-                occ = new Occurrence(occID, enc);
-                myShepherd.storeNewOccurrence(occ);
-                System.out.println("        ENCOUNTERFORM: created new Occurrence "+occID);
-            } else {
-                occ.addEncounter(enc);
-                System.out.println("        ENCOUNTERFORM: added enc to Occurrence "+occID);
-
-            }
-        }
-
-
+        String occID = formValues.get("occurrenceID").toString();
+        System.out.println("there is an occurenceID, and it is: " + occID);
+        enc.setOccurrenceID(occID);
+        createOccurrenceIfMissingAndAddEncounter(occID, enc, myShepherd);
+      }else{
+        System.out.println("OccurrenceID isn't getting fetched from the form");
+        String occID = Util.generateUUID();
+        enc.setOccurrenceID(occID);
+        createOccurrenceIfMissingAndAddEncounter(occID, enc, myShepherd);
+      }
 
       List<MetalTag> metalTags = getMetalTags(formValues);
       for (MetalTag metalTag : metalTags) {
@@ -848,19 +836,13 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       for (Measurement measurement : measurements) {
         enc.setMeasurement(measurement, myShepherd);
       }
-
-
       enc.setAcousticTag(getAcousticTag(formValues));
       enc.setSatelliteTag(getSatelliteTag(formValues));
       enc.setSex(getVal(formValues, "sex"));
       enc.setLivingStatus(getVal(formValues, "livingStatus"));
-
-
       if(formValues.get("scars")!=null){
         enc.setDistinguishingScar(formValues.get("scars").toString());
       }
-
-
       int sizePeriod=0;
       if ((formValues.get("measureUnits") != null) && formValues.get("measureUnits").toString().equals("Feet")) {
 
@@ -1308,6 +1290,18 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
     }
     else {
         System.out.println("failed to write file " + tmpFile);
+    }
+  }
+
+  private void createOccurrenceIfMissingAndAddEncounter(String occID, Encounter enc, Shepherd myShepherd){
+    Occurrence occ = myShepherd.getOccurrence(occID);
+    if (occ==null) {
+        occ = new Occurrence(occID, enc);
+        myShepherd.storeNewOccurrence(occ);
+        System.out.println("        ENCOUNTERFORM: created new Occurrence "+occID);
+    } else {
+        occ.addEncounter(enc);
+        System.out.println("        ENCOUNTERFORM: added enc to Occurrence "+occID);
     }
   }
 
