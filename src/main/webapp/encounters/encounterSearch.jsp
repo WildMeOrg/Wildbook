@@ -489,10 +489,7 @@ function useData(doc){
         </em>
       </p>
 
-      <p><strong><%=encprops.getProperty("locationID")%></strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>locationID"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br>
+      <p><strong><%=encprops.getProperty("locationID")%></strong><br>
         (<em><%=encprops.getProperty("locationIDExample")%>
         </em>)</p>
 
@@ -568,10 +565,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         </tr>
       </table>
 
-      <p><strong><%=encprops.getProperty("verbatimEventDate")%></strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>verbatimEventDate"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+      <p><strong><%=encprops.getProperty("verbatimEventDate")%></strong> </p>
 
       <%
         List<String> vbds = myShepherd.getAllVerbatimEventDates();
@@ -748,12 +742,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
         <tr>
           <td valign="top"><strong><%=encprops.getProperty("behavior")%>:</strong>
-            <em> <span class="para">
-								<a href="<%=CommonConfiguration.getWikiLocation(context)%>behavior" target="_blank">
-                  <img src="../images/information_icon_svg.gif" alt="Help" border="0"
-                       align="absmiddle"/>
-                </a>
-							</span>
+            <em>
             </em><br/>
               <%
 				List<String> behavs = (useCustomProperties)
@@ -1152,21 +1141,14 @@ function addLabeledKeyword(el) {
 
       <p><strong><%=encprops.getProperty("alternateID")%>:</strong> <em> <input
         name="alternateIDField" type="text" id="alternateIDField" size="10"
-        maxlength="35"> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>alternateID"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" width="15" height="15" border="0"
-                             align="absmiddle"/></a></span>
+        maxlength="35">
         <br></em></p>
 
 
 
             <p><strong><%=encprops.getProperty("individualID")%></strong> <em> <input
               name="individualID" type="text" id="individualID" size="25"
-              maxlength="100"> <span class="para"><a
-              href="<%=CommonConfiguration.getWikiLocation(context)%>individualID"
-              target="_blank"><img src="../images/information_icon_svg.gif"
-                                   alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
+              maxlength="100">
         	</em></p>
 
 
@@ -1255,10 +1237,7 @@ function addLabeledKeyword(el) {
       <p><strong><%=encprops.getProperty("tissueSampleID")%>:</strong>
         <input name="tissueSampleID" type="text" size="50">
       </p>
-      <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para">
-      <a href="<%=CommonConfiguration.getWikiLocation(context)%>haplotype"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+      <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para"></span> <br />
                              (<em><%=encprops.getProperty("locationIDExample")%></em>)
    </p>
 
@@ -1294,9 +1273,7 @@ function addLabeledKeyword(el) {
 
 
     <p><strong><%=encprops.getProperty("geneticSex")%>:</strong> <span class="para">
-      <a href="<%=CommonConfiguration.getWikiLocation(context)%>geneticSex"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+      </span> <br />
                              (<em><%=encprops.getProperty("locationIDExample")%></em>)
    </p>
 
@@ -1357,10 +1334,7 @@ function addLabeledKeyword(el) {
 
       <p><strong><%=encprops.getProperty("msmarker")%>:</strong>
       <span class="para">
-      	<a href="<%=CommonConfiguration.getWikiLocation(context)%>loci" target="_blank">
-      		<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
-      	</a>
-      </span>
+      </span> 
    </p>
 <p>
 
