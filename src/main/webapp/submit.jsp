@@ -717,7 +717,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
           <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
-              
+
       </div>
     </div>
 <%
@@ -734,7 +734,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="country" id="country" class="form-control">
           <option value="" selected="selected"></option>
-          <% 
+          <%
             List<String> countries = (useCustomProperties)
             ? CommonConfiguration.getIndexedPropertyValues("country", request)
             : CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
@@ -862,15 +862,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   <hr/>
 
   <fieldset>
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterOrganization") %></label>
-      </div>
-
-      <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
-      </div>
-    </div>
 
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
@@ -916,7 +907,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
                      if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
-                      
+
 
                     	for(int q=0;q<numGenusSpeciesProps;q++){
                            String currentGenuSpecies = "genusSpecies"+q;
@@ -1000,7 +991,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             </select>
           </div>
         </div>
-        
+
         <!--
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
