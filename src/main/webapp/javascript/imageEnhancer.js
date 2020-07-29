@@ -199,6 +199,14 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
             mid = el.getAttribute('data-enh-mediaassetid');
         }
         if (!mid) {
+            let gel = el;
+            if (!gel instanceof jQuery) {
+                gel = $(gel);
+            } 
+            let wrapperId = $(el).attr('id');
+            mid = wrapperId.replace("asset-id-", ""); 
+        }
+        if (!mid) {
             console.warn('imageEnhancer.mediaAssetIdFromElement() could not find mid on %o', el);
             mid = -1;
         }
