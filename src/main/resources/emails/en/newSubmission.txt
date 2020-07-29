@@ -2,7 +2,7 @@ SUBJECT: New encounter submission: @ENCOUNTER_ID@
 Thank you for helping manta research!
 
 Thank you for reporting your encounter. We will use your information to assist
-scientific research and global conservation initiatives for manta rays.
+scientific research and global conservation initiatives for leopard sharks.
 
 Your sighting link:
 @ENCOUNTER_LINK@
