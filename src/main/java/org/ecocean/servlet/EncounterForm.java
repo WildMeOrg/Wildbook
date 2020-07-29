@@ -118,26 +118,26 @@ public void doGet(HttpServletRequest request, HttpServletResponse response) thro
 private final String UPLOAD_DIRECTORY = "/tmp";
 
     //little helper function for pulling values as strings even if null (not set via form)
-    private String getVal(HashMap fv, String key) {
-        if (fv.get(key) == null) {
+    private String getVal(Map formValues, String key) {
+        if (formValues.get(key) == null) {
             return "";
         }
-        return fv.get(key).toString();
+        return formValues.get(key).toString();
     }
 
-  private SatelliteTag getSatelliteTag(HashMap fv) {
-    String argosPttNumber =  getVal(fv, "satelliteTagArgosPttNumber");
-    String satelliteTagName = getVal(fv, "satelliteTagName");
-    String tagSerial = getVal(fv, "satelliteTagSerial");
+  private SatelliteTag getSatelliteTag(Map formValues) {
+    String argosPttNumber =  getVal(formValues, "satelliteTagArgosPttNumber");
+    String satelliteTagName = getVal(formValues, "satelliteTagName");
+    String tagSerial = getVal(formValues, "satelliteTagSerial");
     if (argosPttNumber.length() > 0 || tagSerial.length() > 0) {
       return new SatelliteTag(satelliteTagName, tagSerial, argosPttNumber);
     }
     return null;
   }
 
-  private AcousticTag getAcousticTag(HashMap fv) {
-    String acousticTagId = getVal(fv, "acousticTagId");
-    String acousticTagSerial = getVal(fv, "acousticTagSerial");
+  private AcousticTag getAcousticTag(Map formValues) {
+    String acousticTagId = getVal(formValues, "acousticTagId");
+    String acousticTagSerial = getVal(formValues, "acousticTagSerial");
     if (acousticTagId.length() > 0 || acousticTagSerial.length() > 0) {
       return new AcousticTag(acousticTagSerial, acousticTagId);
     }
@@ -145,13 +145,13 @@ private final String UPLOAD_DIRECTORY = "/tmp";
   }
 
 
-  private List<MetalTag> getMetalTags(HashMap fv) {
+  private List<MetalTag> getMetalTags(Map formValues) {
     List<MetalTag> list = new ArrayList<MetalTag>();
         List<String> keys = Arrays.asList("left", "right");  //TODO programatically build from form
 
     for (String key : keys) {
       // The keys are the location
-      String value = getVal(fv, "metalTag(" + key + ")");
+      String value = getVal(formValues, "metalTag(" + key + ")");
       if (value.length() > 0) {
         list.add(new MetalTag(value, key));
       }
@@ -160,7 +160,7 @@ private final String UPLOAD_DIRECTORY = "/tmp";
   }
 
 
-  private List<Measurement> getMeasurements(HashMap fv, String encID, String context) {
+  private List<Measurement> getMeasurements(Map formValues, String encID, String context) {
     List<Measurement> list = new ArrayList<Measurement>();
         //List<String> keys = Arrays.asList("weight", "length", "height");  //TODO programatically build from form
 
@@ -168,9 +168,9 @@ private final String UPLOAD_DIRECTORY = "/tmp";
         List<String> keys=CommonConfiguration.getIndexedPropertyValues("measurement", context);
 
     for (String key : keys) {
-      String value = getVal(fv, "measurement(" + key + ")");
-      String units = getVal(fv, "measurement(" + key + "units)");
-      String samplingProtocol = getVal(fv, "measurement(" + key + "samplingProtocol)");
+      String value = getVal(formValues, "measurement(" + key + ")");
+      String units = getVal(formValues, "measurement(" + key + "units)");
+      String samplingProtocol = getVal(formValues, "measurement(" + key + "samplingProtocol)");
             if (value.length() > 0) {
                 try {
                     Double doubleVal = Double.valueOf(value);
@@ -221,10 +221,10 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        HashMap fv = new HashMap();
+        Map formValues = new HashMap();
 
         //IMPORTANT - processingNotes can be used to add notes on data handling (e.g., poorly formatted dates) that can be reconciled later by the reviewer
-        //Example usage: processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(fv, "datepicker")+"</p>");
+        //Example usage: processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(formValues, "datepicker")+"</p>");
         StringBuffer processingNotes=new StringBuffer();
 
         HttpSession session = request.getSession(true);
@@ -340,7 +340,7 @@ System.out.println("*** trying redirect?");
 
                 for(FileItem item : multiparts){
                     if (item.isFormField()) {  //plain field
-                        fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
+                        formValues.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
 //System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString("UTF-8") + ")");
                     } else if (item.getName().startsWith("socialphoto_")) {
                         System.out.println(item.getName() + ": " + item.getString("UTF-8"));
@@ -371,11 +371,11 @@ System.out.println("*** trying redirect?");
 
 
 
-        if (fv.get("social_files_id") != null) {
-          System.out.println("BBB: Social_files_id: "+fv.get("social_files_id"));
+        if (formValues.get("social_files_id") != null) {
+          System.out.println("BBB: Social_files_id: "+formValues.get("social_files_id"));
 
             //TODO better checking of files (size, type etc)
-            File socDir = new File(ServletUtilities.dataDir(context, rootDir) + "/social_files/" + fv.get("social_files_id"));
+            File socDir = new File(ServletUtilities.dataDir(context, rootDir) + "/social_files/" + formValues.get("social_files_id"));
             for (File sf : socDir.listFiles()) {
                 socialFiles.add(sf);
                 System.out.println("BBB: Adding social file : "+sf.getName());
@@ -407,7 +407,7 @@ System.out.println("*** trying redirect?");
                 + "Phone", "location", "comments", "behavior"};
       StringBuffer spamFields = new StringBuffer();
             for (int i = 0 ; i < spamFieldsToCheck.length ; i++) {
-          spamFields.append(getVal(fv, spamFieldsToCheck[i]));
+          spamFields.append(getVal(formValues, spamFieldsToCheck[i]));
             }
 
       if (spamFields.toString().toLowerCase().indexOf("porn") != -1) {
@@ -425,13 +425,13 @@ System.out.println("*** trying redirect?");
 
 
       String locCode = "";
-      System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
-            if ((fv.get("locationID") != null) && !fv.get("locationID").toString().equals("")) {
-                locCode = fv.get("locationID").toString();
+      System.out.println(" **** here is what i think locationID is: " + formValues.get("locationID"));
+            if ((formValues.get("locationID") != null) && !formValues.get("locationID").toString().equals("")) {
+                locCode = formValues.get("locationID").toString();
             }
         //see if the location code can be determined and set based on the location String reported
-            else if (fv.get("location") != null) {
-          String locTemp = getVal(fv, "location").toLowerCase();
+            else if (formValues.get("location") != null) {
+          String locTemp = getVal(formValues, "location").toLowerCase();
           Properties props = new Properties();
 
           try {
@@ -451,13 +451,13 @@ System.out.println("*** trying redirect?");
 
       } //end else
         //end location code setter
-        fv.put("locCode", locCode);
+        formValues.put("locCode", locCode);
 
         //TODO this should live somewhere else as constant? (e.g. to build in form as well)
         String[] scarType = new String[]{"None", "Tail (caudal) fin", "1st dorsal fin", "2nd dorsal fin", "Left pectoral fin", "Right pectoral fin", "Head", "Body"};
         int scarNum = -1;
         try {
-            scarNum = Integer.parseInt(getVal(fv, "scars"));
+            scarNum = Integer.parseInt(getVal(formValues, "scars"));
         } catch (NumberFormatException e) {
             scarNum = -1;
         }
@@ -465,7 +465,7 @@ System.out.println("*** trying redirect?");
             scarNum = -1;
         }
         if (scarNum >= 0) {
-            fv.put("scars", scarType[scarNum]);
+            formValues.put("scars", scarType[scarNum]);
         }
 
 
@@ -474,22 +474,22 @@ System.out.println("*** trying redirect?");
             //need some ints for day/month/year/hour (other stuff seems to be strings)
             int day = 0, month = -1, year = 0, hour = 0;
             String minutes="";
-            //try { day = Integer.parseInt(getVal(fv, "day")); } catch (NumberFormatException e) { day = 0; }
-            //try { month = Integer.parseInt(getVal(fv, "month")); } catch (NumberFormatException e) { month = 0; }
-            //try { year = Integer.parseInt(getVal(fv, "year")); } catch (NumberFormatException e) { year = 0; }
+            //try { day = Integer.parseInt(getVal(formValues, "day")); } catch (NumberFormatException e) { day = 0; }
+            //try { month = Integer.parseInt(getVal(formValues, "month")); } catch (NumberFormatException e) { month = 0; }
+            //try { year = Integer.parseInt(getVal(formValues, "year")); } catch (NumberFormatException e) { year = 0; }
 
             //switch to datepicker
 
             LocalDateTime dt = new LocalDateTime();
 
-            if((getVal(fv, "datepicker")!=null)&&(!getVal(fv, "datepicker").trim().equals(""))){
-              //System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
+            if((getVal(formValues, "datepicker")!=null)&&(!getVal(formValues, "datepicker").trim().equals(""))){
+              //System.out.println("Trying to read date: "+getVal(formValues, "datepicker").replaceAll(" ", "T"));
               //boolean badDate=false;
               try{
                 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 
-                LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(getVal(fv, "datepicker").replaceAll(" ", "T")));
-                StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"-");
+                LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(getVal(formValues, "datepicker").replaceAll(" ", "T")));
+                StringTokenizer str=new StringTokenizer(getVal(formValues, "datepicker").replaceAll(" ", "T"),"-");
 
           int numTokens=str.countTokens();
 
@@ -518,7 +518,7 @@ System.out.println("*** trying redirect?");
 
 
           //see if we can get a time and hour, because we do want to support only yyy-MM too
-          StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");
+          StringTokenizer strTime=new StringTokenizer(getVal(formValues, "datepicker").replaceAll(" ", "T"),"T");
           if(strTime.countTokens()>1){
             try { hour=reportedDateTime.getHourOfDay(); } catch (Exception e) { hour=-1; }
             try {minutes=(new Integer(reportedDateTime.getMinuteOfHour()).toString()); } catch (Exception e) {}
@@ -532,7 +532,7 @@ System.out.println("*** trying redirect?");
               catch(Exception e){
                 System.out.println("    An unknown exception occurred during date processing in EncounterForm. The user may have input an improper format.");
                 e.printStackTrace();
-                processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(fv, "datepicker")+"</p>");
+                processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(formValues, "datepicker")+"</p>");
 
               }
          }
@@ -540,8 +540,8 @@ System.out.println("*** trying redirect?");
 
 
             String guess = "no estimate provided";
-            if ((fv.get("guess") != null) && !fv.get("guess").toString().equals("")) {
-                guess = fv.get("guess").toString();
+            if ((formValues.get("guess") != null) && !formValues.get("guess").toString().equals("")) {
+                guess = formValues.get("guess").toString();
             }
 
 
@@ -552,8 +552,8 @@ System.out.println("*** trying redirect?");
       try {
 
               //now we have to break apart genus species
-                if (fv.get("genusSpecies") != null) {
-                  StringTokenizer tokenizer=new StringTokenizer(fv.get("genusSpecies").toString()," ");
+                if (formValues.get("genusSpecies") != null) {
+                  StringTokenizer tokenizer=new StringTokenizer(formValues.get("genusSpecies").toString()," ");
                   if(tokenizer.countTokens()>=2){
 
                         genus = tokenizer.nextToken();
@@ -563,7 +563,7 @@ System.out.println("*** trying redirect?");
 
                   }
               //handle malformed Genus Species formats
-                  else{throw new Exception("The format of the submitted genusSpecies parameter did not have two tokens delimited by a space (e.g., \"Rhincodon typus\"). The submitted value was: "+fv.get("genusSpecies"));}
+                  else{throw new Exception("The format of the submitted genusSpecies parameter did not have two tokens delimited by a space (e.g., \"Rhincodon typus\"). The submitted value was: "+formValues.get("genusSpecies"));}
                 }
 
             } catch (Exception le) {
@@ -573,15 +573,15 @@ System.out.println("*** trying redirect?");
 
 System.out.println("about to do enc()");
 
-            Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"));
+            Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(formValues, "location"));
             boolean llSet = false;
             //Encounter enc = new Encounter();
             //System.out.println("Submission detected date: "+enc.getDate());
 
             String encID = enc.generateEncounterNumber();
-            if ((fv.get("catalogNumber") != null)&&(!fv.get("catalogNumber").toString().trim().equals(""))) {
-              if((!myShepherd.isEncounter(fv.get("catalogNumber").toString()))){
-                encID=fv.get("catalogNumber").toString().trim();
+            if ((formValues.get("catalogNumber") != null)&&(!formValues.get("catalogNumber").toString().trim().equals(""))) {
+              if((!myShepherd.isEncounter(formValues.get("catalogNumber").toString()))){
+                encID=formValues.get("catalogNumber").toString().trim();
               }
             }
             enc.setEncounterNumber(encID);
@@ -617,8 +617,8 @@ System.out.println("enc ?= " + enc.toString());
             }
 
 
-            if (fv.get("mediaAssetSetId") != null) {
-                MediaAssetSet maSet = ((MediaAssetSet) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAssetSet.class, fv.get("mediaAssetSetId")), true)));
+            if (formValues.get("mediaAssetSetId") != null) {
+                MediaAssetSet maSet = ((MediaAssetSet) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAssetSet.class, formValues.get("mediaAssetSetId")), true)));
                 if ((maSet != null) && (maSet.getMediaAssets() != null) && (maSet.getMediaAssets().size() > 0)) {
                     int num = maSet.getMediaAssets().size();
                     for (MediaAsset ma : maSet.getMediaAssets()) {
@@ -636,12 +636,12 @@ System.out.println("enc ?= " + enc.toString());
 
 
             //User management
-            String subN=getVal(fv, "submitterName");
-            String subE=getVal(fv, "submitterEmail");
+            String subN=getVal(formValues, "submitterName");
+            String subE=getVal(formValues, "submitterEmail");
             subE = subE.toLowerCase();
-            String subO=getVal(fv, "submitterOrganization");
+            String subO=getVal(formValues, "submitterOrganization");
             if (Util.stringExists(subO)) enc.setSubmitterOrganization(subO);
-            String subP=getVal(fv, "submitterProject");
+            String subP=getVal(formValues, "submitterProject");
             if (Util.stringExists(subP)) enc.setSubmitterOrganization(subP);
             //User user=null;
             List<User> submitters=new ArrayList<User>();
@@ -673,8 +673,8 @@ System.out.println("enc ?= " + enc.toString());
             //end submitter-user processing
 
             //User management - photographer processing
-            String photoN=getVal(fv, "photographerName");
-            String photoE=getVal(fv, "photographerEmail");
+            String photoN=getVal(formValues, "photographerName");
+            String photoE=getVal(formValues, "photographerEmail");
             photoE = photoE.toLowerCase();
             List<User> photographers=new ArrayList<User>();
             if((photoE!=null)&&(!photoE.trim().equals(""))) {
@@ -703,7 +703,7 @@ System.out.println("enc ?= " + enc.toString());
 
 
             //User management - informOthers processing
-            String othersString=getVal(fv, "informothers");
+            String othersString=getVal(formValues, "informothers");
             othersString = othersString.toLowerCase();
             List<User> informOthers=new ArrayList<User>();
             if((othersString!=null)&&(!othersString.trim().equals(""))) {
@@ -759,32 +759,32 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
 
       //now let's add our encounter to the database
 
-      enc.setComments(getVal(fv, "comments").replaceAll("\n", "<br>"));
-      if (fv.get("releaseDate") != null && fv.get("releaseDate").toString().length() > 0) {
+      enc.setComments(getVal(formValues, "comments").replaceAll("\n", "<br>"));
+      if (formValues.get("releaseDate") != null && formValues.get("releaseDate").toString().length() > 0) {
         String dateFormatPattern = CommonConfiguration.getProperty("releaseDateFormat",context);
         try {
           SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatPattern);
-          enc.setReleaseDate(simpleDateFormat.parse(fv.get("releaseDate").toString()).getTime());
+          enc.setReleaseDate(simpleDateFormat.parse(formValues.get("releaseDate").toString()).getTime());
         } catch (Exception e) {
-          enc.addComments("<p>Reported release date was problematic: " + fv.get("releaseDate") + "</p>");
+          enc.addComments("<p>Reported release date was problematic: " + formValues.get("releaseDate") + "</p>");
         }
       }
-      if (fv.get("behavior") != null && fv.get("behavior").toString().length() > 0) {
-              enc.setBehavior(fv.get("behavior").toString());
+      if (formValues.get("behavior") != null && formValues.get("behavior").toString().length() > 0) {
+              enc.setBehavior(formValues.get("behavior").toString());
           }
-      if (fv.get("alternateID") != null && fv.get("alternateID").toString().length() > 0) {
-        enc.setAlternateID(fv.get("alternateID").toString());
+      if (formValues.get("alternateID") != null && formValues.get("alternateID").toString().length() > 0) {
+        enc.setAlternateID(formValues.get("alternateID").toString());
       }
-      if (fv.get("lifeStage") != null && fv.get("lifeStage").toString().length() > 0) {
-              enc.setLifeStage(fv.get("lifeStage").toString());
+      if (formValues.get("lifeStage") != null && formValues.get("lifeStage").toString().length() > 0) {
+              enc.setLifeStage(formValues.get("lifeStage").toString());
           }
 
 
-      if (fv.get("flukeType") != null && fv.get("flukeType").toString().length() > 0) {
+      if (formValues.get("flukeType") != null && formValues.get("flukeType").toString().length() > 0) {
                     System.out.println("        ENCOUNTERFORM:");
                     System.out.println("        ENCOUNTERFORM:");
                     System.out.println("        ENCOUNTERFORM:");
-            String kwName = fv.get("flukeType").toString();
+            String kwName = formValues.get("flukeType").toString();
             Keyword kw = myShepherd.getOrCreateKeyword(kwName);
             for (Annotation ann: enc.getAnnotations()) {
                 MediaAsset ma = ann.getMediaAsset();
@@ -802,8 +802,8 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
 
 
 
-      if (fv.get("manualID") != null && fv.get("manualID").toString().length() > 0) {
-            String indID = fv.get("manualID").toString();
+      if (formValues.get("manualID") != null && formValues.get("manualID").toString().length() > 0) {
+            String indID = formValues.get("manualID").toString();
             MarkedIndividual ind = myShepherd.getMarkedIndividualQuiet(indID);
             if (ind==null) {
                 ind = new MarkedIndividual(enc);
@@ -822,8 +822,8 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
 
 
 
-      if (fv.get("occurrenceID") != null && fv.get("occurrenceID").toString().length() > 0) {
-            String occID = fv.get("occurrenceID").toString();
+      if (formValues.get("occurrenceID") != null && formValues.get("occurrenceID").toString().length() > 0) {
+            String occID = formValues.get("occurrenceID").toString();
             enc.setOccurrenceID(occID);
             Occurrence occ = myShepherd.getOccurrence(occID);
             if (occ==null) {
@@ -839,136 +839,136 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
 
 
 
-      List<MetalTag> metalTags = getMetalTags(fv);
+      List<MetalTag> metalTags = getMetalTags(formValues);
       for (MetalTag metalTag : metalTags) {
         enc.addMetalTag(metalTag);
       }
 
-      List<Measurement> measurements = getMeasurements(fv, encID, context);
+      List<Measurement> measurements = getMeasurements(formValues, encID, context);
       for (Measurement measurement : measurements) {
         enc.setMeasurement(measurement, myShepherd);
       }
 
 
-      enc.setAcousticTag(getAcousticTag(fv));
-      enc.setSatelliteTag(getSatelliteTag(fv));
-      enc.setSex(getVal(fv, "sex"));
-      enc.setLivingStatus(getVal(fv, "livingStatus"));
+      enc.setAcousticTag(getAcousticTag(formValues));
+      enc.setSatelliteTag(getSatelliteTag(formValues));
+      enc.setSex(getVal(formValues, "sex"));
+      enc.setLivingStatus(getVal(formValues, "livingStatus"));
 
 
-      if(fv.get("scars")!=null){
-        enc.setDistinguishingScar(fv.get("scars").toString());
+      if(formValues.get("scars")!=null){
+        enc.setDistinguishingScar(formValues.get("scars").toString());
       }
 
 
       int sizePeriod=0;
-      if ((fv.get("measureUnits") != null) && fv.get("measureUnits").toString().equals("Feet")) {
+      if ((formValues.get("measureUnits") != null) && formValues.get("measureUnits").toString().equals("Feet")) {
 
-        if((fv.get("depth") != null) && !fv.get("depth").toString().equals("")){
+        if((formValues.get("depth") != null) && !formValues.get("depth").toString().equals("")){
             try{
-                double tempDouble=(new Double(fv.get("depth").toString())).doubleValue()/3.3;
+                double tempDouble=(new Double(formValues.get("depth").toString())).doubleValue()/3.3;
                 String truncDepth = (new Double(tempDouble)).toString();
                 sizePeriod = truncDepth.indexOf(".");
                 truncDepth = truncDepth.substring(0, sizePeriod + 2);
-                fv.put("depth", (new Double(truncDepth)).toString());
+                formValues.put("depth", (new Double(truncDepth)).toString());
             }
             catch(java.lang.NumberFormatException nfe){
-                enc.addComments("<p>Reported depth was problematic: " + fv.get("depth").toString() + "</p>");
-                fv.put("depth", "");
+                enc.addComments("<p>Reported depth was problematic: " + formValues.get("depth").toString() + "</p>");
+                formValues.put("depth", "");
             }
             catch(NullPointerException npe){
-                fv.put("depth", "");
+                formValues.put("depth", "");
             }
         }
-System.out.println("depth --> " + fv.get("depth").toString());
+System.out.println("depth --> " + formValues.get("depth").toString());
 
-        if ((fv.get("elevation") != null) && !fv.get("elevation").toString().equals("")) {
+        if ((formValues.get("elevation") != null) && !formValues.get("elevation").toString().equals("")) {
             try{
-                double tempDouble=(new Double(fv.get("elevation").toString())).doubleValue()/3.3;
+                double tempDouble=(new Double(formValues.get("elevation").toString())).doubleValue()/3.3;
                 String truncElev = (new Double(tempDouble)).toString();
                 //String truncElev = ((new Double(elevation)) / 3.3).toString();
                 sizePeriod = truncElev.indexOf(".");
                 truncElev = truncElev.substring(0, sizePeriod + 2);
-                fv.put("elevation", (new Double(truncElev)).toString());
+                formValues.put("elevation", (new Double(truncElev)).toString());
             }
             catch(java.lang.NumberFormatException nfe){
-                enc.addComments("<p>Reported elevation was problematic: " + fv.get("elevation").toString() + "</p>");
-                fv.put("elevation", "");
+                enc.addComments("<p>Reported elevation was problematic: " + formValues.get("elevation").toString() + "</p>");
+                formValues.put("elevation", "");
             }
             catch(NullPointerException npe){
-                fv.put("elevation", "");
+                formValues.put("elevation", "");
             }
         }
 
-        if ((fv.get("size") != null) && !fv.get("size").toString().equals("")) {
+        if ((formValues.get("size") != null) && !formValues.get("size").toString().equals("")) {
 
             try{
-                    double tempDouble=(new Double(fv.get("size").toString())).doubleValue()/3.3;
+                    double tempDouble=(new Double(formValues.get("size").toString())).doubleValue()/3.3;
                     String truncSize = (new Double(tempDouble)).toString();
                     //String truncSize = ((new Double(size)) / 3.3).toString();
                     sizePeriod = truncSize.indexOf(".");
                     truncSize = truncSize.substring(0, sizePeriod + 2);
-                    fv.put("size", (new Double(truncSize)).toString());
+                    formValues.put("size", (new Double(truncSize)).toString());
             }
             catch(java.lang.NumberFormatException nfe){
 
-                enc.addComments("<p>Reported size was problematic: " + fv.get("size").toString() + "</p>");
-                fv.put("size", "");
+                enc.addComments("<p>Reported size was problematic: " + formValues.get("size").toString() + "</p>");
+                formValues.put("size", "");
             }
             catch(NullPointerException npe){
-                fv.put("size", "");
+                formValues.put("size", "");
             }
         }
       }  //measureUnits
 
-        if ((fv.get("size") != null) && !fv.get("size").toString().equals("")) {
+        if ((formValues.get("size") != null) && !formValues.get("size").toString().equals("")) {
             try {
-                enc.setSize(new Double(fv.get("size").toString()));
+                enc.setSize(new Double(formValues.get("size").toString()));
             }
             catch(java.lang.NumberFormatException nfe){
-                enc.addComments("<p>Reported size was problematic: " + fv.get("size").toString() + "</p>");
-                fv.put("size", "");
+                enc.addComments("<p>Reported size was problematic: " + formValues.get("size").toString() + "</p>");
+                formValues.put("size", "");
             }
             catch(NullPointerException npe){
-                fv.put("size", "");
+                formValues.put("size", "");
             }
          }
 
 
-        if ((fv.get("elevation") != null) && !fv.get("elevation").toString().equals("")) {
+        if ((formValues.get("elevation") != null) && !formValues.get("elevation").toString().equals("")) {
             try {
-                enc.setMaximumElevationInMeters(new Double(fv.get("elevation").toString()));
+                enc.setMaximumElevationInMeters(new Double(formValues.get("elevation").toString()));
             }
             catch(java.lang.NumberFormatException nfe){
-                enc.addComments("<p>Reported elevation was problematic: " + fv.get("elevation").toString() + "</p>");
-                fv.put("elevatoin", "");
+                enc.addComments("<p>Reported elevation was problematic: " + formValues.get("elevation").toString() + "</p>");
+                formValues.put("elevatoin", "");
             }
             catch(NullPointerException npe){
-                fv.put("elevation", "");
+                formValues.put("elevation", "");
             }
          }
 
-        if ((fv.get("depth") != null) && !fv.get("depth").toString().equals("")) {
+        if ((formValues.get("depth") != null) && !formValues.get("depth").toString().equals("")) {
             try {
-                enc.setDepth(new Double(fv.get("depth").toString()));
+                enc.setDepth(new Double(formValues.get("depth").toString()));
             }
             catch(java.lang.NumberFormatException nfe){
-                enc.addComments("<p>Reported depth was problematic: " + fv.get("depth").toString() + "</p>");
-                fv.put("depth", "");
+                enc.addComments("<p>Reported depth was problematic: " + formValues.get("depth").toString() + "</p>");
+                formValues.put("depth", "");
             }
             catch(NullPointerException npe){
-                fv.put("depth", "");
+                formValues.put("depth", "");
             }
          }
 
 
         //let's handle the GPS
-        if ((fv.get("lat") != null) && (fv.get("longitude") != null) && !fv.get("lat").toString().equals("") && !fv.get("longitude").toString().equals("")) {
+        if ((formValues.get("lat") != null) && (formValues.get("longitude") != null) && !formValues.get("lat").toString().equals("") && !formValues.get("longitude").toString().equals("")) {
         //enc.setGPSLatitude(lat + "&deg; " + gpsLatitudeMinutes + "\' " + gpsLatitudeSeconds + "\" " + latDirection);
 
 
         try {
-          double degrees = (new Double(fv.get("lat").toString())).doubleValue();
+          double degrees = (new Double(formValues.get("lat").toString())).doubleValue();
           double position = degrees;
           /*
           if (!gpsLatitudeMinutes.equals("")) {
@@ -984,7 +984,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
           }*/
           enc.setDWCDecimalLatitude(position);
 
-          double degrees2 = (new Double(fv.get("longitude").toString())).doubleValue();
+          double degrees2 = (new Double(formValues.get("longitude").toString())).doubleValue();
           double position2 = degrees2;
           enc.setDWCDecimalLongitude(position2);
             llSet = true;
@@ -999,14 +999,14 @@ System.out.println("depth --> " + fv.get("depth").toString());
       }
 
       //enc.setMeasureUnits("Meters");
-     // enc.setSubmitterPhone(getVal(fv, "submitterPhone"));
-      //enc.setSubmitterAddress(getVal(fv, "submitterAddress"));
+     // enc.setSubmitterPhone(getVal(formValues, "submitterPhone"));
+      //enc.setSubmitterAddress(getVal(formValues, "submitterAddress"));
 
 
-     // enc.setPhotographerPhone(getVal(fv, "photographerPhone"));
-     // enc.setPhotographerAddress(getVal(fv, "photographerAddress"));
-     // enc.setPhotographerName(getVal(fv, "photographerName"));
-     // enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
+     // enc.setPhotographerPhone(getVal(formValues, "photographerPhone"));
+     // enc.setPhotographerAddress(getVal(formValues, "photographerAddress"));
+     // enc.setPhotographerName(getVal(formValues, "photographerName"));
+     // enc.setPhotographerEmail(getVal(formValues, "photographerEmail"));
       enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + ServletUtilities.getRemoteHost(request) + "</p>");
       //enc.approved = false;
 
@@ -1021,71 +1021,71 @@ System.out.println("depth --> " + fv.get("depth").toString());
       } else {
         enc.setSubmitterID("N/A");
       }
-      if (!getVal(fv, "locCode").equals("")) {
+      if (!getVal(formValues, "locCode").equals("")) {
         enc.setLocationCode(locCode);
       }
-      if (!getVal(fv, "country").equals("")) {
-        enc.setCountry(getVal(fv, "country"));
+      if (!getVal(formValues, "country").equals("")) {
+        enc.setCountry(getVal(formValues, "country"));
       }
 
 
       // xxxxxxx
       //add research team for GAq
-      if (!getVal(fv, "researchTeam").equals("")) {
-        enc.setDynamicProperty("Research Team", (getVal(fv, "researchTeam")));
+      if (!getVal(formValues, "researchTeam").equals("")) {
+        enc.setDynamicProperty("Research Team", (getVal(formValues, "researchTeam")));
       }
-      if (!getVal(fv, "vessel").equals("")) {
-        enc.setDynamicProperty("Vessel", (getVal(fv, "vessel")));
+      if (!getVal(formValues, "vessel").equals("")) {
+        enc.setDynamicProperty("Vessel", (getVal(formValues, "vessel")));
       }
-      if (!getVal(fv, "conditions").equals("")) {
-        enc.setDynamicProperty("Conditions", (getVal(fv, "conditions")));
-      }
-
-      if (!getVal(fv, "camera").equals("")) {
-        enc.setDynamicProperty("Camera", (getVal(fv, "camera")));
-      }
-      if (!getVal(fv, "lens").equals("")) {
-        enc.setDynamicProperty("Lens", (getVal(fv, "lens")));
-      }
-      if (!getVal(fv, "card").equals("")) {
-        enc.setDynamicProperty("Card", (getVal(fv, "card")));
-      }
-      if (!getVal(fv, "folder").equals("")) {
-        enc.setDynamicProperty("Folder", (getVal(fv, "folder")));
+      if (!getVal(formValues, "conditions").equals("")) {
+        enc.setDynamicProperty("Conditions", (getVal(formValues, "conditions")));
       }
 
-      if (!getVal(fv, "numberOfBoats").equals("")) {
-        enc.setDynamicProperty("Number of boats", (getVal(fv, "numberOfBoats")));
+      if (!getVal(formValues, "camera").equals("")) {
+        enc.setDynamicProperty("Camera", (getVal(formValues, "camera")));
+      }
+      if (!getVal(formValues, "lens").equals("")) {
+        enc.setDynamicProperty("Lens", (getVal(formValues, "lens")));
+      }
+      if (!getVal(formValues, "card").equals("")) {
+        enc.setDynamicProperty("Card", (getVal(formValues, "card")));
+      }
+      if (!getVal(formValues, "folder").equals("")) {
+        enc.setDynamicProperty("Folder", (getVal(formValues, "folder")));
       }
 
-      if (!getVal(fv, "startTime").equals("")) {
-        enc.setDynamicProperty("Start Time", (getVal(fv, "startTime")));
+      if (!getVal(formValues, "numberOfBoats").equals("")) {
+        enc.setDynamicProperty("Number of boats", (getVal(formValues, "numberOfBoats")));
       }
 
-      if (!getVal(fv, "endTime").equals("")) {
-        enc.setDynamicProperty("End Time", (getVal(fv, "endTime")));
+      if (!getVal(formValues, "startTime").equals("")) {
+        enc.setDynamicProperty("Start Time", (getVal(formValues, "startTime")));
+      }
+
+      if (!getVal(formValues, "endTime").equals("")) {
+        enc.setDynamicProperty("End Time", (getVal(formValues, "endTime")));
       }
 
 
-      if (!getVal(fv, "endLongitude").equals("")) {
-        enc.setDynamicProperty("End Longitude", (getVal(fv, "endLongitude")));
+      if (!getVal(formValues, "endLongitude").equals("")) {
+        enc.setDynamicProperty("End Longitude", (getVal(formValues, "endLongitude")));
       }
-      if (!getVal(fv, "endLatitude").equals("")) {
-        enc.setDynamicProperty("End Latitude", (getVal(fv, "endLatitude")));
-      }
-
-      if (!getVal(fv, "startLongitude").equals("")) {
-        enc.setDynamicProperty("Start Longitude", (getVal(fv, "startLongitude")));
-      }
-      if (!getVal(fv, "startLatitude").equals("")) {
-        enc.setDynamicProperty("Start Latitude", (getVal(fv, "startLatitude")));
+      if (!getVal(formValues, "endLatitude").equals("")) {
+        enc.setDynamicProperty("End Latitude", (getVal(formValues, "endLatitude")));
       }
 
-      if (!getVal(fv, "beginWaypoint").equals("")) {
-        enc.setDynamicProperty("Begin Waypoint", (getVal(fv, "beginWaypoint")));
+      if (!getVal(formValues, "startLongitude").equals("")) {
+        enc.setDynamicProperty("Start Longitude", (getVal(formValues, "startLongitude")));
       }
-      if (!getVal(fv, "endWaypoint").equals("")) {
-        enc.setDynamicProperty("End Waypoint", (getVal(fv, "endWaypoint")));
+      if (!getVal(formValues, "startLatitude").equals("")) {
+        enc.setDynamicProperty("Start Latitude", (getVal(formValues, "startLatitude")));
+      }
+
+      if (!getVal(formValues, "beginWaypoint").equals("")) {
+        enc.setDynamicProperty("Begin Waypoint", (getVal(formValues, "beginWaypoint")));
+      }
+      if (!getVal(formValues, "endWaypoint").equals("")) {
+        enc.setDynamicProperty("End Waypoint", (getVal(formValues, "endWaypoint")));
       }
 
 
