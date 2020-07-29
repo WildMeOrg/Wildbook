@@ -5,58 +5,13 @@
 <%@ page import="java.util.List, java.util.Map, org.datanucleus.api.rest.orgjson.JSONObject,java.util.Collections" %>
 <%@ page import="java.util.Properties, java.io.IOException" %>
 <%@ page import="java.util.Arrays" %>
+<%@ page import="org.ecocean.SearchUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%!
 // here I'll define some methods that will end up in classEditTemplate
 
-public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
-  // note how fieldName is variously manipulated in this method to make element ids and contents
-  String displayName = getDisplayName(fieldName, nameLookup);
-  out.println("<tr id=\""+fieldName+"Row\">");
-  out.println("  <td id=\""+fieldName+"Title\"><br /><strong>"+displayName+"</strong>");
-  out.println("  <input name=\""+fieldName+"\" type=\"text\" size=\"60\"/> <br> </td>");
-  out.println("</tr>");
 
-}
-public static void printStringFieldSearchRow(String fieldName, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
-  // note how fieldName is variously manipulated in this method to make element ids and contents
-  String displayName = getDisplayName(fieldName, nameLookup);
-  out.println("<tr id=\""+fieldName+"Row\">");
-  out.println("  <td id=\""+fieldName+"Title\">"+displayName+"</td>");
-  out.println("  <td> <select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
-  out.println("    <option value=\"None\" selected=\"selected\"></option>");
-  for (String val: valueOptions) {
-    out.println("    <option value=\""+val+"\">"+val+"</option>");
-  }
-  out.println("  </select></td>");
-  out.println("</tr>");
-
-}
-
-public static void printStringFieldSearchRowBoldTitle(String fieldName, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
-  // note how fieldName is variously manipulated in this method to make element ids and contents
-  String displayName = getDisplayName(fieldName, nameLookup);
-  out.println("<tr id=\""+fieldName+"Row\">");
-  out.println("<td id=\""+fieldName+"Title\"><br/><strong>"+displayName+"</strong><br/>");
-  out.println("<select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
-  out.println("<option value=\"None\" selected=\"selected\"></option>");
-  for (String val: valueOptions) {
-    out.println("<option value=\""+val+"\">"+val+"</option>");
-  }
-  out.println("</select></td>");
-  out.println("</tr>");
-
-}
-
-public static String getDisplayName(String fieldName, Properties nameLookup) throws IOException, IllegalAccessException {
-  // Tries to lookup a translation and defaults to some string manipulation
-  String defaultName = ClassEditTemplate.prettyFieldName(fieldName);
-  String ans = nameLookup.getProperty(fieldName, ClassEditTemplate.capitalizedPrettyFieldName(fieldName));
-  if (Util.stringExists(ans)) return ans;
-  System.out.println("getDisplayName found no property for "+fieldName+" in "+nameLookup+". Falling back on fieldName");
-  return fieldName;
-}
 %>
 
 
@@ -1513,19 +1468,9 @@ else {
   </td>
 </tr>
 
-<% printStringFieldSearchRow("submitterProject", out, encprops); %>
+<% SearchUtilities.printStringFieldSearchRow("submitterProject", out, encprops); %>
 <%
-  User usr = AccessControl.getUser(request, myShepherd);
-  if(usr != null){
-    List<Organization> orgsUserBelongsTo = usr.getOrganizations();
-    ArrayList<String> orgOptions = new ArrayList<String>();
-    for (int i = 0; i < orgsUserBelongsTo.size(); i++) { //TODO DRY up
-      Organization currentOrg = orgsUserBelongsTo.get(i);
-      String currentOrgName = currentOrg.getName();
-      orgOptions.add(currentOrgName);
-    }
-    printStringFieldSearchRowBoldTitle("submitterOrganization", orgOptions, out, encprops);
-  }
+  SearchUtilities.setUpOrgDropdown(false, encprops, out, request, myShepherd);
 %>
 
 <tr>
