@@ -180,7 +180,7 @@
 				{ "name":"Noonu", "id":"Noonu", "locationID":[] },
 				{ "name":"North Male", "id":"North Male", "locationID":[] },
 				{ "name":"Raa", "id":"Raa", "locationID":[] },
-				{ "name":"South Male", "id":"Male", "locationID":[] },
+				{ "name":"South Male", "id":"South Male", "locationID":[] },
 				{ "name":"Shaviyani", "id":"Shaviyani", "locationID":[] },
 				{ "name":"Thaa", "id":"Thaa", "locationID":[] },
 				{ "name":"Vaavu", "id":"Vaavu", "locationID":[] }
