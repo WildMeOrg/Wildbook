@@ -6,6 +6,18 @@
 	<package name="org.ecocean.api">
 
 <!-- non external flavors -->
+		<class name="ApiCustomFields" identity-type="application">
+			<inheritance strategy="subclass-table"/>
+			<field name="id" primary-key="true">
+				<column length="100" />
+			</field>
+			<field name="customFieldValues" persistence-modifier="persistent" default-fetch-group="true">
+				<collection element-type="org.ecocean.customfield.CustomFieldValue" dependent-element="true" />
+				<join />
+			</field>
+		</class>
+
+
 		<class name="ApiBase" identity-type="application">
 			<inheritance strategy="complete-table"/>
 			<field name="id" primary-key="true">

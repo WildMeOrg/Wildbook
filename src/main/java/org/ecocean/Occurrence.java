@@ -35,13 +35,13 @@ import org.ecocean.media.AssetStoreType;
  * @author Jason Holmberg
  *
  */
-public class Occurrence implements java.io.Serializable {
+public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.io.Serializable {
 
   /**
    *
    */
   private static final long serialVersionUID = -7545783883959073726L;
-  private String occurrenceID;
+  //private String occurrenceID;
   private ArrayList<Encounter> encounters;
   private List<MediaAsset> assets;
   private ArrayList<Observation> observations = new ArrayList<Observation>();
@@ -123,7 +123,7 @@ public class Occurrence implements java.io.Serializable {
    * @param enc The first encounter to add to this occurrence.
    */
   public Occurrence(String occurrenceID, Encounter enc){
-    this.occurrenceID = occurrenceID;
+    this.setId(occurrenceID);
     encounters=new ArrayList<Encounter>();
     encounters.add(enc);
     assets = new ArrayList<MediaAsset>();
@@ -136,8 +136,7 @@ public class Occurrence implements java.io.Serializable {
   }
 
   public Occurrence(List<MediaAsset> assets, Shepherd myShepherd){
-    occurrenceID = Util.generateUUID();
-
+    this.setId(Util.generateUUID());
     this.encounters = new ArrayList<Encounter>();
     this.assets = assets;
     for (MediaAsset ma : assets) {
@@ -148,12 +147,12 @@ public class Occurrence implements java.io.Serializable {
     setDateTimeCreated();
   }
   public Occurrence(String occurrenceID){
-    this.occurrenceID=occurrenceID;
+    this.setId(occurrenceID);
     encounters=new ArrayList<Encounter>();
     assets = new ArrayList<MediaAsset>();
     setDWCDateLastModified();
     setDateTimeCreated();
-    System.out.println("Created new occurrence with only ID"+this.occurrenceID);
+    System.out.println("Created new occurrence with only ID" + occurrenceID);
   }
 
 
@@ -365,10 +364,6 @@ public class Occurrence implements java.io.Serializable {
     return names;
   }
 
-    public void setId(String id) {
-        occurrenceID = id;
-    }
-
   public static String getWebUrl(String occId, HttpServletRequest req) {
     return (CommonConfiguration.getServerURL(req)+"/occurrence.jsp?number="+occId);
   }
@@ -376,15 +371,12 @@ public class Occurrence implements java.io.Serializable {
     return getWebUrl(getOccurrenceID(), req);
   }
   
-    public String getId() {
-        return occurrenceID;
-    }
   public String getOccurrenceID(){
-    return occurrenceID;
+    return this.getId();
   }
 
   public void setOccurrenceID(String id){
-    occurrenceID = id;
+    this.setId(id);
   }
   
   public Integer getIndividualCount(){return individualCount;}
@@ -822,7 +814,7 @@ public class Occurrence implements java.io.Serializable {
 
     public String toString() {
         return new ToStringBuilder(this)
-                .append("id", occurrenceID)
+                .append("id", this.getId())
                 .append("fieldStudySite",fieldStudySite)
                 .append("fieldSurveyCode",fieldSurveyCode)
                 .append("sightingPlatform",sightingPlatform)
