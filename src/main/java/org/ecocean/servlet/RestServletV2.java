@@ -26,6 +26,7 @@ import org.ecocean.Util;
 import org.ecocean.SystemLog;
 import org.ecocean.Occurrence;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.customfield.CustomFieldDefinition;
 import org.ecocean.User;
 import org.ecocean.Role;
 import org.ecocean.Organization;
@@ -409,8 +410,18 @@ rtn.put("_payload", payload);
         try {
             for (Object k : payload.keySet()) {
                 String key = (String)k;
-                if (key.equals("foo")) throw new org.ecocean.DataDefinitionException("fake foo blah");
-                Configuration conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
+                Configuration conf = null;
+                if (key.startsWith("site.custom.customFields.")) {
+                    String cname = key.substring(25);
+                    JSONObject defn = payload.optJSONObject(key);
+                    if (defn == null) throw new IOException(key + " was not passed valid JSON object");
+                    defn.put("className", "org.ecocean." + cname);
+                    CustomFieldDefinition.updateCustomFieldDefinition(myShepherd, defn);  //throws Exception if badness
+                    //since this was added, we want to set the conf using *all cfds* for this key:
+                    conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cname));
+                } else {
+                    conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
+                }
                 updatedConfs.add(conf);
                 _log(instanceId, ">>>> SET key=" + key + " <= " + payload.get(key) + " => " + conf);
                 rtn.put("success", true);
