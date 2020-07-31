@@ -4,6 +4,7 @@ import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.DataDefinition;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import java.util.List;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -103,6 +104,22 @@ public class CustomFieldDefinition implements java.io.Serializable {
     public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
         if (id == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two users with no uuid equals! :/
         return id.hashCode();
+    }
+
+    public static JSONObject getDefinitionsAsJSONObject(Shepherd myShepherd, String className) throws CustomFieldException {
+        if (!validClassName(className)) throw new CustomFieldException("getDefinitionsAsJSONObject() passed invalid className=" + className);
+        List<CustomFieldDefinition> all = myShepherd.getCustomFieldDefinitionsForClassName(className);
+        JSONObject rtn = new JSONObject();
+        JSONArray defns = new JSONArray();
+        if (Util.collectionIsEmptyOrNull(all)) {
+            rtn.put("_message", "no definitions");
+        } else {
+            for (CustomFieldDefinition cfd : all) {
+                defns.put(cfd.toJSONObject());
+            }
+        }
+        rtn.put("definitions", defns);
+        return rtn;
     }
 
     public JSONObject toJSONObject() {
