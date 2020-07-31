@@ -26,6 +26,7 @@ import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
+import org.ecocean.customfield.CustomFieldDefinition;
 import org.ecocean.ia.Task;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.movement.Path;
@@ -3931,6 +3932,19 @@ public class Shepherd {
     return num;
   }
 
+
+    public List<CustomFieldDefinition> getAllCustomFieldDefinitions() {
+        try {
+            Query q = pm.newQuery("SELECT FROM org.ecocean.customfield.CustomFieldDefinition");
+            Collection c = (Collection)q.execute();
+            List<CustomFieldDefinition> all = new ArrayList<CustomFieldDefinition>(c);
+            q.closeAll();
+            return all;
+        } catch (Exception x) {
+            x.printStackTrace();
+            return null;
+        }
+    }
 
   public List<SinglePhotoVideo> getThumbnails(Shepherd myShepherd,HttpServletRequest request, ArrayList<String> encList, int startNum, int endNum, String[] keywords) {
     ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
