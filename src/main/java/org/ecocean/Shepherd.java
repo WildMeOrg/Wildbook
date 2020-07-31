@@ -3945,6 +3945,22 @@ public class Shepherd {
             return null;
         }
     }
+    public List<CustomFieldDefinition> getCustomFieldDefinitionsForClassName(String className) {
+        return getCustomFieldDefinitionsForClassName(className, "name");
+    }
+    public List<CustomFieldDefinition> getCustomFieldDefinitionsForClassName(String className, String ordering) {
+        try {
+            Query q = pm.newQuery("SELECT FROM org.ecocean.customfield.CustomFieldDefinition WHERE this.className == cn PARAMETERS String cn");
+            q.setOrdering(ordering);
+            Collection c = (Collection)q.execute(className);
+            List<CustomFieldDefinition> all = new ArrayList<CustomFieldDefinition>(c);
+            q.closeAll();
+            return all;
+        } catch (Exception x) {
+            x.printStackTrace();
+            return null;
+        }
+    }
 
   public List<SinglePhotoVideo> getThumbnails(Shepherd myShepherd,HttpServletRequest request, ArrayList<String> encList, int startNum, int endNum, String[] keywords) {
     ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
