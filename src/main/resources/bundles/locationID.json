@@ -18,7 +18,25 @@
 
 { "name":"SA-Wool Bay", "id":"SA-Wool Bay", "locationID":[] },
 
+{ "name":"SA-Adelaide", "id":"SA-Adelaide", "locationID":[] },
+
+{ "name":"SA-Goolwa Beach", "id":"SA-Goolwa Beach", "locationID":[] },
+
+{ "name":"SA-Streaky Bay", "id":"SA-Streaky Bay", "locationID":[] },
+
+{ "name":"SA-Coffin Bay", "id":"SA-Coffin Bay", "locationID":[] },
+
+{ "name":"SA-Reevesby Island", "id":"SA-Reevesby Island", "locationID":[] },
+
+{ "name":"SA-Edithburgh", "id":"SA-Edithburgh", "locationID":[] },
+
+{ "name":"SA-Pearson Island", "id":"SA-Pearson Island", "locationID":[] },
+
+{ "name":"SA-Carrickalinga", "id":"SA-Carrickalinga", "locationID":[] },
+
 { "name":"TAS-Bicheno", "id":"TAS-Bicheno", "locationID":[] },
+
+{ "name":"TAS-Hobart-Blackmans Bay", "id":"TAS-Hobart-Blackmans Bay", "locationID":[] },
 
 { "name":"VIC-Flinders", "id":"VIC-Flinders", "locationID":[] },
 
@@ -26,11 +44,15 @@
 
 { "name":"VIC-Portsea", "id":"VIC-Portsea", "locationID":[] },
 
+{ "name":"VIC-Blairgowrie", "id":"VIC-Blairgowrie", "locationID":[] },
+
 { "name":"WA-Albany-Little Beach", "id":"WA-Albany-Little Beach", "locationID":[] },
 
 { "name":"WA-Albany-Misery Beach", "id":"WA-Albany-Misery Beach", "locationID":[] },
 
 { "name":"WA-Albany-Mistaken Island", "id":"WA-Albany-Mistaken Island", "locationID":[] },
+
+{ "name":"WA-Albany: Shelter Island", "id":"WA-Albany: Shelter Island", "locationID":[] },
 
 { "name":"WA-Bremer Bay", "id":"WA-Bremer Bay", "locationID":[] },
 
@@ -40,7 +62,17 @@
 
 { "name":"WA-Esperance-Tanker Jetty", "id":"WA-Esperance-Tanker Jetty", "locationID":[] },
 
-{ "name":"WA-Perth-Cottesloe", "id":"WA-Perth-Cottesloe", "locationID":[] }
+{ "name":"WA-Perth-Cottesloe", "id":"WA-Perth-Cottesloe", "locationID":[] },
+
+{ "name":"WA-Perth-North Mole", "id":"WA-Perth-North Mole", "locationID":[] },
+
+{ "name":"WA-Perth-South Mole", "id":"WA-Perth-South Mole", "locationID":[] },
+
+{ "name":"WA-Perth-Sandtracks", "id":"WA-Perth-Sandtracks", "locationID":[] },
+
+{ "name":"WA-Perth-North Beach", "id":"WA-Perth-North Beach", "locationID":[] },
+
+{ "name":"WA-Perth-Ammo Jetty", "id":"WA-Perth-Ammo Jetty", "locationID":[] }
 
 
 
