@@ -1,3 +1,12 @@
+/*
+
+DataDefinition is meant to be a way to codify how to represent certain kinds of data, and to check validity.  It is currently used
+in two places:  defining Configurations and defining Custom Fields.
+
+This is also where the list of valid "types" are, such as 'string', 'double', 'long', and more complex concepts like 'locationIds' and
+'customFields' (itself a definition!).
+
+*/
 package org.ecocean;
 
 import java.util.List;
@@ -9,17 +18,6 @@ import java.time.ZoneOffset;
 import java.time.Instant;
 import java.time.DateTimeException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-/*
-import org.ecocean.Util;
-import org.ecocean.Shepherd;
-import org.ecocean.ContextConfiguration;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.io.File;
-import javax.jdo.Query;
-*/
 
 public class DataDefinition {
     private JSONObject meta;
