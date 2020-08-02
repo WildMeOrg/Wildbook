@@ -295,14 +295,15 @@ Total images: <b><%=allAssets.size()%></b>
 
 <p>
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
+</p>
 <% 
 
 if ((numIA < 1) && (allAssets.size() > 0) && itask.getStatus()!=null && itask.getStatus().equals("complete") && request.isUserInRole("admin")) { %>
-    
-    <a onclick="sendToIA('<%=request.getParameter("taskId") %>')"><button onclick="confirmCommit()">Send to IA</button></a>
-    
+    <p>
+    <a onclick="sendToIA('<%=request.getParameter("taskId") %>')"><button onclick="confirmCommit()">Run detection</button></a>
+    </p>
 <% } %>
-</p>
+
 
 <p>
 Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b class=\"no\">no</b>")%>
