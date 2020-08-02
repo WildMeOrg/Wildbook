@@ -58,6 +58,8 @@ async function sendToIA(taskid){
         success: function(data) {
             cosole.log("finished task");
             alert("Success! ImportTask media asset were submitted to the detection queue.");
+            location.reload();
+            return false;
         }
     });
 
