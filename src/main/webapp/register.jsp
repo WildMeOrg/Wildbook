@@ -295,6 +295,10 @@ Our second validation study, open to everyone, will begin in January 2020!
 
 <img src="images/participate_manatdesk.jpg" width="324" height="300" hspace="10" vspace="10" align="right" />
 
+<%= NoteField.buildHtmlDiv("900928b8-0375-4f7a-8037-59a0209c5803", request, myShepherd) %>
+
+<div class="org-ecocean-notefield-default" id="default-900928b8-0375-4f7a-8037-59a0209c5803">
+
 <p>
 The second of our three validation studies is about testing the online workflow for Kitizen Science. This builds on the first study, which asked volunteers to compare two cat photos and decide if they are a match. Now, we are doing a trial of how the online side of Kitizen Science works. We want to learn how many volunteers should be processing each submission, how successful volunteers are at using our interface, and also receive feedback from you about what you think of this interface.
 </p>
@@ -308,35 +312,45 @@ before deciding whether you want to volunteer.
 This study is open from March 9 to July 31, 2020.
 </p>
 
+</div>
+
+<!--
 <p>
     <form method="post">
     <input type="submit" value="Register to Participate" />
     <input type="hidden" name="fromMode" value="-1" />
     </form>
 </p>
+-->
 
 
 <%
     }
 
   if (loggedIn && phase2User) { %>
+<!--
     <b>You are logged in already.  <a href="queue.jsp">Please proceed to study.</a></b>
+-->
 <% } else if (loggedIn) {  // NOT phase2... yet?  %>
+<!--
     <p>You are logged in, but <b>not yet registered for this study</b>.  Please continue to consent to this study.</p>
 
     <form method="post">
     <input type="submit" value="Continue" />
     <input type="hidden" name="fromMode" value="-1" />
     </form>
+-->
 
 <% } else { %>
 
+<!--
 <p>
     <form method="post" style="display: none;" blocked>
     <input type="submit" value="Register to Participate" />
     <input type="hidden" name="fromMode" value="-1" />
     </form>
 </p>
+-->
 
 <% } %>
 
