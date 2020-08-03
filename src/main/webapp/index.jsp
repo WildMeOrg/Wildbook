@@ -392,7 +392,7 @@ finally{
             try{
 								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
-                String profilePhotoURL="images/empty_profile.jpg";
+                String profilePhotoURL="images/user-profile-white-transparent.png";
                 if(featuredUser.getUserImage()!=null){
                 	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
                 }
@@ -496,8 +496,8 @@ finally{
 	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
-	                          if(myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/empty_profile.jpg";
+	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
+	                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
 	                              User thisUser=myShepherd.getUser(spotter);
 	                              if(thisUser.getUserImage()!=null){
 	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();

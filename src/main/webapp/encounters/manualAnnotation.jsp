@@ -6,13 +6,29 @@
 		java.util.List,
 		org.json.JSONObject,
 		org.ecocean.media.*,
-		org.ecocean.Annotation"
+		org.ecocean.Annotation,
+		java.net.URLEncoder,
+		java.nio.charset.StandardCharsets,
+		java.io.UnsupportedEncodingException"
 %>
 
+<%!
+//Method to encode a string value using `UTF-8` encoding scheme
+private static String encodeValue(String value) {
+    try {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+    } 
+    catch (UnsupportedEncodingException ex) {
+        ex.printStackTrace();
+    }
+    finally{return value;}
+}
+%>
 
 <jsp:include page="../header.jsp" flush="true"/>
 
 <% int imgHeight = 500; %>
+
 
 
 <style>
@@ -168,7 +184,9 @@ try{
 	it = results.iterator();
 	while (it.hasNext()) {
 	    String v = (String)it.next();
+	    System.out.println("Encooded v: "+v);
 	    if (!Util.stringExists(v)) continue;
+	    System.out.println("v:" +v+" versus iaCLass:"+iaClass);
 	    clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
 	}
 	clist += "</select>";
@@ -262,6 +280,11 @@ try{
 	
 	%>
 	
+	
+	
+	
+	<p>
+	MediaAsset <b><a title="<%=ma.toString()%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
 	<script>scale = <%=scale%>;
         var asset = <%=ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true, myShepherd)%>;
 
@@ -270,10 +293,10 @@ try{
 	    var u = window.location.href;
 	    var m = u.match(new RegExp(el.name + '=\\w+'));
 	    if (!m) {  //was not (yet) in url
-	        u += '&' + el.name + '=' + el.value;
+	        u += '&' + el.name + '=' + encodeURIComponent(el.value);
 	    } else {
 	console.log('m = %o', m);
-	        u = u.substring(0,m.index) + el.name + '=' + el.value + u.substring(m.index + m[0].length);
+	        u = u.substring(0,m.index) + el.name + '=' + encodeURIComponent(el.value) + u.substring(m.index + m[0].length);
 	console.log(u);
 	    }
 	    window.location.href = u;
@@ -302,12 +325,7 @@ try{
 //console.info('mmmm %o', f);
             $(imgEl).parent().append(f);
         }
-	</script>
-	
-	
-	<p>
-	MediaAsset <b><a title="<%=ma.toString()%>" target="_new" href="../obrowse.jsp?type=MediaAsset&id=<%=ma.getId()%>"><%=ma.getId()%></a></b>
-	</p>
+	</script></p>
 	
 	<p>
 	matchAgainst = <b><%=matchAgainst%></b>;
@@ -327,9 +345,9 @@ try{
 	<% } else if (enc == null) { %>
 	<i>will <b>not attach (or clone)</b> to any Encounter</i>
 	<% } else if (cloneEncounter) { %>
-	will <i>clone</i> <b><a target="_new" href="../obrowse.jsp?type=Encounter&id=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b> and attach to clone
+	will <i>clone</i> <b><a target="_new" href="encounter.jsp?number=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b> and attach to clone
 	<% } else { %>
-	attaching to <b><a target="_new" href="../obrowse.jsp?type=Encounter&id=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b>
+	attaching to <b><a target="_new" href="encounter.jsp?number=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b>
 	<% } %>
 	</p>
 	
