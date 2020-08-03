@@ -369,14 +369,16 @@ input.nameKey, input.nameValue {
 
     // edit button click area!!
     $("#edit").click(function() {
-      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue, .hidden").hide();
+      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue,.nameValue .hidden,.namebutton .hidden, .deletename .hidden").hide();
       $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
     });
 
+    //btn btn-sm editFormBtn namebutton
+    //.nameValue .hidden,.namebutton .hidden, .deletename .hidden
     $("#closeEdit").click(function() {
-      $(".namebutton").css("visibility", "hidden");
+      //$(".namebutton").css("visibility", "hidden");
       $(".editForm, input.nameKey, input.nameValue, #defaultNameColon, input.namebutton, input.btn.deletename").hide();
       $(".clickDateText").hide();
       $(".noEditText, span.nameKey, span.nameValue").show();
@@ -2271,7 +2273,7 @@ if (sharky.getNames() != null) {
                   for(int userNum=0;userNum<numUsers;userNum++){
                     User thisUser=relatedUsers.get(userNum);
                     String username=thisUser.getUsername();
-                    String profilePhotoURL="images/empty_profile.jpg";
+                    String profilePhotoURL="images/user-profile-grey-grey.png";
                     if(thisUser.getUserImage()!=null){
                       profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
                     }

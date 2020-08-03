@@ -532,21 +532,22 @@ public class StandardImport extends HttpServlet {
         su = myShepherd.getSocialUnit(suName);
         if (su==null) {
           su = new SocialUnit(suName);
-          myShepherd.storeNewSocialUnit(su);
+          if(committing)myShepherd.storeNewSocialUnit(su);
         }
         
         if (mark!=null) {
           System.out.println("----> have Indy ID for this SocU: "+suName);
           if (!su.hasMarkedIndividualAsMember(mark)) {
             Membership ms = new Membership(mark);
-            myShepherd.storeNewMembership(ms);
+            if(committing)myShepherd.storeNewMembership(ms);
             if (getString(row, "Membership.role")!=null) {
               ms.setRole(getString(row, "Membership.role"));
             }
 
-            myShepherd.beginDBTransaction();
+           // myShepherd.beginDBTransaction();
             su.addMember(ms);
-            myShepherd.commitDBTransaction();
+            //myShepherd.commitDBTransaction();
+            if(committing)myShepherd.updateDBTransaction();
             System.out.println("----> added membership to SocU ");
   
           }
@@ -1298,9 +1299,14 @@ public class StandardImport extends HttpServlet {
     //System.out.println("==============> getMediaAsset resolvedPath is: "+resolvedPath);
     if (resolvedPath==null||"null".equals(resolvedPath)) {
       try {
-        feedback.addMissingPhoto(localPath);
-        foundPhotos.remove(fullPath);
-        feedback.logParseError(assetColIndex(i), localPath, row);
+
+        //feedback.addMissingPhoto(localPath);
+        if (localPath!=null&&!"".equals(localPath)&&!"null".equals(localPath)) { 
+          String locInFile = "Row: "+row.getRowNum()+" Column: "+i+" Filename: ("+localPath+")";
+          feedback.addMissingPhoto(locInFile);
+          foundPhotos.remove(fullPath);
+          feedback.logParseError(assetColIndex(i), localPath, row);
+        }
       } catch (NullPointerException npe) {  
         npe.printStackTrace();
       }
@@ -1331,9 +1337,18 @@ public class StandardImport extends HttpServlet {
       System.out.println("Trying to create NEW asset!");
 
       ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
+      ArrayList<LabeledKeyword> labels=getLabeledKeywordsForAsset(row, i, myShepherd);
+      
+      
       if (committing) {
         ma = astore.copyIn(f, assetParams);
         if(kws!=null)ma.setKeywords(kws);
+        if(labels!=null) {
+          for(LabeledKeyword lkw:labels) {
+            ma.addKeyword(lkw);
+          }
+        }
+        
       }
 	    // keywording
 
@@ -1341,10 +1356,15 @@ public class StandardImport extends HttpServlet {
 
 	  	System.out.println("IOException creating MediaAsset for file "+fullPath);
       ioEx.printStackTrace();
-      feedback.addMissingPhoto(localPath);
-      missingPhotos.add(localPath);
-      feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
-	  	foundPhotos.remove(fullPath);
+
+      //feedback.addMissingPhoto(localPath);
+      if (localPath!=null&&!"".equals(localPath)&&!"null".equals(localPath)) {
+        String locInFile = "Row: "+row.getRowNum()+" Column: "+i+" Filename: ("+localPath+")";
+        feedback.addMissingPhoto(locInFile);
+        feedback.logParseError(getColIndexFromColName("Encounter.mediaAsset"+i), localPath, row);
+        missingPhotos.add(localPath);
+        foundPhotos.remove(fullPath);
+      }
       return null;
 	  }
     myAssets.put(fileHash(f), ma);
@@ -1379,6 +1399,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         return null;
     }
 
+    /*
   private ArrayList<Keyword> getKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
 
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
@@ -1399,6 +1420,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
     return ans;
   }
+  */
 
   private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
@@ -1426,6 +1448,34 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (kw!=null) ans.add(kw);
     }
     
+    return ans;
+  }
+  
+  private ArrayList<LabeledKeyword> getLabeledKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
+    ArrayList<LabeledKeyword> ans = new ArrayList<LabeledKeyword>();
+    
+    List<String> kwLabels = CommonConfiguration.getIndexedPropertyValues("kwLabel",context);
+    for(String label:kwLabels) {
+      System.out.println("eval "+label);
+      String kwsValue = getString(row, "Encounter.mediaAsset"+n+"."+label);
+      if(kwsValue!=null) {
+          kwsValue=kwsValue.replaceAll(".0","");
+          List<String> allowedValues=CommonConfiguration.getIndexedPropertyValues(label,context);
+          System.out.println("eval "+allowedValues.toString());
+          if(kwsValue!=null && !kwsValue.trim().equals("")) {
+            System.out.println("kwsValue is: "+kwsValue);
+            if(allowedValues.contains(kwsValue)) {
+              System.out.println("value allowed");
+              LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword(label, kwsValue, true);
+              if (kw!=null) {
+                System.out.println("setting "+label+":"+kwsValue);
+                ans.add(kw);
+              }
+            }
+          }    
+      } 
+    }
+
     return ans;
   }
 
