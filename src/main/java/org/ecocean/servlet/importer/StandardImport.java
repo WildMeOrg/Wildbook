@@ -9,7 +9,6 @@ import java.net.*;
 import java.text.SimpleDateFormat;
 import org.apache.poi.ss.usermodel.DateUtil;
 
-
 import org.ecocean.resumableupload.UploadServlet;
 
 import java.io.*;
@@ -38,7 +37,9 @@ import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.ObjectUtils.Null;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
@@ -1757,23 +1758,25 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     int numRows = sheet.getPhysicalNumberOfRows();
     System.out.println("physical number rows in sheet: "+sheet.getPhysicalNumberOfRows());
     for (int i=1; i<numRows; i++) {
-      //System.out.println("checking row "+i+" for value presence");
+      Cell cell = null;
       try {
-        //String anyVal = sheet.getRow(i).getCell(colIndex).toString();
         Row row = sheet.getRow(i);
-        //System.out.println("get ROW? "+row);
-        Cell cell = row.getCell(colIndex);
-        System.out.println("get CELL? "+cell);
+        cell = row.getCell(colIndex);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      try {
         if (cell!=null) {
-          String anyVal = cell.toString();
+          DataFormatter df = new DataFormatter();
+          String anyVal = df.formatCellValue(cell);
           System.out.println("get anyVal "+anyVal);
           if (anyVal!=null&&anyVal.length()>0&&!"".equals(anyVal)) {
             //System.out.println("hey, anyValue! look at you. ---> "+anyVal);
             return true;
           }
         }
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (NullPointerException npe) {
+        npe.printStackTrace();
       }
     }
     return false;
