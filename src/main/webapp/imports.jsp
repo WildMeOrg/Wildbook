@@ -42,6 +42,33 @@ boolean adminMode = request.isUserInRole("admin");
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
+
+<script>
+
+
+
+function confirmCommit() {
+	confirm("Send to IA? This process may take a long time and block other users from using detection and ID quickly.");
+}
+
+async function sendToIA(taskid){
+	
+    $.ajax({
+        url: "ImportTaskDetection?importTaskID="+taskid,
+        success: function(data) {
+            cosole.log("finished task");
+            alert("Success! ImportTask media asset were submitted to the detection queue.");
+            location.reload();
+            return false;
+        }
+    });
+
+    
+}
+
+
+</script>
+
 <style>
 .bootstrap-table {
     height: min-content;
@@ -270,11 +297,15 @@ Total images: <b><%=allAssets.size()%></b>
 
 <p>
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
-<% if ((numIA < 1) && (allAssets.size() > 0)) { %>
-    <a style="margin-left: 20px;" class="button">send to IA (detection only)</a>
-    <a class="button">send to IA (with ID)</a>
-<% } %>
 </p>
+<% 
+
+if ((numIA < 1) && (allAssets.size() > 0) && itask.getStatus()!=null && itask.getStatus().equals("complete") && request.isUserInRole("admin")) { %>
+    <p>
+    <a onclick="sendToIA('<%=request.getParameter("taskId") %>')"><button onclick="confirmCommit()">Run detection</button></a>
+    </p>
+<% } %>
+
 
 <p>
 Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b class=\"no\">no</b>")%>

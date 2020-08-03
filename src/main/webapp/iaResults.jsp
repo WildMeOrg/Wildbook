@@ -479,6 +479,10 @@ h4.intro.accordion .rotate-chevron.down {
 
 <style>
 
+.annot-summary-phantom {
+	display: none;
+}
+
 .featurebox {
     position: absolute;
     width: 100%;
@@ -943,7 +947,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 function displayAnnot(taskId, acmId, num, score, illustrationUrl) {
 console.info('%d ===> %s', num, acmId);
 	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
-	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
+	h += '<div class="annot-info"><span class="annot-info-num"></span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
 
@@ -956,15 +960,16 @@ console.info('%d ===> %s', num, acmId);
 		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl); }
+		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl, acmId); }
 	});
 }
 
-function displayAnnotDetails(taskId, res, num, illustrationUrl) {
+function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 	var isQueryAnnot = (num < 0);
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
-		console.warn('error on (task %s) res = %o', taskId, res);
-		return;
+		console.warn('error on (task %s, acmId=%s) res = %o', taskId, acmIdPassed, res);
+                $('#task-' + taskId + ' .annot-summary-' + acmIdPassed).addClass('annot-summary-phantom');
+                return;
 	}
         /*
             we may have gotten more than one annot back from the acmId, so we have to account for them all.  currently we handle
@@ -1005,6 +1010,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
             var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
                 var img = $('<img src="' + mainAsset.url + '" />');
+                ft.metadata = mainAsset.metadata;
                 img.on('load', function(ev) { imageLoaded(ev.target, ft); });
                 $('#task-' + taskId + ' .annot-' + acmId).append(img);
             } else {
@@ -1046,12 +1052,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
 					}
                 }
                 if (indivId) {
-                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName.substring(0,10) + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,10) + '</a>');
+                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
-                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">DIGITS</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">DIGITS</a>');
+                    //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
                 }
 
                 if (encId || indivId) {
@@ -1071,7 +1077,7 @@ console.log("XX %o", displayName);
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
                 } else {
-                    if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
+                    if (imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
                 }
             }  //end if (ft) ....
             // Illustration
@@ -1251,9 +1257,10 @@ function imageLoaded(imgEl, ft) {
 }
 
 function drawFeature(imgEl, ft) {
-    if (!imgEl || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
+    if (!imgEl || !imgEl.clientHeight || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
     var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
     var scale = imgEl.height / imgEl.naturalHeight;
+    if (ft.metadata && ft.metadata.height) scale = imgEl.height / ft.metadata.height;
 //console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
     if (scale == 1) return;
     imgEl.setAttribute('data-feature-drawn', true);

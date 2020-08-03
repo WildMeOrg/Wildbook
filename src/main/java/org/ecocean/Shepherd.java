@@ -440,6 +440,9 @@ public class Shepherd {
     pm.deletePersistent(mShip);
   }
 
+  public void throwAwaySocialUnit(SocialUnit su) {
+    pm.deletePersistent(su);
+  }
 
   public void throwAwayCollaboration(Collaboration collab) {
     pm.deletePersistent(collab);
@@ -1338,12 +1341,12 @@ public class Shepherd {
     return null;
   }
 
-  public LabeledKeyword getOrCreateLabeledKeyword(String label, String readableName, boolean commit) {
-    LabeledKeyword lkw = getLabeledKeyword(label, readableName);
+  public LabeledKeyword getOrCreateLabeledKeyword(String label, String value, boolean commit) {
+    LabeledKeyword lkw = getLabeledKeyword(label, value);
     if (lkw!=null) return lkw;
     try {
       System.out.println("trying to persist new LabeledKeyword in Shepherd.getOrCreateLabeledKeyword()");
-      lkw = new LabeledKeyword(label, readableName);
+      lkw = new LabeledKeyword(label, value);
       if (commit) storeNewKeyword(lkw);
     } catch (Exception e) {
       e.printStackTrace();
@@ -5023,10 +5026,6 @@ public class Shepherd {
     }
     query.closeAll();
     return null;
-  }
-  
-  public void throwAwaySocialUnit(SocialUnit su) {
-    pm.deletePersistent(su);
   }
   
   public User getUserByTwitterHandle(String handle) {
