@@ -278,6 +278,13 @@ for (String vr : validRoles) {
     }
 }
 System.out.println("INFO: queue.jsp maxRole=" + maxRole + " for " + user);
+if (!"admin".equals(maxRole)) {
+    myShepherd.rollbackDBTransaction();
+    System.out.println("INFO: queue.jsp non-admin, so bailing cuz second trial has ended");
+    session.invalidate();
+    response.sendRedirect("secondTrialEnd.jsp");
+    return;
+}
 
 //maxRole = "cat_mouse_volunteer";  //faked for testing
 if (maxRole == null) {
