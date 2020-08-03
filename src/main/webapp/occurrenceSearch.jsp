@@ -1,41 +1,6 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException" %>
+<%@ page import="org.ecocean.SearchUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
-<%!
-// here I'll define some methods that will end up in classEditTemplate
-
-public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
-  // note how fieldName is variously manipulated in this method to make element ids and contents
-  String displayName = getDisplayName(fieldName, nameLookup);
-  out.println("<tr id=\""+fieldName+"Row\">");
-  out.println("  <td id=\""+fieldName+"Title\">"+displayName+"</td>");
-  out.println("  <td><input name=\""+fieldName+"\"/></td>");
-  out.println("</tr>");
-
-}
-public static void printStringFieldSearchRow(String fieldName, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
-  // note how fieldName is variously manipulated in this method to make element ids and contents
-  String displayName = getDisplayName(fieldName, nameLookup);
-  out.println("<tr id=\""+fieldName+"Row\">");
-  out.println("  <td id=\""+fieldName+"Title\">"+displayName+"</td>");
-  out.println("  <td> <select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
-  out.println("    <option value=\"None\" selected=\"selected\"></option>");
-  for (String val: valueOptions) {
-    out.println("    <option value=\""+val+"\">"+val+"</option>");
-  }
-  out.println("  </select></td>");
-  out.println("</tr>");
-
-}
-
-public static String getDisplayName(String fieldName, Properties nameLookup) throws IOException, IllegalAccessException {
-  // Tries to lookup a translation and defaults to some string manipulation
-  return (nameLookup.getProperty(fieldName, ClassEditTemplate.prettyFieldName(fieldName)));
-}
-%>
-
-
 
 <%
 String context="context0";
@@ -137,12 +102,10 @@ margin-bottom: 8px !important;
     var ne_long_element = document.getElementById('ne_long');
     var sw_lat_element = document.getElementById('sw_lat');
     var sw_long_element = document.getElementById('sw_long');
-
     ne_lat_element.value = "";
     ne_long_element.value = "";
     sw_lat_element.value = "";
     sw_long_element.value = "";
-
   }
 </script>
 
@@ -303,25 +266,18 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
           }
         });
 
-
         var dz = map.getDragZoomObject();
         google.maps.event.addListener(dz, 'dragend', function (bnds) {
           var ne_lat_element = document.getElementById('ne_lat');
           var ne_long_element = document.getElementById('ne_long');
           var sw_lat_element = document.getElementById('sw_lat');
           var sw_long_element = document.getElementById('sw_long');
-
           ne_lat_element.value = bnds.getNorthEast().lat();
           ne_long_element.value = bnds.getNorthEast().lng();
           sw_lat_element.value = bnds.getSouthWest().lat();
           sw_long_element.value = bnds.getSouthWest().lng();
         });
-
-        //alert("Finished initialize method!");
-
-
  }
-
 
   function setOverlays() {
     //alert("In setOverlays!");
@@ -330,26 +286,15 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
      geoXml = new geoXML3.parser({
                     map: map,
                     markerOptions: {flat:true,clickable:false},
-
          });
-
-
-
         geoXml.parse(filename);
-
       var iw = new google.maps.InfoWindow({
         content:'<%=props.getProperty("loadingMapData") %>',
         position:center});
-
       iw.open(map);
-
       google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
-
-
-
       overlaysSet=true;
       }
-
    }
 
 function useData(doc){
@@ -366,33 +311,23 @@ function fullScreen(){
   $("#map_canvas").addClass('full_screen_map');
   $('html, body').animate({scrollTop:0}, 'slow');
   initialize();
-
-  //hide header
   $("#header_menu").hide();
-
   if(overlaysSet){overlaysSet=false;setOverlays();}
-  //alert("Trying to execute fullscreen!");
 }
-
 
 function exitFullScreen() {
   $("#header_menu").show();
   $("#map_canvas").removeClass('full_screen_map');
-
   initialize();
   if(overlaysSet){overlaysSet=false;setOverlays();}
-  //alert("Trying to execute exitFullScreen!");
 }
-
 
 //making the exit fullscreen button
 function FSControl(controlDiv, map) {
-
   // Set CSS styles for the DIV containing the control
   // Setting padding to 5 px will offset the control
   // from the edge of the map
   controlDiv.style.padding = '5px';
-
   // Set CSS for the control border
   var controlUI = document.createElement('DIV');
   controlUI.style.backgroundColor = '#f8f8f8';
@@ -404,7 +339,6 @@ function FSControl(controlDiv, map) {
   controlUI.style.textAlign = 'center';
   controlUI.title = 'Toggle the fullscreen mode';
   controlDiv.appendChild(controlUI);
-
   // Set CSS for the control interior
   var controlText = document.createElement('DIV');
   controlText.style.fontSize = '12px';
@@ -583,18 +517,18 @@ function FSControl(controlDiv, map) {
                   : myShepherd.getAllStrVals(Occurrence.class, fieldName);
                 // in case we tried and failed to find custom values:
                 if (Util.isEmpty(posVals)) posVals = myShepherd.getAllStrVals(Occurrence.class, fieldName);
-                printStringFieldSearchRow(fieldName,posVals,out, occProps);
+                SearchUtilities.printStringFieldSearchRow(fieldName,posVals,out, occProps);
               }
 
               List<String> allTaxonomyNames = myShepherd.getAllTaxonomyNames();
-              printStringFieldSearchRow("taxonomy0",allTaxonomyNames,out, occProps);
+              SearchUtilities.printStringFieldSearchRow("taxonomy0",allTaxonomyNames,out, occProps);
 
               //hack: put this here because there's no way to create an exclude field on the type of method below without some more thought
 			  listVals.add("seaState");
               
 			  for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
                 if (listVals.contains(fieldName)) continue; // already printed
-                printStringFieldSearchRow(fieldName, out, occProps);
+                SearchUtilities.printStringFieldSearchRow(fieldName, out, occProps);
               }
               %>
               </table>
@@ -647,12 +581,13 @@ inShepherd.rollbackDBTransaction();
 inShepherd.closeDBTransaction();
 
 %>
+
+<%
+  SearchUtilities.setUpOrgDropdown(true, occProps, out, request, myShepherd);
+%>
 </div>
 </td>
 </tr>
-
-
-
 
 <%
   myShepherd.rollbackDBTransaction();
@@ -661,14 +596,11 @@ inShepherd.closeDBTransaction();
 
 <tr>
   <td>
-
-
   </td>
 </tr>
 </table>
 <br />
-<input name="submitSearch" type="submit" id="submitSearch"
-                   value="<%=props.getProperty("goSearch")%>" />
+<input name="submitSearch" type="submit" id="submitSearch" value="<%=props.getProperty("goSearch")%>" />
 </form>
 </td>
 </tr>

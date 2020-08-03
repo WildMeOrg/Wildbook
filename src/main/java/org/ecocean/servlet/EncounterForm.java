@@ -657,7 +657,7 @@ System.out.println("enc ?= " + enc.toString());
                   submitters.add(user);
                 }
                 else {
-                  User user=new User(tok,Util.generateUUID());
+                  User user=new User(tok,Util.generateUUID()); //TODO delete TODO comment if this is still here
                   user.setAffiliation(subO);
                   user.setUserProject(subP);
                   if((numTokens==1)&&(subN!=null)){user.setFullName(subN);}
@@ -689,7 +689,7 @@ System.out.println("enc ?= " + enc.toString());
                   photographers.add(user);
                 }
                 else {
-                  User user=new User(tok,Util.generateUUID());
+                  User user=new User(tok,Util.generateUUID()); //TODO delete this TODO if still here
                   if((numTokens==1)&&(photoN!=null)){user.setFullName(photoN);}
                   myShepherd.getPM().makePersistent(user);
                   myShepherd.commitDBTransaction();
