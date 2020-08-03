@@ -261,7 +261,7 @@ System.out.println("survey response: " + resp.toString());
 
 <div class="container maincontent">
 
-              <h1 class="intro">Participating in Kitizen Science</h1>
+              <h2 class="intro">Participating in Kitizen Science</h2>
 
               <p align="left">
 		
