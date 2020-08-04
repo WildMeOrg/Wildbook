@@ -160,7 +160,7 @@ function forceLink(el) {
                         if ((ma.getAcmId() != null) && !maAcms.contains(ma.getAcmId())) maAcms.add(ma.getAcmId());
                         maIds.add(Integer.toString(ma.getId()));
 
-                        
+
 
 		      String filename = ma.getFilename();
 		      System.out.println("    EMG: got ma at "+filename);
@@ -171,7 +171,7 @@ function forceLink(el) {
 		      }
 		      	System.out.println("    EMG: got indID element "+individualID);
 
-		      
+
 		      //Start caption render JSP side
               String[] capos=new String[1];
 		      capos[0]="<p style=\"color: white;\"><em>"+filename+"</em><br>";
@@ -179,20 +179,20 @@ function forceLink(el) {
 
               // place to retreive current mid from photoswipe to refresh keyword UI
               capos[0]+="<div class=\"current-asset-id\" id=\"current-asset-id-"+ma.getId()+"\"></div>";
-		      
+
 		      capos[0]+=encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a><br>";
 		      capos[0]+=encprops.getProperty("date")+" "+enc.getDate()+"<br>";
-		      
+
 		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
 		      captionLinks.add(capos);
 		      System.out.println("    EMG: got capos "+capos[0]);
 
 		      //end caption render JSP side
-		      
+
 		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
 		  		//if (!ann.isTrivial()) continue;  ///or not?
 
-		  		
+
 		  		if (ma != null) {
 		  			System.out.println("    EMG: ma is not null");
                     if (ma.getMetadata() != null) ma.getMetadata().getDataAsString(); //temp hack to make sure metadata available, remove at yer peril
@@ -276,7 +276,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
     //this is kinda hacky cuz it is sql-specific
     if (maAcms.size() > 0) {
         String sql = "select \"MEDIAASSET\".\"ID\" as assetId, \"MEDIAASSET\".\"ACMID\" as assetAcmId, \"ENCOUNTER\".\"CATALOGNUMBER\" as encId, \"ENCOUNTER\".\"INDIVIDUALID\" as indivId from \"MEDIAASSET\" join \"MEDIAASSET_FEATURES\" on (\"ID\" = \"ID_OID\") join \"ANNOTATION_FEATURES\" using (\"ID_EID\") join \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") join \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") where \"MEDIAASSET\".\"ACMID\" in ('" + String.join("', '", maAcms) + "') AND \"MEDIAASSET\".\"ID\" not in (" + String.join(", ", maIds) + ");";
-// assetid |              assetacmid              |                encid                 | individ 
+// assetid |              assetacmid              |                encid                 | individ
         Query q = imageShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         List results = (List)q.execute();
         Iterator it = results.iterator();
@@ -389,7 +389,7 @@ figcaption div {
 }
 
 .image-enhancer-keyword.labeled-keyword span.keyword-label, span.keyword-label {
-  font-weight: bold; 
+  font-weight: bold;
 }
 
 .caption-youtube {
@@ -724,13 +724,13 @@ console.log(ma);
         h += '<input type="button" value="swap Annots: ' + niceId(myFeat.annotationId) + ' ==&gt; [Enc ' + niceId(ma.features[i].encounterId)+ '] // ' + niceId(ma.features[i].annotationId) + ' ==&gt; [Enc ' + niceId(myFeat.encounterId) + ']" ';
         h += ' onClick="swapEncounters(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         if (myFeat.individualId && ma.features[i].individualId) {
-            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + niceId(ma.features[i].encounterId) + ')" '; 
+            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + niceId(ma.features[i].encounterId) + ')" ';
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         } else if (myFeat.individualId) {
-            h += '<input type="button" value="set name ' + myFeat.individualId + ' on [Enc ' + niceId(ma.features[i].encounterId) + '] (unset this)" '; 
+            h += '<input type="button" value="set name ' + myFeat.individualId + ' on [Enc ' + niceId(ma.features[i].encounterId) + '] (unset this)" ';
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         } else if (ma.features[i].individualId) {
-            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on the above Encounter (unset ' + niceId(ma.features[i].encounterId) + ')" '; 
+            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on the above Encounter (unset ' + niceId(ma.features[i].encounterId) + ')" ';
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         }
     }
@@ -845,7 +845,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 	<%
     }
 	%>
-	
+
 
 /*
         if (true) {
@@ -1124,7 +1124,7 @@ function addNewKeyword(el) {
     console.log("in the remove keyword function...");
 
     let wrapper = jel.closest('.image-enhancer-keyword-wrapper');
-    
+
 	if (!wrapper.length) {
         console.error("could not find MediaAsset id from closest wrapper");
 		return;
@@ -1148,6 +1148,7 @@ function addNewKeyword(el) {
 		//imageEnhancer.popup('Adding new keyword <b>' + val + '</b> to this image.');
 		data.onMediaAssets.newAdd = [ val ];
 	} else if (jel.hasClass('iek-remove')) {
+    console.log("has class remove! Removing...");
 		var kid = jel.parent().prop('id').substring(8);
 		//imageEnhancer.popup('Removing keyword <b>' + wildbookGlobals.keywords[kid] + '</b> from this image.');
 		data.onMediaAssets.remove = [ kid ];
@@ -1232,7 +1233,7 @@ function refreshKeywordsForMediaAsset(mid, data) {
     console.log("in refreshKeywordsForMediaAsset, looking for #asset-id-"+mid);
     $('#asset-id-'+mid).each(function(i,el) {
         $(el).find('.image-enhancer-keyword-wrapper-hover').empty();
-        
+
         console.log("before imageLayerKeywords: mid="+mid+" el="+JSON.stringify(el));
         imageLayerKeywords($(el), { _mid: mid });
         $(el).show();
@@ -1243,9 +1244,9 @@ function refreshAllKeywordPulldowns() {
     console.log("trying to refresh all keywords pulldowns...");
     $('.image-enhancer-keyword-wrapper').each(function(i, el) {
         var jel = $(el);
-        
+
         var mid = imageEnhancer.mediaAssetIdFromElement(jel);
-        
+
         console.log("each image-enhancer-keyword-wrapper... "+i+", also mid="+mid);
         // we want to remove all existing keywords for this asset, and they will be regenerated along with the new one
         jel.find('.image-enhancer-keyword-wrapper-hover').first().empty();
@@ -1290,19 +1291,19 @@ console.info("############## mid=%s -> %o", mid, ma);
 
     if (!hasWrapper) {
         h += '<div id="asset-id-'+mid+'" class="image-enhancer-keyword-wrapper">';
-	    h += '<div class="image-enhancer-keyword-wrapper-hover">';  
+	    h += '<div class="image-enhancer-keyword-wrapper-hover">';
     }
-    
+
     //number of keywords for default display, keyword list hidden until hover
 
     let outerCounter = '';
     if (ma.keywords.length>0) {
-        h += '<div class="image-enhancer-keyword keyword-number-cell">'+kwReadable+': '+ma.keywords.length+'</div>';    
+        h += '<div class="image-enhancer-keyword keyword-number-cell">'+kwReadable+': '+ma.keywords.length+'</div>';
         outerCounter = '<div class="image-enhancer-keyword keyword-number-cell number-cell-on-asset" title="<%=keywords_focus%>" onclick="showKeywordList(this)">'+kwReadable+': '+ma.keywords.length+'</div>';
     } else {
         outerCounter = '<div class="labeled iek-new-wrapper">add new <span class="keyword-label" onclick="showKeywordList(this)">labeled</span> keyword<div class="iek-new-labeled-form">';
     }
-  
+
     for (var i = 0 ; i < ma.keywords.length ; i++) {
     var kw = ma.keywords[i];
     thisHas.push(kw.indexname);
@@ -1310,7 +1311,7 @@ console.info("############## mid=%s -> %o", mid, ma);
 
     if (kw.label) {
       console.info("Have labeled keyword %o", kw);
-      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value" onclick="addNewKeyword(this)">'+kw.readableName+'</span> <span class="iek-remove" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" onclick="addNewKeyword(this)" title="remove keyword">X</span></div>';
     } else {
       //h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
       h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" onclick="addNewKeyword(this)" title="remove keyword">X</span></div>';
@@ -1322,9 +1323,9 @@ console.info("############## mid=%s -> %o", mid, ma);
   var labelsToValues = <%=jobj%>;
   console.log("Labeled keywords %o", labelsToValues);
   let labeledAvailable = (labelsToValues.length>0);
-  
+
   h +='<div class="labeled iek-new-wrapper' + ( !labeledAvailable ? ' iek-autohide' : '') + '">add new <span class="keyword-label">labeled</span> keyword<div class="iek-new-labeled-form">';
-  
+
   if (!$.isEmptyObject(labelsToValues)) {
       //console.log("in labelsToValues loop with labelsToValues %o",labelsToValues);
     var hasSome = false;
@@ -1372,14 +1373,14 @@ console.info("############## mid=%s -> %o", mid, ma);
     if (!hasWrapper) {
         h += '</div></div>';
     }
-    
+
     if ($('.image-enhancer-wrapper-mid-'+mid).find('.number-cell-on-asset').length>0) {
         $('.image-enhancer-wrapper-mid-'+mid).find('.number-cell-on-asset').remove();
     }
     $('.image-enhancer-wrapper-mid-'+mid).prepend(outerCounter);
-    
+
     let kwContainer = $('#keyword-container');
-    
+
     if (!hasWrapper) {
         $('#keyword-container').append(h);
     } else {
@@ -1393,10 +1394,10 @@ console.info("############## mid=%s -> %o", mid, ma);
 
 function showKeywordList(el) {
     if ($(el).hasClass('image-enhancer-feature-wrapper')) {
-        el = $(el).closest('.image-enhancer-feature-wrapper'); 
+        el = $(el).closest('.image-enhancer-feature-wrapper');
     }
     if (typeof $(el).parent().attr('class') !== undefined && $(el).parent().attr('class') !== false) {
-        $(el).parent().attr('class').split(' ').map(function(className){     
+        $(el).parent().attr('class').split(' ').map(function(className){
             if (className.startsWith('image-enhancer-wrapper-mid-')) {
                 let mid = className.replace('image-enhancer-wrapper-mid-', '');
                 $('.pswp__button--arrow--right').click(function(ev) {
@@ -1404,7 +1405,7 @@ function showKeywordList(el) {
                 });
                 $('.pswp__button--arrow--left').click(function(ev) {
                     nextImageArrow(ev,mid);
-                }); 
+                });
                 $('#asset-id-'+mid).fadeIn(1000);
                 $('#asset-id-'+mid).addClass('asset-active');
                 $('.pswp__button--close').each(function() {
