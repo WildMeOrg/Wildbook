@@ -54,5 +54,10 @@
 			<field name="value" peristence-modifier="persistent" />
 		</class>
 
+		<class name="CustomFieldValueDate" identity-type="application">
+			<inheritance strategy="new-table"/>
+			<field name="value" peristence-modifier="persistent" />
+		</class>
+
 	</package>
 </jdo>
