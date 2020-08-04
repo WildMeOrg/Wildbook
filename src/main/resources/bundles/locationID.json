@@ -51,7 +51,22 @@
 					{ "name":"Catalina", "id":"Catalina", "locationID":[] },
 					{ "name":"Dana Point", "id":"Dana Point", "locationID":[] },
 					{ "name":"Long Beach", "id":"Long Beach", "locationID":[] },
-					{ "name":"Newport", "id":"Newport", "locationID":[] }
+					{ "name":"Newport", "id":"Newport", "locationID":[] },
+					{ "name":"Golden Gate Strait", "id":"Golden Gate Strait", "locationID":[] },
+					{ "name":"Gulf of the Farallones", "id":"Gulf of the Farallones", "locationID":[] },
+					{ "name":"San Francisco Bay", "id":"San Francisco Bay", "locationID":[] },
+					{ "name":"Northern California", "id":"Northern California", "locationID":[] },
+
+				{ "name":"Northern California/OR", "id":"Northern California/OR", "locationID":[] },
+
+				{ "name":"Northern Central California", "id":"Northern Central California", "locationID":[] },
+								{ "name":"Northern-Central California", "id":"Northern-Central California", "locationID":[] },
+
+				{ "name":"Northern_central California", "id":"Northern_central California", "locationID":[] },
+
+				{ "name":"Southern California", "id":"Southern California", "locationID":[] },
+
+				{ "name":"Southern Central California", "id":"Southern Central California", "locationID":[] }
 				
 				
 				] },
@@ -109,11 +124,7 @@
 
 				{ "name":"Northern British Columbia", "id":"Northern British Columbia", "locationID":[] },
 
-				{ "name":"Northern California", "id":"Northern California", "locationID":[] },
-
-				{ "name":"Northern California/OR", "id":"Northern California/OR", "locationID":[] },
-
-				{ "name":"Northern Central California", "id":"Northern Central California", "locationID":[] },
+				
 
 				{ "name":"Northern Oregon", "id":"Northern Oregon", "locationID":[] },
 
@@ -121,9 +132,7 @@
 
 				{ "name":"Northern Washington", "id":"Northern Washington", "locationID":[] },
 
-				{ "name":"Northern-Central California", "id":"Northern-Central California", "locationID":[] },
-
-				{ "name":"Northern_central California", "id":"Northern_central California", "locationID":[] },
+				
 				{ "name":"Oregon", "id":"Oregon", "locationID":[] },
 				{
 				  "name": "Salish Sea", "id": "Salish Sea" },
@@ -134,10 +143,8 @@
 				{ "name":"Southern Britidh Columbia", "id":"Southern Britidh Columbia", "locationID":[] },
 
 				{ "name":"Southern British Columbia", "id":"Southern British Columbia", "locationID":[] },
+				
 
-				{ "name":"Southern California", "id":"Southern California", "locationID":[] },
-
-				{ "name":"Southern Central California", "id":"Southern Central California", "locationID":[] },
 				{ "name":"Southern Oregon", "id":"Southern Oregon", "locationID":[] },
 
 
