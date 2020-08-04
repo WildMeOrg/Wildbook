@@ -200,6 +200,14 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
             return;
         }
 
+        //phase 2 over
+        if ((user == null) || !request.isUserInRole("admin")) {
+            System.out.println("encounterDecide id=" + encId + " disabled for non-admin user=" + user);
+            myShepherd.rollbackDBTransaction();
+            session.invalidate();
+            response.sendRedirect("../secondTrialEnd.jsp");
+            return;
+        }
 
         String jdoql = "SELECT FROM org.ecocean.Decision WHERE encounter.catalogNumber=='" + enc.getCatalogNumber() + "' && user.uuid=='" + user.getUUID() + "'";
         Query query = myShepherd.getPM().newQuery(jdoql);
