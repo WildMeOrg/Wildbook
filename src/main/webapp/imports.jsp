@@ -299,26 +299,11 @@ var allAssetIds = <%=jarr.toString(4)%>;
 function sendToIA(skipIdent) {
     $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
     var locIds = $('#id-locationids').val();
-    var data = {
-        v2: true,
-        taskParameters: { skipIdent: skipIdent },
-        mediaAssetIds: allAssetIds
-    };
-    if (!skipIdent && locIds && (locIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locIds };
-    console.log('locIds=%o allAssetIds=%o data=%o', locIds, allAssetIds, data);
-    $.ajax({
-        url: 'ia',
-        dataType: 'json',
-        data: JSON.stringify(data),
-        type: 'POST',
-        contentType: 'application/javascript',
-        complete: function(x) {
-            console.log('response: %o', x);
-            if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
-                $('#ia-send-wait').html('<i>sent.</i> <a class="button" target="_new" href="rapid.jsp?taskId=<%=itask.getId()%>">Continue to Rapid Assessment</a>');
-            } else {
-                $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
-            }
+    wildbook.sendMediaAssetsToIA(allAssetIds, locIds, skipIdent, function(x) {
+        if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+            $('#ia-send-wait').html('<i>sent.</i> <a class="button" target="_new" href="rapid.jsp?taskId=<%=itask.getId()%>">Continue to Rapid Assessment</a>');
+        } else {
+            $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
         }
     });
 }
