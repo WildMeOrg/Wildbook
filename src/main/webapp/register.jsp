@@ -134,7 +134,7 @@ label {
 </style>
 <%
 
-request.setAttribute("pageTitle", "Kitizen Science &gt; Participate");
+request.setAttribute("pageTitle", "Kitizen Science &gt; Participate in Online Data Processing Tasks");
 boolean rollback = true;
 
 boolean uwMode = Util.booleanNotFalse(SystemValue.getString(myShepherd, "uwMode"));
@@ -261,7 +261,7 @@ System.out.println("survey response: " + resp.toString());
 
 <div class="container maincontent">
 
-              <h2 class="intro">Participating in Kitizen Science</h2>
+              <h2 class="intro">Participate in Online Data Processing Tasks</h2>
 
               <p align="left">
 		

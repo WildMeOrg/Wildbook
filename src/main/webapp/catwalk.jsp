@@ -14,7 +14,7 @@
 	//props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/whoweare.properties"));
 	props=ShepherdProperties.getProperties("whoweare.properties", langCode, context);
 
-        request.setAttribute("pageTitle", "Kitizen Science &gt; Cat Walk - Cat Surveys");
+        request.setAttribute("pageTitle", "Kitizen Science &gt; Participate in Cat Surveys");
 %>
 
 <jsp:include page="header.jsp" flush="true" />
