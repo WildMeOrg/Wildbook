@@ -12,6 +12,7 @@ import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
+import java.util.Calendar;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -1147,6 +1148,16 @@ public class Util {
     java.util.Collections.sort(list);
     return list;
   }
+
+    public static Calendar iso8601ToCalendar(String dt) {
+        if (dt == null) return null;
+        try {
+            return javax.xml.bind.DatatypeConverter.parseDateTime(dt);
+        } catch (java.lang.IllegalArgumentException ex) {
+            System.out.println("Util.iso8601ToCalendar(" + dt + ") threw " + ex.toString());
+            return null;
+        }
+    }
 
     //these are for debugging/timing purposes
     public static void mark(String msg) {
