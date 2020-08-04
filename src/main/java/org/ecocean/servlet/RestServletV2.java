@@ -16,6 +16,7 @@ import java.io.PrintWriter;
 import javax.jdo.Query;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
@@ -414,19 +415,26 @@ rtn.put("_payload", payload);
                 if (key.startsWith("site.custom.customFields.")) {
                     String cname = key.substring(25);
                     JSONObject defn = payload.optJSONObject(key);
-                    if (defn == null) throw new IOException(key + " was not passed valid JSON object");
-                    defn.put("className", "org.ecocean." + cname);
-                    CustomFieldDefinition.updateCustomFieldDefinition(myShepherd, defn);  //throws Exception if badness
-                    //since this was added, we want to set the conf using *all cfds* for this key:
+                    JSONArray defnArr = payload.optJSONArray(key);
+                    if ((defn == null) && (defnArr == null)) throw new IOException(key + " was not passed valid JSON object/array");
+                    if (defn != null) defnArr = new JSONArray(Arrays.asList(defn));  //make singleton into array
+                    for (int i = 0 ; i < defnArr.length() ; i++) {
+                        JSONObject dj = defnArr.optJSONObject(i);
+                        if (dj == null) throw new IOException(key + " was not passed valid JSON object at position " + i);
+                        dj.put("className", "org.ecocean." + cname);
+//System.out.println(key + "[" + i + "] => " + dj);
+                        CustomFieldDefinition.updateCustomFieldDefinition(myShepherd, dj);  //throws Exception if badness
+                        //since this was added, we want to set the conf using *all cfds* for this key:
+                    }
                     conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cname));
                 } else {
                     conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
                 }
                 updatedConfs.add(conf);
                 _log(instanceId, ">>>> SET key=" + key + " <= " + payload.get(key) + " => " + conf);
-                rtn.put("success", true);
                 updated.add(key);
             }
+            rtn.put("success", true);  //if we made it thru every key without exception
         } catch (Exception ex) {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
