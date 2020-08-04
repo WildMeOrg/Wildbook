@@ -37,6 +37,8 @@ public class DataDefinition {
         "color",
         "geo",
         "json",
+        "individual",
+        "encounter",
         "customFields",  //data is actually json
         "locationIds",   //  same
         "taxonomy"
