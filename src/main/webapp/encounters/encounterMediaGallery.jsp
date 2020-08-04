@@ -1116,7 +1116,7 @@ function updateLabeledKeywordValue(el) {
 
 
 var popupStartTime = 0;
-function addNewKeyword(el) {
+function addOrRemoveNewKeyword(el) {
     event.stopPropagation();
 	console.warn(el);
 	var jel = $(el);
@@ -1311,10 +1311,10 @@ console.info("############## mid=%s -> %o", mid, ma);
 
     if (kw.label) {
       console.info("Have labeled keyword %o", kw);
-      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" onclick="addNewKeyword(this)" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword labeled-keyword" id="keyword-' + kw.indexname + '"><span class="keyword-label">' + kw.label+'</span>: <span class="keyword-value">'+kw.readableName+'</span> <span class="iek-remove" onclick="addOrRemoveNewKeyword(this)" title="remove keyword">X</span></div>';
     } else {
       //h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].displayName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
-      h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" onclick="addNewKeyword(this)" title="remove keyword">X</span></div>';
+      h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" onclick="addOrRemoveNewKeyword(this)" title="remove keyword">X</span></div>';
 
     }
 //console.info('keyword = %o', ma.keywords[i]);
@@ -1357,7 +1357,7 @@ console.info("############## mid=%s -> %o", mid, ma);
 	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
 	if (wildbookGlobals.keywords) {
 		var hasSome = false;
-		var mh = '<select onChange="return addNewKeyword(this);" style="width: 100%" class="keyword-selector"><option value="">select keyword</option>';
+		var mh = '<select onChange="return addOrRemoveNewKeyword(this);" style="width: 100%" class="keyword-selector"><option value="">select keyword</option>';
 		for (var j in wildbookGlobals.keywords) {
 			if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
 			mh += '<option value="' + j + '">' + wildbookGlobals.keywords[j] + '</option>';
@@ -1366,7 +1366,7 @@ console.info("############## mid=%s -> %o", mid, ma);
 		mh += '</select>';
 		if (hasSome) h += mh;
 	}
-	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
+	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addOrRemoveNewKeyword(this);" />';
 	h += '</div></div>';
 
     // we need to attach this to the outer container now
