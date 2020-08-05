@@ -173,14 +173,14 @@ try {
 			<th>Species</th>
 			<% for (MarkedIndividual ind: inds) {%>
 			<td class="col-md-2 diff_check">
-				<%=ind.getTaxonomyString()%>
+				<%=ind.getGenusSpeciesDeep()%>
 			</td>
 			<%}%>
 
 			<td class="merge-field">
 
-				<% 
-				String mergeTaxy = Util.betterValue(markA.getTaxonomyString(), markB.getTaxonomyString());
+				<%
+				String mergeTaxy = Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep());
 				%>
 				 <input name="taxonomy" type="text" class="" id="taxonomyInput" value="<%=mergeTaxy%>"/>
 			</td>
@@ -195,7 +195,7 @@ try {
 			<%}%>
 			<td class="merge-field">
 
-				<% 
+				<%
 				String mergeSex = Util.betterValue(markA.getSex(), markB.getSex());
 				%>
 				 <input name="sex" type="text" class="" id="sexInput" value="<%=mergeSex%>"/>
@@ -220,7 +220,7 @@ try {
 	</table>
 
   <input type="submit" name="Submit" value="Merge Individuals" id="mergeBtn" class="btn btn-md editFormBtn"/>
-		
+
 	</form>
 
 
@@ -244,7 +244,7 @@ try {
     	$("#mergeForm").attr("action", "MergeIndividual");
 
       $.post("/MergeIndividual", {
-      	"id1": id1, 
+      	"id1": id1,
       	"id2": id2,
       	"sex": sex,
       	"taxonomy": taxonomy
