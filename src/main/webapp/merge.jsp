@@ -4,7 +4,12 @@ org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 org.ecocean.identity.IdentityServiceLog,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
-org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
+org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path,
+java.net.URLEncoder,
+java.nio.charset.StandardCharsets,
+java.io.UnsupportedEncodingException
+
+" %>
 
 <%
 
@@ -22,9 +27,9 @@ MarkedIndividual markB = myShepherd.getMarkedIndividualQuiet(indIdB);
 MarkedIndividual[] inds = {markA, markB};
 
 String fullNameA = indIdA;
-if (markA!=null) fullNameA += " ("+markA.getDisplayName()+")";
+if (markA!=null) fullNameA += " ("+URLEncoder.encode(markA.getDisplayName(), StandardCharsets.UTF_8.toString())+")";
 String fullNameB = indIdB;
-if (markB!=null) fullNameB += " ("+markB.getDisplayName()+")";
+if (markB!=null) fullNameB += " ("+URLEncoder.encode(markB.getDisplayName(), StandardCharsets.UTF_8.toString())+")";
 
 
 

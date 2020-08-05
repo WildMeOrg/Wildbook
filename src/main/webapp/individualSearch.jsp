@@ -1,21 +1,20 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.util.Collections" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.util.Collections" %>
+<%@ page import="java.util.Properties, java.io.IOException" %>
+<%@ page import="org.ecocean.SearchUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individualSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1)+1;
   int firstSubmissionYear=1980;
-
   int firstYear = 1980;
   myShepherd.beginDBTransaction();
-  boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
-
+  boolean useCustomProperties = User.hasCustomProperties(request, myShepherd);
   try {
     firstYear = myShepherd.getEarliestSightingYear();
     nowYear = myShepherd.getLastSightingYear()+1; // lol this was returning a result 2 off so i fixed it
@@ -24,80 +23,51 @@ context=ServletUtilities.getContext(request);
   catch (Exception e) {
     e.printStackTrace();
   }
-
   System.out.println("nowYear = "+nowYear);
-
-//let's load out properties
   Properties props = new Properties();
-  //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
-
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
   props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
-
-
-
 %>
 
-
 <jsp:include page="header.jsp" flush="true"/>
-
-    <!-- Sliding div content: STEP1 Place inside the head section -->
-  <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
-
-  <script type="text/javascript">
-
-    animatedcollapse.addDiv('location', 'fade=1')
-    animatedcollapse.addDiv('map', 'fade=1')
-    animatedcollapse.addDiv('date', 'fade=1')
-    animatedcollapse.addDiv('observation', 'fade=1')
-    animatedcollapse.addDiv('tags', 'fade=1')
-    animatedcollapse.addDiv('identity', 'fade=1')
-    animatedcollapse.addDiv('metadata', 'fade=1')
-    animatedcollapse.addDiv('export', 'fade=1')
-    animatedcollapse.addDiv('genetics', 'fade=1')
+  <!-- Sliding div content: STEP1 Place inside the head section -->
+<script type="text/javascript" src="javascript/animatedcollapse.js"></script>
+<script type="text/javascript">
+  animatedcollapse.addDiv('location', 'fade=1')
+  animatedcollapse.addDiv('map', 'fade=1')
+  animatedcollapse.addDiv('date', 'fade=1')
+  animatedcollapse.addDiv('observation', 'fade=1')
+  animatedcollapse.addDiv('tags', 'fade=1')
+  animatedcollapse.addDiv('identity', 'fade=1')
+  animatedcollapse.addDiv('metadata', 'fade=1')
+  animatedcollapse.addDiv('export', 'fade=1')
+  animatedcollapse.addDiv('genetics', 'fade=1')
 	animatedcollapse.addDiv('social', 'fade=1')
 	animatedcollapse.addDiv('patternrecognition', 'fade=1')
 	animatedcollapse.addDiv('keywords', 'fade=1')
-
-    animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
-      //$: Access to jQuery
-      //divobj: DOM reference to DIV being expanded/ collapsed. Use "divobj.id" to get its ID
-      //state: "block" or "none", depending on state
-    }
-    animatedcollapse.init()
-  </script>
-  <!-- /STEP2 Place inside the head section -->
-
+  animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
+  }
+  animatedcollapse.init()
+</script>
 <script src="//maps.google.com/maps/api/js?key=<%=mapKey%>&language=<%=langCode%>"></script>
 <script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="javascript/geoxml3.js"></script>
 <script type="text/javascript" src="javascript/ProjectedOverlay.js"></script>
-
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 
  <%
  if(!langCode.equals("en")){
  %>
-
 <script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
 <script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
-
  <%
  }
  %>
 
-  <!-- /STEP2 Place inside the head section -->
-
-
-
-
 <style type="text/css">v\:* {
   behavior: url(#default#VML);
 }</style>
-
 <style type="text/css">
 .full_screen_map {
 position: absolute !important;
@@ -116,14 +86,11 @@ margin-bottom: 8px !important;
     var ne_long_element = document.getElementById('ne_long');
     var sw_lat_element = document.getElementById('sw_lat');
     var sw_long_element = document.getElementById('sw_long');
-
     ne_lat_element.value = "";
     ne_long_element.value = "";
     sw_lat_element.value = "";
     sw_long_element.value = "";
-
   }
-
 
   $( function() {
 	  $( "#datepicker1" ).datetimepicker({
@@ -202,10 +169,7 @@ if(request.getParameter("individualDistanceSearch")!=null){
 	formAction="individualDistanceSearchResults.jsp";
 	titleString=props.getProperty("geneticDistanceTitle");
 }
-
-
 %>
-
 
 <h1 class="intro"><strong><span class="para">
 		<img src="images/wild-me-logo-only-100-100.png" width="50" align="absmiddle"/></span></strong>
@@ -225,17 +189,13 @@ if((request.getParameter("individualDistanceSearch")!=null)||(request.getParamet
 			compareAgainst=myShepherd.getMarkedIndividual(enc.getIndividualID());
 		}
 	}
-
     List<String> loci=myShepherd.getAllLoci();
     int numLoci=loci.size();
     String[] theLoci=new String[numLoci];
     for(int q=0;q<numLoci;q++){
     	theLoci[q]=loci.get(q);
     }
-
     String compareAgainstAllelesString=compareAgainst.getFomattedMSMarkersString(theLoci);
-
-
 %>
 
 <p>Reference Individual ID: <%=compareAgainst.getIndividualID() %>
@@ -262,14 +222,13 @@ if(compareAgainst.getGeneticSex()!=null){
 					}
 					%>
 				</tr>
-
-
 				<tr>
-					<td><span style="color: #909090"><%=compareAgainstAllelesString.replaceAll(" ", "</span></td><td><span style=\"color: #909090\">") %></span></td>
+					<td>
+            <span style="color: #909090">
+              <%=compareAgainstAllelesString.replaceAll(" ", "</span></td><td><span style=\"color: #909090\">")%>
+            </span></td>
 				</tr>
-
 			</table>
-
 </p>
 <%
 }
@@ -277,8 +236,6 @@ if(compareAgainst.getGeneticSex()!=null){
 %>
 <p><em><strong><%=props.getProperty("instructions")%>
 </strong></em></p>
-
-
 <form action="<%=formAction %>" method="get" name="individualSearch" id="search">
     <%
 	if(request.getParameter("individualDistanceSearch")!=null){
@@ -304,42 +261,29 @@ if(compareAgainst.getGeneticSex()!=null){
 <script type="text/javascript">
 //alert("Prepping map functions.");
 var center = new google.maps.LatLng(0, 0);
-
 var map;
-
 var markers = [];
 var overlays = [];
-
-
 var overlaysSet=false;
-
 var geoXml = null;
 var geoXmlDoc = null;
 var kml = null;
 var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
-
-
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
 	var mapZoom = 1.5;
 	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
 		  zoom: mapZoom,
 		  center: center,
 		  mapTypeId: google.maps.MapTypeId.TERRAIN
 		});
-
 	  //adding the fullscreen control to exit fullscreen
 	  var fsControlDiv = document.createElement('DIV');
 	  var fsControl = new FSControl(fsControlDiv, map);
 	  fsControlDiv.index = 1;
 	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-
-
-
-
    map.enableKeyDragZoom({
           visualEnabled: true,
           visualPosition: google.maps.ControlPosition.LEFT,
@@ -352,26 +296,18 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
             on: "Turn off"
           }
         });
-
-
         var dz = map.getDragZoomObject();
         google.maps.event.addListener(dz, 'dragend', function (bnds) {
           var ne_lat_element = document.getElementById('ne_lat');
           var ne_long_element = document.getElementById('ne_long');
           var sw_lat_element = document.getElementById('sw_lat');
           var sw_long_element = document.getElementById('sw_long');
-
           ne_lat_element.value = bnds.getNorthEast().lat();
           ne_long_element.value = bnds.getNorthEast().lng();
           sw_lat_element.value = bnds.getSouthWest().lat();
           sw_long_element.value = bnds.getSouthWest().lng();
         });
-
-        //alert("Finished initialize method!");
-
-
  }
-
 
   function setOverlays() {
 	  //alert("In setOverlays!");
@@ -380,26 +316,15 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 		 geoXml = new geoXML3.parser({
                     map: map,
                     markerOptions: {flat:true,clickable:false},
-
          });
-
-
-
         geoXml.parse(filename);
-
     	var iw = new google.maps.InfoWindow({
     		content:'<%=props.getProperty("loadingMapData") %>',
     		position:center});
-
     	iw.open(map);
-
     	google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
-
-
-
 		  overlaysSet=true;
       }
-
    }
 
 function useData(doc){
@@ -416,33 +341,23 @@ function fullScreen(){
 	$("#map_canvas").addClass('full_screen_map');
 	$('html, body').animate({scrollTop:0}, 'slow');
 	initialize();
-
-	//hide header
 	$("#header_menu").hide();
-
 	if(overlaysSet){overlaysSet=false;setOverlays();}
-	//alert("Trying to execute fullscreen!");
 }
-
 
 function exitFullScreen() {
 	$("#header_menu").show();
 	$("#map_canvas").removeClass('full_screen_map');
-
 	initialize();
 	if(overlaysSet){overlaysSet=false;setOverlays();}
-	//alert("Trying to execute exitFullScreen!");
 }
-
 
 //making the exit fullscreen button
 function FSControl(controlDiv, map) {
-
   // Set CSS styles for the DIV containing the control
   // Setting padding to 5 px will offset the control
   // from the edge of the map
   controlDiv.style.padding = '5px';
-
   // Set CSS for the control border
   var controlUI = document.createElement('DIV');
   controlUI.style.backgroundColor = '#f8f8f8';
@@ -454,7 +369,6 @@ function FSControl(controlDiv, map) {
   controlUI.style.textAlign = 'center';
   controlUI.title = 'Toggle the fullscreen mode';
   controlDiv.appendChild(controlUI);
-
   // Set CSS for the control interior
   var controlText = document.createElement('DIV');
   controlText.style.fontSize = '12px';
@@ -471,90 +385,62 @@ function FSControl(controlDiv, map) {
     } else {
       controlText.innerHTML = '<%=props.getProperty("fullscreen") %>';
     }
-
   // Setup the click event listeners: toggle the full screen
-
   google.maps.event.addDomListener(controlUI, 'click', function() {
-
    if($("#map_canvas").hasClass("full_screen_map")){
     exitFullScreen();
     } else {
     fullScreen();
     }
   });
-
 }
-
-
   google.maps.event.addDomListener(window, 'load', initialize);
-
-
     </script>
 
     <div id="map">
       <p><%=props.getProperty("useTheArrow") %></p>
-
       <div id="map_canvas" style="width: 770px; height: 510px; ">
       		<div style="padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px; z-index: 0; position: absolute; right: 95px; top: 0px; " >
-
       		</div>
       </div>
-
       <div id="map_overlay_buttons">
-
           <input type="button" value="<%=props.getProperty("loadMarkers") %>" onclick="setOverlays();" />&nbsp;
-
-
       </div>
       <p><%=props.getProperty("northeastCorner") %> <%=props.getProperty("latitude") %> <input type="text" id="ne_lat" name="ne_lat"></input> <%=props.getProperty("longitude") %>
         <input type="text" id="ne_long" name="ne_long"></input><br/><br/>
         <%=props.getProperty("southwestCorner") %> <%=props.getProperty("latitude") %> <input type="text" id="sw_lat" name="sw_lat"></input> <%=props.getProperty("longitude") %>
         <input type="text" id="sw_long" name="sw_long"></input></p>
     </div>
-
   </td>
 </tr>
-
 <tr>
   <td>
     <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><span class="el el-chevron-down"></span> <font
       color="#000000"><%=props.getProperty("locationFilterText") %></font></a></h4>
-
     <div id="location" style="display:none; ">
       <p><%=props.getProperty("locationInstructions") %></p>
-
       <p><strong><%=props.getProperty("locationNameContains")%></strong>
         <input name="locationField" type="text" size="60"> <br>
         <em><%=props.getProperty("leaveBlank")%>
         </em>
       </p>
 
-      <p><strong><%=props.getProperty("locationID")%></strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>locationID"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+      <p><strong><%=props.getProperty("locationID")%></strong><br/>
 
        <input name="andLocationIDs" type="checkbox" id="andLocationIDs" value="andLocationIDs" /> <%=props.getProperty("andLocationID")%>
-
-                             <br />
+       <br/>
         (<em><%=props.getProperty("locationIDExample")%>
         </em>)</p>
-
       <%
       String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
       if(qualifier==null) {qualifier="default";}
       else{qualifier=qualifier.replaceAll(".properties","");}
-
       %>
 		<%=LocationID.getHTMLSelector(true, "",qualifier,"locationCodeField","locationCodeField","") %>
-
-
     </div>
   </td>
-
 </tr>
-
 
 <tr>
   <td>
@@ -567,43 +453,32 @@ function FSControl(controlDiv, map) {
 <tr>
   <td>
     <div id="date" style="display:none;">
-
-            <p><strong> Skip date filtering? </strong>            <label>
-              <input name="noDate" type="checkbox" id="noDate" value="noDate" checked />
-            </label>
- <em>select this option if you are searching for encounters that don't have any date</em>
-          </p>
-
-
-
-
+      <p><strong> Skip date filtering? </strong>
+      <label>
+        <input name="noDate" type="checkbox" id="noDate" value="noDate" checked />
+      </label>
+      <em>select this option if you are searching for encounters that don't have any date</em>
+      </p>
       <p><%=props.getProperty("dateInstructions") %></p>
       <strong><%=props.getProperty("sightingDates")%></strong><br/>
-          <table width="720">
+      <table width="720">
         <tr>
           <td width="720">
 	          <%=props.get("start") %>&nbsp;
 	          <input  class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="datepicker1" name="datepicker1" size="20" />
 	           &nbsp;<%=props.get("end") %>&nbsp;
 	          <input class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="datepicker2" name="datepicker2" size="20" />
-
           </td>
         </tr>
       </table>
 
-      <p><strong><%=props.getProperty("verbatimEventDate")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>verbatimEventDate"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+      <p><strong><%=props.getProperty("verbatimEventDate")%>:</strong></p>
 
       <%
         List<String> vbds = myShepherd.getAllVerbatimEventDates();
         int totalVBDs = vbds.size();
-
-
         if (totalVBDs > 1) {
       %>
-
       <select multiple size="5" name="verbatimEventDateField"
               id="verbatimEventDateField">
         <option value="None"></option>
@@ -615,14 +490,11 @@ function FSControl(controlDiv, map) {
         <option value="<%=word%>"><%=word%>
         </option>
         <%
-
             }
-
           }
         %>
       </select>
       <%
-
       } else {
       %>
       <p><em><%=props.getProperty("noVBDs")%>
@@ -639,21 +511,14 @@ function FSControl(controlDiv, map) {
       </c:if>
 
 <!--  date of birth and death -->
-      <p><strong><%=props.getProperty("timeOfBirth")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>timeOfBirth"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+      <p><strong><%=props.getProperty("timeOfBirth")%>:</strong></p>
 <table>
-
 	<tr>
 		<td><%=props.getProperty("start") %> <input type="text" id="DOBstart" name="DOBstart" /></td>
 		<td><%=props.getProperty("end") %> <input type="text" id="DOBend" name="DOBend" /></td>
 	</tr>
 </table>
-	      <p><strong><%=props.getProperty("timeOfDeath")%>:</strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>timeOfDeath"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+	      <p><strong><%=props.getProperty("timeOfDeath")%>:</strong></p>
 	<table>
 	<tr>
 		<td><%=props.getProperty("start") %> <input type="text" id="DODstart" name="DODstart" /></td>
@@ -753,12 +618,7 @@ function FSControl(controlDiv, map) {
 
          <tr>
           <td valign="top"><strong><%=props.getProperty("behavior")%>:</strong>
-            <em> <span class="para">
-								<a href="<%=CommonConfiguration.getWikiLocation(context)%>behavior" target="_blank">
-                  <img src="images/information_icon_svg.gif" alt="Help" border="0"
-                       align="absmiddle"/>
-                </a>
-							</span>
+            <em>
             </em><br/>
               <%
         List<String> behavs = (useCustomProperties)
@@ -934,7 +794,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 		<%
 		}
 	%>
-	
+
 	</table>
 </p>
 </div>
@@ -971,13 +831,13 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             Iterator<Keyword> keys = myShepherd.getAllKeywords();
             if (keys.hasNext()) {
               %>
-              
+
               <select multiple name="keyword" id="keyword" size="10">
                 <option value="None"></option>
                 <%
-                
 
-                while (keys.hasNext()) {  
+
+                while (keys.hasNext()) {
                 //for (int n = 0; n < totalKeywords; n++) {
                   Keyword word = keys.next();
               %>
@@ -1117,32 +977,25 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <td>
     <div id="genetics" style="display:none; ">
       <p><%=props.getProperty("biologicalInstructions") %></p>
-
-
-
-
-
-
-  <br /><p><em><%=props.getProperty("fastOptions") %></em></p>
+      <br />
+      <p><em><%=props.getProperty("fastOptions") %></em></p>
       <p><strong><%=props.getProperty("hasTissueSample")%> </strong>
             <label>
             	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
             </label>
       </p>
-            <p><strong><%=props.getProperty("hasHaplotype")%> </strong>
-            <label>
-            	<input name="hasHaplotype" type="checkbox" id="hasHaplotype" value="hasHaplotype" />
-            </label>
+      <p><strong><%=props.getProperty("hasHaplotype")%> </strong>
+        <label>
+        	<input name="hasHaplotype" type="checkbox" id="hasHaplotype" value="hasHaplotype" />
+        </label>
       </p>
-            </p>
+      </p>
             <%
             String hasMSMarkerChecked="";
             if((request.getParameter("encountrNumber")!=null)||(request.getParameter("individualDistanceSearch")!=null)){
             	hasMSMarkerChecked="checked=\"checked\"";
             }
-
             %>
-
             <p><strong><%=props.getProperty("hasMSMarkers")%> </strong>
             <label>
             	<input name="hasMSMarkers" type="checkbox" id="hasMSMarkers" value="hasMSMarkers" <%=hasMSMarkerChecked %>/>
@@ -1151,10 +1004,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <br /><p><em><%=props.getProperty("slowOptions") %></em></p>
 
 
-      <p><strong><%=props.getProperty("haplotype")%></strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>haplotype"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+      <p><strong><%=props.getProperty("haplotype")%></strong><br />
                              <br />
         (<em><%=props.getProperty("locationIDExample")%></em>)
    </p>
@@ -1190,21 +1040,14 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       %>
 
 
-  <p><strong><%=props.getProperty("geneticSex")%>:</strong> <span class="para">
-      <a href="<%=CommonConfiguration.getWikiLocation(context)%>geneticSex"
-        target="_blank"><img src="images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+  <p><strong><%=props.getProperty("geneticSex")%>:</strong><br/>
                              (<em><%=props.getProperty("locationIDExample")%></em>)
-   </p>
-
+ </p>
       <%
         List<String> genSexes = myShepherd.getAllGeneticSexes();
         int totalSexes = genSexes.size();
-		//System.out.println(haplos.toString());
-
         if (totalSexes >= 1) {
       %>
-
       <select multiple size="<%=(totalSexes+1) %>" name="geneticSexField" id="geneticSexField">
         <option value="None" ></option>
         <%
@@ -1226,7 +1069,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       <%
         }
       %>
-
 <%
     pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode,context));
 %>
@@ -1248,16 +1090,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 </c:forEach>
 <tr><td></td></tr>
 </table>
-
       <p><strong><%=props.getProperty("msmarker")%>:</strong>
-      <span class="para">
-      	<a href="<%=CommonConfiguration.getWikiLocation(context)%>loci" target="_blank">
-      		<img src="images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
-      	</a>
-      </span>
    </p>
 <p>
-
       <%
         List<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
@@ -1336,11 +1171,6 @@ else {
             	<strong><%=props.getProperty("individualID")%></strong>
             	<em>
             		<input name="individualID" type="text" id="individualID" size="40" />&nbsp;
-            		<span class="para">
-            			<a href="<%=CommonConfiguration.getWikiLocation(context)%>individualID" target="_blank">
-            				<img src="images/information_icon_svg.gif" alt="Help" width="15" height="15" border="0" align="absmiddle"/>
-            			</a>
-            		</span>
 
               </em>
               </p>
@@ -1460,15 +1290,11 @@ else {
       </em>
       </td>
       </tr>
-
-
       </table>
       <%
         }
       %>
-
-
-          <table>
+    <table>
     	<tr>
     		<td style="vertical-align: top">
     			<strong><%=props.getProperty("socialRoleIs")%></strong><br />
@@ -1478,17 +1304,10 @@ else {
     		<tr>
     		<td style="vertical-align: top">
 			<%
-        //List<String> roles = myShepherd.getAllRoleNames();
-
 		List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
-
-		//System.out.println(haplos.toString());
-
         if ((roles!=null)&&(roles.size()>0)) {
         	int totalNames = roles.size();
-
       %>
-
       <select multiple size="10" name="role" id="role">
         <option value="None"></option>
         <%
@@ -1515,22 +1334,16 @@ else {
       <%
         }
       %>
-
-
-
     </div>
   </td>
 </tr>
-
 <tr>
   <td>
-
     <h4 class="intro search-collapse-header"><a
       href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down"></span>
       <font color="#000000"><%=props.getProperty("metadataFilters") %></font></a></h4>
   </td>
 </tr>
-
 <tr>
 <td>
   <div id="metadata" style="display:none; ">
@@ -1550,53 +1363,38 @@ else {
         <%
           for (int n = 0; n < numUsers; n++) {
             String username = users.get(n);
-
         	%>
         	<option value="<%=username%>"><%=username%></option>
         	<%
           }
         %>
       </select>
-
+      <%
+      SearchUtilities.setUpOrgDropdown(true, props, out, request, myShepherd);
+      %>
 </div>
 </td>
 </tr>
-
-
-
-
 <%
   myShepherd.rollbackDBTransaction();
 %>
-
-
 <tr>
   <td>
-
-
   </td>
 </tr>
 </table>
 <br />
-<input name="submitSearch" type="submit" id="submitSearch"
-                   value="<%=props.getProperty("goSearch")%>" />
+<input name="submitSearch" type="submit" id="submitSearch" value="<%=props.getProperty("goSearch")%>" />
 </form>
 </td>
 </tr>
 </table>
 <br>
 </div>
-
 <script type="text/javascript" src="javascript/formNullRemover.js"></script>
-
 <jsp:include page="footer.jsp" flush="true"/>
 
-
-
-
 <%
-
   myShepherd.closeDBTransaction();
-
   myShepherd = null;
 %>

@@ -856,15 +856,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   <hr/>
 
   <fieldset>
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterOrganization") %></label>
-      </div>
-
-      <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
-      </div>
-    </div>
 
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
