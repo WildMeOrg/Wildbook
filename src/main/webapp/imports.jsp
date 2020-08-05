@@ -300,7 +300,7 @@ function sendToIA(skipIdent) {
 <p>
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
 
-<% if ((numIA < 1) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) { %>
+<% if (request.isUserInRole("admin") && (numIA < 1) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) { %>
     <div id="ia-send-div">
     <div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
 
