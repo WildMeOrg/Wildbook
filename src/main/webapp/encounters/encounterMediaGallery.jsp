@@ -425,7 +425,7 @@ figcaption div {
 .image-enhancer-feature-wrapper {
     width: 100%;
     height: 100%;
-    position: relative;
+    /*position: relative;*/
     overflow: hidden;
 }
 
