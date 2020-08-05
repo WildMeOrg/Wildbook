@@ -1075,6 +1075,20 @@ public class MediaAsset implements java.io.Serializable {
         return updateChild(type, null);
     }
 
+    //this will simply recreate the resultant target file for the child (called on parent)
+    public boolean redoChild(MediaAsset child) throws IOException {
+        if (child == null) throw new IOException("null child passed");
+        if (store == null) throw new IOException("store is null on " + this);
+        String type = child.getChildType();
+        if (type == null) throw new IOException("child does not have valid type");
+        File sourceFile = (this.localPath() == null) ? null : this.localPath().toFile();
+        File targetFile = (child.localPath() == null) ? null : child.localPath().toFile();
+        if ((sourceFile == null) || (targetFile == null)) throw new IOException("could not get localPath on source or target");
+        boolean ok = store._updateChildLocalWork(this, type, null, sourceFile, targetFile, false);
+        System.out.println("INFO: redoChild() on parent=" + this + ", child=" + child + " => " + ok);
+        return ok;
+    }
+
     public ArrayList<MediaAsset> detachChildren(Shepherd myShepherd, String type) throws IOException {
         if (store == null) throw new IOException("store is null on " + this);
         ArrayList<MediaAsset> disposable = this.findChildrenByLabel(myShepherd, "_" + type);
@@ -1142,6 +1156,15 @@ public class MediaAsset implements java.io.Serializable {
         return found;
     }
 
+
+    //makes the assumption (rightly so?) can have at most one valid child type
+    public String getChildType() {
+        if (store == null) return null;
+        for (String ct : store.standardChildTypes()) {
+            if (this.hasLabel("_" + ct)) return ct;
+        }
+        return null;
+    }
 
     //creates the "standard" derived children for a MediaAsset (thumb, mid, etc)
     public ArrayList<MediaAsset> updateStandardChildren() {
