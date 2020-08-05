@@ -946,13 +946,29 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         if (someEnc == null) {
             newEnc = new Encounter(this);
         } else {  //copy some stuff from sibling
-            newEnc = someEnc.cloneWithoutAnnotations();
-            newEnc.addAnnotation(this);
-            newEnc.setDWCDateAdded();
-            newEnc.setDWCDateLastModified();
-            newEnc.resetDateInMilliseconds();
-            newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
-            newEnc.setGenus(someEnc.getGenus());
+            try {
+                newEnc = someEnc.cloneWithoutAnnotations();
+                newEnc.addAnnotation(this);
+                newEnc.setDWCDateAdded();
+                newEnc.setDWCDateLastModified();
+                newEnc.resetDateInMilliseconds();
+                newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
+                newEnc.setGenus(someEnc.getGenus());
+                newEnc.setSex(null);
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+            Occurrence occ = myShepherd.getOccurrence(someEnc);
+            if (occ==null) {
+                occ = new Occurrence(Util.generateUUID(), someEnc);
+                myShepherd.getPM().makePersistent(occ);
+                System.out.println("INFO: ann.toEncounter() created NEW " + occ + " with " + someEnc);
+            }
+            if ((occ != null) && (newEnc != null)) {
+                System.out.println("INFO: ann.toEncounter() added to " + occ + " newEnc " + newEnc);
+                occ.addEncounterAndUpdateIt(newEnc);
+                occ.setDWCDateLastModified();
+            }
         }
         if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
           newEnc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));
