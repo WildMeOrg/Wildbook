@@ -352,7 +352,7 @@ java.util.Properties" %>
 
     private String showOccurrence(Occurrence occ, HttpServletRequest req) {
         if (occ == null) return "(no Occurrence)";
-        return "[<a target=\"_new\" href=\"occurrence.jsp?number=" + occ.getID() + "\">" + occ.getID() + "</a>] " + occ.toString();
+        return "[<a target=\"_new\" href=\"occurrence.jsp?number=" + occ.getId() + "\">" + occ.getId() + "</a>] " + occ.toString();
     }
 	private boolean rawOutput(String type) {
     	if (type == null) return false;
