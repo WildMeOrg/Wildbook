@@ -1,5 +1,6 @@
 <%@ page contentType="text/plain; charset=utf-8" language="java"
      import="org.ecocean.*,
+org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.json.JSONObject
               "
@@ -16,14 +17,18 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("redoChildrenMediaAssets.jsp");
 myShepherd.beginDBTransaction();
 MediaAsset parent = MediaAssetFactory.load(Integer.parseInt(id), myShepherd);
+JSONObject rtn = new JSONObject();
 
 if (parent == null) {
     myShepherd.rollbackDBTransaction();
-    out.println("invalid MediaAsset id=" + id);
+    rtn.put("success", false);
+    rtn.put("error", "invalid MediaAsset id=" + id);
 } else {
-    parent.redoAllChildren(Shepherd myShepherd) throws IOException {
+    parent.redoAllChildren(myShepherd);
     myShepherd.rollbackDBTransaction();
-    out.println("worked?");
+    rtn.put("success", true);
 } 
+
+out.println(rtn.toString(4));
 %>
 
