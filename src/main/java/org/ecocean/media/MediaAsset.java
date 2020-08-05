@@ -1088,6 +1088,13 @@ public class MediaAsset implements java.io.Serializable {
         System.out.println("INFO: redoChild() on parent=" + this + ", child=" + child + " => " + ok);
         return ok;
     }
+    public void redoAllChildren(Shepherd myShepherd) throws IOException {
+        ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
+        if (kids == null) return;
+        for (MediaAsset kid : kids) {
+            this.redoChild(kid);
+        }
+    }
 
     public ArrayList<MediaAsset> detachChildren(Shepherd myShepherd, String type) throws IOException {
         if (store == null) throw new IOException("store is null on " + this);
