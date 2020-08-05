@@ -2,8 +2,22 @@
      import="org.ecocean.*,
 org.ecocean.servlet.ServletUtilities,
 org.json.JSONObject,
+java.util.HashMap,
 org.ecocean.media.*
               "
+%><%!
+
+    String rotationInfo(MediaAsset ma) {
+        if ((ma == null) || (ma.getMetadata() == null)) return null;
+        HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
+        if (orient == null) return null;
+        for (String k : orient.keySet()) {
+System.out.println("rotationInfo: " + k + "=" + orient.get(k) + " on " + ma);
+            if (orient.get(k).matches(".*90.*")) return orient.get(k);
+        }
+        return null;
+    }
+
 %><% int imgHeight = 2000; %>
 <html>
 <head><title>Manual Annotation</title>
@@ -196,6 +210,7 @@ if ((bbox == null) && (xywh == null)) {
     //return;
 }
 double scale = imgHeight / ma.getHeight();
+if (rotationInfo(ma) != null) scale = imgHeight / ma.getWidth();  //90deg so we have to adjust scale
 
 %>
 
