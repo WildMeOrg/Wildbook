@@ -4,7 +4,12 @@ org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 org.ecocean.identity.IdentityServiceLog,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
-org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
+org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path,
+java.net.URLEncoder,
+java.nio.charset.StandardCharsets,
+java.io.UnsupportedEncodingException
+
+" %>
 
 <%
 
@@ -22,9 +27,9 @@ MarkedIndividual markB = myShepherd.getMarkedIndividualQuiet(indIdB);
 MarkedIndividual[] inds = {markA, markB};
 
 String fullNameA = indIdA;
-if (markA!=null) fullNameA += " ("+markA.getDisplayName()+")";
+if (markA!=null) fullNameA += " ("+URLEncoder.encode(markA.getDisplayName(), StandardCharsets.UTF_8.toString())+")";
 String fullNameB = indIdB;
-if (markB!=null) fullNameB += " ("+markB.getDisplayName()+")";
+if (markB!=null) fullNameB += " ("+URLEncoder.encode(markB.getDisplayName(), StandardCharsets.UTF_8.toString())+")";
 
 
 
@@ -168,14 +173,14 @@ try {
 			<th>Species</th>
 			<% for (MarkedIndividual ind: inds) {%>
 			<td class="col-md-2 diff_check">
-				<%=ind.getTaxonomyString()%>
+				<%=ind.getGenusSpeciesDeep()%>
 			</td>
 			<%}%>
 
 			<td class="merge-field">
 
-				<% 
-				String mergeTaxy = Util.betterValue(markA.getTaxonomyString(), markB.getTaxonomyString());
+				<%
+				String mergeTaxy = Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep());
 				%>
 				 <input name="taxonomy" type="text" class="" id="taxonomyInput" value="<%=mergeTaxy%>"/>
 			</td>
@@ -190,7 +195,7 @@ try {
 			<%}%>
 			<td class="merge-field">
 
-				<% 
+				<%
 				String mergeSex = Util.betterValue(markA.getSex(), markB.getSex());
 				%>
 				 <input name="sex" type="text" class="" id="sexInput" value="<%=mergeSex%>"/>
@@ -215,7 +220,7 @@ try {
 	</table>
 
   <input type="submit" name="Submit" value="Merge Individuals" id="mergeBtn" class="btn btn-md editFormBtn"/>
-		
+
 	</form>
 
 
@@ -239,7 +244,7 @@ try {
     	$("#mergeForm").attr("action", "MergeIndividual");
 
       $.post("/MergeIndividual", {
-      	"id1": id1, 
+      	"id1": id1,
       	"id2": id2,
       	"sex": sex,
       	"taxonomy": taxonomy
