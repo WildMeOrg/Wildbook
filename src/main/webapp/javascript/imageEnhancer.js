@@ -101,6 +101,12 @@ console.log(' ><<<<<<<<>>>>>>>>>>>>> %o', ji);
         var w = $('#image-enhancer-wrapper-' + id + '-' + aid);
         //imgWidth is tricky... lazyloading means the actual image might not be here. but hey we (should?) have metadata width!
         var imgWidth = 1024;  //fallback, sorry. :(
+        if (asset && asset.metadata) {
+            if (asset.metadata.width) imgWidth = asset.metadata.width;
+            if (asset.rotation && asset.metadata.height) imgWidth = asset.metadata.height;
+            console.warn('rotate? %o %dx%d => %d', asset.rotation, asset.metadata.width, asset.metadata.height, imgWidth);
+        }
+        var scale = ji.width() / imgWidth;
         if (asset && asset.metadata && asset.metadata.width) imgWidth = asset.metadata.width;
         var scale = ji.width() / imgWidth;
         //var scale = ji.width() / img.naturalWidth;
