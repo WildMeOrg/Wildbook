@@ -63,7 +63,7 @@ else
 	fi
 	crop="${width}x$height$offset"
 
-	cmd="/usr/bin/convert $source -strip -auto-orient -matte -virtual-pixel Transparent -affine $t0,$t1,$t2,$t3,0,0 -transform +repage -gravity Center -crop $crop $target"
+	cmd="/usr/bin/convert $source -strip -auto-orient -auto-orient -matte -virtual-pixel Transparent -affine $t0,$t1,$t2,$t3,0,0 -transform +repage -gravity Center -crop $crop $target"
 fi
 
 
