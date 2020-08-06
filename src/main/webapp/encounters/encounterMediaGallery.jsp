@@ -58,6 +58,7 @@ java.util.*" %>
         for (String k : orient.keySet()) {
 System.out.println("rotationInfo: " + k + "=" + orient.get(k) + " on " + ma);
             if (orient.get(k).matches(".*90.*")) return orient.get(k);
+            if (orient.get(k).matches(".*270.*")) return orient.get(k);
         }
         return null;
     }
