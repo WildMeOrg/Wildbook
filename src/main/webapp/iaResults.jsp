@@ -6,6 +6,7 @@ org.ecocean.servlet.importer.ImportTask,
 org.ecocean.identity.IdentityServiceLog,
 org.ecocean.SystemValue,
 org.ecocean.ia.Task,
+java.util.HashMap,
 javax.jdo.Query,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
@@ -80,6 +81,18 @@ private static JSONObject nextNamesFromTask(Shepherd myShepherd, Task task) {
     return nextNames;
 }
 
+String rotationInfo(MediaAsset ma) {
+    if ((ma == null) || (ma.getMetadata() == null)) return null;
+    HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
+    if (orient == null) return null;
+    for (String k : orient.keySet()) {
+System.out.println("rotationInfo: " + k + "=" + orient.get(k) + " on " + ma);
+        if (orient.get(k).matches(".*90.*")) return orient.get(k);
+        if (orient.get(k).matches(".*270.*")) return orient.get(k);
+    }
+    return null;
+}
+
 %>
 <%
 
@@ -139,6 +152,7 @@ if (request.getParameter("acmId") != null) {
 				if (ma != null) {
 			            JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
                                     if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
+                                    jm.put("rotation", rotationInfo(ma));
 			            jann.put("asset", jm);
 				}
 				janns.put(jann);
@@ -1168,7 +1182,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
             if (mainAsset.url) {
                 var img = $('<img src="' + mainAsset.url + '" />');
                 ft.metadata = mainAsset.metadata;
-                img.on('load', function(ev) { imageLoaded(ev.target, ft); });
+                img.on('load', function(ev) { imageLoaded(ev.target, ft, mainAsset); });
                 $('#task-' + taskId + ' .annot-' + acmId).append(img);
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
@@ -1414,16 +1428,17 @@ function findMyFeature(annotAcmId, asset) {
     return;
 }
 
-function imageLoaded(imgEl, ft) {
+function imageLoaded(imgEl, ft, asset) {
     if (imgEl.getAttribute('data-feature-drawn')) return;
-    drawFeature(imgEl, ft);
+    drawFeature(imgEl, ft, asset);
 }
 
-function drawFeature(imgEl, ft) {
+function drawFeature(imgEl, ft, asset) {
     if (!imgEl || !imgEl.clientHeight || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
     var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
     var scale = imgEl.height / imgEl.naturalHeight;
     if (ft.metadata && ft.metadata.height) scale = imgEl.height / ft.metadata.height;
+    if (asset.rotation && ft.metadata && ft.metadata.width) scale = imgEl.height / ft.metadata.width;
 //console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
     if (scale == 1) return;
     imgEl.setAttribute('data-feature-drawn', true);
