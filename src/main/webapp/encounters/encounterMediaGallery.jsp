@@ -816,6 +816,12 @@ function doImageEnhancer(sel) {
             }],
 */
 	];
+        if (wildbook.user.getUsername() == 'admin') {
+            opt.menu.push(['image info', function(enh) {
+                var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+                wildbook.openInTab('../obrowse.jsp?type=MediaAsset&id=' + mid);
+            }]);
+        }
 
         wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
 <%
