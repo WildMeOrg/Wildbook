@@ -107,8 +107,6 @@ console.log(' ><<<<<<<<>>>>>>>>>>>>> %o', ji);
             console.warn('rotate? %o %dx%d => %d', asset.rotation, asset.metadata.width, asset.metadata.height, imgWidth);
         }
         var scale = ji.width() / imgWidth;
-        if (asset && asset.metadata && asset.metadata.width) imgWidth = asset.metadata.width;
-        var scale = ji.width() / imgWidth;
         //var scale = ji.width() / img.naturalWidth;
         //var scale = ji.width() / 4000;
         console.warn("########## [%s] scale = %o", id, scale);
