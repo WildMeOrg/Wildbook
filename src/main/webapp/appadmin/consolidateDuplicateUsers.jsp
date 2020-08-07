@@ -17,32 +17,6 @@ java.util.Vector,
 java.util.Iterator,
 java.lang.NumberFormatException"%>
 
-<%!
-public int consolidate(Shepherd myShepherd,User useMe,List<User> dupes){
-	dupes.remove(useMe);
-	int numDupes=dupes.size();
-	for(int i=0;i<dupes.size();i++){
-		User currentDupe=dupes.get(i);
-		List<Encounter> encs=UserConsolidate.getPhotographerEncountersForUser(myShepherd,currentDupe);
-		for(int j=0;j<encs.size();j++){
-			Encounter currentEncounter=encs.get(j);
-			UserConsolidate.consolidatePhotographers(myShepherd, currentEncounter, useMe, currentDupe);
-		}
-		List<Encounter> encs2= UserConsolidate.getSubmitterEncountersForUser(myShepherd,currentDupe);
-		for(int j=0;j<encs.size();j++){
-			Encounter currentEncounter=encs.get(j);
-      UserConsolidate.consolidateSubmitters(myShepherd, currentEncounter, useMe, currentDupe);
-		}
-		dupes.remove(currentDupe);
-		myShepherd.getPM().deletePersistent(currentDupe);
-		myShepherd.commitDBTransaction();
-		myShepherd.beginDBTransaction();
-		i--;
-	}
-	return numDupes;
-}
-%>
-
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -63,6 +37,7 @@ int numFixes=0;
     	List<User> weKnowAbout=new ArrayList<User>();
     	for(int i=0;i<users.size();i++){
     		User user=users.get(i);
+        UserConsolidate.getUsersWithMissingUsernamesWhoMatchEmailOfAnotherUser(user.getEmailAddress());
     		if(!weKnowAbout.contains(user)){
     			if(user.getHashedEmailAddress()!=null){
     				List<User> dupes = UserConsolidate.getUsersByHashedEmailAddress(myShepherd,user.getHashedEmailAddress());
@@ -83,14 +58,14 @@ int numFixes=0;
     					}
     					if(namesPlace.size()==0){
     						User useMe=dupes.get(0);
-    						consolidate(myShepherd,useMe,dupes);
+    						UserConsolidate.consolidate(myShepherd,useMe,dupes);
     						%>
     						are now resolved to:&nbsp;<%=useMe.getEmailAddress() %>
     						<%
     					}
     					else if(namesPlace.size()==1){
     						User useMe=dupes.get(namesPlace.get(0).intValue());
-    						consolidate(myShepherd,useMe,dupes);
+    						UserConsolidate.consolidate(myShepherd,useMe,dupes);
     						%>
     						are now resolved to:&nbsp;&nbsp;<%=useMe.getEmailAddress() %>(<%=useMe.getUsername() %>)
     						<%
