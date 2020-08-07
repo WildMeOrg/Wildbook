@@ -304,10 +304,7 @@ td, th {
 
 <p>
 
-<h2>I3S Scan Results <a
-  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
-  target="_blank"><img src="../images/information_icon_svg.gif"
-                       alt="Help" border="0" align="absmiddle"></a></h2>
+<h2>I3S Scan Results</h2>
 </p>
 <p>The following encounter(s) received the best
   match values using the I3S algorithm against a <%=side%>-side scan of
