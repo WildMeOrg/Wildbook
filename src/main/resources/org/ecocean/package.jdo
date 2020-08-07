@@ -722,6 +722,14 @@
       </field>
     </class>
 
+    <class name="Project" identity-type="application" table="PROJECT">
+      <field name="id" primary-key="true" value-strategy="identity"/>
+      <field name="encounters" persistence-modifier="persistent" default-fetch-group="true" recursion-depth="2" mapped-by="project" >
+        <collection element-type="org.ecocean.Encounter" dependent-element="false" />
+        <join />
+      </field>
+    </class>
+
     <class name="Measurement" identity-type="application">
       <inheritance strategy="new-table"/>
       <field name="value">
