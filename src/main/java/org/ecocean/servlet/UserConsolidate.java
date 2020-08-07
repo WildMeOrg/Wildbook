@@ -56,12 +56,12 @@ public class UserConsolidate extends HttpServlet {
   			Encounter currentEncounter=submitterEncounters.get(j);
         consolidateSubmitters(myShepherd, currentEncounter, useMe, currentDupe);
   		}
-      List<Encounter> usernameLessEncounters= getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress(myShepherd,currentDupe);
-  		for(int j=0;j<usernameLessEncounters.size();j++){
-  			Encounter currentEncounter=usernameLessEncounters.get(j);
-        System.out.println("usernameless encounter with catalog number: " + currentEncounter.getCatalogNumber() + " by " + currentEncounter.getSubmitterEmail() + " with username: " + currentEncounter.getSubmitterID());
-        consolidateUsernameless(myShepherd, currentEncounter, useMe, currentDupe);
-  		}
+      // List<Encounter> usernameLessEncounters= getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress(myShepherd,currentDupe);
+  		// for(int j=0;j<usernameLessEncounters.size();j++){
+  		// 	Encounter currentEncounter=usernameLessEncounters.get(j);
+      //   // System.out.println("usernameless encounter with catalog number: " + currentEncounter.getCatalogNumber() + " by " + currentEncounter.getSubmitterEmail() + " with username: " + currentEncounter.getSubmitterID());
+      //   consolidateUsernameless(myShepherd, currentEncounter, useMe, currentDupe);
+  		// }
   		dupes.remove(currentDupe);
   		myShepherd.getPM().deletePersistent(currentDupe);
   		myShepherd.commitDBTransaction();
@@ -174,9 +174,10 @@ public class UserConsolidate extends HttpServlet {
       encs=new ArrayList<Encounter>(c);
       System.out.println(encs.size());
       for(int i=0; i<encs.size(); i++){
-        System.out.println("entering for loop in getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress");
+        // System.out.println("entering for loop in getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress");
         Encounter currentEncounter = encs.get(i);
-        System.out.println("usernameless encounter by " + currentEncounter.getSubmitterEmail() + " with username: " + currentEncounter.getSubmitterID());
+        // System.out.println("usernameless encounter by " + currentEncounter.getSubmitterEmail() + " with username: " + currentEncounter.getSubmitterID());
+        System.out.println(currentEncounter.getSubmitterEmail());
       }
     }
     query.closeAll();
