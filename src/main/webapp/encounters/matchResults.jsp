@@ -239,11 +239,7 @@ var qMediaAsset = <%=((qMediaAssetJson == null) ? "undefined" : qMediaAssetJson)
 
 
 
-<h1>Matching Results <a href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
-  target="_blank"><img src="../images/information_icon_svg.gif"
-                       alt="Help" border="0" align="absmiddle">
-   </a>
-</h1>
+<h1>Matching Results</h1>
 
 
 

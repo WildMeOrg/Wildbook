@@ -186,11 +186,7 @@ var encounterNumber = '<%=num%>';
 
 
 
-<h1>Matching Results <a href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
-  target="_blank"><img src="../images/information_icon_svg.gif"
-                       alt="Help" border="0" align="absmiddle">
-   </a>
-</h1>
+<h1>Matching Results</h1>
 
 <p>The following encounter(s) received the highest
   match values against encounter <a
