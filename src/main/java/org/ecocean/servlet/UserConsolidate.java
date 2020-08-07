@@ -39,6 +39,38 @@ public class UserConsolidate extends HttpServlet {
     doPost(request, response);
   }
 
+  public static int consolidate(Shepherd myShepherd,User useMe,List<User> dupes){
+    System.out.println("consolidate entered");
+  	dupes.remove(useMe);
+  	int numDupes=dupes.size();
+
+  	for(int i=0;i<dupes.size();i++){
+  		User currentDupe=dupes.get(i);
+  		List<Encounter> photographerEncounters=getPhotographerEncountersForUser(myShepherd,currentDupe);
+  		for(int j=0;j<photographerEncounters.size();j++){
+  			Encounter currentEncounter=photographerEncounters.get(j);
+  			consolidatePhotographers(myShepherd, currentEncounter, useMe, currentDupe);
+  		}
+  		List<Encounter> submitterEncounters= getSubmitterEncountersForUser(myShepherd,currentDupe);
+  		for(int j=0;j<submitterEncounters.size();j++){
+  			Encounter currentEncounter=submitterEncounters.get(j);
+        consolidateSubmitters(myShepherd, currentEncounter, useMe, currentDupe);
+  		}
+      List<Encounter> usernameLessEncounters= getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress(myShepherd,currentDupe);
+  		for(int j=0;j<usernameLessEncounters.size();j++){
+  			Encounter currentEncounter=usernameLessEncounters.get(j);
+        System.out.println("usernameless encounter with catalog number: " + currentEncounter.getCatalogNumber() + " by " + currentEncounter.getSubmitterEmail() + " with username: " + currentEncounter.getSubmitterID());
+        consolidateUsernameless(myShepherd, currentEncounter, useMe, currentDupe);
+  		}
+  		dupes.remove(currentDupe);
+  		myShepherd.getPM().deletePersistent(currentDupe);
+  		myShepherd.commitDBTransaction();
+  		myShepherd.beginDBTransaction();
+  		i--;
+  	}
+  	return numDupes;
+  }
+
   public void manualConsolidateByUsername(Shepherd myShepherd, String userNameOfDesiredUseMe){
     System.out.println("manualConsolidateByUsername entered! Username is " + userNameOfDesiredUseMe);
     List<User> potentialUsers = getUsersByUsername(myShepherd, userNameOfDesiredUseMe);
@@ -52,16 +84,17 @@ public class UserConsolidate extends HttpServlet {
       int numDupes=dupesToBeSubsumed.size();
       for(int i=0;i<dupesToBeSubsumed.size();i++){
         User currentDupeUser=dupesToBeSubsumed.get(i);
-        List<Encounter> encs=getPhotographerEncountersForUser(myShepherd,currentDupeUser);
-        for(int j=0;j<encs.size();j++){
-          Encounter currentEncounter=encs.get(j);
+        List<Encounter> photographerEncounters=getPhotographerEncountersForUser(myShepherd,currentDupeUser);
+        for(int j=0;j<photographerEncounters.size();j++){
+          Encounter currentEncounter=photographerEncounters.get(j);
           consolidatePhotographers(myShepherd, currentEncounter, useMe, currentDupeUser);
         }
-        List<Encounter> encs2=getSubmitterEncountersForUser(myShepherd,currentDupeUser);
-        for(int j=0;j<encs.size();j++){
-          Encounter currentEncounter=encs.get(j);
+        List<Encounter> submitterEncounters=getSubmitterEncountersForUser(myShepherd,currentDupeUser);
+        for(int k=0;k<submitterEncounters.size();k++){
+          Encounter currentEncounter=submitterEncounters.get(k);
           consolidateSubmitters(myShepherd, currentEncounter, useMe, currentDupeUser);
         }
+        //TODO consolidateUsernamelessEncounters
         dupesToBeSubsumed.remove(currentDupeUser);
         myShepherd.getPM().deletePersistent(currentDupeUser);
         myShepherd.commitDBTransaction();
@@ -77,12 +110,43 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static void consolidateSubmitters(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
+    System.out.println("consolidating submitters for encounter: " + enc.getCatalogNumber());
     List<User> subs=enc.getSubmitters();
     if(subs.contains(currentUser)){
-      subs.remove(currentUser);
-      subs.add(useMe);
+      System.out.println("here’s what you’re removing: " + currentUser.getUsername());
+      System.out.println("here’s what you’re adding: " + useMe.getUsername());
+      // subs.remove(currentUser); //TODO comment back in
+      // subs.add(useMe); //TODO comment back in
     }
     enc.setSubmitters(subs);
+    myShepherd.commitDBTransaction();
+    myShepherd.beginDBTransaction();
+  }
+
+  public static void consolidateUsernameless(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
+    System.out.println("assigning usernameless encounters with useMe's username for encounter: " + enc.getCatalogNumber());
+    List<User> subs=enc.getSubmitters();
+    if(subs.contains(currentUser) || subs.size()==0){
+      System.out.println("here’s what you’re removing: " + currentUser.getUsername());
+      System.out.println("here’s what you’re adding: " + useMe.getUsername());
+      // subs.remove(currentUser); //TODO comment back in
+      // subs.add(useMe); //TODO comment back in
+    }
+    enc.setSubmitters(subs);
+    myShepherd.commitDBTransaction();
+    myShepherd.beginDBTransaction();
+  }
+
+  public static void consolidatePhotographers(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
+    System.out.println("consolidating photographers for encounter: " + enc.getCatalogNumber());
+    List<User> photos=enc.getPhotographers();
+    if(photos.contains(currentUser)){
+      System.out.println("here’s what you’re removing: " + currentUser.getUsername());
+      System.out.println("here’s what you’re adding: " + useMe.getUsername());
+      // photos.remove(currentUser); //TODO comment back in
+      // photos.add(useMe); //TODO comment back in
+    }
+    enc.setPhotographers(photos);
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
   }
@@ -99,16 +163,46 @@ public class UserConsolidate extends HttpServlet {
     return encs;
   }
 
-  public static void consolidatePhotographers(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
-    List<User> photos=enc.getPhotographers();
-    if(photos.contains(currentUser)){
-      photos.remove(currentUser);
-      photos.add(useMe);
+  public static List<Encounter> getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress(Shepherd myShepherd, User user){
+    System.out.println("getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress entered");
+  	String filter="SELECT FROM org.ecocean.Encounter where this.submitterEmail==user.emailAddress && user.username==null || user.username==\"N/A\" VARIABLES org.ecocean.User user";
+  	ArrayList<Encounter> encs=new ArrayList<Encounter>();
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      System.out.println("query was not null!");
+      encs=new ArrayList<Encounter>(c);
+      System.out.println(encs.size());
+      for(int i=0; i<encs.size(); i++){
+        System.out.println("entering for loop in getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress");
+        Encounter currentEncounter = encs.get(i);
+        System.out.println("usernameless encounter by " + currentEncounter.getSubmitterEmail() + " with username: " + currentEncounter.getSubmitterID());
+      }
     }
-    enc.setPhotographers(photos);
-    myShepherd.commitDBTransaction();
-    myShepherd.beginDBTransaction();
+    query.closeAll();
+    return encs;
   }
+
+  public static List<User> getUsersWithMissingUsernamesWhoMatchEmailOfAnotherUser(String emailAddress){
+    // System.out.println("getUsersWithMissingUsernamesWhoMatchEmailOfAnotherUser entered");
+  	String filter="SELECT FROM org.ecocean.Users where "+ emailAddress+ "==this.emailAddress && this.username==null || this.username==\"N/A\" ";
+  	ArrayList<User> usernamelessUsers=new ArrayList<User>();
+    Query query=myShepherd.getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      // System.out.println("query was not null!");
+      usernamelessUsers=new ArrayList<User>(c);
+      // System.out.println(usernamelessUsers.size());
+      for(int i=0; i<usernamelessUsers.size(); i++){
+        // System.out.println("entering for loop in getUsersWithMissingUsernamesWhoMatchEmailOfAnotherUser");
+        User currentUser = usernamelessUsers.get(i);
+        System.out.println("usernameless user has email address " + currentUser.getEmailAddress());
+      }
+    }
+    query.closeAll();
+    return encs;
+  }
+
 
   public static List<Encounter> getPhotographerEncountersForUser(Shepherd myShepherd, User user){
   	String filter="SELECT FROM org.ecocean.Encounter where (photographers.contains(user)) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
