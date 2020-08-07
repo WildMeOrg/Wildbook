@@ -592,6 +592,17 @@ public class Shepherd {
     return collab;
   }
 
+  public Project getProject(String id) {
+    Project project = null;
+    try {
+      project = ((Project) (pm.getObjectById(pm.newObjectIdInstance(Project.class, id.trim()), true)));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return project;
+  }
+
   public Workspace getWorkspace(int id) {
     Workspace tempWork = null;
     try {
@@ -1647,6 +1658,15 @@ public class Shepherd {
   public boolean isPath(String name) {
     try {
       Path tempPath = ((org.ecocean.movement.Path) (pm.getObjectById(pm.newObjectIdInstance(Path.class, name.trim()), true)));
+    } catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
+
+  public boolean isProject(String id) {
+    try {
+      Project tempProject = ((org.ecocean.Project) (pm.getObjectById(pm.newObjectIdInstance(Project.class, id.trim()), true)));
     } catch (Exception nsoe) {
       return false;
     }
