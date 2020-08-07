@@ -1026,6 +1026,19 @@ public class Shepherd {
     //if (transactionWasActive) beginDBTransaction();
     return (org.getId());
   }
+
+  public Project getProjectByResearchProjectId(String researchProjectId) {
+    Project project = null;
+    String filter="SELECT FROM org.ecocean.Project WHERE researchProjectId == \""+researchProjectId.trim()+"\"";   
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      project=(Project)it.next();
+    }
+    query.closeAll();
+    return project;
+  }
   
   public List<User> getUsersWithUsername() {
     return getUsersWithUsername("username ascending");
