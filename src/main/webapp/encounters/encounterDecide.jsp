@@ -3,9 +3,22 @@ org.ecocean.media.MediaAsset,
 org.ecocean.media.Feature,
 org.json.JSONObject, org.json.JSONArray,
 java.util.Collection,
+java.util.HashMap,
 javax.jdo.Query,
 java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
 <%!
+
+private static String rotationInfo(MediaAsset ma) {
+    if ((ma == null) || (ma.getMetadata() == null)) return null;
+    HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
+    if (orient == null) return null;
+    for (String k : orient.keySet()) {
+System.out.println("rotationInfo: " + k + "=" + orient.get(k) + " on " + ma);
+        if (orient.get(k).matches(".*90.*")) return orient.get(k);
+        if (orient.get(k).matches(".*270.*")) return orient.get(k);
+    }
+    return null;
+}
 
 private static void addClause(List<String> props, String colName, String propVal) {
     if ((propVal == null) || propVal.equals("unknown")) return;
@@ -81,6 +94,7 @@ System.out.println("findSimilar() -> " + el.toString());
             mj.put("annotationId", ann.getId());
             mj.put("origWidth", ma.getWidth());
             mj.put("origHeight", ma.getHeight());
+            mj.put("rotation", rotationInfo(ma));
             if (ann.getFeatures() != null) for (Feature f : ann.getFeatures()) { String foo = f.toString(); }
             if (!ann.isTrivial()) mj.put("bbox", ann.getBbox());
             mj.put("id", ma.getId());
@@ -134,6 +148,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
     rtn.put("id", ma.getId());
     rtn.put("origWidth", ma.getWidth());
     rtn.put("origHeight", ma.getHeight());
+    rtn.put("rotation", rotationInfo(ma));
     if (found.getFeatures() != null) for (Feature f : found.getFeatures()) { String foo = f.toString(); }
     if (!found.isTrivial()) rtn.put("bbox", found.getBbox());
     rtn.put("url", ma.safeURL(myShepherd, request));
@@ -147,6 +162,7 @@ System.out.println("getMatchPhoto(" + indiv + ") -> secondary = " + secondary);
         j2.put("url", ma.safeURL(myShepherd, request));
         j2.put("origWidth", ma.getWidth());
         j2.put("origHeight", ma.getHeight());
+        j2.put("rotation", rotationInfo(ma));
         rtn.put("secondary", j2);
     }
     return rtn;
@@ -946,9 +962,14 @@ function assetLoaded(el, imgInfo) {
         });
         return;
     }
+console.log('imgInfo ==> %o', imgInfo);
     var wrapper = imgEl.parent();
     var ow = imgInfo.origWidth;
     var oh = imgInfo.origHeight;
+    if (imgInfo.rotation) {
+        ow = imgInfo.origHeight;
+        oh = imgInfo.origWidth;
+    }
     var iw = imgEl[0].naturalWidth;
     var ih = imgEl[0].naturalHeight;
     var ww = wrapper.width();
@@ -1061,6 +1082,7 @@ There are two steps to processing each submission: selecting cat attributes, and
         j.put("annotationId", ann.getId());
         j.put("origWidth", ma.getWidth());
         j.put("origHeight", ma.getHeight());
+        j.put("rotation", rotationInfo(ma));
         if (ann.getFeatures() != null) for (Feature f : ann.getFeatures()) { String foo = f.toString(); }
         if (!ann.isTrivial()) j.put("bbox", ann.getBbox());
 %>
