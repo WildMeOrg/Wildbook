@@ -326,11 +326,11 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 		date = dict['unknown'];
             }
 
-            if(jsonData.encounters[i].verbatimLocality) {
-		var location = jsonData.encounters[i].verbatimLocality;
-            } else {
-		var location = "";
-            }
+            if(jsonData.encounters[i].locationID) {
+				var location = jsonData.encounters[i].locationID;
+			} else {
+				var location = "";
+			}
             var catalogNumber = jsonData.encounters[i].catalogNumber;
             console.log("Here's what we are working with : "+jsonData.encounters[i]);
             if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
