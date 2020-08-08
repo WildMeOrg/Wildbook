@@ -29,6 +29,9 @@
                 		<column allows-null="false"/>
 			</field>
 			<field name="className" />
+			<field name="parameters" peristence-modifier="persistent">
+				<column jdbc-type="LONGVARCHAR"/>
+			</field>
 		</class>
 
 		<class name="CustomFieldValue" identity-type="application">

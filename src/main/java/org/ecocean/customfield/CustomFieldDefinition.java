@@ -14,6 +14,7 @@ public class CustomFieldDefinition implements java.io.Serializable {
     private String name = null;  //this is a human-readable name which is required and needs to be unique
     private String type = null;
     private boolean multiple = false;
+    private String parameters = null;
 
     public CustomFieldDefinition() {
         id = Util.generateUUID();
@@ -91,7 +92,9 @@ public class CustomFieldDefinition implements java.io.Serializable {
     //note: this ignores 'id' passed in!  (it will set own)
     public static CustomFieldDefinition fromJSONObject(JSONObject defn) throws CustomFieldException {
         if (defn == null) throw new CustomFieldException("fromJSONObject() passed null");
-        return new CustomFieldDefinition(defn.optString("className", null), defn.optString("type", null), defn.optString("name", null), defn.optBoolean("multiple", false));
+        CustomFieldDefinition cfd = new CustomFieldDefinition(defn.optString("className", null), defn.optString("type", null), defn.optString("name", null), defn.optBoolean("multiple", false));
+        cfd.parameters = defn.toString();
+        return cfd;
     }
 
     public boolean equals(final Object d2) {
@@ -123,7 +126,8 @@ public class CustomFieldDefinition implements java.io.Serializable {
     }
 
     public JSONObject toJSONObject() {
-        JSONObject j = new JSONObject();
+        JSONObject j = Util.stringToJSONObject(this.parameters);
+        if (j == null) j = new JSONObject();
         j.put("id", id);
         j.put("name", name);
         j.put("className", className);
