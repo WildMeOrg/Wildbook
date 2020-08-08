@@ -93,8 +93,19 @@ public class CustomFieldDefinition implements java.io.Serializable {
     public static CustomFieldDefinition fromJSONObject(JSONObject defn) throws CustomFieldException {
         if (defn == null) throw new CustomFieldException("fromJSONObject() passed null");
         CustomFieldDefinition cfd = new CustomFieldDefinition(defn.optString("className", null), defn.optString("type", null), defn.optString("name", null), defn.optBoolean("multiple", false));
-        cfd.parameters = defn.toString();
+        cfd.setParameters(defn);
         return cfd;
+    }
+
+    //this is basically to sanity-check the parameters as well
+    public void setParameters(JSONObject param) throws CustomFieldException {
+        if (param == null) {
+            this.parameters = null;
+            return;
+        }
+        if (param.has("options") && (param.optJSONArray("options") == null)) throw new CustomFieldException("options parameter must be array");
+        //TODO check this.type against contents of array
+        this.parameters = param.toString();
     }
 
     public boolean equals(final Object d2) {
@@ -128,6 +139,7 @@ public class CustomFieldDefinition implements java.io.Serializable {
     public JSONObject toJSONObject() {
         JSONObject j = Util.stringToJSONObject(this.parameters);
         if (j == null) j = new JSONObject();
+        //these "overwrite" any that may happen to be in parameters, so tough
         j.put("id", id);
         j.put("name", name);
         j.put("className", className);
