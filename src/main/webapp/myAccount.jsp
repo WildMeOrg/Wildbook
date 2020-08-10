@@ -435,6 +435,8 @@ function socialConnect(svc) {
 	window.location.href = 'SocialConnect?type=' + svc;
 }
 
+let myName = '<%=request.getUserPrincipal().getName()%>';
+
 $('#collabTarget').autocomplete({
 	source: function( request, response ) {
 		$.ajax({
@@ -450,6 +452,7 @@ $('#collabTarget').autocomplete({
 				});
 
 				var res = $.map(data, function(item) {
+					if (item.username==myName) return;
 					let fullName = "";
 					if (item.fullName!=null&&item.fullName!="undefined") fullName = item.fullName;
 					let label = ("name: "+fullName+" user: "+item.username);
@@ -460,7 +463,6 @@ $('#collabTarget').autocomplete({
 				});
 				response(res);
 			}
-
 		});
 	}
 });
@@ -470,34 +472,39 @@ function initiateCollab() {
 	let paramStr = "";
 	if (collabTarget!=null&&""!=collabTarget) {
 
-		let alreadyCollab = [];
-		$(".collab-name").each(function() {
-			alreadyCollab.push($(this).text());
-		});
-		if (alreadyCollab.indexOf(collabTarget) > -1) {
-			$("#collabResp").text("You already have a collaboration or request with user "+collabTarget+".");
+		console.log("is collab target current user? myName="+myName+"  collabTarget="+collabTarget);
+		if (myName==collabTarget) {	
+			$("#collabResp").text("You cannot send a collaboration request to yourself.");
 		} else {
-			paramStr = "?username="+collabTarget;
-			if ($("#collabNote").val()!=null&&""!=$("#collabNote").val()) {
-				paramStr += "&message="+$("#collabNote").val();
-			}
-			$.ajax({
-				url: wildbookGlobals.baseUrl + '/Collaborate'+paramStr,
-				type: 'POST',
-				dataType: "text",
-				contentType: 'application/javascript',
-				success: function(d) {
-					console.info('Success! Got back '+JSON.stringify(d));
-					$("#collabResp").text("The collaboration request has been sent.");
-					appendCollabRequest(collabTarget);
-					clearCollabInitFields()
-				},
-				error: function(x,y,z) {
-					$("#collabResp").text("There was an error sending this collaboration request.");
-					console.log(" got an error....?? ");
-					console.warn('%o %o %o', x, y, z);
-				}
+			let alreadyCollab = [];
+			$(".collab-name").each(function() {
+				alreadyCollab.push($(this).text());
 			});
+			if (alreadyCollab.indexOf(collabTarget) > -1) {
+				$("#collabResp").text("You already have a collaboration or request with user "+collabTarget+".");
+			} else {
+				paramStr = "?username="+collabTarget;
+				if ($("#collabNote").val()!=null&&""!=$("#collabNote").val()) {
+					paramStr += "&message="+$("#collabNote").val();
+				}
+				$.ajax({
+					url: wildbookGlobals.baseUrl + '/Collaborate'+paramStr,
+					type: 'POST',
+					dataType: "text",
+					contentType: 'application/javascript',
+					success: function(d) {
+						console.info('Success! Got back '+JSON.stringify(d));
+						$("#collabResp").text("The collaboration request has been sent.");
+						appendCollabRequest(collabTarget);
+						clearCollabInitFields()
+					},
+					error: function(x,y,z) {
+						$("#collabResp").text("There was an error sending this collaboration request.");
+						console.log(" got an error....?? ");
+						console.warn('%o %o %o', x, y, z);
+					}
+				});
+			}
 		}
 	} else {
 		$("#collabResp").text("You must specify a user to initiate collaboration with.");
