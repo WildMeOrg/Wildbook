@@ -33,14 +33,15 @@ int numFixes=0;
     <%
     myShepherd.beginDBTransaction();
     try{
+      EncounterConsolidate.makeEncountersMissingSubmittersPublic(myShepherd);
     	List<User> users=myShepherd.getAllUsers();
     	List<User> weKnowAbout=new ArrayList<User>();
     	for(int i=0;i<users.size();i++){
     		User user=users.get(i);
-        UserConsolidate.getUsersWithMissingUsernamesWhoMatchEmailOfAnotherUser(user.getEmailAddress());
+        UserConsolidate.getUsersWithMissingUsernamesWhoMatchEmail(myShepherd.getPM(), user.getEmailAddress());
     		if(!weKnowAbout.contains(user)){
     			if(user.getHashedEmailAddress()!=null){
-    				List<User> dupes = UserConsolidate.getUsersByHashedEmailAddress(myShepherd,user.getHashedEmailAddress());
+    				List<User> dupes = UserConsolidate.getUsersByHashedEmailAddress(myShepherd.getPM(),user.getHashedEmailAddress());
     				if(dupes.size()>1){
     					%>
     					<li>
@@ -53,7 +54,7 @@ int numFixes=0;
     							namesPlace.add(new Integer(k));
     						}
     					%>
-    					<%=dupes.get(k).getEmailAddress()+username+"(Encounters: "+UserConsolidate.getSubmitterEncountersForUser(myShepherd,dupes.get(k)).size()+"/ Photographer encounters: "+UserConsolidate.getPhotographerEncountersForUser(myShepherd,dupes.get(k)).size()+")" %>,
+    					<%=dupes.get(k).getEmailAddress()+username+"(Encounters: "+UserConsolidate.getSubmitterEncountersForUser(myShepherd.getPM(),dupes.get(k)).size()+"/ Photographer encounters: "+UserConsolidate.getPhotographerEncountersForUser(myShepherd.getPM(),dupes.get(k)).size()+")" %>,
     					<%
     					}
     					if(namesPlace.size()==0){
