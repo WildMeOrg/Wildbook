@@ -414,19 +414,22 @@ rtn.put("_payload", payload);
                 Configuration conf = null;
                 if (key.startsWith("site.custom.customFields.")) {
                     String cname = key.substring(25);
-                    JSONObject defn = payload.optJSONObject(key);
-                    JSONArray defnArr = payload.optJSONArray(key);
-                    if ((defn == null) && (defnArr == null)) throw new IOException(key + " was not passed valid JSON object/array");
-                    if (defn != null) defnArr = new JSONArray(Arrays.asList(defn));  //make singleton into array
-                    for (int i = 0 ; i < defnArr.length() ; i++) {
-                        JSONObject dj = defnArr.optJSONObject(i);
-                        if (dj == null) throw new IOException(key + " was not passed valid JSON object at position " + i);
-                        dj.put("className", "org.ecocean." + cname);
+                    JSONObject val = payload.optJSONObject(key);
+                    if (val == null) throw new IOException(key + " is not a valid JSON object");
+                    JSONArray defnArr = val.optJSONArray("definitions");
+                    if (defnArr == null) {
+                        _log(instanceId, "INFO: " + key + " not passed a definitions array; skipping");
+                    } else {
+                        for (int i = 0 ; i < defnArr.length() ; i++) {
+                            JSONObject dj = defnArr.optJSONObject(i);
+                            if (dj == null) throw new IOException(key + " was not passed valid JSON object at position " + i);
+                            dj.put("className", "org.ecocean." + cname);
 //System.out.println(key + "[" + i + "] => " + dj);
-                        CustomFieldDefinition.updateCustomFieldDefinition(myShepherd, dj);  //throws Exception if badness
-                        //since this was added, we want to set the conf using *all cfds* for this key:
+                            CustomFieldDefinition.updateCustomFieldDefinition(myShepherd, dj);  //throws Exception if badness
+                            //since this was added, we want to set the conf using *all cfds* for this key:
+                        }
+                        conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cname));
                     }
-                    conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cname));
                 } else {
                     conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
                 }
