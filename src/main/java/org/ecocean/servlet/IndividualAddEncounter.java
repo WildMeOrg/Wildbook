@@ -166,15 +166,15 @@ public class IndividualAddEncounter extends HttpServlet {
               throw new RuntimeException(failureMessage.toString());
   
             }
-
               myShepherd.commitDBTransaction();
               response.setStatus(HttpServletResponse.SC_OK);
               out.println(responseJSON);
   
         			
               //send emails if appropriate
-              if (request.getParameter("noemail") == null) {
+              if ("false".equals(request.getParameter("noemail"))) {
                 try {
+                  System.out.println("About to send emails to interested users in IndividualAddEncounter.java");
                   executeEmails(myShepherd, request,addToMe,newIndy, enc2add, context, langCode);
                 }
                 catch(Exception excepty) {
@@ -243,6 +243,7 @@ public class IndividualAddEncounter extends HttpServlet {
   
   private void executeEmails(Shepherd myShepherd, HttpServletRequest request,MarkedIndividual addToMe,boolean newIndy, Encounter enc2add, String context, String langCode) {
     // Retrieve background service for processing emails
+
     ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
     myShepherd.beginDBTransaction();
