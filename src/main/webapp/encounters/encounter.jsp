@@ -1629,7 +1629,12 @@ console.info('resetIdButtons()');
                         var number = $("#individualAddEncounterNumber").val();
                         var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
                         var matchType = $("#matchType").val();
-                        var noemail = $( "input:checkbox:checked" ).val();
+
+                        var noemail = false;
+                        if ($("#noEmailCheckbox").is(":checked")) {
+                          noemail = true;
+                        }
+
                         var action = $("#individualAddEncounterAction").val();
                         var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
                         console.info('sendData=%o', sendData);
@@ -1747,7 +1752,7 @@ console.info('resetIdButtons()');
                       </div>
                       <div class="form-group row">
                         <div class="col-sm-5 col-xs-10">
-                          <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
+                          <label><input id="noEmailCheckbox" name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
                         </div>
                       </div>
                       </form>
