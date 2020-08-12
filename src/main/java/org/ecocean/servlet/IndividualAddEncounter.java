@@ -70,12 +70,9 @@ public class IndividualAddEncounter extends HttpServlet {
 
     String action = request.getParameter("action");
 
-    //add encounter to a MarkedIndividual
-
     String indivID = request.getParameter("individual");
     boolean forceNew = Util.booleanNotFalse(request.getParameter("forceNew"));
     if ((request.getParameter("number") != null) && (indivID != null) && (request.getParameter("matchType") != null)) {
-
 
       myShepherd.beginDBTransaction();
       Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
@@ -95,32 +92,22 @@ public class IndividualAddEncounter extends HttpServlet {
               System.out.println("IndividualAddEncounter: forceNew=true, attempting to make indiv '" + indivID + "'.");
               try {
                   newIndy = true;
-                  
-
                   addToMe = new MarkedIndividual(indivID, enc2add);
                   
                   //check for duplicate individual IDs represented by another annotation with the same acmId
                   checkForDuplicateAnnotations(enc2add, failureMessage, addToMe, myShepherd);
                   
-                  
-                  
-                  
-                  
                   myShepherd.storeNewMarkedIndividual(addToMe);
-                  myShepherd.updateDBTransaction();
-                  enc2add.setIndividual(addToMe);
                   myShepherd.updateDBTransaction();
                   addToMe.refreshNamesCache();
                   addToMe.refreshDependentProperties();
                   
-              } 
-              catch (Exception ex) {
+              } catch (Exception ex) {
                   ex.printStackTrace();
                   myShepherd.rollbackDBTransaction();
                   throw new RuntimeException(failureMessage.toString());
               }
-          } 
-          else {
+          } else {
              System.out.println("IndividualAddEncounter: Retrieving an existing individual=" + indivID);
               addToMe = myShepherd.getMarkedIndividual(indivID);
               if (addToMe == null) {
@@ -128,7 +115,6 @@ public class IndividualAddEncounter extends HttpServlet {
                 throw new RuntimeException("invalid individual id=" + indivID);
               }
           }
-  
 
             boolean sexMismatch = false;
 
@@ -136,21 +122,23 @@ public class IndividualAddEncounter extends HttpServlet {
               if (!addToMe.getEncounters().contains(enc2add)) {
               //check for duplicate individual IDs represented by another annotation with the same acmId
                 checkForDuplicateAnnotations(enc2add, failureMessage, addToMe, myShepherd);
+                enc2add.setIndividual(addToMe);
+                myShepherd.updateDBTransaction();
                 addToMe.addEncounter(enc2add);
+                addToMe.refreshNamesCache();
+                addToMe.refreshDependentProperties();
+                myShepherd.updateDBTransaction();
                 System.out.println("Now adding the Encounter to the individual");
               }
               enc2add.setMatchedBy(request.getParameter("matchType"));
               enc2add.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added to " + request.getParameter("individual") + ".</p>");
               addToMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Added encounter " + request.getParameter("number") + ".</p>");
               
-              
-              
               if ((addToMe.getSex()!=null)&&(enc2add.getSex()!=null)&&(!addToMe.getSex().equals(enc2add.getSex()))) {
                  
                   sexMismatch = true;
               
-              }
-              else if ( ((addToMe.getSex()==null)||(addToMe.getSex().equals("unknown"))) &&(enc2add.getSex()!=null)) {
+              } else if ( ((addToMe.getSex()==null)||(addToMe.getSex().equals("unknown"))) &&(enc2add.getSex()!=null)) {
                 addToMe.setSex(enc2add.getSex());
               }
               //responseJSON=RESTUtils.getJSONObjectFromPOJO(addToMe, ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext()).toString();  
@@ -159,8 +147,7 @@ public class IndividualAddEncounter extends HttpServlet {
               //youTube postback check
               youTubePostback(enc2add, myShepherd, context);
 
-            } 
-            catch (Exception le) {
+            } catch (Exception le) {
               le.printStackTrace();
               myShepherd.rollbackDBTransaction();
               throw new RuntimeException(failureMessage.toString());
