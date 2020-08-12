@@ -82,7 +82,11 @@ public class CustomFieldDefinition implements java.io.Serializable {
         if (Util.isUUID(id)) {  //lets see if we are updating....
             List<CustomFieldDefinition> all = myShepherd.getAllCustomFieldDefinitions();
             if (!Util.collectionIsEmptyOrNull(all)) for (CustomFieldDefinition c : all) {
-                if (id.equals(c.getId())) throw new CustomFieldException("modification of existing CustomFieldDefinition currently not supported");
+                if (id.equals(c.getId())) {
+                    System.out.println("WARNING: modifying existing CustomFieldDefintion currently not supported for id=" + id);  //opt for silently ignore rn
+                    return null;
+                }
+                //if (id.equals(c.getId())) throw new CustomFieldException("modification of existing CustomFieldDefinition currently not supported");
             }
             cfd.setId(id);  //if we made it this far, is a new cfd but wants to set the id
         }
