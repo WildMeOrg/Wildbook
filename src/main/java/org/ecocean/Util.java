@@ -602,7 +602,25 @@ public class Util {
     public static boolean compareJSONObjects(JSONObject j1, JSONObject j2) {
         return compareJSONObjects(j1, j2, true);
     }
+    public static boolean compareJSONArrays(JSONArray j1, JSONArray j2, boolean orderMatters) {
+        if ((j1 == null) && (j2 == null)) return true; //i guess?
+        if ((j1 == null) || (j2 == null)) return false;
+        return jsonHashCode(j1, orderMatters).equals(jsonHashCode(j2, orderMatters));
+    }
+    public static boolean compareJSONArrays(JSONArray j1, JSONArray j2) {
+        return compareJSONArrays(j1, j2, true);
+    }
 
+    //this is a workaround for the annoying fact that JSONObject.optBoolean() has a little-b default value
+    // and therefore we cannot know if we are getting the default or the key did not exist.  :(
+    public static Boolean optBoolean(JSONObject j, String key) {
+        if ((j == null) || (key == null)) return null;  //meh?
+        try {
+            return j.getBoolean(key);
+        } catch (JSONException ex) {
+            return null;
+        }
+    }
 
     public static org.datanucleus.api.rest.orgjson.JSONObject stringToDatanucleusJSONObject(String s) {
       org.datanucleus.api.rest.orgjson.JSONObject j = null;
