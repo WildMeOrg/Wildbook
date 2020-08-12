@@ -92,7 +92,7 @@ public class UserConsolidate extends HttpServlet {
       for(int i=0;i<dupesToBeSubsumed.size();i++){
         User currentDupeUser=dupesToBeSubsumed.get(i);
         List<Encounter> photographerEncounters=getPhotographerEncountersForUser(persistenceManager,currentDupeUser);
-        for(int j=0;j<photographerEncounters.size();j++){
+        for(int j=0; j<photographerEncounters.size(); j++){
           Encounter currentEncounter=photographerEncounters.get(j);
           consolidatePhotographers(myShepherd, currentEncounter, useMe, currentDupeUser);
         }
@@ -101,7 +101,8 @@ public class UserConsolidate extends HttpServlet {
           Encounter currentEncounter=submitterEncounters.get(k);
           consolidateSubmitters(myShepherd, currentEncounter, useMe, currentDupeUser);
         }
-        //TODO consolidateUsernamelessEncounters
+        //TODO consolidateEncounterSubmitterIds
+        //TODO consolidateOccurenceSubmitterIds
         dupesToBeSubsumed.remove(currentDupeUser);
         persistenceManager.deletePersistent(currentDupeUser);
         myShepherd.commitDBTransaction();
@@ -114,6 +115,21 @@ public class UserConsolidate extends HttpServlet {
         System.out.println(potentialUsers.get(j).toString());
       }
     }
+  }
+
+  public static List<String> getEmailAddressesOfUsersWithMoreThanOneAccountAssociatedWithEmailAddress(List<User> allUsers, PersistenceManager persistenceManager){
+    List<String> targetEmails = new ArrayList<String>();
+    if(allUsers.size()>0){
+      for(int i=0; i<allUsers.size(); i++){
+        List<User> dupesForUser = getUsersByHashedEmailAddress(persistenceManager,allUsers.get(i).getHashedEmailAddress());
+        if(dupesForUser.size()>1){
+          if(!targetEmails.contains(allUsers.get(i).getEmailAddress())){
+            targetEmails.add(allUsers.get(i).getEmailAddress());
+          }
+        }
+      }
+    }
+    return targetEmails;
   }
 
   public static void consolidateSubmitters(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
@@ -147,14 +163,14 @@ public class UserConsolidate extends HttpServlet {
 
   public static void consolidatePhotographers(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
     // System.out.println("consolidating photographers for encounter: " + enc.getCatalogNumber());
-    List<User> photos=enc.getPhotographers();
-    if(photos.contains(currentUser)){
+    List<User> photographers=enc.getPhotographers();
+    if(photographers.contains(currentUser)){
       // System.out.println("here’s what you’re removing: " + currentUser.getUsername());
       // System.out.println("here’s what you’re adding: " + useMe.getUsername());
-      photos.remove(currentUser); //TODO comment back in
-      photos.add(useMe); //TODO comment back in
+      photographers.remove(currentUser); //TODO comment back in
+      photographers.add(useMe); //TODO comment back in
     }
-    enc.setPhotographers(photos);
+    enc.setPhotographers(photographers);
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
   }
@@ -278,7 +294,7 @@ public class UserConsolidate extends HttpServlet {
       if(newUser!=null){
         myShepherd.beginDBTransaction();
       //set password
-      if(!userNameToUse.trim().equals("")){
+      if(!userNameToUse.trim().equals("") && userNameToUse != null){
         manualConsolidateByUsername(myShepherd, userNameToUse);
       }
       myShepherd.commitDBTransaction();
