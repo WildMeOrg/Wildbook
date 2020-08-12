@@ -96,22 +96,34 @@ public class CustomFieldDefinition implements java.io.Serializable {
 */
     public CustomFieldDefinition modify(Shepherd myShepherd, JSONObject defn) throws CustomFieldException {
         if (defn == null) throw new CustomFieldException("modify() passed null");
-        if (Util.compareJSONObjects(defn, this.toJSONObject())) {
+        JSONObject orig = this.toJSONObject();
+        if (Util.compareJSONObjects(defn, orig)) {
             System.out.println("INFO: ignoring modify() called with identical defintion for " + this.toString());
             return this;
         }
         if (!defn.optString("type", "_FAIL_").equals(this.getType())) throw new CustomFieldException("modification of definition type currently not supported");
         if (!defn.optString("id", "_FAIL_").equals(this.getId())) throw new CustomFieldException("modification of definition id forbidden");
         if (!defn.optString("className", "_FAIL_").equals(this.getClassName())) throw new CustomFieldException("modification of definition className forbidden");
-        //if we are changing name, we allow it *and ignore any other potential illegal modifications*
+        int changed = 0;
         String name = defn.optString("name", null);
         if ((name != null) && !name.equals(this.getName())) {
+            changed++;
             this.setName(name);
-            System.out.println("INFO: modify() name on " + this.toString());
-            return this;
         }
-        //but if we get this far, we didnt change name, thus we have _some_ kinda change we dont like...
-        throw new CustomFieldException("illegal modification of definition in " + defn.toString());
+        Boolean mult = Util.optBoolean(defn, "multiple");
+        if (mult != null) {
+            if (!mult && this.getMultiple()) {  //cannot undo multiple at this time!  TODO
+                throw new CustomFieldException("disabling definition multiple boolean not supported");
+            } else if (mult && !this.getMultiple()) {  //but we can enable it
+                this.setMultiple(true);
+                changed++;
+            }
+        }
+        if (defn.has("options") && !Util.compareJSONArrays(orig.optJSONArray("options"), defn.optJSONArray("options"))) throw new CustomFieldException("modifying options not yet supported");
+        //at this point, we kinda blindly trust that other values (e.g. displayType) are fine for the sake of parameters
+        this.setParameters(defn);
+        System.out.println("INFO: modify() altered " + changed + " non-parameter value(s) in definition: " + orig.toString() + " => " + defn.toString());
+        return this;
     }
 
     //note: this ignores 'id' passed in!  (it will set own)
