@@ -594,6 +594,14 @@ public class Util {
         //return Integer.toHexString(obj.hashCode()) + "[" + obj + "]";
         return Integer.toHexString(obj.hashCode());
     }
+    public static boolean compareJSONObjects(JSONObject j1, JSONObject j2, boolean orderMatters) {
+        if ((j1 == null) && (j2 == null)) return true; //i guess?
+        if ((j1 == null) || (j2 == null)) return false;
+        return jsonHashCode(j1, orderMatters).equals(jsonHashCode(j2, orderMatters));
+    }
+    public static boolean compareJSONObjects(JSONObject j1, JSONObject j2) {
+        return compareJSONObjects(j1, j2, true);
+    }
 
 
     public static org.datanucleus.api.rest.orgjson.JSONObject stringToDatanucleusJSONObject(String s) {
