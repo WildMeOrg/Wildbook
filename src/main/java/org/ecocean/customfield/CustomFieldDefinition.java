@@ -61,7 +61,7 @@ public class CustomFieldDefinition implements java.io.Serializable {
         return name;
     }
     public void setName(String n) {
-        className = n;
+        name = n;
     }
     public boolean getMultiple() {
         return multiple;
@@ -75,24 +75,45 @@ public class CustomFieldDefinition implements java.io.Serializable {
         return true;  //FIXME
     }
 
+    //this can create a new one and/or modify existing, depending on defn.id
     public static CustomFieldDefinition updateCustomFieldDefinition(Shepherd myShepherd, JSONObject defn) throws CustomFieldException {
         CustomFieldDefinition cfd = fromJSONObject(defn);
         String id = defn.optString("id", null);
-        //FIXME???: modifying existing cfd is... not easy. we should check if it has been *used at all first* i guess???  and if it is... gulp?
         if (Util.isUUID(id)) {  //lets see if we are updating....
             List<CustomFieldDefinition> all = myShepherd.getAllCustomFieldDefinitions();
             if (!Util.collectionIsEmptyOrNull(all)) for (CustomFieldDefinition c : all) {
-                if (id.equals(c.getId())) {
-                    System.out.println("WARNING: modifying existing CustomFieldDefintion currently not supported for id=" + id);  //opt for silently ignore rn
-                    return null;
-                }
-                //if (id.equals(c.getId())) throw new CustomFieldException("modification of existing CustomFieldDefinition currently not supported");
+                if (id.equals(c.getId())) return c.modify(myShepherd, defn);
             }
             cfd.setId(id);  //if we made it this far, is a new cfd but wants to set the id
         }
+        //must be a new one, lets save it
         myShepherd.getPM().makePersistent(cfd);
         return cfd;
     }
+/*
+    we are going to have to make some tough decisions here because we may be modifying things that affect *existing data*.
+    for now we are going to punt on a lot of this tough stuff (and throw exceptions!) but TODO this will eventually be addressed.
+*/
+    public CustomFieldDefinition modify(Shepherd myShepherd, JSONObject defn) throws CustomFieldException {
+        if (defn == null) throw new CustomFieldException("modify() passed null");
+        if (Util.compareJSONObjects(defn, this.toJSONObject())) {
+            System.out.println("INFO: ignoring modify() called with identical defintion for " + this.toString());
+            return this;
+        }
+        if (!defn.optString("type", "_FAIL_").equals(this.getType())) throw new CustomFieldException("modification of definition type currently not supported");
+        if (!defn.optString("id", "_FAIL_").equals(this.getId())) throw new CustomFieldException("modification of definition id forbidden");
+        if (!defn.optString("className", "_FAIL_").equals(this.getClassName())) throw new CustomFieldException("modification of definition className forbidden");
+        //if we are changing name, we allow it *and ignore any other potential illegal modifications*
+        String name = defn.optString("name", null);
+        if ((name != null) && !name.equals(this.getName())) {
+            this.setName(name);
+            System.out.println("INFO: modify() name on " + this.toString());
+            return this;
+        }
+        //but if we get this far, we didnt change name, thus we have _some_ kinda change we dont like...
+        throw new CustomFieldException("illegal modification of definition in " + defn.toString());
+    }
+
     //note: this ignores 'id' passed in!  (it will set own)
     public static CustomFieldDefinition fromJSONObject(JSONObject defn) throws CustomFieldException {
         if (defn == null) throw new CustomFieldException("fromJSONObject() passed null");
