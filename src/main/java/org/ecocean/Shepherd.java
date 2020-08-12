@@ -1052,7 +1052,7 @@ public class Shepherd {
     try {
       username = request.getUserPrincipal().toString();
     } catch (Exception e) {
-      System.out.println("Shepherd.getUsername(HttpServletRequest) called with no user logged in");
+      //System.out.println("Shepherd.getUsername(HttpServletRequest) called with no user logged in");
     }
     return username;
   }
