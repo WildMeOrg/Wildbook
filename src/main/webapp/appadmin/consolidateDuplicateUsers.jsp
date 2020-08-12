@@ -30,11 +30,19 @@ int numFixes=0;
   </head>
   <body>
     <ol>
+      <li>You should email:</li>
     <%
     myShepherd.beginDBTransaction();
     try{
       EncounterConsolidate.makeEncountersMissingSubmittersPublic(myShepherd);
     	List<User> users=myShepherd.getAllUsers();
+      List<String> peopleToEmail = UserConsolidate.getEmailAddressesOfUsersWithMoreThanOneAccountAssociatedWithEmailAddress(users, myShepherd.getPM());
+      for(int i=0; i<peopleToEmail.size(); i++){
+        %>
+        <li>
+        <%=peopleToEmail.get(i)%>
+        <%
+      }
     	List<User> weKnowAbout=new ArrayList<User>();
     	for(int i=0;i<users.size();i++){
     		User user=users.get(i);
@@ -46,26 +54,26 @@ int numFixes=0;
     					%>
     					<li>
     					<%
-    					ArrayList<Integer> namesPlace=new ArrayList<Integer>(); //TODO there has to be a better name for this than namesPlace! What on earth does that mean?
+    					ArrayList<Integer> indicesOfDupesInWhichAnyUserNameExists=new ArrayList<Integer>();
     					for(int k=0;k<dupes.size();k++){
     						String username="";
     						if(dupes.get(k).getUsername()!=null){
     							username="("+dupes.get(k).getUsername()+")";
-    							namesPlace.add(new Integer(k));
+    							indicesOfDupesInWhichAnyUserNameExists.add(new Integer(k));
     						}
     					%>
     					<%=dupes.get(k).getEmailAddress()+username+"(Encounters: "+UserConsolidate.getSubmitterEncountersForUser(myShepherd.getPM(),dupes.get(k)).size()+"/ Photographer encounters: "+UserConsolidate.getPhotographerEncountersForUser(myShepherd.getPM(),dupes.get(k)).size()+")" %>,
     					<%
     					}
-    					if(namesPlace.size()==0){
+    					if(indicesOfDupesInWhichAnyUserNameExists.size()==0){
     						User useMe=dupes.get(0);
     						UserConsolidate.consolidate(myShepherd,useMe,dupes);
     						%>
     						are now resolved to:&nbsp;<%=useMe.getEmailAddress() %>
     						<%
     					}
-    					else if(namesPlace.size()==1){
-    						User useMe=dupes.get(namesPlace.get(0).intValue());
+    					else if(indicesOfDupesInWhichAnyUserNameExists.size()==1){
+    						User useMe=dupes.get(indicesOfDupesInWhichAnyUserNameExists.get(0).intValue());
     						UserConsolidate.consolidate(myShepherd,useMe,dupes);
     						%>
     						are now resolved to:&nbsp;&nbsp;<%=useMe.getEmailAddress() %>(<%=useMe.getUsername() %>)

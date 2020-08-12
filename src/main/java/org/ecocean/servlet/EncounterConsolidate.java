@@ -1,5 +1,5 @@
 /**
- * Manually consolidates user encounter information on the basis of a provided username (the one that will have ownship transferred to it`)
+ * Methods associated with consolidating encounters with wonky metadata of some sort or another
  *
  * @author mfisher
  */
