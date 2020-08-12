@@ -428,8 +428,8 @@ rtn.put("_payload", payload);
                             CustomFieldDefinition.updateCustomFieldDefinition(myShepherd, dj);  //throws Exception if badness
                             //since this was added, we want to set the conf using *all cfds* for this key:
                         }
-                        conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cname));
                     }
+                    conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cname));
                 } else {
                     conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
                 }
