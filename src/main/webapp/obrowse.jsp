@@ -285,6 +285,9 @@ java.util.Properties" %>
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
 			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
 		}
+                if (ma.hasLabel("_original")) {
+		    h += "<li><a target=\"_new\" href=\"appadmin/redoChildrenMediaAssets.jsp?id=" + ma.getId() + "\">[redo children assets]</a></li>";
+                }
 		return h + "</ul></div>";
 	}
     private String showSurvey(Survey surv, HttpServletRequest req) {
