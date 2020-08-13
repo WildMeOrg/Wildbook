@@ -29,7 +29,32 @@ private static String encodeValue(String value) {
 
 <% int imgHeight = 500; %>
 
+<%
 
+String bbox = request.getParameter("bbox");
+String aidparam = request.getParameter("assetId");
+int assetId = -1;
+try {
+    assetId = Integer.parseInt(aidparam);
+} 
+catch (NumberFormatException nex) {}
+
+String iaClass = request.getParameter("iaClass");
+String maparam = request.getParameter("matchAgainst");
+boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
+String rtparam = request.getParameter("removeTrivial");
+boolean removeTrivial = (rtparam == null) || Util.booleanNotFalse(rtparam);
+String encounterId = request.getParameter("encounterId");
+///skipping this for now cuz i dont want to deal with altering the *annot* once we change a feature (i.e. acmId etc so IA thinks is new)
+String featureId = null;///request.getParameter("featureId");
+String viewpoint = request.getParameter("viewpoint");
+boolean save = Util.requestParameterSet(request.getParameter("save"));
+boolean cloneEncounter = Util.requestParameterSet(request.getParameter("cloneEncounter"));
+String added2enc="";
+
+String clist = "";
+
+%>
 
 <style>
 	body {
@@ -91,6 +116,10 @@ $(document).ready(function() {
         width: $('#bbox').css('width'),
         height: $('#bbox').css('height')
     };
+    
+    <%
+    if(iaClass!=null){
+    %>
 
     $('#img-wrapper').on('mousemove', function(ev) {
         if (boxStart) {
@@ -135,34 +164,18 @@ $(document).ready(function() {
             $('#bbox').css('height', 10);
         }
     });
+    
+    <%
+	}
+    %>
+    
 });
 </script>
 <div class="container maincontent">
 <h1>Manual Annotation</h1>
 
 <%
-String bbox = request.getParameter("bbox");
-String aidparam = request.getParameter("assetId");
-int assetId = -1;
-try {
-    assetId = Integer.parseInt(aidparam);
-} 
-catch (NumberFormatException nex) {}
 
-String iaClass = request.getParameter("iaClass");
-String maparam = request.getParameter("matchAgainst");
-boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
-String rtparam = request.getParameter("removeTrivial");
-boolean removeTrivial = (rtparam == null) || Util.booleanNotFalse(rtparam);
-String encounterId = request.getParameter("encounterId");
-///skipping this for now cuz i dont want to deal with altering the *annot* once we change a feature (i.e. acmId etc so IA thinks is new)
-String featureId = null;///request.getParameter("featureId");
-String viewpoint = request.getParameter("viewpoint");
-boolean save = Util.requestParameterSet(request.getParameter("save"));
-boolean cloneEncounter = Util.requestParameterSet(request.getParameter("cloneEncounter"));
-String added2enc="";
-
-String clist = "";
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
@@ -392,6 +405,15 @@ try{
 		                occ.setDWCDateLastModified();
 		                myShepherd.updateDBTransaction();
 	                }
+	                //let's create an occurrence to link these two Encounters
+	                else{
+	                	
+	                	occ = new Occurrence(Util.generateUUID(), clone);
+	                	occ.addEncounter(enc);
+	                	myShepherd.getPM().makePersistent(occ);
+	                	myShepherd.updateDBTransaction();
+	                	
+	                }
 	            } catch (Exception e) {
 	                e.printStackTrace();
 	                myShepherd.rollbackDBTransaction();
@@ -432,10 +454,9 @@ try{
 	    myShepherd.commitDBTransaction();
 		%><hr />
 		
-		<p>Success! Created
-		<b><a href="../obrowse.jsp?type=Annotation&id=<%=ann.getId()%>" target="_new">Annotation <%=ann.getId()%></a> on Encounter <a href="encounter.jsp?number=<%=added2enc %>"><%=added2enc %></a></b><br />
-		and
-		<b><a href="../obrowse.jsp?type=Feature&id=<%=ft.getId()%>" target="_new">Feature <%=ft.getId()%></a></b>
+		<h2>Success!</h2> 
+		<p>
+		<b>Created <a href="../obrowse.jsp?type=Annotation&id=<%=ann.getId()%>" target="_new">Annotation <%=ann.getId()%></a> on Encounter <a href="encounter.jsp?number=<%=added2enc %>"><%=added2enc %></a>.
 		</p>
 		
 		<%
@@ -447,7 +468,7 @@ try{
 	<%
 	if(iaClass!=null){
 	%>
-	<p>3. Draw the new annotation bounding box below.</p>
+	<p><b>3. Draw the new annotation bounding box below.</b></p>
 	<%
 	}
 	%>
@@ -469,7 +490,7 @@ try{
 		</p>
 		
 
-		<p>4. Click SAVE below to complete the annotation.</p>
+		<p><b>4. Click SAVE below to complete the annotation.</b></p>
 				
 				
 	<p>
