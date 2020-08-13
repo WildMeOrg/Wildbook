@@ -132,6 +132,56 @@ public class UserConsolidate extends HttpServlet {
     return targetEmails;
   }
 
+  public static List<User> getSimilarUsers(User user, PersistenceManager persistenceManager){
+    System.out.println("getSimilarUsers entered");
+    // String filter="SELECT \"UUID\", \"USERNAME\", \"FULLNAME\", \"EMAILADDRESS\" FROM org.ecocean.User where this.fullName like \"" + user.getFullName() + "\"  ||  this.emailAddress like \"" + user.getEmailAddress() + "\" ||  this.username like \"" + user.getUsername() + "\"";
+    String baseQueryString="SELECT * FROM \"USERS\" WHERE "; //\"UUID\", \"USERNAME\", \"FULLNAME\", \"EMAILADDRESS\"
+    String fullNameFilter = "\"FULLNAME\" like '%" + user.getFullName() + "%'";
+    String emailFilter = "\"EMAILADDRESS\" like '%" + user.getEmailAddress() + "%'";
+    String userNameFilter = "\"USERNAME\" like '%" + user.getUsername() + "%'";
+    Boolean fullNameExists = user.getFullName() != null;
+    Boolean emailExists = user.getEmailAddress() != null;
+    Boolean userNameExists = user.getUsername() != null;
+    String combinedQuery = baseQueryString;
+    if(fullNameExists && emailExists && userNameExists){
+      combinedQuery = combinedQuery + fullNameFilter + " OR " + emailFilter + " OR " + userNameFilter;
+    }
+    if(fullNameExists && userNameExists && !emailExists){
+      combinedQuery = combinedQuery + fullNameFilter + " OR " + userNameFilter;
+    }
+    if(fullNameExists && emailExists && !userNameExists){
+      combinedQuery = combinedQuery + fullNameFilter + " OR " + emailFilter;
+    }
+    if(emailExists && userNameExists && !fullNameExists){
+      combinedQuery = combinedQuery + emailFilter + " OR " + userNameFilter;
+    }
+    if(fullNameExists && !userNameExists && !emailExists){
+      combinedQuery = combinedQuery + fullNameFilter;
+    }
+    if(emailExists && !userNameExists && !fullNameExists){
+      combinedQuery = combinedQuery + emailFilter;
+    }
+    if(userNameExists && !emailExists && !fullNameExists){
+      combinedQuery = combinedQuery + userNameFilter;
+    }
+    System.out.println("combinedQuery is: " + combinedQuery);
+
+      // ||  this.emailAddress like \"" + user.getEmailAddress() + "\" ||  this.username like \"" + user.getUsername() + "\"";
+  	ArrayList<User> similarUsers=new ArrayList<User>();
+    // Query query=persistenceManager.newQuery(combinedQuery);
+    // String sql = "select \"ID_EID\" as id, count(*) as ct from \"OCCURRENCE_TAXONOMIES\" group by id order by ct desc;";
+    Query query = persistenceManager.newQuery("javax.jdo.query.SQL", combinedQuery);
+    query.setClass(User.class);
+    List<User> tmp = (List<User>) query.execute();
+    if(tmp!=null){
+      System.out.println("collection got non-zero stuff from query collection");
+      System.out.println(tmp.get(0).toString());
+      similarUsers=new ArrayList<User>(tmp);
+    }
+    query.closeAll();
+    return similarUsers;
+  }
+
   public static void consolidateSubmitters(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
     // System.out.println("consolidating submitters for encounter: " + enc.getCatalogNumber());
     List<User> subs=enc.getSubmitters();
@@ -264,6 +314,23 @@ public class UserConsolidate extends HttpServlet {
       users=new ArrayList<User>(c);
     }
   	return users;
+  }
+
+  public static User getFirstUserWithEmailAddress(PersistenceManager persistenceManager,String emailAddress){
+    emailAddress = emailAddress.toLowerCase().trim();
+    ArrayList<User> users=new ArrayList<User>();
+    String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \""+emailAddress+"\"";
+    Query query = persistenceManager.newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    if(c!=null){
+      users=new ArrayList<User>(c);
+    }
+    if(users.size()>0){
+      return users.get(0);
+    } else{
+      System.out.println("ack there were no users");
+      return null;
+    }
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

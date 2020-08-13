@@ -30,19 +30,11 @@ int numFixes=0;
   </head>
   <body>
     <ol>
-      <li>You should email:</li>
     <%
     myShepherd.beginDBTransaction();
     try{
       EncounterConsolidate.makeEncountersMissingSubmittersPublic(myShepherd);
     	List<User> users=myShepherd.getAllUsers();
-      List<String> peopleToEmail = UserConsolidate.getEmailAddressesOfUsersWithMoreThanOneAccountAssociatedWithEmailAddress(users, myShepherd.getPM());
-      for(int i=0; i<peopleToEmail.size(); i++){
-        %>
-        <li>
-        <%=peopleToEmail.get(i)%>
-        <%
-      }
     	List<User> weKnowAbout=new ArrayList<User>();
     	for(int i=0;i<users.size();i++){
     		User user=users.get(i);
@@ -92,6 +84,36 @@ int numFixes=0;
     			}
     	   }
     	}
+      List<String> peopleToEmail = UserConsolidate.getEmailAddressesOfUsersWithMoreThanOneAccountAssociatedWithEmailAddress(users, myShepherd.getPM());
+      %>
+      <ol>You should email:
+      <%
+      for(int i=0; i<peopleToEmail.size(); i++){
+        %>
+        <li>
+        <%=peopleToEmail.get(i)%>:
+        <br>
+        <%
+        User userWithEmailAddressOnNaughtyList = UserConsolidate.getFirstUserWithEmailAddress(myShepherd.getPM(), peopleToEmail.get(i));
+        List<User> similarUsers = UserConsolidate.getSimilarUsers(userWithEmailAddressOnNaughtyList, myShepherd.getPM());
+        for(int j=0; j<similarUsers.size(); j++){
+          if(similarUsers.size()>0){
+        %>
+            <%=similarUsers.get(j).getUUID()%>,
+            <%=similarUsers.get(j).getUsername()%>,
+            <%=similarUsers.get(j).getFullName()%>,
+            <%=similarUsers.get(j).getEmailAddress()%>
+            <br>
+            </li>
+          </li>
+        </ol>
+        <%
+          }
+        }
+      }
+      %>
+      Done with people to email list
+      <%
     }
     catch(Exception e){
     	myShepherd.rollbackDBTransaction();
