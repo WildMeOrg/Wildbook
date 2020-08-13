@@ -123,7 +123,26 @@ public class UserConsolidate extends HttpServlet {
       for(int i=0; i<allUsers.size(); i++){
         List<User> dupesForUser = getUsersByHashedEmailAddress(persistenceManager,allUsers.get(i).getHashedEmailAddress());
         if(dupesForUser.size()>1){
-          if(!targetEmails.contains(allUsers.get(i).getEmailAddress())){
+          if(!targetEmails.contains(allUsers.get(i).getEmailAddress().toLowerCase().trim())){
+            targetEmails.add(allUsers.get(i).getEmailAddress().toLowerCase().trim());
+          }
+        }
+      }
+    }
+    return targetEmails;
+  }
+
+  public static List<String> getEmailAddressesOfUsersWithMoreThanOneAccountAssociatedWithEmailAddressPreserveCaps(List<User> allUsers, List<String> processedEmailAddressesToCompareAgainst, PersistenceManager persistenceManager){
+    System.out.println("getEmailAddressesOfUsersWithMoreThanOneAccountAssociatedWithEmailAddressPreserveCaps entered");
+    System.out.println("processedEmailAddressesToCompareAgainst has " + processedEmailAddressesToCompareAgainst.size() + " entries");
+    List<String> targetEmails = new ArrayList<String>();
+    if(allUsers.size()>0){
+      for(int i=0; i<allUsers.size(); i++){
+        List<User> dupesForUser = getUsersByHashedEmailAddress(persistenceManager,allUsers.get(i).getHashedEmailAddress());
+        if(dupesForUser.size()>1){
+          // System.out.println("got here");
+          if(processedEmailAddressesToCompareAgainst.contains(allUsers.get(i).getEmailAddress().toLowerCase().trim()) && !targetEmails.contains(allUsers.get(i).getEmailAddress())){
+            System.out.println("satisfied this if clause");
             targetEmails.add(allUsers.get(i).getEmailAddress());
           }
         }
@@ -134,14 +153,14 @@ public class UserConsolidate extends HttpServlet {
 
   public static List<User> getSimilarUsers(User user, PersistenceManager persistenceManager){
     System.out.println("getSimilarUsers entered");
-    // String filter="SELECT \"UUID\", \"USERNAME\", \"FULLNAME\", \"EMAILADDRESS\" FROM org.ecocean.User where this.fullName like \"" + user.getFullName() + "\"  ||  this.emailAddress like \"" + user.getEmailAddress() + "\" ||  this.username like \"" + user.getUsername() + "\"";
-    String baseQueryString="SELECT * FROM \"USERS\" WHERE "; //\"UUID\", \"USERNAME\", \"FULLNAME\", \"EMAILADDRESS\"
-    String fullNameFilter = "\"FULLNAME\" like '%" + user.getFullName() + "%'";
-    String emailFilter = "\"EMAILADDRESS\" like '%" + user.getEmailAddress() + "%'";
-    String userNameFilter = "\"USERNAME\" like '%" + user.getUsername() + "%'";
-    Boolean fullNameExists = user.getFullName() != null;
-    Boolean emailExists = user.getEmailAddress() != null;
-    Boolean userNameExists = user.getUsername() != null;
+    System.out.println(user.toString());
+    String baseQueryString="SELECT * FROM \"USERS\" WHERE ";
+    String fullNameFilter = "\"FULLNAME\" ilike '%" + user.getFullName() + "%'";
+    String emailFilter = "\"EMAILADDRESS\" ilike '%" + user.getEmailAddress() + "%'";
+    String userNameFilter = "\"USERNAME\" ilike '%" + user.getUsername() + "%'";
+    Boolean fullNameExists = user.getFullName() != null && !user.getFullName().equals("");
+    Boolean emailExists = user.getEmailAddress() != null && !user.getEmailAddress().equals("");
+    Boolean userNameExists = user.getUsername() != null && !user.getUsername().equals("");
     String combinedQuery = baseQueryString;
     if(fullNameExists && emailExists && userNameExists){
       combinedQuery = combinedQuery + fullNameFilter + " OR " + emailFilter + " OR " + userNameFilter;
@@ -165,11 +184,7 @@ public class UserConsolidate extends HttpServlet {
       combinedQuery = combinedQuery + userNameFilter;
     }
     System.out.println("combinedQuery is: " + combinedQuery);
-
-      // ||  this.emailAddress like \"" + user.getEmailAddress() + "\" ||  this.username like \"" + user.getUsername() + "\"";
   	ArrayList<User> similarUsers=new ArrayList<User>();
-    // Query query=persistenceManager.newQuery(combinedQuery);
-    // String sql = "select \"ID_EID\" as id, count(*) as ct from \"OCCURRENCE_TAXONOMIES\" group by id order by ct desc;";
     Query query = persistenceManager.newQuery("javax.jdo.query.SQL", combinedQuery);
     query.setClass(User.class);
     List<User> tmp = (List<User>) query.execute();
@@ -261,7 +276,7 @@ public class UserConsolidate extends HttpServlet {
   public static List<User> getUsersWithMissingUsernamesWhoMatchEmail(PersistenceManager persistenceManager, String emailAddress){
     ArrayList<User> usernamelessUsers=new ArrayList<User>();
     if(!"".equals(emailAddress) && emailAddress!=null){
-      System.out.println("getUsersWithMissingUsernamesWhoMatchEmail entered. Query email is: " + emailAddress);
+      // System.out.println("getUsersWithMissingUsernamesWhoMatchEmail entered. Query email is: " + emailAddress);
       String filter="SELECT FROM org.ecocean.User where \"" + emailAddress + "\"==this.emailAddress && this.username==null || this.username==\"N/A\" ";
       Query query=persistenceManager.newQuery(filter);
       Collection c = (Collection) (query.execute());
@@ -272,10 +287,10 @@ public class UserConsolidate extends HttpServlet {
         for(int i=0; i<usernamelessUsers.size(); i++){
           // System.out.println("entering for loop in getUsersWithMissingUsernamesWhoMatchEmail");
           User currentUser = usernamelessUsers.get(i);
-          System.out.println("usernameless user " + currentUser.getUsername() + " has email address " + currentUser.getEmailAddress());
+          // System.out.println("usernameless user " + currentUser.getUsername() + " has email address " + currentUser.getEmailAddress());
         }
       }
-      System.out.println("done with getUsersWithMissingUsernamesWhoMatchEmail. Closing...");
+      // System.out.println("done with getUsersWithMissingUsernamesWhoMatchEmail. Closing...");
       query.closeAll();
     }
     return usernamelessUsers;
@@ -317,18 +332,23 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static User getFirstUserWithEmailAddress(PersistenceManager persistenceManager,String emailAddress){
-    emailAddress = emailAddress.toLowerCase().trim();
-    ArrayList<User> users=new ArrayList<User>();
-    String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \""+emailAddress+"\"";
-    Query query = persistenceManager.newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      users=new ArrayList<User>(c);
-    }
-    if(users.size()>0){
-      return users.get(0);
-    } else{
-      System.out.println("ack there were no users");
+    if(emailAddress != null){
+      // emailAddress = emailAddress.toLowerCase().trim();
+      ArrayList<User> users=new ArrayList<User>();
+      String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \""+emailAddress+"\"";
+      Query query = persistenceManager.newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      if(c!=null){
+        users=new ArrayList<User>(c);
+      }
+      if(users.size()>0){
+        return users.get(0);
+      } else{
+        System.out.println("ack there were no users");
+        return null;
+      }
+    }else{
+      System.out.println("current email address was invalid. Skipping...");
       return null;
     }
   }

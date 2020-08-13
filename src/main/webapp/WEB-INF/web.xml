@@ -307,6 +307,7 @@
 					/UserSelfUpdate = authc
 					/UserConsolidate = authc, roles[admin]
 					/consolidateDuplicateUsers.jsp = authc, roles[admin]
+					/myUsers.jsp = authc, roles[researcher]
 
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc

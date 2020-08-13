@@ -85,6 +85,8 @@ int numFixes=0;
     	   }
     	}
       List<String> peopleToEmail = UserConsolidate.getEmailAddressesOfUsersWithMoreThanOneAccountAssociatedWithEmailAddress(users, myShepherd.getPM());
+      List<String> peopleToEmailCapsPreserved = UserConsolidate.getEmailAddressesOfUsersWithMoreThanOneAccountAssociatedWithEmailAddressPreserveCaps(users, peopleToEmail, myShepherd.getPM());
+      System.out.println("peopleToEmailCapsPreserved has " + peopleToEmailCapsPreserved.size() + " entries");
       %>
       <ol>You should email:
       <%
@@ -94,25 +96,27 @@ int numFixes=0;
         <%=peopleToEmail.get(i)%>:
         <br>
         <%
-        User userWithEmailAddressOnNaughtyList = UserConsolidate.getFirstUserWithEmailAddress(myShepherd.getPM(), peopleToEmail.get(i));
-        List<User> similarUsers = UserConsolidate.getSimilarUsers(userWithEmailAddressOnNaughtyList, myShepherd.getPM());
-        for(int j=0; j<similarUsers.size(); j++){
-          if(similarUsers.size()>0){
-        %>
-            <%=similarUsers.get(j).getUUID()%>,
-            <%=similarUsers.get(j).getUsername()%>,
-            <%=similarUsers.get(j).getFullName()%>,
-            <%=similarUsers.get(j).getEmailAddress()%>
-            <br>
-            </li>
-          </li>
-        </ol>
-        <%
+        User userWithEmailAddressOnNaughtyList = UserConsolidate.getFirstUserWithEmailAddress(myShepherd.getPM(), peopleToEmailCapsPreserved.get(i));
+        if(userWithEmailAddressOnNaughtyList !=null){
+          List<User> similarUsers = UserConsolidate.getSimilarUsers(userWithEmailAddressOnNaughtyList, myShepherd.getPM());
+          for(int j=0; j<similarUsers.size(); j++){
+            if(similarUsers.size()>0){
+              %>
+              <%=similarUsers.get(j).getUUID()%>,
+              <%=similarUsers.get(j).getUsername()%>,
+              <%=similarUsers.get(j).getFullName()%>,
+              <%=similarUsers.get(j).getEmailAddress()%>
+              <br>
+              </li>
+              </li>
+              </ol>
+              <%
+            }
           }
         }
       }
       %>
-      Done with people to email list
+      <p>Done with people to email list</p>
       <%
     }
     catch(Exception e){
