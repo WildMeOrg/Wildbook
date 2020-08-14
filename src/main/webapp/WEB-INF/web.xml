@@ -445,6 +445,11 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
+
+  <servlet>
+    <servlet-name>ProjectCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectCreate</servlet-class>
+  </servlet>
   
   <servlet>
     <servlet-name>EncounterRemoveUser</servlet-name>
@@ -1592,6 +1597,11 @@
     <servlet-name>OccurrenceSearchExportGtm</servlet-name>
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
   </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ProjectCreate</servlet-name>
+    <url-pattern>/ProjectCreate</url-pattern>
+  </servlet-mapping>
   
   <!--SUTime testing-->
         <servlet>

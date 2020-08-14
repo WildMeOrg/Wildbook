@@ -39,9 +39,6 @@ public class ProjectCreate extends HttpServlet {
         
         System.out.println("==> In ProjectCreate Servlet ");
         
-        JSONObject researcherProjectId = null;
-        JSONObject researcherProjectName = null;
-        JSONArray encsJSON = null;
         
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
@@ -50,32 +47,26 @@ public class ProjectCreate extends HttpServlet {
         
         JSONObject res = new JSONObject();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-
+        
+        JSONArray encsJSON = null;
+        String researchProjectId = null;
+        String researchProjectName = null;
         try {            
             res.put("success","false");
             encsJSON = j.optJSONArray("encounterIds");
-            researcherProjectId = j.optJSONObject("researchProjectId");
-            researcherProjectName = j.optJSONObject("researchProjectName");
+            researchProjectId = j.optString("researchProjectId", null);
+            researchProjectName = j.optString("researchProjectName", null);
 
-            if (researcherProjectId.toString()!=null&&myShepherd.getProjectByResearchProjectId(researcherProjectId.toString())==null) {
+            if (researchProjectId!=null&&!"".equals(researchProjectId)&&myShepherd.getProjectByResearchProjectId(researchProjectId)==null) {
                 
                 response.setStatus(HttpServletResponse.SC_OK);
 
-                String researcherProjectIdString = null;
-                if (researcherProjectId.toString()!=null&&!"".equals(researcherProjectId.toString())) {
-                    researcherProjectIdString = researcherProjectId.toString();
-                }
-
-                String researcherProjectNameString = null;
-                if (researcherProjectName.toString()!=null&&!"".equals(researcherProjectName.toString())) {
-                    researcherProjectNameString = researcherProjectName.toString();
-                }
-
                 List<Encounter> encs = new ArrayList<>();
-                if (researcherProjectName.toString()!=null&&!"".equals(researcherProjectName.toString())) {
+
+                if (encsJSON!=null&&encsJSON.length()>0) {
                     for (int i=0;i<encsJSON.length();i++) {
-                        if (encsJSON.getString(i)!=null&&!"".equals(encsJSON.getString(i))) {
-                            Encounter enc = myShepherd.getEncounter(encsJSON.getString(i));
+                        if (encsJSON.optString(i)!=null&&!"".equals(encsJSON.optString(i, null))) {
+                            Encounter enc = myShepherd.getEncounter(encsJSON.optString(i));
                             if (enc!=null) {
                                 encs.add(enc);
                             }
@@ -83,18 +74,19 @@ public class ProjectCreate extends HttpServlet {
                     }
                 }
 
-                Project newProject = new Project(researcherProjectIdString);
-                if (researcherProjectNameString!=null) {
-                    newProject.setResearchProjectName(researcherProjectNameString);
+                Project newProject = new Project(researchProjectId);
+                myShepherd.storeNewProject(newProject);
+                if (researchProjectName!=null) {
+                    newProject.setResearchProjectName(researchProjectName);
                 }
                 if (encs.size()>0) {
                     newProject.addEncounters(encs);
                 }
-                myShepherd.storeNewProject(newProject);
+                myShepherd.updateDBTransaction();
                 res.put("success","true");
             } else { 
-              res.put("error","Project already exists");
-              response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+              res.put("error","null ID or Project already exists");
+              response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
             
             out.println(res);
