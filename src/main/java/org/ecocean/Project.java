@@ -3,13 +3,15 @@ package org.ecocean;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONObject;
+
 public class Project implements java.io.Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String id = Util.generateUUID();
+    private String id;
 
-    private List<Encounter> encounters = new ArrayList<>();
+    private ArrayList<Encounter> encounters;
 
     private String researchProjectname;
     private String researchProjectId;
@@ -33,57 +35,89 @@ public class Project implements java.io.Serializable {
     }
 
     public Project(String researchProjectId, String researchProjectName, List<Encounter> encs) {
+        this.encounters = new ArrayList<Encounter>();
+        this.id = Util.generateUUID();
+        this.researchProjectId = researchProjectId;
         setTimeCreated();
+        setTimeLastModified();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    private void setTimeCreated() {
+        dateCreatedLong = System.currentTimeMillis();
+    }
+
+    public void setTimeLastModified() {
+        dateLastModifiedLong = System.currentTimeMillis();
+    }
+
+    public long getDataCreatedLong() {
+        return dateCreatedLong;
+    }
+
+    public long getTimeLastModifiedLong() {
+        return dateLastModifiedLong;
+    }
+
+    public void setResearchProjectName(String researchProjectname) {
+        setTimeLastModified();
+        this.researchProjectname = researchProjectname;
+    }
+
+    public String getResearchProjectName() {
+        return researchProjectname;
+    }
+
+    public void setResearchProjectId(String researchProjectId) {
         setTimeLastModified();
         this.researchProjectId = researchProjectId;
     }
 
-    public String getId() {
-        return this.id;
-    }
-
-    private void setTimeCreated() {
-        this.dateCreatedLong = System.currentTimeMillis();
-    }
-
-    public void setTimeLastModified() {
-        this.dateLastModifiedLong = System.currentTimeMillis();
-    }
-
-    public long getDataCreatedLong() {
-        return this.dateCreatedLong;
-    }
-
-    public long getTimeLastModifiedLong() {
-        return this.dateLastModifiedLong;
-    }
-
-    public void setResearchProjectName(String name) {
-        this.researchProjectname = name;
-    }
-
-    public String getResearchProjectName() {
-        return this.researchProjectname;
-    }
-
-    public void setResearchProjectId(String id) {
-        this.researchProjectId = id;
-    }
-
     public String getResearchProjectId() {
-        return this.researchProjectId;
+        return researchProjectId;
     }
 
     public List<Encounter> getEncounters() {
-        return this.encounters;
+        return encounters;
     }
 
     public void addEncounter(Encounter enc) {
-        this.encounters.add(enc);
+        setTimeLastModified();
+        if (!encounters.contains(enc)) {
+            encounters.add(enc);
+        } else {
+            System.out.println("[INFO]: Project.addEncounter(): The selected Project id="+id+" already contains encounter id="+enc.getID()+", skipping.");
+        }
     }
 
     public void addEncounters(List<Encounter> encs) {
-        this.encounters.addAll(encs);
+        for (Encounter enc : encs) {
+            addEncounter(enc);
+        }   
+    }
+
+    public void removeEncounter(Encounter enc) {
+        encounters.remove(enc);
+    }
+
+    //stub
+    public JSONObject asJSONObject() {
+        JSONObject j = new JSONObject();
+        return j;
+    }
+
+    //stub
+    public String toString() {
+        return "";
+    }
+
+    //stub
+    public static ArrayList<Project> getProjectsForEncounter() {
+        ArrayList<Project> projects = new ArrayList<>();
+        return projects;
     }
 
 
