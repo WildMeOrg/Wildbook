@@ -18,7 +18,7 @@ class SocialGraph extends ForceLayoutAbstract {
 	this.focusedScale = focusedScale;
 	
 	if (parser) this.parser = parser;
-	else this.parser = new JSONParser(globals);
+	else this.parser = new JSONParser();
 
 	//Expand upon graphAbstract's {this.sliders} attribute
 	this.sliders = {...this.sliders, "nodeDist": {"filter": this.filterByGeodesic}}
@@ -28,7 +28,7 @@ class SocialGraph extends ForceLayoutAbstract {
      * Wrapper function to gather species data from the Wildbook DB and generate a graph
      */
     applySocialData() {
-	this.parser.parseJSON((nodes, links) => this.graphSocialData(nodes, links), this.id);
+	this.parser.processJSON((nodes, links) => this.graphSocialData(nodes, links), this.id);
     }
 
     /**
@@ -37,6 +37,10 @@ class SocialGraph extends ForceLayoutAbstract {
      * @param {links} [obj list] - A list of link objects queried from the Relationship psql table
      */
     graphSocialData(nodes, links) {
+	//Clear loading icon
+	$('#familyChart').children('.loadingIcon').empty();
+	$('#familyChart').children('.loadingIcon').remove();
+	
 	//Create graph w/ forces
 	if (nodes.length > 0) {
 	    this.setupGraph(links, nodes);

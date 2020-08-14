@@ -101,26 +101,26 @@ myShepherd.closeDBTransaction();
 
 
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
-      
-      
+
+
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
-      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
+      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
 
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
   	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
-  	<!-- End Open Graph Tags -->    
+  	<!-- End Open Graph Tags -->
 
 
 	<!-- Clockpicker on creatSurvey jsp -->
     <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
-    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" /> 
-   
+    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" />
+
     <style>
       ul.nav.navbar-nav {
         width: 100%;
@@ -145,7 +145,7 @@ myShepherd.closeDBTransaction();
                     <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
                   <%
                   }
-                  %> 
+                  %>
                     <%-- <a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a> --%>
                     <ul class="secondary-nav hor-ul no-bullets">
 
@@ -344,7 +344,7 @@ myShepherd.closeDBTransaction();
 
                     <ul class="nav navbar-nav">
 
-                      <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->                        
+                      <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
@@ -431,12 +431,15 @@ myShepherd.closeDBTransaction();
                       </li>
 
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="search-dropdown"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                              <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp"><%=props.getProperty("surveySearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" id="encounter-search-link"><%=props.getProperty("encounterSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/individualSearch.jsp" id="individual-search-link"><%=props.getProperty("individualSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp" id="occurrence-search-link"><%=props.getProperty("occurrenceSearch")%></a></li>
+                              <!--
+                              <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp" id="survey-search-link"><%=props.getProperty("surveySearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp" id="search-comparison-link"><%=props.getProperty("locationSearch")%></a></li>
+                           	  -->
                            </ul>
                       </li>
 
@@ -471,11 +474,11 @@ myShepherd.closeDBTransaction();
                             <li class="dropdown-header">Admins Only</li>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-                         
+
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 								<li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
-								
-                                <% 
+
+                                <%
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
                                 <% } %>
@@ -486,15 +489,49 @@ myShepherd.closeDBTransaction();
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
-                                <% } 
-                            } //end if admin %>
-                        </ul>
-                      </li>
-                    </ul>
+                                <% } %>
+                                <li><a target="_blank" href="http://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
+                                <% if(CommonConfiguration.isCatalogEditable(context)) { %>
+                                  <li class="divider"></li>
+                                  <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                                  <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
+                                <%
+                                }
+
+                            } //end if admin
+                            %>
+                            <li class="dropdown">
+                              <ul class="dropdown-menu" role="menu">
+                              <%
+                              if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+                              %>
+                                <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
+                              <%
+                              }
+                              %>
+                                <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
 
 
 
+                              </ul>
+                            </li>
 
+
+
+                            <%
+                            if(CommonConfiguration.useSpotPatternRecognition(context)){
+                            %>
+                            	<li class="divider"></li>
+                            	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
+                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                            	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                            <%
+                            }
+                            %>
+                          </ul>
+                        </li>
+                      </ul>
                   </div>
 
                 </div>

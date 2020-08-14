@@ -5,6 +5,8 @@ org.ecocean.servlet.importer.ImportTask,
 org.ecocean.media.MediaAsset,
 javax.jdo.Query,
 org.json.JSONArray,
+java.util.Set,
+java.util.HashSet,
 java.util.List,
 java.util.Collection,
 java.util.ArrayList,
@@ -14,12 +16,15 @@ java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("imports.jsp");
+myShepherd.beginDBTransaction();
 User user = AccessControl.getUser(request, myShepherd);
 if (user == null) {
     response.sendError(401, "access denied");
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
     return;
 }
-boolean adminMode = ("admin".equals(user.getUsername()));
+boolean adminMode = request.isUserInRole("admin");
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -39,6 +44,15 @@ boolean adminMode = ("admin".equals(user.getUsername()));
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
+
+<script>
+
+function confirmCommit() {
+	return confirm("Send to IA? This process may take a long time and block other users from using detection and ID quickly.");
+}
+
+</script>
+
 <style>
 .bootstrap-table {
     height: min-content;
@@ -87,11 +101,14 @@ if (taskId != null) {
         itask = (ImportTask) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(ImportTask.class, taskId), true));
     } catch (Exception ex) {}
     if ((itask == null) || !(adminMode || user.equals(itask.getCreator()))) {
-        out.println("<h1 class=\"error\">taskId " + taskId + " is invalid</h1>");
+        out.println("<h1 class=\"error\">taskId " + taskId + " may be invalid</h1><p>Try refreshing this page if you arrived on this page from an import that you just kicked off.</p>");
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return;
     }
 }
 
+Set<String> locationIds = new HashSet<String>();
 
 if (itask == null) {
     DateTime cutoff = new DateTime(System.currentTimeMillis() - (31L * 24L * 60L * 60L * 1000L));
@@ -108,7 +125,7 @@ if (itask == null) {
     query.closeAll();
 
     String[] headers = new String[]{"Import ID", "Date", "#Enc", "w/Indiv", "#Images", "Img Proc?", "IA?"};
-    if (adminMode) headers = new String[]{"Import ID", "User", "Date", "#Enc", "w/Indiv", "#Images", "Img Proc?", "IA?"};
+    if (adminMode) headers = new String[]{"Import ID", "User", "Date", "#Enc", "w/Indiv", "#Images", "Img Proc?", "IA?", "Status"};
     for (int i = 0 ; i < headers.length ; i++) {
         out.println("<th data-sortable=\"true\">" + headers[i] + "</th>");
     }
@@ -161,6 +178,7 @@ if (itask == null) {
             int percent = Math.round(iaStatus / Util.collectionSize(mas) * 100);
             out.println("<td class=\"yes\" title=\"" + iaStatus + " of " + Util.collectionSize(mas) + " (" + percent + "%)\">yes</td>");
         }
+        out.println("<td>"+task.getStatus()+"</td>");
         out.println("</tr>");
     }
 
@@ -172,7 +190,9 @@ if (itask == null) {
 } else { //end listing
 
     out.println("<p><b style=\"font-size: 1.2em;\">Import Task " + itask.getId() + "</b> (" + itask.getCreated().toString().substring(0,10) + ") <a class=\"button\" href=\"imports.jsp\">back to list</a></p>");
-    out.println("<table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
+    out.println("<br>Status: "+itask.getStatus());
+    out.println("<br>Filename: "+itask.getParameters().getJSONObject("_passedParameters").getJSONArray("filename").toString());
+	out.println("<br><table id=\"import-table-details\" xdata-page-size=\"6\" xdata-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
     String[] headers = new String[]{"Enc", "Date", "Occ", "Indiv", "#Images"};
     if (adminMode) headers = new String[]{"Enc", "Date", "User", "Occ", "Indiv", "#Images"};
     for (int i = 0 ; i < headers.length ; i++) {
@@ -180,6 +200,27 @@ if (itask == null) {
     }
 
     out.println("</tr></thead><tbody>");
+    
+    
+    //if incomplete refresh
+    if(itask.getStatus()!=null && !itask.getStatus().equals("complete")){
+    %>
+	    
+	    <p class="caption">Refreshing results in <span id="countdown"></span> seconds.</p>
+	  <script type="text/javascript">
+	  (function countdown(remaining) {
+		    if(remaining === 0)location.reload(true);
+		    document.getElementById('countdown').innerHTML = remaining;
+		    setTimeout(function(){ countdown(remaining - 1); }, 1000);
+	
+		})
+		    (60);	
+		    
+	  </script>
+	    
+	    
+	    <%
+    }
 
     List<MediaAsset> allAssets = new ArrayList<MediaAsset>();
     int numIA = 0;
@@ -187,6 +228,7 @@ if (itask == null) {
 
     JSONArray jarr = new JSONArray();
     if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
+        if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
         out.println("<tr>");
         out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
         out.println("<td>" + enc.getDate() + "</td>");
@@ -236,14 +278,38 @@ if (itask == null) {
 </tbody></table>
 <p>
 Total images: <b><%=allAssets.size()%></b>
-<script>var allAssetIds = <%=jarr.toString(4)%>;</script>
+<script>
+var allAssetIds = <%=jarr.toString(4)%>;
+
+function sendToIA(skipIdent) {
+    if (!confirmCommit()) return;
+    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
+    var locIds = $('#id-locationids').val();
+    wildbook.sendMediaAssetsToIA(allAssetIds, locIds, skipIdent, function(x) {
+        if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+            $('#ia-send-wait').html('<i>Images sent successfully.</i>');
+        } else {
+            $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+        }
+    });
+}
+
+</script>
 </p>
 
 <p>
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
-<% if ((numIA < 1) && (allAssets.size() > 0)) { %>
-    <a style="margin-left: 20px;" class="button">send to IA (detection only)</a>
-    <a class="button">send to IA (with ID)</a>
+
+<% if (request.isUserInRole("admin") && (numIA < 1) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) { %>
+    <div id="ia-send-div">
+    <div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
+
+    <a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
+    <select multiple id="id-locationids" style="vertical-align: top;">
+        <option selected><%= String.join("</option><option>", locationIds) %></option>
+        <option value="">ALL locations</option>
+    </select>
+    </div>
 <% } %>
 </p>
 
@@ -261,4 +327,9 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
+
+<%
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+%>
 

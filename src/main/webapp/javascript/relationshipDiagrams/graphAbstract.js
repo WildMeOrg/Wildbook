@@ -393,6 +393,10 @@ class GraphAbstract { //See static attributes below class
 	let target = (link.target.data.individualID === this.id) ? "source" : "target";
 
 	let tooltipHtml = "";
+	if (link.explicitOccurrence) {
+	    tooltipHtml += "<b>Explicit Occurrence</b><br/>";
+	}
+	
 	let totalLinks = link.count, numLinks = 0;
 	for (let enc of link.validEncounters) {
 	    let time = enc.time;
@@ -405,7 +409,7 @@ class GraphAbstract { //See static attributes below class
 		break;
 	    }
 	    
-	    if (time)
+	    if (time && time.day && time.month && time.year)
 		tooltipHtml += "<b>Date: </b>" + time.day + "/" + time.month + "/" + time.year + " ";
 	    if (loc && typeof loc.lat == "number")
 		tooltipHtml += "<b>Longitude: </b>" + loc.lon + " ";
@@ -473,20 +477,18 @@ class GraphAbstract { //See static attributes below class
      * Zoom in when button is pressed
      */	
     zoomIn() {
-	
-	this.zoom.scaleBy(this.svg.transition().duration(750), 1.5);
+	this.zoom.translateExtent([[this.focusedNode.x, this.focusedNode.y],
+				   [this.focusedNode.x, this.focusedNode.y]])
+	    .scaleBy(this.svg.transition().duration(750), 1.5);
     }
 
     /**
      * Zoom out when button is pressed
      */	
     zoomOut() {
-	/*let scale = d3.event.transform.k;
-	this.svg.transition()
-	    .duration(this.transitionDuration)
-	    .attr("transform", "scale(" + (k / 1.5)  + ")");*/
-	
-	this.zoom.scaleBy(this.svg.transition().duration(750), 1 / 1.5);
+	this.zoom.translateExtent([[this.focusedNode.x, this.focusedNode.y],
+				   [this.focusedNode.x, this.focusedNode.y]])
+	    .scaleBy(this.svg.transition().duration(750), 1 / 1.5);
     }
 
     /**
@@ -501,11 +503,11 @@ class GraphAbstract { //See static attributes below class
 	let legend = $(this.containerId).find(".legend")[0];
         hidebutton.addEventListener("click", () => {
             if (shown) {
-		legend.style.opacity = "0";
+		legend.style.display = "none";
 		hidebutton.innerText = "Show Legend";
             }
             else {
-		legend.style.opacity = "1";
+		legend.style.display = "block";
 		hidebutton.innerText = "Hide Legend";
             }
 	    shown = !shown;

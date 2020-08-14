@@ -11,7 +11,7 @@ public class RowFeedback {
     private CellFeedback[] cells;
     private int num;
     private boolean committing = false;
-    private List<Integer> skipCols;  
+    private List<Integer> skipCols;
 
     //String checkingInheritance = uploadDirectory;
 
@@ -30,13 +30,13 @@ public class RowFeedback {
       for (int i=0;i<cells.length; i++) {
         if (skipCols.contains(i)) {
           System.out.println("skipping this col for feedback, index "+i+" was present in skipCols");
-          continue; 
+          continue;
         }
         CellFeedback cell = cells[i];
         if (cell==null) str.append(StandardImport.nullCellHtml());
         else str.append(cell.html());
       }
-      str.append("</tr>"); 
+      str.append("</tr>");
       return str.toString();
     }
 
@@ -49,13 +49,13 @@ public class RowFeedback {
           if (valueString==null||"".equals(valueString.trim())) {
             logParseNoValue(colNum);
             return;
-          } 
+          }
           logParseError(colNum, valueString, row);
           return;
         }
         if (colNum<this.cells.length) {
           this.cells[colNum] = new CellFeedback(value, true, false);
-        } 
+        }
       }
     }
 
@@ -65,7 +65,7 @@ public class RowFeedback {
             if (colNum<this.cells.length&&this.cells[colNum]!=null) {
                 CellFeedback cellFeedback = this.cells[colNum];
                 System.out.println("Setting ERROR value on OLD CellFeedback for col "+colNum+" val "+String.valueOf(value)+" row "+row.getRowNum());
-                // I think we can assume a BLANK or NULL cell doesn't need to get overwritten with an error. 
+                // I think we can assume a BLANK or NULL cell doesn't need to get overwritten with an error.
                 if (!cellFeedback.isBlank()) {
                   this.cells[colNum].setSuccess(false);
                   //TODO replace this universal NOT FOUND for an overwrite with something specific.

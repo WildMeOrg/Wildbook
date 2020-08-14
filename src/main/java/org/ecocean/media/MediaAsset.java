@@ -939,12 +939,20 @@ public class MediaAsset implements java.io.Serializable {
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
         org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
           String context = ServletUtilities.getContext(request);
+          org.datanucleus.api.rest.orgjson.JSONObject obj=null;
           Shepherd myShepherd=new Shepherd(context);
           myShepherd.setAction("MediaAsset.santizeJSON");
           myShepherd.beginDBTransaction();
-          org.datanucleus.api.rest.orgjson.JSONObject obj= sanitizeJson(request, jobj, true, myShepherd);
-          myShepherd.rollbackDBTransaction();
-          myShepherd.closeDBTransaction();
+          try {
+            obj= sanitizeJson(request, jobj, true, myShepherd);
+          }
+          catch(Exception e) {
+            e.printStackTrace();
+          }
+          finally {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+          }
           return obj;
     }
 
@@ -1002,6 +1010,10 @@ public class MediaAsset implements java.io.Serializable {
                                 String displayName = enc.getDisplayName();
                                 if (!Util.stringExists(displayName)) displayName = enc.getIndividualID();
                                 jf.put("displayName", displayName);
+                            }
+                            if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null) {
+                              jf.put("genus",enc.getGenus());
+                              jf.put("specificEpithet",enc.getSpecificEpithet());
                             }
                         }
                     }

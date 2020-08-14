@@ -781,6 +781,10 @@ System.out.println("[1] getMatchingSet params=" + params);
         return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst && acmId != null");
     }
 
+    static public ArrayList<Annotation> getAllMatchAgainstTrue(Shepherd myShepherd) {
+        return getMatchingSetForFilter(myShepherd, "SELECT FROM org.ecocean.Annotation WHERE matchAgainst");
+    }
+
     // will construnct "&& (viewpoint == null || viewpoint == 'x' || viewpoint == 'y')" for use above
     //   note: will return "" when this annot has no (valid) viewpoint
     private String getMatchingSetFilterViewpointClause(Shepherd myShepherd) {
@@ -1029,27 +1033,35 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         if (someEnc == null) {
             newEnc = new Encounter(this);
         } else {  //copy some stuff from sibling
-            newEnc = someEnc.cloneWithoutAnnotations();
-            newEnc.addAnnotation(this);
-            newEnc.setDWCDateAdded();
-            newEnc.setDWCDateLastModified();
-            newEnc.resetDateInMilliseconds();
-            newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
-            newEnc.setGenus(someEnc.getGenus());
-
-            Occurrence occ = myShepherd.getOccurrence(someEnc);
-            if (occ==null) {
-                occ = new Occurrence(Util.generateUUID(), someEnc);
-                try {
-                    myShepherd.beginDBTransaction();
-                    myShepherd.storeNewOccurrence(occ);
-                    myShepherd.commitDBTransaction();
-                } catch (Exception e) {
-                    myShepherd.rollbackDBTransaction();
-                }
-                occ.addEncounter(someEnc);
+            try {
+                newEnc = someEnc.cloneWithoutAnnotations();
+                newEnc.addAnnotation(this);
+                newEnc.setDWCDateAdded();
+                newEnc.setDWCDateLastModified();
+                newEnc.resetDateInMilliseconds();
+                newEnc.setSpecificEpithet(someEnc.getSpecificEpithet());
+                newEnc.setGenus(someEnc.getGenus());
+                newEnc.setSex(null);
+                //myShepherd.storeNewEncounter(newEnc);
+            } catch (Exception e){
+                e.printStackTrace();
             }
-            occ.addEncounter(newEnc);
+
+            try {
+                myShepherd.beginDBTransaction();
+                Occurrence occ = myShepherd.getOccurrence(someEnc);
+                if (occ==null) {
+                    occ = new Occurrence(Util.generateUUID(), someEnc);
+                    myShepherd.storeNewOccurrence(occ);
+                }
+                occ.addEncounterAndUpdateIt(newEnc);
+                occ.setDWCDateLastModified();
+                myShepherd.commitDBTransaction();
+            } catch (Exception e) {
+                e.printStackTrace();
+                myShepherd.rollbackDBTransaction();
+            }
+
         }
         if(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext())!=null){
           newEnc.setState(CommonConfiguration.getProperty("encounterState0",myShepherd.getContext()));

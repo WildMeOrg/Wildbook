@@ -26,7 +26,7 @@ String rootDir = getServletContext().getRealPath("/");
 String baseDir = ServletUtilities.dataDir("context0", rootDir);
 
 //first, load your AssetStore.  change the type accordingly, as well as the ID
-int id = 999;
+int id = 1;
 AssetStore as = null;
 try {
 	as = ((AssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(AssetStore.class, id), true)));
@@ -40,7 +40,7 @@ out.println("<h2>" + as + "</h2><p>original configuration: <b>" + as.getConfig()
 
 // here is where you set the new values you want!  note this varies by AssetStore type, so be careful?
 AssetStoreConfig newConfig = new AssetStoreConfig();
-newConfig.put("root", "/var/lib/tomcat7/webapps/wildbook_data_dir");
+newConfig.put("root", "/var/lib/tomcat8/webapps/wildbook_data_dir");
 newConfig.put("webroot", "http://example.com/wildbook_data_dir");
 
 out.println("<p>new configuration: <b>" + newConfig + "</b></p>");
@@ -58,4 +58,3 @@ if (request.getParameter("execute") != null) {
 }
 
 %>
-

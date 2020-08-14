@@ -240,6 +240,33 @@ console.log('is %o', ajax);
     },
 
 
+
+    /*
+        locationIds will be ignored if it contains and empty string '' (as this is assumed to represent "all" in a pulldown).
+        callback receives the xhr from ajax.complete
+    */
+    sendMediaAssetsToIA: function(assetIds, locationIds, skipIdent, callback) {
+        var data = {
+            v2: true,
+            taskParameters: { skipIdent: skipIdent || false },
+            mediaAssetIds: assetIds
+        };
+        if (!skipIdent && locationIds && (locationIds.indexOf('') < 0)) data.taskParameters.matchingSetFilter = { locationIds: locationIds };
+        console.log('locationIds=%o assetIds=%o data=%o', locationIds, assetIds, data);
+        $.ajax({
+            url: wildbookGlobals.baseUrl + '/ia',
+            dataType: 'json',
+            data: JSON.stringify(data),
+            type: 'POST',
+            contentType: 'application/javascript',
+            complete: function(x) {
+                console.log('sendToIA() response: %o', x);
+                if (typeof callback == 'function') callback(x);
+            }
+        });
+    },
+
+
     /*
         'args' can be pretty extensive here, so check out autocomplete() docs.
         some useful(?) examples:

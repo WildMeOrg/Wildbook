@@ -863,6 +863,7 @@ public class Util {
     public static String readFromFile(String path) throws FileNotFoundException, IOException {
       FileInputStream inputStream = new FileInputStream(path);
       String readData = IOUtils.toString(inputStream);
+      inputStream.close();
       return readData;
     }
 

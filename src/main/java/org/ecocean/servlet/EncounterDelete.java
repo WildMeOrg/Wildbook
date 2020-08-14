@@ -133,6 +133,16 @@ public class EncounterDelete extends HttpServlet {
             myShepherd.beginDBTransaction();
      
           }
+          
+          //Remove it from an ImportTask if needed
+          ImportTask task=myShepherd.getImportTaskForEncounter(enc2trash.getCatalogNumber());
+          if(task!=null) {
+            task.removeEncounter(enc2trash);
+            task.addLog("Servlet EncounterDelete removed Encounter: "+enc2trash.getCatalogNumber());
+            myShepherd.updateDBTransaction();
+          }
+          
+          
 
           if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
             ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);

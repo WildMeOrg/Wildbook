@@ -170,12 +170,12 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 			// if there is a newIndividualID set in the URL, lets get it.
 			// getting the indy using it will be easier than trying to get around caching of the retrieved encounters
 			//if (indyUUID!=null&&!"".equals(indyUUID)) {
-			//	
+			//
 			//}
- 
+
 			enc.setState("approved");
 			enc2.setState("approved");
-			
+
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
 				if (Util.stringExists(displayName)) {
@@ -189,6 +189,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
 					myShepherd.updateDBTransaction();
+                                        indiv.refreshNamesCache();
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
@@ -201,26 +202,26 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv.addEncounter(enc2);
 				res.put("individualName", indiv.getDisplayName());
 				myShepherd.updateDBTransaction();
-			} 	
+			}
 
 			// target enc has indy
 			if (indiv==null&&indiv2!=null) {
 				System.out.println("CASE 3: target enc indy is null");
-				enc.setIndividual(indiv2);					
+				enc.setIndividual(indiv2);
 				indiv2.addEncounter(enc);
 				res.put("individualName", indiv2.getDisplayName());
 				myShepherd.updateDBTransaction();
-			} 
+			}
 
 
 			String matchMsg = enc.getMatchedBy();
 			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
 			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-			enc.setMatchedBy(matchMsg); 
+			enc.setMatchedBy(matchMsg);
 			enc2.setMatchedBy(matchMsg);
 
-			res.put("success", true);
-			
+			if (res.optString("error", null) == null) res.put("success", true);
+
 		} catch (Exception e) {
 			enc.setState("unapproved");
 			enc2.setState("unapproved");
@@ -233,7 +234,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 		return;
-	} 
+	}
 
 	if (indiv == null && indiv2 == null) {
 		res.put("error", "No valid record could be found or created for name: " + displayName);
@@ -476,6 +477,20 @@ h4.intro.accordion .rotate-chevron.down {
 
 <style>
 
+.annot-summary-phantom {
+	display: none;
+}
+
+.featurebox {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    outline: dashed 2px rgba(255,255,0,0.8);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
+}
+
 	div.mainContent {
 		padding-top: 50px;
 	}
@@ -644,7 +659,7 @@ function grabTaskResult(tid) {
 		dataType: 'json',
 		success: function(d) {
 			$('#wait-message-' + tid).remove();  //in case it already exists from previous
-			
+
 console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
                     $('#task-debug-' + tid).append('<br /><b>iaLogs returned:</b>\n\n' + JSON.stringify(d, null, 4));
 			for (var i = 0 ; i < d.length ; i++) {
@@ -917,7 +932,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 function displayAnnot(taskId, acmId, num, score, illustrationUrl) {
 console.info('%d ===> %s', num, acmId);
 	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
-	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
+	h += '<div class="annot-info"><span class="annot-info-num"></span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
 	//now the image guts
@@ -928,14 +943,16 @@ console.info('%d ===> %s', num, acmId);
 		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl); }
+		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl, acmId); }
 	});
 }
-function displayAnnotDetails(taskId, res, num, illustrationUrl) {
+
+function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 	var isQueryAnnot = (num < 0);
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
-		console.warn('error on (task %s) res = %o', taskId, res);
-		return;
+		console.warn('error on (task %s, acmId=%s) res = %o', taskId, acmIdPassed, res);
+                $('#task-' + taskId + ' .annot-summary-' + acmIdPassed).addClass('annot-summary-phantom');
+                return;
 	}
         /*
             we may have gotten more than one annot back from the acmId, so we have to account for them all.  currently we handle
@@ -971,8 +988,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
         if (mainAsset) {
 //console.info('mainAsset -> %o', mainAsset);
 //console.info('illustrationUrl '+illustrationUrl);
+            var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
-                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="' + mainAsset.url + '" />');
+                var img = $('<img src="' + mainAsset.url + '" />');
+                ft.metadata = mainAsset.metadata;
+                img.on('load', function(ev) { imageLoaded(ev.target, ft); });
+                $('#task-' + taskId + ' .annot-' + acmId).append(img);
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
             }
@@ -986,11 +1007,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 imgInfo += ' ' + fn + ' ';
             }
 			var ft = findMyFeature(acmId, mainAsset);
-			
+
             if (ft) {
                 var encId = ft.encounterId;
 
                 var encDisplay = encId;
+                var taxonomy = ft.genus+' '+ft.specificEpithet;
+                console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
                 var indivId = ft.individualId;
 		console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
@@ -1004,16 +1027,20 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
 				}
                 if (encId) {
                 	console.log("Main asset encId = "+encId);
-                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
-                    
+                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter</a>');
+
 					if (!indivId) {
-						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
+						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');
 					}
                 }
                 if (indivId) {
-                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>');
+                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
+                }
+                if (taxonomy && taxonomy=='Eubalaena glacialis') {
+                    //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
                 }
                 if (encId || indivId) {
 console.log("XX %o", displayName);
@@ -1032,7 +1059,7 @@ console.log("XX %o", displayName);
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
                 } else {
-                    if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
+                    if (imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
                 }
             }  //end if (ft) ....
             // Illustration
@@ -1130,6 +1157,7 @@ function annotClick(ev) {
 	//console.warn('%o | %o', taskId, acmId);
 	$('#task-' + taskId + ' .annot-wrapper-dict').hide();
 	$('#task-' + taskId + ' .annot-' + acmId).show();
+	$('#task-' + taskId + ' .annot-' + acmId + ' img').trigger('load');
 }
 
 // function score_sort(cm_dict, topn) {
@@ -1327,9 +1355,9 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 					$(".enc-title #enc-action").remove();
 					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + d.individualName + '</a></span>');
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
-					
+
 					// updates encounters in results list with name and link to indy
-					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter  
+					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter
 					$("#encnum"+d.encounterId2).append(indivLink); // likely, should be newly matched target encounter(s)
 
 				}

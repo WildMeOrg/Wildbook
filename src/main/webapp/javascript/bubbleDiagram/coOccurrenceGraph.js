@@ -1,15 +1,17 @@
 /**
  * Occurence graph global API (used in individuals.jsp)
- * @param {individualID} [string] - Identifies the central node
+ * @param {individualId} [string] - Identifies the central node
  * @param {globals} [list] - Global variables passed in to maintain 
  *   compatibility with individuals.jsp
+ * @param containerId - Html element the graph will be appended to
  * @param {parser} [JSONParser] - Optional parser specification. Defaults to null
  */	
-function setupOccurrenceGraph(individualID, globals, parser=null) {
+function setupOccurrenceGraph(individualId, containerId, globals, parser=null) {
     let focusedScale = 1.75;
-    let occ = new OccurrenceGraph(individualID, "#bubbleChart", globals, focusedScale, parser);
+    let occ = new OccurrenceGraph(individualId, containerId, globals, focusedScale, parser);
     occ.applyOccurrenceData();
 }
+
 
 //Sparse-tree mapping co-occurrence relationships between a focused individual and its species
 class OccurrenceGraph extends ForceLayoutAbstract {
@@ -17,21 +19,31 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	super(individualId, containerId, globals);
 
 	this.focusedScale = focusedScale;
-	
 	if (parser) this.parser = parser;
-	else this.parser = new JSONParser(globals, null, true, 30);
+	else this.parser = new JSONParser(null, true, 30);
 
 	//Expand upon graphAbstract's {this.sliders} attribute
-	this.sliders = {...this.sliders, "temporal": {"filter": this.filterByOccurrence},
-			"spatial": {"filter": this.filterByOccurrence}};	
+	this.sliders = {
+	    ...this.sliders,
+	    "temporal": {
+		"filter": this.filterByOccurrence,
+		"def": 0,
+		"precision": 1
+	    },
+	    "spatial": {
+		"filter": this.filterByOccurrence,
+		"def": 0,
+		"precision": 2
+	    }
+	};
     }
 
     /**
      * Wrapper function to gather species data and generate a graph
      */	   
     applyOccurrenceData() {
-	this.parser.parseJSON((nodes, links) => this.graphOccurrenceData(nodes, links),
-			      this.id, true);
+	this.parser.processJSON((nodes, links) => this.graphOccurrenceData(nodes, links),
+			        this.id, true);
     }
     
     /**
@@ -41,6 +53,10 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      * @param {links} [obj list] - A list of link objects queried from the Relationship psql table
      */	
     graphOccurrenceData(nodes, links) {
+        //Clear loading icon
+	$("#bubbleChart").children(".loadingIcon").empty();
+	$("#bubbleChart").children(".loadingIcon").remove();
+
 	//Create graph w/ forces
 	if (nodes.length >= 1) { 
 	    this.setupGraph(links, nodes);
@@ -67,10 +83,34 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      */	
     updateRangeSliderAttr() {
 	super.updateRangeSliderAttr();
-	
+
 	let [distArr, timeArr] = this.analyzeNodeData(this.focusedNode);
-	this.sliders.temporal.max = Math.ceil(Math.max(...timeArr, 1));
-	this.sliders.spatial.max = Math.ceil(Math.max(...distArr, 1));
+	this.calcSliderMax(this.sliders.temporal, timeArr);
+	this.calcSliderMax(this.sliders.spatial, distArr);
+    }
+
+    /**
+     * Calculates the maximum threshold for a given slider (supporting decimal thresholds)
+     * @param {slider} [obj] - The contextual slider being updated
+     * @param {thresholdArr} [list] - A list of threshold values
+     */
+    calcSliderMax(slider, thresholdArr) {
+	let precision = slider.precision;
+	let rawMin = Math.pow(0.1, precision-1);
+	let buffer = Math.pow(0.1, precision+0.5); //Fixes a jquery bug where decimal sliders cannot reach their max value
+	let rawMax = Math.max(...thresholdArr, rawMin) + buffer;
+	slider.max = this.ceilToFixed(rawMax, precision+1);
+    }
+
+    /**
+     * Rounds upwards for a specified decimal precision
+     * @param {value} [float] - A float value to be rounded
+     * @param {precision} [float] - The number of decimals to include
+     * @return {roundedValue} [float] - A rounded version of value
+     */
+    ceilToFixed(value, precision){
+	var ceil = Math.pow(10, precision);
+	return parseFloat((Math.round(value * ceil) / ceil).toFixed(precision));
     }
 
     /**
@@ -120,11 +160,16 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	let [min, minCoordPair] = this.getNodeMinKDTree(sights1, sights2,
 							["lat", "lon", "time"],
 							this.calculateSightingsDiff);
-	
-	let minDist = this.calculateDist(minCoordPair[0], minCoordPair[1]);
-	let minTime = this.calculateTime(minCoordPair[0].time, minCoordPair[1].time);
 
-	return [minDist, minTime];
+	try {
+	    let minDist = this.calculateDist(minCoordPair[0], minCoordPair[1]);
+	    let minTime = this.calculateTime(minCoordPair[0].time, minCoordPair[1].time);
+
+	    return [minDist, minTime];
+	}
+	catch(err) {
+	    return [Infinity, Infinity]; //Arbitrarily large min values
+	}
     }
 
     /**
@@ -191,8 +236,8 @@ class OccurrenceGraph extends ForceLayoutAbstract {
      */
     updateLinkThreshCount(focusedNode) {
 	let focusedId = focusedNode.id;
-	let spatialThresh = parseInt($("#spatial").val());
-	let temporalThresh = parseInt($("#temporal").val());
+	let spatialThresh = parseFloat($("#spatial").val());
+	let temporalThresh = parseFloat($("#temporal").val());
 
 	this.linkData.forEach(link => {
 	    let targetId = link.target.id || link.target;
@@ -205,6 +250,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 								    spatialThresh, temporalThresh);
 		link.validEncounters = threshEncounters;
 		link.count = threshEncounters.length;
+		link.explicitOccurrence = node.data.sightings.explicit;
 	    }
 	});
     }
@@ -293,31 +339,11 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	$("#" + occType + "Val").text(thresh)
 	
 	let focusedNode = self.nodeData.find(d => d.data.isFocused);
-	let nodeFilter = (d) => (self.getNodeMinType(focusedNode, d, occType) <= thresh)
-	let linkFilter = (d) => (self.getNodeMinType(focusedNode, d.source, occType) <= thresh) &&
-	    (self.getNodeMinType(focusedNode, d.target, occType) <= thresh)
+	let nodeFilter = (d) => (self.getNodeMinType(focusedNode, d, occType) <= thresh || d.data.sightings.explicit)
+	let linkFilter = (d) => ((self.getNodeMinType(focusedNode, d.source, occType) <= thresh) && (self.getNodeMinType(focusedNode, d.target, occType) <= thresh) || d.explicitOccurrence)
 
 	let validFilters = self.validFilters.concat([occType]);
 	self.absoluteFilterGraph(nodeFilter, linkFilter, occType, validFilters);
-    }
-
-    /**
-     * Reset the graph s.t. no filters are applied
-     */
-    resetGraph() {
-	super.resetGraph();
-	this.resetSliders();
-    }
-
-    /**
-     * Reset each slider's text and value
-     */
-    resetSliders() {
-	Object.values(this.sliders).forEach(slider => {
-	    $("#" + slider.ref + "Val").text(slider.max)
-	    $("#" + slider.ref).attr("max", slider.max);
-	    $("#" + slider.ref).val(slider.max)
-	});
     }
 
     /**
@@ -349,7 +375,7 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    .attr("r", d => {
 		let length = Math.max(d.count.toString().length - 1, 0);
 		let scale = 1 + (0.5 * length);
-		return 8 * scale; //8 px default
+		return 9 * scale; //8 px default
 	    })
 	    .style("fill", "white")
 	    .on("mouseover", d => this.handleMouseOver(d, "link"))				
@@ -360,13 +386,14 @@ class OccurrenceGraph extends ForceLayoutAbstract {
 	    .style("text-anchor", "middle")
 	    .attr("font-size", 15)
 	    .attr("font-weight", "bold")
-	    .text(d => d.count);
+	    .text(d => (d.explicitOccurrence) ? `${d.count}*` : d.count);
 
 	newLabels.transition()
 	    .duration(this.transitionDuration)
 	    .attr("opacity", 1);
 
-	linkLabels.select("text").text(d => d.count);
+	linkLabels.select("text")
+	    .text(d => (d.explicitOccurrence) ? `${d.count}*` : d.count);
 
 	this.linkLabels = newLabels.merge(linkLabels);
 	
@@ -408,5 +435,4 @@ class OccurrenceGraph extends ForceLayoutAbstract {
     */
     focusNode(node) {}
 }
-
 
