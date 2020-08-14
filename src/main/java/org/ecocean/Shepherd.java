@@ -512,6 +512,9 @@ public class Shepherd {
     pm.deletePersistent(word);
   }
 
+  public void throwAwayProject(Project project) {
+    pm.deletePersistent(project);
+  }
 
   public void throwAwaySuperSpotArray(SuperSpot[] spots) {
     if (spots != null) {
