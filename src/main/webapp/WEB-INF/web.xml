@@ -450,6 +450,11 @@
     <servlet-name>ProjectCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.ProjectCreate</servlet-class>
   </servlet>
+
+    <servlet>
+    <servlet-name>ProjectDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectDelete</servlet-class>
+  </servlet>
   
   <servlet>
     <servlet-name>EncounterRemoveUser</servlet-name>
@@ -1601,6 +1606,11 @@
   <servlet-mapping>
     <servlet-name>ProjectCreate</servlet-name>
     <url-pattern>/ProjectCreate</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectDelete</servlet-name>
+    <url-pattern>/ProjectDelete</url-pattern>
   </servlet-mapping>
   
   <!--SUTime testing-->

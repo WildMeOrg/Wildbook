@@ -100,7 +100,13 @@ public class Project implements java.io.Serializable {
     }
 
     public void removeEncounter(Encounter enc) {
+        setTimeLastModified();
         encounters.remove(enc);
+    }
+
+    public void clearAllEncounters() {
+        setTimeLastModified();
+        encounters = new ArrayList<>();
     }
 
     //stub
