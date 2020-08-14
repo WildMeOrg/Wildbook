@@ -723,11 +723,26 @@
     </class>
 
     <class name="Project" identity-type="application" table="PROJECT">
-      <field name="id" primary-key="true" value-strategy="identity"/>
-      <field name="encounters" persistence-modifier="persistent" default-fetch-group="true" recursion-depth="2" mapped-by="project" >
-        <collection element-type="org.ecocean.Encounter" dependent-element="false" />
-        <join />
+
+      <inheritance strategy="new-table" />
+
+      <field name="id" primary-key="true">
+        <column length="36" name="ID"/>
       </field>
+
+      <field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Encounter" dependent-element="false" />
+        <join/>
+      </field>
+
+      <field name="researchProjectname">
+        <column name="RESEARCHPROJECTNAME"/>
+      </field>
+
+      <field name="researchProjectId">
+        <column name="RESEARCHPROJECTID"/>
+      </field>
+
     </class>
 
     <class name="Measurement" identity-type="application">
