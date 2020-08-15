@@ -174,7 +174,7 @@ System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
       System.out.println("This marked individual has "+numAnns+" anotations");
 
 			//boolean visible = indie.canUserAccess(request);
-      boolean visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
+      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
       System.out.println("We got visible = "+visible);
 
       String ipAddress = request.getHeader("X-FORWARDED-FOR");
