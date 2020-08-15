@@ -11,7 +11,7 @@ public class Project implements java.io.Serializable {
 
     private String id;
 
-    private ArrayList<Encounter> encounters;
+    private ArrayList<Encounter> encounters = null;
 
     private String researchProjectname;
     private String researchProjectId;
@@ -107,6 +107,36 @@ public class Project implements java.io.Serializable {
     public void clearAllEncounters() {
         setTimeLastModified();
         encounters = new ArrayList<>();
+    }
+
+    public ArrayList<MarkedIndividual> getAllIndividualsForProject() {
+        ArrayList<MarkedIndividual> mis = null;
+        for (Encounter enc : encounters) {
+            MarkedIndividual mi = enc.getIndividual();
+            if (mi!=null) {
+                if (mis==null) {
+                    mis = new ArrayList<MarkedIndividual>();
+                }
+                if (!mis.contains(mi)) {
+                    mis.add(mi);
+                }
+            }
+        }
+        return mis;
+    }
+
+    public int numEncounters() {
+        if (encounters!=null) {
+            return encounters.size();
+        }
+        return 0;
+    }
+
+    public int numIndividuals() {
+        if (getAllIndividualsForProject()!=null) {
+            return getAllIndividualsForProject().size();
+        }
+        return 0;
     }
 
     //stub
