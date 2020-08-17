@@ -64,6 +64,7 @@ public class ProjectGet extends HttpServlet {
                     userProjectJSON.put(project.getId(), project.toString());
                     projectArr.put(userProjectJSON);
                 }
+                res.put("projects", projectArr);
                 res.put("success","true");
                 complete = true;
             }
