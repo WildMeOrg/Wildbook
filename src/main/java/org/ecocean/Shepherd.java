@@ -1466,6 +1466,21 @@ public class Shepherd {
     return projects;
   }
 
+  public List<Project> getProjectsForUserId(String userId) {
+    List<Project> projects = null;
+    try (Query query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE ownerId=='" + userId+ "'")) {
+      Collection c = (Collection) (query.execute());
+      Iterator it = c.iterator();
+      while (it.hasNext()) {
+        projects.add((Project) it.next());
+      }
+      query.closeAll();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return projects;
+  }
+
   public boolean isSurvey(String num) {
     try {
       Survey tempSvy = ((org.ecocean.Survey) (pm.getObjectById(pm.newObjectIdInstance(Survey.class, num.trim()), true)));
