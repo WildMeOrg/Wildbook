@@ -46,6 +46,11 @@ public class Project implements java.io.Serializable {
         return id;
     }
 
+    //stub TODO
+    public  Float getPercentIdentified(){
+      return 10.5;
+    }
+
     private void setTimeCreated() {
         dateCreatedLong = System.currentTimeMillis();
     }
@@ -96,7 +101,7 @@ public class Project implements java.io.Serializable {
     public void addEncounters(List<Encounter> encs) {
         for (Encounter enc : encs) {
             addEncounter(enc);
-        }   
+        }
     }
 
     public void removeEncounter(Encounter enc) {
@@ -156,6 +161,10 @@ public class Project implements java.io.Serializable {
         return projects;
     }
 
+    //stub
+    public static List<Project> getProjectsForUser(User user){
+      ArrayList<Project> projects = new ArrayList<>();
+      return projects;
+    }
 
-    
 }
