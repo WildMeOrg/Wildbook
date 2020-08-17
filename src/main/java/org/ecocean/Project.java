@@ -3,6 +3,7 @@ package org.ecocean;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Project implements java.io.Serializable {
@@ -13,7 +14,7 @@ public class Project implements java.io.Serializable {
 
     private ArrayList<Encounter> encounters = null;
 
-    private String researchProjectname;
+    private String researchProjectName;
     private String researchProjectId;
 
     private Long dateCreatedLong;
@@ -22,22 +23,23 @@ public class Project implements java.io.Serializable {
     //empty constructor used by the JDO enhancer
     public Project() {}
 
-    public Project(String researchProjectId) {
+    public Project(final String researchProjectId) {
         this(researchProjectId, null, null);
     }
 
-    public Project(String researchProjectId, List<Encounter> encs) {
+    public Project(final String researchProjectId, final List<Encounter> encs) {
         this(researchProjectId, null, encs);
     }
 
-    public Project(String researchProjectId, String researchProjectName) {
+    public Project(final String researchProjectId, final String researchProjectName) {
         this(researchProjectId, researchProjectName, null);
     }
 
-    public Project(String researchProjectId, String researchProjectName, List<Encounter> encs) {
-        this.encounters = new ArrayList<Encounter>();
+    public Project(final String researchProjectId, final String researchProjectName, final List<Encounter> encs) {
+        this.encounters = new ArrayList<>();
         this.id = Util.generateUUID();
         this.researchProjectId = researchProjectId;
+        this.researchProjectName = researchProjectName;
         setTimeCreated();
         setTimeLastModified();
     }
@@ -62,16 +64,16 @@ public class Project implements java.io.Serializable {
         return dateLastModifiedLong;
     }
 
-    public void setResearchProjectName(String researchProjectname) {
+    public void setResearchProjectName(final String researchProjectname) {
         setTimeLastModified();
-        this.researchProjectname = researchProjectname;
+        this.researchProjectName = researchProjectname;
     }
 
     public String getResearchProjectName() {
-        return researchProjectname;
+        return researchProjectName;
     }
 
-    public void setResearchProjectId(String researchProjectId) {
+    public void setResearchProjectId(final String researchProjectId) {
         setTimeLastModified();
         this.researchProjectId = researchProjectId;
     }
@@ -84,7 +86,7 @@ public class Project implements java.io.Serializable {
         return encounters;
     }
 
-    public void addEncounter(Encounter enc) {
+    public void addEncounter(final Encounter enc) {
         setTimeLastModified();
         if (!encounters.contains(enc)) {
             encounters.add(enc);
@@ -93,13 +95,13 @@ public class Project implements java.io.Serializable {
         }
     }
 
-    public void addEncounters(List<Encounter> encs) {
-        for (Encounter enc : encs) {
+    public void addEncounters(final List<Encounter> encs) {
+        for (final Encounter enc : encs) {
             addEncounter(enc);
         }   
     }
 
-    public void removeEncounter(Encounter enc) {
+    public void removeEncounter(final Encounter enc) {
         setTimeLastModified();
         encounters.remove(enc);
     }
@@ -109,13 +111,13 @@ public class Project implements java.io.Serializable {
         encounters = new ArrayList<>();
     }
 
-    public ArrayList<MarkedIndividual> getAllIndividualsForProject() {
+    public List<MarkedIndividual> getAllIndividualsForProject() {
         ArrayList<MarkedIndividual> mis = null;
-        for (Encounter enc : encounters) {
-            MarkedIndividual mi = enc.getIndividual();
+        for (final Encounter enc : encounters) {
+            final MarkedIndividual mi = enc.getIndividual();
             if (mi!=null) {
                 if (mis==null) {
-                    mis = new ArrayList<MarkedIndividual>();
+                    mis = new ArrayList<>();
                 }
                 if (!mis.contains(mi)) {
                     mis.add(mi);
@@ -139,23 +141,22 @@ public class Project implements java.io.Serializable {
         return 0;
     }
 
-    //stub
     public JSONObject asJSONObject() {
         JSONObject j = new JSONObject();
+        j.put("researchProjectName", researchProjectName);
+        j.put("researchProjectId", researchProjectId);
+        j.put("dateCreatedLong", researchProjectId);
+        j.put("dateLastModifiedLong", researchProjectId);
+        JSONArray encArr = new JSONArray();
+        for (Encounter enc : encounters) {
+            encArr.put(enc.getID());
+        }
+        j.put("encounters", encArr);
         return j;
     }
 
-    //stub
     public String toString() {
-        return "";
+        return this.asJSONObject().toString();
     }
-
-    //stub
-    public static ArrayList<Project> getProjectsForEncounter() {
-        ArrayList<Project> projects = new ArrayList<>();
-        return projects;
-    }
-
-
     
 }
