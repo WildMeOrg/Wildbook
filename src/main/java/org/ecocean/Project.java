@@ -3,6 +3,8 @@ package org.ecocean;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -19,6 +21,8 @@ public class Project implements java.io.Serializable {
 
     private Long dateCreatedLong;
     private Long dateLastModifiedLong;
+
+    private String ownerId;
 
     //empty constructor used by the JDO enhancer
     public Project() {}
@@ -46,6 +50,14 @@ public class Project implements java.io.Serializable {
 
     public String getId() {
         return id;
+    }
+
+    public void setOwner(String ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public String getOwnerId() {
+        return ownerId;
     }
 
     private void setTimeCreated() {
@@ -143,6 +155,7 @@ public class Project implements java.io.Serializable {
 
     public JSONObject asJSONObject() {
         JSONObject j = new JSONObject();
+        j.put("ownerId", ownerId);
         j.put("researchProjectName", researchProjectName);
         j.put("researchProjectId", researchProjectId);
         j.put("dateCreatedLong", researchProjectId);
@@ -157,6 +170,12 @@ public class Project implements java.io.Serializable {
 
     public String toString() {
         return this.asJSONObject().toString();
+    }
+
+    public boolean doesUserOwnProject(Shepherd myShepherd, HttpServletRequest request) {
+        User user = myShepherd.getUser(request);
+        if (ownerId.equals(user.getId())) return true;
+        return false;
     }
     
 }
