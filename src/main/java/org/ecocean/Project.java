@@ -2,6 +2,7 @@ package org.ecocean;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 import org.json.JSONObject;
 
@@ -13,7 +14,7 @@ public class Project implements java.io.Serializable {
 
     private ArrayList<Encounter> encounters = null;
 
-    private String researchProjectname;
+    private String researchProjectName;
     private String researchProjectId;
 
     private Long dateCreatedLong;
@@ -32,12 +33,14 @@ public class Project implements java.io.Serializable {
 
     public Project(String researchProjectId, String researchProjectName) {
         this(researchProjectId, researchProjectName, null);
+        System.out.println("the correct constructor is called");
     }
 
     public Project(String researchProjectId, String researchProjectName, List<Encounter> encs) {
         this.encounters = new ArrayList<Encounter>();
         this.id = Util.generateUUID();
         this.researchProjectId = researchProjectId;
+        this.researchProjectName = researchProjectName;
         setTimeCreated();
         setTimeLastModified();
     }
@@ -47,8 +50,13 @@ public class Project implements java.io.Serializable {
     }
 
     //stub TODO
-    public  Float getPercentIdentified(){
+    public  Double getPercentIdentified(){
       return 10.5;
+    }
+
+    //stub TODO
+    public Integer getNumberOfIndividuals(){
+      return 15;
     }
 
     private void setTimeCreated() {
@@ -67,13 +75,15 @@ public class Project implements java.io.Serializable {
         return dateLastModifiedLong;
     }
 
-    public void setResearchProjectName(String researchProjectname) {
-        setTimeLastModified();
-        this.researchProjectname = researchProjectname;
+    public void setResearchProjectName(String researchProjectName) {
+      setTimeLastModified();
+      this.researchProjectName = researchProjectName;
     }
 
     public String getResearchProjectName() {
-        return researchProjectname;
+      System.out.println("getresearchProjectName called");
+      System.out.println("researchProjectName is: " + researchProjectName);
+      return researchProjectName;
     }
 
     public void setResearchProjectId(String researchProjectId) {
@@ -111,7 +121,7 @@ public class Project implements java.io.Serializable {
 
     public void clearAllEncounters() {
         setTimeLastModified();
-        encounters = new ArrayList<>();
+        this.encounters = new ArrayList<>();
     }
 
     public ArrayList<MarkedIndividual> getAllIndividualsForProject() {
@@ -161,9 +171,16 @@ public class Project implements java.io.Serializable {
         return projects;
     }
 
-    //stub
+    //stub TODO
     public static List<Project> getProjectsForUser(User user){
-      ArrayList<Project> projects = new ArrayList<>();
+      Project proj1 = new Project("ID1", "Project1");
+      System.out.println(proj1.toString());
+      Project proj2 = new Project("ID2", "Project2");
+      Project proj3 = new Project("ID3", "Project3");
+      Project proj4 = new Project("ID4", "Project4");
+      Project proj5 = new Project("ID5", "Project5");
+      ArrayList<Project> projects = new ArrayList<Project>(Arrays.asList(proj1, proj2, proj3, proj4, proj5));
+      // ArrayList<Project> projects = new ArrayList<Project>();
       return projects;
     }
 
