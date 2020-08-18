@@ -27,17 +27,11 @@ User currentUser = AccessControl.getUser(request, myShepherd);
 
 <html>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
-  <script>
-    function navToProj(Project project){
-      console.log("got into navToProj");
-      console.log("current proj is:");
-      console.log(project);
-    }
-  </script>
   <head>
     <title>Project List for <%=currentUser.getDisplayName()%></title>
   </head>
   <body>
+    <jsp:include page="../header.jsp" flush="true"/>
     <div class="container" align="center">
       <div class="flexbox">
         <h2 class="flex-left-justify">Projects for <%=currentUser.getDisplayName()%></h2>
@@ -55,16 +49,26 @@ User currentUser = AccessControl.getUser(request, myShepherd);
           <%
           try{
               if(currentUser != null){
-                List<Project> userProjects = Project.getProjectsForUser(currentUser);
-                for(int j=0; j<userProjects.size(); j++){
-                  if(userProjects.size()>0){
-                    %>
-                    <tr onclick="navToProj(userProjects.get(j));">
-                      <td class="tissueSample"><%=userProjects.get(j).getResearchProjectName()%></td>
-                      <td class="tissueSample">%<%=userProjects.get(j).getPercentIdentified()%></td>
-                      <td class="tissueSample"><%=userProjects.get(j).getNumberOfIndividuals()%></td>
-                    </tr>
-                    <%
+                List<Project> userProjects = myShepherd.getProjectsForUserId(currentUser.getId());
+                if(userProjects.size()<1){
+                  %>
+                  <tr>
+                    <td> You don't have any projects yet</td>
+                  </tr>
+                  <%
+                }else{
+                  for(int j=0; j<userProjects.size(); j++){
+                    if(userProjects.size()>0){
+                      %>
+                      <a href="<%=urlLoc%>/project.jsp?id=<%=userProjects.get(j).getId()%>">
+                        <tr>
+                          <td class="tissueSample"><%=userProjects.get(j).getResearchProjectName()%></td>
+                          <td class="tissueSample">%<%=userProjects.get(j).getPercentIdentified()%></td>
+                          <td class="tissueSample"><%=userProjects.get(j).getNumberOfIndividuals()%></td>
+                        </tr>
+                      </a>
+                      <%
+                    }
                   }
                 }
               }
@@ -79,5 +83,6 @@ User currentUser = AccessControl.getUser(request, myShepherd);
       </tbody>
   </table>
 </div>
+<jsp:include page="../footer.jsp" flush="true"/>
 </body>
 </html>
