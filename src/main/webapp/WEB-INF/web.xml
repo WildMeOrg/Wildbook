@@ -331,6 +331,7 @@
 
 				/pictureBook.jsp = authc, roles[researcher]
 				/projectList.jsp = authc, roles[researcher]
+				/project.jsp = authc, roles[researcher]
 
 				/EncounterSetSurveyAndTrack = authc, roles[researcher]
 				/OccurrenceSetSurveyAndTrack = authc, roles[researcher]
