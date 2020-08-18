@@ -76,9 +76,9 @@ public class Project implements java.io.Serializable {
         return dateLastModifiedLong;
     }
 
-    public void setResearchProjectName(final String researchProjectname) {
+    public void setResearchProjectName(final String researchProjectName) {
         setTimeLastModified();
-        this.researchProjectName = researchProjectname;
+        this.researchProjectName = researchProjectName;
     }
 
     public String getResearchProjectName() {
@@ -155,11 +155,12 @@ public class Project implements java.io.Serializable {
 
     public JSONObject asJSONObject() {
         JSONObject j = new JSONObject();
+        j.put("id", id);
         j.put("ownerId", ownerId);
         j.put("researchProjectName", researchProjectName);
         j.put("researchProjectId", researchProjectId);
-        j.put("dateCreatedLong", researchProjectId);
-        j.put("dateLastModifiedLong", researchProjectId);
+        j.put("dateCreatedLong", dateCreatedLong);
+        j.put("dateLastModifiedLong", dateLastModifiedLong);
         JSONArray encArr = new JSONArray();
         for (Encounter enc : encounters) {
             encArr.put(enc.getID());
