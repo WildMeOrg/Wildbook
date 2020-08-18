@@ -730,12 +730,16 @@
         <column length="36" name="ID"/>
       </field>
 
+      <field name="ownerId">
+        <column name="OWNERID"/>
+      </field>
+
       <field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.Encounter" dependent-element="false" />
         <join/>
       </field>
 
-      <field name="researchProjectname">
+      <field name="researchProjectName">
         <column name="RESEARCHPROJECTNAME"/>
       </field>
 

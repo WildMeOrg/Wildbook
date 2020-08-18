@@ -34,6 +34,7 @@ public class ProjectCreate extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
         
@@ -79,6 +80,11 @@ public class ProjectCreate extends HttpServlet {
                 if (researchProjectName!=null) {
                     newProject.setResearchProjectName(researchProjectName);
                 }
+
+                // should we automatically set owner as current logged in user? 
+                User currentUser = myShepherd.getUser(request);
+                newProject.setOwner(currentUser.getId());
+
                 if (encs.size()>0) {
                     newProject.addEncounters(encs);
                 }
