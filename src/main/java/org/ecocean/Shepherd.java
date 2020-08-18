@@ -1104,7 +1104,7 @@ public class Shepherd {
     try {
       username = request.getUserPrincipal().toString();
     } catch (Exception e) {
-      System.out.println("Shepherd.getUsername(HttpServletRequest) called with no user logged in");
+      //System.out.println("Shepherd.getUsername(HttpServletRequest) called with no user logged in");
     }
     return username;
   }
@@ -1449,6 +1449,49 @@ public class Shepherd {
     }
     itq.closeAll();
     return itask;
+  }
+
+  public List<Project> getProjectsForEncounter(Encounter enc) {
+    List<Project> projects = null;
+    Query query = null;
+    try {
+      query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getID() + "'");
+      Collection c = (Collection) (query.execute());
+      Iterator it = c.iterator();
+      while (it.hasNext()) {
+        if (projects==null) {
+          projects = new ArrayList<Project>();
+        }
+        projects.add((Project) it.next());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return projects;
+  }
+
+  public List<Project> getProjectsForUserId(String userId) {
+    List<Project> projects = null;
+    Query query = null;
+    try {
+      query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE ownerId=='" + userId+ "'");
+      Collection c = (Collection) (query.execute());
+      Iterator it = c.iterator();
+      while (it.hasNext()) {
+        if (projects==null) {
+          projects = new ArrayList<Project>();
+        }
+        System.out.println("got "+projects.size()+" projects to return...");
+        projects.add((Project) it.next());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return projects;
   }
 
   public boolean isSurvey(String num) {

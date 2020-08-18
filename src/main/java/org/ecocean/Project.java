@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Project implements java.io.Serializable {
@@ -20,24 +23,26 @@ public class Project implements java.io.Serializable {
     private Long dateCreatedLong;
     private Long dateLastModifiedLong;
 
+    private String ownerId;
+
     //empty constructor used by the JDO enhancer
     public Project() {}
 
-    public Project(String researchProjectId) {
+    public Project(final String researchProjectId) {
         this(researchProjectId, null, null);
     }
 
-    public Project(String researchProjectId, List<Encounter> encs) {
+    public Project(final String researchProjectId, final List<Encounter> encs) {
         this(researchProjectId, null, encs);
     }
 
-    public Project(String researchProjectId, String researchProjectName) {
+    public Project(final String researchProjectId, final String researchProjectName) {
         this(researchProjectId, researchProjectName, null);
         System.out.println("the correct constructor is called");
     }
 
-    public Project(String researchProjectId, String researchProjectName, List<Encounter> encs) {
-        this.encounters = new ArrayList<Encounter>();
+    public Project(final String researchProjectId, final String researchProjectName, final List<Encounter> encs) {
+        this.encounters = new ArrayList<>();
         this.id = Util.generateUUID();
         this.researchProjectId = researchProjectId;
         this.researchProjectName = researchProjectName;
@@ -59,6 +64,14 @@ public class Project implements java.io.Serializable {
       return 15;
     }
 
+    public void setOwner(String ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public String getOwnerId() {
+        return ownerId;
+    }
+
     private void setTimeCreated() {
         dateCreatedLong = System.currentTimeMillis();
     }
@@ -75,18 +88,18 @@ public class Project implements java.io.Serializable {
         return dateLastModifiedLong;
     }
 
-    public void setResearchProjectName(String researchProjectName) {
-      setTimeLastModified();
-      this.researchProjectName = researchProjectName;
+    public void setResearchProjectName(final String researchProjectName) {
+      System.out.println("getresearchProjectName called");
+      System.out.println("researchProjectName is: " + researchProjectName);
+        setTimeLastModified();
+        this.researchProjectName = researchProjectName;
     }
 
     public String getResearchProjectName() {
-      System.out.println("getresearchProjectName called");
-      System.out.println("researchProjectName is: " + researchProjectName);
-      return researchProjectName;
+        return researchProjectName;
     }
 
-    public void setResearchProjectId(String researchProjectId) {
+    public void setResearchProjectId(final String researchProjectId) {
         setTimeLastModified();
         this.researchProjectId = researchProjectId;
     }
@@ -99,7 +112,7 @@ public class Project implements java.io.Serializable {
         return encounters;
     }
 
-    public void addEncounter(Encounter enc) {
+    public void addEncounter(final Encounter enc) {
         setTimeLastModified();
         if (!encounters.contains(enc)) {
             encounters.add(enc);
@@ -108,13 +121,13 @@ public class Project implements java.io.Serializable {
         }
     }
 
-    public void addEncounters(List<Encounter> encs) {
-        for (Encounter enc : encs) {
+    public void addEncounters(final List<Encounter> encs) {
+        for (final Encounter enc : encs) {
             addEncounter(enc);
         }
     }
 
-    public void removeEncounter(Encounter enc) {
+    public void removeEncounter(final Encounter enc) {
         setTimeLastModified();
         encounters.remove(enc);
     }
@@ -124,13 +137,13 @@ public class Project implements java.io.Serializable {
         this.encounters = new ArrayList<>();
     }
 
-    public ArrayList<MarkedIndividual> getAllIndividualsForProject() {
+    public List<MarkedIndividual> getAllIndividualsForProject() {
         ArrayList<MarkedIndividual> mis = null;
-        for (Encounter enc : encounters) {
-            MarkedIndividual mi = enc.getIndividual();
+        for (final Encounter enc : encounters) {
+            final MarkedIndividual mi = enc.getIndividual();
             if (mi!=null) {
                 if (mis==null) {
-                    mis = new ArrayList<MarkedIndividual>();
+                    mis = new ArrayList<>();
                 }
                 if (!mis.contains(mi)) {
                     mis.add(mi);
@@ -154,21 +167,30 @@ public class Project implements java.io.Serializable {
         return 0;
     }
 
-    //stub
     public JSONObject asJSONObject() {
         JSONObject j = new JSONObject();
+        j.put("id", id);
+        j.put("ownerId", ownerId);
+        j.put("researchProjectName", researchProjectName);
+        j.put("researchProjectId", researchProjectId);
+        j.put("dateCreatedLong", dateCreatedLong);
+        j.put("dateLastModifiedLong", dateLastModifiedLong);
+        JSONArray encArr = new JSONArray();
+        for (Encounter enc : encounters) {
+            encArr.put(enc.getID());
+        }
+        j.put("encounters", encArr);
         return j;
     }
 
-    //stub
     public String toString() {
-        return "";
+        return this.asJSONObject().toString();
     }
 
-    //stub
-    public static ArrayList<Project> getProjectsForEncounter() {
-        ArrayList<Project> projects = new ArrayList<>();
-        return projects;
+    public boolean doesUserOwnProject(Shepherd myShepherd, HttpServletRequest request) {
+        User user = myShepherd.getUser(request);
+        if (ownerId.equals(user.getId())) return true;
+        return false;
     }
 
     //stub TODO

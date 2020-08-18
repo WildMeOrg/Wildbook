@@ -29,7 +29,32 @@ private static String encodeValue(String value) {
 
 <% int imgHeight = 500; %>
 
+<%
 
+String bbox = request.getParameter("bbox");
+String aidparam = request.getParameter("assetId");
+int assetId = -1;
+try {
+    assetId = Integer.parseInt(aidparam);
+} 
+catch (NumberFormatException nex) {}
+
+String iaClass = request.getParameter("iaClass");
+String maparam = request.getParameter("matchAgainst");
+boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
+String rtparam = request.getParameter("removeTrivial");
+boolean removeTrivial = (rtparam == null) || Util.booleanNotFalse(rtparam);
+String encounterId = request.getParameter("encounterId");
+///skipping this for now cuz i dont want to deal with altering the *annot* once we change a feature (i.e. acmId etc so IA thinks is new)
+String featureId = null;///request.getParameter("featureId");
+String viewpoint = request.getParameter("viewpoint");
+boolean save = Util.requestParameterSet(request.getParameter("save"));
+boolean cloneEncounter = Util.requestParameterSet(request.getParameter("cloneEncounter"));
+String added2enc="";
+
+String clist = "";
+
+%>
 
 <style>
 	body {
@@ -91,6 +116,10 @@ $(document).ready(function() {
         width: $('#bbox').css('width'),
         height: $('#bbox').css('height')
     };
+    
+    <%
+    if(iaClass!=null){
+    %>
 
     $('#img-wrapper').on('mousemove', function(ev) {
         if (boxStart) {
@@ -135,31 +164,18 @@ $(document).ready(function() {
             $('#bbox').css('height', 10);
         }
     });
+    
+    <%
+	}
+    %>
+    
 });
 </script>
 <div class="container maincontent">
 <h1>Manual Annotation</h1>
 
 <%
-String bbox = request.getParameter("bbox");
-String aidparam = request.getParameter("assetId");
-int assetId = -1;
-try {
-    assetId = Integer.parseInt(aidparam);
-} 
-catch (NumberFormatException nex) {}
 
-String iaClass = request.getParameter("iaClass");
-String maparam = request.getParameter("matchAgainst");
-boolean matchAgainst = (maparam == null) || Util.booleanNotFalse(maparam);
-String rtparam = request.getParameter("removeTrivial");
-boolean removeTrivial = (rtparam == null) || Util.booleanNotFalse(rtparam);
-String encounterId = request.getParameter("encounterId");
-///skipping this for now cuz i dont want to deal with altering the *annot* once we change a feature (i.e. acmId etc so IA thinks is new)
-String featureId = null;///request.getParameter("featureId");
-String viewpoint = request.getParameter("viewpoint");
-boolean save = Util.requestParameterSet(request.getParameter("save"));
-boolean cloneEncounter = Util.requestParameterSet(request.getParameter("cloneEncounter"));
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
@@ -167,7 +183,7 @@ myShepherd.setAction("manualAnnotation.jsp");
 myShepherd.beginDBTransaction();
 
 try{
-	String vlist = "<select name=\"viewpoint\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
+	String vlist = "<p> 1. Select viewpoint: <select name=\"viewpoint\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
 	Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"VIEWPOINT\") as v from \"ANNOTATION\" order by v");
 	List results = (List)q.execute();
 	Iterator it = results.iterator();
@@ -176,21 +192,26 @@ try{
 	    if (!Util.stringExists(v)) continue;
 	    vlist += "<option" + (v.equals(viewpoint) ? " selected" : "") + ">" + v + "</option>";
 	}
-	vlist += "</select>";
+	vlist += "</select></p>";
 	q.closeAll();
-	String clist = "<select name=\"iaClass\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
-	Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
-	results = (List)q2.execute();
-	it = results.iterator();
-	while (it.hasNext()) {
-	    String v = (String)it.next();
-	    System.out.println("Encooded v: "+v);
-	    if (!Util.stringExists(v)) continue;
-	    System.out.println("v:" +v+" versus iaCLass:"+iaClass);
-	    clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
+	
+	if(viewpoint!=null){
+		clist = "<p>2. Select annotation iaClass: <select name=\"iaClass\" onChange=\"return pulldownUpdate(this);\"><option value=\"\">CHOOSE</option>";
+		Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
+		results = (List)q2.execute();
+		it = results.iterator();
+		while (it.hasNext()) {
+		    String v = (String)it.next();
+		    System.out.println("Encooded v: "+v);
+		    if (!Util.stringExists(v)) continue;
+		    System.out.println("v:" +v+" versus iaCLass:"+iaClass);
+		    clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
+		}
+		clist += "</select></p>";
+		q2.closeAll();
 	}
-	clist += "</select>";
-	q2.closeAll();
+	
+	
 	Feature ft = null;
 	MediaAsset ma = null;
 	int[] xywh = null;
@@ -328,34 +349,23 @@ try{
 	</script></p>
 	
 	<p>
-	matchAgainst = <b><%=matchAgainst%></b>;
-	viewpoint = <b><%=vlist%></b>;
-	iaClass = <b><%=clist%></b>
+	<%
+	if(!save){
+	%>
+	<b><%=vlist%></b>
+	<%
+	}
+	if(!save && viewpoint!=null){
+	%>
+	<b><%=clist%></b>
+	<%
+	}
+	%>
 	</p>
 	
-	<p>
-	(<%=xywh[0]%>,
-	<%=xywh[1]%>)
-	<%=xywh[2]%>x<%=xywh[3]%>
-	</p>
+
 	
-	<p>
-	<% if (ft != null) { %>
-	editing/altering <b>Feature <%=ft.getId()%></b>
-	<% } else if (enc == null) { %>
-	<i>will <b>not attach (or clone)</b> to any Encounter</i>
-	<% } else if (cloneEncounter) { %>
-	will <i>clone</i> <b><a target="_new" href="encounter.jsp?number=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b> and attach to clone
-	<% } else { %>
-	attaching to <b><a target="_new" href="encounter.jsp?number=<%=enc.getCatalogNumber()%>">Encounter <%=enc.getCatalogNumber()%></a></b>
-	<% } %>
-	</p>
-	
-	<p>
-	<% if (enc != null) { %>
-	will <%=(removeTrivial ? "<b>remove</b>" : "<i>not</i> remove")%> trivial Annotation
-	<% } %>
-	</p>
+
 	<%
 	if (save) {
 	    if (ft != null) {
@@ -384,9 +394,36 @@ try{
 	            clone.addAnnotation(ann);
 	            clone.addComments("<p data-annot-id=\"" + ann.getId() + "\">Encounter cloned and <i>new Annotation</i> manually added by " + AccessControl.simpleUserString(request) + "</p>");
 	            myShepherd.getPM().makePersistent(clone);
+	            myShepherd.updateDBTransaction();
 	            encMsg = clone.toString() + " cloned from " + enc.toString();
+	            added2enc=clone.getCatalogNumber();
+	            try {
+	  
+	                Occurrence occ = myShepherd.getOccurrence(enc);
+	                if (occ!=null) {
+	                	occ.addEncounterAndUpdateIt(clone);
+		                occ.setDWCDateLastModified();
+		                myShepherd.updateDBTransaction();
+	                }
+	                //let's create an occurrence to link these two Encounters
+	                else{
+	                	
+	                	occ = new Occurrence(Util.generateUUID(), clone);
+	                	occ.addEncounter(enc);
+	                	myShepherd.getPM().makePersistent(occ);
+	                	myShepherd.updateDBTransaction();
+	                	
+	                }
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	                myShepherd.rollbackDBTransaction();
+	            }
+	            
+	            
+	            
 	        } else {
 	            enc.addAnnotation(ann);
+	            added2enc=enc.getCatalogNumber();
 	            enc.addComments("<p data-annot-id=\"" + ann.getId() + "\"><i>new Annotation</i> manually added by " + AccessControl.simpleUserString(request) + "</p>");
 	            encMsg = enc.toString();
 	        }
@@ -417,10 +454,9 @@ try{
 	    myShepherd.commitDBTransaction();
 		%><hr />
 		
-		<p>Created
-		<b><a href="../obrowse.jsp?type=Annotation&id=<%=ann.getId()%>" target="_new">Annotation <%=ann.getId()%></a></b><br />
-		and
-		<b><a href="../obrowse.jsp?type=Feature&id=<%=ft.getId()%>" target="_new">Feature <%=ft.getId()%></a></b>
+		<h2>Success!</h2> 
+		<p>
+		<b>Created <a href="../obrowse.jsp?type=Annotation&id=<%=ann.getId()%>" target="_new">Annotation <%=ann.getId()%></a> on Encounter <a href="encounter.jsp?number=<%=added2enc %>"><%=added2enc %></a>.
 		</p>
 		
 		<%
@@ -429,8 +465,13 @@ try{
 	    myShepherd.rollbackDBTransaction();
 		%>
 		
-		<h2><a href="manualAnnotation.jsp?<%=request.getQueryString()%>&save">SAVE</a></h2>
-		
+	<%
+	if(iaClass!=null){
+	%>
+	<p><b>3. Draw the new annotation bounding box below.</b></p>
+	<%
+	}
+	%>
 		
 		<div id="img-wrapper">
 		    <div class="axis" id="x-axis"></div>
@@ -439,7 +480,44 @@ try{
 		    <div style="left: <%=(xywh[0] * scale)%>px; top: <%=(xywh[1] * scale)%>px; width: <%=(xywh[2] * scale)%>px; height: <%=(xywh[3] * scale)%>px;" id="bbox"></div>
 		</div>
 		
-		<% 
+	<%
+	if(bbox!=null){
+	%>
+		<p>
+		(<%=xywh[0]%>,
+		<%=xywh[1]%>)
+		<%=xywh[2]%>x<%=xywh[3]%>
+		</p>
+		
+
+		<p><b>4. Click SAVE below to complete the annotation.</b></p>
+				
+				
+	<p>
+	<% if (ft != null) { %>
+	This will edit/alter <b>Feature <%=ft.getId()%>.</b>
+	<% } else if (enc == null) { %>
+	<i>This will <b>not attach (or clone)</b> to any Encounter.</i>
+	<% } else if (cloneEncounter) { %>
+	This will <i>clone</i> <b><a target="_new" href="encounter.jsp?number=<%=enc.getCatalogNumber()%>">encounter <%=enc.getCatalogNumber()%></a></b> and attach the new annotation to the clone.
+	<% } else { %>
+	This will attach to <b><a target="_new" href="encounter.jsp?number=<%=enc.getCatalogNumber()%>">encounter <%=enc.getCatalogNumber()%></a>.</b>
+	<% } %>
+	</p>
+	
+	<p>
+	<% if (enc != null) { %>
+	This will <%=(removeTrivial ? "<b>remove</b>" : "<i>not</i> remove")%> the trivial annotation.
+	<% } %>
+	</p>
+				
+				<h2><a href="manualAnnotation.jsp?<%=request.getQueryString()%>&save">SAVE</a></h2>
+		
+		
+		
+	<%
+	}
+	
 	
 	} //end else
 }

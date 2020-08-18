@@ -7,12 +7,15 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
 import java.io.*;
+import java.util.List;
 
-public class ProjectDelete extends HttpServlet {
+public class ProjectGet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
@@ -31,38 +34,49 @@ public class ProjectDelete extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+		response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
         
-        System.out.println("==> In ProjectDelete Servlet ");
+        System.out.println("==> In ProjectGet Servlet ");
         
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("ProjectDelete.java");
+        myShepherd.setAction("ProjectGet.java");
         myShepherd.beginDBTransaction();
         
         JSONObject res = new JSONObject();
-        JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-        String researchProjectId = null;
-        try {            
+        try {      
             res.put("success","false");
-            researchProjectId = j.optString("researchProjectId", null);
+            JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
+            String researchProjectId = null;
+            String ownerId = null;
 
-            System.out.println("ProjectDelete received JSON : "+j.toString());
+            boolean complete = false;
 
-            if (researchProjectId!=null&&!"".equals(researchProjectId)&&myShepherd.getProjectByResearchProjectId(researchProjectId)!=null) {
-                
-                Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
-                project.clearAllEncounters();
-                myShepherd.throwAwayProject(project);
-                myShepherd.updateDBTransaction();
+            // get all projects for owner
+            ownerId = j.optString("ownerId", null);
+            if (ownerId!=null&&!"".equals(ownerId)) {
+                List<Project> allUserProjects = myShepherd.getProjectsForUserId(ownerId);
+                JSONArray projectArr = new JSONArray();
+                for (Project project : allUserProjects) {
+                    projectArr.put(project.asJSONObject());
+                }
+                res.put("projects", projectArr);
                 res.put("success","true");
-            } else { 
-              res.put("error","null ID for project to delete");
-              response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                complete = true;
             }
-            
+
+            //get specific project
+            researchProjectId = j.optString("researchProjectId", null);
+            if (researchProjectId!=null&&!"".equals(researchProjectId)&&!complete) {
+                Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+                JSONArray projectArr = new JSONArray();
+                projectArr.put(project.asJSONObject());
+                res.put("projects", projectArr);
+                res.put("success","true");
+            } 
+
             out.println(res);
             out.close();
 
@@ -83,6 +97,8 @@ public class ProjectDelete extends HttpServlet {
             myShepherd.closeDBTransaction();
             out.println(res);
         }
+
+
     }
 
 
