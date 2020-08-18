@@ -8,8 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.amazonaws.util.json.JSONArray;
-
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -35,6 +34,7 @@ public class ProjectGet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
         
@@ -60,9 +60,7 @@ public class ProjectGet extends HttpServlet {
                 List<Project> allUserProjects = myShepherd.getProjectsForUserId(ownerId);
                 JSONArray projectArr = new JSONArray();
                 for (Project project : allUserProjects) {
-                    JSONObject userProjectJSON = new JSONObject();
-                    userProjectJSON.put(project.getId(), project.toString());
-                    projectArr.put(userProjectJSON);
+                    projectArr.put(project.asJSONObject());
                 }
                 res.put("projects", projectArr);
                 res.put("success","true");
@@ -73,10 +71,8 @@ public class ProjectGet extends HttpServlet {
             researchProjectId = j.optString("researchProjectId", null);
             if (researchProjectId!=null&&!"".equals(researchProjectId)&&!complete) {
                 Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
-                JSONObject singleProjectJSON = new JSONObject();
-                singleProjectJSON.put(project.getId(), project.toString());
                 JSONArray projectArr = new JSONArray();
-                projectArr.put(singleProjectJSON);
+                projectArr.put(project.asJSONObject());
                 res.put("projects", projectArr);
                 res.put("success","true");
             } 
