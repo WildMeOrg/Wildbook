@@ -1,0 +1,186 @@
+{
+    "IA_global": {
+        "add_images":      "https://kaiju.dyn.wildme.io:5005/api/image/json/",
+        "add_annotations": "https://kaiju.dyn.wildme.io:5005/api/annot/json/",
+        "start_identify":  "https://kaiju.dyn.wildme.io:5005/api/engine/query/graph/",
+        "identify_review": "https://kaiju.dyn.wildme.io:5005/api/review/query/graph/",
+        "start_detect":    "https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/yolo/",
+        "detect_review":   "https://kaiju.dyn.wildme.io:5005/api/review/detect/cnn/yolo/",
+        "get_job_status":  "https://kaiju.dyn.wildme.io:5005/api/engine/job/status/",
+        "get_job_result":  "https://kaiju.dyn.wildme.io:5005/api/engine/job/result/",
+    },
+
+    "species": {
+        "default": "@species.Megaptera.novaeangliae",
+        "Megaptera": {
+            "novaeangliae": {
+                "id_conf_note": "a list with one entry per algorithm. By default, viewpoints do not affect algorithm selection except when optional exclude/include_viewpoint lists are included",
+                "id_conf": [
+                    {
+                        "query_config_dict": {"sv_on": false},
+                        "description": "HotSpotter",
+                        "exclude_viewpoint": ["left", "right"],
+                    },
+                    {
+                        "query_config_dict": {"pipeline_root": "OC_WDTW"},
+                        "description": "Dynamic Time-Warping",
+                        "exclude_viewpoint": ["left", "right"],
+                    },
+                    {
+                        "query_config_dict": {"pipeline_root": "KaggleSeven"},
+                        "description": "Kaggle7 (trained on CRC data only)",
+                        "exclude_viewpoint": ["left", "right"],
+                    },
+                    {
+                        "query_config_dict": {"pipeline_root": "Finfindr"},
+                        "description": "Finfindr dorsal edge-matching",
+                        "include_viewpoint": ["left", "right"],
+                    },
+
+                ],
+                "detect_conf_note": "a list with one entry per detector",
+                "detect_conf": [
+                    {"class": "whale_fluke"}
+                ],
+                "common_name": "humpback whale"
+            },
+        },
+        "Physeter": {
+            "macrocephalus": {
+                "id_conf": [
+                    {
+                        "query_config_dict": {"pipeline_root": "OC_WDTW"},
+                        "description": "Dynamic Time-Warping",
+                        "exclude_viewpoint": ["left", "right"],
+                    },
+                    {
+                        "query_config_dict": {"pipeline_root": "CurvRankFluke"},
+                        "description": "CurvRank fluke edge-matching",
+                        "exclude_viewpoint": ["left", "right"],
+                    },
+                ],
+                "detect_conf": [
+                    {"class": "whale_fluke"}
+                ],
+                "common_name": "sperm whale"
+            }
+        },
+        "Tursiops": {
+            "truncatus": {
+                "id_conf_note": "Since dolphins don't have viewpoint-dependent algorithms we can skip those entries",
+                "id_conf": [
+                    {"query_config_dict": {"pipeline_root": "Finfindr"}},
+                    {"query_config_dict": {"pipeline_root": "CurvRankDorsal"}},
+                ],
+                "detect_conf": [
+                    {
+                        "start_detect": "https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/lightnet/",
+                        "detection_class": "tursiops_truncatus",
+                        "model_tag": "fins_v0",
+                        "nms_aware": "byclass",
+                        "nms_thresh": 0.40,
+                        "sensitivity": 0.55,
+                        "labeler_algo": "densenet",
+                        "viewpoint_model_tag": "fins_v0",
+                        "viewpoints_to_keywords": {
+                            "left": "Left Dorsal Fin",
+                            "right": "Right Dorsal Fin"
+                        }
+                    }
+                ],
+                "match_trivial": true,
+                "common_name": "bottlenose dolphin",
+            },
+            "sp": "@species.Tursiops.truncatus",
+            "aduncus": "@species.Tursiops.truncatus",
+        },
+        "Delphinus": {
+            "delphis": "@species.Tursiops.truncatus"
+        },
+        "Stenella": {
+            "frontalis": {
+                "id_conf": [
+                    {"queryConfigDict": {"sv_on": true} }
+                ],
+                "detect_conf": [
+                    {
+                        "detection_class": "dolphin_spotted",
+                        "start_detect": "https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/lightnet/",
+                        "model_tag": "spotted_dolphin_v1",
+                        "labeler_algo": "densenet",
+                        "viewpoint_model_tag": "spotted_dolphin_v1",
+                        "sensitivity": 0.85,
+                        "nms_thresh": 0.3,
+                    }
+                ]
+            },
+            "attenuata": "@species.Stenella.frontalis",
+        },
+        "Orcinus": {
+            "orca": {
+                "id_conf": [
+                    {"query_config_dict": {"pipeline_root": "Finfindr"}},
+                    {"query_config_dict": {"pipeline_root": "CurvRankDorsal"}},
+                ],
+                "detect_conf": [
+                    {
+                        "detection_class": "whale_orca+fin_dorsal",
+                        "model_tag": "orca_v0",
+                        "viewpoint_model_tag": "orca_v0",
+                        "nms_thres": 0.4,
+                        "sensitivity": 0.49,
+                        "labeler_algo": "densenet",
+                        "nms_aware": "ispart",
+
+                    }
+                ],
+                "common_name": "killer whale"
+            }
+        },
+        "Eubalaena": {
+            "glacialis": {
+                "id_conf": [
+                    {
+                        "query_config_dict": {"pipeline_root": "Deepsense"},
+                        "exclude_viewpoint": ["left", "right"]
+                    },
+                    {
+                        "NOTE": "example entry for PIE lateral matching",
+                        "query_config_dict": {"pipeline_root": "PIE"},
+                        "include_viewpoint": ["left", "right"]
+                    },
+                ],
+                "detect_conf": [
+                    {
+                        "start_detect": "https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/lightnet/",
+                        "model_tag": "rightwhale_v3",
+                        "nms_thres": 0.6,
+                        "sensitivity": 0.52,
+                        "orienter_algo": "deepsense",
+                        "detection_class": "right_whale_head"
+                    },
+                ],
+            },
+            "australis": {
+                "id_conf": [
+                    {
+                        "query_config_dict": {"pipeline_root": "Deepsense"},
+                        "exclude_viewpoint": ["left", "right"]
+                    },
+                    {
+                        "query_config_dict": {"sv_on": false},
+                        "description": "HotSpotter",
+                    },
+                    {
+                        "NOTE": "example entry for PIE lateral matching",
+                        "query_config_dict": {"pipeline_root": "PIE"},
+                        "include_viewpoint": ["left", "right"]
+                    },
+                ],
+                "detect_conf": "@species.Eubalaena.glacialis.detect_conf"
+            }
+        }
+
+    }
+
+}
