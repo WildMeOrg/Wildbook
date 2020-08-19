@@ -54,12 +54,16 @@ public class Project implements java.io.Serializable {
         return id;
     }
 
-    //stub TODO
     public  Double getPercentIdentified(){
-      return 10.5;
+        if (numEncounters()>0&&numIndividuals()>0) {
+            double numIndividuals = numIndividuals();
+            double numEncounters = numEncounters();
+            return (Double) numIndividuals/numEncounters;
+        }
+        return (Double) 0.0;
     }
 
-    //stub TODO
+    //this value is already returned with numIndividuals()
     public Integer getNumberOfIndividuals(){
       return 15;
     }
@@ -137,6 +141,7 @@ public class Project implements java.io.Serializable {
         this.encounters = new ArrayList<>();
     }
 
+    // TODO will need some solid testing to make sure database fetch gets individuals with encounters in all cases
     public List<MarkedIndividual> getAllIndividualsForProject() {
         ArrayList<MarkedIndividual> mis = null;
         if (encounters!=null) {
