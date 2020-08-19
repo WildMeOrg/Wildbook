@@ -70,13 +70,13 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     }
 
     // filter for submitterOrganization------------------------------------------
-    if((request.getParameter("SubmitterOrganization")!=null)&&(!request.getParameter("SubmitterOrganization").equals(""))) {
-      String submitterOrgString=request.getParameter("SubmitterOrganization").toLowerCase().replaceAll("%20", " ").trim();
-      System.out.println("submitterOrgString is" + submitterOrgString);
-      filter = SELECT_FROM_ORG_ECOCEAN_OCCURENCE_WHERE;
-      filter=QueryProcessor.filterWithCondition(filter,"(enc.submitterOrganization.toLowerCase().indexOf('"+submitterOrgString+"') != -1)");
-      jdoqlVariableDeclaration = addOrgVars(VARIABLES_STATEMENT, filter);
-      prettyPrint.append("Submitter organization contains \""+submitterOrgString+"\".<br />");
+    if((request.getParameter("organizationId")!=null)&&(!request.getParameter("organizationId").equals("")) && Util.isUUID(request.getParameter("organizationId"))) {
+      String orgId=request.getParameter("organizationId");
+      System.out.println("orgId is" + orgId);
+      filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && user.username == enc.submitterID && org.members.contains(user) && org.id == '" + orgId + "'";
+      String variables_statement = " VARIABLES org.ecocean.Encounter enc; org.ecocean.User user; org.ecocean.Organization org";
+      jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
+      prettyPrint.append("Submitter organization contains \""+orgId+"\".<br />");
     }
     //end submitterOrganization filter--------------------------------------------------------------------------------------
 

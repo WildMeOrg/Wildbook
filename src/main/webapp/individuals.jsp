@@ -156,20 +156,6 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 		
 					//boolean visible = indie.canUserAccess(request);
 		      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
-		      System.out.println("We got visible = "+visible);
-		
-		      String ipAddress = request.getHeader("X-FORWARDED-FOR");
-		      if (ipAddress == null) ipAddress = request.getRemoteAddr();
-		      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
-		      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
-		      System.out.println("    From IP: "+ipAddress);
-		      System.out.println("    "+currentTimeString);
-		      System.out.println("    Individual: "+indie);
-		      System.out.println("    is visible: "+visible);
-		      System.out.println("    request.getAuthType(): "+request.getAuthType());
-		      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
-		      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
-		      System.out.println("");
 	
 
 				if (!visible) {
