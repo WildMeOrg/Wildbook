@@ -12,7 +12,7 @@ import javax.servlet.jsp.JspWriter;
  *
  * @author mfisher
  */
-public class SearchUtilities {
+public class FormUtilities {
 
   public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
     // note how fieldName is variously manipulated in this method to make element ids and contents
@@ -60,7 +60,7 @@ public class SearchUtilities {
     }
   }
 
-  public static void setUpOrgDropdown(Boolean isForIndividualOrOccurrenceSearch, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
+  public static void setUpOrgDropdown(String fieldName, Boolean isForIndividualOrOccurrenceSearch, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
     User usr = AccessControl.getUser(request, myShepherd);
     if(usr != null){
       List<Organization> orgsUserBelongsTo = usr.getOrganizations();
@@ -75,9 +75,9 @@ public class SearchUtilities {
       }
       try {
         if(isForIndividualOrOccurrenceSearch == true){
-          printStringFieldSearchRowBoldTitle(true, "organizationId", orgOptions, orgIds, out, encprops);
+          printStringFieldSearchRowBoldTitle(true, fieldName, orgOptions, orgIds, out, encprops);
         } else{
-          printStringFieldSearchRowBoldTitle(false, "organizationId", orgOptions, orgIds, out, encprops);
+          printStringFieldSearchRowBoldTitle(false, fieldName, orgOptions, orgIds, out, encprops);
         }
       }
       catch(IOException e) {
