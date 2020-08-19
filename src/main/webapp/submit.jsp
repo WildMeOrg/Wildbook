@@ -1285,7 +1285,7 @@ function sendButtonClicked() {
 			}
 	}
 
-	// if (!$('#submitterEmail').val()) {
+	// if (!$('#submitterEmail').val()) { //TODO comment back in if you want email address required in addition to validated
 	// 	// console.log("email address not present");
 	// 	$('#submitterEmail').parents('.form-group').addClass('required-missing');
 	// 	window.setTimeout(function() { alert('You must provide an email address first.'); }, 100);
