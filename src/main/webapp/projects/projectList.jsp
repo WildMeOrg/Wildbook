@@ -31,7 +31,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
     <div class="container maincontent" align="center">
       <div class="flexbox">
         <h2 class="flex-left-justify">Projects for <%=currentUser.getDisplayName()%></h2>
-        <button type="button" name="button" class="flex-right-justify">Add Project</button>
+        <a href="<%=urlLoc%>/projects/createProject.jsp"><button type="button" name="button" class="flex-right-justify">Add Project</button></a>
       </div>
       <table class="row tissueSample">
       	<thead>
