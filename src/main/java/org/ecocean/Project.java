@@ -66,6 +66,11 @@ public class Project implements java.io.Serializable {
         return nextId;
     }
 
+    public void adjustIncrementalIndividualId(int adjustment) {
+        System.out.println("[WARN]: Project Individual Id Increment for "+researchProjectId+" has been adjusted by "+adjustment+", likely for error handling.");
+        individualIdIncrement = individualIdIncrement + adjustment;
+    }
+
     public  Double getPercentIdentified(){
         if (numEncounters()>0&&numIndividuals()>0) {
             double numIndividuals = numIndividuals();
