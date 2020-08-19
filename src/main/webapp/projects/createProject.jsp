@@ -47,40 +47,24 @@
               method="post"
               action="../ProjectCreate"
               accept-charset="UTF-8">
-                <div class="form-group">
-                  <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                <div class="form-group row">
+                  <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <label><%=props.getProperty("proj_name") %></label>
                     <input class="form-control" type="text" id="proj-name" name="proj-name"/>
                   </div>
                 </div>
-                <div class="form-group required">
-                  <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                <div class="form-group required row">
+                  <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <label class="control-label text-danger"><%=props.getProperty("proj_id") %></label>
                     <input class="form-control" type="text" style="position: relative; z-index: 101;" id="proj_id" name="proj_id" size="20" />
                   </div>
                 </div>
-                <div class="form-group">
-                  <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                    <select multiple name="username" id="username">
-                    <option value="None"></option>
                     <%
-                    List<String> users = myShepherd.getAllNativeUsernames();
-                    users.remove(null);
-                    Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
-                    int numUsers = users.size();
-                    for (int n = 0; n < numUsers; n++) {
-                      String username = users.get(n);
-                      %>
-                      <option value="<%=username%>"><%=username%></option>
-                      <%
-                    }
-                    %>
-                    </select>
-                  </div>
-                </div>
-                    <%
-                      FormUtilities.printStringFieldSearchRowBoldTitle(false, "userName", users, users, out, props);
-                      FormUtilities.setUpOrgDropdown(false, props, out, request, myShepherd);
+                      List<String> users = myShepherd.getAllNativeUsernames();
+                      users.remove(null);
+                      Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
+                      FormUtilities.printStringFieldSearchRowBoldTitle(false, "userAccess", users, users, out, props);
+                      FormUtilities.setUpOrgDropdown("organizationAccess", false, props, out, request, myShepherd);
                     %>
               </form>
               <%

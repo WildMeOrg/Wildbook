@@ -581,7 +581,7 @@ inShepherd.closeDBTransaction();
 %>
 
 <%
-  FormUtilities.setUpOrgDropdown(true, occProps, out, request, myShepherd);
+  FormUtilities.setUpOrgDropdown("organizationId", true, occProps, out, request, myShepherd);
 %>
 </div>
 </td>

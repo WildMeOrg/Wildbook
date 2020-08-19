@@ -60,7 +60,7 @@ public class FormUtilities {
     }
   }
 
-  public static void setUpOrgDropdown(Boolean isForIndividualOrOccurrenceSearch, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
+  public static void setUpOrgDropdown(String fieldName, Boolean isForIndividualOrOccurrenceSearch, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
     User usr = AccessControl.getUser(request, myShepherd);
     if(usr != null){
       List<Organization> orgsUserBelongsTo = usr.getOrganizations();
@@ -75,9 +75,9 @@ public class FormUtilities {
       }
       try {
         if(isForIndividualOrOccurrenceSearch == true){
-          printStringFieldSearchRowBoldTitle(true, "organizationId", orgOptions, orgIds, out, encprops);
+          printStringFieldSearchRowBoldTitle(true, fieldName, orgOptions, orgIds, out, encprops);
         } else{
-          printStringFieldSearchRowBoldTitle(false, "organizationId", orgOptions, orgIds, out, encprops);
+          printStringFieldSearchRowBoldTitle(false, fieldName, orgOptions, orgIds, out, encprops);
         }
       }
       catch(IOException e) {
