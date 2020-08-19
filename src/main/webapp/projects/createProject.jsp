@@ -49,7 +49,7 @@
               accept-charset="UTF-8">
                 <div class="form-group">
                   <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                    <label ><%=props.getProperty("proj_name") %></label>
+                    <label><%=props.getProperty("proj_name") %></label>
                     <input class="form-control" type="text" id="proj-name" name="proj-name"/>
                   </div>
                 </div>
@@ -59,9 +59,9 @@
                     <input class="form-control" type="text" style="position: relative; z-index: 101;" id="proj_id" name="proj_id" size="20" />
                   </div>
                 </div>
-                <div class="form-group required">
+                <div class="form-group">
                   <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                    <select multiple size="5" name="username" id="username">
+                    <select multiple name="username" id="username">
                     <option value="None"></option>
                     <%
                     List<String> users = myShepherd.getAllNativeUsernames();
@@ -78,6 +78,10 @@
                     </select>
                   </div>
                 </div>
+                    <%
+                      FormUtilities.printStringFieldSearchRowBoldTitle(false, "userName", users, users, out, props);
+                      FormUtilities.setUpOrgDropdown(false, props, out, request, myShepherd);
+                    %>
               </form>
               <%
             }
@@ -89,3 +93,4 @@
           }
           %>
     </div>
+    <jsp:include page="../footer.jsp" flush="true"/>

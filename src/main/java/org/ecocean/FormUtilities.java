@@ -12,7 +12,7 @@ import javax.servlet.jsp.JspWriter;
  *
  * @author mfisher
  */
-public class SearchUtilities {
+public class FormUtilities {
 
   public static void printStringFieldSearchRow(String fieldName, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
     // note how fieldName is variously manipulated in this method to make element ids and contents
