@@ -139,14 +139,16 @@ public class Project implements java.io.Serializable {
 
     public List<MarkedIndividual> getAllIndividualsForProject() {
         ArrayList<MarkedIndividual> mis = null;
-        for (final Encounter enc : encounters) {
-            final MarkedIndividual mi = enc.getIndividual();
-            if (mi!=null) {
-                if (mis==null) {
-                    mis = new ArrayList<>();
-                }
-                if (!mis.contains(mi)) {
-                    mis.add(mi);
+        if (encounters!=null) {
+            for (final Encounter enc : encounters) {
+                final MarkedIndividual mi = enc.getIndividual();
+                if (mi!=null) {
+                    if (mis==null) {
+                        mis = new ArrayList<>();
+                    }
+                    if (!mis.contains(mi)) {
+                        mis.add(mi);
+                    }
                 }
             }
         }
@@ -176,8 +178,10 @@ public class Project implements java.io.Serializable {
         j.put("dateCreatedLong", dateCreatedLong);
         j.put("dateLastModifiedLong", dateLastModifiedLong);
         JSONArray encArr = new JSONArray();
-        for (Encounter enc : encounters) {
-            encArr.put(enc.getID());
+        if (encounters!=null) {
+            for (final Encounter enc : encounters) {
+                encArr.put(enc.getID());
+            }
         }
         j.put("encounters", encArr);
         return j;
@@ -189,7 +193,7 @@ public class Project implements java.io.Serializable {
 
     public boolean doesUserOwnProject(Shepherd myShepherd, HttpServletRequest request) {
         User user = myShepherd.getUser(request);
-        if (ownerId.equals(user.getId())) return true;
+        if (user!=null&&ownerId.equals(user.getId())) return true;
         return false;
     }
 
