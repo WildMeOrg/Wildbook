@@ -25,6 +25,8 @@ public class Project implements java.io.Serializable {
 
     private String ownerId;
 
+    private int individualIdIncrement = 0;
+
     //empty constructor used by the JDO enhancer
     public Project() {}
 
@@ -52,6 +54,16 @@ public class Project implements java.io.Serializable {
 
     public String getId() {
         return id;
+    }
+
+    public int getNextIndividualIdIncrement() {
+        return individualIdIncrement;
+    }
+
+    public String getNextIncrementalIndividualId() {
+        String nextId = researchProjectId + individualIdIncrement;
+        individualIdIncrement++;
+        return nextId;
     }
 
     public  Double getPercentIdentified(){
