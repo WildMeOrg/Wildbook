@@ -25,14 +25,10 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 User currentUser = AccessControl.getUser(request, myShepherd);
 %>
 
-<html>
+  <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
-  <head>
-    <title>Project List for <%=currentUser.getDisplayName()%></title>
-  </head>
-  <body>
-    <jsp:include page="../header.jsp" flush="true"/>
-    <div class="container" align="center">
+  <title>Project List for <%=currentUser.getDisplayName()%></title>
+    <div class="container maincontent" align="center">
       <div class="flexbox">
         <h2 class="flex-left-justify">Projects for <%=currentUser.getDisplayName()%></h2>
         <button type="button" name="button" class="flex-right-justify">Add Project</button>
@@ -83,5 +79,3 @@ User currentUser = AccessControl.getUser(request, myShepherd);
   </table>
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-</body>
-</html>
