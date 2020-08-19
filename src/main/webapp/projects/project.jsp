@@ -39,12 +39,8 @@
   User currentUser = AccessControl.getUser(request, myShepherd);
 %>
 <jsp:include page="../header.jsp" flush="true"/>
-<html>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
-  <head>
     <title>Project <%=projId%></title>
-  </head>
-  <body>
     <%
       System.out.println("projectId is: " + projId);
       Project project = myShepherd.getProject(projId);
@@ -52,28 +48,30 @@
       System.out.println("project acquired! It is:");
       System.out.println(project.toString());
     %>
-    <div class="container" align="center">
-      <table class="row tissueSample">
-        <thead>
-          <tr>
-            <th class="tissueSample">Encounter</th>
-            <th class="tissueSample">Individual</th>
-            <th class="tissueSample">Location</th>
-            <th class="tissueSample">Project ID</th>
-            <th class="tissueSample">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div class="container maincontent" align="center">
           <%
           try{
             if(currentUser != null){
               if(encounters.size()<1){
                 %>
-                <tr>
-                  <td>You don't have any encounters in this project yet</td>
-                </tr>
+                    </tbody>
+                  </table>
+                  <h4>You don't have any encounters in this project yet</h4>
                 <%
               }else{
+                %>
+                <table class="row tissueSample">
+                  <thead>
+                    <tr>
+                      <th class="tissueSample">Encounter</th>
+                      <th class="tissueSample">Individual</th>
+                      <th class="tissueSample">Location</th>
+                      <th class="tissueSample">Project ID</th>
+                      <th class="tissueSample">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                <%
                 for(int i=0; i<encounters.size(); i++){
                   if(encounters.size()>0){
                     %>
@@ -102,6 +100,4 @@
           </tbody>
           </table>
     </div>
-  </body>
-</html>
 <jsp:include page="../footer.jsp" flush="true"/>

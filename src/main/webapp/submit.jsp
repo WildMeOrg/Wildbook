@@ -410,12 +410,12 @@ google.maps.event.addDomListener(window, 'load', initialize);
 	  action="spambot.jsp"
 	  method="post"
 	  enctype="multipart/form-data"
-      name="encounter_submission"
-      target="_self" dir="ltr"
-      lang="en"
-      onsubmit="return false;"
-      class="form-horizontal"
-      accept-charset="UTF-8"
+    name="encounter_submission"
+    target="_self" dir="ltr"
+    lang="en"
+    onsubmit="return false;"
+    class="form-horizontal"
+    accept-charset="UTF-8"
 >
 
 <div class="dz-message"></div>
@@ -634,7 +634,7 @@ function showUploadBox() {
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
         <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
-</div>
+			</div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <p class="help-block">
