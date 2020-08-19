@@ -64,6 +64,9 @@
                       users.remove(null);
                       Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
                       FormUtilities.printStringFieldSearchRowBoldTitle(false, "userAccess", users, users, out, props);
+                    %>
+
+                    <%
                       FormUtilities.setUpOrgDropdown("organizationAccess", false, props, out, request, myShepherd);
                     %>
               </form>
