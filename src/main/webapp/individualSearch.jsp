@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.util.Collections" %>
 <%@ page import="java.util.Properties, java.io.IOException" %>
-<%@ page import="org.ecocean.SearchUtilities" %>
+<%@ page import="org.ecocean.FormUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%
@@ -1370,7 +1370,7 @@ else {
         %>
       </select>
       <%
-      SearchUtilities.setUpOrgDropdown(true, props, out, request, myShepherd);
+      FormUtilities.setUpOrgDropdown(true, props, out, request, myShepherd);
       %>
 </div>
 </td>
