@@ -80,9 +80,9 @@ public class ProjectCreate extends HttpServlet {
 
                 // should we automatically set owner as current logged in user?
                 User currentUser = myShepherd.getUser(request);
-                newProject.setOwner(currentUser.getId());
+                newProject.setOwner(currentUser);
 
-                if (encs.size()>0) {
+                if (!encs.isEmpty()) {
                     newProject.addEncounters(encs);
                 }
                 myShepherd.updateDBTransaction();
