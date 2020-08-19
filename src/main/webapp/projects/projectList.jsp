@@ -60,13 +60,12 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                   for(int j=0; j<userProjects.size(); j++){
                     if(userProjects.size()>0){
                       %>
-                      <a href="<%=urlLoc%>/project.jsp?id=<%=userProjects.get(j).getId()%>">
+
                         <tr>
-                          <td class="tissueSample"><%=userProjects.get(j).getResearchProjectName()%></td>
+                          <td class="tissueSample"><a href="<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>"> <%=userProjects.get(j).getResearchProjectName()%></a></td>
                           <td class="tissueSample">%<%=userProjects.get(j).getPercentIdentified()%></td>
                           <td class="tissueSample"><%=userProjects.get(j).getNumberOfIndividuals()%></td>
                         </tr>
-                      </a>
                       <%
                     }
                   }
