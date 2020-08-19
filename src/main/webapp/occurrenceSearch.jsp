@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException" %>
-<%@ page import="org.ecocean.SearchUtilities" %>
+<%@ page import="org.ecocean.FormUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%
@@ -517,16 +517,16 @@ function FSControl(controlDiv, map) {
                   : myShepherd.getAllStrVals(Occurrence.class, fieldName);
                 // in case we tried and failed to find custom values:
                 if (Util.isEmpty(posVals)) posVals = myShepherd.getAllStrVals(Occurrence.class, fieldName);
-                SearchUtilities.printStringFieldSearchRow(fieldName,posVals,out, occProps);
+                FormUtilities.printStringFieldSearchRow(fieldName,posVals,out, occProps);
               }
 
               List<String> allTaxonomyNames = myShepherd.getAllTaxonomyNames();
-              SearchUtilities.printStringFieldSearchRow("taxonomy0",allTaxonomyNames,out, occProps);
+              FormUtilities.printStringFieldSearchRow("taxonomy0",allTaxonomyNames,out, occProps);
 
 
               for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
                 if (listVals.contains(fieldName)) continue; // already printed
-                SearchUtilities.printStringFieldSearchRow(fieldName, out, occProps);
+                FormUtilities.printStringFieldSearchRow(fieldName, out, occProps);
               }
               %>
               </table>
@@ -581,7 +581,7 @@ inShepherd.closeDBTransaction();
 %>
 
 <%
-  SearchUtilities.setUpOrgDropdown(true, occProps, out, request, myShepherd);
+  FormUtilities.setUpOrgDropdown("organizationId", true, occProps, out, request, myShepherd);
 %>
 </div>
 </td>
