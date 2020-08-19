@@ -22,7 +22,7 @@ public class ProjectCreate extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
     }
-    
+
     public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
@@ -37,33 +37,30 @@ public class ProjectCreate extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
-        
+
         System.out.println("==> In ProjectCreate Servlet ");
-        
-        
+
+
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("ProjectCreate.java");
         myShepherd.beginDBTransaction();
-        
+
         JSONObject res = new JSONObject();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-        
+
         JSONArray encsJSON = null;
         String researchProjectId = null;
         String researchProjectName = null;
-        try {            
+        try {
             res.put("success","false");
             encsJSON = j.optJSONArray("encounterIds");
             researchProjectId = j.optString("researchProjectId", null);
             researchProjectName = j.optString("researchProjectName", null);
 
             if (researchProjectId!=null&&!"".equals(researchProjectId)&&myShepherd.getProjectByResearchProjectId(researchProjectId)==null) {
-                
                 response.setStatus(HttpServletResponse.SC_OK);
-
                 List<Encounter> encs = new ArrayList<>();
-
                 if (encsJSON!=null&&encsJSON.length()>0) {
                     for (int i=0;i<encsJSON.length();i++) {
                         if (encsJSON.optString(i)!=null&&!"".equals(encsJSON.optString(i, null))) {
@@ -81,7 +78,7 @@ public class ProjectCreate extends HttpServlet {
                     newProject.setResearchProjectName(researchProjectName);
                 }
 
-                // should we automatically set owner as current logged in user? 
+                // should we automatically set owner as current logged in user?
                 User currentUser = myShepherd.getUser(request);
                 newProject.setOwner(currentUser.getId());
 
@@ -90,11 +87,11 @@ public class ProjectCreate extends HttpServlet {
                 }
                 myShepherd.updateDBTransaction();
                 res.put("success","true");
-            } else { 
+            } else {
               res.put("error","null ID or Project already exists");
               response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
-            
+
             out.println(res);
             out.close();
 
