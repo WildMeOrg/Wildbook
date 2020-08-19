@@ -351,6 +351,26 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
         return rtn;
     }
 
+  public void addIncrementalProjectId(Project project) {
+    if (project!=null) {
+      if (!hasNameSubstring(project.getResearchProjectId())) {
+        int nextIncrement = project.getNextIndividualIdIncrement();
+        try {
+          addNameByKey(project.getResearchProjectId(), project.getNextIncrementalIndividualId());
+        } catch (Exception e) {
+          if (nextIncrement<project.getNextIndividualIdIncrement()) {
+            project.adjustIncrementalIndividualId(-1);
+          }
+          e.printStackTrace();
+        }
+      } else {
+        System.out.println("[ERROR]: Project Id not added to Individual "+getId()+". Individual already has an Id from project "+project.getResearchProjectId()+".");
+      }
+    } else {
+      System.out.println("[WARN]: Passed a null project to MarkedIndividual.addIncrementalProjectId() on "+getDisplayName()+".");
+    }
+  }
+
   public boolean addEncounter(Encounter newEncounter) {
       //get and therefore set the haplotype if necessary
       getHaplotype();
