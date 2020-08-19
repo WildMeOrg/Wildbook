@@ -63,24 +63,15 @@ public class FormUtilities {
   public static void printAccumulatingMultiSelect(String fieldName,String label, List<String> displayOptions, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
     // note how fieldName is variously manipulated in this method to make element ids and contents
     String displayName = getDisplayName(fieldName, nameLookup);
-    if(isForIndividualOrOccurrenceSearch == true){
-      out.println("<br/><strong>"+displayName+"</strong><br/>"); //<td id=\""+fieldName+"Title\"><br/>
-    } else{
-      out.println("<tr id=\""+fieldName+"Row\">");
-      out.println("<td id=\""+fieldName+"Title\"><br/><strong>"+displayName+"</strong><br/>");
-    }
+    out.println("<tr id=\""+fieldName+"Row\">");
+    out.println("<td id=\""+fieldName+"Title\"><br/><strong>"+displayName+"</strong><br/>");
     out.println("<select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
     out.println("<option value=\"None\" selected=\"selected\"></option>");
     for (int i=0; i<displayOptions.size(); i++) {
       out.println("<option value=\""+valueOptions.get(i)+"\">"+displayOptions.get(i)+"</option>");
     }
-    if(isForIndividualOrOccurrenceSearch == true){
-      out.println("</select>");
-    } else{
-      out.println("</select></td>");
-      out.println("</tr>");
-
-    }
+    out.println("</select></td>");
+    out.println("</tr>");
   }
 
 

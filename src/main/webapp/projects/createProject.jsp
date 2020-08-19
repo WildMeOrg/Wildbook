@@ -60,15 +60,23 @@
                   </div>
                 </div>
                     <%
-                      List<String> users = myShepherd.getAllNativeUsernames();
-                      users.remove(null);
-                      Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
-                      FormUtilities.printStringFieldSearchRowBoldTitle(false, "userAccess", users, users, out, props);
+                      // List<String> users = myShepherd.getAllNativeUsernames();
+                      // users.remove(null);
+                      // Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
+                      // FormUtilities.printStringFieldSearchRowBoldTitle(false, "userAccess", users, users, out, props);
                     %>
+                    <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
+                      <label><%=props.getProperty("userAccess") %></label>
+                      <input class="form-control" name="userAccess" type="text" id="userAccess" placeholder="<%=props.getProperty("typeToSearch") %>">
+                    </div>
 
                     <%
                       FormUtilities.setUpOrgDropdown("organizationAccess", false, props, out, request, myShepherd);
                     %>
+                    <button id="createProjectButton" class="large" type="submit" onclick="createButtonClicked();">
+                      <%=props.getProperty("submit_send") %>
+                      <span class="button-icon" aria-hidden="true" />
+                    </button>
               </form>
               <%
             }
@@ -81,3 +89,41 @@
           %>
     </div>
     <jsp:include page="../footer.jsp" flush="true"/>
+
+    <script>
+    let myName = '<%=request.getUserPrincipal().getName()%>';
+    console.log("myName is " + myName);
+    $('#userAccess').autocomplete({
+      source: function(request, response){
+        $.ajax({
+          url: wildbookGlobals.baseUrl + '/UserGetSimpleJSON?searchUser=' + request.term,
+          type: 'GET',
+          dataType: "json",
+          success: function(data){
+            console.log("autocompleting...");
+            let res = $.map(data =>{
+              if(item.username==myName || typeof item.username == 'undefined' || item.username == undefined||item.username==="") return;
+              let fullName = "";
+              if(item.fullName!=null && item.fullName!="undefined"){
+                fullName=item.fullName;
+              }
+              let label = ("name: " + fullName + " user: " + item.username);
+              return {label: label, value: item.username};
+            });
+            response(res);
+          }
+        });
+      }
+    });
+
+    function createButtonClicked() {
+    	console.log('createButtonClicked()');
+    	if(!$('#proj_id').val()){
+    		console.log("no proj_id entered");
+    		$('#proj_id').closest('.form-group').addClass('required-missing');
+    		window.setTimeout(function() { alert('You must provide a Project ID.'); }, 100);
+    		return false;
+    	}
+    	return true;
+    }
+    </script>
