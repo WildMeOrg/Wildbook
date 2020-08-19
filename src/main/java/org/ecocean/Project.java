@@ -15,7 +15,7 @@ public class Project implements java.io.Serializable {
 
     private String id;
 
-    private ArrayList<Encounter> encounters = null;
+    private List<Encounter> encounters = null;
 
     private String researchProjectName;
     private String researchProjectId;
@@ -23,7 +23,10 @@ public class Project implements java.io.Serializable {
     private Long dateCreatedLong;
     private Long dateLastModifiedLong;
 
+
+    //reference to a user in the user array, so we don't link to that table twice 
     private String ownerId;
+    private List<User> users = null;
 
     private int individualIdIncrement = 0;
 
@@ -85,12 +88,51 @@ public class Project implements java.io.Serializable {
       return 15;
     }
 
-    public void setOwner(String ownerId) {
-        this.ownerId = ownerId;
+    public void addUser(User user) {
+        List<User> userArr = new ArrayList<>();
+        if (user!=null) {
+            userArr.add(user);
+            addUsers(userArr);
+        }
     }
 
+    public void addUsers(List<User> users) {
+        if (users!=null) {
+            if (this.users==null) {
+                this.users = new ArrayList<>();
+            }
+            for (User user : users) {
+                if (!this.users.contains(user)) {
+                    this.users.add(user);
+                }
+            }
+        } else {
+            System.out.println("[WARN]: Project.addUser() or addUsers() for "+researchProjectId+" was passed a null.");
+        }
+    }
+
+    public List<User> getUsers() {
+        return users;
+    }
+    
+    public void setOwner(User owner) {
+        if (owner!=null) {
+            addUser(owner);
+            ownerId = owner.getId();
+        }
+    }
+    
     public String getOwnerId() {
         return ownerId;
+    }
+
+    public User getOwner() {
+        for (User user : users) {
+            if (user.getId().equals(ownerId)) {
+                return user;
+            }
+        }
+        return null;
     }
 
     private void setTimeCreated() {
@@ -219,7 +261,7 @@ public class Project implements java.io.Serializable {
         return false;
     }
 
-    //stub TODO
+    //this work is done by the Shepherd.getProjectsForUserId() because it requires a database hit
     public static List<Project> getProjectsForUser(User user){
       Project proj1 = new Project("ID1", "Project1");
       System.out.println(proj1.toString());
