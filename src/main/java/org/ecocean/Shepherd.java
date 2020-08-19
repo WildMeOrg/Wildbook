@@ -1451,6 +1451,18 @@ public class Shepherd {
     return itask;
   }
 
+  public List<String> getResearchProjectIdsForEncounter(Encounter enc) {
+    List<Project> projects = getProjectsForEncounter(enc);
+    List<String> researchProjectIds = null;
+    if (projects!=null&&projects.size()>0) {
+      researchProjectIds = new ArrayList<>();
+      for (Project project : projects) {
+        researchProjectIds.add(project.getResearchProjectId());
+      }
+    }
+    return researchProjectIds;
+  }
+
   public List<Project> getProjectsForEncounter(Encounter enc) {
     List<Project> projects = null;
     Query query = null;
