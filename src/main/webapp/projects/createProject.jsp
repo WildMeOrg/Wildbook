@@ -33,10 +33,11 @@
   Properties props = new Properties();
   props = ShepherdProperties.getProperties("createProject.properties", langCode, context);
 %>
+
 <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
-    <title>Create A Project</title>
     <div class="container maincontent">
+      <title>Create A Project</title>
           <%
           try{
             if(currentUser != null){
@@ -59,12 +60,6 @@
                     <input class="form-control" type="text" style="position: relative; z-index: 101;" id="proj_id" name="proj_id" size="20" />
                   </div>
                 </div>
-                    <%
-                      // List<String> users = myShepherd.getAllNativeUsernames();
-                      // users.remove(null);
-                      // Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
-                      // FormUtilities.printStringFieldSearchRowBoldTitle(false, "userAccess", users, users, out, props);
-                    %>
                     <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
                       <label><strong><%=props.getProperty("userAccess") %></strong></label>
                       <input class="form-control" name="userAccess" type="text" id="userAccess" placeholder="<%=props.getProperty("typeToSearch") %>">
@@ -88,7 +83,10 @@
                       <span class="button-icon" aria-hidden="true" />
                     </button>
               </form>
+              <h4>To add encounters to this project, use the project option in encounter search</h4>
               <%
+            }else{
+
             }
           }
           catch(Exception e){
@@ -103,7 +101,6 @@
     <script>
     let myName = '<%=request.getUserPrincipal().getName()%>';
     let userNamesOnAccessList = [];
-    // console.log("myName is " + myName);
     $('#userAccess').autocomplete({
       source: function(request, response){
         $.ajax({
@@ -131,28 +128,31 @@
       }
     });
 
+    function updateUserAccessDisplay(){
+      userNamesOnAccessList = [...new Set(userNamesOnAccessList)];
+      $('#userAccessList').empty();
+      for(i=0; i<userNamesOnAccessList.length; i++){
+        console.log("got into for loop");
+        let elem = "<div class=\"chip\">" + userNamesOnAccessList[i] + "  <span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";
+        $('#userAccessList').append(elem);
+      }
+    }
+
     function addUserToProject(){
       console.log("addUserToProject entered");
       if($('#userAccess').val()){
         let currentUserToAdd = $('#userAccess').val();
         console.log("currentUserToAdd is " + currentUserToAdd);
-        updateUserAccessDisplayWith(currentUserToAdd);
+        userNamesOnAccessList.push(currentUserToAdd);
+        updateUserAccessDisplay();
       }
     }
 
-    function updateUserAccessDisplayWith(userName){
-      console.log("updateUserAccessDisplayWith entered");
-      userNamesOnAccessList.push(userName);
-      userNamesOnAccessList = [...new Set(userNamesOnAccessList)];
-      //TODO deduplicate userNamesOnAccessList
-      console.log("userNamesOnAccessList is now: ");
-      console.log(userNamesOnAccessList);
-      $('#userAccessList').empty();
-      for(i=0; i<userNamesOnAccessList.length; i++){
-        console.log("got into for loop");
-        let elem = "<div class=\"chip\">" + userNamesOnAccessList[i] + "</div>";
-        $('#userAccessList').append(elem);
-      }
+    function removeUserFromProj(name){
+      console.log("removeUserFromProj entered");
+      console.log("got user name " + name);
+      userNamesOnAccessList = userNamesOnAccessList.filter(element => element !== name);
+      updateUserAccessDisplay();
     }
 
     function createButtonClicked() {
