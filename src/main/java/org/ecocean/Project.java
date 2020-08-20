@@ -63,10 +63,14 @@ public class Project implements java.io.Serializable {
         return individualIdIncrement;
     }
 
-    public String getNextIncrementalIndividualId() {
-        String nextId = researchProjectId + individualIdIncrement;
+    public String getNextIncrementalIndividualIdAndAdvance() {
+        String nextId = getNextIncrementalIndividualId();
         individualIdIncrement++;
         return nextId;
+    }
+
+    public String getNextIncrementalIndividualId() {
+        return researchProjectId + individualIdIncrement;
     }
 
     public void adjustIncrementalIndividualId(int adjustment) {
@@ -84,8 +88,9 @@ public class Project implements java.io.Serializable {
     }
 
     //this value is already returned with numIndividuals()
+    @Deprecated
     public Integer getNumberOfIndividuals(){
-      return 15;
+      return numIndividuals();
     }
 
     public void addUser(User user) {
@@ -262,6 +267,7 @@ public class Project implements java.io.Serializable {
     }
 
     //this work is done by the Shepherd.getProjectsForUserId() because it requires a database hit
+    @Deprecated
     public static List<Project> getProjectsForUser(User user){
       Project proj1 = new Project("ID1", "Project1");
       System.out.println(proj1.toString());
