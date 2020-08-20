@@ -41,7 +41,7 @@
           <%
           try{
             if(currentUser != null){
-              System.out.println(props.getProperty("proj_name"));
+              System.out.println(props.getProperty("researchProjectName"));
               %>
               <h1>New Project</h1>
               <form id="create-project-form"
@@ -50,14 +50,14 @@
               accept-charset="UTF-8">
                 <div class="form-group row">
                   <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <label><strong><%=props.getProperty("proj_name") %></strong></label>
-                    <input class="form-control" type="text" id="proj-name" name="proj-name"/>
+                    <label><strong><%=props.getProperty("researchProjectName") %></strong></label>
+                    <input class="form-control" type="text" id="researchProjectName" name="researchProjectName"/>
                   </div>
                 </div>
                 <div class="form-group required row">
                   <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <label class="control-label text-danger"><strong><%=props.getProperty("proj_id") %></strong></label>
-                    <input class="form-control" type="text" style="position: relative; z-index: 101;" id="proj_id" name="proj_id" size="20" />
+                    <label class="control-label text-danger"><strong><%=props.getProperty("researchProjectId") %></strong></label>
+                    <input class="form-control" type="text" style="position: relative; z-index: 101;" id="researchProjectId" name="researchProjectId" size="20" />
                   </div>
                 </div>
                     <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
@@ -70,8 +70,8 @@
                       </div>
                     </div>
                     <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-                      <input id="addUserToProjectButton" name="addUserToProjectButton" type="button" value="<%=props.getProperty("addUserToProject")%>" onclick="addUserToProject();">
-                      </input>
+                      <a id="addUserToProjectButton" name="addUserToProjectButton" type="button" value="<%=props.getProperty("addUserToProject")%>" onclick="addUserToProject();">
+                      </a>
                     </div>
                     <div class="row">
                       <%
@@ -108,10 +108,7 @@
           type: 'GET',
           dataType: "json",
           success: function(data){
-            console.log("autocompleting...");
             let res = $.map(data, function(item){
-              console.log("data is: ");
-              console.log(data);
               if(item.username==myName || typeof item.username == 'undefined' || item.username == undefined||item.username===""){
                 return;
               }
@@ -132,37 +129,42 @@
       userNamesOnAccessList = [...new Set(userNamesOnAccessList)];
       $('#userAccessList').empty();
       for(i=0; i<userNamesOnAccessList.length; i++){
-        console.log("got into for loop");
         let elem = "<div class=\"chip\">" + userNamesOnAccessList[i] + "  <span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";
         $('#userAccessList').append(elem);
       }
     }
 
     function addUserToProject(){
-      console.log("addUserToProject entered");
       if($('#userAccess').val()){
         let currentUserToAdd = $('#userAccess').val();
-        console.log("currentUserToAdd is " + currentUserToAdd);
         userNamesOnAccessList.push(currentUserToAdd);
         updateUserAccessDisplay();
+      }else{
+        console.log("no value for user in addUserToProject");
       }
     }
 
     function removeUserFromProj(name){
-      console.log("removeUserFromProj entered");
-      console.log("got user name " + name);
       userNamesOnAccessList = userNamesOnAccessList.filter(element => element !== name);
       updateUserAccessDisplay();
     }
 
     function createButtonClicked() {
     	console.log('createButtonClicked()');
-    	if(!$('#proj_id').val()){
-    		console.log("no proj_id entered");
-    		$('#proj_id').closest('.form-group').addClass('required-missing');
+    	if(!$('#researchProjectId').val()){
+    		console.log("no researchProjectId entered");
+    		$('#researchProjectId').closest('.form-group').addClass('required-missing');
     		window.setTimeout(function() { alert('You must provide a Project ID.'); }, 100);
     		return false;
     	}
+      submitForm();
     	return true;
+    }
+
+    function submitForm() {
+      let formData = JSON.stringify($("#create-project-form").serializeArray());
+      console.log("formData is:");
+      console.log(formData);
+      // document.forms['create-project-form'].submit();
     }
     </script>
