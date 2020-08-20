@@ -49,13 +49,13 @@
               accept-charset="UTF-8">
                 <div class="form-group row">
                   <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <label><%=props.getProperty("proj_name") %></label>
+                    <label><strong><%=props.getProperty("proj_name") %></strong></label>
                     <input class="form-control" type="text" id="proj-name" name="proj-name"/>
                   </div>
                 </div>
                 <div class="form-group required row">
                   <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <label class="control-label text-danger"><%=props.getProperty("proj_id") %></label>
+                    <label class="control-label text-danger"><strong><%=props.getProperty("proj_id") %></strong></label>
                     <input class="form-control" type="text" style="position: relative; z-index: 101;" id="proj_id" name="proj_id" size="20" />
                   </div>
                 </div>
@@ -65,14 +65,24 @@
                       // Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
                       // FormUtilities.printStringFieldSearchRowBoldTitle(false, "userAccess", users, users, out, props);
                     %>
-                    <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
-                      <label><%=props.getProperty("userAccess") %></label>
+                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+                      <label><strong><%=props.getProperty("userAccess") %></strong></label>
                       <input class="form-control" name="userAccess" type="text" id="userAccess" placeholder="<%=props.getProperty("typeToSearch") %>">
                     </div>
-
-                    <%
-                      FormUtilities.setUpOrgDropdown("organizationAccess", false, props, out, request, myShepherd);
-                    %>
+                    <div id="userAccessListContainer">
+                      <strong>Users To Be Granted Access</strong>
+                      <div id="userAccessList">
+                      </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+                      <input id="addUserToProjectButton" name="addUserToProjectButton" type="button" value="<%=props.getProperty("addUserToProject")%>" onclick="addUserToProject();">
+                      </input>
+                    </div>
+                    <div class="row">
+                      <%
+                        FormUtilities.setUpOrgDropdown("organizationAccess", false, props, out, request, myShepherd);
+                      %>
+                    </div>
                     <button id="createProjectButton" class="large" type="submit" onclick="createButtonClicked();">
                       <%=props.getProperty("submit_send") %>
                       <span class="button-icon" aria-hidden="true" />
@@ -92,7 +102,8 @@
 
     <script>
     let myName = '<%=request.getUserPrincipal().getName()%>';
-    console.log("myName is " + myName);
+    let userNamesOnAccessList = [];
+    // console.log("myName is " + myName);
     $('#userAccess').autocomplete({
       source: function(request, response){
         $.ajax({
@@ -101,8 +112,12 @@
           dataType: "json",
           success: function(data){
             console.log("autocompleting...");
-            let res = $.map(data =>{
-              if(item.username==myName || typeof item.username == 'undefined' || item.username == undefined||item.username==="") return;
+            let res = $.map(data, function(item){
+              console.log("data is: ");
+              console.log(data);
+              if(item.username==myName || typeof item.username == 'undefined' || item.username == undefined||item.username===""){
+                return;
+              }
               let fullName = "";
               if(item.fullName!=null && item.fullName!="undefined"){
                 fullName=item.fullName;
@@ -115,6 +130,30 @@
         });
       }
     });
+
+    function addUserToProject(){
+      console.log("addUserToProject entered");
+      if($('#userAccess').val()){
+        let currentUserToAdd = $('#userAccess').val();
+        console.log("currentUserToAdd is " + currentUserToAdd);
+        updateUserAccessDisplayWith(currentUserToAdd);
+      }
+    }
+
+    function updateUserAccessDisplayWith(userName){
+      console.log("updateUserAccessDisplayWith entered");
+      userNamesOnAccessList.push(userName);
+      userNamesOnAccessList = [...new Set(userNamesOnAccessList)];
+      //TODO deduplicate userNamesOnAccessList
+      console.log("userNamesOnAccessList is now: ");
+      console.log(userNamesOnAccessList);
+      $('#userAccessList').empty();
+      for(i=0; i<userNamesOnAccessList.length; i++){
+        console.log("got into for loop");
+        let elem = "<div class=\"chip\">" + userNamesOnAccessList[i] + "</div>";
+        $('#userAccessList').append(elem);
+      }
+    }
 
     function createButtonClicked() {
     	console.log('createButtonClicked()');
