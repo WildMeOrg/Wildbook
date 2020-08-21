@@ -66,6 +66,7 @@ public class Project implements java.io.Serializable {
     public String getNextIncrementalIndividualIdAndAdvance() {
         String nextId = getNextIncrementalIndividualId();
         individualIdIncrement++;
+        setTimeLastModified();
         return nextId;
     }
 
@@ -76,6 +77,7 @@ public class Project implements java.io.Serializable {
     public void adjustIncrementalIndividualId(int adjustment) {
         System.out.println("[WARN]: Project Individual Id Increment for "+researchProjectId+" has been adjusted by "+adjustment+", likely for error handling.");
         individualIdIncrement = individualIdIncrement + adjustment;
+        setTimeLastModified();
     }
 
     public  Double getPercentIdentified(){
@@ -98,6 +100,7 @@ public class Project implements java.io.Serializable {
         if (user!=null) {
             userArr.add(user);
             addUsers(userArr);
+            setTimeLastModified();
         }
     }
 
@@ -109,6 +112,7 @@ public class Project implements java.io.Serializable {
             for (User user : users) {
                 if (!this.users.contains(user)) {
                     this.users.add(user);
+                    setTimeLastModified();
                 }
             }
         } else {
@@ -124,6 +128,7 @@ public class Project implements java.io.Serializable {
         if (owner!=null) {
             addUser(owner);
             ownerId = owner.getId();
+            setTimeLastModified();
         }
     }
 
