@@ -61,6 +61,8 @@ public class ProjectUpdate extends HttpServlet {
                     String researchProjectId = projectJSON.optString("researchProjectId", null);
                     String projectUUID = projectJSON.optString("id", null);
                     String ownerid = projectJSON.optString("ownerId", null);
+
+                    //TODO handle add/remove users
     
                     JSONArray encountersToRemoveJSONArr = projectJSON.getJSONArray("encountersToAdd");
                     JSONArray encountersToAddJSONArr = projectJSON.getJSONArray("encountersToRemove");
@@ -68,34 +70,36 @@ public class ProjectUpdate extends HttpServlet {
                     Project project = myShepherd.getProject(projectUUID);
                     if (project!=null){
     
-                        // need lower security for addEncounters only- standard user allowed. anything else must be owner
-                        boolean userAuthorized = isUserAuthorizedToUpdateProject(project, myShepherd, request);
-                        if (userAuthorized) {
-    
+                        boolean canUpdate = isUserAuthorizedToUpdateProject(project, myShepherd, request);
+                        boolean canAddEncounters = isUserAuthorizedToAddEncounters(project, myShepherd, request);
+
+                        if (canAddEncounters&&encountersToAddJSONArr!=null&&encountersToAddJSONArr.length()>0) {
+                            addEncountersToProject(project, myShepherd, encountersToAddJSONArr);
+                        }
+
+                        if (canUpdate) {
+
                             if (StringUtils.isNullOrEmpty(researchProjectId)&&!project.getResearchProjectId().equals(researchProjectId)) {
-                                // update all project based id's on Marked individuals on encounters! blech!
+                                project.setResearchProjectId(researchProjectId);
                             }
 
                             if (StringUtils.isNullOrEmpty(ownerid)&&!project.getOwnerId().equals(ownerid)) {
-                                // update ownerId on project.. unlikely but i guess we should support
-                            }
-
-                            if (encountersToAddJSONArr!=null&&encountersToAddJSONArr.length()>0) {
-                                //add all encounters with ID not already present in project
+                                // will this ever happen? looks for UUID, we can make username based or both if necessary
+                                User newOwner = myShepherd.getUserByUUID(ownerid);
+                                project.setOwner(newOwner);
+                                myShepherd.updateDBTransaction();
                             }
 
                             if (encountersToRemoveJSONArr!=null&&encountersToRemoveJSONArr.length()>0) {
-                                //remove all encounters with ID not already present in project
+                                removeEncountersFromProject(project, myShepherd, encountersToAddJSONArr);
                             }
-    
+
                         }
     
                     } else {
                         addErrorMessage(res, "Exception: you have tried to update a project that does not exist.");
                         throw new NullPointerException();
                     }
-    
-    
                 } 
             }
             
@@ -120,7 +124,42 @@ public class ProjectUpdate extends HttpServlet {
             out.println(res);
         }
 
+    }
 
+    private void addEncountersToProject(Project project, Shepherd myShepherd, JSONArray encountersToAddJSONArr) {
+        int added = 0;
+        for (int i=0;i<encountersToAddJSONArr.length();i++) {
+            String encId = encountersToAddJSONArr.getString(i);
+            try {
+                Encounter enc = myShepherd.getEncounter(encId);
+                if (enc!=null) {
+                    project.addEncounter(enc);
+                    added++;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        myShepherd.updateDBTransaction();
+        System.out.println("[INFO]: ProjectUpdate: "+added+" of "+encountersToAddJSONArr.length()+" sent encounter IDs were added to projectId "+project.getResearchProjectId()+".");
+    }
+
+    private void removeEncountersFromProject(Project project, Shepherd myShepherd, JSONArray encountersToRemoveJSONArr) {
+        int removed = 0;
+        for (int i=0;i<encountersToRemoveJSONArr.length();i++) {
+            String encId = encountersToRemoveJSONArr.getString(i);
+            try {
+                Encounter enc = myShepherd.getEncounter(encId);
+                if (enc!=null) {
+                    project.removeEncounter(enc);
+                    removed++;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        myShepherd.updateDBTransaction();
+        System.out.println("[INFO]: ProjectUpdate: "+removed+" of "+encountersToRemoveJSONArr.length()+" sent encounter IDs were removed from projectId "+project.getResearchProjectId()+".");
     }
 
     private void addErrorMessage(JSONObject res, String error) {
