@@ -1,5 +1,6 @@
 {
-    "IA_global": {
+    "_note:" "keys with a leading underscore and their children are categories of config, like _id_conf and _detection_conf. Keys without leading underscores are semantic lookups that are derived from Wildbook data, e.g. Megaptera.novaeangliae.whale_humpback+fluke. The hierarchy is genus.species.ia_class"
+    "_global": {
         "add_images":      "https://kaiju.dyn.wildme.io:5005/api/image/json/",
         "add_annotations": "https://kaiju.dyn.wildme.io:5005/api/annot/json/",
         "start_identify":  "https://kaiju.dyn.wildme.io:5005/api/engine/query/graph/",
@@ -11,67 +12,83 @@
     },
 
     "species": {
-        "default": "@species.Megaptera.novaeangliae",
+        "_default": "@species.Megaptera.novaeangliae",
         "Megaptera": {
             "novaeangliae": {
-                "id_conf_note": "a list with one entry per algorithm. By default, viewpoints do not affect algorithm selection except when optional exclude/include_viewpoint lists are included",
-                "id_conf": [
-                    {
-                        "query_config_dict": {"sv_on": false},
-                        "description": "HotSpotter",
-                        "exclude_viewpoint": ["left", "right"],
-                    },
-                    {
-                        "query_config_dict": {"pipeline_root": "OC_WDTW"},
-                        "description": "Dynamic Time-Warping",
-                        "exclude_viewpoint": ["left", "right"],
-                    },
-                    {
-                        "query_config_dict": {"pipeline_root": "KaggleSeven"},
-                        "description": "Kaggle7 (trained on CRC data only)",
-                        "exclude_viewpoint": ["left", "right"],
-                    },
-                    {
+                "whale_humpback+fluke": {
+                    "_id_conf": [
+                        {
+                            "query_config_dict": {"sv_on": false},
+                            "description": "HotSpotter",
+                        },
+                        {
+                            "query_config_dict": {"pipeline_root": "OC_WDTW"},
+                            "description": "Dynamic Time-Warping",
+                        },
+                        {
+                            "query_config_dict": {"pipeline_root": "KaggleSeven"},
+                            "description": "Kaggle7 (trained on CRC data only)",
+                        }
+                    ],
+                    "_save_as": "whale_humpback+fluke",
+                },
+                "whale_fluke": "@species.Megaptera.novaeangliae.whale_humpback+fluke",
+                "_default":    "@species.Megaptera.novaeangliae.whale_humpback+fluke",
+                "whale_humpback+fin_dorsal": {
+                    "_id_conf": [{
                         "query_config_dict": {"pipeline_root": "Finfindr"},
                         "description": "Finfindr dorsal edge-matching",
                         "include_viewpoint": ["left", "right"],
-                    },
+                    }],
+                    "_save_as": "whale_humpback+fin_dorsal"
+                },
+                "whale_fin+fin_dorsal" : "@species.Megaptera.novaeangliae.whale_humpback.fin-dorsal",
+                "whale_orca+fin_dorsal": "@species.Megaptera.novaeangliae.whale_humpback.fin-dorsal",
 
-                ],
-                "detect_conf_note": "a list with one entry per detector",
-                "detect_conf": [
+                "_detect_conf": [
                     {"class": "whale_fluke"}
                 ],
-                "common_name": "humpback whale"
+                "_common_name": "humpback whale"
             },
         },
         "Physeter": {
             "macrocephalus": {
-                "id_conf": [
-                    {
-                        "query_config_dict": {"pipeline_root": "OC_WDTW"},
-                        "description": "Dynamic Time-Warping",
-                        "exclude_viewpoint": ["left", "right"],
-                    },
-                    {
-                        "query_config_dict": {"pipeline_root": "CurvRankFluke"},
-                        "description": "CurvRank fluke edge-matching",
-                        "exclude_viewpoint": ["left", "right"],
-                    },
-                ],
-                "detect_conf": [
+                "whale_fluke": {
+                    "_id_conf": [
+                        {
+                            "query_config_dict": {"pipeline_root": "OC_WDTW"},
+                            "description": "Dynamic Time-Warping",
+                            "exclude_viewpoint": ["left", "right"],
+                        },
+                        {
+                            "query_config_dict": {"pipeline_root": "CurvRankFluke"},
+                            "description": "CurvRank fluke edge-matching",
+                            "exclude_viewpoint": ["left", "right"],
+                        },
+                    ],
+                    "_save_as": "whale_fluke"
+                },
+                "_detect_conf": [
                     {"class": "whale_fluke"}
                 ],
-                "common_name": "sperm whale"
+                "_common_name": "sperm whale"
             }
         },
         "Tursiops": {
             "truncatus": {
-                "id_conf_note": "Since dolphins don't have viewpoint-dependent algorithms we can skip those entries",
-                "id_conf": [
-                    {"query_config_dict": {"pipeline_root": "Finfindr"}},
-                    {"query_config_dict": {"pipeline_root": "CurvRankDorsal"}},
-                ],
+                "dolphin_bottlenose+fin_dorsal": {
+                    "id_conf": [
+                        {"query_config_dict": {"pipeline_root": "Finfindr"}},
+                        {"query_config_dict": {"pipeline_root": "CurvRankDorsal"}},
+                    ],
+                    "_save_as": "dolphin_bottlenose+fin_dorsal"
+                },
+                "dolphin_spotted+fin_dorsal": "@species.Tursiops.truncatus.dolphin_bottlenose+fin_dorsal",
+                "whale_orca+fin_dorsal"     : "@species.Tursiops.truncatus.dolphin_bottlenose+fin_dorsal",
+                "whale_fin+fin_dorsal"      : "@species.Tursiops.truncatus.dolphin_bottlenose+fin_dorsal",
+                "whale_pilot+fin_dorsal"    : "@species.Tursiops.truncatus.dolphin_bottlenose+fin_dorsal",
+                "_default": "@species.Tursiops.truncatus.dolphin_bottlenose+fin_dorsal",
+
                 "detect_conf": [
                     {
                         "start_detect": "https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/lightnet/",
@@ -99,10 +116,23 @@
         },
         "Stenella": {
             "frontalis": {
-                "id_conf": [
-                    {"queryConfigDict": {"sv_on": true} }
-                ],
-                "detect_conf": [
+                "dolphin_spotted": {
+                    "id_conf": [
+                        {"queryConfigDict": {"sv_on": true} }
+                    ],
+                },
+                "dolphin_spotted+fin_dorsal": {
+                    "id_conf": [
+                        {"query_config_dict": {"pipeline_root": "Finfindr"}},
+                        {"query_config_dict": {"pipeline_root": "CurvRankDorsal"}},
+                    ],
+                    "_save_as": "dolphin_spotted+fin_dorsal"
+                },
+                "dolphin_bottlenose+fin_dorsal": "@species.Stenella.frontalis.dolphin_spotted+fin_dorsal",
+                "whale_orca+fin_dorsal"        : "@species.Stenella.frontalis.dolphin_spotted+fin_dorsal",
+                "whale_fin+fin_dorsal"         : "@species.Stenella.frontalis.dolphin_spotted+fin_dorsal",
+                "whale_pilot+fin_dorsal"       : "@species.Stenella.frontalis.dolphin_spotted+fin_dorsal",
+                "_detect_conf": [
                     {
                         "detection_class": "dolphin_spotted",
                         "start_detect": "https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/lightnet/",
@@ -118,11 +148,16 @@
         },
         "Orcinus": {
             "orca": {
-                "id_conf": [
-                    {"query_config_dict": {"pipeline_root": "Finfindr"}},
-                    {"query_config_dict": {"pipeline_root": "CurvRankDorsal"}},
-                ],
-                "detect_conf": [
+                "whale_orca+fin_dorsal": {
+                    "id_conf": [
+                        {"query_config_dict": {"pipeline_root": "Finfindr"}},
+                        {"query_config_dict": {"pipeline_root": "CurvRankDorsal"}},
+                    ],
+                    "_save_as": "whale_orca+fin_dorsal",
+                },
+                "whale_orca": "@species.Orcinus.orca.whale_orca+fin_dorsal",
+                "whale_pilot+fin_dorsal": "@species.Orcinus.orca.whale_orca+fin_dorsal",
+                "_detect_conf": [
                     {
                         "detection_class": "whale_orca+fin_dorsal",
                         "model_tag": "orca_v0",
@@ -134,23 +169,19 @@
 
                     }
                 ],
-                "common_name": "killer whale"
+                "_common_name": "killer whale"
             }
         },
         "Eubalaena": {
             "glacialis": {
-                "id_conf": [
-                    {
-                        "query_config_dict": {"pipeline_root": "Deepsense"},
-                        "exclude_viewpoint": ["left", "right"]
-                    },
-                    {
-                        "NOTE": "example entry for PIE lateral matching",
-                        "query_config_dict": {"pipeline_root": "PIE"},
-                        "include_viewpoint": ["left", "right"]
-                    },
-                ],
-                "detect_conf": [
+                "right_whale_head": {
+                    "id_conf": [
+                        {
+                            "query_config_dict": {"pipeline_root": "Deepsense"},
+                        },
+                    ],
+                },
+                "_detect_conf": [
                     {
                         "start_detect": "https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/lightnet/",
                         "model_tag": "rightwhale_v3",
@@ -162,21 +193,17 @@
                 ],
             },
             "australis": {
-                "id_conf": [
-                    {
-                        "query_config_dict": {"pipeline_root": "Deepsense"},
-                        "exclude_viewpoint": ["left", "right"]
-                    },
-                    {
-                        "query_config_dict": {"sv_on": false},
-                        "description": "HotSpotter",
-                    },
-                    {
-                        "NOTE": "example entry for PIE lateral matching",
-                        "query_config_dict": {"pipeline_root": "PIE"},
-                        "include_viewpoint": ["left", "right"]
-                    },
-                ],
+                "right_whale_head": {
+                    "_id_conf": [
+                        {
+                            "query_config_dict": {"pipeline_root": "Deepsense"},
+                        },
+                        {
+                            "query_config_dict": {"sv_on": false},
+                            "description": "HotSpotter",
+                        },
+                    ]
+                },
                 "detect_conf": "@species.Eubalaena.glacialis.detect_conf"
             }
         }
