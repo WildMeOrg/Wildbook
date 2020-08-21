@@ -5121,14 +5121,6 @@ public class Shepherd {
       return users;
   }
 
-  //stub TODO
-  public List<Project> getProjectsForMarkedIndividual(MarkedIndividual individual){
-    Project proj1 = new Project ("test1");
-    Project proj2 = new Project ("test2");
-    List<Project> projList = new ArrayList<Project> (proj1, proj2);
-    return projList;
-  }
-
   public List<Encounter> getEncountersForPhotographer(User user, Shepherd myShepherd){
       ArrayList<Encounter> users=new ArrayList<Encounter>();
       String filter="SELECT FROM org.ecocean.Encounter WHERE photographers.contains(user) && user.uuid == \""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
