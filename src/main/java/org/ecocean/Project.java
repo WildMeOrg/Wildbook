@@ -24,7 +24,7 @@ public class Project implements java.io.Serializable {
     private Long dateLastModifiedLong;
 
 
-    //reference to a user in the user array, so we don't link to that table twice 
+    //reference to a user in the user array, so we don't link to that table twice
     private String ownerId;
     private List<User> users = null;
 
@@ -123,7 +123,7 @@ public class Project implements java.io.Serializable {
     public List<User> getUsers() {
         return users;
     }
-    
+
     public void setOwner(User owner) {
         if (owner!=null) {
             addUser(owner);
@@ -131,7 +131,7 @@ public class Project implements java.io.Serializable {
             setTimeLastModified();
         }
     }
-    
+
     public String getOwnerId() {
         return ownerId;
     }
