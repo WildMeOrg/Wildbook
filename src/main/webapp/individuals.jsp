@@ -153,13 +153,13 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 		      System.out.println("");
 		      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
 		      System.out.println("This marked individual has "+numAnns+" anotations");
-		
+
 					//boolean visible = indie.canUserAccess(request);
 		      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
-	
+
 
 				if (!visible) {
-	
+
 			        // remove any potentially-sensitive data, labeled with the secure-field class
 			        System.out.println("Not visible! Printing stuff!");
 			        %>
@@ -179,7 +179,7 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 							}
 							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
 							cmsg = cmsg.replace("'", "\\'");
-			
+
 							if (possible.size() > 0) {
 			    			String arr = new Gson().toJson(possible);
 								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
@@ -780,7 +780,17 @@ if (sharky.getNames() != null) {
             </p>
             <%
               }
-              %>
+              List<Project> projects = myShepherd.getProjectsForMarkedIndividual(indie);
+              if(projects!=null && projects.size()>0){
+                %>
+                  <p><strong><%=props.getProperty("projects") %></strong></p>
+                <%
+                for(int i=0; i< projects.size(); i++){
+                %>
+                  <p><%= projects.get(i).getResearchProjectId()%></p>
+                <%
+                }
+              }
 
         </div>
 
@@ -1062,14 +1072,14 @@ if (sharky.getNames() != null) {
       </strong><br/> <%=vl%>
       <%
       if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-        %>  
+        %>
         <font size="-1"><a
-          href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=id%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>  
+          href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=id%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
           <%
         }
         %>
       </p>
-      
+
       <%
     }
   }
@@ -1077,7 +1087,7 @@ if (sharky.getNames() != null) {
   <%-- Relationship Graphs --%>
   <div>
     <!-- begin social unit memberships-->
-    
+
     <p><strong><%=props.getProperty("socialUnitMemberships")%></strong></p>
     <input class="btn btn-sm" type="button" id="editSocialMembership" value="<%=props.getProperty("editSocialMembership") %>">
     <br/>
@@ -1099,8 +1109,8 @@ if (sharky.getNames() != null) {
                 if (membership.getStartDate()!=null) {startDate=String.valueOf(membership.getStartDate());}
                 if (membership.getEndDate()!=null) {endDate=String.valueOf(membership.getEndDate());}
                 boolean hasData = (role!=null&&!"".equals(role));
-          
-      %>  
+
+      %>
 
         <!--display current social unit membership-->
         <div id="displayMembership<%=unitName%>" class="socialUnitEditForm socialUnitMargin">
@@ -1128,14 +1138,14 @@ if (sharky.getNames() != null) {
 
           </div>
         </div>
-      
+
         <%
       }
     }
     %>
-    
+
   </div>
-  
+
         <!-- form to edit or create social unit membership -->
         <br/>
         <div id="editOrCreateMembership" class="hidden socialUnitEditForm socialUnitMargin">
@@ -1145,7 +1155,7 @@ if (sharky.getNames() != null) {
               <label><strong><%=props.getProperty("socialGroupName") %></strong></label>
 
               <!-- if unit name is empty, only display the 'new field. '-->
-              
+
               <select id="socialGroupNameSelect" name="socialGroupNameSelect" onchange="socialGroupNameSelectChanged(this)">
                 <option value="new" selected>CREATE NEW</option>
                 <%
@@ -1169,36 +1179,36 @@ if (sharky.getNames() != null) {
                 <br/>
                 <input id="socialGroupNameField" class="form-control" value="<%=unitName%>" type="text"></input>
               </div>
-            </div>  
+            </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialRoleName") %></strong></label>
               <input id="socialRoleNameField" class="form-control" value="<%=role%>"type="text"></input>
-            </div>  
+            </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>
               <input id="socialGroupMembershipStartField" class="form-control" value="<%=startDate%>" type="date"></input>
-            </div>  
+            </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupMembershipEnd") %></strong></label>
               <input id="socialGroupMembershipEndField" class="form-control" value="<%=endDate%>" type="date"></input>
-            </div>  
+            </div>
 
           </div>
-          <div style="padding: 5px;">  
+          <div style="padding: 5px;">
             <input class="btn btn-sm btn" type="button" name="button" id="submitSocialMembership" value="<%=props.getProperty("editCreate")%>">
-            
+
             <input class="btn btn-sm btn" type="button" name="button" id="deleteSocialMembership" value="<%=props.getProperty("deleteMembership")%>">
             <!--sucess/fail message from servlet-->
             <label id="membershipActionResponse" ></label>
           </div>
           </br>
         </div>
-        
 
-      <%  
+
+      <%
       }
       %>
 
@@ -1397,7 +1407,7 @@ if (sharky.getNames() != null) {
                     dataType: 'json',
                     contentType: 'application/javascript',
                     data: JSON.stringify(membershipJSON),
-                  
+
                     success: function(d) {
                         console.info('Success! Got back '+JSON.stringify(d));
                         $("#membershipActionResponse").text("Success!");
@@ -1415,7 +1425,7 @@ if (sharky.getNames() != null) {
           }
 
         function deleteMembership() {
-            
+
             var membershipDeleteJSON = {};
 
             let id = "<%=sharky.getIndividualID()%>";
@@ -1436,7 +1446,7 @@ if (sharky.getNames() != null) {
                   dataType: 'json',
                   contentType: 'application/javascript',
                   data: JSON.stringify(membershipDeleteJSON),
-                
+
                   success: function(d) {
                       console.info('Success! Got back '+JSON.stringify(d));
                       $("#membershipActionResponse").text("Success in DeleteMembership!");
@@ -1449,7 +1459,7 @@ if (sharky.getNames() != null) {
                       //cheat a bit to reuse the method
                       let nameSelect = {};
                       nameSelect.value = "new";
-                      socialGroupNameSelectChanged(nameSelect);  
+                      socialGroupNameSelectChanged(nameSelect);
 
                   },
                   //error: function(x,y,z) {
@@ -1467,7 +1477,7 @@ if (sharky.getNames() != null) {
           console.log("Yet again,,,,, the JSON: "+JSON.stringify(json));
 
           let role = json["role"];
-          if (typeof role == 'undefined') role = ""; 
+          if (typeof role == 'undefined') role = "";
           let groupName = json["groupName"];
           if (typeof groupName == 'undefined') groupName = "";
           let startDate = json["startDate"];
@@ -1483,7 +1493,7 @@ if (sharky.getNames() != null) {
             //$("#displayMembership"+json.groupName+" .socialGroupName").css("background-color", "red");
             $("#displayMembership"+json.groupName+" .socialGroupNameField").text(groupName);
             $("#displayMembership"+json.groupName+" .socialGroupName").html('<p class="socialGroupName"><a href="socialUnit.jsp?name='+groupName+'">'+groupName+'</a>');
-            
+
             $("#displayMembership"+json.groupName+" .socialRoleNameField").text(role);
             $("#displayMembership"+json.groupName+" .socialRoleName").text(role);
             $("#displayMembership"+json.groupName+" .socialGroupMembershipStart").text(startDate);
@@ -1522,7 +1532,7 @@ if (sharky.getNames() != null) {
             newMembershipDiv+=    '</div>';
             newMembershipDiv+=  '</div>';
             newMembershipDiv+= '</div>';
-            
+
             //if (!$("#allDisplayMemberships").last().is("br")) {
             //  $("#allDisplayMemberships").append('<br/>');
             //}
@@ -2031,21 +2041,21 @@ if (sharky.getNames() != null) {
 	<p><strong><%=props.getProperty("cooccurrence")%></strong></p>
 	<script type="text/javascript">
         <% String occurrenceIndividualID = sharky.getIndividualID();%>
-        <% 
-        
-        
-        
+        <%
+
+
+
         String individualGenus = sharky.getGenus();
 		String individualEpithet = sharky.getSpecificEpithet();
 		if(individualGenus == null || individualEpithet==null){
 			if(sharky.getGenusSpeciesDeep()!=null){
-				
+
 				StringTokenizer str=new StringTokenizer(sharky.getGenusSpeciesDeep()," ");
 				if(str.hasMoreTokens()){individualGenus=str.nextToken();}
 				if(str.hasMoreTokens()){individualEpithet=str.nextToken();}
 			}
 		}
-	
+
 		%>
 
         $(document).ready(function() {
@@ -2444,6 +2454,6 @@ String pswipedir = urlLoc+"/photoswipe";
 <%-- Import Footer --%>
 <jsp:include page="footer.jsp" flush="true"/>
 
-<% 
+<%
   } //end if ! ?number=
 %>

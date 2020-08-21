@@ -19,7 +19,7 @@
          org.json.JSONObject,
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
-         java.io.File, java.text.DecimalFormat, 
+         java.io.File, java.text.DecimalFormat,
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -2772,7 +2772,7 @@ else {
 					                        </div>
 					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
 					                          <%-- <p> --%>
-					
+
 					                        <%
 					                        if(thisUser.getAffiliation()!=null){
 					                        %>
@@ -2780,34 +2780,45 @@ else {
 					                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
 					                        <%
 					                        }
-					
+
 					                        if(thisUser.getUserProject()!=null){
 					                        %>
 					                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
 					                        <%
 					                        }
-					
+
 					                        if(thisUser.getUserURL()!=null){
 					                            %>
 					                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
 					                            <%
 					                          }
-					
+
 					                        if(thisUser.getUserStatement()!=null){
 					                            %>
 					                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
 					                            <%
 					                          }
+                                  List<Project> projects = myShepherd.getProjectsForEncounter(enc);
+                                  if(projects!=null && projects.size()>0){
+                                    %>
+                                      <p><strong><%=encprops.getProperty("projects") %></strong></p>
+                                    <%
+                                    for(int i=0; i< projects.size(); i++){
+                                    %>
+                                      <p><%= projects.get(i).getResearchProjectName()%></p>
+                                    <%
+                                    }
+                                  }
 					                        %>
 					                        </div>
 					                      </div>
-					
+
 					                  </div>
-					
+
 					<%
 					                         	}
-					
-					
+
+
 					                      	else{
 					                      	%>
 					                      	&nbsp;
@@ -4840,7 +4851,7 @@ button#upload-button {
         dataType: 'json',
         contentType: 'application/javascript',
         data: JSON.stringify(removeDPJSON),
-      
+
         success: function(d) {
           $("#dialogDP"+dPropKey).remove();
         },
@@ -5476,7 +5487,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
   <tr>
     <td>
-  
+
         <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
         <%
         SexAnalysis mtDNA=new SexAnalysis();
@@ -5488,13 +5499,13 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         <tr><td>
         <%
         String haplotypeString="";
-  
+
         try{
           if(mito.getSex()!=null){haplotypeString=mito.getSex();}
         } catch (NullPointerException npe34){}
-  
+
         ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
-  
+
         if (sexDefs!=null&&haplotypeString!=null) {
           System.out.println("haplotypeString??? "+haplotypeString);
           System.out.println("sexDefs:  "+Arrays.toString(sexDefs.toArray()));
@@ -6222,7 +6233,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
   <tr>
     <td>
-  
+
         <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
         <%
         SexAnalysis mtDNA=new SexAnalysis();
@@ -6233,13 +6244,13 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         <tr><td>
         <%
         String haplotypeString="";
-  
+
         try{
           if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
         } catch (NullPointerException npe34){}
-  
+
         ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
-  
+
         if (sexDefs!=null&&haplotypeString!=null&&sexDefs.contains(haplotypeString)) {
           sexDefs.remove(haplotypeString);
         }
@@ -6612,7 +6623,7 @@ $('.ia-match-filter-dialog input').each(function(i, el) {
         else{
         	data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
         }
-        
+
     });
 console.log('SENDING ===> %o', data);
     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -6781,15 +6792,15 @@ $(".search-collapse-header").click(function(){
 
 rootIter=0;
 while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-	
+
 	if(rootIter==0){
 		%>
 		<div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
-		
+
 		<%
 	}
-	
-	
+
+
 	String val="HotSpotter";
 	String queryDict="";
 	try {
