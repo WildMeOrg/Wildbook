@@ -8,6 +8,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
+
+import edu.stanford.nlp.util.StringUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -50,11 +53,13 @@ public class ProjectCreate extends HttpServlet {
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
         JSONArray encsJSON = null;
+        JSONArray projectUserIds = null;
         String researchProjectId = null;
         String researchProjectName = null;
         try {
             res.put("success","false");
             encsJSON = j.optJSONArray("encounterIds");
+            projectUserIds = j.optJSONArray("projectUserIds");
             researchProjectId = j.optString("researchProjectId", null);
             researchProjectName = j.optString("researchProjectName", null);
 
@@ -76,6 +81,26 @@ public class ProjectCreate extends HttpServlet {
                 myShepherd.storeNewProject(newProject);
                 if (researchProjectName!=null) {
                     newProject.setResearchProjectName(researchProjectName);
+                }
+
+                if (projectUserIds!=null&&projectUserIds.length()>0) {
+                    for (int i=0;i<projectUserIds.length();i++) {
+                        String userIdentifier = projectUserIds.getString(i);
+                        if (!StringUtils.isNullOrEmpty(userIdentifier)) {
+                            User user = null;
+                            if (Util.isUUID(userIdentifier)) {
+                                user = myShepherd.getUserByUUID(userIdentifier);
+                            } else {
+                                user = myShepherd.getUser(userIdentifier);
+                            }
+                            if (user!=null) {
+                                newProject.addUser(user);
+                            }
+
+                        }
+
+                    }
+                    myShepherd.updateDBTransaction();
                 }
 
                 // should we automatically set owner as current logged in user?
