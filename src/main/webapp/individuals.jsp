@@ -780,7 +780,7 @@ if (sharky.getNames() != null) {
             </p>
             <%
               }
-              List<Project> projects = myShepherd.getProjectsForMarkedIndividual(indie);
+              List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
               if(projects!=null && projects.size()>0){
                 %>
                   <p><strong><%=props.getProperty("projects") %></strong></p>
