@@ -130,6 +130,12 @@ public class ProjectUpdate extends HttpServlet {
     private boolean isUserAuthorizedToUpdateProject(Project project, Shepherd myShepherd, HttpServletRequest request) {
         User currentUser = myShepherd.getUser(request);
         if (currentUser!=null&&currentUser.equals(project.getOwner())) return true;
+        return false;
+    }
+
+    private boolean isUserAuthorizedToAddEncounters(Project project, Shepherd myShepherd, HttpServletRequest request) {
+        User currentUser = myShepherd.getUser(request);
+        if (isUserAuthorizedToUpdateProject(project, myShepherd, request)) return true;
         for (User user : project.getUsers()) {
             if (user!=null&&user.equals(currentUser)) {
                 return true;
