@@ -70,18 +70,17 @@
                       </div>
                     </div>
                     <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-                      <a id="addUserToProjectButton" name="addUserToProjectButton" type="button" value="<%=props.getProperty("addUserToProject")%>" onclick="addUserToProject();">
-                      </a>
+                      <input id="addUserToProjectButton" name="addUserToProjectButton" type="button" value="<%=props.getProperty("addUserToProject")%>" onclick="addUserToProject();">
+                      </input>
                     </div>
                     <div class="row">
                       <%
                         FormUtilities.setUpOrgDropdown("organizationAccess", false, props, out, request, myShepherd);
                       %>
                     </div>
-                    <button id="createProjectButton" class="large" type="submit" onclick="createButtonClicked();">
+                    <input id="createProjectButton" type="button" onclick="createButtonClicked();">
                       <%=props.getProperty("submit_send") %>
-                      <span class="button-icon" aria-hidden="true" />
-                    </button>
+                    </input>
               </form>
               <h4>To add encounters to this project, use the project option in encounter search</h4>
               <%
@@ -117,7 +116,7 @@
                 fullName=item.fullName;
               }
               let label = ("name: " + fullName + " user: " + item.username);
-              return {label: label, value: item.username};
+              return {label: label, value: item.username + ":" + item.id};
             });
             response(res);
           }
@@ -129,7 +128,7 @@
       userNamesOnAccessList = [...new Set(userNamesOnAccessList)];
       $('#userAccessList').empty();
       for(i=0; i<userNamesOnAccessList.length; i++){
-        let elem = "<div class=\"chip\">" + userNamesOnAccessList[i] + "  <span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";
+        let elem = "<div class=\"chip\">" + userNamesOnAccessList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";
         $('#userAccessList').append(elem);
       }
     }
@@ -162,7 +161,18 @@
     }
 
     function submitForm() {
-      let formData = JSON.stringify($("#create-project-form").serializeArray());
+      console.log("submitForm entered");
+      debugger;
+      let uuidsOnAccessList = userNamesOnAccessList.map(function(element){
+        return element.split(":")[1];
+      });
+      let formDataArray = $("#create-project-form").serializeArray();
+      for(i=0; i<formDataArray.length; i++){
+        if (Object.values(formDataArray[i])[0] === userAccess){
+          formDataArray[i].value=uuidsOnAccessList;
+        }
+      }
+      let formData = JSON.stringify(formDataArray);
       console.log("formData is:");
       console.log(formData);
       // document.forms['create-project-form'].submit();
