@@ -40,6 +40,7 @@ public class FormUtilities {
   public static void printStringFieldSearchRowBoldTitle(Boolean isForIndividualOrOccurrenceSearch, String fieldName, List<String> displayOptions, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
     // note how fieldName is variously manipulated in this method to make element ids and contents
     String displayName = getDisplayName(fieldName, nameLookup);
+    out.println("<div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">");
     if(isForIndividualOrOccurrenceSearch == true){
       out.println("<br/><strong>"+displayName+"</strong><br/>"); //<td id=\""+fieldName+"Title\"><br/>
     } else{
@@ -56,8 +57,8 @@ public class FormUtilities {
     } else{
       out.println("</select></td>");
       out.println("</tr>");
-
     }
+    out.println("</div>");
   }
 
   public static void printAccumulatingMultiSelect(String fieldName,String label, List<String> displayOptions, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
