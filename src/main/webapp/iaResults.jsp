@@ -1022,10 +1022,14 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
             var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
             	//console.log("YY"+ft.parameters.x);
-                var img = $('<img src="' + mainAsset.url + '" />');
+                
+            	var img = $('<img src="' + mainAsset.url + '" />');
+                var imgLink=$('<a target="_blank" href="' + mainAsset.url + '" />');
+                imgLink.append(img);
+            	
                 ft.metadata = mainAsset.metadata;
                 img.on('load', function(ev) { imageLoaded(ev.target, ft); });
-                $('#task-' + taskId + ' .annot-' + acmId).append(img);
+                $('#task-' + taskId + ' .annot-' + acmId).append(imgLink);
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
@@ -1271,12 +1275,12 @@ function imageLoaded(imgEl, ft) {
 
 function drawFeature(imgEl, ft) {
     if (!imgEl || !imgEl.clientHeight || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
-    var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
     var scale = imgEl.height / imgEl.naturalHeight;
     if (ft.metadata && ft.metadata.height) scale = imgEl.height / ft.metadata.height;
     var zoomFactor = imgEl.naturalHeight/ft.parameters.height;
+
+    var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
     
-    console.log("!!!scale:"+scale);
     
     /* values are from-top, from-right, from-bottom, from-left */
     
