@@ -307,6 +307,7 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 
 <jsp:include page="header.jsp" flush="true" />
 
+
 <div id="encid" style="">
 
 <!-- overwrites ia.IBEIS.js for testing -->
@@ -953,9 +954,20 @@ console.info('%d ===> %s', num, acmId);
 
 
 	//now the image guts
-	h = '<div title="acmId=' + acmId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
+	h = '<div title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
-	$('#task-' + taskId).append(h);
+	
+	
+	var imgs = $('#task-' + taskId + ' .bonus-wrapper');
+    if (!imgs.length) {
+            imgs = $('<div style="height: 100%;" class="bonus-wrapper" />');
+            imgs.appendTo('#task-' + taskId)
+     }
+     imgs.append(h);
+	
+	//$('#task-' + taskId).append(h);
+	
+	
 	$.ajax({
 		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
@@ -1000,7 +1012,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 otherAnnots.push(res.responseJSON.annotations[i]);
             } else {
                 mainAsset = res.responseJSON.annotations[i].asset;
-		$('#initial-waiter').remove();
+				$('#initial-waiter').remove();
             }
         }
         if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
@@ -1009,12 +1021,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 //console.info('illustrationUrl '+illustrationUrl);
             var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
+            	//console.log("YY"+ft.parameters.x);
                 var img = $('<img src="' + mainAsset.url + '" />');
                 ft.metadata = mainAsset.metadata;
                 img.on('load', function(ev) { imageLoaded(ev.target, ft); });
                 $('#task-' + taskId + ' .annot-' + acmId).append(img);
             } else {
-                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
+                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
             if (mainAsset.dateTime) {
                 imgInfo += ' <b>' + mainAsset.dateTime.substring(0,16) + '</b> ';
@@ -1261,6 +1274,20 @@ function drawFeature(imgEl, ft) {
     var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
     var scale = imgEl.height / imgEl.naturalHeight;
     if (ft.metadata && ft.metadata.height) scale = imgEl.height / ft.metadata.height;
+    var zoomFactor = imgEl.naturalHeight/ft.parameters.height;
+    
+    console.log("!!!scale:"+scale);
+    
+    /* values are from-top, from-right, from-bottom, from-left */
+    
+    imgEl.setAttribute("style", "transform-origin: 0 0;transform: scale("+zoomFactor+");margin-left: -"+ft.parameters.x*scale*zoomFactor+";margin-top: -"+ft.parameters.y*scale*zoomFactor+"px;position: absolute;clip-path: inset("+ (ft.parameters.y)*scale + "px " + (ft.metadata.width-ft.parameters.x-ft.parameters.width)*scale + "px "+(ft.metadata.height-ft.parameters.height-ft.parameters.y)*scale + "px "+ft.parameters.x*scale + "px )");
+   
+    
+    
+    //imgEl.css("transform-origin", "0 0");
+    //imgEl.css("transform", "translate(-100%, 50%) rotate(45deg) translate(100%, -50%)");
+    
+    
 //console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
     if (scale == 1) return;
     imgEl.setAttribute('data-feature-drawn', true);
@@ -1270,7 +1297,7 @@ function drawFeature(imgEl, ft) {
     f.css('top', (ft.parameters.y * scale) + 'px');
     if (ft.parameters.theta) f.css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
 //console.info('mmmm %o', f);
-    $(imgEl).parent().append(f);
+    //$(imgEl).parent().append(f);
 }
 
 function checkForResults() {
