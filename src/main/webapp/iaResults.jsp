@@ -307,6 +307,8 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 
 <jsp:include page="header.jsp" flush="true" />
 
+<script src="javascript/openseadragon/openseadragon.min.js"></script>
+
 
 <div id="encid" style="">
 
@@ -356,7 +358,34 @@ h4.intro.accordion .rotate-chevron.down {
     transform: rotate(90deg);
 }
 </style>
-
+      <style>
+        .navigator .highlight{
+            opacity:    0.1;
+            filter:     alpha(opacity=10);
+            outline:    2px solid #900;
+            background-color: #900;
+            outline-style: dashed;
+        outline-color: green;
+        outline-width: 5px;
+        }
+        .highlight{
+        
+        /*
+            opacity:    0.5;
+            filter:     alpha(opacity=50);
+            outline:    14px auto #00FF00;
+        */
+        outline-style: dashed;
+        outline-color: green;
+        outline-width: 5px;
+            
+        }
+        .highlight:hover, .highlight:focus{
+            filter:     alpha(opacity=10);
+            opacity:    0.1;
+            background-color: transparent;
+        }
+        </style>
 <script>
 	animatedcollapse.addDiv('instructions', 'fade=1');
 	animatedcollapse.init();
@@ -954,7 +983,7 @@ console.info('%d ===> %s', num, acmId);
 
 
 	//now the image guts
-	h = '<div title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
+	h = '<div id="'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 	
 	
@@ -1024,12 +1053,62 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
             	//console.log("YY"+ft.parameters.x);
                 
             	var img = $('<img src="' + mainAsset.url + '" />');
-                var imgLink=$('<a target="_blank" href="' + mainAsset.url + '" />');
-                imgLink.append(img);
+                //var imgLink=$('<a target="_blank" href="' + mainAsset.url + '" />');
+                //imgLink.append(img);
             	
                 ft.metadata = mainAsset.metadata;
                 img.on('load', function(ev) { imageLoaded(ev.target, ft); });
-                $('#task-' + taskId + ' .annot-' + acmId).append(imgLink);
+                //$('#task-' + taskId + ' .annot-' + acmId).append(imgLink);
+                
+                
+                
+                
+              		var viewer=OpenSeadragon({
+                    	id: acmId,
+                    	
+                        tileSources: {
+                            type: 'image',
+                            url:  mainAsset.url,
+                            buildPyramid: false,
+                        },
+                        showHomeControl: false,
+                    	prefixUrl: 'javascript/openseadragon/images/',
+                    	navigationControlAnchor: OpenSeadragon.ControlAnchor.TOP_RIGHT,
+                    	visibilityRatio: 1.0,
+                    	constrainDuringPan: true,
+                        overlays: [{
+                            id: 'overlay-'+acmId,
+                            px: ft.parameters.x,
+                            py: ft.parameters.y,
+                            width: ft.parameters.width,
+                            height: ft.parameters.height,
+                            className: 'highlight'
+                        }]
+
+                	});
+                	
+                	viewer.addHandler('open', function() {
+                		var marginFactor=0.98;
+                		//var centerPoint=viewer.viewport.imageToViewportCoordinates(ft.parameters.x+ft.parameters.width/2,ft.parameters.y-ft.parameters.height/2);
+                	    viewer.viewport.fitBounds(viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, ft.parameters.width/marginFactor, ft.parameters.height/marginFactor));
+                	    //viewer.addOverlay('overlay-'+acmId,viewer.viewport.imageToViewportRectangle(ft.parameters.x, ft.parameters.y, ft.parameters.width, ft.parameters.height),'highlight');
+                	    
+                	});
+                	viewer.addHandler('full-page', event => {
+                		if(event.fullPage==false){
+                			var marginFactor=0.98;
+                			//var centerPoint=viewer.viewport.imageToViewportCoordinates(ft.parameters.x+ft.parameters.width/2,ft.parameters.y-ft.parameters.height/2);
+                	    	viewer.viewport.fitBounds(viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, ft.parameters.width/marginFactor, ft.parameters.height/marginFactor));
+                	    	//viewer.addOverlay('overlay-'+acmId,viewer.viewport.imageToViewportRectangle(ft.parameters.x, ft.parameters.y, ft.parameters.width, ft.parameters.height),'highlight');
+                		}
+                	})
+                	
+                	
+            	
+            	
+            	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
+                
+                
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
@@ -1284,7 +1363,7 @@ function drawFeature(imgEl, ft) {
     
     /* values are from-top, from-right, from-bottom, from-left */
     
-    imgEl.setAttribute("style", "transform-origin: 0 0;transform: scale("+zoomFactor+");margin-left: -"+ft.parameters.x*scale*zoomFactor+";margin-top: -"+ft.parameters.y*scale*zoomFactor+"px;position: absolute;clip-path: inset("+ (ft.parameters.y)*scale + "px " + (ft.metadata.width-ft.parameters.x-ft.parameters.width)*scale + "px "+(ft.metadata.height-ft.parameters.height-ft.parameters.y)*scale + "px "+ft.parameters.x*scale + "px )");
+    //imgEl.setAttribute("style", "transform-origin: 0 0;transform: scale("+zoomFactor+");margin-left: -"+ft.parameters.x*scale*zoomFactor+";margin-top: -"+ft.parameters.y*scale*zoomFactor+"px;position: absolute;clip-path: inset("+ (ft.parameters.y)*scale + "px " + (ft.metadata.width-ft.parameters.x-ft.parameters.width)*scale + "px "+(ft.metadata.height-ft.parameters.height-ft.parameters.y)*scale + "px "+ft.parameters.x*scale + "px )");
    
     
     
@@ -1293,13 +1372,13 @@ function drawFeature(imgEl, ft) {
     
     
 //console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
-    if (scale == 1) return;
+    //if (scale == 1) return;
     imgEl.setAttribute('data-feature-drawn', true);
-    f.css('width', (ft.parameters.width * scale) + 'px');
-    f.css('height', (ft.parameters.height * scale) + 'px');
-    f.css('left', (ft.parameters.x * scale) + 'px');
-    f.css('top', (ft.parameters.y * scale) + 'px');
-    if (ft.parameters.theta) f.css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
+    //f.css('width', (ft.parameters.width * scale) + 'px');
+    //f.css('height', (ft.parameters.height * scale) + 'px');
+    //f.css('left', (ft.parameters.x * scale) + 'px');
+    //f.css('top', (ft.parameters.y * scale) + 'px');
+    if (ft.parameters.theta) $('#overlay-'+acmId).css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
 //console.info('mmmm %o', f);
     //$(imgEl).parent().append(f);
 }
