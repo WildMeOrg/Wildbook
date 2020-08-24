@@ -56,6 +56,9 @@ public class ProjectCreate extends HttpServlet {
         JSONArray projectUserIds = null;
         String researchProjectId = null;
         String researchProjectName = null;
+
+        //TODO handle add users by organization
+
         try {
             res.put("success","false");
             encsJSON = j.optJSONArray("encounterIds");
@@ -113,7 +116,7 @@ public class ProjectCreate extends HttpServlet {
                 myShepherd.updateDBTransaction();
                 res.put("success","true");
             } else {
-              res.put("error","null ID or Project already exists");
+                addErrorMessage(res,"null ID or Project already exists");
               response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
 
@@ -122,21 +125,25 @@ public class ProjectCreate extends HttpServlet {
 
         } catch (NullPointerException npe) {
             npe.printStackTrace();
-            res.put("error","NullPointerException npe");
+            addErrorMessage(res, "NullPointerException npe");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (JSONException je) {
             je.printStackTrace();
-            res.put("error","JSONException je");
+            addErrorMessage(res, "JSONException je");
           response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             e.printStackTrace();
-            res.put("error","Exception e");
+            addErrorMessage(res, "Exception e");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } finally {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             out.println(res);
         }
+    }
+
+    private void addErrorMessage(JSONObject res, String error) {
+        res.put("error", error);
     }
 
 
