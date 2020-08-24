@@ -387,11 +387,18 @@ h4.intro.accordion .rotate-chevron.down {
         }
         </style>
 <script>
+	
+	
 	animatedcollapse.addDiv('instructions', 'fade=1');
 	animatedcollapse.init();
 	$("h4.accordion a").click(function() {
 		$(this).children(".rotate-chevron").toggleClass("down");
 	});
+	
+	//Map of the OpenSeadragon viewers
+	var viewers = new Map();
+	var features=new Map();
+	
 </script>
 
 
@@ -961,7 +968,20 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
 			// ----- END Hotspotter IA Illustration-----
 		}
-		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
+		$('.annot-summary').on('mouseover', function(ev) { 
+			console.log('mouseover2 with num viewers: '+viewers.size);
+			annotClick(ev); 
+			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
+			//tell seadragon to pan to the annotation
+			if(viewers.has(m_acmId )){
+				//console.log("Found viewer: "+m_acmId );
+				var viewer=viewers.get(m_acmId );
+				var eventArgs={
+					acmId: m_acmId
+				};
+				viewer.raiseEvent("switchAnnots", eventArgs);
+			}
+		});
 		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
 
 		// Add disclaimers and other alg-specific info
@@ -989,7 +1009,7 @@ console.info('%d ===> %s', num, acmId);
 	
 	var imgs = $('#task-' + taskId + ' .bonus-wrapper');
     if (!imgs.length) {
-            imgs = $('<div style="height: 100%;" class="bonus-wrapper" />');
+            imgs = $('<div style="height: 400px;" class="bonus-wrapper" />');
             imgs.appendTo('#task-' + taskId)
      }
      imgs.append(h);
@@ -1075,7 +1095,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     	prefixUrl: 'javascript/openseadragon/images/',
                     	navigationControlAnchor: OpenSeadragon.ControlAnchor.TOP_RIGHT,
                     	visibilityRatio: 1.0,
-                    	constrainDuringPan: true,
+                    	//constrainDuringPan: true,
                         overlays: [{
                             id: 'overlay-'+acmId,
                             px: ft.parameters.x,
@@ -1083,27 +1103,54 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                             width: ft.parameters.width,
                             height: ft.parameters.height,
                             className: 'highlight'
-                        }]
+                        }],
+                        //debugMode: true
+                        //preserveViewport: false,
+                        //autoResize:true
+                        constrainDuringPan: true,
+                        animationTime: 0
 
                 	});
                 	
+              		viewer.world.setAutoRefigureSizes(true);
+              		
                 	viewer.addHandler('open', function() {
-                		var marginFactor=0.98;
-                		//var centerPoint=viewer.viewport.imageToViewportCoordinates(ft.parameters.x+ft.parameters.width/2,ft.parameters.y-ft.parameters.height/2);
-                	    viewer.viewport.fitBounds(viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, ft.parameters.width/marginFactor, ft.parameters.height/marginFactor));
-                	    //viewer.addOverlay('overlay-'+acmId,viewer.viewport.imageToViewportRectangle(ft.parameters.x, ft.parameters.y, ft.parameters.width, ft.parameters.height),'highlight');
-                	    
+                		var marginFactor=1;
+                		var width=ft.parameters.width;
+                	   	var height=ft.parameters.height;
+                	   	var rec=viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, width/marginFactor, height/marginFactor);
+                	   	viewer.viewport.fitBounds(rec);
+                	   	//viewer.viewport.panTo(new OpenSeadragon.Point(0.5*marginFactor,0.5*marginFactor));
                 	});
+    
                 	viewer.addHandler('full-page', event => {
                 		if(event.fullPage==false){
-                			var marginFactor=0.98;
-                			//var centerPoint=viewer.viewport.imageToViewportCoordinates(ft.parameters.x+ft.parameters.width/2,ft.parameters.y-ft.parameters.height/2);
+                			var marginFactor=1.0;
+                			var centerPoint=viewer.viewport.imageToViewportCoordinates(ft.parameters.x+ft.parameters.width/2,ft.parameters.y-ft.parameters.height/2);
                 	    	viewer.viewport.fitBounds(viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, ft.parameters.width/marginFactor, ft.parameters.height/marginFactor));
-                	    	//viewer.addOverlay('overlay-'+acmId,viewer.viewport.imageToViewportRectangle(ft.parameters.x, ft.parameters.y, ft.parameters.width, ft.parameters.height),'highlight');
-                		}
-                	})
+                	    	//viewer.viewport.resize();
+                	    }
+                	});
                 	
+                	viewer.addHandler('switchAnnots', event => {
+                		console.log('switchAnnots to: '+event.acmId);
+                		//viewer.forceRedraw();
+                		//viewer.world.resetItems();
+                		var marginFactor=1.0;
+                		
+                		//need to get annot feature
+                		var ft = features.get(event.acmId);
+                		
+                		var width=ft.parameters.width;
+                	   	var height=ft.parameters.height;
+                	   	var rec=viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, width/marginFactor, height/marginFactor);
+                	   	viewer.viewport.fitBounds(rec);
+                	   	//viewer.viewport.panTo(new OpenSeadragon.Point(0.5*marginFactor,0.5*marginFactor));
+                	});
                 	
+                	//add this viewer to the global Map
+                	viewers.set(acmId,viewer);
+                	features.set(acmId, ft);
             	
             	
             	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
@@ -1459,6 +1506,7 @@ console.info('waiting to try again...');
 	$('#results li').on('mouseover', function(ev) {
 		var i = ev.currentTarget.getAttribute('data-i');
 		updateMatch(res.matchAnnotations[i]);
+		console.log("mouseover3");
 	});
 }
 
