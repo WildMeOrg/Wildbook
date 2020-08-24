@@ -26,7 +26,7 @@ context=ServletUtilities.getContext(request);
 <jsp:include page="../header.jsp" flush="true"/>
 
 <div class="container maincontent">
-    <h2>Testing Projects</h2>   
+    <h2>Testing Projects</h2>
 
     <div class="row">
         <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 col-xl-4">
@@ -67,6 +67,8 @@ context=ServletUtilities.getContext(request);
         console.log("SENDING OWNERID: "+ownerId);
         let json = {};
         json['ownerId'] = ownerId;
+        console.log("here!");
+        console.log(JSON.stringify(json));
 
         $.ajax({
             url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -87,7 +89,7 @@ context=ServletUtilities.getContext(request);
                     let thisProject = projectsArr[i];
                     console.log("PROJECT #"+i);
                     console.log(JSON.stringify(thisProject));
-                    let projectHTML = '<div class="researchProjectIdDiv" id="'+thisProject.researchProjectId+'">';     
+                    let projectHTML = '<div class="researchProjectIdDiv" id="'+thisProject.researchProjectId+'">';
                     projectHTML += "<p>"+thisProject.ownerId+"</p>";
                     projectHTML += "<p>"+thisProject.researchProjectName+"</p>";
                     projectHTML += "<p>"+thisProject.researchProjectId+"</p>";
@@ -102,20 +104,20 @@ context=ServletUtilities.getContext(request);
             error: function(x,y,z) {
                 $("#servletResponse").text("ERR");
                 $("#servletResponse").append("x: "+JSON.stringify(x));
-                $("#servletResponse").append("y: "+JSON.stringify(x));
-                $("#servletResponse").append("z: "+JSON.stringify(x));
+                $("#servletResponse").append("y: "+JSON.stringify(y));
+                $("#servletResponse").append("z: "+JSON.stringify(z));
                 console.warn('%o %o %o', x, y, z);
             }
         });
 
     }
-    
+
     function makeTestProject() {
-        
+
         let projectId = $("#researchProjectId").val();
         let projectName = $("#researchProjectName").val();
         let json = {};
-        
+
         json['researchProjectId'] = projectId;
         json['researchProjectName'] = projectName;
 
@@ -145,7 +147,7 @@ context=ServletUtilities.getContext(request);
         //console.log("current parent in delete?? "+$(this).closest('div'));
         console.log("PROJECTID FOR DELETE: "+projectId);
         let json = {};
-        
+
         json['researchProjectId'] = projectId;
 
         $.ajax({
@@ -169,8 +171,7 @@ context=ServletUtilities.getContext(request);
             }
         });
     }
-    
+
 </script>
 
 <jsp:include page="../footer.jsp" flush="true"/>
-

@@ -46,6 +46,8 @@
               <h1>New Project</h1>
               <form id="create-project-form"
               method="post"
+              enctype="multipart/form-data"
+              name="create-project-form"
               action="../ProjectCreate"
               accept-charset="UTF-8">
                 <div class="form-group row">
@@ -61,7 +63,7 @@
                   </div>
                 </div>
                     <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-                      <label><strong><%=props.getProperty("userAccess") %></strong></label>
+                      <label><strong><%=props.getProperty("projectUserIds") %></strong></label>
                       <input class="form-control" name="projectUserIds" type="text" id="projectUserIds" placeholder="<%=props.getProperty("typeToSearch") %>">
                     </div>
                     <div id="projectUserIdsListContainer">
@@ -160,24 +162,25 @@
     	return true;
     }
 
-    function submitForm() {
-      console.log("submitForm entered");
+    function getUuidsFromAccessList(){
       let uuidsOnAccessList = userNamesOnAccessList.map(function(element){
         return element.split(":")[1];
       });
+      return uuidsOnAccessList;
+    }
+
+    function submitForm() {
+      console.log("submitForm entered");
+      let uuidsOnAccessList = getUuidsFromAccessList();
       let formDataArray = $("#create-project-form").serializeArray();
       let formJson = {};
       for(i=0; i<formDataArray.length; i++){
-
         if (Object.values(formDataArray[i])[0] === "projectUserIds"){
           formDataArray[i].value=uuidsOnAccessList;
         }
         let currentName = formDataArray[i].name;
-        // formJson["'" + currentName+ "'"]=formDataArray[i].value;
         formJson[currentName]=formDataArray[i].value;
       }
-      console.log("formJson is:");
-      console.log(JSON.stringify(formJson));
       $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectCreate',
         type: 'POST',
@@ -186,11 +189,16 @@
         contentType : 'application/json',
         success: function(data){
           console.log(data);
+          if(data.newProjectUUID){
+            window.location.replace('/projects/project.jsp?id='+data.newProjectUUID);
+          }else{
+            console.log("project id dne in response");
+          }
+          // window.location.replace('standard-upload?filename='+filename+"&isUserUpload=true");
         },
         error: function(x,y,z) {
           console.warn('%o %o %o', x, y, z);
         }
       });
-      // document.forms['create-project-form'].submit();
     }
     </script>
