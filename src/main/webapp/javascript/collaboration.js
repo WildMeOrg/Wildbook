@@ -263,6 +263,7 @@ function clickApproveDeny(ev) {
 		dataType: 'json',
 		success: function(d) {
 			if (d.success) {
+				$("<span class=\"collab-button\"></span>").insertBefore(p);
 				p.remove();
 				updateNotificationsWidget();
 			} else {
