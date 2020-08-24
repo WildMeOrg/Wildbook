@@ -188,7 +188,6 @@
       }
       console.log("form JSON");
       console.log(JSON.stringify(formJson));
-      debugger;
       $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectCreate',
         type: 'POST',
