@@ -1092,20 +1092,22 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
     
                 	viewer.addHandler('full-page', event => {
                 		if(event.fullPage==false){
-                			var marginFactor=1.0;
-                			var centerPoint=viewer.viewport.imageToViewportCoordinates(ft.parameters.x+ft.parameters.width/2,ft.parameters.y-ft.parameters.height/2);
-                	    	viewer.viewport.fitBounds(viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, ft.parameters.width/marginFactor, ft.parameters.height/marginFactor));
+                			//var marginFactor=1.0;
+                			//var centerPoint=viewer.viewport.imageToViewportCoordinates(ft.parameters.x+ft.parameters.width/2,ft.parameters.y-ft.parameters.height/2);
+                	    	//viewer.viewport.fitBounds(viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, ft.parameters.width/marginFactor, ft.parameters.height/marginFactor));
                 	    	//viewer.viewport.resize();
                 	    	
                 	    	var eventArgs={
 								acmId: viewer.id
 							};
+                	    	console.log("Trying to call switchAnnots");
                 	    	viewer.raiseEvent("switchAnnots", eventArgs);
                 	    	
                 	    }
                 	});
                 	
                 	viewer.addHandler('switchAnnots', event => {
+                		console.log("switch annots");
                 		var marginFactor=1.0;
                 		
                 		//need to get annot feature
