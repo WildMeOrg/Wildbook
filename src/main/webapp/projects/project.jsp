@@ -17,6 +17,8 @@
 <%
   String context="context0";
   context=ServletUtilities.getContext(request);
+  Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("project.jsp");
   String projId = request.getParameter("id").replaceAll("\\+", "").trim();
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
@@ -29,8 +31,6 @@
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
   String langCode=ServletUtilities.getLanguageCode(request);
   pageContext.setAttribute("projId", projId);
-  Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("project.jsp1");
   boolean proceed = true;
   boolean haveRendered = false;
   Properties collabProps = new Properties();

@@ -61,21 +61,6 @@ public class FormUtilities {
     out.println("</div>");
   }
 
-  public static void printAccumulatingMultiSelect(String fieldName,String label, List<String> displayOptions, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
-    // note how fieldName is variously manipulated in this method to make element ids and contents
-    String displayName = getDisplayName(fieldName, nameLookup);
-    out.println("<tr id=\""+fieldName+"Row\">");
-    out.println("<td id=\""+fieldName+"Title\"><br/><strong>"+displayName+"</strong><br/>");
-    out.println("<select multiple name=\""+fieldName+"\" id=\""+fieldName+"\"/>");
-    out.println("<option value=\"None\" selected=\"selected\"></option>");
-    for (int i=0; i<displayOptions.size(); i++) {
-      out.println("<option value=\""+valueOptions.get(i)+"\">"+displayOptions.get(i)+"</option>");
-    }
-    out.println("</select></td>");
-    out.println("</tr>");
-  }
-
-
   public static void setUpOrgDropdown(String fieldName, Boolean isForIndividualOrOccurrenceSearch, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
     User usr = AccessControl.getUser(request, myShepherd);
     if(usr != null){

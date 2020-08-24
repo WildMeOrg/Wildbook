@@ -780,6 +780,7 @@ if (sharky.getNames() != null) {
             </p>
             <%
               }
+              MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
               List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
               if(projects!=null && projects.size()>0){
                 %>
@@ -791,7 +792,7 @@ if (sharky.getNames() != null) {
                 <%
                 }
               }
-
+              %>
         </div>
 
         <div class="col-sm-6">
