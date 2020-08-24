@@ -62,11 +62,11 @@
                 </div>
                     <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
                       <label><strong><%=props.getProperty("userAccess") %></strong></label>
-                      <input class="form-control" name="userAccess" type="text" id="userAccess" placeholder="<%=props.getProperty("typeToSearch") %>">
+                      <input class="form-control" name="projectUserIds" type="text" id="projectUserIds" placeholder="<%=props.getProperty("typeToSearch") %>">
                     </div>
-                    <div id="userAccessListContainer">
+                    <div id="projectUserIdsListContainer">
                       <strong>Users To Be Granted Access</strong>
-                      <div id="userAccessList">
+                      <div id="projectUserIdsList">
                       </div>
                     </div>
                     <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
@@ -95,12 +95,12 @@
           }
           %>
     </div>
-    <jsp:include page="../footer.jsp" flush="true"/>
+<jsp:include page="../footer.jsp" flush="true"/>
 
     <script>
     let myName = '<%=request.getUserPrincipal().getName()%>';
     let userNamesOnAccessList = [];
-    $('#userAccess').autocomplete({
+    $('#projectUserIds').autocomplete({
       source: function(request, response){
         $.ajax({
           url: wildbookGlobals.baseUrl + '/UserGetSimpleJSON?searchUser=' + request.term,
@@ -124,20 +124,20 @@
       }
     });
 
-    function updateUserAccessDisplay(){
+    function updateprojectUserIdsDisplay(){
       userNamesOnAccessList = [...new Set(userNamesOnAccessList)];
-      $('#userAccessList').empty();
+      $('#projectUserIdsList').empty();
       for(i=0; i<userNamesOnAccessList.length; i++){
         let elem = "<div class=\"chip\">" + userNamesOnAccessList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";
-        $('#userAccessList').append(elem);
+        $('#projectUserIdsList').append(elem);
       }
     }
 
     function addUserToProject(){
-      if($('#userAccess').val()){
-        let currentUserToAdd = $('#userAccess').val();
+      if($('#projectUserIds').val()){
+        let currentUserToAdd = $('#projectUserIds').val();
         userNamesOnAccessList.push(currentUserToAdd);
-        updateUserAccessDisplay();
+        updateprojectUserIdsDisplay();
       }else{
         console.log("no value for user in addUserToProject");
       }
@@ -145,7 +145,7 @@
 
     function removeUserFromProj(name){
       userNamesOnAccessList = userNamesOnAccessList.filter(element => element !== name);
-      updateUserAccessDisplay();
+      updateprojectUserIdsDisplay();
     }
 
     function createButtonClicked() {
@@ -162,19 +162,35 @@
 
     function submitForm() {
       console.log("submitForm entered");
-      debugger;
       let uuidsOnAccessList = userNamesOnAccessList.map(function(element){
         return element.split(":")[1];
       });
       let formDataArray = $("#create-project-form").serializeArray();
+      let formJson = {};
       for(i=0; i<formDataArray.length; i++){
-        if (Object.values(formDataArray[i])[0] === userAccess){
+
+        if (Object.values(formDataArray[i])[0] === "projectUserIds"){
           formDataArray[i].value=uuidsOnAccessList;
         }
+        let currentName = formDataArray[i].name;
+        // formJson["'" + currentName+ "'"]=formDataArray[i].value;
+        formJson[currentName]=formDataArray[i].value;
       }
-      let formData = JSON.stringify(formDataArray);
-      console.log("formData is:");
-      console.log(formData);
+      console.log("formJson is:");
+      console.log(JSON.stringify(formJson));
+      $.ajax({
+        url: wildbookGlobals.baseUrl + '../ProjectCreate',
+        type: 'POST',
+        data: JSON.stringify(formJson),
+        dataType: 'json',
+        contentType : 'application/json',
+        success: function(data){
+          console.log(data);
+        },
+        error: function(x,y,z) {
+          console.warn('%o %o %o', x, y, z);
+        }
+      });
       // document.forms['create-project-form'].submit();
     }
     </script>
