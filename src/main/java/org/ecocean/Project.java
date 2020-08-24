@@ -176,7 +176,7 @@ public class Project implements java.io.Serializable {
     }
 
     public String getResearchProjectName() {
-        if (researchProjectName==null) return getResearchProjectId();
+        if (researchProjectName==null || "".equals(researchProjectName)) return getResearchProjectId();
         return researchProjectName;
     }
 
