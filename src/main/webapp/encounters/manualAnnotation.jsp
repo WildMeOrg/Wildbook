@@ -4,6 +4,7 @@
 		javax.jdo.Query,
 		java.util.Iterator,
 		java.util.List,
+                java.util.HashMap,
 		org.json.JSONObject,
 		org.ecocean.media.*,
 		org.ecocean.Annotation,
@@ -22,6 +23,18 @@ private static String encodeValue(String value) {
         ex.printStackTrace();
     }
     finally{return value;}
+}
+
+private String rotationInfo(MediaAsset ma) {
+    if ((ma == null) || (ma.getMetadata() == null)) return null;
+    HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
+    if (orient == null) return null;
+    for (String k : orient.keySet()) {
+System.out.println("rotationInfo: " + k + "=" + orient.get(k) + " on " + ma);
+        if (orient.get(k).matches(".*90.*")) return orient.get(k);
+        if (orient.get(k).matches(".*270.*")) return orient.get(k);
+    }
+    return null;
 }
 %>
 
@@ -298,6 +311,7 @@ try{
 	    //return;
 	}
 	double scale = imgHeight / ma.getHeight();
+        if (rotationInfo(ma) != null) scale = imgHeight / ma.getWidth();  //90deg so we have to adjust scale
 	
 	%>
 	
