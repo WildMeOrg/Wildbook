@@ -120,6 +120,13 @@ public class Project implements java.io.Serializable {
         }
     }
 
+    public void removeUser(User user) {
+        if (users.contains(user)) {
+            users.remove(user);
+            setTimeLastModified();
+        }
+    }
+
     public List<User> getUsers() {
         return users;
     }
