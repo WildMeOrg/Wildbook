@@ -51,6 +51,17 @@ java.util.*" %>
     return false;
   }
 
+    String rotationInfo(MediaAsset ma) {
+        if ((ma == null) || (ma.getMetadata() == null)) return null;
+        HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
+        if (orient == null) return null;
+        for (String k : orient.keySet()) {
+System.out.println("rotationInfo: " + k + "=" + orient.get(k) + " on " + ma);
+            if (orient.get(k).matches(".*90.*")) return orient.get(k);
+            if (orient.get(k).matches(".*270.*")) return orient.get(k);
+        }
+        return null;
+    }
   %>
 
 <%
@@ -227,6 +238,7 @@ function forceLink(el) {
                                                 ja.put("iaClass", ann.getIAClass());
                                                 ja.put("identificationStatus", ann.getIdentificationStatus());
                                                 j.put("annotation", ja);
+                                                j.put("rotation", rotationInfo(ma));
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;
