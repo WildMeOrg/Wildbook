@@ -465,6 +465,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>ProjectUpdate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectUpdate</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>EncounterRemoveUser</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterRemoveUser</servlet-class>
   </servlet>
@@ -1624,6 +1629,11 @@
   <servlet-mapping>
     <servlet-name>ProjectGet</servlet-name>
     <url-pattern>/ProjectGet</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectUpdate</servlet-name>
+    <url-pattern>/ProjectUpdate</url-pattern>
   </servlet-mapping>
 
   <!--SUTime testing-->
