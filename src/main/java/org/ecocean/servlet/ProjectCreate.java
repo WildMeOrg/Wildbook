@@ -82,6 +82,7 @@ public class ProjectCreate extends HttpServlet {
 
                 Project newProject = new Project(researchProjectId);
                 myShepherd.storeNewProject(newProject);
+                res.put("newProjectUUID", newProject.getId());
                 if (researchProjectName!=null) {
                     newProject.setResearchProjectName(researchProjectName);
                 }
