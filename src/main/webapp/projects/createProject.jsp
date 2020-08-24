@@ -80,9 +80,9 @@
                         FormUtilities.setUpOrgDropdown("organizationAccess", false, props, out, request, myShepherd);
                       %>
                     </div>
-                    <input id="createProjectButton" type="button" onclick="createButtonClicked();">
-                      <%=props.getProperty("submit_send") %>
-                    </input>
+                    <button type="button" id="createProjectButton" onclick="createButtonClicked();">
+                      <span><%=props.getProperty("submit_send") %>  </span><span class="button-icon" aria-hidden="true"></span>
+                    </button>
               </form>
               <h4>To add encounters to this project, use the project option in encounter search</h4>
               <%
@@ -174,13 +174,21 @@
       let uuidsOnAccessList = getUuidsFromAccessList();
       let formDataArray = $("#create-project-form").serializeArray();
       let formJson = {};
+      formJson["organizationAccess"] = [];
       for(i=0; i<formDataArray.length; i++){
         if (Object.values(formDataArray[i])[0] === "projectUserIds"){
           formDataArray[i].value=uuidsOnAccessList;
         }
         let currentName = formDataArray[i].name;
-        formJson[currentName]=formDataArray[i].value;
+        if (Object.values(formDataArray[i])[0] === "organizationAccess"){
+          formJson[currentName].push(formDataArray[i].value);
+        }else{
+          formJson[currentName]=formDataArray[i].value;
+        }
       }
+      console.log("form JSON");
+      console.log(JSON.stringify(formJson));
+      debugger;
       $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectCreate',
         type: 'POST',
