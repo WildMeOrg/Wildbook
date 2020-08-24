@@ -945,12 +945,14 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			console.log('mouseover2 with num viewers: '+viewers.size);
 			annotClick(ev); 
 			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
+			var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
 			//tell seadragon to pan to the annotation
-			if(viewers.has(m_acmId )){
-				//console.log("Found viewer: "+m_acmId );
-				var viewer=viewers.get(m_acmId );
+			if(viewers.has(taskId+"-"+m_acmId )){
+				console.log("Found viewer: "+taskId+"-"+m_acmId );
+				var viewer=viewers.get(taskId+"-"+m_acmId );
 				var eventArgs={
-					acmId: m_acmId
+					acmId: m_acmId,
+					taskId: taskId
 				};
 				viewer.raiseEvent("switchAnnots", eventArgs);
 			}
@@ -976,7 +978,7 @@ console.info('%d ===> %s', num, acmId);
 
 
 	//now the image guts
-	h = '<div id="'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
+	h = '<div id="'+taskId+'-'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 	
 	
@@ -1057,7 +1059,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 
                 
               		var viewer=OpenSeadragon({
-                    	id: acmId,
+                    	id: taskId+"-"+acmId,
                     	
                         tileSources: {
                             type: 'image',
@@ -1119,7 +1121,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 	});
                 	
                 	//add this viewer to the global Map
-                	viewers.set(acmId,viewer);
+                	viewers.set(taskId+"-"+acmId,viewer);
                 	features.set(acmId, ft);
             	
             	
