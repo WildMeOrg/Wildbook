@@ -38,7 +38,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
             <tr>
               <th class="tissueSample">Project Name</th>
               <th class="tissueSample">Percent Annotations Identified</th>
-              <th class="tissueSample">Number of Individuals</th>
+              <th class="tissueSample">Number of Encounters</th>
             </tr>
         </thead>
         <tbody>
@@ -60,7 +60,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                         <tr>
                           <td class="tissueSample"><a href="<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>"> <%=userProjects.get(j).getResearchProjectName()%></a></td>
                           <td class="tissueSample">%<%=userProjects.get(j).getPercentIdentified()%></td>
-                          <td class="tissueSample"><%=userProjects.get(j).getNumberOfIndividuals()%></td>
+                          <td class="tissueSample"><%=userProjects.get(j).getEncounters().size()%></td>
                         </tr>
                       <%
                     }

@@ -48,29 +48,32 @@
       System.out.println("project acquired! It is:");
       System.out.println(project.toString());
     %>
-    <div class="container maincontent" align="center">
+    <div class="container maincontent">
           <%
           try{
             if(currentUser != null){
+              System.out.println("projectname is" + project.getResearchProjectName());
+              %>
+              <h3>Project: <%=project.getResearchProjectName() %></h3>
+              <%
               if(encounters.size()<1){
                 %>
-                    </tbody>
-                  </table>
                   <h4>You don't have any encounters in this project yet</h4>
                 <%
               }else{
                 %>
-                <table class="row tissueSample">
-                  <thead>
-                    <tr>
-                      <th class="tissueSample">Encounter</th>
-                      <th class="tissueSample">Individual</th>
-                      <th class="tissueSample">Location</th>
-                      <th class="tissueSample">Project ID</th>
-                      <th class="tissueSample">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <div align="center">
+                  <table class="row tissueSample">
+                    <thead>
+                      <tr>
+                        <th class="tissueSample">Encounter</th>
+                        <th class="tissueSample">Individual</th>
+                        <th class="tissueSample">Location</th>
+                        <th class="tissueSample">Project ID</th>
+                        <th class="tissueSample">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
                 <%
                 for(int i=0; i<encounters.size(); i++){
                   if(encounters.size()>0){
@@ -97,7 +100,8 @@
           finally{
           }
           %>
-          </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
     </div>
 <jsp:include page="../footer.jsp" flush="true"/>
