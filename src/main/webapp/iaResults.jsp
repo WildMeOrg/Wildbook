@@ -358,34 +358,7 @@ h4.intro.accordion .rotate-chevron.down {
     transform: rotate(90deg);
 }
 </style>
-      <style>
-        .navigator .highlight{
-            opacity:    0.1;
-            filter:     alpha(opacity=10);
-            outline:    2px solid #900;
-            background-color: #900;
-            outline-style: dashed;
-        outline-color: green;
-        outline-width: 5px;
-        }
-        .highlight{
-        
-        /*
-            opacity:    0.5;
-            filter:     alpha(opacity=50);
-            outline:    14px auto #00FF00;
-        */
-        outline-style: dashed;
-        outline-color: green;
-        outline-width: 5px;
-            
-        }
-        .highlight:hover, .highlight:focus{
-            filter:     alpha(opacity=10);
-            opacity:    0.1;
-            background-color: transparent;
-        }
-        </style>
+
 <script>
 	
 	
@@ -968,7 +941,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
 			// ----- END Hotspotter IA Illustration-----
 		}
-		$('.annot-summary').on('mouseover', function(ev) { 
+		$('.annot-summary').on('mousemove', function(ev) { 
 			console.log('mouseover2 with num viewers: '+viewers.size);
 			annotClick(ev); 
 			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
@@ -1095,18 +1068,6 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     	prefixUrl: 'javascript/openseadragon/images/',
                     	navigationControlAnchor: OpenSeadragon.ControlAnchor.TOP_RIGHT,
                     	visibilityRatio: 1.0,
-                    	//constrainDuringPan: true,
-                        overlays: [{
-                            id: 'overlay-'+acmId,
-                            px: ft.parameters.x,
-                            py: ft.parameters.y,
-                            width: ft.parameters.width,
-                            height: ft.parameters.height,
-                            className: 'highlight'
-                        }],
-                        //debugMode: true
-                        //preserveViewport: false,
-                        //autoResize:true
                         constrainDuringPan: true,
                         animationTime: 0
 
@@ -1120,7 +1081,13 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 	   	var height=ft.parameters.height;
                 	   	var rec=viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, width/marginFactor, height/marginFactor);
                 	   	viewer.viewport.fitBounds(rec);
-                	   	//viewer.viewport.panTo(new OpenSeadragon.Point(0.5*marginFactor,0.5*marginFactor));
+                        var elt = document.createElement("div");
+                        elt.id = "overlay-"+acmId;
+                        elt.className = "seadragon-highlight";
+                        viewer.addOverlay({
+                            element: elt,
+                            location: viewer.viewport.imageToViewportRectangle(ft.parameters.x, ft.parameters.y, ft.parameters.width, ft.parameters.height)
+                        });
                 	});
     
                 	viewer.addHandler('full-page', event => {
@@ -1129,23 +1096,24 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 			var centerPoint=viewer.viewport.imageToViewportCoordinates(ft.parameters.x+ft.parameters.width/2,ft.parameters.y-ft.parameters.height/2);
                 	    	viewer.viewport.fitBounds(viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, ft.parameters.width/marginFactor, ft.parameters.height/marginFactor));
                 	    	//viewer.viewport.resize();
+                	    	
+                	    	var eventArgs={
+								acmId: viewer.id
+							};
+                	    	viewer.raiseEvent("switchAnnots", eventArgs);
+                	    	
                 	    }
                 	});
                 	
                 	viewer.addHandler('switchAnnots', event => {
-                		console.log('switchAnnots to: '+event.acmId);
-                		//viewer.forceRedraw();
-                		//viewer.world.resetItems();
                 		var marginFactor=1.0;
                 		
                 		//need to get annot feature
                 		var ft = features.get(event.acmId);
-                		
                 		var width=ft.parameters.width;
                 	   	var height=ft.parameters.height;
                 	   	var rec=viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, width/marginFactor, height/marginFactor);
                 	   	viewer.viewport.fitBounds(rec);
-                	   	//viewer.viewport.panTo(new OpenSeadragon.Point(0.5*marginFactor,0.5*marginFactor));
                 	});
                 	
                 	//add this viewer to the global Map

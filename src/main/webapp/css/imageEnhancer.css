@@ -192,3 +192,31 @@ div iek-new-labeled-wrapper {
 .number-cell-on-asset {
     left: -10%;
 }
+
+.navigator .seadragon-highlight{
+            opacity:    0.1;
+            filter:     alpha(opacity=10);
+            outline:    2px solid #900;
+            background-color: #900;
+            outline-style: dashed;
+        outline-color: green;
+        outline-width: 5px;
+        }
+.seadragon-highlight{
+        
+        /*
+            opacity:    0.5;
+            filter:     alpha(opacity=50);
+            outline:    14px auto #00FF00;
+        */
+        outline-style: dashed;
+        outline-color: green;
+        outline-width: 5px;
+            
+        }
+ .seadragon-highlight:hover, .seadragon-highlight:focus{
+            filter:     alpha(opacity=10);
+            opacity:    0.1;
+            background-color: transparent;
+        }
+
