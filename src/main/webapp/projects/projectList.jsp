@@ -31,34 +31,37 @@ User currentUser = AccessControl.getUser(request, myShepherd);
     <div class="container maincontent" align="center">
       <div class="flexbox">
         <h2 class="flex-left-justify">Projects for <%=currentUser.getDisplayName()%></h2>
-        <a href="<%=urlLoc%>/projects/createProject.jsp"><button type="button" name="button" class="flex-right-justify">Add Project</button></a>
+        <a href="<%=urlLoc%>/projects/createProject.jsp"><button type="button" name="button" class="flex-right-justify">Add Project <span class="glyphicon glyphicon-plus"></span></button></a>
       </div>
-      <table class="row tissueSample">
-      	<thead>
-            <tr>
-              <th class="tissueSample">Project Name</th>
-              <th class="tissueSample">Percent Annotations Identified</th>
-              <th class="tissueSample">Number of Encounters</th>
-            </tr>
-        </thead>
-        <tbody>
+
           <%
           try{
               if(currentUser != null){
+                System.out.println("got here!");
                 List<Project> userProjects = myShepherd.getProjectsForUserId(currentUser.getId());
-                if(userProjects.size()<1){
+                // System.out.println("userProject list size is " + userProjects.size());
+                if(userProjects==null || userProjects.size()<1){
                   %>
-                  <tr>
-                    <td> You don't have any projects yet</td>
-                  </tr>
+                  <h4>You don't have any projects yet</h4>
                   <%
                 }else{
+                  %>
+                  <table class="row tissueSample">
+                  	<thead>
+                        <tr>
+                          <th class="tissueSample">Project Name</th>
+                          <th class="tissueSample">Percent Annotations Identified</th>
+                          <th class="tissueSample">Number of Encounters</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                  <%
                   for(int j=0; j<userProjects.size(); j++){
                     if(userProjects.size()>0){
                       %>
 
-                        <tr>
-                          <td class="tissueSample"><a href="<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>"> <%=userProjects.get(j).getResearchProjectName()%></a></td>
+                        <tr onclick="window.location='<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>'" class="clickable-row">
+                          <td class="tissueSample"><%=userProjects.get(j).getResearchProjectName()%></td>
                           <td class="tissueSample">%<%=userProjects.get(j).getPercentIdentified()%></td>
                           <td class="tissueSample"><%=userProjects.get(j).getEncounters().size()%></td>
                         </tr>
