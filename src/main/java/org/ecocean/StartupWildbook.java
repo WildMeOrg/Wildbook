@@ -49,6 +49,7 @@ public class StartupWildbook implements ServletContextListener {
 
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
+    startWildbookScheduledTaskService(myShepherd, request);
     ensureProfilePhotoKeywordExists(myShepherd);
 
   }
@@ -210,7 +211,7 @@ public class StartupWildbook implements ServletContextListener {
         }
     }
 
-    private void startWildbookScheduledTaskService(Shepherd myShepherd) {
+    private static void startWildbookScheduledTaskService(Shepherd myShepherd, HttpServletRequest request) {
         ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
         ses.scheduleAtFixedRate(new Runnable() {
             @Override
@@ -218,7 +219,7 @@ public class StartupWildbook implements ServletContextListener {
                 ArrayList<WildbookScheduledTask> scheduledTasks = myShepherd.getAllIncompleteWildbookScheduledTasks();
                 for (WildbookScheduledTask scheduledTask : scheduledTasks) {
                     if (scheduledTask.isTaskEligibleForExecution()) {
-                        scheduledTask.execute();
+                        scheduledTask.execute(myShepherd,request);
                     }
                 }
             }
