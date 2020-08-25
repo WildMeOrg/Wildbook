@@ -23,40 +23,16 @@ String dispToString(Integer i) {
 
 String context="context0";
 context=ServletUtilities.getContext(request);
-
-  //let's load encounterSearch.properties
-  //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-
-
-  Properties encprops = new Properties();
-  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
-  encprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
-
-
+  Properties projprops = new Properties();
+  projprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("searchResults.jsp");
-
-
-
-
-
-  //Vector rEncounters = new Vector();
-
-  //myShepherd.beginDBTransaction();
-
   try{
-
-  	//EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
- 	 //rEncounters = queryResult.getResult();
-
-
-//--let's estimate the number of results that might be unique
-
-  Integer numUniqueEncounters = null;
-  Integer numUnidentifiedEncounters = null;
-  Integer numDuplicateEncounters = null;
-
+    //--let's estimate the number of results that might be unique
+    Integer numUniqueEncounters = null;
+    Integer numUnidentifiedEncounters = null;
+    Integer numDuplicateEncounters = null;
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -76,7 +52,7 @@ context=ServletUtilities.getContext(request);
 <div class="container maincontent">
 
 
-      <h1 class="intro"><%=encprops.getProperty("title")%>
+      <h1 class="intro"><%=projprops.getProperty("title")%>
       </h1>
 
 <%
@@ -89,31 +65,31 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 
 <ul id="tabmenu">
 
-  <li><a class="active"><%=encprops.getProperty("table")%>
+  <li><a><%=projprops.getProperty("table")%>
+  </a></li>
+  <li><a class="active"
+    href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projprops.getProperty("projectManagement")%>
   </a></li>
   <li><a
-    href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
+    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
-  </a></li>
-  <li><a
-    href="../xcalendar/calendar.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=projprops.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=queryString %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=queryString %>"><%=projprops.getProperty("export")%>
    </a></li>
 
 </ul>
 
 
-<p><%=encprops.getProperty("belowMatches")%></p>
+<p><%=projprops.getProperty("belowMatches")%></p>
 
 <style>
 .ptcol-maxYearsBetweenResightings {
@@ -131,16 +107,16 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 
 /*
 
-    <strong><%=encprops.getProperty("markedIndividual")%>
-    <strong><%=encprops.getProperty("number")%>
+    <strong><%=projprops.getProperty("markedIndividual")%>
+    <strong><%=projprops.getProperty("number")%>
     if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
 
-	    <strong><%=encprops.getProperty("taxonomy")%>
-	    <strong><%=encprops.getProperty("submitterName")%>
-	    <strong><%=encprops.getProperty("date")%>
-	    <strong><%=encprops.getProperty("location")%>
-	    <strong><%=encprops.getProperty("locationID")%>
-	    <strong><%=encprops.getProperty("occurrenceID")%>
+	    <strong><%=projprops.getProperty("taxonomy")%>
+	    <strong><%=projprops.getProperty("submitterName")%>
+	    <strong><%=projprops.getProperty("date")%>
+	    <strong><%=projprops.getProperty("location")%>
+	    <strong><%=projprops.getProperty("locationID")%>
+	    <strong><%=projprops.getProperty("occurrenceID")%>
 */
 
 
@@ -175,54 +151,54 @@ var colDefn = [
 
 	{
 		key: 'individualID',
-		label: '<%=encprops.getProperty("ID")%>',
+		label: '<%=projprops.getProperty("ID")%>',
 		value: _colIndLink,
 		sortValue: function(o) { return o.get("displayName"); },
 	},
 	{
 		key: 'occurrenceID',
-		label: '<%=encprops.getProperty("sightingID")%>',
+		label: '<%=projprops.getProperty("sightingID")%>',
 		value: _occurrenceID,
 	},
   {
     key: 'otherCatalogNumbers',
-    label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
+    label: '<%=projprops.getProperty("alternateID")%>'//'Alternate ID',
   },
 	{
 		key: 'date',
-		label: '<%=encprops.getProperty("date")%>',
+		label: '<%=projprops.getProperty("date")%>',
 		value: _colEncDate,
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	// {
 	// 	key: 'verbatimLocality',
-	// 	label: '<%=encprops.getProperty("location")%>',
+	// 	label: '<%=projprops.getProperty("location")%>',
 	// },
 	{
 		key: 'locationID',
-		label: '<%=encprops.getProperty("locationID")%>',
+		label: '<%=projprops.getProperty("locationID")%>',
 		value: _notUndefined('locationID'),
 	},
 	{
 		key: 'taxonomy',
-		label: '<%=encprops.getProperty("taxonomy")%>',
+		label: '<%=projprops.getProperty("taxonomy")%>',
 		value: _colTaxonomy,
 	},
 	{
 		key: 'submitterID',
-		label: '<%=encprops.getProperty("submitterName")%>',
+		label: '<%=projprops.getProperty("submitterName")%>',
 		value: _notUndefined('submitterID'),
 	},
 	{
 		key: 'creationDate',
-		label: '<%=encprops.getProperty("created")%>',
+		label: '<%=projprops.getProperty("created")%>',
 		value: _colCreationDate,
 		sortValue: _colCreationDateSort,
 	},
 	{
 		key: 'modified',
-		label: '<%=encprops.getProperty("editDate")%>',
+		label: '<%=projprops.getProperty("editDate")%>',
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
@@ -1004,9 +980,9 @@ console.log(t);
 </script>
 
 <p class="table-filter-text">
-<input placeholder="<%=encprops.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="<%=encprops.getProperty("filter") %>" />
-<input type="button" value="<%=encprops.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<input placeholder="<%=projprops.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="<%=projprops.getProperty("filter") %>" />
+<input type="button" value="<%=projprops.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 <div class="pageableTable-wrapper">
@@ -1020,15 +996,15 @@ console.log(t);
 <table width="810" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td align="left">
-      <p><strong><%=encprops.getProperty("matchingEncounters")%>
+      <p><strong><%=projprops.getProperty("matchingEncounters")%>
       </strong>: <span id="count-total"></span>
         <%
           if (request.getUserPrincipal()!=null) {
         %>
         <br/>
-        <span id="count-ided"><%=dispToString(numUniqueEncounters)%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
-        <span id="count-unid"><%=dispToString(numUnidentifiedEncounters)%></span> <%=encprops.getProperty("unidentified")%><br/>
-        <span id="count-dailydup"><%=dispToString(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
+        <span id="count-ided"><%=dispToString(numUniqueEncounters)%></span> <%=projprops.getProperty("identifiedUnique")%><br/>
+        <span id="count-unid"><%=dispToString(numUnidentifiedEncounters)%></span> <%=projprops.getProperty("unidentified")%><br/>
+        <span id="count-dailydup"><%=dispToString(numDuplicateEncounters)%></span> <%=projprops.getProperty("dailyDuplicates")%>
         <%
           }
         %>
@@ -1036,7 +1012,7 @@ console.log(t);
       <%
         myShepherd.beginDBTransaction();
       %>
-      <p><strong><%=encprops.getProperty("totalEncounters")%>
+      <p><strong><%=projprops.getProperty("totalEncounters")%>
       </strong>: <%=(myShepherd.getNumEncounters() + (myShepherd.getNumUnidentifiableEncounters()))%>
       </p>
     </td>
@@ -1048,15 +1024,15 @@ console.log(t);
   <tr>
     <td align="left">
 
-      <p><strong><%=encprops.getProperty("queryDetails")%>
+      <p><strong><%=projprops.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=projprops.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=prettyPrint.toString().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
+        <%=prettyPrint.toString().replaceAll("locationField", projprops.getProperty("location")).replaceAll("locationCodeField", projprops.getProperty("locationID")).replaceAll("verbatimEventDateField", projprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", projprops.getProperty("alternateID")).replaceAll("behaviorField", projprops.getProperty("behavior")).replaceAll("Sex", projprops.getProperty("sex")).replaceAll("nameField", projprops.getProperty("nameField")).replaceAll("selectLength", projprops.getProperty("selectLength")).replaceAll("numResights", projprops.getProperty("numResights")).replaceAll("vesselField", projprops.getProperty("vesselField"))%>
       </p>
 
-      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
+      <p class="caption"><strong><%=projprops.getProperty("jdoql")%>
       </strong><br/>
         <%=filter %>
       </p>
