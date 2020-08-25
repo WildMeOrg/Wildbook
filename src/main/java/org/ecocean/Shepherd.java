@@ -30,6 +30,7 @@ import org.ecocean.ia.Task;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
+import org.ecocean.scheduled.WildbookScheduledTask;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -2656,6 +2657,7 @@ public class Shepherd {
     return getAllMarkedIndividualsSightedAtLocationID(locationID).size();
   }
 
+
   public ArrayList<Encounter> getAllEncountersForSpecies(String genus, String specificEpithet) { 
     String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"'";
       Query samples = pm.newQuery(keywordQueryString);
@@ -2801,6 +2803,24 @@ public class Shepherd {
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     return acceptedEncounters;
 
+  }
+
+  public ArrayList<WildbookScheduledTask> getAllIncompleteWildbookScheduledTasks() {
+    ArrayList<WildbookScheduledTask> taskList = new ArrayList();
+    Query query = null;
+    try {
+      String filter = "this.completed == \"f\"";
+      Extent taskClass = pm.getExtent(WildbookScheduledTask.class, true);
+      query = pm.newQuery(taskClass, filter);
+      query.setOrdering("this.taskScheduledExecutionTimeLong descending");
+      Collection c = (Collection) (query.execute());
+      taskList = new ArrayList(c);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return taskList;
   }
 
   /**
