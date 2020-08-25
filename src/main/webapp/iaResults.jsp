@@ -947,9 +947,9 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
 			var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
 			//tell seadragon to pan to the annotation
-			if(viewers.has(taskId+"-"+m_acmId )){
-				console.log("Found viewer: "+taskId+"-"+m_acmId );
-				var viewer=viewers.get(taskId+"-"+m_acmId );
+			if(viewers.has(taskId+"+"+m_acmId )){
+				console.log("Found viewer: "+taskId+"+"+m_acmId );
+				var viewer=viewers.get(taskId+"+"+m_acmId );
 				var eventArgs={
 					acmId: m_acmId,
 					taskId: taskId
@@ -978,7 +978,7 @@ console.info('%d ===> %s', num, acmId);
 
 
 	//now the image guts
-	h = '<div id="'+taskId+'-'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
+	h = '<div id="'+taskId+'+'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 	
 	
@@ -1045,7 +1045,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 //console.info('illustrationUrl '+illustrationUrl);
             var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
-            	//console.log("YY"+ft.parameters.x);
+            	//console.log(mainAsset.url);
                 
             	var img = $('<img src="' + mainAsset.url + '" />');
                 //var imgLink=$('<a target="_blank" href="' + mainAsset.url + '" />');
@@ -1055,12 +1055,11 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 img.on('load', function(ev) { imageLoaded(ev.target, ft); });
                 //$('#task-' + taskId + ' .annot-' + acmId).append(imgLink);
                 
-                
-                
+
+     
                 
               		var viewer=OpenSeadragon({
-                    	id: taskId+"-"+acmId,
-                    	
+                    	id: taskId+"+"+acmId,
                         tileSources: {
                             type: 'image',
                             url:  mainAsset.url,
@@ -1071,57 +1070,67 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     	navigationControlAnchor: OpenSeadragon.ControlAnchor.TOP_RIGHT,
                     	visibilityRatio: 1.0,
                         constrainDuringPan: true,
-                        animationTime: 0
+                        animationTime: 0,
 
                 	});
                 	
-              		viewer.world.setAutoRefigureSizes(true);
+              		//viewer.world.setAutoRefigureSizes(true);
               		
                 	viewer.addHandler('open', function() {
+                		var ft = features.get(viewer.id.split('+')[1]);
+                		//console.log(ft);
                 		var marginFactor=1;
                 		var width=ft.parameters.width;
                 	   	var height=ft.parameters.height;
-                	   	var rec=viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, width/marginFactor, height/marginFactor);
+                	   	
+                	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
+                        if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
+                        var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
                         var elt = document.createElement("div");
-                        elt.id = "overlay-"+acmId;
+                        elt.id = "overlay-"+acmId+"-"+viewer.id;
                         elt.className = "seadragon-highlight";
+                       
+                        
                         viewer.addOverlay({
                             element: elt,
-                            location: viewer.viewport.imageToViewportRectangle(ft.parameters.x, ft.parameters.y, ft.parameters.width, ft.parameters.height)
+                            checkResize: true,
+                            location: viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*scale, ft.parameters.y*scale, ft.parameters.width*scale, ft.parameters.height*scale)
                         });
+                	
                 	});
     
-                	viewer.addHandler('full-page', event => {
+                	viewer.addHandler('full-screen', event => {
                 		if(event.fullPage==false){
-                			//var marginFactor=1.0;
-                			//var centerPoint=viewer.viewport.imageToViewportCoordinates(ft.parameters.x+ft.parameters.width/2,ft.parameters.y-ft.parameters.height/2);
-                	    	//viewer.viewport.fitBounds(viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, ft.parameters.width/marginFactor, ft.parameters.height/marginFactor));
-                	    	//viewer.viewport.resize();
-                	    	
-                	    	var eventArgs={
-								acmId: viewer.id
+                			var eventArgs={
+								acmId: viewer.id.split('+')[1]
 							};
-                	    	console.log("Trying to call switchAnnots");
+                	    	//console.log("Trying to call switchAnnots on amId: "+);
                 	    	viewer.raiseEvent("switchAnnots", eventArgs);
                 	    	
                 	    }
                 	});
                 	
                 	viewer.addHandler('switchAnnots', event => {
-                		console.log("switch annots");
+                		//console.log("switch annots with acmId: "+event.acmId);
+                		
                 		var marginFactor=1.0;
                 		
                 		//need to get annot feature
-                		var ft = features.get(event.acmId);
+                		var ft = features.get(viewer.id.split('+')[1]);
+                		console.log("switch annots with acmId: "+event.acmId+"("+ft.parameters.width+","+ft.parameters.height+","+ft.parameters.x+","+ft.parameters.y+")");
                 		var width=ft.parameters.width;
                 	   	var height=ft.parameters.height;
-                	   	var rec=viewer.viewport.imageToViewportRectangle(ft.parameters.x*marginFactor, ft.parameters.y*marginFactor, width/marginFactor, height/marginFactor);
+                	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
+                        if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
+                        var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
                 	});
                 	
+
+                	
                 	//add this viewer to the global Map
-                	viewers.set(taskId+"-"+acmId,viewer);
+                	viewers.set(taskId+"+"+acmId,viewer);
                 	features.set(acmId, ft);
             	
             	
@@ -1397,7 +1406,7 @@ function drawFeature(imgEl, ft) {
     //f.css('height', (ft.parameters.height * scale) + 'px');
     //f.css('left', (ft.parameters.x * scale) + 'px');
     //f.css('top', (ft.parameters.y * scale) + 'px');
-    if (ft.parameters.theta) $('#overlay-'+acmId).css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
+    //if (ft.parameters.theta) $('#overlay-'+acmId).css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
 //console.info('mmmm %o', f);
     //$(imgEl).parent().append(f);
 }
