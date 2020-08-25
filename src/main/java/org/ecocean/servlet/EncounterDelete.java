@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
+import org.ecocean.ia.Task;
 import org.ecocean.servlet.importer.ImportTask;
 
 import javax.servlet.ServletConfig;
@@ -175,13 +176,18 @@ public class EncounterDelete extends HttpServlet {
 
           ArrayList<Annotation> anns = enc2trash.getAnnotations();
           for (Annotation ann : anns) {
-            if (!ann.isTrivial()) {
-              myShepherd.beginDBTransaction();
-              enc2trash.removeAnnotation(ann);
-              myShepherd.updateDBTransaction();
-              myShepherd.throwAwayAnnotation(ann);
-              myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+            enc2trash.removeAnnotation(ann);
+            myShepherd.updateDBTransaction();
+            List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
+            if (iaTasks!=null&&!iaTasks.isEmpty()) {
+              for (Task iaTask : iaTasks) {
+                iaTask.removeObject(ann);
+                myShepherd.updateDBTransaction();
+              }
             }
+            myShepherd.throwAwayAnnotation(ann);
+            myShepherd.commitDBTransaction();
           }
 
           //now delete for good

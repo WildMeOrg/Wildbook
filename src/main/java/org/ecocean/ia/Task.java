@@ -112,6 +112,22 @@ public class Task implements java.io.Serializable {
         return false;
     }
 
+    public boolean removeObject(Annotation ann) {
+        if (ann!=null&&objectAnnotations!=null&&objectAnnotations.contains(ann)) {
+            objectAnnotations.remove(ann);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeObject(MediaAsset ma) {
+        if (ma!=null&&objectMediaAssets!=null&&objectMediaAssets.contains(ma)) {
+            objectMediaAssets.remove(ma);
+            return true;
+        }
+        return false;
+    }
+
     public List<Task> getChildren() {
         return children;
     }
