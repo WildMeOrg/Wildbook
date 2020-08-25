@@ -1,0 +1,13 @@
+ <!DOCTYPE jdo PUBLIC "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN" "http://java.sun.com/dtd/jdo_2_0.dtd">
+
+<jdo>
+  <package name="org.ecocean.scheduled">
+      
+    <class name="WildbookScheduledTask" identity-type="application" table="WILDBOOKSCHEDULEDTASK">
+      <field name="id" primary-key="true">
+        <column length="36" name="ID"/>
+      </field>
+    </class>
+    
+  </package>
+</jdo>
