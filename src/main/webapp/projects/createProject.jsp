@@ -62,18 +62,22 @@
                     <input class="form-control" type="text" style="position: relative; z-index: 101;" id="researchProjectId" name="researchProjectId" size="20" />
                   </div>
                 </div>
-                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-                      <label><strong><%=props.getProperty("projectUserIds") %></strong></label>
-                      <input class="form-control" name="projectUserIds" type="text" id="projectUserIds" placeholder="<%=props.getProperty("typeToSearch") %>">
-                    </div>
-                    <div id="projectUserIdsListContainer">
-                      <strong>Users To Be Granted Access</strong>
-                      <div id="projectUserIdsList">
+                <div class="form-group row">
+                      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+                        <label><strong><%=props.getProperty("projectUserIds") %></strong></label>
+                        <input class="form-control" name="projectUserIds" type="text" id="projectUserIds" placeholder="<%=props.getProperty("typeToSearch") %>">
                       </div>
-                    </div>
-                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-                      <input id="addUserToProjectButton" name="addUserToProjectButton" type="button" value="<%=props.getProperty("addUserToProject")%>" onclick="addUserToProject();">
-                      </input>
+                      <div id="projectUserIdsListContainer">
+                        <div id="access-list-title-container">
+
+                        </div>
+                        <div id="projectUserIdsList">
+                        </div>
+                      </div>
+                      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+                        <input id="addUserToProjectButton" name="addUserToProjectButton" type="button" value="<%=props.getProperty("addUserToProject")%>" onclick="addUserToProject();">
+                        </input>
+                      </div>
                     </div>
                     <div class="row">
                       <%
@@ -129,6 +133,10 @@
     function updateprojectUserIdsDisplay(){
       userNamesOnAccessList = [...new Set(userNamesOnAccessList)];
       $('#projectUserIdsList').empty();
+      $('#access-list-title-container').empty();
+      if(userNamesOnAccessList.length >0){
+        $('#access-list-title-container').append("<strong>Users To Be Granted Access</strong>");
+      }
       for(i=0; i<userNamesOnAccessList.length; i++){
         let elem = "<div class=\"chip\">" + userNamesOnAccessList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";
         $('#projectUserIdsList').append(elem);
