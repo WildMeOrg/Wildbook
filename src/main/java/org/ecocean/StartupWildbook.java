@@ -2,6 +2,7 @@ package org.ecocean;
 
 import java.io.File;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import java.net.URL;
 
 import org.ecocean.*;
 import org.ecocean.queue.*;
+import org.ecocean.scheduled.WildbookScheduledTask;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.IAPluginManager;
 import org.ecocean.grid.MatchGraphCreationThread;
@@ -206,6 +208,21 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() FAILED on " + queueCallback.toString() + ": " + iox.toString());
         }
+    }
+
+    private void startWildbookScheduledTaskService(Shepherd myShepherd) {
+        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+        ses.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<WildbookScheduledTask> scheduledTasks = myShepherd.getAllIncompleteWildbookScheduledTasks();
+                for (WildbookScheduledTask scheduledTask : scheduledTasks) {
+                    if (scheduledTask.isTaskEligibleForExecution()) {
+                        scheduledTask.execute();
+                    }
+                }
+            }
+        }, 0, 2, TimeUnit.HOURS);
     }
 
 
