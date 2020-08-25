@@ -84,6 +84,9 @@
                         FormUtilities.setUpOrgDropdown("organizationAccess", false, props, out, request, myShepherd);
                       %>
                     </div>
+                    <button type="button" id="cancelButton" onclick="cancelButtonClicked();">
+                      <span><%=props.getProperty("cancel") %>  </span><span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                    </button>
                     <button type="button" id="createProjectButton" onclick="createButtonClicked();">
                       <span><%=props.getProperty("submit_send") %>  </span><span class="button-icon" aria-hidden="true"></span>
                     </button>
@@ -138,7 +141,7 @@
         $('#access-list-title-container').append("<strong>Users To Be Granted Access</strong>");
       }
       for(i=0; i<userNamesOnAccessList.length; i++){
-        let elem = "<div class=\"chip\">" + userNamesOnAccessList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";
+        let elem = "<div class=\"chip\">" + userNamesOnAccessList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";
         $('#projectUserIdsList').append(elem);
       }
     }
@@ -168,6 +171,12 @@
     	}
       submitForm();
     	return true;
+    }
+
+    function cancelButtonClicked(){
+      console.log("cancelButtonClicked entered");
+      debugger;
+      window.location.replace('/projects/projectList.jsp');
     }
 
     function getUuidsFromAccessList(){
