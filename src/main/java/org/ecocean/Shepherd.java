@@ -581,6 +581,17 @@ public class Shepherd {
     return tempMA;
   }
 
+  public Collaboration getCollaboration(String id) {
+    Collaboration collab = null;
+    try {
+      collab = ((Collaboration) (pm.getObjectById(pm.newObjectIdInstance(Collaboration.class, id.trim()), true)));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return collab;
+  }
+
   public Workspace getWorkspace(int id) {
     Workspace tempWork = null;
     try {
@@ -1052,7 +1063,7 @@ public class Shepherd {
     try {
       username = request.getUserPrincipal().toString();
     } catch (Exception e) {
-      System.out.println("Shepherd.getUsername(HttpServletRequest) called with no user logged in");
+      //System.out.println("Shepherd.getUsername(HttpServletRequest) called with no user logged in");
     }
     return username;
   }
