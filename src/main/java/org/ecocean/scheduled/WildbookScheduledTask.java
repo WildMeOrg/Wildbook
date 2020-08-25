@@ -1,5 +1,7 @@
 package org.ecocean.scheduled;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
 
@@ -46,6 +48,10 @@ public abstract class WildbookScheduledTask {
     
     //Override in inheriting class
     public void execute(Shepherd myShepherd) {
+        execute();
+    }
+
+    public void execute(Shepherd myShepherd, HttpServletRequest request) {
         execute();
     }
 

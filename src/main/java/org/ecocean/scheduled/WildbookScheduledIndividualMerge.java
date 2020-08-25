@@ -1,5 +1,7 @@
 package org.ecocean.scheduled;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
 
@@ -19,28 +21,48 @@ public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
 
     @Override
     public void execute() {
-        System.out.println("[WARN]: WildbookScheduledTask.execute() was called with no shepherd for task type "+this.scheduledTaskType+". Failed.");
+        System.out.println("[WARN]: WildbookScheduledTask.execute() was called without proper arguments for task type "+this.scheduledTaskType+". Failed.");
+    }
+
+    @Override 
+    public void execute(Shepherd myShepherd) {
+        execute();
     }
 
     @Override
-    public void execute(Shepherd myShepherd) {
-        // merge the individuals
+    public void execute(Shepherd myShepherd, HttpServletRequest request) {
         try {
             myShepherd.beginDBTransaction();
 
-            mergeIndividuals(primaryIndividual, secondaryIndividual) ;
-            
-            myShepherd.updateDBTransaction();
+            mergeIndividuals(primaryIndividual, secondaryIndividual, myShepherd, request);
             this.setTaskComplete();
+
+            //update user notifications
+
         } catch (Exception e) {
+            myShepherd.rollbackDBTransaction();
             this.setTaskIncomplete();
             e.printStackTrace();
+        } finally {
+            myShepherd.updateDBTransaction();
         }
         
     }
     
-    private void mergeIndividuals(MarkedIndividual primaryIndividual, MarkedIndividual secondaryIndividual) {
-        // yep, just merge em. permission should have been established already when scheduled.
+    private void mergeIndividuals(MarkedIndividual primaryIndividual, MarkedIndividual secondaryIndividual, Shepherd myShepherd, HttpServletRequest request) {
+        if (primaryIndividual!=null&&secondaryIndividual!=null) {
+            try {
+                primaryIndividual.mergeAndThrowawayIndividual(secondaryIndividual, request, myShepherd);
+                myShepherd.updateDBTransaction();
+                myShepherd.throwAwayMarkedIndividual(secondaryIndividual);
+            } catch (Exception e) {
+                System.out.println("[ERROR]: Could not perform automatic mergeIndividuals action with WildbookScheduledIndividualMerge.");
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("[ERROR]: Could not perform automatic mergeIndividuals action with WildbookScheduledIndividualMerge due to null candidate individual.");
+        }
+       
     }
     
 }
