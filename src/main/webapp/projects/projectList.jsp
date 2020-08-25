@@ -24,6 +24,9 @@ int numFixes=0;
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 User currentUser = AccessControl.getUser(request, myShepherd);
 %>
+<style type="text/css">
+
+</style>
 
   <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
@@ -46,7 +49,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                   <%
                 }else{
                   %>
-                  <table class="row tissueSample">
+                  <table class="row tissueSample clickable-row hoverRow">
                   	<thead>
                         <tr>
                           <th class="tissueSample">Project Name</th>
@@ -59,11 +62,10 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                   for(int j=0; j<userProjects.size(); j++){
                     if(userProjects.size()>0){
                       %>
-
-                        <tr onclick="window.location='<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>'" class="clickable-row">
-                          <td class="tissueSample"><%=userProjects.get(j).getResearchProjectName()%></td>
-                          <td class="tissueSample">%<%=userProjects.get(j).getPercentIdentified()%></td>
-                          <td class="tissueSample"><%=userProjects.get(j).getEncounters().size()%></td>
+                        <tr onclick="window.location='<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>'" class="tissueSample">
+                          <td class="clickable-row"><%=userProjects.get(j).getResearchProjectName()%></td>
+                          <td class="clickable-row">%<%=userProjects.get(j).getPercentIdentified()%></td>
+                          <td class="clickable-row"><%=userProjects.get(j).getEncounters().size()%></td>
                         </tr>
                       <%
                     }
