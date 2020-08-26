@@ -30,6 +30,28 @@ public class SystemLog {
         getLogger(guessClass(args)).info(format, args);
     }
 
+    public static void warn(String msg) {
+        getLogger(SystemLog.class).warn(msg);
+    }
+    public static void warn(String format, Object... args) {
+        getLogger(guessClass(args)).warn(format, args);
+    }
+
+    public static void debug(String msg) {
+        getLogger(SystemLog.class).debug(msg);
+    }
+    public static void debug(String format, Object... args) {
+        getLogger(guessClass(args)).debug(format, args);
+    }
+
+    public static void trace(String msg) {
+        getLogger(SystemLog.class).trace(msg);
+    }
+    public static void trace(String format, Object... args) {
+        getLogger(guessClass(args)).trace(format, args);
+    }
+
+
     public static void error(String msg) {
         getLogger(SystemLog.class).error(msg);
     }
