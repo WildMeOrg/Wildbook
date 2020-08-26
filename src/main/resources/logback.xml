@@ -8,8 +8,22 @@
   <!-- Logging pattern for HTML logs -->
   <property name="htmlPattern" value="%date%thread%mdc%level%logger%msg"/>
 
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- deny all events with a level below WARN -->
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>WARN</level>
+    </filter>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
   <appender name="GENERICLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
   	<file>/var/log/tomcat8/general.log</file>
+    <!-- deny all events with a level below INFO, that is TRACE and DEBUG -->
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <fileNamePattern>/var/log/tomcat8/%d{yyyy-MM-}general.log.gz</fileNamePattern>
       <maxHistory>6</maxHistory>
@@ -21,12 +35,17 @@
 
   <appender name="DEBUGLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
   	<file>/var/log/tomcat8/debug.log</file>
+	<filter class="ch.qos.logback.classic.filter.LevelFilter">
+      		<level>DEBUG</level>
+      		<onMatch>ACCEPT</onMatch>
+      		<onMismatch>DENY</onMismatch>
+    	</filter>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <fileNamePattern>/var/log/tomcat8/%d{yyyy-MM-}debug.log.gz</fileNamePattern>
       <maxHistory>6</maxHistory>
     </rollingPolicy>
     <encoder>
-  <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS}%n%m%n</pattern>
+  <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%p]%n%m%n</pattern>
     </encoder>
   </appender>
 
