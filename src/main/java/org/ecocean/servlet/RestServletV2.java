@@ -82,7 +82,7 @@ public class RestServletV2 extends HttpServlet {
         payload.put("_queryString", request.getQueryString());
         boolean debug = (payload.optBoolean("_debug", false) || ((request.getQueryString() != null) && request.getQueryString().matches(".*_debug.*")));
 
-        if (debug) _log(instanceId, "payload: " + payload.toString());
+        if (debug) SystemLog.debug("RestServlet.handleRequest() instance={} payload={}", instanceId, payload.toString());
 
         //first handle special cases (where arg is NOT a classname)
         if (payload.optString("class", "__FAIL__").equals("login")) {
@@ -127,7 +127,7 @@ public class RestServletV2 extends HttpServlet {
 
         rtn.put("transactionId", instanceId);
         if (debug) {
-            _log(instanceId, "rtn: " + rtn.toString());
+            SystemLog.debug("RestServlet.handleRequest() instance={} return rtn={}", instanceId, rtn.toString());
             JSONObject jbug = new JSONObject();
             jbug.put("payload", payload);
             jbug.put("timestamp", System.currentTimeMillis());
@@ -263,7 +263,7 @@ public class RestServletV2 extends HttpServlet {
         rtn.put("transactionId", instanceId);
         User user = myShepherd.getUserByWhatever(payload.optString("login", null));
         if (user == null) {
-            _log(instanceId, "invalid login with payload=" + payload);
+            SystemLog.warn("RestServlet.handleLogin() instance={} invalid login with payload={}", instanceId, payload);
             rtn.put("message", _rtnMessage("access_denied"));
             response.setStatus(401);
             myShepherd.rollbackDBTransaction();
@@ -281,7 +281,7 @@ public class RestServletV2 extends HttpServlet {
             Subject subject = SecurityUtils.getSubject();			
             subject.login(token);
         } catch (Exception ex) {
-            _log(instanceId, "invalid login with payload=" + payload + "; threw " + ex.toString());
+            SystemLog.warn("RestServlet.handleLogin() instance={} invalid login with payload={} threw {}", instanceId, payload, ex.toString());
             rtn.put("message", _rtnMessage("access_denied"));
             response.setStatus(401);
             myShepherd.rollbackDBTransaction();
@@ -298,7 +298,7 @@ public class RestServletV2 extends HttpServlet {
         rtn.put("previousLogin", user.getLastLogin());
         rtn.put("success", true);
         rtn.put("message", _rtnMessage("success"));
-        _log(instanceId, "successful login user=" + user);
+        SystemLog.info("RestServlet.handleLogin() instance={} successful login user={}", instanceId, user);
         user.setLastLogin(System.currentTimeMillis());
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
@@ -393,7 +393,7 @@ public class RestServletV2 extends HttpServlet {
 
 /*  FIXME!!!!!!!!!!!!!!!!!  temp security hole for pre-houston testing  .. have at it, internet!
         if (definition || !isAdmin) {  //we dont set using configDefinition!
-            _log(instanceId, "invalid config set access with payload=" + payload);
+            SystemLog.warn("RestServlet.handleConfiguration() instance={} invalid config set access with payload={}", instanceId, payload);
             rtn.put("message", _rtnMessage("access_denied"));
             response.setStatus(401);
             myShepherd.rollbackDBTransaction();
@@ -418,7 +418,7 @@ rtn.put("_payload", payload);
                     if (val == null) throw new IOException(key + " is not a valid JSON object");
                     JSONArray defnArr = val.optJSONArray("definitions");
                     if (defnArr == null) {
-                        _log(instanceId, "INFO: " + key + " not passed a definitions array; skipping");
+                        SystemLog.info("RestServlet.handleConfiguration() instance={} key {} not passed a definitions array; skipping", instanceId, key);
                     } else {
                         for (int i = 0 ; i < defnArr.length() ; i++) {
                             JSONObject dj = defnArr.optJSONObject(i);
@@ -434,7 +434,7 @@ rtn.put("_payload", payload);
                     conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
                 }
                 updatedConfs.add(conf);
-                _log(instanceId, ">>>> SET key=" + key + " <= " + payload.get(key) + " => " + conf);
+                SystemLog.debug(instanceId, ">>>> instance={} SET key={} <= {} => {}", instanceId, key, payload.get(key), conf);
                 updated.add(key);
             }
             rtn.put("success", true);  //if we made it thru every key without exception
@@ -442,7 +442,7 @@ rtn.put("_payload", payload);
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
             rtn.put("message", _rtnMessage("configuration_set_error", null, ex.toString()));
-            _log(instanceId, "ERROR - rolling back db transaction due to exception on SET operation: " + ex.toString());
+            SystemLog.error("RestServlet.handleConfiguration() instance={} rolling back db transaction due to exception on SET operation: {}", instanceId, ex.toString());
             out.println(rtn.toString());
             out.close();
             return;
@@ -642,14 +642,6 @@ rtn.put("_payload", payload);
         if (!bfile.exists()) bfile = new File(ConfigurationUtil.dir() + fname);
         if (!bfile.exists()) return null;
         return ConfigurationUtil.readJson(bfile);
-    }
-
-// TODO remove this and replace references above with specific SystemLog calls
-    private void _log(String msg) {
-        _log("-", msg);
-    }
-    private void _log(String id, String msg) {
-        SystemLog.info("[RestServletV2 {}: {}] {}", this, id, msg);
     }
 
 }
