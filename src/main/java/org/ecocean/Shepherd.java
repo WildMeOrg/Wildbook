@@ -399,6 +399,20 @@ public class Shepherd {
       return false;
     }
   }
+
+  public boolean storeNewWildbookScheduledTask(WildbookScheduledTask wst) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(wst);
+      commitDBTransaction();
+			return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new WildbookScheduledTask in shepherd.storeNewWildbookScheduledTask().");
+      e.printStackTrace();
+      return false;
+    }
+  }
   
   public List getAllCollaborations() {
     Collection c;
@@ -2809,7 +2823,7 @@ public class Shepherd {
     ArrayList<WildbookScheduledTask> taskList = new ArrayList();
     Query query = null;
     try {
-      String filter = "this.completed == \"f\"";
+      String filter = "!this.taskComplete"; // this is the only way to bool in a filter? really?
       Extent taskClass = pm.getExtent(WildbookScheduledTask.class, true);
       query = pm.newQuery(taskClass, filter);
       query.setOrdering("this.taskScheduledExecutionTimeLong descending");
