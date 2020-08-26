@@ -1,11 +1,20 @@
 package org.ecocean.servlet;
+
 import javax.servlet.*;
 import javax.servlet.http.*;
 
 import java.io.*;
+import java.security.Principal;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.shiro.web.util.WebUtils;
 
 import org.ecocean.*;
+import org.ecocean.scheduled.WildbookScheduledIndividualMerge;
 
 
 public class MergeIndividual extends HttpServlet {
@@ -42,6 +51,9 @@ public class MergeIndividual extends HttpServlet {
 
     String oldName1;
     String oldName2;
+
+    boolean canMergeAutomatically = false;
+    
     try {
 
       myShepherd.beginDBTransaction();
@@ -65,16 +77,59 @@ public class MergeIndividual extends HttpServlet {
       String throwawayStr = request.getParameter("throwaway");
       boolean throwaway = Util.stringExists(throwawayStr) && !throwawayStr.toLowerCase().equals("false");
 
-      // here's where the magic happens
-      mark1.mergeIndividual(mark2, request, myShepherd);
-      if (sex != null) mark1.setSex(sex);
-      if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
-      if (throwaway) myShepherd.getPM().deletePersistent(mark2);
-      myShepherd.commitDBTransaction();
-      myShepherd.closeDBTransaction();
+      
+      //TEMPORARY PLACEMENT!!!! Just to see if it errz (it will )
+      // should we check if this is already scheduled? does it matter if it just happens sooner? probably. 
+      WildbookScheduledIndividualMerge merge = new WildbookScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
+      myShepherd.storeNewWildbookScheduledTask(merge);
+      myShepherd.beginDBTransaction();
+      
+      //check for eligibility.. must throw on timer if not able to do right away
+      ArrayList<String> mark1Users = mark1.getAllAssignedUsers();
+      ArrayList<String> mark2Users = mark2.getAllAssignedUsers();
+      Principal userPrincipal = request.getUserPrincipal();
+      String currentUsername = null;
+      if (userPrincipal!=null) {
+        currentUsername = userPrincipal.getName();
+      }
 
-    }
-    catch(Exception le){
+      if (currentUsername!=null) {
+        ArrayList<String> allUniqueUsers = new ArrayList<>(mark1Users);
+        for (String user : mark2Users) {
+          if (!allUniqueUsers.contains(user)&&!"".equals(user)) {
+            allUniqueUsers.add(user);
+            System.out.println("unique user == "+user);
+          }
+        }
+
+        if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
+          canMergeAutomatically = true;
+        } else {
+          //TODO okay, we got people to notify
+
+          //TODO check for user collaboration before setting timed task
+
+          //TODO actually create merge task - correct location after testing
+          // WildbookScheduledIndividualMerge merge = new WildbookScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
+          // myShepherd.storeNewWildbookScheduledTask(merge);
+          // myShepherd.beginDBTransaction();
+
+          //TODO what does the deny action do- update state or DELETE the scheduled task?
+        }
+      }
+
+      if (canMergeAutomatically) {
+        mark1.mergeAndThrowawayIndividual(mark2, currentUsername, myShepherd);
+        if (sex != null) mark1.setSex(sex);
+        if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
+        if (throwaway) myShepherd.getPM().deletePersistent(mark2);
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+      }
+
+      //TODO figure out further messaging for timed merge initiated
+
+    } catch (Exception le){
       le.printStackTrace();
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
@@ -82,18 +137,24 @@ public class MergeIndividual extends HttpServlet {
       return;
     }
 
-    if(!locked){
+    if(!locked&&canMergeAutomatically){
         
         out.println("<strong>Success!</strong> I have successfully merged individuals "+id1+" and "+id2+".</p>");
         out.close();
         response.setStatus(HttpServletResponse.SC_OK);
 
         // redirect to the confirm page
-        WebUtils.redirectToSavedRequest(request, response, "/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1);
+        try {
+          WebUtils.redirectToSavedRequest(request, response, "/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1);
+        } catch (IOException ioe) {
+          ioe.printStackTrace();
+        }
 
-
-      }
-      else {
+      } else if (!locked) {
+        out.println("<strong>Pending:</strong> Participating user have been notified of your request to merge individuals "+id1+" and "+id2+".</p>");
+        out.close();
+        response.setStatus(HttpServletResponse.SC_OK);
+      } else {
         errorAndClose("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.", response);
       }
   }
@@ -110,6 +171,14 @@ public class MergeIndividual extends HttpServlet {
     myShepherd.closeDBTransaction();
   }
 
+  private long twoWeeksFromNowLong() {
+    // i know. this was really the least stupid way.
+    //final long twoWeeksInMillis = 1209600000;
+
+    //TODO restore desired delay after testing OR, add to task as variable
+    final long twoWeeksInMillis = 5000;
+    return System.currentTimeMillis() + twoWeeksInMillis;
+  }
 
 
 }
