@@ -57,7 +57,7 @@ public class RestServletV2 extends HttpServlet {
         try {
             payload = ServletUtilities.jsonFromHttpServletRequest(request);
         } catch (Exception ex) {
-            _log("failed to parse json payload from request: " + ex.toString());
+            SystemLog.error("failed to parse json payload from request {} {}", this, ex);
         }
         handleRequest(request, response, _parseUrl(request, payload));
     }
@@ -644,11 +644,12 @@ rtn.put("_payload", payload);
         return ConfigurationUtil.readJson(bfile);
     }
 
+// TODO remove this and replace references above with specific SystemLog calls
     private void _log(String msg) {
         _log("-", msg);
     }
     private void _log(String id, String msg) {
-        SystemLog.log("[RestServletV2:" + id + "] " + msg);
+        SystemLog.info("[RestServletV2 {}: " + id + "] " + msg, this);
     }
 
 }

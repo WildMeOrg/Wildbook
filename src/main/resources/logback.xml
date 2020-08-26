@@ -9,9 +9,9 @@
   <property name="htmlPattern" value="%date%thread%mdc%level%logger%msg"/>
 
   <appender name="GENERICLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-  	<file>${catalina.base}/logs/activity.log</file>
+  	<file>/var/log/tomcat8/general.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>${catalina.base}/logs/%d{yyyy-MM-}activity.log.gz</fileNamePattern>
+      <fileNamePattern>/var/log/tomcat8/%d{yyyy-MM-}general.log.gz</fileNamePattern>
       <maxHistory>6</maxHistory>
     </rollingPolicy>
     <encoder>
@@ -19,69 +19,35 @@
     </encoder>
   </appender>
 
-  <appender name="SUBMISSIONFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${catalina.base}/logs/encounter-submission.htm</file>
+  <appender name="DEBUGLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+  	<file>/var/log/tomcat8/debug.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>${catalina.base}/logs/%d{yyyy-MM-}encounter-submission.htm</fileNamePattern>
+      <fileNamePattern>/var/log/tomcat8/%d{yyyy-MM-}debug.log.gz</fileNamePattern>
+      <maxHistory>6</maxHistory>
     </rollingPolicy>
-    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-      <!-- Assigned PatternLayoutEncoder by default -->
-      <layout class="ch.qos.logback.classic.html.HTMLLayout">
-        <pattern>${htmlPattern}</pattern>
-      </layout>
+    <encoder>
+  <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS}%n%m%n</pattern>
     </encoder>
   </appender>
-
-  <appender name="ENCOUNTERDELETEFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${catalina.base}/logs/encounter-delete.htm</file>
-      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <fileNamePattern>${catalina.base}/logs/%d{yyyy-MM-}encounter-delete.htm</fileNamePattern>
-      </rollingPolicy>
-    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-      <!-- Assigned PatternLayoutEncoder by default -->
-      <layout class="ch.qos.logback.classic.html.HTMLLayout">
-        <pattern>${htmlPattern}</pattern>
-      </layout>
-    </encoder>
-  </appender>
-
-  <appender name="USERFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${catalina.base}/logs/user-access.htm</file>
-      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <fileNamePattern>${catalina.base}/logs/%d{yyyy-MM-}user-access.htm</fileNamePattern>
-      </rollingPolicy>
-    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-      <!-- Assigned PatternLayoutEncoder by default -->
-      <layout class="ch.qos.logback.classic.html.HTMLLayout">
-        <pattern>${htmlPattern}</pattern>
-      </layout>
-    </encoder>
-  </appender>
-  
-    <appender name="EMAILS" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${catalina.base}/logs/email.htm</file>
-      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <fileNamePattern>${catalina.base}/logs/%d{yyyy-MM-}email.htm</fileNamePattern>
-      </rollingPolicy>
-    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-      <!-- Assigned PatternLayoutEncoder by default -->
-      <layout class="ch.qos.logback.classic.html.HTMLLayout">
-        <pattern>${htmlPattern}</pattern>
-      </layout>
-    </encoder>
-  </appender>
-
 
   <root level="OFF"/>
 
-  <logger name="org.ecocean" level="INFO">
-    <appender-ref ref="GENERICLOG"/>
-  </logger>
+	<logger name="org.ecocean" level="INFO">
+		<appender-ref ref="GENERICLOG"/>
+	</logger>
+	<logger name="org.ecocean" level="DEBUG">
+		<appender-ref ref="DEBUGLOG"/>
+	</logger>
+
+
+<!--
   <logger name="org.apache.jsp" level="INFO">
     <appender-ref ref="GENERICLOG"/>
     <appender-ref ref="MULTIPLEX"/>
   </logger>
+-->
 
+<!--
   <logger name="org.ecocean.servlet.EncounterForm" level="INFO">
     <appender-ref ref="SUBMISSIONFILE"/>
   </logger>
@@ -89,19 +55,6 @@
   <logger name="org.ecocean.servlet.EncounterDelete" level="INFO">
     <appender-ref ref="ENCOUNTERDELETEFILE"/>
   </logger>
-
-  <logger name="org.apache.jsp.welcome_jsp" level="INFO">
-    <appender-ref ref="USERFILE"/>
-  </logger>
-
-  <logger name="org.apache.jsp.logout_jsp" level="INFO">
-    <appender-ref ref="USERFILE"/>
-  </logger>
-  
-<logger name="org.ecocean.NotificationMailer" level="INFO">
-    <appender-ref ref="EMAILS"/>
-  </logger>
-  
-  
+-->
 
 </configuration>
