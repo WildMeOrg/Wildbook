@@ -61,6 +61,32 @@ public class FormUtilities {
     out.println("</div>");
   }
 
+
+  public static void setUpProjectDropdown(String fieldName, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
+    User usr = AccessControl.getUser(request, myShepherd);
+    if(usr != null){
+      List<Organization> orgsUserBelongsTo = usr.getOrganizations();
+      ArrayList<String> orgOptions = new ArrayList<String>();
+      ArrayList<String> orgIds = new ArrayList<String>();
+      for (int i = 0; i < orgsUserBelongsTo.size(); i++) { //TODO DRY up
+        Organization currentOrg = orgsUserBelongsTo.get(i);
+        String currentOrgName = currentOrg.getName();
+        String currentOrgId = currentOrg.getId();
+        orgOptions.add(currentOrgName);
+        orgIds.add(currentOrgId);
+      }
+      try {
+        printStringFieldSearchRowBoldTitle(false, fieldName, orgOptions, orgIds, out, encprops);
+      }
+      catch(IOException e) {
+        System.out.println("IOException: " + e);
+      }
+      catch(IllegalAccessException e){
+        System.out.println("IllegalAccessException: " + e);
+      }
+    }
+  }
+
   public static void setUpOrgDropdown(String fieldName, Boolean isForIndividualOrOccurrenceSearch, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
     User usr = AccessControl.getUser(request, myShepherd);
     if(usr != null){
