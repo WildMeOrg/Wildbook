@@ -115,34 +115,9 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 
 <p><%=encprops.getProperty("belowMatches")%></p>
 
-<style>
-.ptcol-maxYearsBetweenResightings {
-	width: 100px;
-}
-.ptcol-numberLocations {
-	width: 100px;
-}
-
-</style>
-
 <script type="text/javascript">
 
 	var needIAStatus = false;
-
-/*
-
-    <strong><%=encprops.getProperty("markedIndividual")%>
-    <strong><%=encprops.getProperty("number")%>
-    if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
-
-	    <strong><%=encprops.getProperty("taxonomy")%>
-	    <strong><%=encprops.getProperty("submitterName")%>
-	    <strong><%=encprops.getProperty("date")%>
-	    <strong><%=encprops.getProperty("location")%>
-	    <strong><%=encprops.getProperty("locationID")%>
-	    <strong><%=encprops.getProperty("occurrenceID")%>
-*/
-
 
 <%
 	String encsJson = "false";
@@ -156,10 +131,7 @@ String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, p
 
 %>
 
-
-
 var searchResults = <%=encsJson%>;
-
 var jdoql = '<%= URLEncoder.encode(filter,StandardCharsets.UTF_8.toString()) %>';
 
 $(document).keydown(function(k) {
