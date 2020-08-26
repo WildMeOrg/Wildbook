@@ -57,7 +57,7 @@ public class RestServletV2 extends HttpServlet {
         try {
             payload = ServletUtilities.jsonFromHttpServletRequest(request);
         } catch (Exception ex) {
-            SystemLog.error("failed to parse json payload from request {} {}", this, ex);
+            SystemLog.error("failed to parse json payload from request {}", this, ex);
         }
         handleRequest(request, response, _parseUrl(request, payload));
     }
@@ -649,7 +649,7 @@ rtn.put("_payload", payload);
         _log("-", msg);
     }
     private void _log(String id, String msg) {
-        SystemLog.info("[RestServletV2 {}: " + id + "] " + msg, this);
+        SystemLog.info("[RestServletV2 {}: {}] {}", this, id, msg);
     }
 
 }
