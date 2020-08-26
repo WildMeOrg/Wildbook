@@ -1,17 +1,18 @@
 package org.ecocean.scheduled;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
 
-public abstract class WildbookScheduledTask {
+public abstract class WildbookScheduledTask implements java.io.Serializable {
 
-    final String id = Util.generateUUID();
+    private static final long serialVersionUID = 1L;
+
+    String id = Util.generateUUID();
+
     boolean taskComplete = false;
     long taskCreatedLong;
     long taskScheduledExecutionTimeLong;
-    String scheduledTaskType;
+    String scheduledTaskType = "WildbookScheduledTask";
 
     public WildbookScheduledTask() {} //empty for jdo
 
@@ -50,11 +51,5 @@ public abstract class WildbookScheduledTask {
     public void execute(Shepherd myShepherd) {
         execute();
     }
-
-    public void execute(Shepherd myShepherd, HttpServletRequest request) {
-        execute();
-    }
-
-
 
 }
