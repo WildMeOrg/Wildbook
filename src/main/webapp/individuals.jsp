@@ -121,7 +121,7 @@ else{
 <jsp:include page="header.jsp" flush="true"/>
 <%
 if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
-    System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
+    //System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
     id = request.getParameter("id");
     if (id==null) id = request.getParameter("number");
 	myShepherd.beginDBTransaction();
@@ -150,9 +150,9 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 		          }
 		        }
 		      }
-		      System.out.println("");
-		      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
-		      System.out.println("This marked individual has "+numAnns+" anotations");
+		      //System.out.println("");
+		      //System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+		      //System.out.println("This marked individual has "+numAnns+" anotations");
 		
 					//boolean visible = indie.canUserAccess(request);
 		      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
