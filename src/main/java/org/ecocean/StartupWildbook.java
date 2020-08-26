@@ -49,7 +49,6 @@ public class StartupWildbook implements ServletContextListener {
 
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
-    startWildbookScheduledTaskService(myShepherd, request);
     ensureProfilePhotoKeywordExists(myShepherd);
 
   }
@@ -146,6 +145,12 @@ public class StartupWildbook implements ServletContextListener {
         TwitterBot.startServices(context);
 
         AnnotationLite.startup(sContext, context);
+
+        try {
+            startWildbookScheduledTaskThread(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } 
     }
 
 
@@ -211,19 +216,30 @@ public class StartupWildbook implements ServletContextListener {
         }
     }
 
-    private static void startWildbookScheduledTaskService(Shepherd myShepherd, HttpServletRequest request) {
+    private static void startWildbookScheduledTaskThread(String context) {
+        System.out.println("STARTING: StartupWildbook.startWildbookScheduledTaskThread()");
         ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
         ses.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                ArrayList<WildbookScheduledTask> scheduledTasks = myShepherd.getAllIncompleteWildbookScheduledTasks();
-                for (WildbookScheduledTask scheduledTask : scheduledTasks) {
-                    if (scheduledTask.isTaskEligibleForExecution()) {
-                        scheduledTask.execute(myShepherd,request);
+                System.out.println("[INFO]: checking for scheduled tasks to execute...");
+                Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("WildbookScheduledTaskThread");
+                try {
+                    ArrayList<WildbookScheduledTask> scheduledTasks = myShepherd.getAllIncompleteWildbookScheduledTasks();
+                    for (WildbookScheduledTask scheduledTask : scheduledTasks) {
+                        if (scheduledTask.isTaskEligibleForExecution()) {
+                            scheduledTask.execute(myShepherd);
+                        }
                     }
+                } catch (Exception e) {
+                    myShepherd.rollbackAndClose();
+                    e.printStackTrace();
                 }
+                myShepherd.closeDBTransaction();
             }
-        }, 0, 2, TimeUnit.HOURS);
+            //}, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing  
+            }, 0, 30, TimeUnit.SECONDS);
     }
 
 
