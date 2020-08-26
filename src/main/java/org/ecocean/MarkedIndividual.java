@@ -2539,18 +2539,23 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
 
     // Need request to record which user did it
-    public void mergeIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
+    public void mergeIndividual(MarkedIndividual other, String username) {
       for (Encounter enc: other.getEncounters()) {
         other.removeEncounter(enc);
         enc.setIndividual(this);
       }
       this.names.merge(other.getNames());
-      this.setComments(getMergedComments(other, request, myShepherd));
+      this.setComments(getMergedComments(other, username));
       refreshDependentProperties();
     }
 
     public String getMergedComments(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
       User user = myShepherd.getUser(request);
+      String username = user.getDisplayName();
+      return getMergedComments(other, username);
+    }
+
+    public String getMergedComments(MarkedIndividual other, String username) {
       String mergedComments = Util.stringExists(getComments()) ? getComments() : "";
     
       mergedComments += "<p>This individual merged with individual "+other.getIndividualID()+" (\""+other.getDisplayName()+"\")";
@@ -2562,7 +2567,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
       mergedComments += "Merged on "+Util.prettyTimeStamp();
       
-      if (user!=null) mergedComments += " by "+ user.getDisplayName();
+      if (username!=null) mergedComments += " by "+ username;
       else mergedComments += " No user was logged in.";
       
       if (Util.stringExists(other.getComments())) {
@@ -2574,8 +2579,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
       return mergedComments;
     }
 
-    public void mergeAndThrowawayIndividual(MarkedIndividual other, HttpServletRequest request, Shepherd myShepherd) {
-      mergeIndividual(other, request, myShepherd);
+    public void mergeAndThrowawayIndividual(MarkedIndividual other, String username, Shepherd myShepherd) {
+      mergeIndividual(other, username);
       myShepherd.throwAwayMarkedIndividual(other);
     }
 
