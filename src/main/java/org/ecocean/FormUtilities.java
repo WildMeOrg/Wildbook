@@ -37,10 +37,14 @@ public class FormUtilities {
     out.println("</tr>");
   }
 
-  public static void printStringFieldSearchRowBoldTitle(Boolean isForIndividualOrOccurrenceSearch, String fieldName, List<String> displayOptions, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
+  public static void printStringFieldSearchRowBoldTitle(int colLen, Boolean isInFlexbox, Boolean isForIndividualOrOccurrenceSearch, String fieldDisplayName, String fieldName, List<String> displayOptions, List<String> valueOptions, javax.servlet.jsp.JspWriter out, Properties nameLookup) throws IOException, IllegalAccessException {
     // note how fieldName is variously manipulated in this method to make element ids and contents
-    String displayName = getDisplayName(fieldName, nameLookup);
-    out.println("<div class=\"col-xs-12 col-sm-12 col-md-12 col-lg-12\">");
+    String displayName = getDisplayName(fieldDisplayName, nameLookup);
+    if(!isInFlexbox){
+      out.println("<div class=\"col-xs-12 col-sm-12 col-md-"+ colLen +" col-lg-" + colLen + "\">");
+    } else{
+      out.println("<div class=\"flex-left-justify-no-margin\">");
+    }
     if(isForIndividualOrOccurrenceSearch == true){
       out.println("<br/><strong>"+displayName+"</strong><br/>"); //<td id=\""+fieldName+"Title\"><br/>
     } else{
@@ -62,21 +66,21 @@ public class FormUtilities {
   }
 
 
-  public static void setUpProjectDropdown(String fieldName, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
+  public static void setUpProjectDropdown(int colLen, String fieldDisplayName, String fieldName, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
     User usr = AccessControl.getUser(request, myShepherd);
     if(usr != null){
-      List<Organization> orgsUserBelongsTo = usr.getOrganizations();
-      ArrayList<String> orgOptions = new ArrayList<String>();
-      ArrayList<String> orgIds = new ArrayList<String>();
-      for (int i = 0; i < orgsUserBelongsTo.size(); i++) { //TODO DRY up
-        Organization currentOrg = orgsUserBelongsTo.get(i);
-        String currentOrgName = currentOrg.getName();
-        String currentOrgId = currentOrg.getId();
-        orgOptions.add(currentOrgName);
-        orgIds.add(currentOrgId);
+      List<Project> projects = myShepherd.getProjectsForUserId(usr.getUUID());
+      ArrayList<String> projOptions = new ArrayList<String>();
+      ArrayList<String> projIds = new ArrayList<String>();
+      for (int i = 0; i < projects.size(); i++) { //TODO DRY up
+        Project currentProj = projects.get(i);
+        String currentProjName = currentProj.getResearchProjectName();
+        String currentProjId = currentProj.getResearchProjectId();
+        projOptions.add(currentProjName);
+        projIds.add(currentProjId);
       }
       try {
-        printStringFieldSearchRowBoldTitle(false, fieldName, orgOptions, orgIds, out, encprops);
+        printStringFieldSearchRowBoldTitle(colLen,true, false, fieldDisplayName, fieldName, projOptions, projIds, out, encprops);
       }
       catch(IOException e) {
         System.out.println("IOException: " + e);
@@ -102,9 +106,9 @@ public class FormUtilities {
       }
       try {
         if(isForIndividualOrOccurrenceSearch == true){
-          printStringFieldSearchRowBoldTitle(true, fieldName, orgOptions, orgIds, out, encprops);
+          printStringFieldSearchRowBoldTitle(12, false, true, fieldName, fieldName, orgOptions, orgIds, out, encprops);
         } else{
-          printStringFieldSearchRowBoldTitle(false, fieldName, orgOptions, orgIds, out, encprops);
+          printStringFieldSearchRowBoldTitle(12, false, false, fieldName, fieldName, orgOptions, orgIds, out, encprops);
         }
       }
       catch(IOException e) {
