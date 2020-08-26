@@ -3,11 +3,29 @@
 <jdo>
   <package name="org.ecocean.scheduled">
       
-    <class name="WildbookScheduledTask" identity-type="application" table="WILDBOOKSCHEDULEDTASK">
-      <field name="id" primary-key="true">
+    <class name="WildbookScheduledTask" identity-type="application">
+      <field name="id" primary-key="true" persistence-modifier="persistent">
         <column length="36" name="ID"/>
       </field>
+
+      <field name="scheduledTaskType" persistence-modifier="persistent">
+        <column length="128" allows-null="false" />
+      </field>
     </class>
+
+
+
+    <class name="WildbookScheduledIndividualMerge" identity-type="application">
+
+      <field name="primaryIndividual" element-type="org.ecocean.MarkedIndividual" persistence-modifier="persistent" />
+
+      <field name="secondaryIndividual" element-type="org.ecocean.MarkedIndividual" persistence-modifier="persistent" />
+
+      <field name="initiatorName" persistence-modifier="persistent">
+        <column length="128" allows-null="false" />
+      </field>
+    </class>
+
     
   </package>
 </jdo>
