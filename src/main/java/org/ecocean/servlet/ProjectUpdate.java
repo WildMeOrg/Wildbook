@@ -65,7 +65,7 @@ public class ProjectUpdate extends HttpServlet {
                         if (project!=null){
                             
                             boolean canAddEncounters = isUserAuthorizedToAddEncounters(project, myShepherd, request);
-                            JSONArray encountersToAddJSONArr = projectJSON.getJSONArray("encountersToAdd");
+                            JSONArray encountersToAddJSONArr = projectJSON.optJSONArray("encountersToAdd");
                             if (canAddEncounters&&encountersToAddJSONArr!=null&&encountersToAddJSONArr.length()>0) {
                                 addOrRemoveEncountersFromProject(project, myShepherd, encountersToAddJSONArr, "add");
                             }
@@ -93,17 +93,17 @@ public class ProjectUpdate extends HttpServlet {
                                     myShepherd.updateDBTransaction();
                                 }
                                 
-                                JSONArray encountersToRemoveJSONArr = projectJSON.getJSONArray("encountersToRemove");
+                                JSONArray encountersToRemoveJSONArr = projectJSON.optJSONArray("encountersToRemove");
                                 if (encountersToRemoveJSONArr!=null&&encountersToRemoveJSONArr.length()>0) {
                                     addOrRemoveEncountersFromProject(project, myShepherd, encountersToRemoveJSONArr, "remove");
                                 }
 
-                                JSONArray usersToAddJSONArr = projectJSON.getJSONArray("usersToAdd");
+                                JSONArray usersToAddJSONArr = projectJSON.optJSONArray("usersToAdd");
                                 if (usersToAddJSONArr!=null&&usersToAddJSONArr.length()>0) {
                                     addOrRemoveUsersFromProject(project, myShepherd, usersToAddJSONArr, "add");
                                 }
                                 
-                                JSONArray usersToRemoveJSONArr = projectJSON.getJSONArray("usersToRemove");
+                                JSONArray usersToRemoveJSONArr = projectJSON.optJSONArray("usersToRemove");
                                 if (usersToRemoveJSONArr!=null&&usersToRemoveJSONArr.length()>0) {
                                     addOrRemoveUsersFromProject(project, myShepherd, usersToRemoveJSONArr, "remove");
                                 }
