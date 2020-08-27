@@ -42,7 +42,6 @@ public abstract class WildbookScheduledTask implements java.io.Serializable {
     }
     
     //Override in inheriting class
-    // some future types may not need shepherd
     public void execute() {
         System.out.println("[WARN]: WildbookScheduledTask.execute() was called with no defined execution strategy for task type "+this.scheduledTaskType+". Failed.");
     }
