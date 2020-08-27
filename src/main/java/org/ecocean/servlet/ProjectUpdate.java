@@ -55,12 +55,11 @@ public class ProjectUpdate extends HttpServlet {
 
             if (projectsJSONArr!=null&&projectsJSONArr.length()>0) {
                 for (int i=0;i<projectsJSONArr.length();i++) {
-                    JSONObject projectJSON = (JSONObject) projectsJSONArr.get(i);
+                    JSONObject projectJSON = projectsJSONArr.optJSONObject(i);
     
                     String projectUUID = projectJSON.optString("id", null);
                     
-                    
-                    if (projectUUID!=null||"".equals(projectUUID)) {
+                    if (projectUUID!=null&&!"".equals(projectUUID)) {
                         Project project = myShepherd.getProject(projectUUID);
                         if (project!=null){
                             
