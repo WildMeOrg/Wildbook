@@ -23,7 +23,7 @@ public class ProjectUpdate extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
     }
-    
+
     public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
@@ -38,53 +38,61 @@ public class ProjectUpdate extends HttpServlet {
 		response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
-        
+
         System.out.println("==> In ProjectUpdate Servlet ");
-        
+
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("ProjectUpdate.java");
         myShepherd.beginDBTransaction();
-        
+
         JSONObject res = new JSONObject();
-        try {      
+        try {
             res.put("success","false");
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
+            System.out.println("j from servlet is " + j.toString());
 
             JSONArray projectsJSONArr = j.optJSONArray("projects");
+            System.out.println("projectsJSONArr is " + projectsJSONArr.toString());
 
             if (projectsJSONArr!=null&&projectsJSONArr.length()>0) {
                 for (int i=0;i<projectsJSONArr.length();i++) {
                     JSONObject projectJSON = (JSONObject) projectsJSONArr.get(i);
-    
+
                     String projectUUID = projectJSON.optString("id", null);
-                    
-                    
+                    System.out.println("projectUUID is " + projectUUID);
+
+
                     if (projectUUID!=null||"".equals(projectUUID)) {
                         Project project = myShepherd.getProject(projectUUID);
+                        System.out.println("project is " + project.toString());
                         if (project!=null){
-                            
+
                             boolean canAddEncounters = isUserAuthorizedToAddEncounters(project, myShepherd, request);
                             JSONArray encountersToAddJSONArr = projectJSON.optJSONArray("encountersToAdd");
                             if (canAddEncounters&&encountersToAddJSONArr!=null&&encountersToAddJSONArr.length()>0) {
+                                System.out.println("Authorized to add and encounters exist. Adding or removing encounters from project.... ");
                                 addOrRemoveEncountersFromProject(project, myShepherd, encountersToAddJSONArr, "add");
                             }
-                            
+
                             boolean canUpdate = isUserAuthorizedToUpdateProject(project, myShepherd, request);
+                            System.out.println("is authorized to update project is " + canUpdate);
                             if (canUpdate) {
-                                
+
                                 String researchProjectId = projectJSON.optString("researchProjectId", null);
+                                System.out.println("researchProjectId is " + researchProjectId);
+                                System.out.println("project.getResearchProjectId is " + project.getResearchProjectId());
                                 if (StringUtils.isNullOrEmpty(researchProjectId)&&!project.getResearchProjectId().equals(researchProjectId)) {
                                     project.setResearchProjectId(researchProjectId);
                                     myShepherd.updateDBTransaction();
                                 }
-                                
+
                                 String researchProjectName = projectJSON.optString("researchProjectName", null);
                                 if (StringUtils.isNullOrEmpty(researchProjectName)&&!project.getResearchProjectName().equals(researchProjectName)) {
                                     project.setResearchProjectName(researchProjectName);
                                     myShepherd.updateDBTransaction();
                                 }
-                                
+
                                 String ownerid = projectJSON.optString("ownerId", null);
                                 if (StringUtils.isNullOrEmpty(ownerid)&&!project.getOwnerId().equals(ownerid)) {
                                     // will this ever happen? looks for UUID, we can make username based or both if necessary
@@ -92,7 +100,7 @@ public class ProjectUpdate extends HttpServlet {
                                     project.setOwner(newOwner);
                                     myShepherd.updateDBTransaction();
                                 }
-                                
+
                                 JSONArray encountersToRemoveJSONArr = projectJSON.optJSONArray("encountersToRemove");
                                 if (encountersToRemoveJSONArr!=null&&encountersToRemoveJSONArr.length()>0) {
                                     addOrRemoveEncountersFromProject(project, myShepherd, encountersToRemoveJSONArr, "remove");
@@ -102,23 +110,23 @@ public class ProjectUpdate extends HttpServlet {
                                 if (usersToAddJSONArr!=null&&usersToAddJSONArr.length()>0) {
                                     addOrRemoveUsersFromProject(project, myShepherd, usersToAddJSONArr, "add");
                                 }
-                                
+
                                 JSONArray usersToRemoveJSONArr = projectJSON.optJSONArray("usersToRemove");
                                 if (usersToRemoveJSONArr!=null&&usersToRemoveJSONArr.length()>0) {
                                     addOrRemoveUsersFromProject(project, myShepherd, usersToRemoveJSONArr, "remove");
                                 }
 
                             }
-        
+
                         } else {
                             addErrorMessage(res, "Exception: you have tried to update a project that does not exist.");
                         }
                     } else {
                         addErrorMessage(res, "Exception: You have provided a null or empty project UUID.");
                     }
-                } 
+                }
             }
-            
+
             out.println(res);
             out.close();
 
