@@ -75,7 +75,7 @@ public class FormUtilities {
       for (int i = 0; i < projects.size(); i++) { //TODO DRY up
         Project currentProj = projects.get(i);
         String currentProjName = currentProj.getResearchProjectName();
-        String currentProjId = currentProj.getResearchProjectId();
+        String currentProjId = currentProj.getId();
         projOptions.add(currentProjName);
         projIds.add(currentProjId);
       }

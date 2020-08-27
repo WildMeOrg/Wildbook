@@ -37,7 +37,7 @@ try{
 <link rel="stylesheet" href="../css/pageableTable.css" />
 <script src="../javascript/tsrt.js"></script>
 <style>
-  
+
 </style>
 <div class="container maincontent">
   <h1 class="intro"><%=projProps.getProperty("title")%></h1>
@@ -182,21 +182,11 @@ try{
   System.out.println("got past getting encounters");
 }catch(Exception e){e.printStackTrace();}
 %>
-<div id="alert-div" class="alert alert-success" role="alert">
+<div id="alert-div" class="alert alert-success" role="alert" style="display: none;">
   <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
   <strong>Success!</strong> Encounters have been added to project(s)!
 </div>
 </div>
-<%
-  }
-  catch(Exception e){e.printStackTrace();}
-  finally{
-	  myShepherd.rollbackDBTransaction();
-	  myShepherd.closeDBTransaction();
-  }
-%>
-
-<jsp:include page="../footer.jsp" flush="true"/>
 <script>
 function dismissAlert(){
   console.log("dismissAlert entered");
@@ -207,16 +197,21 @@ function addProjects(){
   // $('#alert-div').show(); //TODO remove me
   let formDataArray = $("#add-encounter-to-project-form").serializeArray();
   let formJson = {};
+  formJson["projects"] = [];
   console.log("formDataArray is");
   console.log(formDataArray);
   for(i=0; i<formDataArray.length; i++){
     let currentName = formDataArray[i].name;
-    if (Object.values(formDataArray[i])[0] === "Select Projects To Add To"){
-      formJson[currentName].push(formDataArray[i].value);
+    if (currentName === "id"){
+      let currentProjId = formDataArray[i].value;
+      formJson = constructProjectObjJsonFromIdAndAddToJsonArray(currentProjId, formJson);
     }else{
-      formJson[currentName]=formDataArray[i].value;
+      console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
+      //shouldn't happen?
     }
   }
+  console.log("stringified formJson is: ");
+  console.log(JSON.stringify(formJson));
   // ProjectUpdate.addOrRemoveEncountersFromProject(project, myShepherd, encountersToAddJSONArr, "add"); //TODO
   $.ajax({
     url: wildbookGlobals.baseUrl + '../ProjectUpdate',
@@ -225,8 +220,8 @@ function addProjects(){
     dataType: 'json',
     contentType : 'application/json',
     success: function(data){
+      console.log("success!")
       console.log(data);
-      //TODO make success div visible
       $('#alert-div').show();
     },
     error: function(x,y,z) {
@@ -234,4 +229,33 @@ function addProjects(){
     }
   });
 }
+
+function constructProjectObjJsonFromIdAndAddToJsonArray(projectUuid, formJson){
+  let singleProjObj = {id: projectUuid};
+  singleProjObj["encountersToAdd"]=[];
+  <%
+    String order ="catalogNumber ASC NULLS LAST";
+    EncounterQueryResult result = EncounterQueryProcessor.processQuery(myShepherd, request, order);
+    List<Encounter> encounters = result.getResult();
+    for(int i=0; i<encounters.size(); i++){
+      %>
+      singleProjObj["encountersToAdd"].push("<%= encounters.get(i).getCatalogNumber()%>");
+      <%
+    }
+  %>
+  formJson["projects"].push(singleProjObj);
+  console.log("formJson is: ");
+  console.log(formJson);
+  return formJson;
+}
 </script>
+<%
+  }
+  catch(Exception e){e.printStackTrace();}
+  finally{
+	  myShepherd.rollbackDBTransaction();
+	  myShepherd.closeDBTransaction();
+  }
+%>
+
+<jsp:include page="../footer.jsp" flush="true"/>
