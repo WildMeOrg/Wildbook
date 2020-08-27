@@ -306,6 +306,8 @@
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
 
+        /UserGetNotifications = authc
+
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
@@ -631,6 +633,10 @@
       <servlet-class>org.ecocean.servlet.UserResetAcceptedUserAgreement</servlet-class>
   </servlet>
 
+  <servlet>
+      <servlet-name>UserGetNotifications</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserGetNotifications</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
@@ -1102,6 +1108,11 @@
   <servlet-mapping>
     <servlet-name>UserGetSimpleJSON</servlet-name>
     <url-pattern>/UserGetSimpleJSON</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>UserGetNotifications</servlet-name>
+    <url-pattern>/UserGetNotifications</url-pattern>
   </servlet-mapping>
 
       <servlet>
