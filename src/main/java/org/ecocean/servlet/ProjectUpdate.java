@@ -49,6 +49,7 @@ public class ProjectUpdate extends HttpServlet {
         JSONObject res = new JSONObject();
         try {
             res.put("success","false");
+            res.put("modified","false");
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
             System.out.println("j from servlet is " + j.toString());
 
@@ -72,7 +73,7 @@ public class ProjectUpdate extends HttpServlet {
                             JSONArray encountersToAddJSONArr = projectJSON.optJSONArray("encountersToAdd");
                             if (canAddEncounters&&encountersToAddJSONArr!=null&&encountersToAddJSONArr.length()>0) {
                                 System.out.println("Authorized to add and encounters exist. Adding or removing encounters from project.... ");
-                                addOrRemoveEncountersFromProject(project, myShepherd, encountersToAddJSONArr, "add");
+                                addOrRemoveEncountersFromProject(project, myShepherd, encountersToAddJSONArr, "add", res);
                             }
 
                             boolean canUpdate = isUserAuthorizedToUpdateProject(project, myShepherd, request);
@@ -86,6 +87,8 @@ public class ProjectUpdate extends HttpServlet {
                                     System.out.println("this should not happen for mark researchProjectId");
                                     project.setResearchProjectId(researchProjectId);
                                     myShepherd.updateDBTransaction();
+                                    res.put("modified","true");
+                                    res.put("success","true");
                                 }
 
                                 String researchProjectName = projectJSON.optString("researchProjectName", null);
@@ -93,6 +96,8 @@ public class ProjectUpdate extends HttpServlet {
                                     System.out.println("this should not happen for mark researchProjectName");
                                     project.setResearchProjectName(researchProjectName);
                                     myShepherd.updateDBTransaction();
+                                    res.put("modified","true");
+                                    res.put("success","true");
                                 }
 
                                 String ownerid = projectJSON.optString("ownerId", null);
@@ -102,24 +107,26 @@ public class ProjectUpdate extends HttpServlet {
                                     User newOwner = myShepherd.getUserByUUID(ownerid);
                                     project.setOwner(newOwner);
                                     myShepherd.updateDBTransaction();
+                                    res.put("modified","true");
+                                    res.put("success","true");
                                 }
 
                                 JSONArray encountersToRemoveJSONArr = projectJSON.optJSONArray("encountersToRemove");
                                 if (encountersToRemoveJSONArr!=null&&encountersToRemoveJSONArr.length()>0) {
                                     System.out.println("this should not happen for mark encountersToRemoveJSONArr");
-                                    addOrRemoveEncountersFromProject(project, myShepherd, encountersToRemoveJSONArr, "remove");
+                                    addOrRemoveEncountersFromProject(project, myShepherd, encountersToRemoveJSONArr, "remove", res);
                                 }
 
                                 JSONArray usersToAddJSONArr = projectJSON.optJSONArray("usersToAdd");
                                 if (usersToAddJSONArr!=null&&usersToAddJSONArr.length()>0) {
                                     System.out.println("this should not happen for mark usersToAddJSONArr");
-                                    addOrRemoveUsersFromProject(project, myShepherd, usersToAddJSONArr, "add");
+                                    addOrRemoveUsersFromProject(project, myShepherd, usersToAddJSONArr, "add", res);
                                 }
 
                                 JSONArray usersToRemoveJSONArr = projectJSON.optJSONArray("usersToRemove");
                                 if (usersToRemoveJSONArr!=null&&usersToRemoveJSONArr.length()>0) {
                                     System.out.println("this should not happen for mark usersToRemoveJSONArr");
-                                    addOrRemoveUsersFromProject(project, myShepherd, usersToRemoveJSONArr, "remove");
+                                    addOrRemoveUsersFromProject(project, myShepherd, usersToRemoveJSONArr, "remove", res);
                                 }
 
                             }
@@ -132,7 +139,6 @@ public class ProjectUpdate extends HttpServlet {
                     }
                 }
             }
-
             out.println(res);
             out.close();
 
@@ -156,7 +162,7 @@ public class ProjectUpdate extends HttpServlet {
 
     }
 
-    private void addOrRemoveUsersFromProject(Project project, Shepherd myShepherd, JSONArray usersToAddJSONArr, String action) {
+    private void addOrRemoveUsersFromProject(Project project, Shepherd myShepherd, JSONArray usersToAddJSONArr, String action, JSONObject res) {
         for (int i=0;i<usersToAddJSONArr.length();i++) {
             String userId = usersToAddJSONArr.getString(i);
             User user = null;
@@ -174,9 +180,11 @@ public class ProjectUpdate extends HttpServlet {
             }
         }
         myShepherd.updateDBTransaction();
+        res.put("modified","true");
+        res.put("success","true");
     }
 
-    private void addOrRemoveEncountersFromProject(Project project, Shepherd myShepherd, JSONArray encountersToAddJSONArr, String action) {
+    private void addOrRemoveEncountersFromProject(Project project, Shepherd myShepherd, JSONArray encountersToAddJSONArr, String action, JSONObject res) {
         System.out.println("addOrRemoveEncountersFromProject entered");
         for (int i=0;i<encountersToAddJSONArr.length();i++) {
             String encId = encountersToAddJSONArr.getString(i);
@@ -195,6 +203,8 @@ public class ProjectUpdate extends HttpServlet {
             }
         }
         myShepherd.updateDBTransaction();
+        res.put("modified","true");
+        res.put("success","true");
     }
 
     private void addErrorMessage(JSONObject res, String error) {
@@ -206,7 +216,7 @@ public class ProjectUpdate extends HttpServlet {
         if(project==null){System.out.println("project is null");}
         // System.out.println("project owner is " + project.getOwner().toString());
         System.out.println("currentUser is " + currentUser.toString());
-        Boolean isAdmin = false; //myShepherd.doesUserHaveRole(currentUser.getUsername(), "admin", ServletUtilities.getContext(request));
+        Boolean isAdmin = myShepherd.doesUserHaveRole(currentUser.getUsername(), "admin", ServletUtilities.getContext(request));
         if (currentUser!=null&&currentUser.equals(project.getOwner())|| isAdmin==true) return true;
         return false;
     }
