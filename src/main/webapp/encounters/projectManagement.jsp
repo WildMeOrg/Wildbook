@@ -155,7 +155,7 @@ try{
         Project currentProject = projects.get(i);
         List<Encounter> currentEncounters = currentProject.getEncounters();
         for(int j=0; j<currentEncounters.size(); j++){
-          if(encountersUserCanAdd.contains(currentEncounters.get(j))){
+          if(encounters.contains(currentEncounters.get(j))){
             encounterAlreadyInProjectCounter ++;
           }
         }
