@@ -2,6 +2,7 @@ package org.ecocean.scheduled;
 
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
+import org.joda.time.DateTime;
 
 public abstract class WildbookScheduledTask implements java.io.Serializable {
 
@@ -20,8 +21,12 @@ public abstract class WildbookScheduledTask implements java.io.Serializable {
       return taskCreatedLong;
     }
 
-    public long getTaskScheduledExecutionTomeLong() {
+    public long getTaskScheduledExecutionTimeLong() {
         return taskScheduledExecutionTimeLong;
+    }
+
+    public DateTime getTaskScheduledExecutionDateTime() {
+        return new DateTime(getTaskScheduledExecutionTimeLong());
     }
 
     public boolean isTaskComplete() {
