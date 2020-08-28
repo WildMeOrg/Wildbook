@@ -48,8 +48,8 @@ public class ProjectUpdate extends HttpServlet {
 
         JSONObject res = new JSONObject();
         try {
-            res.put("success","false");
-            res.put("modified","false");
+            res.put("success",false);
+            res.put("modified",false);
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
             System.out.println("j from servlet is " + j.toString());
 
@@ -88,8 +88,8 @@ public class ProjectUpdate extends HttpServlet {
                                     System.out.println("this should not happen for mark researchProjectId");
                                     project.setResearchProjectId(researchProjectId);
                                     myShepherd.updateDBTransaction();
-                                    res.put("modified","true");
-                                    res.put("success","true");
+                                    res.put("modified",true);
+                                    res.put("success",true);
                                 }
 
                                 String researchProjectName = projectJSON.optString("researchProjectName", null);
@@ -97,8 +97,8 @@ public class ProjectUpdate extends HttpServlet {
                                     System.out.println("this should not happen for mark researchProjectName");
                                     project.setResearchProjectName(researchProjectName);
                                     myShepherd.updateDBTransaction();
-                                    res.put("modified","true");
-                                    res.put("success","true");
+                                    res.put("modified",true);
+                                    res.put("success",true);
                                 }
 
                                 String ownerid = projectJSON.optString("ownerId", null);
@@ -108,8 +108,8 @@ public class ProjectUpdate extends HttpServlet {
                                     User newOwner = myShepherd.getUserByUUID(ownerid);
                                     project.setOwner(newOwner);
                                     myShepherd.updateDBTransaction();
-                                    res.put("modified","true");
-                                    res.put("success","true");
+                                    res.put("modified",true);
+                                    res.put("success",true);
                                 }
 
                                 JSONArray encountersToRemoveJSONArr = projectJSON.optJSONArray("encountersToRemove");
@@ -182,8 +182,8 @@ public class ProjectUpdate extends HttpServlet {
             }
         }
         myShepherd.updateDBTransaction();
-        res.put("modified","true");
-        res.put("success","true");
+        res.put("modified",true);
+        res.put("success",true);
     }
 
     private JSONArray removeUnauthorizedEncounters(JSONArray encountersToAddJSONArr, Shepherd myShepherd, HttpServletRequest request){
@@ -206,16 +206,20 @@ public class ProjectUpdate extends HttpServlet {
 
     private void addOrRemoveEncountersFromProject(Project project, Shepherd myShepherd, JSONArray encountersToAddJSONArr, String action, JSONObject res) {
         System.out.println("addOrRemoveEncountersFromProject entered");
+        int additionCounter = 0;
+        int removalCounnter = 0;
         for (int i=0;i<encountersToAddJSONArr.length();i++) {
             String encId = encountersToAddJSONArr.getString(i);
             try {
                 Encounter enc = myShepherd.getEncounter(encId);
                 if (enc!=null) {
-                    if ("add".equals(action)) {
+                    if ("add".equals(action) && !project.getEncounters().contains(enc)) { //need project.getEncounters().contains(enc) check to ensure additionCounter returns the correct number of added encounters
                         System.out.println("adding encounter " + encId);
                         project.addEncounter(enc);
+                        additionCounter ++;
                     } else if ("remove".equals(action)) {
                         project.removeEncounter(enc);
+                        removalCounnter ++;
                     }
                 }
             } catch (Exception e) {
@@ -223,8 +227,14 @@ public class ProjectUpdate extends HttpServlet {
             }
         }
         myShepherd.updateDBTransaction();
-        res.put("modified","true");
-        res.put("success","true");
+        res.put("modified",true);
+        res.put("success",true);
+        if ("add".equals(action)) {
+          res.put("encountersAddedForProj_" + project.getId(), additionCounter);
+        }
+        if ("remove".equals(action)) {
+          res.put("encountersRemovedForProj_" + project.getId(),removalCounnter);
+        }
     }
 
     private void addErrorMessage(JSONObject res, String error) {
