@@ -83,7 +83,7 @@ String wbName = ContextConfiguration.getNameForContext(context);
 
 <%
 String rootDir = getServletContext().getRealPath("/");
-File xlsFile = org.ecocean.servlet.importer.StandardImport.importXlsFile(rootDir);
+File xlsFile = org.ecocean.servlet.importer.StandardImport.importXlsFile(rootDir, request);
 if (xlsFile == null) {
 %>
     <b class="error">There was an error finding the latest <b>Wildbook Standard Format XLS</b> file.  Please contact your admin.</b>
