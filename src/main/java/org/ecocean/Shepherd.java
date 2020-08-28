@@ -617,6 +617,17 @@ public class Shepherd {
     }
     return tempWork;
   }
+
+  public WildbookScheduledTask getWildbookScheduledTask(int id) {
+    WildbookScheduledTask task = null;
+    try {
+      task = (WildbookScheduledTask) (pm.getObjectById(pm.newObjectIdInstance(WildbookScheduledTask.class, id)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return task;
+  }
+
   // finds the workspace that user 'owner' created and named 'name'
   public Workspace getWorkspaceForUser(String name, String owner) {
     Workspace result=null;
