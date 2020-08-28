@@ -1,11 +1,13 @@
 
 <!-- This file contains the html ".pswp" div element that must exist on any page where we use the PhotoSwipe lightbox gallery. Most of this element needs to be left alone in order for photoswipe to work properly, but UI elements such as the buttons can be reconfigured here. -->
 
-<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="pswp " tabindex="-1" role="dialog" aria-hidden="true">
 
     <!-- Background of PhotoSwipe.
          It's a separate element as animating opacity is faster than rgba(). -->
     <div class="pswp__bg"></div>
+
+    <div id="keyword-container"></div>
 
     <!-- Slides wrapper with overflow:hidden. -->
     <div class="pswp__scroll-wrap">

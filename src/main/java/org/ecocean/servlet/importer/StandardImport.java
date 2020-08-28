@@ -9,7 +9,6 @@ import java.net.*;
 import java.text.SimpleDateFormat;
 import org.apache.poi.ss.usermodel.DateUtil;
 
-
 import org.ecocean.resumableupload.UploadServlet;
 
 import java.io.*;
@@ -38,7 +37,9 @@ import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.ObjectUtils.Null;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
@@ -529,21 +530,22 @@ public class StandardImport extends HttpServlet {
         su = myShepherd.getSocialUnit(suName);
         if (su==null) {
           su = new SocialUnit(suName);
-          myShepherd.storeNewSocialUnit(su);
+          if(committing)myShepherd.storeNewSocialUnit(su);
         }
         
         if (mark!=null) {
           System.out.println("----> have Indy ID for this SocU: "+suName);
           if (!su.hasMarkedIndividualAsMember(mark)) {
             Membership ms = new Membership(mark);
-            myShepherd.storeNewMembership(ms);
+            if(committing)myShepherd.storeNewMembership(ms);
             if (getString(row, "Membership.role")!=null) {
               ms.setRole(getString(row, "Membership.role"));
             }
 
-            myShepherd.beginDBTransaction();
+           // myShepherd.beginDBTransaction();
             su.addMember(ms);
-            myShepherd.commitDBTransaction();
+            //myShepherd.commitDBTransaction();
+            if(committing)myShepherd.updateDBTransaction();
             System.out.println("----> added membership to SocU ");
   
           }
@@ -1333,9 +1335,18 @@ public class StandardImport extends HttpServlet {
       System.out.println("Trying to create NEW asset!");
 
       ArrayList<Keyword> kws = getKeywordForAsset(row, i, myShepherd);
+      ArrayList<LabeledKeyword> labels=getLabeledKeywordsForAsset(row, i, myShepherd);
+      
+      
       if (committing) {
         ma = astore.copyIn(f, assetParams);
         if(kws!=null)ma.setKeywords(kws);
+        if(labels!=null) {
+          for(LabeledKeyword lkw:labels) {
+            ma.addKeyword(lkw);
+          }
+        }
+        
       }
 	    // keywording
 
@@ -1386,6 +1397,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
         return null;
     }
 
+    /*
   private ArrayList<Keyword> getKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
 
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
@@ -1406,6 +1418,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     }
     return ans;
   }
+  */
 
   private ArrayList<Keyword> getKeywordForAsset(Row row, int n, Shepherd myShepherd) {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
@@ -1433,6 +1446,34 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (kw!=null) ans.add(kw);
     }
     
+    return ans;
+  }
+  
+  private ArrayList<LabeledKeyword> getLabeledKeywordsForAsset(Row row, int n, Shepherd myShepherd) {
+    ArrayList<LabeledKeyword> ans = new ArrayList<LabeledKeyword>();
+    
+    List<String> kwLabels = CommonConfiguration.getIndexedPropertyValues("kwLabel",context);
+    for(String label:kwLabels) {
+      System.out.println("eval "+label);
+      String kwsValue = getString(row, "Encounter.mediaAsset"+n+"."+label);
+      if(kwsValue!=null) {
+          kwsValue=kwsValue.replaceAll(".0","");
+          List<String> allowedValues=CommonConfiguration.getIndexedPropertyValues(label,context);
+          System.out.println("eval "+allowedValues.toString());
+          if(kwsValue!=null && !kwsValue.trim().equals("")) {
+            System.out.println("kwsValue is: "+kwsValue);
+            if(allowedValues.contains(kwsValue)) {
+              System.out.println("value allowed");
+              LabeledKeyword kw = myShepherd.getOrCreateLabeledKeyword(label, kwsValue, true);
+              if (kw!=null) {
+                System.out.println("setting "+label+":"+kwsValue);
+                ans.add(kw);
+              }
+            }
+          }    
+      } 
+    }
+
     return ans;
   }
 
@@ -1717,23 +1758,25 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
     int numRows = sheet.getPhysicalNumberOfRows();
     System.out.println("physical number rows in sheet: "+sheet.getPhysicalNumberOfRows());
     for (int i=1; i<numRows; i++) {
-      //System.out.println("checking row "+i+" for value presence");
+      Cell cell = null;
       try {
-        //String anyVal = sheet.getRow(i).getCell(colIndex).toString();
         Row row = sheet.getRow(i);
-        //System.out.println("get ROW? "+row);
-        Cell cell = row.getCell(colIndex);
-        System.out.println("get CELL? "+cell);
+        cell = row.getCell(colIndex);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      try {
         if (cell!=null) {
-          String anyVal = cell.toString();
+          DataFormatter df = new DataFormatter();
+          String anyVal = df.formatCellValue(cell);
           System.out.println("get anyVal "+anyVal);
           if (anyVal!=null&&anyVal.length()>0&&!"".equals(anyVal)) {
             //System.out.println("hey, anyValue! look at you. ---> "+anyVal);
             return true;
           }
         }
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (NullPointerException npe) {
+        npe.printStackTrace();
       }
     }
     return false;

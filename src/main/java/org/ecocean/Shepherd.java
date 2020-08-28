@@ -581,6 +581,17 @@ public class Shepherd {
     return tempMA;
   }
 
+  public Collaboration getCollaboration(String id) {
+    Collaboration collab = null;
+    try {
+      collab = ((Collaboration) (pm.getObjectById(pm.newObjectIdInstance(Collaboration.class, id.trim()), true)));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return collab;
+  }
+
   public Workspace getWorkspace(int id) {
     Workspace tempWork = null;
     try {
@@ -1052,7 +1063,7 @@ public class Shepherd {
     try {
       username = request.getUserPrincipal().toString();
     } catch (Exception e) {
-      System.out.println("Shepherd.getUsername(HttpServletRequest) called with no user logged in");
+      //System.out.println("Shepherd.getUsername(HttpServletRequest) called with no user logged in");
     }
     return username;
   }
@@ -1341,12 +1352,12 @@ public class Shepherd {
     return null;
   }
 
-  public LabeledKeyword getOrCreateLabeledKeyword(String label, String readableName, boolean commit) {
-    LabeledKeyword lkw = getLabeledKeyword(label, readableName);
+  public LabeledKeyword getOrCreateLabeledKeyword(String label, String value, boolean commit) {
+    LabeledKeyword lkw = getLabeledKeyword(label, value);
     if (lkw!=null) return lkw;
     try {
       System.out.println("trying to persist new LabeledKeyword in Shepherd.getOrCreateLabeledKeyword()");
-      lkw = new LabeledKeyword(label, readableName);
+      lkw = new LabeledKeyword(label, value);
       if (commit) storeNewKeyword(lkw);
     } catch (Exception e) {
       e.printStackTrace();

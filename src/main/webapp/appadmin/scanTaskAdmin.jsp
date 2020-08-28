@@ -73,9 +73,7 @@ table {
 
 <jsp:include page="../header.jsp" flush="true" />
      <div class="container maincontent">
-<h1>Grid Administration
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>sharkgrid" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a></h1>
+<h1>Grid Administration</h1>
 
 <%
   myShepherd.beginDBTransaction();

@@ -156,20 +156,6 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 		
 					//boolean visible = indie.canUserAccess(request);
 		      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
-		      System.out.println("We got visible = "+visible);
-		
-		      String ipAddress = request.getHeader("X-FORWARDED-FOR");
-		      if (ipAddress == null) ipAddress = request.getRemoteAddr();
-		      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
-		      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
-		      System.out.println("    From IP: "+ipAddress);
-		      System.out.println("    "+currentTimeString);
-		      System.out.println("    Individual: "+indie);
-		      System.out.println("    is visible: "+visible);
-		      System.out.println("    request.getAuthType(): "+request.getAuthType());
-		      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
-		      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
-		      System.out.println("");
 	
 
 				if (!visible) {
@@ -369,14 +355,16 @@ input.nameKey, input.nameValue {
 
     // edit button click area!!
     $("#edit").click(function() {
-      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue, .hidden").hide();
+      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue,.nameValue .hidden,.namebutton .hidden, .deletename .hidden").hide();
       $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
     });
 
+    //btn btn-sm editFormBtn namebutton
+    //.nameValue .hidden,.namebutton .hidden, .deletename .hidden
     $("#closeEdit").click(function() {
-      $(".namebutton").css("visibility", "hidden");
+      //$(".namebutton").css("visibility", "hidden");
       $(".editForm, input.nameKey, input.nameValue, #defaultNameColon, input.namebutton, input.btn.deletename").hide();
       $(".clickDateText").hide();
       $(".noEditText, span.nameKey, span.nameValue").show();

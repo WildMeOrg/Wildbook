@@ -607,8 +607,8 @@ function showUploadBox() {
             <div><%=props.getProperty("dragInstructionsIE")%></div>
             <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
             <% } else { %>
-            <input class="nonIE" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-            <div><%=props.getProperty("dragInstructions")%></div>
+            <input class="nonIE" name="theFiles" id="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
+            <div><span><%=props.getProperty("dragInstructions")%></span></div>
             <% } %>
             <div id="input-file-list"></div>
         </div>
@@ -656,7 +656,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 
     <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
-        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
+        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" onChange="$('.required-missing').removeClass('required-missing');>
       </div>
 
 <%
@@ -717,7 +717,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
           <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
-              
+
       </div>
     </div>
 <%
@@ -734,7 +734,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="country" id="country" class="form-control">
           <option value="" selected="selected"></option>
-          <% 
+          <%
             List<String> countries = (useCustomProperties)
             ? CommonConfiguration.getIndexedPropertyValues("country", request)
             : CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
@@ -804,40 +804,34 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 </fieldset>
 <hr />
 
-
-
-
-
-
   <fieldset>
     <div class="row">
       <div class="col-xs-12 col-lg-6">
         <h3><%=props.getProperty("aboutYou") %></h3>
         <p class="help-block"><%=props.getProperty("submit_contactinfo") %></p>
-        <div class="form-group form-inline">
+        <div class="form-group form-inline" id="test2">
           <div class="col-xs-6 col-md-4">
-            <label class="text-danger control-label"><%=props.getProperty("submit_name") %></label>
+            <label class="control-label"><%=props.getProperty("submit_name") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
             <input class="form-control" name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName %>">
           </div>
         </div>
 
-        <div class="form-group form-inline">
-
-          <div class="col-xs-6 col-md-4">
-            <label class="text-danger control-label"><%=props.getProperty("submit_email") %></label>
-          </div>
-          <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>">
-          </div>
+        <div class="form-group form-inline required" id="test1">
+	          <div class="col-xs-6 col-md-4">
+	            <label class="control-label"><%=props.getProperty("submit_email") %></label>
+	          </div>
+	          <div class="col-xs-6 col-lg-8">
+	            <input class="form-control" name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>" onChange="$('.required-missing').removeClass('required-missing');">
+	          </div>
         </div>
       </div>
 
       <div class="col-xs-12 col-lg-6">
         <h3><%=props.getProperty("aboutPhotographer") %></h3>
 
-        <div class="form-group form-inline">
+        <div class="form-group form-inline" id="test3">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_name") %></label>
           </div>
@@ -846,7 +840,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
           </div>
         </div>
 
-        <div class="form-group form-inline">
+        <div class="form-group form-inline" id="test4">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_email") %></label>
           </div>
@@ -862,15 +856,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   <hr/>
 
   <fieldset>
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterOrganization") %></label>
-      </div>
-
-      <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
-      </div>
-    </div>
 
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
@@ -901,7 +886,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
       <div class="form-group">
           <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("species") %></label>
+            <label class="control-label text-danger"><%=props.getProperty("species") %></label>
           </div>
 
           <div class="col-xs-6 col-lg-8">
@@ -916,7 +901,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
                      if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
-                      
+
 
                     	for(int q=0;q<numGenusSpeciesProps;q++){
                            String currentGenuSpecies = "genusSpecies"+q;
@@ -1000,7 +985,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             </select>
           </div>
         </div>
-        
+
         <!--
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1308,7 +1293,53 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 function sendButtonClicked() {
 	console.log('sendButtonClicked()');
-	$('.required-missing').removeClass('required-missing')
+	console.log('submitter email is: ' + $('#submitterEmail').val());
+	// $('.required-missing').removeClass('required-missing')
+	// if(!$('#theFiles').val()){
+	// 	console.log("No file submitted!");
+	// 	$('#theFiles').closest('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
+	// 	return false;
+	// }
+	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
+		console.log("no location info entered");
+		$('#location').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
+		return false;
+	}
+
+	if ($('#submitterEmail').val()) {
+			var email = $('#submitterEmail').val();
+	    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	    if(!re.test(email.toLowerCase())){
+				$('#submitterEmail').closest('.form-group').addClass('required-missing');
+				window.setTimeout(function() { alert('Please provide a valid email address.'); }, 100);
+				return false;
+			}
+	}
+
+	// if (!$('#submitterEmail').val()) {
+	// 	// console.log("email address not present");
+	// 	$('#submitterEmail').parents('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must provide an email address first.'); }, 100);
+	// 	return false;
+	// }else{
+	// 	var email = $('#submitterEmail').val();
+  //   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  //   if(!re.test(email.toLowerCase())){
+	// 		console.log("not a valid email address");
+	// 		$('#submitterEmail').closest('.form-group').addClass('required-missing');
+	// 		window.setTimeout(function() { alert('You must provide a valid email address first.'); }, 100);
+	// 		return false;
+	// 	}
+  // }
+
+	if (!$('#datepicker').val()) {
+		console.log("no date picked");
+		$('#datepicker').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must set a date first.'); }, 100);
+		return false;
+	}
 
 	//if (!$('#genusSpecies').val()) {
 	//	$('#genusSpecies').closest('.form-group').addClass('required-missing');
@@ -1354,7 +1385,7 @@ function sendButtonClicked() {
 
 
       <p class="text-center">
-        <button id="submitEncounterButton" class="large" type="submit" onclick="return sendButtonClicked();">
+        <button id="submitEncounterButton" class="large" type="submit" onclick="sendButtonClicked();">
           <%=props.getProperty("submit_send") %>
           <span class="button-icon" aria-hidden="true" />
         </button>

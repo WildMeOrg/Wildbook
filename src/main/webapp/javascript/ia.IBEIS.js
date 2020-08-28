@@ -89,9 +89,15 @@ wildbook.IA.plugins.push({
         var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(ma);
         var identActive = wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus);
         var requireSpecies = !(wildbook.IA.requireSpeciesForId() == 'false');
+        
+        let detectionComplete = false;
+        if (ma.detectionStatus && ma.detectionStatus == 'complete') {
+            detectionComplete = true;
+        }
+
 console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identActive=%o, requireSpecies=%o', mode, mid, aid, ma, iaStatus, identActive, requireSpecies);
 
-	if (identActive && (ma.detectionStatus == 'complete') && ma.annotation && !ma.annotation.identificationStatus) {
+	if (identActive && detectionComplete && ma.annotation && !ma.annotation.identificationStatus) {
             if (mode == 'textStart') {
                 return '<span class="disabled">no matchable detection</span>';
             } else if (mode == 'funcStart') {
@@ -99,7 +105,8 @@ console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identAc
                 //wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 return;
             }
-	} else if (identActive) {
+    // allow results page only if detection is complete or there is a verifiable identification status
+	} else if (identActive && ( detectionComplete || ma.annotation.identificationStatus == ('pending' || 'complete'))) {
             if (mode == 'textStart') {
                 return 'match results';
             } else if (mode == 'funcStart') {
@@ -110,7 +117,7 @@ console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identAc
         }
 
         //this should be the only thing we see until detection is done
-        if (!identActive && ma.detectionStatus && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
+        if (!detectionComplete && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
             if (mode == 'textStart') {
                 return '<span class="disabled">Still waiting for detection. Refresh to see updates.</span>';
             } else {

@@ -842,8 +842,6 @@ if(enc.getLocation()!=null){
 
 <br>
 
-<a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
 <em><%=encprops.getProperty("locationID") %></em>
 <span>
 	<span id="displayLocationID">
@@ -867,8 +865,6 @@ if(enc.getLocation()!=null){
 <br>
 
 
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>country" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
   <em><%=encprops.getProperty("country") %></em>
   <%
   if(enc.getCountry()!=null){
@@ -1632,7 +1628,12 @@ console.info('resetIdButtons()');
                         var number = $("#individualAddEncounterNumber").val();
                         var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
                         var matchType = $("#matchType").val();
-                        var noemail = $( "input:checkbox:checked" ).val();
+
+                        var noemail = false;
+                        if ($("#noEmailCheckbox").is(":checked")) {
+                          noemail = true;
+                        }
+
                         var action = $("#individualAddEncounterAction").val();
                         var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
                         console.info('sendData=%o', sendData);
@@ -1750,7 +1751,7 @@ console.info('resetIdButtons()');
                       </div>
                       <div class="form-group row">
                         <div class="col-sm-5 col-xs-10">
-                          <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
+                          <label><input id="noEmailCheckbox" name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
                         </div>
                       </div>
                       </form>
@@ -2909,8 +2910,6 @@ if (isOwner) {
         %>
         <label>TapirLink:</label>&nbsp;
         <input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="tapirApprove" value="<%=encprops.getProperty("change")%>"/>
-        &nbsp;
-        <a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
       </form>
     </div>
 

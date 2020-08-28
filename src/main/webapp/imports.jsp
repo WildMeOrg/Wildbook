@@ -5,6 +5,8 @@ org.ecocean.servlet.importer.ImportTask,
 org.ecocean.media.MediaAsset,
 javax.jdo.Query,
 org.json.JSONArray,
+java.util.Set,
+java.util.HashSet,
 java.util.List,
 java.util.Collection,
 java.util.ArrayList,
@@ -42,6 +44,15 @@ boolean adminMode = request.isUserInRole("admin");
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
+
+<script>
+
+function confirmCommit() {
+	return confirm("Send to IA? This process may take a long time and block other users from using detection and ID quickly.");
+}
+
+</script>
+
 <style>
 .bootstrap-table {
     height: min-content;
@@ -97,6 +108,7 @@ if (taskId != null) {
     }
 }
 
+Set<String> locationIds = new HashSet<String>();
 
 if (itask == null) {
     DateTime cutoff = new DateTime(System.currentTimeMillis() - (31L * 24L * 60L * 60L * 1000L));
@@ -216,6 +228,7 @@ if (itask == null) {
 
     JSONArray jarr = new JSONArray();
     if (Util.collectionSize(itask.getEncounters()) > 0) for (Encounter enc : itask.getEncounters()) {
+        if (enc.getLocationID() != null) locationIds.add(enc.getLocationID());
         out.println("<tr>");
         out.println("<td><a title=\"" + enc.getCatalogNumber() + "\" href=\"encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "\">" + enc.getCatalogNumber().substring(0,8) + "</a></td>");
         out.println("<td>" + enc.getDate() + "</td>");
@@ -265,14 +278,38 @@ if (itask == null) {
 </tbody></table>
 <p>
 Total images: <b><%=allAssets.size()%></b>
-<script>var allAssetIds = <%=jarr.toString(4)%>;</script>
+<script>
+var allAssetIds = <%=jarr.toString(4)%>;
+
+function sendToIA(skipIdent) {
+    if (!confirmCommit()) return;
+    $('#ia-send-div').hide().after('<div id="ia-send-wait"><i>sending... <b>please wait</b></i></div>');
+    var locIds = $('#id-locationids').val();
+    wildbook.sendMediaAssetsToIA(allAssetIds, locIds, skipIdent, function(x) {
+        if ((x.status == 200) && x.responseJSON && x.responseJSON.success) {
+            $('#ia-send-wait').html('<i>Images sent successfully.</i>');
+        } else {
+            $('#ia-send-wait').html('<b class="error">an error occurred while sending to identification</b>');
+        }
+    });
+}
+
+</script>
 </p>
 
 <p>
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
-<% if ((numIA < 1) && (allAssets.size() > 0)) { %>
-    <a style="margin-left: 20px;" class="button">send to IA (detection only)</a>
-    <a class="button">send to IA (with ID)</a>
+
+<% if (request.isUserInRole("admin") && (numIA < 1) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) { %>
+    <div id="ia-send-div">
+    <div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
+
+    <a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
+    <select multiple id="id-locationids" style="vertical-align: top;">
+        <option selected><%= String.join("</option><option>", locationIds) %></option>
+        <option value="">ALL locations</option>
+    </select>
+    </div>
 <% } %>
 </p>
 

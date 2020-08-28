@@ -397,6 +397,8 @@
 				/encounters/manualAnnotation.jsp = authc, roles[researcher]
 				
 				/OccurrenceSetMetadataField = authc, roles[researcher]
+				
+				/ImportTaskDetection = authc, roles[admin]
 
             </param-value>
         </init-param>
@@ -2535,6 +2537,16 @@
   <servlet-mapping>
     <servlet-name>AnnotationSetMatchAgainst</servlet-name>
     <url-pattern>/AnnotationSetMatchAgainst</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>ImportTaskDetection</servlet-name>
+    <servlet-class>org.ecocean.servlet.ImportTaskDetection</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ImportTaskDetection</servlet-name>
+    <url-pattern>/ImportTaskDetection</url-pattern>
   </servlet-mapping>
   
 

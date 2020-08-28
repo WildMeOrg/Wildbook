@@ -20,6 +20,8 @@ import org.joda.time.DateTime;
 public class OccurrenceQueryProcessor extends QueryProcessor {
 
   private static final String BASE_FILTER = "SELECT FROM org.ecocean.Occurrence WHERE \"OCCURRENCEID\" != null && ";
+  private static final String SELECT_FROM_ORG_ECOCEAN_OCCURENCE_WHERE = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && ";
+  private static final String VARIABLES_STATEMENT = " VARIABLES org.ecocean.Encounter enc";
 
   public static final String[] SIMPLE_STRING_FIELDS = new String[]{"fieldStudySite", "fieldSurveyCode", "sightingPlatform","seaState","observer","comments","occurrenceID"};
 
@@ -58,14 +60,35 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
     // GPS box
     filter = QueryProcessor.filterWithGpsBox("decimalLatitude", "decimalLongitude", filter, request, prettyPrint);
-    filter = QueryProcessor.filterDateRanges(request, filter, prettyPrint);    
-    
+    filter = QueryProcessor.filterDateRanges(request, filter, prettyPrint);
+
     //Observations
     filter = QueryProcessor.filterObservations(filter, request, prettyPrint, "Occurrence");
     int numObs = QueryProcessor.getNumberOfObservationsInQuery(request);
     for (int i = 1;i<=numObs;i++) {
-      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);      
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);
     }
+
+    // filter for submitterOrganization------------------------------------------
+    if((request.getParameter("organizationId")!=null)&&(!request.getParameter("organizationId").equals("")) && Util.isUUID(request.getParameter("organizationId"))) {
+      String orgId=request.getParameter("organizationId");
+      System.out.println("orgId is" + orgId);
+      filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && user.username == enc.submitterID && org.members.contains(user) && org.id == '" + orgId + "'";
+      String variables_statement = " VARIABLES org.ecocean.Encounter enc; org.ecocean.User user; org.ecocean.Organization org";
+      jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
+      prettyPrint.append("Submitter organization contains \""+orgId+"\".<br />");
+    }
+    //end submitterOrganization filter--------------------------------------------------------------------------------------
+
+    // filter for submitterOrganization------------------------------------------
+      if((request.getParameter("submitterOrganization")!=null)&&(!request.getParameter("submitterOrganization").equals(""))) {
+        String submitterOrgString=request.getParameter("submitterOrganization").toLowerCase().replaceAll("%20", " ").trim();
+
+          filter=filterWithCondition(filter,"(enc.submitterOrganization.toLowerCase().indexOf('"+submitterOrgString+"') != -1)");
+
+        prettyPrint.append("Submitter organization contains \""+submitterOrgString+"\".<br />");
+      }
+      //end submitterOrganization filter--------------------------------------------------------------------------------------
 
     //Taxonomies
     List<String> scientificNames = getScientificNames(request);
@@ -74,7 +97,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
       filter = filterTaxonomies(filter, request, prettyPrint, scientificNames);
       jdoqlVariableDeclaration = addTaxonomyVars(jdoqlVariableDeclaration, numTaxonomies);
     }
-    
+
     // make sure no trailing ampersands
     filter = QueryProcessor.removeTrailingAmpersands(filter);
     filter += jdoqlVariableDeclaration;
@@ -128,6 +151,11 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     return jdoqlVariableDeclaration;
   }
 
+  private static String addOrgVars(String jdoqlVariableDeclaration, String orgs) {
+    QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, orgs);
+    return jdoqlVariableDeclaration;
+  }
+
   public static OccurrenceQueryResult processQuery(Shepherd myShepherd, HttpServletRequest request, String order){
 
     Vector<Occurrence> rOccurrences=new Vector<Occurrence>();
@@ -164,7 +192,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     System.out.println("about to return OccurrenceQueryResult with filter "+filter+" and nOccs="+rOccurrences.size());
     return (new OccurrenceQueryResult(rOccurrences,filter,prettyPrint.toString()));
   }
-  
+
   public static String filterDateRanges(HttpServletRequest request, String filter) {
     String filterAddition = "";
     String startTimeFrom = null;
@@ -172,10 +200,10 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     filter = prepForNext(filter);
     if (request.getParameter("startTimeFrom")!=null) {
       startTimeFrom = request.getParameter("startTimeFrom");
-      
-      //Process date to millis... for survey too... 
+
+      //Process date to millis... for survey too...
       // yuck.
-      
+
       filter += " 'millis' >=  "+startTimeFrom+" ";
     }
     filter = prepForNext(filter);
@@ -186,12 +214,12 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     filter = prepForNext(filter);
     return filter;
   }
-  
+
  public static String prepForNext(String filter) {
    if (!QueryProcessor.endsWithAmpersands(filter)) {
      QueryProcessor.prepForCondition(filter);
    }
    return filter;
  }
-  
+
 }
