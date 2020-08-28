@@ -212,7 +212,7 @@ f<%@ page contentType="text/html; charset=utf-8"
     href="searchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
   </a></li>
 	<li><a
-    href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
+    href="projectManagement.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
   </a></li>
   <li><a class="active"><%=encprops.getProperty("matchingImages")%>
   </a></li>

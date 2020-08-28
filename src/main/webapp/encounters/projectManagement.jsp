@@ -51,10 +51,8 @@ String queryString="";
 if(request.getQueryString()!=null){queryString=request.getQueryString();}
 %>
 <ul id="tabmenu">
-  <li><a><%=projProps.getProperty("table")%>
-  </a></li>
   <li><a
-    href="searchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
+    href="searchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("table")%>
   </a></li>
   <li><a class="active"
     href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("projectManagement")%>
@@ -251,7 +249,6 @@ function updateEncountersAddedInDom(data){
           $('#'+currentProjId).html(currentNumber+ currentCount);
         }else{
           console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
-          }
         }
     }
   }
