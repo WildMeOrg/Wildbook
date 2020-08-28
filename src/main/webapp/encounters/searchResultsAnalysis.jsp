@@ -132,7 +132,7 @@ td.tdw:hover div {
    <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
    </a></li>
    <li><a
-     href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
+     href="projectManagement.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("projectManagement")%>
    </a></li>
    <li><a
      href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>

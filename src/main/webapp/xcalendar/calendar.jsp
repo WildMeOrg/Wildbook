@@ -183,7 +183,7 @@ if(request.getParameter("scDate")==null){
           href="../encounters/searchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("table")%>
         </a></li>
         <li><a
-          href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
+          href="projectManagement.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("projectManagement")%>
         </a></li>
         <li><a
           href="../encounters/thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("matchingImages")%>
