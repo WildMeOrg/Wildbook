@@ -71,6 +71,7 @@ public class ProjectUpdate extends HttpServlet {
                             boolean canAddEncounters = isUserAuthorizedToAddEncounters(project, myShepherd, request);
                             System.out.println("canAddEncounters is " + canAddEncounters);
                             JSONArray encountersToAddJSONArr = projectJSON.optJSONArray("encountersToAdd");
+                            encountersToAddJSONArr = removeUnauthorizedEncounters(encountersToAddJSONArr, myShepherd, request);
                             if (canAddEncounters&&encountersToAddJSONArr!=null&&encountersToAddJSONArr.length()>0) {
                                 System.out.println("Authorized to add and encounters exist. Adding or removing encounters from project.... ");
                                 addOrRemoveEncountersFromProject(project, myShepherd, encountersToAddJSONArr, "add", res);
@@ -112,6 +113,7 @@ public class ProjectUpdate extends HttpServlet {
                                 }
 
                                 JSONArray encountersToRemoveJSONArr = projectJSON.optJSONArray("encountersToRemove");
+                                encountersToRemoveJSONArr = removeUnauthorizedEncounters(encountersToRemoveJSONArr,myShepherd, request);
                                 if (encountersToRemoveJSONArr!=null&&encountersToRemoveJSONArr.length()>0) {
                                     System.out.println("this should not happen for mark encountersToRemoveJSONArr");
                                     addOrRemoveEncountersFromProject(project, myShepherd, encountersToRemoveJSONArr, "remove", res);
@@ -182,6 +184,24 @@ public class ProjectUpdate extends HttpServlet {
         myShepherd.updateDBTransaction();
         res.put("modified","true");
         res.put("success","true");
+    }
+
+    private JSONArray removeUnauthorizedEncounters(JSONArray encountersToAddJSONArr, Shepherd myShepherd, HttpServletRequest request){
+      JSONArray filteredResults = new JSONArray();
+      if(encountersToAddJSONArr!=null){
+        for (int i=0;i<encountersToAddJSONArr.length();i++) {
+          String encId = encountersToAddJSONArr.getString(i);
+          try {
+            Encounter enc = myShepherd.getEncounter(encId);
+            if (ServletUtilities.isUserAuthorizedForEncounter(enc, request)) {
+              filteredResults.put(encountersToAddJSONArr.get(i));
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
+      return filteredResults;
     }
 
     private void addOrRemoveEncountersFromProject(Project project, Shepherd myShepherd, JSONArray encountersToAddJSONArr, String action, JSONObject res) {
