@@ -1,5 +1,5 @@
-SUBJECT: New DragonSearch Submission: @ENCOUNTER_ID@
-The DragonSearch library has received a new encounter submission. You can view it at:
+SUBJECT: New SeadragonSearch Submission: @ENCOUNTER_ID@
+The SeadragonSearch library has received a new encounter submission. You can view it at:
 @ENCOUNTER_LINK@
 
 Location:  @ENCOUNTER_LOCATION@
