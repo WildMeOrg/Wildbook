@@ -122,13 +122,13 @@ public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
         }
     }
 
-    public Boolean getTaskDeniedStateForUser(String username) {
+    public boolean deniedByUser(String username) {
         List<Boolean> stateForUser = participantsDeniedIgnored.get(username);
         if (stateForUser==null) return Boolean.FALSE;
         return stateForUser.get(0);
     }
 
-    public Boolean getTaskIgnoredStateForUser(String username) {
+    public boolean ignoredByUser(String username) {
         List<Boolean> stateForUser = participantsDeniedIgnored.get(username);
         if (stateForUser==null) return Boolean.FALSE;
         return stateForUser.get(1);
@@ -143,8 +143,12 @@ public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
         return null;
     }
 
-    public boolean wasMergeDenied() {
+    public boolean isDenied() {
         return getUsernameThatDeniedMerge()!=null;
+    }
+
+    public boolean isUserParticipent(String username) {
+        return participants.contains(username);
     }
     
 }
