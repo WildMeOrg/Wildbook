@@ -2,6 +2,7 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -10,7 +11,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Shepherd;
+import org.ecocean.scheduled.WildbookScheduledIndividualMerge;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 
 
@@ -49,12 +52,15 @@ public class UserGetNotifications extends HttpServlet {
 
             String username = j.optString("username", null);
 
+            JSONArray notificationArr = new JSONArray();
+
             if (username!=null&&!"".equals(username)) {
 
-
-                //get the MergeIndividual notifications
+                notificationArr = addAllScheduledIndividualMergeNotifications(notificationArr, myShepherd, username);
 
             }
+
+            res.put("notifications", notificationArr);
 
             PrintWriter out = response.getWriter();
             out.println(res);
@@ -82,6 +88,44 @@ public class UserGetNotifications extends HttpServlet {
 
     private void addErrorMessage(JSONObject res, String error) {
         res.put("error", error);
+    }
+
+    private JSONArray addAllScheduledIndividualMergeNotifications(JSONArray notificationArr, Shepherd myShepherd, String username) {
+        ArrayList<WildbookScheduledIndividualMerge> pendingMerges = myShepherd.getAllIncompleteWildbookScheduledIndividualMerges();
+        System.out.println("all incomplete merges: "+pendingMerges.size());
+        for (WildbookScheduledIndividualMerge pendingMerge : pendingMerges) {
+            if (pendingMerge.isUserParticipent(username)) {
+                if (pendingMerge.isDenied()) {
+                    notificationArr.put(individualMergeDeniedNotification(pendingMerge));
+                } else if (!pendingMerge.ignoredByUser(username)) {
+                    notificationArr.put(individualMergePendingNotification(pendingMerge));
+                }
+            }
+        }
+        ArrayList<WildbookScheduledIndividualMerge> completeMergesOwnedByUser = myShepherd.getAllCompleteWildbookScheduledIndividualMergesForUsername(username);
+        System.out.println("all complete merges owned by user: "+completeMergesOwnedByUser.size());
+        for (WildbookScheduledIndividualMerge completeMerge : completeMergesOwnedByUser) {
+            if (!completeMerge.ignoredByUser(username)) {
+                notificationArr.put(individualMergeCompleteNotification(completeMerge));
+            }
+
+        }
+        return notificationArr;
+    }
+
+    private JSONObject individualMergeDeniedNotification(WildbookScheduledIndividualMerge merge) {
+        //TODO
+        return null;
+    }
+
+    private JSONObject individualMergePendingNotification(WildbookScheduledIndividualMerge merge) {
+        //TODO
+        return null;
+    }
+
+    private JSONObject individualMergeCompleteNotification(WildbookScheduledIndividualMerge merge) {
+        //TODO
+        return null;
     }
 
 }
