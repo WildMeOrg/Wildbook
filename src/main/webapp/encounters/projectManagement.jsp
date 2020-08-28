@@ -99,9 +99,6 @@ $(document).ready( function() {
 			jdoql: jdoql,
 			success: function() {
         searchResults = encs.models;
-        console.log("searchResults are:");
-        console.log(searchResults);
-        //TODO then do things
       },
 		});
 	});
@@ -203,13 +200,11 @@ try{
 </div>
 <script>
 function dismissAlert(){
-  console.log("dismissAlert entered");
   $('#alert-div').hide();
   $('#alert-div-warn').hide();
 }
 
 function addProjects(){
-  console.log("addUserToProject clicked!");
   let formDataArray = $("#add-encounter-to-project-form").serializeArray();
   let formJson = {};
   formJson["projects"] = [];
@@ -230,7 +225,6 @@ function addProjects(){
     contentType : 'application/json',
     success: function(data){
       let modifiedStatus = data["modified"];
-      console.log(typeof data);
       if(modifiedStatus){
         updateEncountersAddedInDom(data);
         $('#alert-div').show();
@@ -246,29 +240,18 @@ function addProjects(){
 }
 
 function updateEncountersAddedInDom(data){
-  console.log("data is: ");
-  console.log(data);
-  console.log("updateEncountersAddedInDom entered");
   let formDataArray = $("#add-encounter-to-project-form").serializeArray();
-  console.log("formDataArray is ");
-  console.log(formDataArray);
   if(formDataArray){
     for(i=0; i<formDataArray.length; i++){
         let currentName = formDataArray[i].name;
-        console.log("currentName is " + currentName);
         if (currentName === "id"){
           let currentProjId = formDataArray[i].value;
-          console.log("currentProjId is " + currentProjId);
           let currentCount = parseInt(data["encountersAddedForProj_" + currentProjId]);
-          console.log("currentCount is " + currentCount);
-      //     console.log("currentCount for currentProjId " + currentProjId + " is: " = currentCount);
           let currentNumber = parseInt($('#'+ currentProjId).text());
-          console.log("currentNumber is: " + currentNumber);
-          console.log("sum is " + (currentNumber+ currentCount));
           $('#'+currentProjId).html(currentNumber+ currentCount);
-      //   }else{
-      //     console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
-          // }
+        }else{
+          console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
+          }
         }
     }
   }
