@@ -182,15 +182,20 @@ try{
   System.out.println("got past getting encounters");
 }catch(Exception e){e.printStackTrace();}
 %>
-<div id="alert-div" class="alert alert-success" role="alert" style="display: none;">
-  <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-  <strong>Success!</strong> Encounters have been added to project(s)!
-</div>
+  <div id="alert-div" class="alert alert-success" role="alert" style="display: none;">
+    <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Success!</strong> Encounters have been added to project(s)!
+  </div>
+  <div id="alert-div-warn" class="alert alert-danger" role="alert" style="display: none;">
+    <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    Encounters were not added to project(s)!
+  </div>
 </div>
 <script>
 function dismissAlert(){
   console.log("dismissAlert entered");
   $('#alert-div').hide();
+  $('#alert-div-warn').hide();
 }
 function addProjects(){
   console.log("addUserToProject clicked!");
@@ -221,8 +226,13 @@ function addProjects(){
     contentType : 'application/json',
     success: function(data){
       console.log("success!")
-      console.log(data);
-      $('#alert-div').show();
+      console.log(data.modified);
+      if(data.modified==true){
+        //TODO update DOM to show added items
+        $('#alert-div').show();
+      }else{
+        $('#alert-div-warn').show();
+      }
     },
     error: function(x,y,z) {
       console.warn('%o %o %o', x, y, z);
