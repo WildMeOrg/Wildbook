@@ -23,13 +23,14 @@ import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.genetics.*;
-import org.ecocean.social .*;
+import org.ecocean.social.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
 import org.ecocean.ia.Task;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
+import org.ecocean.scheduled.WildbookScheduledIndividualMerge;
 import org.ecocean.scheduled.WildbookScheduledTask;
 
 import javax.jdo.*;
@@ -2816,14 +2817,33 @@ public class Shepherd {
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     return acceptedEncounters;
+  }
 
+  public ArrayList<WildbookScheduledIndividualMerge> getAllIncompleteWildbookScheduledIndividualMerges() {
+    // this is where long names get you
+    List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("!this.taskComplete && this.scheduledTaskType == \"WildbookScheduledIndividualMerge\" ");
+    ArrayList<WildbookScheduledIndividualMerge> mergeTasks = new ArrayList<>();
+    if (tasks!=null) {
+      for (WildbookScheduledTask task : tasks) {
+        WildbookScheduledIndividualMerge mergeTask = (WildbookScheduledIndividualMerge) task;
+        mergeTasks.add(mergeTask);
+      }
+    }
+    return mergeTasks;
   }
 
   public ArrayList<WildbookScheduledTask> getAllIncompleteWildbookScheduledTasks() {
+    return getAllWildbookScheduledTasksWithFilter("!this.taskComplete");
+  }
+
+  public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasks() {
+    return getAllWildbookScheduledTasksWithFilter("");
+  }
+
+  public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasksWithFilter(String filter) {
     ArrayList<WildbookScheduledTask> taskList = new ArrayList();
     Query query = null;
     try {
-      String filter = "!this.taskComplete"; // this is the only way to bool in a filter? really?
       Extent taskClass = pm.getExtent(WildbookScheduledTask.class, true);
       query = pm.newQuery(taskClass, filter);
       query.setOrdering("this.taskScheduledExecutionTimeLong descending");
@@ -2836,6 +2856,8 @@ public class Shepherd {
     }
     return taskList;
   }
+
+
 
   /**
    * Retrieves all encounters that are stored in the database but which have been rejected for the visual database
