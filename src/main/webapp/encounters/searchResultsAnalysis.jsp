@@ -86,7 +86,7 @@ td.tdw:hover div {
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-     
+
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -106,30 +106,33 @@ td.tdw:hover div {
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
-  
+
+
 </style>
 
     <jsp:include page="../header.jsp" flush="true"/>
 
 <div class="container maincontent">
 
-   
-    
+
+
 
 
       <h1 class="intro"><%=encprops.getProperty("title")%></h1>
-    
+
  <ul id="tabmenu">
- 
+
    <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
+   </a></li>
+   <li><a
+     href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
    </a></li>
    <li><a
      href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>
@@ -145,11 +148,11 @@ td.tdw:hover div {
       <li><a
      href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
    </a></li>
- 
+
  </ul>
-    
+
 <%
-  
+
   DecimalFormat df = new DecimalFormat("#.##");
 
 
@@ -168,13 +171,11 @@ td.tdw:hover div {
     String jdoqlString = EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
     //System.out.println("jdoQLstring is: "+jdoqlString);
   %>
-   
+
     <jsp:include page="encounterSearchResultsAnalysisEmbed.jsp" flush="true">
     	<jsp:param name="jdoqlString" value="<%=jdoqlString%>" />
     </jsp:include>
-    
+
 </div>
- 
+
   <jsp:include page="../footer.jsp" flush="true"/>
-
-

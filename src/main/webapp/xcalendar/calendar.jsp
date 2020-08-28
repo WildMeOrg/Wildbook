@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,
          org.ecocean.*,
-         java.util.Calendar, 
+         java.util.Calendar,
          java.util.Properties,
          org.joda.time.format.DateTimeFormatter,
 		 org.joda.time.format.ISODateTimeFormat,
@@ -30,7 +30,7 @@ context=ServletUtilities.getContext(request);
 //let's load encounterSearch.properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
   Properties calprops = new Properties();
   //calprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/calendar.properties"));
   calprops = ShepherdProperties.getProperties("calendar.properties", langCode, context);
@@ -58,7 +58,7 @@ context=ServletUtilities.getContext(request);
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-     
+
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -78,7 +78,7 @@ context=ServletUtilities.getContext(request);
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
@@ -140,7 +140,7 @@ context=ServletUtilities.getContext(request);
      else if(((request.getParameter("datepicker1")!=null))&&(!request.getParameter("datepicker1").trim().equals(""))){
     	 DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
          org.joda.time.DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
-        
+
     	 int thisMonth=1;
     	 if(date1.getMonthOfYear()>1){thisMonth=date1.getMonthOfYear();}
     	 dateString=thisMonth+"/1/"+date1.getYear();
@@ -169,7 +169,7 @@ context=ServletUtilities.getContext(request);
 
 <div class="container maincontent">
 
-    
+
 
       <h1><%=calprops.getProperty("titleSearch") %></h1>
 
@@ -181,6 +181,9 @@ if(request.getParameter("scDate")==null){
 
         <li><a
           href="../encounters/searchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("table")%>
+        </a></li>
+        <li><a
+          href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
         </a></li>
         <li><a
           href="../encounters/thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=calprops.getProperty("matchingImages")%>
@@ -199,7 +202,7 @@ if(request.getParameter("scDate")==null){
 
       </ul>
       <p></p>
-      
+
       <%
 }
       %>
@@ -207,10 +210,10 @@ if(request.getParameter("scDate")==null){
       <div id="maincol-calendar" style='overflow: auto; z-index: 0;'>
         <div id="maintext" style='overflow: auto; z-index: 0;'>
 
-        
+
           <div align="center" id="scheduler_here" class="dhx_cal_container"
                style='width: 810px; height: 800px; overflow: auto; margin-left: auto; margin-right: auto; position: relative; z-index: 0;'>
-            	
+
             	<div align="center" class="dhx_cal_navline" style='z-index: 0;'>
 
               		<div class="dhx_cal_prev_button" style='z-index: 0;'>&nbsp;</div>
@@ -236,4 +239,3 @@ if(request.getParameter("scDate")==null){
 
 init();
 </script>
-

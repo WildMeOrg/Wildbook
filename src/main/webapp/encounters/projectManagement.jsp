@@ -37,7 +37,12 @@ try{
 <link rel="stylesheet" href="../css/pageableTable.css" />
 <script src="../javascript/tsrt.js"></script>
 <style>
-
+  .padded-for-the-gods{
+    padding-left: 1em;
+  }
+  .padded-from-the-top{
+    padding-top: 1em;
+  }
 </style>
 <div class="container maincontent">
   <h1 class="intro"><%=projProps.getProperty("title")%></h1>
@@ -47,6 +52,9 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 %>
 <ul id="tabmenu">
   <li><a><%=projProps.getProperty("table")%>
+  </a></li>
+  <li><a
+    href="searchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a class="active"
     href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("projectManagement")%>
@@ -118,16 +126,18 @@ try{
     }
   }
   %>
-  <p>Encounters that will be added: <strong><%= encountersUserCanAdd.size()%></strong></p>
-  </br>
-  <p>Encounters that you cannot add to the project: <strong><%= encountersUserCannotAdd.size()%></strong></p>
+  <div class="padded-from-the-top">
+    <p>Encounters that will be added: <strong><%= encountersUserCanAdd.size()%></strong></p>
+    </br>
+    <p>Encounters that you cannot add to the project: <strong><%= encountersUserCannotAdd.size()%></strong></p>
+  </div>
   <form id="add-encounter-to-project-form"
   method="post"
   enctype="multipart/form-data"
   name="add-encounter-to-project-form"
   action="../ProjectUpdate"
   accept-charset="UTF-8">
-  <div class="row flexbox" id="project-list-container">
+  <div class="row flexbox padded-for-the-gods" id="project-list-container">
   <%
   if(currentUser != null){
     System.out.println("currentUser not null");
@@ -162,7 +172,7 @@ try{
         %>
         <tr>
           <td><%= currentProject.getResearchProjectName() %></td>
-          <td><%= encounterAlreadyInProjectCounter%></td>
+          <td id="<%= currentProject.getId()%>"><%= encounterAlreadyInProjectCounter%></td>
         <tr>
         <%
         encounterCountsAlreadyInProject.add(encounterAlreadyInProjectCounter);
@@ -184,7 +194,7 @@ try{
 %>
   <div id="alert-div" class="alert alert-success" role="alert" style="display: none;">
     <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    <strong>Success!</strong> Encounters have been added to project(s)!
+    <strong>Success!</strong> Encounters have been added to project(s)! See your projects <a href="/projects/projectList.jsp">here</a>
   </div>
   <div id="alert-div-warn" class="alert alert-danger" role="alert" style="display: none;">
     <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -197,14 +207,12 @@ function dismissAlert(){
   $('#alert-div').hide();
   $('#alert-div-warn').hide();
 }
+
 function addProjects(){
   console.log("addUserToProject clicked!");
-  // $('#alert-div').show(); //TODO remove me
   let formDataArray = $("#add-encounter-to-project-form").serializeArray();
   let formJson = {};
   formJson["projects"] = [];
-  console.log("formDataArray is");
-  console.log(formDataArray);
   for(i=0; i<formDataArray.length; i++){
     let currentName = formDataArray[i].name;
     if (currentName === "id"){
@@ -212,12 +220,8 @@ function addProjects(){
       formJson = constructProjectObjJsonFromIdAndAddToJsonArray(currentProjId, formJson);
     }else{
       console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
-      //shouldn't happen?
     }
   }
-  console.log("stringified formJson is: ");
-  console.log(JSON.stringify(formJson));
-  // ProjectUpdate.addOrRemoveEncountersFromProject(project, myShepherd, encountersToAddJSONArr, "add"); //TODO
   $.ajax({
     url: wildbookGlobals.baseUrl + '../ProjectUpdate',
     type: 'POST',
@@ -225,12 +229,13 @@ function addProjects(){
     dataType: 'json',
     contentType : 'application/json',
     success: function(data){
-      console.log("success!")
-      console.log(data.modified);
-      if(data.modified==true){
-        //TODO update DOM to show added items
+      let modifiedStatus = data["modified"];
+      console.log(typeof data);
+      if(modifiedStatus){
+        updateEncountersAddedInDom(data);
         $('#alert-div').show();
-      }else{
+      }
+      if(!modifiedStatus){
         $('#alert-div-warn').show();
       }
     },
@@ -238,6 +243,35 @@ function addProjects(){
       console.warn('%o %o %o', x, y, z);
     }
   });
+}
+
+function updateEncountersAddedInDom(data){
+  console.log("data is: ");
+  console.log(data);
+  console.log("updateEncountersAddedInDom entered");
+  let formDataArray = $("#add-encounter-to-project-form").serializeArray();
+  console.log("formDataArray is ");
+  console.log(formDataArray);
+  if(formDataArray){
+    for(i=0; i<formDataArray.length; i++){
+        let currentName = formDataArray[i].name;
+        console.log("currentName is " + currentName);
+        if (currentName === "id"){
+          let currentProjId = formDataArray[i].value;
+          console.log("currentProjId is " + currentProjId);
+          let currentCount = parseInt(data["encountersAddedForProj_" + currentProjId]);
+          console.log("currentCount is " + currentCount);
+      //     console.log("currentCount for currentProjId " + currentProjId + " is: " = currentCount);
+          let currentNumber = parseInt($('#'+ currentProjId).text());
+          console.log("currentNumber is: " + currentNumber);
+          console.log("sum is " + (currentNumber+ currentCount));
+          $('#'+currentProjId).html(currentNumber+ currentCount);
+      //   }else{
+      //     console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
+          // }
+        }
+    }
+  }
 }
 
 function constructProjectObjJsonFromIdAndAddToJsonArray(projectUuid, formJson){
