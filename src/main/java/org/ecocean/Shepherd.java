@@ -2820,7 +2820,6 @@ public class Shepherd {
   }
 
   public ArrayList<WildbookScheduledIndividualMerge> getAllIncompleteWildbookScheduledIndividualMerges() {
-    // this is where long names get you
     List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("!this.taskComplete && this.scheduledTaskType == \"WildbookScheduledIndividualMerge\" ");
     ArrayList<WildbookScheduledIndividualMerge> mergeTasks = new ArrayList<>();
     if (tasks!=null) {
@@ -2834,6 +2833,23 @@ public class Shepherd {
 
   public ArrayList<WildbookScheduledTask> getAllIncompleteWildbookScheduledTasks() {
     return getAllWildbookScheduledTasksWithFilter("!this.taskComplete");
+  }
+
+  public ArrayList<WildbookScheduledIndividualMerge> getAllCompleteWildbookScheduledIndividualMergesForUsername(String username) {
+    String usernameQuery = "";
+    if (username!=null&&!"".equals(username)) {
+      usernameQuery = " && this.initiatorName == \""+username.trim()+"\"";
+    }
+    // this is where long names get you
+    List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("this.taskComplete && this.scheduledTaskType == \"WildbookScheduledIndividualMerge\""+usernameQuery);
+    ArrayList<WildbookScheduledIndividualMerge> mergeTasks = new ArrayList<>();
+    if (tasks!=null) {
+      for (WildbookScheduledTask task : tasks) {
+        WildbookScheduledIndividualMerge mergeTask = (WildbookScheduledIndividualMerge) task;
+        mergeTasks.add(mergeTask);
+      }
+    }
+    return mergeTasks;
   }
 
   public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasks() {
