@@ -117,12 +117,12 @@
                         <%= researchProjectIds.get(j) %>
                         <%
                       }
-                    %>
+                      %>
                     </td>
                     <td class="tissueSample">
                       <button type="button">Project Match</button>
                       </br>
-                      <button type="button">Mark New</button>
+                      <button type="button" onclick="markNew('<%= encounters.get(i).getCatalogNumber()%>')">Mark New</button>
                     </td>
                     </tr>
                     <%
@@ -142,3 +142,10 @@
           </div>
     </div>
 <jsp:include page="../footer.jsp" flush="true"/>
+
+<script type="text/javascript">
+function markNew(projectId){
+  console.log("markNew clicked!");
+  console.log("projectId is " + projectId);
+}
+</script>
