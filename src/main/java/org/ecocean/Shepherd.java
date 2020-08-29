@@ -414,6 +414,20 @@ public class Shepherd {
       return false;
     }
   }
+
+  public boolean storeNewWildbookScheduledIndividualMerge(WildbookScheduledIndividualMerge wsim) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(wsim);
+      commitDBTransaction();
+			return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new WildbookScheduledIndividualMerge in shepherd.storeNewWildbookScheduledIndividualMerge().");
+      e.printStackTrace();
+      return false;
+    }
+  }
   
   public List getAllCollaborations() {
     Collection c;
