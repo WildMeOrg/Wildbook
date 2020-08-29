@@ -46,11 +46,18 @@ public class UserGetNotifications extends HttpServlet {
         myShepherd.setAction("UserGetNotifications.java");
         myShepherd.beginDBTransaction();
 
+        System.out.println("==> In UserGetNotifications servlet!");
+
         try {
             res.put("success", "false");
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
             String username = j.optString("username", null);
+            if (username==null||myShepherd.getUser(username)==null) {
+                username = request.getUserPrincipal().getName();
+            }
+
+            System.out.println("Finding notifications for username = "+username);
 
             JSONArray notificationArr = new JSONArray();
 
@@ -108,24 +115,41 @@ public class UserGetNotifications extends HttpServlet {
             if (!completeMerge.ignoredByUser(username)) {
                 notificationArr.put(individualMergeCompleteNotification(completeMerge));
             }
-
         }
         return notificationArr;
     }
 
     private JSONObject individualMergeDeniedNotification(WildbookScheduledIndividualMerge merge) {
-        //TODO
-        return null;
+        JSONObject note = getBasicMergeNotificationJSON(merge);
+        note.put("notificationType", "mergeDenied");
+        note.put("deniedBy", merge.getUsernameThatDeniedMerge());
+        note.put("secondaryIndividualId", merge.getSecondaryIndividual().getId());
+        note.put("secondaryIndividualName", merge.getSecondaryIndividual().getDisplayName());
+        return note;
     }
 
     private JSONObject individualMergePendingNotification(WildbookScheduledIndividualMerge merge) {
-        //TODO
-        return null;
+        JSONObject note = getBasicMergeNotificationJSON(merge);
+        note.put("notificationType", "mergePending");
+        note.put("secondaryIndividualId", merge.getSecondaryIndividual().getId());
+        note.put("secondaryIndividualName", merge.getSecondaryIndividual().getDisplayName());
+        return note;
     }
 
     private JSONObject individualMergeCompleteNotification(WildbookScheduledIndividualMerge merge) {
-        //TODO
-        return null;
+        JSONObject note = getBasicMergeNotificationJSON(merge);
+        note.put("notificationType", "mergeComplete");
+        return note;
+    }
+
+    private JSONObject getBasicMergeNotificationJSON(WildbookScheduledIndividualMerge merge) {
+        // stuff commmon to all merge notifications
+        JSONObject note = new JSONObject();
+        note.put("taskId", merge.getId());
+        note.put("primaryIndividualId", merge.getPrimaryIndividual().getId());
+        note.put("primaryIndividualName", merge.getPrimaryIndividual().getDisplayName());
+
+        return note;
     }
 
 }
