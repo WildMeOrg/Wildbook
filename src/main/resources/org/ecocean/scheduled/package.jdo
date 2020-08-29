@@ -8,12 +8,14 @@
         <column length="36" name="ID"/>
       </field>
 
+      <field name="initiatorName" persistence-modifier="persistent">
+        <column length="128" allows-null="true" />
+      </field>
+
       <field name="scheduledTaskType" persistence-modifier="persistent">
         <column length="128" allows-null="false" />
       </field>
     </class>
-
-
 
     <class name="WildbookScheduledIndividualMerge" identity-type="application">
 
@@ -21,9 +23,17 @@
 
       <field name="secondaryIndividual" element-type="org.ecocean.MarkedIndividual" persistence-modifier="persistent" />
 
-      <field name="initiatorName" persistence-modifier="persistent">
-        <column length="128" allows-null="false" />
+      <field name="participants" persistence-modifier="persistent" default-fetch-group="true" allows-null="true">
+        <collection element-type="java.lang.String"/>
       </field>
+
+      <field name="participantsDeniedIgnored" persistence-modifier="persistent" default-fetch-group="true" allows-null="true" serialized="true">
+
+      <!--  <map key-type="java.lang.String" value-type="java.util.ArrayList"/> -->
+        <map key-type="java.lang.String"/>
+        <join/> 
+      </field>
+
     </class>
 
     
