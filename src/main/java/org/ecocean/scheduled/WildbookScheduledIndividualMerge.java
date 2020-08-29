@@ -12,16 +12,12 @@ public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
 
     private static final long serialVersionUID = 1L;
 
-    private MarkedIndividual primaryIndividual;
-    private MarkedIndividual secondaryIndividual;
-
-    private String initiatorName;
-
+    private MarkedIndividual primaryIndividual = null;
+    private MarkedIndividual secondaryIndividual = null;
     // participant names, with Boolean list of denied state in position 0, ignored state in position 2.
-    private HashMap<String,List<Boolean>> participantsDeniedIgnored = new HashMap<>();
+    private HashMap<String,ArrayList<Boolean>> participantsDeniedIgnored = new HashMap<>();
 
-    //would LOVE to not duplicate this if you can think of a way to query tasks-for-user without a crazy join or having to query the keyset of participantsDeniedIgnored 
-    private List<String> participants = new ArrayList<>(); 
+    private List<String> participants = new ArrayList<>();
 
     public WildbookScheduledIndividualMerge() {}
 
@@ -93,7 +89,7 @@ public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
             }
             participants.addAll(usernameMasterList);
             for (String username : usernameMasterList) {
-                List<Boolean> denyIgnore = new ArrayList<>(1);
+                ArrayList<Boolean> denyIgnore = new ArrayList<>(1);
     
                 //on instantiation, no one has denied the action
                 denyIgnore.add(0, Boolean.FALSE);
@@ -106,6 +102,10 @@ public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
         } else {
             System.out.println("You cannot set participants on an IndividualMerge task that doesn't have two MarkedIndividuals.");
         }
+    }
+
+    public List<String> getParticipantUsernames() {
+        return participants;
     }
 
     public void setTaskDeniedStateForUser(String username, boolean denied) {
@@ -149,6 +149,14 @@ public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
 
     public boolean isUserParticipent(String username) {
         return participants.contains(username);
+    }
+
+    public MarkedIndividual getPrimaryIndividual() {
+        return primaryIndividual;
+    }
+
+    public MarkedIndividual getSecondaryIndividual() {
+        return secondaryIndividual;
     }
     
 }
