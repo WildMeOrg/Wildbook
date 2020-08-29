@@ -15,7 +15,7 @@ f<%@ page contentType="text/html; charset=utf-8"
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
 
 	int encounterIncrementer=10;
-  
+
     int startNum = 0;
     int endNum = 30;
 
@@ -186,6 +186,7 @@ f<%@ page contentType="text/html; charset=utf-8"
 
 <div class="container maincontent">
 <%
+//TODO styles above can go in _encounter-pages.less if they don't conflict with ones already in there
   String rq = "";
   if (request.getQueryString() != null) {
     rq = request.getQueryString();
@@ -254,7 +255,7 @@ f<%@ page contentType="text/html; charset=utf-8"
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-encounterIncrementer)%>&endNum=<%=(startNum)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/> <%=encprops.getProperty("previous")%></a>
-         
+
       </p>
     </td>
     <%
@@ -293,7 +294,7 @@ f<%@ page contentType="text/html; charset=utf-8"
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-encounterIncrementer)%>&endNum=<%=(startNum)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seePreviousResults")%>"/> <%=encprops.getProperty("previous")%></a>
-         
+
       </p>
     </td>
     <%
