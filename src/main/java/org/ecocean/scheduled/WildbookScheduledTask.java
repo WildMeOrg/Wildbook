@@ -1,21 +1,36 @@
 package org.ecocean.scheduled;
 
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
-import org.joda.time.DateTime;
 
 public abstract class WildbookScheduledTask implements java.io.Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    String id = Util.generateUUID();
+    protected String id = Util.generateUUID();
 
-    boolean taskComplete = false;
-    long taskCreatedLong;
-    long taskScheduledExecutionTimeLong;
-    String scheduledTaskType = "WildbookScheduledTask";
+    protected boolean taskComplete = false;
+    protected long taskCreatedLong;
+    protected long taskScheduledExecutionTimeLong;
+    protected String scheduledTaskType = "WildbookScheduledTask";
+    protected String initiatorName = null;
 
     public WildbookScheduledTask() {} //empty for jdo
+
+    public String getId() {
+        return id;
+    }
+
+    public String getInitiatorName() {
+        return initiatorName;
+    }
+
+    public void setInitiatorName(String initiatorName) {
+        this.initiatorName = initiatorName;
+    }
 
     public long getTaskCreatedLong() {
       return taskCreatedLong;
@@ -25,8 +40,11 @@ public abstract class WildbookScheduledTask implements java.io.Serializable {
         return taskScheduledExecutionTimeLong;
     }
 
-    public DateTime getTaskScheduledExecutionDateTime() {
-        return new DateTime(getTaskScheduledExecutionTimeLong());
+    public String getTaskScheduledExecutionDateString() {
+        Instant instant = Instant.ofEpochMilli(getTaskScheduledExecutionTimeLong());
+        LocalDateTime executionDate = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        return dtf.format(executionDate);
     }
 
     public boolean isTaskComplete() {
