@@ -102,7 +102,7 @@ public class Collaborate extends HttpServlet {
 			}
 		}
 		if (html.equals("")) {
-			rtn.put("content", props.getProperty("notificationsNone"));
+			rtn.put("content", "<label id='no-notifications-label'>"+props.getProperty("notificationsNone")+"</label>");
 		} else {
 			// we need to find somehow the email of the requester here
 			System.out.println("COLLABORATE.java: username="+username+", currentUsername="+currentUsername);
