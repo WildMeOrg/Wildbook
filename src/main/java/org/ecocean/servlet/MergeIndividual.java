@@ -88,35 +88,21 @@ public class MergeIndividual extends HttpServlet {
         currentUsername = userPrincipal.getName();
       }
       
-      //TEMPORARY PLACEMENT!!!! Just to see if it errz (it will )
-      // should we check if this is already scheduled? does it matter if it just happens sooner? probably. 
-
-      ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
-      myShepherd.storeNewScheduledIndividualMerge(merge);
-      myShepherd.beginDBTransaction();
-
       if (currentUsername!=null) {
         ArrayList<String> allUniqueUsers = new ArrayList<>(mark1Users);
         for (String user : mark2Users) {
-          if (!allUniqueUsers.contains(user)&&!"".equals(user)) {
+          if (!allUniqueUsers.contains(user)&&!"".equals(user)&&user!=null) {
             allUniqueUsers.add(user);
             System.out.println("unique user == "+user);
           }
         }
-
+        
         if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
           canMergeAutomatically = true;
         } else {
-          //TODO okay, we got people to notify
-
-          //TODO check for user collaboration before setting timed task
-
-          //TODO actually create merge task - correct location after testing
-          // ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
-          // myShepherd.storeNewWildbookScheduledTask(merge);
-          // myShepherd.beginDBTransaction();
-
-          //TODO what does the deny action do- update state or DELETE the scheduled task?
+          ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
+          myShepherd.storeNewScheduledIndividualMerge(merge);
+          myShepherd.beginDBTransaction();
         }
       }
 
@@ -128,8 +114,6 @@ public class MergeIndividual extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
       }
-
-      //TODO figure out further messaging for timed merge initiated
 
     } catch (Exception le){
       le.printStackTrace();
