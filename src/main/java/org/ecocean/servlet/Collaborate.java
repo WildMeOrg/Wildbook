@@ -101,13 +101,13 @@ public class Collaborate extends HttpServlet {
 				html += "<div class=\"collaboration-invite-notification\" data-username=\"" + c.getUsername1() + "\">" + c.getUsername1() +emailMessage+ " <input class=\"yes\" type=\"button\" value=\"" + props.getProperty("buttonApprove") + "\" /> <input class=\"no\" type=\"button\" value=\"" + props.getProperty("buttonDeny") + "\" /></div>";
 			}
 		}
-		String button = "<p><input onClick=\"$('.popup').remove()\" type=\"button\" value=\"close\" /></p>";
+		//String button = "<p><input onClick=\"$('.popup').remove()\" type=\"button\" value=\"close\" /></p>";
 		if (html.equals("")) {
-			rtn.put("content", props.getProperty("notificationsNone") + button);
+			rtn.put("content", props.getProperty("notificationsNone"));
 		} else {
 			// we need to find somehow the email of the requester here
 			System.out.println("COLLABORATE.java: username="+username+", currentUsername="+currentUsername);
-			rtn.put("content", "<h2>" + props.getProperty("notificationsTitle") + "</h2>" + html + button);
+			rtn.put("content", "<h2>" + props.getProperty("notificationsTitle") + "</h2>" + html);
 		}
 
 	// Change of state on existing collaboration
