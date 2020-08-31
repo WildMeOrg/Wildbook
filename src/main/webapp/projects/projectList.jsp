@@ -24,9 +24,6 @@ int numFixes=0;
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 User currentUser = AccessControl.getUser(request, myShepherd);
 %>
-<style type="text/css">
-
-</style>
 
   <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
@@ -40,9 +37,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
           <%
           try{
               if(currentUser != null){
-                System.out.println("got here!");
                 List<Project> userProjects = myShepherd.getProjectsForUserId(currentUser.getId());
-                // System.out.println("userProject list size is " + userProjects.size());
                 if(userProjects==null || userProjects.size()<1){
                   %>
                   <h4>You don't have any projects yet</h4>
@@ -74,10 +69,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
               }
           }
           catch(Exception e){
-          	myShepherd.rollbackDBTransaction();
-          }
-          finally{
-          	myShepherd.closeDBTransaction();
+          	e.printStackTrace();
           }
           %>
       </tbody>

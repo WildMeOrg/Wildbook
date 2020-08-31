@@ -18,7 +18,6 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("searchResults.jsp");
 User currentUser = myShepherd.getUser(request);
 if(currentUser == null){
-  System.out.println("oh she null");
 }
 // System.out.println("currentUser is " + currentUser.getUsername());
 try{
@@ -36,14 +35,6 @@ try{
 <link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
 <link rel="stylesheet" href="../css/pageableTable.css" />
 <script src="../javascript/tsrt.js"></script>
-<style>
-  .padded-for-the-gods{
-    padding-left: 1em;
-  }
-  .padded-from-the-top{
-    padding-top: 1em;
-  }
-</style>
 <div class="container maincontent">
   <h1 class="intro"><%=projProps.getProperty("title")%></h1>
 <%
@@ -268,18 +259,12 @@ function constructProjectObjJsonFromIdAndAddToJsonArray(projectUuid, formJson){
     }
   %>
   formJson["projects"].push(singleProjObj);
-  console.log("formJson is: ");
-  console.log(formJson);
   return formJson;
 }
 </script>
 <%
   }
   catch(Exception e){e.printStackTrace();}
-  finally{
-	  myShepherd.rollbackDBTransaction();
-	  myShepherd.closeDBTransaction();
-  }
 %>
 
 <jsp:include page="../footer.jsp" flush="true"/>
