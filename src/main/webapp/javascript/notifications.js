@@ -73,13 +73,14 @@ function userGetNotifications() {
 				let notificationType = thisNote.notificationType;
 				console.log("---> Notification Type: "+notificationType);
 				let primaryName = thisNote.primaryIndividualName;
+				let secondaryName = thisNote.secondaryIndividualName;
 
 				if (notificationType=="mergePending") {
 					let secondaryName = thisNote.secondaryIndividualName;
 					notificationHTML += '<p>Merge of <strong>'+secondaryName+'</strong> into <strong>'+primaryName+'</strong> has been initiated.';
 					notificationHTML += ' Auto completion date: <strong>'+thisNote.mergeExecutionDate+'</strong>, 2 week delayed execution.';
 					notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
-					notificationHTML += '<input class="btn btn-sm" type="button" onclick="denyIndividualMerge(this)" value="Deny"/>';
+					notificationHTML += '<span class="merge-action-feedback" ></span><input class="btn btn-sm" type="button" onclick="denyIndividualMerge(this)" value="Deny"/>';
 					notificationHTML += '<input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Ignore"/></p>';
 				}
 
@@ -87,15 +88,17 @@ function userGetNotifications() {
 					notificationHTML += '<p>Merge into <strong>'+primaryName+'</strong> was completed.';
 					notificationHTML += ' Auto completion date: <strong>'+thisNote.mergeExecutionDate+'</strong>, 2 week delayed execution.';
 					notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
-					notificationHTML += '<input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Dismiss"/></p>';
+					notificationHTML += ' <span class="merge-action-feedback" ></span><input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Dismiss"/></p>';
 				}
 
 				if (notificationType=='mergeDenied') {
 					notificationHTML += '<p>A merge of <strong>'+secondaryName+'</strong> into <strong>'+primaryName+'</strong> was <i><strong>denied</strong></i>.';
-					notificationHTML += 'Initiated by user: <strong>'+thisNote.initiator+'</strong>';
-					notificationHTML += 'Denied by user: <strong>'+thisNote.deniedBy+'</strong>';
-					notificationHTML += '<input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Dismiss"/></p>';
+					notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
+					notificationHTML += ' Denied by user: <strong>'+thisNote.deniedBy+'  </strong>';
+					notificationHTML += ' <span class="merge-action-feedback" ></span><input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Dismiss"/></p>';
 				}
+
+				//notificationHTML += '<span class="merge-action-feedback" ></span>';
 
 				notificationHTML += '</div>';
 				console.log("appending html: "+notificationHTML);
@@ -129,7 +132,9 @@ function changeIndividualMergeState(el, action) {
 	let json = {};
 
 	json['mergeId'] = mergeId;
-	json['action'] = mergeId;
+	json['action'] = action;
+
+	console.log("Trying to change individual merge state on mergeId "+mergeId+" to "+action+".");
 	
 	$.ajax({
 		url: wildbookGlobals.baseUrl + '../ScheduledIndividualMergeUpdate',
@@ -139,9 +144,11 @@ function changeIndividualMergeState(el, action) {
 		contentType: 'application/json',
 		success: function(d) {
 			console.info('Success updating ScheduledIndividualMerge! Got back '+JSON.stringify(d));
+			$(el).siblings(".merge-action-feedback").first().text("Success!");
 		},
 		error: function(x,y,z) {
 			console.warn('%o %o %o', x, y, z);
+			$(el).siblings(".merge-action-feedback").first().text("Failed. Please contact support.");
 		}
 	});
 }
