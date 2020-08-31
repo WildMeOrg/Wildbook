@@ -79,21 +79,34 @@ function userGetNotifications() {
 					let secondaryName = thisNote.secondaryIndividualName;
 					notificationHTML += '<p>Merge of <strong>'+secondaryName+'</strong> into <strong>'+primaryName+'</strong> has been initiated.';
 					notificationHTML += ' Auto completion date: <strong>'+thisNote.mergeExecutionDate+'</strong>, 2 week delayed execution.';
-					notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
-					notificationHTML += '<span class="merge-action-feedback" ></span><input class="btn btn-sm" type="button" onclick="denyIndividualMerge(this)" value="Deny"/>';
-					notificationHTML += '<input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Ignore"/></p>';
+
+					if ("true"==thisNote.ownedByMe) {
+						notificationHTML += ' Initiated by  current user account.';
+					} else {
+						notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
+						notificationHTML += '<span class="merge-action-feedback" ></span><input class="btn btn-sm" type="button" onclick="denyIndividualMerge(this)" value="Deny"/>';
+						notificationHTML += '<input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Ignore"/></p>';
+					}
 				}
 
 				if (notificationType=='mergeComplete') {
 					notificationHTML += '<p>Merge into <strong>'+primaryName+'</strong> was completed.';
 					notificationHTML += ' Auto completion date: <strong>'+thisNote.mergeExecutionDate+'</strong>, 2 week delayed execution.';
-					notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
+					if ("true"==thisNote.ownedByMe) {
+						notificationHTML += ' Initiated by  current user account.';
+					} else {
+						notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
+					}
 					notificationHTML += ' <span class="merge-action-feedback" ></span><input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Dismiss"/></p>';
 				}
 
 				if (notificationType=='mergeDenied') {
 					notificationHTML += '<p>A merge of <strong>'+secondaryName+'</strong> into <strong>'+primaryName+'</strong> was <i><strong>denied</strong></i>.';
-					notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
+					if ("true"==thisNote.ownedByMe) {
+						notificationHTML += ' Initiated by  current user account.';
+					} else {
+						notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
+					}
 					notificationHTML += ' Denied by user: <strong>'+thisNote.deniedBy+'  </strong>';
 					notificationHTML += ' <span class="merge-action-feedback" ></span><input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Dismiss"/></p>';
 				}
@@ -102,10 +115,11 @@ function userGetNotifications() {
 
 				notificationHTML += '</div>';
 				console.log("appending html: "+notificationHTML);
-				$(notificationHTML).insertAfter(lastCollabNotification);
+				$('#notifications-scrollbox').prepend(notificationHTML);
 			}
 			if (notificationsArr.length>0) {
-				$('<h2>Individual Merge Notifications</h2>').insertAfter(lastCollabNotification);
+				$('#notifications-scrollbox').prepend('<h2>Individual Merge Notifications</h2>');
+				$('#no-notifications-label').remove();
 			}
 
 		},
