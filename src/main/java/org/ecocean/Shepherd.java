@@ -632,11 +632,12 @@ public class Shepherd {
     return tempWork;
   }
 
-  public WildbookScheduledTask getWildbookScheduledTask(int id) {
+  public WildbookScheduledTask getWildbookScheduledTask(String id) {
     WildbookScheduledTask task = null;
     try {
-      task = (WildbookScheduledTask) (pm.getObjectById(pm.newObjectIdInstance(WildbookScheduledTask.class, id)));
-    } catch (Exception nsoe) {
+      task = (WildbookScheduledTask) (pm.getObjectById(pm.newObjectIdInstance(WildbookScheduledTask.class, id.trim()), true));
+    } catch (Exception e) {
+      e.printStackTrace();
       return null;
     }
     return task;
