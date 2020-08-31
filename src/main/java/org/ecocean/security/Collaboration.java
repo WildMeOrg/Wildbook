@@ -4,7 +4,7 @@ package org.ecocean.security;
 import java.util.*;
 import java.io.Serializable;
 import org.ecocean.*;
-import org.ecocean.scheduled.WildbookScheduledIndividualMerge;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.social.*;
 import org.ecocean.servlet.ServletUtilities;
 
@@ -300,11 +300,11 @@ public class Collaboration implements java.io.Serializable {
 		Shepherd myShepherd = null;
 		try {
 			myShepherd = new Shepherd(context);
-			ArrayList<WildbookScheduledIndividualMerge> potentialForNotification = myShepherd.getAllCompleteWildbookScheduledIndividualMergesForUsername(username);
-			ArrayList<WildbookScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteWildbookScheduledIndividualMerges();
+			ArrayList<ScheduledIndividualMerge> potentialForNotification = myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
+			ArrayList<ScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteScheduledIndividualMerges();
 			potentialForNotification.addAll(incomplete);
 			System.out.println("going through potential merge for notification widget...");
-			for (WildbookScheduledIndividualMerge merge : potentialForNotification) {
+			for (ScheduledIndividualMerge merge : potentialForNotification) {
 				if (!merge.ignoredByUser(username)&&merge.isUserParticipent(username)) {
 					System.out.println("adding 1!");
 					n++;

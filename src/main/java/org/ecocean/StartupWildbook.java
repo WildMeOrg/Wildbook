@@ -239,7 +239,7 @@ public class StartupWildbook implements ServletContextListener {
                 myShepherd.closeDBTransaction();
             }
             //}, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing  
-            }, 0, 30, TimeUnit.SECONDS);
+            }, 0, 1, TimeUnit.HOURS);
     }
 
 

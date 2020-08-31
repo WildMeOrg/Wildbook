@@ -30,7 +30,7 @@ import org.ecocean.ia.Task;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
-import org.ecocean.scheduled.WildbookScheduledIndividualMerge;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.scheduled.WildbookScheduledTask;
 
 import javax.jdo.*;
@@ -415,7 +415,7 @@ public class Shepherd {
     }
   }
 
-  public boolean storeNewWildbookScheduledIndividualMerge(WildbookScheduledIndividualMerge wsim) {
+  public boolean storeNewScheduledIndividualMerge(ScheduledIndividualMerge wsim) {
     beginDBTransaction();
     try {
       pm.makePersistent(wsim);
@@ -423,7 +423,7 @@ public class Shepherd {
 			return true;
     } catch (Exception e) {
       rollbackDBTransaction();
-      System.out.println("I failed to create a new WildbookScheduledIndividualMerge in shepherd.storeNewWildbookScheduledIndividualMerge().");
+      System.out.println("I failed to create a new ScheduledIndividualMerge in shepherd.storeNewScheduledIndividualMerge().");
       e.printStackTrace();
       return false;
     }
@@ -2844,12 +2844,12 @@ public class Shepherd {
     return acceptedEncounters;
   }
 
-  public ArrayList<WildbookScheduledIndividualMerge> getAllIncompleteWildbookScheduledIndividualMerges() {
-    List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("!this.taskComplete && this.scheduledTaskType == \"WildbookScheduledIndividualMerge\" ");
-    ArrayList<WildbookScheduledIndividualMerge> mergeTasks = new ArrayList<>();
+  public ArrayList<ScheduledIndividualMerge> getAllIncompleteScheduledIndividualMerges() {
+    List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("!this.taskComplete && this.scheduledTaskType == \"ScheduledIndividualMerge\" ");
+    ArrayList<ScheduledIndividualMerge> mergeTasks = new ArrayList<>();
     if (tasks!=null) {
       for (WildbookScheduledTask task : tasks) {
-        WildbookScheduledIndividualMerge mergeTask = (WildbookScheduledIndividualMerge) task;
+        ScheduledIndividualMerge mergeTask = (ScheduledIndividualMerge) task;
         mergeTasks.add(mergeTask);
       }
     }
@@ -2860,17 +2860,17 @@ public class Shepherd {
     return getAllWildbookScheduledTasksWithFilter("!this.taskComplete");
   }
 
-  public ArrayList<WildbookScheduledIndividualMerge> getAllCompleteWildbookScheduledIndividualMergesForUsername(String username) {
+  public ArrayList<ScheduledIndividualMerge> getAllCompleteScheduledIndividualMergesForUsername(String username) {
     String usernameQuery = "";
     if (username!=null&&!"".equals(username)) {
       usernameQuery = " && this.initiatorName == \""+username.trim()+"\"";
     }
     // this is where long names get you
-    List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("this.taskComplete && this.scheduledTaskType == \"WildbookScheduledIndividualMerge\""+usernameQuery);
-    ArrayList<WildbookScheduledIndividualMerge> mergeTasks = new ArrayList<>();
+    List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("this.taskComplete && this.scheduledTaskType == \"ScheduledIndividualMerge\""+usernameQuery);
+    ArrayList<ScheduledIndividualMerge> mergeTasks = new ArrayList<>();
     if (tasks!=null) {
       for (WildbookScheduledTask task : tasks) {
-        WildbookScheduledIndividualMerge mergeTask = (WildbookScheduledIndividualMerge) task;
+        ScheduledIndividualMerge mergeTask = (ScheduledIndividualMerge) task;
         mergeTasks.add(mergeTask);
       }
     }

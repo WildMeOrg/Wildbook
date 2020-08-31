@@ -14,7 +14,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.shiro.web.util.WebUtils;
 
 import org.ecocean.*;
-import org.ecocean.scheduled.WildbookScheduledIndividualMerge;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 
 
 public class MergeIndividual extends HttpServlet {
@@ -80,11 +80,6 @@ public class MergeIndividual extends HttpServlet {
       boolean throwaway = Util.stringExists(throwawayStr) && !throwawayStr.toLowerCase().equals("false");
 
       
-      //TEMPORARY PLACEMENT!!!! Just to see if it errz (it will )
-      // should we check if this is already scheduled? does it matter if it just happens sooner? probably. 
-      WildbookScheduledIndividualMerge merge = new WildbookScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
-      myShepherd.storeNewWildbookScheduledTask(merge);
-      myShepherd.beginDBTransaction();
       
       //check for eligibility.. must throw on timer if not able to do right away
       ArrayList<String> mark1Users = mark1.getAllAssignedUsers();
@@ -94,6 +89,13 @@ public class MergeIndividual extends HttpServlet {
       if (userPrincipal!=null) {
         currentUsername = userPrincipal.getName();
       }
+      
+      //TEMPORARY PLACEMENT!!!! Just to see if it errz (it will )
+      // should we check if this is already scheduled? does it matter if it just happens sooner? probably. 
+
+      ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
+      myShepherd.storeNewScheduledIndividualMerge(merge);
+      myShepherd.beginDBTransaction();
 
       if (currentUsername!=null) {
         ArrayList<String> allUniqueUsers = new ArrayList<>(mark1Users);
@@ -112,7 +114,7 @@ public class MergeIndividual extends HttpServlet {
           //TODO check for user collaboration before setting timed task
 
           //TODO actually create merge task - correct location after testing
-          // WildbookScheduledIndividualMerge merge = new WildbookScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
+          // ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
           // myShepherd.storeNewWildbookScheduledTask(merge);
           // myShepherd.beginDBTransaction();
 
@@ -175,10 +177,10 @@ public class MergeIndividual extends HttpServlet {
 
   private long twoWeeksFromNowLong() {
     // i know. this was really the least stupid way.
-    //final long twoWeeksInMillis = 1209600000;
+    final long twoWeeksInMillis = 1209600000;
 
     //TODO restore desired delay after testing OR, add to task as variable
-    final long twoWeeksInMillis = 5000;
+    //final long twoWeeksInMillis = 60000;
     return System.currentTimeMillis() + twoWeeksInMillis;
   }
 
