@@ -74,10 +74,10 @@ User currentUser = AccessControl.getUser(request, myShepherd);
               }
           }
           catch(Exception e){
-          	// myShepherd.rollbackDBTransaction();
+          	myShepherd.rollbackDBTransaction();
           }
           finally{
-          	// myShepherd.closeDBTransaction();
+          	myShepherd.closeDBTransaction();
           }
           %>
       </tbody>
