@@ -8,7 +8,7 @@ import java.util.List;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
 
-public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
+public class ScheduledIndividualMerge extends WildbookScheduledTask {
 
     private static final long serialVersionUID = 1L;
 
@@ -19,10 +19,10 @@ public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
 
     private List<String> participants = new ArrayList<>();
 
-    public WildbookScheduledIndividualMerge() {}
+    public ScheduledIndividualMerge() {}
 
-    public WildbookScheduledIndividualMerge(MarkedIndividual primaryIndividual, MarkedIndividual secondaryIndividual, long executionTime, String initiatorName) {
-        this.scheduledTaskType = "WildbookScheduledIndividualMerge";
+    public ScheduledIndividualMerge(MarkedIndividual primaryIndividual, MarkedIndividual secondaryIndividual, long executionTime, String initiatorName) {
+        this.scheduledTaskType = "ScheduledIndividualMerge";
         this.taskScheduledExecutionTimeLong = executionTime;
         this.primaryIndividual = primaryIndividual;
         this.secondaryIndividual = secondaryIndividual;
@@ -67,11 +67,11 @@ public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
                 myShepherd.updateDBTransaction();
                 myShepherd.throwAwayMarkedIndividual(tempSecondaryIndividual);
             } catch (Exception e) {
-                System.out.println("[ERROR]: Could not perform automatic mergeIndividuals action with WildbookScheduledIndividualMerge.");
+                System.out.println("[ERROR]: Could not perform automatic mergeIndividuals action with ScheduledIndividualMerge.");
                 e.printStackTrace();
             }
         } else {
-            System.out.println("[ERROR]: Could not perform automatic mergeIndividuals action with WildbookScheduledIndividualMerge due to null candidate individual.");
+            System.out.println("[ERROR]: Could not perform automatic mergeIndividuals action with ScheduledIndividualMerge due to null candidate individual.");
         }
        
     }
@@ -130,7 +130,7 @@ public class WildbookScheduledIndividualMerge extends WildbookScheduledTask {
 
     public boolean ignoredByUser(String username) {
         List<Boolean> stateForUser = participantsDeniedIgnored.get(username);
-        if (stateForUser==null) return Boolean.FALSE;
+        System.out.println("merge stateForUser: "+Arrays.toString(stateForUser.toArray()));
         return stateForUser.get(1);
     }
 
