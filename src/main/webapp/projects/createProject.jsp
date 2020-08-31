@@ -74,10 +74,6 @@
                         <div id="projectUserIdsList">
                         </div>
                       </div>
-                      <!-- <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
-                        <input id="addUserToProjectButton" name="addUserToProjectButton" type="button" value="<%=props.getProperty("addUserToProject")%>" onclick="addUserToProject();">
-                        </input>
-                      </div> -->
                     </div>
                     <div class="row">
                       <%
@@ -134,17 +130,11 @@
       }
     });
     $( "#projectUserIds" ).on( "autocompleteselect", function( event, result ) {
-      console.log("got into autocompleteselect");
       let selectedUserStr = result.item.value;
-      let selectedUserStrUsername = selectedUserStr.split(":")[0];
-      console.log("selectedUserStrUsername is " + selectedUserStrUsername);
-      let selectedUserStrUuid = selectedUserStr.split(":")[1];
-      $( "#projectUserIds" ).val(selectedUserStrUsername);
       addUserToProject(selectedUserStr);
       $(this).val("");
       return false;
     });
-
 
     function updateprojectUserIdsDisplay(){
       userNamesOnAccessList = [...new Set(userNamesOnAccessList)];
@@ -160,13 +150,8 @@
     }
 
     function addUserToProject(selectedUserStr){
-      // if($('#projectUserIds').val()){
-        // let currentUserToAdd = $('#projectUserIds').val();
       userNamesOnAccessList.push(selectedUserStr);
       updateprojectUserIdsDisplay();
-      // }else{
-      //   console.log("no value for user in addUserToProject");
-      // }
     }
 
     function removeUserFromProj(name){
