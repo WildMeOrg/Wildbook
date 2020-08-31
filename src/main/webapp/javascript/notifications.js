@@ -19,7 +19,7 @@ function showNotifications(el) {
 	p.css({width: '50%', left: '25%', top: '200px'});
 	console.log("setting popup id!");
 	$(p).attr("id", "notifications-popup");
-	p.append('<div id="notifications-scrollbox" class="scroll throbbing" />');
+	p.append('<div id="notifications-scrollbox" class="scroll throbbing"></div>');
 	p.show();
 
 	$.ajax({
@@ -29,7 +29,12 @@ function showNotifications(el) {
         console.log(d);
 			p.find('.scroll').removeClass('throbbing').html(d.content);
 			$('.collaboration-invite-notification input').click(function(ev) { clickApproveDeny(ev); });
-			addMergeNotifications()
+
+			userGetNotifications();
+
+			let closeButton = '<p><input onClick="closeNotificationPopup(this)" type="button" value="close" /></p>'
+
+			$('#notifications-scrollbox').append(closeButton);
 		},
 		error: function(a,x,b) {
 			p.find('.scroll').removeClass('throbbing').html('error');
@@ -37,11 +42,13 @@ function showNotifications(el) {
 		type: 'GET'
 	});
 	
-	
-	
 }
 
-function addMergeNotifications() {
+function closeNotificationPopup(el) {
+	$('.popup').remove();
+}
+
+function userGetNotifications() {
 	console.log('Getting merge notifications...');
 	let json = {};
 	$.ajax({
@@ -57,14 +64,40 @@ function addMergeNotifications() {
 
 			let notificationsArr = d.notifications;
 			for (let i=0;i<notificationsArr.length;i++) {
-				let thisNotification = notificationsArr[i];
-				console.log(JSON.stringify(thisNotification));
-				let notificationHTML = '<div class="merge-notification" id="merge-'+thisNotification.taskId+'">';
-				notificationHTML += '		<p>Merge Notification: '+thisNotification.primaryIndividualId+'</p>';
+				let thisNote = notificationsArr[i];
+				console.log(JSON.stringify(thisNote));
+				let notificationHTML = '<div class="merge-notification" id="merge-'+thisNote.taskId+'">';
 				
-				//seperate methods for different types
+				//notificationHTML += '		<p>Merge Notification: '+thisNotification.primaryIndividualId+'</p>';
 				
-				notificationHTML += '</div><br>';
+				let notificationType = thisNote.notificationType;
+				console.log("---> Notification Type: "+notificationType);
+				let primaryName = thisNote.primaryIndividualName;
+
+				if (notificationType=="mergePending") {
+					let secondaryName = thisNote.secondaryIndividualName;
+					notificationHTML += '<p>Merge of <strong>'+secondaryName+'</strong> into <strong>'+primaryName+'</strong> has been initiated.';
+					notificationHTML += ' Auto completion date: <strong>'+thisNote.mergeExecutionDate+'</strong>, 2 week delayed execution.';
+					notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
+					notificationHTML += '<input class="btn btn-sm" type="button" onclick="denyIndividualMerge(this)" value="Deny"/>';
+					notificationHTML += '<input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Ignore"/></p>';
+				}
+
+				if (notificationType=='mergeComplete') {
+					notificationHTML += '<p>Merge into <strong>'+primaryName+'</strong> was completed.';
+					notificationHTML += ' Auto completion date: <strong>'+thisNote.mergeExecutionDate+'</strong>, 2 week delayed execution.';
+					notificationHTML += ' Initiated by user: <strong>'+thisNote.initiator+'</strong>';
+					notificationHTML += '<input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Dismiss"/></p>';
+				}
+
+				if (notificationType=='mergeDenied') {
+					notificationHTML += '<p>A merge of <strong>'+secondaryName+'</strong> into <strong>'+primaryName+'</strong> was <i><strong>denied</strong></i>.';
+					notificationHTML += 'Initiated by user: <strong>'+thisNote.initiator+'</strong>';
+					notificationHTML += 'Denied by user: <strong>'+thisNote.deniedBy+'</strong>';
+					notificationHTML += '<input class="btn btn-sm" type="button" onclick="ignoreIndividualMerge(this)" value="Dismiss"/></p>';
+				}
+
+				notificationHTML += '</div>';
 				console.log("appending html: "+notificationHTML);
 				$(notificationHTML).insertAfter(lastCollabNotification);
 			}
@@ -79,8 +112,42 @@ function addMergeNotifications() {
 	});
 }
 
+function denyIndividualMerge(el) {
+	changeIndividualMergeState(el, "deny");
+}
+
+function ignoreIndividualMerge(el) {
+	changeIndividualMergeState(el, "ignore");
+}
+
+function changeIndividualMergeState(el, action) {
+
+	let mergeId = $(el).closest(".merge-notification").attr("id");
+	mergeId = mergeId.replace('merge-', '');
+
+	console.log("Updating merge id: "+mergeId);
+	let json = {};
+
+	json['mergeId'] = mergeId;
+	json['action'] = mergeId;
+	
+	$.ajax({
+		url: wildbookGlobals.baseUrl + '../ScheduledIndividualMergeUpdate',
+		type: 'POST',
+		data: JSON.stringify(json),
+		dataType: 'json',
+		contentType: 'application/json',
+		success: function(d) {
+			console.info('Success updating ScheduledIndividualMerge! Got back '+JSON.stringify(d));
+		},
+		error: function(x,y,z) {
+			console.warn('%o %o %o', x, y, z);
+		}
+	});
+}
+
 function popup() {
-	var p = $('<div class="popup" style="display: none;" />');
+	var p = $('<div class="popup" style="display: none;"></div>');
 	$('body').append(p);
 	return p;
 }
