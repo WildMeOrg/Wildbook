@@ -33,7 +33,22 @@
   Properties props = new Properties();
   props = ShepherdProperties.getProperties("createProject.properties", langCode, context);
 %>
-
+<style>
+.sleeker-button{
+  width: auto;
+  height: 3em;
+  margin-left: 0.2em;
+  padding: 0 5px;
+  vertical-align: middle;
+  display: inline-block;
+  background-color: @whaleSharkblue;
+}
+.icon_white_stripe{
+  border-left: 1px solid white;
+  padding-left: 0.3em;
+  margin-left: 0.3em;
+}
+</style>
 <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
     <div class="container maincontent">
@@ -78,16 +93,18 @@
                     <div class="row">
                       <%
                         FormUtilities.setUpOrgDropdown("organizationAccess", false, props, out, request, myShepherd);
+                        Properties projManagementProps = new Properties();
+                        projManagementProps = ShepherdProperties.getProperties("searchResults.properties", langCode, context);
                       %>
                     </div>
-                    <button type="button" id="cancelButton" onclick="cancelButtonClicked();">
-                      <span><%=props.getProperty("cancel") %>  </span><span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                    <button type="button" id="cancelButton" onclick="cancelButtonClicked();" class="sleeker-button">
+                      <span><%=props.getProperty("cancel") %>  </span><span class="glyphicon glyphicon-remove icon_white_stripe" aria-hidden="true"></span>
                     </button>
-                    <button type="button" id="createProjectButton" onclick="createButtonClicked();">
+                    <button type="button" id="createProjectButton" onclick="createButtonClicked();" class="sleeker-button">
                       <span><%=props.getProperty("submit_send") %>  </span><span class="button-icon" aria-hidden="true"></span>
                     </button>
               </form>
-              <h4>To add encounters to this project, use the project option in encounter search</h4>
+              <h4>To add encounters to this project, use the "<%= projManagementProps.getProperty("projectManagement")%>" tab in encounter search results.</h4>
               <%
             }else{
 
