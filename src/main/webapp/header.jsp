@@ -177,7 +177,7 @@ finally{
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
-      <script type="text/javascript" src="javascript/notifications.js"></script>
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/notifications.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
