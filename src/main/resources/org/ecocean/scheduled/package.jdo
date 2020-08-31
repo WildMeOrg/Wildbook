@@ -17,7 +17,7 @@
       </field>
     </class>
 
-    <class name="WildbookScheduledIndividualMerge" identity-type="application">
+    <class name="ScheduledIndividualMerge" identity-type="application">
 
       <field name="primaryIndividual" element-type="org.ecocean.MarkedIndividual" persistence-modifier="persistent" />
 

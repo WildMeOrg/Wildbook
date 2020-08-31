@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.Shepherd;
-import org.ecocean.scheduled.WildbookScheduledIndividualMerge;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -98,10 +98,11 @@ public class UserGetNotifications extends HttpServlet {
     }
 
     private JSONArray addAllScheduledIndividualMergeNotifications(JSONArray notificationArr, Shepherd myShepherd, String username) {
-        ArrayList<WildbookScheduledIndividualMerge> pendingMerges = myShepherd.getAllIncompleteWildbookScheduledIndividualMerges();
+        ArrayList<ScheduledIndividualMerge> pendingMerges = myShepherd.getAllIncompleteScheduledIndividualMerges();
         System.out.println("all incomplete merges: "+pendingMerges.size());
-        for (WildbookScheduledIndividualMerge pendingMerge : pendingMerges) {
+        for (ScheduledIndividualMerge pendingMerge : pendingMerges) {
             if (pendingMerge.isUserParticipent(username)) {
+                System.out.println("Is pending merge ignored by user? : "+pendingMerge.ignoredByUser(username));
                 if (pendingMerge.isDenied()) {
                     notificationArr.put(individualMergeDeniedNotification(pendingMerge));
                 } else if (!pendingMerge.ignoredByUser(username)) {
@@ -109,9 +110,10 @@ public class UserGetNotifications extends HttpServlet {
                 }
             }
         }
-        ArrayList<WildbookScheduledIndividualMerge> completeMergesOwnedByUser = myShepherd.getAllCompleteWildbookScheduledIndividualMergesForUsername(username);
+        ArrayList<ScheduledIndividualMerge> completeMergesOwnedByUser = myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
         System.out.println("all complete merges owned by user: "+completeMergesOwnedByUser.size());
-        for (WildbookScheduledIndividualMerge completeMerge : completeMergesOwnedByUser) {
+        for (ScheduledIndividualMerge completeMerge : completeMergesOwnedByUser) {
+            System.out.println("Is merge ignored by user? : "+completeMerge.ignoredByUser(username));
             if (!completeMerge.ignoredByUser(username)) {
                 notificationArr.put(individualMergeCompleteNotification(completeMerge));
             }
@@ -119,7 +121,7 @@ public class UserGetNotifications extends HttpServlet {
         return notificationArr;
     }
 
-    private JSONObject individualMergeDeniedNotification(WildbookScheduledIndividualMerge merge) {
+    private JSONObject individualMergeDeniedNotification(ScheduledIndividualMerge merge) {
         JSONObject note = getBasicMergeNotificationJSON(merge);
         note.put("notificationType", "mergeDenied");
         note.put("deniedBy", merge.getUsernameThatDeniedMerge());
@@ -128,7 +130,7 @@ public class UserGetNotifications extends HttpServlet {
         return note;
     }
 
-    private JSONObject individualMergePendingNotification(WildbookScheduledIndividualMerge merge) {
+    private JSONObject individualMergePendingNotification(ScheduledIndividualMerge merge) {
         JSONObject note = getBasicMergeNotificationJSON(merge);
         note.put("notificationType", "mergePending");
         note.put("secondaryIndividualId", merge.getSecondaryIndividual().getId());
@@ -136,18 +138,20 @@ public class UserGetNotifications extends HttpServlet {
         return note;
     }
 
-    private JSONObject individualMergeCompleteNotification(WildbookScheduledIndividualMerge merge) {
+    private JSONObject individualMergeCompleteNotification(ScheduledIndividualMerge merge) {
         JSONObject note = getBasicMergeNotificationJSON(merge);
         note.put("notificationType", "mergeComplete");
         return note;
     }
 
-    private JSONObject getBasicMergeNotificationJSON(WildbookScheduledIndividualMerge merge) {
+    private JSONObject getBasicMergeNotificationJSON(ScheduledIndividualMerge merge) {
         // stuff commmon to all merge notifications
         JSONObject note = new JSONObject();
         note.put("taskId", merge.getId());
+        note.put("initiator", merge.getInitiatorName());
         note.put("primaryIndividualId", merge.getPrimaryIndividual().getId());
         note.put("primaryIndividualName", merge.getPrimaryIndividual().getDisplayName());
+        note.put("mergeExecutionDate", merge.getTaskScheduledExecutionDateString());
 
         return note;
     }
