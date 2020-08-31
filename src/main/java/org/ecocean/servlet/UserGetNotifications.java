@@ -103,7 +103,7 @@ public class UserGetNotifications extends HttpServlet {
         for (ScheduledIndividualMerge pendingMerge : pendingMerges) {
             if (pendingMerge.isUserParticipent(username)) {
                 System.out.println("Is pending merge ignored by user? : "+pendingMerge.ignoredByUser(username));
-                if (pendingMerge.isDenied()) {
+                if (pendingMerge.isDenied()&&!pendingMerge.ignoredByUser(username)) {
                     notificationArr.put(individualMergeDeniedNotification(pendingMerge));
                 } else if (!pendingMerge.ignoredByUser(username)) {
                     notificationArr.put(individualMergePendingNotification(pendingMerge));
