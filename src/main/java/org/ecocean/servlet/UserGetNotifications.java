@@ -104,9 +104,9 @@ public class UserGetNotifications extends HttpServlet {
             if (pendingMerge.isUserParticipent(username)) {
                 System.out.println("Is pending merge ignored by user? : "+pendingMerge.ignoredByUser(username));
                 if (pendingMerge.isDenied()&&!pendingMerge.ignoredByUser(username)) {
-                    notificationArr.put(individualMergeDeniedNotification(pendingMerge));
+                    notificationArr.put(individualMergeDeniedNotification(pendingMerge, username));
                 } else if (!pendingMerge.ignoredByUser(username)) {
-                    notificationArr.put(individualMergePendingNotification(pendingMerge));
+                    notificationArr.put(individualMergePendingNotification(pendingMerge, username));
                 }
             }
         }
@@ -115,14 +115,14 @@ public class UserGetNotifications extends HttpServlet {
         for (ScheduledIndividualMerge completeMerge : completeMergesOwnedByUser) {
             System.out.println("Is merge ignored by user? : "+completeMerge.ignoredByUser(username));
             if (!completeMerge.ignoredByUser(username)) {
-                notificationArr.put(individualMergeCompleteNotification(completeMerge));
+                notificationArr.put(individualMergeCompleteNotification(completeMerge, username));
             }
         }
         return notificationArr;
     }
 
-    private JSONObject individualMergeDeniedNotification(ScheduledIndividualMerge merge) {
-        JSONObject note = getBasicMergeNotificationJSON(merge);
+    private JSONObject individualMergeDeniedNotification(ScheduledIndividualMerge merge, String username) {
+        JSONObject note = getBasicMergeNotificationJSON(merge, username);
         note.put("notificationType", "mergeDenied");
         note.put("deniedBy", merge.getUsernameThatDeniedMerge());
         note.put("secondaryIndividualId", merge.getSecondaryIndividual().getId());
@@ -130,25 +130,30 @@ public class UserGetNotifications extends HttpServlet {
         return note;
     }
 
-    private JSONObject individualMergePendingNotification(ScheduledIndividualMerge merge) {
-        JSONObject note = getBasicMergeNotificationJSON(merge);
+    private JSONObject individualMergePendingNotification(ScheduledIndividualMerge merge, String username) {
+        JSONObject note = getBasicMergeNotificationJSON(merge, username);
         note.put("notificationType", "mergePending");
         note.put("secondaryIndividualId", merge.getSecondaryIndividual().getId());
         note.put("secondaryIndividualName", merge.getSecondaryIndividual().getDisplayName());
         return note;
     }
 
-    private JSONObject individualMergeCompleteNotification(ScheduledIndividualMerge merge) {
-        JSONObject note = getBasicMergeNotificationJSON(merge);
+    private JSONObject individualMergeCompleteNotification(ScheduledIndividualMerge merge, String username) {
+        JSONObject note = getBasicMergeNotificationJSON(merge, username);
         note.put("notificationType", "mergeComplete");
         return note;
     }
 
-    private JSONObject getBasicMergeNotificationJSON(ScheduledIndividualMerge merge) {
+    private JSONObject getBasicMergeNotificationJSON(ScheduledIndividualMerge merge, String username) {
         // stuff commmon to all merge notifications
         JSONObject note = new JSONObject();
         note.put("taskId", merge.getId());
         note.put("initiator", merge.getInitiatorName());
+        if (merge.getInitiatorName().equals(username)) {
+            note.put("ownedByMe", "true");
+        } else {
+            note.put("ownedByMe", "false");
+        }
         note.put("primaryIndividualId", merge.getPrimaryIndividual().getId());
         note.put("primaryIndividualName", merge.getPrimaryIndividual().getDisplayName());
         note.put("mergeExecutionDate", merge.getTaskScheduledExecutionDateString());
