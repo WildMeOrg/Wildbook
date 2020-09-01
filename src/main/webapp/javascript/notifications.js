@@ -159,6 +159,7 @@ function changeIndividualMergeState(el, action) {
 		success: function(d) {
 			console.info('Success updating ScheduledIndividualMerge! Got back '+JSON.stringify(d));
 			$(el).siblings(".merge-action-feedback").first().text("Success!");
+			updateNotificationsWidget();
 		},
 		error: function(x,y,z) {
 			console.warn('%o %o %o', x, y, z);
