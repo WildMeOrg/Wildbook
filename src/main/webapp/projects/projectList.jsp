@@ -59,7 +59,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                       %>
                         <tr onclick="window.location='<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>'" class="tissueSample">
                           <td class="clickable-row"><%=userProjects.get(j).getResearchProjectName()%></td>
-                          <td class="clickable-row">%<%=userProjects.get(j).getPercentIdentified()%></td>
+                          <td class="clickable-row"><%=userProjects.get(j).getPercentIdentified()%> %</td>
                           <td class="clickable-row"><%=userProjects.get(j).getEncounters().size()%></td>
                         </tr>
                       <%
