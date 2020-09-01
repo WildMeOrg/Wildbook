@@ -28,6 +28,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
 import org.ecocean.customfield.CustomFieldDefinition;
 import org.ecocean.ia.Task;
+import org.ecocean.external.*;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
@@ -3199,6 +3200,18 @@ public class Shepherd {
     q.closeAll();
     return num;
   }
+
+    public ExternalSubmission getOrCreate(String id) {
+        try {
+            return (ExternalSubmission)pm.getObjectById(this.getPM().newObjectIdInstance(ExternalSubmission.class, id), true);
+        } catch (Exception ex) {
+            System.out.println("getOrCreate: " + ex);
+        }
+        ExternalSubmission sub = new ExternalSubmission();
+        sub.setId(id);
+        this.getPM().makePersistent(sub);
+        return sub;
+    }
 
   public int getNumUsers() {
     int num = 0;

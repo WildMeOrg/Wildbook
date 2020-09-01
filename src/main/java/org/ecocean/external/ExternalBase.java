@@ -1,5 +1,6 @@
 package org.ecocean.external;
 
+import org.ecocean.Shepherd;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -9,7 +10,7 @@ public abstract class ExternalBase implements java.io.Serializable {
     private long version = 0l;
 
     public ExternalBase() {
-        version = System.currentTimeMillis();
+        this.setVersion();
     }
 
     public String getId() {

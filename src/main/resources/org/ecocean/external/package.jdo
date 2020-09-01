@@ -20,6 +20,12 @@
 	<class name="ExternalUser" identity-type="application">
 	</class>
 
+	<class name="ExternalSubmission" identity-type="application">
+	</class>
+
+	<class name="ExternalAnnotation" identity-type="application">
+	</class>
+
 	<class name="ExternalOrganization" identity-type="application">
 	</class>
 
