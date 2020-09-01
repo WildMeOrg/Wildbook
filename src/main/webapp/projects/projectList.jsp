@@ -44,12 +44,12 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                   <%
                 }else{
                   %>
-                  <table class="row tissueSample clickable-row hoverRow">
+                  <table class="row clickable-row hoverRow tissueSampleProjectList">
                   	<thead>
                         <tr>
-                          <th class="tissueSample">Project Name</th>
-                          <th class="tissueSample">Percent Annotations Identified</th>
-                          <th class="tissueSample">Number of Encounters</th>
+                          <th class="tissueSampleProjectList">Project Name</th>
+                          <th class="tissueSampleProjectList">Percent Annotations Identified</th>
+                          <th class="tissueSampleProjectList">Number of Encounters</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,7 +57,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                   for(int j=0; j<userProjects.size(); j++){
                     if(userProjects.size()>0){
                       %>
-                        <tr onclick="window.location='<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>'" class="tissueSample">
+                        <tr onclick="window.location='<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>'" class="tissueSampleProjectList">
                           <td class="clickable-row"><%=userProjects.get(j).getResearchProjectName()%></td>
                           <td class="clickable-row"><%=userProjects.get(j).getPercentIdentified()%> %</td>
                           <td class="clickable-row"><%=userProjects.get(j).getEncounters().size()%></td>
