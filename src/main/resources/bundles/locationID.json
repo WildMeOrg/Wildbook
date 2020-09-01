@@ -2,10 +2,12 @@
   "description": "Hierarchical Encounter.locationID list in Wildbook",
   "source": "http://en.wikipedia.org/wiki/List_of_seas",
   "locationID": [
-		{
-			  "name": "Peru", "id": "Peru" }
-			 
-
+		{"name": "Peru", "id": "Peru" },
+		{"name": "Costa Rica", "id": "Costa Rica", "locationID":[
+		
+			{"name": "Golfo Dulce Forest Reserve", "id": "Golfo Dulce Forest Reserve" }
+		
+		] } 
   ]
 }
 
