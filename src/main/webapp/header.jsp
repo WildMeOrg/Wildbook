@@ -40,6 +40,8 @@ String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+
 %>
     <head>
 	
@@ -146,6 +148,10 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 	                    	  Shepherd myShepherd = new Shepherd(context);
 	                    	  myShepherd.setAction("header.jsp");
 	                    	  myShepherd.beginDBTransaction();
+	                    	  
+	                    	  if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
+
+	                    	  
 	                          try{
 	                        	  
 		                    	  String username = request.getUserPrincipal().toString();
