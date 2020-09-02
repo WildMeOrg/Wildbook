@@ -89,12 +89,14 @@ public class Project implements java.io.Serializable {
         for(Encounter currentEncounter: encounters){
           System.out.println("currentEncounter is: "+ currentEncounter.toString());
           MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
-          if(!uniqueIndividuals.contains(currentIndividual)){
+          if(!uniqueIndividuals.contains(currentIndividual) && currentIndividual!=null){
             System.out.println("uniqueIndividuals doesn’t contain currentEncounter");
             List<String> currentIndividualNameKeys = currentIndividual.getNameKeys();
-            System.out.println("currentIndividualNameKeys are: " + currentIndividualNameKeys.toString());
-            //TODO see if any name keys match .matches(researchProjectId);
-            uniqueIndividuals.add(currentIndividual);
+            if(currentIndividualNameKeys !=null && currentIndividualNameKeys.size()>0){
+              System.out.println("currentIndividualNameKeys are: " + currentIndividualNameKeys.toString());
+              //TODO see if any name keys match .matches(researchProjectId);
+              uniqueIndividuals.add(currentIndividual);
+            }
           }
           // String incrementalProjId = currentIndividual.getIncrementalProjectId();
 
