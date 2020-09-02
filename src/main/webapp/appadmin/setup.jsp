@@ -33,7 +33,7 @@ body {
              java.util.List,
              java.util.Properties,
 org.json.JSONObject,
-             org.apache.commons.lang.WordUtils,
+             org.apache.commons.lang3.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration
               "
