@@ -1508,7 +1508,7 @@ public class Shepherd {
         if (projects==null) {
           projects = new ArrayList<Project>();
         }
-        System.out.println("got "+projects.size()+" projects to return...");
+        // System.out.println("got "+projects.size()+" projects to return...");
         projects.add((Project) it.next());
       }
     } catch (Exception e) {
