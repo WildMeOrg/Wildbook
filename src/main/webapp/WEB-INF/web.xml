@@ -314,6 +314,8 @@
 
 					/IndividualSetNickName = authc, roles[researcher]
 
+          /IndividualAddIncrementalProjectId = authc, roles[researcher]
+
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
 
 					/ResurrectDeletedEncounter = authc,roles[admin]
@@ -563,6 +565,11 @@
   <servlet>
     <servlet-name>IndividualSetNickName</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualSetNickName</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>IndividualAddIncrementalProjectId</servlet-name>
+    <servlet-class>org.ecocean.servlet.IndividualAddIncrementalProjectId</servlet-class>
   </servlet>
 
   <servlet>
@@ -1767,6 +1774,11 @@
   <servlet-mapping>
           <servlet-name>IndividualSetName</servlet-name>
           <url-pattern>/IndividualSetName</url-pattern>
+  </servlet-mapping>
+
+    <servlet-mapping>
+          <servlet-name>IndividualAddIncrementalProjectId</servlet-name>
+          <url-pattern>/IndividualAddIncrementalProjectId</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
