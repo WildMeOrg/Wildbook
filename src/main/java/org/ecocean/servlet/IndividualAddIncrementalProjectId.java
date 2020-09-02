@@ -64,9 +64,9 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
 
                     ArrayList<String> nameKeys = (ArrayList<String>) individual.getNameKeys();
                     if (nameKeys.contains(researchProjectId)) {
-                        String newResearchProjectId = individual.getName(researchProjectId);
+                        String newProjectIdForIndividual = individual.getName(researchProjectId);
                         res.put("success","true");
-                        res.put("newResearchProjectId", newResearchProjectId);
+                        res.put("newProjectIdForIndividual", newProjectIdForIndividual);
                     } else {
                         addErrorMessage(res, "the researchProjectId was not successfully added to "+individualId+", but no exception was thrown");
                         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
