@@ -38,6 +38,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
           try{
               if(currentUser != null){
                 List<Project> userProjects = myShepherd.getProjectsForUserId(currentUser.getId());
+                
                 if(userProjects==null || userProjects.size()<1){
                   %>
                   <h4>You don't have any projects yet</h4>
@@ -59,7 +60,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                       %>
                         <tr onclick="window.location='<%=urlLoc%>/projects/project.jsp?id=<%=userProjects.get(j).getId()%>'" class="tissueSampleProjectList">
                           <td class="clickable-row"><%=userProjects.get(j).getResearchProjectName()%></td>
-                          <td class="clickable-row"><%=userProjects.get(j).getPercentIdentified()%> %</td>
+                          <td class="clickable-row"><%=userProjects.get(j).getPercentWithIncrementalIds(myShepherd)%> %</td>
                           <td class="clickable-row"><%=userProjects.get(j).getEncounters().size()%></td>
                         </tr>
                       <%
