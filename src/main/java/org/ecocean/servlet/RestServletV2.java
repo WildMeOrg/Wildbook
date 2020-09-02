@@ -33,6 +33,7 @@ import org.ecocean.Role;
 import org.ecocean.Organization;
 import org.ecocean.security.Collaboration;
 import org.ecocean.configuration.*;
+import org.ecocean.api.ApiHttpServlet;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Iterator;
@@ -40,7 +41,7 @@ import java.util.Collection;
 import java.lang.reflect.Method;
 
 
-public class RestServletV2 extends HttpServlet {
+public class RestServletV2 extends ApiHttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
     }
@@ -60,6 +61,16 @@ public class RestServletV2 extends HttpServlet {
             SystemLog.error("failed to parse json payload from request {}", this, ex);
         }
         handleRequest(request, response, _parseUrl(request, payload));
+    }
+    public void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        JSONObject payload = new JSONObject();
+        try {
+            payload = ServletUtilities.jsonFromHttpServletRequest(request);
+        } catch (Exception ex) {
+            SystemLog.error("failed to parse json payload from request {}", this, ex);
+        }
+        SystemLog.debug("PATCH ON PAYLOAD " + payload);
+        //handleRequest(request, response, _parseUrl(request, payload));
     }
 
     //this will get /class/id from the url and massage it into json (which will take overwrite values from inJson if they exist)
