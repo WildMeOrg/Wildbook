@@ -10,7 +10,7 @@
       java.util.ArrayList,
       java.util.List,
       java.util.Properties,
-      org.apache.commons.lang3.WordUtils,
+      org.apache.commons.text.WordUtils,
       org.ecocean.security.Collaboration
       "
 %>
