@@ -29,7 +29,6 @@ public class Project implements java.io.Serializable {
     private List<User> users = null;
 
     private int individualIdIncrement = 0;
-    private int numIndividualsWithIncrementalIds = 0;
 
     //empty constructor used by the JDO enhancer
     public Project() {}
@@ -67,7 +66,6 @@ public class Project implements java.io.Serializable {
     public String getNextIncrementalIndividualIdAndAdvance() {
         String nextId = getNextIncrementalIndividualId();
         individualIdIncrement++;
-        numIndividualsWithIncrementalIds++;
         setTimeLastModified();
         return nextId;
     }
@@ -82,20 +80,34 @@ public class Project implements java.io.Serializable {
         setTimeLastModified();
     }
 
+    public  Double getPercentWithIncrementalIds(Shepherd myShepherd){
+        System.out.println("entered getPercentWithIncrementalIds");
+        Double result = 0.0;
+        // Double numIndividsWithIncrementalProjIds = 0;
+        List<MarkedIndividual> uniqueIndividuals = new ArrayList<MarkedIndividual>();
+        System.out.println("got past uniqueIndividuals");
+        for(Encounter currentEncounter: encounters){
+          System.out.println("currentEncounter is: "+ currentEncounter.toString());
+          MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
+          if(!uniqueIndividuals.contains(currentIndividual)){
+            System.out.println("uniqueIndividuals doesn’t contain currentEncounter");
+            List<String> currentIndividualNameKeys = currentIndividual.getNameKeys();
+            System.out.println("currentIndividualNameKeys are: " + currentIndividualNameKeys.toString());
+            //TODO see if any name keys match .matches(researchProjectId);
+            uniqueIndividuals.add(currentIndividual);
+          }
+          // String incrementalProjId = currentIndividual.getIncrementalProjectId();
+
+          // numIndividsWithIncrementalProjIds ++;
+        }
+        return result;
+    }
+
     public  Double getPercentIdentified(){
         if (numEncounters()>0&&numIndividuals()>0) {
             double numIncremented = individualIdIncrement;
             double numEncounters = numEncounters();
             return (Double) numIncremented/numEncounters;
-        }
-        return (Double) 0.0;
-    }
-
-    public  Double getPercentWithIncrementalIds(){
-        if (numEncounters()>0&&numIndividuals()>0) {
-            double numIndividuals = numIndividualsWithIncrementalIds;
-            double numEncounters = numEncounters();
-            return (Double) numIndividuals/numEncounters;
         }
         return (Double) 0.0;
     }
