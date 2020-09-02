@@ -22,7 +22,7 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
     }
-    
+
     public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
@@ -36,19 +36,19 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
         response.setContentType("application/json");
 		response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
-        
+
         System.out.println("==> In IndividualAddIncrementalProjectId Servlet ");
-        
+
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IndividualAddIncrementalProjectId.java");
         myShepherd.beginDBTransaction();
-        
+
         PrintWriter out = response.getWriter();
         JSONObject res = new JSONObject();
-        try {      
-            res.put("success","false");
-            res.put("newResearchProjectId", "") ;
+        try {
+            res.put("success",false);
+            res.put("newProjectIdForIndividual", "") ;
 
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
             String researchProjectId = j.optString("researchProjectId", null);
@@ -65,7 +65,7 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
                     ArrayList<String> nameKeys = (ArrayList<String>) individual.getNameKeys();
                     if (nameKeys.contains(researchProjectId)) {
                         String newProjectIdForIndividual = individual.getName(researchProjectId);
-                        res.put("success","true");
+                        res.put("success",true);
                         res.put("newProjectIdForIndividual", newProjectIdForIndividual);
                     } else {
                         addErrorMessage(res, "the researchProjectId was not successfully added to "+individualId+", but no exception was thrown");
@@ -82,7 +82,7 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
 
             out.println(res);
             out.close();
-            
+
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
@@ -100,8 +100,8 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
             myShepherd.closeDBTransaction();
             out.println(res);
         }
-        
-        
+
+
     }
 
     private void addErrorMessage(JSONObject res, String error) {

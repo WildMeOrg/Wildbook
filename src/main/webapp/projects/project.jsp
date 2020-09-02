@@ -88,7 +88,7 @@
                     <%
                     String location = "";
                     if(encounters.get(i).getLocationID() != null){
-                      System.out.println("locationID is not null");
+                      // System.out.println("locationID is not null");
                       location = encounters.get(i).getLocationID();
                     }
                     String individualDisplayName = "";
@@ -122,7 +122,16 @@
                     <td class="tissueSampleProjectList">
                       <button type="button">Project Match</button>
                       </br>
-                      <button type="button" onclick="markNew('<%= encounters.get(i).getCatalogNumber()%>')">Mark New</button>
+                      <%
+                      MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(encounters.get(i));
+                      if(currentIndividual != null){
+                        String currentIndividualId = currentIndividual.getIndividualID();
+                        System.out.println("currentIndividualId is: " + currentIndividualId);
+                      %>
+                      <button type="button" onclick="markNew('<%= currentIndividualId%>')">Mark New</button>
+                      <%
+                      }
+                      %>
                     </td>
                     </tr>
                     <%
@@ -145,58 +154,30 @@
 
 <script type="text/javascript">
 
-function markNew(encounterCatalogNumber){
+function markNew(individualId){
   console.log("markNew clicked!");
-  // console.log("encounterCatalogNumber is " + encounterCatalogNumber);
-  // let projectId = "<%= project.getResearchProjectId()%>";
-  // console.log("projectId is: " + projectId);
-
-  // let formJson = {};
-  // formJson["organizationAccess"] = [];
-  //TODO
-  // let formDataArray = $("#add-encounter-to-project-form").serializeArray();
-  // let formJson = {};
-  // formJson["projects"] = [];
-  // for(i=0; i<formDataArray.length; i++){
-  //   let currentName = formDataArray[i].name;
-  //   if (currentName === "id"){
-  //     let currentProjId = formDataArray[i].value;
-  //     formJson = constructProjectObjJsonFromIdAndAddToJsonArray(currentProjId, formJson);
-  //   }else{
-  //     console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
-  //   }
-  // }
-  // for(i=0; i<formDataArray.length; i++){
-  //   if (Object.values(formDataArray[i])[0] === "projectUserIds"){
-  //     formDataArray[i].value=uuidsOnAccessList;
-  //   }
-  //   let currentName = formDataArray[i].name;
-  //   if (Object.values(formDataArray[i])[0] === "organizationAccess"){
-  //     formJson[currentName].push(formDataArray[i].value);
-  //   }else{
-  //     formJson[currentName]=formDataArray[i].value;
-  //   }
-  // }
-  // console.log("form JSON");
-  // console.log(JSON.stringify(formJson));
-  // $.ajax({
-  //   url: wildbookGlobals.baseUrl + '../IndividualAddIncrementalProjectId',
-  //   type: 'POST',
-  //   data: JSON.stringify(formJson),
-  //   dataType: 'json',
-  //   contentType : 'application/json',
-  //   success: function(data){
-  //     console.log(data);
-  //     if(data.newProjectUUID){
-  //       window.location.replace('/projects/project.jsp?id='+data.newProjectUUID);
-  //     }else{
-  //       console.log("project id dne in response");
-  //     }
-  //     // window.location.replace('standard-upload?filename='+filename+"&isUserUpload=true");
-  //   },
-  //   error: function(x,y,z) {
-  //     console.warn('%o %o %o', x, y, z);
-  //   }
-  // });
+  if(individualId){
+    console.log("individualId is " + individualId);
+    let projectId = "<%= project.getResearchProjectId()%>";
+    console.log("projectId is: " + projectId);
+    let formJson = {};
+    formJson["researchProjectId"] = projectId;
+    formJson["individualId"] = individualId;
+    console.log("form JSON");
+    console.log(JSON.stringify(formJson));
+    $.ajax({
+      url: wildbookGlobals.baseUrl + '../IndividualAddIncrementalProjectId',
+      type: 'POST',
+      data: JSON.stringify(formJson),
+      dataType: 'json',
+      contentType : 'application/json',
+      success: function(data){
+        console.log(data);
+      },
+      error: function(x,y,z) {
+        console.warn('%o %o %o', x, y, z);
+      }
+    });
+  }
 }
 </script>
