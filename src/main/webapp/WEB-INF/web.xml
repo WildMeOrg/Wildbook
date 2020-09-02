@@ -307,6 +307,8 @@
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
 
+          /UserGetNotifications = authc
+
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
