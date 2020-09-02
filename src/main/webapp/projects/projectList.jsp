@@ -38,6 +38,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
           try{
               if(currentUser != null){
                 List<Project> userProjects = myShepherd.getProjectsForUserId(currentUser.getId());
+                
                 if(userProjects==null || userProjects.size()<1){
                   %>
                   <h4>You don't have any projects yet</h4>

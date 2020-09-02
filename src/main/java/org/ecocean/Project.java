@@ -28,7 +28,7 @@ public class Project implements java.io.Serializable {
     private String ownerId;
     private List<User> users = null;
 
-    private int individualIdIncrement = 0;
+    private int nextIndividualIdIncrement = 0;
 
     //empty constructor used by the JDO enhancer
     public Project() {}
@@ -60,23 +60,23 @@ public class Project implements java.io.Serializable {
     }
 
     public int getNextIndividualIdIncrement() {
-        return individualIdIncrement;
+        return nextIndividualIdIncrement;
     }
 
     public String getNextIncrementalIndividualIdAndAdvance() {
         String nextId = getNextIncrementalIndividualId();
-        individualIdIncrement++;
+        nextIndividualIdIncrement++;
         setTimeLastModified();
         return nextId;
     }
 
     public String getNextIncrementalIndividualId() {
-        return researchProjectId + individualIdIncrement;
+        return researchProjectId + nextIndividualIdIncrement;
     }
 
     public void adjustIncrementalIndividualId(int adjustment) {
         System.out.println("[WARN]: Project Individual Id Increment for "+researchProjectId+" has been adjusted by "+adjustment+", likely for error handling.");
-        individualIdIncrement = individualIdIncrement + adjustment;
+        nextIndividualIdIncrement = nextIndividualIdIncrement + adjustment;
         setTimeLastModified();
     }
 
@@ -105,7 +105,7 @@ public class Project implements java.io.Serializable {
 
     public  Double getPercentIdentified(){
         if (numEncounters()>0&&numIndividuals()>0) {
-            double numIncremented = individualIdIncrement;
+            double numIncremented = nextIndividualIdIncrement;
             double numEncounters = numEncounters();
             return (Double) numIncremented/numEncounters;
         }

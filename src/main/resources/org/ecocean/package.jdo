@@ -2,8 +2,8 @@
 
 <jdo>
   <package name="org.ecocean">
- 
- 
+
+
     <class name="Survey" identity-type="application" table="SURVEY">
       <field name="surveyID" primary-key="true">
         <column length="100" allows-null="true"/>
@@ -21,7 +21,7 @@
       <field name="organization" persistence-modifier="persistent">
         <column length="256" allows-null="true"/>
       </field>
-      
+
       <field name="comments" persistence-modifier="persistent">
         <column length="2048" allows-null="true"/>
       </field>
@@ -29,37 +29,37 @@
       <field name="type" persistence-modifier="persistent">
         <column length="100" allows-null="true"/>
       </field>
-      
+
       <field name="startTime" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
-      
+
       <field name="endTime" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
-      
+
       <field name="effort" persistence-modifier="persistent" element-type="org.ecocean.Measurement" allows-null="true"/>
-      
+
       <field name="dateTimeCreated" persistence-modifier="persistent">
         <column jdbc-type="String" allows-null="true"/>
       </field>
-      
+
       <field name="dateTimeModified" persistence-modifier="persistent">
         <column jdbc-type="String" allows-null="true"/>
       </field>
-      
+
       <field name="date" persistence-modifier="persistent">
         <column jdbc-type="String" allows-null="true"/>
       </field>
-      
+
       <field name="observations" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.Observation" dependent-element="true" />
         <join/>
       </field>
 
       <fetch-group name="count"/>
-    </class> 
-  
+    </class>
+
     <class name="PointLocation" identity-type="application" table="POINTLOCATION">
       <field name="pointLocationID" primary-key="true">
         <column length="100"/>
@@ -74,7 +74,7 @@
       <field name="correspondingEncounterID" persistence-modifier="persistent">
         <column length="100" allows-null="true"/>
       </field>
-      
+
       <field name="correspondingOccurrenceID" persistence-modifier="persistent">
         <column length="100" allows-null="true"/>
       </field>
@@ -82,15 +82,15 @@
       <field name="dateTime" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
-      
+
       <field name="latitude" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
-      
+
       <field name="longitude" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
-      
+
       <field name="bearing" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
@@ -188,12 +188,12 @@
       <fetch-group name="allSharks_min">
         <field name="encounters"/>
       </fetch-group>
-	  
-	  
+
+
 	      <fetch-group name="indymin">
         <field name="individualID"/>
       </fetch-group>
-	 
+
       <fetch-group name="count"/>
 
     </class>
@@ -238,7 +238,7 @@
       <field name="groupBehavior" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>
-	  
+
        <field name="socialMediaSourceID" persistence-modifier="persistent">
         <column length="1024" allows-null="true"/>
       </field>
@@ -264,33 +264,33 @@
       </field>
 
       <fetch-group name="count"/>
-	 
+
 	  <fetch-group name="occurmin">
         <field name="encounters" />
 		<field name="occurrenceID"/>
       </fetch-group>
-	 
+
 
 
     </class>
 
     <class name="Encounter" identity-type="application" table="ENCOUNTER">
-	
+
 	      <field name="submitters" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.User" dependent-element="false"/>
         <join/>
       </field>
-	  
+
 	        <field name="photographers" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.User" dependent-element="false"/>
         <join/>
       </field>
-	  
+
       <field name="informOthers" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.User" dependent-element="false"/>
         <join/>
       </field>
-	  	  
+
       <field name="catalogNumber" primary-key="true">
         <column length="100"/>
       </field>
@@ -305,7 +305,7 @@
       <field name="endDateInMilliseconds" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
-      
+
       <field name="decimalLatitude" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
@@ -313,7 +313,7 @@
       <field name="decimalLongitude" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
-      
+
       <field name="endDecimalLatitude" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
@@ -321,7 +321,7 @@
       <field name="endDecimalLongitude" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
-      
+
       <field name="dwcDateAddedLong" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
@@ -333,7 +333,7 @@
       <field name="maximumDepthInMeters" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
-      
+
       <field name="maximumElevationInMeters" persistence-modifier="persistent">
         <column jdbc-type="DOUBLE" allows-null="true"/>
       </field>
@@ -349,7 +349,7 @@
       <field name="country" persistence-modifier="persistent">
         <column length="512"/>
       </field>
-      
+
       <field name="sightNo" persistence-modifier="persistent">
         <column length="512"/>
       </field>
@@ -479,12 +479,12 @@
       <field name="acousticTag" persistence-modifier="persistent"></field>
 
       <field name="satelliteTag" persistence-modifier="persistent"></field>
-      
+
       <field name="digitalArchiveTag" persistence-modifier="persistent"></field>
 
-	
+
 	  <fetch-group name="searchResults">
-	  
+
         <field name="individual"/>
 		<field name="occurrenceID"/>
 		<field name="year"/>
@@ -501,15 +501,15 @@
 		<field name="genus"/>
 		<field name="specificEpithet"/>
 		<field name="otherCatalogNumbers"/>
-		
+
       </fetch-group>
-	
-	
+
+
       <fetch-group name="encmin">
-	  
+
         <field name="individual"/>
       </fetch-group>
-	 
+
       <fetch-group name="count"/>
     </class>
 
@@ -696,7 +696,7 @@
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
     </class>
-    
+
     <class name="Observation" identity-type="data-store">
       <inheritance strategy="new-table"/>
       <field name="observationID" primary-key="true">
@@ -734,7 +734,7 @@
         <column name="OWNERID"/>
       </field>
 
-      <field name="individualIdIncrement">
+      <field name="nextIndividualIdIncrement">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
 
@@ -806,7 +806,7 @@
       <field name="fullName">
         <column name="FULLNAME"/>
       </field>
-	  
+
 	  <field name="uuid" primary-key="true">
         <column name="UUID"/>
       </field>
@@ -814,7 +814,7 @@
       <field name="emailAddress">
         <column name="EMAILADDRESS"/>
       </field>
-	  
+
 	        <field name="hashedEmailAddress">
         <column name="HASHEDEMAILADDRESS"/>
       </field>
