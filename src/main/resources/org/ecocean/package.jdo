@@ -262,6 +262,11 @@
           <join />
       </field>
 
+      <field name="submissions" persistence-modifier="persistent" default-fetch-group="false">
+          <collection element-type="org.ecocean.external.ExternalSubmission" dependent-element="false" />
+          <join />
+      </field>
+
       <fetch-group name="count"/>
 	 
 	  <fetch-group name="occurmin">

@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.external.ExternalSubmission;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -102,6 +103,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   // while convenience string-only methods with noun "Species"
   private List<Taxonomy> taxonomies;
     private String source;  //this is for SpotterConserveIO mostly but...
+    private List<ExternalSubmission> submissions;
 
   // do we have these?
 
@@ -284,6 +286,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     public void setSource(String s) {
         source = s;
+    }
+
+    public List<ExternalSubmission> getSubmissions() {
+        return submissions;
+    }
+    public void setSubmissions(List<ExternalSubmission> subs) {
+        submissions = subs;
     }
 
   public void setAssets(List<MediaAsset> assets) {
