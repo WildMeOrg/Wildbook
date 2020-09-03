@@ -22,7 +22,7 @@
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat, 
          org.ecocean.servlet.importer.ImportTask,
-         org.apache.commons.lang.StringEscapeUtils,
+         org.apache.commons.lang3.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>

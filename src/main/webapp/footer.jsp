@@ -8,7 +8,7 @@
       java.util.ArrayList,
       java.util.List,
       java.util.Properties,
-      org.apache.commons.lang.WordUtils,
+      org.apache.commons.text.WordUtils,
       org.ecocean.security.Collaboration
       "
 %>

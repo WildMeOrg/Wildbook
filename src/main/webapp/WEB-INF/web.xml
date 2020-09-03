@@ -408,6 +408,8 @@
 
         /ScheduledIndividualMergeUpdate = authc, roles[researcher]
 
+        /ScheduledIndividualMergeUpdate = authc, roles[researcher]
+
 				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
 				
 				/merge.jsp = authc, roles[researcher]

@@ -536,11 +536,11 @@
   <version>3.1.0</version>
 </dependency>
 
-<dependency>
+<!-- <dependency>
     <groupId>com.healthmarketscience.jackcess</groupId>
     <artifactId>jackcess</artifactId>
     <version>2.1.7</version>
-</dependency>
+</dependency> -->
 
 <dependency>
 	<groupId>com.opencsv</groupId>
