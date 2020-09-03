@@ -313,7 +313,7 @@
 				    /MyAccountRemoveProfileImage = authc
 
 					/IndividualSetNickName = authc, roles[researcher]
-
+          /IndividualCreateForProject = authc, roles[researcher]
           /IndividualAddIncrementalProjectId = authc, roles[researcher]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
@@ -570,6 +570,11 @@
   <servlet>
     <servlet-name>IndividualAddIncrementalProjectId</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualAddIncrementalProjectId</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>IndividualCreateForProject</servlet-name>
+    <servlet-class>org.ecocean.servlet.IndividualCreateForProject</servlet-class>
   </servlet>
 
   <servlet>
@@ -1779,6 +1784,11 @@
     <servlet-mapping>
           <servlet-name>IndividualAddIncrementalProjectId</servlet-name>
           <url-pattern>/IndividualAddIncrementalProjectId</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>IndividualCreateForProject</servlet-name>
+    <url-pattern>/IndividualCreateForProject</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
