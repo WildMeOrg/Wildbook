@@ -9,10 +9,7 @@ Your sighting link:
 
 The information that you have submitted represents an "encounter" that
 we track. Each encounter is assigned a unique number, and you can view
-that encounter at any time using the link above or by going to:
-
-        http://www.flukebook.org/
-
+that encounter at any time using the link above.
 We will keep you informed of any changes to your submitted encounter,
 and email you if the individual animal is matched to another in the Flukebook
 database. We will also let you know if/when and where your cetacean is
