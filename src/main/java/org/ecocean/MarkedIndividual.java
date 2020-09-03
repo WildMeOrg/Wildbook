@@ -293,6 +293,14 @@ public class MarkedIndividual implements java.io.Serializable {
     public boolean hasNameSubstring(String value) {
       return (names!=null && names.hasValueSubstring(value));
     }
+    public boolean hasNameKey(String query){
+      boolean returnVal = false;
+      ArrayList<String> nameKeys = (ArrayList<String>) this.getNameKeys();
+      if (nameKeys!=null && nameKeys.contains(query)) {
+        returnVal = true;
+      }
+      return returnVal;
+    }
 
 ///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
 
