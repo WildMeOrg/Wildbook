@@ -396,8 +396,37 @@ Util.mark("identify process pre-post end");
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
 
+        Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
+        Map<String,Object> map = getDetectionArgs(taxy, baseUrl, context, myShepherd);
+
+        map = addImageUuidListToDetectArgs(map, mas);
+
+        String u = getDetectUrlByTaxonomy(taxy, context);
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
+        URL url = new URL(u);
+        return RestClient.post(url, new JSONObject(map));
+    }
+
+    public static Map<String, Object> addImageUuidListToDetectArgs(Map<String, Object> detectArgsMap, List<MediaAsset> mas) {
+
+        List<JSONObject> malist = new ArrayList<JSONObject>();
+        for (MediaAsset ma : mas) {
+            if (ma == null) continue;
+            if (ma.getAcmId() == null) {  //usually this means it was not able to be added to IA (e.g. a video etc)
+                System.out.println("WARNING: sendDetect() skipping " + ma + " due to missing acmId");
+                ma.setDetectionStatus(STATUS_ERROR);  //is this wise?
+                continue;
+            }
+            malist.add(toFancyUUID(ma.getAcmId()));
+        }
+        detectArgsMap.put("image_uuid_list", malist);
+        return detectArgsMap;
+
+    }
+
+    public static Map<String, Object> getDetectionArgs(Taxonomy taxy, String baseUrl, String context, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+
         HashMap<String,Object> map = new HashMap<String,Object>();
-        Taxonomy taxy = taxonomyFromMediaAssets(context, mas, myShepherd);
 
         String viewpointModelTag = getViewpointTag(context, taxy);
         String labelerAlgo = getLabelerAlgo(context, taxy);
@@ -415,18 +444,6 @@ Util.mark("identify process pre-post end");
 
         map.put("callback_url", callbackUrl(baseUrl));
         System.out.println("sendDetect() baseUrl = " + baseUrl);
-        ArrayList<JSONObject> malist = new ArrayList<JSONObject>();
-
-        for (MediaAsset ma : mas) {
-            if (ma == null) continue;
-            if (ma.getAcmId() == null) {  //usually this means it was not able to be added to IA (e.g. a video etc)
-                System.out.println("WARNING: sendDetect() skipping " + ma + " due to missing acmId");
-                ma.setDetectionStatus(STATUS_ERROR);  //is this wise?
-                continue;
-            }
-            malist.add(toFancyUUID(ma.getAcmId()));
-        }
-        map.put("image_uuid_list", malist);
 
         //String modelTag = IA.getProperty(context, "modelTag");
         String modelTag = getModelTag(context, taxy);
@@ -469,7 +486,7 @@ Util.mark("identify process pre-post end");
 
 
         /*
-	      String nms_aware = IA.getProperty(context, "nms_aware");
+          String nms_aware = IA.getProperty(context, "nms_aware");
         if (nms_aware != null) {
             System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
             map.put("nms_aware", nms_aware);
@@ -477,7 +494,7 @@ Util.mark("identify process pre-post end");
             System.out.println("[INFO] sendDetect() nms_aware is null; DEFAULT will be used");
         }
         */
-        
+
         //nms_aware
         String nmsAwareKey = "nms_aware"+taxonomyPropString;
         String nms_aware = IA.getProperty(context, nmsAwareKey);
@@ -503,13 +520,12 @@ Util.mark("identify process pre-post end");
             map.put("use_labeler_species", uls);
         } else {
             System.out.println("[INFO] sendDetect() use_labeler_species is null; DEFAULT of False will be used");
-        }        
+        }
 
-        String u = getDetectUrlByModelTag(context, modelTag);
-        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
-        URL url = new URL(u);
-        return RestClient.post(url, new JSONObject(map));
+        return map;
     }
+
+
 
     //DUPLICATE
     /*
@@ -528,6 +544,12 @@ Util.mark("identify process pre-post end");
         String u = IA.getProperty(context, "IBEISIARestUrlStartDetectImages." + modelTag);
         if (u != null) return u;
         return IA.getProperty(context, "IBEISIARestUrlStartDetectImages");
+    }
+
+    private static String getDetectUrlByTaxonomy(Taxonomy taxy, String context) {
+        String modelTag = getModelTag(context, taxy);
+        String detectUrl = getDetectUrlByModelTag(context, modelTag);
+        return modelTag;
     }
 
 
@@ -688,11 +710,11 @@ Util.mark("identify process pre-post end");
             	myShepherd.rollbackAndClose();
                 return tax;
             }
-        } 
+        }
        myShepherd.rollbackAndClose();
        return null;
     }
-    
+
     public static Taxonomy taxonomyFromMediaAssets(String context, List<MediaAsset> mas, Shepherd myShepherd) {
       if (Util.collectionIsEmptyOrNull(mas)) return null;
       for (MediaAsset ma : mas) {
@@ -983,8 +1005,8 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
             JSONArray list = res.getJSONObject("response").getJSONArray("missing_annot_uuid_list");
             if (list.length() > 0) {
                 ArrayList<Annotation> anns = new ArrayList<Annotation>();
-                
-                
+
+
                 /*Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("IBEISIA.iaCheckMissing");
                 myShepherd.beginDBTransaction();
@@ -1181,7 +1203,7 @@ Util.mark("bia 4B", tt);
 
             if (curvrankDailyTag != null) {
                 if (queryConfigDict == null) queryConfigDict = new JSONObject();
-                
+
                 //from JP on 12/27/2019 - if we want to specify an unfiltered list, just omit the tag
                 if(!curvrankDailyTag.toLowerCase().equals("user:any") && !curvrankDailyTag.toLowerCase().equals("user:any;locs:")) {
                   queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
@@ -1321,7 +1343,7 @@ Util.mark("OPT bia 4X", tt);
 
             if (curvrankDailyTag != null) {
                 if (queryConfigDict == null) queryConfigDict = new JSONObject();
-                
+
                 //from JP on 12/27/2019 - if we want to specify an unfiltered list, just omit the tag
                 if(!curvrankDailyTag.toLowerCase().equals("user:any") && !curvrankDailyTag.toLowerCase().equals("user:any;locs:")) {
                   queryConfigDict.put("curvrank_daily_tag", curvrankDailyTag);
@@ -1988,35 +2010,35 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                         System.out.println("WARN: could not find MediaAsset for " + iuuid + " in detection results for task " + taskID);
                         continue;
                     }
-                    
-                    
+
+
                     JSONArray newAnns = new JSONArray();
                     if(janns.length()==0) {
-                      //OK, for some species and conditions we may just want to trust the user 
+                      //OK, for some species and conditions we may just want to trust the user
                       //that there is an animal in the image and set trivial annot to matchAgainst=true
-                      
+
                       if(asset.getAnnotations()!=null && asset.getAnnotations().size()==1 && asset.getAnnotations().get(0).isTrivial()) {
-                        
+
                         //so this media asset currently only has one trivial annot
                         Annotation annot=asset.getAnnotations().get(0);
                         Encounter enc=annot.findEncounter(myShepherd);
                         if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null && IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd))!=null ) {
                           if(IA.getProperty(context, "matchTrivial",enc.getTaxonomy(myShepherd)).equals("true")) {
-                            
+
                             annot.setMatchAgainst(true);
                             myShepherd.updateDBTransaction();
-                            
+
                             allAnns.add(annot);  //this is cumulative over *all MAs*
 
                           }
                         }
-                        
+
                       }
                     }
-                    
-                    
+
+
                     boolean needsReview = false;
-                    
+
                     boolean skipEncounters = asset.hasLabel("_frame");
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
@@ -2052,7 +2074,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 if (amap.length() > 0) rtn.put("annotations", amap);  //needed to kick off ident jobs with return value
-  
+
 
                 JSONObject jlog = new JSONObject();
 
@@ -4219,10 +4241,10 @@ Util.mark("sendAnnotationsAsNeeded 1 ", tt);
             MediaAsset ma = ann.getMediaAsset();
             if (ma == null) continue; //snh #bad
             annsToSend.add(ann);
-            
+
             //get iaImageIds only if we need it
             if(iaImageIds==null)iaImageIds=new HashSet(plugin.iaImageIds());
-            
+
             if (iaImageIds.contains(ma.getAcmId())) continue;
             masToSend.add(ma);
         }
