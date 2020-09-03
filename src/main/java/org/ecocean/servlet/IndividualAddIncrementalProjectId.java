@@ -32,24 +32,19 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         response.setContentType("application/json");
-		response.setCharacterEncoding("UTF-8");
+	      response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
-
         System.out.println("==> In IndividualAddIncrementalProjectId Servlet ");
-
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IndividualAddIncrementalProjectId.java");
         myShepherd.beginDBTransaction();
-
         PrintWriter out = response.getWriter();
         JSONObject res = new JSONObject();
         try {
             res.put("success",false);
             res.put("newProjectIdForIndividual", "") ;
-
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
             String researchProjectId = j.optString("researchProjectId", null);
             String individualId = j.optString("individualId", null);
@@ -69,6 +64,7 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
                         res.put("newProjectIdForIndividual", newProjectIdForIndividual);
                     } else {
                         addErrorMessage(res, "the researchProjectId was not successfully added to "+individualId+", but no exception was thrown");
+                        res.put("success",false);
                         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     }
                 } else {
@@ -100,13 +96,12 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
             myShepherd.closeDBTransaction();
             out.println(res);
         }
-
-
     }
 
     private void addErrorMessage(JSONObject res, String error) {
-        res.put("error", error);
+      System.out.println("addErrorMessage entered");
+      res.put("error", error);
+      System.out.println("addErrorMessage put is done");
+      System.out.println("res is: " + res.toString());
     }
-
-
 }
