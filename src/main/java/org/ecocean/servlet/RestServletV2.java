@@ -63,6 +63,8 @@ public class RestServletV2 extends ApiHttpServlet {
         handleRequest(request, response, _parseUrl(request, payload));
     }
     public void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        doPost(request, response);
+/*
         JSONObject payload = new JSONObject();
         try {
             payload = ServletUtilities.jsonFromHttpServletRequest(request);
@@ -70,7 +72,8 @@ public class RestServletV2 extends ApiHttpServlet {
             SystemLog.error("failed to parse json payload from request {}", this, ex);
         }
         SystemLog.debug("PATCH ON PAYLOAD " + payload);
-        //handleRequest(request, response, _parseUrl(request, payload));
+        handleRequest(request, response, _parseUrl(request, payload));
+*/
     }
 
     //this will get /class/id from the url and massage it into json (which will take overwrite values from inJson if they exist)
@@ -93,7 +96,12 @@ public class RestServletV2 extends ApiHttpServlet {
         payload.put("_queryString", request.getQueryString());
         boolean debug = (payload.optBoolean("_debug", false) || ((request.getQueryString() != null) && request.getQueryString().matches(".*_debug.*")));
 
-        if (debug) SystemLog.debug("RestServlet.handleRequest() instance={} payload={}", instanceId, payload.toString());
+        if (debug) SystemLog.debug("RestServlet.handleRequest() instance={} method={} payload={}", instanceId, httpMethod, payload.toString());
+
+        if ("PATCH".equals(httpMethod)) {
+            handlePatch(request, response, payload, instanceId, context);
+            return;
+        }
 
         //first handle special cases (where arg is NOT a classname)
         if (payload.optString("class", "__FAIL__").equals("login")) {
@@ -629,6 +637,59 @@ rtn.put("_payload", payload);
         PrintWriter out = response.getWriter();
         out.println(rtn);
         out.close();
+    }
+
+    //basically change some object
+    private void handlePatch(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
+        JSONObject rtn = new JSONObject();
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RestServletV2.handlePatch");
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+
+        SystemLog.debug("PATCH ON PAYLOAD " + payload);
+        rtn.put("success", false);
+        rtn.put("transactionId", instanceId);
+
+        String id = payload.optString("id", null);
+        String cls = payload.optString("class", null);
+        if ((id == null) || (cls == null)) {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            SystemLog.error("RestServlet.handlePatch() passed null class or id, instance={}", instanceId);
+            throw new IOException("RestServlet.handlePatch() passed null class or id");
+        }
+
+        if (cls.equals("org.ecocean.Occurrence")) {
+            Occurrence occ = myShepherd.getOccurrence(id);
+            if (occ == null) {
+                SystemLog.warn("RestServlet.handlePatch() instance={} invalid login with payload={}", instanceId, payload);
+                rtn.put("message", _rtnMessage("not_found"));
+                response.setStatus(404);
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                out.println(rtn.toString());
+                out.close();
+                return;
+            } else {
+                //occ.apiPatch(myShepherd, payload);
+                rtn.put("object", occ);
+            }
+        } else {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            SystemLog.error("RestServlet.handlePatch() passed invalid class '{}' (id '{}', instance={})", cls, id, instanceId);
+            throw new IOException("RestServlet.handlePatch() passed invalid class " + cls);
+        }
+
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        rtn.put("success", true);
+
+        out.println(rtn.toString());
+        out.close();
+        return;
     }
 
     private JSONObject _rtnMessage(String key, JSONObject args, String details) {
