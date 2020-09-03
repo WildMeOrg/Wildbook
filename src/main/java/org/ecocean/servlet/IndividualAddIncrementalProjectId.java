@@ -56,9 +56,7 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
 
                     individual.addIncrementalProjectId(project);
                     myShepherd.updateDBTransaction();
-
-                    ArrayList<String> nameKeys = (ArrayList<String>) individual.getNameKeys();
-                    if (nameKeys.contains(researchProjectId)) {
+                    if (individual.hasNameKey(researchProjectId)) {
                         String newProjectIdForIndividual = individual.getName(researchProjectId);
                         res.put("success",true);
                         res.put("newProjectIdForIndividual", newProjectIdForIndividual);

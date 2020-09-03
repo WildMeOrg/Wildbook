@@ -123,15 +123,38 @@
                       <button type="button">Project Match</button>
                       </br>
                       <%
-                      MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(encounters.get(i));
-                      if(currentIndividual != null){
-                        String currentIndividualId = currentIndividual.getIndividualID();
-                        // System.out.println("currentIndividualId is: " + currentIndividualId);
+                        Encounter currentEncounter = encounters.get(i);
+                        System.out.println("currentEncoutner is: " + currentEncounter.toString());
+                        MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
+                        ArrayList<String> nameKeys = (ArrayList<String>) currentIndividual.getNameKeys();
+                        System.out.println("nameKeys is: " + nameKeys.toString());
+                        if (nameKeys.contains(project.getResearchProjectId())) {
+                          System.out.println("nameKeys contains research project ID for " + currentIndividual.getIndividualID());
+                        }
+                        System.out.println("currentIndividual is: " + currentIndividual.toString());
+                        if(currentIndividual != null){
+                          // List<String> foundNameIds = currentIndividual.findNameIds(project.getResearchProjectId());
+                          // System.out.println("foundNameIds is: " + foundNameIds.toString());
+                          if(!currentIndividual.hasNameKey(project.getResearchProjectId())){
+                            System.out.println("catalog number actually is "+ encounters.get(i).getCatalogNumber());
+                            %>
+                            <button id="mark-new-button_<%= encounters.get(i).getCatalogNumber()%>" type="button" onclick="markNewIncremental('<%= currentIndividual.getIndividualID()%>', '<%= project.getResearchProjectId()%>', '<%= encounters.get(i).getCatalogNumber()%>')">Mark New</button>
+                            <%
+                          }
+                        }else{
+                          %>
+                          <button type="button" onclick="createIndividualAndMarkNewIncremental('<%= encounters.get(i).getCatalogNumber()%>', '<%= project.getResearchProjectId()%>')">Mark New</button>
+                          <%
+                        }
                       %>
-                      <button type="button" onclick="markNew('<%= currentIndividualId%>')">Mark New</button>
-                      <%
-                      }
-                      %>
+                      <div id="alert-div_<%= encounters.get(i).getCatalogNumber()%>" class="alert alert-success" role="alert" style="display: none;">
+                        <button type="button" class="close" onclick="dismissAlert('<%= encounters.get(i).getCatalogNumber()%>')" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <strong>Success!</strong> An ID has been added to your project for this individual!
+                      </div>
+                      <div id="alert-div-warn_<%= encounters.get(i).getCatalogNumber()%>" class="alert alert-danger" role="alert" style="display: none;">
+                        <button type="button" class="close" onclick="dismissAlert('<%= encounters.get(i).getCatalogNumber()%>')" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        An ID could not be added to your project for this individual!
+                      </div>
                     </td>
                     </tr>
                     <%
@@ -154,38 +177,63 @@
 
 <script type="text/javascript">
 
-function markNew(individualId){
-  console.log("markNew clicked!");
-  if(individualId){
+function markNewIncremental(individualId, projectId, encounterId){
+  console.log("markNewIncremental entered");
+  if(individualId && projectId && encounterId){
+    console.log("projectId is " + projectId);
     console.log("individualId is " + individualId);
-    let projectId = "<%= project.getResearchProjectId()%>";
-    if(projectId){
-      console.log("projectId is: " + projectId);
-      let formJson = {};
-      formJson["researchProjectId"] = projectId;
-      formJson["individualId"] = individualId;
-      console.log("form JSON");
-      console.log(JSON.stringify(formJson));
-      $.ajax({
-        url: wildbookGlobals.baseUrl + '../IndividualAddIncrementalProjectId',
-        type: 'POST',
-        data: JSON.stringify(formJson),
-        dataType: 'json',
-        contentType : 'application/json',
-        success: function(data){
-          if(data){
-            if(data.success){
-              console.log("success!");
-            }else{
-              console.log("failure!");
-            }
-          }
-        },
-        error: function(x,y,z) {
-          console.warn('%o %o %o', x, y, z);
-        }
-      });
-    }
+    doAjaxCall(individualId, projectId, encounterId);
   }
 }
+
+function createIndividualAndMarkNewIncremental(encounterId, projectId){
+  console.log("createIndividualAndMarkNewIncremental entered!");
+  if(projectId && encounterId){
+    console.log("projectId is " + projectId);
+    console.log("encounterId is " + encounterId);
+    //TODO create individual and get individualID... probably from ajax call result
+    //TODO doAjaxCall(individualId, projectId, encounterId);
+  }
+}
+
+function doAjaxCall(individualId, projectId, encounterId){
+  let formJson = {};
+  formJson["researchProjectId"] = projectId;
+  formJson["individualId"] = individualId;
+  console.log("form JSON");
+  console.log(JSON.stringify(formJson));
+  $.ajax({
+    url: wildbookGlobals.baseUrl + '../IndividualAddIncrementalProjectId',
+    type: 'POST',
+    data: JSON.stringify(formJson),
+    dataType: 'json',
+    contentType : 'application/json',
+    success: function(data){
+      if(data){
+        console.log(data);
+        if(data.success){
+          console.log("success!");
+          $('#alert-div_'+encounterId).show();
+          $('#mark-new-button_'+encounterId).hide();
+        }else{
+          console.log("failure!");
+          $('#alert-div-warn_'+encounterId).show();
+        }
+      }
+    },
+    error: function(x,y,z) {
+      console.warn('%o %o %o', x, y, z);
+    }
+  });
+}
+
+function dismissAlert(encounterId){
+  console.log("dismissAlert clicked");
+  if(encounterId){
+    console.log("encounterId is "+ encounterId);
+    $('#'+'alert-div_'+ encounterId).hide();
+    $('#'+'alert-div-warn_'+encounterId).hide();
+  }
+}
+
 </script>
