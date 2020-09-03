@@ -126,7 +126,7 @@
                       MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(encounters.get(i));
                       if(currentIndividual != null){
                         String currentIndividualId = currentIndividual.getIndividualID();
-                        System.out.println("currentIndividualId is: " + currentIndividualId);
+                        // System.out.println("currentIndividualId is: " + currentIndividualId);
                       %>
                       <button type="button" onclick="markNew('<%= currentIndividualId%>')">Mark New</button>
                       <%
@@ -159,25 +159,34 @@ function markNew(individualId){
   if(individualId){
     console.log("individualId is " + individualId);
     let projectId = "<%= project.getResearchProjectId()%>";
-    console.log("projectId is: " + projectId);
-    let formJson = {};
-    formJson["researchProjectId"] = projectId;
-    formJson["individualId"] = individualId;
-    console.log("form JSON");
-    console.log(JSON.stringify(formJson));
-    $.ajax({
-      url: wildbookGlobals.baseUrl + '../IndividualAddIncrementalProjectId',
-      type: 'POST',
-      data: JSON.stringify(formJson),
-      dataType: 'json',
-      contentType : 'application/json',
-      success: function(data){
-        console.log(data);
-      },
-      error: function(x,y,z) {
-        console.warn('%o %o %o', x, y, z);
-      }
-    });
+    if(projectId){
+      console.log("projectId is: " + projectId);
+      let formJson = {};
+      formJson["researchProjectId"] = projectId;
+      formJson["individualId"] = individualId;
+      console.log("form JSON");
+      console.log(JSON.stringify(formJson));
+      $.ajax({
+        url: wildbookGlobals.baseUrl + '../IndividualAddIncrementalProjectId',
+        type: 'POST',
+        data: JSON.stringify(formJson),
+        dataType: 'json',
+        contentType : 'application/json',
+        success: function(data){
+          if(data !=null){
+            console.log(data);
+          }
+          // if(data && data.success){
+          //     console.log("success!");
+          // }else{
+          //   console.log("failure!");
+          // }
+        },
+        error: function(x,y,z) {
+          console.warn('%o %o %o', x, y, z);
+        }
+      });
+    }
   }
 }
 </script>

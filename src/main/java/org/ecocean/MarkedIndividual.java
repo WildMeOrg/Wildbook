@@ -367,6 +367,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
         int nextIncrement = project.getNextIndividualIdIncrement();
         try {
           addNameByKey(project.getResearchProjectId(), project.getNextIncrementalIndividualId());
+          project.getNextIncrementalIndividualIdAndAdvance();
         } catch (Exception e) {
           if (nextIncrement<project.getNextIndividualIdIncrement()) {
             project.adjustIncrementalIndividualId(-1);
