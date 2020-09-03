@@ -173,14 +173,13 @@ function markNew(individualId){
         dataType: 'json',
         contentType : 'application/json',
         success: function(data){
-          if(data !=null){
-            console.log(data);
+          if(data){
+            if(data.success){
+              console.log("success!");
+            }else{
+              console.log("failure!");
+            }
           }
-          // if(data && data.success){
-          //     console.log("success!");
-          // }else{
-          //   console.log("failure!");
-          // }
         },
         error: function(x,y,z) {
           console.warn('%o %o %o', x, y, z);
