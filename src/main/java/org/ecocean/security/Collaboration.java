@@ -303,10 +303,8 @@ public class Collaboration implements java.io.Serializable {
 			ArrayList<ScheduledIndividualMerge> potentialForNotification = myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
 			ArrayList<ScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteScheduledIndividualMerges();
 			potentialForNotification.addAll(incomplete);
-			System.out.println("going through potential merge for notification widget...");
 			for (ScheduledIndividualMerge merge : potentialForNotification) {
 				if (!merge.ignoredByUser(username)&&merge.isUserParticipent(username)) {
-					System.out.println("adding 1!");
 					n++;
 				}
 			}

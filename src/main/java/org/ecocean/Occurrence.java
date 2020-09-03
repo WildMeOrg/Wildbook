@@ -17,6 +17,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.movement.SurveyTrack;
 
+import javax.json.JsonException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -1242,5 +1243,42 @@ public class Occurrence implements java.io.Serializable {
 
       return jobj;
   }
+
+  public org.json.JSONObject getJSONSummary() {
+      org.json.JSONObject json = new org.json.JSONObject();
+      try {
+        json.put("occurrenceID", getID());
+        if (getDateTimeLong()==null) {
+          setDateFromEncounters();
+        }
+        json.put("dateTimeLong", getDateTimeLong());
+        json.put("groupBehavior", getGroupBehavior());
+        List<String> allSpecies = new ArrayList<>();
+        List<String> allLocs = new ArrayList<>();
+        String allTaxString = "";
+        String allLocString = "";
+        for (Encounter enc : encounters) {
+          if (!allSpecies.contains(enc.getTaxonomyString())) {
+            if (!allSpecies.isEmpty()) allTaxString+=",";
+            allSpecies.add(enc.getTaxonomyString());
+            allTaxString += enc.getTaxonomyString();
+          }
+          if (!allLocs.contains(enc.getLocationID())) {
+            if (!allLocs.isEmpty()) allLocString+=",";
+            allLocs.add(enc.getLocationID());
+            allLocString += enc.getLocationID();
+          }
+        }
+        json.put("taxonomies", allTaxString);
+        json.put("locationIds", allLocString);
+        json.put("encounterCount", encounters.size());
+        json.put("individualCount", getMarkedIndividualNamesForThisOccurrence().size());
+
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return json;
+  }
+
 
 }
