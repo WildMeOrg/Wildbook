@@ -4129,6 +4129,15 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         }
         return false;
     }
+    
+    public static boolean validIAClassForIdentification(String iaClassName, String context) {
+      ArrayList<String> idClasses = getAllIdentificationClasses(context);
+      if (iaClassName==null&&(idClasses.isEmpty()||idClasses==null)) return true;
+      if (iaClassName!=null&&(idClasses.contains(iaClassName)||idClasses.isEmpty()||idClasses==null)) {
+          return true;
+      }
+      return false;
+  }
 
 
     public static boolean validForIdentification(Annotation ann)  {
