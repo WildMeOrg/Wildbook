@@ -66,16 +66,16 @@
                 System.out.println("not null");
                 %>
                 <div align="center">
-                  <table class="row tissueSampleProjectList">
+                  <table class="row project-style">
                     <thead>
                       <tr>
-                        <th class="tissueSampleProjectList">Encounter</th>
-                        <th class="tissueSampleProjectList">Individual</th>
-                        <th class="tissueSampleProjectList">Date/Time</th>
-                        <th class="tissueSampleProjectList">Location</th>
-                        <th class="tissueSampleProjectList">Data Owner</th>
-                        <th class="tissueSampleProjectList">Project IDs</th>
-                        <th class="tissueSampleProjectList">Actions</th>
+                        <th class="project-style">Encounter</th>
+                        <th class="project-style">Individual</th>
+                        <th class="project-style">Date/Time</th>
+                        <th class="project-style">Location</th>
+                        <th class="project-style">Data Owner</th>
+                        <th class="project-style">Project IDs</th>
+                        <th class="project-style">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -104,12 +104,12 @@
                       encounterDate = encounters.get(i).getDate();
                     }
                     %>
-                    <td class="tissueSampleProjectList"><%=encounters.get(i).getCatalogNumber()%></td>
-                    <td class="tissueSampleProjectList"><%=individualDisplayName%></td>
-                    <td class="tissueSampleProjectList"><%=encounterDate%></td>
-                    <td class="tissueSampleProjectList"><%=location%></td>
-                    <td class="tissueSampleProjectList"><%=dataOwner%></td>
-                    <td class="tissueSampleProjectList">
+                    <td class="project-style"><%=encounters.get(i).getCatalogNumber()%> </td>
+                    <td class="project-style"><%=individualDisplayName%> </td>
+                    <td class="project-style"><%=encounterDate%> </td>
+                    <td class="project-style"><%=location%> </td>
+                    <td class="project-style"><%=dataOwner%> </td>
+                    <td class="project-style">
                     <%
                       List<String> researchProjectIds = myShepherd.getResearchProjectIdsForEncounter(encounters.get(i));
                       for(int j=0; j<researchProjectIds.size(); j++){
@@ -119,7 +119,7 @@
                       }
                       %>
                     </td>
-                    <td class="tissueSampleProjectList">
+                    <td class="project-style">
                       <button type="button">Project Match</button>
                       </br>
                       <%

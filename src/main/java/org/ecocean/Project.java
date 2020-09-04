@@ -96,7 +96,7 @@ public class Project implements java.io.Serializable {
           }
         }
         if(numEncounters>0){ // avoid potential divide by zero error
-          result = 100.0 * numIncremented/numEncounters;
+          result = 100.0 * Math.floor(numIncremented/numEncounters);
         }
         return result;
     }
@@ -106,7 +106,7 @@ public class Project implements java.io.Serializable {
             double numIncremented = nextIndividualIdIncrement;
             double numEncounters = numEncounters();
             if(numEncounters>0){ // avoid potential divide by zero error
-              return (Double) 100.0 * numIncremented/numEncounters;
+              return (Double) 100.0 * Math.floor(numIncremented/numEncounters);
             }
         }
         return (Double) 0.0;
