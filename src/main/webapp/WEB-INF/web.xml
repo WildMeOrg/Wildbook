@@ -426,6 +426,7 @@
 				
 				/ImportTaskDetection = authc, roles[admin]
 				
+				/imports.jsp = authc
             </param-value>
         </init-param>
     </filter>
