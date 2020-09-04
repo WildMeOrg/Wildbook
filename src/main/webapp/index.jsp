@@ -63,9 +63,9 @@ margin-bottom: 8px !important;
 <script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
   <script type="text/javascript">
   var map;
-  var mapZoom = 3.5; 
+  var mapZoom = 3.5;
   var center;
-  var newCenter;	
+  var newCenter;
 //Define the overlay, derived from google.maps.OverlayView
   function Label(opt_options) {
    // Initialization
@@ -103,7 +103,7 @@ margin-bottom: 8px !important;
      google.maps.event.removeListener(this.listeners_[i]);
    }
   };
-  
+
   // Implement draw
   Label.prototype.draw = function() {
    var projection = this.getProjection();
@@ -122,7 +122,7 @@ margin-bottom: 8px !important;
     	// Create an array of styles for our Google Map.
   	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-		
+
     	if (center == null) {
     		center = new google.maps.LatLng(-23.117, 132.1333);
     	} else {
@@ -159,7 +159,7 @@ margin-bottom: 8px !important;
  			    	}
  			    }
  		});
- 		
+
  		// let's add map points for our locationIDs
  		<%
  		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
@@ -212,20 +212,20 @@ margin-bottom: 8px !important;
     			center = newCenter;
     			map.setCenter(map.getCenter());
     		});
-    		 
- 	     }); 	 
-    	 
-    	 google.maps.event.addDomListener(window, "resize", function() {	 
+
+ 	     });
+
+    	 google.maps.event.addDomListener(window, "resize", function() {
  	    	console.log("Resize Center : "+center);
  	    	google.maps.event.trigger(map, "resize");
  	  	    console.log("Resize : "+newCenter);
  	  	    map.setCenter(center);
- 	     });    
+ 	     });
  	 } // end initialize function
- 	  	  
- 	  	 
- 	 
- 	 
+
+
+
+
       function fullScreen(){
   		$("#map_canvas").addClass('full_screen_map');
   		$('html, body').animate({scrollTop:0}, 'slow');
@@ -283,11 +283,11 @@ margin-bottom: 8px !important;
  	  	  fullScreen();
  	  	}
  	  });
-  	  
+
   	  // Setup the click event listeners: toggle the full screen
   	}
     google.maps.event.addDomListener(window, 'load', initialize);
-  	
+
   </script>
 <%
 
@@ -333,17 +333,17 @@ try{
 			Encounter youngestEnc = (Encounter) qc.getQueryByName("youngestEncounterMillis").executeQuery(myShepherd).get(0);
 			long oldDate = oldestEnc.getDWCDateAddedLong();
 			long newDate = youngestEnc.getDWCDateAddedLong();
-			long yearSpan = (newDate - oldDate) / 31556952000L;                     
+			long yearSpan = (newDate - oldDate) / 31556952000L;
 			if (yearSpan > 1) {
                 avgSightingsPerYear = Math.round(numEncounters / yearSpan);
-            } else { 
+            } else {
                 avgSightingsPerYear = numEncounters;
 			}
 
 	}
 
 	//if (youngestEnc!=null&&oldestEnc!=null&&youngestEnc.get(0)!=null&&oldestEnc.get(0)!=null) {
-	
+
 		//long oldestMillis = oldestEnc.get(0).getDWCDateAddedLong();
 		//long youngestMillis = youngestEnc.get(0).getDWCDateAddedLong();
 		//Calendar cal = Calendar.getInstance();
@@ -392,7 +392,7 @@ finally{
 
 <div class="carousel-inner text-left">
 
-	<div class="row"> 
+	<div class="row">
 		<div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 			<h3><%=props.getProperty("innerPhotoH3") %></h3>
 			<p class="lead">
@@ -406,7 +406,7 @@ finally{
 
 	<hr>
 
-	<div class="row"> 
+	<div class="row">
 		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
 			<img  src="images/submit_photo_id.png" alt=""  />
 		</div>
@@ -420,7 +420,7 @@ finally{
 
 	<hr>
 
-	<div class="row"> 
+	<div class="row">
 		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 			<h3><%=props.getProperty("innerVerifyH3") %></h3>
 			<p class="lead">
@@ -434,7 +434,7 @@ finally{
 
 	<hr>
 
-	<div class="row"> 
+	<div class="row">
 		<div class="hidden-xs col-sm-6  col-md-6  col-lg-6">
 			<img  src="images/dragon_bounding.png" alt=""  />
 		</div>
@@ -448,7 +448,7 @@ finally{
 
 	<hr>
 
-	<div class="row"> 
+	<div class="row">
 		<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 			<h3><%=props.getProperty("innerResultH3") %></h3>
 			<p class="lead">
@@ -630,7 +630,7 @@ finally{
 			<section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters%></span>encounters</i></p>
 			</section>
-	
+
         </div>
 
         <hr/>
@@ -641,8 +641,8 @@ finally{
                     <img src="cust/mantamatcher/img/WhyWeDoThisSD.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
-                        <a href="//dragonsearch.org/#contributors" title="Contributors"><p class="lead"><%=props.getProperty("contributors") %></a></p>
-                        
+                        <a href="//seadragonsearch.org/#contributors" title="Contributors"><p class="lead"><%=props.getProperty("contributors") %></a></p>
+
                     </div>
                 </div>
             </article>
@@ -660,7 +660,7 @@ if(CommonConfiguration.allowAdoptions(context)){
 		<section class="container main-section">
 
 			<!-- Complete header for adoption section in index properties file -->
-			
+
 			<%=props.getProperty("adoptionHeader") %>
 			<section class="adopt-section row">
 

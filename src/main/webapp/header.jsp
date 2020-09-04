@@ -89,23 +89,23 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
 
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
-      
-      
+
+
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
-      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
+      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
 
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
   	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
-  	<!-- End Open Graph Tags -->    
-    
-    <!--  <link rel="stylesheet" href="/resources/demos/style.css"> 
-    
+  	<!-- End Open Graph Tags -->
+
+    <!--  <link rel="stylesheet" href="/resources/demos/style.css">
+
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -113,8 +113,8 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
 	<!-- Clockpicker on creatSurvey jsp -->
     <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
-    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" /> 
-   
+    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" />
+
     <style>
       ul.nav.navbar-nav {
         width: 100%;
@@ -139,7 +139,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                     <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
                   <%
                   }
-                  %> 
+                  %>
                     <%-- <a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a> --%>
                     <ul class="secondary-nav hor-ul no-bullets">
 
@@ -319,7 +319,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" href="https://dragonsearch.org/">Dragonsearch.org - Powered by Wildbook</a>
+                  <a class="navbar-brand" href="https://seadragonsearch.org/">SeadragonSearch.org - Powered by Wildbook</a>
                 </div>
               </div>
 
@@ -339,14 +339,14 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                     <ul class="nav navbar-nav">
 
 
-                      <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->                        
+                      <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
                       <!-- submit encounter, survey -->
 
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-                      
+
                       <!-- <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -360,17 +360,17 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                        	<%-- 
+                        	<%--
                           <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                           <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li>
-                          <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li> 
+                          <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
                           --%>
 
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         </ul>
                       </li>
 
-                      <%-- 
+                      <%--
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -389,7 +389,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                            -->
 
                         </ul>
-                      </li> 
+                      </li>
                       --%>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
@@ -467,7 +467,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                         <ul class="dropdown-menu" role="menu">
                             <% if (CommonConfiguration.getWikiLocation(context)!=null) { %>
                               <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>/photographing.jsp"><%=props.getProperty("userWiki")%></a></li>
-                            <% 
+                            <%
                             }
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
@@ -493,10 +493,10 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                             <li class="dropdown-header">Admins Only</li>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-                         
+
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
-								
-                                <% 
+
+                                <%
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
                                 <% } %>
@@ -507,7 +507,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
-                                <% } 
+                                <% }
                             } //end if admin %>
                         </ul>
                       </li>
@@ -579,11 +579,11 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                             } else {
                                 label = "";
                             }
-                            
+
                             if(item.nickname != null){
                             	nickname = " ("+item.nickname+")";
                             }
-                            
+
                             return {label: label + item.label+nickname,
                                     value: item.value,
                                     type: item.type,
@@ -609,8 +609,8 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
         if (urlParams.has("organization")) {
           let orgParam = urlParams.get("organization");
           $.cookie("wildbookOrganization", orgParam, {
-              path    : '/',     
-              secure  : false, 
+              path    : '/',
+              secure  : false,
               expires : 1
           });
         }
@@ -619,10 +619,10 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
         </script>
 
         <!-- ****/header**** -->
-        
+
         <%
         //close up the Shepherd
   	  myShepherd.rollbackDBTransaction();
   	  myShepherd.closeDBTransaction();
-  	  
+
         %>
