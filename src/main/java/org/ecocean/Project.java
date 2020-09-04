@@ -80,27 +80,23 @@ public class Project implements java.io.Serializable {
         setTimeLastModified();
     }
 
-    public  Double getPercentWithIncrementalIds(Shepherd myShepherd){
+    public Double getPercentWithIncrementalIds(Shepherd myShepherd){
         System.out.println("entered getPercentWithIncrementalIds");
-        Double result = 0.0;
-        // Double numIndividsWithIncrementalProjIds = 0;
+        double result = 0.0;
+        double numIncremented = 0;
+        double numEncounters = numEncounters();
         List<MarkedIndividual> uniqueIndividuals = new ArrayList<MarkedIndividual>();
-        System.out.println("got past uniqueIndividuals");
         for(Encounter currentEncounter: encounters){
-          System.out.println("currentEncounter is: "+ currentEncounter.toString());
           MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
           if(!uniqueIndividuals.contains(currentIndividual) && currentIndividual!=null){
-            System.out.println("uniqueIndividuals doesn’t contain currentEncounter");
-            List<String> currentIndividualNameKeys = currentIndividual.getNameKeys();
-            if(currentIndividualNameKeys !=null && currentIndividualNameKeys.size()>0){
-              System.out.println("currentIndividualNameKeys are: " + currentIndividualNameKeys.toString());
-              //TODO see if any name keys match .matches(researchProjectId);
-              uniqueIndividuals.add(currentIndividual);
+            if(currentIndividual.hasNameKey(getResearchProjectId())){
+              numIncremented ++;
             }
+            uniqueIndividuals.add(currentIndividual);
           }
-          // String incrementalProjId = currentIndividual.getIncrementalProjectId();
-
-          // numIndividsWithIncrementalProjIds ++;
+        }
+        if(numEncounters>0){ // avoid potential divide by zero error
+          result = 100.0 * numIncremented/numEncounters;
         }
         return result;
     }
@@ -109,7 +105,9 @@ public class Project implements java.io.Serializable {
         if (numEncounters()>0&&numIndividuals()>0) {
             double numIncremented = nextIndividualIdIncrement;
             double numEncounters = numEncounters();
-            return (Double) numIncremented/numEncounters;
+            if(numEncounters>0){ // avoid potential divide by zero error
+              return (Double) 100.0 * numIncremented/numEncounters;
+            }
         }
         return (Double) 0.0;
     }
@@ -194,8 +192,6 @@ public class Project implements java.io.Serializable {
     }
 
     public void setResearchProjectName(final String researchProjectName) {
-      System.out.println("getresearchProjectName called");
-      System.out.println("researchProjectName is: " + researchProjectName);
         setTimeLastModified();
         this.researchProjectName = researchProjectName;
     }

@@ -295,8 +295,7 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     public boolean hasNameKey(String query){
       boolean returnVal = false;
-      ArrayList<String> nameKeys = (ArrayList<String>) this.getNameKeys();
-      if (nameKeys!=null && nameKeys.contains(query)) {
+      if (this.getNameKeys()!=null && this.getNameKeys().contains(query)) {
         returnVal = true;
       }
       return returnVal;
