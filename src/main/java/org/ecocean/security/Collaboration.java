@@ -7,7 +7,7 @@ import org.ecocean.*;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.social.*;
 import org.ecocean.servlet.ServletUtilities;
-
+import org.ecocean.servlet.importer.ImportTask;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.jdo.Query;
@@ -384,6 +384,15 @@ public class Collaboration implements java.io.Serializable {
     }
     return false;
 	}
+	
+	 public static boolean canUserAccessImportTask(ImportTask occ, HttpServletRequest request) {
+	    List<Encounter> all = occ.getEncounters();
+	    if ((all == null) || (all.size() < 1)) return true;
+	    for (Encounter enc : all) {
+	      if (canUserAccessEncounter(enc, request)) return true;  //one is good enough (either owner or in collab or no security etc)
+	    }
+	    return false;
+	  }
 
 
 	public static boolean canUserAccessMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
