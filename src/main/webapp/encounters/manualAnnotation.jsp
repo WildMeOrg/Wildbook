@@ -9,7 +9,9 @@
 		org.ecocean.Annotation,
 		java.net.URLEncoder,
 		java.nio.charset.StandardCharsets,
-		java.io.UnsupportedEncodingException"
+		java.io.UnsupportedEncodingException,
+		org.ecocean.identity.IBEISIA
+		"
 %>
 
 <%!
@@ -204,8 +206,10 @@ try{
 		    String v = (String)it.next();
 		    System.out.println("Encooded v: "+v);
 		    if (!Util.stringExists(v)) continue;
-		    System.out.println("v:" +v+" versus iaCLass:"+iaClass);
-		    clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
+		    if(IBEISIA.validIAClassForIdentification(v, context)){
+		    	System.out.println("v:" +v+" versus iaCLass:"+iaClass);
+		    	clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
+		    }
 		}
 		clist += "</select></p>";
 		q2.closeAll();

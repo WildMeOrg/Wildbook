@@ -1036,7 +1036,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         if (someEnc!=null) {
             for (Annotation ann : sibs) {
                 // TODO lets make this better at handling part designation
-                if (ann.getIAClass().equals(this.getIAClass())) {break;}
+                if ((ann.getIAClass()==null||this.getIAClass()==null)||ann.getIAClass().equals(this.getIAClass())) {break;}
                 // if these two intersect and have a different detected class they are allowed to reside on the same encounter
                 if (this.intersects(ann)) {
                     someEnc.addAnnotation(this);

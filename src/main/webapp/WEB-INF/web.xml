@@ -306,6 +306,8 @@
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
 
+        /UserGetNotifications = authc
+
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
@@ -399,6 +401,8 @@
         /UserGetSimpleJSON = authc
 
 				/MergeIndividual = authc, roles[researcher]
+
+        /ScheduledIndividualMergeUpdate = authc, roles[researcher]
 
 				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
 				
@@ -631,6 +635,10 @@
       <servlet-class>org.ecocean.servlet.UserResetAcceptedUserAgreement</servlet-class>
   </servlet>
 
+  <servlet>
+      <servlet-name>UserGetNotifications</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserGetNotifications</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
@@ -697,6 +705,11 @@
    <servlet>
     <servlet-name>MergeIndividual</servlet-name>
     <servlet-class>org.ecocean.servlet.MergeIndividual</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ScheduledIndividualMergeUpdate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ScheduledIndividualMergeUpdate</servlet-class>
   </servlet>
 
     <servlet>
@@ -1102,6 +1115,11 @@
   <servlet-mapping>
     <servlet-name>UserGetSimpleJSON</servlet-name>
     <url-pattern>/UserGetSimpleJSON</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>UserGetNotifications</servlet-name>
+    <url-pattern>/UserGetNotifications</url-pattern>
   </servlet-mapping>
 
       <servlet>
@@ -1875,6 +1893,11 @@
   <servlet-mapping>
     <servlet-name>MergeIndividual</servlet-name>
     <url-pattern>/MergeIndividual</url-pattern>
+  </servlet-mapping>
+
+    <servlet-mapping>
+    <servlet-name>ScheduledIndividualMergeUpdate</servlet-name>
+    <url-pattern>/ScheduledIndividualMergeUpdate</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
