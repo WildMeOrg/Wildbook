@@ -42,28 +42,25 @@
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
     <title>Project <%=projId%></title>
     <%
-      System.out.println("projectId is: " + projId);
+      // System.out.println("projectId is: " + projId);
       Project project = myShepherd.getProject(projId);
       List<Encounter> encounters = project.getEncounters();
-      System.out.println("project acquired! It is:");
-      System.out.println(project.toString());
+      // System.out.println("project acquired! It is:");
+      // System.out.println(project.toString());
     %>
     <div class="container maincontent">
           <%
           try{
             if(currentUser != null){
-              System.out.println("projectname is " + project.getResearchProjectName());
+              // System.out.println("projectname is " + project.getResearchProjectName());
               %>
               <h3>Project: <%=project.getResearchProjectName()%></h3>
               <%
-              System.out.println("got here");
               if(encounters == null || encounters.size()<1){
-                System.out.println("got here null or empty");
                 %>
                   <h4>You don't have any encounters in this project yet</h4>
                 <%
               }else{
-                System.out.println("not null");
                 %>
                 <div align="center">
                   <table class="row project-style">
@@ -81,7 +78,6 @@
                     <tbody>
                 <%
                 if(encounters!=null && encounters.size()>0){
-                  System.out.println("not null again");
                   for(int i=0; i<encounters.size(); i++){
                     %>
                     <tr>
@@ -124,24 +120,22 @@
                       </br>
                       <%
                         Encounter currentEncounter = encounters.get(i);
-                        System.out.println("currentEncoutner is: " + currentEncounter.toString());
+                        // System.out.println("currentEncoutner is: " + currentEncounter.toString());
                         MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
-                        ArrayList<String> nameKeys = (ArrayList<String>) currentIndividual.getNameKeys();
-                        System.out.println("nameKeys is: " + nameKeys.toString());
-                        if (nameKeys.contains(project.getResearchProjectId())) {
-                          System.out.println("nameKeys contains research project ID for " + currentIndividual.getIndividualID());
-                        }
-                        System.out.println("currentIndividual is: " + currentIndividual.toString());
+                        // System.out.println("currentIndividual is: " + currentIndividual.toString());
                         if(currentIndividual != null){
                           // List<String> foundNameIds = currentIndividual.findNameIds(project.getResearchProjectId());
                           // System.out.println("foundNameIds is: " + foundNameIds.toString());
                           if(!currentIndividual.hasNameKey(project.getResearchProjectId())){
-                            System.out.println("catalog number actually is "+ encounters.get(i).getCatalogNumber());
+                            // System.out.println("got here 1");
+                            // System.out.println("catalog number actually is "+ encounters.get(i).getCatalogNumber());
                             %>
                             <button id="mark-new-button_<%= encounters.get(i).getCatalogNumber()%>" type="button" onclick="markNewIncremental('<%= currentIndividual.getIndividualID()%>', '<%= project.getResearchProjectId()%>', '<%= encounters.get(i).getCatalogNumber()%>')">Mark New</button>
                             <%
+                            // System.out.println("got here 2");
                           }
                         }else{
+                          // System.out.println("got here 3");
                           %>
                           <button type="button" onclick="createIndividualAndMarkNewIncremental('<%= encounters.get(i).getCatalogNumber()%>', '<%= project.getResearchProjectId()%>')">Mark New</button>
                           <%
