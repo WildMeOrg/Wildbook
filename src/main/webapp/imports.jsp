@@ -10,6 +10,7 @@ java.util.HashSet,
 java.util.List,
 java.util.Collection,
 java.util.ArrayList,
+org.ecocean.security.Collaboration,
 java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%
 
@@ -133,54 +134,56 @@ if (itask == null) {
 
     out.println("</tr></thead><tbody>");
     for (ImportTask task : tasks) {
-        List<Encounter> encs = task.getEncounters();
-        List<MediaAsset> mas = task.getMediaAssets();
-        boolean foundChildren = false;
-        String hasChildren = "<td class=\"dim\">-</td>";
-        int iaStatus = 0;
-        if (Util.collectionSize(mas) > 0) {
-            for (MediaAsset ma : mas) {
-                if (ma.getDetectionStatus() != null) iaStatus++;
-                if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) {
-                    hasChildren = "<td class=\"yes\">yes</td>";
-                    foundChildren = true;
-                    break;
-                }
-            }
-            if (!foundChildren) hasChildren = "<td class=\"no\">no</td>";
-        }
-
-        int indivCount = 0;
-        if (Util.collectionSize(encs) > 0) for (Encounter enc : encs) {
-            if (enc.hasMarkedIndividual()) indivCount++;
-        }
-
-        out.println("<tr>");
-        out.println("<td><a title=\"" + task.getId() + "\" href=\"imports.jsp?taskId=" + task.getId() + "\">" + task.getId().substring(0,8) + "</a></td>");
-        if (adminMode) {
-            User tu = task.getCreator();
-            String uname = "(guest)";
-            if (tu != null) {
-                uname = tu.getFullName();
-                if (uname == null) uname = tu.getUsername();
-                if (uname == null) uname = tu.getUUID();
-                if (uname == null) uname = Long.toString(tu.getUserID());
-            }
-            out.println("<td>" + uname + "</td>");
-        }
-        out.println("<td>" + task.getCreated().toString().substring(0,10) + "</td>");
-        out.println("<td class=\"ct" + Util.collectionSize(encs) + "\">" + Util.collectionSize(encs) + "</td>");
-        out.println("<td class=\"ct" + indivCount + "\">" + indivCount + "</td>");
-        out.println("<td class=\"ct" + Util.collectionSize(mas) + "\">" + Util.collectionSize(mas) + "</td>");
-        out.println(hasChildren);
-        if (iaStatus < 1) {
-            out.println("<td class=\"no\">no</td>");
-        } else {
-            int percent = Math.round(iaStatus / Util.collectionSize(mas) * 100);
-            out.println("<td class=\"yes\" title=\"" + iaStatus + " of " + Util.collectionSize(mas) + " (" + percent + "%)\">yes</td>");
-        }
-        out.println("<td>"+task.getStatus()+"</td>");
-        out.println("</tr>");
+    	if(adminMode || Collaboration.canUserAccessImportTask(task,request)){
+	        List<Encounter> encs = task.getEncounters();
+	        List<MediaAsset> mas = task.getMediaAssets();
+	        boolean foundChildren = false;
+	        String hasChildren = "<td class=\"dim\">-</td>";
+	        int iaStatus = 0;
+	        if (Util.collectionSize(mas) > 0) {
+	            for (MediaAsset ma : mas) {
+	                if (ma.getDetectionStatus() != null) iaStatus++;
+	                if (!foundChildren && (Util.collectionSize(ma.findChildren(myShepherd)) > 0)) {
+	                    hasChildren = "<td class=\"yes\">yes</td>";
+	                    foundChildren = true;
+	                    break;
+	                }
+	            }
+	            if (!foundChildren) hasChildren = "<td class=\"no\">no</td>";
+	        }
+	
+	        int indivCount = 0;
+	        if (Util.collectionSize(encs) > 0) for (Encounter enc : encs) {
+	            if (enc.hasMarkedIndividual()) indivCount++;
+	        }
+	
+	        out.println("<tr>");
+	        out.println("<td><a title=\"" + task.getId() + "\" href=\"imports.jsp?taskId=" + task.getId() + "\">" + task.getId().substring(0,8) + "</a></td>");
+	        if (adminMode) {
+	            User tu = task.getCreator();
+	            String uname = "(guest)";
+	            if (tu != null) {
+	                uname = tu.getFullName();
+	                if (uname == null) uname = tu.getUsername();
+	                if (uname == null) uname = tu.getUUID();
+	                if (uname == null) uname = Long.toString(tu.getUserID());
+	            }
+	            out.println("<td>" + uname + "</td>");
+	        }
+	        out.println("<td>" + task.getCreated().toString().substring(0,10) + "</td>");
+	        out.println("<td class=\"ct" + Util.collectionSize(encs) + "\">" + Util.collectionSize(encs) + "</td>");
+	        out.println("<td class=\"ct" + indivCount + "\">" + indivCount + "</td>");
+	        out.println("<td class=\"ct" + Util.collectionSize(mas) + "\">" + Util.collectionSize(mas) + "</td>");
+	        out.println(hasChildren);
+	        if (iaStatus < 1) {
+	            out.println("<td class=\"no\">no</td>");
+	        } else {
+	            int percent = Math.round(iaStatus / Util.collectionSize(mas) * 100);
+	            out.println("<td class=\"yes\" title=\"" + iaStatus + " of " + Util.collectionSize(mas) + " (" + percent + "%)\">yes</td>");
+	        }
+	        out.println("<td>"+task.getStatus()+"</td>");
+	        out.println("</tr>");
+    	}
     }
 
 %>
