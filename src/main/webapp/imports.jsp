@@ -53,6 +53,10 @@ function confirmCommit() {
 	return confirm("Send to IA? This process may take a long time and block other users from using detection and ID quickly.");
 }
 
+function confirmDelete() {
+	return confirm("Delete this ImportTask PERMANENTLY? Please consider carefully whether you want to delete all of this imported data.");
+}
+
 </script>
 
 <style>
@@ -297,6 +301,9 @@ function sendToIA(skipIdent) {
         }
     });
 }
+ 
+    
+}
 
 </script>
 </p>
@@ -304,25 +311,46 @@ function sendToIA(skipIdent) {
 <p>
 Images sent to IA: <b><%=numIA%></b><%=((percent > 0) ? " (" + percent + "%)" : "")%>
 
-<% if (request.isUserInRole("admin") && (numIA < 1) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) { %>
-    <div id="ia-send-div">
-    <div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
-
-    <a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
-    <select multiple id="id-locationids" style="vertical-align: top;">
-        <option selected><%= String.join("</option><option>", locationIds) %></option>
-        <option value="">ALL locations</option>
-    </select>
-    </div>
-<% } %>
-</p>
-
 <p>
 Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b class=\"no\">no</b>")%>
 <% if (!foundChildren && (allAssets.size() > 0)) { %>
     <a style="margin-left: 20px;" class="button">generate children image formats</a>
 <% } %>
 </p>
+
+<% if (adminMode) { %>
+    <div id="ia-send-div">
+    
+	    <%
+	    if ((numIA < 1) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) {
+	    %>
+	    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
+	
+	    	<a class="button" style="margin-left: 20px;" onClick="sendToIA(false); return false;">Send to identification</a> matching against <b>location(s):</b>
+	    	<select multiple id="id-locationids" style="vertical-align: top;">
+	        	<option selected><%= String.join("</option><option>", locationIds) %></option>
+	        	<option value="">ALL locations</option>
+	    	</select>
+	    	
+	    <%
+	    }
+	    if("complete".equals(itask.getStatus())){
+	    %>
+	    	<div style="margin-bottom: 20px;">
+	    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
+	              	<input name="taskID" type="hidden" value="<%=itask.getId()%>" />
+	              	<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
+	        	</form>
+	    	</div>
+    	<%
+	    }
+    	%>
+    	
+    </div>
+<% } %>
+</p>
+
+
 
 <%
 }   //end final else
