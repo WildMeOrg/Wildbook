@@ -508,16 +508,17 @@ finally{
                                   <li class="divider"></li>
                                 <% } %>
                                 <li><a target="_blank" href="http://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <% if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) { %>
-                                  <li class="divider"></li>
-                                  <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                                  <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                                 <%
-                                 
-                                 
-                                }
+                                <% 
 
                             } //end if admin
+                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) { %>
+                            	<li class="divider"></li>
+                            	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                            	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                           	<%
+                           
+                           
+                          	}
                             %>
                             <li class="dropdown">
                               <ul class="dropdown-menu" role="menu">
