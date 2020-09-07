@@ -386,6 +386,11 @@ public class Collaboration implements java.io.Serializable {
 	}
 	
 	 public static boolean canUserAccessImportTask(ImportTask occ, HttpServletRequest request) {
+	    
+	   //first check if the User on the ImportTask matches the current user
+	   if(occ.getCreator()!=null && request.getUserPrincipal()!=null && occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {return true;}
+	   
+	   //otherwise check the Encounters
 	    List<Encounter> all = occ.getEncounters();
 	    if ((all == null) || (all.size() < 1)) return true;
 	    for (Encounter enc : all) {
