@@ -185,7 +185,7 @@ if (itask == null) {
 	            int percent = Math.round(iaStatus / Util.collectionSize(mas) * 100);
 	            out.println("<td class=\"yes\" title=\"" + iaStatus + " of " + Util.collectionSize(mas) + " (" + percent + "%)\">yes</td>");
 	        }
-	        out.println("<td>"+task.getStatus()+"</td>");
+	        if(adminMode)out.println("<td>"+task.getStatus()+"</td>");
 	        out.println("</tr>");
     	}
     }
@@ -334,7 +334,7 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 	    	
 	    <%
 	    }
-	    if("complete".equals(itask.getStatus())){
+	    if("complete".equals(itask.getStatus()) && Collaboration.canUserAccessImportTask(myShepherd.getImportTask(request.getParameter("taskId")),request)){
 	    %>
 	    	<div style="margin-bottom: 20px;">
 	    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
