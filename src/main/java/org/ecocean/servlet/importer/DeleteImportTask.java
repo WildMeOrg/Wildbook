@@ -47,14 +47,12 @@ public class DeleteImportTask extends HttpServlet {
       try {
         
         ImportTask task=myShepherd.getImportTask(request.getParameter("taskID"));
-        List<Encounter> allEncs=task.getEncounters();
+        List<Encounter> allEncs=new ArrayList<Encounter>(task.getEncounters());
         int total=allEncs.size();
-        int count=0;
 
-         while(count < total){
+         for(int i=0;i<allEncs.size();i++){
 
-           Encounter enc= allEncs.get(count);
-           count++;
+           Encounter enc= allEncs.get(i);
            Occurrence occ = myShepherd.getOccurrence(enc);
            MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(enc.getIndividualID());
 
