@@ -117,7 +117,7 @@ if (taskId != null) {
 Set<String> locationIds = new HashSet<String>();
 
 if (itask == null) {
-    DateTime cutoff = new DateTime(System.currentTimeMillis() - (31L * 24L * 60L * 60L * 1000L));
+    DateTime cutoff = new DateTime(System.currentTimeMillis() - (62L * 24L * 60L * 60L * 1000L));
     out.println("<p style=\"font-size: 0.8em; color: #888;\">Since <b>" + cutoff.toString().substring(0,10) + "</b></p>");
     out.println("<table id=\"import-table\" xdata-page-size=\"6\" data-height=\"650\" data-toggle=\"table\" data-pagination=\"false\" ><thead><tr>");
     String uclause = "";
