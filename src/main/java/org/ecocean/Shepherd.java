@@ -1497,11 +1497,15 @@ public class Shepherd {
     return projects;
   }
 
-  public List<Project> getProjectsForUserId(String userId) {
+  public List<Project> getProjectsForUserId(String userId, String orderBy) {
     List<Project> projects = null;
     Query query = null;
     try {
-      query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE ownerId=='" + userId+ "'");
+      if(orderBy == null){
+        query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE ownerId=='" + userId+ "'");
+      }else{
+        query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE ownerId=='" + userId+ "' ORDER BY " + orderBy);
+      }
       Collection c = (Collection) (query.execute());
       Iterator it = c.iterator();
       while (it.hasNext()) {
@@ -1517,6 +1521,10 @@ public class Shepherd {
       query.closeAll();
     }
     return projects;
+  }
+
+  public List<Project> getProjectsForUserId(String userId) {
+    return getProjectsForUserId(userId, null);
   }
 
   public boolean isSurvey(String num) {
