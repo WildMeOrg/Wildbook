@@ -1501,7 +1501,7 @@ public class Shepherd {
     List<Project> projects = null;
     Query query = null;
     try {
-      if(orderBy == null){
+      if(!Util.stringExists(orderBy)){
         query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE ownerId=='" + userId+ "'");
       }else{
         query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE ownerId=='" + userId+ "' ORDER BY " + orderBy);

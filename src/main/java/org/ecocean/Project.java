@@ -54,13 +54,6 @@ public class Project implements java.io.Serializable {
         setTimeLastModified();
     }
 
-    // Collections.sort(projects, new Comparator<Project>() {
-    //    @Override
-    //    public int compare(Project p1, Project p2) {
-    //        return p1.researchProjectName.compareTo(p2.researchProjectName);
-    //      }
-    // });
-
     public String getId() {
         return id;
     }

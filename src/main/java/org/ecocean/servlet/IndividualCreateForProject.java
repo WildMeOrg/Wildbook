@@ -20,7 +20,7 @@ public class IndividualCreateForProject extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
     }
-    
+
     public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
@@ -35,14 +35,14 @@ public class IndividualCreateForProject extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
-        
+
         System.out.println("==> In IndividualCreateForProject Servlet ");
-        
+
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IndividualCreateForProject.java");
         myShepherd.beginDBTransaction();
-        
+
         JSONObject res = new JSONObject();
         JSONObject j = null;
 
@@ -53,9 +53,9 @@ public class IndividualCreateForProject extends HttpServlet {
             addErrorMessage(res, "IOException unpacking JSON from request");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
-        
-        try {            
-            res.put("success","false");
+
+        try {
+            res.put("success",false);
             String encounterId = j.optString("encounterId", null);
             String projectId = j.optString("projectId", null);
 
@@ -76,7 +76,7 @@ public class IndividualCreateForProject extends HttpServlet {
 
                         res.put("newIndividualId", individual.getId());
                         res.put("newIndividualName", individual.getName(projectId));
-                        res.put("success","true");
+                        res.put("success",true);
                     } else {
                         addErrorMessage(res, "there was not a valid project for the Id or researchProjectId provided");
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
