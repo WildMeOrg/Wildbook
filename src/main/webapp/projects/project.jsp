@@ -185,9 +185,42 @@ function createIndividualAndMarkNewIncremental(encounterId, projectId){
   if(projectId && encounterId){
     console.log("projectId is " + projectId);
     console.log("encounterId is " + encounterId);
-    //TODO create individual and get individualID... probably from ajax call result
-    //TODO doAjaxCall(individualId, projectId, encounterId);
+    let newIndividualId = createMarkedIndividualFromAjaxAndGetNewIndividualId(projectId, encounterId);
+    doAjaxCall(newIndividualId, projectId, encounterId);
   }
+}
+
+function createMarkedIndividualFromAjaxAndGetNewIndividualId(projectId, encounterId){
+  console.log("createMarkedIndividualFromAjaxAndGetNewIndividualId entered");
+  let newIndividualId = null;
+  let formJson = {};
+  formJson["projectId"] = projectId;
+  formJson["encounterId"] = encounterId;
+  console.log("form JSON");
+  console.log(JSON.stringify(formJson));
+  $.ajax({
+    url: wildbookGlobals.baseUrl + '../IndividualCreateForProject',
+    type: 'POST',
+    data: JSON.stringify(formJson),
+    dataType: 'json',
+    contentType : 'application/json',
+    success: function(data){
+      if(data){
+        console.log(data);
+        if(data.success){
+          console.log("success!");
+          // newIndividualId = data.newIndividualId;
+        }else{
+          console.log("failure!");
+          // $('#alert-div-warn_'+encounterId).show();
+        }
+      }
+    },
+    error: function(x,y,z) {
+      console.warn('%o %o %o', x, y, z);
+    }
+  });
+  return newIndividualId;
 }
 
 function doAjaxCall(individualId, projectId, encounterId){
