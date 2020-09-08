@@ -54,6 +54,13 @@ public class Project implements java.io.Serializable {
         setTimeLastModified();
     }
 
+    // Collections.sort(projects, new Comparator<Project>() {
+    //    @Override
+    //    public int compare(Project p1, Project p2) {
+    //        return p1.researchProjectName.compareTo(p2.researchProjectName);
+    //      }
+    // });
+
     public String getId() {
         return id;
     }
@@ -80,7 +87,6 @@ public class Project implements java.io.Serializable {
     }
 
     public Double getPercentWithIncrementalIds(Shepherd myShepherd){
-        System.out.println("entered getPercentWithIncrementalIds");
         double result = 0.0;
         double numIncremented = 0;
         double numEncounters = numEncounters();
