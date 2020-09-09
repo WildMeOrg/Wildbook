@@ -63,17 +63,7 @@ public class RestServletV2 extends ApiHttpServlet {
         handleRequest(request, response, _parseUrl(request, payload));
     }
     public void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doPost(request, response);
-/*
-        JSONObject payload = new JSONObject();
-        try {
-            payload = ServletUtilities.jsonFromHttpServletRequest(request);
-        } catch (Exception ex) {
-            SystemLog.error("failed to parse json payload from request {}", this, ex);
-        }
-        SystemLog.debug("PATCH ON PAYLOAD " + payload);
-        handleRequest(request, response, _parseUrl(request, payload));
-*/
+        doPost(request, response);  //handled via request.getMethod()
     }
 
     //this will get /class/id from the url and massage it into json (which will take overwrite values from inJson if they exist)
