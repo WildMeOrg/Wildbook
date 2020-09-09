@@ -26,6 +26,19 @@ try{
   Integer numUnidentifiedEncounters = null;
   Integer numDuplicateEncounters = null;
 %>
+<style type="text/css">
+  .disabled-btn {
+    background:#62676d30;
+    border:0;
+    color:#fff;
+    line-height:2em;
+    padding:7px 13px;
+    font-weight:300;
+    vertical-align:middle;
+    margin-right:10px;
+    margin-top:15px
+  }
+</style>
 
 <jsp:include page="../header.jsp" flush="true"/>
 <script src="../javascript/underscore-min.js"></script>
@@ -172,12 +185,20 @@ try{
     %>
     </div>
     <button type="button" id="add-project-button" onclick="addProjects();">Add to Project(s) <span class="glyphicon glyphicon-plus"><span></button>
+    <button  class="disabled-btn" id="disabled-add-project-button" style="display: none;">Add to Project(s) <span class="glyphicon glyphicon-plus"><span></button>
     </form>
     <%
   }
   System.out.println("got past getting encounters");
 }catch(Exception e){e.printStackTrace();}
 %>
+  <div id="adding-div" class="alert alert-info" role="alert" style="display: none;">
+    Adding Encounters... Please Wait for Confirmation.
+  </div>
+  <div id="empty-form-div" class="alert alert-warning" role="alert" style="display: none;">
+    <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    You did not select any projects to add encounters to!
+  </div>
   <div id="alert-div" class="alert alert-success" role="alert" style="display: none;">
     <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
     <strong>Success!</strong> Encounters have been added to project(s)! See your projects <a href="/projects/projectList.jsp">here</a>
@@ -188,13 +209,26 @@ try{
   </div>
 </div>
 <script>
+// $('.#add-project-button').on('click',function() {
+//     $(this).prop("disabled",true);
+// });
 function dismissAlert(){
   $('#alert-div').hide();
   $('#alert-div-warn').hide();
+  $('#empty-form-div').hide();
 }
 
 function addProjects(){
+  disableAddButton();
+  $('#adding-div').show();
   let formDataArray = $("#add-encounter-to-project-form").serializeArray();
+  console.log(formDataArray);
+  if(formDataArray.length==1 && formDataArray[0].value ==="None"){
+    console.log("formDataArray is empty!")
+    $('#adding-div').hide();
+    $('#empty-form-div').show();
+    enableAddButton();
+  }
   let formJson = {};
   formJson["projects"] = [];
   for(i=0; i<formDataArray.length; i++){
@@ -206,6 +240,11 @@ function addProjects(){
       console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
     }
   }
+  doAjaxCall(formJson);
+}
+
+function doAjaxCall(formJson){
+  console.log("doAjaxCall entered");
   $.ajax({
     url: wildbookGlobals.baseUrl + '../ProjectUpdate',
     type: 'POST',
@@ -213,12 +252,17 @@ function addProjects(){
     dataType: 'json',
     contentType : 'application/json',
     success: function(data){
+      console.log("got into data return");
       let modifiedStatus = data["modified"];
       if(modifiedStatus){
         updateEncountersAddedInDom(data);
+        $('#adding-div').hide();
+        enableAddButton();
         $('#alert-div').show();
       }
       if(!modifiedStatus){
+        $('#adding-div').hide();
+        enableAddButton();
         $('#alert-div-warn').show();
       }
     },
@@ -226,6 +270,18 @@ function addProjects(){
       console.warn('%o %o %o', x, y, z);
     }
   });
+}
+
+function enableAddButton(){
+  console.log("enableAddButton entered");
+  $('#disabled-add-project-button').hide();
+  $('#add-project-button').show();
+}
+
+function disableAddButton(){
+  console.log("disableAddButton entered");
+  $('#add-project-button').hide();
+  $('#disabled-add-project-button').show();
 }
 
 function updateEncountersAddedInDom(data){
