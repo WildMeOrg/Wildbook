@@ -59,7 +59,7 @@ context=ServletUtilities.getContext(request);
 
           <h1>SeadragonSearch User Agreement</h1>
           <p>Welcome to SeadragonSearch! Please read this Visitor Agreement. By using this web site, you accept its terms. This Visitor Agreement applies to any web page using the following domains, which are collectively known as the "SeadragonSearch" or in shortened form "Wildbook":
-            <ul><li>wildbook.seadragonsearch.org</li></ul>
+            <ul><li>wildbook.SeadragonSearch.org</li></ul>
           </p>
       <p>The Internet is an evolving medium, and we may change the terms of this Visitor Agreement from time to time. By continuing to use any SeadragonSearch sites after we post any such changes, you accept the Visitor Agreement, as modified. We may change, restrict access to, suspend or discontinue SeadragonSearch, or any portion of SeadragonSearch, at any time.
       </p>

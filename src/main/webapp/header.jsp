@@ -319,7 +319,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" href="https://seadragonsearch.org/">SeadragonSearch.org - Powered by Wildbook</a>
+                  <a class="navbar-brand" href="https://SeadragonSearch.org/">SeadragonSearch.org - Powered by Wildbook</a>
                 </div>
               </div>
 

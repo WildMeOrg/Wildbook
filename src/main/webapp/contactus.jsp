@@ -23,7 +23,7 @@
 
         <p>The team welcomes your comments and questions.</p>
 
-<p>Please email us at <em>admin at seadragonsearch dot org</em>, and one of us will respond as quickly as possible.</p>
+<p>Please email us at <em>admin at SeadragonSearch dot org</em>, and one of us will respond as quickly as possible.</p>
 
 
 
