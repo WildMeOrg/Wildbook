@@ -2,6 +2,7 @@ package org.ecocean;
 
 import java.io.File;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import java.net.URL;
 
 import org.ecocean.*;
 import org.ecocean.queue.*;
+import org.ecocean.scheduled.WildbookScheduledTask;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.IAPluginManager;
 import org.ecocean.grid.MatchGraphCreationThread;
@@ -151,6 +153,12 @@ public class StartupWildbook implements ServletContextListener {
         TwitterBot.startServices(context);
 
         AnnotationLite.startup(sContext, context);
+
+        try {
+            startWildbookScheduledTaskThread(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } 
     }
 
 
@@ -214,6 +222,32 @@ public class StartupWildbook implements ServletContextListener {
         } catch (IOException iox) {
             System.out.println("+ StartupWildbook.startIAQueues() queueCallback.consume() FAILED on " + queueCallback.toString() + ": " + iox.toString());
         }
+    }
+
+    private static void startWildbookScheduledTaskThread(String context) {
+        System.out.println("STARTING: StartupWildbook.startWildbookScheduledTaskThread()");
+        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+        ses.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("[INFO]: checking for scheduled tasks to execute...");
+                Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("WildbookScheduledTaskThread");
+                try {
+                    ArrayList<WildbookScheduledTask> scheduledTasks = myShepherd.getAllIncompleteWildbookScheduledTasks();
+                    for (WildbookScheduledTask scheduledTask : scheduledTasks) {
+                        if (scheduledTask.isTaskEligibleForExecution()) {
+                            scheduledTask.execute(myShepherd);
+                        }
+                    }
+                } catch (Exception e) {
+                    myShepherd.rollbackAndClose();
+                    e.printStackTrace();
+                }
+                myShepherd.closeDBTransaction();
+            }
+            //}, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing  
+            }, 0, 1, TimeUnit.HOURS);
     }
 
 

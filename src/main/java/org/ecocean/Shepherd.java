@@ -23,13 +23,15 @@ import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.genetics.*;
-import org.ecocean.social .*;
+import org.ecocean.social.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
 import org.ecocean.ia.Task;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
+import org.ecocean.scheduled.WildbookScheduledTask;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -398,6 +400,34 @@ public class Shepherd {
       return false;
     }
   }
+
+  public boolean storeNewWildbookScheduledTask(WildbookScheduledTask wst) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(wst);
+      commitDBTransaction();
+			return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new WildbookScheduledTask in shepherd.storeNewWildbookScheduledTask().");
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  public boolean storeNewScheduledIndividualMerge(ScheduledIndividualMerge wsim) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(wsim);
+      commitDBTransaction();
+			return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new ScheduledIndividualMerge in shepherd.storeNewScheduledIndividualMerge().");
+      e.printStackTrace();
+      return false;
+    }
+  }
   
   public List getAllCollaborations() {
     Collection c;
@@ -581,6 +611,17 @@ public class Shepherd {
     return tempMA;
   }
 
+  public Collaboration getCollaboration(String id) {
+    Collaboration collab = null;
+    try {
+      collab = ((Collaboration) (pm.getObjectById(pm.newObjectIdInstance(Collaboration.class, id.trim()), true)));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return collab;
+  }
+
   public Workspace getWorkspace(int id) {
     Workspace tempWork = null;
     try {
@@ -590,6 +631,18 @@ public class Shepherd {
     }
     return tempWork;
   }
+
+  public WildbookScheduledTask getWildbookScheduledTask(String id) {
+    WildbookScheduledTask task = null;
+    try {
+      task = (WildbookScheduledTask) (pm.getObjectById(pm.newObjectIdInstance(WildbookScheduledTask.class, id.trim()), true));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return task;
+  }
+
   // finds the workspace that user 'owner' created and named 'name'
   public Workspace getWorkspaceForUser(String name, String owner) {
     Workspace result=null;
@@ -2645,6 +2698,7 @@ public class Shepherd {
     return getAllMarkedIndividualsSightedAtLocationID(locationID).size();
   }
 
+
   public ArrayList<Encounter> getAllEncountersForSpecies(String genus, String specificEpithet) { 
     String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"'";
       Query samples = pm.newQuery(keywordQueryString);
@@ -2789,8 +2843,63 @@ public class Shepherd {
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     return acceptedEncounters;
-
   }
+
+  public ArrayList<ScheduledIndividualMerge> getAllIncompleteScheduledIndividualMerges() {
+    List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("!this.taskComplete && this.scheduledTaskType == \"ScheduledIndividualMerge\" ");
+    ArrayList<ScheduledIndividualMerge> mergeTasks = new ArrayList<>();
+    if (tasks!=null) {
+      for (WildbookScheduledTask task : tasks) {
+        ScheduledIndividualMerge mergeTask = (ScheduledIndividualMerge) task;
+        mergeTasks.add(mergeTask);
+      }
+    }
+    return mergeTasks;
+  }
+
+  public ArrayList<WildbookScheduledTask> getAllIncompleteWildbookScheduledTasks() {
+    return getAllWildbookScheduledTasksWithFilter("!this.taskComplete");
+  }
+
+  public ArrayList<ScheduledIndividualMerge> getAllCompleteScheduledIndividualMergesForUsername(String username) {
+    String usernameQuery = "";
+    if (username!=null&&!"".equals(username)) {
+      usernameQuery = " && this.initiatorName == \""+username.trim()+"\"";
+    }
+    // this is where long names get you
+    List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("this.taskComplete && this.scheduledTaskType == \"ScheduledIndividualMerge\""+usernameQuery);
+    ArrayList<ScheduledIndividualMerge> mergeTasks = new ArrayList<>();
+    if (tasks!=null) {
+      for (WildbookScheduledTask task : tasks) {
+        ScheduledIndividualMerge mergeTask = (ScheduledIndividualMerge) task;
+        mergeTasks.add(mergeTask);
+      }
+    }
+    return mergeTasks;
+  }
+
+  public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasks() {
+    return getAllWildbookScheduledTasksWithFilter("");
+  }
+
+  public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasksWithFilter(String filter) {
+    ArrayList<WildbookScheduledTask> taskList = new ArrayList();
+    Query query = null;
+    try {
+      Extent taskClass = pm.getExtent(WildbookScheduledTask.class, true);
+      query = pm.newQuery(taskClass, filter);
+      query.setOrdering("this.taskScheduledExecutionTimeLong descending");
+      Collection c = (Collection) (query.execute());
+      taskList = new ArrayList(c);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return taskList;
+  }
+
+
 
   /**
    * Retrieves all encounters that are stored in the database but which have been rejected for the visual database

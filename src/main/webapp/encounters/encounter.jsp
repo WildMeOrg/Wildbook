@@ -21,7 +21,7 @@
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat, 
          org.ecocean.servlet.importer.ImportTask,
-         org.apache.commons.lang.StringEscapeUtils,
+         org.apache.commons.lang3.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -1635,7 +1635,12 @@ console.info('resetIdButtons()');
                         var number = $("#individualAddEncounterNumber").val();
                         var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
                         var matchType = $("#matchType").val();
-                        var noemail = $( "input:checkbox:checked" ).val();
+
+                        var noemail = false;
+                        if ($("#noEmailCheckbox").is(":checked")) {
+                          noemail = true;
+                        }
+
                         var action = $("#individualAddEncounterAction").val();
                         var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
                         console.info('sendData=%o', sendData);
@@ -1753,7 +1758,7 @@ console.info('resetIdButtons()');
                       </div>
                       <div class="form-group row">
                         <div class="col-sm-5 col-xs-10">
-                          <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
+                          <label><input id="noEmailCheckbox" name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
                         </div>
                       </div>
                       </form>

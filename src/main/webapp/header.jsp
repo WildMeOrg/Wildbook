@@ -29,7 +29,7 @@
              java.util.ArrayList,
              java.util.List,
              java.util.Properties,
-             org.apache.commons.lang.WordUtils,
+             org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration
               "
@@ -503,37 +503,37 @@ finally{
 								                <li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li>
 								
                                 <% 
-                                if (CommonConfiguration.getIPTURL(context) != null) { %>
+                                if (CommonConfiguration.getIPTURL(context) != null) { 
+                                %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
-                                <% } %>
+                                <% 
+                                } 
+                                %>
                                 <li><a href="<%=urlLoc %>/appadmin/kwAdmin.jsp"><%=props.getProperty("photoKeywords")%></a></li>
                                 <% if (CommonConfiguration.allowAdoptions(context)) { %>
                                   <li class="divider"></li>
                                   <li class="dropdown-header"><%=props.getProperty("adoptions")%></li>
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
-                                  <li class="divider"></li>
-                                <% } %>
+                                  
+                                <% 
+                                } 
+                                
+                                %>
                                 <li><a target="_blank" href="https://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <% if(CommonConfiguration.isCatalogEditable(context)) { %>
-                                  <li class="divider"></li>
-                                  <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                                  <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
                                 <%
-                                }
+                                
 
                             } //end if admin
+                            
+                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) { 
                             %>
-                           
-   
-                        
-                              <%
-                              if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
-                              %>
-                                <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
-                              <%
-                              }
+                        		<li class="divider"></li>
+                        		<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                        		<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                       		<%
+                       		}
+      
                               %>
                                 <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
 

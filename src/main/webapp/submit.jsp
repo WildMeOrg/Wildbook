@@ -608,7 +608,7 @@ function showUploadBox() {
             <input class="ie" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
             <% } else { %>
             <input class="nonIE" name="theFiles" id="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-            <div><span class="text-danger"><%=props.getProperty("dragInstructions")%></span></div>
+            <div><span><%=props.getProperty("dragInstructions")%></span></div>
             <% } %>
             <div id="input-file-list"></div>
         </div>
@@ -822,7 +822,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
         <div class="form-group form-inline required" id="test1">
 	          <div class="col-xs-6 col-md-4">
-	            <label class="text-danger control-label"><%=props.getProperty("submit_email") %></label>
+	            <label class="control-label"><%=props.getProperty("submit_email") %></label>
 	          </div>
 	          <div class="col-xs-6 col-lg-8">
 	            <input class="form-control" name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>" onChange="$('.required-missing').removeClass('required-missing');">
@@ -1311,12 +1311,12 @@ function sendButtonClicked() {
 	console.log('sendButtonClicked()');
 	console.log('submitter email is: ' + $('#submitterEmail').val());
 	// $('.required-missing').removeClass('required-missing')
-	if(!$('#theFiles').val()){
-		console.log("No file submitted!");
-		$('#theFiles').closest('.form-group').addClass('required-missing');
-		window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
-		return false;
-	}
+	// if(!$('#theFiles').val()){
+	// 	console.log("No file submitted!");
+	// 	$('#theFiles').closest('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
+	// 	return false;
+	// }
 	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
 		console.log("no location info entered");
 		$('#location').closest('.form-group').addClass('required-missing');
@@ -1324,21 +1324,31 @@ function sendButtonClicked() {
 		return false;
 	}
 
-	if (!$('#submitterEmail').val()) {
-		// console.log("email address not present");
-		$('#submitterEmail').parents('.form-group').addClass('required-missing');
-		window.setTimeout(function() { alert('You must provide an email address first.'); }, 100);
-		return false;
-	}else{
-		var email = $('#submitterEmail').val();
-    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    if(!re.test(email.toLowerCase())){
-			console.log("not a valid email address");
-			$('#submitterEmail').closest('.form-group').addClass('required-missing');
-			window.setTimeout(function() { alert('You must provide a valid email address first.'); }, 100);
-			return false;
-		}
-  }
+	if ($('#submitterEmail').val()) {
+			var email = $('#submitterEmail').val();
+	    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	    if(!re.test(email.toLowerCase())){
+				$('#submitterEmail').closest('.form-group').addClass('required-missing');
+				window.setTimeout(function() { alert('Please provide a valid email address.'); }, 100);
+				return false;
+			}
+	}
+
+	// if (!$('#submitterEmail').val()) {
+	// 	// console.log("email address not present");
+	// 	$('#submitterEmail').parents('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must provide an email address first.'); }, 100);
+	// 	return false;
+	// }else{
+	// 	var email = $('#submitterEmail').val();
+  //   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  //   if(!re.test(email.toLowerCase())){
+	// 		console.log("not a valid email address");
+	// 		$('#submitterEmail').closest('.form-group').addClass('required-missing');
+	// 		window.setTimeout(function() { alert('You must provide a valid email address first.'); }, 100);
+	// 		return false;
+	// 	}
+  // }
 
 	if (!$('#datepicker').val()) {
 		console.log("no date picked");
@@ -1389,7 +1399,7 @@ function sendButtonClicked() {
 }
 </script>
       <p class="text-center">
-        <button id="submitEncounterButton" class="large" type="submit" onclick="return sendButtonClicked();">
+        <button id="submitEncounterButton" class="large" type="submit" onclick="sendButtonClicked();">
           <%=props.getProperty("submit_send") %>
           <span class="button-icon" aria-hidden="true" />
         </button>

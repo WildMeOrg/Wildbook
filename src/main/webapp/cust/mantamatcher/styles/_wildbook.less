@@ -1,3 +1,20 @@
+	.collab-private {
+		background-color: #FDD;
+	}
+
+	.collab-private td {
+		background-color: transparent !important;
+	}
+
+	.collab-private .collab-icon {
+		position: absolute;
+		left: -15px;
+		z-index: -1;
+		width: 13px;
+		height: 13px;
+		background: url(../images/lock-icon-tiny.png) no-repeat;
+	}
+
 .maincontent {
   padding-top: 30px;
 }
@@ -291,8 +308,13 @@ tr.no-access:hover td {
 }
 
 
+.merge-action-feedback {
+	font-weight: 500;
+	color: #060;
+}
 
-.collaboration-invite-notification {
+
+.collaboration-invite-notification, .merge-notification {
 	margin: 3px;
 	padding: 1px 3px 1px 3px;
 	background-color: #DDD;
@@ -300,10 +322,10 @@ tr.no-access:hover td {
 	line-height: 3.5em;
 	height: 60px;
 }
-.collaboration-invite-notification:hover {
+.collaboration-invite-notification:hover, .merge-notification:hover {
 	background-color: #DDE;
 }
-.collaboration-invite-notification input {
+.collaboration-invite-notification input, .merge-notification input {
 	padding: 0px 4px !important;
 	float: right;
 }
@@ -322,7 +344,7 @@ div.collab-list div {
 
 div.collab-list span.who {
 	font-size: 0.8em;
-	width: 30%;
+	width: 20%;
 	display: inline-block;
 	color: #555;
 }
@@ -339,6 +361,14 @@ div.collab-list div.mine span.who b {
 	color: #338;
 }
 
+.collab-info {
+	width: 20%;
+}
+  
+.collab-button {
+	height:58px;
+	width: 30%;
+}
 
 div.collab-list span.state {
 	color: #DDD;
