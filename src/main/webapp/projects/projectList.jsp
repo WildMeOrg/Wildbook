@@ -20,6 +20,7 @@ java.lang.NumberFormatException"%>
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("projectList.jsp");
 int numFixes=0;
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 User currentUser = AccessControl.getUser(request, myShepherd);
@@ -71,6 +72,10 @@ User currentUser = AccessControl.getUser(request, myShepherd);
           }
           catch(Exception e){
           	e.printStackTrace();
+          }
+          finally{
+        	  myShepherd.rollbackDBTransaction();
+        	  myShepherd.closeDBTransaction();
           }
           %>
       </tbody>
