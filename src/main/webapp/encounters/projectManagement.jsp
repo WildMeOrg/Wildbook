@@ -180,10 +180,6 @@ try{
   }
   System.out.println("got past getting encounters");
 }catch(Exception e){e.printStackTrace();}
-finally{
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-}
 
 %>
   <div id="adding-div" class="alert alert-info" role="alert" style="display: none;">
