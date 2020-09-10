@@ -270,7 +270,16 @@ public class Project implements java.io.Serializable {
         return 0;
     }
 
+
     public JSONObject asJSONObject() {
+        return asJSONObject(null, null);
+    }
+
+    public JSONObject asJSONObjectWithEncounterMetadata(Shepherd myShepherd) {
+        return asJSONObject("addEncounterMetadata", myShepherd);
+    }
+
+    private JSONObject asJSONObject(String modifier, Shepherd myShepherd) {
         JSONObject j = new JSONObject();
         j.put("id", id);
         j.put("ownerId", ownerId);
@@ -281,7 +290,29 @@ public class Project implements java.io.Serializable {
         JSONArray encArr = new JSONArray();
         if (encounters!=null) {
             for (final Encounter enc : encounters) {
-                encArr.put(enc.getID());
+                if (modifier!=null&&"addEncounterMetadata".equals(modifier)) {
+                    JSONObject encMetadata = new JSONObject();
+                    String individualName = "";
+                    String individualUUID = "";
+                    if (enc.getIndividual()!=null&&Util.stringExists(enc.getIndividual().getDisplayName())) {
+                        individualName = enc.getIndividual().getDisplayName();
+                        individualUUID = enc.getIndividual().getId();
+                    }
+                    encMetadata.put("individualUUID", individualUUID);
+                    encMetadata.put("individualDisplayName", individualName);
+                    encMetadata.put("encounterDate", enc.getDate());
+                    encMetadata.put("locationId", enc.getLocationID());
+                    encMetadata.put("submitterId", enc.getSubmitterID());
+                    encMetadata.put("encounterId", enc.getID());
+                    JSONArray allProjectIds = new JSONArray();
+                    for (String projectId : myShepherd.getResearchProjectIdsForEncounter(enc)) {
+                        allProjectIds.put(projectId);
+                    }
+                    encMetadata.put("allProjectIds", allProjectIds);
+                    encArr.put(encMetadata);
+                } else {
+                    encArr.put(enc.getID());
+                }
             }
         }
         j.put("encounters", encArr);
