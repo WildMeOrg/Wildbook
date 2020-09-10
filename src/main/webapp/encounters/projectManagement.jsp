@@ -15,7 +15,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 Properties projProps = new Properties();
 projProps=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("searchResults.jsp");
+myShepherd.setAction("projectManagement.jsp");
 User currentUser = myShepherd.getUser(request);
 if(currentUser == null){
 }
@@ -180,6 +180,11 @@ try{
   }
   System.out.println("got past getting encounters");
 }catch(Exception e){e.printStackTrace();}
+finally{
+  myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
+}
+
 %>
   <div id="adding-div" class="alert alert-info" role="alert" style="display: none;">
     Adding Encounters... Please Wait for Confirmation.
