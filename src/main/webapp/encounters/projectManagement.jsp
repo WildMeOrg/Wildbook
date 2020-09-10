@@ -27,17 +27,6 @@ try{
   Integer numDuplicateEncounters = null;
 %>
 <style type="text/css">
-  .disabled-btn {
-    background:#62676d30;
-    border:0;
-    color:#fff;
-    line-height:2em;
-    padding:7px 13px;
-    font-weight:300;
-    vertical-align:middle;
-    margin-right:10px;
-    margin-top:15px
-  }
 </style>
 
 <jsp:include page="../header.jsp" flush="true"/>
