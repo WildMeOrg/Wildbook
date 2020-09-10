@@ -46,10 +46,18 @@ public class ProjectGet extends HttpServlet {
         myShepherd.beginDBTransaction();
         
         JSONObject res = new JSONObject();
-        try {      
+        try {
             res.put("success","false");
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
+            
+            boolean getEncounterMetadata = false;
+            String getEncounterMetadataOpt = j.optString("getEncounterMetadata", null);
+            if ("true".equals(getEncounterMetadataOpt)) {
+                getEncounterMetadata = true;
+            }
+
             String researchProjectId = null;
+            String projectUUID = null;
             String ownerId = null;
 
             boolean complete = false;
@@ -71,10 +79,24 @@ public class ProjectGet extends HttpServlet {
 
             //get specific project
             researchProjectId = j.optString("researchProjectId", null);
-            if (researchProjectId!=null&&!"".equals(researchProjectId)&&!complete) {
-                Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+            projectUUID = j.optString("projectUUID", null);
+            if ((Util.stringExists(researchProjectId)||Util.stringExists(projectUUID))&&!complete) {
+                Project project = null;
+                if (Util.stringExists(researchProjectId)) {
+                    project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+                }
+                if (Util.stringExists(projectUUID)) {
+                    project = myShepherd.getProject(projectUUID);
+                }
+                
                 JSONArray projectArr = new JSONArray();
-                projectArr.put(project.asJSONObject());
+                if (project!=null) {
+                    if (getEncounterMetadata) {
+                        projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
+                    } else {                    
+                        projectArr.put(project.asJSONObject());
+                    }
+                }
                 res.put("projects", projectArr);
                 res.put("success","true");
             } 

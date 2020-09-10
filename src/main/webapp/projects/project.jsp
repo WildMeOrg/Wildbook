@@ -25,11 +25,14 @@
   File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
   File projectsDir=new File(shepherdDataDir.getAbsolutePath()+"/projects");
   File projectDir = new File(projectsDir, projId);
+
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
   response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+
   String langCode=ServletUtilities.getLanguageCode(request);
+
   pageContext.setAttribute("projId", projId);
   boolean proceed = true;
   boolean haveRendered = false;
@@ -67,100 +70,17 @@
                         <th class="project-style">Actions</th>
                       </tr>
                     </thead>
-                    <tbody>
-                <%
-                if(encounters!=null && encounters.size()>0){
-                  for(int i=0; i<encounters.size(); i++){
-                    %>
-                    <tr>
-                    <%
-                    String location = "";
-                    if(encounters.get(i).getLocationID() != null){
-                      // System.out.println("locationID is not null");
-                      location = encounters.get(i).getLocationID();
-                    }
-                    String individualDisplayName = "";
-                    if(encounters.get(i).getIndividual() != null){
-                      individualDisplayName = encounters.get(i).getIndividual().getDisplayName();
-                    }
-                    String dataOwner = "";
-                    if(encounters.get(i).getAssignedUsername() !=null){
-                      dataOwner = encounters.get(i).getAssignedUsername();
-                    }
-                    String encounterDate = "";
-                    if(encounters.get(i).getDate()!= null){
-                      encounterDate = encounters.get(i).getDate();
-                    }
-                    %>
-                    <td class="project-style"><%=encounters.get(i).getCatalogNumber()%> </td>
-                    <td class="project-style"><%=individualDisplayName%> </td>
-                    <td class="project-style"><%=encounterDate%> </td>
-                    <td class="project-style"><%=location%> </td>
-                    <td class="project-style"><%=dataOwner%> </td>
-                    <td class="project-style">
-                    <%
-                      List<String> researchProjectIds = myShepherd.getResearchProjectIdsForEncounter(encounters.get(i));
-                      for(int j=0; j<researchProjectIds.size(); j++){
-                        %>
-                        <%= researchProjectIds.get(j) %>
-                        <%
-                      }
-                      %>
-                    </td>
-                    <td class="project-style">
-                      <button type="button">Project Match</button>
-                      </br>
-                      <%
-                        Encounter currentEncounter = encounters.get(i);
-                        MarkedIndividual currentIndividual = null;
-                        if(currentEncounter !=null){
-                          currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
-                        }
-                        // System.out.println("currentEncoutner is: " + currentEncounter.toString());
-                        // System.out.println("currentIndividual is: " + currentIndividual.toString());
-                        if(currentIndividual != null){
-                          // List<String> foundNameIds = currentIndividual.findNameIds(project.getResearchProjectId());
-                          // System.out.println("foundNameIds is: " + foundNameIds.toString());
-                          if(!currentIndividual.hasNameKey(project.getResearchProjectId())){
-                            // System.out.println("got here 1");
-                            %>
-                            <button id="mark-new-button_<%= encounters.get(i).getCatalogNumber()%>" type="button" onclick="markNewIncremental('<%= currentIndividual.getIndividualID()%>', '<%= project.getResearchProjectId()%>', '<%= encounters.get(i).getCatalogNumber()%>')">Mark New</button>
-                            <button class="disabled-btn" id="disabled-mark-new-button_<%= encounters.get(i).getCatalogNumber()%>" style="display: none;">Mark New</button>
-                            <%
-                            // System.out.println("got here 2");
-                          }
-                        }else{
-                          // System.out.println("got here 3");
-                          %>
-                          <button id="mark-new-button_<%= encounters.get(i).getCatalogNumber()%>" type="button" onclick="createIndividualAndMarkNewIncremental('<%= encounters.get(i).getCatalogNumber()%>', '<%= project.getResearchProjectId()%>')">Mark New</button>
-                          <button class="disabled-btn" id="disabled-mark-new-button_<%= encounters.get(i).getCatalogNumber()%>" style="display: none;">Mark New</button>
-                          <%
-                        }
-                      %>
-                      <div id="adding-div_<%= encounters.get(i).getCatalogNumber()%>" class="alert alert-info" role="alert" style="display: none;">
-                        Assigning individual to project... Please Wait for Confirmation.
-                      </div>
-                      <div id="alert-div_<%= encounters.get(i).getCatalogNumber()%>" class="alert alert-success" role="alert" style="display: none;">
-                        <button type="button" class="close" onclick="dismissAlert('<%= encounters.get(i).getCatalogNumber()%>')" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <strong>Success!</strong> An ID has been added to your project for this individual!
-                      </div>
-                      <div id="alert-div-warn_<%= encounters.get(i).getCatalogNumber()%>" class="alert alert-danger" role="alert" style="display: none;">
-                        <button type="button" class="close" onclick="dismissAlert('<%= encounters.get(i).getCatalogNumber()%>')" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        An ID could not be added to your project for this individual!
-                      </div>
-                    </td>
-                    </tr>
-                    <%
-                  }
-                }
-              }
-            }
-          }
-          catch(Exception e){
+                    <tbody id="encounterList">
+                      <!--populated by JS after page load-->
+                    </tbody>
+
+          <%
+              } // end if encounters + else
+            } // end if currentUser
+          } catch (Exception e) {
             e.printStackTrace();
-          }
+          } // end try block
           %>
-              </tbody>
             </table>
           </div>
     </div>
@@ -277,4 +197,101 @@ function dismissAlert(encounterId){
   }
 }
 
+function getEncounterJSON() {
+  console.log('Current projectUUID : <%=projId%>');
+  let projectUUID = '<%=projId%>';
+  console.log("SENDING projectUUID: "+projectUUID);
+  let requestJSON = {};
+  requestJSON['projectUUID'] = projectUUID;
+  requestJSON['getEncounterMetadata'] = "true";
+  console.log("here!");
+  console.log("all requestJSON: "+JSON.stringify(requestJSON));
+
+  let responseJSON = {};
+
+  $.ajax({
+      url: wildbookGlobals.baseUrl + '../ProjectGet',
+      type: 'POST',
+      data: JSON.stringify(requestJSON),
+      dataType: 'json',
+      contentType: 'application/json',
+      success: function(d) {
+          console.log("literal response: "+d.projects);
+          console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
+          $("#encounterList").empty();
+          let projectsArr = d.projects;
+          for (let i=0;i<projectsArr.length;i++) {
+              let thisProject = projectsArr[i];
+              for (let j=0;j<thisProject.encounters.length;j++) {
+                let projectHTML = projectHTMLForTable(projectsArr[i].encounters[j])
+                $("#encounterList").append(projectHTML);
+                console.log("appending!!");
+              }
+          }
+      },
+      error: function(x,y,z) {
+          console.warn('%o %o %o', x, y, z);
+      }
+  });
+}
+
+function projectHTMLForTable(json) {
+
+  let encounterId = json.encounterId;
+  let individualDisplayName = json.individualDisplayName;
+  let individualUUID = json.individualUUID;
+  let encounterDate = json.encounterDate;
+  let locationId = json.locationId;
+  let submitterId = json.submitterId;
+  let allProjectIds = json.allProjectIds;
+
+  console.log("THIS ENCOUNTER JSON: "+JSON.stringify(json));
+
+  let projectHTML = '';
+  projectHTML += '<tr id="enc-'+encounterId+'">';
+  projectHTML +=  '<td class="project-style">'+encounterId+'</td>';
+  projectHTML +=  '<td class="project-style">'+individualDisplayName+' </td>';
+  projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
+  projectHTML +=  '<td class="project-style">'+locationId+' </td>';
+  projectHTML +=  '<td class="project-style">'+submitterId+' </td>';
+  projectHTML +=  '<td class="project-style">';
+  if (allProjectIds) {
+    for (i=0;i<allProjectIds.length;i++) {
+      projectHTML += (allProjectIds[i]+" ");
+    }
+  }  else {
+    projectHTML += "(None)";
+  }
+  projectHTML +=  '</td>';
+  projectHTML +=  '<td class="project-style">';
+  projectHTML +=  '<button type="button">Project Match</button>';
+  projectHTML +=  '</br>';
+
+  // grr.. not worth an AJAX call for just this. one more key and i'm doin it though
+  let researchProjectId = '<%= project.getResearchProjectId()%>';
+
+  if (individualDisplayName!=null&&individualDisplayName!="") {
+    projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+researchProjectId+'\', \''+encounterId+'\')">Mark New</button>';
+    projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
+  } else {
+    projectHTML += '<button type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+researchProjectId+'\')">Mark New</button>';
+    projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
+  }
+  projectHTML += '<div id="adding-div_'+encounterId+'" class="alert alert-info" role="alert" style="display: none;">Assigning individual to project... Please Wait for Confirmation.</div>';
+  projectHTML += '<div id="alert-div_'+encounterId+'" class="alert alert-success" role="alert" style="display: none;">';
+  projectHTML += '<button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+  projectHTML += '<strong>Success!</strong> An ID has been added to your project for this individual!';
+  projectHTML += '</div>';
+  projectHTML += '<div id="alert-div-warn_'+encounterId+'" class="alert alert-danger" role="alert" style="display: none;">';
+  projectHTML += '<button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+  projectHTML += 'An ID could not be added to your project for this individual!';
+  projectHTML += '</div>';
+  projectHTML +=  '</td>';
+  projectHTML += '</tr>';
+  return projectHTML;
+}
+
+$(document).ready( function() {
+  getEncounterJSON();
+});
 </script>
