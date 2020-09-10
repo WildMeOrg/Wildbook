@@ -99,25 +99,23 @@
 function markNewIncremental(individualId, projectId, encounterId){
   console.log("markNewIncremental entered");
   if(individualId && projectId && encounterId){
-    console.log("projectId is " + projectId);
-    console.log("individualId is " + individualId);
-    doAjaxCall(individualId, projectId, encounterId);
+    // console.log("projectId is " + projectId);
+    // console.log("individualId is " + individualId);
+    addIncrementalProjectIdAjax(individualId, projectId, encounterId);
   }
 }
 
 function createIndividualAndMarkNewIncremental(encounterId, projectId){
   console.log("createIndividualAndMarkNewIncremental entered!");
   if(projectId && encounterId){
-    console.log("projectId is " + projectId);
-    console.log("encounterId is " + encounterId);
-    let newIndividualId = createMarkedIndividualFromAjaxAndGetNewIndividualId(projectId, encounterId);
-    doAjaxCall(newIndividualId, projectId, encounterId);
+    // console.log("projectId is " + projectId);
+    // console.log("encounterId is " + encounterId);
+    createMarkedIndividualAjax(projectId, encounterId);
   }
 }
 
-function createMarkedIndividualFromAjaxAndGetNewIndividualId(projectId, encounterId){
-  console.log("createMarkedIndividualFromAjaxAndGetNewIndividualId entered");
-  let newIndividualId = null;
+function createMarkedIndividualAjax(projectId, encounterId){
+  console.log("createMarkedIndividualAjax entered");
   let formJson = {};
   formJson["projectId"] = projectId;
   formJson["encounterId"] = encounterId;
@@ -134,10 +132,11 @@ function createMarkedIndividualFromAjaxAndGetNewIndividualId(projectId, encounte
         console.log(data);
         if(data.success){
           console.log("success!");
-          // newIndividualId = data.newIndividualId;
+          let newIndividualId = data.newIndividualId;
+          addIncrementalProjectIdAjax(newIndividualId, projectId, encounterId);
         }else{
           console.log("failure!");
-          // $('#alert-div-warn_'+encounterId).show();
+          $('#alert-div-warn_'+encounterId).show();
         }
       }
     },
@@ -145,14 +144,13 @@ function createMarkedIndividualFromAjaxAndGetNewIndividualId(projectId, encounte
       console.warn('%o %o %o', x, y, z);
     }
   });
-  return newIndividualId;
 }
 
-function doAjaxCall(individualId, projectId, encounterId){
+function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
   let formJson = {};
   formJson["researchProjectId"] = projectId;
   formJson["individualId"] = individualId;
-  console.log("form JSON");
+  console.log("form JSON in addIncrementalProjectIdAjax");
   console.log(JSON.stringify(formJson));
   $.ajax({
     url: wildbookGlobals.baseUrl + '../IndividualAddIncrementalProjectId',
