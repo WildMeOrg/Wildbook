@@ -198,9 +198,6 @@ try{
   </div>
 </div>
 <script>
-// $('.#add-project-button').on('click',function() {
-//     $(this).prop("disabled",true);
-// });
 function dismissAlert(){
   $('#alert-div').hide();
   $('#alert-div-warn').hide();
@@ -211,9 +208,7 @@ function addProjects(){
   disableAddButton();
   $('#adding-div').show();
   let formDataArray = $("#add-encounter-to-project-form").serializeArray();
-  console.log(formDataArray);
   if(formDataArray.length==1 && formDataArray[0].value ==="None"){
-    console.log("formDataArray is empty!")
     $('#adding-div').hide();
     $('#empty-form-div').show();
     enableAddButton();
@@ -233,7 +228,6 @@ function addProjects(){
 }
 
 function doAjaxCall(formJson){
-  console.log("doAjaxCall entered");
   $.ajax({
     url: wildbookGlobals.baseUrl + '../ProjectUpdate',
     type: 'POST',
@@ -241,7 +235,6 @@ function doAjaxCall(formJson){
     dataType: 'json',
     contentType : 'application/json',
     success: function(data){
-      console.log("got into data return");
       let modifiedStatus = data["modified"];
       if(modifiedStatus){
         updateEncountersAddedInDom(data);
@@ -262,13 +255,11 @@ function doAjaxCall(formJson){
 }
 
 function enableAddButton(){
-  console.log("enableAddButton entered");
   $('#disabled-add-project-button').hide();
   $('#add-project-button').show();
 }
 
 function disableAddButton(){
-  console.log("disableAddButton entered");
   $('#add-project-button').hide();
   $('#disabled-add-project-button').show();
 }
