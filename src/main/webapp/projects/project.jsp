@@ -120,22 +120,24 @@
                       </br>
                       <%
                         Encounter currentEncounter = encounters.get(i);
+                        MarkedIndividual currentIndividual = null;
+                        if(currentEncounter !=null){
+                          currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
+                        }
                         // System.out.println("currentEncoutner is: " + currentEncounter.toString());
-                        MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
                         // System.out.println("currentIndividual is: " + currentIndividual.toString());
                         if(currentIndividual != null){
                           // List<String> foundNameIds = currentIndividual.findNameIds(project.getResearchProjectId());
                           // System.out.println("foundNameIds is: " + foundNameIds.toString());
                           if(!currentIndividual.hasNameKey(project.getResearchProjectId())){
-                            System.out.println("got here 1");
-                            // System.out.println("catalog number actually is "+ encounters.get(i).getCatalogNumber());
+                            // System.out.println("got here 1");
                             %>
                             <button id="mark-new-button_<%= encounters.get(i).getCatalogNumber()%>" type="button" onclick="markNewIncremental('<%= currentIndividual.getIndividualID()%>', '<%= project.getResearchProjectId()%>', '<%= encounters.get(i).getCatalogNumber()%>')">Mark New</button>
                             <%
                             // System.out.println("got here 2");
                           }
                         }else{
-                          System.out.println("got here 3");
+                          // System.out.println("got here 3");
                           %>
                           <button type="button" onclick="createIndividualAndMarkNewIncremental('<%= encounters.get(i).getCatalogNumber()%>', '<%= project.getResearchProjectId()%>')">Mark New</button>
                           <%
@@ -182,12 +184,12 @@ function markNewIncremental(individualId, projectId, encounterId){
 
 function createIndividualAndMarkNewIncremental(encounterId, projectId){
   console.log("createIndividualAndMarkNewIncremental entered!");
-  // if(projectId && encounterId){
-  //   console.log("projectId is " + projectId);
-  //   console.log("encounterId is " + encounterId);
-  //   let newIndividualId = createMarkedIndividualFromAjaxAndGetNewIndividualId(projectId, encounterId);
-  //   doAjaxCall(newIndividualId, projectId, encounterId);
-  // }
+  if(projectId && encounterId){
+    console.log("projectId is " + projectId);
+    console.log("encounterId is " + encounterId);
+    let newIndividualId = createMarkedIndividualFromAjaxAndGetNewIndividualId(projectId, encounterId);
+    doAjaxCall(newIndividualId, projectId, encounterId);
+  }
 }
 
 function createMarkedIndividualFromAjaxAndGetNewIndividualId(projectId, encounterId){
