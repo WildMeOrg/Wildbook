@@ -612,7 +612,7 @@ function tryTaskId(tid) {
     wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
             processTask(x.responseJSON.task); //this will be json task (w/children)
-	    console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
+	    //console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
         } else {
         		// the below alert was erroneously displaying when a tid was just in the queue
             //alert('Error fetching task id=' + tid);
@@ -813,7 +813,7 @@ function showAdvancedAlgInfo() {
 	// This noImageScoresMessage is shown/hidden with css using an imageScores class on the task container div
 	deepsenseMsg += '<li class="noImageScoresMessage">This algorithm does not return per-image match scores, so only name scores are displayed.</li>'
 	deepsenseMsg += '</ul>'
-	console.log("Showing AdvancedAlgInfo for deepsense with message: "+deepsenseMsg+" on object %o", deepsenseInfoSpan);
+	//console.log("Showing AdvancedAlgInfo for deepsense with message: "+deepsenseMsg+" on object %o", deepsenseInfoSpan);
 	deepsenseInfoSpan.html(deepsenseMsg);
 
 }
@@ -1046,7 +1046,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 				let projectId = ft.individualId; // we gon hafta dig for this one
 
 
-		console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
+				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
 
