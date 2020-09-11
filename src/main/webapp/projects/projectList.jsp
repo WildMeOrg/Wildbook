@@ -38,7 +38,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
           <%
           try{
               if(currentUser != null){
-                List<Project> userProjects = myShepherd.getProjectsForUserId(currentUser.getId(), "researchProjectName");
+                List<Project> userProjects = myShepherd.getOwnedProjectsForUserId(currentUser.getId(), "researchProjectName");
 
                 if(userProjects==null || userProjects.size()<1){
                   %>
