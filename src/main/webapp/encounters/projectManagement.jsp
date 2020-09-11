@@ -206,6 +206,7 @@ function dismissAlert(){
 }
 
 function addProjects(){
+  console.log("addProjects entered");
   disableAddButton();
   $('#adding-div').show();
   let formDataArray = $("#add-encounter-to-project-form").serializeArray();
@@ -213,19 +214,20 @@ function addProjects(){
     $('#adding-div').hide();
     $('#empty-form-div').show();
     enableAddButton();
-  }
-  let formJson = {};
-  formJson["projects"] = [];
-  for(i=0; i<formDataArray.length; i++){
-    let currentName = formDataArray[i].name;
-    if (currentName === "id"){
-      let currentProjId = formDataArray[i].value;
-      formJson = constructProjectObjJsonFromIdAndAddToJsonArray(currentProjId, formJson);
-    }else{
-      console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
+  } else{
+    let formJson = {};
+    formJson["projects"] = [];
+    for(i=0; i<formDataArray.length; i++){
+      let currentName = formDataArray[i].name;
+      if (currentName === "id"){
+        let currentProjId = formDataArray[i].value;
+        formJson = constructProjectObjJsonFromIdAndAddToJsonArray(currentProjId, formJson);
+      }else{
+        console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
+      }
     }
+    doAjaxCall(formJson);
   }
-  doAjaxCall(formJson);
 }
 
 function doAjaxCall(formJson){
@@ -261,8 +263,10 @@ function enableAddButton(){
 }
 
 function disableAddButton(){
+  console.log("disableAddButton entered")
   $('#add-project-button').hide();
   $('#disabled-add-project-button').show();
+  debugger;
 }
 
 function updateEncountersAddedInDom(data){

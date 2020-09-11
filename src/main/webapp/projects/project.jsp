@@ -244,6 +244,8 @@ function projectHTMLForTable(json) {
   let locationId = json.locationId;
   let submitterId = json.submitterId;
   let allProjectIds = json.allProjectIds;
+  console.log("allProjectIds is: ");
+  console.log(allProjectIds);
 
   console.log("THIS ENCOUNTER JSON: "+JSON.stringify(json));
 
