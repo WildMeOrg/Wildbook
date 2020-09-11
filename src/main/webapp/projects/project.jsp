@@ -43,6 +43,20 @@
   Project project = myShepherd.getProject(projId);
   List<Encounter> encounters = project.getEncounters();
 %>
+<style type="text/css">
+  .disabled-btn { /* moving this to _encounter-pages.less AND moving that beneath buttons custom import in manta.less did not work. */
+    background:#62676d30;
+    border:0;
+    color:#fff;
+    line-height:2em;
+    padding:7px 13px;
+    font-weight:300;
+    vertical-align:middle;
+    margin-right:10px;
+    margin-top:15px
+  }
+</style>
+
 <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
     <title>Project <%=projId%></title>
@@ -59,7 +73,7 @@
                 %>
                 <div align="center">
                   <div id="progress-div">
-                    <h4>Encounters are loading. This may take a few minutes...</h4>
+                    <h4>Encounters are loading. This may take several minutes...</h4>
                     <div class="progress">
                       <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
                         <span class="sr-only">~50% Complete</span>
@@ -114,7 +128,7 @@ function markNewIncremental(individualId, projectId, encounterId){
 
 function createIndividualAndMarkNewIncremental(encounterId, projectId){
   console.log("createIndividualAndMarkNewIncremental entered!");
-  disableNewButton();
+  disableNewButton(encounterId);
   $('#adding-div_' + encounterId).show();
   if(projectId && encounterId){
     // console.log("projectId is " + projectId);

@@ -83,6 +83,7 @@ public class Project implements java.io.Serializable {
         double result = 0.0;
         double numIncremented = 0;
         double numEncounters = numEncounters();
+        System.out.println("numEncounters in getPercentWithIncrementalIds is: " + numEncounters);
         List<MarkedIndividual> uniqueIndividuals = new ArrayList<MarkedIndividual>();
         for(Encounter currentEncounter: encounters){
           MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
