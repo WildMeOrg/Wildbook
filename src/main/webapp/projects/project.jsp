@@ -40,30 +40,22 @@
   String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
   collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
   User currentUser = AccessControl.getUser(request, myShepherd);
+  Project project = myShepherd.getProject(projId);
+  List<Encounter> encounters = project.getEncounters();
 %>
 <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
     <title>Project <%=projId%></title>
-    <%
-      // System.out.println("projectId is: " + projId);
-      Project project = myShepherd.getProject(projId);
-      List<Encounter> encounters = project.getEncounters();
-      // System.out.println("project acquired! It is:");
-      // System.out.println(project.toString());
-    %>
     <div class="container maincontent">
+      <h3>Project: <%=project.getResearchProjectName()%></h3>
           <%
           try{
             if(currentUser != null){
-              // System.out.println("projectname is " + project.getResearchProjectName());
-              %>
-              <h3>Project: <%=project.getResearchProjectName()%></h3>
-              <%
               if(encounters == null || encounters.size()<1){
                 %>
                   <h4>You don't have any encounters in this project yet</h4>
                 <%
-              }else{  
+              }else{
                 %>
                 <div align="center">
                   <table class="row project-style">
@@ -88,6 +80,10 @@
           } catch (Exception e) {
             e.printStackTrace();
           } // end try block
+          finally{
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+          }
           %>
             </table>
           </div>
@@ -98,6 +94,8 @@
 
 function markNewIncremental(individualId, projectId, encounterId){
   console.log("markNewIncremental entered");
+  disableNewButton(encounterId);
+  $('#adding-div_' + encounterId).show();
   if(individualId && projectId && encounterId){
     // console.log("projectId is " + projectId);
     // console.log("individualId is " + individualId);
@@ -107,6 +105,8 @@ function markNewIncremental(individualId, projectId, encounterId){
 
 function createIndividualAndMarkNewIncremental(encounterId, projectId){
   console.log("createIndividualAndMarkNewIncremental entered!");
+  disableNewButton();
+  $('#adding-div_' + encounterId).show();
   if(projectId && encounterId){
     // console.log("projectId is " + projectId);
     // console.log("encounterId is " + encounterId);
@@ -163,11 +163,14 @@ function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
         console.log(data);
         if(data.success){
           console.log("success!");
+          $('#adding-div_' + encounterId).hide();
           $('#alert-div_'+encounterId).show();
           $('#mark-new-button_'+encounterId).hide();
         }else{
           console.log("failure!");
+          $('#adding-div_' + encounterId).hide();
           $('#alert-div-warn_'+encounterId).show();
+          enableNewButton(encounterId);
         }
       }
     },
@@ -175,6 +178,18 @@ function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
       console.warn('%o %o %o', x, y, z);
     }
   });
+}
+
+function disableNewButton(encounterId){
+  console.log("disableNewButton called with encounterId of " + encounterId);
+  $('#mark-new-button_' + encounterId).hide();
+  $('#disabled-mark-new-button_' + encounterId).show();
+}
+
+function enableNewButton(encounterId){
+  console.log("enableNewButton called with encounterId of " + encounterId);
+  $('#disabled-mark-new-button_' + encounterId).hide();
+  $('#mark-new-button_' + encounterId).show();
 }
 
 function dismissAlert(encounterId){
@@ -229,10 +244,13 @@ function projectHTMLForTable(json) {
   let encounterId = json.encounterId;
   let individualDisplayName = json.individualDisplayName;
   let individualUUID = json.individualUUID;
+  let hasNameKeyMatchingProject = json.hasNameKeyMatchingProject;
   let encounterDate = json.encounterDate;
   let locationId = json.locationId;
   let submitterId = json.submitterId;
   let allProjectIds = json.allProjectIds;
+  console.log("allProjectIds is: ");
+  console.log(allProjectIds);
 
   console.log("THIS ENCOUNTER JSON: "+JSON.stringify(json));
 
@@ -259,12 +277,16 @@ function projectHTMLForTable(json) {
   // grr.. not worth an AJAX call for just this. one more key and i'm doin it though
   let researchProjectId = '<%= project.getResearchProjectId()%>';
 
-  if (individualDisplayName!=null&&individualDisplayName!="") {
-    projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+researchProjectId+'\', \''+encounterId+'\')">Mark New</button>';
-  } else {
-    projectHTML += '<button type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+researchProjectId+'\')">Mark New</button>';
+  if(!hasNameKeyMatchingProject){
+    if (individualDisplayName!=null&&individualDisplayName!="") {
+      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+researchProjectId+'\', \''+encounterId+'\')">Mark New</button>';
+      projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
+    } else {
+      projectHTML += '<button type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+researchProjectId+'\')">Mark New</button>';
+      projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
+    }
   }
-
+  projectHTML += '<div id="adding-div_'+encounterId+'" class="alert alert-info" role="alert" style="display: none;">Assigning individual to project... Please Wait for Confirmation.</div>';
   projectHTML += '<div id="alert-div_'+encounterId+'" class="alert alert-success" role="alert" style="display: none;">';
   projectHTML += '<button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
   projectHTML += '<strong>Success!</strong> An ID has been added to your project for this individual!';
