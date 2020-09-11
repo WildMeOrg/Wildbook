@@ -399,11 +399,12 @@ h4.intro.accordion .rotate-chevron.down {
 		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
 
 		</span>
-
-		<span hidden id="projectDropdownSpan">
-			<label>Project Selection</label>
-			<select name="projectDropdown" id="projectDropdown"></select>
-		</span> 
+		<div>
+			<span hidden class="control-label" id="projectDropdownSpan">
+				<label>Project Selection</label>
+				<select name="projectDropdown" id="projectDropdown"></select>
+			</span> 
+		</div>
 
 		<style>
 			span#nextNameArea {
