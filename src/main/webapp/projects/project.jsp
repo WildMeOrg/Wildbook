@@ -58,22 +58,30 @@
               }else{
                 %>
                 <div align="center">
-                  <table class="row project-style">
-                    <thead>
-                      <tr>
-                        <th class="project-style">Encounter</th>
-                        <th class="project-style">Individual</th>
-                        <th class="project-style">Date/Time</th>
-                        <th class="project-style">Location</th>
-                        <th class="project-style">Data Owner</th>
-                        <th class="project-style">Project IDs</th>
-                        <th class="project-style">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="encounterList">
-                      <!--populated by JS after page load-->
-                    </tbody>
-
+                  <div id="progress-div">
+                    <h4>Encounters are loading. This may take a few minutes...</h4>
+                    <div class="progress">
+                      <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
+                        <span class="sr-only">~50% Complete</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="table-div" style="display: none;">
+                    <table class="row project-style">
+                      <thead>
+                        <tr>
+                          <th class="project-style">Encounter</th>
+                          <th class="project-style">Individual</th>
+                          <th class="project-style">Date/Time</th>
+                          <th class="project-style">Location</th>
+                          <th class="project-style">Data Owner</th>
+                          <th class="project-style">Project IDs</th>
+                          <th class="project-style">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="encounterList">
+                        <!--populated by JS after page load-->
+                      </tbody>
           <%
               } // end if encounters + else
             } // end if currentUser
@@ -85,7 +93,8 @@
             myShepherd.closeDBTransaction();
           }
           %>
-            </table>
+              </table>
+            </div>
           </div>
     </div>
 <jsp:include page="../footer.jsp" flush="true"/>
@@ -166,6 +175,8 @@ function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
           $('#adding-div_' + encounterId).hide();
           $('#alert-div_'+encounterId).show();
           $('#mark-new-button_'+encounterId).hide();
+          $('#disabled-mark-new-button_'+encounterId).hide();
+          //TODO getEncounterJSON()?
         }else{
           console.log("failure!");
           $('#adding-div_' + encounterId).hide();
@@ -232,6 +243,8 @@ function getEncounterJSON() {
                 console.log("appending!!");
               }
           }
+          $('#progress-div').hide();
+          $('#table-div').show();
       },
       error: function(x,y,z) {
           console.warn('%o %o %o', x, y, z);
@@ -282,7 +295,7 @@ function projectHTMLForTable(json) {
       projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+researchProjectId+'\', \''+encounterId+'\')">Mark New</button>';
       projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
     } else {
-      projectHTML += '<button type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+researchProjectId+'\')">Mark New</button>';
+      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+researchProjectId+'\')">Mark New</button>';
       projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
     }
   }
