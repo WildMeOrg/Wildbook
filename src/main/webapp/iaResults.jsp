@@ -23,6 +23,10 @@ Shepherd myShepherd = new Shepherd(request);
 myShepherd.setAction("matchResults nameKey getter");
 myShepherd.beginDBTransaction();
 User user = myShepherd.getUser(request);
+String currentUsername = "";
+if (user!=null){	
+	currentUsername = user.getUsername();
+}
 String nextNameKey = (user!=null) ? user.getIndividualNameKey() : null;
 boolean usesAutoNames = Util.stringExists(nextNameKey);
 String nextName = (usesAutoNames) ? MultiValue.nextUnusedValueForKey(nextNameKey, myShepherd) : null;
@@ -395,6 +399,11 @@ h4.intro.accordion .rotate-chevron.down {
 		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
 
 		</span>
+
+		<span hidden id="projectDropdownSpan">
+			<label>Project Selection</label>
+			<select name="projectDropdown" id="projectDropdown"></select>
+		</span> 
 
 		<style>
 			span#nextNameArea {
@@ -1032,7 +1041,11 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 var taxonomy = ft.genus+' '+ft.specificEpithet;
                 console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
-                var indivId = ft.individualId;
+				var indivId = ft.individualId;
+
+				let projectId = ft.individualId; // we gon hafta dig for this one
+
+
 		console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
@@ -1050,7 +1063,15 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					if (!indivId) {
 						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
 					}
+
+					
                 }
+				//mimic indiv link for projectId, make full on hover
+				if (projectId) {
+                    h += ' of <a class="project-link" title="open project page" target="_new" href="/projects/projects.jsp?id=' + projectId + '"  title="'+researchProjectName+'">' + researchProjectName + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/projects.jsp?id=' + projectId + '" title="'+researchProjectName+'">' + researchProjectName.substring(0,15) + '</a>');
+                }
+
                 if (indivId) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
@@ -1519,6 +1540,46 @@ function addNegativeButton(encId, oldDisplayName) {
 		console.log("No name scheme, baby!");
 	}
 }
+
+function getProjectData(currentUsername) {
+  let requestJSON = {};
+  requestJSON['participantId'] = currentUsername;
+  console.log("all requestJSON for populateProjectDropdown() : "+JSON.stringify(requestJSON));
+  $.ajax({
+      url: wildbookGlobals.baseUrl + '../ProjectGet',
+      type: 'POST',
+      data: JSON.stringify(requestJSON),
+      dataType: 'json',
+      contentType: 'application/json',
+      success: function(d) {
+          console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
+		  let projectsArr = d.projects;
+		  if (projectsArr.length) {
+			populateProjectsDropdown(projectsArr);
+		  }
+      },
+      error: function(x,y,z) {
+          console.warn('%o %o %o', x, y, z);
+      }
+  });
+}
+
+function populateProjectsDropdown(projectsArr) {
+	$('#projectDropdownSpan').removeAttr('hidden');
+	let dropdown = $('#projectDropdownSpan #projectDropdown');
+	for (i=0;i<projectsArr.length;i++) {
+		let project = projectsArr[i];
+		let selectEl = $('<option class="projectSelectOption" value="'+project.id+'">'+project.researchProjectName+'</option>');
+		dropdown.append(selectEl);
+	}
+}
+
+$(document).ready(function(){
+	let currentUsername = '<%=currentUsername%>';
+	if (currentUsername.length) {
+		getProjectData(currentUsername);
+	}
+});
 
 
 
