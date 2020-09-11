@@ -27,6 +27,17 @@ try{
   Integer numDuplicateEncounters = null;
 %>
 <style type="text/css">
+  .disabled-btn { /* moving this to _encounter-pages.less AND moving that beneath buttons custom import in manta.less did not work. */
+    background:#62676d30;
+    border:0;
+    color:#fff;
+    line-height:2em;
+    padding:7px 13px;
+    font-weight:300;
+    vertical-align:middle;
+    margin-right:10px;
+    margin-top:15px
+  }
 </style>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -176,15 +187,11 @@ try{
     <button type="button" id="add-project-button" onclick="addProjects();">Add to Project(s) <span class="glyphicon glyphicon-plus"><span></button>
     <button  class="disabled-btn" id="disabled-add-project-button" style="display: none;">Add to Project(s) <span class="glyphicon glyphicon-plus"><span></button>
     </form>
+
     <%
   }
   System.out.println("got past getting encounters");
 }catch(Exception e){e.printStackTrace();}
-finally{
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-}
-
 %>
   <div id="adding-div" class="alert alert-info" role="alert" style="display: none;">
     Adding Encounters... Please Wait for Confirmation.
@@ -217,19 +224,20 @@ function addProjects(){
     $('#adding-div').hide();
     $('#empty-form-div').show();
     enableAddButton();
-  }
-  let formJson = {};
-  formJson["projects"] = [];
-  for(i=0; i<formDataArray.length; i++){
-    let currentName = formDataArray[i].name;
-    if (currentName === "id"){
-      let currentProjId = formDataArray[i].value;
-      formJson = constructProjectObjJsonFromIdAndAddToJsonArray(currentProjId, formJson);
-    }else{
-      console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
+  } else{
+    let formJson = {};
+    formJson["projects"] = [];
+    for(i=0; i<formDataArray.length; i++){
+      let currentName = formDataArray[i].name;
+      if (currentName === "id"){
+        let currentProjId = formDataArray[i].value;
+        formJson = constructProjectObjJsonFromIdAndAddToJsonArray(currentProjId, formJson);
+      }else{
+        console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
+      }
     }
+    doAjaxCall(formJson);
   }
-  doAjaxCall(formJson);
 }
 
 function doAjaxCall(formJson){
@@ -306,6 +314,10 @@ function constructProjectObjJsonFromIdAndAddToJsonArray(projectUuid, formJson){
 <%
   }
   catch(Exception e){e.printStackTrace();}
+  finally{
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+  }
 %>
 
 <jsp:include page="../footer.jsp" flush="true"/>

@@ -294,12 +294,15 @@ public class Project implements java.io.Serializable {
                     JSONObject encMetadata = new JSONObject();
                     String individualName = "";
                     String individualUUID = "";
+                    boolean hasNameKeyMatchingProject = false;
                     if (enc.getIndividual()!=null&&Util.stringExists(enc.getIndividual().getDisplayName())) {
                         individualName = enc.getIndividual().getDisplayName();
                         individualUUID = enc.getIndividual().getId();
+                        hasNameKeyMatchingProject = enc.getIndividual().hasNameKey(researchProjectId);
                     }
                     encMetadata.put("individualUUID", individualUUID);
                     encMetadata.put("individualDisplayName", individualName);
+                    encMetadata.put("hasNameKeyMatchingProject", hasNameKeyMatchingProject);
                     encMetadata.put("encounterDate", enc.getDate());
                     encMetadata.put("locationId", enc.getLocationID());
                     encMetadata.put("submitterId", enc.getSubmitterID());
