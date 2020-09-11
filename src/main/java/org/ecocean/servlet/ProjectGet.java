@@ -65,7 +65,8 @@ public class ProjectGet extends HttpServlet {
             // get all projects for owner
             ownerId = j.optString("ownerId", null);
             if (ownerId!=null&&!"".equals(ownerId)) {
-                List<Project> allUserProjects = myShepherd.getProjectsForUserId(ownerId);
+
+                List<Project> allUserProjects = myShepherd.getOwnedProjectsForUserId(ownerId);
                 JSONArray projectArr = new JSONArray();
                 if (allUserProjects!=null) {
                     for (Project project : allUserProjects) {
@@ -99,6 +100,7 @@ public class ProjectGet extends HttpServlet {
                 }
                 res.put("projects", projectArr);
                 res.put("success","true");
+                complete = true;
             } 
 
             out.println(res);

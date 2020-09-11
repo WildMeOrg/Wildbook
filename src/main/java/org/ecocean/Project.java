@@ -329,18 +329,4 @@ public class Project implements java.io.Serializable {
         return false;
     }
 
-    //this work is done by the Shepherd.getProjectsForUserId() because it requires a database hit
-    @Deprecated
-    public static List<Project> getProjectsForUser(User user){
-      Project proj1 = new Project("ID1", "Project1");
-      System.out.println(proj1.toString());
-      Project proj2 = new Project("ID2", "Project2");
-      Project proj3 = new Project("ID3", "Project3");
-      Project proj4 = new Project("ID4", "Project4");
-      Project proj5 = new Project("ID5", "Project5");
-      ArrayList<Project> projects = new ArrayList<Project>(Arrays.asList(proj1, proj2, proj3, proj4, proj5));
-      // ArrayList<Project> projects = new ArrayList<Project>();
-      return projects;
-    }
-
 }

@@ -1497,7 +1497,7 @@ public class Shepherd {
     return projects;
   }
 
-  public List<Project> getProjectsForUserId(String userId, String orderBy) {
+  public List<Project> getOwnedProjectsForUserId(String userId, String orderBy) {
     List<Project> projects = null;
     Query query = null;
     try {
@@ -1523,8 +1523,8 @@ public class Shepherd {
     return projects;
   }
 
-  public List<Project> getProjectsForUserId(String userId) {
-    return getProjectsForUserId(userId, null);
+  public List<Project> getOwnedProjectsForUserId(String userId) {
+    return getOwnedProjectsForUserId(userId, null);
   }
 
   public boolean isSurvey(String num) {
