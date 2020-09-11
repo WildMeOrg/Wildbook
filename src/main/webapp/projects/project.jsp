@@ -80,6 +80,10 @@
           } catch (Exception e) {
             e.printStackTrace();
           } // end try block
+          finally{
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+          }
           %>
             </table>
           </div>
@@ -240,6 +244,7 @@ function projectHTMLForTable(json) {
   let encounterId = json.encounterId;
   let individualDisplayName = json.individualDisplayName;
   let individualUUID = json.individualUUID;
+  let hasNameKeyMatchingProject = json.hasNameKeyMatchingProject;
   let encounterDate = json.encounterDate;
   let locationId = json.locationId;
   let submitterId = json.submitterId;
@@ -272,12 +277,14 @@ function projectHTMLForTable(json) {
   // grr.. not worth an AJAX call for just this. one more key and i'm doin it though
   let researchProjectId = '<%= project.getResearchProjectId()%>';
 
-  if (individualDisplayName!=null&&individualDisplayName!="") {
-    projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+researchProjectId+'\', \''+encounterId+'\')">Mark New</button>';
-    projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
-  } else {
-    projectHTML += '<button type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+researchProjectId+'\')">Mark New</button>';
-    projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
+  if(!hasNameKeyMatchingProject){
+    if (individualDisplayName!=null&&individualDisplayName!="") {
+      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+researchProjectId+'\', \''+encounterId+'\')">Mark New</button>';
+      projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
+    } else {
+      projectHTML += '<button type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+researchProjectId+'\')">Mark New</button>';
+      projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
+    }
   }
   projectHTML += '<div id="adding-div_'+encounterId+'" class="alert alert-info" role="alert" style="display: none;">Assigning individual to project... Please Wait for Confirmation.</div>';
   projectHTML += '<div id="alert-div_'+encounterId+'" class="alert alert-success" role="alert" style="display: none;">';
