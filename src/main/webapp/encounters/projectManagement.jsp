@@ -217,7 +217,6 @@ function dismissAlert(){
 }
 
 function addProjects(){
-  console.log("addProjects entered");
   disableAddButton();
   $('#adding-div').show();
   let formDataArray = $("#add-encounter-to-project-form").serializeArray();
@@ -274,13 +273,11 @@ function enableAddButton(){
 }
 
 function disableAddButton(){
-  console.log("disableAddButton entered");
   $('#add-project-button').hide();
   $('#disabled-add-project-button').show();
 }
 
 function updateEncountersAddedInDom(data){
-  console.log("updateEncountersAddedInDom entered");
   let formDataArray = $("#add-encounter-to-project-form").serializeArray();
   if(formDataArray){
     for(i=0; i<formDataArray.length; i++){
