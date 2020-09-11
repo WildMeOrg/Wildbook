@@ -1497,6 +1497,39 @@ public class Shepherd {
     return projects;
   }
 
+  public List<Project> getParticipatingProjectsForUserId(String userId, String orderBy) {
+    List<Project> projects = null;
+    Query query = null;
+    String queryString = "SELECT FROM org.ecocean.Project WHERE users.contains(user) && user.username=='" + userId+"' ";
+    try {
+      if(!Util.stringExists(orderBy)){
+        queryString += "VARIABLES org.ecocean.User user";
+      }else{
+        queryString +=  "ORDER BY " + orderBy+" VARIABLES org.ecocean.User user";
+      }
+      System.out.println("getParticipatingProjectsForUserId() queryString: "+queryString);
+      query = pm.newQuery(queryString);
+      Collection c = (Collection) (query.execute());
+      Iterator it = c.iterator();
+      while (it.hasNext()) {
+        if (projects==null) {
+          projects = new ArrayList<Project>();
+        }
+        System.out.println("got "+projects.size()+" projects to return...");
+        projects.add((Project) it.next());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return projects;
+  }
+
+  public List<Project> getParticipatingProjectsForUserId(String userId) {
+    return getParticipatingProjectsForUserId(userId, null);
+  }
+
   public List<Project> getOwnedProjectsForUserId(String userId, String orderBy) {
     List<Project> projects = null;
     Query query = null;

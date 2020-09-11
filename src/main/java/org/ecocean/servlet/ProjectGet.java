@@ -59,14 +59,20 @@ public class ProjectGet extends HttpServlet {
             String researchProjectId = null;
             String projectUUID = null;
             String ownerId = null;
+            String participantId = null;
 
             boolean complete = false;
 
-            // get all projects for owner
+            // get all projects for owner or participant
             ownerId = j.optString("ownerId", null);
-            if (ownerId!=null&&!"".equals(ownerId)) {
-
-                List<Project> allUserProjects = myShepherd.getOwnedProjectsForUserId(ownerId);
+            participantId = j.optString("participantId", null);
+            if (Util.stringExists(ownerId)||Util.stringExists(participantId)) {
+                List<Project> allUserProjects = null;
+                if (Util.stringExists(ownerId)) {
+                    allUserProjects = myShepherd.getOwnedProjectsForUserId(ownerId);
+                } else if (Util.stringExists(participantId)) {
+                    allUserProjects = myShepherd.getParticipatingProjectsForUserId(participantId);
+                }
                 JSONArray projectArr = new JSONArray();
                 if (allUserProjects!=null) {
                     for (Project project : allUserProjects) {
