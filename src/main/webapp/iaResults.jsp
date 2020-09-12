@@ -50,25 +50,37 @@ if (request.getParameter("acmId") != null) {
 	myShepherd.beginDBTransaction();
     ArrayList<Annotation> anns = null;
 	JSONObject rtn = new JSONObject("{\"success\": false}");
-	//Encounter enc = null;
 	try {
-        	anns = myShepherd.getAnnotationsWithACMId(acmId);
+		anns = myShepherd.getAnnotationsWithACMId(acmId);
 	} catch (Exception ex) {}
 	if ((anns == null) || (anns.size() < 1)) {
 		rtn.put("error", "unknown error");
 	} else {
-        JSONArray janns = new JSONArray();
+		JSONArray janns = new JSONArray();
         for (Annotation ann : anns) {
-        				if (ann.getMatchAgainst()==true) {
+			if (ann.getMatchAgainst()==true) {
 				JSONObject jann = new JSONObject();
 				jann.put("id", ann.getId());
 				jann.put("acmId", ann.getAcmId());
 				MediaAsset ma = ann.getMediaAsset();
 				if (ma != null) {
-			            JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
-                                    if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
-			            jann.put("asset", jm);
+					JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
+					if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
+					jann.put("asset", jm);
 				}
+				String researchProjectId = request.getParameter("researchProjectId");
+				if (Util.stringExists(researchProjectId)) {
+					Encounter enc = ann.findEncounter(myShepherd);
+					Project project = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
+					if (project.getEncounter()!=null&&project.getEncounters().contains(enc)) {
+						MarkedIndividual individual = enc.getIndividual();
+						List<String> projectNames = individual.getNamesList(researchProjectId);
+						jann.put("incrementalProjectId", projectNames.get(0));
+						jann.put("researchProjectId", researchProjectId);
+						jann.put("projectUUID", project.getId());
+					} 
+				}
+
 				janns.put(jann);
 			}
 		}
@@ -402,7 +414,8 @@ h4.intro.accordion .rotate-chevron.down {
 		<div>
 			<span hidden class="control-label" id="projectDropdownSpan">
 				<label>Project Selection</label>
-				<select name="projectDropdown" id="projectDropdown"></select>
+				<select name="projectDropdown" id="projectDropdown">
+				</select>
 			</span> 
 		</div>
 
@@ -966,8 +979,13 @@ console.info('%d ===> %s', num, acmId);
 	h = '<div title="acmId=' + acmId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 	$('#task-' + taskId).append(h);
+	let paramString = 'iaResults.jsp?acmId=' + acmId;
+	let projectId = getSelectedResearchProjectId();
+	if (projectId!=""&&projectId!=undefined) {
+		paramString += "&researchProjectId="+projectId;
+	}
 	$.ajax({
-		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
+		url: paramString,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
 		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl, acmId); }
@@ -1044,33 +1062,36 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
 				var indivId = ft.individualId;
 
-				let projectId = ft.individualId; // we gon hafta dig for this one
-
-
+				//get currently selected project from dropdown. 
+				
+				//theoretically, you are only matching against other anns from your project. 
+				
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
-
+				
 				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
 				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
 					console.log("Did you get in the display name finder block??? Ye!");
 					displayName = $('.enc-title .indiv-link').text();
 				}
                 if (encId) {
-                	console.log("Main asset encId = "+encId);
+					console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter</a>');
                     
 					if (!indivId) {
 						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
 					}
-
 					
-                }
-				//mimic indiv link for projectId, make full on hover
-				if (projectId) {
-                    h += ' of <a class="project-link" title="open project page" target="_new" href="/projects/projects.jsp?id=' + projectId + '"  title="'+researchProjectName+'">' + researchProjectName + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/projects.jsp?id=' + projectId + '" title="'+researchProjectName+'">' + researchProjectName.substring(0,15) + '</a>');
+					
+				}
+				
+				let myProjectId = ft.incrementalProjectId;
+				let projectUUID = ft.projectUUID;
+				if (myProjectId) {
+                    h += ' of <a class="project-link" title="open project page" target="_new" href="/projects/projects.jsp?id=' + projectId + '"  title="'+myProjectId+'">' + myProjectId + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/projects.jsp?id=' + projectId + '" title="'+myProjectId+'">' + myProjectId.substring(0,15) + '</a>');
                 }
 
                 if (indivId) {
@@ -1138,6 +1159,12 @@ console.info('qdata[%s] = %o', taskId, qdata);
     if (imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
+function getSelectedResearchProjectId() {
+	let selectedText = $("#projectDropdown option:selected").text();
+	let selectedValue = $("#projectDropdown").val();
+	if (selectedValue==""||selectedValue==undefined) return ""; 
+	return selectedText;
+}
 
 function annotCheckbox(el) {
 	var jel = $(el);
@@ -1542,7 +1569,7 @@ function addNegativeButton(encId, oldDisplayName) {
 	}
 }
 
-function getProjectData(currentUsername) {
+function getProjectData(currentUsername, selectedProject) {
   let requestJSON = {};
   requestJSON['participantId'] = currentUsername;
   console.log("all requestJSON for populateProjectDropdown() : "+JSON.stringify(requestJSON));
@@ -1556,7 +1583,7 @@ function getProjectData(currentUsername) {
           console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
 		  let projectsArr = d.projects;
 		  if (projectsArr.length) {
-			populateProjectsDropdown(projectsArr);
+			populateProjectsDropdown(projectsArr, selectedProject);
 		  }
       },
       error: function(x,y,z) {
@@ -1565,22 +1592,77 @@ function getProjectData(currentUsername) {
   });
 }
 
-function populateProjectsDropdown(projectsArr) {
+function populateProjectsDropdown(projectsArr, selectedProject) {
 	$('#projectDropdownSpan').removeAttr('hidden');
 	let dropdown = $('#projectDropdownSpan #projectDropdown');
+	let emptyOption;
+	if (selectedProject==""||selectedProject||"null"||!selectedProject.length) {
+		emptyOption = $('<option selected class="projectSelectOption">None Selected</option>');
+	} else {
+		emptyOption = $('<option class="projectSelectOption">None Selected</option>');
+	}
+	dropdown.append(emptyOption); 
 	for (i=0;i<projectsArr.length;i++) {
 		let project = projectsArr[i];
-		let selectEl = $('<option class="projectSelectOption" value="'+project.id+'">'+project.researchProjectName+'</option>');
+		let selectEl;
+		if (selectedProject&&selectedProject==project.researchProjectId) {
+			selectEl = $('<option selected class="projectSelectOption" value="'+project.researchProjectId+'">'+project.researchProjectName+'</option>');
+		} else {
+			selectEl = $('<option class="projectSelectOption" value="'+project.researchProjectId+'">'+project.researchProjectName+'</option>');
+		}
 		dropdown.append(selectEl);
 	}
 }
 
 $(document).ready(function(){
 	let currentUsername = '<%=currentUsername%>';
+	let selectedProject = '<%=researchProjectId%>';
 	if (currentUsername.length) {
-		getProjectData(currentUsername);
+		getProjectData(currentUsername, selectedProject);
 	}
 });
+
+// MIGHT HAVE TO RELOAD PAGE AT URL WITH PROJECT PARAMETER NOOOOOOOOOOOOOOOOOOOOOOOO
+$('#projectDropdown').on('change', function() {
+	let reloadURL = "../imports.jsp?taskId="+uuid;
+	let selectedProject = $("#projectDropdown").val();
+	if (selectedProject&&selectedProject.length) {
+		reloadURL += "&researchProjectId="+selectedProject;
+	}
+	window.location.href = reloadURL;
+	//applyResearchProjectLinks()
+});
+
+
+
+// function applyResearchProjectLinks() {
+// 	let allIndivLinkTarget = $('.indiv-link-target');
+// 	let allEncNums = [];
+// 	for (i=0;i<allIndivLinkTarget.length;i++) {
+// 		let id = allIndivLinkTarget[i].attr('id').replace("encnum","");
+// 		allEncNums.push(id);
+// 	}
+// 	let selectedResearchProjectId = $("#projectDropdown").val();
+// 	//+++++++++++++++++++++++++++++++++++++
+// 	let requestJSON = {};
+// 	requestJSON['allEncounterNumbers'] = allEncNums;
+// 	requestJSON['selectedResearchProjectId'] = electedResearchProjectId;
+
+// 	console.log("all requestJSON for applyResearchProjectLinks() : "+JSON.stringify(requestJSON));
+// 	$.ajax({
+// 		url: wildbookGlobals.baseUrl + '../ProjectGet',
+// 		type: 'POST',
+// 		data: JSON.stringify(requestJSON),
+// 		dataType: 'json',
+// 		contentType: 'application/json',
+// 		success: function(d) {
+// 			console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
+// 		},
+// 		error: function(x,y,z) {
+// 			console.warn('%o %o %o', x, y, z);
+// 		}
+// 	});
+// }
 
 
 
