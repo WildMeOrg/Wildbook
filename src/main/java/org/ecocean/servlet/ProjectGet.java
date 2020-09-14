@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import org.json.JSONException;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProjectGet extends HttpServlet {
@@ -60,8 +61,28 @@ public class ProjectGet extends HttpServlet {
             String projectUUID = null;
             String ownerId = null;
             String participantId = null;
+            String encounterId = null;
 
             boolean complete = false;
+
+            // get all projects for an encounter
+            encounterId = j.optString("encounterId", null);
+            if (Util.stringExists(encounterId)) {
+                Encounter enc = myShepherd.getEncounter(encounterId);
+                if (enc!=null) {
+                    List<Project> projects = myShepherd.getAllProjectsForEncounter(enc);
+                    JSONArray projectArr = new JSONArray();
+                    if (projects!=null) {
+                        for (Project project : projects) {
+                            projectArr.put(project.asJSONObject());
+                        }
+                    }
+                    res.put("projects", projectArr);
+                    res.put("success","true");
+                    complete = true;
+                }
+
+            }
 
             // get all projects for owner or participant
             ownerId = j.optString("ownerId", null);

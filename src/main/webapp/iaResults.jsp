@@ -41,7 +41,7 @@ int RESMAX_DEFAULT = 12;
 int RESMAX = (nResults!=null) ? nResults : RESMAX_DEFAULT;
 
 String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to keep waiting.";
-
+String researchProjectId = request.getParameter("researchProjectId");
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("acmId") != null) {
 	String acmId = request.getParameter("acmId");
@@ -68,17 +68,18 @@ if (request.getParameter("acmId") != null) {
 					if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
 					jann.put("asset", jm);
 				}
-				String researchProjectId = request.getParameter("researchProjectId");
 				if (Util.stringExists(researchProjectId)) {
-					Encounter enc = ann.findEncounter(myShepherd);
 					Project project = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
-					if (project.getEncounter()!=null&&project.getEncounters().contains(enc)) {
-						MarkedIndividual individual = enc.getIndividual();
-						List<String> projectNames = individual.getNamesList(researchProjectId);
-						jann.put("incrementalProjectId", projectNames.get(0));
-						jann.put("researchProjectId", researchProjectId);
-						jann.put("projectUUID", project.getId());
-					} 
+					if (project!=null) {
+						Encounter enc = ann.findEncounter(myShepherd);
+						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
+							MarkedIndividual individual = enc.getIndividual();
+							List<String> projectNames = individual.getNamesList(researchProjectId);
+							jann.put("incrementalProjectId", projectNames.get(0));
+							jann.put("researchProjectId", researchProjectId);
+							jann.put("projectUUID", project.getId());
+						} 
+					}
 				}
 
 				janns.put(jann);
@@ -102,8 +103,8 @@ if (request.getParameter("acmId") != null) {
 
 //TODO security for this stuff, obvs?
 //quick hack to set id & approve
+String taskId = request.getParameter("taskId");
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
-        String taskId = request.getParameter("taskId");
 	JSONObject res = new JSONObject("{\"success\": false}");
 	res.put("encounterId", request.getParameter("number"));
 	res.put("encounterId2", request.getParameter("enc2"));
@@ -370,6 +371,12 @@ h4.intro.accordion .rotate-chevron.down {
     -webkit-transform: rotate(90deg);
     transform: rotate(90deg);
 }
+
+#projectDropdownSpan {
+	position: absolute;
+	padding-top: 25px;
+}
+
 </style>
 
 <script>
@@ -411,7 +418,7 @@ h4.intro.accordion .rotate-chevron.down {
 		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
 
 		</span>
-		<div>
+		<div id="projectDropdownDiv">
 			<span hidden class="control-label" id="projectDropdownSpan">
 				<label>Project Selection</label>
 				<select name="projectDropdown" id="projectDropdown">
@@ -701,7 +708,7 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 					showTaskResult(d[i], tid);
 					i = d.length;
 					gotResult = true;
-					console.log("removing initial waiter!");
+					//console.log("removing initial waiter!");
 					$("#initial-waiter").remove();
 
 				} else {
@@ -718,7 +725,7 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 				if (jobIdMap[tid]) {
 					var tooLong = 15 * 60 * 1000;
 					var elapsed = approxServerTime() - jobIdMap[tid].timestamp;
-					console.warn("elapsed = %.1f min", elapsed / 60000);
+					//console.warn("elapsed = %.1f min", elapsed / 60000);
 					if (elapsed > tooLong) {
 						if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
 						$('#wait-message-' + tid).removeClass('throbbing').html('attempting to fetch results');
@@ -852,7 +859,7 @@ function showTaskResult(res, taskId) {
 			res.status._response.response.json_result.cm_dict) {
 		var algoInfo = (res.status._response.response.json_result.query_config_dict &&
 			res.status._response.response.json_result.query_config_dict.pipeline_root);
-		console.log("Algo info is "+algoInfo);
+		//console.log("Algo info is "+algoInfo);
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
 
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
@@ -927,11 +934,19 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		var query_annot_uuid = qannotId;
 		var version = "heatmask";
 
-		for (var i = 0 ; i < max ; i++) {
-			var d = sorted[i].split(/\s/);
+		let count = 0;
+		while (count<max) {
+			console.log();
+
+			var d = sorted[count].split(/\s/);
 			var acmId = d[0];
 			var database_annot_uuid = d[1];
 			var has_illustration = d[2];
+
+			if (!selectedProjectContainsEncounter(acmId)) {
+				continue;
+			}
+
 			console.log("has_illustration = "+has_illustration);
 
 			var illustUrl;
@@ -945,15 +960,42 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			}
 
 			//console.log("ILLUSTRATION "+i+" "+illustUrl);
-
 			// no illustration for DTW
 			//if (algoInfo == 'OC_WDTW') illustUrl = false;
-
 			// var adjustedScore = d[0] / 1000
-			var adjustedScore = d[0]
-			displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
+			var adjustedScore = d[0];
+			displayAnnot(res.taskId, d[1], count, adjustedScore, illustUrl);
 			// ----- END Hotspotter IA Illustration-----
+			count++;
 		}
+
+		//for (var i = 0 ; i < max ; i++) {
+			// var d = sorted[i].split(/\s/);
+			// var acmId = d[0];
+			// var database_annot_uuid = d[1];
+			// var has_illustration = d[2];
+			// console.log("has_illustration = "+has_illustration);
+
+			// var illustUrl;
+			// if (has_illustration) {
+			// 	illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
+			// 	illustUrl += "&query_annot_uuid="+query_annot_uuid;
+			// 	illustUrl += "&database_annot_uuid="+database_annot_uuid;
+			// 	illustUrl += "&version="+version;
+			// } else {
+			// 	illustUrl = false;
+			// }
+
+			// //console.log("ILLUSTRATION "+i+" "+illustUrl);
+
+			// // no illustration for DTW
+			// //if (algoInfo == 'OC_WDTW') illustUrl = false;
+
+			// // var adjustedScore = d[0] / 1000
+			// var adjustedScore = d[0]
+			// displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
+			// // ----- END Hotspotter IA Illustration-----
+		//}
 		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
 		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
 
@@ -1019,7 +1061,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
             acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
             console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
             if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
-                console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
+                //console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
                 mainAnnId = res.responseJSON.annotations[i].id;
             }
             //we "should" only need the first asset we find -- as they "should" all be identical!
@@ -1058,7 +1100,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
                 var encDisplay = encId;
                 var taxonomy = ft.genus+' '+ft.specificEpithet;
-                console.log('Taxonomy: '+taxonomy);
+                //console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
 				var indivId = ft.individualId;
 
@@ -1072,7 +1114,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 				
 				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
 				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
-					console.log("Did you get in the display name finder block??? Ye!");
+					//console.log("Did you get in the display name finder block??? Ye!");
 					displayName = $('.enc-title .indiv-link').text();
 				}
                 if (encId) {
@@ -1160,10 +1202,9 @@ console.info('qdata[%s] = %o', taskId, qdata);
 }
 
 function getSelectedResearchProjectId() {
-	let selectedText = $("#projectDropdown option:selected").text();
-	let selectedValue = $("#projectDropdown").val();
+	let selectedValue = $("#projectDropdown option:selected").val();
 	if (selectedValue==""||selectedValue==undefined) return ""; 
-	return selectedText;
+	return selectedValue;
 }
 
 function annotCheckbox(el) {
@@ -1583,6 +1624,9 @@ function getProjectData(currentUsername, selectedProject) {
           console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
 		  let projectsArr = d.projects;
 		  if (projectsArr.length) {
+
+			// THIS VERSION DID NOT POPULATE
+
 			populateProjectsDropdown(projectsArr, selectedProject);
 		  }
       },
@@ -1622,9 +1666,9 @@ $(document).ready(function(){
 	}
 });
 
-// MIGHT HAVE TO RELOAD PAGE AT URL WITH PROJECT PARAMETER NOOOOOOOOOOOOOOOOOOOOOOOO
 $('#projectDropdown').on('change', function() {
-	let reloadURL = "../imports.jsp?taskId="+uuid;
+	let taskId = '<%=taskId%>';
+	let reloadURL = "../iaResults.jsp?taskId="+taskId;
 	let selectedProject = $("#projectDropdown").val();
 	if (selectedProject&&selectedProject.length) {
 		reloadURL += "&researchProjectId="+selectedProject;
@@ -1632,6 +1676,58 @@ $('#projectDropdown').on('change', function() {
 	window.location.href = reloadURL;
 	//applyResearchProjectLinks()
 });
+
+function selectedProjectContainsEncounter(acmId) {
+	let selectedProject = $("#projectDropdown").val();
+	let requestJSON = {};
+	//requestJSON['researchProjectId'] = selectedProject;
+	requestJSON['acmId'] = acmId;
+	console.log("all requestJSON for selectedProjectContainsEncounter() : "+JSON.stringify(requestJSON));
+	let paramString = 'iaResults.jsp?acmId=' + acmId;
+	$.ajax({
+		url: paramString,
+		type: 'GET',
+		dataType: 'json',
+		complete: function(d) { 
+			var ft = findMyFeature(acmId, d.responseJSON.annotations[0].asset);
+			var encId = ft.encounterId;
+
+			console.log("selectedProjectContainsEncounter() ajax #1 passed");
+
+			let requestJSON = {};
+  			requestJSON['encounterId'] = encId;
+
+			$.ajax({
+				url: wildbookGlobals.baseUrl + '../ProjectGet',
+				type: 'POST',
+				data: JSON.stringify(requestJSON),
+				dataType: 'json',
+				contentType: 'application/json',
+				success: function(d) {
+
+					console.log("selectedProjectContainsEncounter() ajax #2 passed");
+
+					if (d.projects.length) {
+						for (i=0;i<d.projects.length;i++) {
+							console.log(" iterating through projects to verify asset...");
+							if (d.projects[i].researchProjectName==selectedProject) {
+								return true;
+							}
+						}
+					}
+					console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
+				},
+				error: function(x,y,z) {
+					console.warn('%o %o %o', x, y, z);
+				}
+			});
+		}
+	});
+
+	// TODO get all projects for encounter and match to name
+
+	return false;
+}
 
 
 
