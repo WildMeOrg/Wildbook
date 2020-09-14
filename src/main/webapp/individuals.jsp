@@ -267,11 +267,6 @@ function setIndivAutocomplete(el) {
 input.nameKey, input.nameValue {
   display: none;
 }
-
-#project-ids p{
-  padding: 0;
-  margin: 0;
-}
 </style>
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
