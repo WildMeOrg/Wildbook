@@ -267,6 +267,11 @@ function setIndivAutocomplete(el) {
 input.nameKey, input.nameValue {
   display: none;
 }
+
+#project-ids p{
+  padding: 0;
+  margin: 0;
+}
 </style>
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
@@ -784,15 +789,23 @@ if (sharky.getNames() != null) {
               List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
               if(projects!=null && projects.size()>0){
                 %>
-                  <p><strong><%=props.getProperty("projects") %></strong></p>
+                  <div id="project-ids">
+                  <p><%=props.getProperty("projects") %></p>
                 <%
                 for(int i=0; i< projects.size(); i++){
-                %>
-                  <p><%= projects.get(i).getResearchProjectId()%></p>
-                <%
+                  if(indie.getName(projects.get(i).getResearchProjectId()) != null){
+                    %>
+                    <p><em><%= projects.get(i).getResearchProjectId()%></em> : <%= indie.getName(projects.get(i).getResearchProjectId())%></p>
+                    <%
+                  }else{
+                    %>
+                      <p><em><%= projects.get(i).getResearchProjectId()%></em> : No ID in <%= projects.get(i).getResearchProjectId()%> yet</p>
+                    <%
+                  }
                 }
               }
               %>
+                </div>
         </div>
 
         <div class="col-sm-6">
@@ -2410,6 +2423,7 @@ if (sharky.getNames() != null) {
    $( window ).resize(function(){
      cropDesktopPics(maxHeight);
    });
+
    </script>
 
 
