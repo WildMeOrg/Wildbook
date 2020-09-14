@@ -790,7 +790,7 @@ if (sharky.getNames() != null) {
               if(projects!=null && projects.size()>0){
                 %>
                   <div id="project-ids">
-                  <p><%=props.getProperty("projects") %></p>
+                    <p><%=props.getProperty("projects") %></p>
                 <%
                 for(int i=0; i< projects.size(); i++){
                   if(indie.getName(projects.get(i).getResearchProjectId()) != null){
