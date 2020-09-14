@@ -73,6 +73,10 @@ User currentUser = AccessControl.getUser(request, myShepherd);
           catch(Exception e){
           	e.printStackTrace();
           }
+          finally{
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+          }
           %>
       </tbody>
   </table>
