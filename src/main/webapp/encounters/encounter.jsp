@@ -188,7 +188,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   <style type="text/css">
-
 .id-action {
     display: none;
 }
@@ -2799,22 +2798,29 @@ else {
 					                            <%
 					                          }
                                   List<Project> projects = myShepherd.getProjectsForEncounter(enc);
+                                  MarkedIndividual indie = myShepherd.getMarkedIndividual(enc);
                                   if(projects!=null && projects.size()>0){
                                     %>
-                                      <p><strong><%=encprops.getProperty("projects") %></strong></p>
+                                      <div id="project-ids">
+                                        <p><strong><%=encprops.getProperty("projects") %></strong></p>
                                     <%
                                     for(int i=0; i< projects.size(); i++){
-                                    %>
-                                      <p><%= projects.get(i).getResearchProjectName()%></p>
-                                    <%
+                                      if(indie != null && indie.getName(projects.get(i).getResearchProjectId()) != null){
+                                        %>
+                                        <p><em><%= projects.get(i).getResearchProjectId()%></em> : <%= indie.getName(projects.get(i).getResearchProjectId())%></p>
+                                        <%
+                                      }else{
+                                        %>
+                                          <p><em><%= projects.get(i).getResearchProjectId()%></em> : No ID in <%= projects.get(i).getResearchProjectId()%> yet</p>
+                                        <%
+                                      }
                                     }
                                   }
 					                        %>
+                                  </div>
 					                        </div>
 					                      </div>
-
 					                  </div>
-
 					<%
 					                         	}
 
