@@ -1442,6 +1442,7 @@ else {
 <% FormUtilities.printStringFieldSearchRow("submitterProject", out, encprops); %>
 <%
   FormUtilities.setUpOrgDropdown("organizationId", false, encprops, out, request, myShepherd);
+  FormUtilities.setUpProjectDropdown(6, "Project Name", "projectId", encprops, out, request, myShepherd);
 %>
 
 <tr>
