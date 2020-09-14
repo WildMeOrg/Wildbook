@@ -39,6 +39,7 @@ import java.text.DecimalFormat;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
+import java.util.regex.*;
 
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
@@ -300,6 +301,25 @@ public class MarkedIndividual implements java.io.Serializable {
       }
       return returnVal;
     }
+
+    public String getFirstMatchingNameKey(String query){
+      String returnVal = "";
+      if (hasNameKey(query)) {
+        List<String> nameKeys = this.getNameKeys();
+        System.out.println("nameKeys in getFirstMatchingNameKey: " + nameKeys.toString());
+        for(int i=0; i<nameKeys.size(); i++){
+          CharSequence inputStr = nameKeys.get(i);
+          String patternStr = query;
+          Pattern pattern = Pattern.compile(patternStr);
+          Matcher matcher = pattern.matcher(inputStr);
+          if(matcher.find() && returnVal.equals("")){
+            System.out.println("got a match in getFirstMatchingNameKey");
+            returnVal = nameKeys.get(i);
+          }
+        }
+    }
+    return returnVal;
+  }
 
 ///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
 
