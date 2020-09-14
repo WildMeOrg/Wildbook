@@ -2628,6 +2628,29 @@ public class Shepherd {
     return projectArr;
   }
 
+  public ArrayList<Project> getAllProjectsForEncounter(Encounter encounter) {
+    Query query = null;
+    Iterator<Project> projectIter = null;
+    ArrayList<Project> projectArr = null;
+    try {
+      String filter = "SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) VARIABLES org.ecocean.Encounter enc";
+      query = getPM().newQuery(filter);
+      Collection c = (Collection)query.execute();
+      projectIter = c.iterator();
+      while (projectIter.hasNext()) {
+        if (projectArr==null) {
+          projectArr = new ArrayList<>();
+        }
+        projectArr.add(projectIter.next());
+      }
+    } catch (JDOException jdoe) {
+      jdoe.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return projectArr;
+  }
+
   public List<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(MarkedIndividual indiv) {
     HashMap<String,Integer> hmap = new HashMap<String,Integer>();
    TreeMap<String, Integer> map=new TreeMap<String, Integer>();
