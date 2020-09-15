@@ -439,6 +439,7 @@ function assetLoaded(imgEl) {
     if (!assetData[mid] || (Object.keys(assetData[mid]).length < 2)) return;
     for (var annId in assetData[mid]) {
         for (var i = 0 ; i < assetData[mid][annId].length ; i++) {
+            if (assetData[mid][annId][i].origHeight) scale = imgEl.height / assetData[mid][annId][i].origHeight;
             if (assetData[mid][annId][i].type != 'org.ecocean.boundingBox') continue;
             if (!assetData[mid][annId][i].parameters) continue;
             var fbox = $('<div data-annotid="' + annId + '" class="feature-' + annId + ' feature-box"><div class="feature-note">' + annId.substring(0,8) + '</div></div>');
@@ -516,6 +517,8 @@ for (Annotation ann : ma.getAnnotations()) {
         jf.put("type", ft.getType());
         String foo = ft.getParametersAsString();  //silly dn busting
         jf.put("parameters", ft.getParameters());
+        jf.put("origWidth", ma.getWidth());
+        jf.put("origHeight", ma.getHeight());
         fts.put(jf);
     }
     adata.put(ann.getId(), fts);

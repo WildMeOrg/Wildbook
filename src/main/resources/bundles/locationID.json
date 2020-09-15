@@ -90,6 +90,14 @@
 					"defaultLatitude": -0.627778, "defaultLongitude": 30.966667
 				},
 				{
+					"name": "Murchison Falls South",
+					"id": "Murchison Falls South"
+				},
+				{
+					"name": "Pian Upe",
+					"id": "Pian Upe"
+				},
+				{
 					"name": "Kidepo",
 					"id": "Kidepo",
 					"defaultLatitude": 3.9, "defaultLongitude": 33.85
