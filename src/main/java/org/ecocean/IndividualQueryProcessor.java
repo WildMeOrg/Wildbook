@@ -88,7 +88,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
       //filter for projectName-------------------
       if((request.getParameter("projectId")!=null) && (!request.getParameter("projectId").equals("")) && Util.isUUID(request.getParameter("projectId"))){
-        filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && ";
+        filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && ";
         String[] projectIds = request.getParameterValues("projectId");
         if((projectIds!=null)&&(!projectIds[0].equals("None"))){
           prettyPrint.append("Assigned to one of the following projects: ");
@@ -106,7 +106,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
             }
           }
           projIdFilter += " )";
-          if(filter.equals("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && ")){
+          if(filter.equals("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && ")){
             filter += projIdFilter;
           }else{
             filter+=(" && " + projIdFilter);
