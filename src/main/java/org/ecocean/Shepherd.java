@@ -2635,7 +2635,8 @@ public class Shepherd {
     try {
       String filter = "SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) VARIABLES org.ecocean.Encounter enc";
       query = getPM().newQuery(filter);
-      Collection c = (Collection)query.execute();
+      query.declareParameters("Encounter enc");
+      Collection c = (Collection)query.execute(encounter);
       projectIter = c.iterator();
       while (projectIter.hasNext()) {
         if (projectArr==null) {
