@@ -66,7 +66,7 @@ public class FormUtilities {
   }
 
 
-  public static void setUpProjectDropdown(int colLen, String fieldDisplayName, String fieldName, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
+  public static void setUpProjectDropdown(Boolean isForIndividualOrOccurrenceSearch, int colLen, String fieldDisplayName, String fieldName, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
     User usr = AccessControl.getUser(request, myShepherd);
     if(usr != null){
       List<Project> projects = myShepherd.getOwnedProjectsForUserId(usr.getUUID());
@@ -80,7 +80,7 @@ public class FormUtilities {
         projIds.add(currentProjId);
       }
       try {
-        printStringFieldSearchRowBoldTitle(colLen,true, false, fieldDisplayName, fieldName, projOptions, projIds, out, encprops);
+        printStringFieldSearchRowBoldTitle(colLen,true, isForIndividualOrOccurrenceSearch, fieldDisplayName, fieldName, projOptions, projIds, out, encprops);
       }
       catch(IOException e) {
         System.out.println("IOException: " + e);

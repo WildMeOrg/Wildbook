@@ -140,7 +140,7 @@ try{
   <%
   if(currentUser != null){
     System.out.println("currentUser not null");
-    FormUtilities.setUpProjectDropdown(6,"Select Projects To Add To","id", projProps, out, request, myShepherd);
+    FormUtilities.setUpProjectDropdown(false, 6,"Select Projects To Add To","id", projProps, out, request, myShepherd);
 
     List<Project> projects = myShepherd.getOwnedProjectsForUserId(currentUser.getUUID());
     if(projects != null && projects.size()>0){
