@@ -86,6 +86,43 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
       //end submitter organization ids filter--------------------------------------------------------------------------------------
 
+      //filter for projectName-------------------
+      if((request.getParameter("projectId")!=null) && (!request.getParameter("projectId").equals("")) && Util.isUUID(request.getParameter("projectId"))){
+        filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && ";
+        String[] projectIds = request.getParameterValues("projectId");
+        if((projectIds!=null)&&(!projectIds[0].equals("None"))){
+          prettyPrint.append("Assigned to one of the following projects: ");
+          int numProjIds = projectIds.length;
+          String projIdFilter = "(";
+          for(int i=0; i<numProjIds; i++){
+            String currentProjId = projectIds[i].toLowerCase().replaceAll("%20", " ").trim();
+            if(!currentProjId.equals("")){
+              if(projIdFilter.equals("(")){
+                projIdFilter += " proj.id == \"" + currentProjId + "\"";
+              }else{
+                projIdFilter += " || proj.id == \"" + currentProjId + "\"";
+              }
+              // prettyPrint.append(filter + " " + projIdFilter);
+            }
+          }
+          projIdFilter += " )";
+          if(filter.equals("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && ")){
+            filter += projIdFilter;
+          }else{
+            filter+=(" && " + projIdFilter);
+          }
+          prettyPrint.append(filter);
+          prettyPrint.append("<br/>");
+        }
+        // TODO
+        // filter = "SELECT FROM org.ecocean.Encounter WHERE proj.id == '" + projectId + "' && proj.encounters.contains(this)";
+        String variables_statement = " VARIABLES org.ecocean.Encounter enc; org.ecocean.Project proj";
+        jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
+      } else{
+        //TODO
+      }
+      //end filter for projectName------------------
+
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
     String[] locCodes=request.getParameterValues("locationCodeField");
@@ -1579,6 +1616,11 @@ public class IndividualQueryProcessor extends QueryProcessor {
     }
     sb.append(typeAndVariable);
     return sb.toString();
+  }
+
+  private static String addOrgVars(String jdoqlVariableDeclaration, String orgs) {
+    QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, orgs);
+    return jdoqlVariableDeclaration;
   }
 
 }
