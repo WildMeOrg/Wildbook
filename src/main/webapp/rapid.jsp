@@ -522,7 +522,8 @@ for (Annotation ann : ma.getAnnotations()) {
         fts.put(jf);
     }
     adata.put(ann.getId(), fts);
-    List<Task> tasks = ann.getRootIATasks(myShepherd);
+    //List<Task> tasks = ann.getRootIATasks(myShepherd);
+    List<Task> tasks = Task.getTasksFor(ann, myShepherd);
     int tsize = Util.collectionSize(tasks);
     Encounter enc = encMap.get(ann.getId());
     MarkedIndividual indiv = (enc == null) ? null : enc.getIndividual();
@@ -558,8 +559,15 @@ for (Annotation ann : ma.getAnnotations()) {
 <% } %>
             </div>
             <div class="annot-action">
-<% if (state.equals("review")) { %>
-                <a class="button" target="_new" href="iaResults.jsp?taskId=<%=tasks.get(0).getId()%>">Review</a>
+<%
+if (state.equals("review")) {
+    if (Util.collectionIsEmptyOrNull(tasks)) throw new RuntimeException("empty tasks for " + ann);
+    Task reviewTask = tasks.get(0);  //fallback
+    for (Task tk : tasks) {
+        if (tk.countObjectAnnotations() == 1) reviewTask = tk;  //specific to this annot
+    }
+%>
+                <a class="button" target="_new" href="iaResults.jsp?taskId=<%=reviewTask.getId()%>">Review</a>
 <% }
 if (!state.equals("complete")) { %>
                 <a class="button" href="rapid.jsp?taskId=<%=taskId%>&complete=<%=ann.getId()%>">Mark Complete</a>
