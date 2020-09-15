@@ -1238,4 +1238,31 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       return jobj;
   }
 
+    public org.json.JSONObject asApiJSONObject() {
+        return asApiJSONObject(null);
+    }
+
+    public org.json.JSONObject asApiJSONObject(List<String> expand) {
+        org.json.JSONObject obj = new org.json.JSONObject();
+        obj.put("id", this.getId());
+        obj.put("version", this.getVersion());
+
+        if (Util.collectionIsEmptyOrNull(this.encounters)) {
+            org.json.JSONArray jarr = new org.json.JSONArray();
+            for (Encounter enc : this.encounters) {
+                if ((expand == null) || !expand.contains("encounters")) {
+                    org.json.JSONObject j = new org.json.JSONObject();
+                    j.put("id", enc.getId());
+                    j.put("version", enc.getVersion());
+                    jarr.put(j);
+                } else {
+                    jarr.put(enc.asApiJSONObject());
+                }
+            }
+            obj.put("encounters", jarr);
+        }
+
+        return obj;
+    }
+
 }

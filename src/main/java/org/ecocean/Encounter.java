@@ -3882,4 +3882,10 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         }
     }
 
+    public org.json.JSONObject asApiJSONObject() {
+        org.json.JSONObject obj = new org.json.JSONObject();
+        obj.put("id", this.getId());
+        obj.put("version", this.getVersion());
+        return obj;
+    }
 }

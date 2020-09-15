@@ -164,15 +164,10 @@ public class RestServletV2 extends ApiHttpServlet {
 
         switch (cls) {
             case "org.ecocean.Occurrence":
-                //Occurrence occ = myShepherd.getPM().getObjectById(Occurrence.class, id);
                 Occurrence occ = myShepherd.getOccurrence(id);
                 if (occ != null) {
                     try {
-                        // TODO make a generic way to do "sizeable" expansion here
-                        rtn = new JSONObject();
-                        rtn.put("id", occ.getId());
-                        rtn.put("version", occ.getVersion());
-                        rtn.put("_fixme", true);
+                        rtn = occ.asApiJSONObject(Util.jsonArrayToStringList(payload.optJSONArray("expandProperties")));
                     } catch (Exception ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
