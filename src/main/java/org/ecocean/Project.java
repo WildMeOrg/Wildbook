@@ -314,11 +314,11 @@ public class Project implements java.io.Serializable {
                     encMetadata.put("submitterId", enc.getSubmitterID());
                     encMetadata.put("encounterId", enc.getID());
                     encMetadata.put("individualProjectId", individualProjectId);
-                    // JSONArray allProjectIds = new JSONArray();
-                    // for (String projectId : myShepherd.getResearchProjectIdsForEncounter(enc)) {
-                    //     allProjectIds.put(projectId);
-                    // }
-                    // encMetadata.put("allProjectIds", allProjectIds);
+                    JSONArray allProjectIds = new JSONArray();
+                    for (String projectId : myShepherd.getResearchProjectIdsForEncounter(enc)) {
+                        allProjectIds.put(projectId);
+                    }
+                    encMetadata.put("allProjectIds", allProjectIds);
 
                     encArr.put(encMetadata);
                 } else {
