@@ -3091,12 +3091,53 @@ public class Shepherd {
     return tempShark;
   }
 
+  // public List<MarkedIndividual> getMarkedIndividualsFromProject(Project project){
+  //   List<MarkedIndividual> individuals = new ArrayList<MarkedIndividual>();
+  //   try {
+  //     Query query = getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && proj.id==\"" + project.getId() + "\" VARIABLES org.ecocean.Encounter enc; org.ecocean.Project proj");
+  //     Collection results = (Collection) query.execute();
+  //     individuals = new ArrayList<MarkedIndividual>(results);
+  //     query.closeAll();
+  //   }
+  //   catch (javax.jdo.JDOException x) {
+  //     x.printStackTrace();
+  //     return individuals;
+  //   }
+  //   return individuals;
+  // }
+
+  // public ArrayList<Project> getAllProjectsForMarkedIndividual(MarkedIndividual individual) {
+  //   Query query = null;
+  //   Iterator<Project> projectIter = null;
+  //   ArrayList<Project> projectArr = null;
+  //   try {
+  //     String filter = "SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) && enc.individual == individual VARIABLES org.ecocean.Encounter enc";
+  //     query = getPM().newQuery(filter);
+  //     query.declareParameters("MarkedIndividual individual");
+  //     Collection c = (Collection)query.execute(individual);
+  //     projectIter = c.iterator();
+  //     while (projectIter.hasNext()) {
+  //       if (projectArr==null) {
+  //         projectArr = new ArrayList<>();
+  //       }
+  //       projectArr.add(projectIter.next());
+  //     }
+  //   } catch (JDOException jdoe) {
+  //     jdoe.printStackTrace();
+  //   } finally {
+  //     query.closeAll();
+  //   }
+  //   return projectArr;
+  // }
+
+  
   public List<MarkedIndividual> getMarkedIndividualsFromProject(Project project){
     List<MarkedIndividual> individuals = new ArrayList<MarkedIndividual>();
     try {
-      Query query = getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && proj.id==\"" + project.getId() + "\" VARIABLES org.ecocean.Encounter enc; org.ecocean.Project proj");
-      Collection results = (Collection) query.execute();
-      individuals = new ArrayList<MarkedIndividual>(results);
+      Query query = getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && project.encounters.contains(enc) VARIABLES org.ecocean.Encounter enc");
+      query.declareParameters("Project project");
+      Collection c = (Collection) query.execute(project);
+      individuals = new ArrayList<MarkedIndividual>(c);
       query.closeAll();
     }
     catch (javax.jdo.JDOException x) {
