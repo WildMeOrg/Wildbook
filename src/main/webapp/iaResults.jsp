@@ -1109,15 +1109,14 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					if (!indivId) {
 						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
 					}
-					
-					
 				}
 				
-				let myProjectId = ft.incrementalProjectId;
-				let projectUUID = ft.projectUUID;
-				if (myProjectId) {
-                    h += ' of <a class="project-link" title="open project page" target="_new" href="/projects/projects.jsp?id=' + projectId + '"  title="'+myProjectId+'">' + myProjectId + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/projects.jsp?id=' + projectId + '" title="'+myProjectId+'">' + myProjectId.substring(0,15) + '</a>');
+				let projectFromCache = projectForEncCache[encId];
+				if (projectFromCache) {
+					let incrementalId = projectFromCache.incrementalId;
+					let projectUUID = projectFromCache.projectUUID;
+                    h += ' of <a class="project-link" title="open project page" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '"  title="'+incrementalId+'">' + incrementalId + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '" title="'+incrementalId+'">' + incrementalId.substring(0,15) + '</a>');
                 }
 
                 if (indivId) {
@@ -1608,7 +1607,6 @@ function getProjectData(currentUsername, selectedProject) {
           console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
 		  let projectsArr = d.projects;
 		  if (projectsArr.length) {
-
 			populateProjectsDropdown(projectsArr, selectedProject);
 		  }
       },
@@ -1667,6 +1665,8 @@ $('#projectDropdown').on('change', function() {
 	//applyResearchProjectLinks()
 });
 
+// this is messy, but i'm avoiding another database hit
+var projectForEncCache = {};
 
 function selectedProjectContainsEncounter(acmId) {
 	let selectedProject = $("#projectDropdown").val();
@@ -1705,8 +1705,18 @@ function selectedProjectContainsEncounter(acmId) {
 	
 						if (d.projects.length) {
 							for (i=0;i<d.projects.length;i++) {
-								console.log(" does researchProjectName="+d.projects[i].researchProjectId+" selectedProject="+selectedProject)
-								if (d.projects[i].researchProjectName==selectedProject) {
+								let projectName = d.projects[i].researchProjectName;
+								console.log(" does researchProjectName="+projectName+" selectedProject="+selectedProject)
+								if (projectName==selectedProject) {
+									for (j=0;j<d.projects[i].encounters.length;j++ ) {
+										let thisEncJSON = d.projects[i].encounters[j];
+										if (thisEncJSON.encounterId==encId&&thisEncJSON.individualProjectId) {
+											console.log("ADDING ENC TO PROJECT CACHE!!");
+											projectForEncCache[encId] = {incrementalId: thisEncJSON.individualProjectId, projectUUID: d.projects[i]};
+											console.log("CURRENT PROJECT/ENC CACHE: "+JSON.stringify(projectForEncCache));
+										}
+
+									}
 									return true;
 								}
 							}
