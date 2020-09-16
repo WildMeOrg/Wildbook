@@ -19,7 +19,7 @@ public class ProjectDelete extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
     }
-    
+
     public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
@@ -34,35 +34,34 @@ public class ProjectDelete extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
-        
+
         System.out.println("==> In ProjectDelete Servlet ");
-        
+
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("ProjectDelete.java");
         myShepherd.beginDBTransaction();
-        
+
         JSONObject res = new JSONObject();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
         String researchProjectId = null;
-        try {            
+        try {
             res.put("success","false");
             researchProjectId = j.optString("researchProjectId", null);
 
             System.out.println("ProjectDelete received JSON : "+j.toString());
-
             if (researchProjectId!=null&&!"".equals(researchProjectId)&&myShepherd.getProjectByResearchProjectId(researchProjectId)!=null) {
-                
+
                 Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
                 project.clearAllEncounters();
                 myShepherd.throwAwayProject(project);
                 myShepherd.updateDBTransaction();
                 res.put("success","true");
-            } else { 
+            } else {
               res.put("error","null ID for project to delete");
               response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
-            
+
             out.println(res);
             out.close();
 
