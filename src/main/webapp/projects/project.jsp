@@ -276,8 +276,6 @@ function projectHTMLForTable(json) {
   let locationId = json.locationId;
   let submitterId = json.submitterId;
   //let allProjectIds = json.allProjectIds;
-  console.log("allProjectIds is: ");
-  console.log(allProjectIds);
 
   console.log("THIS ENCOUNTER JSON: "+JSON.stringify(json));
 
@@ -288,7 +286,7 @@ function projectHTMLForTable(json) {
   projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
   projectHTML +=  '<td class="project-style">'+locationId+' </td>';
   projectHTML +=  '<td class="project-style">'+submitterId+' </td>';
-  projectHTML +=  '<td class="project-style">'+individualProjectId+' </td>';
+  projectHTML +=  '<td class="project-style">'+individualDisplayName+' </td>';
   //projectHTML +=  '<td class="project-style">';
   // if (allProjectIds) {
   //   for (i=0;i<allProjectIds.length;i++) {
