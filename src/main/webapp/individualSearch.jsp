@@ -1372,6 +1372,7 @@ else {
       <%
       FormUtilities.setUpOrgDropdown("organizationId", true, props, out, request, myShepherd);
       FormUtilities.setUpProjectDropdown(true, 6, "Project Name", "projectId", props, out, request, myShepherd);
+      FormUtilities.setUpProjectIncrementalIdDropdown(true, 6, "Project Incremental Id", "projectIncrementalId", props, out, request, myShepherd);
       %>
 </div>
 </td>

@@ -3090,6 +3090,21 @@ public class Shepherd {
     return tempShark;
   }
 
+  public List<MarkedIndividual> getMarkedIndividualsFromProject(Project project){
+    List<MarkedIndividual> individuals = new ArrayList<MarkedIndividual>();
+    try {
+      Query query = getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && proj.id==\"" + project.getId() + "\" VARIABLES org.ecocean.Encounter enc; org.ecocean.Project proj");
+      Collection results = (Collection) query.execute();
+      individuals = new ArrayList<MarkedIndividual>(results);
+      query.closeAll();
+    }
+    catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return individuals;
+    }
+    return individuals;
+  }
+
   public MarkedIndividual getMarkedIndividualHard(Encounter enc) {
     String num = enc.getCatalogNumber();
     String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && enc.catalogNumber == \""+num+"\"  VARIABLES org.ecocean.Encounter enc";

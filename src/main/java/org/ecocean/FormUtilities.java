@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspWriter;
+import java.util.regex.*;
 /**
  * Comment
  *
@@ -90,6 +91,46 @@ public class FormUtilities {
       }
     }
   }
+
+  public static void setUpProjectIncrementalIdDropdown(Boolean isForIndividualOrOccurrenceSearch, int colLen, String fieldDisplayName, String fieldName, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
+    User usr = AccessControl.getUser(request, myShepherd);
+    if(usr != null){
+      List<Project> projects = myShepherd.getOwnedProjectsForUserId(usr.getUUID());
+      List<String> incrementOpts = new ArrayList<String>();
+      List<String> incrementIds = new ArrayList<String>();
+      for (int i = 0; i < projects.size(); i++) { //TODO DRY up
+        Project currentProject = projects.get(i);
+        List<MarkedIndividual> individuals = myShepherd.getMarkedIndividualsFromProject(currentProject);
+        for(int j =0; j<individuals.size(); j++){
+          MarkedIndividual currentIndividual = individuals.get(j);
+          if(currentIndividual != null){
+            String incrementalId = currentIndividual.getFirstMatchingName(";?.*"+currentProject.getResearchProjectId()+"\\d+.*");//.replace(";",""); //";?.*"+
+            String pattern = "(.*;?.*)("+currentProject.getResearchProjectId()+"\\d+)(.*)";
+            Pattern r = Pattern.compile(pattern);
+            Matcher matcher = r.matcher(incrementalId);
+            if(matcher.find()){
+              incrementalId = matcher.group(2);
+              if(incrementalId != null && !incrementalId.equals("") && !incrementOpts.contains(incrementalId)){
+                System.out.println("adding incrementalId: " + incrementalId);
+                incrementOpts.add(incrementalId);
+                incrementIds.add(incrementalId);
+              }
+            }
+          }
+        }
+      }
+      try {
+        printStringFieldSearchRowBoldTitle(colLen,true, isForIndividualOrOccurrenceSearch, fieldDisplayName, fieldName, incrementOpts, incrementIds, out, encprops);
+      }
+      catch(IOException e) {
+        System.out.println("IOException: " + e);
+      }
+      catch(IllegalAccessException e){
+        System.out.println("IllegalAccessException: " + e);
+      }
+    }
+  }
+
 
   public static void setUpOrgDropdown(String fieldName, Boolean isForIndividualOrOccurrenceSearch, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
     User usr = AccessControl.getUser(request, myShepherd);
