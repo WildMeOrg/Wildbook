@@ -926,8 +926,9 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">Image Analysis has returned and no match was found.</p>');
 			return;
 		}
-		var max = sorted.length;
-		if (max > RESMAX) max = RESMAX;
+		var maxToEvaluate = sorted.length;
+		if (maxToEvaluate > RESMAX) maxToEvaluate = RESMAX;
+
 		// ----- BEGIN Hotspotter IA Illustration: here we construct the illustration link URLs for each dannot -----
 		// these URLs are passed-along and rendered in html by displayAnnotDetails
 		var resJSON = res.status._response.response.json_result['cm_dict'][qannotId];
@@ -936,14 +937,12 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		var query_annot_uuid = qannotId;
 		var version = "heatmask";
 
-		let count = 0;
-		while (count<max) {
 
-			//infini-loop whooooooohhooooooooooo
+		for (var i = 0 ; i < maxToEvaluate; i++) {
 
-			console.log("in annot loop, count="+count+" max="+max);
+			console.log("in annot loop, i="+i+" maxToEvaluate="+maxToEvaluate);
 
-			var d = sorted[count].split(/\s/);
+			var d = sorted[i].split(/\s/);
 			if (!d) break;
 			var acmId = d[1];
 			var database_annot_uuid = d[1];
@@ -953,13 +952,14 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 			let isSelected = isProjectSelected();
 			let validEnc = true;
+
 			if (isSelected) {
 				validEnc = selectedProjectContainsEncounter(acmId);
 			}
 
-			console.log("is a project selected? "+isProjectSelected());
-			if (!isSelected||validEnc) {
-				console.log("selected project in encounter!! count="+count);
+			if ((isSelected&&validEnc)||!isSelected) {
+
+				console.log("SHOWING ANNOT INDEX : "+i);
 				console.log("has_illustration = "+has_illustration);
 				
 				var illustUrl;
@@ -972,48 +972,18 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 					illustUrl = false;
 				}
 				
-				//console.log("ILLUSTRATION "+i+" "+illustUrl);
-				// no illustration for DTW
-				//if (algoInfo == 'OC_WDTW') illustUrl = false;
-				// var adjustedScore = d[0] / 1000
 				var adjustedScore = d[0];
-				displayAnnot(res.taskId, d[1], count, adjustedScore, illustUrl);
+				displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
 				// ----- END Hotspotter IA Illustration-----
-				count++;
+			} else {
+				// we have skipped an annotation here due to it not being present in a project. let another through to make max possible
+				if (maxToEvaluate<sorted.length) {
+					maxToEvaluate++;
+				}
 			}
-			// var validEnc = selectedProjectContainsEncounter(acmId).then(function () {
 
-
-			// });
 		}
 
-		//for (var i = 0 ; i < max ; i++) {
-			// var d = sorted[i].split(/\s/);
-			// var acmId = d[0];
-			// var database_annot_uuid = d[1];
-			// var has_illustration = d[2];
-			// console.log("has_illustration = "+has_illustration);
-
-			// var illustUrl;
-			// if (has_illustration) {
-			// 	illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
-			// 	illustUrl += "&query_annot_uuid="+query_annot_uuid;
-			// 	illustUrl += "&database_annot_uuid="+database_annot_uuid;
-			// 	illustUrl += "&version="+version;
-			// } else {
-			// 	illustUrl = false;
-			// }
-
-			// //console.log("ILLUSTRATION "+i+" "+illustUrl);
-
-			// // no illustration for DTW
-			// //if (algoInfo == 'OC_WDTW') illustUrl = false;
-
-			// // var adjustedScore = d[0] / 1000
-			// var adjustedScore = d[0]
-			// displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
-			// // ----- END Hotspotter IA Illustration-----
-		//}
 		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
 		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
 
@@ -1121,10 +1091,6 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 //console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
 				var indivId = ft.individualId;
-
-				//get currently selected project from dropdown. 
-				
-				//theoretically, you are only matching against other anns from your project. 
 				
 				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
@@ -1136,7 +1102,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					displayName = $('.enc-title .indiv-link').text();
 				}
                 if (encId) {
-					console.log("Main asset encId = "+encId);
+					//console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter</a>');
                     
@@ -1164,7 +1130,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 }
 
                 if (encId || indivId) {
-console.log("XX %o", displayName);
+//console.log("XX %o", displayName);
             $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 h += '<div id="enc-action">' + headerDefault + '</div>';
@@ -1702,7 +1668,7 @@ $('#projectDropdown').on('change', function() {
 });
 
 
-async function selectedProjectContainsEncounter(acmId) {
+function selectedProjectContainsEncounter(acmId) {
 	let selectedProject = $("#projectDropdown").val();
 	let requestJSON = {};
 	//requestJSON['researchProjectId'] = selectedProject;
@@ -1715,7 +1681,8 @@ async function selectedProjectContainsEncounter(acmId) {
 		dataType: 'json',
 		complete: function(d) {
 			
-			if (d.responseJSON.annotations[0].asset) {
+			console.log("RESPONSE IN AJAX #1 : "+JSON.stringify(d));
+			if (d.responseJSON.annotations.length>0&&d.responseJSON.annotations[0].asset) {
 				var ft = findMyFeature(acmId, d.responseJSON.annotations[0].asset);
 				var encId = ft.encounterId;
 	
@@ -1723,6 +1690,8 @@ async function selectedProjectContainsEncounter(acmId) {
 	
 				let requestJSON = {};
 				requestJSON['encounterId'] = encId;
+
+				console.log("TRYING TO PROCESS ENCID "+encId);
 	
 				$.ajax({
 					url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -1736,14 +1705,12 @@ async function selectedProjectContainsEncounter(acmId) {
 	
 						if (d.projects.length) {
 							for (i=0;i<d.projects.length;i++) {
-								console.log(" iterating through projects to verify asset...");
 								console.log(" does researchProjectName="+d.projects[i].researchProjectId+" selectedProject="+selectedProject)
 								if (d.projects[i].researchProjectName==selectedProject) {
 									return true;
 								}
 							}
 						}
-						//console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
 					},
 					error: function(x,y,z) {
 						console.warn('%o %o %o', x, y, z);
