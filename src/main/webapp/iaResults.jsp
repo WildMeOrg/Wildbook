@@ -74,10 +74,12 @@ if (request.getParameter("acmId") != null) {
 						Encounter enc = ann.findEncounter(myShepherd);
 						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
 							MarkedIndividual individual = enc.getIndividual();
-							List<String> projectNames = individual.getNamesList(researchProjectId);
-							jann.put("incrementalProjectId", projectNames.get(0));
-							jann.put("researchProjectId", researchProjectId);
-							jann.put("projectUUID", project.getId());
+							if (individual!=null) {
+								List<String> projectNames = individual.getNamesList(researchProjectId);
+								jann.put("incrementalProjectId", projectNames.get(0));
+								jann.put("researchProjectId", researchProjectId);
+								jann.put("projectUUID", project.getId());
+							}
 						} 
 					}
 				}
@@ -936,37 +938,53 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 		let count = 0;
 		while (count<max) {
-			console.log();
+
+			//infini-loop whooooooohhooooooooooo
+
+			console.log("in annot loop, count="+count+" max="+max);
 
 			var d = sorted[count].split(/\s/);
-			var acmId = d[0];
+			if (!d) break;
+			var acmId = d[1];
 			var database_annot_uuid = d[1];
 			var has_illustration = d[2];
 
-			if (!selectedProjectContainsEncounter(acmId)) {
-				continue;
+			console.log("this acmId: "+acmId);
+
+			let isSelected = isProjectSelected();
+			let validEnc = true;
+			if (isSelected) {
+				validEnc = selectedProjectContainsEncounter(acmId);
 			}
 
-			console.log("has_illustration = "+has_illustration);
-
-			var illustUrl;
-			if (has_illustration) {
-				illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
-				illustUrl += "&query_annot_uuid="+query_annot_uuid;
-				illustUrl += "&database_annot_uuid="+database_annot_uuid;
-				illustUrl += "&version="+version;
-			} else {
-				illustUrl = false;
+			console.log("is a project selected? "+isProjectSelected());
+			if (!isSelected||validEnc) {
+				console.log("selected project in encounter!! count="+count);
+				console.log("has_illustration = "+has_illustration);
+				
+				var illustUrl;
+				if (has_illustration) {
+					illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
+					illustUrl += "&query_annot_uuid="+query_annot_uuid;
+					illustUrl += "&database_annot_uuid="+database_annot_uuid;
+					illustUrl += "&version="+version;
+				} else {
+					illustUrl = false;
+				}
+				
+				//console.log("ILLUSTRATION "+i+" "+illustUrl);
+				// no illustration for DTW
+				//if (algoInfo == 'OC_WDTW') illustUrl = false;
+				// var adjustedScore = d[0] / 1000
+				var adjustedScore = d[0];
+				displayAnnot(res.taskId, d[1], count, adjustedScore, illustUrl);
+				// ----- END Hotspotter IA Illustration-----
+				count++;
 			}
+			// var validEnc = selectedProjectContainsEncounter(acmId).then(function () {
 
-			//console.log("ILLUSTRATION "+i+" "+illustUrl);
-			// no illustration for DTW
-			//if (algoInfo == 'OC_WDTW') illustUrl = false;
-			// var adjustedScore = d[0] / 1000
-			var adjustedScore = d[0];
-			displayAnnot(res.taskId, d[1], count, adjustedScore, illustUrl);
-			// ----- END Hotspotter IA Illustration-----
-			count++;
+
+			// });
 		}
 
 		//for (var i = 0 ; i < max ; i++) {
@@ -1591,7 +1609,7 @@ function negativeButtonClick(encId, oldDisplayName) {
 
 }
 
-function  updateNameCallback(d, oldDisplayName) {
+function updateNameCallback(d, oldDisplayName) {
 	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
 	console.alert("Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName);
 }
@@ -1625,8 +1643,6 @@ function getProjectData(currentUsername, selectedProject) {
 		  let projectsArr = d.projects;
 		  if (projectsArr.length) {
 
-			// THIS VERSION DID NOT POPULATE
-
 			populateProjectsDropdown(projectsArr, selectedProject);
 		  }
       },
@@ -1643,7 +1659,7 @@ function populateProjectsDropdown(projectsArr, selectedProject) {
 	if (selectedProject==""||selectedProject||"null"||!selectedProject.length) {
 		emptyOption = $('<option selected class="projectSelectOption">None Selected</option>');
 	} else {
-		emptyOption = $('<option class="projectSelectOption">None Selected</option>');
+		emptyOption = $('<option value="" class="projectSelectOption">None Selected</option>');
 	}
 	dropdown.append(emptyOption); 
 	for (i=0;i<projectsArr.length;i++) {
@@ -1666,6 +1682,14 @@ $(document).ready(function(){
 	}
 });
 
+function isProjectSelected() {
+	let dropdownVal = $("#projectDropdown").val();
+	if (dropdownVal&&dropdownVal!=""&&dropdownVal!="None Selected") {
+		return true;
+	}
+	return false;
+}
+
 $('#projectDropdown').on('change', function() {
 	let taskId = '<%=taskId%>';
 	let reloadURL = "../iaResults.jsp?taskId="+taskId;
@@ -1677,7 +1701,8 @@ $('#projectDropdown').on('change', function() {
 	//applyResearchProjectLinks()
 });
 
-function selectedProjectContainsEncounter(acmId) {
+
+async function selectedProjectContainsEncounter(acmId) {
 	let selectedProject = $("#projectDropdown").val();
 	let requestJSON = {};
 	//requestJSON['researchProjectId'] = selectedProject;
@@ -1688,43 +1713,45 @@ function selectedProjectContainsEncounter(acmId) {
 		url: paramString,
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { 
-			var ft = findMyFeature(acmId, d.responseJSON.annotations[0].asset);
-			var encId = ft.encounterId;
-
-			console.log("selectedProjectContainsEncounter() ajax #1 passed");
-
-			let requestJSON = {};
-  			requestJSON['encounterId'] = encId;
-
-			$.ajax({
-				url: wildbookGlobals.baseUrl + '../ProjectGet',
-				type: 'POST',
-				data: JSON.stringify(requestJSON),
-				dataType: 'json',
-				contentType: 'application/json',
-				success: function(d) {
-
-					console.log("selectedProjectContainsEncounter() ajax #2 passed");
-
-					if (d.projects.length) {
-						for (i=0;i<d.projects.length;i++) {
-							console.log(" iterating through projects to verify asset...");
-							if (d.projects[i].researchProjectName==selectedProject) {
-								return true;
+		complete: function(d) {
+			
+			if (d.responseJSON.annotations[0].asset) {
+				var ft = findMyFeature(acmId, d.responseJSON.annotations[0].asset);
+				var encId = ft.encounterId;
+	
+				console.log("selectedProjectContainsEncounter() ajax #1 passed");
+	
+				let requestJSON = {};
+				requestJSON['encounterId'] = encId;
+	
+				$.ajax({
+					url: wildbookGlobals.baseUrl + '../ProjectGet',
+					type: 'POST',
+					data: JSON.stringify(requestJSON),
+					dataType: 'json',
+					contentType: 'application/json',
+					success: function(d) {
+	
+						console.log("selectedProjectContainsEncounter() ajax #2 passed");
+	
+						if (d.projects.length) {
+							for (i=0;i<d.projects.length;i++) {
+								console.log(" iterating through projects to verify asset...");
+								console.log(" does researchProjectName="+d.projects[i].researchProjectId+" selectedProject="+selectedProject)
+								if (d.projects[i].researchProjectName==selectedProject) {
+									return true;
+								}
 							}
 						}
+						//console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
+					},
+					error: function(x,y,z) {
+						console.warn('%o %o %o', x, y, z);
 					}
-					console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
-				},
-				error: function(x,y,z) {
-					console.warn('%o %o %o', x, y, z);
-				}
-			});
+				});
+			}
 		}
 	});
-
-	// TODO get all projects for encounter and match to name
 
 	return false;
 }
