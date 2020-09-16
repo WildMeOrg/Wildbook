@@ -295,11 +295,16 @@ public class Project implements java.io.Serializable {
                     JSONObject encMetadata = new JSONObject();
                     String individualName = "";
                     String individualUUID = "";
+                    String individualProjectId = "";
                     boolean hasNameKeyMatchingProject = false;
-                    if (enc.getIndividual()!=null&&Util.stringExists(enc.getIndividual().getDisplayName())) {
-                        individualName = enc.getIndividual().getDisplayName();
-                        individualUUID = enc.getIndividual().getId();
-                        hasNameKeyMatchingProject = enc.getIndividual().hasNameKey(researchProjectId);
+                    MarkedIndividual individual = enc.getIndividual();
+                    if (individual!=null&&Util.stringExists(individual.getDisplayName())) {
+                        individualName = individual.getDisplayName();
+                        individualUUID = individual.getId();
+                        hasNameKeyMatchingProject = individual.hasNameKey(researchProjectId);
+                        if (hasNameKeyMatchingProject) {
+                            individualProjectId = individual.getDisplayName(researchProjectId);
+                        }
                     }
                     encMetadata.put("individualUUID", individualUUID);
                     encMetadata.put("individualDisplayName", individualName);
@@ -308,11 +313,13 @@ public class Project implements java.io.Serializable {
                     encMetadata.put("locationId", enc.getLocationID());
                     encMetadata.put("submitterId", enc.getSubmitterID());
                     encMetadata.put("encounterId", enc.getID());
-                    JSONArray allProjectIds = new JSONArray();
-                    for (String projectId : myShepherd.getResearchProjectIdsForEncounter(enc)) {
-                        allProjectIds.put(projectId);
-                    }
-                    encMetadata.put("allProjectIds", allProjectIds);
+                    encMetadata.put("individualProjectId", individualProjectId);
+                    // JSONArray allProjectIds = new JSONArray();
+                    // for (String projectId : myShepherd.getResearchProjectIdsForEncounter(enc)) {
+                    //     allProjectIds.put(projectId);
+                    // }
+                    // encMetadata.put("allProjectIds", allProjectIds);
+
                     encArr.put(encMetadata);
                 } else {
                     encArr.put(enc.getID());
