@@ -275,7 +275,7 @@ function projectHTMLForTable(json) {
   let encounterDate = json.encounterDate;
   let locationId = json.locationId;
   let submitterId = json.submitterId;
-  let allProjectIds = json.allProjectIds;
+  //let allProjectIds = json.allProjectIds;
   console.log("allProjectIds is: ");
   console.log(allProjectIds);
 
@@ -288,15 +288,16 @@ function projectHTMLForTable(json) {
   projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
   projectHTML +=  '<td class="project-style">'+locationId+' </td>';
   projectHTML +=  '<td class="project-style">'+submitterId+' </td>';
-  projectHTML +=  '<td class="project-style">';
-  if (allProjectIds) {
-    for (i=0;i<allProjectIds.length;i++) {
-      projectHTML += (allProjectIds[i]+" ");
-    }
-  }  else {
-    projectHTML += "(None)";
-  }
-  projectHTML +=  '</td>';
+  projectHTML +=  '<td class="project-style">'+individualProjectId+' </td>';
+  //projectHTML +=  '<td class="project-style">';
+  // if (allProjectIds) {
+  //   for (i=0;i<allProjectIds.length;i++) {
+  //     projectHTML += (allProjectIds[i]+" ");
+  //   }
+  // }  else {
+  //   projectHTML += "(None)";
+  // }
+  //projectHTML +=  '</td>';
   projectHTML +=  '<td class="project-style">';
   projectHTML +=  '<button type="button">Project Match</button>';
   projectHTML +=  '</br>';
