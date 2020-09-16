@@ -302,23 +302,21 @@ public class MarkedIndividual implements java.io.Serializable {
       return returnVal;
     }
 
-    public String getFirstMatchingNameKey(String query){
+    public String getFirstMatchingName(String query){
+      // System.out.println("entered getFirstMatchingName. Query is: " + query);
       String returnVal = "";
-      if (hasNameKey(query)) {
-        List<String> nameKeys = this.getNameKeys();
-        System.out.println("nameKeys in getFirstMatchingNameKey: " + nameKeys.toString());
-        for(int i=0; i<nameKeys.size(); i++){
-          CharSequence inputStr = nameKeys.get(i);
-          String patternStr = query;
-          Pattern pattern = Pattern.compile(patternStr);
-          Matcher matcher = pattern.matcher(inputStr);
-          if(matcher.find() && returnVal.equals("")){
-            System.out.println("got a match in getFirstMatchingNameKey");
-            returnVal = nameKeys.get(i);
+      if (NAMES_CACHE == null) return returnVal;
+      if (query == null) return returnVal;
+      int tracker = 0;
+      for (Integer nid : NAMES_CACHE.keySet()) {
+          if (NAMES_CACHE.get(nid).matches(query.toLowerCase()) && tracker<1){
+            returnVal = NAMES_CACHE.get(nid);
+            return returnVal;
+            // tracker ++;
+            // System.out.println("tracker is: " + tracker);
           }
-        }
-    }
-    return returnVal;
+      }
+      return returnVal;
   }
 
 ///////////////// TODO other setters!!!!  e.g. addNameByKey(s)
@@ -2545,12 +2543,22 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     //used above, but also used in IndividualQueryProcessor, for example
     public static List<String> findNameIds(String regex) {
         List<String> nameIds = new ArrayList<String>();
-        if (NAMES_CACHE == null) return nameIds;  //snh
+        if (NAMES_CACHE == null) return nameIds;
         if (regex == null) return nameIds;
         for (Integer nid : NAMES_CACHE.keySet()) {
             if (NAMES_CACHE.get(nid).matches(regex.toLowerCase())) nameIds.add(Integer.toString(nid));
         }
         return nameIds;
+    }
+
+    public static List<String> findNames(String regex) {
+        List<String> names = new ArrayList<String>();
+        if (NAMES_CACHE == null) return names;  //snh
+        if (regex == null) return names;
+        for (Integer nid : NAMES_CACHE.keySet()) {
+            if (NAMES_CACHE.get(nid).matches(regex.toLowerCase())) names.add(NAMES_CACHE.get(nid));
+        }
+        return names;
     }
 
     //only does once (when needed)
