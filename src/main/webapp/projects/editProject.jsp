@@ -60,7 +60,6 @@
 
 <script>
 function showEditProject() {
-  // console.log("entered showEditProject");
     let ownerId = '<%=currentUser.getId()%>';
     let projectId = '<%=projId%>';
     let getEncounterMetadata = true;
@@ -71,7 +70,6 @@ function showEditProject() {
 }
 
 function doProjectGetAjax(json){
-  console.log("doProjectGetAjax entered");
   $.ajax({
       url: wildbookGlobals.baseUrl + '../ProjectGet',
       type: 'POST',
@@ -80,8 +78,6 @@ function doProjectGetAjax(json){
       contentType: 'application/json',
       success: function(data) {
           populateHtml(data.projects[0]);
-          console.log("literal response: ");
-          console.log(data.projects[0]);
       },
       error: function(x,y,z) {
         //TODO some sort of indication on user end that something has gone wrong
@@ -91,8 +87,7 @@ function doProjectGetAjax(json){
 }
 
 function populateHtml(project){
-  console.log("")
-  let projectHTML = '<div class="researchProjectIdDiv" id="'+project.id+'">';
+  let projectHTML = '<div class="researchProjectIdDiv" id="'+project.researchProjectId+'">';
   projectHTML += '<p>' + project.researchProjectName + '</p>';
   projectHTML += '<p><input class="btn btn-md" type="button" onclick="deleteProject(this)" value="Delete"/></p>';
   projectHTML += '</div>';
@@ -101,7 +96,6 @@ function populateHtml(project){
 
 function deleteProject(el) {
   let projectId = $(el).closest(".researchProjectIdDiv").attr("id");
-  console.log("PROJECTID FOR DELETE: "+projectId);
   let json = {};
   json['researchProjectId'] = projectId;
   doDeleteAjax(json);
@@ -115,8 +109,7 @@ function doDeleteAjax(json){
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-          console.info('Success Deleting project! Got back '+JSON.stringify(data));
-          debugger;
+        //TODO indicate to user that something good happened
           window.location.replace('/projects/projectList.jsp');
       },
       error: function(x,y,z) {
@@ -128,7 +121,6 @@ function doDeleteAjax(json){
 
 
 $(document).ready(function() { //TODO not sure why this is not working
-    console.log( "ready!" );
     showEditProject();
 });
 </script>
