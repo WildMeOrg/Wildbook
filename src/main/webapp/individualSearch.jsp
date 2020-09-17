@@ -238,6 +238,7 @@ if(compareAgainst.getGeneticSex()!=null){
 <p><em><strong><%=props.getProperty("instructions")%>
 </strong></em></p>
 <form action="<%=formAction %>" method="get" name="individualSearch" id="search">
+  <input type="hidden" name="hiddenIncrementId" id="hiddenIncrementId" />
     <%
 	if(request.getParameter("individualDistanceSearch")!=null){
 	%>
@@ -1454,13 +1455,16 @@ function removeIncrementalIdFromSearchParameters(name){
 function addIncrementalIdsToUrlParams(){
   console.log("addIncrementalIdsToUrlParams entered. incrementalIdsOnSearchList is: ");
   console.log(incrementalIdsOnSearchList);
+  $('#individualIncrementalIds').val(incrementalIdsOnSearchList.join("; "));
+  $('#hiddenIncrementId').val(incrementalIdsOnSearchList.join("; "));
   debugger;
 }
 
 function populateIncrementalIdHtml(){
   console.log("populateIncrementalIdHtml called")
   $('#incremental-id-container').empty();
-  let incrementalIdHtml = '<div class="form-group row">';
+  let incrementalIdHtml = '';
+  // incrementalIdHtml += '<div class="form-group row">';
   incrementalIdHtml += '<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">';
   incrementalIdHtml += '<label><strong><%=props.getProperty("incrementalIdLab") %></strong></label>';
   incrementalIdHtml += '<input class="form-control" name="individualIncrementalIds" type="text" id="individualIncrementalIds" placeholder="<%=props.getProperty("typeToSearch") %>">';
@@ -1471,7 +1475,7 @@ function populateIncrementalIdHtml(){
   incrementalIdHtml += '<div id="individualIncrementalIdsList">';
   incrementalIdHtml += '</div>';
   incrementalIdHtml += '</div>';
-  incrementalIdHtml += '</div>';
+  // incrementalIdHtml += '</div>';
   $("#incremental-id-container").append(incrementalIdHtml);
 }
 
