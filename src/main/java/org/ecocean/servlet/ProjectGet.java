@@ -63,7 +63,6 @@ public class ProjectGet extends HttpServlet {
             boolean getUserIncrementalIds = false;
             String getUserIncrementalIdsOpt = j.optString("getUserIncrementalIds", null);
             if ("true".equals(getUserIncrementalIdsOpt)) {
-                System.out.println("getUserIncrementalIds is true");
                 getUserIncrementalIds = true;
             }
 
@@ -97,12 +96,10 @@ public class ProjectGet extends HttpServlet {
                             }
                         }
                         if (useProject) {
-                            System.out.println("Passed screens. Searching in this project...");
                             List<MarkedIndividual> individuals = project.getAllIndividualsForProject();
                             for (MarkedIndividual individual : individuals) {
                                 String projectIncrementalId = individual.getName(researchProjectId);
                                 if (projectIncrementalId.contains(currentInput)) {
-                                    System.out.println("projectIncrementalId is: " + projectIncrementalId);
                                     JSONObject individualData = new JSONObject();
                                     individualData.put("projectIncrementalId", projectIncrementalId);
                                     individualData.put("individualId", individual.getId());
