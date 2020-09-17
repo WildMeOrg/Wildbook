@@ -109,16 +109,17 @@ public class FormUtilities {
         for(MarkedIndividual currentIndividual: individuals){
           // MarkedIndividual currentIndividual = individuals.get(j);
           if(currentIndividual != null){
-            List<String> namesList = currentIndividual.getNamesList(".*"+currentProject.getResearchProjectId()+"\\d+.*");
-            System.out.println("namesList is: " + namesList.toString());
-            String incrementalId = currentIndividual.getFirstMatchingName(";?.*"+currentProject.getResearchProjectId()+"\\d+.*");//.replace(";",""); //";?.*"+
-            matcher = r.matcher(incrementalId);
-            if(matcher.find()){
-              incrementalId = matcher.group(2);
-              if(incrementalId != null && !incrementalId.equals("") && !incrementOpts.contains(incrementalId)){
-                System.out.println("adding incrementalId: " + incrementalId);
-                incrementOpts.add(incrementalId);
-                incrementIds.add(incrementalId);
+            List<String> namesList = currentIndividual.getNamesList(currentProject.getResearchProjectId());
+            if(namesList != null && namesList.size()>0){
+              String incrementalId = namesList.get(0);
+              matcher = r.matcher(incrementalId);
+              if(matcher.find()){
+                incrementalId = matcher.group(2);
+                if(incrementalId != null && !incrementalId.equals("") && !incrementOpts.contains(incrementalId)){
+                  System.out.println("adding incrementalId: " + incrementalId);
+                  incrementOpts.add(incrementalId);
+                  incrementIds.add(incrementalId);
+                }
               }
             }
           }

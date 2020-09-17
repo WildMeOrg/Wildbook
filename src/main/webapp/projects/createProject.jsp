@@ -190,7 +190,6 @@
 
     function cancelButtonClicked(){
       console.log("cancelButtonClicked entered");
-      debugger;
       window.location.replace('/projects/projectList.jsp');
     }
 

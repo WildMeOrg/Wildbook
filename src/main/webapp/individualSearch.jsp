@@ -1372,9 +1372,10 @@ else {
       <%
       FormUtilities.setUpOrgDropdown("organizationId", true, props, out, request, myShepherd);
       FormUtilities.setUpProjectDropdown(true, 6, "Project Name", "projectId", props, out, request, myShepherd);
+      FormUtilities.setUpProjectIncrementalIdDropdown(true, 6, "Incremental ID", "incrementalId", props, out, request, myShepherd);
       %>
       <div id="incremental-id-container">
-
+        <p>Loading...</p>
       </div>
 </div>
 </td>
@@ -1398,41 +1399,30 @@ else {
 <script type="text/javascript" src="javascript/formNullRemover.js"></script>
 <jsp:include page="footer.jsp" flush="true"/>
 <script>
+
+let incrementalIdsOnSearchList = [];
+
 $('#individualIncrementalIds').autocomplete({
   source: function(request, response){
     console.log("request in autocomplete is: ");
     console.log(request);
-    // doAutocompleteAjax();
+    // doAutocompleteAjax(request);
   }
 });
+
 $( "#individualIncrementalIds" ).on( "autocompleteselect", function( event, result ) {
-  let selectedIncrementalId = result.item.value;
-  addIncrementalIdToSearchParameters(selectedIncrementalId);
-  $(this).val("");
+  console.log("autocompleteselect happens. Result is: ");
+  console.log(result);
+  // let selectedIncrementalId = result.item.value;
+  // addIncrementalIdToSearchParameters(selectedIncrementalId);
+  // $(this).val("");
   return false;
 });
 
-function doAutocompleteAjax(){
-  $.ajax({
-    url: wildbookGlobals.baseUrl + '/UserGetSimpleJSON?searchUser=' + request.term,
-    type: 'GET',
-    dataType: "json",
-    success: function(data){
-      let res = null;
-      res = $.map(data, function(item){
-        if(item.username==myName || typeof item.username == 'undefined' || item.username == undefined||item.username===""){
-          return;
-        }
-        let fullName = "";
-        if(item.fullName!=null && item.fullName!="undefined"){
-          fullName=item.fullName;
-        }
-        let label = ("name: " + fullName + " user: " + item.username);
-        return {label: label, value: item.username+ ":" + item.id}; //
-      });
-      response(res);
-    }
-  });
+function doAutocompleteAjax(request){
+  console.log("doAutocompleteAjax entered and request is: ");
+  console.log(request);
+  //TODO copy back in from tmp.js
 }
 
 function updateindividualIncrementalIdsDisplay(){
@@ -1458,8 +1448,9 @@ function removeIncrementalIdFromSearchParameters(name){
   updateindividualIncrementalIdsDisplay();
 }
 
-populateIncrementalIdHtml(){
-  $("#incremental-id-container").empty();
+function populateIncrementalIdHtml(){
+  console.log("populateIncrementalIdHtml called")
+  $('#incremental-id-container').empty();
   let incrementalIdHtml += '<div class="form-group row">';
   incrementalIdHtml += '<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">';
   incrementalIdHtml += '<label><strong><%=props.getProperty("incrementalIdLab") %></strong></label>';
@@ -1472,11 +1463,11 @@ populateIncrementalIdHtml(){
   incrementalIdHtml += '</div>';
   incrementalIdHtml += '</div>';
   incrementalIdHtml += '</div>';
-  incrementalIdHtml += '';
-  incrementalIdHtml += '';
   $("#incremental-id-container").append(incrementalIdHtml);
 }
-$(document).ready( function() {
+
+$(document).ready(function() {
+  console.log("ready");
   populateIncrementalIdHtml();
 });
 </script>
