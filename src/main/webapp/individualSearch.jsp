@@ -1402,21 +1402,26 @@ else {
 
 let incrementalIdsOnSearchList = [];
 
-function doAutocompleteAjax(json){
+function doAutocompleteAjax(json, response){
   console.log("doAutocompleteAjax entered and request is: ");
-  console.log(request);
   $.ajax({
-    url: wildbookGlobals.baseUrl + '/ProjectGet',
-    type: 'GET',
+    url: wildbookGlobals.baseUrl + '../ProjectGet',
+    type: 'POST',
     data: JSON.stringify(json),
     dataType: "json",
     contentType : 'application/json',
     success: function(data){
       let res = null;
-      res = $.map(data, function(item){
-        console.log("results are: ");
-        console.log(item);
-        return false;
+      res = $.map(data.autocompleteArr, function(item){
+          let projectIncrementalId = "";
+          if(typeof item.projectIncrementalId == 'undefined' || item.projectIncrementalId == undefined || item.projectIncrementalId===""){
+            return;
+          }
+          if(item.projectIncrementalId!=null && item.projectIncrementalId!="undefined"){
+            projectIncrementalId=item.projectIncrementalId;
+          }
+          let label = ("Incremental ID: " + projectIncrementalId);
+          return {label: label, value: item.projectIncrementalId};
       });
       response(res);
     }
@@ -1428,7 +1433,7 @@ function updateindividualIncrementalIdsDisplay(){
   $('#individualIncrementalIdsList').empty();
   $('#access-list-title-container').empty();
   if(incrementalIdsOnSearchList.length >0){
-    $('#access-list-title-container').append("<strong>Users To Be Granted Access</strong>");
+    $('#access-list-title-container').append("<strong>Incremental IDs to Search For</strong>");
   }
   for(i=0; i<incrementalIdsOnSearchList.length; i++){
     let elem = "<div class=\"chip\">" + incrementalIdsOnSearchList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\" onclick=\"removeIncrementalIdFromSearchParameters('" + incrementalIdsOnSearchList[i] + "'); return false\"></span></div>";
@@ -1484,7 +1489,7 @@ $(document).ready(function() {
         json['getUserIncrementalIds'] = 'true';
         console.log("json is: ");
         console.log(json);
-        doAutocompleteAjax(request, response);
+        doAutocompleteAjax(json, response);
       }
     }
   });
