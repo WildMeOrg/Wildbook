@@ -1372,8 +1372,10 @@ else {
       <%
       FormUtilities.setUpOrgDropdown("organizationId", true, props, out, request, myShepherd);
       FormUtilities.setUpProjectDropdown(true, 6, "Project Name", "projectId", props, out, request, myShepherd);
-      FormUtilities.setUpProjectIncrementalIdDropdown(true, 6, "Project Incremental Id", "projectIncrementalId", props, out, request, myShepherd);
       %>
+      <div id="incremental-id-container">
+
+      </div>
 </div>
 </td>
 </tr>
@@ -1395,6 +1397,89 @@ else {
 </div>
 <script type="text/javascript" src="javascript/formNullRemover.js"></script>
 <jsp:include page="footer.jsp" flush="true"/>
+<script>
+$('#individualIncrementalIds').autocomplete({
+  source: function(request, response){
+    console.log("request in autocomplete is: ");
+    console.log(request);
+    // doAutocompleteAjax();
+  }
+});
+$( "#individualIncrementalIds" ).on( "autocompleteselect", function( event, result ) {
+  let selectedIncrementalId = result.item.value;
+  addIncrementalIdToSearchParameters(selectedIncrementalId);
+  $(this).val("");
+  return false;
+});
+
+function doAutocompleteAjax(){
+  $.ajax({
+    url: wildbookGlobals.baseUrl + '/UserGetSimpleJSON?searchUser=' + request.term,
+    type: 'GET',
+    dataType: "json",
+    success: function(data){
+      let res = null;
+      res = $.map(data, function(item){
+        if(item.username==myName || typeof item.username == 'undefined' || item.username == undefined||item.username===""){
+          return;
+        }
+        let fullName = "";
+        if(item.fullName!=null && item.fullName!="undefined"){
+          fullName=item.fullName;
+        }
+        let label = ("name: " + fullName + " user: " + item.username);
+        return {label: label, value: item.username+ ":" + item.id}; //
+      });
+      response(res);
+    }
+  });
+}
+
+function updateindividualIncrementalIdsDisplay(){
+  incrementalIdsOnSearchList = [...new Set(incrementalIdsOnSearchList)];
+  $('#individualIncrementalIdsList').empty();
+  $('#access-list-title-container').empty();
+  if(incrementalIdsOnSearchList.length >0){
+    $('#access-list-title-container').append("<strong>Users To Be Granted Access</strong>");
+  }
+  for(i=0; i<incrementalIdsOnSearchList.length; i++){
+    let elem = "<div class=\"chip\">" + incrementalIdsOnSearchList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\" onclick=\"removeIncrementalIdFromSearchParameters('" + incrementalIdsOnSearchList[i] + "'); return false\"></span></div>";
+    $('#individualIncrementalIdsList').append(elem);
+  }
+}
+
+function addIncrementalIdToSearchParameters(selectedIncrementalId){
+  incrementalIdsOnSearchList.push(selectedIncrementalId);
+  updateindividualIncrementalIdsDisplay();
+}
+
+function removeIncrementalIdFromSearchParameters(name){
+  incrementalIdsOnSearchList = incrementalIdsOnSearchList.filter(element => element !== name);
+  updateindividualIncrementalIdsDisplay();
+}
+
+populateIncrementalIdHtml(){
+  $("#incremental-id-container").empty();
+  let incrementalIdHtml += '<div class="form-group row">';
+  incrementalIdHtml += '<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">';
+  incrementalIdHtml += '<label><strong><%=props.getProperty("incrementalIdLab") %></strong></label>';
+  incrementalIdHtml += '<input class="form-control" name="individualIncrementalIds" type="text" id="individualIncrementalIds" placeholder="<%=props.getProperty("typeToSearch") %>">';
+  incrementalIdHtml += '</div>';
+  incrementalIdHtml += '<div id="individualIncrementalIdsListContainer">';
+  incrementalIdHtml += '<div id="access-list-title-container">';
+  incrementalIdHtml += '</div>';
+  incrementalIdHtml += '<div id="individualIncrementalIdsList">';
+  incrementalIdHtml += '</div>';
+  incrementalIdHtml += '</div>';
+  incrementalIdHtml += '</div>';
+  incrementalIdHtml += '';
+  incrementalIdHtml += '';
+  $("#incremental-id-container").append(incrementalIdHtml);
+}
+$(document).ready( function() {
+  populateIncrementalIdHtml();
+});
+</script>
 
 <%
   myShepherd.closeDBTransaction();

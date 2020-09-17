@@ -98,16 +98,21 @@ public class FormUtilities {
       List<Project> projects = myShepherd.getOwnedProjectsForUserId(usr.getUUID());
       List<String> incrementOpts = new ArrayList<String>();
       List<String> incrementIds = new ArrayList<String>();
-      for (int i = 0; i < projects.size(); i++) { //TODO DRY up
-        Project currentProject = projects.get(i);
+      String pattern = "(.*)";
+      Pattern r = Pattern.compile(pattern);
+      Matcher matcher = r.matcher("tmp");
+      for (Project currentProject: projects) { //TODO DRY up
+        // Project currentProject = projects.get(i);
+        pattern = "(.*;?.*)("+currentProject.getResearchProjectId()+"\\d+)(.*)";
+        r = Pattern.compile(pattern);
         List<MarkedIndividual> individuals = myShepherd.getMarkedIndividualsFromProject(currentProject);
-        for(int j =0; j<individuals.size(); j++){
-          MarkedIndividual currentIndividual = individuals.get(j);
+        for(MarkedIndividual currentIndividual: individuals){
+          // MarkedIndividual currentIndividual = individuals.get(j);
           if(currentIndividual != null){
+            List<String> namesList = currentIndividual.getNamesList(".*"+currentProject.getResearchProjectId()+"\\d+.*");
+            System.out.println("namesList is: " + namesList.toString());
             String incrementalId = currentIndividual.getFirstMatchingName(";?.*"+currentProject.getResearchProjectId()+"\\d+.*");//.replace(";",""); //";?.*"+
-            String pattern = "(.*;?.*)("+currentProject.getResearchProjectId()+"\\d+)(.*)";
-            Pattern r = Pattern.compile(pattern);
-            Matcher matcher = r.matcher(incrementalId);
+            matcher = r.matcher(incrementalId);
             if(matcher.find()){
               incrementalId = matcher.group(2);
               if(incrementalId != null && !incrementalId.equals("") && !incrementOpts.contains(incrementalId)){
