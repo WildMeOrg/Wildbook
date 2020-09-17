@@ -54,15 +54,15 @@
 </style>
 <jsp:include page="../header.jsp" flush="true"/>
 <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
-<jsp:include page="../footer.jsp" flush="true"/>
 <div id="projectDetails">
 </div>
+<jsp:include page="../footer.jsp" flush="true"/>
 
 <script>
 function showEditProject() {
     let ownerId = '<%=currentUser.getId()%>';
     let projectId = '<%=projId%>';
-    let getEncounterMetadata = true;
+    let getEncounterMetadata = false;
     let json = {};
     json['projectUUID'] = projectId;
     json['getEncounterMetadata'] = getEncounterMetadata;
