@@ -7,6 +7,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
+  User currentUser = AccessControl.getUser(request, myShepherd);
   myShepherd.setAction("individualSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   GregorianCalendar cal = new GregorianCalendar();
@@ -1372,7 +1373,6 @@ else {
       <%
       FormUtilities.setUpOrgDropdown("organizationId", true, props, out, request, myShepherd);
       FormUtilities.setUpProjectDropdown(true, 6, "Project Name", "projectId", props, out, request, myShepherd);
-      FormUtilities.setUpProjectIncrementalIdDropdown(true, 6, "Incremental ID", "incrementalId", props, out, request, myShepherd);
       %>
       <div id="incremental-id-container">
         <p>Loading...</p>
@@ -1389,7 +1389,7 @@ else {
 </tr>
 </table>
 <br />
-<input name="submitSearch" type="submit" id="submitSearch" value="<%=props.getProperty("goSearch")%>" />
+<input name="submitSearch" type="submit" id="submitSearch" onclick="addIncrementalIdsToUrlParams()" value="<%=props.getProperty("goSearch")%>" />
 </form>
 </td>
 </tr>
@@ -1402,27 +1402,25 @@ else {
 
 let incrementalIdsOnSearchList = [];
 
-$('#individualIncrementalIds').autocomplete({
-  source: function(request, response){
-    console.log("request in autocomplete is: ");
-    console.log(request);
-    // doAutocompleteAjax(request);
-  }
-});
-
-$( "#individualIncrementalIds" ).on( "autocompleteselect", function( event, result ) {
-  console.log("autocompleteselect happens. Result is: ");
-  console.log(result);
-  // let selectedIncrementalId = result.item.value;
-  // addIncrementalIdToSearchParameters(selectedIncrementalId);
-  // $(this).val("");
-  return false;
-});
-
-function doAutocompleteAjax(request){
+function doAutocompleteAjax(json){
   console.log("doAutocompleteAjax entered and request is: ");
   console.log(request);
-  //TODO copy back in from tmp.js
+  $.ajax({
+    url: wildbookGlobals.baseUrl + '/ProjectGet',
+    type: 'GET',
+    data: JSON.stringify(json),
+    dataType: "json",
+    contentType : 'application/json',
+    success: function(data){
+      let res = null;
+      res = $.map(data, function(item){
+        console.log("results are: ");
+        console.log(item);
+        return false;
+      });
+      response(res);
+    }
+  });
 }
 
 function updateindividualIncrementalIdsDisplay(){
@@ -1448,10 +1446,16 @@ function removeIncrementalIdFromSearchParameters(name){
   updateindividualIncrementalIdsDisplay();
 }
 
+function addIncrementalIdsToUrlParams(){
+  console.log("addIncrementalIdsToUrlParams entered. incrementalIdsOnSearchList is: ");
+  console.log(incrementalIdsOnSearchList);
+  debugger;
+}
+
 function populateIncrementalIdHtml(){
   console.log("populateIncrementalIdHtml called")
   $('#incremental-id-container').empty();
-  let incrementalIdHtml += '<div class="form-group row">';
+  let incrementalIdHtml = '<div class="form-group row">';
   incrementalIdHtml += '<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">';
   incrementalIdHtml += '<label><strong><%=props.getProperty("incrementalIdLab") %></strong></label>';
   incrementalIdHtml += '<input class="form-control" name="individualIncrementalIds" type="text" id="individualIncrementalIds" placeholder="<%=props.getProperty("typeToSearch") %>">';
@@ -1469,6 +1473,31 @@ function populateIncrementalIdHtml(){
 $(document).ready(function() {
   console.log("ready");
   populateIncrementalIdHtml();
+  $('#individualIncrementalIds').autocomplete({
+    source: function(request, response){
+      if(request){
+        let searchTerm = request.term;
+        let username = '<%= currentUser.getUsername()%>';
+        let json = {};
+        json['username'] = username;
+        json['currentInput'] = searchTerm;
+        json['getUserIncrementalIds'] = 'true';
+        console.log("json is: ");
+        console.log(json);
+        doAutocompleteAjax(request, response);
+      }
+    }
+  });
+
+  $( "#individualIncrementalIds" ).on( "autocompleteselect", function( event, result ) {
+    console.log("autocompleteselect happens. Result is: ");
+    console.log(result);
+    let selectedIncrementalId = result.item.value;
+    addIncrementalIdToSearchParameters(selectedIncrementalId);
+    $(this).val("");
+    return false;
+  });
+
 });
 </script>
 
