@@ -240,6 +240,20 @@ public class ApiCustomFields {
         }
 */
 
+        rtn.put("customFields", this.getCustomFieldJSONObject());
+
+        if (debug != null) {
+            debug.put("class", this.getClass().getName());
+            //debug.put("noAccess", noAccess);
+            debug.put("opts", new JSONObject(opts));
+            debug.put("traversalDepth", td);
+            rtn.put("_debug", debug);
+        }
+        return rtn;
+    }
+
+
+    public JSONObject getCustomFieldJSONObject() {
         Map<CustomFieldDefinition,List<Object>> cmap = this.getCustomFieldValuesMap();
         JSONObject cust = new JSONObject();
         for (CustomFieldDefinition cfd : cmap.keySet()) {
@@ -257,16 +271,7 @@ public class ApiCustomFields {
             }
             cust.put(cfd.getId(), c);
         }
-        rtn.put("customFields", cust);
-
-        if (debug != null) {
-            debug.put("class", this.getClass().getName());
-            //debug.put("noAccess", noAccess);
-            debug.put("opts", new JSONObject(opts));
-            debug.put("traversalDepth", td);
-            rtn.put("_debug", debug);
-        }
-        return rtn;
+        return cust;
     }
 
 /*
