@@ -725,7 +725,22 @@ try {
     	
     </p>
     
-    <%if((request.getParameter("isEdit")!=null)&&(request.isUserInRole("admin"))){%>
+    <%
+
+    if(		request.getParameter("isEdit")!=null
+    		&& myShepherd.getUserByUUID(request.getParameter("uuid"))!=null
+    	    &&(request.isUserInRole("orgAdmin")) 
+    	    && request.getUserPrincipal().getName()!=null
+    	    && myShepherd.getUserByUUID(request.getParameter("uuid"))!=null
+    	    && myShepherd.getUsername(request)!=null
+    	    && myShepherd.getUser(myShepherd.getUsername(request))!=null
+    	    //to delete a user either be admin or orgAdmin in at least one of the same orgs
+    	    && ( 
+    	              request.isUserInRole("admin") 
+    	              || myShepherd.getAllCommonOrganizationsForTwoUsers(myShepherd.getUserByUUID(request.getParameter("uuid")), myShepherd.getUser(myShepherd.getUsername(request))).size()>0
+    	    ) 
+    ){
+    %>
     <h2>Do you want to delete this user?</h2>
     <table width="100%">
       <tr>
