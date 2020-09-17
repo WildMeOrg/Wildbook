@@ -2,6 +2,8 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 
+import javax.jdo.JDOException;
+import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -14,6 +16,8 @@ import org.json.JSONException;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 public class ProjectGet extends HttpServlet {
@@ -56,15 +60,62 @@ public class ProjectGet extends HttpServlet {
             if ("true".equals(getEncounterMetadataOpt)) {
                 getEncounterMetadata = true;
             }
-
+            boolean getUserIncrementalIds = false;
+            String getUserIncrementalIdsOpt = j.optString("getUserIncrementalIds", null);
+            if ("true".equals(getUserIncrementalIdsOpt)) {
+                getUserIncrementalIds = true;
+            }
+            
             String researchProjectId = null;
             String projectUUID = null;
             String ownerId = null;
             String participantId = null;
             String encounterId = null;
-
+            
             boolean complete = false;
-
+            
+            //get simple JSON for autocomplete
+            String username = j.optString("username", null);
+            if (getUserIncrementalIds&&Util.stringExists(username)) {
+                String currentInput = j.optString("currentInput", null);
+                User user = myShepherd.getUser(username);
+                if (user!=null) {
+                    ArrayList<Project> userProjects = myShepherd.getProjectsForUser(user);
+                    JSONArray autocompleteArr = new JSONArray();
+                    for (Project project : userProjects) {
+                        researchProjectId = project.getResearchProjectId();
+                        
+                        //lets avoid the rest of the query chain if the current input doesn't match the researchProjectId
+                        boolean useProject = true;
+                        if (Util.stringExists(currentInput)) {
+                            if (currentInput.length()>researchProjectId.length()) {
+                                currentInput = currentInput.substring(0, researchProjectId.length());
+                            }
+                            if (!researchProjectId.equals(currentInput)&&!researchProjectId.contains(currentInput)) {
+                                useProject = false;
+                            }
+                        }
+                        if (useProject) {
+                            List<MarkedIndividual> individuals = project.getAllIndividualsForProject();
+                            for (MarkedIndividual individual : individuals) {
+                                String projectIncrementalId = individual.getName(researchProjectId);
+                                if (projectIncrementalId.contains(currentInput)) {
+                                    JSONObject individualData = new JSONObject();
+                                    individualData.put("projectIncrementalId", projectIncrementalId);
+                                    individualData.put("individualId", individual.getId());
+                                    individualData.put("individualDisplayName", individual.getDisplayName());
+                                    autocompleteArr.put(individualData);
+                                }
+                            }
+                        }
+                    }
+                    res.put("autocompleteArr", autocompleteArr);
+                    res.put("success","true");
+                    complete = true;
+                }
+            }
+            
+            
             // get all projects for an encounter
             encounterId = j.optString("encounterId", null);
             if (Util.stringExists(encounterId)) {
@@ -81,9 +132,8 @@ public class ProjectGet extends HttpServlet {
                     res.put("success","true");
                     complete = true;
                 }
-
             }
-
+            
             // get all projects for owner or participant
             ownerId = j.optString("ownerId", null);
             participantId = j.optString("participantId", null);
@@ -104,7 +154,7 @@ public class ProjectGet extends HttpServlet {
                 res.put("success","true");
                 complete = true;
             }
-
+            
             //get specific project
             researchProjectId = j.optString("researchProjectId", null);
             projectUUID = j.optString("projectUUID", null);
@@ -129,10 +179,10 @@ public class ProjectGet extends HttpServlet {
                 res.put("success","true");
                 complete = true;
             } 
-
+            
             out.println(res);
             out.close();
-
+            
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
@@ -140,7 +190,7 @@ public class ProjectGet extends HttpServlet {
         } catch (JSONException je) {
             je.printStackTrace();
             addErrorMessage(res, "JSONException je");
-          response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             e.printStackTrace();
             addErrorMessage(res, "Exception e");
@@ -150,8 +200,8 @@ public class ProjectGet extends HttpServlet {
             myShepherd.closeDBTransaction();
             out.println(res);
         }
-
-
+        
+        
     }
 
     private void addErrorMessage(JSONObject res, String error) {
