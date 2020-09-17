@@ -123,6 +123,46 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
       //end filter for projectName------------------
 
+
+      //filter for projectIncrementId-------------------
+      if((request.getParameter("hiddenIncrementId")!=null) && (!request.getParameter("hiddenIncrementId").equals("")) && Util.isUUID(request.getParameter("hiddenIncrementId"))){
+        filter = SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ";
+        String incrementIdString = request.getParameter("hiddenIncrementId");
+        System.out.println("incrementIdString is " + incrementIdString);
+        //TODO proccess incrementIdString
+      //   if((projectIds!=null)&&(!projectIds[0].equals("None"))){
+      //     prettyPrint.append("Assigned to one of the following projects: ");
+      //     int numProjIds = projectIds.length;
+      //     String projIdFilter = "(";
+      //     for(int i=0; i<numProjIds; i++){
+      //       String currentProjId = projectIds[i].toLowerCase().replaceAll("%20", " ").trim();
+      //       if(!currentProjId.equals("")){
+      //         if(projIdFilter.equals("(")){
+      //           projIdFilter += " proj.id == \"" + currentProjId + "\"";
+      //         }else{
+      //           projIdFilter += " || proj.id == \"" + currentProjId + "\"";
+      //         }
+      //         // prettyPrint.append(filter + " " + projIdFilter);
+      //       }
+      //     }
+      //     projIdFilter += " )";
+      //     if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ")){
+      //       filter += projIdFilter;
+      //     }else{
+      //       filter+=(" && " + projIdFilter);
+      //     }
+      //     prettyPrint.append(filter);
+      //     prettyPrint.append("<br/>");
+      //   }
+      //   // TODO
+      //   // filter = "SELECT FROM org.ecocean.Encounter WHERE proj.id == '" + projectId + "' && proj.encounters.contains(this)";
+      //   String variables_statement = " VARIABLES org.ecocean.Project proj";
+      //   jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
+      // } else{
+      //   //TODO
+      // }
+      //end filter for projectIncrementId------------------
+
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
     String[] locCodes=request.getParameterValues("locationCodeField");
