@@ -295,9 +295,6 @@
         <join/>
       </field>
 	  	  
-      <field name="catalogNumber" primary-key="true">
-        <column length="100"/>
-      </field>
       <field name="otherCatalogNumbers" persistence-modifier="persistent" default-fetch-group="true">
         <column length="1024" allows-null="true"/>
       </field>
@@ -496,7 +493,6 @@
 		<field name="day"/>
 		<field name="hour"/>
 		<field name="minutes"/>
-		<field name="catalogNumber"/>
 		<field name="locationID"/>
 		<field name="modified"/>
 		<field name="dwcDateAdded"/>

@@ -92,7 +92,8 @@ import org.datanucleus.api.rest.orgjson.JSONException;
  * @author Jason Holmberg
  * @version 2.0
  */
-public class Encounter implements java.io.Serializable {
+//public class Encounter implements java.io.Serializable {
+public class Encounter extends org.ecocean.api.ApiCustomFields implements java.io.Serializable {
   static final long serialVersionUID = -146404246317385604L;
 
     public static final String STATE_MATCHING_ONLY = "matching_only";
@@ -110,7 +111,7 @@ public class Encounter implements java.io.Serializable {
   private String locationID = null;
   private Double maximumDepthInMeters;
   private Double maximumElevationInMeters;
-  private String catalogNumber = "";
+  //private String catalogNumber = "";   now lives as .id from base class!
   //private String individualID;
     private MarkedIndividual individual;
   private int day = 0;
@@ -368,7 +369,7 @@ public class Encounter implements java.io.Serializable {
 
   public Encounter(boolean skipSetup) {
     if (skipSetup) return;
-    this.catalogNumber = Util.generateUUID();
+    this.setId(Util.generateUUID());
     this.setDWCDateAdded();
     this.setDWCDateLastModified();
     this.resetDateInMilliseconds();
@@ -409,7 +410,7 @@ public class Encounter implements java.io.Serializable {
 
 
     public Encounter(ArrayList<Annotation> anns) {
-        this.catalogNumber = Util.generateUUID();
+        this.setId(Util.generateUUID());
         this.annotations = anns;
         if (!this.annotationsAreEmpty()) {
           this.setDateFromAssets();
@@ -1155,7 +1156,7 @@ public class Encounter implements java.io.Serializable {
    * @return a unique integer String used to identify this encounter in the database
    */
   public String getEncounterNumber() {
-    return catalogNumber;
+    return this.getId();
   }
 
 
@@ -1375,7 +1376,7 @@ public class Encounter implements java.io.Serializable {
    * @param num the unique integer to be used to uniquely identify this encoun ter in the database
    */
   public void setEncounterNumber(String num) {
-    catalogNumber = num;
+    this.setId(num);
   }
 
     public boolean hasMarkedIndividual() {
@@ -2079,19 +2080,23 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
 
   public String getCatalogNumber() {
-    return catalogNumber;
+    return this.getId();
   }
+/*
     public String getId() {
         return catalogNumber;
     }
+*/
 
   public void setCatalogNumber(String newNumber) {
-    this.catalogNumber = newNumber;
+    this.setId(newNumber);
   }
 
+/*
   public void setId(String newNumber) {
     this.catalogNumber = newNumber;
   }
+*/
 
   public String getVerbatimLocality() {
     return verbatimLocality;
@@ -3585,7 +3590,7 @@ throw new Exception();
     public Encounter cloneWithoutAnnotations() {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
-        System.out.println("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
+        System.out.println("NOTE: cloneWithoutAnnotations(" + this.getId() + ") -> " + enc.getCatalogNumber());
         enc.setGenus(this.getGenus());
         enc.setSpecificEpithet(this.getSpecificEpithet());
         enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
@@ -3633,7 +3638,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
 
     public String toString() {
         return new ToStringBuilder(this)
-                .append("catalogNumber", catalogNumber)
+                .append("id", this.getId())
                 .append("individualID", (hasMarkedIndividual() ? individual.getId() : null))
                 .append("species", getTaxonomyString())
                 .append("sex", getSex())
@@ -3883,9 +3888,18 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     }
 
     public org.json.JSONObject asApiJSONObject() {
+        return asApiJSONObject(null);
+    }
+
+    public org.json.JSONObject asApiJSONObject(List<String> expand) {
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
+
+        //if expand is null, we bail
+        if (expand == null) return obj;
+
+        obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;
     }
 }
