@@ -74,7 +74,7 @@ public class ProjectGet extends HttpServlet {
                     JSONArray projectArr = new JSONArray();
                     if (projects!=null) {
                         for (Project project : projects) {
-                            projectArr.put(project.asJSONObject());
+                            projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
                         }
                     }
                     res.put("projects", projectArr);
