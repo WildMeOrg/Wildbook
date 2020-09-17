@@ -56,10 +56,10 @@ public class UserDelete extends HttpServlet {
 
     myShepherd.beginDBTransaction();
     //if ((request.getParameter("uuid")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)) {
-    if(   myShepherd.getUserByUUID(request.getParameter("uuid"))!=null
-          &&(request.isUserInRole("orgAdmin")) 
-          && request.getUserPrincipal().getName()!=null
+    if(   request.getParameter("uuid")!=null
           && myShepherd.getUserByUUID(request.getParameter("uuid"))!=null
+          && request.isUserInRole("orgAdmin")
+          && request.getUserPrincipal().getName()!=null
           && myShepherd.getUsername(request)!=null
           && myShepherd.getUser(myShepherd.getUsername(request))!=null
           //to delete a user either be admin or orgAdmin in at least one of the same orgs
