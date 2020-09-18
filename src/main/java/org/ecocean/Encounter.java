@@ -1875,7 +1875,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     public Long getVersion() {
         if (modified == null) return null;
         try {
-            DateTime dt = new DateTime(modified);
+            DateTime dt = new DateTime(modified.replace(' ', 'T'));  //cuz format is ^ above  :/
             return dt.getMillis();
         } catch (Exception ex) {}
         return null;
