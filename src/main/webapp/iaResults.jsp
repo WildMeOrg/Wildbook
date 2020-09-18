@@ -1670,67 +1670,98 @@ var projectForEncCache = {};
 
 function selectedProjectContainsEncounter(acmId) {
 	let selectedProject = $("#projectDropdown").val();
-	let requestJSON = {};
-	//requestJSON['researchProjectId'] = selectedProject;
+	requestJSON['researchProjectId'] = selectedProject;
 	requestJSON['acmId'] = acmId;
-	console.log("all requestJSON for selectedProjectContainsEncounter() : "+JSON.stringify(requestJSON));
-	let paramString = 'iaResults.jsp?acmId=' + acmId;
+	requestJSON['annotInProject'] = "true";
+	let requestJSON = {};
+
 	$.ajax({
-		url: paramString,
-		type: 'GET',
+		url: wildbookGlobals.baseUrl + '../ProjectGet',
+		type: 'POST',
+		data: JSON.stringify(requestJSON),
 		dataType: 'json',
-		complete: function(d) {
-			
-			console.log("RESPONSE IN AJAX #1 : "+JSON.stringify(d));
-			if (d.responseJSON.annotations.length>0&&d.responseJSON.annotations[0].asset) {
-				var ft = findMyFeature(acmId, d.responseJSON.annotations[0].asset);
-				var encId = ft.encounterId;
-	
-				console.log("selectedProjectContainsEncounter() ajax #1 passed");
-	
-				let requestJSON = {};
-				requestJSON['encounterId'] = encId;
+		async: true,
+		contentType: 'application/json',
+		success: function(d) {
 
-				console.log("TRYING TO PROCESS ENCID "+encId);
-	
-				$.ajax({
-					url: wildbookGlobals.baseUrl + '../ProjectGet',
-					type: 'POST',
-					data: JSON.stringify(requestJSON),
-					dataType: 'json',
-					contentType: 'application/json',
-					success: function(d) {
-	
-						console.log("selectedProjectContainsEncounter() ajax #2 passed");
-	
-						if (d.projects.length) {
-							for (i=0;i<d.projects.length;i++) {
-								let projectName = d.projects[i].researchProjectName;
-								console.log(" does researchProjectName="+projectName+" selectedProject="+selectedProject)
-								if (projectName==selectedProject) {
-									for (j=0;j<d.projects[i].encounters.length;j++ ) {
-										let thisEncJSON = d.projects[i].encounters[j];
-										if (thisEncJSON.encounterId==encId&&thisEncJSON.individualProjectId) {
-											console.log("ADDING ENC TO PROJECT CACHE!!");
-											projectForEncCache[encId] = {incrementalId: thisEncJSON.individualProjectId, projectUUID: d.projects[i]};
-											console.log("CURRENT PROJECT/ENC CACHE: "+JSON.stringify(projectForEncCache));
-										}
-
-									}
-									return true;
-								}
-							}
-						}
-					},
-					error: function(x,y,z) {
-						console.warn('%o %o %o', x, y, z);
-					}
-				});
+			if (d.inProject=="true"||d.inProject==true) {
+				return true;
 			}
+
+		},
+		error: function(x,y,z) {
+			console.warn('%o %o %o', x, y, z);
+			return false;
 		}
 	});
 
-	return false;
+
+
+
+	// requestJSON['acmId'] = acmId;
+	// console.log("all requestJSON for selectedProjectContainsEncounter() : "+JSON.stringify(requestJSON));
+	// let paramString = 'iaResults.jsp?acmId=' + acmId;
+	// $.ajax({
+	// 	url: paramString,
+	// 	type: 'GET',
+	// 	dataType: 'json',
+	// 	async: true,
+	// 	complete: function(d) {
+			
+	// 		//console.log("RESPONSE IN AJAX #1 : "+JSON.stringify(d));
+	// 		if (d.responseJSON.annotations.length>0&&d.responseJSON.annotations[0].asset) {
+	// 			var ft = findMyFeature(acmId, d.responseJSON.annotations[0].asset);
+	// 			var encId = ft.encounterId;
+	
+	// 			//console.log("selectedProjectContainsEncounter() ajax #1 passed");
+	
+	// 			let requestJSON = {};
+	// 			requestJSON['encounterId'] = encId;
+
+	// 			console.log("TRYING TO PROCESS ENCID "+encId);
+	
+	// 			$.ajax({
+	// 				url: wildbookGlobals.baseUrl + '../ProjectGet',
+	// 				type: 'POST',
+	// 				data: JSON.stringify(requestJSON),
+	// 				dataType: 'json',
+	// 				async: true,
+	// 				contentType: 'application/json',
+	// 				success: function(d) {
+	
+	// 					//console.log("selectedProjectContainsEncounter() ajax #2 passed");
+	
+	// 					if (d.projects.length) {
+	// 						for (i=0;i<d.projects.length;i++) {
+	// 							let projectId = d.projects[i].researchProjectId;
+	// 							console.log(" does researchProjectId="+projectId+" selectedProject="+selectedProject+" "+(selectedProject==projectId));
+	// 							if (selectedProject==projectId) {
+	// 								console.log("about to add to PROJECT CACHE...");
+	// 								for (j=0;j<d.projects[i].encounters.length;j++ ) {
+	// 									let thisEncJSON = d.projects[i].encounters[j];
+
+	// 									console.log("THIS ENC JSON: "+JSON.stringify(thisEncJSON));
+	// 									if (thisEncJSON.encounterId==encId&&thisEncJSON.individualProjectId) {
+	// 										console.log("ADDING ENC TO PROJECT CACHE!!");
+	// 										projectForEncCache[encId] = {incrementalId: thisEncJSON.individualProjectId, projectUUID: d.projects[i]};
+	// 										console.log("CURRENT PROJECT/ENC CACHE: "+JSON.stringify(projectForEncCache));
+	// 									}
+	// 								}
+	// 								console.log("RETURNING TRUE IN SELECTEDPROJECTCONTAINS ENCOUNTER...");
+	// 								return true;
+	// 							}
+	// 						}
+	// 						return false;
+	// 					}
+	// 				},
+	// 				error: function(x,y,z) {
+	// 					console.warn('%o %o %o', x, y, z);
+	// 					reject(false);
+	// 				}
+	// 			});
+	// 		}
+	// 	}
+	// });
 }
 
 

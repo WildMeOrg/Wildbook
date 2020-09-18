@@ -72,8 +72,32 @@ public class ProjectGet extends HttpServlet {
             String participantId = null;
             String encounterId = null;
 
+            researchProjectId = j.optString("researchProjectId", null);
+            
             boolean complete = false;
 
+            String annotInProject = j.optString("annotInProject", null);
+            if ("true".equals(annotInProject)) {
+                String acmId = j.optString("acmId", null);
+                if (Util.stringExists(acmId)&&Util.stringExists(researchProjectId)) {
+                    res.put("inProject", "false");
+                    Project project = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
+                    if (project!=null) {
+                        ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
+                        List<Encounter> encs = project.getEncounters();
+                        for (Annotation ann : anns) {
+                            Encounter enc = ann.findEncounter(myShepherd);
+                            if (encs.contains(enc)) {
+                                res.put("inProject","true");
+                                break;
+                            }
+                        }
+                    }
+                    res.put("success","true");
+                    complete = true;
+                }
+            }
+            
             //get simple JSON for autocomplete
             String username = j.optString("username", null);
             if (getUserIncrementalIds&&Util.stringExists(username)) {
