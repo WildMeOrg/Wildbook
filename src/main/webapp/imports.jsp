@@ -27,6 +27,8 @@ if (user == null) {
 }
 boolean adminMode = request.isUserInRole("admin");
 if(request.isUserInRole("orgAdmin"))adminMode=true;
+boolean forcePushIA=false;
+if(adminMode&&request.getParameter("forcePushIA")!=null)forcePushIA=true;
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -302,8 +304,7 @@ function sendToIA(skipIdent) {
     });
 }
  
-    
-}
+
 
 </script>
 </p>
@@ -322,7 +323,7 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
     <div id="ia-send-div">
     
 	    <%
-	    if ((numIA < 1) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) {
+	    if ((numIA < 1 || forcePushIA) && (allAssets.size() > 0) && "complete".equals(itask.getStatus())) {
 	    %>
 	    	<div style="margin-bottom: 20px;"><a class="button" style="margin-left: 20px;" onClick="sendToIA(true); return false;">Send to detection (no identification)</a></div>
 	
