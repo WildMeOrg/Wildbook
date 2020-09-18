@@ -27,7 +27,7 @@ public class ProjectGet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
     }
-    
+
     public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
@@ -42,19 +42,19 @@ public class ProjectGet extends HttpServlet {
 		response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
         PrintWriter out = response.getWriter();
-        
+
         System.out.println("==> In ProjectGet Servlet ");
-        
+
         String context= ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("ProjectGet.java");
         myShepherd.beginDBTransaction();
-        
+
         JSONObject res = new JSONObject();
         try {
             res.put("success","false");
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-            
+
             boolean getEncounterMetadata = false;
             String getEncounterMetadataOpt = j.optString("getEncounterMetadata", null);
             if ("true".equals(getEncounterMetadataOpt)) {
@@ -65,7 +65,7 @@ public class ProjectGet extends HttpServlet {
             if ("true".equals(getUserIncrementalIdsOpt)) {
                 getUserIncrementalIds = true;
             }
-            
+
             String researchProjectId = null;
             String projectUUID = null;
             String ownerId = null;
@@ -108,7 +108,7 @@ public class ProjectGet extends HttpServlet {
                     JSONArray autocompleteArr = new JSONArray();
                     for (Project project : userProjects) {
                         researchProjectId = project.getResearchProjectId();
-                        
+
                         //lets avoid the rest of the query chain if the current input doesn't match the researchProjectId
                         boolean useProject = true;
                         if (Util.stringExists(currentInput)) {
@@ -138,8 +138,8 @@ public class ProjectGet extends HttpServlet {
                     complete = true;
                 }
             }
-            
-            
+
+
             // get all projects for an encounter
             encounterId = j.optString("encounterId", null);
             if (Util.stringExists(encounterId)) {
@@ -157,7 +157,7 @@ public class ProjectGet extends HttpServlet {
                     complete = true;
                 }
             }
-            
+
             // get all projects for owner or participant
             ownerId = j.optString("ownerId", null);
             participantId = j.optString("participantId", null);
@@ -178,7 +178,7 @@ public class ProjectGet extends HttpServlet {
                 res.put("success","true");
                 complete = true;
             }
-            
+
             //get specific project
             researchProjectId = j.optString("researchProjectId", null);
             projectUUID = j.optString("projectUUID", null);
@@ -190,23 +190,23 @@ public class ProjectGet extends HttpServlet {
                 if (Util.stringExists(projectUUID)) {
                     project = myShepherd.getProject(projectUUID);
                 }
-                
+
                 JSONArray projectArr = new JSONArray();
                 if (project!=null) {
                     if (getEncounterMetadata) {
                         projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
-                    } else {                    
+                    } else {
                         projectArr.put(project.asJSONObject());
                     }
                 }
                 res.put("projects", projectArr);
                 res.put("success","true");
                 complete = true;
-            } 
-            
+            }
+
             out.println(res);
             out.close();
-            
+
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
@@ -224,8 +224,8 @@ public class ProjectGet extends HttpServlet {
             myShepherd.closeDBTransaction();
             out.println(res);
         }
-        
-        
+
+
     }
 
     private void addErrorMessage(JSONObject res, String error) {

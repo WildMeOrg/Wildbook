@@ -54,7 +54,9 @@
 </style>
 <jsp:include page="../header.jsp" flush="true"/>
 <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
-<div id="projectDetails">
+<div class="container maincontent">
+  <div id="projectDetails">
+  </div>
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
 
