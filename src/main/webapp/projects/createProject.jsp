@@ -184,6 +184,18 @@
     		window.setTimeout(function() { alert('You must provide a Project ID.'); }, 100);
     		return false;
     	}
+      if($('#researchProjectId').val().includes(";")){
+    		console.log("researchProjectId contains ; entered");
+    		$('#researchProjectId').closest('.form-group').addClass('required-missing');
+    		window.setTimeout(function() { alert('Please remove semicolons from your project ID.'); }, 100);
+    		return false;
+    	}
+      if($('#researchProjectName').val().includes(";")){
+    		console.log("researchProjectName contains ; entered");
+    		$('#researchProjectName').closest('.form-group').addClass('required-missing');
+    		window.setTimeout(function() { alert('Please remove semicolons from your project name.'); }, 100);
+    		return false;
+    	}
       submitForm();
     	return true;
     }
