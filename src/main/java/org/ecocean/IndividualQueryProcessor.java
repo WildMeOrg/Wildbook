@@ -87,7 +87,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
       //end submitter organization ids filter--------------------------------------------------------------------------------------
 
       //filter for projectName-------------------
-      if((request.getParameter("projectId")!=null) && (!request.getParameter("projectId").equals("")) && Util.isUUID(request.getParameter("projectId"))){
+      if(Util.isUUID(request.getParameter("projectId"))){
         System.out.println("dammit you better get here");
         filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && ";
         String[] projectIds = request.getParameterValues("projectId");
@@ -128,7 +128,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
       //filter for projectIncrementId-------------------
       if((request.getParameter("hiddenIncrementId")!=null) && (!request.getParameter("hiddenIncrementId").equals(""))){
         String[] incrementIds = request.getParameter("hiddenIncrementId").split(";");
-        filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE proj.encounters.contains(this) && "; //TODO fix
+        filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE proj.encounters.contains(this) && proj.encounters.contains(enc) && "; //TODO fix
         if((incrementIds.length>0)&&(incrementIds!=null)){
           prettyPrint.append("Assigned to one of the following increment IDs: ");
           int numProjIncrementalIds = incrementIds.length;

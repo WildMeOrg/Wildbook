@@ -73,7 +73,7 @@ public class ProjectGet extends HttpServlet {
             String encounterId = null;
 
             researchProjectId = j.optString("researchProjectId", null);
-            
+
             boolean complete = false;
 
             String annotInProject = j.optString("annotInProject", null);
@@ -97,7 +97,7 @@ public class ProjectGet extends HttpServlet {
                     complete = true;
                 }
             }
-            
+
             //get simple JSON for autocomplete
             String username = j.optString("username", null);
             if (getUserIncrementalIds&&Util.stringExists(username)) {
@@ -123,7 +123,7 @@ public class ProjectGet extends HttpServlet {
                             List<MarkedIndividual> individuals = project.getAllIndividualsForProject();
                             for (MarkedIndividual individual : individuals) {
                                 String projectIncrementalId = individual.getName(researchProjectId);
-                                if (projectIncrementalId.contains(currentInput)) {
+                                if (projectIncrementalId!=null && projectIncrementalId.contains(currentInput)) {
                                     JSONObject individualData = new JSONObject();
                                     individualData.put("projectIncrementalId", projectIncrementalId);
                                     individualData.put("individualId", individual.getId());
