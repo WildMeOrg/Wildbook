@@ -1376,7 +1376,6 @@ else {
       FormUtilities.setUpProjectDropdown(true, 6, "Project Name", "projectId", props, out, request, myShepherd);
       %>
       <div id="incremental-id-container">
-        <p>Loading...</p>
       </div>
 </div>
 </td>
@@ -1480,8 +1479,8 @@ function populateIncrementalIdHtml(){
 
 $(document).ready(function() {
   console.log("ready");
-  populateIncrementalIdHtml();
-  $('#individualIncrementalIds').autocomplete({
+  // populateIncrementalIdHtml(); //This is a vestige of when we were going to implement autocomplete search for individual incremental IDs...before realizing that we could just search by individual names in the identity filter
+  // $('#individualIncrementalIds').autocomplete({
     source: function(request, response){
       if(request){
         let searchTerm = request.term;

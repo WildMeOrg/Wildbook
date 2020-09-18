@@ -134,16 +134,6 @@ public class IndividualQueryProcessor extends QueryProcessor {
           int numProjIncrementalIds = incrementIds.length;
           String projIdFilter = "(";
           for(int i=0; i<numProjIncrementalIds; i++){
-            //TODO ack what oops
-            // String incrementId = incrementIds[i].toLowerCase().replaceAll("%20", " ").trim();
-            // if(!incrementId.equals("")){
-            //   if(projIdFilter.equals("(")){
-            //     projIdFilter += " proj.id == \"" + incrementId + "\"";
-            //   }else{
-            //     projIdFilter += " || proj.id == \"" + incrementId + "\"";
-            //   }
-            //   // prettyPrint.append(filter + " " + projIdFilter);
-            // }
           }
           projIdFilter += " )";
           //if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ")){

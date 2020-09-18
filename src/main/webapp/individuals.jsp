@@ -512,12 +512,27 @@ if (sharky.getNames() != null) {
       <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
     </div><%
 
+
     // make UI for non-default names here
     if ((sharky.getNames() != null) && (sharky.getNames().size() > 0) && (sharky.getNames().getKeys()!=null)){
     	System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
+      boolean inProjectsAndWillGetDisplayedInSeparateSection = false;
 	    for (String nameKey: sharky.getNames().getKeys()) {
 	      if (MultiValue.isDefault(nameKey)) continue;
 	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
+        MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
+        List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
+        for(Project currentProject: projects){
+          String researchProjId = currentProject.getResearchProjectId();
+          if (nameKey.contains(researchProjId)){
+            inProjectsAndWillGetDisplayedInSeparateSection = true;
+            continue;
+          }
+        }
+        if(inProjectsAndWillGetDisplayedInSeparateSection == true){
+          inProjectsAndWillGetDisplayedInSeparateSection = false;
+          continue;
+        }
 	      String nameLabel=nameKey;
 	      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
 	      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
@@ -536,12 +551,63 @@ if (sharky.getNames() != null) {
 	        <span class="nameCheck">&check;</span>
 	        <span class="nameError">X</span>
 	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
-	      </div><%
+	      </div>
+
+        <%
 	    }
 	}
 
+  MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
+  List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
+  if(projects!=null && projects.size()>0){
+    for(int i=0; i< projects.size(); i++){
+      String researchProjId = projects.get(i).getResearchProjectId();
+      String incrementalId = indie.getName(researchProjId);
+      if(incrementalId != null){
+        %>
+        <div class="namesection <%=researchProjId%>">
+	        <span class="nameKey" data-oldkey="<%=researchProjId%>"><em><%=researchProjId%></em></span>
+	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjId%>" placeholder="<%= researchProjId%>" >
+	        <span id="nameColon">:</span>
+
+	        <span class="nameValue <%=researchProjId%>" data-oldvalue="<%=incrementalId%>"><%=incrementalId%></span>
+	        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=incrementalId%>" placeholder="<%=incrementalId %>" >
+	        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+
+	        <span class="nameCheck">&check;</span>
+	        <span class="nameError">X</span>
+	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+	      </div>
+
+        <%
+      }else{
+        String noIdTxt = props.getProperty("noIdIn");
+        %>
+        <div class="namesection <%=researchProjId%>">
+          <span class="nameKey" data-oldkey="<%=researchProjId%>"><em><%=researchProjId%></em></span>
+          <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjId%>" placeholder="<%= researchProjId%>" >
+          <span id="nameColon">:</span>
+
+          <span class="nameValue <%=researchProjId%>" data-oldvalue="<%=noIdTxt%>"><%=noIdTxt%></span>
+          <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=noIdTxt%>" placeholder="<%=noIdTxt %>" >
+          <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+
+          <span class="nameCheck">&check;</span>
+          <span class="nameError">X</span>
+          <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+        </div>
+
+        <%
+      }
+    }
+  }
+
     // "add new name" Edit section
     %>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+
     <div class="newnameButton">
       <input id="newNameButton" class="btn btn-sm editFormBtn namebutton newname" type="submit" value="Add New Name">
     </div>
@@ -695,16 +761,9 @@ if (sharky.getNames() != null) {
       });
     });
   </script>
-
-
-
     <%
-
-
 }
             %></p>
-
-
             <%
             String sexValue="";
             if(sharky.getSex()!=null){sexValue=sharky.getSex();}
@@ -780,25 +839,6 @@ if (sharky.getNames() != null) {
             </p>
             <%
               }
-              MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
-              List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
-              if(projects!=null && projects.size()>0){
-                %>
-                  <div id="project-ids">
-                    <p><%=props.getProperty("projects") %></p>
-                <%
-                for(int i=0; i< projects.size(); i++){
-                  if(indie.getName(projects.get(i).getResearchProjectId()) != null){
-                    %>
-                    <p><em><%= projects.get(i).getResearchProjectId()%></em> : <%= indie.getName(projects.get(i).getResearchProjectId())%></p>
-                    <%
-                  }else{
-                    %>
-                      <p><em><%= projects.get(i).getResearchProjectId()%></em> : <%=props.getProperty("noIdIn") %> <%= projects.get(i).getResearchProjectId()%> yet</p>
-                    <%
-                  }
-                }
-              }
               %>
                 </div>
         </div>
@@ -821,7 +861,7 @@ if (sharky.getNames() != null) {
             //if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
 
             %>
-            <p class="noEditText"><%=props.getProperty("birthdate")  %> <span id="displayBirth"><%=displayTimeOfBirth%></span></p>
+            <p class="noEditText"><%=props.getProperty("birthdate") %>: <span id="displayBirth"><%=displayTimeOfBirth%></span></p>
 
 
             <script type="text/javascript">

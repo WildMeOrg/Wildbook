@@ -38,7 +38,7 @@
 	myShepherd.getPM().getFetchPlan().setGroup("individualSearchResults");
     myShepherd.beginDBTransaction();
     if (request.getParameter("hiddenIncrementId") != null){
-      System.out.println("got hiddenIncrementId in individualSearch: " + hiddenIncrementId);
+      System.out.println("got hiddenIncrementId in individualSearch: " + request.getParameter("hiddenIncrementId"));
     }
 
     try{
