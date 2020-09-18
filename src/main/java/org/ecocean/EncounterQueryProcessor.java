@@ -69,7 +69,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
     //end filter for organization------------------
 
     //filter for projectName-------------------
-    if((request.getParameter("projectId")!=null) && (!request.getParameter("projectId").equals("")) && Util.isUUID(request.getParameter("projectId"))){
+    if(Util.isUUID(request.getParameter("projectId"))){
       filter = SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ";
       String[] projectIds = request.getParameterValues("projectId");
       if((projectIds!=null)&&(!projectIds[0].equals("None"))){
