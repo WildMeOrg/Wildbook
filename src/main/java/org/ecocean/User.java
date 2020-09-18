@@ -487,7 +487,7 @@ public class User implements Serializable {
       if(includeOrganizations) {
         Vector<String> orgIDs = new Vector<String>();
         for (Organization org : this.organizations) {
-          orgIDs.add(org.toJSONObject().toString());
+          orgIDs.add(org.toJSONObject(false).toString());
         }
         jobj.put("organizations", orgIDs.toArray());
       }
