@@ -54,20 +54,21 @@ if (logs == null) {
 }
 
 JSONArray all = new JSONArray();
-for (IdentityServiceLog l : logs) {
-	all.put(l.toJSONObject());
-}
 
 if (projectId!=null) {
 	Project project = myShepherd.getProjectByResearchProjectId(projectId);
 	if (project!=null) {
 		JSONObject projectData = new JSONObject();
 		projectData.put("projectData", project.asJSONObjectWithEncounterMetadata(myShepherd));
-		System.out.println("iaLogs sending this projectData to iaResults: "+project.asJSONObjectWithEncounterMetadata(myShepherd));
 		projectData.put("projectAcmIds", project.getAllACMIdsJSON());
-		System.out.println("iaLogs sending this pprojectAcmIds to iaResults: "+project.getAllACMIdsJSON());
+		all.put(projectData);
 	}
 }
+
+for (IdentityServiceLog l : logs) {
+	all.put(l.toJSONObject());
+}
+
 
 
 out.println(all.toString());

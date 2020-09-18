@@ -701,7 +701,7 @@ function grabTaskResult(tid) {
 	let paramStr = 'iaLogs.jsp?taskId=' + tid;
 	console.log("do i have a projectId in grabTaskResult()????? "+researchProjectId);
 	if (researchProjectId!=null&&researchProjectId.length>0) {
-		paramStr += "?projectId="+researchProjectId;
+		paramStr += "&projectId="+researchProjectId;
 	}
 
 	$.ajax({
@@ -717,10 +717,11 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 					if (!jobIdMap[tid]) jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId, manualAttempts: 0 };
 				}
 				//console.log('d[i].status._action --> %o', d[i].status._action);
-				if (d[i].projectData&&researchProjectId!=undefined&&researchProjectId!="undefined"&&researchProjectId.length>0) {
+				if (d[i].projectData) {
+					console.log("got a project log from iaLogs...");
 					projectData = d[i].projectData;
-					if (d[i].projectAcmIds) {
-						projectACMIds = d[i].projectAcmIds;
+					if (d[i].projectACMIds) {
+						projectACMIds = d[i].projectACMIds;
 					}
 				}
 
@@ -959,28 +960,24 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 		for (var i = 0 ; i < maxToEvaluate; i++) {
 
-			console.log("in annot loop, i="+i+" maxToEvaluate="+maxToEvaluate);
-
+			
 			var d = sorted[i].split(/\s/);
 			if (!d) break;
 			var acmId = d[1];
 			var database_annot_uuid = d[1];
 			var has_illustration = d[2];
-
-			console.log("this acmId: "+acmId);
+			
+			console.log("in annot loop, i="+i+" maxToEvaluate="+maxToEvaluate+" this acmId: "+acmId);
 
 			let isSelected = isProjectSelected();
 			let validEnc = true;
 
 			if (isSelected) {
 				validEnc = projectACMIds.includes(acmId);
-				consol.log("ALLLLLL ACMIDS : "+JSON.stringify(projectACMIds));
-				console.log("validEnc?????? "+validEnc);
 			}
 
 			if ((isSelected&&validEnc)||!isSelected) {
 
-				console.log("SHOWING ANNOT INDEX : "+i);
 				console.log("has_illustration = "+has_illustration);
 				
 				var illustUrl;
@@ -1148,7 +1145,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '" title="'+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
                 }
 
-                if (indivId) {
+                if (indivId&&!researchProjectId) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
                 }
@@ -1713,7 +1710,6 @@ function selectedProjectContainsEncounter(acmId) {
 		async: true,
 		contentType: 'application/json',
 		success: function(d) {
-			console.log("return from selectedProjectContainsEncounter servlet!!! "+JSON.stringify(d));
 			if (d.inProject=="true"||d.inProject==true) {
 				return true;
 			}
@@ -1728,107 +1724,7 @@ function selectedProjectContainsEncounter(acmId) {
 	});
 	return true;
 
-
-
-
-	// requestJSON['acmId'] = acmId;
-	// console.log("all requestJSON for selectedProjectContainsEncounter() : "+JSON.stringify(requestJSON));
-	// let paramString = 'iaResults.jsp?acmId=' + acmId;
-	// $.ajax({
-	// 	url: paramString,
-	// 	type: 'GET',
-	// 	dataType: 'json',
-	// 	async: true,
-	// 	complete: function(d) {
-			
-	// 		//console.log("RESPONSE IN AJAX #1 : "+JSON.stringify(d));
-	// 		if (d.responseJSON.annotations.length>0&&d.responseJSON.annotations[0].asset) {
-	// 			var ft = findMyFeature(acmId, d.responseJSON.annotations[0].asset);
-	// 			var encId = ft.encounterId;
-	
-	// 			//console.log("selectedProjectContainsEncounter() ajax #1 passed");
-	
-	// 			let requestJSON = {};
-	// 			requestJSON['encounterId'] = encId;
-
-	// 			console.log("TRYING TO PROCESS ENCID "+encId);
-	
-	// 			$.ajax({
-	// 				url: wildbookGlobals.baseUrl + '../ProjectGet',
-	// 				type: 'POST',
-	// 				data: JSON.stringify(requestJSON),
-	// 				dataType: 'json',
-	// 				async: true,
-	// 				contentType: 'application/json',
-	// 				success: function(d) {
-	
-	// 					//console.log("selectedProjectContainsEncounter() ajax #2 passed");
-	
-	// 					if (d.projects.length) {
-	// 						for (i=0;i<d.projects.length;i++) {
-	// 							let projectId = d.projects[i].researchProjectId;
-	// 							console.log(" does researchProjectId="+projectId+" selectedProject="+selectedProject+" "+(selectedProject==projectId));
-	// 							if (selectedProject==projectId) {
-	// 								console.log("about to add to PROJECT CACHE...");
-	// 								for (j=0;j<d.projects[i].encounters.length;j++ ) {
-	// 									let thisEncJSON = d.projects[i].encounters[j];
-
-	// 									console.log("THIS ENC JSON: "+JSON.stringify(thisEncJSON));
-	// 									if (thisEncJSON.encounterId==encId&&thisEncJSON.individualProjectId) {
-	// 										console.log("ADDING ENC TO PROJECT CACHE!!");
-	// 										projectForEncCache[encId] = {incrementalId: thisEncJSON.individualProjectId, projectUUID: d.projects[i]};
-	// 										console.log("CURRENT PROJECT/ENC CACHE: "+JSON.stringify(projectForEncCache));
-	// 									}
-	// 								}
-	// 								console.log("RETURNING TRUE IN SELECTEDPROJECTCONTAINS ENCOUNTER...");
-	// 								return true;
-	// 							}
-	// 						}
-	// 						return false;
-	// 					}
-	// 				},
-	// 				error: function(x,y,z) {
-	// 					console.warn('%o %o %o', x, y, z);
-	// 					reject(false);
-	// 				}
-	// 			});
-	// 		}
-	// 	}
-	// });
 }
-
-
-
-// function applyResearchProjectLinks() {
-// 	let allIndivLinkTarget = $('.indiv-link-target');
-// 	let allEncNums = [];
-// 	for (i=0;i<allIndivLinkTarget.length;i++) {
-// 		let id = allIndivLinkTarget[i].attr('id').replace("encnum","");
-// 		allEncNums.push(id);
-// 	}
-// 	let selectedResearchProjectId = $("#projectDropdown").val();
-// 	//+++++++++++++++++++++++++++++++++++++
-// 	let requestJSON = {};
-// 	requestJSON['allEncounterNumbers'] = allEncNums;
-// 	requestJSON['selectedResearchProjectId'] = electedResearchProjectId;
-
-// 	console.log("all requestJSON for applyResearchProjectLinks() : "+JSON.stringify(requestJSON));
-// 	$.ajax({
-// 		url: wildbookGlobals.baseUrl + '../ProjectGet',
-// 		type: 'POST',
-// 		data: JSON.stringify(requestJSON),
-// 		dataType: 'json',
-// 		contentType: 'application/json',
-// 		success: function(d) {
-// 			console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
-// 		},
-// 		error: function(x,y,z) {
-// 			console.warn('%o %o %o', x, y, z);
-// 		}
-// 	});
-// }
-
-
 
 </script>
 
