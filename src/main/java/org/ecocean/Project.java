@@ -329,6 +329,23 @@ public class Project implements java.io.Serializable {
         return j;
     }
 
+    public JSONArray getAllACMIdsJSON() {
+        JSONArray allACMIds = new JSONArray();
+        List<String> allACMIDsStr = new ArrayList<>();
+        for (Encounter enc : encounters) {
+            if (enc.hasAnnotations()) {
+                List<Annotation> anns = enc.getAnnotations();
+                for (Annotation ann : anns) {
+                    if (ann.hasAcmId()&&!ann.isTrivial()&&!allACMIDsStr.contains(ann.getAcmId())){
+                        allACMIDsStr.add(ann.getAcmId());
+                        allACMIds.put(ann.getAcmId());
+                    }
+                }
+            }
+        }
+        return allACMIds;
+    }
+
     public String toString() {
         return this.asJSONObject().toString();
     }

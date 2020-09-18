@@ -11,6 +11,7 @@ java.io.File,
 org.json.JSONArray,
 org.json.JSONObject,
 org.ecocean.identity.*,
+org.ecocean.Project,
 org.ecocean.media.*
               "
 %>
@@ -25,6 +26,7 @@ org.ecocean.media.*
 
 String id = request.getParameter("id");
 String taskId = request.getParameter("taskId");
+String projectId = request.getParameter("projectId");
 if ((id == null) && (taskId == null)) {
 	out.println("{\"success\": false, \"error\": \"no object/task id passed\"}");
 	return;
@@ -55,6 +57,18 @@ JSONArray all = new JSONArray();
 for (IdentityServiceLog l : logs) {
 	all.put(l.toJSONObject());
 }
+
+if (projectId!=null) {
+	Project project = myShepherd.getProjectByResearchProjectId(projectId);
+	if (project!=null) {
+		JSONObject projectData = new JSONObject();
+		projectData.put("projectData", project.asJSONObjectWithEncounterMetadata(myShepherd));
+		System.out.println("iaLogs sending this projectData to iaResults: "+project.asJSONObjectWithEncounterMetadata(myShepherd));
+		projectData.put("projectAcmIds", project.getAllACMIdsJSON());
+		System.out.println("iaLogs sending this pprojectAcmIds to iaResults: "+project.getAllACMIdsJSON());
+	}
+}
+
 
 out.println(all.toString());
 
