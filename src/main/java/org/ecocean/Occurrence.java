@@ -1248,7 +1248,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         obj.put("version", this.getVersion());
 
         //we include encounters even if expand==null
-        if (Util.collectionIsEmptyOrNull(this.encounters)) {
+        if (!Util.collectionIsEmptyOrNull(this.encounters)) {
             org.json.JSONArray jarr = new org.json.JSONArray();
             for (Encounter enc : this.encounters) {
                 if ((expand == null) || !expand.contains("Occurrence.encounters")) {
