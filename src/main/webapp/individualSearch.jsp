@@ -1455,8 +1455,7 @@ function removeIncrementalIdFromSearchParameters(name){
 function addIncrementalIdsToUrlParams(){
   console.log("addIncrementalIdsToUrlParams entered. incrementalIdsOnSearchList is: ");
   console.log(incrementalIdsOnSearchList);
-  $('#individualIncrementalIds').val(incrementalIdsOnSearchList.join("; "));
-  $('#hiddenIncrementId').val(incrementalIdsOnSearchList.join("; "));
+  $('#hiddenIncrementId').val(incrementalIdsOnSearchList.join(";")); // only way I could figure out to pass these as part of the URL. $('#individualIncrementalIds').val(incrementalIdsOnSearchList.join(";")); didn't work
   debugger;
 }
 

@@ -88,6 +88,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
       //filter for projectName-------------------
       if((request.getParameter("projectId")!=null) && (!request.getParameter("projectId").equals("")) && Util.isUUID(request.getParameter("projectId"))){
+        System.out.println("dammit you better get here");
         filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && ";
         String[] projectIds = request.getParameterValues("projectId");
         if((projectIds!=null)&&(!projectIds[0].equals("None"))){
@@ -125,42 +126,41 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
 
       //filter for projectIncrementId-------------------
-      if((request.getParameter("hiddenIncrementId")!=null) && (!request.getParameter("hiddenIncrementId").equals("")) && Util.isUUID(request.getParameter("hiddenIncrementId"))){
-        filter = SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ";
-        String incrementIdString = request.getParameter("hiddenIncrementId");
-        System.out.println("incrementIdString is " + incrementIdString);
-        //TODO proccess incrementIdString
-      //   if((projectIds!=null)&&(!projectIds[0].equals("None"))){
-      //     prettyPrint.append("Assigned to one of the following projects: ");
-      //     int numProjIds = projectIds.length;
-      //     String projIdFilter = "(";
-      //     for(int i=0; i<numProjIds; i++){
-      //       String currentProjId = projectIds[i].toLowerCase().replaceAll("%20", " ").trim();
-      //       if(!currentProjId.equals("")){
-      //         if(projIdFilter.equals("(")){
-      //           projIdFilter += " proj.id == \"" + currentProjId + "\"";
-      //         }else{
-      //           projIdFilter += " || proj.id == \"" + currentProjId + "\"";
-      //         }
-      //         // prettyPrint.append(filter + " " + projIdFilter);
-      //       }
-      //     }
-      //     projIdFilter += " )";
-      //     if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ")){
-      //       filter += projIdFilter;
-      //     }else{
-      //       filter+=(" && " + projIdFilter);
-      //     }
-      //     prettyPrint.append(filter);
-      //     prettyPrint.append("<br/>");
-      //   }
-      //   // TODO
-      //   // filter = "SELECT FROM org.ecocean.Encounter WHERE proj.id == '" + projectId + "' && proj.encounters.contains(this)";
-      //   String variables_statement = " VARIABLES org.ecocean.Project proj";
-      //   jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
-      // } else{
-      //   //TODO
-      // }
+      if((request.getParameter("hiddenIncrementId")!=null) && (!request.getParameter("hiddenIncrementId").equals(""))){
+        String[] incrementIds = request.getParameter("hiddenIncrementId").split(";");
+        filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE proj.encounters.contains(this) && "; //TODO fix
+        if((incrementIds.length>0)&&(incrementIds!=null)){
+          prettyPrint.append("Assigned to one of the following increment IDs: ");
+          int numProjIncrementalIds = incrementIds.length;
+          String projIdFilter = "(";
+          for(int i=0; i<numProjIncrementalIds; i++){
+            //TODO ack what oops
+            // String incrementId = incrementIds[i].toLowerCase().replaceAll("%20", " ").trim();
+            // if(!incrementId.equals("")){
+            //   if(projIdFilter.equals("(")){
+            //     projIdFilter += " proj.id == \"" + incrementId + "\"";
+            //   }else{
+            //     projIdFilter += " || proj.id == \"" + incrementId + "\"";
+            //   }
+            //   // prettyPrint.append(filter + " " + projIdFilter);
+            // }
+          }
+          projIdFilter += " )";
+          if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ")){
+            filter += projIdFilter;
+          }else{
+            filter+=(" && " + projIdFilter);
+          }
+          prettyPrint.append(filter);
+          prettyPrint.append("<br/>");
+        }
+        // TODO
+        // filter = "SELECT FROM org.ecocean.Encounter WHERE proj.id == '" + projectId + "' && proj.encounters.contains(this)";
+        String variables_statement = " VARIABLES org.ecocean.Project proj";
+        jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
+      } else{
+        //TODO
+      }
       //end filter for projectIncrementId------------------
 
     //------------------------------------------------------------------
