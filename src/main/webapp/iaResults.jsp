@@ -575,6 +575,10 @@ var timers = {};
 
 var INDIVIDUAL_SCORES = <%=individualScores%>;
 
+var researchProjectId = '<%=researchProjectId%>';
+var projectData = {};
+var projectACMIds = [];
+
 function toggleScoreType() {
 	INDIVIDUAL_SCORES = !INDIVIDUAL_SCORES;
 	$('#encounter-info').remove();
@@ -693,8 +697,15 @@ function grabTaskResult(tid) {
 	var mostRecent = false;
 	var gotResult = false;
 //console.warn('------------------- grabTaskResult(%s)', tid);
+
+	let paramStr = 'iaLogs.jsp?taskId=' + tid;
+	console.log("do i have a projectId in grabTaskResult()????? "+researchProjectId);
+	if (researchProjectId!=null&&researchProjectId.length>0) {
+		paramStr += "?projectId="+researchProjectId;
+	}
+
 	$.ajax({
-		url: 'iaLogs.jsp?taskId=' + tid,
+		url: paramStr,
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
@@ -706,7 +717,15 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 					if (!jobIdMap[tid]) jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId, manualAttempts: 0 };
 				}
 				//console.log('d[i].status._action --> %o', d[i].status._action);
+				if (d[i].projectData&&researchProjectId!=undefined&&researchProjectId!="undefined"&&researchProjectId.length>0) {
+					projectData = d[i].projectData;
+					if (d[i].projectAcmIds) {
+						projectACMIds = d[i].projectAcmIds;
+					}
+				}
+
 				if (d[i].status && d[i].status._action == 'getJobResult') {
+					
 					showTaskResult(d[i], tid);
 					i = d.length;
 					gotResult = true;
@@ -954,7 +973,9 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			let validEnc = true;
 
 			if (isSelected) {
-				validEnc = selectedProjectContainsEncounter(acmId);
+				validEnc = projectACMIds.includes(acmId);
+				consol.log("ALLLLLL ACMIDS : "+JSON.stringify(projectACMIds));
+				console.log("validEnc?????? "+validEnc);
 			}
 
 			if ((isSelected&&validEnc)||!isSelected) {
@@ -1043,7 +1064,9 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
         var mainAsset = false;
         var otherAnnots = [];
         var h = 'Matching results';
-        var acmId;
+		var acmId;
+		var incrementalProjectId;
+		var projectUUID;
 
         for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
             acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
@@ -1051,7 +1074,15 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
             if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
                 //console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
                 mainAnnId = res.responseJSON.annotations[i].id;
-            }
+			}
+			if (res.responseJSON.annotations[i].incrementalProjectId&&res.responseJSON.annotations[i].incrementalProjectId.length>0) {
+				incrementalProjectId = res.responseJSON.annotations[i].incrementalProjectId;
+				console.log("Got this incrementalProjectId in displayAnnotDetails() : "+incrementalProjectId);
+			}
+			if (res.responseJSON.annotations[i].projectUUID&&res.responseJSON.annotations[i].projectUUID.length>0) {
+				projectUUID = res.responseJSON.annotations[i].projectUUID;
+				console.log("Got this projectId in displayAnnotDetails() : "+incrementalProjectId);
+			}
             //we "should" only need the first asset we find -- as they "should" all be identical!
             if (!res.responseJSON.annotations[i].asset) continue;  //no asset, meh continue
             if (mainAsset) {
@@ -1111,12 +1142,10 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					}
 				}
 				
-				let projectFromCache = projectForEncCache[encId];
-				if (projectFromCache) {
-					let incrementalId = projectFromCache.incrementalId;
-					let projectUUID = projectFromCache.projectUUID;
-                    h += ' of <a class="project-link" title="open project page" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '"  title="'+incrementalId+'">' + incrementalId + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '" title="'+incrementalId+'">' + incrementalId.substring(0,15) + '</a>');
+				if (researchProjectId&&incrementalProjectId) {
+					console.log("trying to show project-based id for asset...");
+                    h += ' of <a class="project-link" title="open project page" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '"  title="'+incrementalProjectId+'">' + incrementalProjectId + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '" title="'+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
                 }
 
                 if (indivId) {
@@ -1669,11 +1698,12 @@ $('#projectDropdown').on('change', function() {
 var projectForEncCache = {};
 
 function selectedProjectContainsEncounter(acmId) {
+	console.log("entering selectedProjectContainsEncounte servlet for acmId"+acmId);
 	let selectedProject = $("#projectDropdown").val();
+	let requestJSON = {};
 	requestJSON['researchProjectId'] = selectedProject;
 	requestJSON['acmId'] = acmId;
 	requestJSON['annotInProject'] = "true";
-	let requestJSON = {};
 
 	$.ajax({
 		url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -1683,7 +1713,7 @@ function selectedProjectContainsEncounter(acmId) {
 		async: true,
 		contentType: 'application/json',
 		success: function(d) {
-
+			console.log("return from selectedProjectContainsEncounter servlet!!! "+JSON.stringify(d));
 			if (d.inProject=="true"||d.inProject==true) {
 				return true;
 			}
@@ -1691,9 +1721,12 @@ function selectedProjectContainsEncounter(acmId) {
 		},
 		error: function(x,y,z) {
 			console.warn('%o %o %o', x, y, z);
+
 			return false;
+
 		}
 	});
+	return true;
 
 
 
