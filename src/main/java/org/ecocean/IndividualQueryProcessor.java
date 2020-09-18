@@ -146,11 +146,11 @@ public class IndividualQueryProcessor extends QueryProcessor {
             // }
           }
           projIdFilter += " )";
-          if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ")){
-            filter += projIdFilter;
-          }else{
-            filter+=(" && " + projIdFilter);
-          }
+          //if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ")){
+          //  filter += projIdFilter;
+          //}else{
+          //  filter+=(" && " + projIdFilter);
+          //}
           prettyPrint.append(filter);
           prettyPrint.append("<br/>");
         }
