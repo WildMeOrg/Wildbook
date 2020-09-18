@@ -50,9 +50,9 @@ import org.datanucleus.api.rest.orgjson.JSONException;
  * @version 2.0
  * @see Encounter, Shepherd
  */
-public class MarkedIndividual implements java.io.Serializable {
+public class MarkedIndividual extends org.ecocean.api.ApiCustomFields implements java.io.Serializable {
 
-    private String individualID = "";
+    //private String individualID = "";
 
     private MultiValue names;
     private static HashMap<Integer,String> NAMES_CACHE = new HashMap<Integer,String>();  //this is for searching
@@ -146,7 +146,7 @@ public class MarkedIndividual implements java.io.Serializable {
    * empty constructor used by JDO Enhancer - DO NOT USE
    */
   public MarkedIndividual() {
-        this.individualID = Util.generateUUID();
+        this.setId(Util.generateUUID());
   }
 
     public MarkedIndividual(Encounter enc) {
@@ -163,9 +163,11 @@ public class MarkedIndividual implements java.io.Serializable {
    *@see  Shepherd#commitDBTransaction()
    */
 
+/*
     public String getId() {
         return individualID;
     }
+*/
 
     
 
@@ -198,8 +200,8 @@ public class MarkedIndividual implements java.io.Serializable {
     }
 
     public String displayIndividualID() {
-      if (Util.isUUID(individualID)) return individualID.substring(0,8);
-      else return individualID;
+      if (Util.isUUID(this.getId())) return this.getId().substring(0,8);
+      else return this.getId();
     }
 
     public static String getDisplayNameForEncounter(Shepherd myShepherd, String encId) {
@@ -302,8 +304,8 @@ public class MarkedIndividual implements java.io.Serializable {
         if (names == null) names = new MultiValue();
 
         // save the old individualID
-        if (Util.shouldReplace(individualID, legacyIndividualID)) {
-          setLegacyIndividualID(individualID);
+        if (Util.shouldReplace(this.getId(), legacyIndividualID)) {
+          setLegacyIndividualID(this.getId());
         }
 
         if (Util.stringExists(getLegacyIndividualID())) {
@@ -763,7 +765,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     }
 
   public String getIndividualID() {
-      return individualID;
+      return this.getId();
   }
 
 /*
@@ -810,7 +812,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
 
     public void setIndividualID(String id) {
-        individualID = id;
+        this.setId(id);
     }
 
     public void setAlternateID(String alt) {
@@ -2068,7 +2070,7 @@ public void setTimeOfBirth(long newTime){timeOfBirth=newTime;}
 public void setTimeOfDeath(long newTime){timeOfDeath=newTime;}
 
 public List<Relationship> getAllRelationships(Shepherd myShepherd){
-  return myShepherd.getAllRelationshipsForMarkedIndividual(individualID);
+  return myShepherd.getAllRelationshipsForMarkedIndividual(this.getId());
 }
 
 public String getFomattedMSMarkersString(String[] loci){
@@ -2154,7 +2156,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   // Returns a somewhat rest-like JSON object containing the metadata
   public JSONObject uiJson(HttpServletRequest request, boolean includeEncounters) throws JSONException {
     JSONObject jobj = new JSONObject();
-    jobj.put("individualID", this.getIndividualID());
+    jobj.put("individualID", this.getId());
     jobj.put("displayName", this.getDisplayName());
     jobj.put("id", this.getId());
     jobj.put("url", this.getUrl(request));
@@ -2581,7 +2583,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
     public String toString() {
         return new ToStringBuilder(this)
-                .append("individualID", individualID)
+                .append("individualID", this.getId())
                 .append("species", getGenusSpecies())
                 .append("names", getNames())
                 .append("sex", getSex())
