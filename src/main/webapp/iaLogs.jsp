@@ -22,6 +22,7 @@ org.ecocean.media.*
 
 
 
+response.setHeader("Access-Control-Allow-Origin", "*");
 
 String id = request.getParameter("id");
 String taskId = request.getParameter("taskId");
