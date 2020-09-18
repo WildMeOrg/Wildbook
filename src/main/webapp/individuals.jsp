@@ -794,7 +794,7 @@ if (sharky.getNames() != null) {
                     <%
                   }else{
                     %>
-                      <p><em><%= projects.get(i).getResearchProjectId()%></em> : No ID in <%= projects.get(i).getResearchProjectId()%> yet</p>
+                      <p><em><%= projects.get(i).getResearchProjectId()%></em> : <%=props.getProperty("noIdIn") %> <%= projects.get(i).getResearchProjectId()%> yet</p>
                     <%
                   }
                 }
