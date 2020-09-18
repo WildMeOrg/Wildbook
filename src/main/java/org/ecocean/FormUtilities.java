@@ -70,7 +70,8 @@ public class FormUtilities {
   public static void setUpProjectDropdown(Boolean isForIndividualOrOccurrenceSearch, int colLen, String fieldDisplayName, String fieldName, Properties encprops, JspWriter out, HttpServletRequest request, Shepherd myShepherd){
     User usr = AccessControl.getUser(request, myShepherd);
     if(usr != null){
-      List<Project> projects = myShepherd.getOwnedProjectsForUserId(usr.getUUID());
+      ArrayList<Project> projects = myShepherd.getProjectsForUser(usr);
+      // List<Project> projects = myShepherd.getOwnedProjectsForUserId(usr.getUUID());
       ArrayList<String> projOptions = new ArrayList<String>();
       ArrayList<String> projIds = new ArrayList<String>();
       for (int i = 0; i < projects.size(); i++) { //TODO DRY up
