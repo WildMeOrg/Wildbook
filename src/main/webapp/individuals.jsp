@@ -560,8 +560,8 @@ if (sharky.getNames() != null) {
   MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
   List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
   if(projects!=null && projects.size()>0){
-    for(int i=0; i< projects.size(); i++){
-      String researchProjId = projects.get(i).getResearchProjectId();
+    for(Project currentProject: projects){
+      String researchProjId = currentProject.getResearchProjectId();
       String incrementalId = indie.getName(researchProjId);
       if(incrementalId != null){
         %>
