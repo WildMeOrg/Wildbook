@@ -10,6 +10,8 @@ import java.util.Properties;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.HashMap;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.File;
@@ -17,7 +19,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 
-public class JsonProperties {
+public class JsonProperties extends Properties {
 
 	private static final String propertiesOverrideDir = "/data/wildbook_data_dir/WEB-INF/classes/bundles";
 	private static final String propertiesDir = "WEB-INF/classes/bundles";
@@ -69,10 +71,17 @@ public class JsonProperties {
 
 	public Object get(String periodSeparatedKeys) {
 		System.out.println("get called on "+periodSeparatedKeys);
-		String[] keys = periodSeparatedKeys.split("\\.");
-		String keyPrintable = String.join("->", keys);
-		System.out.println("get parsed keys "+keyPrintable);
-		return getRecursive(keys, this.getJson());
+		try {
+			String[] keys = periodSeparatedKeys.split("\\.");
+			String keyPrintable = String.join("->", keys);
+			System.out.println("get parsed keys "+keyPrintable);
+			return getRecursive(keys, this.getJson());
+		} catch (Exception e) {
+			System.out.println("JsonProperties.get hit an exception on key "+periodSeparatedKeys);
+			System.out.println(" ... searching json "+this.getJson().toString());
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public Object getRecursive(String[] keys, JSONObject currentLevel) {
