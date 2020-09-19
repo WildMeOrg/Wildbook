@@ -2811,7 +2811,7 @@ else {
                                         <%
                                       }else{
                                         %>
-                                          <p><em><%= projects.get(i).getResearchProjectId()%></em> : No ID in <%= projects.get(i).getResearchProjectId()%> yet</p>
+                                          <p><em><%= projects.get(i).getResearchProjectId()%></em> : <%= encprops.getProperty("noIdIn")%></p>
                                         <%
                                       }
                                     }
