@@ -121,6 +121,7 @@ public class MarkedIndividual extends org.ecocean.api.ApiCustomFields implements
 
   private long timeOfDeath=0;
 
+    private Long version;
 
     public static final String NAMES_KEY_NICKNAME = "Nickname";
     public static final String NAMES_KEY_ALTERNATEID = "Alternate ID";
@@ -2590,6 +2591,35 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 .append("numEncounters", numberEncounters)
                 .append("numLocations", numberLocations)
                 .toString();
+    }
+
+    public void updateModified() {
+        this.setVersion();
+    }
+    public void setVersion() {
+        version = System.currentTimeMillis();
+    }
+    public void setVersion(Long v) {
+        version = v;
+    }
+    public Long getVersion() {
+        return version;
+    }
+
+    public org.json.JSONObject asApiJSONObject() {
+        return asApiJSONObject(null);
+    }
+
+    public org.json.JSONObject asApiJSONObject(List<String> expand) {
+        org.json.JSONObject obj = new org.json.JSONObject();
+        obj.put("id", this.getId());
+        obj.put("version", this.getVersion());
+
+        //if expand is null, we bail
+        if (expand == null) return obj;
+
+        obj.put("customFields", this.getCustomFieldJSONObject());
+        return obj;
     }
 
 }

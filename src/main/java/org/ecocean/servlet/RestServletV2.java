@@ -25,6 +25,8 @@ import org.ecocean.Shepherd;
 import org.ecocean.ShepherdRO;
 import org.ecocean.Util;
 import org.ecocean.SystemLog;
+import org.ecocean.MarkedIndividual;
+import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.customfield.CustomFieldDefinition;
@@ -168,6 +170,32 @@ public class RestServletV2 extends ApiHttpServlet {
                 if (occ != null) {
                     try {
                         rtn = occ.asApiJSONObject(Util.jsonArrayToStringList(payload.optJSONArray("expandProperties")));
+                    } catch (Exception ex) {
+                        myShepherd.rollbackDBTransaction();
+                        myShepherd.closeDBTransaction();
+                        throw new IOException("JSONConversion - " + ex.toString());
+                    }
+                }
+                break;
+
+            case "org.ecocean.Encounter":
+                Encounter enc = myShepherd.getEncounter(id);
+                if (enc != null) {
+                    try {
+                        rtn = enc.asApiJSONObject(Util.jsonArrayToStringList(payload.optJSONArray("expandProperties")));
+                    } catch (Exception ex) {
+                        myShepherd.rollbackDBTransaction();
+                        myShepherd.closeDBTransaction();
+                        throw new IOException("JSONConversion - " + ex.toString());
+                    }
+                }
+                break;
+
+            case "org.ecocean.MarkedIndividual":
+                MarkedIndividual ind = myShepherd.getMarkedIndividual(id);
+                if (ind != null) {
+                    try {
+                        rtn = ind.asApiJSONObject(Util.jsonArrayToStringList(payload.optJSONArray("expandProperties")));
                     } catch (Exception ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();

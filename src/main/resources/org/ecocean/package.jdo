@@ -184,6 +184,10 @@
         <column allows-null="true"/>
       </field>
 
+      <field name="version" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+
       <fetch-group name="allSharks_min">
         <field name="encounters"/>
       </fetch-group>
