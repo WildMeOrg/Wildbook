@@ -7,7 +7,7 @@
     * can handle multiple IA frameworks (not just historic-IBEIS)
       - likely a base abstract class with a "isEnabled() / init()" concept
       - classes would allow for instances of each IA framework?
-    
+
     * no idea how to handle crazy (and configurable!?) workflow!
 
     * probably should "leverage" Queue stuff where applicable?
@@ -23,6 +23,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.Taxonomy;
+import org.ecocean.IAJsonProperties;
 import org.ecocean.media.AssetStore;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
@@ -94,11 +95,13 @@ public class IA {
         String context = myShepherd.getContext();
         JSONObject qjob = new JSONObject();
         qjob.put("detect", dj);
+        // task is queued here
         qjob.put("taskId", task.getId());
         qjob.put("__context", context);
         qjob.put("__baseUrl", getBaseURL(context));
         boolean sent = false;
         try {
+        // task is queued here
             sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
         } catch (java.io.IOException iox) {
             System.out.println("ERROR: IA.intakeMediaAssets() addToQueue() threw " + iox.toString());
@@ -107,6 +110,46 @@ public class IA {
 System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " assets; queued? = " + sent + "; " + task);
         return task;
     }
+
+
+    public static Task intakeMediaAssetsNew(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
+        if ((mas == null) || (mas.size() < 1)) return null;
+
+        Task topTask = new Task();
+        if (parentTask != null) topTask.setParameters(parentTask.getParameters());
+        topTask.setObjectMediaAssets(mas);
+        myShepherd.storeNewTask(topTask);
+
+        IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+        // mimicking intakeAnnotations, we assume the first mediaAsset is representative of all of them wrt Taxonomies, configs etc.
+        JSONArray detectConfs = iaConfig.getDetectionConfigs(mas.get(0), myShepherd);
+
+        //what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
+        JSONArray maArr = new JSONArray();
+        for (MediaAsset ma : mas) {
+            maArr.put(ma.getId());
+        }
+        JSONObject dj = new JSONObject();
+        dj.put("mediaAssetIds", maArr);
+        String context = myShepherd.getContext();
+        JSONObject qjob = new JSONObject();
+        qjob.put("detect", dj);
+        // task is queued here
+        qjob.put("taskId", topTask.getId());
+        qjob.put("__context", context);
+        qjob.put("__baseUrl", getBaseURL(context));
+        boolean sent = false;
+        try {
+        // task is queued here
+            sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+        } catch (java.io.IOException iox) {
+            System.out.println("ERROR: IA.intakeMediaAssets() addToQueue() threw " + iox.toString());
+        }
+
+System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " assets; queued? = " + sent + "; " + topTask);
+        return topTask;
+    }
+
 
     //similar behavior to above: basically fake /ia api call, but via queue
     //     parentTask is optional, but *will NOT* set task as child automatically. is used only for inheriting params
@@ -133,7 +176,7 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         List<JSONObject> opts = null;
         // below gets it working for dolphins but can be generalized easily from IA.properties
         String inferredIaClass = IBEISIA.inferIaClass(anns.get(0), myShepherd);
-        String bottlenose = "dolphin_bottlenose_fin"; 
+        String bottlenose = "dolphin_bottlenose_fin";
         if (bottlenose.equals(iaClass) || bottlenose.equals(inferredIaClass)) {
             System.out.println("IA.java is sending a Tursiops truncatus job");
             opts = IBEISIA.identOpts(context, bottlenose);
@@ -141,7 +184,11 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
             opts = IBEISIA.identOpts(context);
         }
 */
-        List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
+        //List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
+        IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+        List<JSONObject> opts = iaConfig.identOpts(myShepherd, anns.get(0));
+
+
         System.out.println("identOpts: "+opts.toString());
         if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
         List<Task> tasks = new ArrayList<Task>();
@@ -162,8 +209,8 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
               opts=newOpts;
               System.out.println("Swapping opts for newOpts!!");
             }
-            
-            
+
+
           }
         }
         if (opts.size() == 1) {
@@ -256,9 +303,9 @@ System.out.println(i + " -> " + ma);
                 anns.add(ann);
             }
 
-            // okay, if we are sending another ID job from the hburger menu, the media asset needs to be added to your top level 'root' task, 
+            // okay, if we are sending another ID job from the hburger menu, the media asset needs to be added to your top level 'root' task,
             // or else you will link to the original root task
-            List<MediaAsset> masForNewRoot = new ArrayList<>(); 
+            List<MediaAsset> masForNewRoot = new ArrayList<>();
             for (Annotation ann : anns) {
                 MediaAsset ma = ann.getMediaAsset();
                 if (ma!=null && !masForNewRoot.contains(ma)) {
@@ -268,7 +315,7 @@ System.out.println(i + " -> " + ma);
             // i cant think of a scenario where we would get here and accidently double-add mas... but jic
             for (MediaAsset ma : masForNewRoot) {
                 if (!topTask.getObjectMediaAssets().contains(ma)) {
-                    topTask.addObject(ma);       
+                    topTask.addObject(ma);
                 }
             }
 
@@ -317,7 +364,7 @@ System.out.println(i + " -> " + ma);
         String url = CommonConfiguration.getServerURL(context);
         String containerName = CommonConfiguration.getProperty("containerName",context);
         if (containerName!=null&&!"".equals(containerName)) {
-            containerName = containerName.trim(); 
+            containerName = containerName.trim();
             System.out.println("INFO: Wildbook is containerized: Server getBaseURL is returning: "+containerName+"");
             url = url.replace("localhost", containerName);
         }

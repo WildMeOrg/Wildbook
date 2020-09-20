@@ -37,6 +37,15 @@ public class IAJsonProperties extends JsonProperties {
 		super("IA.json");
 	}
 
+	// hackey constructor so we don't need to catch an exception every time we use these. Is there a better way?
+	public static IAJsonProperties iaConfig() {
+		try {
+			return new IAJsonProperties();
+		} catch (Exception e) {
+			System.out.println("IAJsonProperties ERROR: Could not find IA.json file! returning null and therefore about to hit an NPE elsewhere");
+			return null;
+		}
+	}
 
 	// naming convention: not using 'get' on static methods
 	public static String taxonomyKey(Taxonomy taxy) {
@@ -149,13 +158,20 @@ public class IAJsonProperties extends JsonProperties {
 
   	List<JSONObject> identOpts = new ArrayList<JSONObject>();
   	for (int i=0; i<identConfig.length(); i++) {
-  		identOpts.add(identConfig.getJSONObject(i));
+  		JSONObject thisIdentOpt = copyJobj(identConfig.getJSONObject(i));
+  		// so we don't break lookups for queryConfigDict downstream (old world)
+  		thisIdentOpt.put("queryConfigDict", thisIdentOpt.get("query_config_dict"));
+  		identOpts.add(thisIdentOpt);
   	}
   	return identOpts;
   }
 
 	public static final Map<String, String> getGlobalBackCompatibleKeyMap() {
 	    return globalBackCompatibleKeyMap;
+	}
+
+	public static JSONObject copyJobj(JSONObject jobj) {
+		return new JSONObject(jobj, JSONObject.getNames(jobj));
 	}
 
 }
