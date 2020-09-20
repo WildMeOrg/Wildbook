@@ -34,8 +34,8 @@ public class MergeIndividual extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    myShepherd=new Shepherd(request);
-    myShepherd.setAction("MergeIndividual.class");
+    
+
     response.setContentType("text/html");
     out = response.getWriter();
 
@@ -53,6 +53,9 @@ public class MergeIndividual extends HttpServlet {
     String oldName2;
 
     boolean canMergeAutomatically = false;
+    
+    myShepherd=new Shepherd(request);
+    myShepherd.setAction("MergeIndividual.class");
     
     try {
 
@@ -104,7 +107,7 @@ public class MergeIndividual extends HttpServlet {
         } else {
           ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
           myShepherd.storeNewScheduledIndividualMerge(merge);
-          myShepherd.beginDBTransaction();
+          myShepherd.updateDBTransaction();
         }
       }
 
@@ -116,11 +119,13 @@ public class MergeIndividual extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
       }
+      else {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+      }
 
     } catch (Exception le){
       le.printStackTrace();
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
       errorAndClose("An exception occurred. Please contact the admins.", response);
       return;
     }
