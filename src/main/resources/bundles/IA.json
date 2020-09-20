@@ -57,7 +57,8 @@
          "whale_orca+fin_dorsal":"@Megaptera.novaeangliae.whale_humpback.fin-dorsal",
          "_detect_conf":[
             {
-               "class":"whale_fluke"
+               "class":"whale_fluke",
+               "start_detect":"https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/yolo/",
             }
          ],
          "_common_name":"humpback whale"
@@ -213,7 +214,7 @@
                "detection_class":"whale_orca+fin_dorsal",
                "model_tag":"orca_v0",
                "viewpoint_model_tag":"orca_v0",
-               "nms_thres":0.4,
+               "nms_thresh":0.4,
                "sensitivity":0.49,
                "labeler_algo":"densenet",
                "nms_aware":"ispart"
@@ -233,11 +234,12 @@
                }
             ]
          },
+         "_default" : "@Eubalaena.glacialis.right_whale_head",
          "_detect_conf":[
             {
                "start_detect":"https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/lightnet/",
                "model_tag":"rightwhale_v3",
-               "nms_thres":0.6,
+               "nms_thresh":0.6,
                "sensitivity":0.52,
                "orienter_algo":"deepsense",
                "detection_class":"right_whale_head"
@@ -260,7 +262,8 @@
                }
             ]
          },
-         "detect_conf":"@Eubalaena.glacialis.detect_conf"
+         "_default" : "@Eubalaena.australis.right_whale_head",
+         "_detect_conf":"@Eubalaena.glacialis._detect_conf"
       }
    }
 }

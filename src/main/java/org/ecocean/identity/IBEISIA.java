@@ -27,6 +27,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.TwitterUtil;
 import org.ecocean.TwitterBot;
+import org.ecocean.IAJsonProperties;
 
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,6 +55,7 @@ import java.net.URL;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.media.*;
 import org.ecocean.RestClient;
+import org.ecocean.JsonProperties;
 
 import java.io.IOException;
 
@@ -393,19 +395,33 @@ Util.mark("identify process pre-post end");
         return RestClient.post(url, hashMapToJSONObject2(map));
     }
 
+
+    // assumes only one detection alg and replicates sendDetect
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
 
+        IAJsonProperties iaConfig = new IAJsonProperties();
+
         Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
-        Map<String,Object> map = getDetectionArgs(taxy, baseUrl, context, myShepherd);
+        JSONObject detectArgs = iaConfig.getDetectionArgs(taxy, baseUrl);
 
-        map = addImageUuidListToDetectArgs(map, mas);
+        detectArgs.put("image_uuid_list", imageUUIDList(mas));
+        System.out.println("sendDetectNew got detectArgs "+detectArgs.toString());
 
-        String u = getDetectUrlByTaxonomy(taxy, context);
-        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
+        String u = iaConfig.getDetectionUrl(taxy);
         URL url = new URL(u);
-        return RestClient.post(url, new JSONObject(map));
+        return RestClient.post(url, detectArgs);
+
     }
+
+    public static JSONArray imageUUIDList(List<MediaAsset> mas) {
+        JSONArray uuidList = new JSONArray();
+        for (MediaAsset ma: mas) {
+            uuidList.put(toFancyUUID(ma.getAcmId()));
+        }
+        return uuidList;
+    }
+
 
     public static Map<String, Object> addImageUuidListToDetectArgs(Map<String, Object> detectArgsMap, List<MediaAsset> mas) {
 
@@ -423,108 +439,6 @@ Util.mark("identify process pre-post end");
         return detectArgsMap;
 
     }
-
-    public static Map<String, Object> getDetectionArgs(Taxonomy taxy, String baseUrl, String context, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-
-        HashMap<String,Object> map = new HashMap<String,Object>();
-
-        String viewpointModelTag = getViewpointTag(context, taxy);
-        String labelerAlgo = getLabelerAlgo(context, taxy);
-        if (viewpointModelTag != null) {
-            System.out.println("[INFO] sendDetect() labeler_model_tag set to " + viewpointModelTag);
-            map.put("labeler_model_tag",viewpointModelTag);
-            if (labelerAlgo!=null) {
-                map.put("labeler_algo",labelerAlgo);
-                System.out.println("[INFO] sendDetect() labeler_algo set to " + labelerAlgo);
-            } else {System.out.println("[INFO] sendDetect() labeler_algo is null; skipping");}
-        } else {
-            System.out.println("[INFO] sendDetect() labeler_model_tag is null. Viewpoint detection not available.");
-        }
-
-
-        map.put("callback_url", callbackUrl(baseUrl));
-        System.out.println("sendDetect() baseUrl = " + baseUrl);
-
-        //String modelTag = IA.getProperty(context, "modelTag");
-        String modelTag = getModelTag(context, taxy);
-        if (modelTag != null) {
-            System.out.println("[INFO] sendDetect() model_tag set to " + modelTag);
-            map.put("model_tag", modelTag);
-        } else {
-            System.out.println("[INFO] sendDetect() model_tag is null; DEFAULT will be used");
-        }
-
-        // taxonomyPropString looks like _Fuus_baarus
-        String taxonomyPropString = (taxy!=null) ? "_"+taxy.getScientificName().replaceAll(" ", "_") : "";
-        String sensitivityKey = "sensitivity"+taxonomyPropString;
-        String sensitivity = IA.getProperty(context, sensitivityKey);
-        if (sensitivity != null) {
-            System.out.println("[INFO] sendDetect() sensitivity set to " + sensitivity);
-            map.put("sensitivity", sensitivity);
-        } else {
-            System.out.println("[INFO] sendDetect() sentivity is null; DEFAULT will be used");
-        }
-
-        String nmsThreshKey = "nms_thresh"+taxonomyPropString;
-        String nms_thresh = IA.getProperty(context, nmsThreshKey);
-        if (nms_thresh != null) {
-            System.out.println("[INFO] sendDetect() nms_thresh set to " + nms_thresh);
-            map.put("nms_thresh", nms_thresh);
-        } else {
-            System.out.println("[INFO] sendDetect() nms_thresh is null; DEFAULT will be used");
-        }
-
-
-        String orienterAlgoKey = "orienter_algo"+taxonomyPropString;
-        String orienterAlgo = IA.getProperty(context, orienterAlgoKey);
-        if (orienterAlgo != null) {
-            System.out.println("[INFO] sendDetect() orienter_algo set to " + orienterAlgo);
-            map.put("orienter_algo", orienterAlgo);
-        } else {
-            System.out.println("[INFO] sendDetect() orienter_algo is null; DEFAULT will be used");
-        }
-
-
-        /*
-          String nms_aware = IA.getProperty(context, "nms_aware");
-        if (nms_aware != null) {
-            System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
-            map.put("nms_aware", nms_aware);
-        } else {
-            System.out.println("[INFO] sendDetect() nms_aware is null; DEFAULT will be used");
-        }
-        */
-
-        //nms_aware
-        String nmsAwareKey = "nms_aware"+taxonomyPropString;
-        String nms_aware = IA.getProperty(context, nmsAwareKey);
-        if (nms_aware != null) {
-            System.out.println("[INFO] sendDetect() nms_aware set to " + nms_aware);
-            map.put("nms_aware", nms_aware);
-        } else {
-            System.out.println("[INFO] sendDetect() nms_aware is null; DEFAULT will be used");
-        }
-
-        String nms = IA.getProperty(context, "nms");
-        if (nms != null) {
-            System.out.println("[INFO] sendDetect() nms set to " + nms);
-            map.put("nms", nms);
-        } else {
-            System.out.println("[INFO] sendDetect() nms is null; DEFAULT will be used");
-        }
-
-        String ulsKey = "use_labeler_species"+taxonomyPropString;
-        String uls = IA.getProperty(context, ulsKey);
-        if (uls != null) {
-            System.out.println("[INFO] sendDetect() use_labeler_species set to " + uls);
-            map.put("use_labeler_species", uls);
-        } else {
-            System.out.println("[INFO] sendDetect() use_labeler_species is null; DEFAULT of False will be used");
-        }
-
-        return map;
-    }
-
 
 
     //DUPLICATE
