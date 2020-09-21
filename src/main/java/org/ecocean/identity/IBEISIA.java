@@ -396,23 +396,35 @@ Util.mark("identify process pre-post end");
     }
 
 
-    // assumes only one detection alg and replicates sendDetect
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+
+        Taxonomy taxy = mas.get(0).getTaxonomy(myShepherd);
+        IAJsonProperties iaConfig = new IAJsonProperties();
+        JSONObject detectArgs = iaConfig.getDetectionArgs(taxy, baseUrl);
+        return sendDetect(mas, baseUrl, context, myShepherd, detectArgs);
+
+    }
+
+
+    // assumes only one detection alg and replicates sendDetect
+    public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context, Shepherd myShepherd, JSONObject detectArgs) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
 
+        Taxonomy taxy = mas.get(0).getTaxonomy(myShepherd);
         IAJsonProperties iaConfig = new IAJsonProperties();
 
-        Taxonomy taxy = taxonomyFromMediaAssets(context, mas);
-        JSONObject detectArgs = iaConfig.getDetectionArgs(taxy, baseUrl);
-
-        detectArgs.put("image_uuid_list", imageUUIDList(mas));
-        System.out.println("sendDetectNew got detectArgs "+detectArgs.toString());
+        JSONObject detectArgsWithMas = Util.copy(detectArgs);
+        detectArgsWithMas.put("image_uuid_list", imageUUIDList(mas));
+        System.out.println("sendDetect got detectArgs "+detectArgsWithMas.toString());
 
         String u = iaConfig.getDetectionUrl(taxy);
         URL url = new URL(u);
-        return RestClient.post(url, detectArgs);
+        System.out.println("sendDetectNew sending to url "+url);
+
+        return RestClient.post(url, detectArgsWithMas);
 
     }
+
 
     public static JSONArray imageUUIDList(List<MediaAsset> mas) {
         JSONArray uuidList = new JSONArray();
@@ -2351,6 +2363,12 @@ System.out.println("identification most recent action found is " + action);
 
             // iaClass... not your scientific name species
             String iaClass = rtn.getJSONArray("response").optString(0, null);
+
+            // String returnedIAClass = rtn.getJSONArray("response").optString(0, null);
+            // IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+            // Taxonomy taxy = ma.getTaxonomy(myShepherd);
+            // String iaClass = iaConf.convertIAClassForTaxonomy(returnedIAClass, taxy);
+
             Annotation ann = new Annotation(convertSpeciesToString(iaClass), ft, iaClass);
             ann.setIAExtractedKeywords(myShepherd);
             //note: ann.id is a random UUID at this point; should we set to acmId??

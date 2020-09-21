@@ -80,50 +80,12 @@ public class IA {
     }
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
         if ((mas == null) || (mas.size() < 1)) return null;
-        Task task = new Task();
-        if (parentTask != null) task.setParameters(parentTask.getParameters());
-        task.setObjectMediaAssets(mas);
-        myShepherd.storeNewTask(task);
-
-        //what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
-        JSONArray maArr = new JSONArray();
-        for (MediaAsset ma : mas) {
-            maArr.put(ma.getId());
-        }
-        JSONObject dj = new JSONObject();
-        dj.put("mediaAssetIds", maArr);
-        String context = myShepherd.getContext();
-        JSONObject qjob = new JSONObject();
-        qjob.put("detect", dj);
-        // task is queued here
-        qjob.put("taskId", task.getId());
-        qjob.put("__context", context);
-        qjob.put("__baseUrl", getBaseURL(context));
-        boolean sent = false;
-        try {
-        // task is queued here
-            sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
-        } catch (java.io.IOException iox) {
-            System.out.println("ERROR: IA.intakeMediaAssets() addToQueue() threw " + iox.toString());
-        }
-
-System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " assets; queued? = " + sent + "; " + task);
-        return task;
-    }
-
-
-    public static Task intakeMediaAssetsNew(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
-        if ((mas == null) || (mas.size() < 1)) return null;
 
         Task topTask = new Task();
         if (parentTask != null) topTask.setParameters(parentTask.getParameters());
         topTask.setObjectMediaAssets(mas);
         myShepherd.storeNewTask(topTask);
 
-        IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
-        // mimicking intakeAnnotations, we assume the first mediaAsset is representative of all of them wrt Taxonomies, configs etc.
-        JSONArray detectConfs = iaConfig.getDetectionConfigs(mas.get(0), myShepherd);
-
         //what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
         JSONArray maArr = new JSONArray();
         for (MediaAsset ma : mas) {
@@ -132,21 +94,41 @@ System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " ass
         JSONObject dj = new JSONObject();
         dj.put("mediaAssetIds", maArr);
         String context = myShepherd.getContext();
-        JSONObject qjob = new JSONObject();
-        qjob.put("detect", dj);
-        // task is queued here
-        qjob.put("taskId", topTask.getId());
-        qjob.put("__context", context);
-        qjob.put("__baseUrl", getBaseURL(context));
-        boolean sent = false;
-        try {
-        // task is queued here
-            sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
-        } catch (java.io.IOException iox) {
-            System.out.println("ERROR: IA.intakeMediaAssets() addToQueue() threw " + iox.toString());
+        String baseUrl = getBaseURL(context);
+
+        // Ia configs are keyed off taxonomies
+        IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+        // mimicking intakeAnnotations, we assume the first mediaAsset is representative of all of them wrt Taxonomies, configs etc.
+        Taxonomy taxy = mas.get(0).getTaxonomy(myShepherd);
+        int numDetectAlgos = iaConfig.numDetectionAlgos(taxy);
+        Boolean[] sent = new Boolean[numDetectAlgos];
+        for (int i=0; i<numDetectAlgos; i++) {
+            // task for this job (only create new (child) tasks if multiple detect algos)
+            Task task = (numDetectAlgos==1) ? topTask : new Task();
+            task.setObjectMediaAssets(mas);
+            task.setParameters(topTask.getParameters());
+
+            JSONObject detectArgs = iaConfig.getDetectionArgs(taxy, baseUrl, i);
+            task.addParameter("detectArgs", detectArgs);
+
+            JSONObject qjob = new JSONObject();
+            qjob.put("detect", dj);
+            qjob.put("__detect_args", detectArgs);
+            // task is queued here
+            qjob.put("taskId", topTask.getId());
+            qjob.put("__context", context);
+            qjob.put("__baseUrl", baseUrl);
+            sent[i] = false;
+            try {
+                // job is queued here
+                sent[i] = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+            } catch (java.io.IOException iox) {
+                System.out.println("ERROR: IA.intakeMediaAssets() hit exception on taxonomy "+taxy.toString()+", detectArgs = "+detectArgs.toString());
+                System.out.println("ERROR: IA.intakeMediaAssets() addToQueue() threw " + iox.toString());
+            }
         }
 
-System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " assets; queued? = " + sent + "; " + topTask);
+        System.out.println("INFO: IA.intakeMediaAssets() accepted " + mas.size() + " assets; queued? = " + sent + "; " + topTask);
         return topTask;
     }
 
