@@ -417,20 +417,11 @@ function FSControl(controlDiv, map) {
     <div id="date" style="display:none;">
       <p><%=props.getProperty("dateInstructions") %></p>
 
-<!--  date of birth and death -->
-      <p><strong><%=occProps.getProperty("dateStart")+" "+occProps.getProperty("range")%>:</strong></p>
+      <p><strong><%=occProps.getProperty("eventDate")%>:</strong></p>
       <table>
         <tr>
-          <td><%=occProps.getProperty("start") %> <input type="text" id="eventStartDate-From" name="eventStartDate-From" class="addDatePicker"/></td>
-          <td><%=occProps.getProperty("end") %> <input type="text" id="eventStartDate-To" name="eventStartDate-To" class="addDatePicker"/></td>
-        </tr>
-      </table>
-
-      <p><strong><%=occProps.getProperty("dateEnd")+" "+occProps.getProperty("range")%>:</strong></p>
-      <table>
-        <tr>
-          <td><%=occProps.getProperty("start") %> <input type="text" id="eventEndDate-From" name="eventEndDate-From" class="addDatePicker"/></td>
-          <td><%=occProps.getProperty("end") %> <input type="text" id="eventEndDate-To" name="eventEndDate-To" class="addDatePicker"/></td>
+          <td><%=occProps.getProperty("start") %> <input type="text" id="eventDateFrom" name="eventDateFrom" class="addDatePicker"/></td>
+          <td><%=occProps.getProperty("end") %> <input type="text" id="eventDateTo" name="eventDateTo" class="addDatePicker"/></td>
         </tr>
       </table>
 
@@ -445,17 +436,6 @@ function FSControl(controlDiv, map) {
   </td>
 </tr>
 
-
-
-
-
-
-
-<%
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
-  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
-  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
-%>
 
 
 
