@@ -121,7 +121,7 @@
          "whale_fin+fin_dorsal":"@Tursiops.truncatus.dolphin_bottlenose+fin_dorsal",
          "whale_pilot+fin_dorsal":"@Tursiops.truncatus.dolphin_bottlenose+fin_dorsal",
          "_default":"@Tursiops.truncatus.dolphin_bottlenose+fin_dorsal",
-         "detect_conf":[
+         "_detect_conf":[
             {
                "start_detect":"https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/lightnet/",
                "detection_class":"tursiops_truncatus",
