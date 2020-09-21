@@ -1095,36 +1095,45 @@ System.out.println("depth --> " + formValues.get("depth").toString());
         if (!llSet) enc.setLatLonFromAssets();
         if (enc.getYear() < 1) enc.setDateFromAssets();
 
-            String newnum = "";
-            if (!spamBot) {
-                newnum = myShepherd.storeNewEncounter(enc, encID);
-                enc.refreshAssetFormats(myShepherd);
+        String newnum = "";
+        if (!spamBot) {
+            newnum = myShepherd.storeNewEncounter(enc, encID);
+            enc.refreshAssetFormats(myShepherd);
 
-                //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
-                //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
+            //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
+            //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
 
-                // might want to set detection status here (on the main thread)
+            // might want to set detection status here (on the main thread)
 
-                for (MediaAsset ma: enc.getMedia()) {
-                    ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
-                }
+            // only start IA stuff if we have config for this species
 
-                Task parentTask = null;  //this is *not* persisted, but only used so intakeMediaAssets will inherit its params
-                if (locCode != null) {
-                    parentTask = new Task();
-                    JSONObject tp = new JSONObject();
-                    JSONObject mf = new JSONObject();
-                    mf.put("locationId", locCode);
-                    tp.put("matchingSetFilter", mf);
-                    parentTask.setParameters(tp);
-                }
-                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask);  //TODO are they *really* persisted for another thread (queue)
-                myShepherd.storeNewTask(task);
-                Logger log = LoggerFactory.getLogger(EncounterForm.class);
-                log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
-System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
-                org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            if (iaConfig.hasIA(enc, myShepherd)) {
+              for (MediaAsset ma: enc.getMedia()) {
+                ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+              }
+
+              Task parentTask = null;  //this is *not* persisted, but only used so intakeMediaAssets will inherit its params
+              if (locCode != null) {
+                  parentTask = new Task();
+                  JSONObject tp = new JSONObject();
+                  JSONObject mf = new JSONObject();
+                  mf.put("locationId", locCode);
+                  tp.put("matchingSetFilter", mf);
+                  parentTask.setParameters(tp);
+              }
+              Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask);  //TODO are they *really* persisted for another thread (queue)
+              myShepherd.storeNewTask(task);
+              Logger log = LoggerFactory.getLogger(EncounterForm.class);
+              log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
+              System.out.println("EncounterForm saved task "+task);
+            } else {
+              System.out.println("EncounterForm did NOT start any IA tasks for encounter "+enc+" bc no ia config was found---IAJsonProperties.hasIA returned false");
             }
+
+System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+            org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+        }
 
       if (newnum.equals("fail")) {
         request.setAttribute("number", "fail");

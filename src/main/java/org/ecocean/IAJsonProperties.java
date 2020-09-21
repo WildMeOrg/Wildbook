@@ -52,6 +52,17 @@ public class IAJsonProperties extends JsonProperties {
 		return taxy.getScientificName().replace(' ', '.');
 	}
 
+	public boolean hasIA(Taxonomy taxy) {
+		Object conf = this.get(taxonomyKey(taxy));
+		return (conf!=null);
+	}
+
+	public boolean hasIA(Encounter enc, Shepherd myShepherd) {
+		Taxonomy taxy = enc.getTaxonomy(myShepherd);
+		return hasIA(taxy);
+	}
+
+
 	// Detection methods
 	public static String detectionKey(Taxonomy taxy) {
 		return taxonomyKey(taxy) + "._detect_conf";
