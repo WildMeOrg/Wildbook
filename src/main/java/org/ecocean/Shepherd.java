@@ -2173,6 +2173,21 @@ public class Shepherd {
     return al;
   }
   
+  public List<Organization> getAllCommonOrganizationsForTwoUsers(User user1, User user2) {
+    ArrayList<Organization> al = new ArrayList<Organization>();
+    try {
+      Query q = getPM().newQuery("SELECT FROM org.ecocean.Organization WHERE members.contains(user1) && members.contains(user2) && user1.uuid == \""+user1.getUUID()+"\" && user2.uuid == \""+user2.getUUID()+"\" VARIABLES org.ecocean.User user1;org.ecocean.User user2");
+      Collection results = (Collection) q.execute();
+      al = new ArrayList<Organization>(results);
+      q.closeAll();
+    } 
+    catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return al;
+    }
+    return al;
+  }
+  
   public List<Organization> getAllOrganizations() {
     ArrayList<Organization> al = new ArrayList<Organization>();
     try {
