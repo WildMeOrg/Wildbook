@@ -25,7 +25,7 @@ import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
 import org.ecocean.Annotation;
 import org.ecocean.AccessControl;
-import org.ecocean.Taxonomy
+import org.ecocean.Taxonomy;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
@@ -628,6 +628,15 @@ public class MediaAsset implements java.io.Serializable {
         }
         return new ArrayList(taxis);
     }
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+        for (Annotation ann: getAnnotations()) {
+            Taxonomy taxy = ann.getTaxonomy(myShepherd);
+            if (taxy!=null) return taxy;
+        }
+        return null;
+    }
+
+
 
     public List<Annotation> getAnnotationsSortedPositionally() {
         List<Annotation> ord = new ArrayList<Annotation>(this.getAnnotations());
