@@ -116,7 +116,11 @@ public class IAJsonProperties extends JsonProperties {
 	public String convertIAClassForTaxonomy(String returnedIAClass, Taxonomy taxy) {
 		String detKey = detectionKey(taxy);
 		String lookupKey = detKey + "." + "_save_as";
-		return (String) get(lookupKey);
+		String ans = (String) get(lookupKey);
+		System.out.println("IAJsonProperties.convertIAClassForTaxonomy called on "+returnedIAClass+" for taxonomy "+taxy.toString());
+		System.out.println(".....convertIAClassForTaxonomy made lookupKey "+lookupKey+" and found "+ans);
+		if (!Util.stringExists(ans)) ans = returnedIAClass;
+		return ans;
 	}
 
 	// Identification methods
