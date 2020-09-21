@@ -394,7 +394,7 @@ try{
 	    String encMsg = "(no encounter)";
 	    if (enc != null) {
 	        if (cloneEncounter) {
-	            Encounter clone = enc.cloneWithoutAnnotations();
+	            Encounter clone = enc.cloneWithoutAnnotations(myShepherd);
 	            clone.addAnnotation(ann);
 	            clone.addComments("<p data-annot-id=\"" + ann.getId() + "\">Encounter cloned and <i>new Annotation</i> manually added by " + AccessControl.simpleUserString(request) + "</p>");
 	            myShepherd.getPM().makePersistent(clone);
