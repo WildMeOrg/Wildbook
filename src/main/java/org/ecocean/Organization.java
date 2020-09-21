@@ -346,13 +346,13 @@ public class Organization implements java.io.Serializable {
         j.put("id", id);
         j.put("name", name);
         j.put("url", url);
-        if (logo != null) j.put("logo", logo.toSimpleJSONObject());
+        if (includeChildren && logo != null) j.put("logo", logo.toSimpleJSONObject());
         j.put("description", description);
         j.put("created", created);
         j.put("modified", modified);
         j.put("createdDate", new DateTime(created));
         j.put("modifiedDate", new DateTime(modified));
-        if (this.hasMembers()) {
+        if (includeChildren && this.hasMembers()) {
             JSONArray jm = new JSONArray();
             for (User u : this.members) {
                 JSONObject ju = new JSONObject();
@@ -370,8 +370,10 @@ public class Organization implements java.io.Serializable {
             }
             j.put("children", jc);
         }
-        Organization parent = this.getParent();
-        if (parent != null) j.put("parentId", parent.getId());
+        if(includeChildren) {
+          Organization parent = this.getParent();
+          if (parent != null) j.put("parentId", parent.getId());
+        }
         return j;
     }
 

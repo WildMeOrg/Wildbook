@@ -420,6 +420,10 @@
 				
 				/ImportTaskDetection = authc, roles[admin]
 				
+				/imports.jsp = authc
+				
+				/DeleteImportTask = authc, roles[researcher]
+				
             </param-value>
         </init-param>
     </filter>
@@ -2586,6 +2590,16 @@
   <servlet-mapping>
     <servlet-name>ImportTaskDetection</servlet-name>
     <url-pattern>/ImportTaskDetection</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>DeleteImportTask</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.DeleteImportTask</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>DeleteImportTask</servlet-name>
+    <url-pattern>/DeleteImportTask</url-pattern>
   </servlet-mapping>
 
 </web-app>
