@@ -15,6 +15,8 @@ java.io.UnsupportedEncodingException
 
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
+Properties props = new Properties();
+props = ShepherdProperties.getProperties("merge.properties", langCode,context);
 myShepherd.setAction("merge.jsp");
 
 String indIdA = request.getParameter("individualA");
@@ -56,7 +58,57 @@ table.compareZone tr th {
 	$(document).ready(function() {
 		highlightMergeConflicts();
 		replaceDefaultKeyStrings();
+    let requestJSON = {};
+    let projId = 'f1b89939-4d4b-4c0c-b5f0-7b22bf4f0b66';//TODO STUB still need to link this up with a real project
+    requestJSON['projectUUID'] = projId;
+    requestJSON['getUserIncrementalIds'] = "true";
+    // requestJSON['encounterId'] = ;
+    doAjaxForProject(requestJSON);
+    populatProjectIdRow(); //<%= markA.getNamesList()%>
+
 	});
+
+  function doAjaxForProject(requestJSON){
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '../ProjectGet',
+        type: 'POST',
+        data: JSON.stringify(requestJSON),
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function(data) {
+            console.log("literal response: "+data.projects);
+            console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(data));
+
+            // $('#progress-div').hide();
+            // $('#table-div').show();
+        },
+        error: function(x,y,z) {
+            console.warn('%o %o %o', x, y, z);
+        }
+    });
+  }
+
+  function populatProjectIdRow(){
+
+    let projectIdHtml = '';
+    projectIdHtml += '<th><%= props.getProperty("ProjectId") %></th>'
+    <% for (MarkedIndividual ind: inds) {%>
+    projectIdHtml += '<td class="col-md-2 diff_check">';
+    projectIdHtml += 'bloop';
+    projectIdHtml += '</td>';
+    <%}%>
+    projectIdHtml += '<td class="merge-field">';
+    projectIdHtml += 'bleep';
+    projectIdHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control">';
+    projectIdHtml += '<option value="" selected="selected"></option>';
+    let vals = ['a', 'b'];
+    for(let i=0; i<vals.length; i++){
+      projectIdHtml += '<option value="'+ vals[i] +'" selected="selected">'+ vals[i] +'</option>';
+    }
+    projectIdHtml += '</td>';
+    $("#project-id-table-row").empty();
+    $("#project-id-table-row").append(projectIdHtml);
+  }
 
 	function replaceDefaultKeyStrings() {
 		$('span.nameKey').each(function(i, el) {
@@ -125,12 +177,12 @@ try {
 			</h2></th>
 			<%}%>
 			<th><h2>
-				Merged Individual
+				<%= props.getProperty("MergedIndividual") %>
 			</h2></th>
 		</tr>
 
 		<tr class="row names">
-			<th>Names</th>
+			<th><%= props.getProperty("Names") %></th>
 			<% for (MarkedIndividual ind: inds) {%>
 			<td class="col-md-2">
 				<% for (String key: ind.getNameKeys()) {
@@ -151,10 +203,14 @@ try {
 			</td>
 		</tr>
 
+    <tr class="row projectId check_for_diff" id="project-id-table-row">
+      <!--populated by JS after page load-->
+		</tr>
+
 
 
 		<tr class="row encounters">
-			<th># Encounters</th>
+			<th><%= props.getProperty("NumEncounters") %></th>
 			<% int totalEncs = 0;
 			for (MarkedIndividual ind: inds) {
 				int encs = ind.numEncounters();
@@ -170,7 +226,7 @@ try {
 		</tr>
 
 		<tr class="row species check_for_diff">
-			<th>Species</th>
+			<th><%= props.getProperty("Species") %></th>
 			<% for (MarkedIndividual ind: inds) {%>
 			<td class="col-md-2 diff_check">
 				<%=ind.getGenusSpeciesDeep()%>
@@ -186,21 +242,7 @@ try {
 			</td>
 		</tr>
 
-		<tr class="row sex check_for_diff">
-			<th>Sex</th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<td class="col-md-2 diff_check">
-				<%=ind.getSex()%>
-			</td>
-			<%}%>
-			<td class="merge-field">
 
-				<%
-				String mergeSex = Util.betterValue(markA.getSex(), markB.getSex());
-				%>
-				 <input name="sex" type="text" class="" id="sexInput" value="<%=mergeSex%>"/>
-			</td>
-		</tr>
 
 
 		<!--
@@ -294,4 +336,3 @@ try {
 
 <!--<script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>-->
-

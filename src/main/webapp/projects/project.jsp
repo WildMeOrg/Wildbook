@@ -272,6 +272,7 @@ function projectHTMLForTable(json) {
   let individualDisplayName = json.individualDisplayName;
   let individualUUID = json.individualUUID;
   let hasNameKeyMatchingProject = json.hasNameKeyMatchingProject;
+  console.log("hasNameKeyMatchingProject for encounter " + encounterId + " is: " + hasNameKeyMatchingProject);
   let encounterDate = json.encounterDate;
   let locationId = json.locationId;
   let submitterId = json.submitterId;
