@@ -73,7 +73,7 @@ import java.util.Properties;
 
 import javax.servlet.http.Cookie;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 
 public class ServletUtilities {
@@ -521,7 +521,7 @@ public static String preventCrossSiteScriptingAttacks(String description) {
   description = description.replaceAll("((?i)script)", "");
   description = description.replaceAll("onerror", "");
   //description = description.replaceAll("alert", "");
-  description = StringEscapeUtils.escapeHtml(description);
+  description = StringEscapeUtils.escapeHtml4(description);
   return description;
 }
 
