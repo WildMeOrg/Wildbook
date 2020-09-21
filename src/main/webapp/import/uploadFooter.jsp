@@ -20,7 +20,7 @@ function confirmCommit() {
 }
 
 async function sendAndRedirect(link, uuid){
-	
+	$("#commitButton").prop("disabled", true);
     $.ajax({
         url: link,
         success: function(data) {
@@ -52,7 +52,7 @@ String uploadAction = "standard-upload?filename="+filename+"&commit=true&isUserU
 if (!committing) {
 %>
 	<p>If you are adding many images and encounters (more than a couple hundred if each) this may take a while. You will be redirected to a status page as the process completes.</p>
-	<p	><a onclick="sendAndRedirect('<%=uploadAction %>','<%=uuid %>')"><button onclick="confirmCommit()">Commit these results.</button></a></p>
+	<p><a onclick="sendAndRedirect('<%=uploadAction %>','<%=uuid %>')"><button id="commitButton" onclick="confirmCommit()">Commit these results.</button></a></p>
 <%
 }
 %>

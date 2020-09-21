@@ -9,7 +9,7 @@ Properties encprops = new Properties();
 //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
 encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
 
-
+//TODO styles to follow can go in _encounter-pages.less if they don't conflict with ones already in there
 %>
 
 

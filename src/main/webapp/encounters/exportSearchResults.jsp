@@ -40,7 +40,7 @@
 		    EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, order);
 		    rEncounters = queryResult.getResult();
 				blocked = Encounter.blocked(rEncounters, request);
-
+		     //TODO styles to follow can go in _encounter-pages.less if they don't conflict with ones already in there
 
 		  %>
 
