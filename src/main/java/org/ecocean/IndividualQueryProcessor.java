@@ -124,35 +124,6 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
       //end filter for projectName------------------
 
-
-      //filter for projectIncrementId-------------------
-      if((request.getParameter("hiddenIncrementId")!=null) && (!request.getParameter("hiddenIncrementId").equals(""))){
-        String[] incrementIds = request.getParameter("hiddenIncrementId").split(";");
-        filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE proj.encounters.contains(this) && proj.encounters.contains(enc) && "; //TODO fix
-        if((incrementIds.length>0)&&(incrementIds!=null)){
-          prettyPrint.append("Assigned to one of the following increment IDs: ");
-          int numProjIncrementalIds = incrementIds.length;
-          String projIdFilter = "(";
-          for(int i=0; i<numProjIncrementalIds; i++){
-          }
-          projIdFilter += " )";
-          //if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ")){
-          //  filter += projIdFilter;
-          //}else{
-          //  filter+=(" && " + projIdFilter);
-          //}
-          prettyPrint.append(filter);
-          prettyPrint.append("<br/>");
-        }
-        // TODO
-        // filter = "SELECT FROM org.ecocean.Encounter WHERE proj.id == '" + projectId + "' && proj.encounters.contains(this)";
-        String variables_statement = " VARIABLES org.ecocean.Project proj";
-        jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
-      } else{
-        //TODO
-      }
-      //end filter for projectIncrementId------------------
-
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
     String[] locCodes=request.getParameterValues("locationCodeField");
