@@ -36,7 +36,7 @@ context=ServletUtilities.getContext(request);
   calprops = ShepherdProperties.getProperties("calendar.properties", langCode, context);
 
 
-
+  //TODO styles to follow can go in _encounter-pages.less if they don't conflict with ones already in there
 %>
 
 <style type="text/css">
