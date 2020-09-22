@@ -19,6 +19,7 @@ Properties props = new Properties();
 String langCode=ServletUtilities.getLanguageCode(request);
 props = ShepherdProperties.getProperties("merge.properties", langCode,context);
 myShepherd.setAction("merge.jsp");
+User currentUser = AccessControl.getUser(request, myShepherd);
 
 String indIdA = request.getParameter("individualA");
 String indIdB = request.getParameter("individualB");
@@ -59,27 +60,39 @@ table.compareZone tr th {
 	$(document).ready(function() {
 		highlightMergeConflicts();
 		replaceDefaultKeyStrings();
-    let requestJSON = {};
-    let projId = "ID";//TODO STUB still need to link this up with a real project
-    requestJSON['researchProjectId'] = projId;
-    // individualIds= [];
-    incrementalIds = [];
-    requestJSON['individualIds'] = [];
-    // requestJSON['getUserIncrementalIds'] = "true";
-    // requestJSON['encounterId'] = ;
-    <% for (MarkedIndividual ind: inds) {%>
-      console.log("<%= ind.getIndividualID()%>");
-      requestJSON['individualIds'].push({indId: "<%= ind.getIndividualID()%>"});
-    <%}%>
-    console.log("requestJSON is:");
-    console.log(requestJSON);
-    doAjaxForProject(requestJSON);
-
+    let requestJsonForProjectNamesDropdown = {};
+    requestJsonForProjectNamesDropdown['ownerId'] = '<%= currentUser.getId()%>';
+    doAjaxForProject(requestJsonForProjectNamesDropdown);
+    // callForIncrementalIdsAndPopulate();
 	});
 
+  function addListeners(){
+    $('#proj-id-dropdown').change(function(){
+      console.log("3 got into select and selected: ");
+      let projId = $( "#proj-id-dropdown" ).text();
+      console.log("projId in listener is: ");
+      console.log(projId);
+      callForIncrementalIdsAndPopulate(projId);
+    });
+  }
+
+  function callForIncrementalIdsAndPopulate(projId){
+    let requestJSON = {};
+    requestJSON['researchProjectId'] = projId;
+    // incrementalIds = [];
+    requestJSON['individualIds'] = [];
+    <% for (MarkedIndividual ind: inds) {%>
+      requestJSON['individualIds'].push({indId: "<%= ind.getIndividualID()%>"});
+    <%}%>
+    console.log("requestJSON before going into ajax call in callForIncrementalIdsAndPopulate:");
+    console.log(requestJSON);
+    doAjaxForProject(requestJSON);
+  }
+
+
   function doAjaxForProject(requestJSON){
-    console.log("json going into ajax request is: ");
-    console.log(JSON.stringify(requestJSON));
+    // console.log("json going into ajax request is: ");
+    // console.log(JSON.stringify(requestJSON));
     $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectGet',
         type: 'POST',
@@ -87,15 +100,35 @@ table.compareZone tr th {
         dataType: 'json',
         contentType: 'application/json',
         success: function(data) {
-            console.log("literal response:");
-            console.log(data);
-            console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(data));
+            // console.log("literal response:");
+            // console.log(data);
+            // console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(data));
             incrementalIdResults = data.incrementalIdArr;
+            projectNameResults = data.projects;//data.;//TODO
             if(incrementalIdResults){
+              console.log("1: incrementalIdResults!");
               console.log(incrementalIdResults);
               populatProjectIdRow(incrementalIdResults);
+              addListeners();
             }else{
-              return [];
+              if(projectNameResults){
+                console.log("2: projectNameResults!");
+                projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+                if(!$( "#proj-id-dropdown" ).text()){ // if the html hasn't been populated at all yet, do that
+                  if(projNameOptions.length>1){
+                    console.log("got here. projNameOptions[0] is: " + projNameOptions[0]);
+                    callForIncrementalIdsAndPopulate(projNameOptions[0]);
+                    populateProjectNameDropdown(projNameOptions);
+                  }else{
+                    callForIncrementalIdsAndPopulate("temp");
+                    // populateProjectNameDropdown(['<%= props.getProperty("NoProjects")%>']);
+                  }
+                }
+                populateProjectNameDropdown(projNameOptions);
+                addListeners();
+              }else{
+                console.log("Ack should not happen");
+              }
             }
             // $('#progress-div').hide();
             // $('#table-div').show();
@@ -107,21 +140,23 @@ table.compareZone tr th {
   }
 
   function populatProjectIdRow(incrementalIds){
-
+    console.log("populatProjectIdRow called");
+    console.log("inds.length is "+ <%= inds.length %>);
     let projectIdHtml = '';
-    projectIdHtml += '<th><%= props.getProperty("ProjectId") %></th>'
+    projectIdHtml += '<th><%= props.getProperty("ProjectId") %>';
+    projectIdHtml += '</th>';
     <% for (int i=0; i<inds.length; i++) {%>
     projectIdHtml += '<td class="col-md-2 diff_check">';
     if(incrementalIds && incrementalIds[<%=i%>]){
       projectIdHtml += incrementalIds[<%=i%>].projectIncrementalId;
     }else{
-      projectIdHtml += 'No Incremental ID for this project';
+      projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
     }
     projectIdHtml += '</td>';
     <%}%>
     projectIdHtml += '<td class="merge-field">';
     if(incrementalIds && incrementalIds.length>0){
-      projectIdHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control">';
+      projectIdHtml += '<select name="proj-confirm-dropdown" id="proj-confirm-dropdown" class="form-control">';
       projectIdHtml += '<option value="" selected="selected"></option>';
       for(let i=0; i<incrementalIds.length; i++){
         projectIdHtml += '<option value="'+ incrementalIds[i].projectIncrementalId +'" selected="selected">'+ incrementalIds[i].projectIncrementalId +'</option>';
@@ -130,6 +165,20 @@ table.compareZone tr th {
     projectIdHtml += '</td>';
     $("#project-id-table-row").empty();
     $("#project-id-table-row").append(projectIdHtml);
+  }
+
+  function populateProjectNameDropdown(options){
+    console.log("populateProjectNameDropdown called");
+    console.log("options are");
+    console.log(options);
+    let projectNameHtml = '';
+    projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" >';
+    projectNameHtml += '<option value="" selected="selected"></option>';
+    for(let i=0; i<options.length; i++){
+      projectNameHtml += '<option value="'+ options[i] +'" selected="selected">'+ options[i] +'</option>';
+    }
+    $("#proj-id-dropdown-container").empty();
+    $("#proj-id-dropdown-container").append(projectNameHtml);
   }
 
 	function replaceDefaultKeyStrings() {
@@ -192,6 +241,9 @@ try {
     class="form-horizontal"
     accept-charset="UTF-8"
 	>
+<h4><%= props.getProperty("WhichProject") %></h4>
+  <div id="proj-id-dropdown-container">
+  </div>
 	<table class="compareZone">
 		<tr class="row header">
 			<th class="col-md-2"></th>
