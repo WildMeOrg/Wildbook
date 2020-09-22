@@ -4,7 +4,7 @@ org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
 org.ecocean.identity.IdentityServiceLog,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
-org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path,
+org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, java.util.*, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path,
 java.net.URLEncoder,
 java.nio.charset.StandardCharsets,
 java.io.UnsupportedEncodingException
@@ -16,6 +16,7 @@ java.io.UnsupportedEncodingException
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 Properties props = new Properties();
+String langCode=ServletUtilities.getLanguageCode(request);
 props = ShepherdProperties.getProperties("merge.properties", langCode,context);
 myShepherd.setAction("merge.jsp");
 
@@ -61,14 +62,24 @@ table.compareZone tr th {
     let requestJSON = {};
     let projId = 'f1b89939-4d4b-4c0c-b5f0-7b22bf4f0b66';//TODO STUB still need to link this up with a real project
     requestJSON['projectUUID'] = projId;
-    requestJSON['getUserIncrementalIds'] = "true";
+    // individualIds= [];
+    incrementalIds = [];
+    requestJSON['individualIds'] = [];
+    // requestJSON['getUserIncrementalIds'] = "true";
     // requestJSON['encounterId'] = ;
+    <% for (MarkedIndividual ind: inds) {%>
+      console.log("<%= ind.getIndividualID()%>");
+      requestJSON['individualIds'].push({indId: "<%= ind.getIndividualID()%>"});
+    <%}%>
+    console.log("requestJSON is:");
+    console.log(requestJSON);
     doAjaxForProject(requestJSON);
-    populatProjectIdRow(); //<%= markA.getNamesList()%>
 
 	});
 
   function doAjaxForProject(requestJSON){
+    console.log("json going into ajax request is: ");
+    console.log(JSON.stringify(requestJSON));
     $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectGet',
         type: 'POST',
@@ -76,9 +87,16 @@ table.compareZone tr th {
         dataType: 'json',
         contentType: 'application/json',
         success: function(data) {
-            console.log("literal response: "+data.projects);
+            console.log("literal response:");
+            console.log(data);
             console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(data));
-
+            incrementalIdResults = data.incrementalIdArr;
+            if(incrementalIdResults){
+              console.log(incrementalIdResults);
+              populatProjectIdRow(incrementalIdResults);
+            }else{
+              return [];
+            }
             // $('#progress-div').hide();
             // $('#table-div').show();
         },
@@ -88,22 +106,26 @@ table.compareZone tr th {
     });
   }
 
-  function populatProjectIdRow(){
+  function populatProjectIdRow(incrementalIds){
 
     let projectIdHtml = '';
     projectIdHtml += '<th><%= props.getProperty("ProjectId") %></th>'
-    <% for (MarkedIndividual ind: inds) {%>
+    <% for (int i=0; i<inds.length; i++) {%>
     projectIdHtml += '<td class="col-md-2 diff_check">';
-    projectIdHtml += 'bloop';
+    if(incrementalIds && incrementalIds[<%=i%>]){
+      projectIdHtml += incrementalIds[<%=i%>].projectIncrementalId;
+    }else{
+      projectIdHtml += 'No Incremental ID for this project';
+    }
     projectIdHtml += '</td>';
     <%}%>
     projectIdHtml += '<td class="merge-field">';
-    projectIdHtml += 'bleep';
-    projectIdHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control">';
-    projectIdHtml += '<option value="" selected="selected"></option>';
-    let vals = ['a', 'b'];
-    for(let i=0; i<vals.length; i++){
-      projectIdHtml += '<option value="'+ vals[i] +'" selected="selected">'+ vals[i] +'</option>';
+    if(incrementalIds && incrementalIds.length>0){
+      projectIdHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control">';
+      projectIdHtml += '<option value="" selected="selected"></option>';
+      for(let i=0; i<incrementalIds.length; i++){
+        projectIdHtml += '<option value="'+ incrementalIds[i].projectIncrementalId +'" selected="selected">'+ incrementalIds[i].projectIncrementalId +'</option>';
+      }
     }
     projectIdHtml += '</td>';
     $("#project-id-table-row").empty();
@@ -119,15 +141,17 @@ table.compareZone tr th {
 
 	function highlightMergeConflicts() {
 		$(".row.check_for_diff").each(function(i, el) {
-			var val1 = $(this).children("td.diff_check").first().html().trim();
-			var val2 = $(this).children("td.diff_check").last().html().trim();
-			var val3 = $(this).find("input").val();
-			console.log("index="+i+" val1="+val1+", val2="+val2+" and val3="+val3);
-			if (val3!==val1 && val3!==val2) {
-				$(this).addClass('needs_review');
-				$(this).addClass('text-danger');
-				$(this).addClass('bg-danger');
-			}
+      if($(this).children("td.diff_check").first().html()){
+        let val1 = $(this).children("td.diff_check").first().html().trim();
+        let val2 = $(this).children("td.diff_check").last().html().trim();
+        let val3 = $(this).find("input").val();
+        console.log("index="+i+" val1="+val1+", val2="+val2+" and val3="+val3);
+        if (val3!==val1 && val3!==val2) {
+          $(this).addClass('needs_review');
+          $(this).addClass('text-danger');
+          $(this).addClass('bg-danger');
+        }
+      }
 		});
 	}
 

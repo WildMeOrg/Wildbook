@@ -52,7 +52,7 @@ public class ProjectGet extends HttpServlet {
 
         JSONObject res = new JSONObject();
         try {
-            res.put("success","false");
+            res.put("success",false);
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
             boolean getEncounterMetadata = false;
@@ -93,10 +93,54 @@ public class ProjectGet extends HttpServlet {
                             }
                         }
                     }
-                    res.put("success","true");
+                    res.put("success",true);
                     complete = true;
                 }
             }
+
+            //get incrementalIds for individual
+            JSONArray individualIdJSONArr = j.optJSONArray("individualIds");
+            JSONArray returnArr = new JSONArray();
+            String projectId = j.optString("projectUUID", null);
+            Boolean successStatus = false;
+            if(individualIdJSONArr != null && individualIdJSONArr.length()>0){
+              for (int i=0;i<individualIdJSONArr.length();i++) {
+                System.out.println("got here a");
+                JSONObject individualIdObj = individualIdJSONArr.getJSONObject(i);
+                System.out.println("individualId is: " + individualIdObj.toString());
+                String individualId = individualIdObj.optString("indId", null);
+                System.out.println("individualId is: " + individualId);
+                if (Util.isUUID(individualId) && Util.stringExists(projectId)) {
+                  System.out.println("got here b");
+                  Project project = myShepherd.getProjectByUuid(projectId);
+                  if(project != null){
+                    String researchProjId = project.getResearchProjectId();
+                    System.out.println("researchProjId is: " + researchProjId);
+                    if(Util.stringExists(researchProjId)){
+                      System.out.println("got here d");
+                      MarkedIndividual individual = myShepherd.getMarkedIndividual(individualId);
+                      if(individual != null){
+                        System.out.println("got here e");
+                        String projectIncrementalId = individual.getName(researchProjectId);
+                        if(Util.stringExists(projectIncrementalId)){
+                          System.out.println("got here f");
+                          System.out.println("projectIncrementalId is: " + projectIncrementalId);
+                          JSONObject individualData = new JSONObject();
+                          individualData.put("projectIncrementalId", projectIncrementalId);
+                          returnArr.put(individualData);
+                          successStatus = true;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              System.out.println("got here f");
+              res.put("incrementalIdArr", returnArr);
+              res.put("success",successStatus);
+              complete = true;
+            }
+
 
             //get simple JSON for autocomplete
             String username = j.optString("username", null);
@@ -134,7 +178,7 @@ public class ProjectGet extends HttpServlet {
                         }
                     }
                     res.put("autocompleteArr", autocompleteArr);
-                    res.put("success","true");
+                    res.put("success",true);
                     complete = true;
                 }
             }
@@ -153,7 +197,7 @@ public class ProjectGet extends HttpServlet {
                         }
                     }
                     res.put("projects", projectArr);
-                    res.put("success","true");
+                    res.put("success",true);
                     complete = true;
                 }
             }
@@ -175,7 +219,7 @@ public class ProjectGet extends HttpServlet {
                     }
                 }
                 res.put("projects", projectArr);
-                res.put("success","true");
+                res.put("success",true);
                 complete = true;
             }
 
@@ -200,7 +244,7 @@ public class ProjectGet extends HttpServlet {
                     }
                 }
                 res.put("projects", projectArr);
-                res.put("success","true");
+                res.put("success",true);
                 complete = true;
             }
 
