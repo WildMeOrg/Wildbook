@@ -57,6 +57,11 @@ if (request.getParameter("acmId") != null) {
 		rtn.put("error", "unknown error");
 	} else {
 		JSONArray janns = new JSONArray();
+		System.out.println("trying researchProjectId in iaResults... "+researchProjectId);
+		Project project = null;
+		if (Util.stringExists(researchProjectId)) {
+			project = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
+		}
         for (Annotation ann : anns) {
 			if (ann.getMatchAgainst()==true) {
 				JSONObject jann = new JSONObject();
@@ -68,11 +73,16 @@ if (request.getParameter("acmId") != null) {
 					if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
 					jann.put("asset", jm);
 				}
-				if (Util.stringExists(researchProjectId)) {
-					Project project = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
-					if (project!=null) {
+				if (project!=null) {
+					try {
 						Encounter enc = ann.findEncounter(myShepherd);
+
+						if (enc!=null) {;
+							System.out.println("All encs for project: "+Arrays.asList(project.getEncounters()).toString());
+						}
+
 						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
+							System.out.println("num encounters in project: "+project.getEncounters().size());
 							MarkedIndividual individual = enc.getIndividual();
 							if (individual!=null) {
 								List<String> projectNames = individual.getNamesList(researchProjectId);
@@ -81,9 +91,10 @@ if (request.getParameter("acmId") != null) {
 								jann.put("projectUUID", project.getId());
 							}
 						} 
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
-
 				janns.put(jann);
 			}
 		}
@@ -726,9 +737,8 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 				if (d[i].serviceJobId && (d[i].serviceJobId != '-1')) {
 					if (!jobIdMap[tid]) jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId, manualAttempts: 0 };
 				}
-				//console.log('d[i].status._action --> %o', d[i].status._action);
+				//console.log("d[i].projectData : "+JSON.stringify(d([i].projectData));
 				if (d[i].projectData) {
-					console.log("got a project log from iaLogs...");
 					projectData = d[i].projectData;
 					if (d[i].projectACMIds) {
 						projectACMIds = d[i].projectACMIds;
@@ -984,6 +994,7 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 			if (isSelected) {
 				validEnc = projectACMIds.includes(acmId);
+				console.log("Project ACM Ids : "+projectACMIds);
 			}
 
 			if ((isSelected&&validEnc)||!isSelected) {
@@ -1012,13 +1023,13 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 
 		}
 		$('.annot-summary').on('mousemove', function(ev) { 
-			console.log('mouseover2 with num viewers: '+viewers.size);
+			//console.log('mouseover2 with num viewers: '+viewers.size);
 			annotClick(ev); 
 			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
 			var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
 			//tell seadragon to pan to the annotation
 			if(viewers.has(taskId+"+"+m_acmId )){
-				console.log("Found viewer: "+taskId+"+"+m_acmId );
+				//console.log("Found viewer: "+taskId+"+"+m_acmId );
 				var viewer=viewers.get(taskId+"+"+m_acmId );
 				var eventArgs={
 					acmId: m_acmId,
@@ -1050,6 +1061,7 @@ console.info('%d ===> %s', num, acmId);
 	//now the image guts
 	h = '<div id="'+taskId+'+'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
+
 	$('#task-' + taskId).append(h);
 	let paramString = 'iaResults.jsp?acmId=' + acmId;
 	let projectId = getSelectedResearchProjectId();
@@ -1066,13 +1078,15 @@ console.info('%d ===> %s', num, acmId);
      imgs.append(h);
 	
 	//$('#task-' + taskId).append(h);
-	
+	console.log("PARAMSTRING: "+paramString);
 	
 	$.ajax({
 		url: paramString,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl, acmId); }
+		complete: function(d) {
+			displayAnnotDetails(taskId, d, num, illustrationUrl, acmId);
+		}
 	});
 }
 
@@ -1116,7 +1130,8 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 				projectUUID = res.responseJSON.annotations[i].projectUUID;
 				console.log("Got this projectId in displayAnnotDetails() : "+incrementalProjectId);
 			}
-            //we "should" only need the first asset we find -- as they "should" all be identical!
+			//we "should" only need the first asset we find -- as they "should" all be identical!
+
             if (!res.responseJSON.annotations[i].asset) continue;  //no asset, meh continue
             if (mainAsset) {
                 otherAnnots.push(res.responseJSON.annotations[i]);
@@ -1204,7 +1219,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 		
                 		//need to get annot feature
                 		var ft = features.get(viewer.id.split('+')[1]);
-                		console.log("switch annots with acmId: "+event.acmId+"("+ft.parameters.width+","+ft.parameters.height+","+ft.parameters.x+","+ft.parameters.y+")");
+                		//console.log("switch annots with acmId: "+event.acmId+"("+ft.parameters.width+","+ft.parameters.height+","+ft.parameters.x+","+ft.parameters.y+")");
                 		var width=ft.parameters.width;
                 	   	var height=ft.parameters.height;
                 	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
@@ -1253,6 +1268,9 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					//console.log("Did you get in the display name finder block??? Ye!");
 					displayName = $('.enc-title .indiv-link').text();
 				}
+
+				console.log("indivId: "+indivId+" researchProjectId: "+researchProjectId+" incrementalProjectId: "+incrementalProjectId+" displayName: "+displayName);
+
                 if (encId) {
 					//console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter</a>';
@@ -1263,13 +1281,15 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					}
 				}
 				
-				if (researchProjectId&&incrementalProjectId) {
+				if (isProjectSelected()&&incrementalProjectId) {
 					console.log("trying to show project-based id for asset...");
                     h += ' of <a class="project-link" title="open project page" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '"  title="'+incrementalProjectId+'">' + incrementalProjectId + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '" title="'+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
-                }
+				}
+				
+				console.log("typeof researchProjectId::::::>>>>> "+(typeof researchProjectId));
 
-                if (indivId&&!researchProjectId) {
+				if (indivId&&!isProjectSelected()) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
                 }
@@ -1785,7 +1805,7 @@ function populateProjectsDropdown(projectsArr, selectedProject) {
 	$('#projectDropdownSpan').removeAttr('hidden');
 	let dropdown = $('#projectDropdownSpan #projectDropdown');
 	let emptyOption;
-	if (selectedProject==""||selectedProject||"null"||!selectedProject.length) {
+	if (!selectedProject||selectedProject==""||selectedProject||"null"||!selectedProject.length) {
 		emptyOption = $('<option selected class="projectSelectOption">None Selected</option>');
 	} else {
 		emptyOption = $('<option value="" class="projectSelectOption">None Selected</option>');
@@ -1806,6 +1826,7 @@ function populateProjectsDropdown(projectsArr, selectedProject) {
 $(document).ready(function(){
 	let currentUsername = '<%=currentUsername%>';
 	let selectedProject = '<%=researchProjectId%>';
+	if (selectedProject=="null"||selectedProject=="") selectedProject = false;
 	if (currentUsername.length) {
 		getProjectData(currentUsername, selectedProject);
 	}
@@ -1813,7 +1834,7 @@ $(document).ready(function(){
 
 function isProjectSelected() {
 	let dropdownVal = $("#projectDropdown").val();
-	if (dropdownVal&&dropdownVal!=""&&dropdownVal!="None Selected") {
+	if (dropdownVal&&dropdownVal!=""&&dropdownVal!="null"&&dropdownVal!="None Selected") {
 		return true;
 	}
 	return false;
@@ -1866,4 +1887,3 @@ function selectedProjectContainsEncounter(acmId) {
 }
 
 </script>
-
