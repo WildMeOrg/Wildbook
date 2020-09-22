@@ -1274,8 +1274,10 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 if (encId) {
 
 					// make whole encounter line clickable
-					$('#task-' + taskId + ' .annot-summary-' + acmId).click(function() {
-						window.location.href = 'encounters/encounter.jsp?number='+encId;
+					$('#task-'+taskId+' .annot-summary-'+acmId).click(function(event) {
+						if ($(event.target).is('#task-'+taskId+' .annot-summary-'+acmId)) {
+							window.location.href = 'encounters/encounter.jsp?number='+encId;
+						}
 					});
 
 					//console.log("Main asset encId = "+encId);
