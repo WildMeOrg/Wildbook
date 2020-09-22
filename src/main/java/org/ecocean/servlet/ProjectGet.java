@@ -66,15 +66,29 @@ public class ProjectGet extends HttpServlet {
                 getUserIncrementalIds = true;
             }
 
-            String researchProjectId = null;
             String projectUUID = null;
             String ownerId = null;
             String participantId = null;
             String encounterId = null;
-
+            
+            //should add this parameter to all calls at some point
+            String action = null;
+            action = j.optString("action", null);
+            
+            String researchProjectId = null;
             researchProjectId = j.optString("researchProjectId", null);
 
             boolean complete = false;
+
+            if (Util.stringExists(action)&&"getNextIdForProject".equals(action)) {
+                Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+                // we don't want to advance the counter until the next ID is added to an individual successfully
+                String nextId = project.getNextIncrementalIndividualId();
+                System.out.println("Got next incrementalId for "+researchProjectId+" in ProjectGet servlet");
+                res.put("nextId", nextId);
+                res.put("success",true);
+                complete = true;
+            }
 
             String annotInProject = j.optString("annotInProject", null);
             if ("true".equals(annotInProject)) {
