@@ -36,6 +36,7 @@ import org.ecocean.Organization;
 import org.ecocean.security.Collaboration;
 import org.ecocean.configuration.*;
 import org.ecocean.api.ApiHttpServlet;
+import org.ecocean.api.query.QueryParser;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Iterator;
@@ -112,7 +113,18 @@ public class RestServletV2 extends ApiHttpServlet {
             handleConfiguration(request, response, payload, instanceId, context);
             return;
         }
+        if (payload.optJSONObject("query") != null) {
+            QueryParser.handleQuery(request, response, payload, instanceId, context);
+            return;
+        }
 
+        //now we handle generic POST (aka make new thing)
+        if ("POST".equals(httpMethod)) {
+            handlePost(request, response, payload, instanceId, context);
+            return;
+        }
+
+        //from here, assumed to be GET
         JSONObject rtn = new JSONObject();
         rtn.put("success", false);
 
@@ -650,6 +662,52 @@ rtn.put("_payload", payload);
         PrintWriter out = response.getWriter();
         out.println(rtn);
         out.close();
+    }
+
+    //create a new object, yup
+    private void handlePost(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
+        JSONObject rtn = new JSONObject();
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RestServletV2.handlePost");
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+
+        SystemLog.debug("POST ON PAYLOAD " + payload);
+        rtn.put("success", false);
+        rtn.put("transactionId", instanceId);
+
+        String cls = payload.optString("class", null);
+        if (cls == null) {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            SystemLog.error("RestServlet.handlePost() passed null class id, instance={}", instanceId);
+            throw new IOException("RestServlet.handlePost() passed null class");
+        }
+
+        try {
+            if (cls.equals("org.ecocean.Occurrence")) {
+                Occurrence occ = Occurrence.fromApiJSONObject(payload);
+                myShepherd.getPM().makePersistent(occ);
+                SystemLog.info("RestServlet.handlePost() instance={} created={}", instanceId, occ);
+                myShepherd.commitDBTransaction();
+                rtn.put("success", true);
+                rtn.put("result", occ.asApiJSONObject());   //TODO what expand to pass?
+            } else {
+                SystemLog.error("RestServlet.handlePost() passed invalid class {}, instance={}", cls, instanceId);
+                rtn.put("message", _rtnMessage("invalid_class", payload));
+                myShepherd.rollbackDBTransaction();
+            }
+        } catch (Exception ex) {
+            SystemLog.error("RestServlet.handlePost() threw exception {}", ex);
+            rtn.put("message", _rtnMessage("error", payload, ex.toString()));
+            myShepherd.rollbackDBTransaction();
+        }
+
+        myShepherd.closeDBTransaction();
+        out.println(rtn.toString());
+        out.close();
+        return;
     }
 
     //basically change some object

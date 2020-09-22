@@ -6,7 +6,16 @@ import java.util.Set;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import java.io.IOException;
+
 public class QueryParser {
+
+    public static JSONObject handleQuery(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        return null;
+    }
 
     public static String whereClause(JSONObject qry) throws QueryParserException {
         if (qry == null) return "true";

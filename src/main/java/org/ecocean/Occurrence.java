@@ -8,7 +8,7 @@ import java.util.Vector;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
-
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
@@ -130,6 +130,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     encounters.add(enc);
     assets = new ArrayList<MediaAsset>();
     setDWCDateLastModified();
+    setVersion();
     setDateTimeCreated();
     //if(encounters!=null){
     //  updateNumberOfEncounters();
@@ -146,6 +147,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       myShepherd.getPM().makePersistent(ma);
     }
     setDWCDateLastModified();
+    setVersion();
     setDateTimeCreated();
   }
   public Occurrence(String occurrenceID){
@@ -154,6 +156,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     assets = new ArrayList<MediaAsset>();
     setDWCDateLastModified();
     setDateTimeCreated();
+    setVersion();
     System.out.println("Created new occurrence with only ID" + occurrenceID);
   }
 
@@ -482,6 +485,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
     public Long getVersion() {
         return version;
+    }
+    public void setVersion() {
+        version = System.currentTimeMillis();
     }
     public void setVersion(Long v) {
         version = v;
@@ -1237,6 +1243,15 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
       return jobj;
   }
+
+    public static Occurrence fromApiJSONObject(org.json.JSONObject jsonIn) throws IOException {
+        Occurrence occ = new Occurrence();
+        occ.setId(Util.generateUUID());
+        occ.setDWCDateLastModified();
+        occ.setDateTimeCreated();
+        occ.setVersion();
+        return occ;
+    }
 
     public org.json.JSONObject asApiJSONObject() {
         return asApiJSONObject(null);
