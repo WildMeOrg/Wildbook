@@ -210,7 +210,8 @@ public class ProjectGet extends HttpServlet {
                 if (Util.stringExists(ownerId)) {
                     allUserProjects = myShepherd.getOwnedProjectsForUserId(ownerId);
                 } else if (Util.stringExists(participantId)) {
-                    allUserProjects = myShepherd.getParticipatingProjectsForUserId(participantId);
+                    User user = myShepherd.getUser(participantId);
+                    allUserProjects = myShepherd.getProjectsForUser(user);
                 }
                 JSONArray projectArr = new JSONArray();
                 if (allUserProjects!=null) {
