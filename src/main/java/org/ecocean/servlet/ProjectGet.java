@@ -70,11 +70,11 @@ public class ProjectGet extends HttpServlet {
             String ownerId = null;
             String participantId = null;
             String encounterId = null;
-            
+
             //should add this parameter to all calls at some point
             String action = null;
             action = j.optString("action", null);
-            
+
             String researchProjectId = null;
             researchProjectId = j.optString("researchProjectId", null);
 
@@ -117,19 +117,25 @@ public class ProjectGet extends HttpServlet {
             JSONArray returnArr = new JSONArray();
             Boolean successStatus = false;
             if(individualIdJSONArr != null && individualIdJSONArr.length()>0){
+              System.out.println("got here a");
               for (int i=0;i<individualIdJSONArr.length();i++) {
                 JSONObject individualIdObj = individualIdJSONArr.getJSONObject(i);
                 String individualId = individualIdObj.optString("indId", null);
                 if (Util.isUUID(individualId) && Util.stringExists(researchProjectId)) {
+                  System.out.println("got here b");
                   Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
                   if(project != null){
+                    System.out.println("got here c");
                     String researchProjId = project.getResearchProjectId();
                     if(Util.stringExists(researchProjId)){
+                      System.out.println("got here d");
                       MarkedIndividual individual = myShepherd.getMarkedIndividual(individualId);
                       if(individual != null){
+                        System.out.println("got here e");
                         List<String> namesList = individual.getNamesList(researchProjId);
                         String projectIncrementalId = individual.getName(researchProjId);
                         if(Util.stringExists(projectIncrementalId)){
+                          System.out.println("got here f");
                           JSONObject individualData = new JSONObject();
                           individualData.put("projectIncrementalId", projectIncrementalId);
                           returnArr.put(individualData);
@@ -140,7 +146,7 @@ public class ProjectGet extends HttpServlet {
                   }
                 }
               }
-              System.out.println("got here f");
+              System.out.println("got here g");
               res.put("incrementalIdArr", returnArr);
               res.put("success",successStatus);
               complete = true;
