@@ -1308,7 +1308,9 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
                 if (encId || indivId) {
 //console.log("XX %o", displayName);
-            $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+
+
+            $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '') + '" data-projectid="'+(researchProjectId || '')+'" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
@@ -1380,7 +1382,9 @@ function annotCheckbox(el) {
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
 	jel.parent().addClass('annot-summary-checked');
 
-	var h;
+	let allowSyncReturn = true;
+
+	var h = '<i>Getting next ID...</i>';
 	if (!queryAnnotation.encId || !jel.data('encid')) {
 		h = '<i>Insufficient encounter data for any actions</i>';
 	} else if (jel.data('individ')==queryAnnotation.indivId) {
@@ -1389,6 +1393,47 @@ function annotCheckbox(el) {
 		// construct link to merge page
 		var link = "merge.jsp?individualA="+jel.data('individ')+"&individualB="+queryAnnotation.indivId;
 		h = 'These encounters are already assigned to two <b>different individuals</b>.  <a href="'+link+'" class="button" > Merge Individuals</a>';
+	} else if (jel.data('projectid')&&!jel.data('individ')&&!queryAnnotation.indivId) {
+		allowSyncReturn = false;
+		let requestJSON = {};
+		requestJSON['researchProjectId'] = projectId;
+		requestJSON['action'] = 'getNextIdForProject'; 
+		$.ajax({
+			url: wildbookGlobals.baseUrl + '../ProjectGet',
+			type: 'POST',
+			data: JSON.stringify(requestJSON),
+			dataType: 'json',
+			contentType: 'application/json',
+			success: function(d) {
+				console.info('Retrieved next incremental ID for '+projectId+'! Got back '+JSON.stringify(d));
+				let nextId = d.nextId;
+				if (!nextId) {
+					nextId = '';
+				}
+				h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" value="'+nextId+'" placeholder="Type new or existing name" ';
+				h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
+				h += ' data-match-enc-id="' + jel.data('encid') + '" ';
+				h += '/> 
+				h += '<input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />' 
+
+				$('#enc-action').html(h);
+
+				setIndivAutocomplete($('#enc-action .needs-autocomplete'));
+				return true;
+			},
+			error: function(x,y,z) {
+				console.warn('%o %o %o', x, y, z);
+			}
+		});
+
+		// need to make sure the correct ID's are present to propagate one way or other, filter by project. (annotCheckbox call line 1312)
+
+		// neither has an ID to propagate, make new incremental
+
+		// project is selected, provide next project id as option
+
+		// build our own 'h' element here and populate after ajax call to get next
+
 	} else if (jel.data('individ')) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
 	} else if (queryAnnotation.indivId) {
@@ -1400,9 +1445,12 @@ function annotCheckbox(el) {
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
 	}
-	$('#enc-action').html(h);
-        setIndivAutocomplete($('#enc-action .needs-autocomplete'));
-	return true;
+
+	if (allowSyncReturn) {
+		$('#enc-action').html(h);
+		setIndivAutocomplete($('#enc-action .needs-autocomplete'));
+		return true;
+	}
 }
 
 function setIndivAutocomplete(el) {
