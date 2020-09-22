@@ -60,8 +60,8 @@ table.compareZone tr th {
 		highlightMergeConflicts();
 		replaceDefaultKeyStrings();
     let requestJSON = {};
-    let projId = 'f1b89939-4d4b-4c0c-b5f0-7b22bf4f0b66';//TODO STUB still need to link this up with a real project
-    requestJSON['projectUUID'] = projId;
+    let projId = "ID";//TODO STUB still need to link this up with a real project
+    requestJSON['researchProjectId'] = projId;
     // individualIds= [];
     incrementalIds = [];
     requestJSON['individualIds'] = [];

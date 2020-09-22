@@ -101,19 +101,24 @@ public class ProjectGet extends HttpServlet {
             //get incrementalIds for individual
             JSONArray individualIdJSONArr = j.optJSONArray("individualIds");
             JSONArray returnArr = new JSONArray();
-            String projectId = j.optString("projectUUID", null);
+            // System.out.println("j is: ");
+            // System.out.println(j.toString());
             Boolean successStatus = false;
             if(individualIdJSONArr != null && individualIdJSONArr.length()>0){
               for (int i=0;i<individualIdJSONArr.length();i++) {
                 System.out.println("got here a");
                 JSONObject individualIdObj = individualIdJSONArr.getJSONObject(i);
-                System.out.println("individualId is: " + individualIdObj.toString());
                 String individualId = individualIdObj.optString("indId", null);
                 System.out.println("individualId is: " + individualId);
-                if (Util.isUUID(individualId) && Util.stringExists(projectId)) {
+                System.out.println(Util.isUUID(individualId));
+                if(Util.stringExists(researchProjectId)){
+                  System.out.println("researchProjectId exists and is "+ researchProjectId);
+                }
+                if (Util.isUUID(individualId) && Util.stringExists(researchProjectId)) {
                   System.out.println("got here b");
-                  Project project = myShepherd.getProjectByUuid(projectId);
+                  Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
                   if(project != null){
+                    System.out.println("got here c");
                     String researchProjId = project.getResearchProjectId();
                     System.out.println("researchProjId is: " + researchProjId);
                     if(Util.stringExists(researchProjId)){
@@ -121,7 +126,11 @@ public class ProjectGet extends HttpServlet {
                       MarkedIndividual individual = myShepherd.getMarkedIndividual(individualId);
                       if(individual != null){
                         System.out.println("got here e");
-                        String projectIncrementalId = individual.getName(researchProjectId);
+                        List<String> namesList = individual.getNamesList(researchProjId);
+                        if(namesList != null){
+                          System.out.println("namesList is: " + namesList.toString());
+                        }
+                        String projectIncrementalId = individual.getName(researchProjId);
                         if(Util.stringExists(projectIncrementalId)){
                           System.out.println("got here f");
                           System.out.println("projectIncrementalId is: " + projectIncrementalId);
