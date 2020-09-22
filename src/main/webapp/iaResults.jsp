@@ -122,7 +122,12 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	res.put("encounterId", request.getParameter("number"));
 	res.put("encounterId2", request.getParameter("enc2"));
 	res.put("individualId", request.getParameter("individualID"));
-        res.put("taskId", taskId);
+	res.put("taskId", taskId);
+	String projectId = null; 
+	if (Util.stringExists(request.getParameter("projectId"))) {
+		res.put("projectId", request.getParameter("projectId"));
+		projectId = request.getParameter("projectId");
+	}
 
 	myShepherd = new Shepherd(context);
 	myShepherd.setAction("iaResults.jsp2");
@@ -183,6 +188,10 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		// if both have an id, throw an error. any deecision to override would be arbitrary
 		// should get to MERGE option instead of getting here anyway
 		if (indiv!=null&&indiv2!=null) {
+
+
+			// need nuance here.. if both individuals are present but there is not a project ID allow set
+
 			res.put("error", "Both encounters already have an ID. You must remove one or reassign from the Encounter page.");
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();
@@ -213,6 +222,18 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				if (Util.stringExists(displayName)) {
 					System.out.println("CASE 1: both indy null");
 					indiv = new MarkedIndividual(displayName, enc);
+
+					//check for project to add new name with prefix
+					if (projectId!=null) {
+						Project project = myShepherd.getProjectByResearchProjectId(projectId);
+						if (project!=null&&project.getNextIndividualIdIncrement().equals(displayName)) {
+							project.getNextIncrementalIndividualIdAndAdvance();
+							myShepherd.updateDBTransaction();
+						}
+						individual.addNameByKey(projectId, displayName);
+						res.put("newIncrementalId", individual.getDisplayName(projectId));
+					}
+
 					res.put("newIndividualUUID", indiv.getId());
 					res.put("individualName", displayName);
 					myShepherd.getPM().makePersistent(indiv);
@@ -221,7 +242,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
 					myShepherd.updateDBTransaction();
-                                        indiv.refreshNamesCache();
+                    indiv.refreshNamesCache();
 				} else {
 					res.put("error", "Please enter a new Individual ID for both encounters.");
 				}
@@ -597,6 +618,7 @@ var timers = {};
 var INDIVIDUAL_SCORES = <%=individualScores%>;
 
 var researchProjectId = '<%=researchProjectId%>';
+var NONE_SELECTED = 'None Selected';
 var projectData = {};
 var projectACMIds = [];
 
@@ -1310,7 +1332,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 //console.log("XX %o", displayName);
 
 
-            $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '') + '" data-projectid="'+(researchProjectId || '')+'" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+            $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
@@ -1366,7 +1388,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
 
 function getSelectedResearchProjectId() {
 	let selectedValue = $("#projectDropdown option:selected").val();
-	if (selectedValue==""||selectedValue==undefined) return ""; 
+	if (selectedValue==""||selectedValue==undefined||selectedValue==null||selectedValue=="null") return ""; 
 	return selectedValue;
 }
 
@@ -1382,7 +1404,12 @@ function annotCheckbox(el) {
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
 	jel.parent().addClass('annot-summary-checked');
 
+
+	let selectedResearchProjectId = getSelectedResearchProjectId();
+	if (selectedResearchProjectId==NONE_SELECTED) selectedResearchProjectId = '';
 	let allowSyncReturn = true;
+
+	console.log("DIDYA GET TEH PROJECTID???? |"+selectedResearchProjectId+"|");
 
 	var h = '<i>Getting next ID...</i>';
 	if (!queryAnnotation.encId || !jel.data('encid')) {
@@ -1393,10 +1420,10 @@ function annotCheckbox(el) {
 		// construct link to merge page
 		var link = "merge.jsp?individualA="+jel.data('individ')+"&individualB="+queryAnnotation.indivId;
 		h = 'These encounters are already assigned to two <b>different individuals</b>.  <a href="'+link+'" class="button" > Merge Individuals</a>';
-	} else if (jel.data('projectid')&&!jel.data('individ')&&!queryAnnotation.indivId) {
+	} else if (selectedResearchProjectId.length>0&&!jel.data('individ')&&!queryAnnotation.indivId) {
 		allowSyncReturn = false;
 		let requestJSON = {};
-		requestJSON['researchProjectId'] = projectId;
+		requestJSON['researchProjectId'] = selectedResearchProjectId;
 		requestJSON['action'] = 'getNextIdForProject'; 
 		$.ajax({
 			url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -1405,7 +1432,7 @@ function annotCheckbox(el) {
 			dataType: 'json',
 			contentType: 'application/json',
 			success: function(d) {
-				console.info('Retrieved next incremental ID for '+projectId+'! Got back '+JSON.stringify(d));
+				console.info('Retrieved next incremental ID for '+selectedResearchProjectId+'! Got back '+JSON.stringify(d));
 				let nextId = d.nextId;
 				if (!nextId) {
 					nextId = '';
@@ -1413,8 +1440,8 @@ function annotCheckbox(el) {
 				h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" value="'+nextId+'" placeholder="Type new or existing name" ';
 				h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 				h += ' data-match-enc-id="' + jel.data('encid') + '" ';
-				h += '/> 
-				h += '<input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />' 
+				h += '/>'; 
+				h += '<input type="button" value="New Project ID For Both Encounters" data-projectId="'+selectedResearchProjectId+'" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />' 
 
 				$('#enc-action').html(h);
 
@@ -1435,9 +1462,9 @@ function annotCheckbox(el) {
 		// build our own 'h' element here and populate after ajax call to get next
 
 	} else if (jel.data('individ')) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\' , \''+null+'\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
 	} else if (queryAnnotation.indivId) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\' , \''+null+'\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
 	} else {
                 //disable onChange for now -- as autocomplete will trigger!
 		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
@@ -1695,14 +1722,14 @@ console.warn(inds);
 	var h = ' <div id="approval-buttons">';
 	for (var i = 0 ; i < inds.length ; i++) {
 		h += '<input type="button" onClick="approvalButtonClick(\'' + qann.encounter.catalogNumber + '\', \'' +
-		     inds[i] + '\');" value="Approve as assigned to ' + inds[i] + '" />';
+		     inds[i] + '\',);" value="Approve as assigned to ' + inds[i] + '" />';
 	}
 	return h + '</div>';
 }
 
 
 // sends everything to java on the page and returns JSON with encounter and indy ID
-function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
+function approvalButtonClick(encID, indivID, encID2, taskId, displayName, projectId) {
 	var msgTarget = '#enc-action';  //'#approval-buttons';
 	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s', indivID, encID, encID2, taskId);
 	if (!indivID || !encID) {
@@ -1711,6 +1738,11 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
 	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
+	console.log('should i add name as project based? '+projectId);
+	if (projectId!=null&&projectId!=''&&projectId.length>0&&projectId!=NONE_SELECTED) {
+		url += '&projectId='+projectId;
+		console.log('adding projectId to URL for new name!!');
+	}
 	if (encID2) url += '&enc2=' + encID2;
 	jQuery.ajax({
 		url: url,
@@ -1748,8 +1780,9 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 
 function approveNewIndividual(el) {
 	var jel = $(el);
-	console.info('name=%s; qe=%s, me=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'));
-	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'));
+	let projectId = jel.data('projectId');
+	console.info('name=%s; qe=%s, me=%s, projectId=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'), projectId);
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), projectId);
 }
 
 function encDisplayString(encId) {
@@ -1862,9 +1895,9 @@ function populateProjectsDropdown(projectsArr, selectedProject) {
 	let dropdown = $('#projectDropdownSpan #projectDropdown');
 	let emptyOption;
 	if (!selectedProject||selectedProject==""||selectedProject||"null"||!selectedProject.length) {
-		emptyOption = $('<option selected class="projectSelectOption">None Selected</option>');
+		emptyOption = $('<option selected class="projectSelectOption">'+NONE_SELECTED+'</option>');
 	} else {
-		emptyOption = $('<option value="" class="projectSelectOption">None Selected</option>');
+		emptyOption = $('<option value="" class="projectSelectOption">'+NONE_SELECTED+'</option>');
 	}
 	dropdown.append(emptyOption); 
 	for (i=0;i<projectsArr.length;i++) {
@@ -1890,7 +1923,7 @@ $(document).ready(function(){
 
 function isProjectSelected() {
 	let dropdownVal = $("#projectDropdown").val();
-	if (dropdownVal&&dropdownVal!=""&&dropdownVal!="null"&&dropdownVal!="None Selected") {
+	if (dropdownVal&&dropdownVal!=""&&dropdownVal!="null"&&dropdownVal!=NONE_SELECTED) {
 		return true;
 	}
 	return false;
