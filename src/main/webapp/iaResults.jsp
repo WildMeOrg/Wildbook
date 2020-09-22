@@ -1272,6 +1272,12 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 				console.log("indivId: "+indivId+" researchProjectId: "+researchProjectId+" incrementalProjectId: "+incrementalProjectId+" displayName: "+displayName);
 
                 if (encId) {
+
+					// make whole encounter line clickable
+					$('#task-' + taskId + ' .annot-summary-' + acmId).click(function() {
+						window.location.href = 'encounters/encounter.jsp?number='+encId;
+					});
+
 					//console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter</a>';
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter</a>');
