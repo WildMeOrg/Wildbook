@@ -66,9 +66,15 @@ table.compareZone tr th {
     // callForIncrementalIdsAndPopulate();
 	});
 
-  function addListeners(){
+  function addListeners(projectNameResults){
+    let projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+    let prjIdOptions = projectNameResults.map(entry =>{return entry.researchProjectId});
     $('#proj-id-dropdown').change(function(){
-      let projId = $( "#proj-id-dropdown" ).val();
+      let projName = $( "#proj-id-dropdown" ).val();
+      let indexMatch = projNameOptions.indexOf(projName);
+      console.log("indexMatch is: " + indexMatch);
+      let projId = prjIdOptions[indexMatch];
+
       callForIncrementalIdsAndPopulate(projId);
     });
   }
@@ -106,24 +112,25 @@ table.compareZone tr th {
               // console.log("1: incrementalIdResults!");
               // console.log(incrementalIdResults);
               populateProjectIdRow(incrementalIdResults);
-              addListeners();
+              // addListeners();
             }else{
               if(projectNameResults){
                 // console.log("2: projectNameResults!");
                 // console.log(projectNameResults);
-                projIdOptions = projectNameResults.map(entry =>{return entry.researchProjectId});
+                let projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+                let prjIdOptions = projectNameResults.map(entry =>{return entry.researchProjectId});
                 if(!$( "#proj-id-dropdown" ).val()){ // if the html hasn't been populated at all yet, do that
-                  if(projIdOptions.length>1){
-                    // console.log("got here. projIdOptions[0] is: " + projIdOptions[0]);
-                    callForIncrementalIdsAndPopulate(projIdOptions[0]);
-                    populateProjectNameDropdown(projIdOptions);
+                  if(projNameOptions.length>1){
+                    // console.log("got here. projNameOptions[0] is: " + projNameOptions[0]);
+                    callForIncrementalIdsAndPopulate(prjIdOptions[0]);
+                    populateProjectNameDropdown(projNameOptions);
                   }else{
                     callForIncrementalIdsAndPopulate("temp");
                     // populateProjectNameDropdown(['<%= props.getProperty("NoProjects")%>']);
                   }
                 }
-                populateProjectNameDropdown(projIdOptions);
-                addListeners();
+                populateProjectNameDropdown(projNameOptions);
+                addListeners(projectNameResults);
                 // console.log("adding "+ projectNameResults.researchProjectId);
                 // $('#current-proj-id-display').text(projectNameResults.researchProjectId);
               }else{
@@ -211,6 +218,7 @@ table.compareZone tr th {
       console.log("individualAId is: " + individualAId);
       let individualBId = '<%= indIdB%>';
       console.log("individualBId is: " + individualBId);
+      //TODO call ProjectUpdate ajax;
     }
 
   }
