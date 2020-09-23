@@ -54,15 +54,17 @@ public class ProjectCreate extends HttpServlet {
 
         JSONArray encsJSON = null;
         JSONArray projectUserIds = null;
+        JSONArray orgsForUsers = null;
         String researchProjectId = null;
         String researchProjectName = null;
-
+        
         //TODO handle add users by organization
-
+        
         try {
             res.put("success","false");
             encsJSON = j.optJSONArray("encounterIds");
             projectUserIds = j.optJSONArray("projectUserIds");
+            orgsForUsers = j.optJSONArray("organizationAccess");
             researchProjectId = j.optString("researchProjectId", null);
             researchProjectName = j.optString("researchProjectName", null);
 
@@ -87,6 +89,30 @@ public class ProjectCreate extends HttpServlet {
                     newProject.setResearchProjectName(researchProjectName);
                 }
 
+                List<String> projectUserIdStrings = new ArrayList<>();
+                for (int i=0;i<projectUserIds.length();i++) {
+                    String thisUserId = projectUserIds.getString(i);
+                    if (!projectUserIdStrings.contains(thisUserId)) {
+                        projectUserIdStrings.add(thisUserId);
+                    }
+                }
+
+                for (int i=0;i<orgsForUsers.length();i++) {
+                    String orgId = orgsForUsers.getString(i);
+                    if (Util.stringExists(orgId)) {
+                        Organization org = myShepherd.getOrganization(orgId);
+                        if (org!=null) {
+                            List<User> orgUsers = org.getMembers();
+                            for (User orgUser : orgUsers) {    
+                                if (!projectUserIdStrings.contains(orgUser.getId())) {
+                                    projectUserIds.put(orgUser.getId());
+                                    projectUserIdStrings.add(orgUser.getId());
+                                } 
+                            }
+                        }
+                    }
+                }
+
                 if (projectUserIds!=null&&projectUserIds.length()>0) {
                     for (int i=0;i<projectUserIds.length();i++) {
                         String userIdentifier = projectUserIds.getString(i);
@@ -100,9 +126,7 @@ public class ProjectCreate extends HttpServlet {
                             if (user!=null) {
                                 newProject.addUser(user);
                             }
-
                         }
-
                     }
                     myShepherd.updateDBTransaction();
                 }

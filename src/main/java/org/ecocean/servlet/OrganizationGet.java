@@ -69,6 +69,15 @@ public class OrganizationGet extends HttpServlet {
 
                     for (Organization org : orgs) {
                         JSONObject orgOb = new JSONObject();
+                        List<User> userArr = org.getMembers();
+                        JSONArray userJSONArr = new JSONArray();
+                        for (User orgUser : userArr) {
+                            JSONObject thisUserJSON = new JSONObject();
+                            thisUserJSON.put("username", orgUser.getUsername());
+                            thisUserJSON.put("id", orgUser.getId());
+                            userJSONArr.put(thisUserJSON);
+                        }
+                        orgOb.put("users", userJSONArr);
                         orgOb.put("name", org.getName());
                         orgOb.put("id", org.getId());
                         orgJSONArr.put(orgOb);
@@ -78,8 +87,6 @@ public class OrganizationGet extends HttpServlet {
                     complete = true;
                 }
             }
-
-
 
             out.println(res);
             out.close();
