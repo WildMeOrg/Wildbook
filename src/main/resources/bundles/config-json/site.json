@@ -136,7 +136,7 @@
 				"defaultValue": "#000000"
 			}
 		},
-		"primaryColor": {
+		"themeColor": {
 			"__meta": {
 				"formSchema": { "displayOrder": 0.2 },
 				"type": "color",

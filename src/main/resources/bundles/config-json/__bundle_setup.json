@@ -4,6 +4,7 @@
 		"site.needsSetup",
 		"site.private",
 		"google.googleMapsKey",
+		"site.look.themeColor",
 		"site.look.lightBackgroundLogo",
 		"site.look.darkBackgroundLogo",
 		"site.general.tagline",
