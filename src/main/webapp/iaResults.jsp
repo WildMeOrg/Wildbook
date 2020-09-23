@@ -222,7 +222,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				if (Util.stringExists(displayName)) {
 					System.out.println("CASE 1: both indy null");
 					indiv = new MarkedIndividual(displayName, enc);
-
+					myShepherd.getPM().makePersistent(indiv);
 					//check for project to add new name with prefix
 					if (projectId!=null) {
 						Project project = myShepherd.getProjectByResearchProjectId(projectId);
@@ -230,14 +230,13 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 							project.getNextIncrementalIndividualIdAndAdvance();
 							myShepherd.updateDBTransaction();
 						}
+						
 						indiv.addNameByKey(projectId, displayName);
 						res.put("newIncrementalId", indiv.getDisplayName(projectId));
 					}
-
+					myShepherd.updateDBTransaction();
 					res.put("newIndividualUUID", indiv.getId());
 					res.put("individualName", displayName);
-					myShepherd.getPM().makePersistent(indiv);
-					myShepherd.updateDBTransaction();
 					enc.setIndividual(indiv);
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
@@ -1314,7 +1313,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 				if (isProjectSelected()&&incrementalProjectId) {
 					console.log("trying to show project-based id for asset...");
                     h += ' of <a class="project-link" title="open project page" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '"  title="'+incrementalProjectId+'">' + incrementalProjectId + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '" title="'+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/project.jsp?id=' + projectUUID + '" title="'+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
 				}
 				
 				console.log("typeof researchProjectId::::::>>>>> "+(typeof researchProjectId));
@@ -1462,9 +1461,9 @@ function annotCheckbox(el) {
 		// build our own 'h' element here and populate after ajax call to get next
 
 	} else if (jel.data('individ')) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\' , \''+null+'\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
 	} else if (queryAnnotation.indivId) {
-		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\' , \''+null+'\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
+		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
 	} else {
                 //disable onChange for now -- as autocomplete will trigger!
 		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
@@ -1729,7 +1728,7 @@ console.warn(inds);
 
 
 // sends everything to java on the page and returns JSON with encounter and indy ID
-function approvalButtonClick(encID, indivID, encID2, taskId, displayName, projectId) {
+function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 	var msgTarget = '#enc-action';  //'#approval-buttons';
 	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s', indivID, encID, encID2, taskId);
 	if (!indivID || !encID) {
@@ -1738,8 +1737,9 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName, projec
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
 	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
+	let projectId = getSelectedResearchProjectId();
 	console.log('should i add name as project based? '+projectId);
-	if (projectId!=null&&projectId!=''&&projectId.length>0&&projectId!=NONE_SELECTED) {
+	if (projectId&&projectId!=NONE_SELECTED) {
 		url += '&projectId='+projectId;
 		console.log('adding projectId to URL for new name!!');
 	}
@@ -1780,9 +1780,8 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName, projec
 
 function approveNewIndividual(el) {
 	var jel = $(el);
-	let projectId = jel.data('projectId');
-	console.info('name=%s; qe=%s, me=%s, projectId=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'), projectId);
-	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), projectId);
+	console.info('name=%s; qe=%s, me=%s, projectId=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'));
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'));
 }
 
 function encDisplayString(encId) {
