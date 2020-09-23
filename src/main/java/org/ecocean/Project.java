@@ -82,28 +82,19 @@ public class Project implements java.io.Serializable {
     }
 
     public Double getPercentWithIncrementalIds(){
-        double result = 0.0;
-        double numIncremented = 0.0;
-        double numUniqueIndividuals = 0.0;
-        Set<MarkedIndividual> uniqueIndividuals = new HashSet<MarkedIndividual>();
-        for(Encounter currentEncounter: encounters){
-          MarkedIndividual currentIndividual = currentEncounter.getIndividual();
-          if(currentIndividual == null){
-            numUniqueIndividuals ++; //assume each encounter un-associated with a MarkedIndividual is unique and add to denominator
+      double numEncounters = encounters.size();
+      double hasIncrementalId = 0.0;
+      for (Encounter enc : encounters) {
+          if (enc.getIndividual()!=null) {
+              MarkedIndividual thisIndividual = enc.getIndividual();
+              if (thisIndividual.hasNameKey(getResearchProjectId())) {
+                  hasIncrementalId++;
+              }
           }
-          if(!uniqueIndividuals.contains(currentIndividual) && currentIndividual!=null){
-            numUniqueIndividuals ++;
-            if(currentIndividual.hasNameKey(getResearchProjectId())){
-              numIncremented ++;
-            }
-            uniqueIndividuals.add(currentIndividual);
-          }
-        }
-        if(numUniqueIndividuals>0){ // avoid potential divide by zero error
-          result = Math.floor(100 * numIncremented/numUniqueIndividuals);
-        }
-        return result;
-    }
+      }
+      if (numEncounters==0.0||hasIncrementalId==0.0) return 0.0;
+      return Math.floor(100 * (hasIncrementalId / numEncounters));
+  }
 
     public  Double getPercentIdentified(){
         if (numEncounters()>0&&numIndividuals()>0) {
