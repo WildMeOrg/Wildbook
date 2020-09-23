@@ -127,6 +127,7 @@ public class ProjectGet extends HttpServlet {
                   System.out.println("got here b");
                   System.out.println("researchProjectId is: " + researchProjectId);
                   Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+                  String projName = project.getResearchProjectName();
                   if(project != null){
                     System.out.println("got here c");
                     String researchProjId = project.getResearchProjectId();
@@ -141,6 +142,7 @@ public class ProjectGet extends HttpServlet {
                           System.out.println("got here f");
                           JSONObject individualData = new JSONObject();
                           individualData.put("projectId", researchProjectId);
+                          if(Util.stringExists(projName)){individualData.put("projectName", projName);}
                           individualData.put("projectIncrementalId", projectIncrementalId);
                           returnArr.put(individualData);
                           successStatus = true;

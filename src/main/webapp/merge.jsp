@@ -109,8 +109,8 @@ table.compareZone tr th {
             incrementalIdResults = data.incrementalIdArr;
             projectNameResults = data.projects;//data.;//TODO
             if(incrementalIdResults){
-              // console.log("1: incrementalIdResults!");
-              // console.log(incrementalIdResults);
+              console.log("1: incrementalIdResults!");
+              console.log(incrementalIdResults);
               populateProjectIdRow(incrementalIdResults);
               // addListeners();
             }else{
@@ -154,7 +154,7 @@ table.compareZone tr th {
     let projectIdHtml = '';
     projectIdHtml += '<th><%= props.getProperty("ProjectId") %>';
     if(incrementalIds.length>0){
-      projectIdHtml += '<span id="current-proj-id-display"><em> ' + incrementalIds[0].projectId + '</em></span>'
+      projectIdHtml += '<span id="current-proj-id-display"><em> ' + incrementalIds[0].projectName + '</em></span>'
     }
     projectIdHtml += '</th>';
     <% for (int i=0; i<inds.length; i++) {%>
