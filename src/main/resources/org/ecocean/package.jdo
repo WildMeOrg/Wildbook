@@ -965,6 +965,17 @@
 		</field>
 	</class>
 
+	<class name="UserValue">
+		<field name="owner" persistence-modifier="persistent" element-type="org.ecocean.external.ExternalUser" default-fetch-group="true" />
+		<field name="key" primary-key="true" />
+		<field name="version">
+			<column allows-null="true" />
+		</field>
+		<field name="value">
+			<column jdbc-type="LONGVARCHAR" />
+		</field>
+	</class>
+
 
 	<class name="MultiValue" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity" persistence-modifier="persistent" />
