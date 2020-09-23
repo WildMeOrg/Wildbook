@@ -25,6 +25,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.ShepherdRO;
 import org.ecocean.Util;
 import org.ecocean.SystemLog;
+import org.ecocean.UserValue;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
@@ -103,6 +104,10 @@ public class RestServletV2 extends ApiHttpServlet {
         }
         if (payload.optString("class", "__FAIL__").equals("logout")) {
             handleLogout(request, response, payload, instanceId, context);
+            return;
+        }
+        if (payload.optString("class", "__FAIL__").equals("UserValue")) {
+            handleUserValue(request, response, payload, instanceId, context);
             return;
         }
         if (payload.optString("id", "__FAIL__").equals("list")) {
@@ -292,6 +297,40 @@ public class RestServletV2 extends ApiHttpServlet {
 */
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
+        return rtn;
+    }
+
+    //kinda hacky case to deal with UserValues
+    private JSONObject handleUserValue(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
+        if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
+        String key = payload.optString("id", null);
+        if (key == null) throw new IOException("handleUserValue got null key");
+        payload.remove("id");
+        payload.remove("class");
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RestServletV2.handleUserValue");
+        response.setContentType("application/javascript");
+        PrintWriter out = response.getWriter();
+        JSONObject rtn = new JSONObject();
+        rtn.put("key", key);
+        rtn.put("success", false);
+        rtn.put("transactionId", instanceId);
+        //TODO FIXME handle actual user, duh?
+        JSONObject val = null;
+        if ("POST".equals(request.getMethod())) {
+            UserValue.set(myShepherd, key, payload);
+            val = payload;
+        } else {
+            val = UserValue.getJSONObject(myShepherd, key);
+        }
+        if (val != null) {
+            rtn.put("success", true);
+            rtn.put("response", val);
+        }
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        out.println(rtn.toString());
+        out.close();
         return rtn;
     }
 
