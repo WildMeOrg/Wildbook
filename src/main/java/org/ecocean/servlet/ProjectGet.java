@@ -140,6 +140,7 @@ public class ProjectGet extends HttpServlet {
                         if(Util.stringExists(projectIncrementalId)){
                           System.out.println("got here f");
                           JSONObject individualData = new JSONObject();
+                          individualData.put("projectId", researchProjectId);
                           individualData.put("projectIncrementalId", projectIncrementalId);
                           returnArr.put(individualData);
                           successStatus = true;

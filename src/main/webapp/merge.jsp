@@ -68,10 +68,7 @@ table.compareZone tr th {
 
   function addListeners(){
     $('#proj-id-dropdown').change(function(){
-      console.log("3 got into select and selected: ");
       let projId = $( "#proj-id-dropdown" ).val();
-      console.log("projId in listener is: ");
-      console.log(projId);
       callForIncrementalIdsAndPopulate(projId);
     });
   }
@@ -84,8 +81,8 @@ table.compareZone tr th {
     <% for (MarkedIndividual ind: inds) {%>
       requestJSON['individualIds'].push({indId: "<%= ind.getIndividualID()%>"});
     <%}%>
-    console.log("requestJSON before going into ajax call in callForIncrementalIdsAndPopulate:");
-    console.log(requestJSON);
+    // console.log("requestJSON before going into ajax call in callForIncrementalIdsAndPopulate:");
+    // console.log(requestJSON);
     doAjaxForProject(requestJSON);
   }
 
@@ -106,17 +103,18 @@ table.compareZone tr th {
             incrementalIdResults = data.incrementalIdArr;
             projectNameResults = data.projects;//data.;//TODO
             if(incrementalIdResults){
-              console.log("1: incrementalIdResults!");
-              console.log(incrementalIdResults);
-              populatProjectIdRow(incrementalIdResults);
+              // console.log("1: incrementalIdResults!");
+              // console.log(incrementalIdResults);
+              populateProjectIdRow(incrementalIdResults);
               addListeners();
             }else{
               if(projectNameResults){
-                console.log("2: projectNameResults!");
+                // console.log("2: projectNameResults!");
+                // console.log(projectNameResults);
                 projIdOptions = projectNameResults.map(entry =>{return entry.researchProjectId});
                 if(!$( "#proj-id-dropdown" ).val()){ // if the html hasn't been populated at all yet, do that
                   if(projIdOptions.length>1){
-                    console.log("got here. projIdOptions[0] is: " + projIdOptions[0]);
+                    // console.log("got here. projIdOptions[0] is: " + projIdOptions[0]);
                     callForIncrementalIdsAndPopulate(projIdOptions[0]);
                     populateProjectNameDropdown(projIdOptions);
                   }else{
@@ -126,8 +124,10 @@ table.compareZone tr th {
                 }
                 populateProjectNameDropdown(projIdOptions);
                 addListeners();
+                // console.log("adding "+ projectNameResults.researchProjectId);
+                // $('#current-proj-id-display').text(projectNameResults.researchProjectId);
               }else{
-                console.log("Ack should not happen");
+                // console.log("Ack should not happen");
               }
             }
             // $('#progress-div').hide();
@@ -139,11 +139,16 @@ table.compareZone tr th {
     });
   }
 
-  function populatProjectIdRow(incrementalIds){
-    console.log("populatProjectIdRow called");
-    console.log("inds.length is "+ <%= inds.length %>);
+  function populateProjectIdRow(incrementalIds){
+    // console.log("data in populateProjectIdRow is: ");
+    // console.log(populateProjectIdRow);
+    // console.log("populateProjectIdRow called");
+    // console.log("inds.length is "+ <%= inds.length %>);
     let projectIdHtml = '';
     projectIdHtml += '<th><%= props.getProperty("ProjectId") %>';
+    if(incrementalIds.length>0){
+      projectIdHtml += '<span id="current-proj-id-display"><em> ' + incrementalIds[0].projectId + '</em></span>'
+    }
     projectIdHtml += '</th>';
     <% for (int i=0; i<inds.length; i++) {%>
     projectIdHtml += '<td class="col-md-2 diff_check">';
@@ -157,7 +162,7 @@ table.compareZone tr th {
     projectIdHtml += '<td class="merge-field">';
     if(incrementalIds && incrementalIds.length>0){
       projectIdHtml += '<select name="proj-confirm-dropdown" id="proj-confirm-dropdown" class="form-control">';
-      projectIdHtml += '<option value="" selected="selected"></option>';
+      // projectIdHtml += '<option value="" selected="selected"></option>';
       for(let i=0; i<incrementalIds.length; i++){
         projectIdHtml += '<option value="'+ incrementalIds[i].projectIncrementalId +'" selected="selected">'+ incrementalIds[i].projectIncrementalId +'</option>';
       }
@@ -168,17 +173,46 @@ table.compareZone tr th {
   }
 
   function populateProjectNameDropdown(options){
-    console.log("populateProjectNameDropdown called");
-    console.log("options are");
-    console.log(options);
+    // console.log("populateProjectNameDropdown called");
+    // console.log("options are");
+    // console.log(options);
     let projectNameHtml = '';
     projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" >';
-    projectNameHtml += '<option value="" selected="selected"></option>';
+    // let selected = false;
+    projectNameHtml += '<option value=""></option>';
     for(let i=0; i<options.length; i++){
-      projectNameHtml += '<option value="'+ options[i] +'" selected="selected">'+ options[i] +'</option>';
+      // console.log("in for loop and i is: " + i);
+      // console.log(options[i]);
+      if(i == 0){
+        // selected = true;
+        // console.log("true with " + options[i]);
+        projectNameHtml += '<option value="'+ options[i] +'" selected>'+ options[i] +'</option>';
+      }else{
+        // selected = false;
+        // console.log("false with " + options[i]);
+        projectNameHtml += '<option value="'+ options[i] + '">'+ options[i] +'</option>';
+      }
     }
+    // console.log("projectNameHtml is:");
+    // console.log(projectNameHtml);
     $("#proj-id-dropdown-container").empty();
     $("#proj-id-dropdown-container").append(projectNameHtml);
+  }
+
+  function updateProject(){
+    console.log("updateProject clicked");
+    let projId = $('#current-proj-id-display').text();
+    console.log("projId is: " + projId);
+    let desiredIncrementalId = $('#proj-confirm-dropdown').find(":selected").text();
+    console.log("desiredIncrementalId is: " + desiredIncrementalId);
+    if(<%= inds.length%> == 2){
+      console.log("got into if branch in updateProject");
+      let individualAId = '<%= indIdA%>';
+      console.log("individualAId is: " + individualAId);
+      let individualBId = '<%= indIdB%>';
+      console.log("individualBId is: " + individualBId);
+    }
+
   }
 
 	function replaceDefaultKeyStrings() {
@@ -337,7 +371,7 @@ try {
 		</tr>
 	</table>
 
-  <input type="submit" name="Submit" value="Merge Individuals" id="mergeBtn" class="btn btn-md editFormBtn"/>
+  <input type="submit" name="Submit" value="Merge Individuals" id="mergeBtn" class="btn btn-md editFormBtn" onclick="updateProject()"/>
 
 	</form>
 
