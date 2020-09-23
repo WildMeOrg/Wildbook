@@ -151,6 +151,10 @@
 
 			  { "name":"US - East Coast", "id":"US - East Coast", "locationID":[ 
 				{ "name":"Florida", "id":"Florida", "locationID":[] }
+			  ]},
+
+			  { "name":"US - Virgin Islands", "id":"US - Virgin Islands", "locationID":[ 
+				{ "name":"Maho", "id":"Maho", "locationID":[] }
 			  ]}
 			  
 		],
@@ -370,11 +374,20 @@
 			  "name": "Tanzania", "id": "Tanzania" },
 
 			  {"name": "Kenya", "id": "Kenya", "locationID":[
-				{"name": "Diani Beach", "id": "Diani Beach" },
-				{"name": "Tiwi Reef", "id": "Tiwi Reef" },
-				{"name": "Kisite-Mpunguti Marine National Park", "id": "Kisite-Mpunguti Marine National Park" },
 				{"name": "Chale Island", "id": "Chale Island" },
-				{"name": "Mombasa Marine Park", "id": "Mombasa Marine Park" }
+				{"name": "Diani Beach", "id": "Diani Beach" },
+				{"name": "Galu", "id": "Galu" },
+				{"name": "Igloo", "id": "Igloo" },
+				{"name": "Jadini", "id": "Jadini" },
+				{"name": "Kisima Mungu", "id": "Kisima Mungu" },
+				{"name": "Kisite-Mpunguti Marine National Park", "id": "Kisite-Mpunguti Marine National Park" },
+				{"name": "Kongo", "id": "Kongo" },
+				{"name": "Milele", "id": "Milele" },
+				{"name": "Milele North", "id": "Milele North" },
+				{"name": "Mombasa Marine Park", "id": "Mombasa Marine Park" },
+				{"name": "Mwanyaza", "id": "Mwanyaza" },
+				{"name": "Mwanamochi", "id": "Mwanamochi" },
+				{"name": "Tiwi Reef", "id": "Tiwi Reef" }
 			  ]},
 			  
 			  			  {
