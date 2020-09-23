@@ -443,7 +443,7 @@ public class Shepherd {
       return false;
     }
   }
-  
+
   public List getAllCollaborations() {
     Collection c;
     try {
@@ -2356,7 +2356,7 @@ public class Shepherd {
     }
     return al;
   }
-  
+
   public List<Organization> getAllCommonOrganizationsForTwoUsers(User user1, User user2) {
     ArrayList<Organization> al = new ArrayList<Organization>();
     try {
@@ -2364,14 +2364,14 @@ public class Shepherd {
       Collection results = (Collection) q.execute();
       al = new ArrayList<Organization>(results);
       q.closeAll();
-    } 
+    }
     catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return al;
     }
     return al;
   }
-  
+
   public List<Organization> getAllOrganizations() {
     ArrayList<Organization> al = new ArrayList<Organization>();
     try {
@@ -3227,7 +3227,7 @@ public class Shepherd {
     }
     return tempShark;
   }
-  
+
   public List<MarkedIndividual> getMarkedIndividualsFromProject(Project project){
     List<MarkedIndividual> individuals = new ArrayList<MarkedIndividual>();
     try {
@@ -3244,6 +3244,8 @@ public class Shepherd {
     return individuals;
   }
 
+  //we now use enc.getIndividual because there is a foreign-key connecting encs to inds without another SQL call
+  @Deprecated
   public MarkedIndividual getMarkedIndividualHard(Encounter enc) {
     String num = enc.getCatalogNumber();
     String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && enc.catalogNumber == \""+num+"\"  VARIABLES org.ecocean.Encounter enc";
