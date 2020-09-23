@@ -82,19 +82,21 @@ public class Project implements java.io.Serializable {
     public Double getPercentWithIncrementalIds(Shepherd myShepherd){
         double result = 0.0;
         double numIncremented = 0;
-        double numEncounters = numEncounters();
+        // double numEncounters = numEncounters();
+        double numUniqueIndividuals = 0;
         List<MarkedIndividual> uniqueIndividuals = new ArrayList<MarkedIndividual>();
         for(Encounter currentEncounter: encounters){
           MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
           if(!uniqueIndividuals.contains(currentIndividual) && currentIndividual!=null){
+            numUniqueIndividuals ++;
             if(currentIndividual.hasNameKey(getResearchProjectId())){
               numIncremented ++;
             }
             uniqueIndividuals.add(currentIndividual);
           }
         }
-        if(numEncounters>0){ // avoid potential divide by zero error
-          result = Math.floor(100 * numIncremented/numEncounters);
+        if(numUniqueIndividuals>0){ // avoid potential divide by zero error
+          result = Math.floor(100 * numIncremented/numUniqueIndividuals);
         }
         return result;
     }
