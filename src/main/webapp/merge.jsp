@@ -69,7 +69,7 @@ table.compareZone tr th {
   function addListeners(){
     $('#proj-id-dropdown').change(function(){
       console.log("3 got into select and selected: ");
-      let projId = $( "#proj-id-dropdown" ).text();
+      let projId = $( "#proj-id-dropdown" ).val();
       console.log("projId in listener is: ");
       console.log(projId);
       callForIncrementalIdsAndPopulate(projId);
@@ -113,18 +113,18 @@ table.compareZone tr th {
             }else{
               if(projectNameResults){
                 console.log("2: projectNameResults!");
-                projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
-                if(!$( "#proj-id-dropdown" ).text()){ // if the html hasn't been populated at all yet, do that
-                  if(projNameOptions.length>1){
-                    console.log("got here. projNameOptions[0] is: " + projNameOptions[0]);
-                    callForIncrementalIdsAndPopulate(projNameOptions[0]);
-                    populateProjectNameDropdown(projNameOptions);
+                projIdOptions = projectNameResults.map(entry =>{return entry.researchProjectId});
+                if(!$( "#proj-id-dropdown" ).val()){ // if the html hasn't been populated at all yet, do that
+                  if(projIdOptions.length>1){
+                    console.log("got here. projIdOptions[0] is: " + projIdOptions[0]);
+                    callForIncrementalIdsAndPopulate(projIdOptions[0]);
+                    populateProjectNameDropdown(projIdOptions);
                   }else{
                     callForIncrementalIdsAndPopulate("temp");
                     // populateProjectNameDropdown(['<%= props.getProperty("NoProjects")%>']);
                   }
                 }
-                populateProjectNameDropdown(projNameOptions);
+                populateProjectNameDropdown(projIdOptions);
                 addListeners();
               }else{
                 console.log("Ack should not happen");
