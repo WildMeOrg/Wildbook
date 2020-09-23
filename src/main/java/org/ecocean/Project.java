@@ -88,7 +88,7 @@ public class Project implements java.io.Serializable {
         double numUniqueIndividuals = 0;
         Set<MarkedIndividual> uniqueIndividuals = new HashSet<MarkedIndividual>();
         for(Encounter currentEncounter: encounters){
-          MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
+          MarkedIndividual currentIndividual = currentEncounter.getIndividual();
           if(!uniqueIndividuals.contains(currentIndividual) && currentIndividual!=null){
             numUniqueIndividuals ++;
             if(currentIndividual.hasNameKey(getResearchProjectId())){
