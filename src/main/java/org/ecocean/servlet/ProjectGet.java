@@ -123,6 +123,7 @@ public class ProjectGet extends HttpServlet {
                 String individualId = individualIdObj.optString("indId", null);
                 if (Util.isUUID(individualId) && Util.stringExists(researchProjectId)) {
                   System.out.println("got here b");
+                  System.out.println("researchProjectId is: " + researchProjectId);
                   Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
                   if(project != null){
                     System.out.println("got here c");
