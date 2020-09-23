@@ -2807,11 +2807,11 @@ else {
                                     for(int i=0; i< projects.size(); i++){
                                       if(indie != null && indie.getName(projects.get(i).getResearchProjectId()) != null){
                                         %>
-                                        <p><em><%= projects.get(i).getResearchProjectId()%></em> : <%= indie.getName(projects.get(i).getResearchProjectId())%></p>
+                                        <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= indie.getName(projects.get(i).getResearchProjectId())%></p>
                                         <%
                                       }else{
                                         %>
-                                          <p><em><%= projects.get(i).getResearchProjectId()%></em> : <%= encprops.getProperty("noIdIn")%></p>
+                                          <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= encprops.getProperty("noIdIn")%></p>
                                         <%
                                       }
                                     }

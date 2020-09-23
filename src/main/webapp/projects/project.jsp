@@ -153,11 +153,12 @@ function createMarkedIndividualAjax(projectId, encounterId){
       if(data){
         console.log(data);
         if(data.success){
-          console.log("success!");
+          console.log("success in createMarkedIndividualAjax! Data is:");
+          console.log(data);
           let newIndividualId = data.newIndividualId;
           addIncrementalProjectIdAjax(newIndividualId, projectId, encounterId);
         }else{
-          console.log("failure!");
+          console.log("failure in createMarkedIndividualAjax!");
           $('#alert-div-warn_'+encounterId).show();
         }
       }
@@ -169,6 +170,7 @@ function createMarkedIndividualAjax(projectId, encounterId){
 }
 
 function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
+  console.log("addIncrementalProjectIdAjax entered")
   let formJson = {};
   formJson["researchProjectId"] = projectId;
   formJson["individualId"] = individualId;
@@ -184,14 +186,15 @@ function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
       if(data){
         console.log(data);
         if(data.success){
-          console.log("success!");
+          console.log("success in addIncrementalProjectIdAjax! Data are:");
+          console.log(data);
           $('#adding-div_' + encounterId).hide();
           $('#alert-div_'+encounterId).show();
           $('#mark-new-button_'+encounterId).hide();
           $('#disabled-mark-new-button_'+encounterId).hide();
           //TODO getEncounterJSON()?
         }else{
-          console.log("failure!");
+          console.log("failure in addIncrementalProjectIdAjax!");
           $('#adding-div_' + encounterId).hide();
           $('#alert-div-warn_'+encounterId).show();
           enableNewButton(encounterId);

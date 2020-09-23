@@ -1,7 +1,9 @@
 package org.ecocean;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Arrays;
 
 import javax.servlet.http.HttpServletRequest;
@@ -79,25 +81,20 @@ public class Project implements java.io.Serializable {
         setTimeLastModified();
     }
 
-    public Double getPercentWithIncrementalIds(Shepherd myShepherd){
-        double result = 0.0;
-        double numIncremented = 0;
-        double numEncounters = numEncounters();
-        List<MarkedIndividual> uniqueIndividuals = new ArrayList<MarkedIndividual>();
-        for(Encounter currentEncounter: encounters){
-          MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
-          if(!uniqueIndividuals.contains(currentIndividual) && currentIndividual!=null){
-            if(currentIndividual.hasNameKey(getResearchProjectId())){
-              numIncremented ++;
-            }
-            uniqueIndividuals.add(currentIndividual);
+    public Double getPercentWithIncrementalIds(){
+      double numEncounters = encounters.size();
+      double hasIncrementalId = 0.0;
+      for (Encounter enc : encounters) {
+          if (enc.getIndividual()!=null) {
+              MarkedIndividual thisIndividual = enc.getIndividual();
+              if (thisIndividual.hasNameKey(getResearchProjectId())) {
+                  hasIncrementalId++;
+              }
           }
-        }
-        if(numEncounters>0){ // avoid potential divide by zero error
-          result = Math.floor(100 * numIncremented/numEncounters);
-        }
-        return result;
-    }
+      }
+      if (numEncounters==0.0||hasIncrementalId==0.0) return 0.0;
+      return Math.floor(100 * (hasIncrementalId / numEncounters));
+  }
 
     public  Double getPercentIdentified(){
         if (numEncounters()>0&&numIndividuals()>0) {

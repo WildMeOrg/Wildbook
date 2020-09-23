@@ -153,7 +153,7 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 		      //System.out.println("");
 		      //System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
 		      //System.out.println("This marked individual has "+numAnns+" anotations");
-		
+
 					//boolean visible = indie.canUserAccess(request);
 		      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
 
@@ -562,12 +562,13 @@ if (sharky.getNames() != null) {
   if(projects!=null && projects.size()>0){
     for(Project currentProject: projects){
       String researchProjId = currentProject.getResearchProjectId();
+      String researchProjName = currentProject.getResearchProjectName();
       String incrementalId = indie.getName(researchProjId);
       if(incrementalId != null){
         %>
-        <div class="namesection <%=researchProjId%>">
-	        <span class="nameKey" data-oldkey="<%=researchProjId%>"><em><%=researchProjId%></em></span>
-	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjId%>" placeholder="<%= researchProjId%>" >
+        <div class="namesection <%=researchProjName%>">
+	        <span class="nameKey" data-oldkey="<%=researchProjName%>"><em><%=researchProjName%></em></span>
+	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjName%>" placeholder="<%= researchProjName%>" >
 	        <span id="nameColon">:</span>
 
 	        <span class="nameValue <%=researchProjId%>" data-oldvalue="<%=incrementalId%>"><%=incrementalId%></span>
