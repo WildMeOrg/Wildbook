@@ -1,7 +1,9 @@
 package org.ecocean;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Arrays;
 
 import javax.servlet.http.HttpServletRequest;
@@ -84,7 +86,7 @@ public class Project implements java.io.Serializable {
         double numIncremented = 0;
         // double numEncounters = numEncounters();
         double numUniqueIndividuals = 0;
-        List<MarkedIndividual> uniqueIndividuals = new ArrayList<MarkedIndividual>();
+        Set<MarkedIndividual> uniqueIndividuals = new HashSet<MarkedIndividual>();
         for(Encounter currentEncounter: encounters){
           MarkedIndividual currentIndividual = myShepherd.getMarkedIndividual(currentEncounter);
           if(!uniqueIndividuals.contains(currentIndividual) && currentIndividual!=null){
