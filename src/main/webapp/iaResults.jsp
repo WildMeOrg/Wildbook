@@ -226,12 +226,12 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					//check for project to add new name with prefix
 					if (projectId!=null) {
 						Project project = myShepherd.getProjectByResearchProjectId(projectId);
-						if (project!=null&&project.getNextIndividualIdIncrement().equals(displayName)) {
+						if (project!=null&&project.getNextIncrementalIndividualId().equals(displayName)) {
 							project.getNextIncrementalIndividualIdAndAdvance();
 							myShepherd.updateDBTransaction();
 						}
-						individual.addNameByKey(projectId, displayName);
-						res.put("newIncrementalId", individual.getDisplayName(projectId));
+						indiv.addNameByKey(projectId, displayName);
+						res.put("newIncrementalId", indiv.getDisplayName(projectId));
 					}
 
 					res.put("newIndividualUUID", indiv.getId());
