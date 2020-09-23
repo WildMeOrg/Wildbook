@@ -83,10 +83,12 @@ public class ProjectGet extends HttpServlet {
             if (Util.stringExists(action)&&"getNextIdForProject".equals(action)) {
                 Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
                 // we don't want to advance the counter until the next ID is added to an individual successfully
-                String nextId = project.getNextIncrementalIndividualId();
-                System.out.println("Got next incrementalId for "+researchProjectId+" in ProjectGet servlet");
-                res.put("nextId", nextId);
-                res.put("success",true);
+                if (project!=null) {
+                    String nextId = project.getNextIncrementalIndividualId();
+                    System.out.println("Got next incrementalId "+nextId+" for "+researchProjectId+" in ProjectGet servlet");
+                    res.put("nextId", nextId);
+                    res.put("success",true);
+                }
                 complete = true;
             }
 
