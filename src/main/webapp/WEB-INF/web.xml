@@ -1147,6 +1147,16 @@
     <url-pattern>/OrganizationEdit</url-pattern>
   </servlet-mapping>
 
+    <servlet>
+    <servlet-name>OrganizationGet</servlet-name>
+    <servlet-class>org.ecocean.servlet.OrganizationGet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>OrganizationGet</servlet-name>
+    <url-pattern>/OrganizationGet</url-pattern>
+  </servlet-mapping>
+
   <servlet>
     <servlet-name>UserGetSimpleJSON</servlet-name>
     <servlet-class>org.ecocean.servlet.UserGetSimpleJSON</servlet-class>
