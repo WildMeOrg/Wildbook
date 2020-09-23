@@ -360,8 +360,21 @@ try {
 			</td>
 		</tr>
 
+    <tr class="row sex check_for_diff">
+			<th><%= props.getProperty("Sex") %></th>
+			<% for (MarkedIndividual ind: inds) {%>
+			<td class="col-md-2 diff_check">
+				<%=ind.getSex()%>
+			</td>
+			<%}%>
+			<td class="merge-field">
 
-
+				<%
+				String mergeSex = Util.betterValue(markA.getSex(), markB.getSex());
+				%>
+				 <input name="sex" type="text" class="" id="sexInput" value="<%=mergeSex%>"/>
+			</td>
+		</tr>
 
 		<!--
 		<tr class="row comments check_for_diff">
