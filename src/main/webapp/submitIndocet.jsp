@@ -19,9 +19,15 @@
 
 
 <jsp:include page="header.jsp" flush="true"/>
+<script>
+$(document).ready( function() {
+	console.log("ready");
+});
+</script>
 
 <!-- add recaptcha -->
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
+
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -792,7 +798,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 		<div class="form-group form-inline" id="silent-input-form-group-container">
 			<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />
 		</div>
-		
+
 		<div class="form-group form-inline" id="proj-id-dropdown-container">
 
 
@@ -1222,5 +1228,6 @@ else {%>
 </div>
 </div>
 </div>
+
 
 <jsp:include page="footer.jsp" flush="true"/>
