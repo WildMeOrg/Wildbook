@@ -14,7 +14,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
-	
+
 <link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 
@@ -383,9 +383,12 @@ google.maps.event.addDomListener(window, 'load', initialize);
       target="_self" dir="ltr"
       lang="en"
       onsubmit="return false;"
-      class="form-horizontal" 
+      class="form-horizontal"
       accept-charset="UTF-8"
 >
+
+<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />
+<div id="proj-id-dropdown-container"></div>
 
 <div class="dz-message"></div>
 
@@ -394,6 +397,74 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
 
 <script>
+$(document).ready( function() {
+	let requestJsonForProjectNamesDropdown = {};
+	requestJsonForProjectNamesDropdown['ownerId'] = '<%= user.getId()%>';
+	doAjaxForProject(requestJsonForProjectNamesDropdown);
+});
+
+function doAjaxForProject(requestJSON){
+	$.ajax({
+			url: wildbookGlobals.baseUrl + '../ProjectGet',
+			type: 'POST',
+			data: JSON.stringify(requestJSON),
+			dataType: 'json',
+			contentType: 'application/json',
+			success: function(data) {
+					let projectNameResults = data.projects;
+					let projNameOptions = null;
+					if(projectNameResults){
+						projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+					}
+					if(projNameOptions){
+						// let prjIdOptions = projectNameResults.map(entry =>{return entry.researchProjectId});
+						if ($('#defaultProject').val()=='<%= props.getProperty("indocetDefaultProjName")%>') {
+							console.log("defaultProject is indocet!");
+							let defaultSelection = '<%= props.getProperty("indocetDefaultProjName")%>';
+							populateProjectNameDropdown(projNameOptions, defaultSelection, false);
+						}
+						else{
+							if(<%= user != null%>){
+								populateProjectNameDropdown(projNameOptions, "", true);
+							}else{
+								populateProjectNameDropdown(projNameOptions, "", false);
+							}
+
+						}
+
+					}else{
+						//user doesn't have to have access to any projects to default to indocet project
+						if ($('#defaultProject').val()=='<%= props.getProperty("indocetDefaultProjName")%>') {
+							console.log("defaultProject is indocet!");
+							let defaultSelection = '<%= props.getProperty("indocetDefaultProjName")%>';
+							populateProjectNameDropdown(['<%= props.getProperty("indocetDefaultProjName")%>'], defaultSelection, false);
+							//indocet is marked selected in the dropdown and the dropdown is hidden, but still parsed in EncounterForm
+						}else{
+							//user has no projects AND not coming from custom Indocet page
+							populateProjectNameDropdown([], "", false);
+						}
+					}
+			},
+			error: function(x,y,z) {
+					console.warn('%o %o %o', x, y, z);
+			}
+	});
+}
+
+function populateProjectNameDropdown(options, selectedOption, isVisible){
+	let projectNameHtml = '';
+	projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" >';
+	projectNameHtml += '<option value=""></option>';
+	for(let i=0; i<options.length; i++){
+		if(options[i] === selectedOption){
+			projectNameHtml += '<option value="'+ options[i] +'" selected>'+ options[i] +'</option>';
+		}else{
+			projectNameHtml += '<option value="'+ options[i] + '">'+ options[i] +'</option>';
+		}
+	}
+	$("#proj-id-dropdown-container").empty();
+	$("#proj-id-dropdown-container").append(projectNameHtml);
+}
 
 
 $('#social_files_iframe').on('load', function(ev) {
@@ -1168,11 +1239,11 @@ function sendButtonClicked() {
     	    $("#encounterForm").attr("action", "EncounterForm");
 			submitForm();
    		}
-   		else{	console.log('Here!'); 	
+   		else{	console.log('Here!');
    			    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-   					
+
    					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-   					if(!isEmpty(recaptachaResponse)) {		
+   					if(!isEmpty(recaptachaResponse)) {
    						$("#encounterForm").attr("action", "EncounterForm");
    						submitForm();
    					}
