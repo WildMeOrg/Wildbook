@@ -1244,9 +1244,12 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       return jobj;
   }
 
-    public static Occurrence fromApiJSONObject(org.json.JSONObject jsonIn) throws IOException {
+    public static Occurrence fromApiJSONObject(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        if (jsonIn == null) throw new IOException("passed null json");
+        if (jsonIn.optString("id", null) != null) throw new IOException("passing id value not allowed");  //TODO not sure how i feel about this
         Occurrence occ = new Occurrence();
         occ.setId(Util.generateUUID());
+        occ.trySetting(myShepherd, jsonIn.optJSONObject("customFields"));
         occ.setDWCDateLastModified();
         occ.setDateTimeCreated();
         occ.setVersion();

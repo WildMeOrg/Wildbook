@@ -726,7 +726,7 @@ rtn.put("_payload", payload);
 
         try {
             if (cls.equals("org.ecocean.Occurrence")) {
-                Occurrence occ = Occurrence.fromApiJSONObject(payload);
+                Occurrence occ = Occurrence.fromApiJSONObject(myShepherd, payload);
                 myShepherd.getPM().makePersistent(occ);
                 SystemLog.info("RestServlet.handlePost() instance={} created={}", instanceId, occ);
                 myShepherd.commitDBTransaction();
