@@ -253,23 +253,18 @@ public class ApiCustomFields {
     }
 
 
+    //this is strictly mean to be name/value
     public JSONObject getCustomFieldJSONObject() {
         Map<CustomFieldDefinition,List<Object>> cmap = this.getCustomFieldValuesMap();
         JSONObject cust = new JSONObject();
         for (CustomFieldDefinition cfd : cmap.keySet()) {
-            JSONObject c = new JSONObject();
-            //should prob ignore className cuz we are *in* a class!  or... sanity check?
-            //c.put("multiple", cfd.getMultiple());
-            //c.put("type", cfd.getType());
-            c.put("label", cfd.getName());
             if (Util.collectionIsEmptyOrNull(cmap.get(cfd))) {
-                c.put("error", "empty value list");  //snh
+                ///
             } else if (cfd.getMultiple()) {
-                c.put("value", new JSONArray(cmap.get(cfd)));
+                cust.put(cfd.getId(), new JSONArray(cmap.get(cfd)));
             } else {  //single value
-                c.put("value", cmap.get(cfd).get(0));
+                cust.put(cfd.getId(), cmap.get(cfd).get(0));
             }
-            cust.put(cfd.getId(), c);
         }
         return cust;
     }
