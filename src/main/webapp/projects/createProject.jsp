@@ -90,12 +90,10 @@
                         </div>
                       </div>
                     </div>
-                    <div class="row">
-                      <%
-                        FormUtilities.setUpOrgDropdown("organizationAccess", false, props, out, request, myShepherd);
-                        Properties projManagementProps = new Properties();
-                        projManagementProps = ShepherdProperties.getProperties("searchResults.properties", langCode, context);
-                      %>
+                    <div class="row" id="organizationAccessRow" hidden>
+                      <select id="organizationAccess" multiple="" name="organizationAccess">
+                        <option value="" selected></option>>
+                      </select>
                     </div>
                     <button type="button" id="cancelButton" onclick="cancelButtonClicked();" class="sleeker-button">
                       <span><%=props.getProperty("cancel") %>  </span><span class="glyphicon glyphicon-remove icon_white_stripe" aria-hidden="true"></span>
@@ -251,4 +249,45 @@
         }
       });
     }
+
+    var organizationUsersCache = {};
+    function getOrganizationsForDropdown() {
+      let requestJSON = {};
+      requestJSON['action'] = 'getAllForUser';
+      $.ajax({
+          url: wildbookGlobals.baseUrl + '../OrganizationGet',
+          type: 'POST',
+          data: JSON.stringify(requestJSON),
+          dataType: 'json',
+          contentType: 'application/json',
+          success: function(d) {
+              console.log("Success! response: "+d.organizations);
+              organizationUsersCache = d.organizations;
+              let organizationsArr = d.organizations;
+              populateOrganizationsMultiSelect(organizationsArr)
+          },
+          error: function(x,y,z) {
+              console.warn('%o %o %o', x, y, z);
+          }
+      });
+    }
+
+    function populateOrganizationsMultiSelect(organizationsArr) {
+      if (organizationsArr.length>0) {
+        $('#organizationAccessRow').removeAttr('hidden');        
+      }
+      let dropdown = $('#organizationAccess');
+      for (i=0;i<organizationsArr.length;i++) {
+        let org = organizationsArr[i];
+        let selectEl;
+        if (org.name&&org.id) {
+          selectEl = $('<option class="organizationSelectOption" value="'+org.id+'">'+org.name+'</option>');
+        }
+        dropdown.append(selectEl);
+      }
+    }
+
+    $(document).ready(function() {
+      getOrganizationsForDropdown()
+    });
     </script>
