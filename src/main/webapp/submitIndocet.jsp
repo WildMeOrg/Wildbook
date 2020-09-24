@@ -61,6 +61,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     margin-top: 0px !important;
     margin-bottom: 8px !important;
     }
+
 	.required-missing {
 		outline: solid 4px rgba(255,0,0,0.5);
 		background-color: #FF0;
@@ -132,24 +133,24 @@ function validate() {
     var requiredfields = "";
 
     if ($("#submitterName").val().length == 0) {
-      // /*
-      //  * the value.length returns the length of the information entered
-      //  * in the Submitter's Name field.
-      //  */
+      /*
+       * the value.length returns the length of the information entered
+       * in the Submitter's Name field.
+       */
       requiredfields += "\n   *  <%=props.getProperty("submit_name") %>";
     }
 
-      // /*
-      // if ((document.encounter_submission.submitterEmail.value.length == 0) ||
-      //   (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
-      //   (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
-			//
-      //      requiredfields += "\n   *  valid Email address";
-      // }
-      // if ((document.encounter_submission.location.value.length == 0)) {
-      //     requiredfields += "\n   *  valid sighting location";
-      // }
-      // */
+      /*
+      if ((document.encounter_submission.submitterEmail.value.length == 0) ||
+        (document.encounter_submission.submitterEmail.value.indexOf('@') == -1) ||
+        (document.encounter_submission.submitterEmail.value.indexOf('.') == -1)) {
+
+           requiredfields += "\n   *  valid Email address";
+      }
+      if ((document.encounter_submission.location.value.length == 0)) {
+          requiredfields += "\n   *  valid sighting location";
+      }
+      */
 
     if (requiredfields != "") {
       requiredfields = "<%=props.getProperty("pleaseFillIn") %>\n" + requiredfields;
@@ -386,8 +387,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
       accept-charset="UTF-8"
 >
 
-
 <div class="dz-message"></div>
+
+
 
 
 
@@ -415,6 +417,12 @@ $('#social_files_iframe').on('load', function(ev) {
 function submitForm() {
 	document.forms['encounterForm'].submit();
 }
+
+
+
+
+
+
 
 function updateList(inp) {
     var f = '';
@@ -587,14 +595,18 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
                             else{
                                hasMoreLocationsIDs=false;
                             }
+
                        }
+
      %>
       </select>
       </div>
     </div>
 <%
 }
+
 if(CommonConfiguration.showProperty("showCountry",context)){
+
 %>
           <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
@@ -650,6 +662,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <p class="help-block">
         <%=props.getProperty("gpsConverter") %></p>
     </div>
+
+
 <%
 if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 %>
@@ -674,18 +688,23 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 </fieldset>
 <hr />
+
+
     <%
     //let's pre-populate important info for logged in users
     String submitterName="";
     String submitterEmail="";
     String affiliation="";
     String project="";
+		Shepherd myShepherd = null;
+		User user = null;
     if(request.getRemoteUser()!=null){
         submitterName=request.getRemoteUser();
+        myShepherd=new Shepherd(context);
         myShepherd.setAction("submit.jsp1");
         myShepherd.beginDBTransaction();
         if(myShepherd.getUser(submitterName)!=null){
-            user=myShepherd.getUser(submitterName);
+						user=myShepherd.getUser(submitterName);
             if(user.getFullName()!=null){submitterName=user.getFullName();}
             if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
             if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
@@ -695,6 +714,9 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         myShepherd.closeDBTransaction();
     }
     %>
+
+
+
   <fieldset>
     <div class="row">
       <div class="col-xs-12 col-lg-6">
@@ -767,6 +789,15 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       </div>
     </div>
 
+		<div class="form-group form-inline" id="silent-input-form-group-container">
+			<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />
+		</div>
+		
+		<div class="form-group form-inline" id="proj-id-dropdown-container">
+
+
+		</div>
+
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
         <label class="control-label"><%=props.getProperty("submit_comments") %></label>
@@ -776,8 +807,13 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       </div>
     </div>
   </fieldset>
+
+
+
 <%
+
 if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
 %>
 
       <div class="form-group">
@@ -803,29 +839,42 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
                                %>
                                  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
                                <%
+
                         }
+
+
                    }
                    }
  %>
   </select>
     </div>
         </div>
+
         <%
 }
+
 %>
+
+
+
   <h4 class="accordion">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
       <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
       <%=props.getProperty("advancedInformation") %>
     </a>
   </h4>
+
     <div id="advancedInformation" fade="1" style="display: none;">
+
       <h3><%=props.getProperty("aboutAnimal") %></h3>
+
       <fieldset>
+
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_sex") %></label>
           </div>
+
           <div class="col-xs-6 col-lg-8">
             <label class="radio-inline">
               <input type="radio" name="sex" value="male"> <%=props.getProperty("submit_male") %>
@@ -841,10 +890,12 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
         </fieldset>
         <hr>
         <fieldset>
+
   <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("status") %></label>
           </div>
+
           <div class="col-xs-6 col-lg-8">
             <select class="form-control" name="livingStatus" id="livingStatus">
               <option value="alive" selected="selected"><%=props.getProperty("alive") %></option>
