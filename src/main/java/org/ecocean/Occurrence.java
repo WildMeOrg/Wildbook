@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.lang.reflect.Method;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
@@ -1250,10 +1251,29 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         Occurrence occ = new Occurrence();
         occ.setId(Util.generateUUID());
         occ.trySetting(myShepherd, jsonIn.optJSONObject("customFields"));
+        occ.setFromJSONObject("bearing", Double.class, jsonIn);
         occ.setDWCDateLastModified();
         occ.setDateTimeCreated();
         occ.setVersion();
         return occ;
+    }
+
+/*
+    NOTE: this is ugly and uses reflection.  its just to get around the boring setFoo redundancy now.  optimize later!
+*/
+    public boolean setFromJSONObject(String key, Class cls, org.json.JSONObject json) throws IOException {
+        org.ecocean.SystemLog.debug("trying key=" + key + " with json=" + json);
+        if ((key == null) || (json == null) || !json.has(key)) return false;
+        String setterName = "set" + key.substring(0,1).toUpperCase() + key.substring(1);
+        try {
+            Object val = null;
+            if (!json.isNull(key)) val = json.get(key);
+            Method setter = this.getClass().getMethod(setterName, cls);
+            setter.invoke(this, cls.cast(val));
+        } catch (java.lang.NoSuchMethodException | java.lang.IllegalAccessException | java.lang.reflect.InvocationTargetException ex) {
+            throw new IOException("setter woes: " + ex.toString());
+        }
+        return true;
     }
 
     public org.json.JSONObject asApiJSONObject() {
@@ -1284,6 +1304,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         //if expand is null, we bail
         if (expand == null) return obj;
 
+        obj.put("distance", getDistance());
+        obj.put("bearing", getBearing());
+        obj.put("decimalLatitude", getDecimalLatitude());
+        obj.put("decimalLongitude", getDecimalLongitude());
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;
     }
