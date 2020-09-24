@@ -369,6 +369,11 @@ System.out.println("*** trying redirect?");
             System.out.println("Not a multi-part form submission!");
         }
 
+        String projects =  getVal(formValues, "proj-id-dropdown"); //TODO make accommodate multiple-select
+        if(Util.stringExists(projects)){
+          System.out.println("got here and projects is: " + projects);
+        }
+
 
 
         if (formValues.get("social_files_id") != null) {
@@ -585,6 +590,7 @@ System.out.println("about to do enc()");
               }
             }
             enc.setEncounterNumber(encID);
+            if(defaultProject!=null){defaultProj.addEncounter(enc);}
 
 
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
@@ -840,14 +846,14 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       enc.setSatelliteTag(getSatelliteTag(formValues));
       enc.setSex(getVal(formValues, "sex"));
       enc.setLivingStatus(getVal(formValues, "livingStatus"));
-      
+
       // Process patterning code.
       if (CommonConfiguration.showProperty("showPatterningCode", context)) {
         String pc = getVal(formValues, "patterningCode").trim();
         if (CommonConfiguration.getIndexedPropertyValues("patterningCode", context).contains(pc))
           enc.setPatterningCode(pc);
       }
-      
+
       if(formValues.get("scars")!=null){
         enc.setDistinguishingScar(formValues.get("scars").toString());
       }
