@@ -211,6 +211,7 @@
          "whale_pilot+fin_dorsal":"@Orcinus.orca.whale_orca+fin_dorsal",
          "_detect_conf":[
             {
+               "start_detect": "https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/lightnet/",
                "detection_class":"whale_orca+fin_dorsal",
                "model_tag":"orca_v0",
                "viewpoint_model_tag":"orca_v0",
@@ -218,6 +219,11 @@
                "sensitivity":0.49,
                "labeler_algo":"densenet",
                "nms_aware":"ispart"
+            },
+            {
+               "class":"whale_humpback+fin_dorsal",
+               "start_detect":"https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/yolo/",
+               "model_tag":"humpback_dorsal",
             }
          ],
          "_common_name":"killer whale"
