@@ -386,109 +386,12 @@ google.maps.event.addDomListener(window, 'load', initialize);
       accept-charset="UTF-8"
 >
 
-<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />
-<div id="proj-id-dropdown-container"></div>
+
 <div class="dz-message"></div>
 
-<%
-Shepherd myShepherd=new Shepherd(context);
-User user = null;
-user=myShepherd.getUser(request);
-System.out.println("user id is: " + user.getId());
-%>
+
 
 <script>
-$(document).ready( function() {
-	let requestJsonForProjectNamesDropdown = {};
-	requestJsonForProjectNamesDropdown['ownerId'] = '<%= user.getId()%>';
-	console.log("requestJsonForProjectNamesDropdown is: ");
-	console.log(requestJsonForProjectNamesDropdown);
-	// doAjaxForProject(requestJsonForProjectNamesDropdown);
-});
-
-function doAjaxForProject(requestJSON){
-	console.log("doAjaxForProject entered");
-	// $.ajax({
-	// 		url: wildbookGlobals.baseUrl + '../ProjectGet',
-	// 		type: 'POST',
-	// 		data: JSON.stringify(requestJSON),
-	// 		dataType: 'json',
-	// 		contentType: 'application/json',
-	// 		success: function(data) {
-	// 				let projectNameResults = data.projects;
-	// 				let projNameOptions = null;
-	// 				if(projectNameResults){
-	// 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
-	// 				}
-	// 				if(projNameOptions){
-	// 					processNameDropdownBranching(projNameOptions);
-	// 				}else{
-	// 					processNameDropdownBranchingNoProjNameOptions();
-	// 				}
-	// 		},
-	// 		error: function(x,y,z) {
-	// 				console.warn('%o %o %o', x, y, z);
-	// 		}
-	// });
-}
-
-function processNameDropdownBranching(projNameOptions){
-	console.log("processNameDropdownBranching entered");
-	// // let prjIdOptions = projectNameResults.map(entry =>{return entry.researchProjectId});
-	// if ($('#defaultProject').val()==='<%= props.getProperty("indocetDefaultProjName")%>') {
-	// 	console.log("defaultProject is indocet!");
-	// 	let defaultSelection = '<%= props.getProperty("indocetDefaultProjName")%>';
-	// 	populateProjectNameDropdown(projNameOptions, defaultSelection, false);
-	// }
-	// else{ //if default project is not designated as the indocet project name, check for user
-	// 	let userId = '<%= user.getId()%>';
-	// 	if(userId){
-	// 		console.log("userId for checking whether user is logged in is: " + userId);
-	// 		populateProjectNameDropdown(projNameOptions, "", true);
-	// 	}else{
-	// 		populateProjectNameDropdown(projNameOptions, "", false);
-	// 	}
-	// }
-}
-
-function processNameDropdownBranchingNoProjNameOptions(){
-	console.log("processNameDropdownBranchingNoProjNameOptions entered");
-	// //user doesn't have to have access to any projects to default to indocet project
-	// if ($('#defaultProject').val()=='<%= props.getProperty("indocetDefaultProjName")%>') {
-	// 	console.log("defaultProject is indocet!");
-	// 	let defaultSelection = '<%= props.getProperty("indocetDefaultProjName")%>';
-	// 	populateProjectNameDropdown(['<%= props.getProperty("indocetDefaultProjName")%>'], defaultSelection, false);
-	// 	//indocet is marked selected in the dropdown and the dropdown is hidden, but still parsed in EncounterForm
-	// }else{
-	// 	//user has no projects AND not coming from custom Indocet page
-	// 	populateProjectNameDropdown([], "", false);
-	// }
-}
-
-function populateProjectNameDropdown(options, selectedOption, isVisible){
-	console.log("populateProjectNameDropdown entered");
-	// console.log("populateProjectNameDropdown entered");
-	// let projectNameHtml = '';
-	// if(isVisible){
-	// 	projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" >';
-	// }else{
-	// 	projectNameHtml += '<select type="hidden" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" >';
-	// }
-	// if(!selectedOption){
-	// 	projectNameHtml += '<option value="" selected></option>';
-	// }else{
-	// 	projectNameHtml += '<option value=""></option>';
-	// }
-	// for(let i=0; i<options.length; i++){
-	// 	if(options[i] === selectedOption){
-	// 		projectNameHtml += '<option value="'+ options[i] +'" selected>'+ options[i] +'</option>';
-	// 	}else{
-	// 		projectNameHtml += '<option value="'+ options[i] + '">'+ options[i] +'</option>';
-	// 	}
-	// }
-	// $("#proj-id-dropdown-container").empty();
-	// $("#proj-id-dropdown-container").append(projectNameHtml);
-}
 
 
 $('#social_files_iframe').on('load', function(ev) {
