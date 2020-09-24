@@ -3,6 +3,7 @@ package org.ecocean.api;
 import org.ecocean.Util;
 import org.ecocean.User;
 import org.ecocean.Organization;
+import org.ecocean.Shepherd;
 import org.ecocean.customfield.*;
 
 import java.util.Set;
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 import java.lang.reflect.Constructor;
+import java.io.IOException;
 
 public class ApiCustomFields {
     private String id = null;
@@ -267,6 +269,28 @@ public class ApiCustomFields {
             }
         }
         return cust;
+    }
+
+    //this will iterate over multiple custom fields
+    public int trySetting(Shepherd myShepherd, JSONObject all) throws IOException {
+        int ct = 0;
+        if (all == null) return ct;
+        Iterator<String> it = all.keys();
+        while (it.hasNext()) {
+            String id = it.next();
+            trySetting(myShepherd, id, all.get(id));
+            ct++;
+        }
+        return ct;
+    }
+    //this just tries one
+    public void trySetting(Shepherd myShepherd, String id, Object value) throws IOException {
+        CustomFieldDefinition cfd = CustomFieldDefinition.load(myShepherd, id);
+        if (cfd == null) throw new IOException("trySetting() cannot load id=" + id);
+        if (!this.getClass().getName().equals(cfd.getClassName())) throw new IOException("definition id=" + id + " not valid for this class");
+//////////// FIXME how do we decide *flavor* of Value to set here?
+        CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, value);
+        addCustomFieldValue(cfv);
     }
 
 /*
