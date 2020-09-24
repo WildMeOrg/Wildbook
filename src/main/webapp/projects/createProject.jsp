@@ -91,7 +91,7 @@
                       </div>
                     </div>
                     <div class="row" id="organizationAccessRow" hidden>
-                      <select id="organizationAccess" multiple="" name="organizationAccess">
+                      <select id="organizationAccess" multiple="multiple" name="organizationAccess">
                         <option value="" selected></option>>
                       </select>
                     </div>
@@ -102,7 +102,7 @@
                       <span><%=props.getProperty("submit_send") %>  </span><span class="button-icon" aria-hidden="true"></span>
                     </button>
               </form>
-              <h4>To add encounters to this project, use the "<%= projManagementProps.getProperty("projectManagement")%>" tab in encounter search results.</h4>
+              <h4>To add encounters to this project, use the "<%= props.getProperty("projectManagement")%>" tab in encounter search results.</h4>
               <%
             }else{
 
@@ -216,6 +216,12 @@
       let formDataArray = $("#create-project-form").serializeArray();
       let formJson = {};
       formJson["organizationAccess"] = [];
+
+      let selectedOrganizations = $("#organizationAccess").val();
+      if (selectedOrganizations&&selectedOrganizations.length) {
+        formJson["organizationAccess"] = selectedOrganizations;
+      } 
+
       for(i=0; i<formDataArray.length; i++){
         if (Object.values(formDataArray[i])[0] === "projectUserIds"){
           formDataArray[i].value=uuidsOnAccessList;
