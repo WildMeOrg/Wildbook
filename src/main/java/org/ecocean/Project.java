@@ -2,9 +2,6 @@ package org.ecocean;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Arrays;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -284,6 +281,14 @@ public class Project implements java.io.Serializable {
         j.put("researchProjectId", researchProjectId);
         j.put("dateCreatedLong", dateCreatedLong);
         j.put("dateLastModifiedLong", dateLastModifiedLong);
+        JSONArray usersJSONArr = new JSONArray();
+        for (User user : users) {
+            JSONObject userJSON = new JSONObject();
+            userJSON.put("username", user.getUsername());
+            userJSON.put("id", user.getId());
+            usersJSONArr.put(user);
+        }  
+        j.put("users", usersJSONArr);
         JSONArray encArr = new JSONArray();
         if (encounters!=null) {
             for (final Encounter enc : encounters) {
