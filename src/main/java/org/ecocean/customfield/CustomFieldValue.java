@@ -1,6 +1,8 @@
 package org.ecocean.customfield;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import java.io.IOException;
+import org.ecocean.SystemLog;
 
 public abstract class CustomFieldValue implements java.io.Serializable {
     private int id;
@@ -31,6 +33,22 @@ public abstract class CustomFieldValue implements java.io.Serializable {
         return;
     }
 */
+
+    public static CustomFieldValue makeSpecific(CustomFieldDefinition def, Object val) throws IOException {
+        switch (def.getType()) {
+            case "string":
+                return new CustomFieldValueString(def, val);
+            case "integer":
+                return new CustomFieldValueInteger(def, val);
+            case "double":
+                return new CustomFieldValueDouble(def, val);
+            case "date":
+                return new CustomFieldValueDate(def, val);
+            default:
+                SystemLog.warn("CustomFieldValue.makeSpecific() got bad type on " + def.toString());
+                return null;
+        }
+    }
 
     public String toString() {
         return new ToStringBuilder(this)

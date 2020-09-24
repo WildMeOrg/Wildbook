@@ -75,6 +75,14 @@ public class CustomFieldDefinition implements java.io.Serializable {
         return true;  //FIXME
     }
 
+    public static CustomFieldDefinition load(Shepherd myShepherd, String id) {
+        try {
+            return (CustomFieldDefinition)(myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(CustomFieldDefinition.class, id), true));
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
     //this can create a new one and/or modify existing, depending on defn.id
     public static CustomFieldDefinition updateCustomFieldDefinition(Shepherd myShepherd, JSONObject defn) throws CustomFieldException {
         CustomFieldDefinition cfd = fromJSONObject(defn);
