@@ -95,7 +95,7 @@ try {
     int count = 0;
     JSONArray jsonobj=new JSONArray();
     for(User user:users){
-    	jsonobj.put(user.uiJson(request, false));
+    	jsonobj.put(user.uiJson(request, true));
     }
 
 		
@@ -129,7 +129,7 @@ try {
 
 		{
 			key: 'username',
-			label: '<%=props.getProperty("username")%>',
+			label: "<%=props.getProperty("username") %>",
 			value: _colUsername,
 			sortValue: function(o) { return o.username; },
 		},
@@ -145,9 +145,9 @@ try {
 			value: _colEmailAddress
 		},
 		{
-			key: 'affiliation',
-			label: '<%=props.getProperty("affiliation")%>',
-			value: _colAffiliation
+			key: 'organization',
+			label: '<%=props.getProperty("organization")%>',
+			value: _colOrganization
 		},
 		{
 			key: 'lastLogin',
@@ -398,9 +398,15 @@ try {
 		return o.emailAddress;
 	}
 	
-	function _colAffiliation(o) {
-		if (o.affiliation == undefined) return '';
-		return o.affiliation;
+	function _colOrganization(o) {
+		if (o.organizations == undefined) return '';
+		var orgs=JSON.parse("["+o.organizations+"]");
+		var result='';
+		for(var i = 0; i < orgs.length; i++) {
+		    result = result+orgs[i].name+'<br>';
+		    
+		}
+		return result;
 	}
 
 
@@ -511,7 +517,7 @@ try {
 </table>
 </p>
 
-	<h4 class="intro"><a name="editUser" /></a>Create/Edit a User</h4>
+	<h4 class="intro"><a name="editUser" /></a><%=props.getProperty("createEditUser")%></h4>
 	<p>
 	<%
 	String isEditAddition="";
@@ -526,7 +532,7 @@ try {
     String localAffiliation="";
     String localEmail="";
     String localFullName="";
-    String profilePhotoURL="../images/empty_profile.jpg";
+    String profilePhotoURL="../images/user-profile-grey-grey.png";
     String userProject="";
     String userStatement="";
     String userURL="";
@@ -584,7 +590,7 @@ try {
     			<tr>
     					<td style="border: solid 0">
     						<form action="../UserAddProfileImage?context=context0" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
-								<img src="../images/upload_small.gif" align="absmiddle" />&nbsp;Upload photo:<br /> 
+								<img src="../images/upload_small.gif" align="absmiddle" />&nbsp;<%=props.getProperty("uploadPhoto")%><br /> 
     						 <input name="username" type="hidden" value="<%=localUsername%>" id="profileUploadUsernameField" />
 								<input name="file2add" type="file" style="width: 200px"/>
 								<input name="addtlFile" type="submit" id="addtlFile" value="Upload" />
@@ -594,7 +600,7 @@ try {
     				<%
     				if(hasProfilePhoto){
     				%>
-    					<tr><td style="border: solid 0">Delete profile photo:&nbsp;<a href="../UserRemoveProfileImage?username=<%=localUsername%>"><img src="../images/cancel.gif" width="16px" height="16px" align="absmiddle" /></a></td></tr>
+    					<tr><td style="border: solid 0"><%=props.getProperty("deleteProfile")%>&nbsp;<a href="../UserRemoveProfileImage?username=<%=localUsername%>"><img src="../images/cancel.gif" width="16px" height="16px" align="absmiddle" /></a></td></tr>
     			
     				<%
     				}
@@ -604,7 +610,7 @@ try {
     	</td>
     	<form action="../UserCreate?context=context0<%=isEditAddition %>" method="post" id="newUser" accept-charset="UTF-8">	    
     	<td><table width="100%" class="tissueSample">
-			<tr><td colspan="3"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured, listed in commonConfiguration.properties, and matched to the URL-based functions of the Shepherd Project in the Apache Shiro filter in web.xml.</em></td></tr>
+			<tr><td colspan="3"><em><%=props.getProperty("functionalFormDescription")%></em></td></tr>
 			<tr>
     			
         <%
@@ -617,28 +623,28 @@ try {
     		%>
    	 		<input name="uuid" type="hidden" value="<%=uuid %>" id="uuid" />       												
    		
-        <td>Username: <input autocomplete="off" name="username" type="text" size="15" maxlength="90" value="<%=localUsername %>" ></input></td>
+        <td><%=props.getProperty("username")%> <input autocomplete="off" name="username" type="text" size="15" maxlength="90" value="<%=localUsername %>" ></input></td>
         
-        <td>Password: <input name="password" type="password" size="15" maxlength="90" autocomplete="new-password"></input></td>
-        <td>Confirm Password: <input autocomplete="off" name="password2" type="password" size="15" maxlength="90"></input></td>
+        <td><%=props.getProperty("password")%> <input name="password" type="password" size="15" maxlength="90" autocomplete="new-password"></input></td>
+        <td><%=props.getProperty("confirm")%> <input autocomplete="off" name="password2" type="password" size="15" maxlength="90"></input></td>
                 
     	</tr>
 
-      <tr><td colspan="3">Full name: <input autocomplete="off" name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
+      <tr><td colspan="3"><%=props.getProperty("fullname")%> <input autocomplete="off" name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
 
-      <tr><td colspan="2">Email address: <input type="email" autocomplete="off" name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+      <tr><td colspan="2"><%=props.getProperty("emailAddress")%> <input type="email" autocomplete="off" name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
         
-      <tr><td colspan="3">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
+      <tr><td colspan="3"><%=props.getProperty("affiliation")%> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
         
-      <tr><td colspan="3">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
+      <tr><td colspan="3"><%=props.getProperty("researchProject")%> <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
                   
-      <tr><td colspan="3">Project URL: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
+      <tr><td colspan="3"><%=props.getProperty("projectURL")%> <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
  
-			<tr><td colspan="3" valign="top">User Statement (255 char. max): <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
+			<tr><td colspan="3" valign="top"><%=props.getProperty("researchStatement")%> <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
             
       <tr>
 				<td colspan="3">
-					<input class="btn btn-sm btn-block" name="Create" type="submit" id="Create" value="Create" />
+					<input class="btn btn-sm btn-block" name="Create" type="submit" id="Create" value="<%=props.getProperty("save")%>" />
 				</td>
 			</tr>
     </table>
@@ -653,7 +659,7 @@ try {
     	%>
     	<tr>
     		<td style="border-style: none;">
-    			Roles for <%=ContextConfiguration.getNameForContext(("context"+d)) %> (multi-select) 
+    			<%=props.getProperty("rolesFor")%> <%=ContextConfiguration.getNameForContext(("context"+d)) %> (multi-select) 
     		</td>
     	</tr>
     	<tr>
@@ -677,7 +683,7 @@ try {
 	    			</select>
     		</td>
     	</tr>
-    	<tr><td style="border-style: none;">Organization Membership (multi-select) </td></tr>
+    	<tr><td style="border-style: none;"><%=props.getProperty("organizationMembership")%></td></tr>
     	<tr>
     		<td style="border-style: none;">
     	
@@ -725,14 +731,29 @@ try {
     	
     </p>
     
-    <%if((request.getParameter("isEdit")!=null)&&(request.isUserInRole("admin"))){%>
-    <h2>Do you want to delete this user?</h2>
+    <%
+
+    if(		request.getParameter("isEdit")!=null
+    		&& request.getParameter("uuid") != null
+    		&& myShepherd.getUserByUUID(request.getParameter("uuid"))!=null
+    	    &&(request.isUserInRole("orgAdmin")) 
+    	    && request.getUserPrincipal().getName()!=null
+    	    && myShepherd.getUsername(request)!=null
+    	    && myShepherd.getUser(myShepherd.getUsername(request))!=null
+    	    //to delete a user either be admin or orgAdmin in at least one of the same orgs
+    	    && ( 
+    	              request.isUserInRole("admin") 
+    	              || myShepherd.getAllCommonOrganizationsForTwoUsers(myShepherd.getUserByUUID(request.getParameter("uuid")), myShepherd.getUser(myShepherd.getUsername(request))).size()>0
+    	    ) 
+    ){
+    %>
+    <h2><%=props.getProperty("deleteUserQuestion")%></h2>
     <table width="100%">
       <tr>
     		<td height="30" class="para" colspan="2">
-      		<form onsubmit="return confirm('Are you sure you want to delete this user?');" name="deleteUser" class="editFormMeta" method="post" action="../UserDelete?context=context0" >
+      		<form onsubmit="return confirm('<%=props.getProperty("sureDelete")%>');" name="deleteUser" class="editFormMeta" method="post" action="../UserDelete?context=context0" >
 	          <input name="uuid" type="hidden" value="<%=uuid%>" />
-	          <input align="absmiddle" name="approve" type="submit" class="btn btn-sm btn-block deleteUserBtn" id="deleteUserButton" style="background-color: red;" value="Delete User" />
+	          <input align="absmiddle" name="approve" type="submit" class="btn btn-sm btn-block deleteUserBtn" id="deleteUserButton" style="background-color: red;" value="<%=props.getProperty("deleteUser")%>" />
         	</form> 	
 	      </td>
 	    </tr>
@@ -758,8 +779,8 @@ if((CommonConfiguration.getProperty("showUserAgreement",context)!=null)&&(Common
   <table class="tissueSample" style="border: 1px solid black;" width="100%" border="1">
     <tr>
       <td>
-        <p><font size="+1">Reset User Agreement Acceptance for All Users</font></p>
-        <p>This command resets all User accounts such that each user must reaccept the User Agreement upon the next login.</p>
+        <p><font size="+1"><%=props.getProperty("resetTitle")%></font></p>
+        <p><%=props.getProperty("resetText")%></p>
 
         <form name="UserResetAcceptedUserAgreement" method="post" action="../UserResetAcceptedUserAgreement?context=context0">
 

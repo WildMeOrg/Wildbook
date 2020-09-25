@@ -305,6 +305,16 @@
 				
 				/EncounterSetString = authc
 
+				/DeleteImportTask = authc, roles[researcher]
+				/imports.jsp = authc
+				/ScheduledIndividualMergeUpdate = authc, roles[researcher]
+				/UserGetNotifications = authc
+				/ImportTaskDetection = authc, roles[admin]
+				/RemoveDynamicProperty = authc, roles[researcher]
+				/OccurrenceSetMetadataField = authc, roles[researcher]
+				/UserGetSimpleJSON = authc
+				/encounters/manualAnnotation.jsp = authc, roles[researcher]
+
             </param-value>
         </init-param>
     </filter>
@@ -2442,5 +2452,73 @@
     <url-pattern>/EncounterSetString</url-pattern>
   </servlet-mapping>
   
+    <servlet>
+    <servlet-name>DeleteImportTask</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.DeleteImportTask</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>DeleteImportTask</servlet-name>
+    <url-pattern>/DeleteImportTask</url-pattern>
+  </servlet-mapping>
+  
+   <servlet>
+    <servlet-name>ScheduledIndividualMergeUpdate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ScheduledIndividualMergeUpdate</servlet-class>
+  </servlet>
+  
+      <servlet-mapping>
+    <servlet-name>ScheduledIndividualMergeUpdate</servlet-name>
+    <url-pattern>/ScheduledIndividualMergeUpdate</url-pattern>
+  </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>UserGetNotifications</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserGetNotifications</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserGetNotifications</servlet-name>
+    <url-pattern>/UserGetNotifications</url-pattern>
+  </servlet-mapping>
+  
+            <servlet>
+    <servlet-name>ImportTaskDetection</servlet-name>
+    <servlet-class>org.ecocean.servlet.ImportTaskDetection</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>ImportTaskDetection</servlet-name>
+    <url-pattern>/ImportTaskDetection</url-pattern>
+  </servlet-mapping>
+  
+    <servlet>
+    <servlet-name>RemoveDynamicProperty</servlet-name>
+    <servlet-class>org.ecocean.servlet.RemoveDynamicProperty</servlet-class>
+  </servlet>
+  
+    <servlet-mapping>
+         <servlet-name>RemoveDynamicProperty</servlet-name>
+         <url-pattern>/RemoveDynamicProperty</url-pattern>
+      </servlet-mapping>
+	  
+	    <servlet>
+    <servlet-name>OccurrenceSetMetadataField</servlet-name>
+    <servlet-class>org.ecocean.servlet.OccurrenceSetMetadataField</servlet-class>
+  </servlet>
+  
+        <servlet-mapping>
+         <servlet-name>OccurrenceSetMetadataField</servlet-name>
+         <url-pattern>/OccurrenceSetMetadataField</url-pattern>
+      </servlet-mapping>
+	  
+	    <servlet>
+    <servlet-name>UserGetSimpleJSON</servlet-name>
+    <servlet-class>org.ecocean.servlet.UserGetSimpleJSON</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>UserGetSimpleJSON</servlet-name>
+    <url-pattern>/UserGetSimpleJSON</url-pattern>
+  </servlet-mapping>
 
 </web-app>

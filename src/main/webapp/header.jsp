@@ -27,9 +27,10 @@
              java.util.ArrayList,
              java.util.List,
              java.util.Properties,
-             org.apache.commons.lang3.text.WordUtils,
+             org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
-             org.ecocean.ContextConfiguration
+             org.ecocean.ContextConfiguration,
+             org.ecocean.Util
               "
 %>
 
@@ -41,13 +42,35 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
+
+String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
+if (pageTitle == null) {
+    pageTitle = CommonConfiguration.getHTMLTitle(context);
+} else {
+    pageTitle = CommonConfiguration.getHTMLTitle(context) + " | " + pageTitle;
+}
+
+String username = null;
+User user = null;
+String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+// we use this arg bc we can only log out *after* including the header on logout.jsp. this way we can still show the logged-out view in the header
+boolean loggingOut = Util.requestHasVal(request, "loggedOut");
+
+boolean indocetUser = false;
+String organization = request.getParameter("organization");
+if (organization!=null && organization.toLowerCase().equals("indocet"))  {
+  indocetUser = true;
+}
 myShepherd.beginDBTransaction();
 if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 CommonConfiguration.ensureServerInfo(myShepherd, request);
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 
-String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -118,6 +141,8 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/notifications.js"></script>
+
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
 
@@ -175,11 +200,11 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 	                          try{
 	                        	  myShepherd.beginDBTransaction();
-		                    	  String username = request.getUserPrincipal().toString();
-		                    	  User user = myShepherd.getUser(username);
+		                    	  username = request.getUserPrincipal().toString();
+		                    	  user = myShepherd.getUser(username);
 		                    	  String fullname=username;
 		                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
-		                    	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+		                    	  profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
 		                          if(user.getUserImage()!=null){
 		                          	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
 		                          }
@@ -457,13 +482,15 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       </li>
 
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="search-dropdown"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                              <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
-                             
-                              <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp"><%=props.getProperty("locationSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" id="encounter-search-link"><%=props.getProperty("encounterSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/individualSearch.jsp" id="individual-search-link"><%=props.getProperty("individualSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp" id="occurrence-search-link"><%=props.getProperty("occurrenceSearch")%></a></li>
+                              <!--
+                              <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp" id="survey-search-link"><%=props.getProperty("surveySearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp" id="search-comparison-link"><%=props.getProperty("locationSearch")%></a></li>
+                           	  -->
                            </ul>
                       </li>
 
@@ -516,11 +543,51 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
-                                <% } 
-                            } //end if admin %>
-                        </ul>
-                      </li>
-                    </ul>
+                                <% } %>
+                                <li><a target="_blank" href="http://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
+                                <% 
+
+                            } //end if admin
+                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) { %>
+                            	<li class="divider"></li>
+                            	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                            	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                           	<%
+                           
+                           
+                          	}
+                            %>
+                            <li class="dropdown">
+                              <ul class="dropdown-menu" role="menu">
+                              <%
+                              if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+                              %>
+                                <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
+                              <%
+                              }
+                              %>
+                                <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+
+
+
+                              </ul>
+                            </li>
+
+
+
+                            <%
+                            if(CommonConfiguration.useSpotPatternRecognition(context)){
+                            %>
+                            	<li class="divider"></li>
+                            	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
+                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                            	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                            <%
+                            }
+                            %>
+                          </ul>
+                        </li>
+                      </ul>
 
 
 

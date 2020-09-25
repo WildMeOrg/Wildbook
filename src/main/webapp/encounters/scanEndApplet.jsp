@@ -348,10 +348,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <p>
 
-<h2>Modified Groth Scan Results <a
-  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
-  target="_blank"><img src="../images/information_icon_svg.gif"
-                       alt="Help" border="0" align="absmiddle"></a></h2>
+<h2>Modified Groth Scan Results</h2>
 </p>
 <p>The following encounter(s) received the highest
   match values against a <%=side%>-side scan of encounter <a
@@ -419,13 +416,13 @@ $(document).ready(function() {
 <div id="spot-display">
     <div class="match-side" id="match-side-0">
         <div class="match-side-img-wrapper">
-            <img onLoad="return matchImgDone(this, 1)" />
+            <img id="match-image-left" onLoad="return matchImgDone(this, 1)" />
         </div>
         <div class="match-side-info"></div>
     </div>
     <div class="match-side" id="match-side-1">
         <div class="match-side-img-wrapper">
-            <img onLoad="return matchImgDone(this, 0)" />
+            <img id="match-image-right" onLoad="return matchImgDone(this, 0)" />
         </div>
         <div class="match-side-info"></div>
     </div>
@@ -433,10 +430,67 @@ $(document).ready(function() {
         <div id="match-info"></div>
         <div style="position: relative; display: inline-block; width: 20%; height: 3em;">
             <input id="match-button-prev" type="button" value="previous" onClick="return spotDisplayButton(-1)" />
-            <input id="match-button-next" type="button" value="next" onClick="return spotDisplayButton(1)" />
+            <input id="match-button-next" type="button" value="next" onClick="return  1)" />
         </div>
     </div>
 </div>
+
+<script>
+// get image and image container widths, compare them and transform to fit
+
+let leftImage = document.getElementById('match-image-left');
+$(leftImage).load(function() {
+  fitLeftImage();
+});
+
+function fitLeftImage() {
+  let leftImgContainer = document.getElementById('match-side-0');
+  let lRect = leftImage.getBoundingClientRect();
+  console.log("current left image width: "+lRect.width);
+  console.log("current left container width: "+leftImgContainer.clientWidth); 
+  if (lRect.width>leftImgContainer.clientWidth) {
+    console.log("image WIDTH is out of bounds!");
+    let newWidthScale = (leftImgContainer.clientWidth/lRect.width);
+    console.log("new scale: "+newWidthScale);
+    $(leftImgContainer).find('.match-side-img-wrapper').css("transform-origin", "left bottom");
+    $(leftImgContainer).find('.match-side-img-wrapper').css("transform", "scale("+newWidthScale+")");
+
+  }
+  if (lRect.height>leftImgContainer.clientHeight) {
+    console.log("image HEIGHT is out of bounds!");
+    let newHeightScale = (leftImgContainer.clientHeight/lRect.height);
+    $(leftImgContainer).find('.match-side-img-wrapper').css("transform", "scale("+newHeightScale+")");
+    console.log("new scale: "+newHeightScale);
+  }
+};
+
+let rightImage = document.getElementById('match-image-right');
+$(rightImage).load(function() {
+  fitRightImage();
+});
+
+function fitRightImage() {
+  let rRect = rightImage.getBoundingClientRect();
+  let rightImgContainer = document.getElementById('match-side-1');
+  console.log("current right image width: "+rRect.width);
+  console.log("current right container width: "+rightImgContainer.clientWidth);
+  if (rRect.width>rightImgContainer.clientWidth) {
+    console.log("image WIDTH is out of bounds!");
+    let newWidthScale = (rightImgContainer.clientWidth/rRect.width);
+    console.log("new scale: "+newWidthScale);
+    $(rightImgContainer).find('.match-side-img-wrapper').css("transform-origin", "left bottom");
+    $(rightImgContainer).find('.match-side-img-wrapper').css("transform", "scale("+newWidthScale+")");
+
+  }
+  if (rRect.height>rightImgContainer.clientHeight) {
+    console.log("image HEIGHT is out of bounds!");
+    let newHeightScale = (rightImgContainer.clientHeight/rRect.height);
+    $(leftImgContainer).find('.match-side-img-wrapper').css("transform", "scale("+newHeightScale+")");
+    console.log("new scale: "+newHeightScale);
+  }
+};
+
+</script>
 
 <div>
     <div id="mode-message"></div>

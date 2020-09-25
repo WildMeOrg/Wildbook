@@ -15,13 +15,22 @@
 	<classpathentry kind="var" path="M2_REPO/com/rabbitmq/amqp-client/5.1.2/amqp-client-5.1.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.7.12/slf4j-api-1.7.12.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/lz4/lz4-java/1.4.0/lz4-java-1.4.0.jar"/>
-	<classpathentry kind="var" path="M2_REPO/com/healthmarketscience/jackcess/jackcess/2.1.7/jackcess-2.1.7.jar"/>
-	<classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"/>
+	<classpathentry kind="var" path="M2_REPO/com/healthmarketscience/jackcess/jackcess/3.5.0/jackcess-3.5.0.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-lang3/3.8.1/commons-lang3-3.8.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/javaee-api/7.0/javaee-api-7.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/sun/mail/javax.mail/1.5.0/javax.mail-1.5.0.jar"/>
-	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-core/1.2.1/shiro-core-1.2.1.jar"/>
-	<classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.8.3/commons-beanutils-1.8.3.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-core/1.4.2/shiro-core-1.4.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-lang/1.4.2/shiro-lang-1.4.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-cache/1.4.2/shiro-cache-1.4.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-crypto-hash/1.4.2/shiro-crypto-hash-1.4.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-crypto-core/1.4.2/shiro-crypto-core-1.4.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-crypto-cipher/1.4.2/shiro-crypto-cipher-1.4.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-config-core/1.4.2/shiro-config-core-1.4.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-config-ogdl/1.4.2/shiro-config-ogdl-1.4.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-event/1.4.2/shiro-event-1.4.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/commons-beanutils/commons-beanutils/1.9.4/commons-beanutils-1.9.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/shiro/shiro-web/1.2.1/shiro-web-1.2.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/pac4j/pac4j-oauth/1.9.7/pac4j-oauth-1.9.7.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/pac4j/pac4j-core/1.9.7/pac4j-core-1.9.7.jar"/>
@@ -32,7 +41,6 @@
 	<classpathentry kind="var" path="M2_REPO/com/fasterxml/jackson/core/jackson-annotations/2.6.0/jackson-annotations-2.6.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/fasterxml/jackson/core/jackson-core/2.6.5/jackson-core-2.6.5.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/scribe/scribe/1.3.7/scribe-1.3.7.jar"/>
-	<classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-lang3/3.8.1/commons-lang3-3.8.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/amazonaws/aws-java-sdk/1.10.34/aws-java-sdk-1.10.34.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/amazonaws/aws-java-sdk-support/1.10.34/aws-java-sdk-support-1.10.34.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/amazonaws/aws-java-sdk-core/1.10.34/aws-java-sdk-core-1.10.34.jar"/>
@@ -102,9 +110,8 @@
 	<classpathentry kind="var" path="M2_REPO/org/postgresql/postgresql/42.1.4/postgresql-42.1.4.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-math/2.2/commons-math-2.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-collections4/4.1/commons-collections4-4.1.jar"/>
-	<classpathentry kind="var" path="M2_REPO/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-math3/3.2/commons-math3-3.2.jar"/>
-	<classpathentry kind="var" path="M2_REPO/commons-fileupload/commons-fileupload/1.3.1/commons-fileupload-1.3.1.jar"/>
+	<classpathentry kind="var" path="M2_REPO/commons-fileupload/commons-fileupload/1.3.3/commons-fileupload-1.3.3.jar"/>
 	<classpathentry kind="var" path="M2_REPO/commons-io/commons-io/2.2/commons-io-2.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/net/sourceforge/jexcelapi/jxl/2.6/jxl-2.6.jar"/>
 	<classpathentry kind="var" path="M2_REPO/servlets/com/cos/05Nov2002/cos-05Nov2002.jar"/>
@@ -141,6 +148,7 @@
 	<classpathentry kind="var" path="M2_REPO/junit/junit/4.11/junit-4.11.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
 	<classpathentry kind="var" path="M2_REPO/regexp/regexp/1.3/regexp-1.3.jar"/>
+	<classpathentry kind="var" path="M2_REPO/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/slf4j/jcl-over-slf4j/1.6.6/jcl-over-slf4j-1.6.6.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/poi/poi/3.11/poi-3.11.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/poi/poi-ooxml/3.11/poi-ooxml-3.11.jar"/>
@@ -179,8 +187,8 @@
 	<classpathentry kind="var" path="M2_REPO/com/google/zxing/core/2.2/core-2.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/net/glxn/qrgen/1.3/qrgen-1.3.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/google/zxing/javase/2.0/javase-2.0.jar"/>
-	<classpathentry kind="var" path="M2_REPO/com/mchange/c3p0/0.9.5.2/c3p0-0.9.5.2.jar"/>
-	<classpathentry kind="var" path="M2_REPO/com/mchange/mchange-commons-java/0.2.11/mchange-commons-java-0.2.11.jar"/>
+	<classpathentry kind="var" path="M2_REPO/com/mchange/c3p0/0.9.5.4/c3p0-0.9.5.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/com/mchange/mchange-commons-java/0.2.15/mchange-commons-java-0.2.15.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/google/apis/google-api-services-youtube/v3-rev191-1.23.0/google-api-services-youtube-v3-rev191-1.23.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/google/api-client/google-api-client/1.23.0/google-api-client-1.23.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/google/oauth-client/google-oauth-client/1.23.0/google-oauth-client-1.23.0.jar"/>
@@ -191,8 +199,6 @@
 	<classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-dbcp2/2.5.0/commons-dbcp2-2.5.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-pool2/2.6.0/commons-pool2-2.6.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/tuckey/urlrewritefilter/4.0.3/urlrewritefilter-4.0.3.jar"/>
-	<classpathentry kind="var" path="M2_REPO/org/springframework/spring-core/3.1.1.RELEASE/spring-core-3.1.1.RELEASE.jar"/>
-	<classpathentry kind="var" path="M2_REPO/org/springframework/spring-asm/3.1.1.RELEASE/spring-asm-3.1.1.RELEASE.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/stripe/stripe-java/3.1.0/stripe-java-3.1.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/opencsv/opencsv/4.0/opencsv-4.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/google/oauth-client/google-oauth-client-jetty/1.23.0/google-oauth-client-jetty-1.23.0.jar"/>

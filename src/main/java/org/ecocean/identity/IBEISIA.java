@@ -1687,21 +1687,23 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
 System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with no Encounter!]");
             return ann;
         }
-        Encounter enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
-        Occurrence occ = asset.getOccurrence();
-        if (occ != null) {
-            enc.setOccurrenceID(occ.getOccurrenceID());
-            occ.addEncounter(enc);
-        }
-        enc.detectedAnnotation(myShepherd, ann);  //this is a stub presently, so meh?
-        myShepherd.getPM().makePersistent(ann);
-        if (ann.getFeatures() != null) {
-            for (Feature ft : ann.getFeatures()) {
-                myShepherd.getPM().makePersistent(ft);
+
+        Encounter enc = null;
+        try {
+            enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
+            myShepherd.getPM().makePersistent(enc);
+
+            enc.detectedAnnotation(myShepherd, ann);  //this is a stub presently, so meh?
+            myShepherd.getPM().makePersistent(ann);
+            if (ann.getFeatures() != null) {
+                for (Feature ft : ann.getFeatures()) {
+                    myShepherd.getPM().makePersistent(ft);
+                }
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        myShepherd.getPM().makePersistent(enc);
-        if (occ != null) myShepherd.getPM().makePersistent(occ);
 System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
         //this is to tell IA to update species on the newly-created annot on its side
         String taxonomyString = enc.getTaxonomyString();
@@ -2691,7 +2693,7 @@ System.out.println(anns);
             if (staying.size() == 0) {  //we dont need a new encounter; we just modify the indiv on here
                 if (!encs.contains(enc)) encs.add(enc);
             } else {  //we need to split up the encounter, with a newer one that gets the new indiv id
-                Encounter newEnc = enc.cloneWithoutAnnotations();
+                Encounter newEnc = enc.cloneWithoutAnnotations(myShepherd);
                 System.out.println("INFO: assignFromIA() splitting " + enc + " - staying=" + staying + "; to " + newEnc + " going=" + going);
                 enc.setAnnotations(staying);
                 newEnc.setAnnotations(going);
@@ -4094,6 +4096,15 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         }
         return false;
     }
+    
+    public static boolean validIAClassForIdentification(String iaClassName, String context) {
+      ArrayList<String> idClasses = getAllIdentificationClasses(context);
+      if (iaClassName==null&&(idClasses.isEmpty()||idClasses==null)) return true;
+      if (iaClassName!=null&&(idClasses.contains(iaClassName)||idClasses.isEmpty()||idClasses==null)) {
+          return true;
+      }
+      return false;
+  }
 
 
     public static boolean validForIdentification(Annotation ann)  {

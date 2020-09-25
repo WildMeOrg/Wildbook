@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, 
-         org.ecocean.servlet.ServletUtilities, java.io.File, 
-         java.io.FileOutputStream, java.io.OutputStreamWriter, 
-         java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, 
-         org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, 
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
+         org.ecocean.servlet.ServletUtilities, java.io.File,
+         java.io.FileOutputStream, java.io.OutputStreamWriter,
+         java.util.*, org.datanucleus.api.rest.orgjson.JSONArray,
+         org.json.JSONObject, org.datanucleus.api.rest.RESTUtils,
          org.datanucleus.api.jdo.JDOPersistenceManager,
          java.nio.charset.StandardCharsets,
          java.net.URLEncoder " %>
@@ -59,167 +59,6 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-
-<style type="text/css">
-
-#results-table thead tr {
-	height: 4em;
-}
-
-.ia-ann-summary {
-	margin: 0 2px;
-}
-
-.ia-success-match, .ia-success-miss, .ia-pending, .ia-error, .ia-unknown {
-	padding: 0 3px;
-	color: #FFF;
-	font-weight: bold;
-}
-
-.ptcol-ia .ia-success-match {
-	background-color: #1A0;
-}
-.ptcol-ia .ia-success-miss {
-	background-color: #222;
-}
-.ptcol-ia .ia-pending {
-	background-color: #42F;
-}
-.ptcol-ia .ia-error {
-	background-color: #D20;
-}
-.ptcol-ia .ia-unknown {
-	background-color: #888;
-}
-
-
-.ptcol-individualID {
-	position: relative;
-}
-.ptcol-individualID a.pt-vm-button {
-	position: absolute;
-	display: none;
-	left: 5px;
-	top: 5px;
-	border: solid 1px black;
-	border-radius: 3px;
-	background-color: #DDD;
-	padding: 0 3px;
-	color: black;
-	text-decoration: none;
-	cursor: pointer;
-}
-
-.ptcol-otherCatalogNumbers {
-  width: 75px !important;
-}
-
-tr.clickable:hover td {
-	background-color: #EFA !important;
-}
-
-tr:hover .ptcol-individualID span.unassigned {
-	display:hidden;
-}
-
-tr:hover .ptcol-individualID a.pt-vm-button {
-	display: inline-block;
-}
-a.pt-vm-button:hover {
-	background-color: #FF5;
-}
-
-.ptcol-thumb {
-	width: 75px !important;
-}
-
-td.tdw {
-	position: relative;
-}
-
-td.tdw div {
-	height: 16px;
-	overflow-y: hidden;
-}
-
-
-td.tdw:hover div {
-	position: absolute;
-	z-index: 20;
-	background-color: #EFA;
-	outline: 3px solid #EFA;
-	min-height: 16px;
-	height: auto;
-	overflow-y: auto;
-}
-
-
-  #tabmenu {
-    color: #000;
-    border-bottom: 1px solid #CDCDCD;
-    margin: 12px 0px 0px 0px;
-    padding: 0px;
-    z-index: 1;
-    padding-left: 10px
-  }
-
-  #tabmenu li {
-    display: inline;
-    overflow: hidden;
-    list-style-type: none;
-  }
-
-  #tabmenu a, a.active {
-    color: #000;
-    background: #E6EEEE;
-     
-    border: 1px solid #CDCDCD;
-    padding: 2px 5px 0px 5px;
-    margin: 0;
-    text-decoration: none;
-    border-bottom: 0px solid #FFFFFF;
-  }
-
-  #tabmenu a.active {
-    background: #8DBDD8;
-    color: #000000;
-    border-bottom: 1px solid #8DBDD8;
-  }
-
-  #tabmenu a:hover {
-    color: #000;
-    background: #8DBDD8;
-  }
-
-  #tabmenu a:visited {
-
-  }
-
-  #tabmenu a.active:hover {
-    color: #000;
-    border-bottom: 1px solid #8DBDD8;
-  }
-
-
-	.collab-private {
-		background-color: #FDD;
-	}
-
-	.collab-private td {
-		background-color: transparent !important;
-	}
-
-	.collab-private .collab-icon {
-		position: absolute;
-		left: -15px;
-		z-index: -1;
-		width: 13px;
-		height: 13px;
-		background: url(../images/lock-icon-tiny.png) no-repeat;
-	}
-
-</style>
-
 <jsp:include page="../header.jsp" flush="true"/>
 
 <script src="../javascript/underscore-min.js"></script>
@@ -240,7 +79,7 @@ td.tdw:hover div {
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
 
-<% 
+<%
 
 String queryString="";
 if(request.getQueryString()!=null){queryString=request.getQueryString();}
@@ -292,7 +131,7 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
     <strong><%=encprops.getProperty("markedIndividual")%>
     <strong><%=encprops.getProperty("number")%>
     if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
-    	
+
 	    <strong><%=encprops.getProperty("taxonomy")%>
 	    <strong><%=encprops.getProperty("submitterName")%>
 	    <strong><%=encprops.getProperty("date")%>
@@ -721,7 +560,7 @@ console.info(percent);
 
 // a functor!
 function _notUndefined(fieldName) {
-  function _helperFunc(o) {	
+  function _helperFunc(o) {
     if (!o.get(fieldName)) return '';
     return o.get(fieldName);
   }
@@ -729,7 +568,7 @@ function _notUndefined(fieldName) {
 }
 // non-functor version!
 function _notUndefinedValue(obj, fieldName) {
-  function _helperFunc(o) {	
+  function _helperFunc(o) {
     if (!o.get(fieldName)) return '';
     return o.get(fieldName);
   }

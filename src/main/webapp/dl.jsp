@@ -37,7 +37,7 @@ if (!Util.booleanNotFalse(CommonConfiguration.getProperty("encounterGalleryDownl
     return;
 }
 
-Shepherd myShepherd = new Shepherd(context);
+
 
 String ddir = CommonConfiguration.getDataDirectoryName(context);
 
@@ -51,11 +51,15 @@ if (id < 1) {
     return;
 }
 
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("dl.jsp");
+myShepherd.beginDBTransaction();
 MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
 if (ma == null) {
     response.setContentType("text/html");
     response.setStatus(404);
     out.println("<h1>404 Not found</h1>");
+    myShepherd.rollbackAndClose();
     return;
 }
 
@@ -66,6 +70,7 @@ if (ma == null) {
     response.setContentType("text/html");
     response.setStatus(404);
     out.println("<h1>404 Not found</h1>");
+    myShepherd.rollbackAndClose();
     return;
 }
 
@@ -75,6 +80,7 @@ if ((masters == null) || (masters.size() < 1)) {
     response.setContentType("text/html");
     response.setStatus(404);
     out.println("<h1>404 Not found</h1>");
+    myShepherd.rollbackAndClose();
     return;
 }
 
@@ -87,6 +93,7 @@ if (path == null) {
     response.setContentType("text/html");
     response.setStatus(404);
     out.println("<h1>404 Not found</h1>");
+    myShepherd.rollbackAndClose();
     return;
 }
 

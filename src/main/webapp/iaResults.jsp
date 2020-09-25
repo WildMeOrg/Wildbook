@@ -307,6 +307,9 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 
 <jsp:include page="header.jsp" flush="true" />
 
+<script src="javascript/openseadragon/openseadragon.min.js"></script>
+
+
 <div id="encid" style="">
 
 <!-- overwrites ia.IBEIS.js for testing -->
@@ -357,11 +360,18 @@ h4.intro.accordion .rotate-chevron.down {
 </style>
 
 <script>
+	
+	
 	animatedcollapse.addDiv('instructions', 'fade=1');
 	animatedcollapse.init();
 	$("h4.accordion a").click(function() {
 		$(this).children(".rotate-chevron").toggleClass("down");
 	});
+	
+	//Map of the OpenSeadragon viewers
+	var viewers = new Map();
+	var features=new Map();
+	
 </script>
 
 
@@ -478,6 +488,10 @@ h4.intro.accordion .rotate-chevron.down {
 
 
 <style>
+
+.annot-summary-phantom {
+	display: none;
+}
 
 .featurebox {
     position: absolute;
@@ -927,7 +941,22 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
 			// ----- END Hotspotter IA Illustration-----
 		}
-		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
+		$('.annot-summary').on('mousemove', function(ev) { 
+			console.log('mouseover2 with num viewers: '+viewers.size);
+			annotClick(ev); 
+			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
+			var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
+			//tell seadragon to pan to the annotation
+			if(viewers.has(taskId+"+"+m_acmId )){
+				console.log("Found viewer: "+taskId+"+"+m_acmId );
+				var viewer=viewers.get(taskId+"+"+m_acmId );
+				var eventArgs={
+					acmId: m_acmId,
+					taskId: taskId
+				};
+				viewer.raiseEvent("switchAnnots", eventArgs);
+			}
+		});
 		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
 
 		// Add disclaimers and other alg-specific info
@@ -943,28 +972,40 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 function displayAnnot(taskId, acmId, num, score, illustrationUrl) {
 console.info('%d ===> %s', num, acmId);
 	var h = '<div data-acmid="' + acmId + '" class="annot-summary annot-summary-' + acmId + '">';
-	h += '<div class="annot-info"><span class="annot-info-num">' + (num + 1) + '</span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
+	h += '<div class="annot-info"><span class="annot-info-num"></span> <b>' + score.toString().substring(0,6) + '</b></div></div>';
 	var perCol = Math.ceil(RESMAX / 3);
 	if (num >= 0) $('#task-' + taskId + ' .task-summary .col' + Math.floor(num / perCol)).append(h);
 
 
 	//now the image guts
-	h = '<div title="acmId=' + acmId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
+	h = '<div id="'+taskId+'+'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
-	$('#task-' + taskId).append(h);
+	
+	
+	var imgs = $('#task-' + taskId + ' .bonus-wrapper');
+    if (!imgs.length) {
+            imgs = $('<div style="height: 400px;" class="bonus-wrapper" />');
+            imgs.appendTo('#task-' + taskId)
+     }
+     imgs.append(h);
+	
+	//$('#task-' + taskId).append(h);
+	
+	
 	$.ajax({
 		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl); }
+		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl, acmId); }
 	});
 }
 
-function displayAnnotDetails(taskId, res, num, illustrationUrl) {
+function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 	var isQueryAnnot = (num < 0);
 	if (!res || !res.responseJSON || !res.responseJSON.success || res.responseJSON.error || !res.responseJSON.annotations || !tasks[taskId] || !tasks[taskId].annotationIds) {
-		console.warn('error on (task %s) res = %o', taskId, res);
-		return;
+		console.warn('error on (task %s, acmId=%s) res = %o', taskId, acmIdPassed, res);
+                $('#task-' + taskId + ' .annot-summary-' + acmIdPassed).addClass('annot-summary-phantom');
+                return;
 	}
         /*
             we may have gotten more than one annot back from the acmId, so we have to account for them all.  currently we handle
@@ -995,7 +1036,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
                 otherAnnots.push(res.responseJSON.annotations[i]);
             } else {
                 mainAsset = res.responseJSON.annotations[i].asset;
-		$('#initial-waiter').remove();
+				$('#initial-waiter').remove();
             }
         }
         if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
@@ -1004,11 +1045,100 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
 //console.info('illustrationUrl '+illustrationUrl);
             var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
-                var img = $('<img src="' + mainAsset.url + '" />');
+            	//console.log(mainAsset.url);
+                
+            	var img = $('<img src="' + mainAsset.url + '" />');
+                //var imgLink=$('<a target="_blank" href="' + mainAsset.url + '" />');
+                //imgLink.append(img);
+            	
+                ft.metadata = mainAsset.metadata;
                 img.on('load', function(ev) { imageLoaded(ev.target, ft); });
-                $('#task-' + taskId + ' .annot-' + acmId).append(img);
+                //$('#task-' + taskId + ' .annot-' + acmId).append(imgLink);
+                
+
+     
+                
+              		var viewer=OpenSeadragon({
+                    	id: taskId+"+"+acmId,
+                        tileSources: {
+                            type: 'image',
+                            url:  mainAsset.url,
+                            buildPyramid: false,
+                        },
+                        showHomeControl: false,
+                    	prefixUrl: 'javascript/openseadragon/images/',
+                    	navigationControlAnchor: OpenSeadragon.ControlAnchor.TOP_RIGHT,
+                    	visibilityRatio: 1.0,
+                        constrainDuringPan: true,
+                        animationTime: 0,
+
+                	});
+                	
+              		//viewer.world.setAutoRefigureSizes(true);
+              		
+                	viewer.addHandler('open', function() {
+                		var ft = features.get(viewer.id.split('+')[1]);
+                		//console.log(ft);
+                		var marginFactor=1;
+                		var width=ft.parameters.width;
+                	   	var height=ft.parameters.height;
+                	   	
+                	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
+                        if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
+                        var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
+                	   	viewer.viewport.fitBounds(rec);
+                        var elt = document.createElement("div");
+                        elt.id = "overlay-"+acmId+"-"+viewer.id;
+                        elt.className = "seadragon-highlight";
+                       
+                        
+                        viewer.addOverlay({
+                            element: elt,
+                            checkResize: true,
+                            location: viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*scale, ft.parameters.y*scale, ft.parameters.width*scale, ft.parameters.height*scale)
+                        });
+                	
+                	});
+    
+                	viewer.addHandler('full-screen', event => {
+                		if(event.fullPage==false){
+                			var eventArgs={
+								acmId: viewer.id.split('+')[1]
+							};
+                	    	//console.log("Trying to call switchAnnots on amId: "+);
+                	    	viewer.raiseEvent("switchAnnots", eventArgs);
+                	    	
+                	    }
+                	});
+                	
+                	viewer.addHandler('switchAnnots', event => {
+                		//console.log("switch annots with acmId: "+event.acmId);
+                		
+                		var marginFactor=1.0;
+                		
+                		//need to get annot feature
+                		var ft = features.get(viewer.id.split('+')[1]);
+                		console.log("switch annots with acmId: "+event.acmId+"("+ft.parameters.width+","+ft.parameters.height+","+ft.parameters.x+","+ft.parameters.y+")");
+                		var width=ft.parameters.width;
+                	   	var height=ft.parameters.height;
+                	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
+                        if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
+                        var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
+                	   	viewer.viewport.fitBounds(rec);
+                	});
+                	
+
+                	
+                	//add this viewer to the global Map
+                	viewers.set(taskId+"+"+acmId,viewer);
+                	features.set(acmId, ft);
+            	
+            	
+            	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
+                
+                
             } else {
-                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
+                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
             if (mainAsset.dateTime) {
                 imgInfo += ' <b>' + mainAsset.dateTime.substring(0,16) + '</b> ';
@@ -1038,20 +1168,20 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl) {
 				}
                 if (encId) {
                 	console.log("Main asset encId = "+encId);
-                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
+                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter</a>');
                     
 					if (!indivId) {
 						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
 					}
                 }
                 if (indivId) {
-                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '">' + displayName + '</a>');
+                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
-                    h += ' of <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">DIGITS</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">DIGITS</a>');
+                    //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
+                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
                 }
 
                 if (encId || indivId) {
@@ -1071,7 +1201,7 @@ console.log("XX %o", displayName);
 console.info('qdata[%s] = %o', taskId, qdata);
                         $('#task-' + taskId).data(qdata);
                 } else {
-                    if (imgInfo) imgInfo = '<span class="img-info-type">#' + (num+1) + '</span> ' + imgInfo;
+                    if (imgInfo) imgInfo = '<span class="img-info-type"></span> ' + imgInfo;
                 }
             }  //end if (ft) ....
             // Illustration
@@ -1251,19 +1381,34 @@ function imageLoaded(imgEl, ft) {
 }
 
 function drawFeature(imgEl, ft) {
-    if (!imgEl || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
-    var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
+    if (!imgEl || !imgEl.clientHeight || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
     var scale = imgEl.height / imgEl.naturalHeight;
+    if (ft.metadata && ft.metadata.height) scale = imgEl.height / ft.metadata.height;
+    var zoomFactor = imgEl.naturalHeight/ft.parameters.height;
+
+    var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
+    
+    
+    /* values are from-top, from-right, from-bottom, from-left */
+    
+    //imgEl.setAttribute("style", "transform-origin: 0 0;transform: scale("+zoomFactor+");margin-left: -"+ft.parameters.x*scale*zoomFactor+";margin-top: -"+ft.parameters.y*scale*zoomFactor+"px;position: absolute;clip-path: inset("+ (ft.parameters.y)*scale + "px " + (ft.metadata.width-ft.parameters.x-ft.parameters.width)*scale + "px "+(ft.metadata.height-ft.parameters.height-ft.parameters.y)*scale + "px "+ft.parameters.x*scale + "px )");
+   
+    
+    
+    //imgEl.css("transform-origin", "0 0");
+    //imgEl.css("transform", "translate(-100%, 50%) rotate(45deg) translate(100%, -50%)");
+    
+    
 //console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
-    if (scale == 1) return;
+    //if (scale == 1) return;
     imgEl.setAttribute('data-feature-drawn', true);
-    f.css('width', (ft.parameters.width * scale) + 'px');
-    f.css('height', (ft.parameters.height * scale) + 'px');
-    f.css('left', (ft.parameters.x * scale) + 'px');
-    f.css('top', (ft.parameters.y * scale) + 'px');
-    if (ft.parameters.theta) f.css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
+    //f.css('width', (ft.parameters.width * scale) + 'px');
+    //f.css('height', (ft.parameters.height * scale) + 'px');
+    //f.css('left', (ft.parameters.x * scale) + 'px');
+    //f.css('top', (ft.parameters.y * scale) + 'px');
+    //if (ft.parameters.theta) $('#overlay-'+acmId).css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
 //console.info('mmmm %o', f);
-    $(imgEl).parent().append(f);
+    //$(imgEl).parent().append(f);
 }
 
 function checkForResults() {
@@ -1342,6 +1487,7 @@ console.info('waiting to try again...');
 	$('#results li').on('mouseover', function(ev) {
 		var i = ev.currentTarget.getAttribute('data-i');
 		updateMatch(res.matchAnnotations[i]);
+		console.log("mouseover3");
 	});
 }
 

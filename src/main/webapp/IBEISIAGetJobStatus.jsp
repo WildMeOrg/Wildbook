@@ -25,8 +25,7 @@ org.ecocean.media.*
 <%
 
 String context = "context0";
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("IBEISIAGetJobStatus.jsp");
+
 
 //String rootDir = getServletContext().getRealPath("/");
 //String baseDir = ServletUtilities.dataDir("context0", rootDir);
@@ -43,17 +42,22 @@ if ((jobID == null) || jobID.equals("")) {
 
 } else {
 
+	Shepherd myShepherd = new Shepherd(context);
+	myShepherd.setAction("IBEISIAGetJobStatus.jsp");
+	myShepherd.beginDBTransaction();
 	//this checks if we *already* have process this job (manually?) to prevent duplication (minus race conditions, sigh)
 	JSONObject rtn = checkJob(jobID, context, myShepherd);
 	if (!rtn.optBoolean("continue", false)) {
 		System.out.println("checkJob(" + jobID + ") claimed we should not continue; bailing");
 		out.println(rtn.toString());
+		myShepherd.rollbackAndClose();
 		return;
 	}
 
 	runIt(jobID, context, request);
 	out.println(rtn.toString());
-System.out.println("((((all done with main thread))))");
+	System.out.println("((((all done with main thread))))");
+	myShepherd.rollbackAndClose();
 }
 
 %>
@@ -101,12 +105,12 @@ System.out.println("---<< jobID=" + jobID + ", trying spawn . . . . . . . . .. .
 			} catch (Exception ex) {
 				System.out.println("tryToGet(" + jobID + ") got exception " + ex);
 			}
-//myShepherd.rollbackDBTransaction();
-//myShepherd.closeDBTransaction();
+	//myShepherd.rollbackDBTransaction();
+	//myShepherd.closeDBTransaction();
 		}
 	};
 	new Thread(r).start();
-System.out.println("((( done runIt() )))");
+	System.out.println("((( done runIt() )))");
 	return;
 }
  
@@ -164,7 +168,7 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		all.put("jobResult", rlog);
 
 		JSONObject proc = IBEISIA.processCallback(taskID, rlog, request);
-System.out.println("processCallback returned --> " + proc);
+		System.out.println("processCallback returned --> " + proc);
 	}
 } catch (Exception ex) {
 	System.out.println("whoops got exception: " + ex.toString());
