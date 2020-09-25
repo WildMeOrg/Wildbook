@@ -20,10 +20,6 @@
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("editProject.jsp");
   String projId = request.getParameter("id").replaceAll("\\+", "").trim();
-  //String rootWebappPath = getServletContext().getRealPath("/");
-  //File webappsDir = new File(rootWebappPath).getParentFile();
-  //File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-  //File projectsDir=new File(shepherdDataDir.getAbsolutePath()+"/projects");
 
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -32,9 +28,6 @@
 
   String langCode=ServletUtilities.getLanguageCode(request);
 
-  //boolean proceed = true;
-  //boolean haveRendered = false;
-  //Properties collabProps = new Properties();
   String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
   //collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
   User currentUser = AccessControl.getUser(request, myShepherd);
@@ -84,13 +77,17 @@ function doProjectGetAjax(json){
 }
 
 function populateOrRefreshUserListHTML(jsonArr) {
-  let userList = $('#userListDiv');
   for (i=0;i<jsonArr.length;i++) {
     console.log('appending users.... '+JSON.stringify(jsonArr));
     let thisUser = jsonArr[i];
-    let userEl = '<span id="'+thisUser.id+'" class="userEl"><span class="glyphicon glyphicon-remove remove-ob-x" onclick="removeUserFromProject(this)" ></span> '+thisUser.username+'</span><br>';
-    userList.append(userEl);
+    appendNewUser(thisUser.id, thisUser.username)
   }
+}
+
+function appendNewUser(userId, username) {
+  let userList = $('#userListDiv');
+  let projectEditUserEl = '<span id="'+userId+'" class="projectEditUserEl"><span class="glyphicon glyphicon-remove remove-ob-x" onclick="removeUserFromProject(this)" ></span> '+username+'</span>';
+  userList.append(projectEditUserEl);
 }
 
 function populateHtml(project){
@@ -98,7 +95,6 @@ function populateHtml(project){
 
   projectHTML += '<div class="container researchProjectIdDiv" id="'+project.researchProjectId+'">';
   projectHTML += '<h1>Edit Project</h1>';
-  projectHTML += '<br>';
   projectHTML += '<h3>Project: '+project.researchProjectName+'</h3>';
   projectHTML += '<hr>';
 
@@ -117,7 +113,11 @@ function populateHtml(project){
 
   projectHTML += '<div class="row">';
 
-  projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">';
+  projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">';
+  projectHTML += '  <label>Add Users</label>';
+  projectHTML += '  <input class="form-control" name="projectUserIds" type="text" id="projectUserIds" placeholder="Type To Search">';
+  projectHTML += '</div>';
+  projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-xl-6"">';
   projectHTML += '  <label>User List</label>';
   projectHTML += '  <div id="userListDiv">';
   projectHTML += '  </div>';
@@ -139,6 +139,7 @@ function populateHtml(project){
   projectHTML += '  <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">';
   projectHTML += '    <label class="updataResponse" id="actionResultMessage"></label>';
   projectHTML += '  </div>';
+
   projectHTML += '</div>';
 
   projectHTML += '</div>'; // container
@@ -153,9 +154,9 @@ function updateProject() {
 
   let requestJSONArr = [];
   let requestJSON = {};
-  requestJSON['researchProjectName'] = $('#researchProjectName');
-  requestJSON['researchProjectId'] = $('#researchProjectId');
-  if (usersIdsToRemove.length>0) {
+  requestJSON['researchProjectName'] = $('#researchProjectName').val();
+  requestJSON['researchProjectId'] = $('#researchProjectId').val();
+  if (userIdsToRemove.length>0) {
     requestJSON['usersToRemove'] = userIdsToRemove;
   }
   if (userIdsToAdd.length>0) {
@@ -215,13 +216,59 @@ function doProjectUpdateAjax(json) {
 function removeUserFromProject(el) {
   let confirmed = confirm('Are you sure you want to remove this user from the project?');
   if (confirmed) {
-    let idToRemove = $(el).closest(".userEl").attr('id');
-    usersIdsToRemove.push(idToRemove);
-    $(el).closest(".userEl").remove();
+    let idToRemove = $(el).closest(".projectEditUserEl").attr('id');
+    userIdsToRemove.push(idToRemove);
+    $(el).closest(".projectEditUserEl").remove();
   }
 }
 
+//let userNamesOnAccessList = [];
+let currentUsername = '<%=currentUser.getUsername()%>';
 $(document).ready(function() {
-    showEditProject();
+
+
+  showEditProject();
+
+  console.log("do i have the element for projectUserIds??? "+$('#projectUserIds'));
+
+  $('#projectUserIds').autocomplete({
+    source: function(request, response){
+      $.ajax({
+        url: wildbookGlobals.baseUrl + '/UserGetSimpleJSON?searchUser=' + request.term,
+        type: 'GET',
+        dataType: "json",
+        success: function(data){
+          console.log("autocomplete hit...");
+          let res = null;
+          res = $.map(data, function(item){
+            if(item.username==currentUsername || typeof item.username == 'undefined' || item.username == undefined||item.username===""){
+              return;
+            }
+            let fullName = "";
+            if(item.fullName!=null && item.fullName!="undefined"){
+              fullName=item.fullName;
+            }
+            let label = ("name: " + fullName + " user: " + item.username);
+            return {label: label, value: item.username+ ":" + item.id, username: item.username, id: item.id};
+          });
+          response(res);
+        },
+        error: function(x,y,z) {
+          console.warn('%o %o %o', x, y, z);
+          return false;
+        }
+
+      });
+    }
+  });
+  $( "#projectUserIds" ).on( "autocompleteselect", function(event,result) {
+    let selectedUserStr = result.item.value;
+    console.log("Result in autocomplete: "+JSON.stringify(result));
+    appendNewUser(result.item.id, result.item.username);
+    $(this).val("");
+    return false;
+  });
+  
+  
 });
 </script>
