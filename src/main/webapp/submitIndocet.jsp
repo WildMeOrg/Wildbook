@@ -19,11 +19,8 @@
 
 
 <jsp:include page="header.jsp" flush="true"/>
-<script>
-$(document).ready( function() {
-	console.log("ready");
-});
-</script>
+
+
 
 <!-- add recaptcha -->
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
@@ -54,7 +51,126 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
+
+		//let's pre-populate important info for logged in users
+		String submitterName="";
+		String submitterEmail="";
+		String affiliation="";
+		String project="";
+		Shepherd myShepherd = null;
+		User user = null;
+		if(request.getRemoteUser()!=null){
+				submitterName=request.getRemoteUser();
+				myShepherd=new Shepherd(context);
+				myShepherd.setAction("submit.jsp1");
+				myShepherd.beginDBTransaction();
+				if(myShepherd.getUser(submitterName)!=null){
+						user=myShepherd.getUser(submitterName);
+						if(user.getFullName()!=null){submitterName=user.getFullName();}
+						if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+						if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+						if(user.getUserProject()!=null){project=user.getUserProject();}
+				}
+				myShepherd.rollbackDBTransaction();
+				myShepherd.closeDBTransaction();
+		}
 %>
+<script>
+$(document).ready( function() {
+	console.log("ready");
+	populateProjectNameDropdown([],"", true);
+	<%
+	if(user != null){
+		%>
+		let userId = '<%= user.getId()%>';
+		let requestForProjectNames = {};
+		requestForProjectNames['ownerId'] = userId;
+		console.log("requestForProjectNames is: ");
+		console.log(requestForProjectNames);
+		doAjaxForProject(requestForProjectNames,userId);
+		<%
+	}else{
+		%>
+
+		<%
+	}
+	%>
+});
+
+function populateProjectNameDropdown(options, selectedOption, isVisible){
+	console.log("populateProjectNameDropdown entered");
+	console.log("populateProjectNameDropdown entered");
+	let projectNameHtml = '';
+	projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
+	if(isVisible){
+		projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" >';
+	}else{
+		projectNameHtml += '<select type="hidden" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" >';
+	}
+	if(selectedOption ===""){
+		projectNameHtml += '<option value="" selected>""</option>';
+	}
+	for(let i=0; i<options.length; i++){
+		if(options[i] === selectedOption){
+			projectNameHtml += '<option value="'+ options[i] +'" selected>'+ options[i] +'</option>';
+		}else{
+			projectNameHtml += '<option value="'+ options[i] + '">'+ options[i] +'</option>';
+		}
+	}
+	$("#proj-id-dropdown-container").empty();
+	$("#proj-id-dropdown-container").append(projectNameHtml);
+}
+
+
+function doAjaxForProject(requestJSON,userId){
+	console.log("doAjaxForProject entered");
+	$.ajax({
+			url: wildbookGlobals.baseUrl + '../ProjectGet',
+			type: 'POST',
+			data: JSON.stringify(requestJSON),
+			dataType: 'json',
+			contentType: 'application/json',
+			success: function(data) {
+				console.log("return data is:")
+				console.log(data);
+				let projectNameResults = data.projects;
+				let projNameOptions = null;
+				if(projectNameResults){
+					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+				}
+				if(projNameOptions){
+					processNameDropdownBranching(projNameOptions,userId);
+				}else{
+					// processNameDropdownBranchingNoProjNameOptions();
+				}
+			},
+			error: function(x,y,z) {
+					console.warn('%o %o %o', x, y, z);
+			}
+	});
+}
+
+function processNameDropdownBranching(projNameOptions,userId){
+	console.log("processNameDropdownBranching entered");
+	if ($('#defaultProject').val()==='<%= props.getProperty("defaultProjName")%>') { //TODO there's a more generalized way to do this. Cognitive burden too high to address currently
+		console.log("defaultProject is indocet!");
+		let defaultSelection = '<%= props.getProperty("defaultProjName")%>';
+		populateProjectNameDropdown(projNameOptions, defaultSelection, false);
+	}
+	else{ //if default project is not designated as the indocet project name, check for user
+		if(userId){
+			console.log("userId for checking whether user is logged in is: " + userId);
+			populateProjectNameDropdown(projNameOptions, "", true);
+		}else{
+			populateProjectNameDropdown(projNameOptions, "", false);
+		}
+	}
+}
+
+
+
+
+</script>
 
 <style type="text/css">
     .full_screen_map {
@@ -694,33 +810,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 </fieldset>
 <hr />
-
-
-    <%
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation="";
-    String project="";
-		Shepherd myShepherd = null;
-		User user = null;
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-        myShepherd=new Shepherd(context);
-        myShepherd.setAction("submit.jsp1");
-        myShepherd.beginDBTransaction();
-        if(myShepherd.getUser(submitterName)!=null){
-						user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-    }
-    %>
-
 
 
   <fieldset>
