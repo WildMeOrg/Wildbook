@@ -2797,25 +2797,7 @@ else {
 					                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
 					                            <%
 					                          }
-                                  List<Project> projects = myShepherd.getProjectsForEncounter(enc);
-                                  MarkedIndividual indie = myShepherd.getMarkedIndividual(enc);
-                                  if(projects!=null && projects.size()>0){
-                                    %>
-                                      <div id="project-ids">
-                                        <p><strong><%=encprops.getProperty("projects") %></strong></p>
-                                    <%
-                                    for(int i=0; i< projects.size(); i++){
-                                      if(indie != null && indie.getName(projects.get(i).getResearchProjectId()) != null){
-                                        %>
-                                        <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= indie.getName(projects.get(i).getResearchProjectId())%></p>
-                                        <%
-                                      }else{
-                                        %>
-                                          <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= encprops.getProperty("noIdIn")%></p>
-                                        <%
-                                      }
-                                    }
-                                  }
+
 					                        %>
                                   </div>
 					                        </div>
@@ -2832,6 +2814,25 @@ else {
 					                      	}
 
                       	}
+                        List<Project> projects = myShepherd.getProjectsForEncounter(enc);
+                        MarkedIndividual indie = myShepherd.getMarkedIndividual(enc);
+                        if(projects!=null && projects.size()>0){
+                          %>
+                            <div id="project-ids">
+                              <p><strong><%=encprops.getProperty("projects") %></strong></p>
+                          <%
+                          for(int i=0; i< projects.size(); i++){
+                            if(indie != null && indie.getName(projects.get(i).getResearchProjectId()) != null){
+                              %>
+                              <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= indie.getName(projects.get(i).getResearchProjectId())%></p>
+                              <%
+                            }else{
+                              %>
+                                <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= encprops.getProperty("noIdIn")%></p>
+                              <%
+                            }
+                          }
+                        }
                          				//insert here
 %>
 
