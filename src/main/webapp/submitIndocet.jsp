@@ -78,7 +78,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <script>
 $(document).ready( function() {
 	console.log("ready");
-	populateProjectNameDropdown([],"", true);
+	populateProjectNameDropdown([],"", false, getDefaultSelectedProject());
 	<%
 	if(user != null){
 		%>
@@ -97,28 +97,42 @@ $(document).ready( function() {
 	%>
 });
 
-function populateProjectNameDropdown(options, selectedOption, isVisible){
-	console.log("populateProjectNameDropdown entered");
-	console.log("populateProjectNameDropdown entered");
-	let projectNameHtml = '';
-	projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
-	if(isVisible){
-		projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" >';
-	}else{
-		projectNameHtml += '<select type="hidden" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" >';
+function populateProjectNameDropdown(options, selectedOption, isVisible, defaultSelectItem){
+	// console.log("populateProjectNameDropdown entered");
+	if(options.length<1){
+		// console.log("no options. Making invisible");
+		isVisible=false;
 	}
-	if(selectedOption ===""){
-		projectNameHtml += '<option value="" selected>""</option>';
-	}
-	for(let i=0; i<options.length; i++){
-		if(options[i] === selectedOption){
-			projectNameHtml += '<option value="'+ options[i] +'" selected>'+ options[i] +'</option>';
+		let projectNameHtml = '';
+		projectNameHtml += '<div class="col-xs-6 col-md-4">';
+		//comment out the below for submit.jsp version
+		projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />';
+		if(isVisible){
+			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
+			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
 		}else{
-			projectNameHtml += '<option value="'+ options[i] + '">'+ options[i] +'</option>';
+			console.log("making the select hidden");
+			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
 		}
-	}
-	$("#proj-id-dropdown-container").empty();
-	$("#proj-id-dropdown-container").append(projectNameHtml);
+		if(defaultSelectItem){
+			//this next line should be commented in on submit.jsp
+			projectNameHtml += '<option value="' + defaultSelectItem + '" selected>'+ defaultSelectItem +'</option>';
+		}
+		for(let i=0; i<options.length; i++){
+			if(options[i] === selectedOption){
+				projectNameHtml += '<option value="'+ options[i] +'" selected>'+ options[i] +'</option>';
+			}else{
+				projectNameHtml += '<option value="'+ options[i] + '">'+ options[i] +'</option>';
+			}
+		}
+		projectNameHtml += '</div>';
+		$("#proj-id-dropdown-container").empty();
+		$("#proj-id-dropdown-container").append(projectNameHtml);
+}
+
+function getDefaultSelectedProject(){
+	let defaultProject = '<%= props.getProperty("defaultProjName") %>'
+	return defaultProject;
 }
 
 
@@ -137,11 +151,7 @@ function doAjaxForProject(requestJSON,userId){
 				let projNameOptions = null;
 				if(projectNameResults){
 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
-				}
-				if(projNameOptions){
-					processNameDropdownBranching(projNameOptions,userId);
-				}else{
-					// processNameDropdownBranchingNoProjNameOptions();
+					populateProjectNameDropdown(projNameOptions,"", true, getDefaultSelectedProject());
 				}
 			},
 			error: function(x,y,z) {
@@ -149,26 +159,6 @@ function doAjaxForProject(requestJSON,userId){
 			}
 	});
 }
-
-function processNameDropdownBranching(projNameOptions,userId){
-	console.log("processNameDropdownBranching entered");
-	if ($('#defaultProject').val()==='<%= props.getProperty("defaultProjName")%>') { //TODO there's a more generalized way to do this. Cognitive burden too high to address currently
-		console.log("defaultProject is indocet!");
-		let defaultSelection = '<%= props.getProperty("defaultProjName")%>';
-		populateProjectNameDropdown(projNameOptions, defaultSelection, false);
-	}
-	else{ //if default project is not designated as the indocet project name, check for user
-		if(userId){
-			console.log("userId for checking whether user is logged in is: " + userId);
-			populateProjectNameDropdown(projNameOptions, "", true);
-		}else{
-			populateProjectNameDropdown(projNameOptions, "", false);
-		}
-	}
-}
-
-
-
 
 </script>
 
@@ -1249,7 +1239,13 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
-	console.log('sendButtonClicked()');
+	// console.log('sendButtonClicked()');
+	// let projecSelections = $('#proj-id-dropdown').val();
+	// console.log("projecSelections is:");
+	// console.log(projecSelections);
+	// let defaultSelection = $('#defaultProject').val();
+	// console.log("defaultSelection is:");
+	// console.log(defaultSelection);
 	$('.required-missing').removeClass('required-missing')
 
 	if (!$('#genusSpecies').val()) {
