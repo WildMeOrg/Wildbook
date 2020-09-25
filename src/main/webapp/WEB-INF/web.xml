@@ -159,7 +159,7 @@
        /AddSurveyTrackToSurvey = authc, roles[researcher]
 
 		   /ImportSRGD = authc, roles[admin]
-		        /IndividualCreate = authc, roles[researcher]
+
 		        /OccurrenceCreate = authc, roles[researcher]
 		        /OccurrenceRemoveEncounter = authc, roles[researcher]
 		        /IndividualRemoveEncounter = authc, roles[researcher]
@@ -212,7 +212,7 @@
 				   /TissueSampleSetMeasurement = authc, roles[researcher]
 				  /TissueSampleRemoveHaplotype = authc, roles[researcher]
 				   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
-					/IndividualCreate = authc, roles[researcher]
+					
 				        /OccurrenceCreate = authc, roles[researcher]
 				        /OccurrenceRemoveEncounter = authc, roles[researcher]
 				        /IndividualRemoveEncounter = authc, roles[researcher]
@@ -1069,10 +1069,7 @@
         <servlet-class>org.ecocean.servlet.export.CRCExportReport</servlet-class>
   </servlet>
 
-  <servlet>
-    <servlet-name>IndividualCreate</servlet-name>
-    <servlet-class>org.ecocean.servlet.IndividualCreate</servlet-class>
-  </servlet>
+
 
 
     <servlet>
@@ -1884,10 +1881,7 @@
     <url-pattern>/IndividualAddComment</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>IndividualCreate</servlet-name>
-    <url-pattern>/IndividualCreate</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>EncounterForm</servlet-name>
