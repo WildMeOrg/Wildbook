@@ -53,6 +53,7 @@ import org.ecocean.MailThreadExecutorService;
 import org.ecocean.Util;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Keyword;
+import org.ecocean.Project;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.Measurement;
@@ -369,9 +370,11 @@ System.out.println("*** trying redirect?");
             System.out.println("Not a multi-part form submission!");
         }
 
-        String projects =  getVal(formValues, "proj-id-dropdown"); //TODO make accommodate multiple-select
-        if(Util.stringExists(projects)){
+        String projectNames =  getVal(formValues, "proj-id-dropdown"); //TODO make accommodate multiple-select
+        List<Project> projects = null;
+        if(projectNames != null){
           System.out.println("got here and projects is: " + projects);
+          //TODO for loop and populate projects with Project instances 
         }
 
 
@@ -590,7 +593,11 @@ System.out.println("about to do enc()");
               }
             }
             enc.setEncounterNumber(encID);
-            //if(defaultProject!=null){defaultProj.addEncounter(enc);}
+            if(projects!=null){
+              for(Project currentProject: projects){
+                currentProject.addEncounter(enc);
+              }
+            }
 
 
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);

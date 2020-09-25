@@ -20,8 +20,11 @@
 
 <jsp:include page="header.jsp" flush="true"/>
 
+
+
 <!-- add recaptcha -->
 <script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
+
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -48,7 +51,116 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
+
+		//let's pre-populate important info for logged in users
+		String submitterName="";
+		String submitterEmail="";
+		String affiliation="";
+		String project="";
+		Shepherd myShepherd = null;
+		User user = null;
+		if(request.getRemoteUser()!=null){
+				submitterName=request.getRemoteUser();
+				myShepherd=new Shepherd(context);
+				myShepherd.setAction("submit.jsp1");
+				myShepherd.beginDBTransaction();
+				if(myShepherd.getUser(submitterName)!=null){
+						user=myShepherd.getUser(submitterName);
+						if(user.getFullName()!=null){submitterName=user.getFullName();}
+						if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+						if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+						if(user.getUserProject()!=null){project=user.getUserProject();}
+				}
+				myShepherd.rollbackDBTransaction();
+				myShepherd.closeDBTransaction();
+		}
 %>
+<script>
+$(document).ready( function() {
+	console.log("ready");
+	populateProjectNameDropdown([],"", false, getDefaultSelectedProject());
+	<%
+	if(user != null){
+		%>
+		let userId = '<%= user.getId()%>';
+		let requestForProjectNames = {};
+		requestForProjectNames['ownerId'] = userId;
+		console.log("requestForProjectNames is: ");
+		console.log(requestForProjectNames);
+		doAjaxForProject(requestForProjectNames,userId);
+		<%
+	}else{
+		%>
+
+		<%
+	}
+	%>
+});
+
+function populateProjectNameDropdown(options, selectedOption, isVisible, defaultSelectItem){
+	// console.log("populateProjectNameDropdown entered");
+	if(options.length<1){
+		// console.log("no options. Making invisible");
+		isVisible=false;
+	}
+		let projectNameHtml = '';
+		projectNameHtml += '<div class="col-xs-6 col-md-4">';
+		//comment out the below for submit.jsp version
+		projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />';
+		if(isVisible){
+			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
+			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}else{
+			console.log("making the select hidden");
+			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}
+		if(defaultSelectItem){
+			//this next line should be commented in on submit.jsp
+			projectNameHtml += '<option value="' + defaultSelectItem + '" selected>'+ defaultSelectItem +'</option>';
+		}
+		for(let i=0; i<options.length; i++){
+			if(options[i] === selectedOption){
+				projectNameHtml += '<option value="'+ options[i] +'" selected>'+ options[i] +'</option>';
+			}else{
+				projectNameHtml += '<option value="'+ options[i] + '">'+ options[i] +'</option>';
+			}
+		}
+		projectNameHtml += '</div>';
+		$("#proj-id-dropdown-container").empty();
+		$("#proj-id-dropdown-container").append(projectNameHtml);
+}
+
+function getDefaultSelectedProject(){
+	let defaultProject = '<%= props.getProperty("defaultProjName") %>'
+	return defaultProject;
+}
+
+
+function doAjaxForProject(requestJSON,userId){
+	console.log("doAjaxForProject entered");
+	$.ajax({
+			url: wildbookGlobals.baseUrl + '../ProjectGet',
+			type: 'POST',
+			data: JSON.stringify(requestJSON),
+			dataType: 'json',
+			contentType: 'application/json',
+			success: function(data) {
+				console.log("return data is:")
+				console.log(data);
+				let projectNameResults = data.projects;
+				let projNameOptions = null;
+				if(projectNameResults){
+					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+					populateProjectNameDropdown(projNameOptions,"", true, getDefaultSelectedProject());
+				}
+			},
+			error: function(x,y,z) {
+					console.warn('%o %o %o', x, y, z);
+			}
+	});
+}
+
+</script>
 
 <style type="text/css">
     .full_screen_map {
@@ -387,9 +499,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
       accept-charset="UTF-8"
 >
 
-<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />
-<div id="proj-id-dropdown-container"></div>
-
 <div class="dz-message"></div>
 
 
@@ -397,74 +506,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
 
 <script>
-$(document).ready( function() {
-	let requestJsonForProjectNamesDropdown = {};
-	requestJsonForProjectNamesDropdown['ownerId'] = '<%= user.getId()%>';
-	doAjaxForProject(requestJsonForProjectNamesDropdown);
-});
-
-function doAjaxForProject(requestJSON){
-	$.ajax({
-			url: wildbookGlobals.baseUrl + '../ProjectGet',
-			type: 'POST',
-			data: JSON.stringify(requestJSON),
-			dataType: 'json',
-			contentType: 'application/json',
-			success: function(data) {
-					let projectNameResults = data.projects;
-					let projNameOptions = null;
-					if(projectNameResults){
-						projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
-					}
-					if(projNameOptions){
-						// let prjIdOptions = projectNameResults.map(entry =>{return entry.researchProjectId});
-						if ($('#defaultProject').val()=='<%= props.getProperty("indocetDefaultProjName")%>') {
-							console.log("defaultProject is indocet!");
-							let defaultSelection = '<%= props.getProperty("indocetDefaultProjName")%>';
-							populateProjectNameDropdown(projNameOptions, defaultSelection, false);
-						}
-						else{
-							if(<%= user != null%>){
-								populateProjectNameDropdown(projNameOptions, "", true);
-							}else{
-								populateProjectNameDropdown(projNameOptions, "", false);
-							}
-
-						}
-
-					}else{
-						//user doesn't have to have access to any projects to default to indocet project
-						if ($('#defaultProject').val()=='<%= props.getProperty("indocetDefaultProjName")%>') {
-							console.log("defaultProject is indocet!");
-							let defaultSelection = '<%= props.getProperty("indocetDefaultProjName")%>';
-							populateProjectNameDropdown(['<%= props.getProperty("indocetDefaultProjName")%>'], defaultSelection, false);
-							//indocet is marked selected in the dropdown and the dropdown is hidden, but still parsed in EncounterForm
-						}else{
-							//user has no projects AND not coming from custom Indocet page
-							populateProjectNameDropdown([], "", false);
-						}
-					}
-			},
-			error: function(x,y,z) {
-					console.warn('%o %o %o', x, y, z);
-			}
-	});
-}
-
-function populateProjectNameDropdown(options, selectedOption, isVisible){
-	let projectNameHtml = '';
-	projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" >';
-	projectNameHtml += '<option value=""></option>';
-	for(let i=0; i<options.length; i++){
-		if(options[i] === selectedOption){
-			projectNameHtml += '<option value="'+ options[i] +'" selected>'+ options[i] +'</option>';
-		}else{
-			projectNameHtml += '<option value="'+ options[i] + '">'+ options[i] +'</option>';
-		}
-	}
-	$("#proj-id-dropdown-container").empty();
-	$("#proj-id-dropdown-container").append(projectNameHtml);
-}
 
 
 $('#social_files_iframe').on('load', function(ev) {
@@ -761,31 +802,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 <hr />
 
 
-    <%
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation="";
-    String project="";
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-        Shepherd myShepherd=new Shepherd(context);
-        myShepherd.setAction("submit.jsp1");
-        myShepherd.beginDBTransaction();
-        if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-    }
-    %>
-
-
-
   <fieldset>
     <div class="row">
       <div class="col-xs-12 col-lg-6">
@@ -857,6 +873,15 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
       </div>
     </div>
+
+		<div class="form-group form-inline" id="silent-input-form-group-container">
+			<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />
+		</div>
+
+		<div class="form-group form-inline" id="proj-id-dropdown-container">
+
+
+		</div>
 
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
@@ -1214,7 +1239,13 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
-	console.log('sendButtonClicked()');
+	// console.log('sendButtonClicked()');
+	// let projecSelections = $('#proj-id-dropdown').val();
+	// console.log("projecSelections is:");
+	// console.log(projecSelections);
+	// let defaultSelection = $('#defaultProject').val();
+	// console.log("defaultSelection is:");
+	// console.log(defaultSelection);
 	$('.required-missing').removeClass('required-missing')
 
 	if (!$('#genusSpecies').val()) {
@@ -1282,5 +1313,6 @@ else {%>
 </div>
 </div>
 </div>
+
 
 <jsp:include page="footer.jsp" flush="true"/>
