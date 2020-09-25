@@ -590,7 +590,7 @@ System.out.println("about to do enc()");
               }
             }
             enc.setEncounterNumber(encID);
-            if(defaultProject!=null){defaultProj.addEncounter(enc);}
+            //if(defaultProject!=null){defaultProj.addEncounter(enc);}
 
 
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
