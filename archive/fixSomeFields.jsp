@@ -4,7 +4,7 @@
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
 org.ecocean.grid.*,
-java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
+java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%
 
@@ -25,39 +25,43 @@ Shepherd myShepherd=new Shepherd(context);
 
 
 <body>
-
 <ul>
 <%
 
 myShepherd.beginDBTransaction();
-try{
-	
-    List<Encounter> encs=null;
-    String filter="SELECT FROM org.ecocean.Encounter";  
-    Query query=myShepherd.getPM().newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    encs=new ArrayList<Encounter>(c);
-    query.closeAll();
-    int numEncounters=encs.size();
-    for(int i=0;i<numEncounters;i++){
-    	Encounter enc=encs.get(i);
-    	if((enc.getOLDInformOthersFORLEGACYCONVERSION()!=null)&&(!enc.getOLDInformOthersFORLEGACYCONVERSION().trim().equals(""))){
-    	
-    %>
-    <li><%=enc.getCatalogNumber()  %>: <%=enc.getOLDInformOthersFORLEGACYCONVERSION() %></li>
-	<%
-    	}
+
+int numFixes=0;
+
+<<<<<<< HEAD
+try {
+
+	String rootDir = getServletContext().getRealPath("/");
+	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
+
+  Iterator allSpaces=myShepherd.getAllWorkspaces();
+
+  boolean committing=true;
+
+
+  while(allSpaces.hasNext()){
+
+    Workspace wSpace=(Workspace)allSpaces.next();
+
+    %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
+
+  	numFixes++;
+
+    if (committing) {
+      myShepherd.throwAwayWorkspace(wSpace);
+  		myShepherd.commitDBTransaction();
+  		myShepherd.beginDBTransaction();
     }
+  }
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();
-	%>
-	<p>Reported error: <%=e.getMessage() %> <%=e.getStackTrace().toString() %></p>
-	<%
-	e.printStackTrace();
 }
 finally{
-	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 
 }
@@ -65,6 +69,11 @@ finally{
 %>
 
 </ul>
+<<<<<<< HEAD
+<p>Done successfully: <%=numFixes %> workspaces deleted.</p>
+=======
+<p>Done successfully: <%=numFixes %></p>
 
+>>>>>>> origin/crc
 </body>
 </html>
