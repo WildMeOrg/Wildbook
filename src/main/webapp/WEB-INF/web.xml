@@ -2381,6 +2381,7 @@
     <servlet-mapping>
       <servlet-name>StandardImport</servlet-name>
       <url-pattern>/StandardImport</url-pattern>
+    <url-pattern>/import/standard-upload</url-pattern>
   </servlet-mapping>
   
   		
