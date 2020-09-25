@@ -2,9 +2,12 @@
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
+java.util.HashMap,
 org.ecocean.identity.IdentityServiceLog,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
+
+<%!
 String rotationInfo(MediaAsset ma) {
     if ((ma == null) || (ma.getMetadata() == null)) return null;
     HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
@@ -15,6 +18,7 @@ String rotationInfo(MediaAsset ma) {
     }
     return null;
 }
+%>
 
 <%
 
