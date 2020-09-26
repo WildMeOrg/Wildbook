@@ -48,7 +48,7 @@ public abstract class Share {
     public abstract void generate() throws java.io.IOException;
 
     //can this item be shared in this capacity?
-    public abstract boolean isShareable(Object obj);
+    public abstract boolean isShareable(Object obj, Shepherd myShepherd);
 
     public String getProperty(String label) {  //no-default
         return getProperty(label, (String)null);
@@ -81,31 +81,30 @@ public abstract class Share {
         return collaborationUser;
     }
 
-    public Organization getShareOrganization() {
+    public Organization getShareOrganization(Shepherd myShepherd) {
         if (orgUsers == null) orgUsers = new ArrayList<User>();  //means we at least tried once!  (see methods below)
         String oid = getProperty("organizationId", null);
         if (oid == null) return null;
-        Shepherd myShepherd = new Shepherd(context);
         Organization org = Organization.load(oid, myShepherd);
         if (org == null) return null;
         if (org.getMembers() != null) orgUsers = org.getMembers();
         return org;
     }
-    public List<User> getShareOrganizationUsers() {  //note: this does NOT do deep traversal of members
+    public List<User> getShareOrganizationUsers(Shepherd myShepherd) {  //note: this does NOT do deep traversal of members
         if (orgUsers != null) return orgUsers;
-        Organization org = getShareOrganization();  //this will initialize orgUsers to empty ArrayList
+        Organization org = getShareOrganization(myShepherd);  //this will initialize orgUsers to empty ArrayList
         if (org == null) return orgUsers;
         if (org.getMembers() != null) orgUsers = org.getMembers();
         return orgUsers;
     }
-    public boolean isShareOrganizationUser(User user) {
+    public boolean isShareOrganizationUser(User user,  Shepherd myShepherd ) {
         if (user == null) return false;
-        return getShareOrganizationUsers().contains(user);
+        return getShareOrganizationUsers(myShepherd).contains(user);
     }
-    public boolean isShareOrganizationUser(List<User> users) {
+    public boolean isShareOrganizationUser(List<User> users,  Shepherd myShepherd ) {
         if ((users == null) || (users.size() < 1)) return false;
-        if (getShareOrganizationUsers().size() < 1) return false;
-        return !Collections.disjoint(users, getShareOrganizationUsers());
+        if (getShareOrganizationUsers( myShepherd ).size() < 1) return false;
+        return !Collections.disjoint(users, getShareOrganizationUsers( myShepherd ));
     }
 
     public boolean getShareAll() {
@@ -121,6 +120,7 @@ public abstract class Share {
         myShepherd.beginDBTransaction();
         wbGUID = CommonConfiguration.getGUID(myShepherd);
         myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
         return wbGUID;
     }
 

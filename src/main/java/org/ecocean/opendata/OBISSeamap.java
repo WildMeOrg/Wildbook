@@ -62,86 +62,94 @@ public class OBISSeamap extends Share {
         myShepherd.setAction(this.typeCode() + ".generate");
         myShepherd.beginDBTransaction();
 
-        // here we want to export all Occurrences (and their Encounters), and then Occurrence-less Encounters as well
-        if (occurrence_jdoql == null) occurrence_jdoql = "SELECT FROM org.ecocean.Occurrence";
-        Query query = myShepherd.getPM().newQuery(occurrence_jdoql);
-        Collection c = (Collection) (query.execute());
-        List<Occurrence> occs = new ArrayList<Occurrence>(c);
-        query.closeAll();
-        List<String> surveyTrackIds = new ArrayList<String>();
-        for (Occurrence occ : occs) {
-            if (!isShareable(occ)) continue;
-            SurveyTrack trk = occ.getSurveyTrack(myShepherd);
-            String surveyTrackId = (trk == null) ? null : trk.getID();
-            //TODO do we need to check isShareable(trk) at this point??? think not cuz it references back to occ
-            if ((trk != null) && !surveyTrackIds.contains(surveyTrackId)) {
-                String trow = tabRow(trk, myShepherd);
-                if (trow != null) {
-                    effortWriter.write(trow);
-                } else {
-                    surveyTrackId = null;  //dont reference via Occurrence data
-                }
-                surveyTrackIds.add(trk.getID());
-            }
-            String row = tabRow(occ, surveyTrackId, myShepherd);
-            if (row != null) writer.write(row);
+        try {
+          // here we want to export all Occurrences (and their Encounters), and then Occurrence-less Encounters as well
+          if (occurrence_jdoql == null) occurrence_jdoql = "SELECT FROM org.ecocean.Occurrence";
+          Query query = myShepherd.getPM().newQuery(occurrence_jdoql);
+          Collection c = (Collection) (query.execute());
+          List<Occurrence> occs = new ArrayList<Occurrence>(c);
+          query.closeAll();
+          List<String> surveyTrackIds = new ArrayList<String>();
+          for (Occurrence occ : occs) {
+              if (!isShareable(occ, myShepherd)) continue;
+              SurveyTrack trk = occ.getSurveyTrack(myShepherd);
+              String surveyTrackId = (trk == null) ? null : trk.getID();
+              //TODO do we need to check isShareable(trk) at this point??? think not cuz it references back to occ
+              if ((trk != null) && !surveyTrackIds.contains(surveyTrackId)) {
+                  String trow = tabRow(trk, myShepherd);
+                  if (trow != null) {
+                      effortWriter.write(trow);
+                  } else {
+                      surveyTrackId = null;  //dont reference via Occurrence data
+                  }
+                  surveyTrackIds.add(trk.getID());
+              }
+              String row = tabRow(occ, surveyTrackId, myShepherd);
+              if (row != null) writer.write(row);
+          }
+  
+          // cant figure out how to do this via jdoql.  :/
+          if (encounter_sql == null) encounter_sql = "SELECT * FROM \"ENCOUNTER\" LEFT JOIN \"OCCURRENCE_ENCOUNTERS\" ON (\"ENCOUNTER\".\"CATALOGNUMBER\" = \"OCCURRENCE_ENCOUNTERS\".\"CATALOGNUMBER_EID\") WHERE \"OCCURRENCE_ENCOUNTERS\".\"OCCURRENCEID_OID\" IS NULL";
+          Query query2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", encounter_sql);
+          query2.setClass(Encounter.class);
+          c = (Collection) (query2.execute());
+          List<Encounter> encs = new ArrayList<Encounter>(c);
+          query2.closeAll();
+          for (Encounter enc : encs) {
+              if (!isShareable(enc, myShepherd)) continue;
+              String row = tabRow(enc, myShepherd);
+              if (row != null) writer.write(row);
+          }
+  
+          writer.close();
+          effortWriter.close();
         }
-
-        // cant figure out how to do this via jdoql.  :/
-        if (encounter_sql == null) encounter_sql = "SELECT * FROM \"ENCOUNTER\" LEFT JOIN \"OCCURRENCE_ENCOUNTERS\" ON (\"ENCOUNTER\".\"CATALOGNUMBER\" = \"OCCURRENCE_ENCOUNTERS\".\"CATALOGNUMBER_EID\") WHERE \"OCCURRENCE_ENCOUNTERS\".\"OCCURRENCEID_OID\" IS NULL";
-        query = myShepherd.getPM().newQuery("javax.jdo.query.SQL", encounter_sql);
-        query.setClass(Encounter.class);
-        c = (Collection) (query.execute());
-        List<Encounter> encs = new ArrayList<Encounter>(c);
-        query.closeAll();
-        for (Encounter enc : encs) {
-            if (!isShareable(enc)) continue;
-            String row = tabRow(enc, myShepherd);
-            if (row != null) writer.write(row);
+        catch(Exception e) {
+          e.printStackTrace();
         }
-
-        writer.close();
-        effortWriter.close();
-        myShepherd.rollbackDBTransaction();
+        finally {
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+        }
         log(outPath + " and " + effortOutPath + " written by generate()");
     }
 
-    public boolean isShareable(Object obj) {
+    public boolean isShareable(Object obj, Shepherd myShepherd) {
         if (obj == null) return false;
-        if (obj instanceof Encounter) return isShareable((Encounter)obj);
-        if (obj instanceof Occurrence) return isShareable((Occurrence)obj);
-        if (obj instanceof SurveyTrack) return isShareable((SurveyTrack)obj);
+        if (obj instanceof Encounter) return isShareable((Encounter)obj,myShepherd);
+        if (obj instanceof Occurrence) return isShareable((Occurrence)obj,myShepherd);
+        if (obj instanceof SurveyTrack) return isShareable((SurveyTrack)obj,myShepherd);
         return false;
     }
 
 
-    public boolean isShareable(Encounter enc) {
+    public boolean isShareable(Encounter enc,  Shepherd myShepherd ) {
         if (enc == null) return false;
         if (getShareAll()) return true;
         User cu = getCollaborationUser();
         if ((cu != null) && Util.stringExists(cu.getUsername()) && Collaboration.canUserAccessEncounter(enc, context, cu.getUsername()))
             return true;
-        if (isShareOrganizationUser(enc.getSubmitters())) return true;
+        if (isShareOrganizationUser(enc.getSubmitters(), myShepherd)) return true;
         return false;
     }
 
-    public boolean isShareable(Occurrence occ) {
+    public boolean isShareable(Occurrence occ, Shepherd myShepherd) {
         if (occ == null) return false;
         if (getShareAll()) return true;
         if ((occ.getEncounters() == null) || (occ.getEncounters().size() < 1)) return false;
         for (Encounter enc : occ.getEncounters()) {
-            if (!isShareable(enc)) return false;
+            if (!isShareable(enc, myShepherd)) return false;
         }
         return true;
     }
 
-    public boolean isShareable(SurveyTrack trk) {
+    public boolean isShareable(SurveyTrack trk, Shepherd myShepherd) {
         if (trk == null) return false;
         if (getShareAll()) return true;
         if (Util.collectionIsEmptyOrNull(trk.getOccurrences())) return false;
         for (Occurrence occ : trk.getOccurrences()) {
             if (occ == null) continue;
-            if (!isShareable(occ)) return false;
+            if (!isShareable(occ, myShepherd)) return false;
         }
         return true;
     }

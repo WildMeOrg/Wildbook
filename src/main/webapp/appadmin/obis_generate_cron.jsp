@@ -10,7 +10,6 @@ org.ecocean.opendata.*
 <%
 
 String context = "context0";
-Shepherd myShepherd = new Shepherd(context);
 
 OBISSeamap os = new OBISSeamap(context);
 os.init();
