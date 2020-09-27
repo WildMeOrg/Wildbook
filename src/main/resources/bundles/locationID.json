@@ -896,7 +896,9 @@
 			 {
 			  "name": "Bass Strait", "id": "Bass Strait", "locationID":[
 			  
-							 { "name": "Port Phillip", "id": "Port Phillip" } 
+							 { "name": "Port Phillip", "id": "Port Phillip" },
+							 
+							 { "name": "Wilsons Promontory", "id": "Wilsons Promontory" }	 
 			  
 			  ]},
 			 {
