@@ -392,12 +392,13 @@ System.out.println("*** trying redirect?");
                 if(projectNameSelections != null){
                   // formValues.put("projectNameSelections", projectNameSelections);
                   for(String projectNameSelection: projectNameSelections){
-                    System.out.println("projectNameSelection is: " + projectNameSelection);
+                    // System.out.println("projectNameSelection is: " + projectNameSelection);
                     Project currentProject = myShepherd.getProjectByResearchProjectId(projectNameSelection);
                     if(currentProject!=null){
-                      System.out.println("not null");
+                      System.out.println("not null. Project is: ");
+                      System.out.println(currentProject.toString());
+                      this.projects.add(currentProject);
                     }
-                    this.projects.add(currentProject);
                   }
                 }
                 // System.out.println("projectNameSelections are: " + projectNameSelections.toString());
@@ -632,11 +633,19 @@ System.out.println("about to do enc()");
               }
             }
             enc.setEncounterNumber(encID);
+            
+            //add encounter to projects
             if(this.projects!=null){
               System.out.println("projects is not null");
+              System.out.println("size is: " + this.projects.size());
+
               for(Project currentProject: this.projects){
                 System.out.println("adding project to encounter!");
-                currentProject.addEncounter(enc);
+                if(currentProject!=null){
+                  System.out.println("current project when fetching to add to encounter is:");
+                  System.out.println(currentProject.toString());
+                  currentProject.addEncounter(enc);
+                }
               }
             }
 
@@ -1192,14 +1201,6 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
         request.setAttribute("number", "fail");
         return;
       }
-
-
-
-
-
-
-
-
 
       //return a forward to display.jsp
       System.out.println("Ending data submission.");
