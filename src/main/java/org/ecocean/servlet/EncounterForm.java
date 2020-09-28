@@ -61,6 +61,7 @@ import org.ecocean.media.*;
 import org.ecocean.ia.Task;
 import org.ecocean.NotificationMailer;
 import org.ecocean.ShepherdProperties;
+import org.ecocean.IAJsonProperties;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
