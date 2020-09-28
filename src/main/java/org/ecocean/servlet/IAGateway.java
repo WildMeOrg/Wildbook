@@ -654,13 +654,14 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
 */
             boolean success = true;
             JSONObject detectArgs = jin.optJSONObject("__detect_args");
+            String detectUrl = jin.optString("__detect_url");
             String detArgString = (detectArgs!=null) ? detectArgs.toString() : null;
-            System.out.println("_doDetect got detectArgs "+detArgString);
+            System.out.println("_doDetect got detectUrl "+detectUrl+" and detectArgs "+detArgString);
 
             try {
                 res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas,context));
-                // JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd, detectArgs);
-                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd);
+                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd, detectArgs, detectUrl);
+                // JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd);
                 res.put("sendDetect", sent);
                 String jobId = null;
                 if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))

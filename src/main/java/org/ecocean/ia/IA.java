@@ -111,9 +111,14 @@ public class IA {
             JSONObject detectArgs = iaConfig.getDetectionArgs(taxy, baseUrl, i);
             task.addParameter("detectArgs", detectArgs);
 
+            String detectionUrl = iaConfig.getDetectionUrl(taxy, i);
+            task.addParameter("__detect_url", detectionUrl);
+
+
             JSONObject qjob = new JSONObject();
             qjob.put("detect", dj);
             qjob.put("__detect_args", detectArgs);
+            qjob.put("__detect_url", detectionUrl);
             // task is queued here
             qjob.put("taskId", topTask.getId());
             qjob.put("__context", context);
@@ -169,6 +174,7 @@ public class IA {
         //List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         List<JSONObject> opts = iaConfig.identOpts(myShepherd, anns.get(0));
+
 
 
         System.out.println("identOpts: "+opts.toString());
