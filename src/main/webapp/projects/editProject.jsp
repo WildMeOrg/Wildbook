@@ -68,6 +68,7 @@ function doProjectGetAjax(json){
       success: function(data) {
           populateHtml(data.projects[0]);
           populateOrRefreshUserListHTML(data.projects[0].users);
+          addHTMLListeners();
       },
       error: function(x,y,z) {
         //TODO some sort of indication on user end that something has gone wrong
@@ -136,10 +137,13 @@ function populateHtml(project){
   projectHTML += '  <div class="col-xs-2 col-sm-2 col-md-1 col-lg-1">';
   projectHTML += '    <p><input class="btn btn-md" type="button" onclick="returnToProject(this)" value="Return To Project"/></p>';
   projectHTML += '  </div>';
+  
+  projectHTML += '</div>';
+  
+  projectHTML += '<div class="row">';
   projectHTML += '  <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">';
-  projectHTML += '    <label class="updataResponse" id="actionResultMessage"></label>';
+  projectHTML += '    <label id="actionResultMessage"></label>';
   projectHTML += '  </div>';
-
   projectHTML += '</div>';
 
   projectHTML += '</div>'; // container
@@ -160,7 +164,7 @@ function updateProject() {
     requestJSON['usersToRemove'] = userIdsToRemove;
   }
   if (userIdsToAdd.length>0) {
-    requestJSON['userIdsToAdd'] = userIdsToAdd;
+    requestJSON['usersToAdd'] = userIdsToAdd;
   }
   requestJSON['id'] = '<%=projId%>';
   requestJSONArr.push(requestJSON);
@@ -187,7 +191,6 @@ function doDeleteAjax(json){
       contentType: 'application/json',
       success: function(data) {
         //TODO indicate to user that something good happened
-        // probably settimeout with short message display
           window.location.replace('/projects/projectList.jsp');
       },
       error: function(x,y,z) {
@@ -204,13 +207,23 @@ function doProjectUpdateAjax(json) {
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
+        removeActionResultFeedback();
         $("#actionResultMessage").text("Success updating project data.");
+        $("#actionResultMessage").addClass('actionResultSuccess');
       },
       error: function(x,y,z) {
+        removeActionResultFeedback();
         $("#actionResultMessage").text("Failure updating project data.");
+        $("#actionResultMessage").addClass('actionResultError');
         console.warn('%o %o %o', x, y, z);
       }
   });
+}
+
+function removeActionResultFeedback() {
+  $("#actionResultMessage").val('');
+  $("#actionResultMessage").removeClass('actionResultSuccess');
+  $("#actionResultMessage").removeClass('actionResultError');
 }
 
 function removeUserFromProject(el) {
@@ -219,56 +232,57 @@ function removeUserFromProject(el) {
     let idToRemove = $(el).closest(".projectEditUserEl").attr('id');
     userIdsToRemove.push(idToRemove);
     $(el).closest(".projectEditUserEl").remove();
+    $("#actionResultMessage").text("Click 'Update' to save any changes to user list.");
   }
 }
 
-//let userNamesOnAccessList = [];
-let currentUsername = '<%=currentUser.getUsername()%>';
 $(document).ready(function() {
-
-
   showEditProject();
+});
 
-  console.log("do i have the element for projectUserIds??? "+$('#projectUserIds'));
 
-  $('#projectUserIds').autocomplete({
-    source: function(request, response){
+function addHTMLListeners() {
+  
+  let myName = '<%=currentUser.getUsername()%>';
+  $("#projectUserIds").autocomplete({
+    source: function(request,response) {
       $.ajax({
         url: wildbookGlobals.baseUrl + '/UserGetSimpleJSON?searchUser=' + request.term,
         type: 'GET',
         dataType: "json",
-        success: function(data){
-          console.log("autocomplete hit...");
-          let res = null;
-          res = $.map(data, function(item){
-            if(item.username==currentUsername || typeof item.username == 'undefined' || item.username == undefined||item.username===""){
-              return;
-            }
+        success: function( data ) {
+          let alreadyParticipant = [];
+          $(".projectEditUserEl").each(function() {
+            alreadyParticipant.push($(this).val());
+          });
+  
+          var res = $.map(data, function(item) {
+            console.log("what is in this user el?? "+JSON.stringify(item));
+            if (item.username==myName||typeof item.username == 'undefined'||item.username==undefined||item.username=="") return;
             let fullName = "";
-            if(item.fullName!=null && item.fullName!="undefined"){
-              fullName=item.fullName;
-            }
-            let label = ("name: " + fullName + " user: " + item.username);
-            return {label: label, value: item.username+ ":" + item.id, username: item.username, id: item.id};
+            if (item.fullName!=null&&item.fullName!="undefined") fullName = item.fullName;
+            let label = ("name: "+fullName+" user: "+item.username);
+            if (alreadyParticipant.indexOf(item.username) > -1) {
+              label += ' (already participating)';
+            }  
+            return { label: label, value: item.username, id: item.id };
           });
           response(res);
-        },
-        error: function(x,y,z) {
-          console.warn('%o %o %o', x, y, z);
-          return false;
         }
-
       });
     }
   });
-  $( "#projectUserIds" ).on( "autocompleteselect", function(event,result) {
-    let selectedUserStr = result.item.value;
-    console.log("Result in autocomplete: "+JSON.stringify(result));
-    appendNewUser(result.item.id, result.item.username);
-    $(this).val("");
-    return false;
-  });
-  
-  
-});
+
+  $("#projectUserIds").on("autocompleteselect", function(event,result) {
+      let selectedUserStr = result.item.value;
+      let selectedUserId = result.item.id;
+      appendNewUser(selectedUserId, selectedUserStr);
+      userIdsToAdd.push(selectedUserId);
+      $("#actionResultMessage").text("Click 'Update' to save any changes to user list.");
+      $(this).val("");
+      return false;
+    });
+
+}
+
 </script>
