@@ -163,6 +163,16 @@ public class IAJsonProperties extends JsonProperties {
 		return config;
 	}
 
+	// for a given taxonomy (input during submission) and an iaClass (returned from IA), we'll save the annotation only if this check is passed.
+	// e.g., if we get a whale_shark detection on a humpback whale: false. If we get an orca_dorsal detection on a bottlenose dolphin: true.
+	// this just checks if the iaClass has a defined behavior in the IA.json file.
+	public boolean isValidIAClass(Taxonomy taxyBeforeDetection, String iaClass) {
+		String taxyKey = taxonomyKey(taxyBeforeDetection);
+		String fullKey = taxyKey+"."+iaClass;
+		JSONObject conf = (JSONObject) this.get(fullKey);
+		return (conf != null);
+	}
+
 	// mimics an old IBEISIA method for easy migration
 	// note the key discrepancy between queryConfigDict and query_config_dict in old world vs new
   public List<JSONObject> identOpts(Shepherd myShepherd, Annotation ann) {
