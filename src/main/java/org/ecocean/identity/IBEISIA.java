@@ -396,18 +396,20 @@ Util.mark("identify process pre-post end");
     }
 
 
+    // this version of sendDetect only works for the first detection algo for a given taxonomy. The more robust version below is used in our ia.json pipeline
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
 
         Taxonomy taxy = mas.get(0).getTaxonomy(myShepherd);
         IAJsonProperties iaConfig = new IAJsonProperties();
         JSONObject detectArgs = iaConfig.getDetectionArgs(taxy, baseUrl);
-        return sendDetect(mas, baseUrl, context, myShepherd, detectArgs);
+        String detectUrl = iaConfig.getDetectionUrl(taxy);
+        return sendDetect(mas, baseUrl, context, myShepherd, detectArgs, detectUrl);
 
     }
 
 
     // assumes only one detection alg and replicates sendDetect
-    public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context, Shepherd myShepherd, JSONObject detectArgs) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl, String context, Shepherd myShepherd, JSONObject detectArgs, String detectUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
 
         Taxonomy taxy = mas.get(0).getTaxonomy(myShepherd);
@@ -417,8 +419,7 @@ Util.mark("identify process pre-post end");
         detectArgsWithMas.put("image_uuid_list", imageUUIDList(mas));
         System.out.println("sendDetect got detectArgs "+detectArgsWithMas.toString());
 
-        String u = iaConfig.getDetectionUrl(taxy);
-        URL url = new URL(u);
+        URL url = new URL(detectUrl);
         System.out.println("sendDetectNew sending to url "+url);
 
         return RestClient.post(url, detectArgsWithMas);
@@ -1684,15 +1685,17 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult, Shepherd myShepherd, String context, String rootDir) {
         if (iaResult == null||duplicateDetection(ma, iaResult)) return null;
         String iaClass = iaResult.optString("class", "_FAIL_");
-        Taxonomy tax = iaTaxonomyMap(myShepherd).get(iaClass);
-        if (tax == null) {  //null could mean "invalid IA taxonomy"
-            System.out.println("WARNING: bailing on IA results due to invalid species detected -- " + iaResult.toString());
+        Taxonomy taxonomyBeforeDetection = ma.getTaxonomy(myShepherd);
+        IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+
+        if (!iaConf.isValidIAClass(taxonomyBeforeDetection, iaClass)) {  //null could mean "invalid IA taxonomy"
+            System.out.println("WARNING: bailing on IA results because convertAnnotation found false for isValidIAClass("+taxonomyBeforeDetection+", "+iaClass+")");
             return null;
         }
 
         String viewpoint = iaResult.optString("viewpoint",null);
         if (Util.stringExists(viewpoint)) {
-            String kwName = RestKeyword.getKwNameFromIaViewpoint(viewpoint, tax, context);
+            String kwName = RestKeyword.getKwNameFromIaViewpoint(viewpoint, taxonomyBeforeDetection, context);
             if (kwName!=null) {
                 Keyword kw = myShepherd.getOrCreateKeyword(kwName);
                 ma.addKeyword(kw);
@@ -2147,7 +2150,8 @@ System.out.println("**** " + ann);
     }
 
     private static void exitIdentificationLoop(JSONObject infDict, Shepherd myShepherd) {
-System.out.println("*****************\nhey i think we are happy with these annotations!\n*********************\n" + infDict);
+System.out.println("*****************\nhey i think we are happy with these annotations!\n*********************\n");
+System.out.println("I am not printing infDict. Sorry.");
             //here we can use cluster_dict to find out what to create/persist on our side
     }
 
