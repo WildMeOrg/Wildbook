@@ -633,8 +633,9 @@ System.out.println("about to do enc()");
               }
             }
             enc.setEncounterNumber(encID);
-            
+
             //add encounter to projects
+            System.out.println("hey hello got here mark");
             if(this.projects!=null){
               System.out.println("projects is not null");
               System.out.println("size is: " + this.projects.size());
