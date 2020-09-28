@@ -59,6 +59,14 @@
             {
                "class":"whale_fluke",
                "start_detect":"https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/yolo/",
+            },
+            {
+               "start_detect": "https://kaiju.dyn.wildme.io:5005/api/engine/detect/cnn/lightnet/",
+               "detection_class":"whale_humpback+fin_dorsal",
+               "model_tag":"humpback_dorsal",
+               "viewpoint_model_tag":"humpback_dorsal",
+               "labeler_algo":"densenet",
+               "nms_aware":"ispart"
             }
          ],
          "_common_name":"humpback whale"
@@ -102,7 +110,7 @@
    "Tursiops":{
       "truncatus":{
          "dolphin_bottlenose+fin_dorsal":{
-            "id_conf":[
+            "_id_conf":[
                {
                   "query_config_dict":{
                      "pipeline_root":"Finfindr"
