@@ -117,6 +117,7 @@ public void doGet(HttpServletRequest request, HttpServletResponse response) thro
   }
 
 private final String UPLOAD_DIRECTORY = "/tmp";
+private List<Project> projects = null;
 
     //little helper function for pulling values as strings even if null (not set via form)
     private String getVal(Map formValues, String key) {
@@ -159,6 +160,19 @@ private final String UPLOAD_DIRECTORY = "/tmp";
     }
     return list;
   }
+
+  // private List<Project> getProjects(Map formValues){
+  //   List<Project> projects = new ArrayList<Project>();
+  //   String projectNames = getVal(formValues, "proj-id-dropdown");
+  //   if(Util.stringExists(projectNames)){
+  //     System.out.println("projectNames is: " + projectNames);
+  //   }
+  //   String defaultProject = getVal(formValues, "defaultSelection");
+  //   if(Util.stringExists(defaultProject)){
+  //     System.out.println("defaultProject is: " + defaultProject);
+  //   }
+  //   return projects;
+  // }
 
 
   private List<Measurement> getMeasurements(Map formValues, String encID, String context) {
@@ -339,10 +353,24 @@ System.out.println("*** trying redirect?");
                 List<FileItem> multiparts = upload.parseRequest(request);
                 //List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
 
+                List<String> projectNameSelections = new ArrayList<String>();
+                String defaultProjectName = getVal(formValues, "defaultProject");
+                if(Util.stringExists(defaultProjectName)){
+                  System.out.println("defaultProjectName is: " + defaultProjectName);
+                  if(!projectNameSelections.contains(defaultProjectName)){
+                    projectNameSelections.add(defaultProjectName);
+                  }
+                }
                 for(FileItem item : multiparts){
                     if (item.isFormField()) {  //plain field
                         formValues.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
-//System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString("UTF-8") + ")");
+                        //System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString("UTF-8") + ")");
+                        if(item.getFieldName().equals("proj-id-dropdown")){
+                          System.out.println("matches proj-id-dropdown");
+                          if(!projectNameSelections.contains(item.getString())){
+                            projectNameSelections.add(item.getString());
+                          }
+                        }
                     } else if (item.getName().startsWith("socialphoto_")) {
                         System.out.println(item.getName() + ": " + item.getString("UTF-8"));
                     } else {  //file
@@ -358,8 +386,22 @@ System.out.println("*** trying redirect?");
                     }
                 }
 
+
                 doneMessage = "File Uploaded Successfully";
                 fileSuccess = true;
+                if(projectNameSelections != null){
+                  // formValues.put("projectNameSelections", projectNameSelections);
+                  for(String projectNameSelection: projectNameSelections){
+                    // System.out.println("projectNameSelection is: " + projectNameSelection);
+                    Project currentProject = myShepherd.getProjectByResearchProjectId(projectNameSelection);
+                    if(currentProject!=null){
+                      System.out.println("not null. Project is: ");
+                      System.out.println(currentProject.toString());
+                      this.projects.add(currentProject);
+                    }
+                  }
+                }
+                // System.out.println("projectNameSelections are: " + projectNameSelections.toString());
 
             } catch (Exception ex) {
                 doneMessage = "File Upload Failed due to " + ex;
@@ -369,15 +411,6 @@ System.out.println("*** trying redirect?");
             doneMessage = "Sorry this Servlet only handles file upload request";
             System.out.println("Not a multi-part form submission!");
         }
-
-        String projectNames =  getVal(formValues, "proj-id-dropdown"); //TODO make accommodate multiple-select
-        List<Project> projects = null;
-        if(projectNames != null){
-          System.out.println("got here and projects is: " + projects);
-          //TODO for loop and populate projects with Project instances 
-        }
-
-
 
         if (formValues.get("social_files_id") != null) {
           System.out.println("BBB: Social_files_id: "+formValues.get("social_files_id"));
@@ -533,6 +566,13 @@ System.out.println("*** trying redirect?");
           }
           else{hour=-1;}
 
+          // List<String> projNameSelections = formValues.get("projectNameSelections");
+          // for(String projectNameSelection: projNameSelections){
+          //   System.out.println("Yay! You’re here! Hi! projectNameSelection is: " + projectNameSelection);
+          //   Project currentProject = myShepherd.getProjectByResearchProjectId(projectNameSelection);
+          //   this.projects.add(currentProject);
+          // }
+
 
                   //System.out.println("At the end of time processing I see: "+year+"-"+month+"-"+day+" "+hour+":"+minutes);
 
@@ -593,9 +633,20 @@ System.out.println("about to do enc()");
               }
             }
             enc.setEncounterNumber(encID);
-            if(projects!=null){
-              for(Project currentProject: projects){
-                currentProject.addEncounter(enc);
+
+            //add encounter to projects
+            System.out.println("hey hello got here mark");
+            if(this.projects!=null){
+              System.out.println("projects is not null");
+              System.out.println("size is: " + this.projects.size());
+
+              for(Project currentProject: this.projects){
+                System.out.println("adding project to encounter!");
+                if(currentProject!=null){
+                  System.out.println("current project when fetching to add to encounter is:");
+                  System.out.println(currentProject.toString());
+                  currentProject.addEncounter(enc);
+                }
               }
             }
 
@@ -1151,14 +1202,6 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
         request.setAttribute("number", "fail");
         return;
       }
-
-
-
-
-
-
-
-
 
       //return a forward to display.jsp
       System.out.println("Ending data submission.");

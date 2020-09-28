@@ -78,7 +78,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <script>
 $(document).ready( function() {
 	console.log("ready");
-	populateProjectNameDropdown([],"", false, getDefaultSelectedProject());
+	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getDefaultSelectedProjectId());
 	<%
 	if(user != null){
 		%>
@@ -97,7 +97,7 @@ $(document).ready( function() {
 	%>
 });
 
-function populateProjectNameDropdown(options, selectedOption, isVisible, defaultSelectItem){
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId){
 	// console.log("populateProjectNameDropdown entered");
 	if(options.length<1){
 		// console.log("no options. Making invisible");
@@ -105,7 +105,7 @@ function populateProjectNameDropdown(options, selectedOption, isVisible, default
 	}
 		let projectNameHtml = '';
 		projectNameHtml += '<div class="col-xs-6 col-md-4">';
-		//comment out the below for submit.jsp version
+		//comment out the below for submit.jsp version and/or if you don't want a default
 		projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />';
 		if(isVisible){
 			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
@@ -116,13 +116,13 @@ function populateProjectNameDropdown(options, selectedOption, isVisible, default
 		}
 		if(defaultSelectItem){
 			//this next line should be commented in on submit.jsp
-			projectNameHtml += '<option value="' + defaultSelectItem + '" selected>'+ defaultSelectItem +'</option>';
+			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
 		}
 		for(let i=0; i<options.length; i++){
 			if(options[i] === selectedOption){
-				projectNameHtml += '<option value="'+ options[i] +'" selected>'+ options[i] +'</option>';
+				projectNameHtml += '<option value="'+ values[i] +'" selected>'+ options[i] +'</option>';
 			}else{
-				projectNameHtml += '<option value="'+ options[i] + '">'+ options[i] +'</option>';
+				projectNameHtml += '<option value="'+ values[i] + '">'+ options[i] +'</option>';
 			}
 		}
 		projectNameHtml += '</div>';
@@ -133,6 +133,11 @@ function populateProjectNameDropdown(options, selectedOption, isVisible, default
 function getDefaultSelectedProject(){
 	let defaultProject = '<%= props.getProperty("defaultProjName") %>'
 	return defaultProject;
+}
+
+function getDefaultSelectedProjectId(){
+	let defaultProjectId = '<%= props.getProperty("defaultProjId") %>'
+	return defaultProjectId;
 }
 
 
@@ -151,7 +156,8 @@ function doAjaxForProject(requestJSON,userId){
 				let projNameOptions = null;
 				if(projectNameResults){
 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
-					populateProjectNameDropdown(projNameOptions,"", true, getDefaultSelectedProject());
+					projNameIds = projectNameResults.map(entry =>{return entry.researchProjectId});
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId());
 				}
 			},
 			error: function(x,y,z) {
