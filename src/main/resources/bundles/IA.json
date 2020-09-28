@@ -157,7 +157,7 @@
    "Stenella":{
       "frontalis":{
          "dolphin_spotted":{
-            "id_conf":[
+            "_id_conf":[
                {
                   "queryConfigDict":{
                      "sv_on":true
@@ -166,7 +166,7 @@
             ]
          },
          "dolphin_spotted+fin_dorsal":{
-            "id_conf":[
+            "_id_conf":[
                {
                   "query_config_dict":{
                      "pipeline_root":"Finfindr"
@@ -201,7 +201,7 @@
    "Orcinus":{
       "orca":{
          "whale_orca+fin_dorsal":{
-            "id_conf":[
+            "_id_conf":[
                {
                   "query_config_dict":{
                      "pipeline_root":"Finfindr"
@@ -240,7 +240,7 @@
    "Eubalaena":{
       "glacialis":{
          "right_whale_head":{
-            "id_conf":[
+            "_id_conf":[
                {
                   "query_config_dict":{
                      "pipeline_root":"Deepsense"
