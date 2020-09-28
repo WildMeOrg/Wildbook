@@ -85,7 +85,7 @@ public class JsonProperties extends Properties {
 	}
 
 	public Object getRecursive(String[] keys, JSONObject currentLevel) {
-		System.out.println("getRecursive called on "+String.join(".", keys));
+		//System.out.println("getRecursive called on "+String.join(".", keys));
 
 		String key = keys[0];
 		String linkDestination = getLinkDestination(key, currentLevel);
@@ -133,7 +133,7 @@ public class JsonProperties extends Properties {
     try {
       InputStream is = new FileInputStream(fullPath);
       String jsonTxt = IOUtils.toString(is, "UTF-8");
-      System.out.println("JSON parsed: "+jsonTxt);
+      System.out.println("JSONProperties successfully parsed "+fullPath);
       json = new JSONObject(jsonTxt);
     } catch (Exception e) {
     	System.out.println("Hit an exception on JsonProperties.fromFile("+fullPath+")");
