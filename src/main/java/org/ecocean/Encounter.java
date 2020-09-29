@@ -59,6 +59,7 @@ import org.ecocean.ia.IA;
 import org.ecocean.media.*;
 import org.ecocean.PointLocation;
 import org.ecocean.Survey;
+import org.ecocean.servlet.importer.ImportTask;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -3580,7 +3581,7 @@ throw new Exception();
 
 
     //note this sets some things (e.g. species) which might (should!) need to be adjusted after, e.g. with setSpeciesFromAnnotations()
-    public Encounter cloneWithoutAnnotations() {
+    public Encounter cloneWithoutAnnotations(Shepherd myShepherd) {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
         System.out.println("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
@@ -3598,7 +3599,14 @@ throw new Exception();
         enc.setOccurrenceID(this.getOccurrenceID());
         enc.setRecordedBy(this.getRecordedBy());
         enc.setState(this.getState());  //not too sure about this one?
+        ImportTask itask = getImportTask(myShepherd);
+        if (itask != null) itask.addEncounter(enc);
         return enc;
+    }
+
+    //for convenience
+    public ImportTask getImportTask(Shepherd myShepherd) {
+        return myShepherd.getImportTaskForEncounter(this);
     }
 
     //this is a special state only used now for match.jsp but basically means the data should be mostly hidden and soon deleted, roughly speaking???
