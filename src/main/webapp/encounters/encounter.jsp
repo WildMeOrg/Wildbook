@@ -20,7 +20,7 @@
          org.json.JSONObject,
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
-         java.io.File, java.text.DecimalFormat, 
+         java.io.File, java.text.DecimalFormat,
          org.ecocean.servlet.importer.ImportTask,
          org.apache.commons.lang3.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -2773,7 +2773,7 @@ else {
 					                        </div>
 					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
 					                          <%-- <p> --%>
-					
+
 					                        <%
 					                        if(thisUser.getAffiliation()!=null){
 					                        %>
@@ -2781,19 +2781,19 @@ else {
 					                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
 					                        <%
 					                        }
-					
+
 					                        if(thisUser.getUserProject()!=null){
 					                        %>
 					                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
 					                        <%
 					                        }
-					
+
 					                        if(thisUser.getUserURL()!=null){
 					                            %>
 					                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
 					                            <%
 					                          }
-					
+
 					                        if(thisUser.getUserStatement()!=null){
 					                            %>
 					                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
@@ -2802,13 +2802,13 @@ else {
 					                        %>
 					                        </div>
 					                      </div>
-					
+
 					                  </div>
-					
+
 					<%
 					                         	}
-					
-					
+
+
 					                      	else{
 					                      	%>
 					                      	&nbsp;
@@ -4841,7 +4841,7 @@ button#upload-button {
         dataType: 'json',
         contentType: 'application/javascript',
         data: JSON.stringify(removeDPJSON),
-      
+
         success: function(d) {
           $("#dialogDP"+dPropKey).remove();
         },
@@ -5477,7 +5477,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
   <tr>
     <td>
-  
+
         <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
         <%
         SexAnalysis mtDNA=new SexAnalysis();
@@ -5489,13 +5489,13 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         <tr><td>
         <%
         String haplotypeString="";
-  
+
         try{
           if(mito.getSex()!=null){haplotypeString=mito.getSex();}
         } catch (NullPointerException npe34){}
-  
+
         ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
-  
+
         if (sexDefs!=null&&haplotypeString!=null) {
           System.out.println("haplotypeString??? "+haplotypeString);
           System.out.println("sexDefs:  "+Arrays.toString(sexDefs.toArray()));
@@ -6223,7 +6223,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
   <tr>
     <td>
-  
+
         <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
         <%
         SexAnalysis mtDNA=new SexAnalysis();
@@ -6234,13 +6234,13 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         <tr><td>
         <%
         String haplotypeString="";
-  
+
         try{
           if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
         } catch (NullPointerException npe34){}
-  
+
         ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
-  
+
         if (sexDefs!=null&&haplotypeString!=null&&sexDefs.contains(haplotypeString)) {
           sexDefs.remove(haplotypeString);
         }
@@ -6574,32 +6574,16 @@ function iaMatchFilterGo() {
 
 		<%
 		Properties iaprops = ShepherdProperties.getProperties("IA.properties", "", context);
+    IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+    Taxonomy taxy = enc.getTaxonomy(myShepherd);
 
-		String IBEISIdentOptRoot="IBEISIdentOpt";
-		if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null){
-			String speciesIBEISIdentOptRoot=IBEISIdentOptRoot+"_"+enc.getGenus()+"_"+enc.getSpecificEpithet();
-			if(iaprops.getProperty(speciesIBEISIdentOptRoot+"0")!=null){
-				IBEISIdentOptRoot=speciesIBEISIdentOptRoot;
-				System.out.println("Setting IBEISIdentOptRoot in matching dialog to: "+IBEISIdentOptRoot);
-			}
-		}
-		int rootIter=0;
-		while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-			String val="HotSpotter";
-			String queryDict="";
-			try {
-			     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
-				%>
-				optArray.push(<%=jsonObject.toString()  %>);
-				<%
-			}
-			catch (Exception err){
-			     err.printStackTrace();
-			     val="HotSpotter";
-			}
-
-			rootIter++;
-		}
+    JSONArray allIdentOpts = iaConfig.getAllIdentOpts(taxy);
+    for (int algNum=0; algNum<allIdentOpts.length(); algNum++) {
+      JSONObject thisIdentOpt = allIdentOpts.getJSONObject(algNum);
+        %>
+        optArray.push(<%=thisIdentOpt.toString()  %>);
+        <%
+    }
 		%>
 
 $('.ia-match-filter-dialog input').each(function(i, el) {
@@ -6613,7 +6597,7 @@ $('.ia-match-filter-dialog input').each(function(i, el) {
         else{
         	data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
         }
-        
+
     });
 console.log('SENDING ===> %o', data);
     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
@@ -6781,43 +6765,24 @@ $(".search-collapse-header").click(function(){
 
 <%
 
-rootIter=0;
-while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-	
-	if(rootIter==0){
-		%>
-		<div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
-		
-		<%
-	}
-	
-	
-	String val="HotSpotter";
-	String queryDict="";
-	try {
-	     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
-	     queryDict=jsonObject.toString();
+JSONArray identConfigs = iaConfig.getAllIdentConfigs(taxy);
 
-	     if(iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter)!=null){
-	    	 val=iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter);
-	     }
-	     else{
-	     	val=(new JSONObject(jsonObject.getJSONObject("queryConfigDict").toString())).optString("pipeline_root");
-	     }
-	}
-	catch (Exception err){
-	     err.printStackTrace();
-	     val="HotSpotter";
-	}
-	if(val==null || val.trim().equals("")){
-		val="HotSpotter";
-	}
+  %>
+  <div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
+  <%
+for(int algNum=0; algNum<identConfigs.length(); algNum++) {
+  JSONObject algConfig = identConfigs.getJSONObject(algNum);
+  JSONObject queryConfigDict = algConfig.optJSONObject("query_config_dict");
 
-	out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + rootIter + "\" name=\"match-filter-algorithm\" value=\"" + rootIter+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + rootIter + "\">" + val + " </label></div>");
+  String description = algConfig.optString("description");
+  if (!Util.stringExists(description) && queryConfigDict!=null) {
+    description = queryConfigDict.optString("pipeline_root");
+  }
+  if (!Util.stringExists(description)) description = "HotSpotter pattern matcher";
 
-	rootIter++;
+  out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
+
 }
-
 
 %>
 
