@@ -102,7 +102,6 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 	}
 		let projectNameHtml = '';
 		projectNameHtml += '<div class="col-xs-6 col-md-4">';
-		//comment out the below for submit.jsp version and/or if you don't want a default even when user not logged in
 		if(loggedOutDefaultDesired){
 			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProject() + '" />';
 		}
@@ -889,10 +888,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
       </div>
     </div>
-
-		<div class="form-group form-inline" id="silent-input-form-group-container">
-			<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />
-		</div>
 
 		<div class="form-group form-inline" id="proj-id-dropdown-container">
 
