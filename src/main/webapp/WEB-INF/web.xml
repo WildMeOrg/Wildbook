@@ -429,6 +429,8 @@
 				/imports.jsp = authc
 				
 				/DeleteImportTask = authc, roles[researcher]
+
+        /ProjectIA = authc, roles[researcher]
 				
             </param-value>
         </init-param>
@@ -478,6 +480,11 @@
   <servlet>
     <servlet-name>ProjectUpdate</servlet-name>
     <servlet-class>org.ecocean.servlet.ProjectUpdate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ProjectIA</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectIA</servlet-class>
   </servlet>
 
   <servlet>
@@ -1679,6 +1686,11 @@
   <servlet-mapping>
     <servlet-name>ProjectUpdate</servlet-name>
     <url-pattern>/ProjectUpdate</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectIA</servlet-name>
+    <url-pattern>/ProjectIA</url-pattern>
   </servlet-mapping>
 
   <!--SUTime testing-->
