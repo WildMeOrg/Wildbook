@@ -68,9 +68,12 @@ public class ProjectIA extends HttpServlet {
                 Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
                 Encounter queryEnc = myShepherd.getEncounter(queryEncounterId);
                 if (project!=null&&queryEnc!=null) {
+
+
                     List<Encounter> targetEncs = project.getEncounters();
                     List<Annotation> targetAnns = new ArrayList<>();
                     JSONArray initiatedJobs = new JSONArray();
+
                     for (Annotation queryAnn : queryEnc.getAnnotations()) {
                         if (IBEISIA.validForIdentification(queryAnn)) {
                             if (targetAnns.isEmpty()) {
@@ -78,12 +81,15 @@ public class ProjectIA extends HttpServlet {
                             }
                             List<Annotation> anns = new ArrayList<>();  
                             // as far as i can tell ann(0) will always be used as the query ann
-                            anns.addAll(targetAnns);
+                            //anns.addAll(targetAnns);
                             anns.add(0, queryAnn);
-                            Task topTask = IA.intakeAnnotations(myShepherd, anns);
-                            myShepherd.storeNewTask(topTask);
+
+                            Task topTask = new Task();
+                            topTask.addParameter("projectId", project.getId());
+                            Task childTask = IA.intakeAnnotations(myShepherd, anns);
                             JSONObject jobJSON = new JSONObject();
-                            jobJSON.put("taskId", topTask.getId());
+                            jobJSON.put("topTaskId", topTask.getId());
+                            jobJSON.put("childTaskId", childTask.getId());
                             jobJSON.put("queryAnnId", queryAnn.getId());
                             initiatedJobs.put(jobJSON);
                         }
