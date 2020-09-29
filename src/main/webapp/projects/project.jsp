@@ -330,9 +330,10 @@ function startMatchForEncounter(el) {
   let elId = $(el).attr('id');
   console.log("--> el id for starting match: "+elId);
   let encId = elId.replace('encId-','');
+  let researchProjectId = '<%= project.getResearchProjectId()%>';
   if (encId&&researchProjectId) {
     let requestJSON = {};
-    requestJSON['researchProjectId'] = '<%= project.getResearchProjectId()%>';
+    requestJSON['researchProjectId'] = researchProjectId;
     requestJSON['queryEncounterId'] = encId;
     console.log("all requestJSON: "+JSON.stringify(requestJSON));
     let responseJSON = {};
