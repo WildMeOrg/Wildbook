@@ -77,8 +77,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 <script>
 $(document).ready( function() {
-	console.log("ready");
-	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getDefaultSelectedProjectId());
+	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
 	<%
 	if(user != null){
 		%>
@@ -97,26 +96,24 @@ $(document).ready( function() {
 	%>
 });
 
-function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId){
-	// console.log("populateProjectNameDropdown entered");
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
 	if(options.length<1){
-		// console.log("no options. Making invisible");
 		isVisible=false;
 	}
 		let projectNameHtml = '';
 		projectNameHtml += '<div class="col-xs-6 col-md-4">';
-		//comment out the below for submit.jsp version and/or if you don't want a default
-		projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />';
+		if(loggedOutDefaultDesired){
+			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProject() + '" />';
+		}
 		if(isVisible){
 			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
 			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
 		}else{
-			console.log("making the select hidden");
 			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
 		}
 		if(defaultSelectItem){
-			//this next line should be commented in on submit.jsp
 			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
+			options = options.remove(defaultSelectItem);
 		}
 		for(let i=0; i<options.length; i++){
 			if(options[i] === selectedOption){
@@ -130,19 +127,33 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 		$("#proj-id-dropdown-container").append(projectNameHtml);
 }
 
+Array.prototype.remove = function() {
+    var what, a = arguments, L = a.length, ax;
+    while (L && this.length) {
+        what = a[--L];
+        while ((ax = this.indexOf(what)) !== -1) {
+            this.splice(ax, 1);
+        }
+    }
+    return this;
+};
+
 function getDefaultSelectedProject(){
-	let defaultProject = '<%= props.getProperty("defaultProjName") %>'
+	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>'
 	return defaultProject;
 }
 
 function getDefaultSelectedProjectId(){
-	let defaultProjectId = '<%= props.getProperty("defaultProjId") %>'
+	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>'
 	return defaultProjectId;
 }
 
+function getLoggedOutDefaultDesired(){
+	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>'
+	return loggedOutDefaultDesired;
+}
 
 function doAjaxForProject(requestJSON,userId){
-	console.log("doAjaxForProject entered");
 	$.ajax({
 			url: wildbookGlobals.baseUrl + '../ProjectGet',
 			type: 'POST',
@@ -150,14 +161,12 @@ function doAjaxForProject(requestJSON,userId){
 			dataType: 'json',
 			contentType: 'application/json',
 			success: function(data) {
-				console.log("return data is:")
-				console.log(data);
 				let projectNameResults = data.projects;
 				let projNameOptions = null;
 				if(projectNameResults){
 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
 					projNameIds = projectNameResults.map(entry =>{return entry.researchProjectId});
-					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId());
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
 				}
 			},
 			error: function(x,y,z) {
@@ -880,10 +889,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       </div>
     </div>
 
-		<div class="form-group form-inline" id="silent-input-form-group-container">
-			<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />
-		</div>
-
 		<div class="form-group form-inline" id="proj-id-dropdown-container">
 
 
@@ -1232,26 +1237,13 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 				  			'theme' : 'light'
 						});
 		        }
-
-
-
-
-
            </script>
-
         <%
          }
         %>
 <script>
 
 function sendButtonClicked() {
-	// console.log('sendButtonClicked()');
-	// let projecSelections = $('#proj-id-dropdown').val();
-	// console.log("projecSelections is:");
-	// console.log(projecSelections);
-	// let defaultSelection = $('#defaultProject').val();
-	// console.log("defaultSelection is:");
-	// console.log(defaultSelection);
 	$('.required-missing').removeClass('required-missing')
 
 	if (!$('#genusSpecies').val()) {
