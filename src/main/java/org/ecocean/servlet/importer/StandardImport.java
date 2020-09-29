@@ -1027,7 +1027,67 @@ public class StandardImport extends HttpServlet {
       /*
        * End informOther imports
        */
-      
+
+
+      // add to Project or projects
+      boolean hasAnotherProject = true;
+      int projectIncrement = 0;
+      while (hasAnotherProject) {
+        try {
+          String researchProjectIdKey = "Encounter.project"+projectIncrement+".researchProjectId";
+          String researchProjectId = getString(row,researchProjectIdKey);
+
+          String ownerNameKey = "Encounter.project"+projectIncrement+".ownerUsername";
+          String researchProjectNameKey = "Encounter.project"+projectIncrement+".researchProjectName";
+          if (Util.stringExists(researchProjectId)) {
+            researchProjectId = researchProjectId.trim();
+            //if this project already exists, use it. bail on other specifics.
+            Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+            if (project==null) {
+
+              String ownerName = getString(row,ownerNameKey);
+              
+              if (Util.stringExists(ownerName)) {
+                ownerName = ownerName.trim();
+                User owner = myShepherd.getUser(ownerName);
+                if (owner==null&&committing) {
+                  owner = new User(Util.generateUUID());
+                  owner.setUsername(ownerName);
+                  myShepherd.getPM().makePersistent(owner);
+                }
+
+                if (owner!=null&&committing) {
+                  project = new Project(researchProjectId);
+                  String researchProjectName = getString(row,researchProjectNameKey);
+                  if (Util.stringExists(researchProjectName)) {
+                    researchProjectId = researchProjectId.trim();
+                    project.setResearchProjectName(researchProjectName);
+                  }
+                  project.setOwner(owner);
+                  myShepherd.storeNewProject(project);
+                }
+              }
+            }
+            if (committing) {
+              project.addEncounter(enc);
+              myShepherd.updateDBTransaction();
+            }
+            if (unusedColumns!=null) {
+              unusedColumns.remove(researchProjectId);
+              if (unusedColumns.contains(ownerNameKey)) unusedColumns.remove(ownerNameKey);
+              if (unusedColumns.contains(researchProjectNameKey)) unusedColumns.remove(researchProjectNameKey);
+            }
+            projectIncrement++;
+          } else {
+            hasAnotherProject = false;
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+          break;
+        }
+      }
+
+      // end add to projects
 
 
   	String scar = getIntAsString(row, "Encounter.distinguishingScar");
