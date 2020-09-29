@@ -86,7 +86,7 @@ public class ProjectIA extends HttpServlet {
 
                             Task topTask = new Task();
                             topTask.addParameter("projectId", project.getId());
-                            Task childTask = IA.intakeAnnotations(myShepherd, anns);
+                            Task childTask = IA.intakeAnnotations(myShepherd, anns, topTask);
                             JSONObject jobJSON = new JSONObject();
                             jobJSON.put("topTaskId", topTask.getId());
                             jobJSON.put("childTaskId", childTask.getId());
