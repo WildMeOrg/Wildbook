@@ -18,6 +18,9 @@
   context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("project.jsp");
+  Project project = null;
+  User currentUser = null;
+  myShepherd.beginDBTransaction();
   String projId = request.getParameter("id").replaceAll("\\+", "").trim();
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
@@ -31,16 +34,13 @@
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
   String langCode=ServletUtilities.getLanguageCode(request);
-
   pageContext.setAttribute("projId", projId);
   boolean proceed = true;
   boolean haveRendered = false;
-  Properties collabProps = new Properties();
+  Properties projectProps = new Properties();
   String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-  collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-  User currentUser = AccessControl.getUser(request, myShepherd);
-  Project project = myShepherd.getProject(projId);
-  List<Encounter> encounters = project.getEncounters();
+  projectProps=ShepherdProperties.getProperties("project.properties", langCode, context);
+
 %>
 <style type="text/css">
   .disabled-btn { /* moving this to _encounter-pages.less AND moving that beneath buttons custom import in manta.less did not work. */
@@ -58,31 +58,40 @@
 
 <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
-    <title>Project <%=projId%></title>
+  <%
+  try{
+    currentUser = AccessControl.getUser(request, myShepherd);
+    project = myShepherd.getProject(projId);
+    if(project != null){
+      List<Encounter> encounters = project.getEncounters();
+    // }
+
+  %>
+    <title><%= projectProps.getProperty("Project")%> <%=projId%></title>
     <div class="container maincontent">
       <div class="row">
         <div class="col-xs-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
-          <h3>Project: <%=project.getResearchProjectName()%></h3>
+          <h3><%= projectProps.getProperty("ProjectColon")%> <%=project.getResearchProjectName()%></h3>
         </div>
         <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 col-xl-10">
           <span id="editButtonSpan"></span>
         </div>
       </div>
           <%
-          try{
+
             if(currentUser != null){
               if(encounters == null || encounters.size()<1){
                 %>
-                  <h4>You don't have any encounters in this project yet</h4>
+                  <h4><%= projectProps.getProperty("NoEncountersInProj")%></h4>
                 <%
               }else{
                 %>
                 <div align="center">
                   <div id="progress-div">
-                    <h4>Encounters are loading. This may take several minutes...</h4>
+                    <h4><%= projectProps.getProperty("EncountersLoading")%></h4>
                     <div class="progress">
                       <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
-                        <span class="sr-only">~50% Complete</span>
+                        <span class="sr-only"><%= projectProps.getProperty("PercentComplete")%></span>
                       </div>
                     </div>
                   </div>
@@ -90,13 +99,13 @@
                     <table class="row project-style">
                       <thead>
                         <tr>
-                          <th class="project-style">Encounter</th>
-                          <th class="project-style">Individual</th>
-                          <th class="project-style">Date/Time</th>
-                          <th class="project-style">Location</th>
-                          <th class="project-style">Data Owner</th>
-                          <th class="project-style">Project IDs</th>
-                          <th class="project-style">Actions</th>
+                          <th class="project-style"><%= projectProps.getProperty("EncounterTableHeader")%></th>
+                          <th class="project-style"><%= projectProps.getProperty("IndividualTableHeader")%></th>
+                          <th class="project-style"><%= projectProps.getProperty("DateTimeTableHeader")%></th>
+                          <th class="project-style"><%= projectProps.getProperty("LocationTableHeader")%></th>
+                          <th class="project-style"><%= projectProps.getProperty("DataOwnerTableHeader")%></th>
+                          <th class="project-style"><%= projectProps.getProperty("ProjectIdTableHeader")%></th>
+                          <th class="project-style"><%= projectProps.getProperty("ActionTableHeader")%></th>
                         </tr>
                       </thead>
                       <tbody id="encounterList">
@@ -105,6 +114,7 @@
           <%
               } // end if encounters + else
             } // end if currentUser
+          } // end if project
           } catch (Exception e) {
             e.printStackTrace();
           } // end try block
@@ -122,29 +132,22 @@
 <script type="text/javascript">
 
 function markNewIncremental(individualId, projectId, encounterId){
-  console.log("markNewIncremental entered");
   disableNewButton(encounterId);
   $('#adding-div_' + encounterId).show();
   if(individualId && projectId && encounterId){
-    // console.log("projectId is " + projectId);
-    // console.log("individualId is " + individualId);
     addIncrementalProjectIdAjax(individualId, projectId, encounterId);
   }
 }
 
 function createIndividualAndMarkNewIncremental(encounterId, projectId){
-  console.log("createIndividualAndMarkNewIncremental entered!");
   disableNewButton(encounterId);
   $('#adding-div_' + encounterId).show();
   if(projectId && encounterId){
-    // console.log("projectId is " + projectId);
-    // console.log("encounterId is " + encounterId);
     createMarkedIndividualAjax(projectId, encounterId);
   }
 }
 
 function createMarkedIndividualAjax(projectId, encounterId){
-  console.log("createMarkedIndividualAjax entered");
   let formJson = {};
   formJson["projectId"] = projectId;
   formJson["encounterId"] = encounterId;
@@ -160,12 +163,9 @@ function createMarkedIndividualAjax(projectId, encounterId){
       if(data){
         console.log(data);
         if(data.success){
-          console.log("success in createMarkedIndividualAjax! Data is:");
-          console.log(data);
           let newIndividualId = data.newIndividualId;
           addIncrementalProjectIdAjax(newIndividualId, projectId, encounterId);
         }else{
-          console.log("failure in createMarkedIndividualAjax!");
           $('#alert-div-warn_'+encounterId).show();
         }
       }
@@ -177,12 +177,9 @@ function createMarkedIndividualAjax(projectId, encounterId){
 }
 
 function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
-  console.log("addIncrementalProjectIdAjax entered")
   let formJson = {};
   formJson["researchProjectId"] = projectId;
   formJson["individualId"] = individualId;
-  console.log("form JSON in addIncrementalProjectIdAjax");
-  console.log(JSON.stringify(formJson));
   $.ajax({
     url: wildbookGlobals.baseUrl + '../IndividualAddIncrementalProjectId',
     type: 'POST',
@@ -193,15 +190,11 @@ function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
       if(data){
         console.log(data);
         if(data.success){
-          console.log("success in addIncrementalProjectIdAjax! Data are:");
-          console.log(data);
           $('#adding-div_' + encounterId).hide();
           $('#alert-div_'+encounterId).show();
           $('#mark-new-button_'+encounterId).hide();
           $('#disabled-mark-new-button_'+encounterId).hide();
-          //TODO getEncounterJSON()?
         }else{
-          console.log("failure in addIncrementalProjectIdAjax!");
           $('#adding-div_' + encounterId).hide();
           $('#alert-div-warn_'+encounterId).show();
           enableNewButton(encounterId);
@@ -227,25 +220,19 @@ function enableNewButton(encounterId){
 }
 
 function dismissAlert(encounterId){
-  console.log("dismissAlert clicked");
   if(encounterId){
-    console.log("encounterId is "+ encounterId);
     $('#'+'alert-div_'+ encounterId).hide();
     $('#'+'alert-div-warn_'+encounterId).hide();
   }
 }
 
 function getEncounterJSON() {
-  console.log('Current projectUUID : <%=projId%>');
   let projectUUID = '<%=projId%>';
   let requestJSON = {};
   requestJSON['projectUUID'] = projectUUID;
   requestJSON['getEncounterMetadata'] = "true";
   requestJSON['getEditPermission'] = "true";
-  console.log("all requestJSON: "+JSON.stringify(requestJSON));
-
   let responseJSON = {};
-
   $.ajax({
       url: wildbookGlobals.baseUrl + '../ProjectGet',
       type: 'POST',
@@ -253,8 +240,6 @@ function getEncounterJSON() {
       dataType: 'json',
       contentType: 'application/json',
       success: function(d) {
-          console.log("literal response: "+d.projects);
-          console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
           $("#encounterList").empty();
           let projectsArr = d.projects;
           for (let i=0;i<projectsArr.length;i++) {
@@ -264,12 +249,10 @@ function getEncounterJSON() {
                 $("#encounterList").append(projectHTML);
               }
           }
-
           let userCanEdit = d.userCanEdit;
           if ("true"==userCanEdit) {
             showEditControls();
           }
-
           $('#progress-div').hide();
           $('#table-div').show();
       },
@@ -284,8 +267,7 @@ function showEditControls() {
   let location = '/projects/editProject.jsp?id=<%=projId%>';
   editPageLink += '<input id="editPageLink" class="btn" onclick="goToEditPage()" value ="Edit Project" type="button" />';
   $('#editButtonSpan').append(editPageLink);
-
-  // show encounter removal buttons also 
+  // show encounter removal buttons also
 
 }
 
@@ -294,18 +276,14 @@ function goToEditPage() {
 }
 
 function projectHTMLForTable(json) {
-
   let encounterId = json.encounterId;
   let individualDisplayName = json.individualDisplayName;
   let individualUUID = json.individualUUID;
   let hasNameKeyMatchingProject = json.hasNameKeyMatchingProject;
-  console.log("hasNameKeyMatchingProject for encounter " + encounterId + " is: " + hasNameKeyMatchingProject);
   let encounterDate = json.encounterDate;
   let locationId = json.locationId;
   let submitterId = json.submitterId;
   let allProjectIds = json.allProjectIds;
-
-  console.log("THIS ENCOUNTER JSON: "+JSON.stringify(json));
 
   let projectHTML = '';
   projectHTML += '<tr id="enc-'+encounterId+'">';
@@ -328,26 +306,26 @@ function projectHTMLForTable(json) {
   projectHTML +=  '<input id="encId-'+encounterId+'" class="startMatchButton" onclick="startMatchForEncounter(this)" value ="Start Match" type="button" />';
   projectHTML +=  '</br>';
 
-  // grr.. not worth an AJAX call for just this. one more key and i'm doin it though
+  // grr.. not worth an AJAX call for just this. one more key and i'm doin it though -CK
   let researchProjectId = '<%= project.getResearchProjectId()%>';
 
   if(!hasNameKeyMatchingProject){
     if (individualDisplayName!=null&&individualDisplayName!="") {
-      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+researchProjectId+'\', \''+encounterId+'\')">Mark New</button>';
+      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+researchProjectId+'\', \''+encounterId+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
       projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
     } else {
-      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+researchProjectId+'\')">Mark New</button>';
-      projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
+      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+researchProjectId+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
+      projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;"><%= projectProps.getProperty("MarkNew")%></button>';
     }
   }
-  projectHTML += '<div id="adding-div_'+encounterId+'" class="alert alert-info" role="alert" style="display: none;">Assigning individual to project... Please Wait for Confirmation.</div>';
+  projectHTML += '<div id="adding-div_'+encounterId+'" class="alert alert-info" role="alert" style="display: none;"><%= projectProps.getProperty("AssingingIndividualToProjWait")%></div>';
   projectHTML += '<div id="alert-div_'+encounterId+'" class="alert alert-success" role="alert" style="display: none;">';
   projectHTML += '<button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-  projectHTML += '<strong>Success!</strong> An ID has been added to your project for this individual!';
+  projectHTML += '<strong><%= projectProps.getProperty("Success")%></strong><%= projectProps.getProperty("IdAdded")%>';
   projectHTML += '</div>';
   projectHTML += '<div id="alert-div-warn_'+encounterId+'" class="alert alert-danger" role="alert" style="display: none;">';
   projectHTML += '<button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-  projectHTML += 'An ID could not be added to your project for this individual!';
+  projectHTML += '<%= projectProps.getProperty("IdNotAdded")%>';
   projectHTML += '</div>';
   projectHTML +=  '</td>';
   projectHTML += '</tr>';
