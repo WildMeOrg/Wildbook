@@ -265,7 +265,7 @@ function getEncounterJSON() {
 function showEditControls() {
   let editPageLink = '';
   let location = '/projects/editProject.jsp?id=<%=projId%>';
-  editPageLink += '<input id="editPageLink" class="btn" onclick="goToEditPage()" value ="Edit Project" type="button" />';
+  editPageLink += '<input id="editPageLink" class="btn" onclick="goToEditPage()" value ="<%= projectProps.getProperty("EditProject")%>" type="button" />';
   $('#editButtonSpan').append(editPageLink);
   // show encounter removal buttons also
 
@@ -287,8 +287,8 @@ function projectHTMLForTable(json) {
 
   let projectHTML = '';
   projectHTML += '<tr id="enc-'+encounterId+'">';
-  projectHTML +=  '<td class="project-style">'+encounterId+'</td>';
-  projectHTML +=  '<td class="project-style">'+individualDisplayName+' </td>';
+  projectHTML +=  '<td class="project-style"><a href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
+  projectHTML +=  '<td class="project-style"><a href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+' </td>';
   projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
   projectHTML +=  '<td class="project-style">'+locationId+' </td>';
   projectHTML +=  '<td class="project-style">'+submitterId+' </td>';
