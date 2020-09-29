@@ -117,7 +117,7 @@ public void doGet(HttpServletRequest request, HttpServletResponse response) thro
   }
 
 private final String UPLOAD_DIRECTORY = "/tmp";
-private List<Project> projects = null;
+private List<Project> projects = new ArrayList<Project>();
 
     //little helper function for pulling values as strings even if null (not set via form)
     private String getVal(Map formValues, String key) {
@@ -356,19 +356,16 @@ System.out.println("*** trying redirect?");
                 List<String> projectNameSelections = new ArrayList<String>();
                 String defaultProjectName = getVal(formValues, "defaultProject");
                 if(Util.stringExists(defaultProjectName)){
-                  System.out.println("defaultProjectName is: " + defaultProjectName);
-                  if(!projectNameSelections.contains(defaultProjectName)){
-                    projectNameSelections.add(defaultProjectName);
+                  if(!projectNameSelections.contains(defaultProjectName.trim())){
+                    projectNameSelections.add(defaultProjectName.trim());
                   }
                 }
                 for(FileItem item : multiparts){
                     if (item.isFormField()) {  //plain field
                         formValues.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
-                        //System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString("UTF-8") + ")");
                         if(item.getFieldName().equals("proj-id-dropdown")){
-                          System.out.println("matches proj-id-dropdown");
-                          if(!projectNameSelections.contains(item.getString())){
-                            projectNameSelections.add(item.getString());
+                          if(!projectNameSelections.contains(item.getString().trim())){
+                            projectNameSelections.add(item.getString().trim());
                           }
                         }
                     } else if (item.getName().startsWith("socialphoto_")) {
@@ -385,24 +382,16 @@ System.out.println("*** trying redirect?");
                         }
                     }
                 }
-
-
                 doneMessage = "File Uploaded Successfully";
                 fileSuccess = true;
                 if(projectNameSelections != null){
-                  // formValues.put("projectNameSelections", projectNameSelections);
                   for(String projectNameSelection: projectNameSelections){
-                    // System.out.println("projectNameSelection is: " + projectNameSelection);
                     Project currentProject = myShepherd.getProjectByResearchProjectId(projectNameSelection);
                     if(currentProject!=null){
-                      System.out.println("not null. Project is: ");
-                      System.out.println(currentProject.toString());
                       projects.add(currentProject);
                     }
                   }
                 }
-                // System.out.println("projectNameSelections are: " + projectNameSelections.toString());
-
             } catch (Exception ex) {
                 doneMessage = "File Upload Failed due to " + ex;
             }
@@ -566,14 +555,6 @@ System.out.println("*** trying redirect?");
           }
           else{hour=-1;}
 
-          // List<String> projNameSelections = formValues.get("projectNameSelections");
-          // for(String projectNameSelection: projNameSelections){
-          //   System.out.println("Yay! You’re here! Hi! projectNameSelection is: " + projectNameSelection);
-          //   Project currentProject = myShepherd.getProjectByResearchProjectId(projectNameSelection);
-          //   projects.add(currentProject);
-          // }
-
-
                   //System.out.println("At the end of time processing I see: "+year+"-"+month+"-"+day+" "+hour+":"+minutes);
 
               }
@@ -635,16 +616,9 @@ System.out.println("about to do enc()");
             enc.setEncounterNumber(encID);
 
             //add encounter to projects
-            System.out.println("hey hello got here mark");
             if(projects!=null){
-              System.out.println("projects is not null");
-              System.out.println("size is: " + projects.size());
-
               for(Project currentProject: projects){
-                System.out.println("adding project to encounter!");
-                if(currentProject!=null){
-                  System.out.println("current project when fetching to add to encounter is:");
-                  System.out.println(currentProject.toString());
+                if(currentProject!=null && enc!=null){
                   currentProject.addEncounter(enc);
                 }
               }
