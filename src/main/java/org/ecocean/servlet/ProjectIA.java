@@ -80,15 +80,18 @@ public class ProjectIA extends HttpServlet {
                                 targetAnns = getAnnotationList(targetEncs);
                             }
                             List<Annotation> anns = new ArrayList<>();  
-                            // as far as i can tell ann(0) will always be used as the query ann
-                            //anns.addAll(targetAnns);
                             anns.add(0, queryAnn);
+                            Task parentTask = new Task();
+                            JSONObject tp = new JSONObject();
+                            JSONObject mf = new JSONObject();
+                            mf.put("projectId", project.getId());
+                            tp.put("matchingSetFilter", mf);
+                            parentTask.setParameters(tp);
+                            myShepherd.storeNewTask(parentTask);
 
-                            Task topTask = new Task();
-                            topTask.addParameter("projectId", project.getId());
-                            Task childTask = IA.intakeAnnotations(myShepherd, anns, topTask);
+                            Task childTask = IA.intakeAnnotations(myShepherd, anns, parentTask);
                             JSONObject jobJSON = new JSONObject();
-                            jobJSON.put("topTaskId", topTask.getId());
+                            jobJSON.put("topTaskId", parentTask.getId());
                             jobJSON.put("childTaskId", childTask.getId());
                             jobJSON.put("queryAnnId", queryAnn.getId());
                             initiatedJobs.put(jobJSON);

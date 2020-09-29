@@ -724,7 +724,7 @@ System.out.println("[1] getMatchingSet params=" + params);
         else {
           filter = "SELECT FROM org.ecocean.Annotation WHERE matchAgainst " + this.getMatchingSetFilterFromParameters(params) + this.getMatchingSetFilterViewpointClause(myShepherd) + this.getPartClause(myShepherd) + " && acmId != null && enc.catalogNumber != '" + enc.getCatalogNumber() + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus() + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         }
-        if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";  //need another VARIABLE declaration
+        if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";
         
         if (filter.matches(".*\\bproject\\b.*")) filter += "; org.ecocean.Project project";
 
@@ -882,8 +882,9 @@ System.out.println("[1] getMatchingSet params=" + params);
         }
 
         // add projectID to filter
-        String projectId = taskParams.optString("projectId", null);
+        String projectId = j.optString("projectId", null);
         if (Util.stringExists(projectId)) {
+            System.out.println("----> Adding PROJECT ID to matching set filter");
             f+= " && project.id == '"+projectId+"' && project.encounters.contains(enc) ";
         }
 
