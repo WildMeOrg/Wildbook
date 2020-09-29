@@ -117,7 +117,7 @@ public void doGet(HttpServletRequest request, HttpServletResponse response) thro
   }
 
 private final String UPLOAD_DIRECTORY = "/tmp";
-private List<Project> projects = null;
+private List<Project> projects = new ArrayList<Project>();
 
     //little helper function for pulling values as strings even if null (not set via form)
     private String getVal(Map formValues, String key) {
@@ -392,10 +392,10 @@ System.out.println("*** trying redirect?");
                 if(projectNameSelections != null){
                   // formValues.put("projectNameSelections", projectNameSelections);
                   for(String projectNameSelection: projectNameSelections){
-                    // System.out.println("projectNameSelection is: " + projectNameSelection);
+                    System.out.println("projectNameSelection is: " + projectNameSelection);
                     Project currentProject = myShepherd.getProjectByResearchProjectId(projectNameSelection);
                     if(currentProject!=null){
-                      System.out.println("not null. Project is: ");
+                      System.out.println("not null. Adding the following project to projects list: ");
                       System.out.println(currentProject.toString());
                       projects.add(currentProject);
                     }
@@ -566,14 +566,6 @@ System.out.println("*** trying redirect?");
           }
           else{hour=-1;}
 
-          // List<String> projNameSelections = formValues.get("projectNameSelections");
-          // for(String projectNameSelection: projNameSelections){
-          //   System.out.println("Yay! You’re here! Hi! projectNameSelection is: " + projectNameSelection);
-          //   Project currentProject = myShepherd.getProjectByResearchProjectId(projectNameSelection);
-          //   projects.add(currentProject);
-          // }
-
-
                   //System.out.println("At the end of time processing I see: "+year+"-"+month+"-"+day+" "+hour+":"+minutes);
 
               }
@@ -636,6 +628,7 @@ System.out.println("about to do enc()");
 
             //add encounter to projects
             System.out.println("hey hello got here mark");
+            System.out.println(projects);
             if(projects!=null){
               System.out.println("projects is not null");
               System.out.println("size is: " + projects.size());
