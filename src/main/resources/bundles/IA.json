@@ -19,19 +19,19 @@
                   "query_config_dict":{
                      "sv_on":false
                   },
-                  "description":"HotSpotter"
+                  "description":"HotSpotter fluke pattern-matcher"
                },
                {
                   "query_config_dict":{
                      "pipeline_root":"OC_WDTW"
                   },
-                  "description":"Dynamic Time-Warping"
+                  "description":"Dynamic Time-Warping fluke edge-matcher"
                },
                {
                   "query_config_dict":{
                      "pipeline_root":"KaggleSeven"
                   },
-                  "description":"Kaggle7 (trained on CRC data only)"
+                  "description":"Kaggle7 (fluke classifier trained on CRC data only)"
                }
             ],
             "_save_as":"whale_humpback+fluke"
@@ -44,7 +44,7 @@
                   "query_config_dict":{
                      "pipeline_root":"Finfindr"
                   },
-                  "description":"Finfindr dorsal edge-matching",
+                  "description":"Finfindr dorsal edge-matcher",
                   "include_viewpoint":[
                      "left",
                      "right"
@@ -53,8 +53,8 @@
             ],
             "_save_as":"whale_humpback+fin_dorsal"
          },
-         "whale_fin+fin_dorsal":"@Megaptera.novaeangliae.whale_humpback.fin-dorsal",
-         "whale_orca+fin_dorsal":"@Megaptera.novaeangliae.whale_humpback.fin-dorsal",
+         "whale_fin+fin_dorsal":"@Megaptera.novaeangliae.whale_humpback+fin-dorsal",
+         "whale_orca+fin_dorsal":"@Megaptera.novaeangliae.whale_humpback+fin-dorsal",
          "_detect_conf":[
             {
                "class":"whale_fluke",
@@ -80,7 +80,7 @@
                   "query_config_dict":{
                      "pipeline_root":"OC_WDTW"
                   },
-                  "description":"Dynamic Time-Warping",
+                  "description":"Dynamic Time-Warping fluke edge-matcher",
                   "exclude_viewpoint":[
                      "left",
                      "right"
@@ -90,7 +90,7 @@
                   "query_config_dict":{
                      "pipeline_root":"CurvRankFluke"
                   },
-                  "description":"CurvRank fluke edge-matching",
+                  "description":"CurvRank fluke edge-matcher",
                   "exclude_viewpoint":[
                      "left",
                      "right"
@@ -161,7 +161,8 @@
                {
                   "queryConfigDict":{
                      "sv_on":true
-                  }
+                  },
+                  "description": "HotSpotter pattern-matcher"
                }
             ]
          },
@@ -170,12 +171,14 @@
                {
                   "query_config_dict":{
                      "pipeline_root":"Finfindr"
-                  }
+                  },
+                  "description": "Finfindr dorsal edge-matcher"
                },
                {
                   "query_config_dict":{
                      "pipeline_root":"CurvRankDorsal"
-                  }
+                  },
+                  "description": "CurvRank dorsal edge-matcher"
                }
             ],
             "_save_as":"dolphin_spotted+fin_dorsal"
@@ -205,12 +208,14 @@
                {
                   "query_config_dict":{
                      "pipeline_root":"Finfindr"
-                  }
+                  },
+                  "description": "Finfindr dorsal edge-matcher"
                },
                {
                   "query_config_dict":{
                      "pipeline_root":"CurvRankDorsal"
-                  }
+                  },
+                  "description": "CurvRank dorsal edge-matcher"
                }
             ],
             "_save_as":"whale_orca+fin_dorsal"
@@ -244,7 +249,8 @@
                {
                   "query_config_dict":{
                      "pipeline_root":"Deepsense"
-                  }
+                  },
+                  "description": "Deepsense aerial classifier (NARW catalog only)"
                }
             ]
          },
@@ -266,13 +272,14 @@
                {
                   "query_config_dict":{
                      "pipeline_root":"Deepsense"
-                  }
+                  },
+                  "description": "Deepsense aerial classifier (fixed matching set)"
                },
                {
                   "query_config_dict":{
                      "sv_on":false
                   },
-                  "description":"HotSpotter"
+                  "description":"HotSpotter pattern-matcher"
                }
             ]
          },
