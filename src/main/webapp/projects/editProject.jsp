@@ -253,7 +253,7 @@ function addHTMLListeners() {
         success: function( data ) {
           let alreadyParticipant = [];
           $(".projectEditUserEl").each(function() {
-            alreadyParticipant.push($(this).val());
+            alreadyParticipant.push($(this).attr('id'));
           });
   
           var res = $.map(data, function(item) {
@@ -262,7 +262,7 @@ function addHTMLListeners() {
             let fullName = "";
             if (item.fullName!=null&&item.fullName!="undefined") fullName = item.fullName;
             let label = ("name: "+fullName+" user: "+item.username);
-            if (alreadyParticipant.indexOf(item.username) > -1) {
+            if (alreadyParticipant.indexOf(item.id) > -1) {
               label += ' (already participating)';
             }  
             return { label: label, value: item.username, id: item.id };
@@ -276,9 +276,23 @@ function addHTMLListeners() {
   $("#projectUserIds").on("autocompleteselect", function(event,result) {
       let selectedUserStr = result.item.value;
       let selectedUserId = result.item.id;
-      appendNewUser(selectedUserId, selectedUserStr);
-      userIdsToAdd.push(selectedUserId);
-      $("#actionResultMessage").text("Click 'Update' to save any changes to user list.");
+
+      let alreadyParticipant = [];
+          $(".projectEditUserEl").each(function() {
+            alreadyParticipant.push($(this).attr('id'));
+            console.log(" adding "+$(this).attr('id'));
+      });
+      console.log("alreaady participating : "+JSON.stringify(alreadyParticipant));
+
+
+
+      if (!alreadyParticipant.includes(selectedUserId)) {
+        appendNewUser(selectedUserId, selectedUserStr);
+        userIdsToAdd.push(selectedUserId);
+        $("#actionResultMessage").text("Click 'Update' to save any changes to user list.");
+      } else {
+        $("#actionResultMessage").text("This user is already participating in the project.");
+      }
       $(this).val("");
       return false;
     });
