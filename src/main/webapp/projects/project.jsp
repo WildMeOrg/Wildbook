@@ -287,8 +287,8 @@ function projectHTMLForTable(json) {
 
   let projectHTML = '';
   projectHTML += '<tr id="enc-'+encounterId+'">';
-  projectHTML +=  '<td class="project-style"><a href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
-  projectHTML +=  '<td class="project-style"><a href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+' </td>';
+  projectHTML +=  '<td class="project-style"><a target="_new" href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
+  projectHTML +=  '<td class="project-style"><a target="_new" href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+'</a></td>';
   projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
   projectHTML +=  '<td class="project-style">'+locationId+' </td>';
   projectHTML +=  '<td class="project-style">'+submitterId+' </td>';
