@@ -340,6 +340,10 @@ public class CommonConfiguration {
     return getProperty("defaultProjId", context).trim();
   }
 
+  public static boolean getLoggedOutDefaultDesired(String context){
+    return parseBoolean(getProperty("loggedOutDefaultDesired", context), false);
+  }
+
   public static String getR(String context) {
     return getProperty("R", context).trim();
   }
