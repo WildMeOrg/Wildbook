@@ -397,7 +397,7 @@ System.out.println("*** trying redirect?");
                     if(currentProject!=null){
                       System.out.println("not null. Project is: ");
                       System.out.println(currentProject.toString());
-                      this.projects.add(currentProject);
+                      projects.add(currentProject);
                     }
                   }
                 }
@@ -570,7 +570,7 @@ System.out.println("*** trying redirect?");
           // for(String projectNameSelection: projNameSelections){
           //   System.out.println("Yay! You’re here! Hi! projectNameSelection is: " + projectNameSelection);
           //   Project currentProject = myShepherd.getProjectByResearchProjectId(projectNameSelection);
-          //   this.projects.add(currentProject);
+          //   projects.add(currentProject);
           // }
 
 
@@ -636,11 +636,11 @@ System.out.println("about to do enc()");
 
             //add encounter to projects
             System.out.println("hey hello got here mark");
-            if(this.projects!=null){
+            if(projects!=null){
               System.out.println("projects is not null");
-              System.out.println("size is: " + this.projects.size());
+              System.out.println("size is: " + projects.size());
 
-              for(Project currentProject: this.projects){
+              for(Project currentProject: projects){
                 System.out.println("adding project to encounter!");
                 if(currentProject!=null){
                   System.out.println("current project when fetching to add to encounter is:");
