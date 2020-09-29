@@ -70,14 +70,17 @@ public class ProjectGet extends HttpServlet {
             String ownerId = null;
             String participantId = null;
             String encounterId = null;
-
+            
             //should add this parameter to all calls at some point
             String action = null;
             action = j.optString("action", null);
-
+            
             String researchProjectId = null;
             researchProjectId = j.optString("researchProjectId", null);
 
+            String getEditPermission = null;
+            getEditPermission = j.optString("getEditPermission", null);
+            
             boolean complete = false;
 
             if (Util.stringExists(action)&&"getNextIdForProject".equals(action)) {
@@ -253,7 +256,7 @@ public class ProjectGet extends HttpServlet {
             //get specific project
             researchProjectId = j.optString("researchProjectId", null);
             projectUUID = j.optString("projectUUID", null);
-            if ((Util.stringExists(researchProjectId)||Util.stringExists(projectUUID))&&!complete) {
+            if ((Util.stringExists(researchProjectId)|| Util.stringExists(projectUUID))&&!complete) {
                 Project project = null;
                 if (Util.stringExists(researchProjectId)) {
                     project = myShepherd.getProjectByResearchProjectId(researchProjectId);
@@ -270,10 +273,19 @@ public class ProjectGet extends HttpServlet {
                         projectArr.put(project.asJSONObject());
                     }
                 }
+                if (getEditPermission!=null&&"true".equals(getEditPermission)) {
+                    User user = myShepherd.getUser(request);
+                    res.put("userCanEdit","false");
+                    if (user!=null&&(user.hasRoleByName("admin", myShepherd)||user.getId().equals(project.getOwnerId()))) {
+                        res.put("userCanEdit","true");
+                    }
+                }
                 res.put("projects", projectArr);
                 res.put("success",true);
                 complete = true;
             }
+
+
 
             out.println(res);
             out.close();

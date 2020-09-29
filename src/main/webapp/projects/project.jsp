@@ -60,7 +60,14 @@
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
     <title>Project <%=projId%></title>
     <div class="container maincontent">
-      <h3>Project: <%=project.getResearchProjectName()%></h3>
+      <div class="row">
+        <div class="col-xs-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
+          <h3>Project: <%=project.getResearchProjectName()%></h3>
+        </div>
+        <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 col-xl-10">
+          <span id="editButtonSpan"></span>
+        </div>
+      </div>
           <%
           try{
             if(currentUser != null){
@@ -234,6 +241,7 @@ function getEncounterJSON() {
   let requestJSON = {};
   requestJSON['projectUUID'] = projectUUID;
   requestJSON['getEncounterMetadata'] = "true";
+  requestJSON['getEditPermission'] = "true";
   console.log("all requestJSON: "+JSON.stringify(requestJSON));
 
   let responseJSON = {};
@@ -256,6 +264,12 @@ function getEncounterJSON() {
                 $("#encounterList").append(projectHTML);
               }
           }
+
+          let userCanEdit = d.userCanEdit;
+          if ("true"==userCanEdit) {
+            showEditControls();
+          }
+
           $('#progress-div').hide();
           $('#table-div').show();
       },
@@ -263,6 +277,20 @@ function getEncounterJSON() {
           console.warn('%o %o %o', x, y, z);
       }
   });
+}
+
+function showEditControls() {
+  let editPageLink = '';
+  let location = '/projects/editProject.jsp?id=<%=projId%>';
+  editPageLink += '<input id="editPageLink" class="btn" onclick="goToEditPage()" value ="Edit Project" type="button" />';
+  $('#editButtonSpan').append(editPageLink);
+
+  // show encounter removal buttons also 
+
+}
+
+function goToEditPage() {
+  window.location.replace('/projects/editProject.jsp?id='+'<%=projId%>');
 }
 
 function projectHTMLForTable(json) {
@@ -330,9 +358,10 @@ function startMatchForEncounter(el) {
   let elId = $(el).attr('id');
   console.log("--> el id for starting match: "+elId);
   let encId = elId.replace('encId-','');
+  let researchProjectId = '<%= project.getResearchProjectId()%>';
   if (encId&&researchProjectId) {
     let requestJSON = {};
-    requestJSON['researchProjectId'] = '<%= project.getResearchProjectId()%>';
+    requestJSON['researchProjectId'] = researchProjectId;
     requestJSON['queryEncounterId'] = encId;
     console.log("all requestJSON: "+JSON.stringify(requestJSON));
     let responseJSON = {};
@@ -343,10 +372,10 @@ function startMatchForEncounter(el) {
         dataType: 'json',
         contentType: 'application/json',
         success: function(d) {
-
+          $(el).val('Sent');
+          $(el).css('background-color', 'red');
           console.log("response from ProjectIA : "+JSON.stringify(d));
           // do something to indicate success
-
         },
         error: function(x,y,z) {
             console.warn('%o %o %o', x, y, z);
