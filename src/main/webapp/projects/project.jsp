@@ -231,11 +231,9 @@ function dismissAlert(encounterId){
 function getEncounterJSON() {
   console.log('Current projectUUID : <%=projId%>');
   let projectUUID = '<%=projId%>';
-  console.log("SENDING projectUUID: "+projectUUID);
   let requestJSON = {};
   requestJSON['projectUUID'] = projectUUID;
   requestJSON['getEncounterMetadata'] = "true";
-  console.log("here!");
   console.log("all requestJSON: "+JSON.stringify(requestJSON));
 
   let responseJSON = {};
@@ -254,9 +252,8 @@ function getEncounterJSON() {
           for (let i=0;i<projectsArr.length;i++) {
               let thisProject = projectsArr[i];
               for (let j=0;j<thisProject.encounters.length;j++) {
-                let projectHTML = projectHTMLForTable(projectsArr[i].encounters[j])
+                let projectHTML = projectHTMLForTable(projectsArr[i].encounters[j]);
                 $("#encounterList").append(projectHTML);
-                console.log("appending!!");
               }
           }
           $('#progress-div').hide();
@@ -300,7 +297,7 @@ function projectHTMLForTable(json) {
   }
   projectHTML +=  '</td>';
   projectHTML +=  '<td class="project-style">';
-  projectHTML +=  '<button type="button">Project Match</button>';
+  projectHTML +=  '<input id="encId-'+encounterId+'" class="startMatchButton" onclick="startMatchForEncounter(this)" value ="Start Match" type="button" />';
   projectHTML +=  '</br>';
 
   // grr.. not worth an AJAX call for just this. one more key and i'm doin it though
@@ -327,6 +324,35 @@ function projectHTMLForTable(json) {
   projectHTML +=  '</td>';
   projectHTML += '</tr>';
   return projectHTML;
+}
+
+function startMatchForEncounter(el) {
+  let elId = $(el).attr('id');
+  console.log("--> el id for starting match: "+elId);
+  let encId = elId.replace('encId-','');
+  if (encId&&researchProjectId) {
+    let requestJSON = {};
+    requestJSON['researchProjectId'] = '<%= project.getResearchProjectId()%>';
+    requestJSON['queryEncounterId'] = encId;
+    console.log("all requestJSON: "+JSON.stringify(requestJSON));
+    let responseJSON = {};
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '../ProjectIA',
+        type: 'POST',
+        data: JSON.stringify(requestJSON),
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function(d) {
+
+          console.log("response from ProjectIA : "+JSON.stringify(d));
+          // do something to indicate success
+
+        },
+        error: function(x,y,z) {
+            console.warn('%o %o %o', x, y, z);
+        }
+    });
+  }
 }
 
 $(document).ready( function() {
