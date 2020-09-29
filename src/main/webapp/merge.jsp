@@ -74,13 +74,15 @@ table.compareZone tr th {
     <% for (MarkedIndividual ind: inds) {%>
       incrementalIdJsonRequest['individualIds'].push({indId: "<%= ind.getIndividualID()%>"});
     <%}%>
+    console.log("json for incremental ID call is: ");
+    console.log(incrementalIdJsonRequest);
     doAjaxForProject(incrementalIdJsonRequest);
   }
 
 
   function doAjaxForProject(requestJSON){
-    console.log("json going into ajax request is: ");
-    console.log(JSON.stringify(requestJSON));
+    // console.log("json going into ajax request is: ");
+    // console.log(JSON.stringify(requestJSON));
     $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectGet',
         type: 'POST',
@@ -93,10 +95,11 @@ table.compareZone tr th {
             // console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(data));
             incrementalIdResults = data.incrementalIdArr;
             projectNameResults = data.projects;
-            if(incrementalIdResults){
-              // console.log("1: incrementalIdResults!");
-              // console.log(incrementalIdResults);
-              populateProjectIdRow(incrementalIdResults);
+            if(incrementalIdResults && incrementalIdResults.length>0){
+              console.log("1: incrementalIdResults!");
+              console.log(incrementalIdResults);
+              console.log(data);
+              populateProjectIdRow(incrementalIdResults, incrementalIdResults[0].projectName, incrementalIdResults[0].projectUuid);
             }else{
               if(projectNameResults){
                 // console.log("2: projectNameResults!");
@@ -121,13 +124,14 @@ table.compareZone tr th {
     });
   }
 
-  function populateProjectIdRow(incrementalIds){
+  function populateProjectIdRow(incrementalIds, projName, projUuid){
     console.log("data in populateProjectIdRow is: ");
     console.log(incrementalIds);
+    console.log(projName);
     let projectIdHtml = '';
     <% for (int i=0; i<inds.length; i++) {%>
     projectIdHtml += '<td class="col-md-2 diff_check">';
-    if(incrementalIds && incrementalIds[<%=i%>]){
+    if(incrementalIds && incrementalIds[<%=i%>] && incrementalIds[<%=i%>].projectIncrementalId !== ""){
       projectIdHtml += incrementalIds[<%=i%>].projectIncrementalId;
     }else{
       projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
@@ -135,16 +139,26 @@ table.compareZone tr th {
     projectIdHtml += '</td>';
     <%}%>
     projectIdHtml += '<td class="merge-field">';
-    if(incrementalIds && incrementalIds.length>0){
-      projectIdHtml += '<select name="proj-confirm-dropdown-' + incrementalIds[0].projectName + '" id="proj-confirm-dropdown-' + incrementalIds[0].projectName + '" class="form-control">';
+    if(incrementalIds && incrementalIds.length>0 && incrementalIds[0].projectIncrementalId !== ""){
+      projectIdHtml += '<select name="' + projUuid + '" id="proj-confirm-dropdown-' + projName + '" class="form-control">';
       for(let i=0; i<incrementalIds.length; i++){
-        projectIdHtml += '<option value="'+ incrementalIds[i].projectIncrementalId +'" selected="selected">'+ incrementalIds[i].projectIncrementalId +'</option>';
+        if(i==0){
+          projectIdHtml += '<option value="'+ incrementalIds[i].projectIncrementalId +'" selected>'+ incrementalIds[i].projectIncrementalId +'</option>';
+        }else{
+          projectIdHtml += '<option value="'+ incrementalIds[i].projectIncrementalId +'">'+ incrementalIds[i].projectIncrementalId +'</option>';
+        }
       }
       projectIdHtml += '</td>';
-      console.log("projectIdHtml is: ");
-      console.log(projectIdHtml);
-      $("#incrementalId-container-" + incrementalIds[0].projectName).empty();
-      $("#incrementalId-container-" + incrementalIds[0].projectName).append(projectIdHtml);
+      // console.log("projectIdHtml is: ");
+      // console.log(projectIdHtml);
+      $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
+      // $("#incrementalId-container-" + incrementalIds[0].projectName).append(projectIdHtml);
+    } else{
+      //populate with no incremental IDs
+      projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
+      projectIdHtml += '</td>';
+      projectIdHtml += '<td>';
+      $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
     }
   }
 
@@ -161,17 +175,18 @@ table.compareZone tr th {
         projectIdHtml += '<th><%= props.getProperty("ProjectId") %>';
         projectIdHtml += '<span id="current-proj-id-display-' + projectNames[i] + '"><em> ' + projectNames[i] + '</em></span>';
         projectIdHtml += '</th>';
-        projectIdHtml += '<div id="incrementalId-container-' + projectNames[i] + '">';
-        projectIdHtml += '</div>';
-        projectIdHtml += '<td class="merge-field">';
-        projectIdHtml += '</td>';
+        // projectIdHtml += '<div id="incrementalId-container-' + projectNames[i] + '">';
+        // projectIdHtml += '</div>';
+        // projectIdHtml += '<td class="merge-field">';
+        // projectIdHtml += '</td>';
         projectIdHtml += '</tr>';
       }
-      console.log("projectIdHtml in populateProjectRows is: ");
-      console.log(projectIdHtml);
-      $("#project-id-table-row-container").empty();
-      $("#project-id-table-row-container").append(projectIdHtml);
+      // console.log("projectIdHtml in populateProjectRows is: ");
+      // console.log(projectIdHtml);
+      $("tr.row.names").last().after(projectIdHtml);
+      // $("#project-id-table-row-container").append(projectIdHtml);
       for(let j =0; j<projectNames.length; j++){ //projectNames and projectIds must be linked
+        console.log("calling callForIncrementalIdsAndPopulate in loop. Current project id is: " + projectIds[j]);
         callForIncrementalIdsAndPopulate(projectIds[j]);
       }
     }
@@ -179,19 +194,31 @@ table.compareZone tr th {
 
   function updateProject(){
     console.log("updateProject clicked");
-    //TODO jQuery fetch all of the project Ids
-    let projId = $('#current-proj-id-display').text();
-    console.log("projId is: " + projId);
-    let desiredIncrementalId = $('#proj-confirm-dropdown').find(":selected").text();
-    console.log("desiredIncrementalId is: " + desiredIncrementalId);
-    if(<%= inds.length%> == 2){
-      console.log("got into if branch in updateProject");
-      let individualAId = '<%= indIdA%>';
-      console.log("individualAId is: " + individualAId);
-      let individualBId = '<%= indIdB%>';
-      console.log("individualBId is: " + individualBId);
-      //TODO call ProjectUpdate ajax;
+    let projIdElems = $('[id^=proj-confirm-dropdown-]');
+    // console.log("projIdElems are: ");
+    // console.log(projIdElems[0]);
+    let individualAId = '<%= indIdA%>';
+    let individualBId = '<%= indIdB%>';
+    for(let i=0; i<projIdElems.length; i++){
+      let currentElem = projIdElems[i];
+      console.log("currentElem is: ");
+      console.log(currentElem);
+      let currentProjUuid = $(currentElem).attr('name');
+      console.log("uuid is: " + currentProjUuid);
+      let currentDesiredIncrementalId = $(currentElem).find(":selected").text();
+      console.log("currentDesiredIncrementalId is: " + currentDesiredIncrementalId);
     }
+    debugger;
+    // let projId = $('#current-proj-id-display').text();
+    // console.log("projId is: " + projId);
+    // let desiredIncrementalId = $('#proj-confirm-dropdown').find(":selected").text();
+    // console.log("desiredIncrementalId is: " + desiredIncrementalId);
+    // if(<%= inds.length%> == 2){
+    //   console.log("got into if branch in updateProject");
+    //   console.log("individualAId is: " + individualAId);
+    //   console.log("individualBId is: " + individualBId);
+    //   //TODO call ProjectUpdate ajax;
+    // }
 
   }
 
@@ -255,9 +282,6 @@ try {
     class="form-horizontal"
     accept-charset="UTF-8"
 	>
-<h4><%= props.getProperty("WhichProject") %></h4>
-  <div id="proj-id-dropdown-container">
-  </div>
 	<table class="compareZone">
 		<tr class="row header">
 			<th class="col-md-2"></th>
@@ -292,10 +316,7 @@ try {
 				%>
 			</td>
 		</tr>
-    <div id="project-id-table-row-container">
       <!--populated by JS after page load-->
-    </div>
-
 		<tr class="row encounters">
 			<th><%= props.getProperty("NumEncounters") %></th>
 			<% int totalEncs = 0;

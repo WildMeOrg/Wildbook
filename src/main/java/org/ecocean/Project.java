@@ -287,7 +287,7 @@ public class Project implements java.io.Serializable {
             userJSON.put("username", user.getUsername());
             userJSON.put("id", user.getId());
             usersJSONArr.put(userJSON);
-        }  
+        }
         j.put("users", usersJSONArr);
         JSONArray encArr = new JSONArray();
         if (encounters!=null) {
