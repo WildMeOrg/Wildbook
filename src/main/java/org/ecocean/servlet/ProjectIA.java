@@ -68,22 +68,31 @@ public class ProjectIA extends HttpServlet {
                 Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
                 Encounter queryEnc = myShepherd.getEncounter(queryEncounterId);
                 if (project!=null&&queryEnc!=null) {
+
+
                     List<Encounter> targetEncs = project.getEncounters();
                     List<Annotation> targetAnns = new ArrayList<>();
                     JSONArray initiatedJobs = new JSONArray();
+
                     for (Annotation queryAnn : queryEnc.getAnnotations()) {
                         if (IBEISIA.validForIdentification(queryAnn)) {
                             if (targetAnns.isEmpty()) {
                                 targetAnns = getAnnotationList(targetEncs);
                             }
                             List<Annotation> anns = new ArrayList<>();  
-                            // as far as i can tell ann(0) will always be used as the query ann
-                            anns.addAll(targetAnns);
                             anns.add(0, queryAnn);
-                            Task topTask = IA.intakeAnnotations(myShepherd, anns);
-                            myShepherd.storeNewTask(topTask);
+                            Task parentTask = new Task();
+                            JSONObject tp = new JSONObject();
+                            JSONObject mf = new JSONObject();
+                            mf.put("projectId", project.getId());
+                            tp.put("matchingSetFilter", mf);
+                            parentTask.setParameters(tp);
+                            myShepherd.storeNewTask(parentTask);
+
+                            Task childTask = IA.intakeAnnotations(myShepherd, anns, parentTask);
                             JSONObject jobJSON = new JSONObject();
-                            jobJSON.put("taskId", topTask.getId());
+                            jobJSON.put("topTaskId", parentTask.getId());
+                            jobJSON.put("childTaskId", childTask.getId());
                             jobJSON.put("queryAnnId", queryAnn.getId());
                             initiatedJobs.put(jobJSON);
                         }
