@@ -297,7 +297,7 @@ function projectHTMLForTable(json) {
   }
   projectHTML +=  '</td>';
   projectHTML +=  '<td class="project-style">';
-  projectHTML +=  '<input id="encId-'+encounterId+'" class="startMatchButton" onclick="startMatchForEncounter(this)" type="button">Project Match</input>';
+  projectHTML +=  '<input id="encId-'+encounterId+'" class="startMatchButton" onclick="startMatchForEncounter(this)" value ="Start Match" type="button" />';
   projectHTML +=  '</br>';
 
   // grr.. not worth an AJAX call for just this. one more key and i'm doin it though
@@ -332,7 +332,7 @@ function startMatchForEncounter(el) {
   let encId = elId.replace('encId-','');
   if (encId&&researchProjectId) {
     let requestJSON = {};
-    requestJSON['researchProjectId'] = researchProjectId;
+    requestJSON['researchProjectId'] = '<%= project.getResearchProjectId()%>';
     requestJSON['queryEncounterId'] = encId;
     console.log("all requestJSON: "+JSON.stringify(requestJSON));
     let responseJSON = {};
