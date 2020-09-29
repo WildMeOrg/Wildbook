@@ -42,8 +42,22 @@ if (user!=null){
 	currentUsername = user.getUsername();
 }
 String nextNameKey = (user!=null) ? user.getIndividualNameKey() : null;
+
+
+
 boolean usesAutoNames = Util.stringExists(nextNameKey);
 String nextName = (usesAutoNames) ? MultiValue.nextUnusedValueForKey(nextNameKey, myShepherd) : null;
+
+String researchProjectId = request.getParameter("researchProjectId");
+// okay, are we going to use an incremental name from the project side? 
+if (Util.stringExists(researchProjectId)) {
+	Project projectForAutoNaming = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
+	if (projectForAutoNaming!=null) {
+		nextName = project.getNextIncrementalIndividualId();
+		usesAutoNames = true;
+	}
+}
+
 myShepherd.rollbackAndClose();
 //myShepherd.closeDBTransaction();
 //System.out.println("IARESULTS: New nameKey block got key, value "+nextNameKey+", "+nextName+" for user "+user);
@@ -55,7 +69,6 @@ int RESMAX_DEFAULT = 12;
 int RESMAX = (nResults!=null) ? nResults : RESMAX_DEFAULT;
 
 String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to keep waiting.";
-String researchProjectId = request.getParameter("researchProjectId");
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("acmId") != null) {
 	String acmId = request.getParameter("acmId");
