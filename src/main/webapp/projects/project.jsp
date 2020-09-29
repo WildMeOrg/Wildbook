@@ -343,10 +343,10 @@ function startMatchForEncounter(el) {
         dataType: 'json',
         contentType: 'application/json',
         success: function(d) {
-
+          $(el).val('Sent');
+          $(el).css('background-color', 'red');
           console.log("response from ProjectIA : "+JSON.stringify(d));
           // do something to indicate success
-
         },
         error: function(x,y,z) {
             console.warn('%o %o %o', x, y, z);
