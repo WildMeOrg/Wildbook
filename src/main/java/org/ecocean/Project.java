@@ -208,6 +208,9 @@ public class Project implements java.io.Serializable {
 
     public void addEncounter(final Encounter enc) {
         setTimeLastModified();
+        if(encounters==null){
+          encounters = new ArrayList<Encounter>();
+        }
         if (enc != null && encounters!=null && !encounters.contains(enc)) {
             encounters.add(enc);
         } else {
