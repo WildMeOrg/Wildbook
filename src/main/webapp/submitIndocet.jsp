@@ -77,8 +77,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 <script>
 $(document).ready( function() {
-	console.log("ready");
-	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId());
+	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
 	<%
 	if(user != null){
 		%>
@@ -97,14 +96,16 @@ $(document).ready( function() {
 	%>
 });
 
-function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId){
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
 	if(options.length<1){
 		isVisible=false;
 	}
 		let projectNameHtml = '';
 		projectNameHtml += '<div class="col-xs-6 col-md-4">';
 		//comment out the below for submit.jsp version and/or if you don't want a default even when user not logged in
-		projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="indocet" />';
+		if(loggedOutDefaultDesired){
+			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProject() + '" />';
+		}
 		if(isVisible){
 			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
 			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
@@ -139,13 +140,18 @@ Array.prototype.remove = function() {
 };
 
 function getDefaultSelectedProject(){
-	let defaultProject = '<%= CommonConfiguration.getProperty("defaultProjName") %>'
+	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>'
 	return defaultProject;
 }
 
 function getDefaultSelectedProjectId(){
-	let defaultProjectId = '<%= CommonConfiguration.getProperty("defaultProjId") %>'
+	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>'
 	return defaultProjectId;
+}
+
+function getLoggedOutDefaultDesired(){
+	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>'
+	return loggedOutDefaultDesired;
 }
 
 function doAjaxForProject(requestJSON,userId){
@@ -161,7 +167,7 @@ function doAjaxForProject(requestJSON,userId){
 				if(projectNameResults){
 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
 					projNameIds = projectNameResults.map(entry =>{return entry.researchProjectId});
-					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId());
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
 				}
 			},
 			error: function(x,y,z) {

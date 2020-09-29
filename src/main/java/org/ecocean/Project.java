@@ -208,7 +208,7 @@ public class Project implements java.io.Serializable {
 
     public void addEncounter(final Encounter enc) {
         setTimeLastModified();
-        if (!encounters.contains(enc)) {
+        if (enc != null && encounters!=null && !encounters.contains(enc)) {
             encounters.add(enc);
         } else {
             System.out.println("[INFO]: Project.addEncounter(): The selected Project id="+id+" already contains encounter id="+enc.getID()+", skipping.");
