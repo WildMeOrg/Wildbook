@@ -8,6 +8,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Date;
 
@@ -79,29 +80,33 @@ public class MergeIndividual extends HttpServlet {
       String sex = request.getParameter("sex");
       String taxonomyStr = request.getParameter("taxonomy");
       String desiredIncrementalIds = request.getParameter("desiredIncrementalIds");
+      List<String> desiredIncrementalIdArr = new ArrayList<String>();
+      List<String> deprecatedIncrementIdsArr = new ArrayList<String>();
+      List<String> projIdsArr = new ArrayList<String>();
+
       if(desiredIncrementalIds != null){
-        System.out.println("desiredIncrementalIds is: " + desiredIncrementalIds);
-        String desiredIncrementalIdArr [] = desiredIncrementalIds.split(";");
-        System.out.println("desiredIncrementalIdArr is: " + desiredIncrementalIdArr.length);
+        // System.out.println("desiredIncrementalIds is: " + desiredIncrementalIds);
+        desiredIncrementalIdArr = Arrays.asList(desiredIncrementalIds.split(";"));
+        // System.out.println("desiredIncrementalIdArr is: " + desiredIncrementalIdArr.length);
       }
       String deprecatedIncrementIds = request.getParameter("deprecatedIncrementIds");
       if(deprecatedIncrementIds != null){
-        System.out.println("deprecatedIncrementIds is: " + deprecatedIncrementIds);
-        String deprecatedIncrementIdsArr [] = deprecatedIncrementIds.split(";");
-        System.out.println("deprecatedIncrementIdsArr is: " + deprecatedIncrementIdsArr.length);
+        // System.out.println("deprecatedIncrementIds is: " + deprecatedIncrementIds);
+        deprecatedIncrementIdsArr = Arrays.asList(deprecatedIncrementIds.split(";"));
+        // System.out.println("deprecatedIncrementIdsArr is: " + deprecatedIncrementIdsArr.length);
       }
       String projIds = request.getParameter("projIds");
       if(projIds != null){
-        System.out.println("projIds is: " + projIds);
-        String projIdsArr [] = projIds.split(";");
-        System.out.println("projIdsArr is: " + projIdsArr.length);
+        // System.out.println("projIds is: " + projIds);
+        projIdsArr = Arrays.asList(projIds.split(";"));
+        // System.out.println("projIdsArr is: " + projIdsArr.length);
       }
       String throwawayStr = request.getParameter("throwaway");
       boolean throwaway = Util.stringExists(throwawayStr) && !throwawayStr.toLowerCase().equals("false");
 
       //check for eligibility.. must throw on timer if not able to do right away
-      ArrayList<String> mark1Users = mark1.getAllAssignedUsers();
-      ArrayList<String> mark2Users = mark2.getAllAssignedUsers();
+      List<String> mark1Users = mark1.getAllAssignedUsers();
+      List<String> mark2Users = mark2.getAllAssignedUsers();
       Principal userPrincipal = request.getUserPrincipal();
       String currentUsername = null;
       if (userPrincipal!=null) {
@@ -109,7 +114,7 @@ public class MergeIndividual extends HttpServlet {
       }
 
       if (currentUsername!=null) {
-        ArrayList<String> allUniqueUsers = new ArrayList<>(mark1Users);
+        List<String> allUniqueUsers = new ArrayList<>(mark1Users);
         for (String user : mark2Users) {
           if (!allUniqueUsers.contains(user)&&!"".equals(user)&&user!=null) {
             allUniqueUsers.add(user);
@@ -130,6 +135,25 @@ public class MergeIndividual extends HttpServlet {
         mark1.mergeAndThrowawayIndividual(mark2, currentUsername, myShepherd);
         if (sex != null) mark1.setSex(sex);
         if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
+        if(desiredIncrementalIdArr.size()>0 && deprecatedIncrementIdsArr.size()==desiredIncrementalIdArr.size() && deprecatedIncrementIdsArr.size()==projIdsArr.size()){
+            for (int i=0; i<desiredIncrementalIdArr.size(); i++){
+              System.out.println("got into the id changing for loop");
+              if(!deprecatedIncrementIdsArr.get(i).equals("_")){
+                //there is a deprecated incremental ID to be added to both individuals
+                System.out.println("adding deprecated increment ids");
+                mark1.addName("Merged " + projIdsArr.get(i),deprecatedIncrementIdsArr.get(i));
+                mark2.addName("Merged " + projIdsArr.get(i),deprecatedIncrementIdsArr.get(i));
+              }
+              if(desiredIncrementalIdArr.get(i).equals("_")){
+                //TODO flesh out? Do nothing currently, I think
+              }else{
+                //TODO remove old name?
+                System.out.println("adding new increment ids");
+                mark1.addName(projIdsArr.get(i),desiredIncrementalIdArr.get(i));
+                mark2.addName(projIdsArr.get(i),desiredIncrementalIdArr.get(i));
+              }
+            }
+        }
         if (throwaway) myShepherd.getPM().deletePersistent(mark2);
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();

@@ -99,7 +99,7 @@ table.compareZone tr th {
               // console.log("1: incrementalIdResults!");
               // console.log(incrementalIdResults);
               // console.log(data);
-              populateProjectIdRow(incrementalIdResults, incrementalIdResults[0].projectName, incrementalIdResults[0].projectUuid);
+              populateProjectIdRow(incrementalIdResults, incrementalIdResults[0].projectName, incrementalIdResults[0].projectUuid, incrementalIdResults[0].projectId);
             }else{
               if(projectNameResults){
                 // console.log("2: projectNameResults!");
@@ -124,7 +124,7 @@ table.compareZone tr th {
     });
   }
 
-  function populateProjectIdRow(incrementalIds, projName, projUuid){
+  function populateProjectIdRow(incrementalIds, projName, projUuid, projId){
     // console.log("data in populateProjectIdRow is: ");
     // console.log(incrementalIds);
     // console.log(projName);
@@ -141,7 +141,7 @@ table.compareZone tr th {
     projectIdHtml += '<td class="merge-field">';
     if(incrementalIds && incrementalIds.length>1 && incrementalIds[0].projectIncrementalId !== "" && incrementalIds[1].projectIncrementalId !== ""){
       // console.log("two incremental IDs for "+ projName);
-      projectIdHtml += '<select name="' + projUuid + '" id="proj-confirm-dropdown-' + projName + '" class="form-control">';
+      projectIdHtml += '<select name="' + projId + '" id="proj-confirm-dropdown-' + projName + '" class="form-control">';
       for(let i=0; i<incrementalIds.length; i++){
         if(i==0){
           projectIdHtml += '<option name="incremental-id-option" value="'+ incrementalIds[i].projectIncrementalId +'" selected>'+ incrementalIds[i].projectIncrementalId +'</option>';
@@ -158,7 +158,7 @@ table.compareZone tr th {
       if(incrementalIds && incrementalIds.length>0 && (incrementalIds[0].projectIncrementalId !== "" || incrementalIds[1].projectIncrementalId !== "")){ //one incremental ID is missing
         // console.log("one or zero incremental ID for "+ projName);
         //populate with the one incremental ID and don't give them a choice about it, but give it the IDs and names required to still fetch this value upon form submission
-        projectIdHtml += '<span name="' + projUuid + '" id="proj-confirm-dropdown-' + projName + '">';
+        projectIdHtml += '<span name="' + projId + '" id="proj-confirm-dropdown-' + projName + '">';
         let betterVal = betterValWithTieBreaker(incrementalIds[0].projectIncrementalId, incrementalIds[1].projectIncrementalId);
         projectIdHtml += betterVal;
         projectIdHtml += '</span>'
@@ -168,7 +168,7 @@ table.compareZone tr th {
       }else{
         //populate with no incremental IDs, but give it the IDs and names required to still fetch this value upon form submission
         // console.log("no incremental IDs for "+ projName);
-        projectIdHtml += '<span name="' + projUuid + '" id="proj-confirm-dropdown-' + projName + '">';
+        projectIdHtml += '<span name="' + projId + '" id="proj-confirm-dropdown-' + projName + '">';
         projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
         projectIdHtml += '</span>'
         projectIdHtml += '</td>';
