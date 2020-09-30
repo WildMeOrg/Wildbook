@@ -300,6 +300,7 @@ public class Collaboration implements java.io.Serializable {
 		Shepherd myShepherd = null;
 		try {
 			myShepherd = new Shepherd(context);
+			myShepherd.beginDBTransaction();
 			ArrayList<ScheduledIndividualMerge> potentialForNotification = myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
 			ArrayList<ScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteScheduledIndividualMerges();
 			potentialForNotification.addAll(incomplete);
@@ -308,10 +309,10 @@ public class Collaboration implements java.io.Serializable {
 					n++;
 				}
 			}
-			myShepherd.closeDBTransaction();
+			myShepherd.rollbackAndClose();
 		} catch (Exception e) {
 			if (myShepherd!=null) {
-				myShepherd.closeDBTransaction();
+				myShepherd.rollbackAndClose();
 			}
 			e.printStackTrace();
 		} 
