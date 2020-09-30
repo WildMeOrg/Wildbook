@@ -300,6 +300,7 @@ public class Collaboration implements java.io.Serializable {
 		Shepherd myShepherd = null;
 		try {
 			myShepherd = new Shepherd(context);
+			myShepherd.setAction("Collaboration.getNotificationsWidgetHTML");
 			myShepherd.beginDBTransaction();
 			ArrayList<ScheduledIndividualMerge> potentialForNotification = myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
 			ArrayList<ScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteScheduledIndividualMerges();
