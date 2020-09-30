@@ -388,10 +388,10 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
   public void addIncrementalProjectId(Project project) {
     if (project!=null) {
-      if (!hasNameSubstring(project.getResearchProjectId())) {
+      if (!hasNameSubstring(project.getProjectIdPrefix())) {
         int nextIncrement = project.getNextIndividualIdIncrement();
         try {
-          addNameByKey(project.getResearchProjectId(), project.getNextIncrementalIndividualId());
+          addNameByKey(project.getProjectIdPrefix(), project.getNextIncrementalIndividualId());
           project.getNextIncrementalIndividualIdAndAdvance();
         } catch (Exception e) {
           if (nextIncrement<project.getNextIndividualIdIncrement()) {
@@ -400,7 +400,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
           e.printStackTrace();
         }
       } else {
-        System.out.println("[ERROR]: Project Id not added to Individual "+getId()+". Individual already has an Id from project "+project.getResearchProjectId()+".");
+        System.out.println("[ERROR]: Project Id not added to Individual "+getId()+". Individual already has an Id from project "+project.getProjectIdPrefix()+".");
       }
     } else {
       System.out.println("[WARN]: Passed a null project to MarkedIndividual.addIncrementalProjectId() on "+getDisplayName()+".");

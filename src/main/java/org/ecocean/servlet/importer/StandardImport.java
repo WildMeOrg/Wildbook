@@ -1034,15 +1034,15 @@ public class StandardImport extends HttpServlet {
       int projectIncrement = 0;
       while (hasAnotherProject) {
         try {
-          String researchProjectIdKey = "Encounter.project"+projectIncrement+".researchProjectId";
-          String researchProjectId = getString(row,researchProjectIdKey);
+          String projectIdPrefixKey = "Encounter.project"+projectIncrement+".projectIdPrefix";
+          String projectIdPrefix = getString(row,projectIdPrefixKey);
 
           String ownerNameKey = "Encounter.project"+projectIncrement+".ownerUsername";
           String researchProjectNameKey = "Encounter.project"+projectIncrement+".researchProjectName";
-          if (Util.stringExists(researchProjectId)) {
-            researchProjectId = researchProjectId.trim();
+          if (Util.stringExists(projectIdPrefix)) {
+            projectIdPrefix = projectIdPrefix.trim();
             //if this project already exists, use it. bail on other specifics.
-            Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+            Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
             if (project==null) {
 
               String ownerName = getString(row,ownerNameKey);
@@ -1057,10 +1057,10 @@ public class StandardImport extends HttpServlet {
                 }
 
                 if (owner!=null&&committing) {
-                  project = new Project(researchProjectId);
+                  project = new Project(projectIdPrefix);
                   String researchProjectName = getString(row,researchProjectNameKey);
                   if (Util.stringExists(researchProjectName)) {
-                    researchProjectId = researchProjectId.trim();
+                    projectIdPrefix = projectIdPrefix.trim();
                     project.setResearchProjectName(researchProjectName);
                   }
                   project.setOwner(owner);
@@ -1073,7 +1073,7 @@ public class StandardImport extends HttpServlet {
               myShepherd.updateDBTransaction();
             }
             if (unusedColumns!=null) {
-              unusedColumns.remove(researchProjectId);
+              unusedColumns.remove(projectIdPrefix);
               if (unusedColumns.contains(ownerNameKey)) unusedColumns.remove(ownerNameKey);
               if (unusedColumns.contains(researchProjectNameKey)) unusedColumns.remove(researchProjectNameKey);
             }

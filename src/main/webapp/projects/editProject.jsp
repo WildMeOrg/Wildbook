@@ -94,7 +94,7 @@ function appendNewUser(userId, username) {
 function populateHtml(project){
   let projectHTML = '';
 
-  projectHTML += '<div class="container researchProjectIdDiv" id="'+project.researchProjectId+'">';
+  projectHTML += '<div class="container projectIdPrefixDiv" id="'+project.projectIdPrefix+'">';
   projectHTML += '<h1>Edit Project</h1>';
   projectHTML += '<h3>Project: '+project.researchProjectName+'</h3>';
   projectHTML += '<hr>';
@@ -107,7 +107,7 @@ function populateHtml(project){
   projectHTML += '</div>'
   projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">';
   projectHTML += '  <label>Research Project ID</label><br>';
-  projectHTML += '  <input class="form-control" type="text" value="'+project.researchProjectId+'" id="researchProjectId" name="researchProjectId" size="20" />'; 
+  projectHTML += '  <input class="form-control" type="text" value="'+project.projectIdPrefix+'" id="projectIdPrefix" name="projectIdPrefix" size="20" />'; 
   projectHTML += '</div>'
 
   projectHTML += '</div>';
@@ -159,7 +159,7 @@ function updateProject() {
   let requestJSONArr = [];
   let requestJSON = {};
   requestJSON['researchProjectName'] = $('#researchProjectName').val();
-  requestJSON['researchProjectId'] = $('#researchProjectId').val();
+  requestJSON['projectIdPrefix'] = $('#projectIdPrefix').val();
   if (userIdsToRemove.length>0) {
     requestJSON['usersToRemove'] = userIdsToRemove;
   }
@@ -172,9 +172,9 @@ function updateProject() {
 }
 
 function deleteProject(el) {
-  let projectId = $(el).closest(".researchProjectIdDiv").attr("id");
+  let projectId = $(el).closest(".projectIdPrefixDiv").attr("id");
   let json = {};
-  json['researchProjectId'] = projectId;
+  json['projectIdPrefix'] = projectId;
   doDeleteAjax(json);
 }
 

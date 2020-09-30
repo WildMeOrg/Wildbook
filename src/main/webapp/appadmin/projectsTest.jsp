@@ -35,7 +35,7 @@ context=ServletUtilities.getContext(request);
                 <br/>
                 <input class="btn btn-md" type="button" onclick="makeTestProject()" value="Create"/>
                 <br/>
-                <input class="form-control" name="researchProjectId" type="text" id="researchProjectId" placeholder="Research Project Id">
+                <input class="form-control" name="projectIdPrefix" type="text" id="projectIdPrefix" placeholder="Research Project Id">
                 <br/>
                 <input class="form-control" name="researchProjectName" type="text" id="researchProjectName" placeholder="Research Project Name">
             </div>
@@ -89,10 +89,10 @@ context=ServletUtilities.getContext(request);
                     let thisProject = projectsArr[i];
                     console.log("PROJECT #"+i);
                     console.log(JSON.stringify(thisProject));
-                    let projectHTML = '<div class="researchProjectIdDiv" id="'+thisProject.researchProjectId+'">';
+                    let projectHTML = '<div class="projectIdPrefixDiv" id="'+thisProject.projectIdPrefix+'">';
                     projectHTML += "<p>"+thisProject.ownerId+"</p>";
                     projectHTML += "<p>"+thisProject.researchProjectName+"</p>";
-                    projectHTML += "<p>"+thisProject.researchProjectId+"</p>";
+                    projectHTML += "<p>"+thisProject.projectIdPrefix+"</p>";
                     projectHTML += "<p>"+thisProject.dateCreatedLong+"</p>";
                     projectHTML += "<p>"+thisProject.dateLastModifiedLong+"</p>";
                     projectHTML += '<p><input class="btn btn-md" type="button" onclick="deleteTestProject(this)" value="Delete"/></p>';
@@ -114,11 +114,11 @@ context=ServletUtilities.getContext(request);
 
     function makeTestProject() {
 
-        let projectId = $("#researchProjectId").val();
+        let projectId = $("#projectIdPrefix").val();
         let projectName = $("#researchProjectName").val();
         let json = {};
 
-        json['researchProjectId'] = projectId;
+        json['projectIdPrefix'] = projectId;
         json['researchProjectName'] = projectName;
 
         $.ajax({
@@ -143,12 +143,12 @@ context=ServletUtilities.getContext(request);
     }
 
     function deleteTestProject(el) {
-        let projectId = $(el).closest(".researchProjectIdDiv").attr("id");
+        let projectId = $(el).closest(".projectIdPrefixDiv").attr("id");
         //console.log("current parent in delete?? "+$(this).closest('div'));
         console.log("PROJECTID FOR DELETE: "+projectId);
         let json = {};
 
-        json['researchProjectId'] = projectId;
+        json['projectIdPrefix'] = projectId;
 
         $.ajax({
             url: wildbookGlobals.baseUrl + '../ProjectDelete',

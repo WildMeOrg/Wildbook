@@ -178,7 +178,7 @@ function createMarkedIndividualAjax(projectId, encounterId){
 
 function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
   let formJson = {};
-  formJson["researchProjectId"] = projectId;
+  formJson["projectIdPrefix"] = projectId;
   formJson["individualId"] = individualId;
   $.ajax({
     url: wildbookGlobals.baseUrl + '../IndividualAddIncrementalProjectId',
@@ -309,14 +309,14 @@ function projectHTMLForTable(json) {
   projectHTML +=  '</br>';
 
   // grr.. not worth an AJAX call for just this. one more key and i'm doin it though -CK
-  let researchProjectId = '<%= project.getResearchProjectId()%>';
+  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
 
   if(!hasNameKeyMatchingProject){
     if (individualDisplayName!=null&&individualDisplayName!="") {
-      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+researchProjectId+'\', \''+encounterId+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
+      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+projectIdPrefix+'\', \''+encounterId+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
       projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
     } else {
-      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+researchProjectId+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
+      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+projectIdPrefix+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
       projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;"><%= projectProps.getProperty("MarkNew")%></button>';
     }
   }
@@ -338,10 +338,10 @@ function startMatchForEncounter(el) {
   let elId = $(el).attr('id');
   console.log("--> el id for starting match: "+elId);
   let encId = elId.replace('encId-','');
-  let researchProjectId = '<%= project.getResearchProjectId()%>';
-  if (encId&&researchProjectId) {
+  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
+  if (encId&&projectIdPrefix) {
     let requestJSON = {};
-    requestJSON['researchProjectId'] = researchProjectId;
+    requestJSON['projectIdPrefix'] = projectIdPrefix;
     requestJSON['queryEncounterId'] = encId;
     console.log("all requestJSON: "+JSON.stringify(requestJSON));
     let responseJSON = {};

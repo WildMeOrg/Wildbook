@@ -46,12 +46,12 @@ String nextNameKey = (user!=null) ? user.getIndividualNameKey() : null;
 boolean usesAutoNames = Util.stringExists(nextNameKey);
 String nextName = (usesAutoNames) ? MultiValue.nextUnusedValueForKey(nextNameKey, myShepherd) : null;
 
-String researchProjectId = request.getParameter("researchProjectId");
+String projectIdPrefix = request.getParameter("projectIdPrefix");
 String researchProjectName = null;
 String researchProjectUUID = null;
 // okay, are we going to use an incremental name from the project side?
-if (Util.stringExists(researchProjectId)) {
-	Project projectForAutoNaming = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
+if (Util.stringExists(projectIdPrefix)) {
+	Project projectForAutoNaming = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 	if (projectForAutoNaming!=null) {
 		researchProjectName = projectForAutoNaming.getResearchProjectName();
 		researchProjectUUID = projectForAutoNaming.getId();
@@ -86,10 +86,10 @@ if (request.getParameter("acmId") != null) {
 		rtn.put("error", "unknown error");
 	} else {
 		JSONArray janns = new JSONArray();
-		System.out.println("trying researchProjectId in iaResults... "+researchProjectId);
+		System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
 		Project project = null;
-		if (Util.stringExists(researchProjectId)) {
-			project = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
+		if (Util.stringExists(projectIdPrefix)) {
+			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 		}
         for (Annotation ann : anns) {
 			if (ann.getMatchAgainst()==true) {
@@ -115,9 +115,9 @@ if (request.getParameter("acmId") != null) {
 							System.out.println("num encounters in project: "+project.getEncounters().size());
 							MarkedIndividual individual = enc.getIndividual();
 							if (individual!=null) {
-								List<String> projectNames = individual.getNamesList(researchProjectId);
+								List<String> projectNames = individual.getNamesList(projectIdPrefix);
 								jann.put("incrementalProjectId", projectNames.get(0));
-								jann.put("researchProjectId", researchProjectId);
+								jann.put("projectIdPrefix", projectIdPrefix);
 								jann.put("projectUUID", project.getId());
 							}
 						} 
@@ -255,7 +255,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 					myShepherd.getPM().makePersistent(indiv);
 					//check for project to add new name with prefix
 					if (projectId!=null) {
-						Project project = myShepherd.getProjectByResearchProjectId(projectId);
+						Project project = myShepherd.getProjectByProjectIdPrefix(projectId);
 						if (project!=null&&project.getNextIncrementalIndividualId().equals(displayName)) {
 							project.getNextIncrementalIndividualIdAndAdvance();
 							myShepherd.updateDBTransaction();
@@ -381,7 +381,7 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 
 		if (validToName&&"true".equals(useNextProjectId)) {
 			System.out.println("trying to set next PROJECT automatic name.......");
-			Project projectForAutoNaming = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
+			Project projectForAutoNaming = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
 			mark.addIncrementalProjectId(projectForAutoNaming);
 		} else {
 			System.out.println("trying to set USER BASED automatic name.......");
@@ -681,7 +681,7 @@ var timers = {};
 
 var INDIVIDUAL_SCORES = <%=individualScores%>;
 
-var researchProjectId = '<%=researchProjectId%>';
+var projectIdPrefix = '<%=projectIdPrefix%>';
 var researchProjectName = '<%=researchProjectName%>';
 var NONE_SELECTED = 'None Selected';
 var projectData = {};
@@ -807,9 +807,9 @@ function grabTaskResult(tid) {
 //console.warn('------------------- grabTaskResult(%s)', tid);
 
 	let paramStr = 'iaLogs.jsp?taskId=' + tid;
-	console.log("do i have a projectId in grabTaskResult()????? "+researchProjectId);
-	if (researchProjectId!=null&&researchProjectId.length>0) {
-		paramStr += "&projectId="+researchProjectId;
+	console.log("do i have a projectId in grabTaskResult()????? "+projectIdPrefix);
+	if (projectIdPrefix!=null&&projectIdPrefix.length>0) {
+		paramStr += "&projectId="+projectIdPrefix;
 	}
 
 	$.ajax({
@@ -1151,9 +1151,9 @@ console.info('%d ===> %s', num, acmId);
 
 	$('#task-' + taskId).append(h);
 	let paramString = 'iaResults.jsp?acmId=' + acmId;
-	let projectId = getSelectedResearchProjectId();
+	let projectId = getSelectedProjectIdPrefix();
 	if (projectId!=""&&projectId!=undefined) {
-		paramString += "&researchProjectId="+projectId;
+		paramString += "&projectIdPrefix="+projectId;
 	}
 	
 	
@@ -1356,7 +1356,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 					displayName = $('.enc-title .indiv-link').text();
 				}
 
-				console.log("indivId: "+indivId+" researchProjectId: "+researchProjectId+" incrementalProjectId: "+incrementalProjectId+" displayName: "+displayName);
+				console.log("indivId: "+indivId+" projectIdPrefix: "+projectIdPrefix+" incrementalProjectId: "+incrementalProjectId+" displayName: "+displayName);
 
 				let thisResultLine = $('#task-'+taskId+' .annot-summary-'+acmId);
 
@@ -1454,7 +1454,7 @@ console.info('qdata[%s] = %o', taskId, qdata);
     if (imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
-function getSelectedResearchProjectId() {
+function getSelectedProjectIdPrefix() {
 	let selectedValue = $("#projectDropdown option:selected").val();
 	if (selectedValue==""||selectedValue==undefined||selectedValue==null||selectedValue=="null") return ""; 
 	return selectedValue;
@@ -1473,8 +1473,8 @@ function annotCheckbox(el) {
 	jel.parent().addClass('annot-summary-checked');
 
 
-	let selectedResearchProjectId = getSelectedResearchProjectId();
-	if (selectedResearchProjectId==NONE_SELECTED) selectedResearchProjectId = '';
+	let selectedProjectIdPrefix = getSelectedProjectIdPrefix();
+	if (selectedProjectIdPrefix==NONE_SELECTED) selectedProjectIdPrefix = '';
 	let allowSyncReturn = true;
 
 	var h = '<i>Getting next ID...</i>';
@@ -1486,10 +1486,10 @@ function annotCheckbox(el) {
 		// construct link to merge page
 		var link = "merge.jsp?individualA="+jel.data('individ')+"&individualB="+queryAnnotation.indivId;
 		h = 'These encounters are already assigned to two <b>different individuals</b>.  <a href="'+link+'" class="button" > Merge Individuals</a>';
-	} else if (selectedResearchProjectId.length>0&&!jel.data('individ')&&!queryAnnotation.indivId) {
+	} else if (selectedProjectIdPrefix.length>0&&!jel.data('individ')&&!queryAnnotation.indivId) {
 		allowSyncReturn = false;
 		let requestJSON = {};
-		requestJSON['researchProjectId'] = selectedResearchProjectId;
+		requestJSON['projectIdPrefix'] = selectedProjectIdPrefix;
 		requestJSON['action'] = 'getNextIdForProject'; 
 		$.ajax({
 			url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -1498,7 +1498,7 @@ function annotCheckbox(el) {
 			dataType: 'json',
 			contentType: 'application/json',
 			success: function(d) {
-				console.info('Retrieved next incremental ID for '+selectedResearchProjectId+'! Got back '+JSON.stringify(d));
+				console.info('Retrieved next incremental ID for '+selectedProjectIdPrefix+'! Got back '+JSON.stringify(d));
 				let nextId = d.nextId;
 				if (!nextId) {
 					nextId = '';
@@ -1507,7 +1507,7 @@ function annotCheckbox(el) {
 				h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 				h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 				h += '/>'; 
-				h += '<input type="button" value="New Project ID For Both Encounters" data-projectId="'+selectedResearchProjectId+'" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />' 
+				h += '<input type="button" value="New Project ID For Both Encounters" data-projectId="'+selectedProjectIdPrefix+'" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />' 
 
 				$('#enc-action').html(h);
 
@@ -1805,7 +1805,7 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
 	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
-	let projectId = getSelectedResearchProjectId();
+	let projectId = getSelectedProjectIdPrefix();
 	console.log('should i add name as project based? '+projectId);
 	if (projectId&&projectId!=NONE_SELECTED) {
 		url += '&projectId='+projectId;
@@ -1870,9 +1870,9 @@ function negativeButtonClick(encId, oldDisplayName) {
 	confirmMsg+= ' to record your decision.';
 
 	let paramStr = 'encId='+encId+'&noMatch=true';
-	let projectId = '<%=researchProjectId%>';
+	let projectId = '<%=projectIdPrefix%>';
 	if (projectId&&projectId.length) {
-		paramStr += '&useNextProjectId=true&researchProjectId='+projectId;
+		paramStr += '&useNextProjectId=true&projectIdPrefix='+projectId;
 	}
 
 	console.log("paramStr for 'negativeButtonClick' : "+paramStr);
@@ -1945,10 +1945,10 @@ function populateProjectsDropdown(projectsArr, selectedProject) {
 	for (i=0;i<projectsArr.length;i++) {
 		let project = projectsArr[i];
 		let selectEl;
-		if (selectedProject&&selectedProject==project.researchProjectId) {
-			selectEl = $('<option selected class="projectSelectOption" value="'+project.researchProjectId+'">'+project.researchProjectName+'</option>');
+		if (selectedProject&&selectedProject==project.projectIdPrefix) {
+			selectEl = $('<option selected class="projectSelectOption" value="'+project.projectIdPrefix+'">'+project.researchProjectName+'</option>');
 		} else {
-			selectEl = $('<option class="projectSelectOption" value="'+project.researchProjectId+'">'+project.researchProjectName+'</option>');
+			selectEl = $('<option class="projectSelectOption" value="'+project.projectIdPrefix+'">'+project.researchProjectName+'</option>');
 		}
 		dropdown.append(selectEl);
 	}
@@ -1956,7 +1956,7 @@ function populateProjectsDropdown(projectsArr, selectedProject) {
 
 $(document).ready(function(){
 	let currentUsername = '<%=currentUsername%>';
-	let selectedProject = '<%=researchProjectId%>';
+	let selectedProject = '<%=projectIdPrefix%>';
 	if (selectedProject=="null"||selectedProject=="") selectedProject = false;
 	if (currentUsername.length) {
 		getProjectData(currentUsername, selectedProject);
@@ -1976,7 +1976,7 @@ $('#projectDropdown').on('change', function() {
 	let reloadURL = "../iaResults.jsp?taskId="+taskId;
 	let selectedProject = $("#projectDropdown").val();
 	if (selectedProject&&selectedProject.length) {
-		reloadURL += "&researchProjectId="+selectedProject;
+		reloadURL += "&projectIdPrefix="+selectedProject;
 	}
 	window.location.href = reloadURL;
 	//applyResearchProjectLinks()
@@ -1989,7 +1989,7 @@ function selectedProjectContainsEncounter(acmId) {
 	console.log("entering selectedProjectContainsEncounte servlet for acmId"+acmId);
 	let selectedProject = $("#projectDropdown").val();
 	let requestJSON = {};
-	requestJSON['researchProjectId'] = selectedProject;
+	requestJSON['projectIdPrefix'] = selectedProject;
 	requestJSON['acmId'] = acmId;
 	requestJSON['annotInProject'] = "true";
 

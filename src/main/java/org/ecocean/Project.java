@@ -17,7 +17,7 @@ public class Project implements java.io.Serializable {
     private List<Encounter> encounters = null;
 
     private String researchProjectName;
-    private String researchProjectId;
+    private String projectIdPrefix;
 
     private Long dateCreatedLong;
     private Long dateLastModifiedLong;
@@ -31,23 +31,23 @@ public class Project implements java.io.Serializable {
     //empty constructor used by the JDO enhancer
     public Project() {}
 
-    public Project(final String researchProjectId) {
-        this(researchProjectId, null, null);
+    public Project(final String projectIdPrefix) {
+        this(projectIdPrefix, null, null);
     }
 
-    public Project(final String researchProjectId, final List<Encounter> encs) {
-        this(researchProjectId, null, encs);
+    public Project(final String projectIdPrefix, final List<Encounter> encs) {
+        this(projectIdPrefix, null, encs);
     }
 
-    public Project(final String researchProjectId, final String researchProjectName) {
-        this(researchProjectId, researchProjectName, null);
+    public Project(final String projectIdPrefix, final String researchProjectName) {
+        this(projectIdPrefix, researchProjectName, null);
         System.out.println("the correct constructor is called");
     }
 
-    public Project(final String researchProjectId, final String researchProjectName, final List<Encounter> encs) {
+    public Project(final String projectIdPrefix, final String researchProjectName, final List<Encounter> encs) {
         this.encounters = new ArrayList<>();
         this.id = Util.generateUUID();
-        this.researchProjectId = researchProjectId;
+        this.projectIdPrefix = projectIdPrefix;
         this.researchProjectName = researchProjectName;
         setTimeCreated();
         setTimeLastModified();
@@ -69,11 +69,11 @@ public class Project implements java.io.Serializable {
     }
 
     public String getNextIncrementalIndividualId() {
-        return researchProjectId + nextIndividualIdIncrement;
+        return projectIdPrefix + nextIndividualIdIncrement;
     }
 
     public void adjustIncrementalIndividualId(int adjustment) {
-        System.out.println("[WARN]: Project Individual Id Increment for "+researchProjectId+" has been adjusted by "+adjustment+", likely for error handling.");
+        System.out.println("[WARN]: Project Individual Id Increment for "+projectIdPrefix+" has been adjusted by "+adjustment+", likely for error handling.");
         nextIndividualIdIncrement = nextIndividualIdIncrement + adjustment;
         setTimeLastModified();
     }
@@ -84,7 +84,7 @@ public class Project implements java.io.Serializable {
       for (Encounter enc : encounters) {
           if (enc.getIndividual()!=null) {
               MarkedIndividual thisIndividual = enc.getIndividual();
-              if (thisIndividual.hasNameKey(getResearchProjectId())) {
+              if (thisIndividual.hasNameKey(getProjectIdPrefix())) {
                   hasIncrementalId++;
               }
           }
@@ -131,7 +131,7 @@ public class Project implements java.io.Serializable {
                 }
             }
         } else {
-            System.out.println("[WARN]: Project.addUser() or addUsers() for "+researchProjectId+" was passed a null.");
+            System.out.println("[WARN]: Project.addUser() or addUsers() for "+projectIdPrefix+" was passed a null.");
         }
     }
 
@@ -189,17 +189,17 @@ public class Project implements java.io.Serializable {
     }
 
     public String getResearchProjectName() {
-        if (researchProjectName==null || "".equals(researchProjectName)) return getResearchProjectId();
+        if (researchProjectName==null || "".equals(researchProjectName)) return getProjectIdPrefix();
         return researchProjectName;
     }
 
-    public void setResearchProjectId(final String researchProjectId) {
+    public void setProjectIdPrefix(final String projectIdPrefix) {
         setTimeLastModified();
-        this.researchProjectId = researchProjectId;
+        this.projectIdPrefix = projectIdPrefix;
     }
 
-    public String getResearchProjectId() {
-        return researchProjectId;
+    public String getProjectIdPrefix() {
+        return projectIdPrefix;
     }
 
     public List<Encounter> getEncounters() {
@@ -281,7 +281,7 @@ public class Project implements java.io.Serializable {
         j.put("id", id);
         j.put("ownerId", ownerId);
         j.put("researchProjectName", researchProjectName);
-        j.put("researchProjectId", researchProjectId);
+        j.put("projectIdPrefix", projectIdPrefix);
         j.put("dateCreatedLong", dateCreatedLong);
         j.put("dateLastModifiedLong", dateLastModifiedLong);
         JSONArray usersJSONArr = new JSONArray();
@@ -305,9 +305,9 @@ public class Project implements java.io.Serializable {
                     if (individual!=null&&Util.stringExists(individual.getDisplayName())) {
                         individualName = individual.getDisplayName();
                         individualUUID = individual.getId();
-                        hasNameKeyMatchingProject = individual.hasNameKey(researchProjectId);
+                        hasNameKeyMatchingProject = individual.hasNameKey(projectIdPrefix);
                         if (hasNameKeyMatchingProject) {
-                            individualProjectId = individual.getDisplayName(researchProjectId);
+                            individualProjectId = individual.getDisplayName(projectIdPrefix);
                         }
                     }
                     encMetadata.put("individualUUID", individualUUID);
@@ -319,7 +319,7 @@ public class Project implements java.io.Serializable {
                     encMetadata.put("encounterId", enc.getID());
                     encMetadata.put("individualProjectId", individualProjectId);
                     JSONArray allProjectIds = new JSONArray();
-                    for (String projectId : myShepherd.getResearchProjectIdsForEncounter(enc)) {
+                    for (String projectId : myShepherd.getProjectIdPrefixsForEncounter(enc)) {
                         allProjectIds.put(projectId);
                     }
                     encMetadata.put("allProjectIds", allProjectIds);
