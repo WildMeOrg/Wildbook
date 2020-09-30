@@ -117,7 +117,7 @@ public class ProjectGet extends HttpServlet {
                 }
             }
 
-            //get incrementalIds for individual
+            //get incrementalIds for individuals
             JSONArray individualIdJSONArr = j.optJSONArray("individualIds");
             JSONArray returnArr = new JSONArray();
             Boolean successStatus = false;
@@ -219,6 +219,51 @@ public class ProjectGet extends HttpServlet {
                     complete = true;
                 }
             }
+
+            // get all projects for a markedIndividual
+            String individualId = j.optString("individualId", null);
+            if (Util.stringExists(individualId)) {
+                MarkedIndividual ind = myShepherd.getMarkedIndividual(individualId);
+                if (ind!=null) {
+                    List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(ind);
+                    JSONArray projectArr = new JSONArray();
+                    if (projects!=null) {
+                        for (Project project : projects) {
+                            projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
+                        }
+                    }
+                    res.put("projects", projectArr);
+                    res.put("success",true);
+                    complete = true;
+                }
+            }
+
+            // get all projects for an array of markedIndividuals
+            JSONArray individualIdsArr = j.optJSONArray("individualIdsForProj");
+            JSONArray returnProjArr = new JSONArray();
+            successStatus = false;
+            if(individualIdJSONArr != null && individualIdJSONArr.length()>0){
+              for (int i=0;i<individualIdJSONArr.length();i++) {
+                JSONObject individualIdObj = individualIdJSONArr.getJSONObject(i);
+                individualId = individualIdObj.optString("indId", null);
+                if (Util.stringExists(individualId)) {
+                  MarkedIndividual ind = myShepherd.getMarkedIndividual(individualId);
+                  if (ind!=null) {
+                    List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(ind);
+                    JSONArray projectArr = new JSONArray();
+                    if (projects!=null) {
+                      for (Project project : projects) {
+                        projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
+                      }
+                    }
+                    returnProjArr.put(projectArr);
+                  }
+              }
+            }
+            res.put("projectByIndividArr",returnProjArr);
+            res.put("success",true);
+            complete = true;
+          }
 
             // get all projects for owner or participant
             ownerId = j.optString("ownerId", null);

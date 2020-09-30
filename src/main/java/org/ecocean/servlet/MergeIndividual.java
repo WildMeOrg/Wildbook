@@ -85,21 +85,15 @@ public class MergeIndividual extends HttpServlet {
 
       String desiredIncrementalIds = request.getParameter("desiredIncrementalIds");
       if(desiredIncrementalIds != null){
-        // System.out.println("desiredIncrementalIds is: " + desiredIncrementalIds);
         desiredIncrementalIdArr = Arrays.asList(desiredIncrementalIds.split(";"));
-        System.out.println("desiredIncrementalIdArr is: " + desiredIncrementalIdArr.toString());
       }
       String deprecatedIncrementIds = request.getParameter("deprecatedIncrementIds");
       if(deprecatedIncrementIds != null){
-        // System.out.println("deprecatedIncrementIds is: " + deprecatedIncrementIds);
         deprecatedIncrementIdsArr = Arrays.asList(deprecatedIncrementIds.split(";"));
-        System.out.println("deprecatedIncrementIdsArr is: " + deprecatedIncrementIdsArr.toString());
       }
       String projIds = request.getParameter("projIds");
       if(projIds != null){
-        // System.out.println("projIds is: " + projIds);
         projIdsArr = Arrays.asList(projIds.split(";"));
-        System.out.println("projIdsArr is: " + projIdsArr.toString());
       }
       String throwawayStr = request.getParameter("throwaway");
       boolean throwaway = Util.stringExists(throwawayStr) && !throwawayStr.toLowerCase().equals("false");
@@ -142,15 +136,18 @@ public class MergeIndividual extends HttpServlet {
                 //there is a deprecated incremental ID to be added to both individuals
                 System.out.println("adding deprecated increment ids");
                 mark1.addName("Merged " + projIdsArr.get(i),deprecatedIncrementIdsArr.get(i));
-                mark2.addName("Merged " + projIdsArr.get(i),deprecatedIncrementIdsArr.get(i));
+                // mark2.addName("Merged " + projIdsArr.get(i),deprecatedIncrementIdsArr.get(i));
               }
               if(desiredIncrementalIdArr.get(i).equals("_")){
                 //TODO flesh out? Do nothing currently, I think
               }else{
                 //TODO remove old name?
-                System.out.println("adding new increment ids");
+                System.out.println("adding new increment ids and removing old ones with key: " + projIdsArr.get(i));
+                mark1.getNames().removeKey(projIdsArr.get(i));
                 mark1.addName(projIdsArr.get(i),desiredIncrementalIdArr.get(i));
-                mark2.addName(projIdsArr.get(i),desiredIncrementalIdArr.get(i));
+                System.out.println("mark1 is: ");
+                System.out.println(mark1.toString());
+                // mark2.addName(projIdsArr.get(i),desiredIncrementalIdArr.get(i));
               }
             }
         }
