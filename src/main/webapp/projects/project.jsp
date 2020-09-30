@@ -276,6 +276,8 @@ function goToEditPage() {
 }
 
 function projectHTMLForTable(json) {
+  console.log("json going into projectHTMLForTable is: ");
+  console.log(json);
   let encounterId = json.encounterId;
   let individualDisplayName = json.individualDisplayName;
   let individualUUID = json.individualUUID;
