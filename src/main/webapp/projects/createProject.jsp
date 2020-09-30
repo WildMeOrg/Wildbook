@@ -65,7 +65,7 @@
               name="create-project-form"
               action="../ProjectCreate"
               accept-charset="UTF-8">
-                <div class="form-group row">
+                <div class="form-group required row">
                   <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <label><strong><%=props.getProperty("researchProjectName") %></strong></label>
                     <input class="form-control" type="text" id="researchProjectName" name="researchProjectName"/>
@@ -179,9 +179,15 @@
     	if(!$('#projectIdPrefix').val()){
     		console.log("no projectIdPrefix entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('You must provide a Project ID.'); }, 100);
+    		window.setTimeout(function() { alert('You must provide a Project ID Prefix.'); }, 100);
     		return false;
-    	}
+      }
+      if(!$('#researchProjectName').val()){
+    		console.log("no researchProjectName entered");
+    		$('#researchProjectName').closest('.form-group').addClass('required-missing');
+    		window.setTimeout(function() { alert('You must provide a Project Name.'); }, 100);
+    		return false;
+      }
       if($('#projectIdPrefix').val().includes(";")){
     		console.log("projectIdPrefix contains ; entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
@@ -224,6 +230,7 @@
 
     function submitForm() {
       console.log("submitForm entered");
+
       let uuidsOnAccessList = getUuidsFromAccessList();
       let formDataArray = $("#create-project-form").serializeArray();
       let formJson = {};
