@@ -386,7 +386,7 @@ System.out.println("*** trying redirect?");
                 fileSuccess = true;
                 if(projectNameSelections != null){
                   for(String projectNameSelection: projectNameSelections){
-                    Project currentProject = myShepherd.getProjectByResearchProjectId(projectNameSelection);
+                    Project currentProject = myShepherd.getProjectByProjectIdPrefix(projectNameSelection);
                     if(currentProject!=null){
                       projects.add(currentProject);
                     }

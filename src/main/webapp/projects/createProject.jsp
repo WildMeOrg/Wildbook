@@ -73,8 +73,8 @@
                 </div>
                 <div class="form-group required row">
                   <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <label class="control-label text-danger"><strong><%=props.getProperty("researchProjectId") %></strong></label>
-                    <input class="form-control" type="text" style="position: relative; z-index: 101;" id="researchProjectId" name="researchProjectId" size="20" />
+                    <label class="control-label text-danger"><strong><%=props.getProperty("projectIdPrefix") %></strong></label>
+                    <input class="form-control" type="text" style="position: relative; z-index: 101;" id="projectIdPrefix" name="projectIdPrefix" size="20" />
                   </div>
                 </div>
                 <div class="form-group row">
@@ -176,15 +176,15 @@
 
     function createButtonClicked() {
     	console.log('createButtonClicked()');
-    	if(!$('#researchProjectId').val()){
-    		console.log("no researchProjectId entered");
-    		$('#researchProjectId').closest('.form-group').addClass('required-missing');
+    	if(!$('#projectIdPrefix').val()){
+    		console.log("no projectIdPrefix entered");
+    		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
     		window.setTimeout(function() { alert('You must provide a Project ID.'); }, 100);
     		return false;
     	}
-      if($('#researchProjectId').val().includes(";")){
-    		console.log("researchProjectId contains ; entered");
-    		$('#researchProjectId').closest('.form-group').addClass('required-missing');
+      if($('#projectIdPrefix').val().includes(";")){
+    		console.log("projectIdPrefix contains ; entered");
+    		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
     		window.setTimeout(function() { alert('Please remove semicolons from your project ID.'); }, 100);
     		return false;
     	}
@@ -194,9 +194,9 @@
     		window.setTimeout(function() { alert('Please remove semicolons from your project name.'); }, 100);
     		return false;
     	}
-      if($('#researchProjectId').val().includes("_")){
-    		console.log("researchProjectId contains ; entered");
-    		$('#researchProjectId').closest('.form-group').addClass('required-missing');
+      if($('#projectIdPrefix').val().includes("_")){
+    		console.log("projectIdPrefix contains ; entered");
+    		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
     		window.setTimeout(function() { alert('Please remove underscores from your project ID.'); }, 100);
     		return false;
     	}

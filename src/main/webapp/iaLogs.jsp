@@ -56,7 +56,7 @@ if (logs == null) {
 JSONArray all = new JSONArray();
 
 if (projectId!=null) {
-	Project project = myShepherd.getProjectByResearchProjectId(projectId);
+	Project project = myShepherd.getProjectByProjectIdPrefix(projectId);
 	if (project!=null) {
 		JSONObject projectData = new JSONObject();
 		projectData.put("projectData", project.asJSONObjectWithEncounterMetadata(myShepherd));

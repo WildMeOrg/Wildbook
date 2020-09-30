@@ -1111,9 +1111,9 @@ public class Shepherd {
     return projectArr;
 }
 
-  public Project getProjectByResearchProjectId(String researchProjectId) {
+  public Project getProjectByProjectIdPrefix(String projectIdPrefix) {
     Project project = null;
-    String filter="SELECT FROM org.ecocean.Project WHERE researchProjectId == \""+researchProjectId.trim()+"\"";
+    String filter="SELECT FROM org.ecocean.Project WHERE projectIdPrefix == \""+projectIdPrefix.trim()+"\"";
     Query query=getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     Iterator it = c.iterator();
@@ -1531,16 +1531,16 @@ public class Shepherd {
     return itask;
   }
 
-  public List<String> getResearchProjectIdsForEncounter(Encounter enc) {
+  public List<String> getProjectIdPrefixsForEncounter(Encounter enc) {
     List<Project> projects = getProjectsForEncounter(enc);
-    List<String> researchProjectIds = null;
+    List<String> projectIdPrefixs = null;
     if (projects!=null&&projects.size()>0) {
-      researchProjectIds = new ArrayList<>();
+      projectIdPrefixs = new ArrayList<>();
       for (Project project : projects) {
-        researchProjectIds.add(project.getResearchProjectId());
+        projectIdPrefixs.add(project.getProjectIdPrefix());
       }
     }
-    return researchProjectIds;
+    return projectIdPrefixs;
   }
 
   public List<Project> getProjectsForEncounter(Encounter enc) {

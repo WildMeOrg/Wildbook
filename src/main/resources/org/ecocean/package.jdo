@@ -752,8 +752,8 @@
         <column name="RESEARCHPROJECTNAME"/>
       </field>
 
-      <field name="researchProjectId">
-        <column name="RESEARCHPROJECTID"/>
+      <field name="projectIdPrefix">
+        <column name="projectIdPrefix"/>
       </field>
 
     </class>

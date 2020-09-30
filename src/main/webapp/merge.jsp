@@ -69,7 +69,7 @@ table.compareZone tr th {
 
   function callForIncrementalIdsAndPopulate(projId){
     let incrementalIdJsonRequest = {};
-    incrementalIdJsonRequest['researchProjectId'] = projId;
+    incrementalIdJsonRequest['projectIdPrefix'] = projId;
     incrementalIdJsonRequest['individualIds'] = [];
     <% for (MarkedIndividual ind: inds) {%>
       incrementalIdJsonRequest['individualIds'].push({indId: "<%= ind.getIndividualID()%>"});
@@ -105,7 +105,7 @@ table.compareZone tr th {
                 // console.log("2: projectNameResults!");
                 // console.log(projectNameResults);
                 let projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
-                let prjIdOptions = projectNameResults.map(entry =>{return entry.researchProjectId});
+                let prjIdOptions = projectNameResults.map(entry =>{return entry.projectIdPrefix});
                   if(projNameOptions.length>0){
                     // console.log("about to enter populateProjectRows...");
                     populateProjectRows(projNameOptions, prjIdOptions);
