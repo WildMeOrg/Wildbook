@@ -68,6 +68,10 @@ public class ProjectCreate extends HttpServlet {
             projectIdPrefix = j.optString("projectIdPrefix", null);
             researchProjectName = j.optString("researchProjectName", null);
 
+            if (!Util.stringExists(projectIdPrefix)) {
+                projectIdPrefix = researchProjectName;
+            }
+
             if (projectIdPrefix!=null&&!"".equals(projectIdPrefix)&&myShepherd.getProjectByProjectIdPrefix(projectIdPrefix)==null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 List<Encounter> encs = new ArrayList<>();
