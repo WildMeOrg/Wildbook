@@ -8,6 +8,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Date;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -34,7 +35,7 @@ public class MergeIndividual extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    
+
 
     response.setContentType("text/html");
     out = response.getWriter();
@@ -53,10 +54,10 @@ public class MergeIndividual extends HttpServlet {
     String oldName2;
 
     boolean canMergeAutomatically = false;
-    
+
     myShepherd=new Shepherd(request);
     myShepherd.setAction("MergeIndividual.class");
-    
+
     try {
 
       myShepherd.beginDBTransaction();
@@ -77,11 +78,27 @@ public class MergeIndividual extends HttpServlet {
 
       String sex = request.getParameter("sex");
       String taxonomyStr = request.getParameter("taxonomy");
+      String desiredIncrementalIds = request.getParameter("desiredIncrementalIds");
+      if(desiredIncrementalIds != null){
+        System.out.println("desiredIncrementalIds is: " + desiredIncrementalIds);
+        String desiredIncrementalIdArr [] = desiredIncrementalIds.split(";");
+        System.out.println("desiredIncrementalIdArr is: " + desiredIncrementalIdArr.length);
+      }
+      String deprecatedIncrementIds = request.getParameter("deprecatedIncrementIds");
+      if(deprecatedIncrementIds != null){
+        System.out.println("deprecatedIncrementIds is: " + deprecatedIncrementIds);
+        String deprecatedIncrementIdsArr [] = deprecatedIncrementIds.split(";");
+        System.out.println("deprecatedIncrementIdsArr is: " + deprecatedIncrementIdsArr.length);
+      }
+      String projIds = request.getParameter("projIds");
+      if(projIds != null){
+        System.out.println("projIds is: " + projIds);
+        String projIdsArr [] = projIds.split(";");
+        System.out.println("projIdsArr is: " + projIdsArr.length);
+      }
       String throwawayStr = request.getParameter("throwaway");
       boolean throwaway = Util.stringExists(throwawayStr) && !throwawayStr.toLowerCase().equals("false");
 
-      
-      
       //check for eligibility.. must throw on timer if not able to do right away
       ArrayList<String> mark1Users = mark1.getAllAssignedUsers();
       ArrayList<String> mark2Users = mark2.getAllAssignedUsers();
@@ -90,7 +107,7 @@ public class MergeIndividual extends HttpServlet {
       if (userPrincipal!=null) {
         currentUsername = userPrincipal.getName();
       }
-      
+
       if (currentUsername!=null) {
         ArrayList<String> allUniqueUsers = new ArrayList<>(mark1Users);
         for (String user : mark2Users) {
@@ -99,7 +116,7 @@ public class MergeIndividual extends HttpServlet {
             System.out.println("unique user == "+user);
           }
         }
-        
+
         if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
           canMergeAutomatically = true;
         } else {
@@ -122,7 +139,7 @@ public class MergeIndividual extends HttpServlet {
         myShepherd.closeDBTransaction();
       }
 
-    } 
+    }
     catch (Exception le){
       le.printStackTrace();
       errorAndClose("An exception occurred. Please contact the admins.", response);
@@ -132,7 +149,7 @@ public class MergeIndividual extends HttpServlet {
     }
 
     if(!locked&&canMergeAutomatically){
-        
+
         out.println("<strong>Success!</strong> I have successfully merged individuals "+id1+" and "+id2+".</p>");
         out.close();
         response.setStatus(HttpServletResponse.SC_OK);
@@ -140,17 +157,17 @@ public class MergeIndividual extends HttpServlet {
         // redirect to the confirm page
         try {
           WebUtils.redirectToSavedRequest(request, response, "/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1);
-        } 
+        }
         catch (IOException ioe) {
           ioe.printStackTrace();
         }
 
-      } 
+      }
       else if (!locked) {
         out.println("<strong>Pending:</strong> Participating user have been notified of your request to merge individuals "+id1+" and "+id2+".</p>");
         out.close();
         response.setStatus(HttpServletResponse.SC_OK);
-      } 
+      }
       else {
         errorAndClose("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.", response);
       }
@@ -179,5 +196,3 @@ public class MergeIndividual extends HttpServlet {
 
 
 }
-
-

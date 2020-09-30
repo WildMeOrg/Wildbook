@@ -70,17 +70,17 @@ public class ProjectGet extends HttpServlet {
             String ownerId = null;
             String participantId = null;
             String encounterId = null;
-            
+
             //should add this parameter to all calls at some point
             String action = null;
             action = j.optString("action", null);
-            
+
             String researchProjectId = null;
             researchProjectId = j.optString("researchProjectId", null);
 
             String getEditPermission = null;
             getEditPermission = j.optString("getEditPermission", null);
-            
+
             boolean complete = false;
 
             if (Util.stringExists(action)&&"getNextIdForProject".equals(action)) {
@@ -122,13 +122,10 @@ public class ProjectGet extends HttpServlet {
             JSONArray returnArr = new JSONArray();
             Boolean successStatus = false;
             if(individualIdJSONArr != null && individualIdJSONArr.length()>0){
-              // System.out.println("got here a");
               for (int i=0;i<individualIdJSONArr.length();i++) {
                 JSONObject individualIdObj = individualIdJSONArr.getJSONObject(i);
                 String individualId = individualIdObj.optString("indId", null);
                 if (Util.isUUID(individualId) && Util.stringExists(researchProjectId)) {
-                  // System.out.println("got here b");
-                  // System.out.println("researchProjectId is: " + researchProjectId);
                   JSONObject individualData = new JSONObject();
                   individualData.put("projectId", researchProjectId);
                   Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
@@ -137,20 +134,13 @@ public class ProjectGet extends HttpServlet {
                   if(Util.stringExists(projName)){individualData.put("projectName", projName);}
                   if(Util.stringExists(projUuid)){individualData.put("projectUuid", projUuid);}
                   if(project != null){
-                    // System.out.println("got here c");
                     String researchProjId = project.getResearchProjectId();
                     if(Util.stringExists(researchProjId)){
-                      // System.out.println("got here d");
                       MarkedIndividual individual = myShepherd.getMarkedIndividual(individualId);
                       if(individual != null){
-                        // System.out.println("got here e");
                         List<String> namesList = individual.getNamesList(researchProjId);
                         String projectIncrementalId = individual.getName(researchProjId);
                         if(Util.stringExists(projectIncrementalId)){
-                          // System.out.println("got here f");
-                          // JSONObject individualData = new JSONObject();
-                          // individualData.put("projectId", researchProjectId);
-                          // if(Util.stringExists(projName)){individualData.put("projectName", projName);}
                           individualData.put("projectIncrementalId", projectIncrementalId);
                           returnArr.put(individualData);
                           successStatus = true;
@@ -164,7 +154,6 @@ public class ProjectGet extends HttpServlet {
                   }
                 }
               }
-              System.out.println("got here g");
               res.put("incrementalIdArr", returnArr);
               res.put("success",successStatus);
               complete = true;
