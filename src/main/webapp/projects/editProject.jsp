@@ -158,6 +158,19 @@ function updateProject() {
 
   let requestJSONArr = [];
   let requestJSON = {};
+
+  if ($('#researchProjectName').val().length<1) {
+    $("#actionResultMessage").text("Project cannot have an empty name field.");
+    $("#actionResultMessage").addClass('actionResultError');
+    return;
+  }
+
+  if ($('#projectIdPrefix').val().length<1) {
+    $("#actionResultMessage").text("Project cannot have an empty ID prefix field.");
+    $("#actionResultMessage").addClass('actionResultError');
+    return;
+  }
+
   requestJSON['researchProjectName'] = $('#researchProjectName').val();
   requestJSON['projectIdPrefix'] = $('#projectIdPrefix').val();
   if (userIdsToRemove.length>0) {
