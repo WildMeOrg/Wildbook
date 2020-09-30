@@ -106,7 +106,7 @@ function populateHtml(project){
   projectHTML += '  <input class="form-control" type="text" value="'+project.researchProjectName+'" id="researchProjectName" name="researchProjectName" size="20" />';
   projectHTML += '</div>'
   projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">';
-  projectHTML += '  <label>Research Project ID</label><br>';
+  projectHTML += '  <label>Project ID Prefix</label><br>';
   projectHTML += '  <input class="form-control" type="text" value="'+project.projectIdPrefix+'" id="projectIdPrefix" name="projectIdPrefix" size="20" />'; 
   projectHTML += '</div>'
 
