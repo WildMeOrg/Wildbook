@@ -1856,7 +1856,7 @@ function negativeButtonClick(encId, oldDisplayName) {
 
 	var confirmMsg = 'Confirm no match?\n\n';
 	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
-	if (oldDisplayName != ("")) {
+	if (oldDisplayName&&oldDisplayName!=""&&oldDisplayName.length) {
 		confirmMsg+= 'The name <%=nextNameString%> will be added to individual '+oldDisplayName;
 	} else {
 		confirmMsg+= 'A new individual will be created with name <%=nextNameString%> and applied to encounter '+encDisplayString(encId);
