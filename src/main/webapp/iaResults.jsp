@@ -47,10 +47,14 @@ boolean usesAutoNames = Util.stringExists(nextNameKey);
 String nextName = (usesAutoNames) ? MultiValue.nextUnusedValueForKey(nextNameKey, myShepherd) : null;
 
 String researchProjectId = request.getParameter("researchProjectId");
+String researchProjectName = null;
+String researchProjectUUID = null;
 // okay, are we going to use an incremental name from the project side?
 if (Util.stringExists(researchProjectId)) {
 	Project projectForAutoNaming = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
 	if (projectForAutoNaming!=null) {
+		researchProjectName = projectForAutoNaming.getResearchProjectName();
+		researchProjectUUID = projectForAutoNaming.getId();
 		nextName = projectForAutoNaming.getNextIncrementalIndividualId();
 		usesAutoNames = true;
 	}
@@ -678,6 +682,7 @@ var timers = {};
 var INDIVIDUAL_SCORES = <%=individualScores%>;
 
 var researchProjectId = '<%=researchProjectId%>';
+var researchProjectName = '<%=researchProjectName%>';
 var NONE_SELECTED = 'None Selected';
 var projectData = {};
 var projectACMIds = [];
@@ -1353,46 +1358,49 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
 				console.log("indivId: "+indivId+" researchProjectId: "+researchProjectId+" incrementalProjectId: "+incrementalProjectId+" displayName: "+displayName);
 
+				let thisResultLine = $('#task-'+taskId+' .annot-summary-'+acmId);
+
                 if (encId) {
 
+					thisResultLine.prop('title', 'From Encounter: '+encId);
+
 					// make whole encounter line clickable
-					$('#task-'+taskId+' .annot-summary-'+acmId).click(function(event) {
-						if ($(event.target).is('#task-'+taskId+' .annot-summary-'+acmId)) {
+					thisResultLine.click(function(event) {
+						let tar = $(event.target);
+						if (tar.is(thisResultLine)||tar.is(thisResultLine.find('.annot-info-num')[0])||tar.is(thisResultLine.find('.annot-info')[0])) {
 							window.location.href = 'encounters/encounter.jsp?number='+encId;
 						}
 					});
 
 					//console.log("Main asset encId = "+encId);
-                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter</a>');
+                    h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Encounter: '+encDisplay+'</a>';
+                    //thisResultLine.append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Encounter LINE APPEND</a>');
                     
 					if (!indivId) {
-						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
+						thisResultLine.append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
 					}
 				}
 				
-				if (isProjectSelected()&&incrementalProjectId) {
-					console.log("trying to show project-based id for asset...");
-                    h += ' of <a class="project-link" title="open project page" target="_new" href="/projects/projects.jsp?id=' + projectUUID + '"  title="'+incrementalProjectId+'">' + incrementalProjectId + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="/projects/project.jsp?id=' + projectUUID + '" title="'+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
+				if (isProjectSelected()) {
+					console.log("trying to show project-based id for asset...(UUID: "+projectUUID+" )");
+					h += ' in <a class="project-link" target="_new" href="/projects/project.jsp?id=<%=researchProjectUUID%>" title="Open Project '+researchProjectName+'">Project: ' + researchProjectName.substring(0,15) + '</a>';
+
+					if (incrementalProjectId) {
+						thisResultLine.append('<a class="indiv-link" target="_new" href="/projects/project.jsp?id='+projectUUID+'" title="Project Id: '+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
+					}
 				}
 				
-				console.log("typeof researchProjectId::::::>>>>> "+(typeof researchProjectId));
-
-				if (indivId&&!isProjectSelected()) {
+				if (indivId&&(incrementalProjectId!=displayName)) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
+                    thisResultLine.append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
                     //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
+                    thisResultLine.append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
                 }
 
                 if (encId || indivId) {
-//console.log("XX %o", displayName);
-
-
-            $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+					thisResultLine.append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
@@ -1468,8 +1476,6 @@ function annotCheckbox(el) {
 	let selectedResearchProjectId = getSelectedResearchProjectId();
 	if (selectedResearchProjectId==NONE_SELECTED) selectedResearchProjectId = '';
 	let allowSyncReturn = true;
-
-	console.log("DIDYA GET TEH PROJECTID???? |"+selectedResearchProjectId+"|");
 
 	var h = '<i>Getting next ID...</i>';
 	if (!queryAnnotation.encId || !jel.data('encid')) {
