@@ -753,7 +753,7 @@
       </field>
 
       <field name="projectIdPrefix">
-        <column name="projectIdPrefix"/>
+        <column name="PROJECTIDPREFIX"/>
       </field>
 
     </class>
