@@ -67,7 +67,7 @@
               accept-charset="UTF-8">
                 <div class="form-group required row">
                   <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                    <label><strong><%=props.getProperty("researchProjectName") %></strong></label>
+                    <label class="control-label text-danger"><strong><%=props.getProperty("researchProjectName") %></strong></label>
                     <input class="form-control" type="text" id="researchProjectName" name="researchProjectName"/>
                   </div>
                 </div>
