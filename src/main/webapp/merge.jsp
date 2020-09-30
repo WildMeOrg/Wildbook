@@ -57,17 +57,23 @@ table.compareZone tr th {
 </style>
 
 <script>
+  let conflictingProjs = [];
+  let countOfIncrementalIdRowPopulated = 0;
 	$(document).ready(function() {
 		highlightMergeConflicts();
 		replaceDefaultKeyStrings();
     let requestJsonForProjectNamesDropdown = {};
     requestJsonForProjectNamesDropdown['ownerId'] = '<%= currentUser.getId()%>';
-    // console.log("requestJsonForProjectNamesDropdown is: ");
-    // console.log(requestJsonForProjectNamesDropdown);
     doAjaxForProject(requestJsonForProjectNamesDropdown);
+    let requestJsonForIndividualAProjects = {};
+    requestJsonForIndividualsProjects['individualIdsForProj'] = [];
+    <% for (MarkedIndividual ind: inds) {%>
+      requestJsonForIndividualsProjects['individualIdsForProj'].push({indId: "<%= ind.getIndividualID()%>"});
+    <%}%>
+    doAjaxForProjectIndividuals(requestJsonForIndividualsProjects);
 	});
 
-  function callForIncrementalIdsAndPopulate(projId){
+  function callForIncrementalIdsAndPopulate(projId, numProjects){
     let incrementalIdJsonRequest = {};
     incrementalIdJsonRequest['projectIdPrefix'] = projId;
     incrementalIdJsonRequest['individualIds'] = [];
@@ -76,11 +82,11 @@ table.compareZone tr th {
     <%}%>
     // console.log("json for incremental ID call is: ");
     // console.log(incrementalIdJsonRequest);
-    doAjaxForProject(incrementalIdJsonRequest);
+    doAjaxForProject(incrementalIdJsonRequest, numProjects);
   }
 
 
-  function doAjaxForProject(requestJSON){
+  function doAjaxForProject(requestJSON, numProjects){
     // console.log("json going into ajax request is: ");
     // console.log(JSON.stringify(requestJSON));
     $.ajax({
@@ -100,6 +106,11 @@ table.compareZone tr th {
               // console.log(incrementalIdResults);
               // console.log(data);
               populateProjectIdRow(incrementalIdResults, incrementalIdResults[0].projectName, incrementalIdResults[0].projectUuid, incrementalIdResults[0].projectId);
+              countOfIncrementalIdRowPopulated ++;
+              if(countOfIncrementalIdRowPopulated == numProjects){
+                //everything is populated! Now check whether user's projects include conflicting projs
+                // conflictingProjs TODO
+              }
             }else{
               if(projectNameResults){
                 // console.log("2: projectNameResults!");
@@ -124,6 +135,38 @@ table.compareZone tr th {
     });
   }
 
+  function doAjaxForProjectIndividuals(requestJSON){
+    console.log("json going into doAjaxForProjectIndividuals request is: ");
+    console.log(JSON.stringify(requestJSON));
+    $.ajax({
+        url: wildbookGlobals.baseUrl + '../ProjectGet',
+        type: 'POST',
+        data: JSON.stringify(requestJSON),
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function(data) {
+            console.log("literal response from doAjaxForProjectIndividuals:");
+            console.log(data);
+            // projectNameResults = data.projects;
+            //   if(projectNameResults){
+            //     let projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+            //     let prjIdOptions = projectNameResults.map(entry =>{return entry.researchProjectId});
+            //       if(projNameOptions.length>0){
+            //         // console.log("about to enter populateProjectRows...");
+            //         addToExistingProjectsFromIndividuals(projNameOptions, prjIdOptions);
+            //       }else{
+            //         //TODO no projects on the individuals, so show that div
+            //       }
+            //   }else{
+            //     console.log("Ack should not happen");
+            //   }
+        },
+        error: function(x,y,z) {
+            console.warn('%o %o %o', x, y, z);
+        }
+    });
+  }
+
   function populateProjectIdRow(incrementalIds, projName, projUuid, projId){
     // console.log("data in populateProjectIdRow is: ");
     // console.log(incrementalIds);
@@ -140,7 +183,11 @@ table.compareZone tr th {
     <%}%>
     projectIdHtml += '<td class="merge-field">';
     if(incrementalIds && incrementalIds.length>1 && incrementalIds[0].projectIncrementalId !== "" && incrementalIds[1].projectIncrementalId !== ""){
-      // console.log("two incremental IDs for "+ projName);
+      // two incremental IDs for projName
+      console.log("got here");
+      conflictingProjs.push(projName);
+      console.log("conflictingProjs is: ");
+      console.log(conflictingProjs);
       projectIdHtml += '<select name="' + projId + '" id="proj-confirm-dropdown-' + projName + '" class="form-control">';
       for(let i=0; i<incrementalIds.length; i++){
         if(i==0){
@@ -156,7 +203,6 @@ table.compareZone tr th {
       // $("#incrementalId-container-" + incrementalIds[0].projectName).append(projectIdHtml);
     } else{
       if(incrementalIds && incrementalIds.length>0 && (incrementalIds[0].projectIncrementalId !== "" || incrementalIds[1].projectIncrementalId !== "")){ //one incremental ID is missing
-        // console.log("one or zero incremental ID for "+ projName);
         //populate with the one incremental ID and don't give them a choice about it, but give it the IDs and names required to still fetch this value upon form submission
         projectIdHtml += '<span name="' + projId + '" id="proj-confirm-dropdown-' + projName + '">';
         let betterVal = betterValWithTieBreaker(incrementalIds[0].projectIncrementalId, incrementalIds[1].projectIncrementalId);
@@ -167,7 +213,6 @@ table.compareZone tr th {
         $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
       }else{
         //populate with no incremental IDs, but give it the IDs and names required to still fetch this value upon form submission
-        // console.log("no incremental IDs for "+ projName);
         projectIdHtml += '<span name="' + projId + '" id="proj-confirm-dropdown-' + projName + '">';
         projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
         projectIdHtml += '</span>'
@@ -179,8 +224,6 @@ table.compareZone tr th {
   }
 
   function betterValWithTieBreaker(candidate1, candidate2){
-    // console.log("candidate1 is: "+ candidate1);
-    // console.log("candidate2 is: " + candidate2);
     if (candidate1!=null && candidate2!=null && candidate1.trim() === candidate2.trim()) {
       // return shorter string (less whitespace)
       if (candidate1.length()<candidate2.length()){
@@ -212,16 +255,16 @@ table.compareZone tr th {
   // }
 
   function getDeprecatedIncrementalIdFromOptions (stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds, arrayOfOptionElements){
-    console.log("getDeprecatedIncrementalIdFromOptions entered");
-    console.log("stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds is: " + stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds);
-    console.log("arrayOfOptionElements is: ");
-    console.log(arrayOfOptionElements);
+    // console.log("getDeprecatedIncrementalIdFromOptions entered");
+    // console.log("stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds is: " + stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds);
+    // console.log("arrayOfOptionElements is: ");
+    // console.log(arrayOfOptionElements);
     let returnVal = "_";
     for(let i=0; i<arrayOfOptionElements.length; i++){
       let currentOptionElem = arrayOfOptionElements[i];
       let counter = 0;
       let currentOptionVal = $(currentOptionElem).text();
-      console.log("currentOptionVal is: " + currentOptionVal);
+      // console.log("currentOptionVal is: " + currentOptionVal);
       desiredIncrementalIdArr = stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds.split(";");
       if(!desiredIncrementalIdArr.includes(currentOptionVal)){
         returnVal = currentOptionVal;
@@ -243,7 +286,7 @@ table.compareZone tr th {
     }else{
       returnVal = candidateArrAsString + currentArrEntry + ';';
     }
-    console.log("returning... "+ returnVal);
+    // console.log("returning... "+ returnVal);
     return returnVal;
   }
 
@@ -267,7 +310,7 @@ table.compareZone tr th {
       $("tr.row.names").last().after(projectIdHtml);
       for(let j =0; j<projectNames.length; j++){ //projectNames and projectIds must be linked; otherwise, this will break
         // console.log("calling callForIncrementalIdsAndPopulate in loop. Current project id is: " + projectIds[j]);
-        callForIncrementalIdsAndPopulate(projectIds[j]);
+        callForIncrementalIdsAndPopulate(projectIds[j],projectNames.length);
       }
     }
   }
@@ -297,11 +340,16 @@ table.compareZone tr th {
 </script>
 
 <div class="container maincontent">
-
-<h1>Marked Individual Merge Tool</h1>
-<p class="instructions">Confirm the merged values for each of the fields below.</p>
-<p class="instructions"><span class="text-danger bg-danger">Fields in red</span> have conflicting values and require attention.</p>
-
+  <div id="progress-div">
+    <h4><%= props.getProperty("Loading")%></h4>
+    <div class="progress">
+      <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">
+        <span class="sr-only"><%= props.getProperty("PercentComplete")%></span>
+      </div>
+    </div>
+  </div>
+  <div id="everything-else" style="display: none;">
+  </div>
 <%
 // build query for EncounterMediaGallery here
 //String queryString = "SELECT FROM org.ecocean.Encounter WHERE individual.individualID == '"+indIdA+"' || individual.individualID == '"+indIdB+"'";
@@ -310,14 +358,11 @@ table.compareZone tr th {
 // consider including an enc media gallery below?
 %>
 <%
-
-
 try {
-
-
-
 	%>
-
+  <h1>Marked Individual Merge Tool</h1>
+  <p class="instructions">Confirm the merged values for each of the fields below.</p>
+  <p class="instructions"><span class="text-danger bg-danger">Fields in red</span> have conflicting values and require attention.</p>
   <form id="mergeForm"
     action="MergeIndividual"
     method="post"
@@ -392,13 +437,16 @@ try {
 
 				<%
 				String mergeTaxy = Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep());
-        if(markA.getSex()!= null && markB.getSex()!= null && !markA.getSex().equals("") && !markB.getSex().equals("") && !markA.getSex().equals(markB.getSex())){
+        System.out.println("mergeTaxy is: " + mergeTaxy);
+        if(markA.getGenusSpeciesDeep()!= null && markB.getGenusSpeciesDeep()!= null && !markA.getGenusSpeciesDeep().equals("") && !markB.getGenusSpeciesDeep().equals("") && !markA.getGenusSpeciesDeep().equals(markB.getGenusSpeciesDeep())){
+          System.out.println("getting into the part where getGenusSpeciesDeep for A and B are nontrivial and distinct");
           %>
             <select name="taxonomy-dropdown" id="taxonomy-dropdown" class="">
             <option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>
             <option value="<%= markB.getGenusSpeciesDeep()%>"><%= markB.getGenusSpeciesDeep()%></option>
           <%
         }else{
+          System.out.println("getting here");
           %>
           <%= mergeTaxy%>
           <%
@@ -467,7 +515,17 @@ try {
     	let fullNameA = '<%=fullNameA%>';
     	let fullNameB = '<%=fullNameB%>';
       let sex = $("#sex-dropdown").val();
+      if(!sex){
+        //It's because they match
+        sex = '<%= Util.betterValue(markA.getSex(), markB.getSex()) %>';
+      }
       let taxonomy = $("#taxonomy-dropdown").val();
+      console.log("taxonomy is: " + taxonomy);
+      if(!taxonomy){
+        //It's because they match
+        console.log("got here!");
+        taxonomy = '<%= Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep()) %>';
+      }
 
       let projIdElems = $('[id^=proj-confirm-dropdown-]');
       let projIdConsolidated = '';
@@ -507,11 +565,13 @@ try {
       // console.log("deprecatedIncrementIdConsolidated is " + deprecatedIncrementIdConsolidated);
       // console.log("desiredIncrementalIdConsolidated is "+ desiredIncrementalIdConsolidated);
       // console.log("projIdConsolidated is: " + projIdConsolidated);
-      debugger;
 
     	// console.log("Clicked with id1="+id1+", id2="+id2+", sex="+sex+", tax="+taxonomy);
 
     	$("#mergeForm").attr("action", "MergeIndividual");
+      console.log("id1 before post call is: " + id1);
+      console.log("id2 before post call is: " + id2);
+      debugger;
 
       $.post("/MergeIndividual", {
       	"id1": id1,
@@ -532,7 +592,7 @@ try {
       	alert("FAILURE!!");
       });
 
-			document.forms['mergeForm'].submit();
+			// document.forms['mergeForm'].submit();
 
 	  });
 

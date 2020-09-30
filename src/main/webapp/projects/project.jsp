@@ -239,22 +239,26 @@ function getEncounterJSON() {
       data: JSON.stringify(requestJSON),
       dataType: 'json',
       contentType: 'application/json',
-      success: function(d) {
+      success: function(data) {
+          console.log("data from getEncounterJSON:");
+          console.log(data);
           $("#encounterList").empty();
-          let projectsArr = d.projects;
-          for (let i=0;i<projectsArr.length;i++) {
+          let projectsArr = data.projects;
+          if(projectsArr){
+            for (let i=0;i<projectsArr.length;i++) {
               let thisProject = projectsArr[i];
               for (let j=0;j<thisProject.encounters.length;j++) {
                 let projectHTML = projectHTMLForTable(projectsArr[i].encounters[j]);
                 $("#encounterList").append(projectHTML);
               }
+            }
+            let userCanEdit = data.userCanEdit;
+            if ("true"==userCanEdit) {
+              showEditControls();
+            }
+            $('#progress-div').hide();
+            $('#table-div').show();
           }
-          let userCanEdit = d.userCanEdit;
-          if ("true"==userCanEdit) {
-            showEditControls();
-          }
-          $('#progress-div').hide();
-          $('#table-div').show();
       },
       error: function(x,y,z) {
           console.warn('%o %o %o', x, y, z);
@@ -296,13 +300,18 @@ function projectHTMLForTable(json) {
   projectHTML +=  '<td class="project-style">'+submitterId+' </td>';
   //projectHTML +=  '<td class="project-style">'+individualProjectId+' </td>';
   projectHTML +=  '<td class="project-style">';
-  if (allProjectIds) {
-    for (i=0;i<allProjectIds.length;i++) {
-      projectHTML += (allProjectIds[i]+" ");
-    }
-  }  else {
+  if(!hasNameKeyMatchingProject){
     projectHTML += "(None)";
+  } else{
+
   }
+  // if (allProjectIds) {
+  //   for (i=0;i<allProjectIds.length;i++) {
+  //     projectHTML += (allProjectIds[i]+" ");
+  //   }
+  // }  else {
+  //   projectHTML += "(None)";
+  // }
   projectHTML +=  '</td>';
   projectHTML +=  '<td class="project-style">';
   projectHTML +=  '<input id="encId-'+encounterId+'" class="startMatchButton" onclick="startMatchForEncounter(this)" value ="Start Match" type="button" />';
