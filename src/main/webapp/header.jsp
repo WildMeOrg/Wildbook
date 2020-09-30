@@ -73,7 +73,7 @@ myShepherd.closeDBTransaction();
 
 %>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
