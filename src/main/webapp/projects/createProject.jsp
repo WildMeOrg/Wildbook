@@ -194,6 +194,18 @@
     		window.setTimeout(function() { alert('Please remove semicolons from your project name.'); }, 100);
     		return false;
     	}
+      if($('#researchProjectId').val().includes("_")){
+    		console.log("researchProjectId contains ; entered");
+    		$('#researchProjectId').closest('.form-group').addClass('required-missing');
+    		window.setTimeout(function() { alert('Please remove underscores from your project ID.'); }, 100);
+    		return false;
+    	}
+      if($('#researchProjectName').val().includes("_")){
+    		console.log("researchProjectName contains ; entered");
+    		$('#researchProjectName').closest('.form-group').addClass('required-missing');
+    		window.setTimeout(function() { alert('Please remove underscores from your project name.'); }, 100);
+    		return false;
+    	}
       submitForm();
     	return true;
     }
@@ -220,7 +232,7 @@
       let selectedOrganizations = $("#organizationAccess").val();
       if (selectedOrganizations&&selectedOrganizations.length) {
         formJson["organizationAccess"] = selectedOrganizations;
-      } 
+      }
 
       for(i=0; i<formDataArray.length; i++){
         if (Object.values(formDataArray[i])[0] === "projectUserIds"){
@@ -280,7 +292,7 @@
 
     function populateOrganizationsMultiSelect(organizationsArr) {
       if (organizationsArr.length>0) {
-        $('#organizationAccessRow').removeAttr('hidden');        
+        $('#organizationAccessRow').removeAttr('hidden');
       }
       let dropdown = $('#organizationAccess');
       for (i=0;i<organizationsArr.length;i++) {
