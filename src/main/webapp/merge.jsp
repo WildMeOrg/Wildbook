@@ -139,13 +139,13 @@ table.compareZone tr th {
     projectIdHtml += '</td>';
     <%}%>
     projectIdHtml += '<td class="merge-field">';
-    if(incrementalIds && incrementalIds.length>0 && incrementalIds[0].projectIncrementalId !== ""){
+    if(incrementalIds && incrementalIds.length>1 && incrementalIds[0].projectIncrementalId !== "" && incrementalIds[1].projectIncrementalId !== ""){
       projectIdHtml += '<select name="' + projUuid + '" id="proj-confirm-dropdown-' + projName + '" class="form-control">';
       for(let i=0; i<incrementalIds.length; i++){
         if(i==0){
-          projectIdHtml += '<option value="'+ incrementalIds[i].projectIncrementalId +'" selected>'+ incrementalIds[i].projectIncrementalId +'</option>';
+          projectIdHtml += '<option name="incremental-id-option" value="'+ incrementalIds[i].projectIncrementalId +'" selected>'+ incrementalIds[i].projectIncrementalId +'</option>';
         }else{
-          projectIdHtml += '<option value="'+ incrementalIds[i].projectIncrementalId +'">'+ incrementalIds[i].projectIncrementalId +'</option>';
+          projectIdHtml += '<option name="incremental-id-option" value="'+ incrementalIds[i].projectIncrementalId +'">'+ incrementalIds[i].projectIncrementalId +'</option>';
         }
       }
       projectIdHtml += '</td>';
@@ -154,13 +154,54 @@ table.compareZone tr th {
       $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
       // $("#incrementalId-container-" + incrementalIds[0].projectName).append(projectIdHtml);
     } else{
-      //populate with no incremental IDs
-      projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
-      projectIdHtml += '</td>';
-      projectIdHtml += '<td>';
-      $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
+      if(incrementalIds && (incrementalIds[0].projectIncrementalId === "" || incrementalIds[1].projectIncrementalId === "")){
+        console.log("got in here!")
+        //populate with the one incremental ID and don't give them a choice about it
+        let betterVal = betterValWithTieBreaker(incrementalIds[0].projectIncrementalId, incrementalIds[1].projectIncrementalId);
+        projectIdHtml += betterVal;
+        projectIdHtml += '</td>';
+        projectIdHtml += '<td>';
+        $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
+      }else{
+        //populate with no incremental IDs
+        projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
+        projectIdHtml += '</td>';
+        projectIdHtml += '<td>';
+        $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
+      }
     }
   }
+
+  function betterValWithTieBreaker(candidate1, candidate2){
+    if (candidate1!=null && candidate2!=null && candidate1.trim() === candidate2.trim()) {
+      // return shorter string (less whitespace)
+      if (candidate1.length()<candidate2.length()){
+        return candidate1;
+      }
+      else{
+        return candidate2;
+      }
+    }
+    if (!candidate2){
+      return candidate1;
+    }
+    if (!candidate1){
+      return candidate2;
+    }
+    return candidate1;
+  }
+
+  // function removeItemAll(arr, value) {
+  //   let i = 0;
+  //   while (i < arr.length) {
+  //     if (arr[i] === value) {
+  //       arr.splice(i, 1);
+  //     } else {
+  //       ++i;
+  //     }
+  //   }
+  //   return arr;
+  // }
 
   function populateProjectRows(projectNames, projectIds){
     // console.log("populateProjectRows called");
@@ -190,36 +231,6 @@ table.compareZone tr th {
         callForIncrementalIdsAndPopulate(projectIds[j]);
       }
     }
-  }
-
-  function updateProject(){
-    console.log("updateProject clicked");
-    let projIdElems = $('[id^=proj-confirm-dropdown-]');
-    // console.log("projIdElems are: ");
-    // console.log(projIdElems[0]);
-    let individualAId = '<%= indIdA%>';
-    let individualBId = '<%= indIdB%>';
-    for(let i=0; i<projIdElems.length; i++){
-      let currentElem = projIdElems[i];
-      console.log("currentElem is: ");
-      console.log(currentElem);
-      let currentProjUuid = $(currentElem).attr('name');
-      console.log("uuid is: " + currentProjUuid);
-      let currentDesiredIncrementalId = $(currentElem).find(":selected").text();
-      console.log("currentDesiredIncrementalId is: " + currentDesiredIncrementalId);
-    }
-    debugger;
-    // let projId = $('#current-proj-id-display').text();
-    // console.log("projId is: " + projId);
-    // let desiredIncrementalId = $('#proj-confirm-dropdown').find(":selected").text();
-    // console.log("desiredIncrementalId is: " + desiredIncrementalId);
-    // if(<%= inds.length%> == 2){
-    //   console.log("got into if branch in updateProject");
-    //   console.log("individualAId is: " + individualAId);
-    //   console.log("individualBId is: " + individualBId);
-    //   //TODO call ProjectUpdate ajax;
-    // }
-
   }
 
 	function replaceDefaultKeyStrings() {
@@ -271,17 +282,7 @@ try {
 
 	%>
 
-	<form id="mergeForm"
-		action="MergeIndividual"
-	  method="post"
-	  enctype="multipart/form-data"
-    name="merge_individual_submission"
-    target="_self" dir="ltr"
-    lang="en"
-    onsubmit="console.log('the form has been submitted!');"
-    class="form-horizontal"
-    accept-charset="UTF-8"
-	>
+	<form>
 	<table class="compareZone">
 		<tr class="row header">
 			<th class="col-md-2"></th>
@@ -345,8 +346,18 @@ try {
 
 				<%
 				String mergeTaxy = Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep());
+        if(markA.getSex()!= null && markB.getSex()!= null && !markA.getSex().equals("") && !markB.getSex().equals("") && !markA.getSex().equals(markB.getSex())){
+          %>
+            <select name="taxonomy-dropdown" id="taxonomy-dropdown" class="">
+            <option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>
+            <option value="<%= markB.getGenusSpeciesDeep()%>"><%= markB.getGenusSpeciesDeep()%></option>
+          <%
+        }else{
+          %>
+          <%= mergeTaxy%>
+          <%
+        }
 				%>
-				 <input name="taxonomy" type="text" class="" id="taxonomyInput" value="<%=mergeTaxy%>"/>
 			</td>
 		</tr>
 
@@ -361,8 +372,18 @@ try {
 
 				<%
 				String mergeSex = Util.betterValue(markA.getSex(), markB.getSex());
+        if(markA.getSex()!= null && markB.getSex()!= null && !markA.getSex().equals("") && !markB.getSex().equals("") && !markA.getSex().equals(markB.getSex())){
+          %>
+            <select name="sex-dropdown" id="sex-dropdown" class="">
+            <option value="<%= markA.getSex()%>" selected><%= markA.getSex()%></option>
+            <option value="<%= markB.getSex()%>"><%= markB.getSex()%></option>
+          <%
+        }else{
+          %>
+          <%= mergeSex%>
+          <%
+        }
 				%>
-				 <input name="sex" type="text" class="" id="sexInput" value="<%=mergeSex%>"/>
 			</td>
 		</tr>
 
@@ -382,7 +403,7 @@ try {
 		</tr>
 	</table>
 
-  <input type="submit" name="Submit" value="Merge Individuals" id="mergeBtn" class="btn btn-md editFormBtn" onclick="updateProject()"/>
+  <input type="submit" name="Submit" value="Merge Individuals" id="mergeBtn" class="btn btn-md editFormBtn"/>
 
 	</form>
 
@@ -395,33 +416,83 @@ try {
       event.preventDefault();
     	console.log("mergeBtn continues");
 
-    	var id1="<%=indIdA%>";
-    	var id2="<%=indIdB%>";
-    	var fullNameA = '<%=fullNameA%>';
-    	var fullNameB = '<%=fullNameB%>';
+    	let id1="<%=indIdA%>";
+    	let id2="<%=indIdB%>";
+    	let fullNameA = '<%=fullNameA%>';
+    	let fullNameB = '<%=fullNameB%>';
 
-    	var sex = $("#sexInput").val();
-    	var taxonomy = $("#taxonomyInput").val();
-    	console.log("Clicked with id1="+id1+", id2="+id2+", sex="+sex+", tax="+taxonomy);
+      let desiredIncrementalId = "test1"; //TODO update
+      let deprecatedIncrementId = "test2"; //TODO update
+    	let sex = $("#sex-dropdown").val();
+    	let taxonomy = $("#taxonomy-dropdown").val();
+      let projIdElems = $('[id^=proj-confirm-dropdown-]');
+      let projIdConsolidated = '';
+      let desiredIncrementalIdConsolidated = '';
+      let deprecatedIncrementIdConsolidated = '';
+      let optionElems = [];
+      for(let i=0; i<projIdElems.length; i++){
+        let currentElem = projIdElems[i];
+        // console.log("currentElem is: ");
+        // console.log(currentElem);
+        let currentProjUuid = $(currentElem).attr('name');
+        // console.log("uuid is: " + currentProjUuid);
+        console.log("current element bearing selected is: ");
+        console.log($(currentElem).find(":selected"));
+        let currentDesiredIncrementalId = $(currentElem).find(":selected").text();
+        optionElems = optionElems.concat($(currentElem).children('option[name="incremental-id-option"]'));
+        // console.log("optionElems is:");
+        // console.log(optionElems);
+        if (i == projIdElems.length-1){
+          projIdConsolidated += currentProjUuid; //I'm sure there's a more elegant solution, but passing an array of strings as semi-colon-separated single string :poop emoji:
+          desiredIncrementalId += currentDesiredIncrementalId;
+        }else{
+          projIdConsolidated += currentProjUuid + ';';
+          desiredIncrementalId += currentDesiredIncrementalId + ';';
+        }
+      }
+      console.log("optionElems.length is: " + optionElems.length);
+      desiredIncrementalIdArr = desiredIncrementalId.split(";");
+      for(let i=0; i<optionElems.length; i++){
+        let currentOptionElem = optionElems[i];
+        // console.log("currentOptionElem is:");
+        // console.log(currentOptionElem);
+        let currentOptionVal = $(currentOptionElem).text();
+        console.log("currentOptionVal is: " + currentOptionVal);
+        if(!desiredIncrementalIdArr.includes(currentOptionVal)){
+          if (i == projIdElems.length-1){
+            deprecatedIncrementIdConsolidated += currentOptionVal;
+          }else{
+            deprecatedIncrementIdConsolidated += currentOptionVal + ';';
+          }
+        }
+      }
+      console.log("deprecatedIncrementIdConsolidated is " + deprecatedIncrementIdConsolidated);
+      console.log("desiredIncrementalId is "+ desiredIncrementalId);
+      console.log("projIdConsolidated is: " + projIdConsolidated);
+      debugger;
 
-    	$("#mergeForm").attr("action", "MergeIndividual");
+    	// console.log("Clicked with id1="+id1+", id2="+id2+", sex="+sex+", tax="+taxonomy);
 
-      $.post("/MergeIndividual", {
-      	"id1": id1,
-      	"id2": id2,
-      	"sex": sex,
-      	"taxonomy": taxonomy
-      },
-      function() {
-		updateNotificationsWidget();
-      	var confirmUrl = '/mergeComplete.jsp?oldNameA='+fullNameA+'&oldNameB='+fullNameB+'&newId='+id1;
-      	alert("Successfully merged individual! Now redirecting to "+confirmUrl);
-				window.location = confirmUrl;
+    	// $("#mergeForm").attr("action", "MergeIndividual");
 
-      })
-      .fail(function(response) {
-      	alert("FAILURE!!");
-      });
+      // $.post("/MergeIndividual", {
+      // 	"id1": id1,
+      // 	"id2": id2,
+      // 	"sex": sex,
+      // 	"taxonomy": taxonomy,
+      //   "projIds": projIdConsolidated,
+      //   "desiredIncrementalIds": desiredIncrementalIdConsolidated,
+      //   "deprecatedIncrementIds": deprecatedIncrementIdConsolidated
+      // },
+      // function() {
+		  //   updateNotificationsWidget();
+      // 	var confirmUrl = '/mergeComplete.jsp?oldNameA='+fullNameA+'&oldNameB='+fullNameB+'&newId='+id1;
+      // 	alert("Successfully merged individual! Now redirecting to "+confirmUrl);
+			// 	window.location = confirmUrl;
+      // })
+      // .fail(function(response) {
+      // 	alert("FAILURE!!");
+      // });
 
 			//document.forms['mergeForm'].submit();
 
