@@ -47,7 +47,7 @@ public class MergeIndividual extends HttpServlet {
       String msg = "<strong>Error:</strong> Missing two valid individualIDs for MergeIndividual. ";
       if (id1==null) msg+="<br>Bad id1: "+id1;
       if (id2==null) msg+="<br>Bad id2: "+id2;
-      errorAndClose("msg", response);
+      errorAndClose(msg, response);
       return;
     }
 
@@ -73,7 +73,7 @@ public class MergeIndividual extends HttpServlet {
         String msg = "<strong>Error:</strong> Could not find both individuals in our database. ";
         if (mark1==null) msg+="<br>could not find individual "+mark1;
         if (mark2==null) msg+="<br>could not find individual "+mark2;
-        errorAndClose("msg", response);
+        errorAndClose(msg, response);
         return;
       }
 
