@@ -481,7 +481,7 @@ try {
         // console.log("currentElem is: ");
         // console.log(currentElem);
         let currentProjUuid = $(currentElem).attr('name');
-        console.log(" current projName is sorta like: " + $(currentElem).attr('id'));
+        // console.log(" current projName is sorta like: " + $(currentElem).attr('id'));
         // console.log("current element bearing selected is: ");
         // console.log($(currentElem).find(":selected"));
         let currentDesiredIncrementalId = $(currentElem).find(":selected").text();

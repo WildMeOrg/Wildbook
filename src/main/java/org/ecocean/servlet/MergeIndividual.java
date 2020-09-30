@@ -79,27 +79,27 @@ public class MergeIndividual extends HttpServlet {
 
       String sex = request.getParameter("sex");
       String taxonomyStr = request.getParameter("taxonomy");
-      String desiredIncrementalIds = request.getParameter("desiredIncrementalIds");
       List<String> desiredIncrementalIdArr = new ArrayList<String>();
       List<String> deprecatedIncrementIdsArr = new ArrayList<String>();
       List<String> projIdsArr = new ArrayList<String>();
 
+      String desiredIncrementalIds = request.getParameter("desiredIncrementalIds");
       if(desiredIncrementalIds != null){
         // System.out.println("desiredIncrementalIds is: " + desiredIncrementalIds);
         desiredIncrementalIdArr = Arrays.asList(desiredIncrementalIds.split(";"));
-        // System.out.println("desiredIncrementalIdArr is: " + desiredIncrementalIdArr.length);
+        System.out.println("desiredIncrementalIdArr is: " + desiredIncrementalIdArr.toString());
       }
       String deprecatedIncrementIds = request.getParameter("deprecatedIncrementIds");
       if(deprecatedIncrementIds != null){
         // System.out.println("deprecatedIncrementIds is: " + deprecatedIncrementIds);
         deprecatedIncrementIdsArr = Arrays.asList(deprecatedIncrementIds.split(";"));
-        // System.out.println("deprecatedIncrementIdsArr is: " + deprecatedIncrementIdsArr.length);
+        System.out.println("deprecatedIncrementIdsArr is: " + deprecatedIncrementIdsArr.toString());
       }
       String projIds = request.getParameter("projIds");
       if(projIds != null){
         // System.out.println("projIds is: " + projIds);
         projIdsArr = Arrays.asList(projIds.split(";"));
-        // System.out.println("projIdsArr is: " + projIdsArr.length);
+        System.out.println("projIdsArr is: " + projIdsArr.toString());
       }
       String throwawayStr = request.getParameter("throwaway");
       boolean throwaway = Util.stringExists(throwawayStr) && !throwawayStr.toLowerCase().equals("false");
