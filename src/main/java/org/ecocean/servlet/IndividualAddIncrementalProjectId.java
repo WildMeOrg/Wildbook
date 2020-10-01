@@ -46,22 +46,22 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
             res.put("success",false);
             res.put("newProjectIdForIndividual", "") ;
             JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-            String researchProjectId = j.optString("researchProjectId", null);
+            String projectIdPrefix = j.optString("projectIdPrefix", null);
             String individualId = j.optString("individualId", null);
-            if (Util.stringExists(researchProjectId)&&Util.stringExists(individualId)) {
-                Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+            if (Util.stringExists(projectIdPrefix)&&Util.stringExists(individualId)) {
+                Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
 
                 MarkedIndividual individual = myShepherd.getMarkedIndividual(individualId);
                 if (individual!=null) {
 
                     individual.addIncrementalProjectId(project);
                     myShepherd.updateDBTransaction();
-                    if (individual.hasNameKey(researchProjectId)) {
-                        String newProjectIdForIndividual = individual.getName(researchProjectId);
+                    if (individual.hasNameKey(projectIdPrefix)) {
+                        String newProjectIdForIndividual = individual.getName(projectIdPrefix);
                         res.put("success",true);
                         res.put("newProjectIdForIndividual", newProjectIdForIndividual);
                     } else {
-                        addErrorMessage(res, "the researchProjectId was not successfully added to "+individualId+", but no exception was thrown");
+                        addErrorMessage(res, "the projectIdPrefix was not successfully added to "+individualId+", but no exception was thrown");
                         res.put("success",false);
                         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     }

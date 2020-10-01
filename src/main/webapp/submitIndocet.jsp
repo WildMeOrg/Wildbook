@@ -165,7 +165,7 @@ function doAjaxForProject(requestJSON,userId){
 				let projNameOptions = null;
 				if(projectNameResults){
 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
-					projNameIds = projectNameResults.map(entry =>{return entry.researchProjectId});
+					projNameIds = projectNameResults.map(entry =>{return entry.projectIdPrefix});
 					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
 				}
 			},

@@ -399,7 +399,7 @@ System.out.println("*** trying redirect?");
                 if(projectIdSelection != null){
                   for(String projectId: projectIdSelection){
                     System.out.println("fetching project for: "+ projectId);
-                    Project currentProject = myShepherd.getProjectByResearchProjectId(projectId);
+                    Project currentProject = myShepherd.getProjectByProjectIdPrefix(projectId);
                     if(currentProject!=null){
                       System.out.println("project not null for project: " + projectId);
                       projects.add(currentProject);

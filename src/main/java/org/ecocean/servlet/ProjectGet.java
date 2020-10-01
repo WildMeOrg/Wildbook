@@ -75,8 +75,8 @@ public class ProjectGet extends HttpServlet {
             String action = null;
             action = j.optString("action", null);
 
-            String researchProjectId = null;
-            researchProjectId = j.optString("researchProjectId", null);
+            String projectIdPrefix = null;
+            projectIdPrefix = j.optString("projectIdPrefix", null);
 
             String getEditPermission = null;
             getEditPermission = j.optString("getEditPermission", null);
@@ -84,11 +84,11 @@ public class ProjectGet extends HttpServlet {
             boolean complete = false;
 
             if (Util.stringExists(action)&&"getNextIdForProject".equals(action)) {
-                Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+                Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
                 // we don't want to advance the counter until the next ID is added to an individual successfully
                 if (project!=null) {
                     String nextId = project.getNextIncrementalIndividualId();
-                    System.out.println("Got next incrementalId "+nextId+" for "+researchProjectId+" in ProjectGet servlet");
+                    System.out.println("Got next incrementalId "+nextId+" for "+projectIdPrefix+" in ProjectGet servlet");
                     res.put("nextId", nextId);
                     res.put("success",true);
                 }
@@ -98,9 +98,9 @@ public class ProjectGet extends HttpServlet {
             String annotInProject = j.optString("annotInProject", null);
             if ("true".equals(annotInProject)) {
                 String acmId = j.optString("acmId", null);
-                if (Util.stringExists(acmId)&&Util.stringExists(researchProjectId)) {
+                if (Util.stringExists(acmId)&&Util.stringExists(projectIdPrefix)) {
                     res.put("inProject", "false");
-                    Project project = myShepherd.getProjectByResearchProjectId(researchProjectId.trim());
+                    Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
                     if (project!=null) {
                         ArrayList<Annotation> anns = myShepherd.getAnnotationsWithACMId(acmId);
                         List<Encounter> encs = project.getEncounters();
@@ -125,16 +125,16 @@ public class ProjectGet extends HttpServlet {
               for (int i=0;i<individualIdJSONArr.length();i++) {
                 JSONObject individualIdObj = individualIdJSONArr.getJSONObject(i);
                 String individualId = individualIdObj.optString("indId", null);
-                if (Util.isUUID(individualId) && Util.stringExists(researchProjectId)) {
+                if (Util.isUUID(individualId) && Util.stringExists(projectIdPrefix)) {
                   JSONObject individualData = new JSONObject();
-                  individualData.put("projectId", researchProjectId);
-                  Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+                  individualData.put("projectId", projectIdPrefix);
+                  Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
                   String projName = project.getResearchProjectName();
                   String projUuid = project.getId();
                   if(Util.stringExists(projName)){individualData.put("projectName", projName);}
                   if(Util.stringExists(projUuid)){individualData.put("projectUuid", projUuid);}
                   if(project != null){
-                    String researchProjId = project.getResearchProjectId();
+                    String researchProjId = project.getProjectIdPrefix();
                     if(Util.stringExists(researchProjId)){
                       MarkedIndividual individual = myShepherd.getMarkedIndividual(individualId);
                       if(individual != null){
@@ -169,22 +169,22 @@ public class ProjectGet extends HttpServlet {
                     ArrayList<Project> userProjects = myShepherd.getProjectsForUser(user);
                     JSONArray autocompleteArr = new JSONArray();
                     for (Project project : userProjects) {
-                        researchProjectId = project.getResearchProjectId();
+                        projectIdPrefix = project.getProjectIdPrefix();
 
-                        //lets avoid the rest of the query chain if the current input doesn't match the researchProjectId
+                        //lets avoid the rest of the query chain if the current input doesn't match the projectIdPrefix
                         boolean useProject = true;
                         if (Util.stringExists(currentInput)) {
-                            if (currentInput.length()>researchProjectId.length()) {
-                                currentInput = currentInput.substring(0, researchProjectId.length());
+                            if (currentInput.length()>projectIdPrefix.length()) {
+                                currentInput = currentInput.substring(0, projectIdPrefix.length());
                             }
-                            if (!researchProjectId.equals(currentInput)&&!researchProjectId.contains(currentInput)) {
+                            if (!projectIdPrefix.equals(currentInput)&&!projectIdPrefix.contains(currentInput)) {
                                 useProject = false;
                             }
                         }
                         if (useProject) {
                             List<MarkedIndividual> individuals = project.getAllIndividualsForProject();
                             for (MarkedIndividual individual : individuals) {
-                                String projectIncrementalId = individual.getName(researchProjectId);
+                                String projectIncrementalId = individual.getName(projectIdPrefix);
                                 if (projectIncrementalId!=null && projectIncrementalId.contains(currentInput)) {
                                     JSONObject individualData = new JSONObject();
                                     individualData.put("projectIncrementalId", projectIncrementalId);
@@ -297,12 +297,12 @@ public class ProjectGet extends HttpServlet {
             }
 
             //get specific project
-            researchProjectId = j.optString("researchProjectId", null);
+            projectIdPrefix = j.optString("projectIdPrefix", null);
             projectUUID = j.optString("projectUUID", null);
-            if ((Util.stringExists(researchProjectId)|| Util.stringExists(projectUUID))&&!complete) {
+            if ((Util.stringExists(projectIdPrefix)|| Util.stringExists(projectUUID))&&!complete) {
                 Project project = null;
-                if (Util.stringExists(researchProjectId)) {
-                    project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+                if (Util.stringExists(projectIdPrefix)) {
+                    project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
                 }
                 if (Util.stringExists(projectUUID)) {
                     project = myShepherd.getProject(projectUUID);

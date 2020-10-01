@@ -104,13 +104,13 @@ public class FormUtilities {
       Matcher matcher = r.matcher("tmp");
       for (Project currentProject: projects) { //TODO DRY up
         // Project currentProject = projects.get(i);
-        pattern = "(.*;?.*)("+currentProject.getResearchProjectId()+"\\d+)(.*)";
+        pattern = "(.*;?.*)("+currentProject.getProjectIdPrefix()+"\\d+)(.*)";
         r = Pattern.compile(pattern);
         List<MarkedIndividual> individuals = myShepherd.getMarkedIndividualsFromProject(currentProject);
         for(MarkedIndividual currentIndividual: individuals){
           // MarkedIndividual currentIndividual = individuals.get(j);
           if(currentIndividual != null){
-            List<String> namesList = currentIndividual.getNamesList(currentProject.getResearchProjectId());
+            List<String> namesList = currentIndividual.getNamesList(currentProject.getProjectIdPrefix());
             if(namesList != null && namesList.size()>0){
               String incrementalId = namesList.get(0);
               matcher = r.matcher(incrementalId);
