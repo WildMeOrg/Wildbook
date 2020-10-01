@@ -88,7 +88,6 @@ public class ProjectGet extends HttpServlet {
                 // we don't want to advance the counter until the next ID is added to an individual successfully
                 if (project!=null) {
                     String nextId = project.getNextIncrementalIndividualId();
-                    System.out.println("Got next incrementalId "+nextId+" for "+projectIdPrefix+" in ProjectGet servlet");
                     res.put("nextId", nextId);
                     res.put("success",true);
                 }
@@ -247,25 +246,17 @@ public class ProjectGet extends HttpServlet {
             JSONArray individualIdsArr = j.optJSONArray("individualIdsForProj");
             JSONArray returnProjArr = new JSONArray();
             successStatus = false;
-            System.out.println("got here a");
             if(individualIdsArr != null && individualIdsArr.length()>0){
-              System.out.println("got here b");
               for (int i=0;i<individualIdsArr.length();i++) {
-                System.out.println("got here c");
                 JSONObject individualIdObj = individualIdsArr.getJSONObject(i);
                 individualId = individualIdObj.optString("indId", null);
                 if (Util.stringExists(individualId)) {
-                  System.out.println("got here d");
-                  System.out.println("individualId is: " + individualId);
                   MarkedIndividual ind = myShepherd.getMarkedIndividual(individualId);
                   if (ind!=null) {
-                    System.out.println("got here e");
                     List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(ind);
                     JSONArray projectArr = new JSONArray();
                     if (projects!=null) {
-                      System.out.println("got here f");
                       for (Project project : projects) {
-                        System.out.println("got here g");
                         projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
                       }
                     }
@@ -273,33 +264,25 @@ public class ProjectGet extends HttpServlet {
                   }
               }
             }
-            System.out.println("got here h");
             res.put("projectByIndividArr",returnProjArr);
             res.put("success",true);
             complete = true;
           }
-
             // get all projects for owner or participant
             ownerId = j.optString("ownerId", null);
             participantId = j.optString("participantId", null);
             if (Util.stringExists(ownerId)||Util.stringExists(participantId)) {
-                System.out.println("got here 1");
                 List<Project> allUserProjects = null;
                 if (Util.stringExists(ownerId)) {
                     allUserProjects = myShepherd.getOwnedProjectsForUserId(ownerId);
                 } else if (Util.stringExists(participantId)) {
-                  System.out.println("got here 2");
-                  System.out.println("2: participantId is: " + participantId);
-                    User user = myShepherd.getUser(participantId); //I changed this to UUID -MF
+                    User user = myShepherd.getUser(participantId);
                     if(user!=null){
-                      System.out.println("got here 3");
                       allUserProjects = myShepherd.getProjectsForUser(user);
                     }
                 }
                 JSONArray projectArr = new JSONArray();
                 if (allUserProjects!=null) {
-                  System.out.println("got here 4");
-                  System.out.println("allUserProjects is size: " + allUserProjects.size());
                     for (Project project : allUserProjects) {
                         projectArr.put(project.asJSONObject());
                     }
