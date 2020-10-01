@@ -131,6 +131,11 @@ public class ProjectGet extends HttpServlet {
                   Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
                   String projName = project.getResearchProjectName();
                   String projUuid = project.getId();
+                  User projOwner = project.getOwner();
+                  if(projOwner!=null){
+                    String projOwnerName = projOwner.getUsername();
+                    if(Util.stringExists(projOwnerName)){individualData.put("projectOwner", projOwnerName);}
+                  }
                   if(Util.stringExists(projName)){individualData.put("projectName", projName);}
                   if(Util.stringExists(projUuid)){individualData.put("projectUuid", projUuid);}
                   if(project != null){
@@ -278,15 +283,23 @@ public class ProjectGet extends HttpServlet {
             ownerId = j.optString("ownerId", null);
             participantId = j.optString("participantId", null);
             if (Util.stringExists(ownerId)||Util.stringExists(participantId)) {
+                System.out.println("got here 1");
                 List<Project> allUserProjects = null;
                 if (Util.stringExists(ownerId)) {
                     allUserProjects = myShepherd.getOwnedProjectsForUserId(ownerId);
                 } else if (Util.stringExists(participantId)) {
-                    User user = myShepherd.getUser(participantId);
-                    allUserProjects = myShepherd.getProjectsForUser(user);
+                  System.out.println("got here 2");
+                  System.out.println("2: participantId is: " + participantId);
+                    User user = myShepherd.getUser(participantId); //I changed this to UUID -MF
+                    if(user!=null){
+                      System.out.println("got here 3");
+                      allUserProjects = myShepherd.getProjectsForUser(user);
+                    }
                 }
                 JSONArray projectArr = new JSONArray();
                 if (allUserProjects!=null) {
+                  System.out.println("got here 4");
+                  System.out.println("allUserProjects is size: " + allUserProjects.size());
                     for (Project project : allUserProjects) {
                         projectArr.put(project.asJSONObject());
                     }

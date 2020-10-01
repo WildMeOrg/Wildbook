@@ -58,6 +58,7 @@ table.compareZone tr th {
 
 <script>
   let conflictingProjs = [];
+  let conflictingProjOwners = [];
   let countOfIncrementalIdRowPopulated = 0;
   let projNamesBelongingToIndividuals = [];
   let projIdPrefixesBelongingToIndividuals = [];
@@ -107,29 +108,30 @@ table.compareZone tr th {
               // console.log("1: incrementalIdResults!");
               // console.log(incrementalIdResults);
               // console.log(data);
-              populateProjectIdRow(incrementalIdResults, incrementalIdResults[0].projectName, incrementalIdResults[0].projectUuid, incrementalIdResults[0].projectId);
+              populateProjectIdRow(incrementalIdResults, incrementalIdResults[0].projectName, incrementalIdResults[0].projectUuid, incrementalIdResults[0].projectId, incrementalIdResults[0].projectOwner);
               countOfIncrementalIdRowPopulated ++;
               if(countOfIncrementalIdRowPopulated == numProjects){
                 //everything is populated! Now check whether user's projects include conflicting projs
-                // conflictingProjs TODO
-                let requestJsonForProjectNamesDropdown = {};
-                requestJsonForProjectNamesDropdown['ownerId'] = '<%= currentUser.getId()%>';
-                doAjaxForProject(requestJsonForProjectNamesDropdown);
+                let requestJsonForCurrentUsersProjects = {};
+                requestJsonForCurrentUsersProjects['participantId'] = '<%= currentUser.getUsername()%>';
+                doAjaxForProject(requestJsonForCurrentUsersProjects);
               }
             }else{
-              if(projectNameResults){ //TODO maybe I don't need this at all anymore
-                // console.log("2: projectNameResults!");
-                // console.log(projectNameResults);
+              if(projectNameResults){
+                console.log("2: projectNameResults!");
+                console.log(requestJSON);
+                console.log(data);
+                console.log(projectNameResults);
                 let projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
                 let prjIdOptions = projectNameResults.map(entry =>{return entry.projectIdPrefix});
                   if(projNameOptions.length>0){
                     // console.log("about to enter populateProjectRows...");
                     // populateProjectRows(projNameOptions, prjIdOptions);
                     // console.log("end of loading things reached! Now it's decision time!");
-                    // console.log("project names that user has access to:");
-                    // console.log(projNameOptions);
-                    // console.log("project names featuring conflicts between increment ids for the two individuals:");
-                    // console.log(conflictingProjs);
+                    console.log("project names that user has access to:");
+                    console.log(projNameOptions);
+                    console.log("project names featuring conflicts between increment ids for the two individuals:");
+                    console.log(conflictingProjs);
                     compareUserProjectsToConflictedOnesOnIndividuals(projNameOptions,conflictingProjs);
                   }else{
                     // callForIncrementalIdsAndPopulate("temp"); //TODO revise or do nothing???
@@ -147,22 +149,60 @@ table.compareZone tr th {
   }
 
   function compareUserProjectsToConflictedOnesOnIndividuals(userProjNames, conflictingProjsOnIndividuals){
-    // console.log("got into compareUserProjectsToConflictedOnesOnIndividuals");
+    console.log("got into compareUserProjectsToConflictedOnesOnIndividuals");
+    console.log("userProjNames in compareUserProjectsToConflictedOnesOnIndividuals is: ");
+    console.log(userProjNames);
+    console.log("conflictingProjsOnIndividuals in compareUserProjectsToConflictedOnesOnIndividuals is: ");
+    console.log(conflictingProjsOnIndividuals);
     let shouldShow = true;
-    for (let i=0; i<conflictingProjsOnIndividuals; i++){
+    let conflictingProjectToWhichUserHasNoAccess = [];
+    let conflictingProjectOwnerForUserToContact = [];
+    for (let i=0; i<conflictingProjsOnIndividuals.length; i++){
       currentConflictingProjName = conflictingProjsOnIndividuals[i];
       if(!userProjNames.includes(currentConflictingProjName)){
+        conflictingProjectToWhichUserHasNoAccess.push(currentConflictingProjName);
+        conflictingProjectOwnerForUserToContact.push(conflictingProjOwners[i]);
         shouldShow = false;
       }
     }
+    console.log("conflictingProjectToWhichUserHasNoAccess is: ");
+    console.log(conflictingProjectToWhichUserHasNoAccess);
+    console.log("conflictingProjectOwnerForUserToContact is: ");
+    console.log(conflictingProjectOwnerForUserToContact);
     if(shouldShow){
-      //TODO show
+      $('#everything-else').show(); //show
+      $('#progress-div').hide(); //hide
+      $('#not-permitted').hide(); //hide
     }else{
-      //TODO don't show
+      $('#everything-else').hide(); //show
+      $('#progress-div').hide(); //hide
+      populateContactList(conflictingProjectToWhichUserHasNoAccess, conflictingProjectOwnerForUserToContact); //TODO
+      $('#not-permitted').show(); //hide
     }
   }
 
+  function populateContactList(conflictingProjectToWhichUserHasNoAccess, conflictingProjectOwnerForUserToContact){
+    let contactListHtml = '';
+    contactListHtml += '';
+    contactListHtml += '<ul>';
+    for(let i=0; i<conflictingProjectToWhichUserHasNoAccess.length; i++){
+      contactListHtml += '<li>';
+      contactListHtml += '<em>';
+      contactListHtml += conflictingProjectToWhichUserHasNoAccess[i];
+      contactListHtml += '</em>';
+      contactListHtml += ' <%= props.getProperty("OwnedBy")%> ';
+      contactListHtml += '<em>';
+      contactListHtml += conflictingProjectOwnerForUserToContact[i];
+      contactListHtml += '</em>';
+      contactListHtml += '</li>';
+    }
+    contactListHtml += '</ul>';
+    $("#proj-contact-list").empty();
+    $("#proj-contact-list").append(contactListHtml);
+  }
+
   function doAjaxForProjectIndividuals(requestJSON){
+    console.log("doAjaxForProjectIndividuals called");
     // console.log("json going into doAjaxForProjectIndividuals request is: ");
     // console.log(JSON.stringify(requestJSON));
     $.ajax({
@@ -203,7 +243,8 @@ table.compareZone tr th {
       });
   }
 
-  function populateProjectIdRow(incrementalIds, projName, projUuid, projId){
+  function populateProjectIdRow(incrementalIds, projName, projUuid, projId, projOwner){
+    // console.log("projOwner is: " + projOwner);
     // console.log("data in populateProjectIdRow is: ");
     // console.log(incrementalIds);
     // console.log(projName);
@@ -222,6 +263,7 @@ table.compareZone tr th {
       // two incremental IDs for projName
       if(!conflictingProjs.includes(projName)){
         conflictingProjs.push(projName);
+        conflictingProjOwners.push(projOwner);
       }
       // console.log("conflictingProjs is: ");
       // console.log(conflictingProjs);
@@ -364,7 +406,7 @@ table.compareZone tr th {
       if($(this).children("td.diff_check").first().html()){
         let val1 = $(this).children("td.diff_check").first().html().trim();
         let val2 = $(this).children("td.diff_check").last().html().trim();
-        let val3 = $(this).find("input").val();
+        let val3 = $(this).find("input").val(); //TODO update
         console.log("index="+i+" val1="+val1+", val2="+val2+" and val3="+val3);
         if (val3!==val1 && val3!==val2) {
           $(this).addClass('needs_review');
@@ -385,275 +427,245 @@ table.compareZone tr th {
       </div>
     </div>
   </div>
-  <div id="everything-else" style="display: none;">
+  <div id="not-permitted" style="display: none;">
+    <h4><%= props.getProperty("NotPermitted")%></h4>
+    <div id="proj-contact-list"></div>
   </div>
-<%
-// build query for EncounterMediaGallery here
-//String queryString = "SELECT FROM org.ecocean.Encounter WHERE individual.individualID == '"+indIdA+"' || individual.individualID == '"+indIdB+"'";
-//System.out.println("Merge.jsp has queryString "+queryString);
+  <div id="everything-else" style="display: none;">
+    <%
+    // build query for EncounterMediaGallery here
+    //String queryString = "SELECT FROM org.ecocean.Encounter WHERE individual.individualID == '"+indIdA+"' || individual.individualID == '"+indIdB+"'";
+    //System.out.println("Merge.jsp has queryString "+queryString);
+    // consider including an enc media gallery below?
+    %>
+    <%
+    try {
+    	%>
+      <h1>Marked Individual Merge Tool</h1>
+      <p class="instructions">Confirm the merged values for each of the fields below.</p>
+      <p class="instructions"><span class="text-danger bg-danger">Fields in red</span> have conflicting values and require attention.</p>
+      <form id="mergeForm"
+        action="MergeIndividual"
+        method="post"
+    	  enctype="multipart/form-data"
+        name="merge_individual_submission"
+        target="_self" dir="ltr"
+        lang="en"
+        onsubmit="console.log('the form has been submitted!');"
+        class="form-horizontal"
+        accept-charset="UTF-8"
+      >
+    	<table class="compareZone">
+    		<tr class="row header">
+    			<th class="col-md-2"></th>
+    			<% for (MarkedIndividual ind: inds) {%>
+    			<th class="col-md-2"><h2>
+    				<a href='<%=ind.getWebUrl(request)%>'><%=ind.getDisplayName()%></a>
+    			</h2></th>
+    			<%}%>
+    			<th><h2>
+    				<%= props.getProperty("MergedIndividual") %>
+    			</h2></th>
+    		</tr>
+    		<tr class="row names">
+    			<th><%= props.getProperty("Names") %></th>
+    			<% for (MarkedIndividual ind: inds) {%>
+    			<td class="col-md-2">
+    				<% for (String key: ind.getNameKeys()) {
+    					String nameStr = String.join(", ", ind.getNamesList(key));
+    					%><span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/><%
+    				}
+    				%>
+    			</td>
+    			<%}%>
+    			<td class="col-md-2 mergedNames">
+    				<%
+    				MultiValue allNames = MultiValue.merge(markA.getNames(), markB.getNames());
+    				for (String key: allNames.getKeys()) {
+    					String nameStr = String.join(", ", allNames.getValuesAsList(key));
+    					%><span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/><%
+    				}
+    				%>
+    			</td>
+    		</tr>
+          <!--populated by JS after page load-->
+    		<tr class="row encounters">
+    			<th><%= props.getProperty("NumEncounters") %></th>
+    			<% int totalEncs = 0;
+    			for (MarkedIndividual ind: inds) {
+    				int encs = ind.numEncounters();
+    				totalEncs+= encs;
+    				%>
+    				<td class="col-md-2">
+    					<%=encs%>
+    				</td>
+    			<%}%>
+    			<td class="col-md-2">
+    				<%=totalEncs%>
+    			</td>
+    		</tr>
+    		<tr class="row species check_for_diff">
+    			<th><%= props.getProperty("Species") %></th>
+    			<% for (MarkedIndividual ind: inds) {%>
+    			<td class="col-md-2 diff_check">
+    				<%=ind.getGenusSpeciesDeep()%>
+    			</td>
+    			<%}%>
+    			<td class="merge-field">
+    				<%
+    				String mergeTaxy = Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep());
+            if(markA.getGenusSpeciesDeep()!= null && markB.getGenusSpeciesDeep()!= null && !markA.getGenusSpeciesDeep().equals("") && !markB.getGenusSpeciesDeep().equals("") && !markA.getGenusSpeciesDeep().equals(markB.getGenusSpeciesDeep())){
+              %>
+                <select name="taxonomy-dropdown" id="taxonomy-dropdown" class="">
+                <option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>
+                <option value="<%= markB.getGenusSpeciesDeep()%>"><%= markB.getGenusSpeciesDeep()%></option>
+              <%
+            }else{
+              System.out.println("getting here");
+              %>
+              <%= mergeTaxy%>
+              <%
+            }
+    				%>
+    			</td>
+    		</tr>
+        <tr class="row sex check_for_diff">
+    			<th><%= props.getProperty("Sex") %></th>
+    			<% for (MarkedIndividual ind: inds) {%>
+    			<td class="col-md-2 diff_check">
+    				<%=ind.getSex()%>
+    			</td>
+    			<%}%>
+    			<td class="merge-field">
+    				<%
+    				String mergeSex = Util.betterValue(markA.getSex(), markB.getSex());
+            if(markA.getSex()!= null && markB.getSex()!= null && !markA.getSex().equals("") && !markB.getSex().equals("") && !markA.getSex().equals(markB.getSex())){
+              %>
+                <select name="sex-dropdown" id="sex-dropdown" class="">
+                <option value="<%= markA.getSex()%>" selected><%= markA.getSex()%></option>
+                <option value="<%= markB.getSex()%>"><%= markB.getSex()%></option>
+              <%
+            }else{
+              %>
+              <%= mergeSex%>
+              <%
+            }
+    				%>
+    			</td>
+    		</tr>
+    		<!--
+    		<tr class="row comments check_for_diff">
+    			<th>Notes</th>
+    			<% for (MarkedIndividual ind: inds) {%>
+    			<td class="col-md-2">
+    				<%=ind.getComments()%>
+    			</td>
+    			<%}%>
+    			<td class="col-md-2 merge-field">
+    				<%=markA.getMergedComments(markB, request, myShepherd)%>
+    			</td>
+    		-->
+    		</tr>
+    	</table>
+      <input type="submit" name="Submit" value="Merge Individuals" id="mergeBtn" class="btn btn-md editFormBtn"/>
+    	</form>
+    	<script type="text/javascript">
+      $(document).ready(function() {
+        $("#mergeBtn").click(function(event) {
 
-// consider including an enc media gallery below?
-%>
-<%
-try {
-	%>
-  <h1>Marked Individual Merge Tool</h1>
-  <p class="instructions">Confirm the merged values for each of the fields below.</p>
-  <p class="instructions"><span class="text-danger bg-danger">Fields in red</span> have conflicting values and require attention.</p>
-  <form id="mergeForm"
-    action="MergeIndividual"
-    method="post"
-	  enctype="multipart/form-data"
-    name="merge_individual_submission"
-    target="_self" dir="ltr"
-    lang="en"
-    onsubmit="console.log('the form has been submitted!');"
-    class="form-horizontal"
-    accept-charset="UTF-8"
-  >
-	<table class="compareZone">
-		<tr class="row header">
-			<th class="col-md-2"></th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<th class="col-md-2"><h2>
-				<a href='<%=ind.getWebUrl(request)%>'><%=ind.getDisplayName()%></a>
-			</h2></th>
-			<%}%>
-			<th><h2>
-				<%= props.getProperty("MergedIndividual") %>
-			</h2></th>
-		</tr>
-
-		<tr class="row names">
-			<th><%= props.getProperty("Names") %></th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<td class="col-md-2">
-				<% for (String key: ind.getNameKeys()) {
-					String nameStr = String.join(", ", ind.getNamesList(key));
-					%><span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/><%
-				}
-				%>
-			</td>
-			<%}%>
-			<td class="col-md-2 mergedNames">
-				<%
-				MultiValue allNames = MultiValue.merge(markA.getNames(), markB.getNames());
-				for (String key: allNames.getKeys()) {
-					String nameStr = String.join(", ", allNames.getValuesAsList(key));
-					%><span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/><%
-				}
-				%>
-			</td>
-		</tr>
-      <!--populated by JS after page load-->
-		<tr class="row encounters">
-			<th><%= props.getProperty("NumEncounters") %></th>
-			<% int totalEncs = 0;
-			for (MarkedIndividual ind: inds) {
-				int encs = ind.numEncounters();
-				totalEncs+= encs;
-				%>
-				<td class="col-md-2">
-					<%=encs%>
-				</td>
-			<%}%>
-			<td class="col-md-2">
-				<%=totalEncs%>
-			</td>
-		</tr>
-
-		<tr class="row species check_for_diff">
-			<th><%= props.getProperty("Species") %></th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<td class="col-md-2 diff_check">
-				<%=ind.getGenusSpeciesDeep()%>
-			</td>
-			<%}%>
-
-			<td class="merge-field">
-
-				<%
-				String mergeTaxy = Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep());
-        if(markA.getGenusSpeciesDeep()!= null && markB.getGenusSpeciesDeep()!= null && !markA.getGenusSpeciesDeep().equals("") && !markB.getGenusSpeciesDeep().equals("") && !markA.getGenusSpeciesDeep().equals(markB.getGenusSpeciesDeep())){
-          %>
-            <select name="taxonomy-dropdown" id="taxonomy-dropdown" class="">
-            <option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>
-            <option value="<%= markB.getGenusSpeciesDeep()%>"><%= markB.getGenusSpeciesDeep()%></option>
-          <%
-        }else{
-          System.out.println("getting here");
-          %>
-          <%= mergeTaxy%>
-          <%
-        }
-				%>
-			</td>
-		</tr>
-
-    <tr class="row sex check_for_diff">
-			<th><%= props.getProperty("Sex") %></th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<td class="col-md-2 diff_check">
-				<%=ind.getSex()%>
-			</td>
-			<%}%>
-			<td class="merge-field">
-
-				<%
-				String mergeSex = Util.betterValue(markA.getSex(), markB.getSex());
-        if(markA.getSex()!= null && markB.getSex()!= null && !markA.getSex().equals("") && !markB.getSex().equals("") && !markA.getSex().equals(markB.getSex())){
-          %>
-            <select name="sex-dropdown" id="sex-dropdown" class="">
-            <option value="<%= markA.getSex()%>" selected><%= markA.getSex()%></option>
-            <option value="<%= markB.getSex()%>"><%= markB.getSex()%></option>
-          <%
-        }else{
-          %>
-          <%= mergeSex%>
-          <%
-        }
-				%>
-			</td>
-		</tr>
-
-		<!--
-		<tr class="row comments check_for_diff">
-			<th>Notes</th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<td class="col-md-2">
-				<%=ind.getComments()%>
-			</td>
-			<%}%>
-			<td class="col-md-2 merge-field">
-				<%=markA.getMergedComments(markB, request, myShepherd)%>
-			</td>
-		-->
-
-		</tr>
-	</table>
-
-  <input type="submit" name="Submit" value="Merge Individuals" id="mergeBtn" class="btn btn-md editFormBtn"/>
-
-	</form>
-
-
-	<script type="text/javascript">
-  $(document).ready(function() {
-    $("#mergeBtn").click(function(event) {
-
-    	console.log("mergeBtn was clicked");
-      event.preventDefault();
-    	console.log("mergeBtn continues");
-
-    	let id1="<%=indIdA%>";
-    	let id2="<%=indIdB%>";
-    	let fullNameA = '<%=fullNameA%>';
-    	let fullNameB = '<%=fullNameB%>';
-      let sex = $("#sex-dropdown").val();
-      if(!sex){
-        //It's because they match
-        sex = '<%= Util.betterValue(markA.getSex(), markB.getSex()) %>';
-      }
-      let taxonomy = $("#taxonomy-dropdown").val();
-      // console.log("taxonomy is: " + taxonomy);
-      if(!taxonomy){
-        //It's because they match
-        // console.log("got here!");
-        taxonomy = '<%= Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep()) %>';
-      }
-
-      let projIdElems = $('[id^=proj-confirm-dropdown-]');
-      let projIdConsolidated = '';
-      let desiredIncrementalIdConsolidated = '';
-      let deprecatedIncrementIdConsolidated = '';
-      let currentDeprecatedIncrementalID  = "";
-      let currentOptionElems = [];
-      debugger;
-      for(let i=0; i<projIdElems.length; i++){
-        let currentElem = projIdElems[i];
-        // console.log("currentElem is: ");
-        // console.log(currentElem);
-        let currentProjUuid = $(currentElem).attr('name');
-        // console.log(" current projName is sorta like: " + $(currentElem).attr('id'));
-        // console.log("current element bearing selected is: ");
-        // console.log($(currentElem).find(":selected"));
-        let currentDesiredIncrementalId = $(currentElem).find(":selected").text();
-        // console.log("currentDesiredIncrementalId is: " + currentDesiredIncrementalId);
-        if(currentDesiredIncrementalId){
-          currentOptionElems = $(currentElem).children('option[name="incremental-id-option"]'); //optionElems.concat($(currentElem).children('option[name="incremental-id-option"]'));
-        }else{
-          //if you can't get it from a selected element, it's not from a a <select>, but you still need to capture the value
-          if($(currentElem).text() === '<%= props.getProperty("NoIncrementalId")%>'){
-            currentDesiredIncrementalId = "_";
-            currentDeprecatedIncrementalID = "_"; // a placeholder
-          }else{
-            currentDesiredIncrementalId = $(currentElem).text();
-            currentDeprecatedIncrementalID = "_"; // a placeholder
+        	console.log("mergeBtn was clicked");
+          event.preventDefault();
+        	console.log("mergeBtn continues");
+        	let id1="<%=indIdA%>";
+        	let id2="<%=indIdB%>";
+        	let fullNameA = '<%=fullNameA%>';
+        	let fullNameB = '<%=fullNameB%>';
+          let sex = $("#sex-dropdown").val();
+          if(!sex){
+            //It's because they match
+            sex = '<%= Util.betterValue(markA.getSex(), markB.getSex()) %>';
           }
-        }
-        projIdConsolidated = concatenateToConsolidationString(i, projIdElems.length, projIdConsolidated, currentProjUuid);
-        desiredIncrementalIdConsolidated = concatenateToConsolidationString(i, projIdElems.length, desiredIncrementalIdConsolidated, currentDesiredIncrementalId);
-        currentDeprecatedIncrementalID = getDeprecatedIncrementalIdFromOptions(desiredIncrementalIdConsolidated, currentOptionElems);
-        deprecatedIncrementIdConsolidated = concatenateToConsolidationString(i, projIdElems.length, deprecatedIncrementIdConsolidated, currentDeprecatedIncrementalID);
-        currentOptionElems = [];
-      }
-      // console.log("deprecatedIncrementIdConsolidated is " + deprecatedIncrementIdConsolidated);
-      // console.log("desiredIncrementalIdConsolidated is "+ desiredIncrementalIdConsolidated);
-      // console.log("projIdConsolidated is: " + projIdConsolidated);
+          let taxonomy = $("#taxonomy-dropdown").val();
+          // console.log("taxonomy is: " + taxonomy);
+          if(!taxonomy){
+            //It's because they match
+            // console.log("got here!");
+            taxonomy = '<%= Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep()) %>';
+          }
+          let projIdElems = $('[id^=proj-confirm-dropdown-]');
+          let projIdConsolidated = '';
+          let desiredIncrementalIdConsolidated = '';
+          let deprecatedIncrementIdConsolidated = '';
+          let currentDeprecatedIncrementalID  = "";
+          let currentOptionElems = [];
+          debugger;
+          for(let i=0; i<projIdElems.length; i++){
+            let currentElem = projIdElems[i];
+            // console.log("currentElem is: ");
+            // console.log(currentElem);
+            let currentProjUuid = $(currentElem).attr('name');
+            // console.log(" current projName is sorta like: " + $(currentElem).attr('id'));
+            // console.log("current element bearing selected is: ");
+            // console.log($(currentElem).find(":selected"));
+            let currentDesiredIncrementalId = $(currentElem).find(":selected").text();
+            // console.log("currentDesiredIncrementalId is: " + currentDesiredIncrementalId);
+            if(currentDesiredIncrementalId){
+              currentOptionElems = $(currentElem).children('option[name="incremental-id-option"]'); //optionElems.concat($(currentElem).children('option[name="incremental-id-option"]'));
+            }else{
+              //if you can't get it from a selected element, it's not from a a <select>, but you still need to capture the value
+              if($(currentElem).text() === '<%= props.getProperty("NoIncrementalId")%>'){
+                currentDesiredIncrementalId = "_";
+                currentDeprecatedIncrementalID = "_"; // a placeholder
+              }else{
+                currentDesiredIncrementalId = $(currentElem).text();
+                currentDeprecatedIncrementalID = "_"; // a placeholder
+              }
+            }
+            projIdConsolidated = concatenateToConsolidationString(i, projIdElems.length, projIdConsolidated, currentProjUuid);
+            desiredIncrementalIdConsolidated = concatenateToConsolidationString(i, projIdElems.length, desiredIncrementalIdConsolidated, currentDesiredIncrementalId);
+            currentDeprecatedIncrementalID = getDeprecatedIncrementalIdFromOptions(desiredIncrementalIdConsolidated, currentOptionElems);
+            deprecatedIncrementIdConsolidated = concatenateToConsolidationString(i, projIdElems.length, deprecatedIncrementIdConsolidated, currentDeprecatedIncrementalID);
+            currentOptionElems = [];
+          }
+          // console.log("deprecatedIncrementIdConsolidated is " + deprecatedIncrementIdConsolidated);
+          // console.log("desiredIncrementalIdConsolidated is "+ desiredIncrementalIdConsolidated);
+          // console.log("projIdConsolidated is: " + projIdConsolidated);
+        	// console.log("Clicked with id1="+id1+", id2="+id2+", sex="+sex+", tax="+taxonomy);
+        	$("#mergeForm").attr("action", "MergeIndividual"); // Is this necessary given <form's already-existing attributes? -MF
+          // console.log("id1 before post call is: " + id1);
+          // console.log("id2 before post call is: " + id2);
+          // debugger;
+          $.post("/MergeIndividual", {
+          	"id1": id1,
+          	"id2": id2,
+          	"sex": sex,
+          	"taxonomy": taxonomy,
+            "projIds": projIdConsolidated,
+            "desiredIncrementalIds": desiredIncrementalIdConsolidated,
+            "deprecatedIncrementIds": deprecatedIncrementIdConsolidated
+          },
+          function() {
+    		    updateNotificationsWidget();
+          	var confirmUrl = '/mergeComplete.jsp?oldNameA='+fullNameA+'&oldNameB='+fullNameB+'&newId='+id1;
+          	alert("Successfully merged individual! Now redirecting to "+confirmUrl);
+    				window.location = confirmUrl;
+          })
+          .fail(function(response) {
+          	alert("FAILURE!!");
+          });
+    	  });
+    	});
+    	</script>
+    	<%
+    } catch (Exception e) {
+    	System.out.println("Exception on merge.jsp! indIdA="+indIdA+" indIdB="+indIdB);
+    	myShepherd.rollbackDBTransaction();
+    } finally {
+    	myShepherd.closeDBTransaction();
+    }
+    %>
 
-    	// console.log("Clicked with id1="+id1+", id2="+id2+", sex="+sex+", tax="+taxonomy);
-
-    	$("#mergeForm").attr("action", "MergeIndividual");
-      // console.log("id1 before post call is: " + id1);
-      // console.log("id2 before post call is: " + id2);
-      debugger;
-
-      $.post("/MergeIndividual", {
-      	"id1": id1,
-      	"id2": id2,
-      	"sex": sex,
-      	"taxonomy": taxonomy,
-        "projIds": projIdConsolidated,
-        "desiredIncrementalIds": desiredIncrementalIdConsolidated,
-        "deprecatedIncrementIds": deprecatedIncrementIdConsolidated
-      },
-      function() {
-		    updateNotificationsWidget();
-      	var confirmUrl = '/mergeComplete.jsp?oldNameA='+fullNameA+'&oldNameB='+fullNameB+'&newId='+id1;
-      	alert("Successfully merged individual! Now redirecting to "+confirmUrl);
-				window.location = confirmUrl;
-      })
-      .fail(function(response) {
-      	alert("FAILURE!!");
-      });
-
-			// document.forms['mergeForm'].submit();
-
-	  });
-
-	});
-	</script>
-
-
-
-
-	<%
-
-
-
-
-
-
-
-} catch (Exception e) {
-	System.out.println("Exception on merge.jsp! indIdA="+indIdA+" indIdB="+indIdB);
-	myShepherd.rollbackDBTransaction();
-} finally {
-	myShepherd.closeDBTransaction();
-}
-%>
-
-
+  </div>
 </div>
 
 
