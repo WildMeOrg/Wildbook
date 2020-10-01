@@ -2,9 +2,23 @@
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
+java.util.HashMap,
 org.ecocean.identity.IdentityServiceLog,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
+
+<%!
+String rotationInfo(MediaAsset ma) {
+    if ((ma == null) || (ma.getMetadata() == null)) return null;
+    HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
+    if (orient == null) return null;
+    for (String k : orient.keySet()) {
+        if (orient.get(k).matches(".*90.*")) return orient.get(k);
+        if (orient.get(k).matches(".*270.*")) return orient.get(k);
+    }
+    return null;
+}
+%>
 
 <%
 
@@ -65,6 +79,7 @@ if (request.getParameter("acmId") != null) {
 				if (ma != null) {
 			            JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
                                     if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
+                                    jm.put("rotation", rotationInfo(ma));
 			            jann.put("asset", jm);
 				}
 				janns.put(jann);
@@ -1386,6 +1401,7 @@ function drawFeature(imgEl, ft) {
     if (!imgEl || !imgEl.clientHeight || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
     var scale = imgEl.height / imgEl.naturalHeight;
     if (ft.metadata && ft.metadata.height) scale = imgEl.height / ft.metadata.height;
+    if (asset.rotation && ft.metadata && ft.metadata.width) scale = imgEl.height / ft.metadata.width;
     var zoomFactor = imgEl.naturalHeight/ft.parameters.height;
 
     var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');

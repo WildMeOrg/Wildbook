@@ -3,10 +3,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
-org.ecocean.grid.*,org.ecocean.ia.*,java.util.*,
-org.ecocean.media.*,org.ecocean.servlet.importer.ImportTask,
+org.ecocean.grid.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
-
 
 <%
 
@@ -27,79 +25,55 @@ Shepherd myShepherd=new Shepherd(context);
 
 
 <body>
-
+<ul>
 <%
 
 myShepherd.beginDBTransaction();
 
-int pending=0;
-int duped=0;
+int numFixes=0;
 
-
+<<<<<<< HEAD
 try {
-	
-	Query q=myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ( submitterID == 'FeliciaVachon' ) && ( state == 'unapproved' ) && dwcDateAddedLong < 1589079679000");
-	Collection c=(Collection)q.execute();
-	ArrayList<Encounter> al=new ArrayList<Encounter>(c);
-	
-	for(Encounter enc2trash:al){
-		
-        Occurrence occ = myShepherd.getOccurrenceForEncounter(enc2trash.getID());
-        if (occ==null&&(enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
-          occ = myShepherd.getOccurrence(enc2trash.getOccurrenceID());
-        }
-        
-        if(occ!=null) {
-          occ.removeEncounter(enc2trash);
-          enc2trash.setOccurrenceID(null);
-          
-          //delete Occurrence if it's last encounter has been removed.
-          if(occ.getNumberEncounters()==0){
-            myShepherd.throwAwayOccurrence(occ);
-          }
-          
-          myShepherd.commitDBTransaction();
-          myShepherd.beginDBTransaction();
-   
-        }
-        
-        //Remove it from an ImportTask if needed
-        ImportTask task=myShepherd.getImportTaskForEncounter(enc2trash.getCatalogNumber());
-        if(task!=null) {
-          task.removeEncounter(enc2trash);
-          task.addLog("Servlet EncounterDelete removed Encounter: "+enc2trash.getCatalogNumber());
-          myShepherd.updateDBTransaction();
-        }
-        
-        
 
-        if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
-          ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);
-          itask.removeEncounter(enc2trash);
-          myShepherd.commitDBTransaction();
-          myShepherd.beginDBTransaction();
-        }
-		myShepherd.getPM().deletePersistent(enc2trash);
-		myShepherd.updateDBTransaction();
-		
-	}
-	%>
-	<p>Duped: <%=duped %></p>
-	<%
-	
+	String rootDir = getServletContext().getRealPath("/");
+	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
+
+  Iterator allSpaces=myShepherd.getAllWorkspaces();
+
+  boolean committing=true;
+
+
+  while(allSpaces.hasNext()){
+
+    Workspace wSpace=(Workspace)allSpaces.next();
+
+    %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
+
+  	numFixes++;
+
+    if (committing) {
+      myShepherd.throwAwayWorkspace(wSpace);
+  		myShepherd.commitDBTransaction();
+  		myShepherd.beginDBTransaction();
+    }
+  }
 }
 catch(Exception e){
-	e.printStackTrace();
+	myShepherd.rollbackDBTransaction();
 }
 finally{
-	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 
 }
 
 %>
 
+</ul>
+<<<<<<< HEAD
+<p>Done successfully: <%=numFixes %> workspaces deleted.</p>
+=======
+<p>Done successfully: <%=numFixes %></p>
 
-
+>>>>>>> origin/crc
 </body>
 </html>
