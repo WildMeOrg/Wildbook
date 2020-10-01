@@ -348,30 +348,17 @@ System.out.println("*** trying redirect?");
         if (ServletFileUpload.isMultipartContent(request)) {
 
             try {
-                System.out.println("Got into multipart content portion");
-                System.out.println(formValues);
                 ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
                 upload.setHeaderEncoding("UTF-8");
                 List<FileItem> multiparts = upload.parseRequest(request);
                 //List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
 
                 List<String> projectIdSelection = new ArrayList<String>();
-                // String defaultProjectName = getVal(formValues, "defaultProject");
-                // if(Util.stringExists(defaultProjectName)){
-                //   System.out.println("got into defaultProjectName with name: " + defaultProjectName);
-                //   if(!projectIdSelection.contains(defaultProjectName.trim())){
-                //     projectIdSelection.add(defaultProjectName.trim());
-                //     System.out.println("added "+ defaultProjectName +" to projectIdSelection");
-                //   }
-                // }
                 for(FileItem item : multiparts){
                     if (item.isFormField()) {  //plain field
                         formValues.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
                         if(item.getFieldName().equals("defaultProject")){
-                          System.out.println("defaultProject got here a");
                           if(!projectIdSelection.contains(item.getString().trim())){
-                            System.out.println("defaultProject got here b");
-                            System.out.println("doesn’t contain default yet! Adding: " + item.getString().trim());
                             projectIdSelection.add(item.getString().trim());
                           }
                         }
@@ -398,10 +385,8 @@ System.out.println("*** trying redirect?");
                 fileSuccess = true;
                 if(projectIdSelection != null){
                   for(String projectId: projectIdSelection){
-                    System.out.println("fetching project for: "+ projectId);
                     Project currentProject = myShepherd.getProjectByProjectIdPrefix(projectId);
                     if(currentProject!=null){
-                      System.out.println("project not null for project: " + projectId);
                       projects.add(currentProject);
                     }
                   }
