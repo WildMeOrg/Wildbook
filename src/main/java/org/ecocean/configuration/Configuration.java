@@ -239,9 +239,14 @@ return null; ///FIXME
         j.put("descriptionId", this.getLang() + "_DESCRIPTION");
         Set<String> kids = this.getChildKeys();
         if (!Util.collectionIsEmptyOrNull(kids)) j.put("childrenKeys", kids);
+        String overrideDisplayType = null;
         if (m != null) {
             JSONObject fs = m.optJSONObject("formSchema");
-            if (fs != null) j.put("schema", fs);
+            if (fs != null) {
+                overrideDisplayType = fs.optString("displayType", null);
+                fs.remove("displayType");  //noisy
+                j.put("schema", fs);
+            }
         }
         if (!this.isValid(m)) {
             j.put("settable", false);
@@ -257,7 +262,10 @@ return null; ///FIXME
         } else if (type.equals("image")) {
             j.put("displayType", "file");
             j.put("allowedFileTypes", new JSONArray("[\".jpg\", \".jpeg\", \".png\", \".svg\"]"));
+        } else if (type.equals("url")) {
+            j.put("displayType", "string");
         }
+        if (overrideDisplayType != null) j.put("displayType", overrideDisplayType);
 
         JSONObject c = this.getContent();
         if (c != null) j.put("currentValue", c.opt(ConfigurationUtil.VALUE_KEY));  //FIXME probably
