@@ -32,6 +32,8 @@ import org.ecocean.servlet.ServletUtilities;
 import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Properties;
@@ -78,7 +80,32 @@ public class IA {
     public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas) {
         return intakeMediaAssets(myShepherd, mas, null);
     }
-    public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
+
+    public static Task intakeMediaAssets(Shepherd myShepherd, List<MediaAsset> mas, Task parentTask) {
+        List<List<MediaAsset>> assetsBySpecies = binAssetsBySpecies(mas, myShepherd);
+        int numSpecies = assetsBySpecies.size();
+        // in one-species case we don't need to create an extra layer of tasks
+        if (numSpecies == 1) return intakeMediaAssetsOneSpecies(myShepherd, assetsBySpecies.get(0), parentTask);
+        // in multi-species case we make sure we have a parent task and add each species task as a child
+        if (parentTask == null) parentTask = new Task();
+        for (List<MediaAsset> masOneSpecies: assetsBySpecies) {
+            Task thisTask = intakeMediaAssetsOneSpecies(myShepherd, masOneSpecies, parentTask);
+            parentTask.addChild(thisTask);
+        }
+        return parentTask;
+    }
+
+    public static List<List<MediaAsset>> binAssetsBySpecies(List<MediaAsset> mas, Shepherd myShepherd) {
+        Map<Taxonomy, List<MediaAsset>> assetsBySpecies = new HashMap<Taxonomy, List<MediaAsset>>();
+        for (MediaAsset ma: mas) {
+            Taxonomy taxy = ma.getTaxonomy(myShepherd);
+            if (!assetsBySpecies.containsKey(taxy)) assetsBySpecies.put(taxy, new ArrayList<MediaAsset>());
+            assetsBySpecies.get(taxy).add(ma);
+        }
+        return new ArrayList<List<MediaAsset>>(assetsBySpecies.values());
+    }
+
+    public static Task intakeMediaAssetsOneSpecies(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
         if ((mas == null) || (mas.size() < 1)) return null;
 
         Task topTask = new Task();
@@ -113,7 +140,6 @@ public class IA {
 
             String detectionUrl = iaConfig.getDetectionUrl(taxy, i);
             task.addParameter("__detect_url", detectionUrl);
-
 
             JSONObject qjob = new JSONObject();
             qjob.put("detect", dj);
