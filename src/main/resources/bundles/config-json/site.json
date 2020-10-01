@@ -48,11 +48,39 @@
 				"readOnly": true
 			}
 		},
+		"description": {
+			"__meta": {
+				"type": "string",
+				"defaultValue": "",
+				"formSchema": { "displayOrder": 1.0, "displayType": "longstring" }
+			}
+		},
+		"testimonial": {
+			"__meta": {
+				"type": "string",
+				"defaultValue": "",
+				"formSchema": { "displayOrder": 1.0, "displayType": "longstring" }
+			}
+		},
+		"testimonialCitation": {
+			"__meta": {
+				"type": "string",
+				"defaultValue": "",
+				"formSchema": { "displayOrder": 1.0 }
+			}
+		},
 		"tagline": {
 			"__meta": {
 				"type": "string",
 				"defaultValue": "",
 				"formSchema": { "displayOrder": 1.0 }
+			}
+		},
+		"taglineSubtitle": {
+			"__meta": {
+				"type": "string",
+				"defaultValue": "",
+				"formSchema": { "displayOrder": 1.0, "displayType": "longstring" }
 			}
 		},
 		"exploreTagline": {
@@ -63,6 +91,30 @@
 			}
 		},
 		"metaKeywords": {
+		}
+	},
+
+	"links": {
+		"facebookLink": {
+			"__meta": {
+				"type": "url",
+				"defaultValue": "",
+				"formSchema": { "displayOrder": 2.0 }
+			}
+		},
+		"instagramLink": {
+			"__meta": {
+				"type": "url",
+				"defaultValue": "",
+				"formSchema": { "displayOrder": 2.0 }
+			}
+		},
+		"twitterLink": {
+			"__meta": {
+				"type": "url",
+				"defaultValue": "",
+				"formSchema": { "displayOrder": 2.0 }
+			}
 		}
 	},
 
@@ -91,6 +143,14 @@
 					"formSchema": { "displayOrder": 12.0 },
 					"required": false
 				}
+			}
+		},
+		"customFieldCategories": {
+			"__meta": {
+				"type": "string",
+				"formSchema": { "displayType": "list" },
+				"multiple": true,
+				"required": false
 			}
 		},
 		"regions": {
