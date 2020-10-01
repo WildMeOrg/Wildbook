@@ -243,11 +243,11 @@ public class ProjectGet extends HttpServlet {
             JSONArray returnProjArr = new JSONArray();
             successStatus = false;
             System.out.println("got here a");
-            if(individualIdJSONArr != null && individualIdJSONArr.length()>0){
+            if(individualIdsArr != null && individualIdsArr.length()>0){
               System.out.println("got here b");
-              for (int i=0;i<individualIdJSONArr.length();i++) {
+              for (int i=0;i<individualIdsArr.length();i++) {
                 System.out.println("got here c");
-                JSONObject individualIdObj = individualIdJSONArr.getJSONObject(i);
+                JSONObject individualIdObj = individualIdsArr.getJSONObject(i);
                 individualId = individualIdObj.optString("indId", null);
                 if (Util.stringExists(individualId)) {
                   System.out.println("got here d");
