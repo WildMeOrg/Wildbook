@@ -78,8 +78,7 @@ public class JsonProperties extends Properties {
 			return getRecursive(keys, this.getJson());
 		} catch (Exception e) {
 			System.out.println("JsonProperties.get hit an exception on key "+periodSeparatedKeys);
-			System.out.println(" ... searching json "+this.getJson());
-			e.printStackTrace();
+			System.out.println(" ... searching json "+fname);
 			return null;
 		}
 	}
