@@ -183,8 +183,9 @@ public class IAJsonProperties extends JsonProperties {
 	}
 
 	public List<String> getValidIAClasses(Taxonomy taxy) {
-		JSONObject underTaxy = (JSONObject) this.get(taxonomyKey(taxy));
 		List<String> result = new ArrayList<String>();
+		if (!hasIA(taxy)) return result;
+		JSONObject underTaxy = (JSONObject) this.get(taxonomyKey(taxy));
 		Iterator<String> keys = underTaxy.keys();
 		while (keys.hasNext()) {
 			String key = keys.next();
