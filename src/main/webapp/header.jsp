@@ -96,7 +96,7 @@ finally{
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-13"></script>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-12"></script>
 
       <script>
         window.dataLayer = window.dataLayer || [];
