@@ -103,7 +103,7 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 		let projectNameHtml = '';
 		projectNameHtml += '<div class="col-xs-6 col-md-4">';
 		if(loggedOutDefaultDesired){
-			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProject() + '" />';
+			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
 		}
 		if(isVisible){
 			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
@@ -890,8 +890,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     </div>
 
 		<div class="form-group form-inline" id="proj-id-dropdown-container">
-
-
 		</div>
 
     <div class="form-group">

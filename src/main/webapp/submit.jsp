@@ -50,11 +50,140 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
+		//let's pre-populate important info for logged in users
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
+    String project="";
+    Shepherd myShepherd=new Shepherd(context);
+		User user = null;
+    myShepherd.setAction("submit.jsp1");
+    myShepherd.beginDBTransaction();
+    String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+    if(qualifier==null) {qualifier="default";}
+    else{qualifier=qualifier.replaceAll(".properties","");}
+    if(request.getRemoteUser()!=null){
+        submitterName=request.getRemoteUser();
+
+        if(myShepherd.getUser(submitterName)!=null){
+            user=myShepherd.getUser(submitterName);
+            if(user.getFullName()!=null){submitterName=user.getFullName();}
+            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+            if(user.getUserProject()!=null){project=user.getUserProject();}
+        }
+
+    }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+
 
     boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
 
 
 %>
+
+<script>
+$(document).ready( function() {
+	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+	<%
+	if(user != null){
+		%>
+		let userId = '<%= user.getId()%>';
+		let requestForProjectNames = {};
+		requestForProjectNames['ownerId'] = userId;
+		doAjaxForProject(requestForProjectNames,userId);
+		<%
+	}else{
+		%>
+
+		<%
+	}
+	%>
+});
+
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
+	if(options.length<1){
+		isVisible=false;
+	}
+		let projectNameHtml = '';
+		projectNameHtml += '<div class="col-xs-6 col-md-4">';
+		if(loggedOutDefaultDesired){
+			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
+		}
+		if(isVisible){
+			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
+			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}else{
+			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}
+		if(defaultSelectItem){
+			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
+			options = options.remove(defaultSelectItem);
+		}
+		for(let i=0; i<options.length; i++){
+			if(options[i] === selectedOption){
+				projectNameHtml += '<option value="'+ values[i] +'" selected>'+ options[i] +'</option>';
+			}else{
+				projectNameHtml += '<option value="'+ values[i] + '">'+ options[i] +'</option>';
+			}
+		}
+		projectNameHtml += '</div>';
+		$("#proj-id-dropdown-container").empty();
+		$("#proj-id-dropdown-container").append(projectNameHtml);
+}
+
+Array.prototype.remove = function() {
+    var what, a = arguments, L = a.length, ax;
+    while (L && this.length) {
+        what = a[--L];
+        while ((ax = this.indexOf(what)) !== -1) {
+            this.splice(ax, 1);
+        }
+    }
+    return this;
+};
+
+function getDefaultSelectedProject(){
+	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
+	return defaultProject;
+}
+
+function getDefaultSelectedProjectId(){
+	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>';
+	return defaultProjectId;
+}
+
+function getLoggedOutDefaultDesired(){
+	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>';
+	console.log("getLoggedOutDefaultDesired is: " + getLoggedOutDefaultDesired);
+	return loggedOutDefaultDesired;
+}
+
+function doAjaxForProject(requestJSON,userId){
+	$.ajax({
+			url: wildbookGlobals.baseUrl + '../ProjectGet',
+			type: 'POST',
+			data: JSON.stringify(requestJSON),
+			dataType: 'json',
+			contentType: 'application/json',
+			success: function(data) {
+				let projectNameResults = data.projects;
+				let projNameOptions = null;
+				if(projectNameResults){
+					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+					projNameIds = projectNameResults.map(entry =>{return entry.researchProjectId});
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+				}
+			},
+			error: function(x,y,z) {
+					console.warn('%o %o %o', x, y, z);
+			}
+	});
+}
+
+</script>
+
 
 <style type="text/css">
     .full_screen_map {
@@ -681,31 +810,6 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 
     <%
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
-    String project="";
-    Shepherd myShepherd=new Shepherd(context);
-    myShepherd.setAction("submit.jsp1");
-    myShepherd.beginDBTransaction();
-    String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
-    if(qualifier==null) {qualifier="default";}
-    else{qualifier=qualifier.replaceAll(".properties","");}
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-
-        if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-
-    }
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
 
 //add locationID to fields selectable
 
@@ -865,6 +969,9 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
       </div>
     </div>
+
+		<div class="form-group form-inline" id="proj-id-dropdown-container">
+		</div>
 
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
@@ -1259,6 +1366,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
+	debugger;
 	console.log('sendButtonClicked()');
 	console.log('submitter email is: ' + $('#submitterEmail').val());
 	// $('.required-missing').removeClass('required-missing')
