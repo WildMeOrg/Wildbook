@@ -103,9 +103,9 @@ $(document).ready( function() {
 });
 
 function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
-	if(options.length<1){
-		isVisible=false;
-	}
+	// if(options.length<1){
+	// 	isVisible=false;
+	// }
 		let projectNameHtml = '';
 		projectNameHtml += '<div class="col-xs-6 col-md-4">';
 		if(loggedOutDefaultDesired){
@@ -959,15 +959,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   <hr/>
 
   <fieldset>
-
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterProject") %></label>
-      </div>
-      <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
-      </div>
-    </div>
 
 		<div class="form-group form-inline" id="proj-id-dropdown-container">
 		</div>
