@@ -156,7 +156,6 @@ function getDefaultSelectedProjectId(){
 
 function getLoggedOutDefaultDesired(){
 	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>';
-	console.log("getLoggedOutDefaultDesired is: " + getLoggedOutDefaultDesired);
 	return loggedOutDefaultDesired;
 }
 
@@ -1370,6 +1369,7 @@ function sendButtonClicked() {
 	console.log('sendButtonClicked()');
 	console.log('submitter email is: ' + $('#submitterEmail').val());
 	// $('.required-missing').removeClass('required-missing')
+	// if an mediaAsset is ever required
 	// if(!$('#theFiles').val()){
 	// 	console.log("No file submitted!");
 	// 	$('#theFiles').closest('.form-group').addClass('required-missing');
