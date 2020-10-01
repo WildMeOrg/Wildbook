@@ -212,6 +212,30 @@
     		window.setTimeout(function() { alert('Please remove underscores from your project name.'); }, 100);
     		return false;
     	}
+      if($('#projectIdPrefix').val().includes(" ")){
+    		console.log("projectIdPrefix contains ; entered");
+    		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
+    		window.setTimeout(function() { alert('Please remove spaces from your project ID.'); }, 100);
+    		return false;
+    	}
+      if($('#researchProjectName').val().includes(" ")){
+    		console.log("researchProjectName contains ; entered");
+    		$('#researchProjectName').closest('.form-group').addClass('required-missing');
+    		window.setTimeout(function() { alert('Please remove spaces from your project name.'); }, 100);
+    		return false;
+    	}
+      if($('#projectIdPrefix').val().includes("\'")){
+    		console.log("projectIdPrefix contains ; entered");
+    		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
+    		window.setTimeout(function() { alert('Please remove apostrophes from your project ID.'); }, 100);
+    		return false;
+    	}
+      if($('#researchProjectName').val().includes("\'")){
+    		console.log("researchProjectName contains ; entered");
+    		$('#researchProjectName').closest('.form-group').addClass('required-missing');
+    		window.setTimeout(function() { alert('Please remove apostrophes from your project name.'); }, 100);
+    		return false;
+    	}
       submitForm();
     	return true;
     }
