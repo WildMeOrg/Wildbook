@@ -29,10 +29,15 @@
   String langCode=ServletUtilities.getLanguageCode(request);
 
   String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-  //collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+  Properties props = ShepherdProperties.getProperties("editProject.properties", langCode, context);
   User currentUser = AccessControl.getUser(request, myShepherd);
 
   myShepherd.closeDBTransaction();
+
+  //how irksome, apostrophes
+  String projectIdPrefix = props.getProperty("projectIdPrefix");
+  String userList = props.getProperty("userList");
+  String emptyPrefix = props.getProperty("emptyPrefix");
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -95,18 +100,18 @@ function populateHtml(project){
   let projectHTML = '';
 
   projectHTML += '<div class="container projectIdPrefixDiv" id="'+project.projectIdPrefix+'">';
-  projectHTML += '<h1>Edit Project</h1>';
-  projectHTML += '<h3>Project: '+project.researchProjectName+'</h3>';
+  projectHTML += '<h1><%=props.getProperty("editProject")%></h1>';
+  projectHTML += '<h3><%=props.getProperty("project")%>: '+project.researchProjectName+'</h3>';
   projectHTML += '<hr>';
 
   projectHTML += '<div class="row">';
 
   projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">';
-  projectHTML += '  <label>Research Project Name</label><br>';  
+  projectHTML += '  <label><%=props.getProperty("researchProjectName")%></label><br>';  
   projectHTML += '  <input class="form-control" type="text" value="'+project.researchProjectName+'" id="researchProjectName" name="researchProjectName" size="20" />';
   projectHTML += '</div>'
   projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">';
-  projectHTML += '  <label>Project ID Prefix</label><br>';
+  projectHTML += "  <label><%=projectIdPrefix%></label><br>";
   projectHTML += '  <input class="form-control" type="text" value="'+project.projectIdPrefix+'" id="projectIdPrefix" name="projectIdPrefix" size="20" />'; 
   projectHTML += '</div>'
 
@@ -115,11 +120,11 @@ function populateHtml(project){
   projectHTML += '<div class="row">';
 
   projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">';
-  projectHTML += '  <label>Add Users</label>';
+  projectHTML += '  <label><%=props.getProperty("addUsers")%></label>';
   projectHTML += '  <input class="form-control" name="projectUserIds" type="text" id="projectUserIds" placeholder="Type To Search">';
   projectHTML += '</div>';
   projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-xl-6"">';
-  projectHTML += '  <label>User List</label>';
+  projectHTML += "  <label><%=userList%></label>";
   projectHTML += '  <div id="userListDiv">';
   projectHTML += '  </div>';
   projectHTML += '</div>';
@@ -129,13 +134,13 @@ function populateHtml(project){
   projectHTML += '<div class="row">';
 
   projectHTML += '  <div class="col-xs-2 col-sm-2 col-md-1 col-lg-1">';
-  projectHTML += '    <p><input class="btn btn-md" type="button" onclick="deleteProject(this)" value="Delete"/></p>';
+  projectHTML += '    <p><input class="btn btn-md" type="button" onclick="deleteProject(this)" value="<%=props.getProperty("delete")%>"/></p>';
   projectHTML += '  </div>';
   projectHTML += '  <div class="col-xs-2 col-sm-2 col-md-1 col-lg-1">';
-  projectHTML += '    <p><input class="btn btn-md" type="button" onclick="updateProject(this)" value="Update"/></p>';
+  projectHTML += '    <p><input class="btn btn-md" type="button" onclick="updateProject(this)" value="<%=props.getProperty("update")%>"/></p>';
   projectHTML += '  </div>';
   projectHTML += '  <div class="col-xs-2 col-sm-2 col-md-1 col-lg-1">';
-  projectHTML += '    <p><input class="btn btn-md" type="button" onclick="returnToProject(this)" value="Return To Project"/></p>';
+  projectHTML += '    <p><input class="btn btn-md" type="button" onclick="returnToProject(this)" value="<%=props.getProperty("returnToProject")%>"/></p>';
   projectHTML += '  </div>';
   
   projectHTML += '</div>';
@@ -160,13 +165,13 @@ function updateProject() {
   let requestJSON = {};
 
   if ($('#researchProjectName').val().length<1) {
-    $("#actionResultMessage").text("Project cannot have an empty name field.");
+    $("#actionResultMessage").text('<%=props.getProperty("emptyName")%>');
     $("#actionResultMessage").addClass('actionResultError');
     return;
   }
 
   if ($('#projectIdPrefix').val().length<1) {
-    $("#actionResultMessage").text("Project cannot have an empty ID prefix field.");
+    $("#actionResultMessage").text("<%=emptyPrefix%>");
     $("#actionResultMessage").addClass('actionResultError');
     return;
   }
@@ -221,12 +226,12 @@ function doProjectUpdateAjax(json) {
       contentType: 'application/json',
       success: function(data) {
         removeActionResultFeedback();
-        $("#actionResultMessage").text("Success updating project data.");
+        $("#actionResultMessage").text('<%=props.getProperty("updateSuccess")%>');
         $("#actionResultMessage").addClass('actionResultSuccess');
       },
       error: function(x,y,z) {
         removeActionResultFeedback();
-        $("#actionResultMessage").text("Failure updating project data.");
+        $("#actionResultMessage").text('<%=props.getProperty("updateFailure")%>');
         $("#actionResultMessage").addClass('actionResultError');
         console.warn('%o %o %o', x, y, z);
       }
@@ -240,12 +245,12 @@ function removeActionResultFeedback() {
 }
 
 function removeUserFromProject(el) {
-  let confirmed = confirm('Are you sure you want to remove this user from the project?');
+  let confirmed = confirm('<%=props.getProperty("confirmUserRemove")%>');
   if (confirmed) {
     let idToRemove = $(el).closest(".projectEditUserEl").attr('id');
     userIdsToRemove.push(idToRemove);
     $(el).closest(".projectEditUserEl").remove();
-    $("#actionResultMessage").text("Click 'Update' to save any changes to user list.");
+    $("#actionResultMessage").text('<%=props.getProperty("clickUpdate")%>');
   }
 }
 
@@ -276,7 +281,7 @@ function addHTMLListeners() {
             if (item.fullName!=null&&item.fullName!="undefined") fullName = item.fullName;
             let label = ("name: "+fullName+" user: "+item.username);
             if (alreadyParticipant.indexOf(item.id) > -1) {
-              label += ' (already participating)';
+              label += ' (<%=props.getProperty("alreadyParticipating")%>)';
             }  
             return { label: label, value: item.username, id: item.id };
           });
@@ -302,9 +307,9 @@ function addHTMLListeners() {
       if (!alreadyParticipant.includes(selectedUserId)) {
         appendNewUser(selectedUserId, selectedUserStr);
         userIdsToAdd.push(selectedUserId);
-        $("#actionResultMessage").text("Click 'Update' to save any changes to user list.");
+        $("#actionResultMessage").text('<%=props.getProperty("clickUpdateUsers")%>');
       } else {
-        $("#actionResultMessage").text("This user is already participating in the project.");
+        $("#actionResultMessage").text('<%=props.getProperty("alreadyParticipatingError")%>');
       }
       $(this).val("");
       return false;
