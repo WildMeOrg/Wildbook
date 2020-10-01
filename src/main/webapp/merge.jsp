@@ -65,7 +65,7 @@ table.compareZone tr th {
     let requestJsonForProjectNamesDropdown = {};
     requestJsonForProjectNamesDropdown['ownerId'] = '<%= currentUser.getId()%>';
     doAjaxForProject(requestJsonForProjectNamesDropdown);
-    let requestJsonForIndividualAProjects = {};
+    let requestJsonForIndividualsProjects = {};
     requestJsonForIndividualsProjects['individualIdsForProj'] = [];
     <% for (MarkedIndividual ind: inds) {%>
       requestJsonForIndividualsProjects['individualIdsForProj'].push({indId: "<%= ind.getIndividualID()%>"});
@@ -437,9 +437,7 @@ try {
 
 				<%
 				String mergeTaxy = Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep());
-        System.out.println("mergeTaxy is: " + mergeTaxy);
         if(markA.getGenusSpeciesDeep()!= null && markB.getGenusSpeciesDeep()!= null && !markA.getGenusSpeciesDeep().equals("") && !markB.getGenusSpeciesDeep().equals("") && !markA.getGenusSpeciesDeep().equals(markB.getGenusSpeciesDeep())){
-          System.out.println("getting into the part where getGenusSpeciesDeep for A and B are nontrivial and distinct");
           %>
             <select name="taxonomy-dropdown" id="taxonomy-dropdown" class="">
             <option value="<%= markA.getGenusSpeciesDeep()%>" selected><%= markA.getGenusSpeciesDeep()%></option>

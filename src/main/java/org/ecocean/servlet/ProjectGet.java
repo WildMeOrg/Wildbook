@@ -242,17 +242,25 @@ public class ProjectGet extends HttpServlet {
             JSONArray individualIdsArr = j.optJSONArray("individualIdsForProj");
             JSONArray returnProjArr = new JSONArray();
             successStatus = false;
+            System.out.println("got here a");
             if(individualIdJSONArr != null && individualIdJSONArr.length()>0){
+              System.out.println("got here b");
               for (int i=0;i<individualIdJSONArr.length();i++) {
+                System.out.println("got here c");
                 JSONObject individualIdObj = individualIdJSONArr.getJSONObject(i);
                 individualId = individualIdObj.optString("indId", null);
                 if (Util.stringExists(individualId)) {
+                  System.out.println("got here d");
+                  System.out.println("individualId is: " + individualId);
                   MarkedIndividual ind = myShepherd.getMarkedIndividual(individualId);
                   if (ind!=null) {
+                    System.out.println("got here e");
                     List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(ind);
                     JSONArray projectArr = new JSONArray();
                     if (projects!=null) {
+                      System.out.println("got here f");
                       for (Project project : projects) {
+                        System.out.println("got here g");
                         projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
                       }
                     }
@@ -260,6 +268,7 @@ public class ProjectGet extends HttpServlet {
                   }
               }
             }
+            System.out.println("got here h");
             res.put("projectByIndividArr",returnProjArr);
             res.put("success",true);
             complete = true;
