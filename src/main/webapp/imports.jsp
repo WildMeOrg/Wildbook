@@ -302,8 +302,6 @@ function sendToIA(skipIdent) {
     });
 }
  
-    
-}
 
 </script>
 </p>
