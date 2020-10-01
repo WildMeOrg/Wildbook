@@ -63,11 +63,8 @@ table.compareZone tr th {
   let projNamesBelongingToIndividuals = [];
   let projIdPrefixesBelongingToIndividuals = [];
 	$(document).ready(function() {
-		highlightMergeConflicts();
+		// highlightMergeConflicts(); //TODO add this back in -MF
 		replaceDefaultKeyStrings();
-    // let requestJsonForProjectNamesDropdown = {};
-    // requestJsonForProjectNamesDropdown['ownerId'] = '<%= currentUser.getId()%>';
-    // doAjaxForProject(requestJsonForProjectNamesDropdown);
     let requestJsonForIndividualsProjects = {};
     requestJsonForIndividualsProjects['individualIdsForProj'] = [];
     <% for (MarkedIndividual ind: inds) {%>
@@ -83,15 +80,11 @@ table.compareZone tr th {
     <% for (MarkedIndividual ind: inds) {%>
       incrementalIdJsonRequest['individualIds'].push({indId: "<%= ind.getIndividualID()%>"});
     <%}%>
-    // console.log("json for incremental ID call is: ");
-    // console.log(incrementalIdJsonRequest);
     doAjaxForProject(incrementalIdJsonRequest, numProjects);
   }
 
 
   function doAjaxForProject(requestJSON, numProjects){
-    // console.log("json going into ajax request is: ");
-    // console.log(JSON.stringify(requestJSON));
     $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectGet',
         type: 'POST',
@@ -99,15 +92,9 @@ table.compareZone tr th {
         dataType: 'json',
         contentType: 'application/json',
         success: function(data) {
-            // console.log("literal response:");
-            // console.log(data);
-            // console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(data));
             incrementalIdResults = data.incrementalIdArr;
             projectNameResults = data.projects;
             if(incrementalIdResults && incrementalIdResults.length>0){
-              // console.log("1: incrementalIdResults!");
-              // console.log(incrementalIdResults);
-              // console.log(data);
               populateProjectIdRow(incrementalIdResults, incrementalIdResults[0].projectName, incrementalIdResults[0].projectUuid, incrementalIdResults[0].projectId, incrementalIdResults[0].projectOwner);
               countOfIncrementalIdRowPopulated ++;
               if(countOfIncrementalIdRowPopulated == numProjects){
@@ -118,27 +105,11 @@ table.compareZone tr th {
               }
             }else{
               if(projectNameResults){
-                console.log("2: projectNameResults!");
-                console.log(requestJSON);
-                console.log(data);
-                console.log(projectNameResults);
                 let projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
                 let prjIdOptions = projectNameResults.map(entry =>{return entry.projectIdPrefix});
                   if(projNameOptions.length>0){
-                    // console.log("about to enter populateProjectRows...");
-                    // populateProjectRows(projNameOptions, prjIdOptions);
-                    // console.log("end of loading things reached! Now it's decision time!");
-                    console.log("project names that user has access to:");
-                    console.log(projNameOptions);
-                    console.log("project names featuring conflicts between increment ids for the two individuals:");
-                    console.log(conflictingProjs);
                     compareUserProjectsToConflictedOnesOnIndividuals(projNameOptions,conflictingProjs);
-                  }else{
-                    // callForIncrementalIdsAndPopulate("temp"); //TODO revise or do nothing???
-                    // populateProjectRows(['<%= props.getProperty("NoProjects")%>']);
                   }
-              }else{
-                // console.log("Ack should not happen");
               }
             }
         },
@@ -149,11 +120,6 @@ table.compareZone tr th {
   }
 
   function compareUserProjectsToConflictedOnesOnIndividuals(userProjNames, conflictingProjsOnIndividuals){
-    console.log("got into compareUserProjectsToConflictedOnesOnIndividuals");
-    console.log("userProjNames in compareUserProjectsToConflictedOnesOnIndividuals is: ");
-    console.log(userProjNames);
-    console.log("conflictingProjsOnIndividuals in compareUserProjectsToConflictedOnesOnIndividuals is: ");
-    console.log(conflictingProjsOnIndividuals);
     let shouldShow = true;
     let conflictingProjectToWhichUserHasNoAccess = [];
     let conflictingProjectOwnerForUserToContact = [];
@@ -165,19 +131,15 @@ table.compareZone tr th {
         shouldShow = false;
       }
     }
-    console.log("conflictingProjectToWhichUserHasNoAccess is: ");
-    console.log(conflictingProjectToWhichUserHasNoAccess);
-    console.log("conflictingProjectOwnerForUserToContact is: ");
-    console.log(conflictingProjectOwnerForUserToContact);
     if(shouldShow){
-      $('#everything-else').show(); //show
-      $('#progress-div').hide(); //hide
-      $('#not-permitted').hide(); //hide
+      $('#everything-else').show();
+      $('#progress-div').hide();
+      $('#not-permitted').hide();
     }else{
-      $('#everything-else').hide(); //show
-      $('#progress-div').hide(); //hide
-      populateContactList(conflictingProjectToWhichUserHasNoAccess, conflictingProjectOwnerForUserToContact); //TODO
-      $('#not-permitted').show(); //hide
+      $('#everything-else').hide();
+      $('#progress-div').hide();
+      populateContactList(conflictingProjectToWhichUserHasNoAccess, conflictingProjectOwnerForUserToContact);
+      $('#not-permitted').show();
     }
   }
 
@@ -202,9 +164,6 @@ table.compareZone tr th {
   }
 
   function doAjaxForProjectIndividuals(requestJSON){
-    console.log("doAjaxForProjectIndividuals called");
-    // console.log("json going into doAjaxForProjectIndividuals request is: ");
-    // console.log(JSON.stringify(requestJSON));
     $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectGet',
         type: 'POST',
@@ -212,8 +171,6 @@ table.compareZone tr th {
         dataType: 'json',
         contentType: 'application/json',
         success: function(data) {
-            // console.log("literal response from doAjaxForProjectIndividuals:");
-            // console.log(data);
             let projectByIndividArr = data.projectByIndividArr;
             if(projectByIndividArr && projectByIndividArr.length>0){
               for(let i=0; i< projectByIndividArr.length; i++){
@@ -225,7 +182,6 @@ table.compareZone tr th {
                   //uniquify
                   projNamesBelongingToIndividuals = [...new Set(projNamesBelongingToIndividuals)];
                   projIdPrefixesBelongingToIndividuals = projIdPrefixesBelongingToIndividuals.concat(currentIndividaulsProjectIdPrefixes);
-                  //uniquify
                   projIdPrefixesBelongingToIndividuals = [...new Set(projIdPrefixesBelongingToIndividuals)];
                 }
 
@@ -244,10 +200,6 @@ table.compareZone tr th {
   }
 
   function populateProjectIdRow(incrementalIds, projName, projUuid, projId, projOwner){
-    // console.log("projOwner is: " + projOwner);
-    // console.log("data in populateProjectIdRow is: ");
-    // console.log(incrementalIds);
-    // console.log(projName);
     let projectIdHtml = '';
     <% for (int i=0; i<inds.length; i++) {%>
     projectIdHtml += '<td class="col-md-2 diff_check">';
@@ -265,8 +217,6 @@ table.compareZone tr th {
         conflictingProjs.push(projName);
         conflictingProjOwners.push(projOwner);
       }
-      // console.log("conflictingProjs is: ");
-      // console.log(conflictingProjs);
       projectIdHtml += '<select name="' + projId + '" id="proj-confirm-dropdown-' + projName + '" class="form-control">';
       for(let i=0; i<incrementalIds.length; i++){
         if(i==0){
@@ -276,10 +226,7 @@ table.compareZone tr th {
         }
       }
       projectIdHtml += '</td>';
-      // console.log("projectIdHtml is: ");
-      // console.log(projectIdHtml);
       $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
-      // $("#incrementalId-container-" + incrementalIds[0].projectName).append(projectIdHtml);
     } else{
       if(incrementalIds && incrementalIds.length>0 && (incrementalIds[0].projectIncrementalId !== "" || incrementalIds[1].projectIncrementalId !== "")){ //one incremental ID is missing
         //populate with the one incremental ID and don't give them a choice about it, but give it the IDs and names required to still fetch this value upon form submission
@@ -321,29 +268,12 @@ table.compareZone tr th {
     return candidate1;
   }
 
-  // function removeItemAll(arr, value) {
-  //   let i = 0;
-  //   while (i < arr.length) {
-  //     if (arr[i] === value) {
-  //       arr.splice(i, 1);
-  //     } else {
-  //       ++i;
-  //     }
-  //   }
-  //   return arr;
-  // }
-
   function getDeprecatedIncrementalIdFromOptions (stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds, arrayOfOptionElements){
-    // console.log("getDeprecatedIncrementalIdFromOptions entered");
-    // console.log("stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds is: " + stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds);
-    // console.log("arrayOfOptionElements is: ");
-    // console.log(arrayOfOptionElements);
     let returnVal = "_";
     for(let i=0; i<arrayOfOptionElements.length; i++){
       let currentOptionElem = arrayOfOptionElements[i];
       let counter = 0;
       let currentOptionVal = $(currentOptionElem).text();
-      // console.log("currentOptionVal is: " + currentOptionVal);
       desiredIncrementalIdArr = stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds.split(";");
       if(!desiredIncrementalIdArr.includes(currentOptionVal)){
         returnVal = currentOptionVal;
@@ -353,11 +283,6 @@ table.compareZone tr th {
   }
 
   function concatenateToConsolidationString(index, totalElementLength, candidateArrAsString, currentArrEntry){
-    // console.log("concatenateToConsolidationString entered");
-    // console.log("index is " + index);
-    // console.log("totalElementLength is " + totalElementLength);
-    // console.log("candidateArrAsString so far is: " + candidateArrAsString);
-    // console.log("currentArrEntry is: " + currentArrEntry);
     let returnVal = "";
     if(index == totalElementLength-1){
       //the last entry
@@ -365,16 +290,10 @@ table.compareZone tr th {
     }else{
       returnVal = candidateArrAsString + currentArrEntry + ';';
     }
-    // console.log("returning... "+ returnVal);
     return returnVal;
   }
 
   function populateProjectRows(projectNames, projectIds){
-    console.log("populateProjectRows called");
-    console.log("projectNames is: ");
-    console.log(projectNames);
-    console.log("projectIds is: ");
-    console.log(projectIds);
     let projectIdHtml = '';
     if(projectNames.length>0){
       for(let i =0; i<projectNames.length; i++){
@@ -384,11 +303,8 @@ table.compareZone tr th {
         projectIdHtml += '</th>';
         projectIdHtml += '</tr>';
       }
-      // console.log("projectIdHtml in populateProjectRows is: ");
-      // console.log(projectIdHtml);
       $("tr.row.names").last().after(projectIdHtml);
       for(let j =0; j<projectNames.length; j++){ //projectNames and projectIds must be linked; otherwise, this will break
-        // console.log("calling callForIncrementalIdsAndPopulate in loop. Current project id is: " + projectIds[j]);
         callForIncrementalIdsAndPopulate(projectIds[j],projectNames.length);
       }
     }
@@ -553,18 +469,6 @@ table.compareZone tr th {
     				%>
     			</td>
     		</tr>
-    		<!--
-    		<tr class="row comments check_for_diff">
-    			<th>Notes</th>
-    			<% for (MarkedIndividual ind: inds) {%>
-    			<td class="col-md-2">
-    				<%=ind.getComments()%>
-    			</td>
-    			<%}%>
-    			<td class="col-md-2 merge-field">
-    				<%=markA.getMergedComments(markB, request, myShepherd)%>
-    			</td>
-    		-->
     		</tr>
     	</table>
       <input type="submit" name="Submit" value="Merge Individuals" id="mergeBtn" class="btn btn-md editFormBtn"/>
@@ -572,10 +476,7 @@ table.compareZone tr th {
     	<script type="text/javascript">
       $(document).ready(function() {
         $("#mergeBtn").click(function(event) {
-
-        	console.log("mergeBtn was clicked");
           event.preventDefault();
-        	console.log("mergeBtn continues");
         	let id1="<%=indIdA%>";
         	let id2="<%=indIdB%>";
         	let fullNameA = '<%=fullNameA%>';
@@ -586,10 +487,8 @@ table.compareZone tr th {
             sex = '<%= Util.betterValue(markA.getSex(), markB.getSex()) %>';
           }
           let taxonomy = $("#taxonomy-dropdown").val();
-          // console.log("taxonomy is: " + taxonomy);
           if(!taxonomy){
             //It's because they match
-            // console.log("got here!");
             taxonomy = '<%= Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep()) %>';
           }
           let projIdElems = $('[id^=proj-confirm-dropdown-]');
@@ -601,14 +500,8 @@ table.compareZone tr th {
           debugger;
           for(let i=0; i<projIdElems.length; i++){
             let currentElem = projIdElems[i];
-            // console.log("currentElem is: ");
-            // console.log(currentElem);
             let currentProjUuid = $(currentElem).attr('name');
-            // console.log(" current projName is sorta like: " + $(currentElem).attr('id'));
-            // console.log("current element bearing selected is: ");
-            // console.log($(currentElem).find(":selected"));
             let currentDesiredIncrementalId = $(currentElem).find(":selected").text();
-            // console.log("currentDesiredIncrementalId is: " + currentDesiredIncrementalId);
             if(currentDesiredIncrementalId){
               currentOptionElems = $(currentElem).children('option[name="incremental-id-option"]'); //optionElems.concat($(currentElem).children('option[name="incremental-id-option"]'));
             }else{
@@ -627,14 +520,7 @@ table.compareZone tr th {
             deprecatedIncrementIdConsolidated = concatenateToConsolidationString(i, projIdElems.length, deprecatedIncrementIdConsolidated, currentDeprecatedIncrementalID);
             currentOptionElems = [];
           }
-          // console.log("deprecatedIncrementIdConsolidated is " + deprecatedIncrementIdConsolidated);
-          // console.log("desiredIncrementalIdConsolidated is "+ desiredIncrementalIdConsolidated);
-          // console.log("projIdConsolidated is: " + projIdConsolidated);
-        	// console.log("Clicked with id1="+id1+", id2="+id2+", sex="+sex+", tax="+taxonomy);
         	$("#mergeForm").attr("action", "MergeIndividual"); // Is this necessary given <form's already-existing attributes? -MF
-          // console.log("id1 before post call is: " + id1);
-          // console.log("id2 before post call is: " + id2);
-          // debugger;
           $.post("/MergeIndividual", {
           	"id1": id1,
           	"id2": id2,
@@ -664,12 +550,8 @@ table.compareZone tr th {
     	myShepherd.closeDBTransaction();
     }
     %>
-
   </div>
 </div>
-
-
-
 <jsp:include page="footer.jsp" flush="true"/>
 
 <!--<script src="javascript/underscore-min.js"></script>
