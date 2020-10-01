@@ -2822,9 +2822,9 @@ else {
                               <p><strong><%=encprops.getProperty("projects") %></strong></p>
                           <%
                           for(int i=0; i< projects.size(); i++){
-                            if(indie != null && indie.getName(projects.get(i).getResearchProjectId()) != null){
+                            if(indie != null && indie.getName(projects.get(i).getProjectIdPrefix()) != null){
                               %>
-                              <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= indie.getName(projects.get(i).getResearchProjectId())%></p>
+                              <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= indie.getName(projects.get(i).getProjectIdPrefix())%></p>
                               <%
                             }else{
                               %>

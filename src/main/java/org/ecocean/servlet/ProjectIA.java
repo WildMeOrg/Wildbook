@@ -54,18 +54,18 @@ public class ProjectIA extends HttpServlet {
 
         JSONObject res = new JSONObject();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-        String researchProjectId = null;
+        String projectIdPrefix = null;
         String queryEncounterId = null;
         
         try {
             res.put("success","false");
 
-            researchProjectId = j.optString("researchProjectId", null);
+            projectIdPrefix = j.optString("projectIdPrefix", null);
             queryEncounterId = j.optString("queryEncounterId", null);
 
-            if (Util.stringExists(queryEncounterId)&&Util.stringExists(researchProjectId)) {
+            if (Util.stringExists(queryEncounterId)&&Util.stringExists(projectIdPrefix)) {
 
-                Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+                Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
                 Encounter queryEnc = myShepherd.getEncounter(queryEncounterId);
                 if (project!=null&&queryEnc!=null) {
 

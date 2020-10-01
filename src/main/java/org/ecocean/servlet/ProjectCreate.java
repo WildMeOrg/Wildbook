@@ -55,7 +55,7 @@ public class ProjectCreate extends HttpServlet {
         JSONArray encsJSON = null;
         JSONArray projectUserIds = null;
         JSONArray orgsForUsers = null;
-        String researchProjectId = null;
+        String projectIdPrefix = null;
         String researchProjectName = null;
         
         //TODO handle add users by organization
@@ -65,10 +65,14 @@ public class ProjectCreate extends HttpServlet {
             encsJSON = j.optJSONArray("encounterIds");
             projectUserIds = j.optJSONArray("projectUserIds");
             orgsForUsers = j.optJSONArray("organizationAccess");
-            researchProjectId = j.optString("researchProjectId", null);
+            projectIdPrefix = j.optString("projectIdPrefix", null);
             researchProjectName = j.optString("researchProjectName", null);
 
-            if (researchProjectId!=null&&!"".equals(researchProjectId)&&myShepherd.getProjectByResearchProjectId(researchProjectId)==null) {
+            if (!Util.stringExists(projectIdPrefix)) {
+                projectIdPrefix = researchProjectName;
+            }
+
+            if (projectIdPrefix!=null&&!"".equals(projectIdPrefix)&&myShepherd.getProjectByProjectIdPrefix(projectIdPrefix)==null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 List<Encounter> encs = new ArrayList<>();
                 if (encsJSON!=null&&encsJSON.length()>0) {
@@ -82,7 +86,7 @@ public class ProjectCreate extends HttpServlet {
                     }
                 }
 
-                Project newProject = new Project(researchProjectId);
+                Project newProject = new Project(projectIdPrefix);
                 myShepherd.storeNewProject(newProject);
                 res.put("newProjectUUID", newProject.getId());
                 if (researchProjectName!=null) {

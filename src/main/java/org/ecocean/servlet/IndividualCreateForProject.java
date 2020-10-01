@@ -65,7 +65,7 @@ public class IndividualCreateForProject extends HttpServlet {
                 if (enc!=null) {
                     Project project = myShepherd.getProject(projectId);
                     if (project==null) {
-                        project = myShepherd.getProjectByResearchProjectId(projectId);
+                        project = myShepherd.getProjectByProjectIdPrefix(projectId);
                     }
                     if (project!=null) {
 
@@ -80,7 +80,7 @@ public class IndividualCreateForProject extends HttpServlet {
                         res.put("newIndividualName", individual.getName(projectId));
                         res.put("success",true);
                     } else {
-                        addErrorMessage(res, "there was not a valid project for the Id or researchProjectId provided");
+                        addErrorMessage(res, "there was not a valid project for the Id or projectIdPrefix provided");
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     }
                 } else {

@@ -81,12 +81,12 @@ public class ProjectUpdate extends HttpServlet {
                             System.out.println("is authorized to update project is " + canUpdate);
                             if (canUpdate) {
 
-                                String researchProjectId = projectJSON.optString("researchProjectId", null);
-                                System.out.println("researchProjectId is " + researchProjectId);
-                                System.out.println("project.getResearchProjectId is " + project.getResearchProjectId());
-                                if (!StringUtils.isNullOrEmpty(researchProjectId) &&!project.getResearchProjectId().equals(researchProjectId)) {
-                                    System.out.println("this should not happen for mark researchProjectId");
-                                    project.setResearchProjectId(researchProjectId);
+                                String projectIdPrefix = projectJSON.optString("projectIdPrefix", null);
+                                System.out.println("projectIdPrefix is " + projectIdPrefix);
+                                System.out.println("project.getProjectIdPrefix is " + project.getProjectIdPrefix());
+                                if (!StringUtils.isNullOrEmpty(projectIdPrefix) &&!project.getProjectIdPrefix().equals(projectIdPrefix)) {
+                                    System.out.println("this should not happen for mark projectIdPrefix");
+                                    project.setProjectIdPrefix(projectIdPrefix);
                                     myShepherd.updateDBTransaction();
                                     res.put("modified",true);
                                     res.put("success",true);

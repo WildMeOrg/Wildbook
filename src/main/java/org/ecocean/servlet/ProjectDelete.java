@@ -44,15 +44,15 @@ public class ProjectDelete extends HttpServlet {
 
         JSONObject res = new JSONObject();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-        String researchProjectId = null;
+        String projectIdPrefix = null;
         try {
             res.put("success","false");
-            researchProjectId = j.optString("researchProjectId", null);
+            projectIdPrefix = j.optString("projectIdPrefix", null);
 
             System.out.println("ProjectDelete received JSON : "+j.toString());
-            if (researchProjectId!=null&&!"".equals(researchProjectId)&&myShepherd.getProjectByResearchProjectId(researchProjectId)!=null) {
+            if (projectIdPrefix!=null&&!"".equals(projectIdPrefix)&&myShepherd.getProjectByProjectIdPrefix(projectIdPrefix)!=null) {
 
-                Project project = myShepherd.getProjectByResearchProjectId(researchProjectId);
+                Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
                 project.clearAllEncounters();
                 myShepherd.throwAwayProject(project);
                 myShepherd.updateDBTransaction();
