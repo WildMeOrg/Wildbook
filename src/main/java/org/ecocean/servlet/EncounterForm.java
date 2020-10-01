@@ -678,9 +678,6 @@ System.out.println("enc ?= " + enc.toString());
             subE = subE.toLowerCase();
             String subO=getVal(formValues, "submitterOrganization");
             if (Util.stringExists(subO)) enc.setSubmitterOrganization(subO);
-            String subP=getVal(formValues, "submitterProject");
-            if (Util.stringExists(subP)) enc.setSubmitterOrganization(subP);
-            //User user=null;
             List<User> submitters=new ArrayList<User>();
             if((subE!=null)&&(!subE.trim().equals(""))) {
 
@@ -696,7 +693,6 @@ System.out.println("enc ?= " + enc.toString());
                 else {
                   User user=new User(tok,Util.generateUUID()); //TODO delete TODO comment if this is still here
                   user.setAffiliation(subO);
-                  user.setUserProject(subP);
                   if((numTokens==1)&&(subN!=null)){user.setFullName(subN);}
                   myShepherd.getPM().makePersistent(user);
                   myShepherd.commitDBTransaction();
