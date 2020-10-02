@@ -24,6 +24,7 @@
   String langCode=ServletUtilities.getLanguageCode(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("createProject.jsp1");
+  myShepherd.beginDBTransaction();
   boolean proceed = true;
   boolean haveRendered = false;
   Properties collabProps = new Properties();
@@ -112,6 +113,8 @@
             e.printStackTrace();
           }
           finally{
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
           }
           %>
     </div>
