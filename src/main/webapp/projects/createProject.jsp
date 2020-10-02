@@ -53,13 +53,13 @@
 <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
     <div class="container maincontent">
-      <title>Create A Project</title>
+      <title><%=props.getProperty("createAProject") %></title>
           <%
           try{
             if(currentUser != null){
               System.out.println(props.getProperty("researchProjectName"));
               %>
-              <h1>New Project</h1>
+              <h1><%=props.getProperty("newProject") %></h1>
               <form id="create-project-form"
               method="post"
               enctype="multipart/form-data"
@@ -103,7 +103,7 @@
                       <span><%=props.getProperty("submit_send") %>  </span><span class="button-icon" aria-hidden="true"></span>
                     </button>
               </form>
-              <h4>To add encounters to this project, use the "<%= props.getProperty("projectManagement")%>" tab in encounter search results.</h4>
+              <h4><%= props.getProperty("toAddEncounters")%><%= props.getProperty("projectManagement")%><%= props.getProperty("inSearchResults")%></h4>
               <%
             }else{
 
@@ -121,6 +121,10 @@
 <jsp:include page="../footer.jsp" flush="true"/>
 
     <script>
+
+    //json ob with translations
+    var txt = getText('createProject.properties');
+
     let myName = '<%=request.getUserPrincipal().getName()%>';
     let userNamesOnAccessList = [];
     $('#projectUserIds').autocomplete({
@@ -159,7 +163,7 @@
       $('#projectUserIdsList').empty();
       $('#access-list-title-container').empty();
       if(userNamesOnAccessList.length >0){
-        $('#access-list-title-container').append("<strong>Users To Be Granted Access</strong>");
+        $('#access-list-title-container').append("<strong>"+txt.usersForAccess+"/strong>");
       }
       for(i=0; i<userNamesOnAccessList.length; i++){
         let elem = "<div class=\"chip\">" + userNamesOnAccessList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";
@@ -182,61 +186,61 @@
     	if(!$('#projectIdPrefix').val()){
     		console.log("no projectIdPrefix entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('You must provide a Project ID Prefix.'); }, 100);
+    		window.setTimeout(function() { alert(txt.needPrefix); }, 100);
     		return false;
       }
       if(!$('#researchProjectName').val()){
     		console.log("no researchProjectName entered");
     		$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('You must provide a Project Name.'); }, 100);
+    		window.setTimeout(function() { alert(txt.needProjName); }, 100);
     		return false;
       }
       if($('#projectIdPrefix').val().includes(";")){
     		console.log("projectIdPrefix contains ; entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('Please remove semicolons from your project ID.'); }, 100);
+    		window.setTimeout(function() { alert(txt.noSemicolonsId); }, 100);
     		return false;
     	}
       if($('#researchProjectName').val().includes(";")){
     		console.log("researchProjectName contains ; entered");
     		$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('Please remove semicolons from your project name.'); }, 100);
+    		window.setTimeout(function() { alert(txt.noSemicolonsName); }, 100);
     		return false;
     	}
       if($('#projectIdPrefix').val().includes("_")){
     		console.log("projectIdPrefix contains ; entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('Please remove underscores from your project ID.'); }, 100);
+    		window.setTimeout(function() { alert(txt.noSemicolonsId); }, 100);
     		return false;
     	}
       if($('#researchProjectName').val().includes("_")){
     		console.log("researchProjectName contains ; entered");
     		$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('Please remove underscores from your project name.'); }, 100);
+    		window.setTimeout(function() { alert(txt.noUnderscoresName); }, 100);
     		return false;
     	}
       if($('#projectIdPrefix').val().includes(" ")){
     		console.log("projectIdPrefix contains ; entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('Please remove spaces from your project ID.'); }, 100);
+    		window.setTimeout(function() { alert(txt.noSpacesId); }, 100);
     		return false;
     	}
       if($('#researchProjectName').val().includes(" ")){
     		console.log("researchProjectName contains ; entered");
     		$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('Please remove spaces from your project name.'); }, 100);
+    		window.setTimeout(function() { alert(txt.noSpacesName); }, 100);
     		return false;
     	}
       if($('#projectIdPrefix').val().includes("\'")){
     		console.log("projectIdPrefix contains ; entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('Please remove apostrophes from your project ID.'); }, 100);
+    		window.setTimeout(function() { alert(txt.noApostrophesId); }, 100);
     		return false;
     	}
       if($('#researchProjectName').val().includes("\'")){
     		console.log("researchProjectName contains ; entered");
     		$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert('Please remove apostrophes from your project name.'); }, 100);
+    		window.setTimeout(function() { alert(txt.noApostrophesName); }, 100);
     		return false;
     	}
       submitForm();
