@@ -18,7 +18,9 @@
   String context="context0";
   context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.beginDBTransaction();
   myShepherd.setAction("editProject.jsp");
+
   String projId = request.getParameter("id").replaceAll("\\+", "").trim();
 
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -31,8 +33,7 @@
   String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
   Properties props = ShepherdProperties.getProperties("editProject.properties", langCode, context);
   User currentUser = AccessControl.getUser(request, myShepherd);
-
-  myShepherd.closeDBTransaction();
+  myShepherd.rollbackAndClose();
 
   //how irksome, apostrophes
   String projectIdPrefix = props.getProperty("projectIdPrefix");
