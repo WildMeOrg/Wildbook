@@ -21,6 +21,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("projectList.jsp");
+myShepherd.beginDBTransaction();
 int numFixes=0;
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 User currentUser = AccessControl.getUser(request, myShepherd);
