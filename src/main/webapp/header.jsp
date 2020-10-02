@@ -521,7 +521,12 @@ finally{
                                 
                                 %>
                                 <li><a target="_blank" href="https://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
+                                <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
+
+                              
                                 <%
+                                
+                                
                                 
 
                             } //end if admin
@@ -537,9 +542,7 @@ finally{
                               %>
                                 <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
 
-
-
-                              
+					
 
                             
                             <%
