@@ -20,6 +20,5 @@ function getText(propsName) {
             console.warn('%o %o %o', x, y, z);
         }
     });
-    console.log("end of method translations???? "+JSON.stringify(translations));
     return translations;
 }
