@@ -103,6 +103,12 @@ $(document).ready( function() {
 });
 
 function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
+	console.log("populateProjectNameDropdown entered");
+	console.log("options are: ");
+	console.log(options);
+	console.log("values are: ");
+	console.log(values);
+	debugger;
 	// if(options.length<1){
 	// 	isVisible=false;
 	// }
@@ -171,7 +177,7 @@ function doAjaxForProject(requestJSON,userId){
 				let projNameOptions = null;
 				if(projectNameResults){
 					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
-					projNameIds = projectNameResults.map(entry =>{return entry.researchProjectId});
+					projNameIds = projectNameResults.map(entry =>{return entry.projectIdPrefix});
 					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
 				}
 			},
@@ -1356,7 +1362,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
-	debugger;
+	// debugger;
 	console.log('sendButtonClicked()');
 	console.log('submitter email is: ' + $('#submitterEmail').val());
 	// $('.required-missing').removeClass('required-missing')
