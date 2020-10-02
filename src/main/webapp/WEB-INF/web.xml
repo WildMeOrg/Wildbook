@@ -488,6 +488,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>TranslationsGet</servlet-name>
+    <servlet-class>org.ecocean.servlet.TranslationsGet</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>EncounterRemoveUser</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterRemoveUser</servlet-class>
   </servlet>
@@ -1688,6 +1693,11 @@
   <servlet-mapping>
     <servlet-name>ProjectIA</servlet-name>
     <url-pattern>/ProjectIA</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>TranslationsGet</servlet-name>
+    <url-pattern>/TranslationsGet</url-pattern>
   </servlet-mapping>
 
   <!--SUTime testing-->
