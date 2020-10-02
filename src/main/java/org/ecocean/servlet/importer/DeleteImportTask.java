@@ -58,12 +58,12 @@ public class DeleteImportTask extends HttpServlet {
 
            if (enc.getAnnotations()!=null) {
              for (Annotation ann: enc.getAnnotations()) {
+               enc.removeAnnotation(ann);
                myShepherd.throwAwayAnnotation(ann);
              }
            }
 
-           // get weird foreign key errors related to ENCOUNTER_ANNOTATIONS without this
-           enc.setAnnotations(new ArrayList<Annotation>());
+
 
            //handle occurrences
            if (occ!=null) {
