@@ -455,6 +455,11 @@
   </filter-mapping>
   
   <servlet>
+  </servlet>
+    <servlet-class>org.ecocean.servlet.TranslationsGet</servlet-class>
+    <servlet-name>TranslationsGet</servlet-name>
+  <servlet>
+
     <servlet-name>EncounterRemoveUser</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterRemoveUser</servlet-class>
   </servlet>
@@ -1612,6 +1617,11 @@
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
   </servlet>
   
+  </servlet-mapping>
+    <url-pattern>/TranslationsGet</url-pattern>
+    <servlet-name>TranslationsGet</servlet-name>
+  <servlet-mapping>
+
   <!--SUTime testing-->
         <servlet>
         <servlet-name>SUTimeServlet</servlet-name>
