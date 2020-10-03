@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.Properties" %>
 
 
 
@@ -8,37 +8,33 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 
+String langCode=ServletUtilities.getLanguageCode(request);
+Properties props = new Properties();
+props = ShepherdProperties.getProperties("dataIntegrity.properties", langCode, context);
 
-//handle some cache-related security
-  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-  response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
-  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
-  response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 %>
 
-    <jsp:include page="../header.jsp" flush="true" />
+<jsp:include page="../header.jsp" flush="true" />
 
-  
-<div class="container maincontent">
-     
+	<div class="container maincontent">
+	     
+	
+	      <h1><%=props.getProperty("dataIntegrity") %></h1>
+	     
+		<h3><%=props.getProperty("check4annots") %></h3>
+		<p><%=props.getProperty("description0") %></p>
+		<p><a target="_blank" href="sharedAnnotations.jsp"><%=props.getProperty("clickHere") %></a></p>      
 
-      <h1>Data Integrity Checks</h1>
-     
-<h3>Check for Annotations with Multiple Individual IDs</h3>
-<p>Annotations assigned to two or more different individuals represent data errors that can cause matching to fail or result in falsely merged individuals.</p>
-<p><a target="_blank" href="sharedAnnotations.jsp">Click here to check</a></p>      
-
-<h3>Check Annotation iaClasses and MediaAsset States by Species</h3>
+	
+	<h3>Check Annotation iaClasses and MediaAsset States by Species</h3>
 <p>Old iaClasses on annotations and media assets stuck in a "pending" state can cause poor matching performance as they are ignored.</p>
 <p><a target="_blank" href="iaBreakdownBySpecies.jsp">Click here to check</a></p>      
 
+	
+	</div>
 
+<jsp:include page="../footer.jsp" flush="true"/>
 
-
-</div>
-
-
-      <jsp:include page="../footer.jsp" flush="true"/>
 
 
 
