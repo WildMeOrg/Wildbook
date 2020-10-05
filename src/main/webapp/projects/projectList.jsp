@@ -64,7 +64,7 @@ User currentUser = AccessControl.getUser(request, myShepherd);
 
                 if(userProjects==null || userProjects.size()<1){
                   %>
-                  <h4>You don't have any projects yet</h4>
+                  <h4><%=props.getProperty("NoProjects") %></h4>
                   <%
                 }else{
                   %>

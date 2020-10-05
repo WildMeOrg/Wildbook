@@ -263,10 +263,17 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 				                    if(userProjects.size()>0){
 													%>
 													<tr>
-														<td class="clickable-row"><a target="_new" href="./projects/project.jsp?id='+<%=userProjects.get(j).getId()%>+'"><%=userProjects.get(j).getResearchProjectName()%></a></td>
+														<td class="clickable-row"><a target="_new" href="./projects/project.jsp?id=<%=userProjects.get(j).getId()%>"><%=userProjects.get(j).getResearchProjectName()%></a></td>
 													</tr>
 													<%
 														} //endif userProjects.size()>0
+														else{
+															%>
+															<tr>
+																<td class="clickable-row"><%=props.getProperty("NoProjects") %></td>
+															</tr>
+															<%
+														}
 													} //end userProjects for loop
 													%>
 
