@@ -98,10 +98,13 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	    	}
 	    	if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
 
+
+				List<Project> allProjects = new ArrayList<Project>();
+				List<Project> userProjects = new ArrayList<Project>();
+				List<Project> projectsUserBelongsTo = new ArrayList<Project>();
 				if(thisUser != null){
-					List<Project> allProjects = new ArrayList<Project>();
-					List<Project> userProjects = myShepherd.getOwnedProjectsForUserId(currentUser.getId(), "researchProjectName");
-					List<Project> projectsUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(currentUser.getUsername());
+					userProjects = myShepherd.getOwnedProjectsForUserId(thisUser.getId(), "researchProjectName");
+					projectsUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(thisUser.getUsername());
 					if(userProjects != null && userProjects.size()>0){
 						for(int i=0; i<userProjects.size(); i++){
 							if(!allProjects.contains(userProjects.get(i))){ //avoid duplicates
@@ -255,17 +258,17 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 													<td style="border-style: none;"><%=props.getProperty("Projects") %>
 													</td>
 												</tr>
-												<tr>
 													<%
 													for(int j=0; j<userProjects.size(); j++){
 				                    if(userProjects.size()>0){
 													%>
-													<td class="clickable-row"><a target="_new" href="./projects/project.jsp?id='+<%=userProjects.get(j).getId()%>+'"><%=userProjects.get(j).getResearchProjectName()%></a></td>
+													<tr>
+														<td class="clickable-row"><a target="_new" href="./projects/project.jsp?id='+<%=userProjects.get(j).getId()%>+'"><%=userProjects.get(j).getResearchProjectName()%></a></td>
+													</tr>
 													<%
 														} //endif userProjects.size()>0
 													} //end userProjects for loop
 													%>
-												</tr>
 
 		            </table></td>
 	            </form>
