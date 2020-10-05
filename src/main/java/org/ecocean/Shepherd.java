@@ -3231,13 +3231,12 @@ public class Shepherd {
   public List<MarkedIndividual> getMarkedIndividualsFromProject(Project project){
     List<MarkedIndividual> individuals = new ArrayList<MarkedIndividual>();
     try {
-      Query query = getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && project.encounters.contains(enc) VARIABLES org.ecocean.Encounter enc");
-      query.declareParameters("Project project");
+      Query query = getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && project.encounters.contains(enc) VARIABLES org.ecocean.Encounter enc; org.ecocean.Project project ");
+      //query.declareParameters("Project project");
       Collection c = (Collection) query.execute(project);
       individuals = new ArrayList<MarkedIndividual>(c);
       query.closeAll();
-    }
-    catch (javax.jdo.JDOException x) {
+    } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return individuals;
     }
