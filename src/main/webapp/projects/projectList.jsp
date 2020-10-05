@@ -22,6 +22,9 @@ context=ServletUtilities.getContext(request);
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("projectList.jsp");
 myShepherd.beginDBTransaction();
+Properties props = new Properties();
+props = ShepherdProperties.getProperties("projectList.properties", langCode, context);
+
 int numFixes=0;
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 User currentUser = AccessControl.getUser(request, myShepherd);
@@ -67,9 +70,9 @@ User currentUser = AccessControl.getUser(request, myShepherd);
                   <table class="row clickable-row hoverRow project-style">
                   	<thead>
                         <tr>
-                          <th class="project-style">Project Name</th>
-                          <th class="project-style">Percent Annotations Identified</th>
-                          <th class="project-style">Number of Encounters</th>
+                          <th class="project-style"><%=props.getProperty("ProjectName") %></th>
+                          <th class="project-style"><%=props.getProperty("PercentAnnotations") %></th>
+                          <th class="project-style"><%=props.getProperty("NumEncounters") %></th>
                         </tr>
                     </thead>
                     <tbody>
