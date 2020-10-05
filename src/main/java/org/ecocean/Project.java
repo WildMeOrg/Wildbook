@@ -90,7 +90,8 @@ public class Project implements java.io.Serializable {
           }
       }
       if (numEncounters==0.0||hasIncrementalId==0.0) return 0.0;
-      return Math.floor(100 * (hasIncrementalId / numEncounters));
+      double percentWithIncrementalIds = 100 * (hasIncrementalId / numEncounters);
+      return Math.round(percentWithIncrementalIds * 10.0)/10.0;
   }
 
     public  Double getPercentIdentified(){
