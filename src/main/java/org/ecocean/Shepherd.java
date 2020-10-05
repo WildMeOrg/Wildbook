@@ -1570,7 +1570,7 @@ public class Shepherd {
     String queryString = "SELECT FROM org.ecocean.Project WHERE users.contains(user) && user.username=='" + userId+"' ";
     try {
       if(!Util.stringExists(orderBy)){
-        queryString += "VARIABLES org.ecocean.User user";
+        queryString += " VARIABLES org.ecocean.User user";
       }else{
         queryString +=  "ORDER BY " + orderBy+" VARIABLES org.ecocean.User user";
       }

@@ -40,6 +40,17 @@ User currentUser = AccessControl.getUser(request, myShepherd);
           try{
               if(currentUser != null){
                 List<Project> userProjects = myShepherd.getOwnedProjectsForUserId(currentUser.getId(), "researchProjectName");
+                List<Project> projectUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(currentUser.getUsername());
+                if(projectUserBelongsTo != null && projectUserBelongsTo.size()>0){
+                  for(int i=0; i<projectUserBelongsTo.size(); i++){
+                    if(!userProjects.contains(projectUserBelongsTo.get(i))){ //avoid duplicates
+                      userProjects.add(projectUserBelongsTo.get(i));
+                    }
+                  }
+
+                }else{
+                  // System.out.println("projectUserBelongsTo was null!");
+                }
 
                 if(userProjects==null || userProjects.size()<1){
                   %>
