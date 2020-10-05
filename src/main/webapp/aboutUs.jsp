@@ -38,11 +38,34 @@ Learn more about Wild Me, and donate to their work here: https://www.wildme.org/
 
 <br/>
 
+
 <p>
 <strong>Tech 4 Conservation (T4C)</strong> - a Canadian non-profit organization, acting as bridge between the research team and the technologists, funded and oversaw the creation of the African Carnivore Wildbook platform, with the intention of delivering it to accredited researchers in support of the conservation of these iconic species across Africa.
-To learn more about T4C, contact us at:
+To learn more about T4C, contact us at: <a href = "mailto: info@tech4conservation.org">info@tech4conservation.org</a>
+</p>
+<p>
+    <img src="images/T4C_full_white_cropped_web.jpg" alt="Tech 4 Conservation Logo" class="img-responsive center-block">
+</p>
+<br/>
+
+
+
+<p>
+<strong>POPECOL & WildMove</strong> - The Population Ecology Research Group at the University of Zurich has also been a key research
+partner from day one. This team provided masses of images enabling excellent matching for our
+first species, African wild dogs. Gabriele Cozzi in particular has been an unwavering supporter of
+ACW (before it even existed!) and has contributed significantly to its success.
+You can find out more about their work here: <a href="http://www.popecol.org/research/african-wild-dog-dispersal-and-demography/">http://www.popecol.org/research/african-wild-dog-dispersal-and-demography/</a>
 </p>
 
+<div class="row">
+    <div class="col-sm-6 col-md-6 col-lg-6">
+        <img src="images/Popecol.jpg" style="padding-top:165px;" alt="Popecol Logo" class="img-responsive center-block">
+    </div>
+    <div class="col-sm-6 col-md-6 col-lg-6">
+        <img src="images/Wildmove_Logo.jpg" alt="Wildmove Logo" class="img-responsive center-block">
+    </div>
+</div>    
 <br/>
 
 <p>
