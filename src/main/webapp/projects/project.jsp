@@ -130,6 +130,8 @@
 <jsp:include page="../footer.jsp" flush="true"/>
 
 <script type="text/javascript">
+let projIdPrefix = '';
+let countOfIncrementalIdRowPopulated = 0;
 
 function markNewIncremental(individualId, projectId, encounterId){
   disableNewButton(encounterId);
@@ -151,8 +153,8 @@ function createMarkedIndividualAjax(projectId, encounterId){
   let formJson = {};
   formJson["projectId"] = projectId;
   formJson["encounterId"] = encounterId;
-  console.log("form JSON");
-  console.log(JSON.stringify(formJson));
+  // console.log("form JSON");
+  // console.log(JSON.stringify(formJson));
   $.ajax({
     url: wildbookGlobals.baseUrl + '../IndividualCreateForProject',
     type: 'POST',
@@ -161,7 +163,7 @@ function createMarkedIndividualAjax(projectId, encounterId){
     contentType : 'application/json',
     success: function(data){
       if(data){
-        console.log(data);
+        // console.log(data);
         if(data.success){
           let newIndividualId = data.newIndividualId;
           addIncrementalProjectIdAjax(newIndividualId, projectId, encounterId);
@@ -188,7 +190,6 @@ function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
     contentType : 'application/json',
     success: function(data){
       if(data){
-        console.log(data);
         if(data.success){
           $('#adding-div_' + encounterId).hide();
           $('#alert-div_'+encounterId).show();
@@ -208,13 +209,13 @@ function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
 }
 
 function disableNewButton(encounterId){
-  console.log("disableNewButton called with encounterId of " + encounterId);
+  // console.log("disableNewButton called with encounterId of " + encounterId);
   $('#mark-new-button_' + encounterId).hide();
   $('#disabled-mark-new-button_' + encounterId).show();
 }
 
 function enableNewButton(encounterId){
-  console.log("enableNewButton called with encounterId of " + encounterId);
+  // console.log("enableNewButton called with encounterId of " + encounterId);
   $('#disabled-mark-new-button_' + encounterId).hide();
   $('#mark-new-button_' + encounterId).show();
 }
@@ -240,24 +241,24 @@ function getEncounterJSON() {
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-          console.log("data from getEncounterJSON:");
-          console.log(data);
+          // console.log("data from getEncounterJSON:");
+          // console.log(data);
           $("#encounterList").empty();
           let projectsArr = data.projects;
           if(projectsArr){
             for (let i=0;i<projectsArr.length;i++) {
               let thisProject = projectsArr[i];
+              projIdPrefix = thisProject.projectIdPrefix;
               for (let j=0;j<thisProject.encounters.length;j++) {
-                let projectHTML = projectHTMLForTable(projectsArr[i].encounters[j]);
+                let projectHTML = projectHTMLForTable(projectsArr[i].encounters[j], thisProject.encounters, j);
                 $("#encounterList").append(projectHTML);
               }
+
             }
             let userCanEdit = data.userCanEdit;
             if ("true"==userCanEdit) {
               showEditControls();
             }
-            $('#progress-div').hide();
-            $('#table-div').show();
           }
       },
       error: function(x,y,z) {
@@ -279,9 +280,11 @@ function goToEditPage() {
   window.location.replace('/projects/editProject.jsp?id='+'<%=projId%>');
 }
 
-function projectHTMLForTable(json) {
-  console.log("json going into projectHTMLForTable is: ");
-  console.log(json);
+function projectHTMLForTable(json, encounters, currentEncounterIndex) {
+  // console.log("json going into projectHTMLForTable is: ");
+  // console.log(json);
+  // console.log("projId is " + projId);
+
   let encounterId = json.encounterId;
   let individualDisplayName = json.individualDisplayName;
   let individualUUID = json.individualUUID;
@@ -299,19 +302,20 @@ function projectHTMLForTable(json) {
   projectHTML +=  '<td class="project-style">'+locationId+' </td>';
   projectHTML +=  '<td class="project-style">'+submitterId+' </td>';
   //projectHTML +=  '<td class="project-style">'+individualProjectId+' </td>';
-  projectHTML +=  '<td class="project-style">';
+  projectHTML +=  '<td class="project-style" id="incremental-id-' + encounterId + '" + >';
+
   if(!hasNameKeyMatchingProject){
     projectHTML += "(None)";
   } else{
-
+    if(individualUUID){
+      console.log("individualUUID is " + individualUUID);
+      let incrementalIdJsonRequest = {};
+      incrementalIdJsonRequest['projectIdPrefix'] = projIdPrefix;
+      incrementalIdJsonRequest['individualIds'] = [];
+      incrementalIdJsonRequest['individualIds'].push({indId: individualUUID});
+      doAjaxForIncrementalId(incrementalIdJsonRequest, encounters, currentEncounterIndex);
+    }
   }
-  // if (allProjectIds) {
-  //   for (i=0;i<allProjectIds.length;i++) {
-  //     projectHTML += (allProjectIds[i]+" ");
-  //   }
-  // }  else {
-  //   projectHTML += "(None)";
-  // }
   projectHTML +=  '</td>';
   projectHTML +=  '<td class="project-style">';
   projectHTML +=  '<input id="encId-'+encounterId+'" class="startMatchButton" onclick="startMatchForEncounter(this)" value ="Start Match" type="button" />';
@@ -340,7 +344,60 @@ function projectHTMLForTable(json) {
   projectHTML += '</div>';
   projectHTML +=  '</td>';
   projectHTML += '</tr>';
+  countOfIncrementalIdRowPopulated ++;
+  console.log("countOfIncrementalIdRowPopulated is: " + countOfIncrementalIdRowPopulated);
+  if(countOfIncrementalIdRowPopulated == encounters.length){
+    //everything is populated! Now TODO
+    console.log("got here!");
+    $('#progress-div').hide();
+    $('#table-div').show();
+  }
   return projectHTML;
+}
+
+function doAjaxForIncrementalId(requestJSON, encounters, currentEncounterIndex){
+  console.log("requestJSON call going into doAjaxForIncrementalId: ");
+  console.log(requestJSON);
+  $.ajax({
+      url: wildbookGlobals.baseUrl + '../ProjectGet',
+      type: 'POST',
+      data: JSON.stringify(requestJSON),
+      dataType: 'json',
+      contentType: 'application/json',
+      success: function(data) {
+        // console.log("data from doAjaxForIncrementalId");
+        // console.log(data);
+          incrementalIdResults = data.incrementalIdArr;
+          if(incrementalIdResults && incrementalIdResults.length>0){
+            if(countOfIncrementalIdRowPopulated > 22){
+              console.log("incrementalIdResults at these high numbers that get stuck is");
+              console.log(incrementalIdResults);
+            }
+            populateEncounterRowWithIncrementalId(incrementalIdResults, encounters, currentEncounterIndex); //incrementalIdResults[0].projectName, incrementalIdResults[0].projectUuid, incrementalIdResults[0].projectId, incrementalIdResults[0].projectOwner
+            // console.log("got here 1");
+            // console.log("encounters.length is " + encounters.length);
+            console.log("countOfIncrementalIdRowPopulated is: " + countOfIncrementalIdRowPopulated);
+            if(countOfIncrementalIdRowPopulated == encounters.length){
+              //everything is populated! Now TODO
+              console.log("got here!");
+              $('#progress-div').hide();
+              $('#table-div').show();
+            }
+          }
+      },
+      error: function(x,y,z) {
+          console.warn('%o %o %o', x, y, z);
+      }
+  });
+}
+
+function populateEncounterRowWithIncrementalId(incrementalIdResults, encounters, currentEncounterIndex){
+  // console.log("incrementalId is");
+  // console.log(incrementalIdResults[0].projectIncrementalId);
+  // console.log("encounters id is");
+  // console.log(encounters[currentEncounterIndex].encounterId);
+  $('#incremental-id-' + encounters[currentEncounterIndex].encounterId).empty();
+  $('#incremental-id-' + encounters[currentEncounterIndex].encounterId).append(incrementalIdResults[0].projectIncrementalId);
 }
 
 function startMatchForEncounter(el) {
@@ -352,7 +409,7 @@ function startMatchForEncounter(el) {
     let requestJSON = {};
     requestJSON['projectIdPrefix'] = projectIdPrefix;
     requestJSON['queryEncounterId'] = encId;
-    console.log("all requestJSON: "+JSON.stringify(requestJSON));
+    // console.log("all requestJSON: "+JSON.stringify(requestJSON));
     let responseJSON = {};
     $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectIA',
