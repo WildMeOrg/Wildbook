@@ -1570,7 +1570,7 @@ public class Shepherd {
     String queryString = "SELECT FROM org.ecocean.Project WHERE users.contains(user) && user.username=='" + userId+"' ";
     try {
       if(!Util.stringExists(orderBy)){
-        queryString += " VARIABLES org.ecocean.User user";
+        queryString += "VARIABLES org.ecocean.User user";
       }else{
         queryString +=  "ORDER BY " + orderBy+" VARIABLES org.ecocean.User user";
       }
@@ -3463,6 +3463,20 @@ public class Shepherd {
     sharks.closeAll();
     Iterator it = list.iterator();
     return it;
+  }
+
+  public ArrayList<Project> getAllProjects() {
+    Extent projectClass = null;
+    try {
+      projectClass = pm.getExtent(Project.class, true);
+    } catch (javax.jdo.JDOException jdoe) {
+      jdoe.printStackTrace();
+    }
+    Query projectQuery = pm.newQuery(projectClass);
+    Collection c = (Collection) (projectQuery.execute());
+    ArrayList<Project> list = new ArrayList<>(c);
+    projectQuery.closeAll();
+    return list;
   }
 
   public Iterator getAllWorkspaces() {
