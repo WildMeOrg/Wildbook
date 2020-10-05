@@ -23,6 +23,7 @@ Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("projectList.jsp");
 myShepherd.beginDBTransaction();
 Properties props = new Properties();
+String langCode = ServletUtilities.getLanguageCode(request);
 props = ShepherdProperties.getProperties("projectList.properties", langCode, context);
 
 int numFixes=0;
