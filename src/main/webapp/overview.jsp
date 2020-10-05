@@ -29,7 +29,7 @@ African Carnivore Wildbook uses photographs of coat patterns and textures to dis
 
 <h2>Researchers can manage and backup their data</h2>
 <p>
-    Import your photos and sightings data in many common picture formats. Once imported, you can view your sightings online, follow individuals you have identified, add metadata, manage individual data, and use all the other African Carnivore Wildbook features. Having your data in African Carnivore Wildbook also serves as a backup service for your own separate storage systems. See our <a href="#">Data Management policy here</a>.
+    Import your photos and sightings data in many common picture formats. Once imported, you can view your sightings online, follow individuals you have identified, add metadata, manage individual data, and use all the other African Carnivore Wildbook features. Having your data in African Carnivore Wildbook also serves as a backup service for your own separate storage systems. See our <a href="cust/ACW Data Use Framework Final.pdf">Data Use Framework here</a>.
 </p>
 
 <h3>Analysis tools</h3>
