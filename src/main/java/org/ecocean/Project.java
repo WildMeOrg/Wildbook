@@ -94,8 +94,8 @@ public class Project implements java.io.Serializable {
       return Math.round(percentWithIncrementalIds * 10.0)/10.0;
   }
 
-    public  Double getPercentIdentified(){
-        if (numEncounters()>0&&numIndividuals()>0) {
+    public  Double getPercentIdentified(Shepherd myShepherd){
+        if (numEncounters()>0&&numIndividuals(myShepherd)>0) {
             double numIncremented = nextIndividualIdIncrement;
             double numEncounters = numEncounters();
             if(numEncounters>0){ // avoid potential divide by zero error
@@ -103,12 +103,6 @@ public class Project implements java.io.Serializable {
             }
         }
         return (Double) 0.0;
-    }
-
-    //this value is already returned with numIndividuals()
-    @Deprecated
-    public Integer getNumberOfIndividuals(){
-      return numIndividuals();
     }
 
     public void addUser(User user) {
@@ -235,24 +229,23 @@ public class Project implements java.io.Serializable {
         this.encounters = new ArrayList<>();
     }
 
-    // TODO will need some solid testing to make sure database fetch gets individuals with encounters in all cases
-    public List<MarkedIndividual> getAllIndividualsForProject() {
-        ArrayList<MarkedIndividual> mis = null;
-        if (encounters!=null) {
-            for (final Encounter enc : encounters) {
-                final MarkedIndividual mi = enc.getIndividual();
-                if (mi!=null) {
-                    if (mis==null) {
-                        mis = new ArrayList<>();
-                    }
-                    if (!mis.contains(mi)) {
-                        mis.add(mi);
-                    }
-                }
-            }
-        }
-        return mis;
-    }
+    // public List<MarkedIndividual> getAllIndividualsForProject() {
+    //     ArrayList<MarkedIndividual> mis = null;
+    //     if (encounters!=null) {
+    //         for (final Encounter enc : encounters) {
+    //             final MarkedIndividual mi = enc.getIndividual();
+    //             if (mi!=null) {
+    //                 if (mis==null) {
+    //                     mis = new ArrayList<>();
+    //                 }
+    //                 if (!mis.contains(mi)) {
+    //                     mis.add(mi);
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return mis;
+    // }
 
     public int numEncounters() {
         if (encounters!=null) {
@@ -261,9 +254,10 @@ public class Project implements java.io.Serializable {
         return 0;
     }
 
-    public int numIndividuals() {
-        if (getAllIndividualsForProject()!=null) {
-            return getAllIndividualsForProject().size();
+    public int numIndividuals(Shepherd myShepherd) {
+        List<MarkedIndividual> individuals = myShepherd.getMarkedIndividualsFromProject(this);
+        if (individuals!=null) {
+            return individuals.size();
         }
         return 0;
     }
