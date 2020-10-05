@@ -39,18 +39,24 @@ User currentUser = AccessControl.getUser(request, myShepherd);
           <%
           try{
               if(currentUser != null){
+                List<Project> allProjects = new ArrayList<Project>();
                 List<Project> userProjects = myShepherd.getOwnedProjectsForUserId(currentUser.getId(), "researchProjectName");
-                List<Project> projectUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(currentUser.getUsername());
-                if(projectUserBelongsTo != null && projectUserBelongsTo.size()>0){
-                  for(int i=0; i<projectUserBelongsTo.size(); i++){
-                    if(!userProjects.contains(projectUserBelongsTo.get(i))){ //avoid duplicates
-                      userProjects.add(projectUserBelongsTo.get(i));
+                List<Project> projectsUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(currentUser.getUsername());
+                if(userProjects != null && userProjects.size()>0){
+                  for(int i=0; i<userProjects.size(); i++){
+                    if(!allProjects.contains(userProjects.get(i))){ //avoid duplicates
+                      allProjects.add(userProjects.get(i));
                     }
                   }
-
-                }else{
-                  // System.out.println("projectUserBelongsTo was null!");
                 }
+                if(projectsUserBelongsTo != null && projectsUserBelongsTo.size()>0){
+                  for(int i=0; i<projectsUserBelongsTo.size(); i++){
+                    if(!allProjects.contains(projectsUserBelongsTo.get(i))){ //avoid duplicates
+                      allProjects.add(projectsUserBelongsTo.get(i));
+                    }
+                  }
+                }
+                userProjects = allProjects;
 
                 if(userProjects==null || userProjects.size()<1){
                   %>
