@@ -35,7 +35,9 @@
 
 <p><a href="https://www.wildbook.org/"><img src="images/WildBook_logo_300dpi-04.png" width="200px" height="*" /></a></p>
 
+<h3>Tech 4 Conservation</h3>
 
+<p><a href="mailto: info@tech4conservation.org"><img src="images/T4C_full_white_cropped_web.jpg" alt="Tech 4 Conservation Logo" width="400px" height="*"></a></p>
    
 <!-- end maintext -->
 </div>
