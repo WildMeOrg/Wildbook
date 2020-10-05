@@ -143,6 +143,7 @@ public class ProjectCreate extends HttpServlet {
                     newProject.addEncounters(encs);
                 }
                 myShepherd.updateDBTransaction();
+                response.setStatus(HttpServletResponse.SC_OK);
                 res.put("success","true");
             } else {
                 addErrorMessage(res,"null ID or Project already exists");

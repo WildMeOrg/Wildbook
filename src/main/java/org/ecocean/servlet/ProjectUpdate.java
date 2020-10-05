@@ -132,6 +132,7 @@ public class ProjectUpdate extends HttpServlet {
                                 }
 
                             }
+                            response.setStatus(HttpServletResponse.SC_OK);
 
                         } else {
                             addErrorMessage(res, "Exception: you have tried to update a project that does not exist.");

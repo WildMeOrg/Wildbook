@@ -56,6 +56,7 @@ public class ProjectDelete extends HttpServlet {
                 project.clearAllEncounters();
                 myShepherd.throwAwayProject(project);
                 myShepherd.updateDBTransaction();
+                response.setStatus(HttpServletResponse.SC_OK);
                 res.put("success","true");
             } else {
               res.put("error","null ID for project to delete");

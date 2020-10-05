@@ -186,7 +186,7 @@ public class ProjectGet extends HttpServlet {
                             }
                         }
                         if (useProject) {
-                            List<MarkedIndividual> individuals = project.getAllIndividualsForProject();
+                            List<MarkedIndividual> individuals = myShepherd.getMarkedIndividualsFromProject(project);
                             for (MarkedIndividual individual : individuals) {
                                 String projectIncrementalId = individual.getName(projectIdPrefix);
                                 if (projectIncrementalId!=null && projectIncrementalId.contains(currentInput)) {
@@ -320,11 +320,10 @@ public class ProjectGet extends HttpServlet {
                     }
                 }
                 res.put("projects", projectArr);
+                response.setStatus(HttpServletResponse.SC_OK);
                 res.put("success",true);
                 complete = true;
             }
-
-
 
             out.println(res);
             out.close();
