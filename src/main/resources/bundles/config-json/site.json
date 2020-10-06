@@ -148,7 +148,7 @@
 		"customFieldCategories": {
 			"__meta": {
 				"type": "string",
-				"formSchema": { "displayType": "list" },
+				"formSchema": { "displayType": "categoryList" },
 				"multiple": true,
 				"required": false
 			}
