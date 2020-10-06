@@ -108,12 +108,12 @@ function populateHtml(project){
   projectHTML += '<div class="row">';
 
   projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">';
-  projectHTML += '  <label><%=props.getProperty("researchProjectName")%></label><br>';  
+  projectHTML += '  <label><%=props.getProperty("researchProjectName")%></label><br>';
   projectHTML += '  <input class="form-control" type="text" value="'+project.researchProjectName+'" id="researchProjectName" name="researchProjectName" size="20" />';
   projectHTML += '</div>'
   projectHTML += '<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">';
   projectHTML += "  <label><%=projectIdPrefix%></label><br>";
-  projectHTML += '  <input class="form-control" type="text" value="'+project.projectIdPrefix+'" id="projectIdPrefix" name="projectIdPrefix" size="20" />'; 
+  projectHTML += '  <input class="form-control" type="text" value="'+project.projectIdPrefix+'" id="projectIdPrefix" name="projectIdPrefix" size="20" />';
   projectHTML += '</div>'
 
   projectHTML += '</div>';
@@ -129,9 +129,9 @@ function populateHtml(project){
   projectHTML += '  <div id="userListDiv">';
   projectHTML += '  </div>';
   projectHTML += '</div>';
-    
+
   projectHTML += '</div>';
-    
+
   projectHTML += '<div class="row">';
 
   projectHTML += '  <div class="col-xs-2 col-sm-2 col-md-1 col-lg-1">';
@@ -143,9 +143,9 @@ function populateHtml(project){
   projectHTML += '  <div class="col-xs-2 col-sm-2 col-md-1 col-lg-1">';
   projectHTML += '    <p><input class="btn btn-md" type="button" onclick="returnToProject(this)" value="<%=props.getProperty("returnToProject")%>"/></p>';
   projectHTML += '  </div>';
-  
+
   projectHTML += '</div>';
-  
+
   projectHTML += '<div class="row">';
   projectHTML += '  <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">';
   projectHTML += '    <label id="actionResultMessage"></label>';
@@ -191,10 +191,13 @@ function updateProject() {
 }
 
 function deleteProject(el) {
-  let projectId = $(el).closest(".projectIdPrefixDiv").attr("id");
-  let json = {};
-  json['projectIdPrefix'] = projectId;
-  doDeleteAjax(json);
+  let confirmed = confirm('<%=props.getProperty("confirmProjectDelete")%>');
+  if(confirmed){
+    let projectId = $(el).closest(".projectIdPrefixDiv").attr("id");
+    let json = {};
+    json['projectIdPrefix'] = projectId;
+    doDeleteAjax(json);
+  }
 }
 
 function returnToProject() {
@@ -261,7 +264,7 @@ $(document).ready(function() {
 
 
 function addHTMLListeners() {
-  
+
   let myName = '<%=currentUser.getUsername()%>';
   $("#projectUserIds").autocomplete({
     source: function(request,response) {
@@ -274,7 +277,7 @@ function addHTMLListeners() {
           $(".projectEditUserEl").each(function() {
             alreadyParticipant.push($(this).attr('id'));
           });
-  
+
           var res = $.map(data, function(item) {
             console.log("what is in this user el?? "+JSON.stringify(item));
             if (item.username==myName||typeof item.username == 'undefined'||item.username==undefined||item.username=="") return;
@@ -283,7 +286,7 @@ function addHTMLListeners() {
             let label = ("name: "+fullName+" user: "+item.username);
             if (alreadyParticipant.indexOf(item.id) > -1) {
               label += ' (<%=props.getProperty("alreadyParticipating")%>)';
-            }  
+            }
             return { label: label, value: item.username, id: item.id };
           });
           response(res);
