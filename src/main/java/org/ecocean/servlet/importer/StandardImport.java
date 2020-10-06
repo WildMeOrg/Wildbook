@@ -51,7 +51,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.amazonaws.services.route53.model.GetGeoLocationRequest;
+//import com.amazonaws.services.route53.model.GetGeoLocationRequest;
 
 //import src.main.java.org.ecocean.servlet.String;
 
@@ -512,8 +512,11 @@ public class StandardImport extends HttpServlet {
       
     }
 
-
-
+    //close out our workbook cleanly, releasing resources.
+    try {
+      wb.close();
+    }
+    catch(Exception closer) {closer.printStackTrace();}
     //fs.close();
 
 
