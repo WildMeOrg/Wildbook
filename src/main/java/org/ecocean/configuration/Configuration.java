@@ -244,7 +244,6 @@ return null; ///FIXME
             JSONObject fs = m.optJSONObject("formSchema");
             if (fs != null) {
                 overrideDisplayType = fs.optString("displayType", null);
-                fs.remove("displayType");  //noisy
                 j.put("schema", fs);
             }
         }
