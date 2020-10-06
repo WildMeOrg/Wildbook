@@ -84,6 +84,9 @@ public class DataDefinition {
     public boolean checkValidity(JSONObject j, String flavor) throws DataDefinitionException {
         return true;
     }
+    public boolean checkValidity(JSONArray j, String flavor) throws DataDefinitionException {
+        return true;
+    }
 
     public String getType() {
         return getType(this.meta);
@@ -178,6 +181,27 @@ System.out.println("type=" + type + " in handleValue() on " + this);
                 }
                 checkValidity(j, type);  //this should vary depending on wassup
                 return j;
+            //this could be either JSONArray or JSONObject, so....
+            case "json":
+                JSONObject jo = null;
+                if (inVal instanceof JSONObject) {
+                    jo = (JSONObject)inVal;
+                } else if (inVal instanceof String) {
+                    jo = Util.stringToJSONObject((String)inVal);
+                }
+                if (jo != null) {
+                    checkValidity(jo, type);
+                    return jo;  //if we got something, go....
+                }
+                JSONArray ja = null;
+                if (inVal instanceof JSONArray) {
+                    ja = (JSONArray)inVal;
+                } else if (inVal instanceof String) {
+                    ja = Util.stringToJSONArray((String)inVal);
+                }
+                checkValidity(ja, type);
+                if (ja == null) throw new DataDefinitionException("could not parse JSONObject/JSONArray from " + (String)inVal);
+                return ja;
             case "date":
                 ZonedDateTime dt = null;
                 if (inVal instanceof ZonedDateTime) {
