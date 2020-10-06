@@ -51,6 +51,10 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
+
+    boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
+
+
 %>
 
 <style type="text/css">
