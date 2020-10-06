@@ -147,9 +147,9 @@
 		},
 		"customFieldCategories": {
 			"__meta": {
-				"type": "string",
+				"type": "json",
 				"formSchema": { "displayType": "categoryList" },
-				"multiple": true,
+				"multiple": false,
 				"required": false
 			}
 		},
