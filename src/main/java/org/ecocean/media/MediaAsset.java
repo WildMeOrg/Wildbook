@@ -925,12 +925,20 @@ public class MediaAsset implements java.io.Serializable {
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
         org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
           String context = ServletUtilities.getContext(request);
+          org.datanucleus.api.rest.orgjson.JSONObject obj=null;
           Shepherd myShepherd=new Shepherd(context);
           myShepherd.setAction("MediaAsset.santizeJSON");
           myShepherd.beginDBTransaction();
-          org.datanucleus.api.rest.orgjson.JSONObject obj= sanitizeJson(request, jobj, true, myShepherd);
-          myShepherd.rollbackDBTransaction();
-          myShepherd.closeDBTransaction();
+          try {
+            obj= sanitizeJson(request, jobj, true, myShepherd);
+          }
+          catch(Exception e) {
+            e.printStackTrace();
+          }
+          finally {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+          }
           return obj;
     }
 

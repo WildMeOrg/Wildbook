@@ -126,7 +126,8 @@ public class EncounterVMData extends HttpServlet {
       					rtn.put("error", "unauthorized");
       				}
       
-      			} else if (request.getParameter("candidates") != null) {
+      			} 
+      			else if (request.getParameter("candidates") != null) {
       				rtn.put("_wantCandidates", true);
       				ArrayList candidates = new ArrayList();
       				String filter = "this.catalogNumber != \"" + enc.getCatalogNumber() + "\"";

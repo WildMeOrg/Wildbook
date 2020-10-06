@@ -32,7 +32,7 @@ context=ServletUtilities.getContext(request);
 <li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/user-access.htm">User access log</a></li>
 <li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/encounter-submission.htm">Encounter submissions log</a></li>
 <li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/encounter-delete.htm">Deleted encounters log</a></li>
-<li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/email.htm.htm">Email log</a></li>
+<li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/email.htm">Email log</a></li>
 
 </ul>
 

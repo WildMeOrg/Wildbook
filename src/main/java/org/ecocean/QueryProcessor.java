@@ -81,7 +81,7 @@ public abstract class QueryProcessor {
     prettyPrint.append(prettyPrintUpdateForBasicString(fieldName, request));
     return filterWithBasicStringField(filter, fieldName, request);
   }
-  
+
   // This is probably not the ideal place for a method with this narrow of usage, but I've put it here in the interest
   // of saving time because it can be applied to survey and eventually indy.
   protected static String filterObservations(String filter, HttpServletRequest request, StringBuffer prettyPrint, String objectType) {
@@ -104,17 +104,17 @@ public abstract class QueryProcessor {
           if (keyParam!=null&&!keyParam.equals("")) {
             numObsSearched++;
             System.out.println("Searching Ob #"+numObsSearched);
-            obKeys.put(keyNum,keyParam);            
+            obKeys.put(keyNum,keyParam);
           }
         }
         if (thisParam!=null&&thisParam.startsWith(valID)) {
           String valParam = request.getParameter(thisParam).trim();
           String valNum = thisParam.replace(valID,"");
           if (valParam!=null&&!valParam.equals("")) {
-            obVals.put(valNum,valParam);            
+            obVals.put(valNum,valParam);
           }
         }
-      }  
+      }
       for (int i=0;i<=numObsSearched;i++) {
         String num = String.valueOf(i);
         if (Util.basicSanitize(obKeys.get(num))!=null) {
@@ -123,12 +123,12 @@ public abstract class QueryProcessor {
           prettyPrint.append(thisKey);
           prettyPrint.append("<br/>");
           obQuery.append("(observations.contains(observation"+num+") && ");
-          obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));        
+          obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));
           if (obVals.get(num)!=null&&!obVals.get(num).trim().equals("")) {
             String thisVal = Util.basicSanitize(obVals.get(num));
             prettyPrint.append(" is ");
-            prettyPrint.append(thisVal);              
-            obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim())); 
+            prettyPrint.append(thisVal);
+            obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim()));
           }
           obQuery.append(")");
           if (1<numObsSearched) {
@@ -141,7 +141,7 @@ public abstract class QueryProcessor {
       if (obQuery.length() > 0) {
         if (!filter.equals("SELECT FROM org.ecocean."+objectType+" WHERE 'ID' != null &&")) {
           if (!filter.trim().endsWith("&&")) {
-            filter += " && ";            
+            filter += " && ";
           }
         }
         filter += obQuery.toString();
@@ -149,14 +149,14 @@ public abstract class QueryProcessor {
     }
     return filter;
   }
-  
+
   protected static int getNumberOfObservationsInQuery(HttpServletRequest request) {
     int numObsSearched = 0;
     if (request.getParameter("numSearchedObs")!=null) {
       numObsSearched = Integer.valueOf(request.getParameter("numSearchedObs"));
       System.out.println("Num Obs Searched? "+numObsSearched);
       if (request.getParameter("observationKey1")!=null&&!request.getParameter("observationKey1").equals("")) {
-        return numObsSearched;     
+        return numObsSearched;
       }
     }
     return 0;
@@ -288,13 +288,13 @@ public abstract class QueryProcessor {
     sb.append(typeAndVariable);
     return sb.toString();
   }
-  
+
   public static String filterDateRanges(HttpServletRequest request, String filter, StringBuffer prettyPrint) {
     String endTimeFrom = null;
     String endTimeTo = null;
     String startTimeFrom = null;
     String startTimeTo = null;
-    
+
     try {
       filter = prepForNext(filter);
       if (request.getParameter("startTimeFrom")!=null&&request.getParameter("startTimeFrom").length()>8) {
@@ -303,11 +303,11 @@ public abstract class QueryProcessor {
         String addition = " (startTime >=  "+startTimeFrom+") ";
         prettyPrint.append(addition);
         filter += addition;
-      }      
+      }
     } catch (NullPointerException npe) {
       npe.printStackTrace();
     }
-    
+
     try {
       filter = prepForNext(filter);
       if (request.getParameter("startTimeTo")!=null&&request.getParameter("startTimeTo").length()>8) {
@@ -316,11 +316,11 @@ public abstract class QueryProcessor {
         String addition = " (startTime <=  "+startTimeTo+") ";
         prettyPrint.append(addition);
         filter += addition;
-      }      
+      }
     } catch (NullPointerException npe) {
       npe.printStackTrace();
     }
-    
+
     try {
       filter = prepForNext(filter);
       if (request.getParameter("endTimeFrom")!=null&&request.getParameter("endTimeFrom").length()>8) {
@@ -329,11 +329,11 @@ public abstract class QueryProcessor {
         String addition = " (endTime >=  "+endTimeFrom+") ";
         prettyPrint.append(addition);
         filter += addition;
-      }      
+      }
     } catch (NullPointerException npe) {
       npe.printStackTrace();
     }
-    
+
     try {
       filter = prepForNext(filter);
       if (request.getParameter("endTimeTo")!=null&&request.getParameter("endTimeFrom").length()>8) {
@@ -342,23 +342,23 @@ public abstract class QueryProcessor {
         String addition = " (startTime <=  "+endTimeTo+") ";
         prettyPrint.append(addition);
         filter += addition;
-      }      
+      }
     } catch (NullPointerException npe) {
       npe.printStackTrace();
     }
-    
+
     filter = prepForNext(filter);
     System.out.println("This filter: "+filter);
     return filter;
   }
-  
+
  public static String prepForNext(String filter) {
    if (!QueryProcessor.endsWithAmpersands(filter)) {
      filter = QueryProcessor.prepForCondition(filter);
    }
    return filter;
  }
- 
+
  private static String monthDayYearToMilli(String newDate) {
    System.out.println("This is the input date: "+newDate);
    SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
@@ -380,6 +380,8 @@ public abstract class QueryProcessor {
   public static String jdoStringEqualsConstraint(String fieldName, String equalsThis) {
     return "("+fieldName+" == '"+equalsThis+"')";
   }
+
+
 
 
 }

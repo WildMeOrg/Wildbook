@@ -55,15 +55,6 @@ myShepherd.setAction("relationshipJson.jsp");
 
 
 
-
-String genus="Physeter";
-
-
-if(request.getParameter("genus")!=null){
-	genus=request.getParameter("genus");
-}
-
-
 String filter="SELECT FROM org.ecocean.social.Relationship where type != 'CommunityMembership'";
 String filter2="SELECT FROM org.ecocean.social.SocialUnit";
 

@@ -14,6 +14,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
 
+import javax.json.JsonException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -1045,12 +1046,13 @@ public class Occurrence implements java.io.Serializable {
     }
 */
 
-/*
     public Long getDateTimeLong() {
-      return dateTimeLong;
+        if (dateTime == null) return null;
+        return dateTime.getMillis();
     }
     public void setDateTimeLong(Long dateTimeLong) {
-      this.dateTimeLong = dateTimeLong;
+        if (dateTimeLong == null) return;
+        dateTime = new DateTime(dateTimeLong);
     }
     public void setDateFromEncounters() {
       for (Encounter enc: encounters) {
@@ -1061,7 +1063,6 @@ public class Occurrence implements java.io.Serializable {
         }
       }
     }
-*/
 
     //social media registration fields for AI-created occurrences
     public String getSocialMediaSourceID(){return socialMediaSourceID;};
@@ -1206,5 +1207,68 @@ public class Occurrence implements java.io.Serializable {
 
       return jobj;
   }
+
+/*
+    this block is a bunch of setters (ok, and one getter) for properties which were long-ago removed from giraffespotter
+    however, merging with master constantly causes grief during compilation (especially around import java classes)
+    so i am putting them in to make merging / compilation easier.
+*/
+	public Double getVisibilityIndex() { return null; }
+	public void setBestGroupSizeEstimate(Double x) {}
+	public void setEffortCode(Double x) {}
+	public void setFieldStudySite(String x) {}
+	public void setFieldSurveyCode(String x) {}
+	public void setGroupComposition(String x) {}
+	public void setHumanActivityNearby(String x) {}
+	public void setMaxGroupSizeEstimate(Integer x) {}
+	public void setMinGroupSizeEstimate(Integer x) {}
+	public void setNumJuveniles(Integer x) {}
+	public void setSeaState(String x) {}
+	public void setSeaSurfaceTemp(Double x) {}
+	public void setSightingPlatform(String x) {}
+	public void setSubmitterIDFromEncs(boolean x) {}
+	public void setSwellHeight(Double x) {}
+	public void setTransectBearing(Double x) {}
+	public void setTransectName(String x) {}
+	public void setVisibilityIndex(Double x) {}
+//  end hacky setters
+
+
+  public org.json.JSONObject getJSONSummary() {
+      org.json.JSONObject json = new org.json.JSONObject();
+      try {
+        json.put("occurrenceID", getID());
+        if (getDateTimeLong()==null) {
+          setDateFromEncounters();
+        }
+        json.put("dateTimeLong", getDateTimeLong());
+        json.put("groupBehavior", getGroupBehavior());
+        List<String> allSpecies = new ArrayList<>();
+        List<String> allLocs = new ArrayList<>();
+        String allTaxString = "";
+        String allLocString = "";
+        for (Encounter enc : encounters) {
+          if (!allSpecies.contains(enc.getTaxonomyString())) {
+            if (!allSpecies.isEmpty()) allTaxString+=",";
+            allSpecies.add(enc.getTaxonomyString());
+            allTaxString += enc.getTaxonomyString();
+          }
+          if (!allLocs.contains(enc.getLocationID())) {
+            if (!allLocs.isEmpty()) allLocString+=",";
+            allLocs.add(enc.getLocationID());
+            allLocString += enc.getLocationID();
+          }
+        }
+        json.put("taxonomies", allTaxString);
+        json.put("locationIds", allLocString);
+        json.put("encounterCount", encounters.size());
+        json.put("individualCount", getMarkedIndividualNamesForThisOccurrence().size());
+
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return json;
+  }
+
 
 }

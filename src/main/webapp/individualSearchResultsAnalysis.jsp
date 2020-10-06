@@ -772,7 +772,7 @@ if(maxTimeBetweenResights>0){
 <script>
   let parser = new JSONParser('<%=individualIds%>', true, 50);
   let querier = new JSONQuerier(wildbookGlobals);
-  querier.preFetchData(null, null, null, [setupSocialgraph], ["#socialDiagram"], [parser]);
+  querier.preFetchData(null, null, null, [setupSocialGraph], ["#socialDiagram"], [parser]);
 </script>
 	 
  <div id="chart_div"></div>

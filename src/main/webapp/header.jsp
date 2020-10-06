@@ -29,7 +29,7 @@
              java.util.ArrayList,
              java.util.List,
              java.util.Properties,
-             org.apache.commons.lang.WordUtils,
+             org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration
               "
@@ -96,6 +96,7 @@ finally{
     <head>
       <!-- Global site tag (gtag.js) - Google Analytics -->
       <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-7"></script>
+
       <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
@@ -156,8 +157,12 @@ finally{
       }
       %>
       
+
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
+      <script type="text/javascript"  src="<%=urlLoc %>/javascript/translator.js"></script>
+
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/notifications.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
@@ -475,7 +480,7 @@ finally{
                       <!-- end locationID sites -->
 
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="search-dropdown"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
@@ -523,13 +528,29 @@ finally{
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
                                 <% } %>
-                                <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <li><a href="<%=urlLoc %>/javadoc/index.html">Javadoc</a></li>
-                                <% if(CommonConfiguration.isCatalogEditable(context)) { %>
-                                  <li class="divider"></li>
-                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
-                                <%
-                                }
+                                <li><a target="_blank" href="http://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
+                                <% 
+
+                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) { %>
+                            	<li class="divider"></li>
+                            	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                            	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                           	<%
+                           
+                           
+                          	}
+                            %>
+                            <li class="dropdown">
+                              <ul class="dropdown-menu" role="menu">
+                              <%
+                              if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+                              %>
+                                <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
+                              <%
+                              }
+                              %>
+                                <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+
 
                             } //end if admin
 
@@ -542,6 +563,21 @@ finally{
                         </ul>
                       </li>
                     </ul>
+
+
+                            <%
+                            if(CommonConfiguration.useSpotPatternRecognition(context)){
+                            %>
+                            	<li class="divider"></li>
+                            	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
+                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                            	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                            <%
+                            }
+                            %>
+                          </ul>
+                        </li>
+                      </ul>
 
 
 
