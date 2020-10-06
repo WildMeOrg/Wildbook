@@ -1067,7 +1067,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 //imgLink.append(img);
             	
                 ft.metadata = mainAsset.metadata;
-                img.on('load', function(ev) { imageLoaded(ev.target, ft); });
+                img.on('load', function(ev) { imageLoaded(ev.target, ft, mainAsset); });
                 //$('#task-' + taskId + ' .annot-' + acmId).append(imgLink);
                 
 
@@ -1390,12 +1390,12 @@ function findMyFeature(annotAcmId, asset) {
     return;
 }
 
-function imageLoaded(imgEl, ft) {
+function imageLoaded(imgEl, ft, asset) {
     if (imgEl.getAttribute('data-feature-drawn')) return;
-    drawFeature(imgEl, ft);
+    drawFeature(imgEl, ft, asset);
 }
 
-function drawFeature(imgEl, ft) {
+function drawFeature(imgEl, ft, asset) {
     if (!imgEl || !imgEl.clientHeight || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
     var scale = imgEl.height / imgEl.naturalHeight;
     if (ft.metadata && ft.metadata.height) scale = imgEl.height / ft.metadata.height;
