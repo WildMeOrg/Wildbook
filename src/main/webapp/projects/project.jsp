@@ -43,7 +43,7 @@
 
 %>
 <style type="text/css">
-  .disabled-btn { /* moving this to _encounter-pages.less AND moving that beneath buttons custom import in manta.less did not work. */
+  .disabled-btn { /* moving this to _encounter-pages.less AND moving that beneath buttons custom import in manta.less did not work. */ -MF
     background:#62676d30;
     border:0;
     color:#fff;
@@ -72,6 +72,7 @@
       <div class="row">
         <div class="col-xs-10 col-sm-10 col-md-10 col-lg-10 col-xl-10">
           <h3><%= projectProps.getProperty("ProjectColon")%> <%=project.getResearchProjectName()%></h3>
+          <p><%= projectProps.getProperty("EncounterDirectionsPt1")%><a target="_new" href="../encounters/encounterSearch.jsp"> <%= projectProps.getProperty("EncounterDirectionsPt2")%></a><%= projectProps.getProperty("EncounterDirectionsPt3")%></p>
         </div>
         <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 col-xl-10">
           <span id="editButtonSpan"></span>
@@ -99,6 +100,7 @@
                     <table class="row project-style">
                       <thead>
                         <tr>
+                          <th class="project-style"><%= projectProps.getProperty("DeleteEncounterHeader")%></th>
                           <th class="project-style"><%= projectProps.getProperty("EncounterTableHeader")%></th>
                           <th class="project-style"><%= projectProps.getProperty("IndividualTableHeader")%></th>
                           <th class="project-style"><%= projectProps.getProperty("DateTimeTableHeader")%></th>
@@ -337,7 +339,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   projectHTML += '</tr>';
   countOfIncrementalIdRowPopulated ++;
   if(countOfIncrementalIdRowPopulated == encounters.length){
-    //everything is populated!
+    //everything is populated! -MF
     $('#progress-div').hide();
     $('#table-div').show();
   }
@@ -358,7 +360,7 @@ function doAjaxForIncrementalId(requestJSON, encounters, currentEncounterIndex){
             }
             populateEncounterRowWithIncrementalId(incrementalIdResults, encounters, currentEncounterIndex);
             if(countOfIncrementalIdRowPopulated == encounters.length){
-              //everything is populated!
+              //everything is populated! -MF
               $('#progress-div').hide();
               $('#table-div').show();
             }
@@ -395,7 +397,7 @@ function startMatchForEncounter(el) {
           $(el).val('Sent');
           $(el).css('background-color', 'red');
           console.log("response from ProjectIA : "+JSON.stringify(d));
-          // do something to indicate success
+          // do something to indicate success -CK
         },
         error: function(x,y,z) {
             console.warn('%o %o %o', x, y, z);
