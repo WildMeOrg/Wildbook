@@ -58,12 +58,10 @@ public class ProjectDelete extends HttpServlet {
                 List<MarkedIndividual> individuals = new ArrayList<MarkedIndividual>();
                 for(Encounter enc: encounters){
                   String comment = "<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "removed this encounter from Project " + project.getResearchProjectName() + "</p>";
-                  System.out.println("encounter delete comment is: " + comment);
                   enc.addComments(comment);
                   MarkedIndividual currentIndividual = enc.getIndividual();
                   if(currentIndividual!= null && !individuals.contains(currentIndividual)){
                     comment = "<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "removed this individual from Project " + project.getResearchProjectName() + "</p>";
-                    System.out.println("individual delete comment is: " + comment);
                     currentIndividual.addComments(comment);
                     individuals.add(currentIndividual);
                   }
