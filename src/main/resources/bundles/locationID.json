@@ -8,6 +8,14 @@
 
 { "name":"NSW-Jervis Bay-Bowen Island", "id":"NSW-Jervis Bay-Bowen Island", "locationID":[] },
 
+{ "name":"NSW-Jervis Bay-Nursery", "id":"NSW-Jervis Bay-Nursery", "locationID":[] },
+
+{ "name":"NSW-Jervis Bay-Weedy Valley", "id":"NSW-Jervis Bay-Weedy Valley", "locationID":[] },
+
+{ "name":"NSW-Sydney-Bare Island", "id":"NSW-Sydney-Bare Island", "locationID":[] },
+
+
+
 { "name":"NSW-Sydney-Kurnell", "id":"NSW-Sydney-Kurnell", "locationID":[] },
 
 { "name":"SA-Encounter Bay", "id":"SA-Encounter Bay", "locationID":[] },
@@ -32,11 +40,19 @@
 
 { "name":"SA-Pearson Island", "id":"SA-Pearson Island", "locationID":[] },
 
+{ "name":"SA-Tumby Bay Jetty", "id":"SA-Tumby Bay Jetty", "locationID":[] },
+
+
+
 { "name":"SA-Carrickalinga", "id":"SA-Carrickalinga", "locationID":[] },
 
 { "name":"TAS-Bicheno", "id":"TAS-Bicheno", "locationID":[] },
 
 { "name":"TAS-Hobart-Blackmans Bay", "id":"TAS-Hobart-Blackmans Bay", "locationID":[] },
+
+{ "name":"TAS-Hobart-Kingston", "id":"TAS-Hobart-Kingston", "locationID":[] },
+
+
 
 { "name":"VIC-Flinders", "id":"VIC-Flinders", "locationID":[] },
 
@@ -54,7 +70,28 @@
 
 { "name":"WA-Albany: Shelter Island", "id":"WA-Albany: Shelter Island", "locationID":[] },
 
-{ "name":"WA-Bremer Bay", "id":"WA-Bremer Bay", "locationID":[] },
+{ "name":"WA-Augusta-Landing Place", "id":"WA-Augusta-Landing Place", "locationID":[] },
+{ "name":"WA-Augusta-Whale Memorial", "id":"WA-Augusta-Whale Memorial", "locationID":[] },
+
+
+
+
+{ "name":"WA-Bremer Bay", "id":"WA-Bremer Bay", "locationID":[
+
+	{ "name":"Back Beach Bommie", "id":"Back Beach Bommie", "locationID":[] },
+
+	{ "name":"Little Boat Harbour Bay", "id":"Little Boat Harbour Bay", "locationID":[] }
+
+] },
+
+
+
+{ "name":"WA-Canal Rocks", "id":"WA-Canal Rocks", "locationID":[] },
+
+
+
+{ "name":"WA-Cape Naturaliste-Shelley Cove", "id":"WA-Cape Naturaliste-Shelley Cove", "locationID":[] },
+
 
 { "name":"WA-Dunsborough", "id":"WA-Dunsborough", "locationID":[] },
 
@@ -64,7 +101,16 @@
 
 { "name":"WA-Perth-Cottesloe", "id":"WA-Perth-Cottesloe", "locationID":[] },
 
+{ "name":"WA-Perth-Hillarys Boat Harbour", "id":"WA-Perth-Hillarys Boat Harbour", "locationID":[] },
+
 { "name":"WA-Perth-North Mole", "id":"WA-Perth-North Mole", "locationID":[] },
+
+{ "name":"WA-Perth-Ocean Reef", "id":"WA-Perth-Ocean Reef", "locationID":[] },
+
+{ "name":"WA-Perth-Point Peron", "id":"WA-Perth-Point Peron", "locationID":[] },
+
+
+
 
 { "name":"WA-Perth-South Mole", "id":"WA-Perth-South Mole", "locationID":[] },
 
