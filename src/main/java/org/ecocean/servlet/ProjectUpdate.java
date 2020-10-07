@@ -214,15 +214,20 @@ public class ProjectUpdate extends HttpServlet {
                 Encounter enc = myShepherd.getEncounter(encId);
                 if (enc!=null) {
                     if ("add".equals(action) && !project.getEncounters().contains(enc)) { //need project.getEncounters().contains(enc) check to ensure additionCounter returns the correct number of added encounters
-                        System.out.println("adding encounter " + encId);
-                        System.out.println("adding comment in ProjectUpdate");
                         String comment = "<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "added this encounter to Project " + project.getResearchProjectName() + "</p>";
-                        System.out.println("comment is: " + comment);
                         enc.addComments(comment);
                         project.addEncounter(enc);
                         myShepherd.updateDBTransaction();
                         additionCounter ++;
                     } else if ("remove".equals(action)) {
+                        String comment = "<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "removed this encounter from Project " + project.getResearchProjectName() + "</p>";
+                        enc.addComments(comment);
+                        MarkedIndividual currentIndividual = enc.getIndividual();
+                        if(currentIndividual!= null){
+                          comment = "<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "removed this individual from Project " + project.getResearchProjectName() + "</p>";
+                          currentIndividual.addComments(comment);
+                        }
+                        myShepherd.updateDBTransaction();
                         project.removeEncounter(enc);
                         removalCounnter ++;
                     }
