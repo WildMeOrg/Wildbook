@@ -56,7 +56,6 @@
 let txt = getText("editProject.properties");
 let updateStatus = false;
 let globalProj = null;
-console.log("updateStatus is now: " + updateStatus);
 
 function showEditProject() {
     let ownerId = '<%=currentUser.getId()%>';
@@ -193,7 +192,6 @@ function updateProject() {
   requestJSON['id'] = '<%=projId%>';
   requestJSONArr.push(requestJSON);
   updateStatus = true;
-  console.log("updateStatus is now: " + updateStatus);
   doProjectUpdateAjax({"projects": requestJSONArr });
 }
 
@@ -209,10 +207,9 @@ function deleteProject(el) {
 
 function returnToProject() {
   if(globalProj){
-    if(updateStatus == false && ($('#researchProjectName').val()!==globalProj.researchProjectName || $('#projectIdPrefix').val()!== globalProj.projectIdPrefix || userIdsToRemove.length>0 || userIdsToAdd.length>0)){
-      //TODO and they haven't clicked on the update project before clicking this, then warn them they haven't updated yet
-      // updateStatus = false;
+    if(updateStatus==false && ($('#researchProjectName').val()!==globalProj.researchProjectName || $('#projectIdPrefix').val()!== globalProj.projectIdPrefix || userIdsToRemove.length>0 || userIdsToAdd.length>0)){
       let confirmed = confirm(txt.notUpdatedYet);
+      updateStatus = false;
       if (confirmed) {
         window.location.replace('/projects/project.jsp?id='+'<%=projId%>');
       }
@@ -274,6 +271,7 @@ function removeUserFromProject(el) {
     userIdsToRemove.push(idToRemove);
     $(el).closest(".projectEditUserEl").remove();
     $("#actionResultMessage").text('<%=props.getProperty("clickUpdate")%>');
+    updateStatus = false;
   }
 }
 
@@ -323,7 +321,7 @@ function addHTMLListeners() {
             alreadyParticipant.push($(this).attr('id'));
             console.log(" adding "+$(this).attr('id'));
       });
-      console.log("alreaady participating : "+JSON.stringify(alreadyParticipant));
+      console.log("already participating : "+JSON.stringify(alreadyParticipant));
 
 
 
@@ -331,6 +329,7 @@ function addHTMLListeners() {
         appendNewUser(selectedUserId, selectedUserStr);
         userIdsToAdd.push(selectedUserId);
         $("#actionResultMessage").text('<%=props.getProperty("clickUpdateUsers")%>');
+        updateStatus = false;
       } else {
         $("#actionResultMessage").text('<%=props.getProperty("alreadyParticipatingError")%>');
       }
