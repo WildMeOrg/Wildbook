@@ -130,6 +130,9 @@
 <jsp:include page="../footer.jsp" flush="true"/>
 
 <script type="text/javascript">
+
+var txt = getText("project.properties");
+
 let projIdPrefix = '';
 let countOfIncrementalIdRowPopulated = 0;
 
@@ -284,7 +287,8 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   let allProjectIds = json.allProjectIds;
 
   let projectHTML = '';
-  projectHTML += '<tr id="enc-'+encounterId+'">';
+  projectHTML += '<tr id="enc-'+encounterId+'" class="encounterRow">';
+  projectHTML +=  '<td class="project-style"><span class="glyphicon glyphicon-remove remove-ob-x" onclick="removeEncounterFromProject(this)" title="remove encounter from project"></span><span class="deleteMessage text-danger"></span></td>';
   projectHTML +=  '<td class="project-style"><a target="_new" href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
   projectHTML +=  '<td class="project-style"><a target="_new" href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+'</a></td>';
   projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
@@ -398,6 +402,43 @@ function startMatchForEncounter(el) {
         }
     });
   }
+}
+
+function removeEncounterFromProject(el) {
+  let confirmed = confirm(txt.youSure);
+  if (confirmed) {
+    removeEncounterFromProjectAjax(el);
+  }
+}
+
+function removeEncounterFromProjectAjax(el) {
+  let requestJSON = {};
+  let projectsArr = [];
+  let projectData = {};
+  projectData['id'] = '<%=projId%>';
+  projectData['encountersToRemove'] = [];
+  let encRow = $(el).closest('.encounterRow');
+  let encId = encRow.attr('id').replace('enc-', '');
+  projectData.encountersToRemove.push(encId);
+  projectsArr.push(projectData);
+  requestJSON['projects'] = projectsArr;
+
+  $.ajax({
+      url: wildbookGlobals.baseUrl + '../ProjectUpdate',
+      type: 'POST',
+      data: JSON.stringify(requestJSON),
+      dataType: 'json',
+      contentType: 'application/json',
+      success: function(d) {
+        console.log("date from success remove encounter action: "+JSON.stringify(d));
+        encRow.remove();
+      },
+      error: function(x,y,z) {
+          console.log("date from error remove encounter action: "+JSON.stringify(d));
+          console.warn('%o %o %o', x, y, z);
+          encRow.find(".deleteMessage").text(txt.error);
+      }
+  });
 }
 
 $(document).ready( function() {
