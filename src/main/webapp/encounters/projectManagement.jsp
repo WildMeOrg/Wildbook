@@ -14,6 +14,8 @@ context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties projProps = new Properties();
 projProps=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
+Properties props = new Properties();
+props=ShepherdProperties.getProperties("projectManagement.properties", langCode, context);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("projectManagement.jsp");
 User currentUser = myShepherd.getUser(request);
@@ -126,9 +128,9 @@ try{
   }
   %>
   <div class="padded-from-the-top">
-    <p>Encounters that will be added: <strong><%= encountersUserCanAdd.size()%></strong></p>
+    <p><%= props.getProperty("encountersToBeAdded")%> <strong><%= encountersUserCanAdd.size()%></strong></p>
     </br>
-    <p>Encounters that you cannot add to the project: <strong><%= encountersUserCannotAdd.size()%></strong></p>
+    <p><%= props.getProperty("encountersNotToBeAdded")%> <strong><%= encountersUserCannotAdd.size()%></strong></p>
   </div>
   <form id="add-encounter-to-project-form"
   method="post"
@@ -142,17 +144,35 @@ try{
     System.out.println("currentUser not null");
     FormUtilities.setUpProjectDropdown(false, 6,"Select Projects To Add To","id", projProps, out, request, myShepherd);
 
-    List<Project> projects = myShepherd.getOwnedProjectsForUserId(currentUser.getUUID());
+    // List<Project> projects = myShepherd.getOwnedProjectsForUserId(currentUser.getUUID());
+    List<Project> projects = new ArrayList<Project>();
+    List<Project> userProjects = myShepherd.getOwnedProjectsForUserId(currentUser.getId(), "researchProjectName");
+    List<Project> projectsUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(currentUser.getUsername());
+    if(userProjects != null && userProjects.size()>0){
+      for(int i=0; i<userProjects.size(); i++){
+        if(!projects.contains(userProjects.get(i))){ //avoid duplicates
+          projects.add(userProjects.get(i));
+        }
+      }
+    }
+    if(projectsUserBelongsTo != null && projectsUserBelongsTo.size()>0){
+      for(int i=0; i<projectsUserBelongsTo.size(); i++){
+        if(!projects.contains(projectsUserBelongsTo.get(i))){ //avoid duplicates
+          projects.add(projectsUserBelongsTo.get(i));
+        }
+      }
+    }
+    
     if(projects != null && projects.size()>0){
       System.out.println("projects not null");
       %>
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 bump-down flex-left-justify">
         <table class="row tissueSample alernatingRows">
-        <strong>Encounters that are already in project:</strong>
+        <strong><%= props.getProperty("encountersInProject")%></strong>
           <thead>
             <tr>
-              <th>Project Name</th>
-              <th>Number of Encounters Already In Project</th>
+              <th><%= props.getProperty("projectName")%></th>
+              <th><%= props.getProperty("numberAlreadyInProject")%></th>
             </tr>
           </thead>
           <tbody>
@@ -194,19 +214,19 @@ try{
 }catch(Exception e){e.printStackTrace();}
 %>
   <div id="adding-div" class="alert alert-info" role="alert" style="display: none;">
-    Adding Encounters... Please Wait for Confirmation.
+    <%= props.getProperty("addingEncounters")%>
   </div>
   <div id="empty-form-div" class="alert alert-warning" role="alert" style="display: none;">
     <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    You did not select any projects to add encounters to!
+    <%= props.getProperty("noProjectsSelected")%>
   </div>
   <div id="alert-div" class="alert alert-success" role="alert" style="display: none;">
     <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    <strong>Success!</strong> Encounters have been added to project(s)! See your projects <a href="/projects/projectList.jsp">here</a>
+    <strong><%= props.getProperty("success")%></strong> <%= props.getProperty("encountersAdded")%> <a href="/projects/projectList.jsp"><%= props.getProperty("here")%></a>
   </div>
   <div id="alert-div-warn" class="alert alert-danger" role="alert" style="display: none;">
     <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    Encounters were not added to project(s)!
+    <%= props.getProperty("encountersNotAdded")%>
   </div>
 </div>
 <script>
