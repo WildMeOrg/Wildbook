@@ -57,7 +57,7 @@ public class IndividualCreateForProject extends HttpServlet {
         try {
             res.put("success",false);
             String encounterId = j.optString("encounterId", null);
-            String projectId = j.optString("projectId", null);
+            String projectId = j.optString("projectIdPrefix", null);
 
             if (Util.stringExists(encounterId)&&Util.stringExists(projectId)) {
 

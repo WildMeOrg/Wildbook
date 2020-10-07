@@ -219,18 +219,18 @@
     		window.setTimeout(function() { alert(txt.noUnderscoresName); }, 100);
     		return false;
     	}
-      if($('#projectIdPrefix').val().includes(" ")){
-    		console.log("projectIdPrefix contains ; entered");
-    		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert(txt.noSpacesId); }, 100);
-    		return false;
-    	}
-      if($('#researchProjectName').val().includes(" ")){
-    		console.log("researchProjectName contains ; entered");
-    		$('#researchProjectName').closest('.form-group').addClass('required-missing');
-    		window.setTimeout(function() { alert(txt.noSpacesName); }, 100);
-    		return false;
-    	}
+      // if($('#projectIdPrefix').val().includes(" ")){
+    	// 	console.log("projectIdPrefix contains ; entered");
+    	// 	$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
+    	// 	window.setTimeout(function() { alert(txt.noSpacesId); }, 100);
+    	// 	return false;
+    	// }
+      // if($('#researchProjectName').val().includes(" ")){
+    	// 	console.log("researchProjectName contains ; entered");
+    	// 	$('#researchProjectName').closest('.form-group').addClass('required-missing');
+    	// 	window.setTimeout(function() { alert(txt.noSpacesName); }, 100);
+    	// 	return false;
+    	// }
       if($('#projectIdPrefix').val().includes("\'")){
     		console.log("projectIdPrefix contains ; entered");
     		$('#projectIdPrefix').closest('.form-group').addClass('required-missing');
