@@ -273,6 +273,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
               String kwParam=behaviors[kwIter].replaceAll("%20", " ").trim();
+              kwParam = kwParam.replace("\"", "&quot;");
               if(!kwParam.equals("")){
                 if(locIDFilter.equals("(")){
                   locIDFilter+=" behavior == \""+kwParam+"\"";
