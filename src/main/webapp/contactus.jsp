@@ -21,7 +21,7 @@
      
 <p><strong>For more information, contact us:</strong></p>
 
-<p><a href="mailto: info@africancarnivore.wildbook.org">info@africancarnivore.wildbook.org </a></p>
+<p><a href="mailto: info@tech4conservation.org">info@tech4conservation.org</a></p>
 
 <h3>BPCT</h3>
 
