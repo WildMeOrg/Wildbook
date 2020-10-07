@@ -53,6 +53,10 @@
 <jsp:include page="../footer.jsp" flush="true"/>
 
 <script>
+let txt = getText("editProject.properties");
+let updateStatus = false;
+let globalProj = null;
+console.log("updateStatus is now: " + updateStatus);
 
 function showEditProject() {
     let ownerId = '<%=currentUser.getId()%>';
@@ -74,6 +78,7 @@ function doProjectGetAjax(json){
       success: function(data) {
           populateHtml(data.projects[0]);
           populateOrRefreshUserListHTML(data.projects[0].users);
+          globalProj = data.projects[0]; //I tried passing it in populateHtml to updateProject, but kept getting unexpected identifier errors -MF
           addHTMLListeners();
       },
       error: function(x,y,z) {
@@ -187,6 +192,8 @@ function updateProject() {
   }
   requestJSON['id'] = '<%=projId%>';
   requestJSONArr.push(requestJSON);
+  updateStatus = true;
+  console.log("updateStatus is now: " + updateStatus);
   doProjectUpdateAjax({"projects": requestJSONArr });
 }
 
@@ -201,7 +208,19 @@ function deleteProject(el) {
 }
 
 function returnToProject() {
-  window.location.replace('/projects/project.jsp?id='+'<%=projId%>');
+  if(globalProj){
+    if(updateStatus == false && ($('#researchProjectName').val()!==globalProj.researchProjectName || $('#projectIdPrefix').val()!== globalProj.projectIdPrefix || userIdsToRemove.length>0 || userIdsToAdd.length>0)){
+      //TODO and they haven't clicked on the update project before clicking this, then warn them they haven't updated yet
+      // updateStatus = false;
+      let confirmed = confirm(txt.notUpdatedYet);
+      if (confirmed) {
+        window.location.replace('/projects/project.jsp?id='+'<%=projId%>');
+      }
+    }
+    else{
+      window.location.replace('/projects/project.jsp?id='+'<%=projId%>');
+    }
+  }
 }
 
 function doDeleteAjax(json){
