@@ -126,7 +126,7 @@ public class ProjectGet extends HttpServlet {
                 String individualId = individualIdObj.optString("indId", null);
                 if (Util.isUUID(individualId) && Util.stringExists(projectIdPrefix)) {
                   JSONObject individualData = new JSONObject();
-                  individualData.put("projectId", projectIdPrefix);
+                  individualData.put("projectIdPrefix", projectIdPrefix);
                   Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
                   String projName = project.getResearchProjectName();
                   String projUuid = project.getId();

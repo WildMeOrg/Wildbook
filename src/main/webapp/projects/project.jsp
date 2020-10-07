@@ -138,25 +138,25 @@ var txt = getText("project.properties");
 let projIdPrefix = '';
 let countOfIncrementalIdRowPopulated = 0;
 
-function markNewIncremental(individualId, projectId, encounterId){
+function markNewIncremental(individualId, projectIdPrefix, encounterId){
   disableNewButton(encounterId);
   $('#adding-div_' + encounterId).show();
-  if(individualId && projectId && encounterId){
-    addIncrementalProjectIdAjax(individualId, projectId, encounterId);
+  if(individualId && projectIdPrefix && encounterId){
+    addIncrementalProjectIdAjax(individualId, projectIdPrefix, encounterId);
   }
 }
 
-function createIndividualAndMarkNewIncremental(encounterId, projectId){
+function createIndividualAndMarkNewIncremental(encounterId, projectIdPrefix){
   disableNewButton(encounterId);
   $('#adding-div_' + encounterId).show();
-  if(projectId && encounterId){
-    createMarkedIndividualAjax(projectId, encounterId);
+  if(projectIdPrefix && encounterId){
+    createMarkedIndividualAjax(projectIdPrefix, encounterId);
   }
 }
 
-function createMarkedIndividualAjax(projectId, encounterId){
+function createMarkedIndividualAjax(projectIdPrefix, encounterId){
   let formJson = {};
-  formJson["projectId"] = projectId;
+  formJson["projectIdPrefix"] = projectIdPrefix;
   formJson["encounterId"] = encounterId;
   $.ajax({
     url: wildbookGlobals.baseUrl + '../IndividualCreateForProject',
@@ -168,7 +168,7 @@ function createMarkedIndividualAjax(projectId, encounterId){
       if(data){
         if(data.success){
           let newIndividualId = data.newIndividualId;
-          addIncrementalProjectIdAjax(newIndividualId, projectId, encounterId);
+          addIncrementalProjectIdAjax(newIndividualId, projectIdPrefix, encounterId);
         }else{
           $('#alert-div-warn_'+encounterId).show();
         }
@@ -180,9 +180,9 @@ function createMarkedIndividualAjax(projectId, encounterId){
   });
 }
 
-function addIncrementalProjectIdAjax(individualId, projectId, encounterId){
+function addIncrementalProjectIdAjax(individualId, projectIdPrefix, encounterId){
   let formJson = {};
-  formJson["projectIdPrefix"] = projectId;
+  formJson["projectIdPrefix"] = projectIdPrefix;
   formJson["individualId"] = individualId;
   $.ajax({
     url: wildbookGlobals.baseUrl + '../IndividualAddIncrementalProjectId',
