@@ -441,11 +441,15 @@ function removeEncounterFromProjectAjax(el) {
       dataType: 'json',
       contentType: 'application/json',
       success: function(d) {
-        console.log("date from success remove encounter action: "+JSON.stringify(d));
-        encRow.remove();
+        console.log("data from success remove encounter action: "+JSON.stringify(d));
+        if (d.success==true&&d.modified==true) {
+          encRow.remove();
+        } else {
+          encRow.find(".deleteMessage").text(txt.unauthorized);
+        }
       },
       error: function(x,y,z) {
-          console.log("date from error remove encounter action: "+JSON.stringify(d));
+          console.log("data from error remove encounter action: "+JSON.stringify(d));
           console.warn('%o %o %o', x, y, z);
           encRow.find(".deleteMessage").text(txt.error);
       }
