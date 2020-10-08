@@ -74,7 +74,7 @@ public class ProjectUpdate extends HttpServlet {
                             encountersToAddJSONArr = removeUnauthorizedEncounters(encountersToAddJSONArr, myShepherd, request);
                             if (canAddEncounters&&encountersToAddJSONArr!=null&&encountersToAddJSONArr.length()>0) {
                                 System.out.println("Authorized to add and encounters exist. Adding or removing encounters from project.... ");
-                                addOrRemoveEncountersFromProject(project, myShepherd, encountersToAddJSONArr, "add", res);
+                                addOrRemoveEncountersFromProject(project, myShepherd, encountersToAddJSONArr, "add", res, request);
                             }
 
                             boolean canUpdate = isUserAuthorizedToUpdateProject(project, myShepherd, request);
@@ -116,7 +116,7 @@ public class ProjectUpdate extends HttpServlet {
                                 encountersToRemoveJSONArr = removeUnauthorizedEncounters(encountersToRemoveJSONArr,myShepherd, request);
                                 if (encountersToRemoveJSONArr!=null&&encountersToRemoveJSONArr.length()>0) {
                                     System.out.println("this should not happen for mark encountersToRemoveJSONArr");
-                                    addOrRemoveEncountersFromProject(project, myShepherd, encountersToRemoveJSONArr, "remove", res);
+                                    addOrRemoveEncountersFromProject(project, myShepherd, encountersToRemoveJSONArr, "remove", res, request);
                                 }
 
                                 JSONArray usersToAddJSONArr = projectJSON.optJSONArray("usersToAdd");
@@ -162,7 +162,6 @@ public class ProjectUpdate extends HttpServlet {
             myShepherd.closeDBTransaction();
             out.println(res);
         }
-
     }
 
     private void addOrRemoveUsersFromProject(Project project, Shepherd myShepherd, JSONArray usersToAddJSONArr, String action, JSONObject res) {
@@ -205,7 +204,7 @@ public class ProjectUpdate extends HttpServlet {
       return filteredResults;
     }
 
-    private void addOrRemoveEncountersFromProject(Project project, Shepherd myShepherd, JSONArray encountersToAddJSONArr, String action, JSONObject res) {
+    private void addOrRemoveEncountersFromProject(Project project, Shepherd myShepherd, JSONArray encountersToAddJSONArr, String action, JSONObject res, HttpServletRequest request) {
         System.out.println("addOrRemoveEncountersFromProject entered");
         int additionCounter = 0;
         int removalCounnter = 0;
@@ -215,10 +214,20 @@ public class ProjectUpdate extends HttpServlet {
                 Encounter enc = myShepherd.getEncounter(encId);
                 if (enc!=null) {
                     if ("add".equals(action) && !project.getEncounters().contains(enc)) { //need project.getEncounters().contains(enc) check to ensure additionCounter returns the correct number of added encounters
-                        System.out.println("adding encounter " + encId);
+                        String comment = "<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "added this encounter to Project " + project.getResearchProjectName() + "</p>";
+                        enc.addComments(comment);
                         project.addEncounter(enc);
+                        myShepherd.updateDBTransaction();
                         additionCounter ++;
                     } else if ("remove".equals(action)) {
+                        String comment = "<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "removed this encounter from Project " + project.getResearchProjectName() + "</p>";
+                        enc.addComments(comment);
+                        MarkedIndividual currentIndividual = enc.getIndividual();
+                        if(currentIndividual!= null){
+                          comment = "<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "removed this individual from Project " + project.getResearchProjectName() + "</p>";
+                          currentIndividual.addComments(comment);
+                        }
+                        myShepherd.updateDBTransaction();
                         project.removeEncounter(enc);
                         removalCounnter ++;
                     }
@@ -227,6 +236,7 @@ public class ProjectUpdate extends HttpServlet {
                 e.printStackTrace();
             }
         }
+        System.out.println("got to updateDBTransaction in addOrRemoveEncountersFromProject");
         myShepherd.updateDBTransaction();
         res.put("modified",true);
         res.put("success",true);
