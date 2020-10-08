@@ -2664,7 +2664,7 @@
     <url-pattern>/AddOccToTrack</url-pattern>
   </servlet-mapping>
 
-        <servlet>
+  <servlet>
     <servlet-name>AnnotationSetMatchAgainst</servlet-name>
     <servlet-class>org.ecocean.servlet.AnnotationSetMatchAgainst</servlet-class>
   </servlet>
@@ -2674,7 +2674,7 @@
     <url-pattern>/AnnotationSetMatchAgainst</url-pattern>
   </servlet-mapping>
 
-          <servlet>
+  <servlet>
     <servlet-name>ImportTaskDetection</servlet-name>
     <servlet-class>org.ecocean.servlet.ImportTaskDetection</servlet-class>
   </servlet>
@@ -2692,6 +2692,16 @@
   <servlet-mapping>
     <servlet-name>DeleteImportTask</servlet-name>
     <url-pattern>/DeleteImportTask</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>GetCurrentIAInfo</servlet-name>
+    <servlet-class>org.ecocean.servlet.GetCurrentIAInfo</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>GetCurrentIAInfo</servlet-name>
+    <url-pattern>/GetCurrentIAInfo</url-pattern>
   </servlet-mapping>
 
 </web-app>
