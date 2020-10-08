@@ -42,19 +42,6 @@
   projectProps=ShepherdProperties.getProperties("project.properties", langCode, context);
 
 %>
-<style type="text/css">
-  .disabled-btn { /* moving this to _encounter-pages.less AND moving that beneath buttons custom import in manta.less did not work. */
-    background:#62676d30;
-    border:0;
-    color:#fff;
-    line-height:2em;
-    padding:7px 13px;
-    font-weight:300;
-    vertical-align:middle;
-    margin-right:10px;
-    margin-top:15px
-  }
-</style>
 
 <jsp:include page="../header.jsp" flush="true"/>
   <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
@@ -287,8 +274,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   let allProjectIds = json.allProjectIds;
 
   let projectHTML = '';
-  projectHTML += '<tr id="enc-'+encounterId+'" class="encounterRow">';
-  projectHTML +=  '<td class="project-style"><span class="glyphicon glyphicon-remove remove-ob-x" onclick="removeEncounterFromProject(this)" title="remove encounter from project"></span><span class="deleteMessage text-danger"></span></td>';
+  projectHTML += '<tr id="enc-'+encounterId+'" class="encounterRow">'
   projectHTML +=  '<td class="project-style"><a target="_new" href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
   projectHTML +=  '<td class="project-style"><a target="_new" href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+'</a></td>';
   projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
@@ -307,23 +293,47 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
       doAjaxForIncrementalId(incrementalIdJsonRequest, encounters, currentEncounterIndex);
     }
   }
+  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
   projectHTML +=  '</td>';
   projectHTML +=  '<td class="project-style">';
-  projectHTML +=  '<input id="encId-'+encounterId+'" class="startMatchButton" onclick="startMatchForEncounter(this)" value ="Start Match" type="button" />';
-  projectHTML +=  '</br>';
 
-  // grr.. not worth an AJAX call for just this. one more key and i'm doin it though -CK
-  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
+  //upper row action
+  projectHTML +=  '<div class="row">';
+  projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
+              // add JS check for ia availability              
+  projectHTML +=  '     <button id="encId-'+encounterId+'" class="startMatchButton proj-action-btn" onclick="startMatchForEncounter(this)">'+txt.startMatch+'</button>';
+  projectHTML +=  '     </br>';                
+  projectHTML +=  '   </div>';
+  //currently inactive visit results button
+  projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
+  projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton disabled-btn proj-action-btn" onclick="visitIAResults(this)">'+txt.iaResults+'</button>';
+  projectHTML +=  '     </br>';                
+  projectHTML +=  '   </div>';
+  projectHTML +=  '</div>';
+  //end upper action row
 
+  //lower row action
+  projectHTML += '<div class="row">';  
+  projectHTML += '   <div class="col-sm-6 col-md-6 col-lg-6">';
+      
   if(!hasNameKeyMatchingProject){
     if (individualDisplayName!=null&&individualDisplayName!="") {
-      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+projectIdPrefix+'\', \''+encounterId+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
-      projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;">Mark New</button>';
+      projectHTML += '  <button class="proj-action-btn" id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+projectIdPrefix+'\', \''+encounterId+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
+      projectHTML += '  <button class="disabled-btn proj-action-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;"><%= projectProps.getProperty("MarkNew")%></button>';
     } else {
-      projectHTML += '<button id="mark-new-button_'+encounterId+'" type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+projectIdPrefix+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
-      projectHTML += '<button class="disabled-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;"><%= projectProps.getProperty("MarkNew")%></button>';
+      projectHTML += '  <button class="proj-action-btn" id="mark-new-button_'+encounterId+'" type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+projectIdPrefix+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
+      projectHTML += '  <button class="disabled-btn proj-action-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;"><%= projectProps.getProperty("MarkNew")%></button>';
     }
-  }
+  }    
+  projectHTML += '   </div>';
+
+  projectHTML += '   <div class="col-sm-6 col-md-6 col-lg-6">';
+  projectHTML += '    <button class="btn-warn proj-action-btn" onclick="removeEncounterFromProject(this)" title="remove encounter from project">'+txt.remove+'</button>'; 
+  projectHTML += '    <span class="deleteMessage text-danger"></span>';
+  projectHTML += '   </div>';
+  projectHTML += '</div>'; 
+  //end lower action row  
+
   projectHTML += '<div id="adding-div_'+encounterId+'" class="alert alert-info" role="alert" style="display: none;"><%= projectProps.getProperty("AssingingIndividualToProjWait")%></div>';
   projectHTML += '<div id="alert-div_'+encounterId+'" class="alert alert-success" role="alert" style="display: none;">';
   projectHTML += '<button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
