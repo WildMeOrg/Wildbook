@@ -217,7 +217,7 @@ table.compareZone tr th {
         conflictingProjs.push(projName);
         conflictingProjOwners.push(projOwner);
       }
-      projectIdHtml += '<select name="' + projId + '" id="proj-confirm-dropdown-' + projName + '" class="form-control">';
+      projectIdHtml += '<select name="' + projId + '" data-id="proj-confirm-dropdown-' + projName + '" class="form-control">';
       for(let i=0; i<incrementalIds.length; i++){
         if(i==0){
           projectIdHtml += '<option name="incremental-id-option" value="'+ incrementalIds[i].projectIncrementalId +'" selected>'+ incrementalIds[i].projectIncrementalId +'</option>';
@@ -226,25 +226,25 @@ table.compareZone tr th {
         }
       }
       projectIdHtml += '</td>';
-      $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
+      $('[data-id="current-proj-id-display-' + projName + '"]').closest("tr").append(projectIdHtml);
     } else{
       if(incrementalIds && incrementalIds.length>0 && (incrementalIds[0].projectIncrementalId !== "" || incrementalIds[1].projectIncrementalId !== "")){ //one incremental ID is missing
         //populate with the one incremental ID and don't give them a choice about it, but give it the IDs and names required to still fetch this value upon form submission
-        projectIdHtml += '<span name="' + projId + '" id="proj-confirm-dropdown-' + projName + '">';
+        projectIdHtml += '<span name="' + projId + '" data-id="proj-confirm-dropdown-' + projName + '">';
         let betterVal = betterValWithTieBreaker(incrementalIds[0].projectIncrementalId, incrementalIds[1].projectIncrementalId);
         projectIdHtml += betterVal;
         projectIdHtml += '</span>'
         projectIdHtml += '</td>';
         projectIdHtml += '<td>';
-        $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
+        $('[data-id="current-proj-id-display-' + projName + '"]').closest("tr").append(projectIdHtml);
       }else{
         //populate with no incremental IDs, but give it the IDs and names required to still fetch this value upon form submission
-        projectIdHtml += '<span name="' + projId + '" id="proj-confirm-dropdown-' + projName + '">';
+        projectIdHtml += '<span name="' + projId + '" data-id="proj-confirm-dropdown-' + projName + '">';
         projectIdHtml += '<%= props.getProperty("NoIncrementalId") %>';
         projectIdHtml += '</span>'
         projectIdHtml += '</td>';
         projectIdHtml += '<td>';
-        $("#current-proj-id-display-" + projName).closest("tr").append(projectIdHtml);
+        $('[data-id="current-proj-id-display-' + projName + '"]').closest("tr").append(projectIdHtml);
       }
     }
   }
@@ -297,9 +297,9 @@ table.compareZone tr th {
     let projectIdHtml = '';
     if(projectNames.length>0){
       for(let i =0; i<projectNames.length; i++){
-        projectIdHtml += '<tr class="row projectId check_for_diff" id="project-id-table-row-' + projectNames[i] + '">';
+        projectIdHtml += '<tr class="row projectId check_for_diff" data-id="project-id-table-row-' + projectNames[i] + '">';
         projectIdHtml += '<th><%= props.getProperty("ProjectId") %>';
-        projectIdHtml += '<span id="current-proj-id-display-' + projectNames[i] + '"><em> ' + projectNames[i] + '</em></span>';
+        projectIdHtml += '<span data-id="current-proj-id-display-' + projectNames[i] + '"><em> ' + projectNames[i] + '</em></span>';
         projectIdHtml += '</th>';
         projectIdHtml += '</tr>';
       }
@@ -491,7 +491,7 @@ table.compareZone tr th {
             //It's because they match
             taxonomy = '<%= Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep()) %>';
           }
-          let projIdElems = $('[id^=proj-confirm-dropdown-]');
+          let projIdElems = $('[data-id^=proj-confirm-dropdown-]');
           let projIdConsolidated = '';
           let desiredIncrementalIdConsolidated = '';
           let deprecatedIncrementIdConsolidated = '';
