@@ -492,9 +492,6 @@ table.compareZone tr th {
             taxonomy = '<%= Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep()) %>';
           }
           let projIdElems = $('[data-id^=proj-confirm-dropdown-]');
-          console.log("projIdElems");
-          console.log(projIdElems);
-          debugger;
           let projIdConsolidated = '';
           let desiredIncrementalIdConsolidated = '';
           let deprecatedIncrementIdConsolidated = '';
