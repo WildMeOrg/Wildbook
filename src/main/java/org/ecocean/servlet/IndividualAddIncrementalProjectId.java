@@ -55,16 +55,19 @@ public class IndividualAddIncrementalProjectId extends HttpServlet {
                 if (individual!=null) {
 
                     individual.addIncrementalProjectId(project);
-                    myShepherd.updateDBTransaction();
+
                     if (individual.hasNameKey(projectIdPrefix)) {
                         String newProjectIdForIndividual = individual.getName(projectIdPrefix);
                         res.put("success",true);
                         res.put("newProjectIdForIndividual", newProjectIdForIndividual);
+                        System.out.println("adding comment in IndividualAddIncrementalProjectId");
+                        individual.addComments("<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "added incremental ID " + newProjectIdForIndividual + " to this individual</p>");
                     } else {
                         addErrorMessage(res, "the projectIdPrefix was not successfully added to "+individualId+", but no exception was thrown");
                         res.put("success",false);
                         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     }
+                    myShepherd.updateDBTransaction();
                 } else {
                     addErrorMessage(res, "invalid individual Id");
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

@@ -73,9 +73,9 @@ table.compareZone tr th {
     doAjaxForProjectIndividuals(requestJsonForIndividualsProjects);
 	});
 
-  function callForIncrementalIdsAndPopulate(projId, numProjects){
+  function callForIncrementalIdsAndPopulate(projIdPrefix, numProjects){
     let incrementalIdJsonRequest = {};
-    incrementalIdJsonRequest['projectIdPrefix'] = projId;
+    incrementalIdJsonRequest['projectIdPrefix'] = projIdPrefix;
     incrementalIdJsonRequest['individualIds'] = [];
     <% for (MarkedIndividual ind: inds) {%>
       incrementalIdJsonRequest['individualIds'].push({indId: "<%= ind.getIndividualID()%>"});
@@ -95,7 +95,7 @@ table.compareZone tr th {
             incrementalIdResults = data.incrementalIdArr;
             projectNameResults = data.projects;
             if(incrementalIdResults && incrementalIdResults.length>0){
-              populateProjectIdRow(incrementalIdResults, incrementalIdResults[0].projectName, incrementalIdResults[0].projectUuid, incrementalIdResults[0].projectId, incrementalIdResults[0].projectOwner);
+              populateProjectIdRow(incrementalIdResults, incrementalIdResults[0].projectName, incrementalIdResults[0].projectUuid, incrementalIdResults[0].projectIdPrefix, incrementalIdResults[0].projectOwner);
               countOfIncrementalIdRowPopulated ++;
               if(countOfIncrementalIdRowPopulated == numProjects){
                 //everything is populated! Now check whether user's projects include conflicting projs

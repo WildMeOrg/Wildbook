@@ -53,6 +53,9 @@
 <jsp:include page="../footer.jsp" flush="true"/>
 
 <script>
+let txt = getText("editProject.properties");
+let updateStatus = false;
+let globalProj = null;
 
 function showEditProject() {
     let ownerId = '<%=currentUser.getId()%>';
@@ -74,6 +77,7 @@ function doProjectGetAjax(json){
       success: function(data) {
           populateHtml(data.projects[0]);
           populateOrRefreshUserListHTML(data.projects[0].users);
+          globalProj = data.projects[0]; //I tried passing it in populateHtml to updateProject, but kept getting unexpected identifier errors -MF
           addHTMLListeners();
       },
       error: function(x,y,z) {
@@ -187,6 +191,7 @@ function updateProject() {
   }
   requestJSON['id'] = '<%=projId%>';
   requestJSONArr.push(requestJSON);
+  updateStatus = true;
   doProjectUpdateAjax({"projects": requestJSONArr });
 }
 
@@ -201,7 +206,18 @@ function deleteProject(el) {
 }
 
 function returnToProject() {
-  window.location.replace('/projects/project.jsp?id='+'<%=projId%>');
+  if(globalProj){
+    if(updateStatus==false && ($('#researchProjectName').val()!==globalProj.researchProjectName || $('#projectIdPrefix').val()!== globalProj.projectIdPrefix || userIdsToRemove.length>0 || userIdsToAdd.length>0)){
+      let confirmed = confirm(txt.notUpdatedYet);
+      updateStatus = false;
+      if (confirmed) {
+        window.location.replace('/projects/project.jsp?id='+'<%=projId%>');
+      }
+    }
+    else{
+      window.location.replace('/projects/project.jsp?id='+'<%=projId%>');
+    }
+  }
 }
 
 function doDeleteAjax(json){
@@ -255,6 +271,7 @@ function removeUserFromProject(el) {
     userIdsToRemove.push(idToRemove);
     $(el).closest(".projectEditUserEl").remove();
     $("#actionResultMessage").text('<%=props.getProperty("clickUpdate")%>');
+    updateStatus = false;
   }
 }
 
@@ -304,7 +321,7 @@ function addHTMLListeners() {
             alreadyParticipant.push($(this).attr('id'));
             console.log(" adding "+$(this).attr('id'));
       });
-      console.log("alreaady participating : "+JSON.stringify(alreadyParticipant));
+      console.log("already participating : "+JSON.stringify(alreadyParticipant));
 
 
 
@@ -312,6 +329,7 @@ function addHTMLListeners() {
         appendNewUser(selectedUserId, selectedUserStr);
         userIdsToAdd.push(selectedUserId);
         $("#actionResultMessage").text('<%=props.getProperty("clickUpdateUsers")%>');
+        updateStatus = false;
       } else {
         $("#actionResultMessage").text('<%=props.getProperty("alreadyParticipatingError")%>');
       }

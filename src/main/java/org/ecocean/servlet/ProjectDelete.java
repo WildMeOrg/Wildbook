@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONException;
+import java.util.*;
 
 import java.io.*;
 
@@ -53,6 +54,19 @@ public class ProjectDelete extends HttpServlet {
             if (projectIdPrefix!=null&&!"".equals(projectIdPrefix)&&myShepherd.getProjectByProjectIdPrefix(projectIdPrefix)!=null) {
 
                 Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
+                List<Encounter> encounters = project.getEncounters();
+                List<MarkedIndividual> individuals = new ArrayList<MarkedIndividual>();
+                for(Encounter enc: encounters){
+                  String comment = "<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "removed this encounter from Project " + project.getResearchProjectName() + "</p>";
+                  enc.addComments(comment);
+                  MarkedIndividual currentIndividual = enc.getIndividual();
+                  if(currentIndividual!= null && !individuals.contains(currentIndividual)){
+                    comment = "<p><em>" + myShepherd.getUsername(request) + " on " + (new java.util.Date()).toString() + "</em><br>" + "removed this individual from Project " + project.getResearchProjectName() + "</p>";
+                    currentIndividual.addComments(comment);
+                    individuals.add(currentIndividual);
+                  }
+                  myShepherd.updateDBTransaction();
+                }
                 project.clearAllEncounters();
                 myShepherd.throwAwayProject(project);
                 myShepherd.updateDBTransaction();
