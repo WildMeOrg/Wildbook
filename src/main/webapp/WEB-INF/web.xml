@@ -159,7 +159,7 @@
        /AddSurveyTrackToSurvey = authc, roles[researcher]
 
 		   /ImportSRGD = authc, roles[admin]
-		        /IndividualCreate = authc, roles[researcher]
+
 		        /OccurrenceCreate = authc, roles[researcher]
 		        /OccurrenceRemoveEncounter = authc, roles[researcher]
 		        /IndividualRemoveEncounter = authc, roles[researcher]
@@ -212,7 +212,7 @@
 				   /TissueSampleSetMeasurement = authc, roles[researcher]
 				  /TissueSampleRemoveHaplotype = authc, roles[researcher]
 				   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
-					/IndividualCreate = authc, roles[researcher]
+
 				        /OccurrenceCreate = authc, roles[researcher]
 				        /OccurrenceRemoveEncounter = authc, roles[researcher]
 				        /IndividualRemoveEncounter = authc, roles[researcher]
@@ -309,6 +309,8 @@
 					/consolidateDuplicateUsers.jsp = authc, roles[admin]
 					/myUsers.jsp = authc, roles[researcher]
 
+        /UserGetNotifications = authc
+
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
@@ -403,6 +405,8 @@
 
 				/MergeIndividual = authc, roles[researcher]
 
+        /ScheduledIndividualMergeUpdate = authc, roles[researcher]
+
 				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
 
 				/merge.jsp = authc, roles[researcher]
@@ -418,6 +422,10 @@
 				/encounters/manualAnnotation.jsp = authc, roles[researcher]
 
 				/ImportTaskDetection = authc, roles[admin]
+
+				/imports.jsp = authc
+
+				/DeleteImportTask = authc, roles[researcher]
 
             </param-value>
         </init-param>
@@ -448,6 +456,12 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
+
+  <servlet>
+    <servlet-class>org.ecocean.servlet.TranslationsGet</servlet-class>
+    <servlet-name>TranslationsGet</servlet-name>
+  </servlet>
+
 
   <servlet>
     <servlet-name>EncounterRemoveUser</servlet-name>
@@ -634,6 +648,10 @@
       <servlet-class>org.ecocean.servlet.UserResetAcceptedUserAgreement</servlet-class>
   </servlet>
 
+  <servlet>
+      <servlet-name>UserGetNotifications</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserGetNotifications</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
@@ -700,6 +718,11 @@
    <servlet>
     <servlet-name>MergeIndividual</servlet-name>
     <servlet-class>org.ecocean.servlet.MergeIndividual</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ScheduledIndividualMergeUpdate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ScheduledIndividualMergeUpdate</servlet-class>
   </servlet>
 
     <servlet>
@@ -1060,10 +1083,7 @@
         <servlet-class>org.ecocean.servlet.export.CRCExportReport</servlet-class>
   </servlet>
 
-  <servlet>
-    <servlet-name>IndividualCreate</servlet-name>
-    <servlet-class>org.ecocean.servlet.IndividualCreate</servlet-class>
-  </servlet>
+
 
 
     <servlet>
@@ -1110,6 +1130,11 @@
   <servlet-mapping>
     <servlet-name>UserGetSimpleJSON</servlet-name>
     <url-pattern>/UserGetSimpleJSON</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>UserGetNotifications</servlet-name>
+    <url-pattern>/UserGetNotifications</url-pattern>
   </servlet-mapping>
 
       <servlet>
@@ -1601,6 +1626,11 @@
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
   </servlet>
 
+  <servlet-mapping>
+    <url-pattern>/TranslationsGet</url-pattern>
+    <servlet-name>TranslationsGet</servlet-name>
+  </servlet-mapping>
+
   <!--SUTime testing-->
         <servlet>
         <servlet-name>SUTimeServlet</servlet-name>
@@ -1875,10 +1905,7 @@
     <url-pattern>/IndividualAddComment</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>IndividualCreate</servlet-name>
-    <url-pattern>/IndividualCreate</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>EncounterForm</servlet-name>
@@ -1888,6 +1915,11 @@
   <servlet-mapping>
     <servlet-name>MergeIndividual</servlet-name>
     <url-pattern>/MergeIndividual</url-pattern>
+  </servlet-mapping>
+
+    <servlet-mapping>
+    <servlet-name>ScheduledIndividualMergeUpdate</servlet-name>
+    <url-pattern>/ScheduledIndividualMergeUpdate</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -2576,6 +2608,16 @@
   <servlet-mapping>
     <servlet-name>ImportTaskDetection</servlet-name>
     <url-pattern>/ImportTaskDetection</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>DeleteImportTask</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.DeleteImportTask</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>DeleteImportTask</servlet-name>
+    <url-pattern>/DeleteImportTask</url-pattern>
   </servlet-mapping>
 
 </web-app>

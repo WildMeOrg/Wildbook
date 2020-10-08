@@ -29,7 +29,7 @@
              java.util.ArrayList,
              java.util.List,
              java.util.Properties,
-             org.apache.commons.lang.WordUtils,
+             org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration
               "
@@ -96,14 +96,14 @@ finally{
     <head>
 
       <!-- Global site tag (gtag.js) - Google Analytics -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-13"></script>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-12"></script>
 
       <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
 
-        gtag('config', 'UA-30944767-13');
+        gtag('config', 'UA-30944767-12');
       </script>
 
       <title><%=pageTitle%></title>
@@ -163,8 +163,12 @@ finally{
       }
       %>
       
+
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
+      <script type="text/javascript"  src="<%=urlLoc %>/javascript/translator.js"></script>
+
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/notifications.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
@@ -506,15 +510,17 @@ finally{
                                   <li class="divider"></li>
                                 <% } %>
                                 <li><a target="_blank" href="http://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <% if(CommonConfiguration.isCatalogEditable(context)) { %>
-                                  <li class="divider"></li>
-                                  <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                                  <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
-                                <%
-                                }
+                                <% 
 
                             } //end if admin
+                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) { %>
+                            	<li class="divider"></li>
+                            	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                            	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                           	<%
+                           
+                           
+                          	}
                             %>
                             <li class="dropdown">
                               <ul class="dropdown-menu" role="menu">

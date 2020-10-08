@@ -1018,7 +1018,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
         if (someEnc!=null) {
             for (Annotation ann : sibs) {
                 // TODO lets make this better at handling part designation
-                if (ann.getIAClass().equals(this.getIAClass())) {break;}
+                if ((ann.getIAClass()==null||this.getIAClass()==null)||ann.getIAClass().equals(this.getIAClass())) {break;}
                 // if these two intersect and have a different detected class they are allowed to reside on the same encounter
                 if (this.intersects(ann)) {
                     someEnc.addAnnotation(this);
@@ -1034,7 +1034,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc = new Encounter(this);
         } else {  //copy some stuff from sibling
             try {
-                newEnc = someEnc.cloneWithoutAnnotations();
+                newEnc = someEnc.cloneWithoutAnnotations(myShepherd);
                 newEnc.addAnnotation(this);
                 newEnc.setDWCDateAdded();
                 newEnc.setDWCDateLastModified();
@@ -1106,14 +1106,17 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         return mediaAsset.toHtmlElement(request, myShepherd, this);
     }
 */
-
     public Annotation revertToTrivial(Shepherd myShepherd) throws IOException {
+        return this.revertToTrivial(myShepherd, false);
+    }
+
+    public Annotation revertToTrivial(Shepherd myShepherd, boolean force) throws IOException {
         if (this.isTrivial()) throw new IOException("Already a trivial Annotation: " + this);
         Encounter enc = this.findEncounter(myShepherd);
         if (enc == null) throw new IOException("Unable to find corresponding Encounter for " + this);
         MediaAsset ma = this.getMediaAsset();
         if (ma == null) throw new IOException("Unable to find corresponding MediaAsset for " + this);
-        if ((ma.getFeatures() != null) && (ma.getFeatures().size() > 1)) throw new IOException("Sibling Annotations detected on " + ma + "; cannot revert to trivial " + this);
+        if (!force && (ma.getFeatures() != null) && (ma.getFeatures().size() > 1)) throw new IOException("Sibling Annotations detected on " + ma + "; cannot revert to trivial " + this);
         Annotation triv = new Annotation(this.species, ma);  //not going to set IAClass or anything since starting fresh
         enc.removeAnnotation(this);
         this.setMatchAgainst(false);
