@@ -87,7 +87,6 @@
                     <table class="row project-style">
                       <thead>
                         <tr>
-                          <th class="project-style"><%= projectProps.getProperty("DeleteEncounterHeader")%></th>
                           <th class="project-style"><%= projectProps.getProperty("EncounterTableHeader")%></th>
                           <th class="project-style"><%= projectProps.getProperty("IndividualTableHeader")%></th>
                           <th class="project-style"><%= projectProps.getProperty("DateTimeTableHeader")%></th>
