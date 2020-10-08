@@ -129,25 +129,19 @@ public class MergeIndividual extends HttpServlet {
         mark1.mergeAndThrowawayIndividual(mark2, currentUsername, myShepherd);
         if (sex != null) mark1.setSex(sex);
         if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
-        if(desiredIncrementalIdArr.size()>0 && deprecatedIncrementIdsArr.size()==desiredIncrementalIdArr.size() && deprecatedIncrementIdsArr.size()==projIdsArr.size()){
+        boolean incrementalIdAndProjectIdListsAreTheSameSize = deprecatedIncrementIdsArr.size()==desiredIncrementalIdArr.size() && deprecatedIncrementIdsArr.size()==projIdsArr.size(); //assumes parallel syntax structure between these lists as well, although that is not strictly checked or enforced here (but hopefully ensured elsewhere)
+        if(desiredIncrementalIdArr.size()>0 && incrementalIdAndProjectIdListsAreTheSameSize){
             for (int i=0; i<desiredIncrementalIdArr.size(); i++){
-              System.out.println("got into the id changing for loop");
               if(!deprecatedIncrementIdsArr.get(i).equals("_")){
-                //there is a deprecated incremental ID to be added to both individuals
-                System.out.println("adding deprecated increment ids");
+                //there is a deprecated incremental ID that we need to rename and add to both individuals
                 mark1.addName("Merged " + projIdsArr.get(i),deprecatedIncrementIdsArr.get(i));
-                // mark2.addName("Merged " + projIdsArr.get(i),deprecatedIncrementIdsArr.get(i));
               }
               if(desiredIncrementalIdArr.get(i).equals("_")){
-                //TODO flesh out? Do nothing currently, I think
+                //Do nothing currently, I think
               }else{
-                //TODO remove old name?
-                System.out.println("adding new increment ids and removing old ones with key: " + projIdsArr.get(i));
+                // remove old name
                 mark1.getNames().removeKey(projIdsArr.get(i));
                 mark1.addName(projIdsArr.get(i),desiredIncrementalIdArr.get(i));
-                System.out.println("mark1 is: ");
-                System.out.println(mark1.toString());
-                // mark2.addName(projIdsArr.get(i),desiredIncrementalIdArr.get(i));
               }
             }
         }
