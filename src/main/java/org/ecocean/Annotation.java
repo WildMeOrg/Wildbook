@@ -1106,14 +1106,17 @@ System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc)
         return mediaAsset.toHtmlElement(request, myShepherd, this);
     }
 */
-
     public Annotation revertToTrivial(Shepherd myShepherd) throws IOException {
+        return this.revertToTrivial(myShepherd, false);
+    }
+
+    public Annotation revertToTrivial(Shepherd myShepherd, boolean force) throws IOException {
         if (this.isTrivial()) throw new IOException("Already a trivial Annotation: " + this);
         Encounter enc = this.findEncounter(myShepherd);
         if (enc == null) throw new IOException("Unable to find corresponding Encounter for " + this);
         MediaAsset ma = this.getMediaAsset();
         if (ma == null) throw new IOException("Unable to find corresponding MediaAsset for " + this);
-        if ((ma.getFeatures() != null) && (ma.getFeatures().size() > 1)) throw new IOException("Sibling Annotations detected on " + ma + "; cannot revert to trivial " + this);
+        if (!force && (ma.getFeatures() != null) && (ma.getFeatures().size() > 1)) throw new IOException("Sibling Annotations detected on " + ma + "; cannot revert to trivial " + this);
         Annotation triv = new Annotation(this.species, ma);  //not going to set IAClass or anything since starting fresh
         enc.removeAnnotation(this);
         this.setMatchAgainst(false);
