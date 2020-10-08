@@ -307,7 +307,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   projectHTML +=  '   </div>';
   //currently inactive visit results button
   projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
-  projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton disabled-btn proj-action-btn" onclick="visitIAResults(this)">'+txt.iaResults+'</button>';
+  projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton disabled-btn proj-action-btn" onclick="openIaResultsOptions(this)">'+txt.iaResults+'</button>';
   projectHTML +=  '     </br>';                
   projectHTML +=  '   </div>';
   projectHTML +=  '</div>';
@@ -449,10 +449,46 @@ function removeEncounterFromProjectAjax(el) {
         }
       },
       error: function(x,y,z) {
-          console.log("data from error remove encounter action: "+JSON.stringify(d));
           console.warn('%o %o %o', x, y, z);
           encRow.find(".deleteMessage").text(txt.error);
       }
+  });
+}
+
+function visitIAResults(el) {
+  //location change
+}
+
+function generateIALinkingPopup(json) {
+  // popup HTML generation
+}
+
+function openIaResultsOptions(el) {
+  let annotIAJSON = getIAInfoForEncounterData(el);
+  //gotta generate popup in ajax to avoid async errors
+}
+
+function getIAInfoForEncounterData(el) {
+  let requestJSON = {};
+  requestJSON['action'] = 'getIAInfoForEncounter';
+  let encRow = $(el).closest('.encounterRow');
+  let encId = encRow.attr('id').replace('enc-', '');
+  requestJSON['encounterId'] = encId;
+  console.log("getting IA info with requestJSON = "+JSON.stringify(requestJSON));
+  $.ajax({
+    url: wildbookGlobals.baseUrl + '../GetCurrentIAInfo',
+    type: 'POST',
+    data: JSON.stringify(requestJSON),
+    dataType: 'json',
+    contentType: 'application/json',
+    success: function(d) {
+      console.log("what is the response from GetCurrentIAInfo? : "+JSON.stringify(d));
+      generateIALinkingPopup(d.IAInfo);
+    },
+    error: function(x,y,z) {
+        conole.log('error getting some ia options!');
+        console.warn('%o %o %o', x, y, z);
+    }
   });
 }
 
