@@ -38,8 +38,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.ObjectUtils.Null;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
@@ -53,7 +51,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.amazonaws.services.route53.model.GetGeoLocationRequest;
+//import com.amazonaws.services.route53.model.GetGeoLocationRequest;
 
 public class StandardImport extends HttpServlet {
 
@@ -512,8 +510,11 @@ public class StandardImport extends HttpServlet {
       
     }
 
-
-
+    //close out our workbook cleanly, releasing resources.
+    try {
+      wb.close();
+    }
+    catch(Exception closer) {closer.printStackTrace();}
     //fs.close();
 
 
@@ -1691,7 +1692,26 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
   	String nickname = getString(row, "MarkedIndividual.nickname");
     if (nickname==null) nickname = getString(row, "MarkedIndividual.nickName");
   	if (nickname!=null) mark.setNickName(nickname);
-
+  	
+  	//let's support importing name labels from columns
+  	//MarkedIndividual.nameX.label and MarkedIndividual.nameX.value
+  	int t=0;
+  	while(getStringOrInt(row,"MarkedIndividual.name"+t+".label")!=null && getStringOrInt(row,"MarkedIndividual.name"+t+".value")!=null && !getStringOrInt(row,"MarkedIndividual.name"+t+".value").trim().equals("")) {
+  	  
+  	  String label=getStringOrInt(row,"MarkedIndividual.name"+t+".label").trim();
+  	  String value=getStringOrInt(row,"MarkedIndividual.name"+t+".value").trim();
+  	  if(mark.getName(label)!=null) {
+        mark.getNames().removeValuesByKey(label, mark.getName(label));
+        mark.addName(label, value);
+  	  }
+  	  else {
+        mark.addName(label, value);
+  	  }
+  	  mark.refreshNamesCache();
+  	  t++;
+  	}
+  	
+  	
   	return mark;
 
   }

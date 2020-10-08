@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.json.JSONObject, org.json.JSONArray,  org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 
 
@@ -28,9 +28,9 @@
     int numOccurrences=0;
 
 
-    Vector<Occurrence> rIndividuals = new Vector<Occurrence>();
+    Vector<Occurrence> rOccurrences = new Vector<Occurrence>();
     String order ="";
-    String indsJson="";
+    String occsJson="";
     String prettyPrint="";
     String jdoqlRep="";
     
@@ -44,23 +44,32 @@
     	jdoqlRep=result.getJDOQLRepresentation();
     	
     	prettyPrint=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")));
-    	rIndividuals = result.getResult();
+    	rOccurrences = result.getResult();
 
 		// viewOnly=true arg means this hiddenData relates to viewing the summary results
-		HiddenOccReporter hiddenData = new HiddenOccReporter(rIndividuals, request, true,myShepherd);
-		rIndividuals = hiddenData.viewableResults(rIndividuals, true,myShepherd);
+		HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request, true,myShepherd);
+		rOccurrences = hiddenData.viewableResults(rOccurrences, true,myShepherd);
 
 	
 	   Vector histories = new Vector();
-	    int rIndividualsSize=rIndividuals.size();
+	    int rOccurrencesSize=rOccurrences.size();
 
 	    int count = 0;
 	    int numNewlyMarked = 0;
 
 
 		JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
-		indsJson = jsonobj.toString();
+
+		// this had none of the data. none of these columns were ever populated. come. on.
+		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rOccurrences, jdopm.getExecutionContext());
+
+		JSONArray jsonobj = new JSONArray();
+		for (Occurrence occ : rOccurrences) {
+			JSONObject occObject = occ.getJSONSummary();
+			jsonobj.put(occObject);
+		}
+
+		occsJson = jsonobj.toString();
 
     }
     catch(Exception e){
@@ -186,7 +195,7 @@
 </style>
 <script type="text/javascript">
 
-var searchResults = <%=indsJson%>;
+var searchResults = <%=occsJson%>;
 
 /*
 var testColumns = {
@@ -215,7 +224,8 @@ $(document).keydown(function(k) {
 
 // functor!
 function _notUndefined(fieldName) {
-  function _helperFunc(o) {	
+  function _helperFunc(o) {
+	console.log("the fucking 'o' variable: "+JSON.stringify(o));  	
     if (o[fieldName] == undefined) return '';
     return o[fieldName];
   }
@@ -232,8 +242,8 @@ function _notZero(fieldName) {
 function _species(o) {
 	var taxonomies = o['taxonomies'];
 	console.log("occ "+o['occurrenceID']+" taxonomies "+taxonomies);
-	if (o['taxonomies']==null || o['taxonomies'].length==0 || o['taxonomies'][0]['scientificName']==undefined) return '';
-	return o['taxonomies'][0]['scientificName'];
+	if (o['taxonomies']==null || o['taxonomies'].length==0 || o['taxonomies']==undefined) return '';
+	return o['taxonomies'];
 }
 function _date(o) {
 	var millis = o['dateTimeLong'];
@@ -246,20 +256,7 @@ function _date(o) {
 
 
 var colDefn = [
-/*
-	{
-		key: 'rowNum',
-		label: '#',
-		value: _colRowNum,
-	},
 
-  {
-    key: 'imageSet',
-    label: '<%=occProps.getProperty("imageSet")%>',
-    value: _notUndefined('imageSet'),
-  },
-  
-*/
  
   {
     key: 'ID',
@@ -282,60 +279,22 @@ var colDefn = [
     value: _species,
   },
   {
+    key: 'locationIds',
+    label: '<%=occProps.getProperty("locationIds")%>',
+    value: _notUndefined('locationIds'),
+  },
+  {
+    key: 'encounterCount',
+    label: '<%=occProps.getProperty("encounterCount")%>',
+    value: _notUndefined('encounterCount'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+  },
+  {
     key: 'individualCount',
     label: '<%=occProps.getProperty("individualCount")%>',
     value: _notUndefined('individualCount'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },
-  {
-		key: 'decimalLatitude',
-		label: '<%=occProps.getProperty("latitude")%>',
-    value: _notZero('decimalLatitude'),
-    sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-  {
-		key: 'decimalLongitude',
-		label: '<%=occProps.getProperty("longitude")%>',
-    value: _notZero('decimalLongitude'),
-    sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-  {
-    key: 'effortCode',
-    label: '<%=occProps.getProperty("effort")%>',
-    value: _notUndefined('effortCode'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
-  },
-
-  /*
-  {
-    key: 'individualCount',
-    label: 'Encounters',
-    value: _notUndefined('individualCount'),
-    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
-  },
-	{
-		key: 'individual',
-		label: '<%=props.getProperty("markedIndividual")%>',
-		value: _colIndividual,
-		sortValue: function(o) { return o.individualID.toLowerCase(); },
-		//sortFunction: function(a,b) {},
-	},
-
-	{
-		key: 'maxYearsBetweenResightings',
-		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-	{
-		key: 'sex',
-		label: '<%=props.getProperty("sex")%>',//'Sex',
-	},
-	{
-		key: 'numberLocations',
-		label: '<%=props.getProperty("numLocationsSighted")%>',
-		value: _colNumberLocations,
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	}*/
 
 ];
 
@@ -497,31 +456,7 @@ function show() {
 
 function computeCounts() {
 	counts.total = sTable.matchesFilter.length;
-	return;  //none of the below applies here! (cruft from encounters for prosperity)
-	counts.unid = 0;
-	counts.ided = 0;
-	counts.dailydup = 0;
-	var uniq = {};
-
-	for (var i = 0 ; i < counts.total ; i++) {
-		console.log('>>>>> what up? %o', searchResults[sTable.matchesFilter[i]]);
-		var iid = searchResults[sTable.matchesFilter[i]].individualID;
-		if (iid == 'Unassigned') {
-			counts.unid++;
-		} else {
-			var k = iid + ':' + searchResults[sTable.matchesFilter[i]].get('year') + ':' + searchResults[sTable.matchesFilter[i]].get('month') + ':' + searchResults[sTable.matchesFilter[i]].get('day');
-			if (!uniq[k]) {
-				uniq[k] = true;
-				counts.ided++;
-			} else {
-				counts.dailydup++;
-			}
-		}
-	}
-/*
-	var k = Object.keys(uniq);
-	counts.ided = k.length;
-*/
+	return;  
 }
 
 
