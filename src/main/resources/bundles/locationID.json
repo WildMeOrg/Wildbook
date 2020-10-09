@@ -76,14 +76,11 @@
 
 
 
-{ "name":"WA-Bremer Bay", "id":"WA-Bremer Bay", "locationID":[
+{ "name":"WA-Bremer Bay", "id":"WA-Bremer Bay", "locationID":[] },
 
-	{ "name":"Back Beach Bommie", "id":"Back Beach Bommie", "locationID":[] },
+	{ "name":"WA-Bremer Bay- Back Beach Bommie", "id":"WA-Bremer Bay- Back Beach Bommie", "locationID":[] },
 
-	{ "name":"Little Boat Harbour Bay", "id":"Little Boat Harbour Bay", "locationID":[] }
-
-] },
-
+	{ "name":"WA-Bremer Bay- Little Boat Harbour Bay", "id":"Little Boat Harbour Bay", "locationID":[] },
 
 
 { "name":"WA-Canal Rocks", "id":"WA-Canal Rocks", "locationID":[] },
