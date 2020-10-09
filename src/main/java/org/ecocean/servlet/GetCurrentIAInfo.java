@@ -2,6 +2,7 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 import org.ecocean.ia.Task;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.MediaAsset;
 
 import javax.servlet.ServletConfig;
@@ -50,7 +51,7 @@ public class GetCurrentIAInfo extends HttpServlet {
         JSONObject res = new JSONObject();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
         String action = j.optString("action", null);
-
+        String onlyIdentifiable = j.optString("onlyIdentifiable", null);
         try {
             res.put("success","false");
             if ("getIAInfoForEncounter".equals(action)) {
@@ -61,6 +62,7 @@ public class GetCurrentIAInfo extends HttpServlet {
                     if (anns!=null&&!anns.isEmpty()) {
                         JSONArray resArr = new JSONArray();
                         for (Annotation ann : anns) {
+                            if ("true".equals(onlyIdentifiable)&&!IBEISIA.validForIdentification(ann, context)) continue; 
                             JSONObject annIAJSON = getIAJSONForAnnotation(myShepherd, ann);
                             resArr.put(annIAJSON);
                         }
