@@ -306,8 +306,8 @@
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
 					/UserConsolidate = authc, roles[admin]
-					/consolidateDuplicateUsers.jsp = authc, roles[admin]
-					/myUsers.jsp = authc, roles[researcher]
+					/appadmin/consolidateDuplicateUsers.jsp = authc, roles[admin]
+					/appadmin/myUsers.jsp = authc, roles[researcher]
 
         /UserGetNotifications = authc
 

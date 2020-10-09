@@ -27,6 +27,9 @@
  import org.ecocean.servlet.*;
  // import javax.jdo.Query;
  import javax.jdo.*;
+ import org.json.JSONArray;
+ import org.json.JSONObject;
+ import org.json.JSONException;
 
 public class UserConsolidate extends HttpServlet {
 
@@ -354,50 +357,102 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    //context=ServletUtilities.getContext(request);
-    //set up the user directory
-    //setup data dir
-    String rootWebappPath = getServletContext().getRealPath("/");
-    File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
-    // File usersDir=new File(shepherdDataDir.getAbsolutePath()+"/users");
-    // if(!usersDir.exists()){usersDir.mkdirs();}
-    //set up for response
-    response.setContentType("text/html");
-    PrintWriter out = response.getWriter();
-    // boolean createThisUser = false;
-    //String addedRoles="";
-    boolean isEdit=true;
-      String username=request.getUserPrincipal().getName();
-      String userNameToUse="";
-      if(request.getParameter("username-input")!=null){
-        userNameToUse=request.getParameter("username-input").trim();
-      }
-      Shepherd myShepherd = new Shepherd(context);
-      myShepherd.setAction("UserConsolidate.class");
-      User newUser=myShepherd.getUser(username);
-      if(newUser!=null){
-        myShepherd.beginDBTransaction();
-      //set password
-      if(!userNameToUse.trim().equals("") && userNameToUse != null){
-        manualConsolidateByUsername(myShepherd, userNameToUse);
-      }
-      myShepherd.commitDBTransaction();
-      myShepherd.closeDBTransaction();
-      myShepherd=null;
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Success:</strong> Records were consolidated under '" + userNameToUse + "'!");
-      out.println(ServletUtilities.getFooter(context));
+    boolean complete = false;
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+    response.setHeader("Access-Control-Allow-Origin", "*");
+    PrintWriter out = null;
+    try {
+        out = response.getWriter();
+    } catch (IOException ioe) {
+        ioe.printStackTrace();
     }
-    else{
-        myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure:</strong> Records were NOT consolidated.");
-        out.println(ServletUtilities.getFooter(context));
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    String context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("TranslationsGet.java");
+    myShepherd.beginDBTransaction();
+    JSONObject returnJson = new JSONObject();
+    JSONArray userJsonArr = new JSONArray();
+    JSONObject jsonRes = ServletUtilities.jsonFromHttpServletRequest(request);
+    try{
+      String userName = jsonRes.optString("username", null);
+      // String langCode=ServletUtilities.getLanguageCode(request);
+      if(Util.stringExists(userName)){
+        System.out.println("userName is: " + userName);
+        User currentUser = myShepherd.getUser(userName);
+        List<User> similarUsers = getSimilarUsers(currentUser, myShepherd.getPM());
+        if(similarUsers != null){
+          if(similarUsers.size()>0){
+            for(int j=0; j<similarUsers.size(); j++){
+              JSONObject currentUserJson = new JSONObject();
+              currentUserJson.put("uuid",similarUsers.get(j).getUUID());
+              currentUserJson.put("username", similarUsers.get(j).getUsername());
+              currentUserJson.put("fullname", similarUsers.get(j).getFullName());
+              currentUserJson.put("email",similarUsers.get(j).getEmailAddress());
+              userJsonArr.put(currentUserJson);
+            }
+            returnJson.put("success",true);
+            returnJson.put("users", userJsonArr);
+          }
+        }
+        // if(!Util.stringExists(langCode)){
+        //   langCode = "en";
+        // }
+        out.println(returnJson);
+        out.close();
       }
-    out.close();
+    }catch (NullPointerException npe) {
+        npe.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: NullPointerException npe while getting translations.");
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    } catch (JSONException je) {
+        je.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: JSONException je while getting translations.");
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    } catch (Exception e) {
+        e.printStackTrace();
+        addErrorMessage(returnJson, "UserConsolidate: Exception e while getting translations.");
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    } finally {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        if (out!=null) {
+            out.println(returnJson);
+            out.close();
+        }
+    }
+    //   String username=request.getUserPrincipal().getName();
+    //   String userNameToUse="";
+    //   if(request.getParameter("username-input")!=null){
+    //     userNameToUse=request.getParameter("username-input").trim();
+    //   }
+    //   // Shepherd myShepherd = new Shepherd(context);
+    //   myShepherd.setAction("UserConsolidate.class");
+    //   User newUser=myShepherd.getUser(username);
+    //   if(newUser!=null){
+    //     myShepherd.beginDBTransaction();
+    //   //set password
+    //   if(!userNameToUse.trim().equals("") && userNameToUse != null){
+    //     manualConsolidateByUsername(myShepherd, userNameToUse);
+    //   }
+    //   myShepherd.commitDBTransaction();
+    //   myShepherd.closeDBTransaction();
+    //   myShepherd=null;
+    //   out.println(ServletUtilities.getHeader(request));
+    //   out.println("<strong>Success:</strong> Records were consolidated under '" + userNameToUse + "'!");
+    //   out.println(ServletUtilities.getFooter(context));
+    // }
+    // else{
+    //     myShepherd.closeDBTransaction();
+    //     out.println(ServletUtilities.getHeader(request));
+    //     out.println("<strong>Failure:</strong> Records were NOT consolidated.");
+    //     out.println(ServletUtilities.getFooter(context));
+    //     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    //   }
+    // out.close();
+  }
+
+  private void addErrorMessage(JSONObject res, String error) {
+        res.put("error", error);
   }
 }
