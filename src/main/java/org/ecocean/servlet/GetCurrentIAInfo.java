@@ -10,8 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.amazonaws.util.json.JSONArray;
-
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 import java.util.*;

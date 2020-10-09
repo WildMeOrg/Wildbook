@@ -275,7 +275,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   let allProjectIds = json.allProjectIds;
 
   let projectHTML = '';
-  projectHTML += '<tr id="enc-'+encounterId+'" class="encounterRow">'
+  projectHTML += '<tr id="enc-'+encounterId+'" class="encounterRow">';
   projectHTML +=  '<td class="project-style"><a target="_new" href="../encounters/encounter.jsp?number='+encounterId+'">'+encounterId+'</a></td>';
   projectHTML +=  '<td class="project-style"><a target="_new" href="../individuals.jsp?id='+individualUUID+'">'+individualDisplayName+'</a></td>';
   projectHTML +=  '<td class="project-style">'+encounterDate+' </td>';
@@ -337,15 +337,23 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
 
   projectHTML += '<div id="adding-div_'+encounterId+'" class="alert alert-info" role="alert" style="display: none;"><%= projectProps.getProperty("AssingingIndividualToProjWait")%></div>';
   projectHTML += '<div id="alert-div_'+encounterId+'" class="alert alert-success" role="alert" style="display: none;">';
-  projectHTML += '<button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-  projectHTML += '<strong><%= projectProps.getProperty("Success")%></strong><%= projectProps.getProperty("IdAdded")%>';
+  projectHTML += '  <button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+  projectHTML += '  <strong><%= projectProps.getProperty("Success")%></strong><%= projectProps.getProperty("IdAdded")%>';
   projectHTML += '</div>';
   projectHTML += '<div id="alert-div-warn_'+encounterId+'" class="alert alert-danger" role="alert" style="display: none;">';
-  projectHTML += '<button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-  projectHTML += '<%= projectProps.getProperty("IdNotAdded")%>';
+  projectHTML += '  <button type="button" class="close" onclick="dismissAlert(\''+encounterId+'\')" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
+  projectHTML += '  <%= projectProps.getProperty("IdNotAdded")%>';
   projectHTML += '</div>';
-  projectHTML +=  '</td>';
+  projectHTML += '</td>';
   projectHTML += '</tr>';
+
+  projectHTML += '<tr id="iaResultsMenu-'+encounterId+'" class="iaResultsMenuRow" style="display: none;">';
+  projectHTML += '  <td colspan="999" class="project-style">';
+  projectHTML += '    <div class="iaResultsMenuContent" ></div>';
+  projectHTML += '  </td>';
+  projectHTML += '</tr>';
+
+
   countOfIncrementalIdRowPopulated ++;
   if(countOfIncrementalIdRowPopulated == encounters.length){
     //everything is populated! -MF
@@ -455,17 +463,48 @@ function removeEncounterFromProjectAjax(el) {
   });
 }
 
-function visitIAResults(el) {
-  //location change
-}
-
-function generateIALinkingPopup(json) {
-  // popup HTML generation
+function generateIALinkingMenu(json, encId) {
+  let menuRow = $("#iaResultsMenu-"+encId);
+  let menuContentDiv = menuRow.find('.iaResultsMenuContent');
+  let content = '';  
+  if (json) {
+    for (i=0;i<json.length;i++) {
+      let annData = json[0];
+      content += '<div id="annIA-'+annData.id+'" class="row projIaOption">';
+      content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
+      content += '    <p>ID: '+annData.id+'</p>';
+      content += '    <p>'+txt.iaClass+' '+annData.iaClass+'</p>';
+      content += '    <p>'+txt.latestResults+'<a href="../iaResults.jsp?taskId='+annData.lastTaskId+'">'+annData.lastTaskId+'</a></p>';  
+      content += '  </div>';
+      content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
+      content += '    <p><img src="'+annData.assetWebURL+'" width="125px" height="*"/></p>';
+      content += '  </div>';
+      content += '</div>';
+    }
+  } else {
+    content += '<div>';
+      content += '  <p>'+txt.noResults+'</p>';
+    content += '</div>';
+  }
+  menuContentDiv.empty();
+  menuContentDiv.append(content);
+  menuRow.removeClass('hidden');
 }
 
 function openIaResultsOptions(el) {
-  let annotIAJSON = getIAInfoForEncounterData(el);
-  //gotta generate popup in ajax to avoid async errors
+  let encRow = $(el).closest('.encounterRow');
+  let encId = encRow.attr('id').replace('enc-', '');
+  let menuRow = $('#iaResultsMenu-'+encId);
+  if (isHidden(menuRow)) {
+    getIAInfoForEncounterData(el);
+    menuRow.slideDown(1000);
+  } else {
+    menuRow.slideUp(1000);
+  }
+}
+
+function isHidden(el) {
+  return $(el).css('display') == 'none';
 }
 
 function getIAInfoForEncounterData(el) {
@@ -483,7 +522,7 @@ function getIAInfoForEncounterData(el) {
     contentType: 'application/json',
     success: function(d) {
       console.log("what is the response from GetCurrentIAInfo? : "+JSON.stringify(d));
-      generateIALinkingPopup(d.IAInfo);
+      generateIALinkingMenu(d.IAInfo, encId);
     },
     error: function(x,y,z) {
         conole.log('error getting some ia options!');
