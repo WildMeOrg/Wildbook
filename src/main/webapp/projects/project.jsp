@@ -473,10 +473,10 @@ function generateIALinkingMenu(json, encId) {
 
       // lets flag some bad detection states 
 
-      let needsIaClass = false;
-      let iaClassEl = '<p>'+txt.iaClass+': <span style="color:white;background-color:darkred;">'+txt.none+'</span></p>';
-      if (annData.iaClass==''||annData.iaClass=='undefined'||annData==undefined) {
-        needsIaClass = true;
+      let needsIaClass = true;
+      let iaClassEl = '<p>'+txt.iaClass+': <span style="color:white;background-color:darkred;"> '+txt.none+' </span></p>';
+      if (annData.iaClass!=''||annData.iaClass!='undefined'||annData!=undefined) {
+        needsIaClass = false;
         iaClassEl = '<p>'+txt.iaClass+': '+annData.iaClass+'</p>';
       }
 
