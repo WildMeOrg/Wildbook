@@ -1207,6 +1207,19 @@ public class Util {
 System.out.println("dt=" + dt + " | tzString=" + tzString + " => " + ZonedDateTime.ofInstant(instant, ZoneId.of(tzString)));
         return ZonedDateTime.ofInstant(instant, ZoneId.of(tzString));
     }
+    //meant to be iso8601 going in, but it might (!) work on other things?
+    public static ZonedDateTime asZonedDateTime(String iso8601) {
+        return ZonedDateTime.parse(iso8601);
+    }
+
+    // h/t  https://stackoverflow.com/a/37335420
+    public static DateTime asDateTime(ZonedDateTime zdt) {
+        if (zdt == null) return null;
+        return new DateTime(
+            zdt.toInstant().toEpochMilli(),
+            org.joda.time.DateTimeZone.forTimeZone(java.util.TimeZone.getTimeZone(zdt.getZone()))
+        );
+    }
 
     //these are for debugging/timing purposes
     public static void mark(String msg) {

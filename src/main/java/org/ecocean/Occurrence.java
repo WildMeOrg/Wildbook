@@ -186,11 +186,19 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     public void setStartTime(DateTime dt) {
         startTime = dt;
     }
+    public void setStartTime(ZonedDateTime zdt) {  //note: this will also set timeZone !!
+        startTime = Util.asDateTime(zdt);
+        if ((zdt != null) && (zdt.getZone() != null)) timeZone = zdt.getZone().toString();
+    }
     public ZonedDateTime getStartTime() {
         return Util.asZonedDateTime(this.startTime, this.getTimeZone());
     }
     public void setEndTime(DateTime dt) {
         endTime = dt;
+    }
+    public void setEndTime(ZonedDateTime zdt) {  //note: this will also set timeZone !!
+        endTime = Util.asDateTime(zdt);
+        if ((zdt != null) && (zdt.getZone() != null)) timeZone = zdt.getZone().toString();
     }
     public ZonedDateTime getEndTime() {
         return Util.asZonedDateTime(this.endTime, this.getTimeZone());
