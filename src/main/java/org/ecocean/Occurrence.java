@@ -104,7 +104,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   // while convenience string-only methods with noun "Species"
   private List<Taxonomy> taxonomies;
     private String source;  //this is for SpotterConserveIO mostly but...
-    private List<ExternalSubmission> submissions;
+    private List<ExternalSubmission> submissions;   //note: these may go away in favor of:
+    private List<SubmissionContentReference> submissionContentReferences;
 
   // do we have these?
 
@@ -297,6 +298,16 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     public void setSubmissions(List<ExternalSubmission> subs) {
         submissions = subs;
+    }
+    public List<SubmissionContentReference> getSubmissionContentReferences() {
+        return submissionContentReferences;
+    }
+    public void setSubmissionContentReferences(List<SubmissionContentReference> scrs) {
+        submissionContentReferences = scrs;
+    }
+    public void addSubmissionContentReference(SubmissionContentReference scr) {
+        if (submissionContentReferences == null) submissionContentReferences = new ArrayList<SubmissionContentReference>();
+        submissionContentReferences.add(scr);
     }
 
   public void setAssets(List<MediaAsset> assets) {
@@ -1245,13 +1256,48 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       return jobj;
   }
 
+
+    /*
+        primary (only?) use is to create a NEW OCCURRENCE from an api POST.  however, it may reference sub-objects which may or MAY NOT
+        yet exists (e.g. linked Encounters); as such, it is not *purely* a creative process.
+
+        note also that this is passed a shepherd (for sub-objects), but *does not* persist the new object.
+    */
     public static Occurrence fromApiJSONObject(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         if (jsonIn == null) throw new IOException("passed null json");
-        if (jsonIn.optString("id", null) != null) throw new IOException("passing id value not allowed");  //TODO not sure how i feel about this
+        if (jsonIn.optString("id", null) != null) throw new IOException("passing id value not allowed");  //i think this will be our standard
         Occurrence occ = new Occurrence();
         occ.setId(Util.generateUUID());
         occ.trySetting(myShepherd, jsonIn.optJSONObject("customFields"));
         occ.setFromJSONObject("bearing", Double.class, jsonIn);
+
+        org.json.JSONArray jencs = jsonIn.optJSONArray("encounters");
+        if (jencs != null) {
+            for (int i = 0 ; i < jencs.length() ; i++) {
+                org.json.JSONObject jenc = jencs.optJSONObject(i);
+                if (jenc == null) throw new IOException("invalid JSONObject at offset=" + i);
+                String id = jenc.optString("id", null);  //if we have one, assume lookup; otherwise, try to create new
+                Encounter enc = null;
+                if (id == null) {
+                    enc = Encounter.fromApiJSONObject(myShepherd, jenc);
+                    //if (enc == null) throw new IOException("failed to make Encounter from " + jenc);  //or maybe try/catch this call above?
+                } else {
+                    enc = myShepherd.getEncounter(id);
+                    if (enc == null) throw new IOException("failed to load Encounter with id=" + id);
+                }
+                occ.addEncounter(enc);
+            }
+        }
+
+        org.json.JSONArray jscrs = jsonIn.optJSONArray("submissionContentReferences");
+        if (jscrs != null) {
+            for (int i = 0 ; i < jscrs.length() ; i++) {
+                org.json.JSONObject jscr = jscrs.optJSONObject(i);
+                if (jscr == null) throw new IOException("invalid JSONObject at offset=" + i);
+                occ.addSubmissionContentReference(new SubmissionContentReference(jscr));
+            }
+        }
+
         occ.setDWCDateLastModified();
         occ.setDateTimeCreated();
         occ.setVersion();
@@ -1303,6 +1349,14 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
         //if expand is null, we bail
         if (expand == null) return obj;
+
+        if (!Util.collectionIsEmptyOrNull(this.submissionContentReferences)) {
+            org.json.JSONArray jarr = new org.json.JSONArray();
+            for (SubmissionContentReference scr : this.submissionContentReferences) {
+                jarr.put(scr.getParameters());
+            }
+            obj.put("submissionContentReferences", jarr);
+        }
 
         obj.put("distance", getDistance());
         obj.put("bearing", getBearing());

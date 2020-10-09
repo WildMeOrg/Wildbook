@@ -1008,6 +1008,11 @@
 		</field>
 	</class>
 
+	<class name="SubmissionContentReference" identity-type="datastore">
+		<field name="parametersAsString">
+			<column jdbc-type="LONGVARCHAR" />
+		</field>
+	</class>
 
   </package>
 </jdo>
