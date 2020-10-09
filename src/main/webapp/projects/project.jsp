@@ -301,11 +301,11 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   //upper row action
   projectHTML +=  '<div class="row">';
   projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
-              // add JS check for ia availability              
+              // add JS check for ia availability onload            
   projectHTML +=  '     <button id="encId-'+encounterId+'" class="startMatchButton proj-action-btn" onclick="startMatchForEncounter(this)">'+txt.startMatch+'</button>';
   projectHTML +=  '     </br>';                
   projectHTML +=  '   </div>';
-  //currently inactive visit results button
+              // add JS check for exisitng results onload
   projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
   projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton disabled-btn proj-action-btn" onclick="openIaResultsOptions(this)">'+txt.iaResults+'</button>';
   projectHTML +=  '     </br>';                
@@ -469,15 +469,20 @@ function generateIALinkingMenu(json, encId) {
   let content = '';  
   if (json) {
     for (i=0;i<json.length;i++) {
-      let annData = json[0];
+      let annData = json[i];
+
+      // lets get finer grained with how we present detection/ID states
+
       content += '<div id="annIA-'+annData.id+'" class="row projIaOption">';
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
       content += '    <p>ID: '+annData.id+'</p>';
-      content += '    <p>'+txt.iaClass+' '+annData.iaClass+'</p>';
-      content += '    <p>'+txt.latestResults+'<a href="../iaResults.jsp?taskId='+annData.lastTaskId+'">'+annData.lastTaskId+'</a></p>';  
+      content += '    <p>'+txt.iaClass+': '+annData.iaClass+'</p>';
+      content += "    <p>"+txt.identificationStatus+": "+annData.identificationStatus+"</p>";
+      content += '    <p>'+txt.detectionStatus+': '+annData.assetDetectionStatus+'</p>';
+      content += '    <p>'+txt.latestResults+': <a href="../iaResults.jsp?taskId='+annData.lastTaskId+'">'+annData.lastTaskId+'</a></p>';  
       content += '  </div>';
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
-      content += '    <p><img src="'+annData.assetWebURL+'" width="125px" height="*"/></p>';
+      content += '    <p><img src="'+annData.assetWebURL+'" width="175px" height="*"/></p>';
       content += '  </div>';
       content += '</div>';
     }
@@ -495,11 +500,15 @@ function openIaResultsOptions(el) {
   let encRow = $(el).closest('.encounterRow');
   let encId = encRow.attr('id').replace('enc-', '');
   let menuRow = $('#iaResultsMenu-'+encId);
+
+
   if (isHidden(menuRow)) {
+    $(el).html(txt.close);
     getIAInfoForEncounterData(el);
-    menuRow.slideDown(1000);
+    menuRow.show();
   } else {
-    menuRow.slideUp(1000);
+    $(el).html(txt.iaResults);
+    menuRow.hide();
   }
 }
 
@@ -513,7 +522,6 @@ function getIAInfoForEncounterData(el) {
   let encRow = $(el).closest('.encounterRow');
   let encId = encRow.attr('id').replace('enc-', '');
   requestJSON['encounterId'] = encId;
-  console.log("getting IA info with requestJSON = "+JSON.stringify(requestJSON));
   $.ajax({
     url: wildbookGlobals.baseUrl + '../GetCurrentIAInfo',
     type: 'POST',
