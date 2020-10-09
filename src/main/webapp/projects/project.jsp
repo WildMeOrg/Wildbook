@@ -305,9 +305,9 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   projectHTML +=  '     <button id="encId-'+encounterId+'" class="startMatchButton proj-action-btn" onclick="startMatchForEncounter(this)">'+txt.startMatch+'</button>';
   projectHTML +=  '     </br>';                
   projectHTML +=  '   </div>';
-              // add JS check for exisitng results onload
+              // add JS check for exisitng results onload (add .disabled-btn if appropriate)
   projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
-  projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton disabled-btn proj-action-btn" onclick="openIaResultsOptions(this)">'+txt.iaResults+'</button>';
+  projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton proj-action-btn" onclick="openIaResultsOptions(this)">'+txt.iaResults+'</button>';
   projectHTML +=  '     </br>';                
   projectHTML +=  '   </div>';
   projectHTML +=  '</div>';
@@ -482,7 +482,7 @@ function generateIALinkingMenu(json, encId) {
       content += '    <p>'+txt.latestResults+': <a href="../iaResults.jsp?taskId='+annData.lastTaskId+'">'+annData.lastTaskId+'</a></p>';  
       content += '  </div>';
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
-      content += '    <p><img src="'+annData.assetWebURL+'" width="175px" height="*"/></p>';
+      content += '    <p class="projIaAnnot"><img src="'+annData.assetWebURL+'" width="275px" height="*"/></p>';
       content += '  </div>';
       content += '</div>';
     }
@@ -519,6 +519,7 @@ function isHidden(el) {
 function getIAInfoForEncounterData(el) {
   let requestJSON = {};
   requestJSON['action'] = 'getIAInfoForEncounter';
+  requestJSON['onlyIdentifiable'] = 'true';
   let encRow = $(el).closest('.encounterRow');
   let encId = encRow.attr('id').replace('enc-', '');
   requestJSON['encounterId'] = encId;
