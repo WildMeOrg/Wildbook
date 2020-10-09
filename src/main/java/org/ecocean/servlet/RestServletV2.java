@@ -412,6 +412,7 @@ public class RestServletV2 extends ApiHttpServlet {
     private void handleConfiguration(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
         if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
         if (payload.optString("_queryString").equals("tree")) payload.put("tree", true);
+SystemLog.debug("RestServlet.handleConfiguration() instance={} payload={}", instanceId, payload);
         boolean definition = "configurationDefinition".equals(payload.optString("class"));
         payload.remove("class");
         payload.remove("_queryString");
@@ -426,6 +427,26 @@ public class RestServletV2 extends ApiHttpServlet {
         PrintWriter out = response.getWriter();
 
         String id = payload.optString("id", null);
+
+        /*
+            this is the case where we POST to a *single* configuration like:  configuration/foo.bar
+            we allow two cases here:
+                (1) if value is non-json (since we can only pass in json!), we look for _value key
+                (2) if that does not exist, we take entire payload as value
+        */
+        if ("POST".equals(request.getMethod()) && (id != null)) {
+            payload.remove("id");
+            JSONObject newPayload = new JSONObject();
+            if (payload.has("_value")) {
+                newPayload.put(id, payload.get("_value"));
+            } else {
+                newPayload.put(id, payload);
+            }
+            id = null;
+            payload = newPayload;
+            SystemLog.debug("RestServlet.handleConfiguration() instance={} POST single generated payload={}", instanceId, payload);
+        }
+
         if (id != null) {  //get value
             Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, id);
             JSONObject meta = conf.getMeta();

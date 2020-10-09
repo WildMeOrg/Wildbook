@@ -133,7 +133,9 @@ public class ConfigurationUtil {
     //NOTE!  call updateValueCache() or resetValueCache() after *successful* commit to db
     public static Configuration setConfigurationValue(Shepherd myShepherd, String id, Object value) throws ConfigurationException, DataDefinitionException {
         if (!idHasValidRoot(id)) throw new ConfigurationException("setConfigurationValue() passed invalid id=" + id);
+System.out.println("setConfigurationValue(" + id + ") value=" + value);
         Object cvalue = handleValue(id, value);
+System.out.println("setConfigurationValue(" + id + ") cvalue=" + cvalue);
         List<String> path = idPath(id);
         String root = path.remove(0);
         Configuration conf = new Configuration(id);  //this is our conf (for now just to check validity)
