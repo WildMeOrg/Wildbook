@@ -19,14 +19,15 @@ context=ServletUtilities.getContext(request);
 
 <div class="container maincontent">
 
-    <h2>User Agreement</h2>
+    <h2><%=props.getProperty("termsOfUse")%></h2>
 
     <hr/>
 
-    <embed src="cust/SeadragonSearch User Agreement.pdf" type="application/pdf" width="100%" height="1000px" />
+    <embed src="cust/20200813_ACW Terms of Use_FINAL3.pdf" type="application/pdf" width="100%" height="1000px" />
 
     <hr/>
 
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
+
