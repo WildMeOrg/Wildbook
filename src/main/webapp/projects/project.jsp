@@ -471,15 +471,34 @@ function generateIALinkingMenu(json, encId) {
     for (i=0;i<json.length;i++) {
       let annData = json[i];
 
-      // lets get finer grained with how we present detection/ID states
+      // lets flag some bad detection states 
+
+      let needsIaClass = false;
+      let iaClassEl = '<p>'+txt.iaClass+': <span style="color:white;background-color:darkred;">'+txt.none+'</span></p>';
+      if (annData.iaClass==''||annData.iaClass=='undefined'||annData==undefined) {
+        needsIaClass = true;
+        iaClassEl = '<p>'+txt.iaClass+': '+annData.iaClass+'</p>';
+      }
+
+      let needsDetection = false;
+      let detectionStatusEl = '<p>'+txt.detectionStatus+': '+annData.assetDetectionStatus+'</p>';
+      if (annData.assetDetectionStatus=='initiated'||annData.assetDetectionStatus=='error') {
+        needsDetection = true;
+        detectionStatusEl = '<p>'+txt.detectionStatus+': '+annData.assetDetectionStatus+' <span style="color:white;background-color:darkred;">'+txt.needDetection+'</span></p>'
+      }
+
+      let resultsLink = '<p>'+txt.latestResults+': <a href="../iaResults.jsp?taskId='+annData.lastTaskId+'">'+annData.lastTaskId+'</a></p>';
+      if (needsIaClass||needsDetection) {
+        resultsLink = '<p>'+txt.latestResults+': '+txt.noneAvailable+'</p>';
+      }
 
       content += '<div id="annIA-'+annData.id+'" class="row projIaOption">';
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
       content += '    <p>ID: '+annData.id+'</p>';
-      content += '    <p>'+txt.iaClass+': '+annData.iaClass+'</p>';
+      content += iaClassEl;
       content += "    <p>"+txt.identificationStatus+": "+annData.identificationStatus+"</p>";
-      content += '    <p>'+txt.detectionStatus+': '+annData.assetDetectionStatus+'</p>';
-      content += '    <p>'+txt.latestResults+': <a href="../iaResults.jsp?taskId='+annData.lastTaskId+'">'+annData.lastTaskId+'</a></p>';  
+      content += detectionStatusEl;
+      content += resultsLink;  
       content += '  </div>';
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
       content += '    <p class="projIaAnnot"><img src="'+annData.assetWebURL+'" width="275px" height="*"/></p>';
