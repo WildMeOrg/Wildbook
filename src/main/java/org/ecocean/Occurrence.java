@@ -8,9 +8,11 @@ import java.util.Vector;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Calendar;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.lang.reflect.Method;
+import java.time.ZonedDateTime;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
@@ -45,13 +47,28 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   private static final long serialVersionUID = -7545783883959073726L;
   //private String occurrenceID;
   private ArrayList<Encounter> encounters;
+
+    /*
+        this block begins reorganization of fields from Sighting Design meeting/document.
+    */
+
+    private List<Taxonomy> taxonomies;   //use for primary species
+    private String groupBehavior;  // aka overall behavior
+    private List<Instant> behaviors; //more structured than above  (unsure how this compares to above?  TODO)
+
+    //date/time related
+    // this can be manually set, otherwise can be derived from Encounters
+    private DateTime startTime;
+    private DateTime endTime;
+    private String timeZone;  //omg this is painful
+
+    // END Sighting Design list (remainder are pre-existing and misc)
+
   private List<MediaAsset> assets;
   private ArrayList<Observation> observations = new ArrayList<Observation>();
   // Old ID. Getters and setters now use ID from base class.
   //private String ID;
   private Integer individualCount;
-  private String groupBehavior;  // categorical
-  private List<Instant> behaviors; //more structured than above
   //additional comments added by researchers
   private String comments = "None";
   private String modified;
@@ -100,9 +117,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   private List<User> submitters;
   private List<User> informOthers;
 
-  // Convention: getters/setters for Taxonomy objects use noun "Taxonomy".
-  // while convenience string-only methods with noun "Species"
-  private List<Taxonomy> taxonomies;
     private String source;  //this is for SpotterConserveIO mostly but...
     private List<ExternalSubmission> submissions;   //note: these may go away in favor of:
     private List<SubmissionContentReference> submissionContentReferences;
@@ -162,6 +176,25 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     System.out.println("Created new occurrence with only ID" + occurrenceID);
   }
 
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+    public void setTimeZone(String tz) {
+        timeZone = tz;
+    }
+    public void setStartTime(DateTime dt) {
+        startTime = dt;
+    }
+    public ZonedDateTime getStartTime() {
+        return Util.asZonedDateTime(this.startTime, this.getTimeZone());
+    }
+    public void setEndTime(DateTime dt) {
+        endTime = dt;
+    }
+    public ZonedDateTime getEndTime() {
+        return Util.asZonedDateTime(this.endTime, this.getTimeZone());
+    }
 
   public boolean addEncounter(Encounter enc){
     if(encounters==null){encounters=new ArrayList<Encounter>();}
@@ -1330,6 +1363,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
+        obj.put("startTime", Util.asIso8601(this.startTime, this.timeZone));
+        obj.put("endTime", Util.asIso8601(this.endTime, this.timeZone));
 
         //we include encounters even if expand==null
         if (!Util.collectionIsEmptyOrNull(this.encounters)) {
