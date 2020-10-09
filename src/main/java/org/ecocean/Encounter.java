@@ -3887,6 +3887,17 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         }
     }
 
+    /*
+        primary (only?) use is to create a NEW ENCOUNTER from an api POST.  however, it may reference sub-objects which may or MAY NOT
+        yet exists; as such, it is not *purely* a creative process.
+
+        note also that this is passed a shepherd (for sub-objects), but *does not* persist the new object.
+    */
+    public static Encounter fromApiJSONObject(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        Encounter enc = new Encounter(false);
+        return enc;
+    }
+
     public org.json.JSONObject asApiJSONObject() {
         return asApiJSONObject(null);
     }
