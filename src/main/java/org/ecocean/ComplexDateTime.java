@@ -12,6 +12,7 @@ import java.time.ZoneId;
 public class ComplexDateTime implements java.io.Serializable {
     private String timeZone;
     private ZonedDateTime dateTime;
+    private ZonedDateTime adjustedCache = null;
 
     public ComplexDateTime() {
     }
@@ -30,13 +31,16 @@ public class ComplexDateTime implements java.io.Serializable {
         updateTimeZone();
     }
 
+/*
     public String getTimeZone() {
         return timeZone;
     }
     public void setTimeZone(String tz) {
         timeZone = tz;
-        updateFromTimeZone();  //when we adjust timezone, we must adjust dateTime to reflect this!
     }
+*/
+
+/*   lets not get the "raw" value here, cuz we need to rely on getZonedDateTime() below
     public ZonedDateTime getZonedDateTime() {
         return dateTime;
     }
@@ -44,35 +48,41 @@ public class ComplexDateTime implements java.io.Serializable {
         dateTime = zdt;
         updateTimeZone();
     }
+*/
     public void updateTimeZone() {  //set timeZone based on dateTime
         SystemLog.debug("updateTimeZone called with dateTime={}", dateTime);
-        if ((dateTime != null) && (dateTime.getZone() != null)) timeZone = dateTime.getZone().toString();
-    }
-
-    /*
-        this adjusts the dateTime to reflect a new timeZone value.  notably, it is called from setTimeZone(), which is also
-        used when we are read from db
-    */
-    public void updateFromTimeZone() {
-        SystemLog.debug("[1] updateFromTimeZone called with dateTime={} and timeZone={}", dateTime, timeZone);
-        if ((dateTime != null) && (timeZone != null)) {
-            dateTime = dateTime.withZoneSameInstant(ZoneId.of(timeZone));
-            SystemLog.debug("[2] updateFromTimeZone now set dateTime={}", dateTime);
+        if ((dateTime != null) && (dateTime.getZone() != null)) {
+            timeZone = dateTime.getZone().toString();
+            adjustedCache = null;
         }
     }
 
+/*
+    note due to the way this is persisted (and read back in from db) we need to apply this adjustment for the timezone!
+*/
+    public ZonedDateTime getZonedDateTime() {
+        SystemLog.debug("[1] getZonedDateTime() called with dateTime={} and timeZone={}", dateTime, timeZone);
+        if (adjustedCache != null) return adjustedCache;
+        if ((dateTime == null) && (timeZone == null)) return null;
+        adjustedCache = dateTime.withZoneSameInstant(ZoneId.of(timeZone));
+        SystemLog.debug("[2] getZonedDateTime() now set adjustedCache={}", adjustedCache);
+        return adjustedCache;
+    }
+
     public String toIso8601() {
-        if (dateTime == null) return null;
-        return dateTime.toOffsetDateTime().toString();
+        ZonedDateTime dt = getZonedDateTime();
+        if (dt == null) return null;
+        return dt.toOffsetDateTime().toString();
     }
     public String toString() { return toIso8601(); }
 
     // h/t  https://stackoverflow.com/a/37335420
     public org.joda.time.DateTime toDateTime() {
-        if (dateTime == null) return null;
+        ZonedDateTime dt = getZonedDateTime();
+        if (dt == null) return null;
         return new org.joda.time.DateTime(
-            dateTime.toInstant().toEpochMilli(),
-            org.joda.time.DateTimeZone.forTimeZone(java.util.TimeZone.getTimeZone(dateTime.getZone()))
+            dt.toInstant().toEpochMilli(),
+            org.joda.time.DateTimeZone.forTimeZone(java.util.TimeZone.getTimeZone(dt.getZone()))
         );
     }
 

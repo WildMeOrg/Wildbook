@@ -1005,7 +1005,7 @@
                 	<join />
             	</field>
 
-		<field name="members" persistent-modifier="persistent" mapped-by="organizations" default-fetch-group="true" >
+		<field name="members" persistence-modifier="persistent" mapped-by="organizations" default-fetch-group="true" >
 			<collection element-type="org.ecocean.User"/>
 			<join />
 		</field>
@@ -1019,8 +1019,8 @@
 
 	<class name="ComplexDateTime" identity-type="datastore">
 		<field name="dateTime" />
-		<!-- this is a property so that the getter/setter will be called to sync dateTime -->
-		<property name="timeZone" persistence-modifier="persistent" column="timeZone" />
+		<field name="timeZone" />
+		<field name="adjustedCache" persistence-modifier="none" />
 	</class>
 
   </package>
