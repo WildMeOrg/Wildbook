@@ -18,6 +18,7 @@ public class SystemLog {
 
     public static Class guessClass(Object... args) {
         for (Object a : args) {
+            if (a == null) continue;
             if (a.getClass().getPackage().getName().startsWith("org.ecocean")) return a.getClass();
         }
         return SystemLog.class;
