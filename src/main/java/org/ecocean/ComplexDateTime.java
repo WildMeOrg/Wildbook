@@ -108,13 +108,15 @@ public class ComplexDateTime implements java.io.Serializable {
         if (d2 == null) return false;
         if (!(d2 instanceof ComplexDateTime)) return false;
         ComplexDateTime two = (ComplexDateTime)d2;
-        Long l1 = this.gmtLong();
-        Long l2 = two.gmtLong();
-        if ((l1 == null) || (l2 == null) || (l1 != l2)) return false;
-        return true;
+        String s1 = this.toIso8601();
+        String s2 = two.toIso8601();
+        if ((s1 == null) || (s2 == null)) return false;
+        return s1.equals(s2);
     }
     public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
-        return this.toString().hashCode();
+        String s = this.toIso8601();
+        if (s == null) s = Util.generateUUID();
+        return s.hashCode();
     }
 
     //this is a little helper to the iso8601 constructor that gently gives us null if we cant make it
