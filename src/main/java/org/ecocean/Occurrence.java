@@ -543,6 +543,33 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     this.millis = getMillisFromEncounters();
   }
 
+    public boolean setStartEndFromEncounters() {
+        return setStartEndFromEncounters(false);
+    }
+    public boolean setStartEndFromEncounters(boolean force) {
+        if (!force && ((startTime != null) || (endTime != null))) return false;
+        if (Util.collectionIsEmptyOrNull(encounters)) return false;
+        boolean modified = false;
+        long start = System.currentTimeMillis() * 2l;
+        long end = 0l;
+        for (Encounter enc : encounters) {
+            ComplexDateTime encDT = null; //enc.getDateTime();   FIXME need to upgrade Encounter to ComplexDateTime
+            if (encDT == null) continue;
+            Long egmt = encDT.gmtLong();
+            if (egmt < start) {
+                modified = true;
+                startTime = encDT;
+                start = egmt;
+            }
+            if (egmt > end) {
+                modified = true;
+                endTime = encDT;
+                end = egmt;
+            }
+        }
+        return modified;
+    }
+
     public Long getVersion() {
         return version;
     }
@@ -1344,6 +1371,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 }
                 occ.addEncounter(enc);
             }
+            occ.setStartEndFromEncounters();  //will only set if setStartTime() and setEndTime() didnt happen
         }
 
         org.json.JSONArray jscrs = jsonIn.optJSONArray("submissionContentReferences");
