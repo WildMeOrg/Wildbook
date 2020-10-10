@@ -86,6 +86,37 @@ public class ComplexDateTime implements java.io.Serializable {
         );
     }
 
+    public ZonedDateTime gmtZonedDateTime() {
+        ZonedDateTime dt = getZonedDateTime();
+        if (dt == null) return null;
+        return dt.withZoneSameInstant(ZoneId.of("Z"));
+    }
+    public Long gmtLong() {
+        ZonedDateTime dt = gmtZonedDateTime();
+        if (dt == null) return null;
+        return dt.toInstant().toEpochMilli();
+    }
+    public Long gmtMinus(ComplexDateTime other) {
+        if (other == null) return null;
+        Long gmt1 = this.gmtLong();
+        Long gmt2 = other.gmtLong();
+        if ((gmt1 == null) || (gmt2 == null)) return null;
+        return gmt1 - gmt2;
+    }
+
+    public boolean equals(final Object d2) {
+        if (d2 == null) return false;
+        if (!(d2 instanceof ComplexDateTime)) return false;
+        ComplexDateTime two = (ComplexDateTime)d2;
+        Long l1 = this.gmtLong();
+        Long l2 = two.gmtLong();
+        if ((l1 == null) || (l2 == null) || (l1 != l2)) return false;
+        return true;
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        return this.toString().hashCode();
+    }
+
     //this is a little helper to the iso8601 constructor that gently gives us null if we cant make it
     public static ComplexDateTime gentlyFromIso8601(String iso8601) {
         if (iso8601 == null) return null;
