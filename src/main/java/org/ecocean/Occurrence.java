@@ -1322,6 +1322,9 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         if (jsonIn.optString("id", null) != null) throw new IOException("passing id value not allowed");  //i think this will be our standard
         Occurrence occ = new Occurrence();
         occ.setId(Util.generateUUID());
+        occ.setStartTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("startTime", null)));
+        occ.setEndTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("endTime", null)));
+
         occ.trySetting(myShepherd, jsonIn.optJSONObject("customFields"));
         occ.setFromJSONObject("bearing", Double.class, jsonIn);
 

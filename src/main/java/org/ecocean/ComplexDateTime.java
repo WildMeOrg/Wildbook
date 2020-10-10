@@ -86,6 +86,16 @@ public class ComplexDateTime implements java.io.Serializable {
         );
     }
 
+    //this is a little helper to the iso8601 constructor that gently gives us null if we cant make it
+    public static ComplexDateTime gentlyFromIso8601(String iso8601) {
+        if (iso8601 == null) return null;
+        try {
+            return new ComplexDateTime(iso8601);
+        } catch (Exception ex) {
+            SystemLog.error("ComplexDateTime.gentlyFromIso8601() could not parse iso8601={}, error={}", iso8601, ex.toString());
+            return null;
+        }
+    }
 
 /*
     //still unsure if we should pass in DateTime instead of LocalDateTime... hmph
