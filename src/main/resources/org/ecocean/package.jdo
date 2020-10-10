@@ -205,6 +205,9 @@
         <column jdbc-type="BIGINT" allows-null="false"/>
       </field>
 
+	<field name="startTime" persistence-modifier="persistent" element-type="org.ecocean.ComplexDateTime" default-fetch-group="true" />
+	<field name="endTime" persistence-modifier="persistent" element-type="org.ecocean.ComplexDateTime" default-fetch-group="true" />
+
       <field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
         <collection element-type="org.ecocean.Encounter"/>
         <join/>
@@ -1012,6 +1015,12 @@
 		<field name="parametersAsString">
 			<column jdbc-type="LONGVARCHAR" />
 		</field>
+	</class>
+
+	<class name="ComplexDateTime" identity-type="datastore">
+		<field name="dateTime" />
+		<!-- this is a property so that the getter/setter will be called to sync dateTime -->
+		<property name="timeZone" persistence-modifier="persistent" column="timeZone" />
 	</class>
 
   </package>

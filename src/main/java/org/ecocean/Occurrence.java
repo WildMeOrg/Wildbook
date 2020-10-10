@@ -58,9 +58,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
     //date/time related
     // this can be manually set, otherwise can be derived from Encounters
-    private DateTime startTime;
-    private DateTime endTime;
-    private String timeZone;  //omg this is painful
+    private ComplexDateTime startTime;
+    private ComplexDateTime endTime;
 
     // END Sighting Design list (remainder are pre-existing and misc)
 
@@ -86,7 +85,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   private Double seaSurfaceTemp;
   private Double swellHeight;
   private Double visibilityIndex; // 1-5 with 5 indicating horizon visible
-  
+ 
   // Variables used in the Survey, SurveyTrack, Path, Location model
   
   private String correspondingSurveyTrackID;
@@ -177,31 +176,19 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   }
 
 
-    public String getTimeZone() {
-        return timeZone;
-    }
-    public void setTimeZone(String tz) {
-        timeZone = tz;
-    }
-    public void setStartTime(DateTime dt) {
+    public void setStartTime(ComplexDateTime dt) {
+        setVersion();
         startTime = dt;
     }
-    public void setStartTime(ZonedDateTime zdt) {  //note: this will also set timeZone !!
-        startTime = Util.asDateTime(zdt);
-        if ((zdt != null) && (zdt.getZone() != null)) timeZone = zdt.getZone().toString();
+    public ComplexDateTime getStartTime() {
+        return startTime;
     }
-    public ZonedDateTime getStartTime() {
-        return Util.asZonedDateTime(this.startTime, this.getTimeZone());
-    }
-    public void setEndTime(DateTime dt) {
+    public void setEndTime(ComplexDateTime dt) {
+        setVersion();
         endTime = dt;
     }
-    public void setEndTime(ZonedDateTime zdt) {  //note: this will also set timeZone !!
-        endTime = Util.asDateTime(zdt);
-        if ((zdt != null) && (zdt.getZone() != null)) timeZone = zdt.getZone().toString();
-    }
-    public ZonedDateTime getEndTime() {
-        return Util.asZonedDateTime(this.endTime, this.getTimeZone());
+    public ComplexDateTime getEndTime() {
+        return endTime;
     }
 
   public boolean addEncounter(Encounter enc){
@@ -215,6 +202,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return false;
       }
     }
+    setVersion();
     if(isNew){
       encounters.add(enc);
       //updateNumberOfEncounters();
@@ -234,6 +222,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   public void addEncounterAndUpdateIt(Encounter enc){
     addEncounter(enc);
     enc.setOccurrenceID(this.getOccurrenceID());
+    setVersion();
   }
 
 
@@ -293,16 +282,19 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     public void setSubmitters(List<User> u) {
         submitters = u;
+        setVersion();
     }
     public void setSubmitter(User u) {  //overwrites existing
         if (u == null) return;
         submitters = new ArrayList<User>();
         submitters.add(u);
+        setVersion();
     }
     public void addSubmitter(User u) {
         if (u == null) return;
         if (submitters == null) submitters = new ArrayList<User>();
         if (!submitters.contains(u)) submitters.add(u);
+        setVersion();
     }
     public void setSubmittersFromEncounters() {  //note: this overrides any previously set
         if (encounters == null) return;
@@ -313,18 +305,21 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 if (!submitters.contains(u)) submitters.add(u);
             }
         }
+        setVersion();
     }
 
     public void addInformOther(User user) {
         if (user == null) return;
         if (informOthers == null) informOthers = new ArrayList<User>();
         if (!informOthers.contains(user)) informOthers.add(user);
+        setVersion();
     }
     public List<User> getInformOthers() {
         return informOthers;
     }
     public void setInformOthers(List<User> users) {
         this.informOthers=users;
+        setVersion();
     }
     
     public String getSource() {
@@ -332,6 +327,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     public void setSource(String s) {
         source = s;
+        setVersion();
     }
 
     public List<ExternalSubmission> getSubmissions() {
@@ -339,12 +335,14 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     public void setSubmissions(List<ExternalSubmission> subs) {
         submissions = subs;
+        setVersion();
     }
     public List<SubmissionContentReference> getSubmissionContentReferences() {
         return submissionContentReferences;
     }
     public void setSubmissionContentReferences(List<SubmissionContentReference> scrs) {
         submissionContentReferences = scrs;
+        setVersion();
     }
     public void addSubmissionContentReference(SubmissionContentReference scr) {
         if (submissionContentReferences == null) submissionContentReferences = new ArrayList<SubmissionContentReference>();
@@ -353,6 +351,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
   public void setAssets(List<MediaAsset> assets) {
     this.assets = assets;
+        setVersion();
   }
 
   public List<MediaAsset> getAssets(){
@@ -364,6 +363,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       encounters.remove(enc);
       //updateNumberOfEncounters();
     }
+        setVersion();
   }
 
   public int getNumberEncounters(){
@@ -371,7 +371,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     else{return encounters.size();}
   }
 
-  public void setEncounters(ArrayList<Encounter> encounters){this.encounters=encounters;}
+    public void setEncounters(ArrayList<Encounter> encounters){
+        this.encounters=encounters;
+        setVersion();
+    }
 
   public int getNumberIndividualIDs(){
     return getIndividualIDs().size();
@@ -407,6 +410,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         }
       }
     }
+    setVersion();
   }
 
   public String getLatLonString() {
@@ -442,6 +446,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
   public void setOccurrenceID(String id){
     this.setId(id);
+    setVersion();
   }
   
   public Integer getIndividualCount(){return individualCount;}
@@ -462,6 +467,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     else{
       this.groupBehavior=null;
     }
+    setVersion();
   }
 
     public List<Instant> getBehaviors() {
@@ -469,6 +475,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     public void setBehaviors(List<Instant> bhvs) {
         behaviors = bhvs;
+        setVersion();
     }
 
   public ArrayList<SinglePhotoVideo> getAllRelatedMedia(){
@@ -541,6 +548,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     public void setVersion() {
         version = System.currentTimeMillis();
+        setDWCDateLastModified();  //this is a little overloaded to mean "modified"
     }
     public void setVersion(Long v) {
         version = v;
@@ -629,11 +637,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   public void addSpecies(String scientificName, Shepherd readOnlyShepherd) {
     Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false); // commit=false as standard with setters
     addTaxonomy(taxy);
+    setVersion();
   }
   // warning: overwrites list (use addSpecies for multi-species)
   public void setSpecies(String scientificName, Shepherd readOnlyShepherd) {
     Taxonomy taxy = readOnlyShepherd.getOrCreateTaxonomy(scientificName, false);
     setTaxonomy(taxy);
+    setVersion();
   }
   public boolean hasSpecies(String scientificName) {
     for (Taxonomy taxy: taxonomies) {
@@ -647,6 +657,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   }
   public void setTaxonomies(List<Taxonomy> taxonomies) {
     this.taxonomies = taxonomies;
+    setVersion();
   }
   public void setTaxonomiesFromEncounters(Shepherd myShepherd) {
     setTaxonomiesFromEncounters(myShepherd, true); // if we don't commit we risk creating multiple taxonomies with the same scientificName
@@ -661,6 +672,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
       addTaxonomy(taxy);
     }
     if (shepherdWasCommitting) myShepherd.beginDBTransaction();
+    setVersion();
   }
 
   public Taxonomy getTaxonomy() { return getTaxonomy(0);}
@@ -677,6 +689,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     List<Taxonomy> taxis = new ArrayList<Taxonomy>();
     taxis.add(taxy);
     setTaxonomies(taxis);
+    setVersion();
   }
   private void ensureTaxonomiesExist() {
     if (this.taxonomies==null) this.taxonomies = new ArrayList<Taxonomy>();
@@ -1371,8 +1384,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
-        obj.put("startTime", Util.asIso8601(this.startTime, this.timeZone));
-        obj.put("endTime", Util.asIso8601(this.endTime, this.timeZone));
+        if (startTime != null) obj.put("startTime", startTime.toIso8601());
+        if (endTime != null) obj.put("endTime", endTime.toIso8601());
 
         //we include encounters even if expand==null
         if (!Util.collectionIsEmptyOrNull(this.encounters)) {

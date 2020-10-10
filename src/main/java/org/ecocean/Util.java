@@ -20,10 +20,6 @@ import org.json.JSONException;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
-import java.util.TimeZone;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.Instant;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
@@ -1186,39 +1182,6 @@ public class Util {
             System.out.println("Util.iso8601ToCalendar(" + dt + ") threw " + ex.toString());
             return null;
         }
-    }
-
-    //not sure how to deal when/if time zone is null... hmmmm tbd  FIXME
-    public static String asIso8601(DateTime dt, String tz) {
-        if (dt == null) return null;
-        return asIso8601(asZonedDateTime(dt, tz));
-    }
-    public static String asIso8601(ZonedDateTime zdt) {
-        if (zdt == null) return null;
-        return zdt.toOffsetDateTime().toString();
-    }
-
-    // useful notes:   https://www.baeldung.com/migrating-to-java-8-date-time-api
-
-    //still unsure if we should pass in DateTime instead of LocalDateTime... hmph
-    public static ZonedDateTime asZonedDateTime(DateTime dt, String tzString) {
-        // see also?  https://stackoverflow.com/questions/28877981/how-to-convert-from-org-joda-time-datetime-to-java-time-zoneddatetime
-        Instant instant = Instant.ofEpochMilli(dt.getMillis());
-System.out.println("dt=" + dt + " | tzString=" + tzString + " => " + ZonedDateTime.ofInstant(instant, ZoneId.of(tzString)));
-        return ZonedDateTime.ofInstant(instant, ZoneId.of(tzString));
-    }
-    //meant to be iso8601 going in, but it might (!) work on other things?
-    public static ZonedDateTime asZonedDateTime(String iso8601) {
-        return ZonedDateTime.parse(iso8601);
-    }
-
-    // h/t  https://stackoverflow.com/a/37335420
-    public static DateTime asDateTime(ZonedDateTime zdt) {
-        if (zdt == null) return null;
-        return new DateTime(
-            zdt.toInstant().toEpochMilli(),
-            org.joda.time.DateTimeZone.forTimeZone(java.util.TimeZone.getTimeZone(zdt.getZone()))
-        );
     }
 
     //these are for debugging/timing purposes
