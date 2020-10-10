@@ -63,7 +63,7 @@ public class ComplexDateTime implements java.io.Serializable {
     public ZonedDateTime getZonedDateTime() {
         SystemLog.debug("[1] getZonedDateTime() called with dateTime={} and timeZone={}", dateTime, timeZone);
         if (adjustedCache != null) return adjustedCache;
-        if ((dateTime == null) && (timeZone == null)) return null;
+        if ((dateTime == null) || (timeZone == null)) return null;
         adjustedCache = dateTime.withZoneSameInstant(ZoneId.of(timeZone));
         SystemLog.debug("[2] getZonedDateTime() now set adjustedCache={}", adjustedCache);
         return adjustedCache;
