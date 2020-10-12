@@ -83,22 +83,21 @@ public class ScheduledIndividualMergeUpdate extends HttpServlet {
             PrintWriter out = response.getWriter();
             out.println(res);
             out.close();
-            myShepherd.closeDBTransaction();
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            myShepherd.rollbackAndClose();
         } catch (JSONException je) {
             je.printStackTrace();
             addErrorMessage(res, "JSONException je");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            myShepherd.rollbackAndClose();
         } catch (Exception e) {
             e.printStackTrace();
             addErrorMessage(res, "Exception e");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            myShepherd.rollbackAndClose();
+        }
+        finally {
+          myShepherd.rollbackAndClose();
         }
 
     }
