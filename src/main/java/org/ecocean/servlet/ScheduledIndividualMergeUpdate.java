@@ -71,6 +71,7 @@ public class ScheduledIndividualMergeUpdate extends HttpServlet {
                         merge.setTaskIgnoredStateForUser(username, true);
                         myShepherd.updateDBTransaction();
                         System.out.println("Set ScheduledIndividual merge "+mergeId+" to IGNORE for user "+username+".");
+                        response.setStatus(HttpServletResponse.SC_OK);
                         res.put("success", "true");
                     }   
                 }
@@ -78,6 +79,7 @@ public class ScheduledIndividualMergeUpdate extends HttpServlet {
                 String err = "You must have a user, mergeId and action defined to modify a ScheduledIndividualMerge.";
                 System.out.println(err);
                 addErrorMessage(res, err);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
 
             PrintWriter out = response.getWriter();
