@@ -75,7 +75,7 @@ table td,th {
 		
 			<h3>Successfully Merged Individuals</h3>
 		
-			<p><%=props.getProperty("individual") %> <%=oldNameA%> <%=props.getProperty("and") %> <%=oldNameB%> <%=props.getProperty("wereCombined") %> <a href='<%=mark.getWebUrl(request)%>'><%=mark.getDisplayName()%></a>
+			<p><%=props.getProperty("individual") %> <%=oldNameA%> <%=props.getProperty("and") %> <%=oldNameB%> <%=props.getProperty("wereCombined") %> <a href="individuals.jsp?id=<%=mark.getIndividualID()%>"><%=mark.getDisplayName()%></a>
 			<br>	
 			<p><%=props.getProperty("containsAll") %></p>
 			<br>

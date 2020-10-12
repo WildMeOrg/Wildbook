@@ -25,7 +25,9 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 
 import org.ecocean.genetics.*;
+import org.ecocean.social.Membership;
 import org.ecocean.social.Relationship;
+import org.ecocean.social.SocialUnit;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
@@ -2539,13 +2541,43 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
 
     // Need request to record which user did it
-    public void mergeIndividual(MarkedIndividual other, String username) {
+    public void mergeIndividual(MarkedIndividual other, String username, Shepherd myShepherd) {
       for (Encounter enc: other.getEncounters()) {
         other.removeEncounter(enc);
         enc.setIndividual(this);
       }
       this.names.merge(other.getNames());
       this.setComments(getMergedComments(other, username));
+      
+      //WB-951: merge relationships
+      ArrayList<Relationship> rels=myShepherd.getAllRelationshipsForMarkedIndividual(other.getIndividualID());
+      if(rels!=null && rels.size()>0) {
+        for(Relationship rel:rels) {
+          if(rel.getMarkedIndividualName1().equals(other.getIndividualID())) {
+            rel.setIndividual1(this);
+            rel.setMarkedIndividualName1(this.getIndividualID());
+            myShepherd.updateDBTransaction();
+          }
+          else if(rel.getMarkedIndividualName2().equals(other.getIndividualID())) {
+            rel.setIndividual2(this);
+            rel.setMarkedIndividualName2(this.getIndividualID());
+            myShepherd.updateDBTransaction();
+          }
+        }
+      }
+      
+      //WB-951: merge social units
+      List<SocialUnit> units=myShepherd.getAllSocialUnitsForMarkedIndividual(other);
+      if(units!=null && units.size()>0) {
+        for(SocialUnit unit:units) {
+          Membership member=unit.getMembershipForMarkedIndividual(other);
+          member.removeMarkedIndividual();
+          member.setMarkedIndividual(this);
+          myShepherd.updateDBTransaction();
+        }
+      }
+      
+      
       refreshDependentProperties();
     }
 
@@ -2580,7 +2612,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
 
     public void mergeAndThrowawayIndividual(MarkedIndividual other, String username, Shepherd myShepherd) {
-      mergeIndividual(other, username);
+      mergeIndividual(other, username, myShepherd);
       myShepherd.throwAwayMarkedIndividual(other);
     }
 
