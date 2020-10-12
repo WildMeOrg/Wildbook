@@ -405,6 +405,16 @@ public class Collaboration implements java.io.Serializable {
 		return false;
 	}
 	
+	//Check if User (via request) has edit access to every Encounter in this Individual
+	 public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
+	    Vector<Encounter> all = mi.getEncounters();
+	    if ((all == null) || (all.size() < 1)) return false;
+	    for (Encounter enc : all) {
+	      if (!canEditEncounter(enc, request)) return false;  //one is good enough (either owner or in collab or no security etc)
+	    }
+	    return true;
+	  }
+	
 	 public static boolean canUserAccessSocialUnit(SocialUnit su, HttpServletRequest request) {
 	    List<MarkedIndividual> all = su.getMarkedIndividuals();
 	    if ((all == null) || (all.size() < 1)) return true;
