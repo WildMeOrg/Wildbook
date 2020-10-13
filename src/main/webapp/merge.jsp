@@ -533,7 +533,6 @@ table.compareZone tr th {
           function() {
     		    updateNotificationsWidget();
           	var confirmUrl = '/mergeComplete.jsp?oldNameA='+fullNameA+'&oldNameB='+fullNameB+'&newId='+id1;
-          	alert("Successfully merged individual! Now redirecting to "+confirmUrl);
     				window.location = confirmUrl;
           })
           .fail(function(response) {
