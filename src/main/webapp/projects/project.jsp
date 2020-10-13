@@ -500,8 +500,8 @@ function generateIALinkingMenu(json, encId) {
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
       content += '    <p>ID: '+annData.id+'</p>';
       content += iaClassEl;
-      content += "    <p>"+txt.identificationStatus+": "+annData.identificationStatus+"</p>";
       content += detectionStatusEl;
+      content += "    <p>"+txt.identificationStatus+": "+annData.identificationStatus+"</p>";
       content += resultsLink;  
       content += '  </div>';
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
