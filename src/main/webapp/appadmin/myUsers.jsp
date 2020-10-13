@@ -30,6 +30,17 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 %>
 <jsp:include page="../header.jsp" flush="true"/>
 <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
+<style type="text/css">
+  #candidate-block {
+    color: #000;
+    border-bottom: 1px solid #CDCDCD;
+    margin: 12px 0px 0px 0px;
+    padding: 0px;
+    z-index: 1;
+    padding-left: 10px
+  }
+
+</style>
 <%
 try{
   currentUser = AccessControl.getUser(request, myShepherd);
@@ -46,8 +57,8 @@ try{
       console.log("userDuplicateJsonRequest is: ")
       console.log(userDuplicateJsonRequest);
       if(userDuplicateJsonRequest){
-        doAjaxForDuplicateUsers(userDuplicateJsonRequest);
         populatePage();
+        doAjaxForDuplicateUsers(userDuplicateJsonRequest);
       }
     });
 
@@ -61,6 +72,12 @@ try{
       success: function(data) {
           console.log("data coming back is:");
           console.log(data);
+          let users = data.users;
+          if(users && users.length>0){
+            for(let i=0; i<users.length; i++){
+              populateCandidateUser(users[i].username, users[i].email,users[i].fullname);
+            }
+          }
           // incrementalIdResults = data.incrementalIdArr;
           // if(incrementalIdResults && incrementalIdResults.length>0){
           //   if(countOfIncrementalIdRowPopulated > 22){
@@ -72,26 +89,63 @@ try{
           //     $('#table-div').show();
           //   }
           // }
-      },
-      error: function(x,y,z) {
-          console.warn('%o %o %o', x, y, z);
+          },
+          error: function(x,y,z) {
+              console.warn('%o %o %o', x, y, z);
+          }
+      });
+    }
+
+    function populateCandidateUser(username, email, fullname){
+      let candidateHtml = '';
+      candidateHtml += '<div class="candidate-block">';
+      candidateHtml += '<p><strong>';
+      candidateHtml += txt.username;
+      candidateHtml += '</strong> ';
+      if(username){
+        candidateHtml += username;
+      }else{
+        candidateHtml += '-';
       }
-  });
+      candidateHtml += '</p>';
+      candidateHtml += '<p><strong>';
+      candidateHtml += txt.email;
+      candidateHtml += '</strong> ';
+      if(email){
+        candidateHtml += email;
+      }else{
+        candidateHtml += '-';
+      }
+      candidateHtml += '</p>';
+      candidateHtml += '<p><strong>';
+      candidateHtml += txt.name;
+      candidateHtml += '</strong> ';
+      if(fullname){
+        candidateHtml += fullname;
+      }else{
+        candidateHtml += '-';
+      }
+      candidateHtml += '</p>';
+      candidateHtml += '</div>';
+      $('#content-container').append(candidateHtml);
     }
 
     function populatePage(){
       console.log("got here 2");
       $('#title').html(txt.title);
       let pageHtml = '';
-      pageHtml += '<p>';
-      pageHtml += txt.username;
-      pageHtml += '</p>';
-      pageHtml += '<p>';
-      pageHtml += txt.email;
-      pageHtml += '</p>';
-      pageHtml += '<p>';
-      pageHtml += txt.name;
-      pageHtml += '</p>';
+      pageHtml += '<p>Hi</p>';
+      pageHtml += '<div id="candidate-users-container">';
+      pageHtml += '</div>';
+      // pageHtml += '<p>';
+      // pageHtml += txt.username;
+      // pageHtml += '</p>';
+      // pageHtml += '<p>';
+      // pageHtml += txt.email;
+      // pageHtml += '</p>';
+      // pageHtml += '<p>';
+      // pageHtml += txt.name;
+      // pageHtml += '</p>';
       $('#content-container').empty();
       $('#content-container').append(pageHtml);
     }
