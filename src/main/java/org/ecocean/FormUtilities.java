@@ -74,12 +74,14 @@ public class FormUtilities {
       // List<Project> projects = myShepherd.getOwnedProjectsForUserId(usr.getUUID());
       ArrayList<String> projOptions = new ArrayList<String>();
       ArrayList<String> projIds = new ArrayList<String>();
-      for (int i = 0; i < projects.size(); i++) { //TODO DRY up
-        Project currentProj = projects.get(i);
-        String currentProjName = currentProj.getResearchProjectName();
-        String currentProjId = currentProj.getId();
-        projOptions.add(currentProjName);
-        projIds.add(currentProjId);
+      if(projects != null && projects.size()>0){
+        for (int i = 0; i < projects.size(); i++) { //TODO DRY up
+          Project currentProj = projects.get(i);
+          String currentProjName = currentProj.getResearchProjectName();
+          String currentProjId = currentProj.getId();
+          projOptions.add(currentProjName);
+          projIds.add(currentProjId);
+        }
       }
       try {
         printStringFieldSearchRowBoldTitle(colLen,true, isForIndividualOrOccurrenceSearch, fieldDisplayName, fieldName, projOptions, projIds, out, encprops);
