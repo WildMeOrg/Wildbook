@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -153,14 +154,45 @@ public class IAJsonProperties extends JsonProperties {
 	}
 
 	public JSONArray getIdentConfig(Taxonomy taxy, String iaClass) {
-		JSONArray config = (JSONArray) this.get(identConfigKey(taxy, iaClass));
+		String configKey = identConfigKey(taxy, iaClass);
+		JSONArray config = (JSONArray) this.get(configKey);
 		if (config==null) {
 			System.out.println("IAJsonProperties: could not find ident config for taxonomy "
 				+taxy.toString()+" and iaClass "+iaClass+". Trying _default iaClass instead.");
 			config = (JSONArray) this.get(identConfigKey(taxy, "_default"));
 		}
-		if (config==null) System.out.println("IAJsonProperties WARNING: could not find any identConfig for taxonomy "+taxy+". Returning null.");
+		if (config==null) System.out.println("IAJsonProperties WARNING: could not find any identConfig for taxonomy "+taxy.getScientificName()+". Tried configKey="+configKey+" Returning null.");
 		return config;
+	}
+
+	public JSONArray getAllIdentConfigs(Taxonomy taxy) {
+		JSONArray result = new JSONArray();
+		// to make sure we don't double-enter algo configs, which might live under multiple iaClasses
+		Set<String> alreadyAdded = new HashSet<String>();
+		for (String iaClass: getValidIAClasses(taxy)) {
+			JSONArray idConfigs = getIdentConfig(taxy, iaClass);
+			for (int i=0; i<idConfigs.length(); i++) {
+				Object conf = idConfigs.get(i);
+				if (!alreadyAdded.contains(conf.toString())) {
+					result.put(conf);
+					alreadyAdded.add(conf.toString());
+				}
+			}
+		}
+		return result;
+	}
+
+	public List<String> getValidIAClasses(Taxonomy taxy) {
+		JSONObject underTaxy = (JSONObject) this.get(taxonomyKey(taxy));
+		List<String> result = new ArrayList<String>();
+		Iterator<String> keys = underTaxy.keys();
+		while (keys.hasNext()) {
+			String key = keys.next();
+			if (!key.startsWith("_")) {
+				result.add(key); //iaClasses are keys, not values, in this format
+			}
+		}
+		return result;
 	}
 
 	// for a given taxonomy (input during submission) and an iaClass (returned from IA), we'll save the annotation only if this check is passed.
@@ -178,6 +210,12 @@ public class IAJsonProperties extends JsonProperties {
   public List<JSONObject> identOpts(Shepherd myShepherd, Annotation ann) {
   	Taxonomy taxy = ann.getTaxonomy(myShepherd);
   	String iaClass = ann.getIAClass();
+
+  	return identOpts(taxy, iaClass);
+
+  }
+
+  public List<JSONObject> identOpts(Taxonomy taxy, String iaClass) {
   	JSONArray identConfig = getIdentConfig(taxy, iaClass);
   	if (identConfig==null) return null;
 
@@ -190,6 +228,22 @@ public class IAJsonProperties extends JsonProperties {
   	}
   	return identOpts;
   }
+
+  public JSONArray getAllIdentOpts(Taxonomy taxy) {
+		JSONArray result = new JSONArray();
+		// to make sure we don't double-enter algo configs, which might live under multiple iaClasses
+		Set<String> alreadyAdded = new HashSet<String>();
+		for (String iaClass: getValidIAClasses(taxy)) {
+			for (JSONObject idOpt: identOpts(taxy, iaClass)) {
+				if (!alreadyAdded.contains(idOpt.toString())) {
+					result.put(idOpt);
+					alreadyAdded.add(idOpt.toString());
+				}
+			}
+		}
+		return result;
+	}
+
 
 	public static final Map<String, String> getGlobalBackCompatibleKeyMap() {
 	    return globalBackCompatibleKeyMap;
