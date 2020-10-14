@@ -59,7 +59,7 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
         if (primaryIndividual!=null&&secondaryIndividual!=null) {
             try {
                 System.out.println("MergeIndividual task is within execution time. Trying to merge individuals.");
-                primaryIndividual.mergeIndividual(secondaryIndividual, initiatorName);
+                primaryIndividual.mergeIndividual(secondaryIndividual, initiatorName,myShepherd);
                 myShepherd.updateDBTransaction();
                 MarkedIndividual tempSecondaryIndividual = secondaryIndividual;
                 //avoiding a foreign key error
