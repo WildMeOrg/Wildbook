@@ -307,7 +307,7 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   projectHTML +=  '   </div>';
               // add JS check for exisitng results onload (add .disabled-btn if appropriate)
   projectHTML +=  '   <div class="col-sm-6 col-md-6 col-lg-6">';
-  projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton proj-action-btn" onclick="openIaResultsOptions(this)">'+txt.iaResults+'</button>';
+  projectHTML +=  '     <button id="encId-'+encounterId+'" class="visitResultsButton proj-action-btn" onclick="openIaResultsOptions(this)">'+txt.matchResults+'</button>';
   projectHTML +=  '     </br>';                
   projectHTML +=  '   </div>';
   projectHTML +=  '</div>';
@@ -463,6 +463,10 @@ function removeEncounterFromProjectAjax(el) {
   });
 }
 
+function goToIAResults(taskId) {
+  window.location.replace('/iaResults.jsp?taskId='+taskId);
+}
+
 function generateIALinkingMenu(json, encId) {
   let menuRow = $("#iaResultsMenu-"+encId);
   let menuContentDiv = menuRow.find('.iaResultsMenuContent');
@@ -487,17 +491,17 @@ function generateIALinkingMenu(json, encId) {
         detectionStatusEl = '<p>'+txt.detectionStatus+': '+annData.assetDetectionStatus+' <span style="color:white;background-color:darkred;">'+txt.needDetection+'</span></p>'
       }
 
-      let resultsLink = '<p>'+txt.latestResults+': <a href="../iaResults.jsp?taskId='+annData.lastTaskId+'">'+annData.lastTaskId+'</a></p>';
+      let resultsLink = '<p>'+txt.latestResults+': <button class="btn-sm visitIaBtn" onclick="goToIAResults(\''+annData.lastTaskId+'\')">'+txt.view+'</button></p>';
       if (needsIaClass||needsDetection) {
-        resultsLink = '<p>'+txt.latestResults+': '+txt.noneAvailable+'</p>';
+        resultsLink = '<p>'+txt.latestResults+':<button class="disabled-btn btn-sm visitIaBtn">'+txt.noneAvailable+'</button></p>';
       }
 
       content += '<div id="annIA-'+annData.id+'" class="row projIaOption">';
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
       content += '    <p>ID: '+annData.id+'</p>';
       content += iaClassEl;
-      content += "    <p>"+txt.identificationStatus+": "+annData.identificationStatus+"</p>";
       content += detectionStatusEl;
+      content += "    <p>"+txt.identificationStatus+": "+annData.identificationStatus+"</p>";
       content += resultsLink;  
       content += '  </div>';
       content += '  <div class="col-sm-6 col-md-6 col-lg-6">';
