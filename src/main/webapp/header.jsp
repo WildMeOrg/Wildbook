@@ -54,6 +54,7 @@ if (pageTitle == null) {
     pageTitle = CommonConfiguration.getHTMLTitle(context) + " | " + pageTitle;
 }
 
+String notificationsWidget="";
 String username = null;
 User user = null;
 String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
@@ -62,6 +63,10 @@ boolean loggingOut = Util.requestHasVal(request, "loggedOut");
 
 myShepherd.beginDBTransaction();
 try {
+	
+	//notifications widget
+	notificationsWidget=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+	
   if(request.getUserPrincipal()!=null && !loggingOut){
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
@@ -397,7 +402,7 @@ finally{
                   </div>
 
                   <div id="navbar" class="navbar-collapse collapse">
-                  <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
+                  <div id="notifications"><%=notificationsWidget  %></div>
                     <ul class="nav navbar-nav">
 
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->

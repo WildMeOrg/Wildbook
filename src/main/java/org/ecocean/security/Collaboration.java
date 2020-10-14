@@ -279,7 +279,7 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 
-	public static String getNotificationsWidgetHtml(HttpServletRequest request) {
+	public static String getNotificationsWidgetHtml(HttpServletRequest request, Shepherd myShepherd) {
 		String context = "context0";
 		context = ServletUtilities.getContext(request);
 		String langCode = ServletUtilities.getLanguageCode(request);
@@ -297,11 +297,8 @@ public class Collaboration implements java.io.Serializable {
 		}
 
 		// make Notifications class to do this outside Collaboration, eeergghh
-		Shepherd myShepherd = null;
 		try {
-			myShepherd = new Shepherd(context);
-			myShepherd.setAction("Collaboration.getNotificationsWidgetHTML");
-			myShepherd.beginDBTransaction();
+
 			ArrayList<ScheduledIndividualMerge> potentialForNotification = myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
 			ArrayList<ScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteScheduledIndividualMerges();
 			potentialForNotification.addAll(incomplete);
@@ -310,12 +307,9 @@ public class Collaboration implements java.io.Serializable {
 					n++;
 				}
 			}
-			myShepherd.rollbackAndClose();
-		} catch (Exception e) {
-			if (myShepherd!=null) {
-				myShepherd.rollbackAndClose();
-			}
-			e.printStackTrace();
+		} 
+		catch (Exception e) {
+			//e.printStackTrace();
 		} 
 
 		if (n > 0) notif = "<div onClick=\"return showNotifications(this);\">" + collabProps.getProperty("notifications") + " <span class=\"notification-pill\">" + n + "</span></div>";
