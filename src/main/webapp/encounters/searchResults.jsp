@@ -36,6 +36,11 @@ context=ServletUtilities.getContext(request);
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("searchResults.jsp");
+  String[] projectIds = null;
+  if(Util.isUUID(request.getParameter("projectId"))){
+    System.out.println("Got in to projectId parameter in searchResults");
+    projectIds = request.getParameterValues("projectId");
+  }
 
 
 
@@ -155,6 +160,11 @@ var colDefn = [
 		key: 'occurrenceID',
 		label: '<%=encprops.getProperty("sightingID")%>',
 		value: _occurrenceID,
+	},
+  {
+		key: 'projectId',
+		label: '<%=encprops.getProperty("projectId")%>',
+		value: _projectId,
 	},
   {
     key: 'otherCatalogNumbers',
@@ -592,6 +602,84 @@ function _colTaxonomy(o) {
 function _occurrenceID(o) {
 	if (!o.get('occurrenceID')) return '';
 	return o.get('occurrenceID');
+}
+
+function _projectId(o){ //I couldn't think of a straightforward way to attach incremental IDs to search results
+  console.log("o is:");
+  console.log(o);
+  console.log(o.attributes.individual.individualID);
+  let indId = o.attributes.individual.individualID;
+  <%
+    if(projectIds!= null && projectIds.length>0){
+      for(int i=0; i<projectIds.length; i++){
+        Project currentProj = myShepherd.getProjectByUuid(projectIds[i]);
+        String currentProjIdPrefix = currentProj.getProjectIdPrefix();
+  %>
+  let ajaxJson = {}
+  let projIdPrefix = '<%= currentProjIdPrefix%>';
+  console.log("projIdPrefix is " + projIdPrefix);
+  ajaxJson['projectIdPrefix'] = projIdPrefix;
+  ajaxJson['individualIds'] = [];
+  ajaxJson['individualIds'].push({indId: indId});
+
+  console.log("ajaxJson is:");
+  console.log(ajaxJson);
+  doAjaxCall(indId, ajaxJson);
+  <%
+    } //end for of project IDs
+  } // end if for projectIds
+  %>
+  return '<div data-id="' + indId +'"></div>';
+  // if (!o.get('projectId')) return '';
+	// return o.get('projectId');
+}
+
+function doAjaxCall(indId, requestJson){
+  $.ajax({
+      url: wildbookGlobals.baseUrl + '../ProjectGet',
+      type: 'POST',
+      data: JSON.stringify(requestJson),
+      dataType: 'json',
+      contentType: 'application/json',
+      success: function(data) {
+        // console.log("data is: ");
+        // console.log(data);
+        if(data){
+          if(data.incrementalIdArr && data.incrementalIdArr.length>0){
+            for(let i=0; i< data.incrementalIdArr.length; i++){
+              let currentIncrementalId = data.incrementalIdArr[i].projectIncrementalId;
+              if(currentIncrementalId){
+                console.log("currentIncrementalId is: "+ currentIncrementalId);
+                $('[data-id="' + indId + '"]').empty();
+                $('[data-id="' + indId + '"]').append(currentIncrementalId);
+              }
+            }
+            // if(incrementalIdResults && incrementalIdResults.length>0){}
+            //.projectIncrementalId
+          }
+        }
+          // $("#encounterList").empty();
+          // let projectsArr = data.projects;
+          // if(projectsArr){
+          //   for (let i=0;i<projectsArr.length;i++) {
+          //     let thisProject = projectsArr[i];
+          //     projIdPrefix = thisProject.projectIdPrefix;
+          //     for (let j=0;j<thisProject.encounters.length;j++) {
+          //       let projectHTML = projectHTMLForTable(projectsArr[i].encounters[j], thisProject.encounters, j);
+          //       $("#encounterList").append(projectHTML);
+          //     }
+          //
+          //   }
+          //   let userCanEdit = data.userCanEdit;
+          //   if ("true"==userCanEdit) {
+          //     showEditControls();
+          //   }
+          // }
+      },
+      error: function(x,y,z) {
+          console.warn('%o %o %o', x, y, z);
+      }
+  });
 }
 
 
