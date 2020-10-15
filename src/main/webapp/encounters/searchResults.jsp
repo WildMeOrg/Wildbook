@@ -37,9 +37,13 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("searchResults.jsp");
   String[] projectIds = null;
+  int projectIdCount = 0;
   if(Util.isUUID(request.getParameter("projectId"))){
     System.out.println("Got in to projectId parameter in searchResults");
     projectIds = request.getParameterValues("projectId");
+    if(projectIds!=null){
+      projectIdCount = projectIds.length;
+    }
   }
 
 
@@ -122,6 +126,8 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 
 <script type="text/javascript">
   let uniqueTracker = [];
+  let doneLoopingThroughAllProjectsSearched = false;
+  let projIdCallCounter = 0; //TODO for troubleshooting. Delete me.
 
 	var needIAStatus = false;
 
@@ -610,24 +616,36 @@ function _occurrenceID(o) {
 }
 
 function _projectId(o){ //I couldn't think of a straightforward way to attach incremental IDs to search results
+  console.log("_projectId entered");
+  let projIdCount = <%= projectIdCount%>;
+  console.log("projIdCount in js land is " + projIdCount);
+  projIdCallCounter ++;
+  console.log("projIdCallCounter is: " + projIdCallCounter);
   // console.log("encounter ID in _projectId:");
   // console.log(o.id);
   let encId = o.id;
   let indId = o.attributes.individual.individualID;
+  let ajaxJson = {}
+  let projIdPrefix = '';
   <%
     if(projectIds!= null && projectIds.length>0){
       for(int i=0; i<projectIds.length; i++){
         Project currentProj = myShepherd.getProjectByUuid(projectIds[i]);
         String currentProjIdPrefix = currentProj.getProjectIdPrefix();
   %>
-  let ajaxJson = {}
-  let projIdPrefix = '<%= currentProjIdPrefix%>';
+  projIdPrefix = '<%= currentProjIdPrefix%>';
+  // console.log("projIdPrefix is " + projIdPrefix);
   ajaxJson['projectIdPrefix'] = projIdPrefix;
   ajaxJson['individualIds'] = [];
   ajaxJson['individualIds'].push({indId: indId});
   doAjaxCall(encId, ajaxJson);
   <%
     } //end for of project IDs
+    %>
+    // console.log("this happens 1");
+    doneLoopingThroughAllProjectsSearched = true; //TODO move this to whatever callback signifies that all data has been fetched... it's clearly not here
+    // removeTerminalCommaSpans();
+    <%
   } // end if for projectIds
   %>
   return '<div data-id="enc-' + encId +'"></div>';
@@ -654,13 +672,13 @@ function doAjaxCall(encId, requestJson){
                 // $('[data-id="' + encId + '"]').empty();
                 let counter = 0;
                 uniqueTracker.forEach(entry => {
-                  console.log("got into forEach");
+                  // console.log("got into forEach");
                   if (entry.encId === encId && entry.incrementalId === currentIncrementalId){
                     counter ++;
                   }
                 });
-                if(counter <1){
-                  $('[data-id="enc-' + encId + '"]').append(currentIncrementalId + '<span data-id="comma">, </span>');
+                if(counter <1){ //add to unique and add to DOM iff this encounter ID + incremental ID combo hasn't been seen before
+                  $('[data-id="enc-' + encId + '"]').append(currentIncrementalId + '<span data-id="comma">,</span> ');
                   uniqueTracker.push({encId: encId, incrementalId: currentIncrementalId});
                   // console.log("uniqueTracker is: ");
                   // console.log(uniqueTracker);
@@ -669,7 +687,11 @@ function doAjaxCall(encId, requestJson){
                 }
               }
             }
-            removeTerminalCommaSpans();
+            if(doneLoopingThroughAllProjectsSearched){
+              console.log("doneLoopingThroughAllProjectsSearched is: " + doneLoopingThroughAllProjectsSearched);
+              // console.log("this happens");
+              removeTerminalCommaSpans();
+            }
           }
         }
       },
@@ -682,14 +704,14 @@ function doAjaxCall(encId, requestJson){
 function removeTerminalCommaSpans(){
   console.log("removeTerminalCommaspan entered");
   let projIdParentElems = $('[data-id^=enc-]');
-  console.log("projIdParentElems length:" + projIdParentElems.length);
+  // console.log("projIdParentElems length:" + projIdParentElems.length);
   for(let i=0; i<projIdParentElems.length; i++){
     let currentParentElem = projIdParentElems[i];
-    console.log("currentParentElem is:");
-    console.log(currentParentElem);
+    // console.log("currentParentElem is:");
+    // console.log(currentParentElem);
     let lastCommaElem = $(currentParentElem).children('[data-id=comma]').last();
-    console.log("lastCommaElem is: ");
-    console.log(lastCommaElem);
+    // console.log("lastCommaElem is: ");
+    // console.log(lastCommaElem);
     lastCommaElem.empty();
   }
 
