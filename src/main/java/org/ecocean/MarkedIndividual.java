@@ -140,6 +140,7 @@ public class MarkedIndividual implements java.io.Serializable {
     //numUnidentifiableEncounters = 0;
     setTaxonomyFromEncounters();
     setSexFromEncounters();
+    refreshDependentProperties();
     maxYearsBetweenResightings=0;
   }
 
@@ -168,14 +169,13 @@ public class MarkedIndividual implements java.io.Serializable {
         return individualID;
     }
 
-
-
     //this is "something to show" (by default)... it falls back to the id,
     //  which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
     //  note that if keyHint is null, default is used
     public String getDisplayName() {
         return getDisplayName(null);
     }
+
     public String getDisplayName(Object keyHint) {
         if (names == null) return null;
         List<String> nameVals = getNamesList(keyHint);
@@ -189,7 +189,7 @@ public class MarkedIndividual implements java.io.Serializable {
         // second fallback: try using another nameKey
         List<String> keys = names.getSortedKeys();
         if (!Util.isEmpty(keys) && !keys.get(0).equals(keyHint)) { // need second check to disable infinite recursion
-          return (keys.get(0)+": "+getDisplayName(keys.get(0)));
+          return getDisplayName(keys.get(0));
         }
         return displayIndividualID();
     }
@@ -388,7 +388,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
   public void addIncrementalProjectId(Project project) {
     if (project!=null) {
-      if (!hasNameSubstring(project.getProjectIdPrefix())) {
+      if (!hasNameKey(project.getProjectIdPrefix())) {
         int nextIncrement = project.getNextIndividualIdIncrement();
         try {
           addNameByKey(project.getProjectIdPrefix(), project.getNextIncrementalIndividualId());
