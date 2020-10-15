@@ -181,8 +181,6 @@ function addIncrementalProjectIdAjax(individualId, projectIdPrefix, encounterId)
         if(data.success){
           $('#adding-div_' + encounterId).hide();
           $('#alert-div_'+encounterId).show();
-          $('#mark-new-button_'+encounterId).hide();
-          $('#disabled-mark-new-button_'+encounterId).hide();
         }else{
           $('#adding-div_' + encounterId).hide();
           $('#alert-div-warn_'+encounterId).show();
