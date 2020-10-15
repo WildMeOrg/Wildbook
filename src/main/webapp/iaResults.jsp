@@ -42,8 +42,6 @@ if (user!=null){
 	currentUsername = user.getUsername();
 }
 
-
-// this constructs 
 String nextNameKey = (user!=null) ? user.getIndividualNameKey() : null;
 
 boolean usesAutoNames = Util.stringExists(nextNameKey);
