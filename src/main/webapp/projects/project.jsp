@@ -181,8 +181,6 @@ function addIncrementalProjectIdAjax(individualId, projectIdPrefix, encounterId)
         if(data.success){
           $('#adding-div_' + encounterId).hide();
           $('#alert-div_'+encounterId).show();
-          $('#mark-new-button_'+encounterId).hide();
-          $('#disabled-mark-new-button_'+encounterId).hide();
         }else{
           $('#adding-div_' + encounterId).hide();
           $('#alert-div-warn_'+encounterId).show();
@@ -317,15 +315,20 @@ function projectHTMLForTable(json, encounters, currentEncounterIndex) {
   projectHTML += '<div class="row">';  
   projectHTML += '   <div class="col-sm-6 col-md-6 col-lg-6">';
       
+  let disabledMarkNew = '  <button class="disabled-btn proj-action-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;"><%= projectProps.getProperty("MarkNew")%></button>';
   if(!hasNameKeyMatchingProject){
     if (individualDisplayName!=null&&individualDisplayName!="") {
       projectHTML += '  <button class="proj-action-btn" id="mark-new-button_'+encounterId+'" type="button" onclick="markNewIncremental(\''+individualUUID+'\', \''+projectIdPrefix+'\', \''+encounterId+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
-      projectHTML += '  <button class="disabled-btn proj-action-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;"><%= projectProps.getProperty("MarkNew")%></button>';
+      projectHTML += disabledMarkNew;
     } else {
       projectHTML += '  <button class="proj-action-btn" id="mark-new-button_'+encounterId+'" type="button" onclick="createIndividualAndMarkNewIncremental(\''+encounterId+'\', \''+projectIdPrefix+'\')"><%= projectProps.getProperty("MarkNew")%></button>';
-      projectHTML += '  <button class="disabled-btn proj-action-btn" id="disabled-mark-new-button_'+encounterId+'" style="display: none;"><%= projectProps.getProperty("MarkNew")%></button>';
+      projectHTML += disabledMarkNew;
     }
-  }    
+  } else {
+    //same disabled but visible
+    projectHTML += '<button class="disabled-btn proj-action-btn" id="disabled-mark-new-button_'+encounterId+'"><%= projectProps.getProperty("MarkNew")%></button>';
+  }
+
   projectHTML += '   </div>';
 
   projectHTML += '   <div class="col-sm-6 col-md-6 col-lg-6">';
