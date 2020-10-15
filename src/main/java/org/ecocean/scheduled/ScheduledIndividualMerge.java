@@ -130,6 +130,7 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
 
     public boolean ignoredByUser(String username) {
         List<Boolean> stateForUser = participantsDeniedIgnored.get(username);
+        if (stateForUser==null) return Boolean.FALSE;
         return stateForUser.get(1);
     }
 
