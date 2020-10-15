@@ -121,6 +121,7 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 <p><%=encprops.getProperty("belowMatches")%></p>
 
 <script type="text/javascript">
+  let uniqueTracker = [];
 
 	var needIAStatus = false;
 
@@ -534,6 +535,10 @@ $(document).ready( function() {
 			success: function() { searchResults = encs.models; doTable(); },
 		});
 	});
+  // $('#results-table').change(function(){
+  //   console.log("results table changed");
+  //   _projectId();
+  // });
 });
 
 
@@ -605,9 +610,9 @@ function _occurrenceID(o) {
 }
 
 function _projectId(o){ //I couldn't think of a straightforward way to attach incremental IDs to search results
-  console.log("o is:");
-  console.log(o);
-  console.log(o.attributes.individual.individualID);
+  // console.log("encounter ID in _projectId:");
+  // console.log(o.id);
+  let encId = o.id;
   let indId = o.attributes.individual.individualID;
   <%
     if(projectIds!= null && projectIds.length>0){
@@ -617,24 +622,21 @@ function _projectId(o){ //I couldn't think of a straightforward way to attach in
   %>
   let ajaxJson = {}
   let projIdPrefix = '<%= currentProjIdPrefix%>';
-  console.log("projIdPrefix is " + projIdPrefix);
   ajaxJson['projectIdPrefix'] = projIdPrefix;
   ajaxJson['individualIds'] = [];
   ajaxJson['individualIds'].push({indId: indId});
-
-  console.log("ajaxJson is:");
-  console.log(ajaxJson);
-  doAjaxCall(indId, ajaxJson);
+  doAjaxCall(encId, ajaxJson);
   <%
     } //end for of project IDs
   } // end if for projectIds
   %>
-  return '<div data-id="' + indId +'"></div>';
+  return '<div data-id="enc-' + encId +'"></div>';
   // if (!o.get('projectId')) return '';
 	// return o.get('projectId');
 }
 
-function doAjaxCall(indId, requestJson){
+function doAjaxCall(encId, requestJson){
+  // console.log("doAjaxCall called");
   $.ajax({
       url: wildbookGlobals.baseUrl + '../ProjectGet',
       type: 'POST',
@@ -642,44 +644,55 @@ function doAjaxCall(indId, requestJson){
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-        // console.log("data is: ");
-        // console.log(data);
+        // console.log("doAjaxCall called back");
         if(data){
           if(data.incrementalIdArr && data.incrementalIdArr.length>0){
             for(let i=0; i< data.incrementalIdArr.length; i++){
               let currentIncrementalId = data.incrementalIdArr[i].projectIncrementalId;
               if(currentIncrementalId){
-                console.log("currentIncrementalId is: "+ currentIncrementalId);
-                $('[data-id="' + indId + '"]').empty();
-                $('[data-id="' + indId + '"]').append(currentIncrementalId);
+                // console.log("gets here 1");
+                // $('[data-id="' + encId + '"]').empty();
+                let counter = 0;
+                uniqueTracker.forEach(entry => {
+                  console.log("got into forEach");
+                  if (entry.encId === encId && entry.incrementalId === currentIncrementalId){
+                    counter ++;
+                  }
+                });
+                if(counter <1){
+                  $('[data-id="enc-' + encId + '"]').append(currentIncrementalId + '<span data-id="comma">, </span>');
+                  uniqueTracker.push({encId: encId, incrementalId: currentIncrementalId});
+                  // console.log("uniqueTracker is: ");
+                  // console.log(uniqueTracker);
+                } else{
+                  // console.log("duplicate was found. Not adding");
+                }
               }
             }
-            // if(incrementalIdResults && incrementalIdResults.length>0){}
-            //.projectIncrementalId
+            removeTerminalCommaSpans();
           }
         }
-          // $("#encounterList").empty();
-          // let projectsArr = data.projects;
-          // if(projectsArr){
-          //   for (let i=0;i<projectsArr.length;i++) {
-          //     let thisProject = projectsArr[i];
-          //     projIdPrefix = thisProject.projectIdPrefix;
-          //     for (let j=0;j<thisProject.encounters.length;j++) {
-          //       let projectHTML = projectHTMLForTable(projectsArr[i].encounters[j], thisProject.encounters, j);
-          //       $("#encounterList").append(projectHTML);
-          //     }
-          //
-          //   }
-          //   let userCanEdit = data.userCanEdit;
-          //   if ("true"==userCanEdit) {
-          //     showEditControls();
-          //   }
-          // }
       },
       error: function(x,y,z) {
           console.warn('%o %o %o', x, y, z);
       }
   });
+}
+
+function removeTerminalCommaSpans(){
+  console.log("removeTerminalCommaspan entered");
+  let projIdParentElems = $('[data-id^=enc-]');
+  console.log("projIdParentElems length:" + projIdParentElems.length);
+  for(let i=0; i<projIdParentElems.length; i++){
+    let currentParentElem = projIdParentElems[i];
+    console.log("currentParentElem is:");
+    console.log(currentParentElem);
+    let lastCommaElem = $(currentParentElem).children('[data-id=comma]').last();
+    console.log("lastCommaElem is: ");
+    console.log(lastCommaElem);
+    lastCommaElem.empty();
+  }
+
 }
 
 
