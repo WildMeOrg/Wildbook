@@ -1411,31 +1411,30 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return asApiJSONObject(null);
     }
 
-    public org.json.JSONObject asApiJSONObject(List<String> expand) {
+    public org.json.JSONObject asApiJSONObject(org.json.JSONObject arg) {
+        String detLvl = getDetailLevel(arg);
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
         if (startTime != null) obj.put("startTime", startTime.toIso8601());
         if (endTime != null) obj.put("endTime", endTime.toIso8601());
 
-        //we include encounters even if expand==null
         if (!Util.collectionIsEmptyOrNull(this.encounters)) {
             org.json.JSONArray jarr = new org.json.JSONArray();
             for (Encounter enc : this.encounters) {
-                if ((expand == null) || !expand.contains("Occurrence.encounters")) {
+                if (detLvl.equals(DETAIL_LEVEL_MIN)) {
                     org.json.JSONObject j = new org.json.JSONObject();
                     j.put("id", enc.getId());
                     j.put("version", enc.getVersion());
                     jarr.put(j);
                 } else {
-                    jarr.put(enc.asApiJSONObject(expand));
+                    jarr.put(enc.asApiJSONObject(arg));
                 }
             }
             obj.put("encounters", jarr);
         }
 
-        //if expand is null, we bail
-        if (expand == null) return obj;
+        if (detLvl.equals(DETAIL_LEVEL_MIN)) return obj;  //our work is done here
 
         if (!Util.collectionIsEmptyOrNull(this.submissionContentReferences)) {
             org.json.JSONArray jarr = new org.json.JSONArray();

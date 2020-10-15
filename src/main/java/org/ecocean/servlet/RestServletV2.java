@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.jdo.Query;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,6 +78,17 @@ public class RestServletV2 extends ApiHttpServlet {
         String[] parts = request.getPathInfo().split("/");  //dont forget has leading / like:  "/class/id"
         if (parts.length > 1) inJson.put("class", parts[1]);
         if (parts.length > 2) inJson.put("id", parts[2]);
+
+        //normalize special ?args as part of the json payload (to allow either way to work)
+        Enumeration<String> allParams = request.getParameterNames();
+        JSONObject dets = new JSONObject();
+        while (allParams.hasMoreElements()) {
+            String par = allParams.nextElement();
+            if (!par.startsWith("detail-")) continue;
+            dets.put(par.substring(7), request.getParameter(par));
+        }
+        if (dets.length() > 0) inJson.put("detailLevel", dets);
+
         return inJson;
     }
 
@@ -186,7 +198,7 @@ public class RestServletV2 extends ApiHttpServlet {
                 Occurrence occ = myShepherd.getOccurrence(id);
                 if (occ != null) {
                     try {
-                        rtn = occ.asApiJSONObject(Util.jsonArrayToStringList(payload.optJSONArray("expandProperties")));
+                        rtn = occ.asApiJSONObject(payload.optJSONObject("detailLevel"));
                     } catch (Exception ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
@@ -199,7 +211,7 @@ public class RestServletV2 extends ApiHttpServlet {
                 Encounter enc = myShepherd.getEncounter(id);
                 if (enc != null) {
                     try {
-                        rtn = enc.asApiJSONObject(Util.jsonArrayToStringList(payload.optJSONArray("expandProperties")));
+                        rtn = enc.asApiJSONObject(payload.optJSONObject("detailLevel"));
                     } catch (Exception ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
@@ -212,7 +224,7 @@ public class RestServletV2 extends ApiHttpServlet {
                 MarkedIndividual ind = myShepherd.getMarkedIndividual(id);
                 if (ind != null) {
                     try {
-                        rtn = ind.asApiJSONObject(Util.jsonArrayToStringList(payload.optJSONArray("expandProperties")));
+                        rtn = ind.asApiJSONObject(payload.optJSONObject("detailLevel"));
                     } catch (Exception ex) {
                         myShepherd.rollbackDBTransaction();
                         myShepherd.closeDBTransaction();
@@ -770,7 +782,7 @@ rtn.put("_payload", payload);
         return;
     }
 
-    //basically change some object
+    //basically change some object - see https://tools.ietf.org/html/rfc6902
     private void handlePatch(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
         if ((payload == null) || (context == null)) throw new IOException("invalid paramters");
         JSONObject rtn = new JSONObject();
@@ -795,7 +807,7 @@ rtn.put("_payload", payload);
         if (cls.equals("org.ecocean.Occurrence")) {
             Occurrence occ = myShepherd.getOccurrence(id);
             if (occ == null) {
-                SystemLog.warn("RestServlet.handlePatch() instance={} invalid login with payload={}", instanceId, payload);
+                SystemLog.warn("RestServlet.handlePatch() instance={} invalid occurrence with payload={}", instanceId, payload);
                 rtn.put("message", _rtnMessage("not_found"));
                 response.setStatus(404);
                 myShepherd.rollbackDBTransaction();
@@ -805,7 +817,7 @@ rtn.put("_payload", payload);
                 return;
             } else {
                 //occ.apiPatch(myShepherd, payload);
-                rtn.put("object", occ);
+                rtn.put("result", occ.asApiJSONObject());
             }
         } else {
             myShepherd.rollbackDBTransaction();

@@ -3902,13 +3902,13 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         return asApiJSONObject(null);
     }
 
-    public org.json.JSONObject asApiJSONObject(List<String> expand) {
+    public org.json.JSONObject asApiJSONObject(org.json.JSONObject arg) {
+        String detLvl = getDetailLevel(arg);
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
 
-        //if expand is null, we bail
-        if (expand == null) return obj;
+        if (detLvl.equals(DETAIL_LEVEL_MIN)) return obj;
 
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;

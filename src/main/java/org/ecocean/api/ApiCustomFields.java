@@ -23,6 +23,9 @@ import java.lang.reflect.Constructor;
 import java.io.IOException;
 
 public class ApiCustomFields {
+    public static final String DETAIL_LEVEL_MIN = "min";
+    public static final String DETAIL_LEVEL_MAX = "max";
+
     private String id = null;
     //private long version = 0l;
     //private User owner = null;
@@ -291,6 +294,12 @@ public class ApiCustomFields {
 //////////// FIXME how do we decide *flavor* of Value to set here?
         CustomFieldValue cfv = CustomFieldValue.makeSpecific(cfd, value);
         addCustomFieldValue(cfv);
+    }
+
+    //convenience method
+    public String getDetailLevel(JSONObject arg) {
+        if (arg == null) return DETAIL_LEVEL_MIN;
+        return arg.optString(this.getClass().getName(), DETAIL_LEVEL_MIN);
     }
 
 /*
