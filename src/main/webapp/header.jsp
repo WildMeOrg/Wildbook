@@ -454,6 +454,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                             if(request.getUserPrincipal()!=null) {
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
+                              <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
 
                             <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
                                 <li class="divider"></li>
@@ -467,9 +468,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 
                             <% }
-                            if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) { %>
-                              <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
-                            <% }
+                            
                             if(request.isUserInRole("admin")) { %>
 
 
@@ -493,6 +492,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                                   <li class="divider"></li>
                                 <% } 
                             } //end if admin %>
+                            
                         </ul>
                       </li>
                     </ul>
