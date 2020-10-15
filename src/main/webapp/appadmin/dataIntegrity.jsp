@@ -27,6 +27,14 @@ context=ServletUtilities.getContext(request);
 <h3>Check for Annotations with Multiple Individual IDs</h3>
 <p>Annotations assigned to two or more different individuals represent data errors that can cause matching to fail or result in falsely merged individuals.</p>
 <p><a target="_blank" href="sharedAnnotations.jsp">Click here to check</a></p>      
+
+<h3>Check Annotation iaClasses and MediaAsset States by Species</h3>
+<p>Old iaClasses on annotations and media assets stuck in a "pending" state can cause poor matching performance as they are ignored.</p>
+<p><a target="_blank" href="iaBreakdownBySpecies.jsp">Click here to check</a></p>      
+
+
+
+
 </div>
 
 
