@@ -388,7 +388,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
   public void addIncrementalProjectId(Project project) {
     if (project!=null) {
-      if (!hasNameSubstring(project.getProjectIdPrefix())) {
+      if (!hasNameKey(project.getProjectIdPrefix())) {
         int nextIncrement = project.getNextIndividualIdIncrement();
         try {
           addNameByKey(project.getProjectIdPrefix(), project.getNextIncrementalIndividualId());
