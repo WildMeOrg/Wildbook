@@ -68,8 +68,7 @@ public class IndividualCreateForProject extends HttpServlet {
                         project = myShepherd.getProjectByProjectIdPrefix(projectId);
                     }
                     if (project!=null) {
-
-                        MarkedIndividual individual = new MarkedIndividual(enc);
+                        MarkedIndividual individual = new MarkedIndividual(project.getNextIncrementalIndividualId(), enc);
                         myShepherd.storeNewMarkedIndividual(individual);
                         individual.addIncrementalProjectId(project);
                         myShepherd.updateDBTransaction();
