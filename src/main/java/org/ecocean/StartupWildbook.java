@@ -122,6 +122,10 @@ public class StartupWildbook implements ServletContextListener {
         ServletContext sContext = sce.getServletContext();
         String context = "context0";  //TODO ??? how????
         System.out.println(new org.joda.time.DateTime() + " ### StartupWildbook initialized for: " + servletContextInfo(sContext));
+        if (context != null) {
+            System.out.println("- SKIPPED initialization because of next-gen");
+            return;
+        }
         if (skipInit(sce, null)) {
             System.out.println("- SKIPPED initialization due to skipInit()");
             return;
