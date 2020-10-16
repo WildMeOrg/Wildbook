@@ -43,6 +43,7 @@ context=ServletUtilities.getContext(request);
     projectIds = request.getParameterValues("projectId");
     if(projectIds!=null){
       projectIdCount = projectIds.length;
+      System.out.println("projectIdCount is: " + projectIdCount);
     }
   }
 
@@ -126,8 +127,8 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 
 <script type="text/javascript">
   let uniqueTracker = [];
-  let doneLoopingThroughAllProjectsSearched = false;
-  let projIdCallCounter = 0; //TODO for troubleshooting. Delete me.
+  let projIdCallCounter = 0;
+  let maxLoops = 0;
 
 	var needIAStatus = false;
 
@@ -238,6 +239,7 @@ var sTable = false;
 
 var iaResults;
 function doTable() {
+  console.log("doTable called");
 	iaResults = {};
 	if (needIAStatus) {
 		for (var i = 0 ; i < searchResults.length ; i++) {
@@ -538,7 +540,10 @@ $(document).ready( function() {
 			fetch: "searchResults",
 			noDecorate: true,
 			jdoql: jdoql,
-			success: function() { searchResults = encs.models; doTable(); },
+			success: function() {
+        searchResults = encs.models;
+        populateWithProjectIds();
+      },
 		});
 	});
   // $('#results-table').change(function(){
@@ -617,43 +622,47 @@ function _occurrenceID(o) {
 
 function _projectId(o){ //I couldn't think of a straightforward way to attach incremental IDs to search results
   console.log("_projectId entered");
-  let projIdCount = <%= projectIdCount%>;
-  console.log("projIdCount in js land is " + projIdCount);
-  projIdCallCounter ++;
-  console.log("projIdCallCounter is: " + projIdCallCounter);
-  // console.log("encounter ID in _projectId:");
-  // console.log(o.id);
-  let encId = o.id;
-  let indId = o.attributes.individual.individualID;
-  let ajaxJson = {}
-  let projIdPrefix = '';
-  <%
-    if(projectIds!= null && projectIds.length>0){
-      for(int i=0; i<projectIds.length; i++){
-        Project currentProj = myShepherd.getProjectByUuid(projectIds[i]);
-        String currentProjIdPrefix = currentProj.getProjectIdPrefix();
-  %>
-  projIdPrefix = '<%= currentProjIdPrefix%>';
-  // console.log("projIdPrefix is " + projIdPrefix);
-  ajaxJson['projectIdPrefix'] = projIdPrefix;
-  ajaxJson['individualIds'] = [];
-  ajaxJson['individualIds'].push({indId: indId});
-  doAjaxCall(encId, ajaxJson);
-  <%
-    } //end for of project IDs
-    %>
-    // console.log("this happens 1");
-    doneLoopingThroughAllProjectsSearched = true; //TODO move this to whatever callback signifies that all data has been fetched... it's clearly not here
-    // removeTerminalCommaSpans();
-    <%
-  } // end if for projectIds
-  %>
-  return '<div data-id="enc-' + encId +'"></div>';
-  // if (!o.get('projectId')) return '';
-	// return o.get('projectId');
+  // console.log(o.attributes.individual.incrementalIds);
+  if (!o.attributes.individual.incrementalIds) return '';
+  console.log(o.attributes.individual.incrementalIds.join(', '));
+	return o.attributes.individual.incrementalIds.join(', ');
 }
 
-function doAjaxCall(encId, requestJson){
+function populateWithProjectIds(){
+  // console.log("projIdCount is <%= projectIdCount %>")
+  let projIdCount = parseInt('<%= projectIdCount %>');
+  if(projIdCount){
+    // console.log("projIdCount is: " + projIdCount);
+    // console.log(typeof projIdCount);
+    maxLoops = searchResults.length * projIdCount;
+  }
+  for (let i = 0 ; i < searchResults.length ; i++) {
+    let currentSearchResult = searchResults[i];
+    let encId = currentSearchResult.id;
+    let indId = currentSearchResult.attributes.individual.individualID;
+    let ajaxJson = {}
+    let projIdPrefix = '';
+    <%
+      if(projectIds!= null && projectIds.length>0){
+        for(int j=0; j<projectIds.length; j++){
+          Project currentProj = myShepherd.getProjectByUuid(projectIds[j]);
+          String currentProjIdPrefix = currentProj.getProjectIdPrefix();
+    %>
+    projIdPrefix = '<%= currentProjIdPrefix%>';
+    ajaxJson['projectIdPrefix'] = projIdPrefix;
+    ajaxJson['individualIds'] = [];
+    ajaxJson['individualIds'].push({indId: indId});
+    doAjaxCall(encId, ajaxJson, maxLoops, i);
+    <%
+      } //end for of project IDs
+    } // end if for projectIds
+    %>
+    // return '<div data-id="enc-' + encId +'"></div>';
+    //ike if you had the new method (above) populate searchResults[i].attributes.project ... then _projectId() could just be return o.get('project') !!
+  }
+}
+
+function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
   // console.log("doAjaxCall called");
   $.ajax({
       url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -666,6 +675,7 @@ function doAjaxCall(encId, requestJson){
         if(data){
           if(data.incrementalIdArr && data.incrementalIdArr.length>0){
             for(let i=0; i< data.incrementalIdArr.length; i++){
+              projIdCallCounter ++;
               let currentIncrementalId = data.incrementalIdArr[i].projectIncrementalId;
               if(currentIncrementalId){
                 // console.log("gets here 1");
@@ -677,20 +687,30 @@ function doAjaxCall(encId, requestJson){
                     counter ++;
                   }
                 });
-                if(counter <1){ //add to unique and add to DOM iff this encounter ID + incremental ID combo hasn't been seen before
-                  $('[data-id="enc-' + encId + '"]').append(currentIncrementalId + '<span data-id="comma">,</span> ');
-                  uniqueTracker.push({encId: encId, incrementalId: currentIncrementalId});
+                if(counter <1){ //this encounter ID + incremental ID combo hasn't been seen before
+                  // $('[data-id="enc-' + encId + '"]').append(currentIncrementalId + '<span data-id="comma">,</span> ');
+                  // uniqueTracker.push({encId: encId, incrementalId: currentIncrementalId});
+                  // console.log(searchResults[indexOfSearchResults]);
+                  if(searchResults[indexOfSearchResults].attributes.individual.incrementalIds){
+                    searchResults[indexOfSearchResults].attributes.individual.incrementalIds.push(currentIncrementalId);
+                    // console.log("incrementalIds already has entry");
+                    // console.log(searchResults[indexOfSearchResults].attributes.individual.incrementalIds);
+                  }else{
+                    searchResults[indexOfSearchResults].attributes.individual.incrementalIds = [currentIncrementalId];
+                  }
+                  // ({incrementalIds: [currentIncrementalId]});
+
                   // console.log("uniqueTracker is: ");
                   // console.log(uniqueTracker);
-                } else{
-                  // console.log("duplicate was found. Not adding");
+                  // projIdCallCounter ++;
                 }
               }
             }
-            if(doneLoopingThroughAllProjectsSearched){
-              console.log("doneLoopingThroughAllProjectsSearched is: " + doneLoopingThroughAllProjectsSearched);
+            if(maxLoops == projIdCallCounter){
+              console.log("calling removeTerminalCommaSpans..." );
+              // removeTerminalCommaSpans(); //TODO
+              doTable();
               // console.log("this happens");
-              removeTerminalCommaSpans();
             }
           }
         }
