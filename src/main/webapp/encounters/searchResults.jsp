@@ -37,9 +37,14 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("searchResults.jsp");
   String[] projectIds = null;
+  int projectIdCount = 0;
   if(Util.isUUID(request.getParameter("projectId"))){
     System.out.println("Got in to projectId parameter in searchResults");
     projectIds = request.getParameterValues("projectId");
+    if(projectIds!=null){
+      projectIdCount = projectIds.length;
+      System.out.println("projectIdCount is: " + projectIdCount);
+    }
   }
 
 
@@ -121,6 +126,9 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 <p><%=encprops.getProperty("belowMatches")%></p>
 
 <script type="text/javascript">
+  let uniqueTracker = [];
+  let projIdCallCounter = 0;
+  let maxLoops = 0;
 
 	var needIAStatus = false;
 
@@ -231,6 +239,7 @@ var sTable = false;
 
 var iaResults;
 function doTable() {
+  console.log("doTable called");
 	iaResults = {};
 	if (needIAStatus) {
 		for (var i = 0 ; i < searchResults.length ; i++) {
@@ -531,9 +540,16 @@ $(document).ready( function() {
 			fetch: "searchResults",
 			noDecorate: true,
 			jdoql: jdoql,
-			success: function() { searchResults = encs.models; doTable(); },
+			success: function() {
+        searchResults = encs.models;
+        populateWithProjectIds();
+      },
 		});
 	});
+  // $('#results-table').change(function(){
+  //   console.log("results table changed");
+  //   _projectId();
+  // });
 });
 
 
@@ -604,37 +620,42 @@ function _occurrenceID(o) {
 	return o.get('occurrenceID');
 }
 
-function _projectId(o){ //I couldn't think of a straightforward way to attach incremental IDs to search results
-  console.log("o is:");
-  console.log(o);
-  console.log(o.attributes.individual.individualID);
-  let indId = o.attributes.individual.individualID;
-  <%
-    if(projectIds!= null && projectIds.length>0){
-      for(int i=0; i<projectIds.length; i++){
-        Project currentProj = myShepherd.getProjectByUuid(projectIds[i]);
-        String currentProjIdPrefix = currentProj.getProjectIdPrefix();
-  %>
-  let ajaxJson = {}
-  let projIdPrefix = '<%= currentProjIdPrefix%>';
-  console.log("projIdPrefix is " + projIdPrefix);
-  ajaxJson['projectIdPrefix'] = projIdPrefix;
-  ajaxJson['individualIds'] = [];
-  ajaxJson['individualIds'].push({indId: indId});
-
-  console.log("ajaxJson is:");
-  console.log(ajaxJson);
-  doAjaxCall(indId, ajaxJson);
-  <%
-    } //end for of project IDs
-  } // end if for projectIds
-  %>
-  return '<div data-id="' + indId +'"></div>';
-  // if (!o.get('projectId')) return '';
-	// return o.get('projectId');
+function _projectId(o){
+  if (!o.attributes.individual.incrementalIds) return '';
+  console.log(o.attributes.individual.incrementalIds.join(', '));
+	return o.attributes.individual.incrementalIds.join(', ');
 }
 
-function doAjaxCall(indId, requestJson){
+function populateWithProjectIds(){
+  let projIdCount = parseInt('<%= projectIdCount %>');
+  if(projIdCount){
+    maxLoops = searchResults.length * projIdCount;
+  }
+  for (let i = 0 ; i < searchResults.length ; i++) {
+    let currentSearchResult = searchResults[i];
+    let encId = currentSearchResult.id;
+    let indId = currentSearchResult.attributes.individual.individualID;
+    let ajaxJson = {}
+    let projIdPrefix = '';
+    <%
+      if(projectIds!= null && projectIds.length>0){
+        for(int j=0; j<projectIds.length; j++){
+          Project currentProj = myShepherd.getProjectByUuid(projectIds[j]);
+          String currentProjIdPrefix = currentProj.getProjectIdPrefix();
+    %>
+    projIdPrefix = '<%= currentProjIdPrefix%>';
+    ajaxJson['projectIdPrefix'] = projIdPrefix;
+    ajaxJson['individualIds'] = [];
+    ajaxJson['individualIds'].push({indId: indId});
+    doAjaxCall(encId, ajaxJson, maxLoops, i);
+    <%
+      } //end for of project IDs
+    } // end if for projectIds
+    %>
+  }
+}
+
+function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
   $.ajax({
       url: wildbookGlobals.baseUrl + '../ProjectGet',
       type: 'POST',
@@ -642,46 +663,38 @@ function doAjaxCall(indId, requestJson){
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-        // console.log("data is: ");
-        // console.log(data);
         if(data){
           if(data.incrementalIdArr && data.incrementalIdArr.length>0){
             for(let i=0; i< data.incrementalIdArr.length; i++){
+              projIdCallCounter ++;
               let currentIncrementalId = data.incrementalIdArr[i].projectIncrementalId;
               if(currentIncrementalId){
-                console.log("currentIncrementalId is: "+ currentIncrementalId);
-                $('[data-id="' + indId + '"]').empty();
-                $('[data-id="' + indId + '"]').append(currentIncrementalId);
+                let counter = 0;
+                uniqueTracker.forEach(entry => {
+                  if (entry.encId === encId && entry.incrementalId === currentIncrementalId){
+                    counter ++;
+                  }
+                });
+                if(counter <1){ //this encounter ID + incremental ID combo hasn't been seen before
+                  if(searchResults[indexOfSearchResults].attributes.individual.incrementalIds){
+                    searchResults[indexOfSearchResults].attributes.individual.incrementalIds.push(currentIncrementalId);
+                  }else{
+                    searchResults[indexOfSearchResults].attributes.individual.incrementalIds = [currentIncrementalId];
+                  }
+                }
               }
             }
-            // if(incrementalIdResults && incrementalIdResults.length>0){}
-            //.projectIncrementalId
+            if(maxLoops == projIdCallCounter){
+              doTable();
+            }
           }
         }
-          // $("#encounterList").empty();
-          // let projectsArr = data.projects;
-          // if(projectsArr){
-          //   for (let i=0;i<projectsArr.length;i++) {
-          //     let thisProject = projectsArr[i];
-          //     projIdPrefix = thisProject.projectIdPrefix;
-          //     for (let j=0;j<thisProject.encounters.length;j++) {
-          //       let projectHTML = projectHTMLForTable(projectsArr[i].encounters[j], thisProject.encounters, j);
-          //       $("#encounterList").append(projectHTML);
-          //     }
-          //
-          //   }
-          //   let userCanEdit = data.userCanEdit;
-          //   if ("true"==userCanEdit) {
-          //     showEditControls();
-          //   }
-          // }
       },
       error: function(x,y,z) {
           console.warn('%o %o %o', x, y, z);
       }
   });
 }
-
 
 function _colRowNum(o) {
 	return o._rowNum;
