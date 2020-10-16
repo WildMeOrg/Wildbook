@@ -1038,16 +1038,14 @@ public class StandardImport extends HttpServlet {
           String projectIdPrefix = getString(row,projectIdPrefixKey);
           String researchProjectNameKey = "Encounter.project"+projectIncrement+".researchProjectName";
           String researchProjectName = getString(row,researchProjectNameKey);
-
           String ownerNameKey = "Encounter.project"+projectIncrement+".ownerUsername";
-          
+          String ownerName = getString(row,ownerNameKey);
           if (Util.stringExists(projectIdPrefix)&&Util.stringExists(researchProjectName)) {
             projectIdPrefix = projectIdPrefix.trim();
             //if this project already exists, use it. bail on other specifics.
             Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
             if (project==null) {
 
-              String ownerName = getString(row,ownerNameKey);
               
               if (Util.stringExists(ownerName)) {
                 ownerName = ownerName.trim();
