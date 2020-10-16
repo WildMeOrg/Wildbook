@@ -620,20 +620,15 @@ function _occurrenceID(o) {
 	return o.get('occurrenceID');
 }
 
-function _projectId(o){ //I couldn't think of a straightforward way to attach incremental IDs to search results
-  console.log("_projectId entered");
-  // console.log(o.attributes.individual.incrementalIds);
+function _projectId(o){
   if (!o.attributes.individual.incrementalIds) return '';
   console.log(o.attributes.individual.incrementalIds.join(', '));
 	return o.attributes.individual.incrementalIds.join(', ');
 }
 
 function populateWithProjectIds(){
-  // console.log("projIdCount is <%= projectIdCount %>")
   let projIdCount = parseInt('<%= projectIdCount %>');
   if(projIdCount){
-    // console.log("projIdCount is: " + projIdCount);
-    // console.log(typeof projIdCount);
     maxLoops = searchResults.length * projIdCount;
   }
   for (let i = 0 ; i < searchResults.length ; i++) {
@@ -657,13 +652,10 @@ function populateWithProjectIds(){
       } //end for of project IDs
     } // end if for projectIds
     %>
-    // return '<div data-id="enc-' + encId +'"></div>';
-    //ike if you had the new method (above) populate searchResults[i].attributes.project ... then _projectId() could just be return o.get('project') !!
   }
 }
 
 function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
-  // console.log("doAjaxCall called");
   $.ajax({
       url: wildbookGlobals.baseUrl + '../ProjectGet',
       type: 'POST',
@@ -671,46 +663,29 @@ function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-        // console.log("doAjaxCall called back");
         if(data){
           if(data.incrementalIdArr && data.incrementalIdArr.length>0){
             for(let i=0; i< data.incrementalIdArr.length; i++){
               projIdCallCounter ++;
               let currentIncrementalId = data.incrementalIdArr[i].projectIncrementalId;
               if(currentIncrementalId){
-                // console.log("gets here 1");
-                // $('[data-id="' + encId + '"]').empty();
                 let counter = 0;
                 uniqueTracker.forEach(entry => {
-                  // console.log("got into forEach");
                   if (entry.encId === encId && entry.incrementalId === currentIncrementalId){
                     counter ++;
                   }
                 });
                 if(counter <1){ //this encounter ID + incremental ID combo hasn't been seen before
-                  // $('[data-id="enc-' + encId + '"]').append(currentIncrementalId + '<span data-id="comma">,</span> ');
-                  // uniqueTracker.push({encId: encId, incrementalId: currentIncrementalId});
-                  // console.log(searchResults[indexOfSearchResults]);
                   if(searchResults[indexOfSearchResults].attributes.individual.incrementalIds){
                     searchResults[indexOfSearchResults].attributes.individual.incrementalIds.push(currentIncrementalId);
-                    // console.log("incrementalIds already has entry");
-                    // console.log(searchResults[indexOfSearchResults].attributes.individual.incrementalIds);
                   }else{
                     searchResults[indexOfSearchResults].attributes.individual.incrementalIds = [currentIncrementalId];
                   }
-                  // ({incrementalIds: [currentIncrementalId]});
-
-                  // console.log("uniqueTracker is: ");
-                  // console.log(uniqueTracker);
-                  // projIdCallCounter ++;
                 }
               }
             }
             if(maxLoops == projIdCallCounter){
-              console.log("calling removeTerminalCommaSpans..." );
-              // removeTerminalCommaSpans(); //TODO
               doTable();
-              // console.log("this happens");
             }
           }
         }
@@ -720,23 +695,6 @@ function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
       }
   });
 }
-
-function removeTerminalCommaSpans(){
-  console.log("removeTerminalCommaspan entered");
-  let projIdParentElems = $('[data-id^=enc-]');
-  // console.log("projIdParentElems length:" + projIdParentElems.length);
-  for(let i=0; i<projIdParentElems.length; i++){
-    let currentParentElem = projIdParentElems[i];
-    // console.log("currentParentElem is:");
-    // console.log(currentParentElem);
-    let lastCommaElem = $(currentParentElem).children('[data-id=comma]').last();
-    // console.log("lastCommaElem is: ");
-    // console.log(lastCommaElem);
-    lastCommaElem.empty();
-  }
-
-}
-
 
 function _colRowNum(o) {
 	return o._rowNum;
