@@ -65,8 +65,12 @@ String organization = request.getParameter("organization");
 if (organization!=null && organization.toLowerCase().equals("indocet"))  {
   indocetUser = true;
 }
+String notifications="";
 myShepherd.beginDBTransaction();
 try {
+	
+	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+	
   if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
@@ -386,7 +390,7 @@ finally{
                   </div>
 
                   <div id="navbar" class="navbar-collapse collapse">
-                  <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
+                  <div id="notifications"><%=notifications %></div>
                     <ul class="nav navbar-nav">
 
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
