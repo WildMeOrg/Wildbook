@@ -34,8 +34,8 @@ public class MergeIndividual extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    myShepherd=new Shepherd(request);
-    myShepherd.setAction("MergeIndividual.class");
+    
+
     response.setContentType("text/html");
     out = response.getWriter();
 
@@ -53,6 +53,9 @@ public class MergeIndividual extends HttpServlet {
     String oldName2;
 
     boolean canMergeAutomatically = false;
+    
+    myShepherd=new Shepherd(request);
+    myShepherd.setAction("MergeIndividual.class");
     
     try {
 
@@ -102,7 +105,7 @@ public class MergeIndividual extends HttpServlet {
         } else {
           ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
           myShepherd.storeNewScheduledIndividualMerge(merge);
-          myShepherd.beginDBTransaction();
+          myShepherd.updateDBTransaction();
         }
       }
 
@@ -114,12 +117,17 @@ public class MergeIndividual extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
       }
+      else {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+      }
 
-    } catch (Exception le){
+    } 
+    catch (Exception le){
       le.printStackTrace();
+      errorAndClose("An exception occurred. Please contact the admins.", response);
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
-      errorAndClose("An exception occurred. Please contact the admins.", response);
       return;
     }
 
@@ -132,15 +140,18 @@ public class MergeIndividual extends HttpServlet {
         // redirect to the confirm page
         try {
           WebUtils.redirectToSavedRequest(request, response, "/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1);
-        } catch (IOException ioe) {
+        } 
+        catch (IOException ioe) {
           ioe.printStackTrace();
         }
 
-      } else if (!locked) {
+      } 
+      else if (!locked) {
         out.println("<strong>Pending:</strong> Participating user have been notified of your request to merge individuals "+id1+" and "+id2+".</p>");
         out.close();
         response.setStatus(HttpServletResponse.SC_OK);
-      } else {
+      } 
+      else {
         errorAndClose("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.", response);
       }
   }
@@ -153,8 +164,8 @@ public class MergeIndividual extends HttpServlet {
         //out.println(ServletUtilities.getFooter(context));
     out.close();
     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
+    //myShepherd.rollbackDBTransaction();
+    //myShepherd.closeDBTransaction();
   }
 
   private long twoWeeksFromNowLong() {

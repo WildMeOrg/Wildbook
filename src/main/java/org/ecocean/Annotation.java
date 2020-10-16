@@ -1052,7 +1052,7 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
             newEnc = new Encounter(this);
         } else {  //copy some stuff from sibling
             try {
-                newEnc = someEnc.cloneWithoutAnnotations();
+                newEnc = someEnc.cloneWithoutAnnotations(myShepherd);
                 newEnc.addAnnotation(this);
                 newEnc.setDWCDateAdded();
                 newEnc.setDWCDateLastModified();
