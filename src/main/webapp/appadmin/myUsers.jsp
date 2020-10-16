@@ -31,13 +31,34 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 <jsp:include page="../header.jsp" flush="true"/>
 <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
 <style type="text/css">
-  #candidate-block {
-    color: #000;
-    border-bottom: 1px solid #CDCDCD;
-    margin: 12px 0px 0px 0px;
-    padding: 0px;
-    z-index: 1;
-    padding-left: 10px
+  .sleeker-button{
+    width: auto;
+    height: 3em;
+    margin-left: 0.2em;
+    padding: 0 5px;
+    vertical-align: middle;
+    display: inline-block;
+    background-color: @whaleSharkblue;
+  }
+  .flex-container{
+    display: flex;
+  }
+  .candidate-block {
+    background-color: #DADADA;
+    display: block;
+    width: fit-content;
+    padding: 1.5em;
+    margin-bottom: 0.5em;
+  }
+  .radio-container{
+    vertical-align: middle;
+    width: fit-content;
+    padding-left: 0.5em;
+    padding-top: 1.5em;
+    padding-bottom: 1.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
 </style>
@@ -98,6 +119,7 @@ try{
 
     function populateCandidateUser(username, email, fullname){
       let candidateHtml = '';
+      candidateHtml += '<div class="flex-container">';
       candidateHtml += '<div class="candidate-block">';
       candidateHtml += '<p><strong>';
       candidateHtml += txt.username;
@@ -127,27 +149,37 @@ try{
       }
       candidateHtml += '</p>';
       candidateHtml += '</div>';
-      $('#content-container').append(candidateHtml);
+      candidateHtml +=  '<div class="radio-container">';
+      candidateHtml +=  '<div class="radio-button-pair-container">';
+      candidateHtml +=  '<input type="radio" id="merge-radio" name="merge-radio" value="merge" data-id="' + username+ '_' +email+'_'+fullname +'">';
+      candidateHtml +=  '<label for="merge-radio">' + txt.merge + '</label>';
+      candidateHtml +=  '<br>';
+      candidateHtml +=  '<input type="radio" id="noClaim-radio" name="noClaim-radio" value="noClaim" data-id="' + username+ '_' +email+'_'+fullname +'">';
+      candidateHtml +=  '<label for="noClaim-radio">' + txt.doNotClaim + '</label>';
+      candidateHtml +=  '</div>';
+      candidateHtml +=  '</div>';
+      candidateHtml += '</div>';
+      $('#candidate-users-container').append(candidateHtml);
     }
 
     function populatePage(){
       console.log("got here 2");
       $('#title').html(txt.title);
       let pageHtml = '';
-      pageHtml += '<p>Hi</p>';
       pageHtml += '<div id="candidate-users-container">';
       pageHtml += '</div>';
-      // pageHtml += '<p>';
-      // pageHtml += txt.username;
-      // pageHtml += '</p>';
-      // pageHtml += '<p>';
-      // pageHtml += txt.email;
-      // pageHtml += '</p>';
-      // pageHtml += '<p>';
-      // pageHtml += txt.name;
-      // pageHtml += '</p>';
+      pageHtml += '<div class="submission-section">';
+      pageHtml += '<button class="disabled-btn proj-action-btn" id="disabled-apply-user-consolidation-button">' + txt.applyChanges + '</button>';
+      pageHtml += '<button type="button" id="apply-user-consolidation-button" onclick="applyButtonClicked();" class="sleeker-button" style="display: none;">';
+      pageHtml += '<span>' + txt.applyChanges + '</span><span class="button-icon" aria-hidden="true"></span>';
+      pageHtml += '</button>';
+      pageHtml += '</div>';
       $('#content-container').empty();
       $('#content-container').append(pageHtml);
+    }
+
+    function applyButtonClicked(){
+      console.log("applyButtonClicked clicked!");
     }
     </script>
 
