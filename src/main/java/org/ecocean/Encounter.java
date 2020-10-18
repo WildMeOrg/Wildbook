@@ -137,6 +137,7 @@ public class Encounter extends org.ecocean.api.ApiCustomFields implements java.i
   public String identificationRemarks = "";
   public String genus = "";
   public String specificEpithet;
+    public Taxonomy taxonomy;
   public String lifeStage;
   public String country;
   public String zebraClass ="";  //via lewa: lactating female, territorial male, etc etc
@@ -2358,6 +2359,24 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       return Util.taxonomyString(getGenus(), getSpecificEpithet());
   }
 
+    public Taxonomy getTaxonomy() {
+        return taxonomy;
+    }
+    public void setTaxonomy(Taxonomy tax) {
+        taxonomy = tax;
+    }
+
+// these are to provide backward-compability, but should be ultimately addressed  (deprecated versions below)
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+        SystemLog.warn("getTaxonomy(Shepherd) has been deprecated");
+        return taxonomy;
+    }
+    public void setTaxonomyFromString(String s) {  //FIXME
+        SystemLog.warn("setTaxonomyFromString() has been deprecated");
+    }
+/*
+    DEPRECATED now that switched to full taxonomy support
+
     //hacky (as generates new Taxonomy -- with random uuid) but still should work for tax1.equals(tax2);
     // TODO FIXME this should be superceded by the getter for Taxonomy property in the future....
     public Taxonomy getTaxonomy(Shepherd myShepherd) {
@@ -2396,6 +2415,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public void setTaxonomyFromIAClass(String iaClass, Shepherd myShepherd) {
         setTaxonomy(IBEISIA.iaClassToTaxonomy(iaClass, myShepherd));
     }
+*/
 
   public String getPatterningCode(){ return patterningCode;}
   public void setPatterningCode(String newCode){this.patterningCode=newCode;}
@@ -3895,6 +3915,13 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     */
     public static Encounter fromApiJSONObject(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         Encounter enc = new Encounter(false);
+
+        org.json.JSONObject jtx = jsonIn.optJSONObject("taxonomy");
+        if (jtx != null) {
+            Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", null));
+            if (tx == null) throw new IOException("invalid taxonomy: " + jtx);
+            enc.setTaxonomy(tx);
+        }
         return enc;
     }
 
@@ -3909,6 +3936,14 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         obj.put("version", this.getVersion());
 
         if (detLvl.equals(DETAIL_LEVEL_MIN)) return obj;
+
+        Taxonomy tx = this.getTaxonomy();
+        if (tx != null) {
+            org.json.JSONObject jtx = new org.json.JSONObject();
+            jtx.put("id", tx.getId());
+            jtx.put("scientificName", tx.getScientificName());
+            obj.put("taxonomy", jtx);
+        }
 
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;
