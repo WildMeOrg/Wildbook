@@ -338,6 +338,7 @@ public class ShepherdPMF {
         //make sure to close an old PMF if switching
         //if(pmf!=null){pmf.close();}
 
+SystemLog.info("dbConnectionURL={}", dnProperties.getProperty("datanucleus.ConnectionURL"));
         pmfs.put(key, JDOHelper.getPersistenceManagerFactory(dnProperties));
         return pmfs.get(key);
 
