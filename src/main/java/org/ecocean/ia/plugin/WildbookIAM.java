@@ -167,7 +167,7 @@ System.out.println("B: " + ma.getAcmId() + " --> " + ma);
                 continue;
             }
             if (!validMediaAsset(ma)) {
-                IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid " + ma);
+                IA.log("WARNING: WildbookIAM.sendMediaAssets() skipping invalid MA # " + ma.getId());
                 continue;
             }
             acmList.add(ma);
@@ -415,10 +415,10 @@ System.out.println("fromResponse ---> " + ids);
         //if (curl == null) curl = ma.webURL();
 
         URL curl = ma.webURL();
-        
+
         String urlStr = curl.toString();
-        // THIS WILL BREAK if you need to append a query to the filename... 
-        // we are double encoding the '?' in order to allow filenames that contain it to go to IA   
+        // THIS WILL BREAK if you need to append a query to the filename...
+        // we are double encoding the '?' in order to allow filenames that contain it to go to IA
         if (urlStr!=null) {
             urlStr = urlStr.replaceAll("\\?", "%3F");
             if (ma.getStore() instanceof LocalAssetStore) {
@@ -430,7 +430,7 @@ System.out.println("fromResponse ---> " + ids);
             }
         }
         return null;
-        
+
     }
 
     //basically "should we send to IA?"

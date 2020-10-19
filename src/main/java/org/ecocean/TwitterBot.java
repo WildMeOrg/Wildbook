@@ -106,9 +106,11 @@ public class TwitterBot {
             }
             MediaAssetFactory.save(tweetMA, myShepherd);
             entities = tas.entitiesAsMediaAssets(tweetMA);
+            System.out.println("TwitterAssetStore just saved MediaAsset "+tweetMA.getId());
             if ((entities != null) && (entities.size() > 0)) {
                 for (MediaAsset ema : entities) {
                     MediaAssetFactory.save(ema, myShepherd);
+                    System.out.println("TwitterAssetStore just saved MediaAsset "+ema.getId());
                 }
             }
         } else {
@@ -121,13 +123,14 @@ public class TwitterBot {
         }
 System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
         if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
 
         String taxonomyString = taxonomyStringFromTweet(tweet, context);
         Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
         System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies");
+        // compare this to prev. logic in detectionQueueJob method below
         IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
 
 
