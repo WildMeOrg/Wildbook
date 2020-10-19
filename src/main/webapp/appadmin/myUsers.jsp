@@ -60,6 +60,17 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
     justify-content: center;
     align-items: center;
   }
+  .disabled-btn { /* moving this to *.less AND moving that beneath buttons custom import in manta.less did not work. */
+    background:#62676d30;
+    border:0;
+    color:#fff;
+    line-height:2em;
+    padding:7px 13px;
+    font-weight:300;
+    vertical-align:middle;
+    margin-right:10px;
+    margin-top:15px
+  }
 
 </style>
 <%
@@ -151,10 +162,10 @@ try{
       candidateHtml += '</div>';
       candidateHtml +=  '<div class="radio-container">';
       candidateHtml +=  '<div class="radio-button-pair-container">';
-      candidateHtml +=  '<input type="radio" id="merge-radio" name="merge-radio" value="merge" data-id="' + username+ '_' +email+'_'+fullname +'">';
+      candidateHtml +=  '<input type="radio" id="merge-radio" name="radio_' + username+ '_'+fullname +'" value="merge" data-id="radio_' + username+ '_' +email+'_'+fullname +'" onclick="radioClicked()">';
       candidateHtml +=  '<label for="merge-radio">' + txt.merge + '</label>';
       candidateHtml +=  '<br>';
-      candidateHtml +=  '<input type="radio" id="noClaim-radio" name="noClaim-radio" value="noClaim" data-id="' + username+ '_' +email+'_'+fullname +'">';
+      candidateHtml +=  '<input type="radio" id="noClaim-radio" name="radio_' + username+ '_'+fullname +'" value="noClaim" data-id="radio_' + username+ '_' +email+'_'+fullname +'" onclick="radioClicked()">';
       candidateHtml +=  '<label for="noClaim-radio">' + txt.doNotClaim + '</label>';
       candidateHtml +=  '</div>';
       candidateHtml +=  '</div>';
@@ -169,7 +180,7 @@ try{
       pageHtml += '<div id="candidate-users-container">';
       pageHtml += '</div>';
       pageHtml += '<div class="submission-section">';
-      pageHtml += '<button class="disabled-btn proj-action-btn" id="disabled-apply-user-consolidation-button">' + txt.applyChanges + '</button>';
+      pageHtml += '<button class="disabled-btn proj-action-btn" id="disabled-apply-user-consolidation-button">' + txt.applyChanges + '<span class="button-icon" aria-hidden="true"></span></button>';
       pageHtml += '<button type="button" id="apply-user-consolidation-button" onclick="applyButtonClicked();" class="sleeker-button" style="display: none;">';
       pageHtml += '<span>' + txt.applyChanges + '</span><span class="button-icon" aria-hidden="true"></span>';
       pageHtml += '</button>';
@@ -181,6 +192,46 @@ try{
     function applyButtonClicked(){
       console.log("applyButtonClicked clicked!");
     }
+
+    function radioClicked(){
+      console.log("radioClicked");
+      let totalNumberOfRadioButtonsPerUser = 2; //TODO if there are ever more options in addition to merge/do not claim, change this
+      let radioElements = $('[data-id^=radio_]');
+      let uniqueValues = [];
+      let numberRadioButtonsClicked = 0;
+      console.log("radioElements are:");
+      console.log(radioElements);
+      for(let i=0; i<radioElements.length; i++){
+        let currentRadioElement = radioElements[i];
+        let isChecked = currentRadioElement.checked;
+        if(isChecked){numberRadioButtonsClicked++;}
+        console.log("isChecked for element " + i + " is: " + isChecked);
+        let currentVal = currentRadioElement.value;
+        if(!uniqueValues.includes(currentVal)){uniqueValues.push(currentVal);}
+        console.log("currentVal is: " + currentVal);
+      }
+      let numberOfRadioButtonSelectionsThatShouldHaveBeenMade = radioElements.length/uniqueValues.length;
+      console.log("numberOfRadioButtonSelectionsThatShouldHaveBeenMade is: " + numberOfRadioButtonSelectionsThatShouldHaveBeenMade);
+      console.log("numberRadioButtonsClicked is: " + numberRadioButtonsClicked);
+      if(numberOfRadioButtonSelectionsThatShouldHaveBeenMade == numberRadioButtonsClicked){
+        enableApplyChanges();
+      }else{
+        disableApplyChanges();
+      }
+    }
+
+    function enableApplyChanges(){
+      console.log("enableApplyChanges entered");
+      $('#disabled-apply-user-consolidation-button').hide();
+      $('#apply-user-consolidation-button').show();
+    }
+
+    function disableApplyChanges(){
+      console.log("disableApplyChanges entered");
+      $('#apply-user-consolidation-button').hide();
+      $('#disabled-apply-user-consolidation-button').show();
+    }
+
     </script>
 
   </div>
