@@ -42,6 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletContext;
 //import javax.servlet.http.HttpSession;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 
 import java.io.*;
@@ -741,6 +742,30 @@ public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) 
   }
   //ParseException
   return new JSONObject(sb.toString());
+}
+// this is like above, except it can handle being passed a json array, which will get translated to returned JSONObject
+//   under the _value key, such as:   { "_value": [ original_array_here ], "__ARRAYHACK": true }
+//   adds in boolean __ARRAYHACK as a way of noting this hackery!
+public static JSONObject jsonAnyFromHttpServletRequest(HttpServletRequest request) throws IOException {
+  StringBuilder sb = new StringBuilder();
+  BufferedReader reader = request.getReader();
+  try {
+    String line;
+    while ((line = reader.readLine()) != null) {
+      sb.append(line).append('\n');
+    }
+  } finally {
+    reader.close();
+  }
+  String raw = sb.toString();
+  //from here, either type will throw exception if string is malformed
+  if (raw.matches("(?s)^\\s*\\[.*$")) {
+    JSONObject j = new JSONObject();
+    j.put("__ARRAYHACK", true);
+    j.put("_value", new JSONArray(raw));
+    return j;
+  }
+  return new JSONObject(raw);
 }
 
 public static void printParams(HttpServletRequest request) {
