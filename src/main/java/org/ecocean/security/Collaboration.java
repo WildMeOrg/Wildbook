@@ -279,7 +279,7 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 
-	public static String getNotificationsWidgetHtml(HttpServletRequest request) {
+	public static String getNotificationsWidgetHtml(HttpServletRequest request, Shepherd myShepherd) {
 		String context = "context0";
 		context = ServletUtilities.getContext(request);
 		String langCode = ServletUtilities.getLanguageCode(request);
@@ -297,9 +297,8 @@ public class Collaboration implements java.io.Serializable {
 		}
 
 		// make Notifications class to do this outside Collaboration, eeergghh
-		Shepherd myShepherd = null;
 		try {
-			myShepherd = new Shepherd(context);
+
 			ArrayList<ScheduledIndividualMerge> potentialForNotification = myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
 			ArrayList<ScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteScheduledIndividualMerges();
 			potentialForNotification.addAll(incomplete);
@@ -308,12 +307,9 @@ public class Collaboration implements java.io.Serializable {
 					n++;
 				}
 			}
-			myShepherd.closeDBTransaction();
-		} catch (Exception e) {
-			if (myShepherd!=null) {
-				myShepherd.closeDBTransaction();
-			}
-			e.printStackTrace();
+		} 
+		catch (Exception e) {
+			//e.printStackTrace();
 		} 
 
 		if (n > 0) notif = "<div onClick=\"return showNotifications(this);\">" + collabProps.getProperty("notifications") + " <span class=\"notification-pill\">" + n + "</span></div>";
@@ -408,6 +404,16 @@ public class Collaboration implements java.io.Serializable {
 		}
 		return false;
 	}
+	
+	//Check if User (via request) has edit access to every Encounter in this Individual
+	 public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
+	    Vector<Encounter> all = mi.getEncounters();
+	    if ((all == null) || (all.size() < 1)) return false;
+	    for (Encounter enc : all) {
+	      if (!canEditEncounter(enc, request)) return false;  //one is good enough (either owner or in collab or no security etc)
+	    }
+	    return true;
+	  }
 	
 	 public static boolean canUserAccessSocialUnit(SocialUnit su, HttpServletRequest request) {
 	    List<MarkedIndividual> all = su.getMarkedIndividuals();

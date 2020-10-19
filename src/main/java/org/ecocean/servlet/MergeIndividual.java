@@ -15,6 +15,7 @@ import org.apache.shiro.web.util.WebUtils;
 
 import org.ecocean.*;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
+import org.ecocean.security.Collaboration;
 
 
 public class MergeIndividual extends HttpServlet {
@@ -34,8 +35,8 @@ public class MergeIndividual extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    myShepherd=new Shepherd(request);
-    myShepherd.setAction("MergeIndividual.class");
+    
+
     response.setContentType("text/html");
     out = response.getWriter();
 
@@ -53,6 +54,9 @@ public class MergeIndividual extends HttpServlet {
     String oldName2;
 
     boolean canMergeAutomatically = false;
+    
+    myShepherd=new Shepherd(request);
+    myShepherd.setAction("MergeIndividual.class");
     
     try {
 
@@ -88,21 +92,31 @@ public class MergeIndividual extends HttpServlet {
         currentUsername = userPrincipal.getName();
       }
       
+      //if we can't determine who is requeting this, no merge
       if (currentUsername!=null) {
+        
+        /*
         ArrayList<String> allUniqueUsers = new ArrayList<>(mark1Users);
         for (String user : mark2Users) {
           if (!allUniqueUsers.contains(user)&&!"".equals(user)&&user!=null) {
             allUniqueUsers.add(user);
             System.out.println("unique user == "+user);
           }
-        }
+          
+          
+        }//end for
+        */
         
-        if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
+        //WB-1017
+        //1. if user is in role admin, they can force the automatic merge. we trust our admins. this also prevents unnecessary database calls.
+        //2. if User has full edit access to every Encounter of both MarkedIndividuals, they are trusted to make this decision automatically
+        //if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
+        if(request.isUserInRole("admin") || (Collaboration.canUserFullyEditMarkedIndividual(mark1, request) && Collaboration.canUserFullyEditMarkedIndividual(mark2, request))) {  
           canMergeAutomatically = true;
         } else {
           ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
           myShepherd.storeNewScheduledIndividualMerge(merge);
-          myShepherd.beginDBTransaction();
+          myShepherd.updateDBTransaction();
         }
       }
 
@@ -114,12 +128,17 @@ public class MergeIndividual extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
       }
+      else {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+      }
 
-    } catch (Exception le){
+    } 
+    catch (Exception le){
       le.printStackTrace();
+      errorAndClose("An exception occurred. Please contact the admins.", response);
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
-      errorAndClose("An exception occurred. Please contact the admins.", response);
       return;
     }
 
@@ -132,15 +151,18 @@ public class MergeIndividual extends HttpServlet {
         // redirect to the confirm page
         try {
           WebUtils.redirectToSavedRequest(request, response, "/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1);
-        } catch (IOException ioe) {
+        } 
+        catch (IOException ioe) {
           ioe.printStackTrace();
         }
 
-      } else if (!locked) {
+      } 
+      else if (!locked) {
         out.println("<strong>Pending:</strong> Participating user have been notified of your request to merge individuals "+id1+" and "+id2+".</p>");
         out.close();
         response.setStatus(HttpServletResponse.SC_OK);
-      } else {
+      } 
+      else {
         errorAndClose("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.", response);
       }
   }
@@ -153,8 +175,8 @@ public class MergeIndividual extends HttpServlet {
         //out.println(ServletUtilities.getFooter(context));
     out.close();
     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
+    //myShepherd.rollbackDBTransaction();
+    //myShepherd.closeDBTransaction();
   }
 
   private long twoWeeksFromNowLong() {
