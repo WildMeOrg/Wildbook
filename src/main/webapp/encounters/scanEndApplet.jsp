@@ -17,8 +17,7 @@
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List,
 org.ecocean.grid.ScanTask,
@@ -430,7 +429,7 @@ $(document).ready(function() {
         <div id="match-info"></div>
         <div style="position: relative; display: inline-block; width: 20%; height: 3em;">
             <input id="match-button-prev" type="button" value="previous" onClick="return spotDisplayButton(-1)" />
-            <input id="match-button-next" type="button" value="next" onClick="return  1)" />
+            <input id="match-button-next" type="button" value="next" onClick="return  spotDisplayButton(1)" />
         </div>
     </div>
 </div>

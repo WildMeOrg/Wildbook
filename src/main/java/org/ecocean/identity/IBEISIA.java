@@ -2693,7 +2693,7 @@ System.out.println(anns);
             if (staying.size() == 0) {  //we dont need a new encounter; we just modify the indiv on here
                 if (!encs.contains(enc)) encs.add(enc);
             } else {  //we need to split up the encounter, with a newer one that gets the new indiv id
-                Encounter newEnc = enc.cloneWithoutAnnotations();
+                Encounter newEnc = enc.cloneWithoutAnnotations(myShepherd);
                 System.out.println("INFO: assignFromIA() splitting " + enc + " - staying=" + staying + "; to " + newEnc + " going=" + going);
                 enc.setAnnotations(staying);
                 newEnc.setAnnotations(going);
@@ -4096,6 +4096,15 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         }
         return false;
     }
+    
+    public static boolean validIAClassForIdentification(String iaClassName, String context) {
+      ArrayList<String> idClasses = getAllIdentificationClasses(context);
+      if (iaClassName==null&&(idClasses.isEmpty()||idClasses==null)) return true;
+      if (iaClassName!=null&&(idClasses.contains(iaClassName)||idClasses.isEmpty()||idClasses==null)) {
+          return true;
+      }
+      return false;
+  }
 
 
     public static boolean validForIdentification(Annotation ann)  {
