@@ -136,7 +136,7 @@ public class CustomFieldDefinition implements java.io.Serializable {
     }
 
     //at this point, path got us to this object, so we act on rest of json
-    public JSONObject handlePatch(Shepherd myShepherd, JSONObject jsonIn) throws CustomFieldException {
+    public JSONObject apiPatch(Shepherd myShepherd, JSONObject jsonIn) throws CustomFieldException {
         JSONObject rtn = new JSONObject();
         rtn.put("id", this.getId());
         rtn.put("success", false);

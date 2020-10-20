@@ -17,6 +17,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.external.ExternalSubmission;
+import org.ecocean.SystemLog;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -1393,7 +1394,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     NOTE: this is ugly and uses reflection.  its just to get around the boring setFoo redundancy now.  optimize later!
 */
     public boolean setFromJSONObject(String key, Class cls, org.json.JSONObject json) throws IOException {
-        org.ecocean.SystemLog.debug("trying key=" + key + " with json=" + json);
+        SystemLog.debug("trying key=" + key + " with json=" + json);
         if ((key == null) || (json == null) || !json.has(key)) return false;
         String setterName = "set" + key.substring(0,1).toUpperCase() + key.substring(1);
         try {
@@ -1452,4 +1453,60 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return obj;
     }
 
+    public void apiPatch(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        if (jsonIn == null) throw new IOException("apiPatch has null json");
+        String op = jsonIn.optString("op", null);
+        if (op == null) throw new IOException("apiPatch has null op");
+        switch (op) {
+            case "add":
+                this.apiPatchAdd(myShepherd, jsonIn);
+                break;
+            case "replace":
+                this.apiPatchReplace(myShepherd, jsonIn);
+                break;
+            case "remove":
+            case "move":
+            case "copy":
+            case "test":
+            default:
+                throw new IOException("apiPatch op=" + op + " not supported (yet)");
+        }
+    }
+
+    //both add and replace will act like setter if it is not an array value (i.e. most things)
+    public void apiPatchAdd(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        if (jsonIn == null) throw new IOException("apiPatchAdd has null json");
+        String path = jsonIn.optString("path", null);
+        if (path == null) throw new IOException("apiPatchAdd has null path");
+        Object valueObj = jsonIn.opt("value");
+        boolean hasValue = jsonIn.has("value");
+/*
+    TODO FIXME
+    what to do with value=null or hasValue=f ??  should this behave the same as "remove" patch???
+    thus: we are going to barf on this for now
+*/
+        if (!hasValue || (valueObj == null)) throw new IOException("apiPatchAdd has empty value - NOT YET SUPPORTED");
+
+        SystemLog.debug("apiPatch on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
+        try {  //catch this whole block where we try to modify things!
+            switch (path) {
+                case "startTime":
+                    this.setStartTime( new ComplexDateTime((String)valueObj) );
+                    break;
+                case "endTime":
+                    this.setEndTime( new ComplexDateTime((String)valueObj) );
+                    break;
+                default:
+                    throw new Exception("apiPatchAdd unknown path " + path);
+            }
+        } catch (Exception ex) {
+            throw new IOException("apiPatchAdd unable to modify " + this + " due to " + ex.toString());
+        }
+    }
+
+    //as noted above, for non-array targets, this is the *same as* an add (i.e. it (re)sets the value)), so
+    //  you will note many cases just pass to apiPatchAdd()
+    public void apiPatchReplace(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        ///////TODO
+    }
 }

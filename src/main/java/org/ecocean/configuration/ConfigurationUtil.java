@@ -601,7 +601,7 @@ System.out.println("*** coerceValue(key=" + key + ";type=" + type + ") content="
 
     /// right now really PATCH only applies to customField
     //returns one of JSONObject or JSONArray, but sigh, no base-class for this
-    public static Object handlePatch(Shepherd myShepherd, JSONObject jsonIn) throws IOException, org.ecocean.customfield.CustomFieldException {
+    public static Object apiPatch(Shepherd myShepherd, JSONObject jsonIn) throws IOException, org.ecocean.customfield.CustomFieldException {
         if (jsonIn == null) throw new IOException("null payload");
         //first handle array case
         JSONArray jarr = jsonIn.optJSONArray("_value");
@@ -610,7 +610,7 @@ System.out.println("*** coerceValue(key=" + key + ";type=" + type + ") content="
             for (int i = 0 ; i < jarr.length() ; i++) {
                 JSONObject j = jarr.optJSONObject(i);
                 if (j == null) throw new IOException("no valid json object at offset=" + i);
-                rtn.put(handlePatch(myShepherd, j));
+                rtn.put(apiPatch(myShepherd, j));
             }
             return rtn;
         }
@@ -624,7 +624,7 @@ System.out.println("*** coerceValue(key=" + key + ";type=" + type + ") content="
             if (id == null) throw new IOException("no id in path " + path);
             CustomFieldDefinition cfd = CustomFieldDefinition.load(myShepherd, id);
             if (cfd == null) throw new IOException("invalid id " + id);
-            return cfd.handlePatch(myShepherd, jsonIn);
+            return cfd.apiPatch(myShepherd, jsonIn);
         }
         throw new IOException("unsupported path " + path);
     }

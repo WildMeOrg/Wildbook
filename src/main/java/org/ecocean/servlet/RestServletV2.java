@@ -190,7 +190,8 @@ System.out.println("######>>>>>> payload=" + payload);
         String cls = payload.optString("class", null);
         if (cls == null) throw new IOException("null class value");
         JSONObject rtn = null;
-        ShepherdRO myShepherd = new ShepherdRO(context);
+        //ShepherdRO myShepherd = new ShepherdRO(context);
+        Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("RestServletV2.handleGetObject");
         myShepherd.beginDBTransaction();
 
@@ -626,7 +627,8 @@ rtn.put("_payload", payload);
         String className = payload.optString("class", null);
         if (className == null) throw new ServletException("empty class name");
         JSONArray rtn = new JSONArray();
-        ShepherdRO myShepherd = new ShepherdRO(context);
+        //ShepherdRO myShepherd = new ShepherdRO(context);
+        Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("RestServletV2.handleList");
 
         if (className.equals("org.ecocean.security.Collaboration")) {
@@ -807,12 +809,15 @@ rtn.put("_payload", payload);
 
         if (cls.equals("configuration")) {  //right now, patch only really supported on customFields
             try {
-                rtn.put("result", ConfigurationUtil.handlePatch(myShepherd, payload));
+                rtn.put("result", ConfigurationUtil.apiPatch(myShepherd, payload));
             } catch (Exception ex) {
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 throw new IOException(ex.toString());
             }
 
         } else if (cls.equals("org.ecocean.Occurrence")) {
+            //TODO handle case where *no* id set, and patch path is multiple
             Occurrence occ = myShepherd.getOccurrence(id);
             if (occ == null) {
                 SystemLog.warn("RestServlet.handlePatch() instance={} invalid occurrence with payload={}", instanceId, payload);
@@ -824,7 +829,7 @@ rtn.put("_payload", payload);
                 out.close();
                 return;
             } else {
-                //occ.apiPatch(myShepherd, payload);
+                occ.apiPatch(myShepherd, payload);
                 rtn.put("result", occ.asApiJSONObject());
             }
         } else {
@@ -834,7 +839,8 @@ rtn.put("_payload", payload);
             throw new IOException("RestServlet.handlePatch() passed invalid class " + cls);
         }
 
-        myShepherd.rollbackDBTransaction();
+        //if we fall thru, we assume success!
+        myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         rtn.put("success", true);
 
