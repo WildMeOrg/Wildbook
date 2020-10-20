@@ -61,7 +61,8 @@ public class RestServletV2 extends ApiHttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JSONObject payload = new JSONObject();
         try {
-            payload = ServletUtilities.jsonFromHttpServletRequest(request);
+            payload = ServletUtilities.jsonAnyFromHttpServletRequest(request);
+System.out.println("######>>>>>> payload=" + payload);
         } catch (Exception ex) {
             SystemLog.error("failed to parse json payload from request {}", this, ex);
         }
@@ -795,16 +796,23 @@ rtn.put("_payload", payload);
         rtn.put("success", false);
         rtn.put("transactionId", instanceId);
 
-        String id = payload.optString("id", null);
+        String id = payload.optString("id", null);  //not sure id is a real thing (due to path), but definitely not required
         String cls = payload.optString("class", null);
-        if ((id == null) || (cls == null)) {
+        if (cls == null) {
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
-            SystemLog.error("RestServlet.handlePatch() passed null class or id, instance={}", instanceId);
-            throw new IOException("RestServlet.handlePatch() passed null class or id");
+            SystemLog.error("RestServlet.handlePatch() passed null class, instance={}", instanceId);
+            throw new IOException("RestServlet.handlePatch() passed null class");
         }
 
-        if (cls.equals("org.ecocean.Occurrence")) {
+        if (cls.equals("configuration")) {  //right now, patch only really supported on customFields
+            try {
+                rtn.put("result", ConfigurationUtil.handlePatch(myShepherd, payload));
+            } catch (Exception ex) {
+                throw new IOException(ex.toString());
+            }
+
+        } else if (cls.equals("org.ecocean.Occurrence")) {
             Occurrence occ = myShepherd.getOccurrence(id);
             if (occ == null) {
                 SystemLog.warn("RestServlet.handlePatch() instance={} invalid occurrence with payload={}", instanceId, payload);

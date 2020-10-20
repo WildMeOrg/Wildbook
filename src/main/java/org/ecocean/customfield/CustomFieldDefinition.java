@@ -6,6 +6,7 @@ import org.ecocean.DataDefinition;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.List;
+import java.io.IOException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class CustomFieldDefinition implements java.io.Serializable {
@@ -132,6 +133,30 @@ public class CustomFieldDefinition implements java.io.Serializable {
         this.setParameters(defn);
         System.out.println("INFO: modify() altered " + changed + " non-parameter value(s) in definition: " + orig.toString() + " => " + defn.toString());
         return this;
+    }
+
+    //at this point, path got us to this object, so we act on rest of json
+    public JSONObject handlePatch(Shepherd myShepherd, JSONObject jsonIn) throws CustomFieldException {
+        JSONObject rtn = new JSONObject();
+        rtn.put("id", this.getId());
+        rtn.put("success", false);
+        String op = jsonIn.optString("op", null);
+        rtn.put("op", op);
+        switch (op) {
+            case "remove":
+                this.remove(myShepherd, jsonIn.optBoolean("force", false));
+                rtn.put("success", true);
+                break;
+            default:
+                throw new CustomFieldException("invalid op " + op);
+        }
+        return rtn;
+    }
+
+    //FIXME TODO
+    public void remove(Shepherd myShepherd, boolean force) throws CustomFieldException {
+        //has value????
+        System.out.println("CustomFieldDefinition.remove() NOT YET IMPLEMENTED");
     }
 
     //note: this ignores 'id' passed in!  (it will set own)

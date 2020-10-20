@@ -5,6 +5,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.ContextConfiguration;
 import org.ecocean.DataDefinition;
 import org.ecocean.DataDefinitionException;
+import org.ecocean.customfield.CustomFieldDefinition;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.io.File;
+import java.io.IOException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.time.ZonedDateTime;
@@ -594,6 +596,37 @@ System.out.println("*** coerceValue(key=" + key + ";type=" + type + ") content="
             if (row != null) list.add(row);
         }
         return list;
+    }
+
+
+    /// right now really PATCH only applies to customField
+    //returns one of JSONObject or JSONArray, but sigh, no base-class for this
+    public static Object handlePatch(Shepherd myShepherd, JSONObject jsonIn) throws IOException, org.ecocean.customfield.CustomFieldException {
+        if (jsonIn == null) throw new IOException("null payload");
+        //first handle array case
+        JSONArray jarr = jsonIn.optJSONArray("_value");
+        if (jarr != null) {
+            JSONArray rtn = new JSONArray();
+            for (int i = 0 ; i < jarr.length() ; i++) {
+                JSONObject j = jarr.optJSONObject(i);
+                if (j == null) throw new IOException("no valid json object at offset=" + i);
+                rtn.put(handlePatch(myShepherd, j));
+            }
+            return rtn;
+        }
+
+        //here is the single-case
+        String path = jsonIn.optString("path", null);
+        if (path == null) throw new IOException("path is required");
+        if (path.startsWith("site.custom.customFields.")) {  //site.custom.customFields.MarkedIndividual/c32e690c-e308-4362-82d5-bc97579e0c7f
+            String id = null;
+            if (path.indexOf("/") > -1) id = path.substring(path.indexOf("/") + 1);
+            if (id == null) throw new IOException("no id in path " + path);
+            CustomFieldDefinition cfd = CustomFieldDefinition.load(myShepherd, id);
+            if (cfd == null) throw new IOException("invalid id " + id);
+            return cfd.handlePatch(myShepherd, jsonIn);
+        }
+        throw new IOException("unsupported path " + path);
     }
 
 }
