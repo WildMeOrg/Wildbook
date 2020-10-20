@@ -2,9 +2,23 @@
          import="org.ecocean.servlet.ServletUtilities,javax.servlet.http.HttpUtils,
 org.json.JSONObject, org.json.JSONArray,
 org.ecocean.media.*,
+java.util.HashMap,
 org.ecocean.identity.IdentityServiceLog,
 java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
 org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
+
+<%!
+String rotationInfo(MediaAsset ma) {
+    if ((ma == null) || (ma.getMetadata() == null)) return null;
+    HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
+    if (orient == null) return null;
+    for (String k : orient.keySet()) {
+        if (orient.get(k).matches(".*90.*")) return orient.get(k);
+        if (orient.get(k).matches(".*270.*")) return orient.get(k);
+    }
+    return null;
+}
+%>
 
 <%
 
@@ -63,6 +77,7 @@ if (request.getParameter("acmId") != null) {
 				if (ma != null) {
 			            JSONObject jm = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()));
                                     if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
+                                    jm.put("rotation", rotationInfo(ma));
 			            jann.put("asset", jm);
 				}
 				janns.put(jann);
@@ -307,6 +322,9 @@ if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null
 
 <jsp:include page="header.jsp" flush="true" />
 
+<script src="javascript/openseadragon/openseadragon.min.js"></script>
+
+
 <div id="encid" style="">
 
 <!-- overwrites ia.IBEIS.js for testing -->
@@ -357,11 +375,18 @@ h4.intro.accordion .rotate-chevron.down {
 </style>
 
 <script>
+	
+	
 	animatedcollapse.addDiv('instructions', 'fade=1');
 	animatedcollapse.init();
 	$("h4.accordion a").click(function() {
 		$(this).children(".rotate-chevron").toggleClass("down");
 	});
+	
+	//Map of the OpenSeadragon viewers
+	var viewers = new Map();
+	var features=new Map();
+	
 </script>
 
 
@@ -931,7 +956,22 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
 			// ----- END Hotspotter IA Illustration-----
 		}
-		$('.annot-summary').on('mouseover', function(ev) { annotClick(ev); });
+		$('.annot-summary').on('mousemove', function(ev) { 
+			console.log('mouseover2 with num viewers: '+viewers.size);
+			annotClick(ev); 
+			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
+			var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
+			//tell seadragon to pan to the annotation
+			if(viewers.has(taskId+"+"+m_acmId )){
+				console.log("Found viewer: "+taskId+"+"+m_acmId );
+				var viewer=viewers.get(taskId+"+"+m_acmId );
+				var eventArgs={
+					acmId: m_acmId,
+					taskId: taskId
+				};
+				viewer.raiseEvent("switchAnnots", eventArgs);
+			}
+		});
 		$('#task-' + res.taskId + ' .annot-wrapper-dict:first').show();
 
 		// Add disclaimers and other alg-specific info
@@ -953,9 +993,20 @@ console.info('%d ===> %s', num, acmId);
 
 
 	//now the image guts
-	h = '<div title="acmId=' + acmId + '" class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
+	h = '<div id="'+taskId+'+'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
-	$('#task-' + taskId).append(h);
+	
+	
+	var imgs = $('#task-' + taskId + ' .bonus-wrapper');
+    if (!imgs.length) {
+            imgs = $('<div style="height: 400px;" class="bonus-wrapper" />');
+            imgs.appendTo('#task-' + taskId)
+     }
+     imgs.append(h);
+	
+	//$('#task-' + taskId).append(h);
+	
+	
 	$.ajax({
 		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
 		type: 'GET',
@@ -1000,7 +1051,7 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                 otherAnnots.push(res.responseJSON.annotations[i]);
             } else {
                 mainAsset = res.responseJSON.annotations[i].asset;
-		$('#initial-waiter').remove();
+				$('#initial-waiter').remove();
             }
         }
         if (mainAnnId) $('#task-' + taskId + ' .annot-summary-' + acmId).data('annid', mainAnnId);  //TODO what if this fails?
@@ -1009,12 +1060,100 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 //console.info('illustrationUrl '+illustrationUrl);
             var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
-                var img = $('<img src="' + mainAsset.url + '" />');
+            	//console.log(mainAsset.url);
+                
+            	var img = $('<img src="' + mainAsset.url + '" />');
+                //var imgLink=$('<a target="_blank" href="' + mainAsset.url + '" />');
+                //imgLink.append(img);
+            	
                 ft.metadata = mainAsset.metadata;
                 img.on('load', function(ev) { imageLoaded(ev.target, ft); });
-                $('#task-' + taskId + ' .annot-' + acmId).append(img);
+                //$('#task-' + taskId + ' .annot-' + acmId).append(imgLink);
+                
+
+     
+                
+              		var viewer=OpenSeadragon({
+                    	id: taskId+"+"+acmId,
+                        tileSources: {
+                            type: 'image',
+                            url:  mainAsset.url,
+                            buildPyramid: false,
+                        },
+                        showHomeControl: false,
+                    	prefixUrl: 'javascript/openseadragon/images/',
+                    	navigationControlAnchor: OpenSeadragon.ControlAnchor.TOP_RIGHT,
+                    	visibilityRatio: 1.0,
+                        constrainDuringPan: true,
+                        animationTime: 0,
+
+                	});
+                	
+              		//viewer.world.setAutoRefigureSizes(true);
+              		
+                	viewer.addHandler('open', function() {
+                		var ft = features.get(viewer.id.split('+')[1]);
+                		//console.log(ft);
+                		var marginFactor=1;
+                		var width=ft.parameters.width;
+                	   	var height=ft.parameters.height;
+                	   	
+                	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
+                        if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
+                        var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
+                	   	viewer.viewport.fitBounds(rec);
+                        var elt = document.createElement("div");
+                        elt.id = "overlay-"+acmId+"-"+viewer.id;
+                        elt.className = "seadragon-highlight";
+                       
+                        
+                        viewer.addOverlay({
+                            element: elt,
+                            checkResize: true,
+                            location: viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*scale, ft.parameters.y*scale, ft.parameters.width*scale, ft.parameters.height*scale)
+                        });
+                	
+                	});
+    
+                	viewer.addHandler('full-screen', event => {
+                		if(event.fullPage==false){
+                			var eventArgs={
+								acmId: viewer.id.split('+')[1]
+							};
+                	    	//console.log("Trying to call switchAnnots on amId: "+);
+                	    	viewer.raiseEvent("switchAnnots", eventArgs);
+                	    	
+                	    }
+                	});
+                	
+                	viewer.addHandler('switchAnnots', event => {
+                		//console.log("switch annots with acmId: "+event.acmId);
+                		
+                		var marginFactor=1.0;
+                		
+                		//need to get annot feature
+                		var ft = features.get(viewer.id.split('+')[1]);
+                		console.log("switch annots with acmId: "+event.acmId+"("+ft.parameters.width+","+ft.parameters.height+","+ft.parameters.x+","+ft.parameters.y+")");
+                		var width=ft.parameters.width;
+                	   	var height=ft.parameters.height;
+                	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
+                        if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
+                        var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
+                	   	viewer.viewport.fitBounds(rec);
+                	});
+                	
+
+                	
+                	//add this viewer to the global Map
+                	viewers.set(taskId+"+"+acmId,viewer);
+                	features.set(acmId, ft);
+            	
+            	
+            	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
+                
+                
             } else {
-                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 10%" />');
+                $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
             if (mainAsset.dateTime) {
                 imgInfo += ' <b>' + mainAsset.dateTime.substring(0,16) + '</b> ';
@@ -1258,19 +1397,34 @@ function imageLoaded(imgEl, ft) {
 
 function drawFeature(imgEl, ft) {
     if (!imgEl || !imgEl.clientHeight || !ft || !ft.parameters || (ft.type != 'org.ecocean.boundingBox')) return;
-    var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
     var scale = imgEl.height / imgEl.naturalHeight;
     if (ft.metadata && ft.metadata.height) scale = imgEl.height / ft.metadata.height;
+    if (asset.rotation && ft.metadata && ft.metadata.width) scale = imgEl.height / ft.metadata.width;
+    var zoomFactor = imgEl.naturalHeight/ft.parameters.height;
+
+    var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
+    
+    
+    /* values are from-top, from-right, from-bottom, from-left */
+    
+    //imgEl.setAttribute("style", "transform-origin: 0 0;transform: scale("+zoomFactor+");margin-left: -"+ft.parameters.x*scale*zoomFactor+";margin-top: -"+ft.parameters.y*scale*zoomFactor+"px;position: absolute;clip-path: inset("+ (ft.parameters.y)*scale + "px " + (ft.metadata.width-ft.parameters.x-ft.parameters.width)*scale + "px "+(ft.metadata.height-ft.parameters.height-ft.parameters.y)*scale + "px "+ft.parameters.x*scale + "px )");
+   
+    
+    
+    //imgEl.css("transform-origin", "0 0");
+    //imgEl.css("transform", "translate(-100%, 50%) rotate(45deg) translate(100%, -50%)");
+    
+    
 //console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
-    if (scale == 1) return;
+    //if (scale == 1) return;
     imgEl.setAttribute('data-feature-drawn', true);
-    f.css('width', (ft.parameters.width * scale) + 'px');
-    f.css('height', (ft.parameters.height * scale) + 'px');
-    f.css('left', (ft.parameters.x * scale) + 'px');
-    f.css('top', (ft.parameters.y * scale) + 'px');
-    if (ft.parameters.theta) f.css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
+    //f.css('width', (ft.parameters.width * scale) + 'px');
+    //f.css('height', (ft.parameters.height * scale) + 'px');
+    //f.css('left', (ft.parameters.x * scale) + 'px');
+    //f.css('top', (ft.parameters.y * scale) + 'px');
+    //if (ft.parameters.theta) $('#overlay-'+acmId).css('transform', 'rotate(' +  ft.parameters.theta + 'rad)');
 //console.info('mmmm %o', f);
-    $(imgEl).parent().append(f);
+    //$(imgEl).parent().append(f);
 }
 
 function checkForResults() {
@@ -1349,6 +1503,7 @@ console.info('waiting to try again...');
 	$('#results li').on('mouseover', function(ev) {
 		var i = ev.currentTarget.getAttribute('data-i');
 		updateMatch(res.matchAnnotations[i]);
+		console.log("mouseover3");
 	});
 }
 
