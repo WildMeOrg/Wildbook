@@ -65,8 +65,12 @@ String organization = request.getParameter("organization");
 if (organization!=null && organization.toLowerCase().equals("indocet"))  {
   indocetUser = true;
 }
+String notifications="";
 myShepherd.beginDBTransaction();
 try {
+	
+	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+	
   if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
@@ -397,7 +401,7 @@ finally{
                   </div>
 
                   <div id="navbar" class="navbar-collapse collapse">
-                  <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
+                  <div id="notifications"><%=notifications %></div>
                     <ul class="nav navbar-nav">
                                   <!--                -->
                       <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>

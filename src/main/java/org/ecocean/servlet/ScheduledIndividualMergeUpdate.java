@@ -71,6 +71,7 @@ public class ScheduledIndividualMergeUpdate extends HttpServlet {
                         merge.setTaskIgnoredStateForUser(username, true);
                         myShepherd.updateDBTransaction();
                         System.out.println("Set ScheduledIndividual merge "+mergeId+" to IGNORE for user "+username+".");
+                        response.setStatus(HttpServletResponse.SC_OK);
                         res.put("success", "true");
                     }   
                 }
@@ -78,27 +79,27 @@ public class ScheduledIndividualMergeUpdate extends HttpServlet {
                 String err = "You must have a user, mergeId and action defined to modify a ScheduledIndividualMerge.";
                 System.out.println(err);
                 addErrorMessage(res, err);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             }
 
             PrintWriter out = response.getWriter();
             out.println(res);
             out.close();
-            myShepherd.closeDBTransaction();
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            myShepherd.rollbackAndClose();
         } catch (JSONException je) {
             je.printStackTrace();
             addErrorMessage(res, "JSONException je");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            myShepherd.rollbackAndClose();
         } catch (Exception e) {
             e.printStackTrace();
             addErrorMessage(res, "Exception e");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            myShepherd.rollbackAndClose();
+        }
+        finally {
+          myShepherd.rollbackAndClose();
         }
 
     }
