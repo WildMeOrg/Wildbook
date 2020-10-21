@@ -107,6 +107,9 @@ public class IA {
 
     public static Task intakeMediaAssetsOneSpecies(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
         if ((mas == null) || (mas.size() < 1)) return null;
+        Taxonomy taxy = mas.get(0).getTaxonomy(myShepherd);
+        return intakeMediaAssetsOneSpecies(myShepherd, mas, taxy, parentTask);
+    }
 
     public static Task intakeMediaAssetsOneSpecies(Shepherd myShepherd, List<MediaAsset> mas, Taxonomy taxy, final Task parentTask) {
         return intakeMediaAssetsOneSpecies(myShepherd, mas, taxy, parentTask, -1);
@@ -138,7 +141,6 @@ public class IA {
         // Ia configs are keyed off taxonomies
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
         // mimicking intakeAnnotations, we assume the first mediaAsset is representative of all of them wrt Taxonomies, configs etc.
-        Taxonomy taxy = mas.get(0).getTaxonomy(myShepherd);
         int numDetectAlgos = iaConfig.numDetectionAlgos(taxy);
         Boolean[] sent = new Boolean[numDetectAlgos];
         for (int i=0; i<numDetectAlgos; i++) {
