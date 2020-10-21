@@ -294,7 +294,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				System.out.println("CASE 2: query enc indy is null");
 				enc2.setIndividual(indiv);
 				indiv.addEncounter(enc2);
-				res.put("individualName", indiv.getDisplayName());
+				res.put("individualName", indiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
 			} 	
 
@@ -303,7 +303,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				System.out.println("CASE 3: target enc indy is null");
 				enc.setIndividual(indiv2);					
 				indiv2.addEncounter(enc);
-				res.put("individualName", indiv2.getDisplayName());
+				res.put("individualName", indiv2.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
 			} 
 

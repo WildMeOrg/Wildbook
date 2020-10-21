@@ -31,9 +31,9 @@ MarkedIndividual markB = myShepherd.getMarkedIndividualQuiet(indIdB);
 MarkedIndividual[] inds = {markA, markB};
 
 String fullNameA = indIdA;
-if (markA!=null) fullNameA += " ("+URLEncoder.encode(markA.getDisplayName(), StandardCharsets.UTF_8.toString())+")";
+if (markA!=null) fullNameA += " ("+URLEncoder.encode(markA.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
 String fullNameB = indIdB;
-if (markB!=null) fullNameB += " ("+URLEncoder.encode(markB.getDisplayName(), StandardCharsets.UTF_8.toString())+")";
+if (markB!=null) fullNameB += " ("+URLEncoder.encode(markB.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
 
 
 
@@ -376,7 +376,7 @@ table.compareZone tr th {
     			<th class="col-md-2"></th>
     			<% for (MarkedIndividual ind: inds) {%>
     			<th class="col-md-2"><h2>
-    				<a href='<%=ind.getWebUrl(request)%>'><%=ind.getDisplayName()%></a>
+    				<a href='<%=ind.getWebUrl(request)%>'><%=ind.getDisplayName(request, myShepherd)%></a>
     			</h2></th>
     			<%}%>
     			<th><h2>

@@ -65,8 +65,8 @@ public class MergeIndividual extends HttpServlet {
 
       MarkedIndividual mark1 = myShepherd.getMarkedIndividualQuiet(id1);
       MarkedIndividual mark2 = myShepherd.getMarkedIndividualQuiet(id2);
-      oldName1 = mark1.getDisplayName() + "("+Util.prettyUUID(mark1.getIndividualID())+")";
-      oldName2 = mark2.getDisplayName() + "("+Util.prettyUUID(mark2.getIndividualID())+")";
+      oldName1 = mark1.getDisplayName(request, myShepherd) + "("+Util.prettyUUID(mark1.getIndividualID())+")";
+      oldName2 = mark2.getDisplayName(request, myShepherd) + "("+Util.prettyUUID(mark2.getIndividualID())+")";
 
 
       if (mark1==null || mark2==null) {

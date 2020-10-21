@@ -193,7 +193,7 @@ public class ProjectGet extends HttpServlet {
                                     JSONObject individualData = new JSONObject();
                                     individualData.put("projectIncrementalId", projectIncrementalId);
                                     individualData.put("individualId", individual.getId());
-                                    individualData.put("individualDisplayName", individual.getDisplayName());
+                                    individualData.put("individualDisplayName", individual.getDisplayName(request, myShepherd));
                                     autocompleteArr.put(individualData);
                                 }
                             }

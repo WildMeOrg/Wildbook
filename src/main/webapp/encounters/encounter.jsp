@@ -1495,8 +1495,9 @@ if(enc.getLocation()!=null){
     								 String hrefVal="";
     								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
-    									hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
-    									indyDisplayName=enc.getDisplayName();
+                      hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
+                      
+    									indyDisplayName=enc.getIndividual().getDisplayName(request, imageShepherd);
     								 }
                      				%>
                      					<a href="<%=hrefVal %>">

@@ -993,7 +993,7 @@ public class MediaAsset implements java.io.Serializable {
                             jf.put("encounterId", enc.getCatalogNumber());
                             if (enc.hasMarkedIndividual()) {
                                 jf.put("individualId", enc.getIndividualID());
-                                String displayName = enc.getDisplayName();
+                                String displayName = enc.getIndividual().getDisplayName(request, myShepherd);
                                 if (!Util.stringExists(displayName)) displayName = enc.getIndividualID();
                                 jf.put("displayName", displayName);
                             }

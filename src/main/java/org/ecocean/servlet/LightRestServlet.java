@@ -1142,9 +1142,9 @@ System.out.println("??? TRY COMPRESS ??");
           }
 
             // add the individual's display name if it has one
-            if (enc.getIndividual()!=null && Util.stringExists(enc.getIndividual().getDisplayName())) {
+            if (enc.getIndividual()!=null && Util.stringExists(enc.getIndividual().getDisplayName(req, myShepherd))) {
                 try {
-                    jobj.put("displayName",enc.getIndividual().getDisplayName());
+                    jobj.put("displayName",enc.getIndividual().getDisplayName(req, myShepherd));
                 } catch (org.datanucleus.api.rest.orgjson.JSONException thisIsTheStupidestFuckingLibraryForMakingMeHandleThisJustToPutAFuckingStringOnAnObject) {
                 }
 
