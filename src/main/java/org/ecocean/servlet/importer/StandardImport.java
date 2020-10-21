@@ -1729,7 +1729,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (!newIndividual) {
         mark.addEncounter(enc);
         enc.setIndividual(mark);
-        System.out.println("loadIndividual notnew individual: "+mark.getDisplayName());
+        System.out.println("loadIndividual notnew individual: "+mark.getDisplayName(request, myShepherd));
       }
       else {
         enc.setIndividual(mark);

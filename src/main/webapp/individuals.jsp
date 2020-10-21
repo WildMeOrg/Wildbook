@@ -497,7 +497,7 @@ if (sharky.getNames() != null) {
 
     // if (allNames != null) out.println("<span title=\"id " + sharky.getId() + "\">" + allNames + "</span>");
 
-    System.out.println("displayName="+sharky.getIndividual().getDisplayName(request, myShepherd));
+    System.out.println("displayName="+sharky.getDisplayName(request, myShepherd));
 
     %>
     <div class="namesection default">
@@ -2115,7 +2115,7 @@ if (sharky.getNames() != null) {
 		%>
 
         $(document).ready(function() {
-          getData("<%=occurrenceIndividualID%>", "<%=sharky.getIndividual().getDisplayName(request, myShepherd) %>");
+          getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName(request, myShepherd) %>");
         });
         </script>
 
