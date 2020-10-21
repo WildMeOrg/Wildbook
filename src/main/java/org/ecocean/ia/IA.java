@@ -108,16 +108,28 @@ public class IA {
     public static Task intakeMediaAssetsOneSpecies(Shepherd myShepherd, List<MediaAsset> mas, final Task parentTask) {
         if ((mas == null) || (mas.size() < 1)) return null;
 
+    public static Task intakeMediaAssetsOneSpecies(Shepherd myShepherd, List<MediaAsset> mas, Taxonomy taxy, final Task parentTask) {
+        return intakeMediaAssetsOneSpecies(myShepherd, mas, taxy, parentTask, -1);
+    }
+
+    public static Task intakeMediaAssetsOneSpecies(Shepherd myShepherd, List<MediaAsset> mas, Taxonomy taxy, final Task parentTask, int tweetAssetId) {
+        System.out.println("intakeMediaAssetsOneSpecies called for "+mas.size()+" media assets:");
+        for (MediaAsset ma: mas) {
+            System.out.println("intakeMediaAssetsOneSpecies incl. ma "+ma.getId());
+        }
+
+        JSONArray maArr = new JSONArray();
+        for (MediaAsset ma : mas) {
+            maArr.put(ma.getId());
+        }
+        System.out.println("intakeMediaAssetsOneSpecies constructed maArr "+maArr.toString());
+
         Task topTask = new Task();
         if (parentTask != null) topTask.setParameters(parentTask.getParameters());
         topTask.setObjectMediaAssets(mas);
         myShepherd.storeNewTask(topTask);
 
         //what we do *for now* is punt to "legacy" IBEISIA queue stuff... but obviously this should be expanded as needed
-        JSONArray maArr = new JSONArray();
-        for (MediaAsset ma : mas) {
-            maArr.put(ma.getId());
-        }
         JSONObject dj = new JSONObject();
         dj.put("mediaAssetIds", maArr);
         String context = myShepherd.getContext();
@@ -149,6 +161,11 @@ public class IA {
             qjob.put("taskId", topTask.getId());
             qjob.put("__context", context);
             qjob.put("__baseUrl", baseUrl);
+            System.out.println("intakeMediaAssetsOneSpecies about to add additionalArgs to query");
+            if (tweetAssetId!=-1) {
+                qjob.put("tweetAssetId", tweetAssetId);
+            }
+            System.out.println("intakeMediaAssetsOneSpecies successfully added additionalArgs to query");
             sent[i] = false;
             try {
                 // job is queued here
@@ -170,6 +187,18 @@ public class IA {
         return intakeAnnotations(myShepherd, anns, null);
     }
     public static Task intakeAnnotations(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
+    //     List<List<Annotation>> annses = binAnnotsByIaClass(anns);
+    //     // slightly complicated bc we need to create child tasks only if there are multiple iaClasses
+    //     if (annses.size() == 1) return intakeAnnotationsOneIAClass(myShepherd, annses.get(0), parentTask);
+
+    //     // here we make child tasks
+    //     Task topTask = (parentTask==null) ? new Task() : parentTask;
+    //     for (List<Annotation> annsOneIaClass: annses) {
+    //         topTask.addChild(intakeAnnotationsOneIAClass(myShepherd, anns, parentTask));
+    //     }
+    //     return topTask;
+    // }
+    // public static Task intakeAnnotationsOneIAClass(Shepherd myShepherd, List<Annotation> anns, final Task parentTask) {
         //System.out.println("Starting intakeAnnotations");
         if ((anns == null) || (anns.size() < 1)) return null;
 
@@ -199,76 +228,93 @@ public class IA {
 */
         //List<JSONObject> opts = IBEISIA.identOpts(myShepherd, anns.get(0));
         IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
-        List<JSONObject> opts = iaConfig.identOpts(myShepherd, anns.get(0));
+        List<List<Annotation>> annotsByIaClass = binAnnotsByIaClass(anns);
+
+        for (List<Annotation> annsOneIAClass: annotsByIaClass) {
+
+            List<JSONObject> opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
+
+            System.out.println("identOpts: "+opts.toString());
+            if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
+            List<Task> tasks = new ArrayList<Task>();
+            JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
+            if (parentTask != null && parentTask.getParameters()!=null) {
+              newTaskParams = parentTask.getParameters();
+              System.out.println("newTaskParams: "+newTaskParams.toString());
+              if(newTaskParams.optJSONArray("matchingAlgorithms")!=null) {
+                JSONArray matchingAlgorithms=newTaskParams.optJSONArray("matchingAlgorithms");
+                System.out.println("matchingAlgorithms1: "+matchingAlgorithms.toString());
+                ArrayList<JSONObject> newOpts=new ArrayList<JSONObject>();
+                int maLength=matchingAlgorithms.length();
+                for(int y=0;y<maLength;y++) {
+                  newOpts.add(matchingAlgorithms.getJSONObject(y));
+                }
+                System.out.println("matchingAlgorithms2: "+newOpts.toString());
+                if(newOpts.size()>0) {
+                  opts=newOpts;
+                  System.out.println("Swapping opts for newOpts!!");
+                }
 
 
-
-        System.out.println("identOpts: "+opts.toString());
-        if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
-        List<Task> tasks = new ArrayList<Task>();
-        JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
-        if (parentTask != null && parentTask.getParameters()!=null) {
-          newTaskParams = parentTask.getParameters();
-          System.out.println("newTaskParams: "+newTaskParams.toString());
-          if(newTaskParams.optJSONArray("matchingAlgorithms")!=null) {
-            JSONArray matchingAlgorithms=newTaskParams.optJSONArray("matchingAlgorithms");
-            System.out.println("matchingAlgorithms1: "+matchingAlgorithms.toString());
-            ArrayList<JSONObject> newOpts=new ArrayList<JSONObject>();
-            int maLength=matchingAlgorithms.length();
-            for(int y=0;y<maLength;y++) {
-              newOpts.add(matchingAlgorithms.getJSONObject(y));
+              }
             }
-            System.out.println("matchingAlgorithms2: "+newOpts.toString());
-            if(newOpts.size()>0) {
-              opts=newOpts;
-              System.out.println("Swapping opts for newOpts!!");
+            // just one IA class, one algorithm case
+            if (opts.size() == 1 && annotsByIaClass.size() == 1) {
+                newTaskParams.put("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
+                topTask.setParameters(newTaskParams);
+                tasks.add(topTask);  //topTask will be used as *the*(only) task -- no children
+            } else {
+                for (int i = 0 ; i < opts.size() ; i++) {
+                    Task t = new Task();
+                    t.setObjectAnnotations(annsOneIAClass);
+                    newTaskParams.put("ibeis.identification", ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));  //overwrites each time
+                    t.setParameters(newTaskParams);
+                    topTask.addChild(t);
+                    tasks.add(t);
+                }
             }
+            myShepherd.storeNewTask(topTask);
 
+            //these are re-used in every task
+            JSONArray annArr = new JSONArray();
+            for (Annotation ann : annsOneIAClass) {
+                annArr.put(ann.getId());
+            }
+            JSONObject aj = new JSONObject();
+            aj.put("annotationIds", annArr);
+            String baseUrl = getBaseURL(context);
 
-          }
-        }
-        if (opts.size() == 1) {
-            newTaskParams.put("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
-            topTask.setParameters(newTaskParams);
-            tasks.add(topTask);  //topTask will be used as *the*(only) task -- no children
-        } else {
             for (int i = 0 ; i < opts.size() ; i++) {
-                Task t = new Task();
-                t.setObjectAnnotations(anns);
-                newTaskParams.put("ibeis.identification", ((opts.get(i) == null) ? "DEFAULT" : opts.get(i)));  //overwrites each time
-                t.setParameters(newTaskParams);
-                topTask.addChild(t);
-                tasks.add(t);
+                JSONObject qjob = new JSONObject();
+                qjob.put("identify", aj);
+                qjob.put("taskId", tasks.get(i).getId());
+                qjob.put("__context", context);
+                qjob.put("__baseUrl", baseUrl);
+                if (opts.get(i) != null) qjob.put("opt", opts.get(i));
+                boolean sent = false;
+                try {
+                    sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
+                } catch (java.io.IOException iox) {
+                    System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
+                }
+    System.out.println("INFO: IA.intakeAnnotations() [opt " + i + "] accepted " + annsOneIAClass.size() + " annots; queued? = " + sent + "; " + tasks.get(i));
             }
-        }
-        myShepherd.storeNewTask(topTask);
-
-        //these are re-used in every task
-        JSONArray annArr = new JSONArray();
-        for (Annotation ann : anns) {
-            annArr.put(ann.getId());
-        }
-        JSONObject aj = new JSONObject();
-        aj.put("annotationIds", annArr);
-        String baseUrl = getBaseURL(context);
-
-        for (int i = 0 ; i < opts.size() ; i++) {
-            JSONObject qjob = new JSONObject();
-            qjob.put("identify", aj);
-            qjob.put("taskId", tasks.get(i).getId());
-            qjob.put("__context", context);
-            qjob.put("__baseUrl", baseUrl);
-            if (opts.get(i) != null) qjob.put("opt", opts.get(i));
-            boolean sent = false;
-            try {
-                sent = org.ecocean.servlet.IAGateway.addToQueue(context, qjob.toString());
-            } catch (java.io.IOException iox) {
-                System.out.println("ERROR[" + i + "]: IA.intakeAnnotations() addToQueue() threw " + iox.toString());
-            }
-System.out.println("INFO: IA.intakeAnnotations() [opt " + i + "] accepted " + anns.size() + " annots; queued? = " + sent + "; " + tasks.get(i));
-        }
+        } // end for each iaClass
 System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
         return topTask;
+    }
+
+    public static List<List<Annotation>> binAnnotsByIaClass(List<Annotation> anns) {
+        System.out.println("binAnnotsByIaClass called on "+anns.size()+" annots");
+        Map<String,List<Annotation>> iaClassToAnns = new HashMap<String, List<Annotation>>();
+        for (Annotation ann: anns) {
+            String iaClass = ann.getIAClass();
+            List<Annotation> iaClassList = iaClassToAnns.getOrDefault(iaClass, new ArrayList<Annotation>());
+            iaClassList.add(ann);
+            iaClassToAnns.put(iaClass, iaClassList);
+        }
+        System.out.println("binAnnotsByIaClass binned them into "+iaClassToAnns.keySet().size()+" bins: "+iaClassToAnns.keySet());
+        return new ArrayList<List<Annotation>>(iaClassToAnns.values());
     }
 
 
