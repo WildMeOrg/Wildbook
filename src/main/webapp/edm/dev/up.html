@@ -1,0 +1,94 @@
+<html><head>
+<script src="//code.jquery.com/jquery-3.5.1.min.js"></script>
+<title>next-gen edm test</title>
+
+<script>
+var d = new Date();
+var occJson = {};
+occJson.decimalLatitude = (0.5 - Math.random()) * 100;
+occJson.startTime = d.toISOString();
+occJson.endTime = new Date(d.getTime() + (24.1234*3600000)).toISOString();
+occJson.submissionContentReferences = [];
+
+function init() {
+	refreshOccJsonForm();
+}
+
+function refreshOccJsonForm() {
+	$('#occ-json').val(JSON.stringify(occJson, null, 4));
+}
+
+/*
+
+        curl \
+            -L -s -X POST \
+            -b cookie.jar \
+            -F title="Test Submission $TIMESTAMP" \
+            -F description="This is a test submission (via CURL), please ignore" \
+            -F files="@/home/jon/chopstix.jpg" \
+            -F files="@/home/jon/rnd-fluke.jpg" \
+            https://nextgen.dev-wildbook.org/api/v1/submissions/streamlined
+
+*/
+var formData;
+function sendSubmission() {
+	formData = new FormData(document.getElementById('files-form'));
+	formData.append('title', 'upload test ' + d.toLocaleString());
+	formData.append('description', navigator.userAgent);
+
+	//build out submissionContentReferences (for occurrence)
+	var scrs = [];
+	jQuery.each(jQuery('#files')[0].files, function(i, file) {
+		console.log('file %d => %o', i, file);
+		scrs.push({
+			filename: file.name,
+			filesize: file.size
+		});
+	});
+
+	jQuery.ajax({
+    		url: 'php/upload.php',
+    		data: formData,
+    		cache: false,
+    		contentType: false,
+    		processData: false,
+    		method: 'POST',
+		//dataType: 'json',
+    		success: function(rtn){
+			console.log('success!!! %o', rtn);
+			var sid = 9999;
+			occJson.submissions.push(sid);
+			for (var i = 0 ; i < srcs.length ; i++) {
+				srcs[i].submissionId = sid;
+			}
+			occJson.submissionContentReferences = occJson.submissionContentReferences.concat(scrs);
+			refreshOccJsonForm();
+		}
+	});
+
+}
+function sendOcc() {
+	occJson = JSON.parse($('#occ-json').val());
+	console.info('occJson = %o', occJson);
+}
+</script>
+
+</head><body onLoad="init();" >
+
+<form id="files-form">
+<input type="file" multiple="true" id="files" name="files" />
+</form>
+
+<br /><input type="button" value="send file(s)" onClick="sendSubmission()" />
+
+<hr />
+
+<textarea id="occ-json" name="occ-json" style="width: 50%; height: 50em;" >
+</textarea>
+
+<br />
+
+<input type="button" value="create Occurrence" onClick="sendOcc()" />
+
+</body>
+</html>
