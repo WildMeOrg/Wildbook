@@ -90,11 +90,11 @@ try{
       console.log(userDuplicateJsonRequest);
       if(userDuplicateJsonRequest){
         populatePage();
-        doAjaxForDuplicateUsers(userDuplicateJsonRequest);
+        doAjaxForGetDuplicateUsers(userDuplicateJsonRequest);
       }
     });
 
-    function doAjaxForDuplicateUsers(userDuplicateJsonRequest){
+    function doAjaxForGetDuplicateUsers(userDuplicateJsonRequest){
       $.ajax({
       url: wildbookGlobals.baseUrl + '../UserConsolidate',
       type: 'POST',
@@ -182,6 +182,10 @@ try{
       console.log("applyButtonClicked clicked!");
       let radioElements = $('[data-id^=radio_]');
       if(radioElements){
+        let ajaxJson = {};
+        ajaxJson['mergeDesired'] = false;
+        ajaxJson['username'] = '<%= currentUser.getUsername()%>';
+        ajaxJson['userInfoArr'] = [];
         for(let i=0; i<radioElements.length; i++){
           let currentRadioElement = radioElements[i];
           let isChecked = currentRadioElement.checked;
@@ -189,13 +193,37 @@ try{
             let currentVal = currentRadioElement.value;
             console.log("currentVal is: " + currentVal);
             console.log("currentRadioElement desired is:");
-            let currentUserDetails = $(currentRadioElement).data().id.split("__");
-            // console.log(currentUserDetails);
-            currentUserDetails.shift();
-            console.log(currentUserDetails);
+            if(currentVal==="merge"){
+              let currentUserDetails = $(currentRadioElement).data().id.split("__");
+              // console.log(currentUserDetails);
+              ajaxJson['mergeDesired'] = true;
+              currentUserDetails.shift();
+              console.log(currentUserDetails);
+              ajaxJson['userInfoArr'].push({username: currentUserDetails[0], email: currentUserDetails[1], fullname: currentUserDetails[2]});
+            }
           }
         }
+        doAjaxCallForMergingUser(ajaxJson);
       }
+    }
+
+    function doAjaxCallForMergingUser(jsonRequest){
+      console.log("jsonRequest in doAjaxCallForMergingUser is: ");
+      console.log(jsonRequest);
+      $.ajax({
+      url: wildbookGlobals.baseUrl + '../UserConsolidate',
+      type: 'POST',
+      data: JSON.stringify(jsonRequest),
+      dataType: 'json',
+      contentType: 'application/json',
+      success: function(data) {
+          console.log("data coming back are:");
+          console.log(data);
+          },
+          error: function(x,y,z) {
+              console.warn('%o %o %o', x, y, z);
+          }
+      });
     }
 
     function radioClicked(){
