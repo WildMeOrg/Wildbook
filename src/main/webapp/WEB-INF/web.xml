@@ -2704,4 +2704,14 @@
     <url-pattern>/GetCurrentIAInfo</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>UserPreferences</servlet-name>
+    <servlet-class>org.ecocean.servlet.UserPreferences</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>UserPreferences</servlet-name>
+    <url-pattern>/UserPreferences</url-pattern>
+  </servlet-mapping>
+
 </web-app>
