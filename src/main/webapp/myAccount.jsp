@@ -69,7 +69,8 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	    String userProject="";
 	    String userStatement="";
 	    String userURL="";
-	    String receiveEmails="checked=\"checked\"";
+		String receiveEmails="checked=\"checked\"";
+		String defaultProjectId = "";
 	    boolean hasProfilePhoto=false;
 
 	    User thisUser=myShepherd.getUser(request.getUserPrincipal().getName());
@@ -96,31 +97,38 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	    	if(thisUser.getUserImage()!=null){
 	    		profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
 	    	}
-	    	if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
-
-
-				List<Project> allProjects = new ArrayList<Project>();
-				List<Project> userProjects = new ArrayList<Project>();
-				List<Project> projectsUserBelongsTo = new ArrayList<Project>();
-				if(thisUser != null){
-					userProjects = myShepherd.getOwnedProjectsForUserId(thisUser.getId(), "researchProjectName");
-					projectsUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(thisUser.getUsername());
-					if(userProjects != null && userProjects.size()>0){
-						for(int i=0; i<userProjects.size(); i++){
-							if(!allProjects.contains(userProjects.get(i))){ //avoid duplicates
-								allProjects.add(userProjects.get(i));
-							}
-						}
-					}
-					if(projectsUserBelongsTo != null && projectsUserBelongsTo.size()>0){
-						for(int i=0; i<projectsUserBelongsTo.size(); i++){
-							if(!allProjects.contains(projectsUserBelongsTo.get(i))){ //avoid duplicates
-								allProjects.add(projectsUserBelongsTo.get(i));
-							}
-						}
-					}
-					userProjects = allProjects;
+			if(thisUser.getUserImage()!=null){hasProfilePhoto=true;}
+			
+			try {
+				if (thisUser.getProjectIdForPreferredContext()!=null) {
+					defaultProjectId = thisUser.getProjectIdForPreferredContext();
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			List<Project> allProjects = new ArrayList<Project>();
+			List<Project> userProjects = new ArrayList<Project>();
+			List<Project> projectsUserBelongsTo = new ArrayList<Project>();
+			if(thisUser != null){
+				userProjects = myShepherd.getOwnedProjectsForUserId(thisUser.getId(), "researchProjectName");
+				projectsUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(thisUser.getUsername());
+				if(userProjects != null && userProjects.size()>0){
+					for(int i=0; i<userProjects.size(); i++){
+						if(!allProjects.contains(userProjects.get(i))){ //avoid duplicates
+							allProjects.add(userProjects.get(i));
+						}
+					}
+				}
+				if(projectsUserBelongsTo != null && projectsUserBelongsTo.size()>0){
+					for(int i=0; i<projectsUserBelongsTo.size(); i++){
+						if(!allProjects.contains(projectsUserBelongsTo.get(i))){ //avoid duplicates
+							allProjects.add(projectsUserBelongsTo.get(i));
+						}
+					}	
+				}
+				userProjects = allProjects;
+			}
 
 	    %>
     	<script>
@@ -250,7 +258,7 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 								%>
 				    		</select>
 			    		</td>
-						            </tr>
+					</tr>
 
 												<tr>
 													<td style="border-style: none;"><%=props.getProperty("Projects") %>
@@ -277,11 +285,65 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
 													%>
 
+													<!--begin default project context selection-->
+													<tr>
+														<td style="border-style: none;"><%=props.getProperty("defaultProject") %></td>	
+													</tr>
+													<tr>
+														<td>
+															<select name="defaultProject" id="defaultProjectDropdown">
+																<option value=""><%=props.getProperty("noneSelected")%></option>
+																<%
+																for (Project projForDefaultSelect : userProjects) {
+																	String projNameForDefaultSelect = projForDefaultSelect.getResearchProjectName();
+
+																	if (defaultProjectId!=null&&defaultProjectId.equals(projForDefaultSelect.getId())) {
+																	%>	
+																		<option value="<%=projForDefaultSelect.getId()%>" selected><%=projNameForDefaultSelect%></option>
+																	<%
+																	} else {
+																		%>			
+																			<option value="<%=projForDefaultSelect.getId()%>"><%=projNameForDefaultSelect%></option>
+																		<%
+																	}
+																}
+																%>
+															</select>
+														</td>
+													</tr>
+													<tr>
+														<td><button type="button" id="setDefaultProjBtn" class="setDefaultProjBtn" onclick="setDefaultProject()"><%=props.getProperty("update")%></button></td>	
+													</tr>
+													<!--begin default project context selection-->
 		            </table></td>
 	            </form>
             </tr>
         </table>
-	<br ></br>
+	<br></br>
+
+	<script>
+		function setDefaultProject() {
+			let selectedProjectDropdown = $("#defaultProjectDropdown");
+			let projId = selectedProjectDropdown.val();
+			let requestJSON = {};
+			requestJSON['action'] = 'setProjectContext'; 
+			requestJSON['projectId'] = projId;
+			$.ajax({
+				url: wildbookGlobals.baseUrl + '/UserPreferences',
+				type: 'POST',
+				data: JSON.stringify(requestJSON),
+				dataType: 'json',
+				contentType: 'application/json',
+				success: function(data) {
+					console.log(JSON.stringify(data));
+					console.log('set user preferences successfully');
+				},
+				error: function(x,y,z) {
+					console.warn('%o %o %o', x, y, z);
+				}
+			});
+		}
+	</script>
 
 	<h2><%=props.getProperty("socialMediaConnections") %></h2>
 
