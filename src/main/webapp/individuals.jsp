@@ -420,16 +420,21 @@ $(document).ready(function() {
           MarkedIndividual sharky=myShepherd.getMarkedIndividual(id);
 
           // replace this with canUserViewIndividual?
-//          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
+          // boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
           boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
-
 
           //System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
               String myNickname = "";
-              myNickname = sharky.getDisplayName("Nickname");
+
+              String nameInProjectContext = sharky.getDisplayName(request, myShepherd);
+              if (nameInProjectContext!=null) {
+                myNickname = nameInProjectContext;
+              } else {
+                myNickname = sharky.getDisplayName("Nickname");
+              }
             %>
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
@@ -451,9 +456,10 @@ $(document).ready(function() {
             <%
 
 
-          } else {
+          } else { // no nicknames allowed in cc.props
+            System.out.println("no nicknames allowed, trying sharky.getDisplayName(request, myShepherd) = "+sharky.getDisplayName(request, myShepherd) );
             %>
-            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName()%>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName(request, myShepherd)%>
             <%
             if(CommonConfiguration.allowAdoptions(context)){
                   %>

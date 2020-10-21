@@ -55,7 +55,7 @@ public class UserPreferences extends HttpServlet {
                 User user = myShepherd.getUser(request);
                 if ("setProjectContext".equals(action)) {
                     String defaultProjectId = j.optString("projectId", null);
-                    if (Util.stringExists(defaultProjectId)) {
+                    if (defaultProjectId!=null) {
                         user.setProjectIdForPreferredContext(defaultProjectId);
                         myShepherd.updateDBTransaction();
                         setSuccess(res, response);
