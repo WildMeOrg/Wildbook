@@ -1497,7 +1497,7 @@ if(enc.getLocation()!=null){
     								 if(enc.hasMarkedIndividual()){
                       hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
                       
-    									indyDisplayName=enc.getIndividual().getDisplayName(request, imageShepherd);
+    									indyDisplayName=enc.getIndividual().getDisplayName(request, myShepherd);
     								 }
                      				%>
                      					<a href="<%=hrefVal %>">

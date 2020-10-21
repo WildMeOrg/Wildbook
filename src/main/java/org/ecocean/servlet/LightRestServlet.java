@@ -1145,7 +1145,8 @@ System.out.println("??? TRY COMPRESS ??");
             if (enc.getIndividual()!=null && Util.stringExists(enc.getIndividual().getDisplayName(req, myShepherd))) {
                 try {
                     jobj.put("displayName",enc.getIndividual().getDisplayName(req, myShepherd));
-                } catch (org.datanucleus.api.rest.orgjson.JSONException thisIsTheStupidestFuckingLibraryForMakingMeHandleThisJustToPutAFuckingStringOnAnObject) {
+                } catch (org.datanucleus.api.rest.orgjson.JSONException je) {
+                    je.printStackTrace();
                 }
 
             }
