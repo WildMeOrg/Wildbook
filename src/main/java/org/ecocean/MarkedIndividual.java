@@ -1012,7 +1012,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
   }
 
   public String getHyperlink(HttpServletRequest req) {
-    return "<a href=\""+getWebUrl(req)+"\"> Individual "+getDisplayName()+ "</a>";
+    return "<a href=\""+getWebUrl(req)+"\"> Individual "+getDisplayName(req)+ "</a>";
   }
 
 
@@ -2231,7 +2231,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-	          jobj.put("displayName", this.getDisplayName());
+	          jobj.put("displayName", this.getDisplayName(request));
 	          if (this.canUserAccess(request)) return jobj;
             jobj.remove("numberLocations");
             jobj.remove("sex");
@@ -2264,7 +2264,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   public JSONObject uiJson(HttpServletRequest request, boolean includeEncounters) throws JSONException {
     JSONObject jobj = new JSONObject();
     jobj.put("individualID", this.getIndividualID());
-    jobj.put("displayName", this.getDisplayName());
+    jobj.put("displayName", this.getDisplayName(request));
     jobj.put("id", this.getId());
     jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
