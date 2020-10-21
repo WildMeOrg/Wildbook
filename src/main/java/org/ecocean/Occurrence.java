@@ -1453,6 +1453,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return obj;
     }
 
+    //TODO this prob should move to base-class and let apiPatchFOO ones be in subclasses
     public void apiPatch(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         if (jsonIn == null) throw new IOException("apiPatch has null json");
         String op = jsonIn.optString("op", null);
@@ -1487,7 +1488,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 */
         if (!hasValue || (valueObj == null)) throw new IOException("apiPatchAdd has empty value - NOT YET SUPPORTED");
 
-        SystemLog.debug("apiPatch on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
+        SystemLog.debug("apiPatchAdd on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
         try {  //catch this whole block where we try to modify things!
             switch (path) {
                 case "startTime":
@@ -1495,6 +1496,12 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                     break;
                 case "endTime":
                     this.setEndTime( new ComplexDateTime((String)valueObj) );
+                    break;
+                case "decimalLatitude":
+                    this.setDecimalLatitude(tryDouble(valueObj));
+                    break;
+                case "decimalLongitude":
+                    this.setDecimalLongitude(tryDouble(valueObj));
                     break;
                 default:
                     throw new Exception("apiPatchAdd unknown path " + path);
@@ -1507,6 +1514,37 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     //as noted above, for non-array targets, this is the *same as* an add (i.e. it (re)sets the value)), so
     //  you will note many cases just pass to apiPatchAdd()
     public void apiPatchReplace(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
-        ///////TODO
+        if (jsonIn == null) throw new IOException("apiPatchReplace has null json");
+        String path = jsonIn.optString("path", null);
+        if (path == null) throw new IOException("apiPatchReplace has null path");
+        Object valueObj = jsonIn.opt("value");
+        boolean hasValue = jsonIn.has("value");
+
+        //see above
+        if (!hasValue || (valueObj == null)) throw new IOException("apiPatchReplace has empty value - NOT YET SUPPORTED");
+
+        SystemLog.debug("apiPatchReplace on {}, with path={}, valueObj={}, jsonIn={}", this, path, valueObj, jsonIn);
+        try {  //catch this whole block where we try to modify things!
+            switch (path) {
+                //these cases are all equivalent to add
+                case "startTime":
+                case "endTime":
+                case "decimalLatitude":
+                case "decimalLongitude":
+                    this.apiPatchAdd(myShepherd, jsonIn);
+                    break;
+                default:
+                    throw new Exception("apiPatchReplace unknown path " + path);
+            }
+        } catch (Exception ex) {
+            throw new IOException("apiPatchReplace unable to modify " + this + " due to " + ex.toString());
+        }
+    }
+
+    //TODO should probably be in Util or base class?
+    public static Double tryDouble(Object obj) {  //this will throw exceptions if conversion problems
+        if (obj == null) return null;
+        if (obj instanceof Integer) return new Double((Integer)obj);
+        return (Double)obj;
     }
 }
