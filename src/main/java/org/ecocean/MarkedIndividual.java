@@ -194,38 +194,45 @@ public class MarkedIndividual implements java.io.Serializable {
 
     public String getDisplayName(Object keyHint, HttpServletRequest request, Shepherd myShepherd) {
         if (names == null) return null;
-        List<String> nameVals = getNamesList(keyHint);
-        // you have provided a specific key, will get a key specific return
-        if (!Util.isEmpty(nameVals)) return nameVals.get(0);
 
-        //if you provided a request, look for a user preferred project context
+        //if you have a specific preferred context and have a request/shepherd, we look for that first 
         if (request!=null&&request.getUserPrincipal()!=null) {
           String context = ServletUtilities.getContext(request);
           // hopefully the call was able to provide an existing shepherd, but we have to make one if not
           Shepherd nameShepherd = null;
+          boolean newShepherd = false;
           try {
-            System.out.println("trying to get project based display name...");
             if (myShepherd==null) {
               nameShepherd = new Shepherd(context);
               nameShepherd.setAction("MarkedIndividual.getDisplayName()");
+              newShepherd = true;
             } else {
               nameShepherd = myShepherd;
             }
             nameShepherd.beginDBTransaction();
             User user = AccessControl.getUser(request, nameShepherd);
-            if (user!=null&&nameShepherd!=null) {
+            if (user!=null) {
               String projectContextId = user.getProjectIdForPreferredContext();
-              Project project = myShepherd.getProject(projectContextId);
-              if (project!=null) {
-                return getDisplayName(project.getProjectIdPrefix());
+              if (Util.stringExists(projectContextId)) {
+                Project project = nameShepherd.getProject(projectContextId);
+                if (project!=null) {
+                  return getDisplayName(project.getProjectIdPrefix());
+                }
               }
             } 
           } catch (Exception e) {
             if (nameShepherd!=null) {
               nameShepherd.rollbackAndClose();            
             }
+          } finally {
+            if (newShepherd) nameShepherd.rollbackAndClose();
           }
         }
+
+        List<String> nameVals = getNamesList(keyHint);
+        // you have provided a specific key, will get a key specific return
+        if (!Util.isEmpty(nameVals)) return nameVals.get(0);
+
 
         // fallback case: try using the default keyhint
         if(getNames()!=null) {

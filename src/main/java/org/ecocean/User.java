@@ -500,7 +500,7 @@ public class User implements Serializable {
     }
 
     public org.json.JSONObject getPreferencesAsJSON() {
-      if (preferences == null) return new org.json.JSONObject();
+      if (preferences == null || "".equals(preferences)) return new org.json.JSONObject();
       return Util.stringToJSONObject(preferences);
     }
 
@@ -510,7 +510,7 @@ public class User implements Serializable {
 
     public void setPreference(String key, String value) {
       org.json.JSONObject prefsJSON = getPreferencesAsJSON();
-      if (Util.stringExists(key)&&Util.stringExists(value)&&prefsJSON!=null) {
+      if (Util.stringExists(key)&&prefsJSON!=null) {
         prefsJSON.put(key, value);
         setPreferencesJSON(prefsJSON);
       } else {
@@ -521,7 +521,7 @@ public class User implements Serializable {
     public String getPreference(String key) {
       org.json.JSONObject prefsJSON = getPreferencesAsJSON();
       if (prefsJSON!=null) {
-        Object valueOb = prefsJSON.get(key);
+        Object valueOb = prefsJSON.optString(key,null);
         String value = null;
         if (valueOb!=null) value = (String) valueOb; 
         if (Util.stringExists(value)) {
