@@ -9,6 +9,7 @@ occJson.decimalLatitude = (0.5 - Math.random()) * 100;
 occJson.startTime = d.toISOString();
 occJson.endTime = new Date(d.getTime() + (24.1234*3600000)).toISOString();
 occJson.submissionContentReferences = [];
+occJson.submissions = [];
 
 function init() {
 	refreshOccJsonForm();
@@ -32,6 +33,7 @@ function refreshOccJsonForm() {
 */
 var formData;
 function sendSubmission() {
+	$('#send-sub-button').hide();
 	formData = new FormData(document.getElementById('files-form'));
 	formData.append('title', 'upload test ' + d.toLocaleString());
 	formData.append('description', navigator.userAgent);
@@ -47,22 +49,22 @@ function sendSubmission() {
 	});
 
 	jQuery.ajax({
-    		url: 'php/upload.php',
+		url: '/api/v1/submissions/streamlined',
     		data: formData,
     		cache: false,
     		contentType: false,
     		processData: false,
     		method: 'POST',
-		//dataType: 'json',
     		success: function(rtn){
 			console.log('success!!! %o', rtn);
-			var sid = 9999;
+			var sid = rtn.guid
 			occJson.submissions.push(sid);
-			for (var i = 0 ; i < srcs.length ; i++) {
-				srcs[i].submissionId = sid;
+			for (var i = 0 ; i < scrs.length ; i++) {
+				scrs[i].submissionId = sid;
 			}
 			occJson.submissionContentReferences = occJson.submissionContentReferences.concat(scrs);
 			refreshOccJsonForm();
+			$('#send-sub-button').hide();
 		}
 	});
 
@@ -70,6 +72,23 @@ function sendSubmission() {
 function sendOcc() {
 	occJson = JSON.parse($('#occ-json').val());
 	console.info('occJson = %o', occJson);
+	jQuery.ajax({
+		url: '/api/v0/org.ecocean.Occurrence',
+		method: 'POST',
+		data: JSON.stringify(occJson),
+		dataType: 'json',
+		success: function(rtn) {
+			console.log('success!!! %o', rtn);
+			var h = '';
+			if (rtn && rtn.success && rtn.result) {
+				h += 'created <a target="_new" href="/api/v0/org.ecocean.Occurrence/' + rtn.result.id + '?detail-org.ecocean.Occurrence=max">' + rtn.result.id + '</a>';
+				h += '<xmp>' + JSON.stringify(rtn, null, 8) + '</xmp>';
+			} else {
+				h += '<b>failed?</b>';
+			}
+			$('#occ-result').html(h);
+		}
+	});
 }
 </script>
 
@@ -79,7 +98,7 @@ function sendOcc() {
 <input type="file" multiple="true" id="files" name="files" />
 </form>
 
-<br /><input type="button" value="send file(s)" onClick="sendSubmission()" />
+<br /><input id="send-sub-button" type="button" value="send file(s)" onClick="sendSubmission()" />
 
 <hr />
 
@@ -89,6 +108,9 @@ function sendOcc() {
 <br />
 
 <input type="button" value="create Occurrence" onClick="sendOcc()" />
+
+<div id="occ-result">
+</div>
 
 </body>
 </html>
