@@ -880,6 +880,9 @@
 				<column name="ORGANIZATION_ID" />
 			</element>
       </field>
+
+      <field name="preferences" persistence-modifier="persistent" default-fetch-group="true" allows-null="true" serialized="true" />
+
     </class>
 
     <class name="Role" identity-type="datastore" table="USER_ROLES">
