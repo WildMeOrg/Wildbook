@@ -168,19 +168,65 @@ public class MarkedIndividual implements java.io.Serializable {
     public String getId() {
         return individualID;
     }
-
+    
     //this is "something to show" (by default)... it falls back to the id,
     //  which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
     //  note that if keyHint is null, default is used
     public String getDisplayName() {
+        System.out.println("[INFO]: Called MarkedIndividual.getDisplayName()");
         return getDisplayName(null);
     }
 
     public String getDisplayName(Object keyHint) {
+      System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(keyHint)");
+      return getDisplayName(keyHint, null, null);
+    }
+
+    public String getDisplayName(HttpServletRequest request) {
+      System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(request)");
+      return getDisplayName(null, request, null);
+    }
+
+    public String getDisplayName(HttpServletRequest request, Shepherd myShepherd) {
+      System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(request,myShepherd)");
+      return getDisplayName(null, request, myShepherd);
+    }
+
+    public String getDisplayName(Object keyHint, HttpServletRequest request, Shepherd myShepherd) {
         if (names == null) return null;
         List<String> nameVals = getNamesList(keyHint);
-        // default case: just return the first name for the keyhint.
+        // you have provided a specific key, will get a key specific return
         if (!Util.isEmpty(nameVals)) return nameVals.get(0);
+
+        //if you provided a request, look for a user preferred project context
+        if (request!=null&&request.getUserPrincipal()!=null) {
+          String context = ServletUtilities.getContext(request);
+          // hopefully the call was able to provide an existing shepherd, but we have to make one if not
+          Shepherd nameShepherd = null;
+          try {
+            System.out.println("trying to get project based display name...");
+            if (myShepherd==null) {
+              nameShepherd = new Shepherd(context);
+              nameShepherd.setAction("MarkedIndividual.getDisplayName()");
+            } else {
+              nameShepherd = myShepherd;
+            }
+            nameShepherd.beginDBTransaction();
+            User user = AccessControl.getUser(request, nameShepherd);
+            if (user!=null&&nameShepherd!=null) {
+              String projectContextId = user.getProjectIdForPreferredContext();
+              Project project = myShepherd.getProject(projectContextId);
+              if (project!=null) {
+                return getDisplayName(project.getProjectIdPrefix());
+              }
+            } 
+          } catch (Exception e) {
+            if (nameShepherd!=null) {
+              nameShepherd.rollbackAndClose();            
+            }
+          }
+        }
+
         // fallback case: try using the default keyhint
         if(getNames()!=null) {
           nameVals = getNames().getValuesDefault();
