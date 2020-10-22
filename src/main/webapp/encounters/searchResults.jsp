@@ -39,11 +39,9 @@ context=ServletUtilities.getContext(request);
   String[] projectIds = null;
   int projectIdCount = 0;
   if(Util.isUUID(request.getParameter("projectId"))){
-    System.out.println("Got in to projectId parameter in searchResults");
     projectIds = request.getParameterValues("projectId");
     if(projectIds!=null){
       projectIdCount = projectIds.length;
-      System.out.println("projectIdCount is: " + projectIdCount);
     }
   }
 
@@ -239,7 +237,6 @@ var sTable = false;
 
 var iaResults;
 function doTable() {
-  console.log("doTable called");
 	iaResults = {};
 	if (needIAStatus) {
 		for (var i = 0 ; i < searchResults.length ; i++) {
@@ -611,7 +608,6 @@ function _colNumberLocations(o) {
 function _colTaxonomy(o) {
 	var genus = _notUndefinedValue(o, 'genus');
 	var species = _notUndefinedValue(o, 'specificEpithet');
-	//console.log('colTaxonomy got genus '+genus+' and species '+species+' for object '+JSON.stringify(o));
 	return genus+' '+species;
 }
 
@@ -628,30 +624,37 @@ function _projectId(o){
 
 function populateWithProjectIds(){
   let projIdCount = parseInt('<%= projectIdCount %>');
-  if(projIdCount){
-    maxLoops = searchResults.length * projIdCount;
-  }
-  for (let i = 0 ; i < searchResults.length ; i++) {
-    let currentSearchResult = searchResults[i];
-    let encId = currentSearchResult.id;
-    let indId = currentSearchResult.attributes.individual.individualID;
-    let ajaxJson = {}
-    let projIdPrefix = '';
-    <%
-      if(projectIds!= null && projectIds.length>0){
-        for(int j=0; j<projectIds.length; j++){
-          Project currentProj = myShepherd.getProjectByUuid(projectIds[j]);
-          String currentProjIdPrefix = currentProj.getProjectIdPrefix();
-    %>
-    projIdPrefix = '<%= currentProjIdPrefix%>';
-    ajaxJson['projectIdPrefix'] = projIdPrefix;
-    ajaxJson['individualIds'] = [];
-    ajaxJson['individualIds'].push({indId: indId});
-    doAjaxCall(encId, ajaxJson, maxLoops, i);
-    <%
-      } //end for of project IDs
-    } // end if for projectIds
-    %>
+  if(projIdCount<1){
+    doTable();
+  }else{
+    if(projIdCount){
+      maxLoops = searchResults.length * projIdCount;
+    }
+    for (let i = 0 ; i < searchResults.length ; i++) {
+      let currentSearchResult = searchResults[i];
+      let encId = currentSearchResult.id;
+      let indId = currentSearchResult.attributes.individual.individualID;
+      let ajaxJson = {}
+      let projIdPrefix = '';
+        <%
+        if(projectIds!= null && projectIds.length>0){
+          for(int j=0; j<projectIds.length; j++){
+            Project currentProj = myShepherd.getProjectByUuid(projectIds[j]);
+            String currentProjIdPrefix = currentProj.getProjectIdPrefix();
+            %>
+            projIdPrefix = '<%= currentProjIdPrefix%>';
+            // console.log("got here c and projIdPrefix is: " + projIdPrefix);
+            ajaxJson['projectIdPrefix'] = projIdPrefix;
+            ajaxJson['individualIds'] = [];
+            if(indId){
+              ajaxJson['individualIds'].push({indId: indId});
+            }
+            doAjaxCall(encId, ajaxJson, maxLoops, i);
+            <%
+          } //end for of project IDs
+        } // end if for projectIds
+        %>
+      }
   }
 }
 
@@ -687,6 +690,7 @@ function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
             if(maxLoops == projIdCallCounter){
               doTable();
             }
+          }else{
           }
         }
       },
