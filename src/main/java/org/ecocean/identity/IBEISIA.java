@@ -1799,7 +1799,11 @@ System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
         myShepherd.beginDBTransaction();
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
         rtn.put("_logs", logs);
-        if ((logs == null) || (logs.size() < 1)) return rtn;
+        if ((logs == null) || (logs.size() < 1)) {
+          myShepherd.commitDBTransaction();
+          myShepherd.closeDBTransaction();
+          return rtn;
+        }
 
         JSONObject newAnns = null;
         String type = getTaskType(logs);
@@ -2068,10 +2072,18 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         myShepherd.setAction("IBEISIA.processCallbackIdentify");
         myShepherd.beginDBTransaction();
         for (int i = 0 ; i < ids.length ; i++) {
-            Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, ids[i]), true)));
-System.out.println("**** " + ann);
-            //"should not happen" that we have an annot with no acmId, since this is result post-IA (which needs acmId)
-            if (ann != null) anns.put((ann.getAcmId() != null) ? ann.getAcmId() : ann.getId(), ann);
+          
+            try {  
+              Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, ids[i]), true)));
+              System.out.println("**** " + ann);
+              //"should not happen" that we have an annot with no acmId, since this is result post-IA (which needs acmId)
+              if (ann != null) anns.put((ann.getAcmId() != null) ? ann.getAcmId() : ann.getId(), ann);
+       
+            }
+            catch(Exception e) {
+              e.printStackTrace();  
+            }
+            
         }
         int numCreated = 0;
         JSONObject infDict = null;
