@@ -237,7 +237,7 @@ public class IA {
             List<JSONObject> opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
 
             System.out.println("identOpts: "+opts.toString());
-            if ((opts == null) || (opts.size() < 1)) return null;  //"should never happen"
+            if ((opts == null) || (opts.size() < 1)) continue;  // no ID for this iaClass.
             List<Task> tasks = new ArrayList<Task>();
             JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
             if (parentTask != null && parentTask.getParameters()!=null) {
