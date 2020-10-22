@@ -93,24 +93,30 @@ public class ShepherdRealm extends AuthorizingRealm {
         //always use context0 below as all users are stored there
         String actualContext="context0";
         if(context!=null){actualContext=context;}
-        
-        Shepherd myShepherd=new Shepherd("context0");
-        myShepherd.setAction("ShepherdRealm.class.getRolenamesForUsersInContext");
-        myShepherd.beginDBTransaction();
-        if(myShepherd.getUser(username)!=null){
-          
-            User user=myShepherd.getUser(username);
-            List<Role> roles=myShepherd.getAllRolesForUserInContext(username,actualContext);
-            int numRoles=roles.size();
-            for(int i=0;i<numRoles;i++){
-              roleNames.add(roles.get(i).getRolename());
-              //System.out.println("ShepherdRealm:Adding role: "+roles.get(i).getRolename());
+        if(username!=null) {
+          Shepherd myShepherd=new Shepherd("context0");
+          myShepherd.setAction("ShepherdRealm.class.getRolenamesForUsersInContext");
+          myShepherd.beginDBTransaction();
+          try {
+            if(myShepherd.getUser(username)!=null){
+              
+                User user=myShepherd.getUser(username);
+                List<Role> roles=myShepherd.getAllRolesForUserInContext(username,actualContext);
+                int numRoles=roles.size();
+                for(int i=0;i<numRoles;i++){
+                  roleNames.add(roles.get(i).getRolename());
+                  //System.out.println("ShepherdRealm:Adding role: "+roles.get(i).getRolename());
+                }
+              
             }
-          
+          }
+          catch(Exception e) {e.printStackTrace();}
+          finally {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+            myShepherd=null;
         }
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        myShepherd=null;
+        }
        
         return roleNames;
     } 
