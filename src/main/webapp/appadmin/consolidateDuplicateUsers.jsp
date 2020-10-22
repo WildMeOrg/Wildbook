@@ -59,14 +59,14 @@ int numFixes=0;
     					}
     					if(indicesOfDupesInWhichAnyUserNameExists.size()==0){
     						User useMe=dupes.get(0);
-    						UserConsolidate.consolidate(myShepherd,useMe,dupes);
+    						UserConsolidate.consolidateUsersAndNameless(myShepherd,useMe,dupes);
     						%>
     						are now resolved to:&nbsp;<%=useMe.getEmailAddress() %>
     						<%
     					}
     					else if(indicesOfDupesInWhichAnyUserNameExists.size()==1){
     						User useMe=dupes.get(indicesOfDupesInWhichAnyUserNameExists.get(0).intValue());
-    						UserConsolidate.consolidate(myShepherd,useMe,dupes);
+    						UserConsolidate.consolidateUsersAndNameless(myShepherd,useMe,dupes);
     						%>
     						are now resolved to:&nbsp;&nbsp;<%=useMe.getEmailAddress() %>(<%=useMe.getUsername() %>)
     						<%
