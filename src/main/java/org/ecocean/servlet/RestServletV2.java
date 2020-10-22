@@ -149,7 +149,8 @@ System.out.println("######>>>>>> payload=" + payload);
         try {
             JSONObject result = handleGetObject(request, response, payload, instanceId, context);
             if (result == null) {
-                rtn.put("success", false);
+                response.setStatus(404);
+                rtn.put("message", _rtnMessage("not_found"));
             } else {
                 rtn.put("result", result);
                 rtn.put("success", true);
