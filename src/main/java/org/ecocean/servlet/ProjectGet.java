@@ -127,6 +127,7 @@ public class ProjectGet extends HttpServlet {
                 if (Util.isUUID(individualId) && Util.stringExists(projectIdPrefix)) {
                   JSONObject individualData = new JSONObject();
                   individualData.put("projectIdPrefix", projectIdPrefix);
+                  successStatus = true;
                   Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
                   String projName = project.getResearchProjectName();
                   String projUuid = project.getId();
@@ -147,11 +148,9 @@ public class ProjectGet extends HttpServlet {
                         if(Util.stringExists(projectIncrementalId)){
                           individualData.put("projectIncrementalId", projectIncrementalId);
                           returnArr.put(individualData);
-                          successStatus = true;
                         }else{
                           individualData.put("projectIncrementalId", "");
                           returnArr.put(individualData);
-                          successStatus = false;
                         }
                       }
                     }
@@ -268,6 +267,8 @@ public class ProjectGet extends HttpServlet {
             res.put("success",true);
             complete = true;
           }
+
+
             // get all projects for owner or participant
             ownerId = j.optString("ownerId", null);
             participantId = j.optString("participantId", null);
