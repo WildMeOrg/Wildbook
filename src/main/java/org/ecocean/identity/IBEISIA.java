@@ -1689,8 +1689,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
 
         if (!iaConf.isValidIAClass(taxonomyBeforeDetection, iaClass)) {  //null could mean "invalid IA taxonomy"
-            System.out.println("WARNING: bailing on IA results because convertAnnotation found false for isValidIAClass("+taxonomyBeforeDetection+", "+iaClass+")");
-            return null;
+            System.out.println("WARNING: convertAnnotation found false for isValidIAClass("+taxonomyBeforeDetection+", "+iaClass+"). Continuing anyway to make & save the annotation");
         }
 
         String viewpoint = iaResult.optString("viewpoint",null);
@@ -1715,12 +1714,12 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
 //TODO get rid of convertSpecies stuff re: Taxonomy!!!!
         Annotation ann = new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft, iaClass);
-        ann.setIAExtractedKeywords(myShepherd);
+        ann.setIAExtractedKeywords(myShepherd, taxonomyBeforeDetection);
         ann.setAcmId(fromFancyUUID(iaResult.optJSONObject("uuid")));
         String vp = iaResult.optString("viewpoint", null);  //not always supported by IA
         if ("None".equals(vp)) vp = null;  //the ol' "None" means null joke!
         ann.setViewpoint(vp);
-        if (validForIdentification(ann, context)) {
+        if (validForIdentification(ann, context) && iaConf.isValidIAClass(taxonomyBeforeDetection, iaClass)) {
             ann.setMatchAgainst(true);
         }
         return ann;
@@ -2359,6 +2358,7 @@ System.out.println("identification most recent action found is " + action);
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONObject(0) == null)) throw new RuntimeException("could not get image uuid");
             String imageUUID = fromFancyUUID(rtn.getJSONArray("response").getJSONObject(0));
             MediaAsset ma = grabMediaAsset(imageUUID, myShepherd);
+            Taxonomy originalTaxy = ma.getTaxonomy(myShepherd);
             if (ma == null) throw new RuntimeException("could not find MediaAsset " + imageUUID);
 
             //now we need the bbox to make the Feature
@@ -2386,7 +2386,7 @@ System.out.println("identification most recent action found is " + action);
             // String iaClass = iaConf.convertIAClassForTaxonomy(returnedIAClass, taxy);
 
             Annotation ann = new Annotation(convertSpeciesToString(iaClass), ft, iaClass);
-            ann.setIAExtractedKeywords(myShepherd);
+            ann.setIAExtractedKeywords(myShepherd, originalTaxy);
             //note: ann.id is a random UUID at this point; should we set to acmId??
             //   ann.setId(acmId);
             ann.setAcmId(acmId);
@@ -3465,6 +3465,7 @@ System.out.println(">>>>>> AFTER : " + isIAPrimed());
 
     public static synchronized boolean isIAPrimed() {
 System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet().size());
+//        return true;  // uncomment this, comment-out below, to hard-skip iaPriming (has been useful on staging servers)
         return iaPrimed.get();
     }
     public static synchronized void setIAPrimed(boolean b) {
@@ -4066,7 +4067,7 @@ System.out.println("-------- >>> all.size() (omitting all.toString() because it'
         }
         return false;
     }
-    
+
     public static boolean validIAClassForIdentification(String iaClassName, String context) {
       ArrayList<String> idClasses = getAllIdentificationClasses(context);
       if (iaClassName==null&&(idClasses.isEmpty()||idClasses==null)) return true;
