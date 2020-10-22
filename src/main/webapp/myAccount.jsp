@@ -314,7 +314,7 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 													<tr>
 														<td><button type="button" id="setDefaultProjBtn" class="setDefaultProjBtn" onclick="setDefaultProject()"><%=props.getProperty("update")%></button></td>	
 													</tr>
-													<!--begin default project context selection-->
+													<!--end default project context selection-->
 		            </table></td>
 	            </form>
             </tr>
