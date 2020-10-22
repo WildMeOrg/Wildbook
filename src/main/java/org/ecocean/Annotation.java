@@ -379,6 +379,9 @@ public class Annotation implements java.io.Serializable {
         }
         return fts.get(0).getMediaAsset();  //should this instead return first feature *that has a MediaAsset* ??
     }
+    public boolean hasMediaAsset() {
+        return (getMediaAsset() != null);
+    }
 /*  deprecated
     public void setMediaAsset(MediaAsset ma) {
         mediaAsset = ma;
@@ -467,38 +470,25 @@ public class Annotation implements java.io.Serializable {
         this.iaClass = iaClass;
     }
 
+    public boolean hasIAClass() {
+        return Util.stringExists(getIAClass());
+    }
+
     public void setIAExtractedKeywords(Shepherd myShepherd) {
-        try {
-            if (this.getMediaAsset()!=null&&this.getIAClass()!=null&&!"".equals(this.iaClass)) {
-                Properties props = ShepherdProperties.getProperties("IA.properties", "", myShepherd.getContext());
-                List<String> keywords = Util.getIndexedPropertyValues("iaExtractedKeyword", props);
-                List<String> labelValues = Util.getIndexedPropertyValues("iaExtractedKeywordValue", props);
-                MediaAsset ma = this.getMediaAsset();
+        setIAExtractedKeywords(myShepherd, getTaxonomy(myShepherd));
+    }
+    public void setIAExtractedKeywords(Shepherd myShepherd, Taxonomy taxy) {
+        if (!this.hasMediaAsset() || !this.hasIAClass()) return;
 
-                for (int i=0;i<keywords.size();i++) {
-                    String keyword = keywords.get(i).trim();
-                    if (!this.iaClass.contains(keyword)) continue;
-                    String labelValue = labelValues.get(i).trim();
-                    if (keyword!=null&&!"".equals(keyword)&&labelValue!=null&&!"".equals(labelValue)) {
+        IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+        String keywordString = iaConf.getKeywordString(taxy, this.getIAClass());
+        if (!Util.stringExists(keywordString)) return; // no keyword to save (according to config) scenario
 
-                        Keyword kw = null;
-                        if (myShepherd.isKeyword(labelValue)) {
-                            kw = myShepherd.getKeyword(labelValue);
-                        } else {
-                            kw = new Keyword(labelValue);
-                            myShepherd.storeNewKeyword(kw);
-                        }
-
-                        myShepherd.beginDBTransaction();
-                        ma.addKeyword(kw);
-                        myShepherd.commitDBTransaction();
-                    }
-                }
-            }
-       } catch (Exception e) {
-           e.printStackTrace();
-           myShepherd.rollbackDBTransaction();
-       }
+        System.out.println("setIAExtractedKeyword is saving kw "+keywordString+" for annot "+getId());
+        Keyword kw = myShepherd.getOrCreateKeyword(keywordString);
+        myShepherd.beginDBTransaction();
+        this.getMediaAsset().addKeyword(kw);
+        myShepherd.commitDBTransaction();
     }
 
     public String getName() {

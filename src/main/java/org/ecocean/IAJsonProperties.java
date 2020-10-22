@@ -200,6 +200,7 @@ public class IAJsonProperties extends JsonProperties {
 	// e.g., if we get a whale_shark detection on a humpback whale: false. If we get an orca_dorsal detection on a bottlenose dolphin: true.
 	// this just checks if the iaClass has a defined behavior in the IA.json file.
 	public boolean isValidIAClass(Taxonomy taxyBeforeDetection, String iaClass) {
+		if (taxyBeforeDetection == null) return false;
 		String taxyKey = taxonomyKey(taxyBeforeDetection);
 		String fullKey = taxyKey+"."+iaClass;
 		JSONObject conf = (JSONObject) this.get(fullKey);
@@ -243,6 +244,15 @@ public class IAJsonProperties extends JsonProperties {
 			}
 		}
 		return result;
+	}
+
+	// in some cases we want to save a keyword whenever detection returns a certain IA class.
+	// if a taxonomy+iaClass has a defined _save_keyword field in the config, this returns the value.
+	public String getKeywordString(Taxonomy taxy, String iaClass) {
+		String viewpointKeywordMapKey = taxonomyKey(taxy) + "." + iaClass + "._save_keyword";
+		String keywordString = (String) this.get(viewpointKeywordMapKey);
+		System.out.println("iaConf.getKeywordString found string "+keywordString+" for taxonomy "+taxy.getScientificName()+" and iaClass "+iaClass);
+		return keywordString;
 	}
 
 
