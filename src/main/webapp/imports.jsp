@@ -356,7 +356,9 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 <% } %>
 </p>
 
-<% if (adminMode || user.equals(itask.getCreator())) { %>
+<% if (adminMode) { 
+// if (adminMode || user.equals(itask.getCreator()))
+%>
     <div id="ia-send-div">
     
 	    <%
@@ -372,7 +374,10 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 	    	
 	    <%
 	    }
-	    if("complete".equals(itask.getStatus()) && Collaboration.canUserAccessImportTask(myShepherd.getImportTask(request.getParameter("taskId")),request)){
+ } //end if admin mode
+
+//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
+if("complete".equals(itask.getStatus()) && (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
 	    %>
 	    	<div style="margin-bottom: 20px; display:none;">
 	    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
@@ -380,12 +385,12 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 	              	<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
 	        	</form>
 	    	</div>
-    	<%
-	    }
-    	%>
+<%
+}
+%>
     	
     </div>
-<% } %>
+
 </p>
 
 
