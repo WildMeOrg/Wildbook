@@ -431,6 +431,8 @@
 				/DeleteImportTask = authc, roles[researcher]
 
         /ProjectIA = authc, roles[researcher]
+
+        /UserPreferences = authc, roles[researcher]
 				
             </param-value>
         </init-param>
