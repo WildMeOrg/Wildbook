@@ -743,7 +743,7 @@ $(function() {
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
 				if(enc.hasMarkedIndividual() && enc.getIndividual()!=null) {
-          		String dispName = enc.getIndividual().getDisplayName(request);
+          		String dispName = enc.getIndividual().getDisplayName(request, myShepherd);
 					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>

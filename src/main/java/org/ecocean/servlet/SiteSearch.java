@@ -91,7 +91,7 @@ public class SiteSearch extends HttpServlet {
           if(myShepherd.isMarkedIndividual(term.trim())) {
             MarkedIndividual ind=myShepherd.getMarkedIndividual(term.trim());
             HashMap<String, String> hm = new HashMap<String, String>();
-            String label = ind.getDisplayName(request);
+            String label = ind.getDisplayName(request, myShepherd);
             hm.put("label", label);
             hm.put("value", ind.getIndividualID());
             hm.put("type", "individual");
@@ -153,7 +153,7 @@ public class SiteSearch extends HttpServlet {
           for (MarkedIndividual ind : individuals) {
                 try {
                   HashMap<String, String> hm = new HashMap<String, String>();
-                  String label = ind.getDisplayName(request);
+                  String label = ind.getDisplayName(request, myShepherd);
                   hm.put("label", label);
                   hm.put("value", ind.getIndividualID());
                   hm.put("type", "individual");
