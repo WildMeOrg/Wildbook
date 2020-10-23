@@ -693,6 +693,11 @@ function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
           }else{
             //no incrementalIdArr structure in data returned, but the counter should add it anyway
             projIdCallCounter ++;
+
+            //handle edge case where last entry in searchResults doesn't have incrementalIdArr structure in data returned
+            if(maxLoops == projIdCallCounter){
+              doTable();
+            }
           }
         }
       },
