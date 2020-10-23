@@ -59,7 +59,7 @@ if (projectId!=null) {
 	Project project = myShepherd.getProjectByProjectIdPrefix(projectId);
 	if (project!=null) {
 		JSONObject projectData = new JSONObject();
-		projectData.put("projectData", project.asJSONObjectWithEncounterMetadata(myShepherd));
+		projectData.put("projectData", project.asJSONObjectWithEncounterMetadata(myShepherd, request);
 		projectData.put("projectACMIds", project.getAllACMIdsJSON());
 		all.put(projectData);
 	}
