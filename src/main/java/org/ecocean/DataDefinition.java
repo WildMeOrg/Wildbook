@@ -313,6 +313,19 @@ System.out.println("type=" + type + " in handleValue() on " + this);
         throw new DataDefinitionException("could not coerce String from " + content.toString());
     }
 
+    public JSONObject coerceJSONObject(JSONObject content) throws DataDefinitionException {
+        return coerceJSONObject(content, this.meta);
+    }
+    public static JSONObject coerceJSONObject(JSONObject content, JSONObject meta) throws DataDefinitionException {
+        if ((content == null) || (meta == null)) throw new DataDefinitionException("invalid content/meta arguments");
+        _precheckSingle(meta);
+        String type = getType(meta);
+        //we skip this cuz there are many types which are actually json internally
+        //if ((type == null) || !type.equals("json")) throw new DataDefinitionException("not type=json");
+        if (content.has(VALUE_KEY) && content.isNull(VALUE_KEY)) return null;  //legit null
+        return content.optJSONObject(VALUE_KEY);
+    }
+
     private static JSONObject _precheckSingle(JSONObject meta) throws DataDefinitionException {
         if (meta == null) return null;  //out of scope here? let the caller handle!
         if (isMultiple(meta)) throw new DataDefinitionException("calling single value on multiple for meta=" + meta);

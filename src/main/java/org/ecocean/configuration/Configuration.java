@@ -80,6 +80,9 @@ public class Configuration implements java.io.Serializable {
     public Boolean getValueAsBoolean() throws DataDefinitionException {
         return DataDefinition.coerceBoolean(this.getContent(), this._precheckSingle());
     }
+    public JSONObject getValueAsJSONObject() throws DataDefinitionException {
+        return DataDefinition.coerceJSONObject(this.getContent(), this._precheckSingle());
+    }
 
     public List<String> getValueAsStringList() throws DataDefinitionException {
 /*
