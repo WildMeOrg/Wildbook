@@ -251,8 +251,69 @@ public class Encounter extends org.ecocean.api.ApiCustomFields implements java.i
   private String guid;
 
   private Long endDateInMilliseconds;
-  private Long dateInMilliseconds;
-	
+
+/*
+    startTime will be the "definitive" time for next-gen.  dateInMilliseconds is left behind for legacy data
+    also the individual fields (year, month, day, etc) are left behind for incomplete support (tbd?)
+
+    some related utility/conversion methods are included here
+*/
+    private Long dateInMilliseconds;
+    private ComplexDateTime time;
+
+    public ComplexDateTime getTime() {
+        return time;
+    }
+    public void setTime(ComplexDateTime cdt) {
+        time = cdt;
+    }
+    public void setTime(boolean forceOverwrite) {
+        if ((time != null) && !forceOverwrite) return;
+        time = deriveComplexDateTime();
+    }
+
+    public ComplexDateTime deriveComplexDateTime() {  //this attempts to get local timezone, oof!
+        Long ms = computeDateInMilliseconds();
+        if (ms == null) ms = dateInMilliseconds;  //last-ditch?
+        if (ms == null) return null;  //sorry
+        String t = Util.millisToIso8601StringNoTimezone(ms);
+        String tz = guessTimeZone();
+System.out.println("deriveComplexDateTime => " + t + " | tz => " + tz);
+        try {
+            return new ComplexDateTime(t, tz);
+        } catch (Exception ex) {
+            SystemLog.warn("deriveComplexDateTime() on {} threw {}", this, ex);
+            return null;
+        }
+    }
+/*
+    value of timeZone in locationID should be TZ name (e.g. "Africa/Algiers")
+    this is available from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    see also:  ZoneId.getAvailableZoneIds()
+*/
+    public String guessTimeZone() {
+        if (locationID == null) locationID = country;  //hail mary
+        if (locationID == null) return "Z";
+        org.json.JSONObject loc = LocationID.find(locationID);
+        if (loc == null) return "Z";
+        return loc.optString("timeZone", "Z");
+    }
+    public boolean hasIncompleteTime() {
+        return ((day < 1) || (month < 0) || (year < 1000) || (hour < 0) || (minutes == null) || minutes.equals(""));
+    }
+    public org.json.JSONArray timeValues() {
+        org.json.JSONArray val = new org.json.JSONArray();
+        val.put( (year < 1000) ? org.json.JSONObject.NULL : year );
+        val.put( (month < 0) ? org.json.JSONObject.NULL : month );
+        val.put( (day < 1) ? org.json.JSONObject.NULL : day );
+        val.put( (hour < 0) ? org.json.JSONObject.NULL : hour );
+        int min = -1;
+        try { min = Integer.parseInt(minutes); } catch(NumberFormatException ex) {}
+        val.put( (min < 0) ? org.json.JSONObject.NULL : min );
+        return val;
+    }
+
+
   //describes how the shark was measured
   private String size_guess = "none provided";
 	
@@ -2479,6 +2540,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
 
   public void resetDateInMilliseconds(){
+    dateInMilliseconds = computeDateInMilliseconds();
+  }
+  public Long computeDateInMilliseconds(){
     if(year>0){
       int localMonth=0;
       if(month>0){localMonth=month-1;}
@@ -2489,10 +2553,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       int myMinutes=0;
       try{myMinutes = Integer.parseInt(minutes);}catch(Exception e){}
       GregorianCalendar gc=new GregorianCalendar(year, localMonth, localDay,localHour,myMinutes);
-
-      dateInMilliseconds = new Long(gc.getTimeInMillis());
+      return new Long(gc.getTimeInMillis());
     }
-    else{dateInMilliseconds=null;}
+    return null;
   }
 
   public java.lang.Long getDateInMilliseconds(){return dateInMilliseconds;}
@@ -3937,13 +4000,11 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
 
         if (detLvl.equals(DETAIL_LEVEL_MIN)) return obj;
 
+        if (time != null) obj.put("time", time.toIso8601());
+        if (this.hasIncompleteTime()) obj.put("timeValues", this.timeValues());
+
         Taxonomy tx = this.getTaxonomy();
-        if (tx != null) {
-            org.json.JSONObject jtx = new org.json.JSONObject();
-            jtx.put("id", tx.getId());
-            jtx.put("scientificName", tx.getScientificName());
-            obj.put("taxonomy", jtx);
-        }
+        if (tx != null) obj.put("taxonomy", tx.asApiJSONObject());
 
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;

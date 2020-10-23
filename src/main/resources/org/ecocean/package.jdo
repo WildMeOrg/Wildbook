@@ -304,6 +304,8 @@
         <column length="1024" allows-null="true"/>
       </field>
 
+	<field name="time" persistence-modifier="persistent" element-type="org.ecocean.ComplexDateTime" default-fetch-group="true" />
+
       <field name="dateInMilliseconds" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
