@@ -461,6 +461,7 @@ public class UserConsolidate extends HttpServlet {
         System.out.println("userName is: " + userName);
         User currentUser = myShepherd.getUser(userName);
         List<User> similarUsers = getSimilarUsers(currentUser, myShepherd.getPM());
+        similarUsers.remove(currentUser);
         if(similarUsers != null){
           if(similarUsers.size()>0){
             for(int j=0; j<similarUsers.size(); j++){

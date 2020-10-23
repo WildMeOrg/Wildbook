@@ -109,6 +109,9 @@ try{
             for(let i=0; i<users.length; i++){
               populateCandidateUser(users[i].username, users[i].email,users[i].fullname);
             }
+          }else{
+            //TODO no other users message
+            populateNoDuplicates();
           }
           },
           error: function(x,y,z) {
@@ -160,6 +163,15 @@ try{
       candidateHtml +=  '</div>';
       candidateHtml += '</div>';
       $('#candidate-users-container').append(candidateHtml);
+    }
+
+    function populateNoDuplicates(){
+      let noDuplicatesHtml = '';
+      noDuplicatesHtml += '<h2>' + txt.noDuplicates + '</h2>';
+      // noDuplicatesHtml += '';
+      // noDuplicatesHtml += '';
+      $('#content-container').empty();
+      $('#content-container').append(noDuplicatesHtml);
     }
 
     function populatePage(){
