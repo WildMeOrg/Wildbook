@@ -135,6 +135,42 @@ public class IAJsonProperties extends JsonProperties {
 		return ans;
 	}
 
+        //just the stings, not Taxonomys
+        public List<String> getAllTaxonomyStrings() {
+            List<String> taxs = new ArrayList<String>();
+            Iterator<String> it1 = this.getJson().keys();
+            while (it1.hasNext()) {
+                String genus = it1.next();
+                if (genus.startsWith("_")) continue;
+                JSONObject second = this.getJson().optJSONObject(genus);
+                if (second == null) continue;
+                Iterator<String> it2 = second.keys();
+                while (it2.hasNext()) {
+                    String species = it2.next();
+                    if (species.startsWith("_")) continue;
+                    taxs.add(genus + " " + species);
+                }
+            }
+            return taxs;
+        }
+        public List<Taxonomy> getAllTaxonomies(Shepherd myShepherd) {
+            List<Taxonomy> taxs = new ArrayList<Taxonomy>();
+            for (String taxy : getAllTaxonomyStrings()) {
+                taxs.add(myShepherd.getOrCreateTaxonomy(taxy, false));
+            }
+            return taxs;
+        }
+
+        //this skips a non-specific taxonomy with "sp" as the second part
+        public Taxonomy taxonomyFromIAClass(String iaClass, Shepherd myShepherd) {
+            if (iaClass == null) return null;
+            for (Taxonomy taxy : getAllTaxonomies(myShepherd)) {
+                if (taxy.getScientificName().endsWith(" sp")) continue;
+	        if (isValidIAClass(taxy, iaClass)) return taxy;  //first one wins!
+            }
+            return null;
+        }
+
 	// Identification methods
 	public static String identKey(Taxonomy taxy) {
 		return identKey(taxy, "_default");
