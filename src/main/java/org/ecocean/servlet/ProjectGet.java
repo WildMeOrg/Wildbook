@@ -214,7 +214,7 @@ public class ProjectGet extends HttpServlet {
                     JSONArray projectArr = new JSONArray();
                     if (projects!=null) {
                         for (Project project : projects) {
-                            projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
+                            projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd, request));
                         }
                     }
                     res.put("projects", projectArr);
@@ -232,7 +232,7 @@ public class ProjectGet extends HttpServlet {
                     JSONArray projectArr = new JSONArray();
                     if (projects!=null) {
                         for (Project project : projects) {
-                            projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
+                            projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd, request));
                         }
                     }
                     res.put("projects", projectArr);
@@ -256,7 +256,7 @@ public class ProjectGet extends HttpServlet {
                     JSONArray projectArr = new JSONArray();
                     if (projects!=null) {
                       for (Project project : projects) {
-                        projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
+                        projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd, request));
                       }
                     }
                     returnProjArr.put(projectArr);
@@ -308,7 +308,7 @@ public class ProjectGet extends HttpServlet {
                 JSONArray projectArr = new JSONArray();
                 if (project!=null) {
                     if (getEncounterMetadata) {
-                        projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd));
+                        projectArr.put(project.asJSONObjectWithEncounterMetadata(myShepherd, request));
                     } else {
                         projectArr.put(project.asJSONObject());
                     }

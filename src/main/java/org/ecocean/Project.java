@@ -268,10 +268,18 @@ public class Project implements java.io.Serializable {
     }
 
     public JSONObject asJSONObjectWithEncounterMetadata(Shepherd myShepherd) {
-        return asJSONObject("addEncounterMetadata", myShepherd);
+        return asJSONObject("addEncounterMetadata", myShepherd, null);
+    }
+
+    public JSONObject asJSONObjectWithEncounterMetadata(Shepherd myShepherd, HttpServletRequest request) {
+        return asJSONObject("addEncounterMetadata", myShepherd, request);
     }
 
     private JSONObject asJSONObject(String modifier, Shepherd myShepherd) {
+        return asJSONObject(modifier, myShepherd, null);
+    }
+
+    private JSONObject asJSONObject(String modifier, Shepherd myShepherd, HttpServletRequest request) {
         JSONObject j = new JSONObject();
         j.put("id", id);
         j.put("ownerId", ownerId);
@@ -298,7 +306,11 @@ public class Project implements java.io.Serializable {
                     boolean hasNameKeyMatchingProject = false;
                     MarkedIndividual individual = enc.getIndividual();
                     if (individual!=null&&Util.stringExists(individual.getDisplayName())) {
-                        individualName = individual.getDisplayName();
+                        if (request!=null) {
+                            individualName = individual.getDisplayName(request, myShepherd);
+                        } else {
+                            individualName = individual.getDisplayName();
+                        }
                         individualUUID = individual.getId();
                         hasNameKeyMatchingProject = individual.hasNameKey(projectIdPrefix);
                         if (hasNameKeyMatchingProject) {
