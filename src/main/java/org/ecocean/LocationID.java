@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import org.ecocean.configuration.ConfigurationUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -68,46 +69,26 @@ public class LocationID {
     loadJSONData(filename);
   }
   
-  private static void loadJSONData(String qualifier) {
-    InputStream is = null;
-    String filename="locationID.json";
-    if(qualifier!=null) {
-      filename="locationID_"+qualifier+".json";
-    } 
-    
-    String shepherdDataDir="wildbook_data_dir";
-    Properties contextsProps=ShepherdProperties.getContextsProperties();
-    if(contextsProps.getProperty("context0"+"DataDir")!=null){
-      shepherdDataDir=contextsProps.getProperty("context0"+"DataDir");
-    }
-      
-    //first look for the file in the override director
-    File configFile = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles/"+filename);
-
-      //if our config file exists in the override dir, use it
-      if(configFile.exists()) {
+    //in the new world, this comes from configuration!!
+    private static void loadJSONData(String qualifier) {
+        //TODO qualifier is now effectively IGNORED ... add support for it later (via configuration!) if needed
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("LocationID.loadJSONData()");
+        myShepherd.beginDBTransaction();
+        JSONObject loc = null;
         try {
-          is=new FileInputStream(configFile);
+            loc = ConfigurationUtil.getConfiguration(myShepherd, "site.custom.regions").getValueAsJSONObject();
+        } catch (DataDefinitionException ex) {
+            SystemLog.warn("LocationID.loadJSONData() failed: {}", ex.toString());
         }
-        catch(Exception e) {e.printStackTrace();}
-      }
-      //if the override file does not exist, fall back to the webapp and look for the file there
-      else {
-        is=LocationID.class.getResourceAsStream("/bundles/"+filename);
-      }
-    
-      //if we couldn't find it in the override dir or locally, load it from the web app root
-    if (is == null) {
-      filename="locationID.json";
-      is=LocationID.class.getResourceAsStream("/bundles/"+filename);
+        myShepherd.rollbackAndClose();
+        jsonMaps.put((qualifier == null) ? "default" : qualifier, loc);
     }
-    JSONTokener tokener = new JSONTokener(is);
-    String key="default";
-    if(qualifier!=null)key=qualifier;
-    jsonMaps.put(key,new JSONObject(tokener));
-    //System.out.println("jsonMaps: "+jsonMaps.toString());
-  }
-  
+
+    public static JSONObject find(String id) {
+        return recurseToFindID(id, LocationID.getLocationIDStructure());
+    }
+
   private static JSONObject recurseToFindID(String id,JSONObject jsonobj) {
     
     //if this is the right object, return it
