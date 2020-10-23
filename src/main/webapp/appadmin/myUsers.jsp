@@ -211,6 +211,7 @@ try{
               ajaxJson['mergeDesired'] = true;
               currentUserDetails.shift();
               console.log(currentUserDetails);
+              //TODO track these users submitted and compare them to the results in the callback
               ajaxJson['userInfoArr'].push({username: currentUserDetails[0], email: currentUserDetails[1], fullname: currentUserDetails[2]});
             }
           }
@@ -231,6 +232,8 @@ try{
       success: function(data) {
           console.log("data coming back are:");
           console.log(data);
+          //TODO compare to array of entries originally input?
+          //TODO give confirmation of success or failure
           },
           error: function(x,y,z) {
               console.warn('%o %o %o', x, y, z);
