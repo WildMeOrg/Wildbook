@@ -1450,6 +1450,15 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         obj.put("decimalLatitude", getDecimalLatitude());
         obj.put("decimalLongitude", getDecimalLongitude());
         obj.put("customFields", this.getCustomFieldJSONObject());
+
+        if (!Util.collectionIsEmptyOrNull(taxonomies)) {
+            org.json.JSONArray txs = new org.json.JSONArray();
+            for (Taxonomy tx : taxonomies) {
+                txs.put(tx.asApiJSONObject());
+            }
+            obj.put("taxonomies", txs);
+        }
+
         return obj;
     }
 
