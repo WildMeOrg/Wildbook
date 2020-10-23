@@ -2,6 +2,9 @@ package org.ecocean;
 
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+
 
 /*
     this class is to allow functional equivalence of java.time.ZonedDateTime, but allow us to persist the value in a db,
@@ -26,8 +29,12 @@ public class ComplexDateTime implements java.io.Serializable {
         dateTime = ZonedDateTime.parse(iso8601);
         updateTimeZone();
     }
-    public ComplexDateTime(ZonedDateTime zdt) {  //expects ISO8601 (might work for others?)
+    public ComplexDateTime(ZonedDateTime zdt) {
         dateTime = zdt;
+        updateTimeZone();
+    }
+    public ComplexDateTime(String isoDateTime, String zoneName) {  //see notes on toZonedDateTime() below
+        dateTime = toZonedDateTime(isoDateTime, zoneName);
         updateTimeZone();
     }
 
@@ -128,6 +135,17 @@ public class ComplexDateTime implements java.io.Serializable {
             SystemLog.error("ComplexDateTime.gentlyFromIso8601() could not parse iso8601={}, error={}", iso8601, ex.toString());
             return null;
         }
+    }
+
+/*
+    isoDateTime should be WITHOUT any timezone info, e.g. "2000-05-31T01:02:03"
+    zoneName should be TZ name (e.g. "Africa/Algiers")
+    this is available from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    see also:  ZoneId.getAvailableZoneIds()
+*/
+    public static ZonedDateTime toZonedDateTime(String isoDateTime, String zoneName) throws java.time.zone.ZoneRulesException {
+        ZoneId tz = ZoneId.of(zoneName);
+        return LocalDateTime.parse(isoDateTime, DateTimeFormatter.ISO_DATE_TIME).atZone(tz);
     }
 
 /*
