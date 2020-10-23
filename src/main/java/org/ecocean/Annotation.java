@@ -478,6 +478,7 @@ public class Annotation implements java.io.Serializable {
         setIAExtractedKeywords(myShepherd, getTaxonomy(myShepherd));
     }
     public void setIAExtractedKeywords(Shepherd myShepherd, Taxonomy taxy) {
+        if (taxy == null) return;
         if (!this.hasMediaAsset() || !this.hasIAClass()) return;
 
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
