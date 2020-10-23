@@ -20,6 +20,9 @@ import org.json.JSONException;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
+import java.time.ZoneId;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
@@ -1182,6 +1185,13 @@ public class Util {
             System.out.println("Util.iso8601ToCalendar(" + dt + ") threw " + ex.toString());
             return null;
         }
+    }
+
+    //this leaves off timezone, so you can have the joy of figuring out that yourself
+    public static String millisToIso8601StringNoTimezone(Long ms) {
+        if (ms == null) return null;
+        java.time.LocalDateTime date = java.time.LocalDateTime.ofInstant(Instant.ofEpochMilli(ms), ZoneId.systemDefault());
+        return date.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
     //these are for debugging/timing purposes
