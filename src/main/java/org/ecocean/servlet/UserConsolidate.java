@@ -453,10 +453,12 @@ public class UserConsolidate extends HttpServlet {
       if(Util.stringExists(mergeDesiredStr)){
         mergeDesired = Boolean.parseBoolean(mergeDesiredStr);
       }
+      boolean successStatus = false;
       JSONArray userInfoArr = jsonRes.optJSONArray("userInfoArr");
 
       // fetch similar users
       if(Util.stringExists(userName) && mergeDesired==false){
+        successStatus = true;
         System.out.println("fetching similar users");
         System.out.println("userName is: " + userName);
         User currentUser = myShepherd.getUser(userName);
@@ -488,6 +490,7 @@ public class UserConsolidate extends HttpServlet {
           System.out.println("mergeDesired is: " + mergeDesired);
           if(userInfoArr != null && userInfoArr.length()>0){
             System.out.println("got here a");
+            successStatus = true;
             for(int i = 0; i<userInfoArr.length(); i++){
               System.out.println("got here b");
               JSONObject currentUserToBeConsolidatedInfo = userInfoArr.getJSONObject(i);
@@ -501,10 +504,12 @@ public class UserConsolidate extends HttpServlet {
                 //only found one match
                 System.out.println("got here e");
                 consolidateUser(myShepherd, currentUser, userToBeConsolidated);
-                returnJson.put("success",true);
+                returnJson.put("success",successStatus);
+                returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"Single match found for user and consdolidated");
               }else{
                 //found more than one match or none. TODO fail and report failure?
-                returnJson.put("success",false);
+                returnJson.put("success",successStatus);
+                returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"Found more than one match or no matches for user");
               }
             }
           }
