@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.io.IOException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Util;
+import org.json.JSONObject;
 import javax.jdo.Query;
 import java.util.Collection;
 
@@ -98,6 +99,13 @@ public class Taxonomy implements java.io.Serializable {
     //  should be *no more than* two.... :(
     public String[] getGenusSpecificEpithet() {
         return Util.stringToGenusSpecificEpithet(this.scientificName);
+    }
+
+    public JSONObject asApiJSONObject() {
+        JSONObject j = new JSONObject();
+        j.put("id", id);
+        j.put("scientificName", scientificName);
+        return j;
     }
 
     public String toString() {
