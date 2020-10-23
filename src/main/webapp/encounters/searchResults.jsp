@@ -691,6 +691,8 @@ function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
               doTable();
             }
           }else{
+            //no incrementalIdArr structure in data returned, but the counter should add it anyway
+            projIdCallCounter ++;
           }
         }
       },
