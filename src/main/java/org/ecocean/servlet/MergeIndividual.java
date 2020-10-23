@@ -46,12 +46,12 @@ public class MergeIndividual extends HttpServlet {
       String msg = "<strong>Error:</strong> Missing two valid individualIDs for MergeIndividual. ";
       if (id1==null) msg+="<br>Bad id1: "+id1;
       if (id2==null) msg+="<br>Bad id2: "+id2;
-      errorAndClose("msg", response);
+      errorAndClose(msg, response);
       return;
     }
 
-    String oldName1;
-    String oldName2;
+    String oldName1="";
+    String oldName2="";
 
     boolean canMergeAutomatically = false;
     
@@ -64,19 +64,21 @@ public class MergeIndividual extends HttpServlet {
 
       MarkedIndividual mark1 = myShepherd.getMarkedIndividualQuiet(id1);
       MarkedIndividual mark2 = myShepherd.getMarkedIndividualQuiet(id2);
-      oldName1 = mark1.getDisplayName() + "("+Util.prettyUUID(mark1.getIndividualID())+")";
-      oldName2 = mark2.getDisplayName() + "("+Util.prettyUUID(mark2.getIndividualID())+")";
-
 
       if (mark1==null || mark2==null) {
         String msg = "<strong>Error:</strong> Could not find both individuals in our database. ";
-        if (mark1==null) msg+="<br>could not find individual "+mark1;
-        if (mark2==null) msg+="<br>could not find individual "+mark2;
-        errorAndClose("msg", response);
+        System.out.println("MergeIndividual.java: "+msg);
+        if (mark1==null) {msg+="<br>could not find individual "+id1;System.out.println("MergeIndividual.java couldn't find: "+id1);}
+        if (mark2==null) {msg+="<br>could not find individual "+id2;System.out.println("MergeIndividual.java couldn't find: "+id2);}
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
+        errorAndClose(msg, response);
         return;
       }
+      
+      oldName1 = mark1.getDisplayName() + "("+Util.prettyUUID(mark1.getIndividualID())+")";
+      oldName2 = mark2.getDisplayName() + "("+Util.prettyUUID(mark2.getIndividualID())+")";
+
 
       String sex = request.getParameter("sex");
       String taxonomyStr = request.getParameter("taxonomy");
@@ -86,8 +88,8 @@ public class MergeIndividual extends HttpServlet {
       
       
       //check for eligibility.. must throw on timer if not able to do right away
-      ArrayList<String> mark1Users = mark1.getAllAssignedUsers();
-      ArrayList<String> mark2Users = mark2.getAllAssignedUsers();
+      //ArrayList<String> mark1Users = mark1.getAllAssignedUsers();
+      //ArrayList<String> mark2Users = mark2.getAllAssignedUsers();
       Principal userPrincipal = request.getUserPrincipal();
       String currentUsername = null;
       if (userPrincipal!=null) {
@@ -96,18 +98,7 @@ public class MergeIndividual extends HttpServlet {
       
       //if we can't determine who is requeting this, no merge
       if (currentUsername!=null) {
-        
-        /*
-        ArrayList<String> allUniqueUsers = new ArrayList<>(mark1Users);
-        for (String user : mark2Users) {
-          if (!allUniqueUsers.contains(user)&&!"".equals(user)&&user!=null) {
-            allUniqueUsers.add(user);
-            System.out.println("unique user == "+user);
-          }
-          
-          
-        }//end for
-        */
+
         
         //WB-1017
         //1. if user is in role admin, they can force the automatic merge. we trust our admins. this also prevents unnecessary database calls.
@@ -115,7 +106,10 @@ public class MergeIndividual extends HttpServlet {
         //if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
         if(request.isUserInRole("admin") || (Collaboration.canUserFullyEditMarkedIndividual(mark1, request) && Collaboration.canUserFullyEditMarkedIndividual(mark2, request))) {  
           canMergeAutomatically = true;
-        } else {
+          System.out.println("Can merge automatically.");
+        } 
+        else {
+          System.out.println("Scheduling a merge between: "+mark1.getIndividualID()+" and "+mark2.getIndividualID());
           ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);
           myShepherd.storeNewScheduledIndividualMerge(merge);
           myShepherd.updateDBTransaction();
@@ -123,25 +117,29 @@ public class MergeIndividual extends HttpServlet {
       }
 
       if (canMergeAutomatically) {
+        System.out.println("Merging automatically.");
         mark1.mergeAndThrowawayIndividual(mark2, currentUsername, myShepherd);
         if (sex != null) mark1.setSex(sex);
         if (taxonomyStr !=null) mark1.setTaxonomyString(taxonomyStr);
         if (throwaway) myShepherd.getPM().deletePersistent(mark2);
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+  
       }
       else {
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+
       }
 
     } 
     catch (Exception le){
+      locked=true;
       le.printStackTrace();
-      errorAndClose("An exception occurred. Please contact the admins.", response);
       myShepherd.rollbackDBTransaction();
+      errorAndClose("An exception occurred. Please contact the admins.", response);
+      
+    }
+    finally {
       myShepherd.closeDBTransaction();
-      return;
     }
 
     if(!locked&&canMergeAutomatically){
@@ -159,26 +157,22 @@ public class MergeIndividual extends HttpServlet {
         }
 
       } 
-      else if (!locked) {
+    else if (!locked) {
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Pending:</strong> Participating user have been notified of your request to merge individuals "+id1+" and "+id2+".</p>");
         out.close();
-        response.setStatus(HttpServletResponse.SC_OK);
+        
       } 
-      else {
+     else {
         errorAndClose("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.", response);
       }
   }
 
 
   private void errorAndClose(String msg, HttpServletResponse response) {
-    //out.println(ServletUtilities.getHeader(request));
-    out.println(msg);
-        //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        //out.println(ServletUtilities.getFooter(context));
-    out.close();
     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-    //myShepherd.rollbackDBTransaction();
-    //myShepherd.closeDBTransaction();
+    out.println(msg);
+    out.close();
   }
 
   private long twoWeeksFromNowLong() {
