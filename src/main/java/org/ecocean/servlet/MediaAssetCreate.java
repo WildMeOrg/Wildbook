@@ -144,19 +144,41 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
             myShepherd = new Shepherd(context);
             myShepherd.setAction("MediaAssetCreate.class_IA.intake");
             myShepherd.beginDBTransaction();
-            List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
-            for (Integer id : idInts) {
-                if (id < 0) continue;
-                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-                if (ma != null) allMAs.add(ma);
+            try {
+              List<MediaAsset> allMAs = new ArrayList<MediaAsset>();
+              for (Integer id : idInts) {
+                  if (id < 0) continue;
+                  MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                  if (ma != null) allMAs.add(ma);
+              }
+              if (allMAs.size() > 0) {
+                  System.out.println("Starting IA.intakeMediaAssets");
+                  
+                  final Task parentTask = new Task();
+                  Task task = null;
+                  Taxonomy taxy=null;
+                  if(j.getString("taxonomy")!=null && !j.getString("taxonomy").equals("null")) {
+                    taxy=new Taxonomy(j.getString("taxonomy"));
+                  }
+                  if(taxy!=null) {
+                    task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask); 
+                  }
+                  else {
+                    task = IA.intakeMediaAssets(myShepherd, allMAs);
+                  }
+                    System.out.println("Out of IA.intakeMediaAssets");
+                  myShepherd.storeNewTask(task);
+                  res.put("IATaskId", task.getId());
+              }
+              myShepherd.commitDBTransaction();
             }
-            if (allMAs.size() > 0) {
-                Task task = IA.intakeMediaAssets(myShepherd, allMAs);
-                myShepherd.storeNewTask(task);
-                res.put("IATaskId", task.getId());
+            catch(Exception e) {
+              e.printStackTrace();
+              myShepherd.rollbackDBTransaction();
             }
-            myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
+            finally {
+              myShepherd.closeDBTransaction();
+            }
         }
 
         out.println(res.toString());
