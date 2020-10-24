@@ -167,7 +167,7 @@ try{
 
     function populateNoDuplicates(){
       let noDuplicatesHtml = '';
-      noDuplicatesHtml += '<h2>' + txt.noDuplicates + '</h2>';
+      noDuplicatesHtml += '<h3>' + txt.noDuplicates + '</h3>';
       // noDuplicatesHtml += '';
       // noDuplicatesHtml += '';
       $('#content-container').empty();
@@ -221,6 +221,7 @@ try{
     }
 
     function doAjaxCallForMergingUser(jsonRequest){
+      displayProgressBar();
       console.log("jsonRequest in doAjaxCallForMergingUser is: ");
       console.log(jsonRequest);
       $.ajax({
@@ -232,7 +233,18 @@ try{
       success: function(data) {
           console.log("data coming back are:");
           console.log(data);
-          //TODO compare to array of entries originally input?
+          let responseArray =[];
+          jsonRequest.userInfoArr.forEach(userInfoObj =>{
+            let keyForDataInResponseChecking = "details_"+userInfoObj.username+"__"+userInfoObj.email+"__"+userInfoObj.fullname;
+            console.log("keyForDataInResponseChecking is: " + keyForDataInResponseChecking);
+            let valuesOfUserInfoObjPrettified = Object.values(userInfoObj).join(", ");
+            console.log("valuesOfUserInfoObjPrettified is: " + valuesOfUserInfoObjPrettified);
+            if(data[keyForDataInResponseChecking]){
+              console.log(valuesOfUserInfoObjPrettified + ": " + data[keyForDataInResponseChecking]);
+              responseArray.push(valuesOfUserInfoObjPrettified + ": " + data[keyForDataInResponseChecking]);
+            }
+          });
+          displayConfirmations(responseArray);
           //TODO give confirmation of success or failure
           },
           error: function(x,y,z) {
@@ -241,9 +253,30 @@ try{
       });
     }
 
+    function displayProgressBar(){
+      let progressHtml = '';
+      progressHtml += '<div class="progress">';
+      progressHtml += '<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%">';
+      progressHtml += '<span class="sr-only">'+txt.PercentComplete+'</span>';
+      progressHtml += '</div>';
+      progressHtml += '</div>';
+      $('#content-container').empty();
+      $('#content-container').append(progressHtml);
+    }
+
+    function displayConfirmations(arrayOfResponses){
+      let confirmationHtml = '';
+      confirmationHtml += '<h3>'+txt.completed+'</h3>'
+      arrayOfResponses.forEach(response =>{
+        confirmationHtml += '<p>' + response + '</p>';
+      });
+      $('#content-container').empty();
+      $('#content-container').append(confirmationHtml);
+    }
+
     function radioClicked(){
       // console.log("radioClicked");
-      let totalNumberOfRadioButtonsPerUser = 2; //TODO if there are ever more options in addition to merge/do not claim, change this
+      // let totalNumberOfRadioButtonsPerUser = 2; //TODO if there are ever more options in addition to merge/do not claim, change this
       let radioElements = $('[data-id^=radio_]');
       let uniqueValues = [];
       let numberRadioButtonsClicked = 0;
