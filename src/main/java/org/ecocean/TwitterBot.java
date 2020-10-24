@@ -113,7 +113,8 @@ public class TwitterBot {
                     System.out.println("TwitterAssetStore just saved MediaAsset "+ema.getId());
                 }
             }
-        } else {
+        } 
+        else {
             ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " already stored, so skipping");
             myShepherd.rollbackDBTransaction();
@@ -121,13 +122,22 @@ public class TwitterBot {
             return;
             //entities = (load the children from retrieved tweetMA)
         }
-System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
+        System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
         if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
-
+        
         String taxonomyString = taxonomyStringFromTweet(tweet, context);
         Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
-   
+        
+        Encounter enc=new Encounter(false);
+        if(taxy!=null)enc.setTaxonomy(taxy);
+        myShepherd.getPM().makePersistent(enc);
+        myShepherd.updateDBTransaction();
+        for(MediaAsset ma:entities) {
+          enc.addMediaAsset(ma);
+          myShepherd.updateDBTransaction();
+        }
+        
         System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies for taxonomy: "+taxy.getScientificName());
         // compare this to prev. logic in detectionQueueJob method below
         IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
