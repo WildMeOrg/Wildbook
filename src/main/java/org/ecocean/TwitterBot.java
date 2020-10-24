@@ -127,12 +127,12 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
 
         String taxonomyString = taxonomyStringFromTweet(tweet, context);
         Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-        System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies");
+   
+        System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies for taxonomy: "+taxy.getScientificName());
         // compare this to prev. logic in detectionQueueJob method below
         IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
-
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
 
     }
 
