@@ -34,6 +34,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.queue.*;
 import org.ecocean.RateLimitation;
 import org.ecocean.ia.Task;
+import org.ecocean.ia.IA;
 
 import com.google.gson.Gson;
 
@@ -105,9 +106,11 @@ public class TwitterBot {
             }
             MediaAssetFactory.save(tweetMA, myShepherd);
             entities = tas.entitiesAsMediaAssets(tweetMA);
+            System.out.println("TwitterAssetStore just saved MediaAsset "+tweetMA.getId());
             if ((entities != null) && (entities.size() > 0)) {
                 for (MediaAsset ema : entities) {
                     MediaAssetFactory.save(ema, myShepherd);
+                    System.out.println("TwitterAssetStore just saved MediaAsset "+ema.getId());
                 }
             }
         } else {
@@ -120,29 +123,21 @@ public class TwitterBot {
         }
 System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
         if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
 
-        String baseUrl = CommonConfiguration.getServerURL(context);
-        if (baseUrl == null) {
-            System.out.println("DANGER! could not obtain baseUrl in TwitterBot.processIncomingTweet() for tweet " + tweet.getId() + "; failing miserably!");
-            return;
-        }
+        String taxonomyString = taxonomyStringFromTweet(tweet, context);
+        Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
+   
+        System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies for taxonomy: "+taxy.getScientificName());
+        // compare this to prev. logic in detectionQueueJob method below
+        IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
 
-        //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
-        JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
-        qj.put("tweetAssetId", tweetMA.getId());
-        try {
-            org.ecocean.servlet.IAGateway.addToQueue(context, qj.toString());
-            System.out.println("INFO: TwitterBot.processIncomingTweet() added detection taskId=" + qj.optString("taskId") + " to IAQueue");
-        } catch (IOException ioe) {
-            System.out.println("ERROR: TwitterBot.processIncomingTweet() during addToQueue threw " + ioe.toString());
-        }
     }
 
     //TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
-    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl, String taskId) {
+    private static JSONObject detectionQueueJob(Status tweet, List<MediaAsset> mas, String context, String baseUrl, String taskId) {
         JSONObject qj = new JSONObject();
         qj.put("taskId", taskId);
         qj.put("__context", context);
@@ -508,20 +503,20 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         if ((originTweet == null) || (anns == null)) return;
 
         String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
-        
+
         //use NLP to get Date/Location if available in Tweet
         String newDetectedDate=ParseDateLocation.parseDate(rootDir, myShepherd.getContext(), originTweet);
-        
-        
+
+
         for (Annotation ann : anns) {
-          
+
             Encounter enc = ann.findEncounter(myShepherd);
             if (enc == null) continue;
             System.out.println("INFO: TwitterBot.updateEncounter() using tx=" + tx + " for " + enc);
             enc.setTaxonomyFromString(tx);
-            enc.setState("unapproved");        
-            
-           
+            enc.setState("unapproved");
+
+
             if(newDetectedDate!=null){
               DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
               DateTime dt=parser3.parseDateTime(newDetectedDate);
@@ -535,29 +530,37 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
                 enc.setYear(dt.getYear());
                 enc.setMonth(dt.getMonthOfYear());
                 enc.setDay(-1);
-                
+
               }
               else if(newDetectedDate.length()==4){
                 enc.setYear(dt.getYear());
                 enc.setMonth(-1);
-                
+
               }
             }
-            
+
             //location?
             setLocationIDFromTweet(enc, originTweet, myShepherd.getContext());
-            
+
             //get Tweet comments for faster review on Encounter page
             enc.setOccurrenceRemarks(originTweet.getText());
-            
-            
+
+            //get the Wildbook User for this tweet and set them as owner
+            if(originTweet.getUser()!=null && originTweet.getUser().getScreenName()!=null) {
+              User wildbookUser=myShepherd.getUserByTwitterHandle(originTweet.getUser().getScreenName().replaceAll("@",""));
+              if(wildbookUser!=null && wildbookUser.getUsername()!=null) {
+                enc.setSubmitterID(wildbookUser.getUsername());
+              }
+            }
+
+
 
         }
-        
-        
 
-        
-        
+
+
+
+
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
@@ -593,12 +596,12 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         }
         return TwitterUtil.getProperty(context, "taxonomyDefault");
     }
-    
+
     public static void setLocationIDFromTweet(Encounter enc, Status tweet, String context) {
-      
+
       /*
        * Step 1. Support explicit hashtagging Encounter.locationID
-       * 
+       *
        */
       String locationID="";
       String location="";
@@ -624,10 +627,10 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
           e.printStackTrace();
         }
       }
-      
+
       /*
        * Step 2. If not explicitly set from a hashtag, let's try to get Encounter.locationID from the text
-       * 
+       *
        */
       try {
 
