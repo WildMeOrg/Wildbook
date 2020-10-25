@@ -317,10 +317,14 @@ public class TwitterAssetStore extends AssetStore {
     private static void setEntityMetadata(MediaAsset ma) {
         if (ma.getParameters() == null) return;
         JSONObject d = new JSONObject("{\"attributes\": {} }");
-        if ((ma.getParameters().optJSONObject("sizes") != null) && (ma.getParameters().getJSONObject("sizes").optJSONObject("large") != null)) {
-            d.getJSONObject("attributes").put("width", ma.getParameters().getJSONObject("sizes").getJSONObject("large").optDouble("w", 0));
-            d.getJSONObject("attributes").put("height", ma.getParameters().getJSONObject("sizes").getJSONObject("large").optDouble("h", 0));
+        if ((ma.getParameters().optJSONObject("sizes") != null) && (ma.getParameters().getJSONObject("sizes").optJSONObject("medium") != null)) {
+            d.getJSONObject("attributes").put("width", ma.getParameters().getJSONObject("sizes").getJSONObject("medium").optDouble("w", 0));
+            d.getJSONObject("attributes").put("height", ma.getParameters().getJSONObject("sizes").getJSONObject("medium").optDouble("h", 0));
         }
+        else if ((ma.getParameters().optJSONObject("sizes") != null) && (ma.getParameters().getJSONObject("sizes").optJSONObject("large") != null)) {
+          d.getJSONObject("attributes").put("width", ma.getParameters().getJSONObject("sizes").getJSONObject("large").optDouble("w", 0));
+          d.getJSONObject("attributes").put("height", ma.getParameters().getJSONObject("sizes").getJSONObject("large").optDouble("h", 0));
+       }
 
 	String mimeGuess = ma.getParameters().optString("type", "unknown");
 	if (mimeGuess.equals("photo")) mimeGuess = "image";
