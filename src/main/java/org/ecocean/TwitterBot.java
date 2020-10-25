@@ -405,11 +405,19 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
                 }
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("TwitterBot.startCollection()");
-                myShepherd.beginDBTransaction();
-                int t = collectTweets(myShepherd);
-                myShepherd.commitDBTransaction();
-                myShepherd.closeDBTransaction();
-                if ((t != 0) || (count % 1 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
+                try {
+                  myShepherd.beginDBTransaction();
+                  int t = collectTweets(myShepherd);
+                  if ((t != 0) || (count % 1 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
+                  myShepherd.commitDBTransaction();
+                }
+                catch(Exception e) {
+                  e.printStackTrace();
+                  myShepherd.rollbackDBTransaction();
+                }
+                finally{
+                  myShepherd.closeDBTransaction();
+                }
             }
         },
         20,  //initial delay
