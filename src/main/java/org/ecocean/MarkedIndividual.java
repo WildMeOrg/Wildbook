@@ -2606,6 +2606,47 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         return version;
     }
 
+    /*
+        primary (only?) use is to create a NEW ENCOUNTER from an api POST.  however, it may reference sub-objects which may or MAY NOT
+        yet exists; as such, it is not *purely* a creative process.
+
+        note also that this is passed a shepherd (for sub-objects), but *does not* persist the new object.
+    */
+    public static MarkedIndividual fromApiJSONObject(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
+        MarkedIndividual indiv = new MarkedIndividual();
+
+        //in theory we should not have a MarkedIndividual with zero encounters... with that assumption, we fail if no encounters
+        //  are referenced or newly created
+        org.json.JSONArray jencs = jsonIn.optJSONArray("encounters");
+        if (jencs != null) {
+            for (int i = 0 ; i < jencs.length() ; i++) {
+                org.json.JSONObject jenc = jencs.optJSONObject(i);
+                if (jenc == null) throw new IOException("invalid JSONObject at offset=" + i);
+                String id = jenc.optString("id", null);  //if we have one, assume lookup; otherwise, try to create new
+                Encounter enc = null;
+                if (id == null) {
+                    enc = Encounter.fromApiJSONObject(myShepherd, jenc);
+                    //if (enc == null) throw new IOException("failed to make Encounter from " + jenc);  //or maybe try/catch this call above?
+                } else {
+                    enc = myShepherd.getEncounter(id);
+                    if (enc == null) throw new IOException("failed to load Encounter with id=" + id);
+                }
+                indiv.addEncounter(enc);
+            }
+        }
+        if (indiv.numEncounters() < 1) throw new IOException("to create a new MarkedIndividual, there must be at least one Encounter");
+
+/*
+        org.json.JSONObject jtx = jsonIn.optJSONObject("taxonomy");
+        if (jtx != null) {
+            Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", null));
+            if (tx == null) throw new IOException("invalid taxonomy: " + jtx);
+            enc.setTaxonomy(tx);
+        }
+*/
+        return indiv;
+    }
+
     public org.json.JSONObject asApiJSONObject() {
         return asApiJSONObject(null);
     }
