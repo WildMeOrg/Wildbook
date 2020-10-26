@@ -2620,4 +2620,24 @@
     <url-pattern>/DeleteImportTask</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>GetCurrentIAInfo</servlet-name>
+    <servlet-class>org.ecocean.servlet.GetCurrentIAInfo</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>GetCurrentIAInfo</servlet-name>
+    <url-pattern>/GetCurrentIAInfo</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>UserPreferences</servlet-name>
+    <servlet-class>org.ecocean.servlet.UserPreferences</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>UserPreferences</servlet-name>
+    <url-pattern>/UserPreferences</url-pattern>
+  </servlet-mapping>
+
 </web-app>
