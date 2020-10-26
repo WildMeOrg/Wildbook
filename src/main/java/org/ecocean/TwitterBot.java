@@ -34,7 +34,6 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.queue.*;
 import org.ecocean.RateLimitation;
 import org.ecocean.ia.Task;
-import org.ecocean.ia.IA;
 
 import com.google.gson.Gson;
 
@@ -106,11 +105,9 @@ public class TwitterBot {
             }
             MediaAssetFactory.save(tweetMA, myShepherd);
             entities = tas.entitiesAsMediaAssets(tweetMA);
-            System.out.println("TwitterAssetStore just saved MediaAsset "+tweetMA.getId());
             if ((entities != null) && (entities.size() > 0)) {
                 for (MediaAsset ema : entities) {
                     MediaAssetFactory.save(ema, myShepherd);
-                    System.out.println("TwitterAssetStore just saved MediaAsset "+ema.getId());
                 }
             }
         } else {
@@ -123,21 +120,29 @@ public class TwitterBot {
         }
 System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
-        if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
-
-        String taxonomyString = taxonomyStringFromTweet(tweet, context);
-        Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies");
-        // compare this to prev. logic in detectionQueueJob method below
-        IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
+        if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
 
+        String baseUrl = CommonConfiguration.getServerURL(context);
+        if (baseUrl == null) {
+            System.out.println("DANGER! could not obtain baseUrl in TwitterBot.processIncomingTweet() for tweet " + tweet.getId() + "; failing miserably!");
+            return;
+        }
 
+        //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
+        JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
+        qj.put("tweetAssetId", tweetMA.getId());
+        try {
+            org.ecocean.servlet.IAGateway.addToQueue(context, qj.toString());
+            System.out.println("INFO: TwitterBot.processIncomingTweet() added detection taskId=" + qj.optString("taskId") + " to IAQueue");
+        } catch (IOException ioe) {
+            System.out.println("ERROR: TwitterBot.processIncomingTweet() during addToQueue threw " + ioe.toString());
+        }
     }
 
     //TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
-    private static JSONObject detectionQueueJob(Status tweet, List<MediaAsset> mas, String context, String baseUrl, String taskId) {
+    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl, String taskId) {
         JSONObject qj = new JSONObject();
         qj.put("taskId", taskId);
         qj.put("__context", context);
@@ -445,6 +450,7 @@ System.out.println("processDetectionResults() -> " + mas);
 
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         //vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
+        // TODO: only send below tweet if every detection job for the tweet has returned negative. This will take some research.
         sendTweet(tweetText(context, "tweetTextIANone", vars), originTweet.getId());
         return "Failed to find any Annotations; sent tweet";
     }
@@ -544,14 +550,6 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
 
             //get Tweet comments for faster review on Encounter page
             enc.setOccurrenceRemarks(originTweet.getText());
-
-            //get the Wildbook User for this tweet and set them as owner
-            if(originTweet.getUser()!=null && originTweet.getUser().getScreenName()!=null) {
-              User wildbookUser=myShepherd.getUserByTwitterHandle(originTweet.getUser().getScreenName().replaceAll("@",""));
-              if(wildbookUser!=null && wildbookUser.getUsername()!=null) {
-                enc.setSubmitterID(wildbookUser.getUsername());
-              }
-            }
 
 
 
