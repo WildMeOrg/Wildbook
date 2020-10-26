@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Vector;
 import java.io.*;
+import org.joda.time.format.*;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
@@ -16,10 +17,13 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.Collaboration;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 
 public class OccurrenceQueryProcessor extends QueryProcessor {
 
-  private static final String BASE_FILTER = "SELECT FROM org.ecocean.Occurrence WHERE \"OCCURRENCEID\" != null && ";
+  //private static final String BASE_FILTER = "SELECT FROM org.ecocean.Occurrence WHERE \"OCCURRENCEID\" != null && ";
+  private static final String SELECT_FROM_ORG_ECOCEAN_OCCURENCE_WHERE = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && \"OCCURRENCEID\" != null";
+  //private static final String VARIABLES_STATEMENT = " VARIABLES org.ecocean.Encounter enc";
 
   public static final String[] SIMPLE_STRING_FIELDS = new String[]{"fieldStudySite", "fieldSurveyCode", "sightingPlatform","seaState","observer","comments","occurrenceID"};
 
@@ -29,43 +33,72 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
 
-    String filter = BASE_FILTER;
+    String filter = SELECT_FROM_ORG_ECOCEAN_OCCURENCE_WHERE;
     String jdoqlVariableDeclaration = "";
     String parameterDeclaration = "";
     String context = "context0";
     context = ServletUtilities.getContext(request);
 
-    Shepherd myShepherd=new Shepherd(context);
+    //Shepherd myShepherd = new Shepherd(context);
     //myShepherd.setAction("OccurrenceQueryProcessor.class");
 
     //filter for id------------------------------------------
     filter = QueryProcessor.filterWithBasicStringField(filter, "id", request, prettyPrint);
     System.out.println("           beginning filter = "+filter);
-
+    
     // filter for simple string fields
     for (String fieldName : SIMPLE_STRING_FIELDS) {
       System.out.println("   parsing occurrence query for field "+fieldName);
       System.out.println("           current filter = "+filter);
       filter = QueryProcessor.filterWithBasicStringField(filter, fieldName, request, prettyPrint);
     }
-
+    
     // filter for exact string fields
     for (String fieldName : CATEGORICAL_STRING_FIELDS) {
       System.out.println("   parsing occurrence query for field "+fieldName);
       System.out.println("           current filter = "+filter);
       filter = QueryProcessor.filterWithExactStringField(filter, fieldName, request, prettyPrint);
     }
-
+    
     // GPS box
     filter = QueryProcessor.filterWithGpsBox("decimalLatitude", "decimalLongitude", filter, request, prettyPrint);
-    filter = QueryProcessor.filterDateRanges(request, filter, prettyPrint);    
     
     //Observations
     filter = QueryProcessor.filterObservations(filter, request, prettyPrint, "Occurrence");
     int numObs = QueryProcessor.getNumberOfObservationsInQuery(request);
     for (int i = 1;i<=numObs;i++) {
-      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);      
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Observation observation" + i);
     }
+    
+    jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc");
+
+    //filter for date range
+    if(Util.stringExists(request.getParameter("eventDateFrom"))&&Util.stringExists(request.getParameter("eventDateTo"))) {
+      filter = filterDateRanges(request, filter, prettyPrint);
+    }
+    
+    
+    // filter for submitterOrganization------------------------------------------
+    if((request.getParameter("organizationId")!=null)&&(!request.getParameter("organizationId").equals("")) && Util.isUUID(request.getParameter("organizationId"))) {
+      String orgId=request.getParameter("organizationId");
+      System.out.println("orgId is" + orgId);
+      String variables_statement = " VARIABLES org.ecocean.Encounter enc; org.ecocean.User user; org.ecocean.Organization org";
+      jdoqlVariableDeclaration = addVariables(variables_statement, filter);
+      filter = "SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && user.username == enc.submitterID && org.members.contains(user) && org.id == '" + orgId + "'";
+      prettyPrint.append("Submitter organization contains \""+orgId+"\".<br />");
+    }
+
+    //end submitterOrganization filter--------------------------------------------------------------------------------------
+
+    // filter for submitterOrganization------------------------------------------
+      if((request.getParameter("submitterOrganization")!=null)&&(!request.getParameter("submitterOrganization").equals(""))) {
+        String submitterOrgString=request.getParameter("submitterOrganization").toLowerCase().replaceAll("%20", " ").trim();
+
+          filter=filterWithCondition(filter,"(enc.submitterOrganization.toLowerCase().indexOf('"+submitterOrgString+"') != -1)");
+
+        prettyPrint.append("Submitter organization contains \""+submitterOrgString+"\".<br />");
+      }
+      //end submitterOrganization filter--------------------------------------------------------------------------------------
 
     //Taxonomies
     List<String> scientificNames = getScientificNames(request);
@@ -74,7 +107,7 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
       filter = filterTaxonomies(filter, request, prettyPrint, scientificNames);
       jdoqlVariableDeclaration = addTaxonomyVars(jdoqlVariableDeclaration, numTaxonomies);
     }
-    
+
     // make sure no trailing ampersands
     filter = QueryProcessor.removeTrailingAmpersands(filter);
     filter += jdoqlVariableDeclaration;
@@ -128,6 +161,11 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     return jdoqlVariableDeclaration;
   }
 
+  private static String addVariables(String jdoqlVariableDeclaration, String orgs) {
+    QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, orgs);
+    return jdoqlVariableDeclaration;
+  }
+
   public static OccurrenceQueryResult processQuery(Shepherd myShepherd, HttpServletRequest request, String order){
 
     Vector<Occurrence> rOccurrences=new Vector<Occurrence>();
@@ -164,34 +202,39 @@ public class OccurrenceQueryProcessor extends QueryProcessor {
     System.out.println("about to return OccurrenceQueryResult with filter "+filter+" and nOccs="+rOccurrences.size());
     return (new OccurrenceQueryResult(rOccurrences,filter,prettyPrint.toString()));
   }
-  
-  public static String filterDateRanges(HttpServletRequest request, String filter) {
-    String filterAddition = "";
-    String startTimeFrom = null;
-    String startTimeTo = null;
-    filter = prepForNext(filter);
-    if (request.getParameter("startTimeFrom")!=null) {
-      startTimeFrom = request.getParameter("startTimeFrom");
-      
-      //Process date to millis... for survey too... 
-      // yuck.
-      
-      filter += " 'millis' >=  "+startTimeFrom+" ";
+
+  public static String filterDateRanges(HttpServletRequest request, String filter, StringBuffer prettyPrint) {
+    try {
+      DateTimeFormatter parser = DateTimeFormat.forPattern("MM/dd/yyyy");
+      DateTime eventDateFromDT = parser.parseDateTime(request.getParameter("eventDateFrom"));
+      DateTime eventDateToDT = parser.parseDateTime(request.getParameter("eventDateTo"));
+
+      long eventDateFromMillis = eventDateFromDT.getMillis();
+      long eventDateToMillis = eventDateToDT.getMillis();
+
+      if(request.getParameter("eventDateFrom").trim().equals(request.getParameter("eventDateTo").trim())){
+        eventDateToMillis += (24*60*60*1000-1);
+      }
+
+      prettyPrint.append("Event Date between: "+eventDateFromDT.toString(ISODateTimeFormat.date())+" and "+eventDateToDT.toString(ISODateTimeFormat.date())+"<br />");
+
+      if(filter.trim().endsWith("&&")) {
+        filter += "((enc.dateInMilliseconds >= "+eventDateFromMillis+") && (enc.dateInMilliseconds <= "+eventDateToMillis+"))";
+      } else {
+        filter += " && ((enc.dateInMilliseconds >= "+eventDateFromMillis+") && (enc.dateInMilliseconds <= "+eventDateToMillis+"))";
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-    filter = prepForNext(filter);
-    if (request.getParameter("startTimeTo")!=null) {
-      startTimeTo = request.getParameter("startTimeTo");
-      filter += " 'millis' <=  "+startTimeFrom+" ";
-    }
-    filter = prepForNext(filter);
     return filter;
   }
-  
+
  public static String prepForNext(String filter) {
    if (!QueryProcessor.endsWithAmpersands(filter)) {
      QueryProcessor.prepForCondition(filter);
    }
    return filter;
  }
-  
+
 }

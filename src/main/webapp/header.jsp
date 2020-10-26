@@ -27,7 +27,7 @@
              java.util.ArrayList,
              java.util.List,
              java.util.Properties,
-             org.apache.commons.lang.WordUtils,
+             org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration
               "
@@ -42,6 +42,7 @@ props = ShepherdProperties.getProperties("header.properties", langCode, context)
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+String notifications="";
 
 if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 
@@ -151,6 +152,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
 	                          try{
 	                        	  myShepherd.beginDBTransaction();
+	                        	  notifications=Collaboration.getNotificationsWidgetHtml(request,myShepherd) ;
 		                    	  String username = request.getUserPrincipal().toString();
 		                    	  User user = myShepherd.getUser(username);
 		                    	  String fullname=username;
@@ -335,7 +337,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                   </div>
 
                   <div id="navbar" class="navbar-collapse collapse">
-                  <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
+                  <div id="notifications"><%=notifications %></div>
                     <ul class="nav navbar-nav">
 
 
@@ -507,7 +509,11 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
-                                <% }
+                                <% 
+                                }
+                                %>
+                                <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
+                                <%
                             } //end if admin %>
                         </ul>
                       </li>

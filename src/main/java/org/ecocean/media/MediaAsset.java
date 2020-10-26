@@ -25,6 +25,7 @@ import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
 import org.ecocean.Annotation;
 import org.ecocean.AccessControl;
+import org.ecocean.Taxonomy;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
@@ -44,6 +45,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Base64;
 import java.util.HashMap;
@@ -122,7 +124,7 @@ public class MediaAsset implements java.io.Serializable {
     protected DateTime userDateTime;
 
     // Variables used in the Survey, SurveyTrack, Path, Location model
-    
+
     private String correspondingSurveyTrackID;
     private String correspondingSurveyID;
 
@@ -233,7 +235,7 @@ public class MediaAsset implements java.io.Serializable {
     public void setOccurrence(Occurrence occ) {
       this.occurrence = occ;
     }
-    
+
     public void setCorrespondingSurveyTrackID(String id) {
       if (id != null && !id.equals("")) {
         correspondingSurveyTrackID = id;
@@ -246,13 +248,13 @@ public class MediaAsset implements java.io.Serializable {
       }
       return null;
     }
-    
+
     public void setCorrespondingSurveyID(String id) {
       if (id != null && !id.equals("")) {
         correspondingSurveyID = id;
       }
     }
-    
+
     public String getCorrespondingSurveyID() {
       if (correspondingSurveyID != null) {
         return correspondingSurveyID;
@@ -618,6 +620,24 @@ public class MediaAsset implements java.io.Serializable {
         return (getAnnotations().size() > 0);
     }
 
+    public List<Taxonomy> getTaxonomies(Shepherd myShepherd) {
+        Set<Taxonomy> taxis = new HashSet<Taxonomy>();
+        for (Annotation ann: getAnnotations()) {
+            Taxonomy taxy = ann.getTaxonomy(myShepherd);
+            taxis.add(taxy);
+        }
+        return new ArrayList(taxis);
+    }
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+        for (Annotation ann: getAnnotations()) {
+            Taxonomy taxy = ann.getTaxonomy(myShepherd);
+            if (taxy!=null) return taxy;
+        }
+        return null;
+    }
+
+
+
     public List<Annotation> getAnnotationsSortedPositionally() {
         List<Annotation> ord = new ArrayList<Annotation>(this.getAnnotations());
         if (Util.collectionSize(ord) < 2) return ord;  //no sorting necessary
@@ -700,7 +720,7 @@ public class MediaAsset implements java.io.Serializable {
             if (i == 0) {
                 String localURL = store.getUsage().substring(16);
                 return new URL(localURL);
-            } 
+            }
         } catch (java.net.MalformedURLException ex) {}
         return store.webURL(this);
     }
@@ -746,9 +766,9 @@ public class MediaAsset implements java.io.Serializable {
     public URL containerURLIfPresent() {
         String containerName = CommonConfiguration.getProperty("containerName","context0");
 
-        URL localURL = store.getConfig().getURL("webroot"); 
+        URL localURL = store.getConfig().getURL("webroot");
         if (localURL == null) return null;
-        String hostname = localURL.getHost(); 
+        String hostname = localURL.getHost();
 
         if (containerName!=null&&containerName!="") {
             try {
@@ -802,7 +822,7 @@ public class MediaAsset implements java.io.Serializable {
             ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
             if ((kids != null) && (kids.size() > 0)) {
                 MediaAsset kid = kids.get(0);
-                return kid; 
+                return kid;
 
             } ///not sure how to pick if we have more than one!  "probably rare" case anyway....
         }
@@ -921,16 +941,24 @@ public class MediaAsset implements java.io.Serializable {
         org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException{
       return sanitizeJson(request,jobj, true);
     }
-    
+
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
         org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
           String context = ServletUtilities.getContext(request);
+          org.datanucleus.api.rest.orgjson.JSONObject obj=null;
           Shepherd myShepherd=new Shepherd(context);
           myShepherd.setAction("MediaAsset.santizeJSON");
           myShepherd.beginDBTransaction();
-          org.datanucleus.api.rest.orgjson.JSONObject obj= sanitizeJson(request, jobj, true, myShepherd);
-          myShepherd.rollbackDBTransaction();
-          myShepherd.closeDBTransaction();
+          try {
+            obj= sanitizeJson(request, jobj, true, myShepherd);
+          }
+          catch(Exception e) {
+            e.printStackTrace();
+          }
+          finally {
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+          }
           return obj;
     }
 
@@ -1048,7 +1076,7 @@ public class MediaAsset implements java.io.Serializable {
                 }
                 jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
             }
-            
+
             //myShepherd.rollbackDBTransaction();
             //myShepherd.closeDBTransaction();
 
@@ -1093,6 +1121,27 @@ public class MediaAsset implements java.io.Serializable {
 
     public MediaAsset updateChild(String type) throws IOException {
         return updateChild(type, null);
+    }
+
+    //this will simply recreate the resultant target file for the child (called on parent)
+    public boolean redoChild(MediaAsset child) throws IOException {
+        if (child == null) throw new IOException("null child passed");
+        if (store == null) throw new IOException("store is null on " + this);
+        String type = child.getChildType();
+        if (type == null) throw new IOException("child does not have valid type");
+        File sourceFile = (this.localPath() == null) ? null : this.localPath().toFile();
+        File targetFile = (child.localPath() == null) ? null : child.localPath().toFile();
+        if ((sourceFile == null) || (targetFile == null)) throw new IOException("could not get localPath on source or target");
+        boolean ok = store._updateChildLocalWork(this, type, null, sourceFile, targetFile, false);
+        System.out.println("INFO: redoChild() on parent=" + this + ", child=" + child + " => " + ok);
+        return ok;
+    }
+    public void redoAllChildren(Shepherd myShepherd) throws IOException {
+        ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
+        if (kids == null) return;
+        for (MediaAsset kid : kids) {
+            this.redoChild(kid);
+        }
     }
 
     public ArrayList<MediaAsset> detachChildren(Shepherd myShepherd, String type) throws IOException {
@@ -1163,6 +1212,15 @@ public class MediaAsset implements java.io.Serializable {
     }
 
 
+    //makes the assumption (rightly so?) can have at most one valid child type
+    public String getChildType() {
+        if (store == null) return null;
+        for (String ct : store.standardChildTypes()) {
+            if (this.hasLabel("_" + ct)) return ct;
+        }
+        return null;
+    }
+
     //creates the "standard" derived children for a MediaAsset (thumb, mid, etc)
     public ArrayList<MediaAsset> updateStandardChildren() {
         if (store == null) return null;
@@ -1228,20 +1286,20 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         for(int i=0;i<numKeywords;i++){
           Keyword kw=keywords.get(i);
           if (kw==null) return false;
-          if((keywordName.equals(kw.getIndexname())||keywordName.equals(kw.getDisplayName()))) return true; 
+          if((keywordName.equals(kw.getIndexname())||keywordName.equals(kw.getDisplayName()))) return true;
         }
       }
-      
+
       return false;
     }
-    
+
     public boolean hasKeyword(Keyword key){
       if(keywords!=null){
         if(keywords.contains(key)){return true;}
       }
       return false;
     }
-    
+
     public void removeKeyword(Keyword k) {
       if (keywords != null) {
         if (keywords.contains(k)) keywords.remove(k);

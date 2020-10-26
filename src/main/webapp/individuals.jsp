@@ -122,7 +122,7 @@ else{
 <jsp:include page="header.jsp" flush="true"/>
 <%
 if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
-    System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
+    //System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
     id = request.getParameter("id");
     if (id==null) id = request.getParameter("number");
 	myShepherd.beginDBTransaction();
@@ -151,26 +151,12 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 		          }
 		        }
 		      }
-		      System.out.println("");
-		      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
-		      System.out.println("This marked individual has "+numAnns+" anotations");
+		      //System.out.println("");
+		      //System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+		      //System.out.println("This marked individual has "+numAnns+" anotations");
 		
 					//boolean visible = indie.canUserAccess(request);
 		      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
-		      System.out.println("We got visible = "+visible);
-		
-		      String ipAddress = request.getHeader("X-FORWARDED-FOR");
-		      if (ipAddress == null) ipAddress = request.getRemoteAddr();
-		      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
-		      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
-		      System.out.println("    From IP: "+ipAddress);
-		      System.out.println("    "+currentTimeString);
-		      System.out.println("    Individual: "+indie);
-		      System.out.println("    is visible: "+visible);
-		      System.out.println("    request.getAuthType(): "+request.getAuthType());
-		      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
-		      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
-		      System.out.println("");
 	
 
 				if (!visible) {
@@ -370,14 +356,16 @@ input.nameKey, input.nameValue {
 
     // edit button click area!!
     $("#edit").click(function() {
-      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue, .hidden").hide();
+      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue,.nameValue .hidden,.namebutton .hidden, .deletename .hidden").hide();
       $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
     });
 
+    //btn btn-sm editFormBtn namebutton
+    //.nameValue .hidden,.namebutton .hidden, .deletename .hidden
     $("#closeEdit").click(function() {
-      $(".namebutton").css("visibility", "hidden");
+      //$(".namebutton").css("visibility", "hidden");
       $(".editForm, input.nameKey, input.nameValue, #defaultNameColon, input.namebutton, input.btn.deletename").hide();
       $(".clickDateText").hide();
       $(".noEditText, span.nameKey, span.nameValue").show();
@@ -1615,7 +1603,9 @@ if (sharky.getNames() != null) {
               var persistenceID = "";
               var relationshipID = $("#inputPersistenceID").val();
               if ((relationshipID != null) && (relationshipID != "")) {
-                  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                  //persistenceID = relationshipID;
+            	  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                  
               }
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
@@ -1972,6 +1962,8 @@ if (sharky.getNames() != null) {
               $(document).on('click', '.editRelationshipBtn', function (event) {
                 $("#setRelationshipResultDiv").hide();
                 var relationshipID = event.target.value;
+                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                
                 getRelationshipData(relationshipID);
 		$("#inputPersistenceID").val(relationshipID);
 		$("#individual1").val("<%=individualID%>");
@@ -2001,7 +1993,7 @@ if (sharky.getNames() != null) {
                 });
 
                 var relationshipID = ($(this).attr("value"));
-                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                var persistenceID = persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
                 var deletedMarkedIndividualName1 = "<%=individualID%>";
                 $("div[value='" + relationshipID + "']").hide();
                 $("#remove" + relationshipID).show();

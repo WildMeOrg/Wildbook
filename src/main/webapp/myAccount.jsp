@@ -266,9 +266,9 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	</div>
 
 <%
+	Properties collabProps = new Properties();
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
 
-		Properties collabProps = new Properties();
  		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String me = request.getUserPrincipal().getName();
@@ -280,26 +280,47 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 			String msg = "state_" + c.getState();
 			String click = "";
 
-			if (c.getUsername1().equals(me)) {
-				h += "<div class=\"collabRow mine " + cls + "\"><span class=\"who\">to <b><span class=\"collab-name\">" + c.getUsername2() + "<span></b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span></div>";
-			} else if (state!=null) {
-				if (msg.equals("state_initialized")) {
-					msg = "state_initialized_me";
-					click = " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
-					click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
-					click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
-				} else if (state.equals(Collaboration.STATE_APPROVED)) {
-					// add button to grant edit access, attached to servlet
-					click = " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
-					click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
-				} else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
-					// add button to revoke edit access, attached to servlet
-					// this button should behave just like the approve button (downgrading user from edit to view permission)
-					click = " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
-					click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
-					System.out.println("EDITABLE State msg = "+msg);
+			if (state!=null) { // should always have state
+
+				// need a revoke button from either direction
+				if ("state_rejected".equals(msg)) {
+					click += "<span class=\"collab-button\"><input type=\"button\" class=\"add-view-permissions\" value=\"" + collabProps.getProperty("buttonAddViewPerm") + "\"></span>";
+				} else if (msg.equals("state_initialized")) {
+					click += "<span class=\"collab-button\"></span>"; // empty placeholder
+				} else {
+					click += "<span class=\"collab-button\"><input type=\"button\" class=\"revoke-view-permissions\" value=\"" + collabProps.getProperty("buttonRevokeViewPerm") + "\"></span>";
 				}
-				h += "<div class=\"collabRow notmine " + cls + "\"><span class=\"who\">from <b>" + c.getUsername1() + "</b></span><span class=\"state\">" + collabProps.getProperty(msg) + "</span>" + click + "<div class=\"clear\"></div></div>";
+				
+				click += "<input type=\"hidden\" class=\"collabId\" value=\""+c.getId()+"\">";
+
+				// user number 1 should  be the initiator
+				if (c.getUsername2().equals(me)) {
+
+					System.out.println("I am the recipient of this collaboration! id="+c.getId());
+					if (msg.equals("state_initialized")) {
+
+						// the recipient is the one who approves or denies
+
+						msg = "state_initialized_me";
+						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
+						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
+
+					} else if (state.equals(Collaboration.STATE_APPROVED)) {
+						click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
+						click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
+					} else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
+						click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
+						click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
+						System.out.println("EDITABLE State msg = "+msg);
+					} else if ("state_rejected".equals(msg)) {
+						click += "<span class=\"collab-button\"></span>"; //empty placeholder
+					}
+					h += "<div class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername2() + "</b> from <b>" + c.getUsername1() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
+				
+				} else {
+					h += "<div class=\"collabRow notmine " +cls+ "\"><span class=\"who collab-info\">from <b>" + c.getUsername1() + "</b> to <b>" + c.getUsername2() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
+				}
 			}
 		}
 		if (h.equals("")) h = "<p id=\"none-line\">none</p>";
@@ -337,10 +358,6 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 			out.println("<div class=\"collab-log\"><h1>Queries by collaborators</h1><div class=\"scrollbox\">" + h + "</div></div>");
 			if (hasOther) out.println("<a href=\"myCollabLog.jsp\">See entire log of queries</a>");
 		}
-
-
-		
-	} // end if collaborationSecurityEnabled
 	
 	%>
 	<br>
@@ -374,6 +391,10 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 		
 
 	</div>
+
+	<%
+	}// end if collaborationSecurityEnabled
+	%>
 	
     </p> <!-- end content p -->
     
@@ -414,6 +435,8 @@ function socialConnect(svc) {
 	window.location.href = 'SocialConnect?type=' + svc;
 }
 
+let myName = '<%=request.getUserPrincipal().getName()%>';
+
 $('#collabTarget').autocomplete({
 	source: function( request, response ) {
 		$.ajax({
@@ -429,6 +452,7 @@ $('#collabTarget').autocomplete({
 				});
 
 				var res = $.map(data, function(item) {
+					if (item.username==myName||typeof item.username == 'undefined'||item.username==undefined||item.username=="") return;
 					let fullName = "";
 					if (item.fullName!=null&&item.fullName!="undefined") fullName = item.fullName;
 					let label = ("name: "+fullName+" user: "+item.username);
@@ -439,7 +463,6 @@ $('#collabTarget').autocomplete({
 				});
 				response(res);
 			}
-
 		});
 	}
 });
@@ -449,34 +472,39 @@ function initiateCollab() {
 	let paramStr = "";
 	if (collabTarget!=null&&""!=collabTarget) {
 
-		let alreadyCollab = [];
-		$(".collab-name").each(function() {
-			alreadyCollab.push($(this).text());
-		});
-		if (alreadyCollab.indexOf(collabTarget) > -1) {
-			$("#collabResp").text("You already have a collaboration or request with user "+collabTarget+".");
+		console.log("is collab target current user? myName="+myName+"  collabTarget="+collabTarget);
+		if (myName==collabTarget) {	
+			$("#collabResp").text("You cannot send a collaboration request to yourself.");
 		} else {
-			paramStr = "?username="+collabTarget;
-			if ($("#collabNote").val()!=null&&""!=$("#collabNote").val()) {
-				paramStr += "&message="+$("#collabNote").val();
-			}
-			$.ajax({
-				url: wildbookGlobals.baseUrl + '/Collaborate'+paramStr,
-				type: 'POST',
-				dataType: "text",
-				contentType: 'application/javascript',
-				success: function(d) {
-					console.info('Success! Got back '+JSON.stringify(d));
-					$("#collabResp").text("The collaboration request has been sent.");
-					appendCollabRequest(collabTarget);
-					clearCollabInitFields()
-				},
-				error: function(x,y,z) {
-					$("#collabResp").text("There was an error sending this collaboration request.");
-					console.log(" got an error....?? ");
-					console.warn('%o %o %o', x, y, z);
-				}
+			let alreadyCollab = [];
+			$(".collab-name").each(function() {
+				alreadyCollab.push($(this).text());
 			});
+			if (alreadyCollab.indexOf(collabTarget) > -1) {
+				$("#collabResp").text("You already have a collaboration or request with user "+collabTarget+".");
+			} else {
+				paramStr = "?username="+collabTarget;
+				if ($("#collabNote").val()!=null&&""!=$("#collabNote").val()) {
+					paramStr += "&message="+$("#collabNote").val();
+				}
+				$.ajax({
+					url: wildbookGlobals.baseUrl + '/Collaborate'+paramStr,
+					type: 'POST',
+					dataType: "text",
+					contentType: 'application/javascript',
+					success: function(d) {
+						console.info('Success! Got back '+JSON.stringify(d));
+						$("#collabResp").text("The collaboration request has been sent.");
+						appendCollabRequest(collabTarget);
+						clearCollabInitFields()
+					},
+					error: function(x,y,z) {
+						$("#collabResp").text("There was an error sending this collaboration request.");
+						console.log(" got an error....?? ");
+						console.warn('%o %o %o', x, y, z);
+					}
+				});
+			}
 		}
 	} else {
 		$("#collabResp").text("You must specify a user to initiate collaboration with.");
@@ -490,14 +518,85 @@ function clearCollabInitFields() {
 
 function appendCollabRequest(name) {
 	if ($("#none-line").length > 0) $("#none-line").val('');  
-	let newCollab = "<div class=\"collabRow mine state-initialized\"><span class=\"who\">to <b><span class=\"collab-name\">" +name+ "<span></b></span><span class=\"state\">invitation sent</span></div>";
+	let newCollab = "<div class=\"collabRow mine state-initialized\"><span class=\"who\">to <b>" +name+ "</b></span><span class=\"state collab-info\">invitation sent</span></div>";
 	$(".collab-list").append(newCollab);
 }
 
 // end collab type ahead
 
+$('.collabRow .add-view-permissions').click(function() {
+	let collabId = $(this).closest('.collabRow').find('.collabId').val();
+	changeViewPermissions(collabId, "invite");
+});
 
+$('.collabRow .revoke-view-permissions').click(function() {
+	let collabId = $(this).closest('.collabRow').find('.collabId').val();
+	changeViewPermissions(collabId, "revoke");
+});
 
+function changeViewPermissions(collabId, action) {
+
+let paramStr = "?toggle=true&collabId="+collabId+"&actionForExisting="+action;
+$.ajax({
+	url: wildbookGlobals.baseUrl + '/Collaborate'+paramStr,
+	type: 'POST',
+	dataType: "json",
+	contentType: 'application/javascript',
+	success: function(d) {
+		console.info('Success toggling view permission! Got back '+JSON.stringify(d));
+		if (d.success==true) {
+			console.log("changing collaboration "+d.collabId+" state in UI");
+			changeVisibleCollaborationState(d.newState, d.collabId, d.action);
+		}
+	},
+	error: function(x,y,z) {
+		console.log(" got an error..!");
+		console.warn('%o %o %o', x, y, z);
+	}
+});
+}
+
+function changeVisibleCollaborationState(newState, collabId, action) {
+// we just want to change the visible states to one of the two possible through this method: revoked, or re-invited
+	let collabRow = $("input[value='"+collabId+"']").first().parent('.collabRow');
+	let placeholder = '<span class="collab-button"></span>';
+	if (action=="revoke") {
+
+		collabRow.removeClass('state-approved');
+		collabRow.addClass('state-rejected');
+		console.log("trying to update UI to revoke collaboration");
+		
+		//there can be only one
+		let revokeBtn = collabRow.find('.revoke-view-permissions').first();
+		$('<span class=\"collab-button\"><input type=\"button\" class=\"add-view-permissions\" value=\"<%=collabProps.getProperty("buttonAddViewPerm")%>\"></span>').insertBefore(revokeBtn);
+		//not listening for the new one yet
+		$('.collabRow .add-view-permissions').click(function() {
+			let collabId = $(this).closest('.collabRow').find('.collabId').val();
+			changeViewPermissions(collabId, "invite");
+		});
+		revokeBtn.remove();
+		let addEditBtn = collabRow.find('.add-edit-perm-button').first();
+		$(placeholder).insertBefore(addEditBtn);
+		addEditBtn.remove();
+
+		let revokeEditBtn = collabRow.find('.revoke-edit-perm-button').first();
+		$(placeholder).insertBefore(revokeEditBtn);
+		revokeEditBtn.remove();
+		
+		collabRow.find('.state').first().text('<%=collabProps.getProperty("state_rejected")%>');
+	}
+
+	if (action=="invite") {
+		collabRow.removeClass('state-rejected');
+		collabRow.addClass('state-initialized');
+		$(placeholder).insertBefore(collabRow.find('.add-view-permissions').first());
+		collabRow.find('.add-view-permissions').first().remove();
+		collabRow.find('.state').first().text('<%=collabProps.getProperty("state_initialized")%>');
+		console.log("trying to update UI to invite again...");
+		updateNotificationsWidget();
+	}
+
+}
 
 </script>
 </div>
