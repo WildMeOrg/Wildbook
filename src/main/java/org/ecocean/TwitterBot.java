@@ -34,6 +34,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.queue.*;
 import org.ecocean.RateLimitation;
 import org.ecocean.ia.Task;
+import org.ecocean.ia.IA;
 
 import com.google.gson.Gson;
 
@@ -110,7 +111,7 @@ public class TwitterBot {
                     MediaAssetFactory.save(ema, myShepherd);
                 }
             }
-        } 
+        }
         else {
             ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " already stored, so skipping");
@@ -122,10 +123,10 @@ public class TwitterBot {
         System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
         if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
-        
+
         String taxonomyString = taxonomyStringFromTweet(tweet, context);
         Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
-        
+
         Encounter enc=new Encounter(false);
         if(taxy!=null)enc.setTaxonomy(taxy);
         myShepherd.getPM().makePersistent(enc);
@@ -134,7 +135,7 @@ public class TwitterBot {
           enc.addMediaAsset(ma);
           myShepherd.updateDBTransaction();
         }
-        
+
         System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies for taxonomy: "+taxy.getScientificName());
         // compare this to prev. logic in detectionQueueJob method below
         IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
@@ -142,6 +143,7 @@ public class TwitterBot {
         myShepherd.closeDBTransaction();
 
         //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
+        String baseUrl = IA.getBaseURL(context);
         JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
         qj.put("tweetAssetId", tweetMA.getId());
         try {
