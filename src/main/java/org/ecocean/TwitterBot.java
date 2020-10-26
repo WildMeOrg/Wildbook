@@ -110,7 +110,8 @@ public class TwitterBot {
                     MediaAssetFactory.save(ema, myShepherd);
                 }
             }
-        } else {
+        } 
+        else {
             ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " already stored, so skipping");
             myShepherd.rollbackDBTransaction();
@@ -118,17 +119,27 @@ public class TwitterBot {
             return;
             //entities = (load the children from retrieved tweetMA)
         }
-System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
+        System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
+        if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
+        
+        String taxonomyString = taxonomyStringFromTweet(tweet, context);
+        Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
+        
+        Encounter enc=new Encounter(false);
+        if(taxy!=null)enc.setTaxonomy(taxy);
+        myShepherd.getPM().makePersistent(enc);
+        myShepherd.updateDBTransaction();
+        for(MediaAsset ma:entities) {
+          enc.addMediaAsset(ma);
+          myShepherd.updateDBTransaction();
+        }
+        
+        System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies for taxonomy: "+taxy.getScientificName());
+        // compare this to prev. logic in detectionQueueJob method below
+        IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
-
-        String baseUrl = CommonConfiguration.getServerURL(context);
-        if (baseUrl == null) {
-            System.out.println("DANGER! could not obtain baseUrl in TwitterBot.processIncomingTweet() for tweet " + tweet.getId() + "; failing miserably!");
-            return;
-        }
 
         //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
         JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
@@ -400,11 +411,19 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
                 }
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("TwitterBot.startCollection()");
-                myShepherd.beginDBTransaction();
-                int t = collectTweets(myShepherd);
-                myShepherd.commitDBTransaction();
-                myShepherd.closeDBTransaction();
-                if ((t != 0) || (count % 1 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
+                try {
+                  myShepherd.beginDBTransaction();
+                  int t = collectTweets(myShepherd);
+                  if ((t != 0) || (count % 1 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
+                  myShepherd.commitDBTransaction();
+                }
+                catch(Exception e) {
+                  e.printStackTrace();
+                  myShepherd.rollbackDBTransaction();
+                }
+                finally{
+                  myShepherd.closeDBTransaction();
+                }
             }
         },
         20,  //initial delay
