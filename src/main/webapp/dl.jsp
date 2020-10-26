@@ -14,6 +14,8 @@ org.ecocean.media.*
 
 <%
 
+System.out.println("Trying dl.jsp!!!!!!!!!!!!!");
+
 /*
 this can use a little nginx magic to allow something like /imagedl/MEDIA_ASSET_ID/some_file_name.jpg to deliver
 the *master* image associated with some media asset.  nice for downloading as the original filename.
@@ -41,7 +43,13 @@ Shepherd myShepherd = new Shepherd(context);
 
 String ddir = CommonConfiguration.getDataDirectoryName(context);
 
+System.out.println("Trying ddir: "+ddir);
+
+
 String idString = request.getParameter("id");
+
+System.out.println("Got idString for dl? : "+idString);
+
 int id = 0;
 if (idString != null) id = Integer.parseInt(idString);
 if (id < 1) {
@@ -70,7 +78,8 @@ if (ma == null) {
 }
 
 //TODO now, should we do the *safe* child or the *master* ????  going to go with master for now....
-ArrayList<MediaAsset> masters = ma.findChildrenByLabel(myShepherd, "_master");
+//ArrayList<MediaAsset> masters = ma.findChildrenByLabel(myShepherd, "_master");
+ArrayList<MediaAsset> masters = new ArrayList<MediaAsset>();  masters.add(ma);
 if ((masters == null) || (masters.size() < 1)) {
     response.setContentType("text/html");
     response.setStatus(404);
@@ -90,8 +99,10 @@ if (path == null) {
     return;
 }
 
-response.setHeader("X-Accel-Redirect", "/" + ddir + "/" + path);
+//response.setHeader("X-Accel-Redirect", "/" + ddir + "/" + path);
+response.setHeader("X-Accel-Redirect", masters.get(0).webURL().toString().substring(22));
 
+     System.out.println("######################## >>>> (" + ddir + ") (" + path + ")");
 //response.setHeader("X-Accel-Redirect", masters.get(0).webURL().toString());
 //response.setContentType("text/plain");
 //out.println(masters.get(0).getParameters());
