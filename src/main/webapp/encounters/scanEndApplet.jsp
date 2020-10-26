@@ -145,92 +145,28 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     padding: 5px;
 }
 
-.tr-location-nonlocal {
-    opacity: 0.6;
-    display: none;
-}
-
-.match-side-img-wrapper {
-    width: 1000px;
-    display: inline-block;
-    position: relative;
-    height: 400px;
-    cursor: crosshair;
-}
-
-.match-side-spot {
-    width: 9px;
-    height: 9px;
-    border-radius: 5px;
-    background-color: #888;
-    position: absolute;
-    border: solid 1px black;
-    transform: scale(1.5);
-}
-.match-spot-highlight {
-    border-color: yellow;
-    transform: scale(3.0);
-}
-
 #spot-display {}
 .match-side {
     text-align: center;
     display: inline-block;
     position: relative;
     width: 49%;
-
 }
 .match-side img {
-    position: absolute;
-    left: 0;
-    top: 0;
     height: 400px;
 }
 .match-side-info {
-    height: 9.1em;
+    height: 4em;
     background-color: #DDD;
 }
 
-#match-controls {
-    height: 5em;
-}
+#match-controls {}
 #match-info {
     width: 70%;
     display: inline-block;
 }
 #match-controls input {
-    position: absolute;
-    display: none;
-}
-#match-button-next {
-    right: 0px;
-}
-#match-button-prev {
-    left: 0px;
-}
-
-.match-side-attribute-label,
-.match-side-attribute-value {
-    line-height: 1.3em;
-    display: inline-block;
-    vertical-align: middle;
-}
-.match-side-attribute-value {
-    text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 60%;
-}
-.match-side-attribute-label {
-    width: 39%;
-    font-weight: bold;
-    font-size: 0.8em;
-    text-align: right;
-    padding-right: 10px;
-}
-
-.table-row-highlight {
-    background-color: #FF8;
+    xdisplay: none;
 }
 
 </style>
@@ -390,60 +326,126 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       rightSA = "&filePrefix=extractRight";
     }
-
-java.util.Random rnd = new java.util.Random();
-%>
-<style>
-    .match-side-spot-0 { background-color: #F00; border: dotted 1px #FF4; }
-    .match-side-spot-1 { background-color: #0F0; border: dotted 1px #FF4; }
-    .match-side-spot-2 { background-color: #00F; border: dotted 1px #FF4; }
-<%
-for (int i = 3 ; i < 50 ; i++) {
-    out.println(".match-side-spot-" + i + " { background-color: rgb(" + rnd.nextInt(256) + "," + rnd.nextInt(256) + "," + rnd.nextInt(256) + "); }");
-}
-out.println("</style>");
+    //System.out.println("I made it to the Flash without exception.");
+/*
+<matchSet scanDate="Thu Jul 22 17:42:02 EDT 2010" R="8" epsilon="0.01" Sizelim="0.9" maxTriangleRotation="30" C="0.99">
+  <match points="162.0" adjustedpoints="0.34394904458598724" pointBreakdown="23 + 19 + 16 + 15 + 14 + 11 + 11 + 11 + 10 + 10 + 8 + 8 + 6 + " finalscore="55.719" logMStdDev="0.02923" evaluation="Moderate">
+    <encounter number="19520090917" date="18/5/2009, 14:00" sex="unsure" assignedToShark="Unassigned" size="7.0 meters" location="Ningaloo Marine Park (Northern)" locationID="1a1">
+      <spot x="173.0" y="106.00000000000001"/>
+      <spot x="170.0" y="315.0"/>
+      <spot x="88.0" y="190.0"/>
+      <spot x="92.0" y="244.00000000000003"/>
+      <spot x="253.0" y="91.0"/>
+      <spot x="195.0" y="194.0"/>
+      <spot x="327.0" y="227.0"/>
+      <spot x="195.0" y="256.0"/>
+      <spot x="88.0" y="145.0"/>
+      <spot x="108.0" y="327.0"/>
+      <spot x="282.0" y="297.0"/>
+      <spot x="81.0" y="101.0"/>
+      <spot x="339.0" y="170.0"/>
+    </encounter>
+    <encounter number="2272010153941"
+*/
   %>
 
-<script src="../javascript/spotCompare.js"></script>
-
 <script>
-//these (must) override spotCompare.js values
-localLocationIds = <%=new JSONArray(locationIDs)%>;
-subdirPrefix = '/<%=shepherdDataDir.getName()%>/encounters';
-rightSide = <%=side2.equals("right")%>;
-
+var subdirPrefix = '/<%=shepherdDataDir.getName()%>/encounters';
+var xmlFile = subdirPrefix + '/<%=encSubdir%>/<%=file.getName()%>';
+var xmlData = null;
+var jsonData = [];
+var rightSide = <%=side2.equals("right")%>;
+var currentCompare = 0;
 $(document).ready(function() {
-    spotInit(subdirPrefix + '/<%=encSubdir%>/<%=file.getName()%>');
+    $.ajax({
+        url: xmlFile,
+        dataType: 'xml',
+        type: 'GET',
+        complete: function(xhr) {
+            console.info(xhr);
+            if (!xhr || (xhr.status != 200) || !xhr.responseXML) {
+                var errorMsg = 'Unknown error';
+                if (xhr) errorMsg = xhr.status + ' - ' + xhr.statusText
+                $('#spot-display').html('<h1 class="error">Unable to fetch data: ' + errorMsg + '</h1>');
+            } else {
+                xmlData = $(xhr.responseXML);
+                spotDisplayInit(xmlData);
+            }
+        }
+    });
 });
-</script>
 
+function spotDisplayInit(xml) {
+    xmlData.find('match').each(function(i, el) {
+        var m = xmlAttributesToJson(el);
+        m.encounters = [];
+        for (var j = 0 ; j < el.children.length ; j++) {
+            var e = xmlAttributesToJson(el.children[j]);
+            e.imgUrl = subdirPrefix + '/' + e.number + '/extract' + (rightSide ? 'Right' : '') + e.number + '.jpg';
+            e.spots = [];
+            for (var i = 0 ; i < el.children[j].children.length ; i++) {
+                e.spots.push(xmlAttributesToJson(el.children[j].children[i]));
+            }
+            m.encounters.push(e);
+        }
+        jsonData.push(m);
+    });
+    spotDisplayPair(0);
+}
+
+function xmlAttributesToJson(el) {
+    var j = {};
+    for (var i = 0 ; i < el.attributes.length ; i++) {
+        j[el.attributes[i].name] = el.attributes[i].value;
+    }
+    return j;
+}
+
+function spotDisplayPair(mnum) {
+    if (!jsonData[mnum] || !jsonData[mnum].encounters || (jsonData[mnum].encounters.length != 2)) return;
+    for (var i = 0 ; i < 2 ; i++) {
+        spotDisplaySide(i, jsonData[mnum].encounters[i]);
+    }
+}
+
+function spotDisplaySide(side, data) {
+console.log('spotDisplaySide ==> %i %o', side, data);
+    $('#match-side-' + side + ' img').prop('src', data.imgUrl);
+}
+
+</script>
+    
 <div id="spot-display">
     <div class="match-side" id="match-side-0">
-        <div class="match-side-img-wrapper">
-            <img onLoad="return matchImgDone(this, 1)" />
-        </div>
+        <img />
         <div class="match-side-info"></div>
     </div>
     <div class="match-side" id="match-side-1">
-        <div class="match-side-img-wrapper">
-            <img onLoad="return matchImgDone(this, 0)" />
-        </div>
+        <img />
         <div class="match-side-info"></div>
     </div>
     <div id="match-controls">
         <div id="match-info"></div>
-        <div style="position: relative; display: inline-block; width: 20%; height: 3em;">
-            <input id="match-button-prev" type="button" value="previous" onClick="return spotDisplayButton(-1)" />
-            <input id="match-button-next" type="button" value="next" onClick="return spotDisplayButton(1)" />
-        </div>
+        <input id="match-button-prev" type="button" value="previous" onClick="return spotDisplayButton(-1)" />
+        <input id="match-button-next" type="button" value="next" onClick="return spotDisplayButton(1)" />
     </div>
 </div>
 
-<div>
-    <div id="mode-message"></div>
-    <input type="button" id="mode-button-local" value="Show only nearby matches" onClick="return toggleLocalMode(true);"/>
-    <input type="button" id="mode-button-all" value="Show all matches" onClick="return toggleLocalMode(false);"/>
-</div>
+  <OBJECT id=sharkflash
+          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
+          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
+    <PARAM NAME="movie"
+           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=linkURLBase%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
+    <PARAM NAME="qualidty" VALUE="high">
+    <PARAM NAME="scale" VALUE="exactfit">
+    <PARAM NAME="bgcolor" VALUE="#ddddff">
+    <EMBED
+      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=linkURLBase%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
+      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
+      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
+      TYPE="application/x-shockwave-flash"
+      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
+  </OBJECT>
 </p>
   
       <a name="resultstable"></a>
