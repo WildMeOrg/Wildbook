@@ -98,8 +98,6 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-          console.log("data coming back is:");
-          console.log(data);
           let users = data.users;
           if(users && users.length>0){
             for(let i=0; i<users.length; i++){
@@ -163,14 +161,11 @@ try{
     function populateNoDuplicates(){
       let noDuplicatesHtml = '';
       noDuplicatesHtml += '<h3>' + txt.noDuplicates + '</h3>';
-      // noDuplicatesHtml += '';
-      // noDuplicatesHtml += '';
       $('#content-container').empty();
       $('#content-container').append(noDuplicatesHtml);
     }
 
     function populatePage(){
-      // console.log("got here 2");
       $('#title').html(txt.title);
       let pageHtml = '';
       pageHtml += '<div id="candidate-users-container">';
@@ -186,40 +181,33 @@ try{
     }
 
     function applyButtonClicked(){
-      //TODO confirm button
-      console.log("applyButtonClicked clicked!");
-      let radioElements = $('[data-id^=radio_]');
-      if(radioElements){
-        let ajaxJson = {};
-        ajaxJson['mergeDesired'] = false;
-        ajaxJson['username'] = '<%= currentUser.getUsername()%>';
-        ajaxJson['userInfoArr'] = [];
-        for(let i=0; i<radioElements.length; i++){
-          let currentRadioElement = radioElements[i];
-          let isChecked = currentRadioElement.checked;
-          if(isChecked){
-            let currentVal = currentRadioElement.value;
-            console.log("currentVal is: " + currentVal);
-            console.log("currentRadioElement desired is:");
-            if(currentVal==="merge"){
-              let currentUserDetails = $(currentRadioElement).data().id.split("__");
-              // console.log(currentUserDetails);
-              ajaxJson['mergeDesired'] = true;
-              currentUserDetails.shift();
-              console.log(currentUserDetails);
-              //TODO track these users submitted and compare them to the results in the callback
-              ajaxJson['userInfoArr'].push({username: currentUserDetails[0], email: currentUserDetails[1], fullname: currentUserDetails[2]});
+      if (confirm(txt.confirm)) {
+        let radioElements = $('[data-id^=radio_]');
+        if(radioElements){
+          let ajaxJson = {};
+          ajaxJson['mergeDesired'] = false;
+          ajaxJson['username'] = '<%= currentUser.getUsername()%>';
+          ajaxJson['userInfoArr'] = [];
+          for(let i=0; i<radioElements.length; i++){
+            let currentRadioElement = radioElements[i];
+            let isChecked = currentRadioElement.checked;
+            if(isChecked){
+              let currentVal = currentRadioElement.value;
+              if(currentVal==="merge"){
+                let currentUserDetails = $(currentRadioElement).data().id.split("__");
+                ajaxJson['mergeDesired'] = true;
+                currentUserDetails.shift();
+                ajaxJson['userInfoArr'].push({username: currentUserDetails[0], email: currentUserDetails[1], fullname: currentUserDetails[2]});
+              }
             }
           }
+          doAjaxCallForMergingUser(ajaxJson);
         }
-        doAjaxCallForMergingUser(ajaxJson);
       }
     }
 
     function doAjaxCallForMergingUser(jsonRequest){
       displayProgressBar();
-      console.log("jsonRequest in doAjaxCallForMergingUser is: ");
-      console.log(jsonRequest);
       $.ajax({
       url: wildbookGlobals.baseUrl + '../UserConsolidate',
       type: 'POST',
@@ -227,22 +215,21 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-          console.log("data coming back are:");
-          console.log(data);
           let responseArray =[];
           jsonRequest.userInfoArr.forEach(userInfoObj =>{
             let keyForDataInResponseChecking = "details_"+userInfoObj.username+"__"+userInfoObj.email+"__"+userInfoObj.fullname;
-            console.log("keyForDataInResponseChecking is: " + keyForDataInResponseChecking);
             let valuesOfUserInfoObjPrettified = Object.values(userInfoObj).join(", ");
-            console.log("valuesOfUserInfoObjPrettified is: " + valuesOfUserInfoObjPrettified);
             if(data[keyForDataInResponseChecking]){
-              console.log(valuesOfUserInfoObjPrettified + ": " + data[keyForDataInResponseChecking]);
-              responseArray.push(valuesOfUserInfoObjPrettified + ": " + data[keyForDataInResponseChecking]);
+              if(data[keyForDataInResponseChecking] === "SingleMatchFoundForUserAndConsdolidated"){
+                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.singleMatchFoundForUserAndConsdolidated);
+              }
+              if(data[keyForDataInResponseChecking] === "FoundMoreThanOneMatchOrNoMatchesForUser"){
+                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.foundMoreThanOneMatchOrNoMatchesForUser);
+              }
             }
           });
           displayConfirmations(responseArray);
           if(data.success){
-            console.log("marking as done for user");
             markUserDedupeAsDoneForUser();
           }
           },
@@ -264,9 +251,11 @@ try{
     }
 
     function displayConfirmations(arrayOfResponses){
+      //TODO make the responses not hard-coded
       let confirmationHtml = '';
       confirmationHtml += '<h3>'+txt.completed+'</h3>'
       arrayOfResponses.forEach(response =>{
+
         confirmationHtml += '<p>' + response + '</p>';
       });
       $('#content-container').empty();
@@ -274,17 +263,13 @@ try{
     }
 
     function markUserDedupeAsDoneForUser(){
-      console.log("markUserDedupeAsDoneForUser entered");
       let userPreferenceUpdateConsolidationChoiceJson = {};
       userPreferenceUpdateConsolidationChoiceJson['action']='setUserConsolidationChoicesTrue';
       doAjaxCallForUserPreferenceUpdate(userPreferenceUpdateConsolidationChoiceJson);
     }
 
     function doAjaxCallForUserPreferenceUpdate(jsonRequest){
-      console.log("doAjaxCallForUserPreferenceUpdate entered");
       displayProgressBar();
-      console.log("jsonRequest in doAjaxCallForUserPreferenceUpdate is: ");
-      console.log(jsonRequest);
       $.ajax({
       url: wildbookGlobals.baseUrl + '../UserPreferences',
       type: 'POST',
@@ -292,11 +277,8 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-          console.log("data coming back from doAjaxCallForUserPreferenceUpdate are:");
-          console.log(data);
           if(data.success){
-            console.log("would be reloading page...");
-            // TODO reload page?
+            window.location.reload();
           }
           },
           error: function(x,y,z) {
@@ -306,10 +288,7 @@ try{
     }
 
     function doAjaxCallForUserPreferenceGet(jsonRequest){
-      console.log("doAjaxCallForUserPreferenceGet entered");
       displayProgressBar();
-      console.log("jsonRequest in doAjaxCallForUserPreferenceGet is: ");
-      console.log(jsonRequest);
       $.ajax({
       url: wildbookGlobals.baseUrl + '../UserPreferences',
       type: 'POST',
@@ -317,16 +296,11 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-          console.log("data coming back from doAjaxCallForUserPreferenceGet are:");
-          console.log(data);
           if(data.success){
-            console.log("success!")
             if(data.userConsolidationChoicesMade==="false"){
               console.log("userConsolidationChoicesMade is: " + data.userConsolidationChoicesMade + ' and is expected to be false');
               let userDuplicateJsonRequest = {};
               userDuplicateJsonRequest['username'] = '<%= currentUser.getUsername()%>';
-              console.log("userDuplicateJsonRequest is: ")
-              console.log(userDuplicateJsonRequest);
               if(userDuplicateJsonRequest){
                 populatePage();
                 doAjaxForGetDuplicateUsers(userDuplicateJsonRequest);
@@ -346,8 +320,8 @@ try{
     function displayAlreadyMadeChoices(){
       console.log("displayAlreadyMadeChoices entered");
       let displayAlreadyMadeHtml = '';
-      displayAlreadyMadeHtml += '<h3>TODO you already did this</h3>';
-      displayAlreadyMadeHtml += '<button onclick="changeUserConsolidationChoicesMadeToFalse()">I forgot to deduplicate something. I would like to try again</button>';
+      displayAlreadyMadeHtml += '<h3>' + txt.alreadyBeenHere + '</h3>';
+      displayAlreadyMadeHtml += '<button onclick="changeUserConsolidationChoicesMadeToFalse()">' + txt.tryAgain + '</button>';
       $('#content-container').empty();
       $('#content-container').append(displayAlreadyMadeHtml);
     }
@@ -357,7 +331,6 @@ try{
       userPreferenceUpdateConsolidationChoiceJson['action']='setUserConsolidationChoicesFalse';
       doAjaxCallForUserPreferenceUpdate(userPreferenceUpdateConsolidationChoiceJson);
     }
-
 
     function radioClicked(){
       let radioElements = $('[data-id^=radio_]');
