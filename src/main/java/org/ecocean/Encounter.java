@@ -3983,6 +3983,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         if (jtx != null) {
             Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", null));
             if (tx == null) throw new IOException("invalid taxonomy: " + jtx);
+            if (!tx.isValidSiteTaxonomy(myShepherd)) throw new IOException("non-site taxonomy " + tx);
             enc.setTaxonomy(tx);
         }
         return enc;

@@ -3,10 +3,15 @@ package org.ecocean;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.io.IOException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Util;
+import org.ecocean.configuration.Configuration;
+import org.ecocean.configuration.ConfigurationUtil;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import javax.jdo.Query;
 import java.util.Collection;
 
@@ -99,6 +104,33 @@ public class Taxonomy implements java.io.Serializable {
     //  should be *no more than* two.... :(
     public String[] getGenusSpecificEpithet() {
         return Util.stringToGenusSpecificEpithet(this.scientificName);
+    }
+
+
+    public static Set<Taxonomy> siteTaxonomies(Shepherd myShepherd) {
+        Configuration conf = ConfigurationUtil.getConfiguration(myShepherd, "site.species");
+        Set<Taxonomy> txs = new HashSet<Taxonomy>();
+        if (conf == null) return txs;
+        JSONArray carr = null;
+        try {
+            carr = conf.getValueAsJSONArray();
+        } catch (org.ecocean.DataDefinitionException ex) {
+            SystemLog.warn("Taxonomy.siteTaxonomies() on {} threw {}", conf, ex);
+        }
+        if (carr == null) return txs;
+        for (int i = 0 ; i < carr.length() ; i++) {
+            JSONObject jtx = carr.optJSONObject(i);
+            if (jtx == null) continue;
+            Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", "__FAIL__"));
+            if (tx != null) txs.add(tx);
+        }
+        return txs;
+    }
+    public static boolean isValidSiteTaxonomy(Shepherd myShepherd, Taxonomy tax) {
+        return siteTaxonomies(myShepherd).contains(tax);
+    }
+    public boolean isValidSiteTaxonomy(Shepherd myShepherd) {
+        return siteTaxonomies(myShepherd).contains(this);
     }
 
     public JSONObject asApiJSONObject() {

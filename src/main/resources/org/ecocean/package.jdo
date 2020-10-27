@@ -152,6 +152,8 @@
         <join/>
       </field>
 
+	<field name="taxonomy" persistence-modifier="persistent" element-type="org.ecocean.Taxonomy" default-fetch-group="true" />
+
       <field name="dataFiles" persistence-modifier="persistent">
         <collection element-type="java.lang.String"/>
       </field>

@@ -68,8 +68,10 @@ public class MarkedIndividual extends org.ecocean.api.ApiCustomFields implements
   public final String DEFAULT_SEX = "unknown";
   private String sex = DEFAULT_SEX;
 
+    //these are deprecated for favoring taxonomy below
   private String genus = "";
   private String specificEpithet;
+    private Taxonomy taxonomy;
 
   //unused String that allows groups of MarkedIndividuals by optional parameters
   private String seriesCode = "None";
@@ -1008,6 +1010,13 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
 
     public void setSpecificEpithet(String newEpithet) {
         specificEpithet = newEpithet;
+    }
+
+    public Taxonomy getTaxonomy() {
+        return taxonomy;
+    }
+    public void setTaxonomy(Taxonomy tax) {
+        taxonomy = tax;
     }
 
     public void setTaxonomyString(String tax) {
@@ -2636,14 +2645,14 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         }
         if (indiv.numEncounters() < 1) throw new IOException("to create a new MarkedIndividual, there must be at least one Encounter");
 
-/*
         org.json.JSONObject jtx = jsonIn.optJSONObject("taxonomy");
         if (jtx != null) {
             Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", null));
             if (tx == null) throw new IOException("invalid taxonomy: " + jtx);
-            enc.setTaxonomy(tx);
+            if (!tx.isValidSiteTaxonomy(myShepherd)) throw new IOException("non-site taxonomy " + tx);
+            indiv.setTaxonomy(tx);
         }
-*/
+
         return indiv;
     }
 
@@ -2658,6 +2667,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
         obj.put("version", this.getVersion());
 
         if (detLvl.equals(DETAIL_LEVEL_MIN)) return obj;
+
+        if (this.taxonomy != null) obj.put("taxonomy", this.taxonomy.asApiJSONObject());
 
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;

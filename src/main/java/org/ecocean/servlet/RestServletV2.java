@@ -30,6 +30,7 @@ import org.ecocean.UserValue;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
+import org.ecocean.Taxonomy;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.customfield.CustomFieldDefinition;
 import org.ecocean.User;
@@ -549,6 +550,29 @@ rtn.put("_payload", payload);
                         }
                     }
                     conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, CustomFieldDefinition.getDefinitionsAsJSONObject(myShepherd, "org.ecocean." + cname));
+                } else if (key.equals("site.species")) {
+                    JSONArray setTaxs = new JSONArray();  //what we *actually* will set it to, if all goes well
+                    JSONArray jtaxs = payload.optJSONArray(key);
+                    if (jtaxs == null) throw new IOException(key + " requires array of Taxonomy");
+                    for (int i = 0 ; i < jtaxs.length() ; i++) {
+                        JSONObject jtx = jtaxs.optJSONObject(i);
+                        if (jtx == null) throw new IOException(key + " has no valid Taxonomy object at offset " + i);
+                        String txId = jtx.optString("id", null);
+                        String txSN = jtx.optString("scientificName", null);
+                        Taxonomy tx = null;
+                        if (txId != null) tx = myShepherd.getTaxonomyById(txId);
+                        if ((tx == null) && (txSN != null)) tx = myShepherd.getTaxonomy(txSN);
+                        if (tx == null) {  //if we get here, we need to make one
+                            if (txId != null) throw new IOException(key + " passed invalid Taxonomy id=" + txId);  //but not if we have an id!!
+                            if (txSN == null) throw new IOException(key + " passed invalid Taxonomy scientificName");  //nor missing sciname
+                            tx = new Taxonomy(txSN, jtx.optString("commonName", null));
+                            myShepherd.getPM().makePersistent(tx);
+                        }
+                        setTaxs.put(tx.asApiJSONObject());
+                    }
+                    SystemLog.debug("site.species setTaxs={}", setTaxs);
+                    conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, setTaxs);  //now just set it, like any other
+
                 } else {
                     conf = ConfigurationUtil.setConfigurationValue(myShepherd, key, payload.get(key));
                 }

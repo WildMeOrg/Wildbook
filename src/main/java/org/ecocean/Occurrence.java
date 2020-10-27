@@ -1375,6 +1375,19 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             occ.setStartEndFromEncounters();  //will only set if setStartTime() and setEndTime() didnt happen
         }
 
+        org.json.JSONArray jtxs = jsonIn.optJSONArray("taxonomies");
+        if (jtxs != null) {
+            Set<Taxonomy> siteTxs = Taxonomy.siteTaxonomies(myShepherd);
+            for (int i = 0 ; i < jtxs.length() ; i++) {
+                org.json.JSONObject jtx = jtxs.optJSONObject(i);
+                if (jtx == null) throw new IOException("invalid JSONObject at offset=" + i);
+                Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", "__FAIL__"));
+                if (tx == null) throw new IOException("invalid taxonomy at " + jtx);
+                if (!siteTxs.contains(tx)) throw new IOException("non-site taxonomy " + tx);
+                occ.addTaxonomy(tx);
+            }
+        }
+
         org.json.JSONArray jscrs = jsonIn.optJSONArray("submissionContentReferences");
         if (jscrs != null) {
             for (int i = 0 ; i < jscrs.length() ; i++) {
