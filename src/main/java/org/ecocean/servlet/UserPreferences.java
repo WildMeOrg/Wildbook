@@ -46,13 +46,10 @@ public class UserPreferences extends HttpServlet {
         JSONObject res = new JSONObject();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
         String action = j.optString("action", null);
-        System.out.println("got here a");
 
         try {
             res.put("success","false");
             if (Util.stringExists(action)) {
-              System.out.println("got here b");
-              System.out.println("action is: " + action);
                 User user = myShepherd.getUser(request);
                 if ("setProjectContext".equals(action)) {
                     String defaultProjectId = j.optString("projectId", null);
@@ -63,25 +60,18 @@ public class UserPreferences extends HttpServlet {
                     }
                 }
                 if("setUserConsolidationChoicesTrue".equals(action)){
-                  System.out.println("got here c consolidate choices true");
-                  System.out.println("setting setUserConsolidationChoicesTrue....");
                   user.setPreference("userConsolidationChoicesMade", "true");
                   myShepherd.updateDBTransaction();
                   setSuccess(res, response);
-                  System.out.println("got here d consolidate choices true end");
                 }
                 if("setUserConsolidationChoicesFalse".equals(action)){
-                  System.out.println("setting setUserConsolidationChoicesFalse....");
                   user.setPreference("userConsolidationChoicesMade", "false");
                   myShepherd.updateDBTransaction();
                   setSuccess(res, response);
-                  System.out.println("got here d consolidate choices false end");
                 }
                 if("getUserConsolidationChoiceStatus".equals(action)){
-                  System.out.println("got here e. Checking on consolidation status...");
                   String consolidationStatus = user.getPreference("userConsolidationChoicesMade");
                   if(Util.stringExists(consolidationStatus)){
-                    System.out.println("consolidationStatus is: " + consolidationStatus);
                     res.put("userConsolidationChoicesMade", consolidationStatus);
                   } else{
                     res.put("userConsolidationChoicesMade", "false");

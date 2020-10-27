@@ -496,23 +496,19 @@ public class User implements Serializable {
 
     public org.json.JSONObject getPreferencesAsJSON() {
       if (preferences == null) {
-        System.out.println("preferences was null");
         return new org.json.JSONObject();
       }
       return Util.stringToJSONObject(preferences);
     }
 
     public void setPreferencesJSON(org.json.JSONObject json) {
-      System.out.println("setPreferencesJSON entered");
       preferences = json.toString();
     }
 
-    public void setPreference(String key, String value) {
+    public void setPreference(String key, String value) { //really, this is an update -MF
       org.json.JSONObject prefsJSON = getPreferencesAsJSON();
       if (Util.stringExists(key)&&Util.stringExists(value)&&prefsJSON!=null) {
-        System.out.println("adding prefJSON in...");
         prefsJSON.put(key, value);
-        System.out.println("prefsJSON is: " + prefsJSON.toString());
         setPreferencesJSON(prefsJSON);
       } else {
         System.out.println("[WARN]: Error setting preference for user: key="+key+" value="+value);
@@ -527,7 +523,6 @@ public class User implements Serializable {
           valueOb = prefsJSON.get(key);
         } catch(org.json.JSONException je){
           System.out.println("getPreference couldn't get by a provided key... returning null");
-          // je.printStackTrace();
         } finally{
           String value = null;
           if (valueOb!=null) value = (String) valueOb;
