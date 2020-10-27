@@ -25,38 +25,42 @@ Shepherd myShepherd=new Shepherd(context);
 
 
 <body>
+
+
+
+
+
 <ul>
 <%
 
+int countAnnots=0;
+int matchAgainst=0;
+
 myShepherd.beginDBTransaction();
+try{
+	
+	String filter="SELECT FROM org.ecocean.Encounter";
+	Query q=myShepherd.getPM().newQuery(filter);
+	Collection c=(Collection)q.execute();
+	ArrayList<Encounter> allEncs=new ArrayList<Encounter>(c);
 
-int numFixes=0;
+	for(Encounter enc:allEncs){
+		
+		List<Annotation> annots=enc.getAnnotations();
+		for(Annotation annot:annots){
+			countAnnots++;
+			if(annot.getIAClass()!=null){
+				if(annot.getMatchAgainst())matchAgainst++;
+				annot.setMatchAgainst(true);
+				myShepherd.updateDBTransaction();
+			}
+			
+		}
 
-<<<<<<< HEAD
-try {
+	}
+	myShepherd.rollbackDBTransaction();
+	
 
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
-
-  Iterator allSpaces=myShepherd.getAllWorkspaces();
-
-  boolean committing=true;
-
-
-  while(allSpaces.hasNext()){
-
-    Workspace wSpace=(Workspace)allSpaces.next();
-
-    %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
-
-  	numFixes++;
-
-    if (committing) {
-      myShepherd.throwAwayWorkspace(wSpace);
-  		myShepherd.commitDBTransaction();
-  		myShepherd.beginDBTransaction();
-    }
-  }
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();
@@ -67,13 +71,11 @@ finally{
 }
 
 %>
-
+<p>Num Annots: <%=countAnnots %></p>
+<p>Match Against: <%=matchAgainst %></p>
 </ul>
-<<<<<<< HEAD
-<p>Done successfully: <%=numFixes %> workspaces deleted.</p>
-=======
-<p>Done successfully: <%=numFixes %></p>
 
->>>>>>> origin/crc
+
+
 </body>
 </html>
