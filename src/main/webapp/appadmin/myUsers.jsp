@@ -87,6 +87,7 @@ try{
       let hasUserAlreadyMadeConsolidationChoicesJson = {};
       hasUserAlreadyMadeConsolidationChoicesJson['username'] = '<%= currentUser.getUsername()%>';
       hasUserAlreadyMadeConsolidationChoicesJson['action'] = 'getUserConsolidationChoiceStatus';
+      let shouldDisplayWhetherDoneBefore = true;
       doAjaxCallForUserPreferenceGet(hasUserAlreadyMadeConsolidationChoicesJson);
     });
 
@@ -185,7 +186,7 @@ try{
         let radioElements = $('[data-id^=radio_]');
         if(radioElements){
           let ajaxJson = {};
-          ajaxJson['mergeDesired'] = false;
+          ajaxJson['mergeDesired'] = true; //should be true even if userInfoArr is empty
           ajaxJson['username'] = '<%= currentUser.getUsername()%>';
           ajaxJson['userInfoArr'] = [];
           for(let i=0; i<radioElements.length; i++){
@@ -195,7 +196,7 @@ try{
               let currentVal = currentRadioElement.value;
               if(currentVal==="merge"){
                 let currentUserDetails = $(currentRadioElement).data().id.split("__");
-                ajaxJson['mergeDesired'] = true;
+                // ajaxJson['mergeDesired'] = true;
                 currentUserDetails.shift();
                 ajaxJson['userInfoArr'].push({username: currentUserDetails[0], email: currentUserDetails[1], fullname: currentUserDetails[2]});
               }
@@ -228,10 +229,11 @@ try{
               }
             }
           });
+          // if(data.success && shouldDisplayWhetherDoneBefore){
+          let skipActions = true;
+          markUserDedupeAsDoneForUser(skipActions);
           displayConfirmations(responseArray);
-          if(data.success){
-            markUserDedupeAsDoneForUser();
-          }
+          // }
           },
           error: function(x,y,z) {
               console.warn('%o %o %o', x, y, z);
@@ -251,24 +253,23 @@ try{
     }
 
     function displayConfirmations(arrayOfResponses){
-      //TODO make the responses not hard-coded
       let confirmationHtml = '';
       confirmationHtml += '<h3>'+txt.completed+'</h3>'
       arrayOfResponses.forEach(response =>{
-
         confirmationHtml += '<p>' + response + '</p>';
       });
       $('#content-container').empty();
       $('#content-container').append(confirmationHtml);
     }
 
-    function markUserDedupeAsDoneForUser(){
+    function markUserDedupeAsDoneForUser(skipActions){
       let userPreferenceUpdateConsolidationChoiceJson = {};
       userPreferenceUpdateConsolidationChoiceJson['action']='setUserConsolidationChoicesTrue';
-      doAjaxCallForUserPreferenceUpdate(userPreferenceUpdateConsolidationChoiceJson);
+      // let shouldDisplayWhetherDoneBefore = true;
+      doAjaxCallForUserPreferenceUpdate(userPreferenceUpdateConsolidationChoiceJson, skipActions);
     }
 
-    function doAjaxCallForUserPreferenceUpdate(jsonRequest){
+    function doAjaxCallForUserPreferenceUpdate(jsonRequest, skipActions){
       displayProgressBar();
       $.ajax({
       url: wildbookGlobals.baseUrl + '../UserPreferences',
@@ -277,8 +278,12 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-          if(data.success){
+          if(data.success && !skipActions){
             window.location.reload();
+          } else{
+            if (!skipActions){
+              displayAlreadyMadeChoices();
+            }
           }
           },
           error: function(x,y,z) {
@@ -298,7 +303,6 @@ try{
       success: function(data) {
           if(data.success){
             if(data.userConsolidationChoicesMade==="false"){
-              console.log("userConsolidationChoicesMade is: " + data.userConsolidationChoicesMade + ' and is expected to be false');
               let userDuplicateJsonRequest = {};
               userDuplicateJsonRequest['username'] = '<%= currentUser.getUsername()%>';
               if(userDuplicateJsonRequest){
@@ -306,7 +310,6 @@ try{
                 doAjaxForGetDuplicateUsers(userDuplicateJsonRequest);
               }
             }else{
-              console.log("userConsolidationChoicesMade is: " + data.userConsolidationChoicesMade + ' and is expected to be true');
               displayAlreadyMadeChoices();
             }
           }
@@ -318,7 +321,6 @@ try{
     }
 
     function displayAlreadyMadeChoices(){
-      console.log("displayAlreadyMadeChoices entered");
       let displayAlreadyMadeHtml = '';
       displayAlreadyMadeHtml += '<h3>' + txt.alreadyBeenHere + '</h3>';
       displayAlreadyMadeHtml += '<button onclick="changeUserConsolidationChoicesMadeToFalse()">' + txt.tryAgain + '</button>';
@@ -329,7 +331,9 @@ try{
     function changeUserConsolidationChoicesMadeToFalse(){
       let userPreferenceUpdateConsolidationChoiceJson = {};
       userPreferenceUpdateConsolidationChoiceJson['action']='setUserConsolidationChoicesFalse';
-      doAjaxCallForUserPreferenceUpdate(userPreferenceUpdateConsolidationChoiceJson);
+      // let shouldDisplayWhetherDoneBefore = false;
+      let skipActions = false;
+      doAjaxCallForUserPreferenceUpdate(userPreferenceUpdateConsolidationChoiceJson, false);
     }
 
     function radioClicked(){

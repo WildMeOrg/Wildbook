@@ -112,10 +112,10 @@ public class UserConsolidate extends HttpServlet {
         }
       }
 
-  		dupes.remove(currentDupe); //TODO comment in when you are ready
-  		myShepherd.getPM().deletePersistent(currentDupe); //TODO comment in when you are ready
-  		myShepherd.commitDBTransaction(); //TODO comment in when you are ready
-  		myShepherd.beginDBTransaction(); //TODO comment in when you are ready
+  		dupes.remove(currentDupe);
+  		myShepherd.getPM().deletePersistent(currentDupe);
+  		myShepherd.commitDBTransaction();
+  		myShepherd.beginDBTransaction();
   		i--;
   	}
   	return numDupes;
@@ -486,8 +486,8 @@ public class UserConsolidate extends HttpServlet {
         User currentUser = myShepherd.getUser(userName);
         if(currentUser!=null){
           // System.out.println("mergeDesired is: " + mergeDesired);
+          successStatus = true;
           if(userInfoArr != null && userInfoArr.length()>0){
-            successStatus = true;
             for(int i = 0; i<userInfoArr.length(); i++){
               JSONObject currentUserToBeConsolidatedInfo = userInfoArr.getJSONObject(i);
               String currentUserToBeConsolidatedUsername = currentUserToBeConsolidatedInfo.optString("username", null);
@@ -497,15 +497,15 @@ public class UserConsolidate extends HttpServlet {
               if(userToBeConsolidated!=null){
                 //only found one match
                 consolidateUser(myShepherd, currentUser, userToBeConsolidated);
-                returnJson.put("success",successStatus);
+                // returnJson.put("success",successStatus);
                 returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"SingleMatchFoundForUserAndConsdolidated");
               }else{
                 //found more than one match or none. TODO fail and report failure?
-                returnJson.put("success",successStatus);
                 returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"FoundMoreThanOneMatchOrNoMatchesForUser");
               }
             }
           }
+          returnJson.put("success",successStatus);
         }
         out.println(returnJson);
         out.close();
@@ -534,7 +534,6 @@ public class UserConsolidate extends HttpServlet {
   }
 
   private User narrowDownUsersToBeMergedToOneIfPossible(Shepherd myShepherd, String currentUserToBeConsolidatedUsername, String currentUserToBeConsolidatedEmail, String currentUserToBeConsolidatedFullName){
-    System.out.println("narrowDownUsersToBeMergedToOneIfPossible entered");
     User returnUser = null;
     List<User> currentUsersToBeConsolidated = new ArrayList<User>();
 
