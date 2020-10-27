@@ -489,27 +489,22 @@ public class UserConsolidate extends HttpServlet {
         if(currentUser!=null){
           System.out.println("mergeDesired is: " + mergeDesired);
           if(userInfoArr != null && userInfoArr.length()>0){
-            System.out.println("got here a");
             successStatus = true;
             for(int i = 0; i<userInfoArr.length(); i++){
-              System.out.println("got here b");
               JSONObject currentUserToBeConsolidatedInfo = userInfoArr.getJSONObject(i);
               String currentUserToBeConsolidatedUsername = currentUserToBeConsolidatedInfo.optString("username", null);
               String currentUserToBeConsolidatedEmail = currentUserToBeConsolidatedInfo.optString("email", null);
               String currentUserToBeConsolidatedFullName = currentUserToBeConsolidatedInfo.optString("fullname", null);
-              System.out.println("got here c");
               User userToBeConsolidated =  narrowDownUsersToBeMergedToOneIfPossible(myShepherd, currentUserToBeConsolidatedUsername, currentUserToBeConsolidatedEmail, currentUserToBeConsolidatedFullName);
-              System.out.println("got here d");
               if(userToBeConsolidated!=null){
                 //only found one match
-                System.out.println("got here e");
                 consolidateUser(myShepherd, currentUser, userToBeConsolidated);
                 returnJson.put("success",successStatus);
-                returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"Single match found for user and consdolidated");
+                returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"SingleMatchFoundForUserAndConsdolidated");
               }else{
                 //found more than one match or none. TODO fail and report failure?
                 returnJson.put("success",successStatus);
-                returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"Found more than one match or no matches for user");
+                returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"FoundMoreThanOneMatchOrNoMatchesForUser");
               }
             }
           }
