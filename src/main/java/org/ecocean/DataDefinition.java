@@ -325,6 +325,18 @@ System.out.println("type=" + type + " in handleValue() on " + this);
         if (content.has(VALUE_KEY) && content.isNull(VALUE_KEY)) return null;  //legit null
         return content.optJSONObject(VALUE_KEY);
     }
+    public JSONArray coerceJSONArray(JSONObject content) throws DataDefinitionException {
+        return coerceJSONArray(content, this.meta);
+    }
+    public static JSONArray coerceJSONArray(JSONObject content, JSONObject meta) throws DataDefinitionException {
+        if ((content == null) || (meta == null)) throw new DataDefinitionException("invalid content/meta arguments");
+        _precheckSingle(meta);
+        String type = getType(meta);
+        //we skip this cuz there are many types which are actually json internally
+        //if ((type == null) || !type.equals("json")) throw new DataDefinitionException("not type=json");
+        if (content.has(VALUE_KEY) && content.isNull(VALUE_KEY)) return null;  //legit null
+        return content.optJSONArray(VALUE_KEY);
+    }
 
     private static JSONObject _precheckSingle(JSONObject meta) throws DataDefinitionException {
         if (meta == null) return null;  //out of scope here? let the caller handle!
