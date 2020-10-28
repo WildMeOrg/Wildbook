@@ -883,7 +883,6 @@ console.info('age = %.2fmin', age / (60*1000));
 			}
 		},
 		error: function(a,b,c) {
-console.info('!!>> got %o', d);
 			console.error(a, b, c);
 			$("#initial-waiter").remove();
 			$('#task-' + tid).append('<p class="error">there was an error with task ' + tid + '</p>');
