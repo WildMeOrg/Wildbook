@@ -8,6 +8,8 @@ import java.util.Vector;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Calendar;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -55,7 +57,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
     private List<Taxonomy> taxonomies;   //use for primary species
     private String groupBehavior;  // aka overall behavior
-    private List<Instant> behaviors; //more structured than above  (unsure how this compares to above?  TODO)
+    //we are dropping support of .behaviors -- in favor of .groupBehavior ... TODO migration must copy these over
+    private List<Instant> behaviors;
 
     //date/time related
     // this can be manually set, otherwise can be derived from Encounters
@@ -72,7 +75,8 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   //additional comments added by researchers
   private String comments = "None";
   private String modified;
-  //private String locationID;
+    private String locationId;
+    private String verbatimLocation;
   private String dateTimeCreated;
 
   // ASWN fields
@@ -471,10 +475,16 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     setVersion();
   }
 
+    //just a hackaround so we can let api call this "behavior"
+    public void setBehavior(String b) {
+        groupBehavior = b;
+    }
+
     public List<Instant> getBehaviors() {
         return behaviors;
     }
     public void setBehaviors(List<Instant> bhvs) {
+        SystemLog.warn("Occurrence.behaviors has been deprecated! on {}", this);
         behaviors = bhvs;
         setVersion();
     }
@@ -508,6 +518,20 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   Arrays.sort(encs2, dc);
   return encs2;
 }
+
+
+    public void setLocationId(String loc) {
+        locationId = loc;
+    }
+    public String getLocationId() {
+        return locationId;
+    }
+    public void setVerbatimLocation(String vl) {
+        verbatimLocation = vl;
+    }
+    public String getVerbatimLocation() {
+        return verbatimLocation;
+    }
 
   /**
    * Returns any additional, general comments recorded for this Occurrence as a whole.
@@ -740,6 +764,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
    *
    * @return
    */
+/*  deprecated cuz now we store this explicitly on Occurrence
   public String getLocationID(){
     int size=encounters.size();
     for(int i=0;i<size;i++){
@@ -748,6 +773,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     return null;
   }
+*/
   
   public void setCorrespondingSurveyTrackID(String id) {
     if (id != null && !id.equals("")) {
@@ -1354,7 +1380,13 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         occ.setEndTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("endTime", null)));
 
         occ.trySetting(myShepherd, jsonIn.optJSONObject("customFields"));
+
         occ.setFromJSONObject("bearing", Double.class, jsonIn);
+        occ.setFromJSONObject("decimalLatitude", Double.class, jsonIn);
+        occ.setFromJSONObject("decimalLongitude", Double.class, jsonIn);
+        occ.setFromJSONObject("behavior", String.class, jsonIn);
+        occ.setFromJSONObject("locationId", String.class, jsonIn);  //TODO validate value?
+        occ.setFromJSONObject("verbatimLocation", String.class, jsonIn);
 
         org.json.JSONArray jencs = jsonIn.optJSONArray("encounters");
         if (jencs != null) {
@@ -1397,6 +1429,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             }
         }
 
+        //auto-set
         occ.setDWCDateLastModified();
         occ.setDateTimeCreated();
         occ.setVersion();
@@ -1427,6 +1460,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
     public org.json.JSONObject asApiJSONObject(org.json.JSONObject arg) {
         String detLvl = getDetailLevel(arg);
+        boolean isMaxDetail = DETAIL_LEVEL_MAX.equals(detLvl);
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
@@ -1434,6 +1468,11 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         if (endTime != null) obj.put("endTime", endTime.toIso8601());
 
         if (!Util.collectionIsEmptyOrNull(this.encounters)) {
+            org.json.JSONObject encCounts = new org.json.JSONObject();
+            encCounts.put("sex", new org.json.JSONObject());
+            encCounts.put("behavior", new org.json.JSONObject());
+            encCounts.put("lifeStage", new org.json.JSONObject());
+            encCounts.put("individuals", 0);
             org.json.JSONArray jarr = new org.json.JSONArray();
             for (Encounter enc : this.encounters) {
                 if (detLvl.equals(DETAIL_LEVEL_MIN)) {
@@ -1444,8 +1483,18 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 } else {
                     jarr.put(enc.asApiJSONObject(arg));
                 }
+                if (isMaxDetail) {
+                    String v = enc.getSex();
+                    if (v != null) encCounts.getJSONObject("sex").put(v, encCounts.getJSONObject("sex").optInt(v, 0) + 1); 
+                    v = enc.getLifeStage();
+                    if (v != null) encCounts.getJSONObject("lifeStage").put(v, encCounts.getJSONObject("lifeStage").optInt(v, 0) + 1); 
+                    v = enc.getBehavior();
+                    if (v != null) encCounts.getJSONObject("behavior").put(v, encCounts.getJSONObject("behavior").optInt(v, 0) + 1); 
+                    if (enc.hasMarkedIndividual()) encCounts.put("individuals", encCounts.getInt("individuals") + 1);
+                }
             }
             obj.put("encounters", jarr);
+            if (isMaxDetail) obj.put("encounterCounts", encCounts);
         }
 
         if (detLvl.equals(DETAIL_LEVEL_MIN)) return obj;  //our work is done here
@@ -1458,11 +1507,14 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             obj.put("submissionContentReferences", jarr);
         }
 
+        obj.put("behavior", getGroupBehavior());
         obj.put("distance", getDistance());
         obj.put("bearing", getBearing());
         obj.put("decimalLatitude", getDecimalLatitude());
         obj.put("decimalLongitude", getDecimalLongitude());
         obj.put("customFields", this.getCustomFieldJSONObject());
+        obj.put("locationId", getLocationId());
+        obj.put("verbatimLocation", getVerbatimLocation());
 
         if (!Util.collectionIsEmptyOrNull(taxonomies)) {
             org.json.JSONArray txs = new org.json.JSONArray();
