@@ -45,7 +45,14 @@ context=ServletUtilities.getContext(request);
     }
   }
 
-
+  String useProjectContext = "false";
+  if (Util.stringExists(request.getUserPrincipal().getName())) {
+	  User user = myShepherd.getUser(request.getUserPrincipal().getName());
+	  String projectUUID = user.getProjectIdForPreferredContext();
+	  if (Util.stringExists(projectUUID)) {
+		  useProjectContext = "true";
+	  }
+  }
 
 
 
@@ -523,7 +530,9 @@ function tableUp() {
 ////////
 var encs;
 $(document).ready( function() {
+	
 	wildbook.init(function() {
+		let useProjectContext = "<%=useProjectContext%>";
 		encs = new wildbook.Collection.Encounters();
 		encs.fetch({
 /*
@@ -534,6 +543,7 @@ $(document).ready( function() {
 				return xhr;
 			},
 */
+			useProjectContext: useProjectContext,
 			fetch: "searchResults",
 			noDecorate: true,
 			jdoql: jdoql,
