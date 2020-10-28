@@ -23,6 +23,11 @@
 					"defaultLatitude": 0.2, "defaultLongitude": 37.41
 				},
 				{
+					"name": "Mugie",
+					"id": "Mugie",
+					"defaultLatitude": 0.2, "defaultLongitude": 37.41
+				},
+				{
 					"name": "Ol Pejeta",
 					"id": "Ol Pejeta",
 					"defaultLatitude": 0.0, "defaultLongitude": 37
