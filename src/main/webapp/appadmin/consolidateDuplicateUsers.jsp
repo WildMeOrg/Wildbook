@@ -42,6 +42,7 @@ int numFixes=0;
     		if(!weKnowAbout.contains(user)){
     			if(user.getHashedEmailAddress()!=null){
     				List<User> dupes = UserConsolidate.getUsersByHashedEmailAddress(myShepherd.getPM(),user.getHashedEmailAddress());
+            //TODO there are likely users with no hashed emails
     				if(dupes.size()>1){
     					%>
     					<li>

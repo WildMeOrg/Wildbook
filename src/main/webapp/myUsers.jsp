@@ -92,6 +92,8 @@ try{
     });
 
     function doAjaxForGetDuplicateUsers(userDuplicateJsonRequest){
+      console.log("userDuplicateJsonRequest is: ");
+      console.log(userDuplicateJsonRequest);
       $.ajax({
       url: wildbookGlobals.baseUrl + '../UserConsolidate',
       type: 'POST',
@@ -148,10 +150,10 @@ try{
       candidateHtml += '</div>';
       candidateHtml +=  '<div class="radio-container">';
       candidateHtml +=  '<div class="radio-button-pair-container">';
-      candidateHtml +=  '<input type="radio" id="merge-radio" name="radio__' + username+ '__'+fullname +'" value="merge" data-id="radio__' + username+ '__' +email+'__'+fullname +'" onclick="radioClicked()">';
+      candidateHtml +=  '<input type="radio" id="merge-radio" name="radio__' + username+'__'+email+ '__'+fullname +'" value="merge" data-id="radio__' + username+ '__' +email+'__'+fullname +'" onclick="radioClicked()">';
       candidateHtml +=  '<label for="merge-radio">' + txt.merge + '</label>';
       candidateHtml +=  '<br>';
-      candidateHtml +=  '<input type="radio" id="noClaim-radio" name="radio__' + username+ '__'+fullname +'" value="noClaim" data-id="radio__' + username+ '__' +email+'__'+fullname +'" onclick="radioClicked()">';
+      candidateHtml +=  '<input type="radio" id="noClaim-radio" name="radio__' + username+ '__'+email+'__'+fullname +'" value="noClaim" data-id="radio__' + username+ '__' +email+'__'+fullname +'" onclick="radioClicked()">';
       candidateHtml +=  '<label for="noClaim-radio">' + txt.doNotClaim + '</label>';
       candidateHtml +=  '</div>';
       candidateHtml +=  '</div>';
