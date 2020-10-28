@@ -522,13 +522,10 @@ public class User implements Serializable {
         try{
           valueOb = prefsJSON.get(key);
         } catch(org.json.JSONException je){
-          System.out.println("getPreference couldn't get by a provided key... returning null");
         } finally{
           String value = null;
           if (valueOb!=null) value = (String) valueOb;
-          if (Util.stringExists(value)) {
-            return value;
-          }
+          return value; //return it even if null
         }
       }
       return null;

@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
@@ -28,7 +28,7 @@ int numFixes=0;
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 //TODO which of the above not needed?
 %>
-<jsp:include page="../header.jsp" flush="true"/>
+<jsp:include page="/header.jsp" flush="true"/>
 <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css"/>
 <style type="text/css">
   .sleeker-button{
@@ -87,13 +87,10 @@ try{
       let hasUserAlreadyMadeConsolidationChoicesJson = {};
       hasUserAlreadyMadeConsolidationChoicesJson['username'] = '<%= currentUser.getUsername()%>';
       hasUserAlreadyMadeConsolidationChoicesJson['action'] = 'getUserConsolidationChoiceStatus';
-      let shouldDisplayWhetherDoneBefore = true;
       doAjaxCallForUserPreferenceGet(hasUserAlreadyMadeConsolidationChoicesJson);
     });
 
     function doAjaxForGetDuplicateUsers(userDuplicateJsonRequest){
-      console.log("userDuplicateJsonRequest is: ");
-      console.log(userDuplicateJsonRequest);
       $.ajax({
       url: wildbookGlobals.baseUrl + '../UserConsolidate',
       type: 'POST',
@@ -383,4 +380,4 @@ finally{
   myShepherd.closeDBTransaction();
 }
 %>
-<jsp:include page="../footer.jsp" flush="true"/>
+<jsp:include page="/footer.jsp" flush="true"/>
