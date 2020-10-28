@@ -1602,7 +1602,9 @@ if (sharky.getNames() != null) {
               var persistenceID = "";
               var relationshipID = $("#inputPersistenceID").val();
               if ((relationshipID != null) && (relationshipID != "")) {
-                  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                  //persistenceID = relationshipID;
+            	  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                  
               }
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
@@ -1959,6 +1961,8 @@ if (sharky.getNames() != null) {
               $(document).on('click', '.editRelationshipBtn', function (event) {
                 $("#setRelationshipResultDiv").hide();
                 var relationshipID = event.target.value;
+                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                
                 getRelationshipData(relationshipID);
 		$("#inputPersistenceID").val(relationshipID);
 		$("#individual1").val("<%=individualID%>");
@@ -1988,7 +1992,7 @@ if (sharky.getNames() != null) {
                 });
 
                 var relationshipID = ($(this).attr("value"));
-                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                var persistenceID = persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
                 var deletedMarkedIndividualName1 = "<%=individualID%>";
                 $("div[value='" + relationshipID + "']").hide();
                 $("#remove" + relationshipID).show();

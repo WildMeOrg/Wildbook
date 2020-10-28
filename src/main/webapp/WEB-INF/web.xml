@@ -427,6 +427,8 @@
 
 				/DeleteImportTask = authc, roles[researcher]
 
+				/MergeIndividual = authc, roles[researcher]
+				/ScheduledIndividualMergeUpdate = authc, roles[researcher]
             </param-value>
         </init-param>
     </filter>
