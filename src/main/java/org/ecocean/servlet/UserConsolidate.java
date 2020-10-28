@@ -384,10 +384,13 @@ public class UserConsolidate extends HttpServlet {
   public static List<User> getUsersByFullname(PersistenceManager persistenceManager,String fullname){
     List<User> users=new ArrayList<User>();
     String filter="SELECT FROM org.ecocean.User WHERE fullName == \""+fullname+"\"";
+    System.out.println("filter is: " + filter);
     Query query=persistenceManager.newQuery(filter);
     Collection c = (Collection) (query.execute());
     if(c!=null){
       users=new ArrayList<User>(c);
+      System.out.println("users are: " + users.toString());
+      query.closeAll();
     }
   	return users;
   }
@@ -395,12 +398,39 @@ public class UserConsolidate extends HttpServlet {
   public static List<User> getUsersByHashedEmailAddress(PersistenceManager persistenceManager,String hashedEmail){
     List<User> users=new ArrayList<User>();
     String filter = "SELECT FROM org.ecocean.User WHERE hashedEmailAddress == \""+hashedEmail+"\"";
+    System.out.println("filter in getUsersByHashedEmailAddress is: " + filter);
     Query query = persistenceManager.newQuery(filter);
     Collection c = (Collection) (query.execute());
     if(c!=null){
+      System.out.println("got here a collection not null in getUsersByHashedEmailAddress");
+      System.out.println("collection is: " + c.toString());
       users=new ArrayList<User>(c);
+      System.out.println("users is: " + users.toString());
+      query.closeAll();
     }
   	return users;
+  }
+
+  public static List<User> getUsersWithEmailAddress(PersistenceManager persistenceManager,String emailAddress){
+    if(emailAddress != null){
+      // emailAddress = emailAddress.toLowerCase().trim();
+      List<User> users=new ArrayList<User>();
+      String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \""+emailAddress+"\"";
+      Query query = persistenceManager.newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      if(c!=null){
+        users=new ArrayList<User>(c);
+      }
+      if(users.size()>0){
+        return users;
+      } else{
+        System.out.println("ack there were no users");
+        return null;
+      }
+    }else{
+      System.out.println("current email address was invalid. Skipping...");
+      return null;
+    }
   }
 
   public static User getFirstUserWithEmailAddress(PersistenceManager persistenceManager,String emailAddress){
@@ -464,6 +494,8 @@ public class UserConsolidate extends HttpServlet {
         similarUsers.remove(currentUser);
         if(similarUsers != null){
           if(similarUsers.size()>0){
+            System.out.println("similarUsers are:");
+            System.out.println(similarUsers.toString());
             for(int j=0; j<similarUsers.size(); j++){
               JSONObject currentUserJson = new JSONObject();
               currentUserJson.put("uuid",similarUsers.get(j).getUUID());
@@ -493,7 +525,7 @@ public class UserConsolidate extends HttpServlet {
               String currentUserToBeConsolidatedUsername = currentUserToBeConsolidatedInfo.optString("username", null);
               String currentUserToBeConsolidatedEmail = currentUserToBeConsolidatedInfo.optString("email", null);
               String currentUserToBeConsolidatedFullName = currentUserToBeConsolidatedInfo.optString("fullname", null);
-              User userToBeConsolidated =  narrowDownUsersToBeMergedToOneIfPossible(myShepherd, currentUserToBeConsolidatedUsername, currentUserToBeConsolidatedEmail, currentUserToBeConsolidatedFullName);
+              User userToBeConsolidated =  narrowDownUsersToBeMergedToOneIfPossible(currentUser, myShepherd, currentUserToBeConsolidatedUsername, currentUserToBeConsolidatedEmail, currentUserToBeConsolidatedFullName);
               if(userToBeConsolidated!=null){
                 //only found one match
                 consolidateUser(myShepherd, currentUser, userToBeConsolidated);
@@ -501,6 +533,7 @@ public class UserConsolidate extends HttpServlet {
                 returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"SingleMatchFoundForUserAndConsdolidated");
               }else{
                 //found more than one match or none. TODO fail and report failure?
+
                 returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"FoundMoreThanOneMatchOrNoMatchesForUser");
               }
             }
@@ -533,7 +566,11 @@ public class UserConsolidate extends HttpServlet {
     }
   }
 
-  private User narrowDownUsersToBeMergedToOneIfPossible(Shepherd myShepherd, String currentUserToBeConsolidatedUsername, String currentUserToBeConsolidatedEmail, String currentUserToBeConsolidatedFullName){
+  private User narrowDownUsersToBeMergedToOneIfPossible(User currentUser, Shepherd myShepherd, String currentUserToBeConsolidatedUsername, String currentUserToBeConsolidatedEmail, String currentUserToBeConsolidatedFullName){
+    System.out.println("narrowDownUsersToBeMergedToOneIfPossible entered");
+    System.out.println("currentUserToBeConsolidatedUsername is: " + currentUserToBeConsolidatedUsername);
+    System.out.println("currentUserToBeConsolidatedEmail is: " + currentUserToBeConsolidatedEmail);
+    System.out.println("currentUserToBeConsolidatedFullName is: "+ currentUserToBeConsolidatedFullName);
     User returnUser = null;
     List<User> currentUsersToBeConsolidated = new ArrayList<User>();
 
@@ -542,6 +579,7 @@ public class UserConsolidate extends HttpServlet {
       System.out.println("currentUserToBeConsolidatedUsername in narrowDownUsersToBeMergedToOneIfPossible exists and is: " + currentUserToBeConsolidatedUsername);
       //fetch user if username exists
       currentUsersToBeConsolidated = getUsersByUsername(myShepherd.getPM(), currentUserToBeConsolidatedUsername);
+      currentUsersToBeConsolidated.remove(currentUser);
       System.out.println("got here 1");
       if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
         //there's only one result. Go ahead and return that one
@@ -553,6 +591,12 @@ public class UserConsolidate extends HttpServlet {
         //more than one result. Let's see if we can narrow it down to one individual using email instead
         if(Util.stringExists(currentUserToBeConsolidatedEmail)  && !currentUserToBeConsolidatedEmail.equals("undefined")){
           currentUsersToBeConsolidated = getUsersByHashedEmailAddress(myShepherd.getPM(), User.generateEmailHash(currentUserToBeConsolidatedEmail));
+          currentUsersToBeConsolidated.remove(currentUser);
+          //try getting it by email address if empty
+          if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()<1){
+            currentUsersToBeConsolidated = getUsersWithEmailAddress(myShepherd.getPM(), currentUserToBeConsolidatedEmail);
+            currentUsersToBeConsolidated.remove(currentUser);
+          }
         }
         if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
           //will still be >1 if currentUserToBeConsolidatedEmail is null or undefined
@@ -565,6 +609,7 @@ public class UserConsolidate extends HttpServlet {
           //more than one result that way. Let's see if we can narrow it down to one individual using fullname instead
           if(Util.stringExists(currentUserToBeConsolidatedFullName)  && !currentUserToBeConsolidatedFullName.equals("undefined")){
             currentUsersToBeConsolidated = getUsersByFullname(myShepherd.getPM(), currentUserToBeConsolidatedFullName);
+            currentUsersToBeConsolidated.remove(currentUser);
           }
           if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
             //will still be >1 if currentUserToBeConsolidatedFullName is null or undefined
@@ -578,16 +623,30 @@ public class UserConsolidate extends HttpServlet {
 
     //check email if username missing or undefined
     if(Util.stringExists(currentUserToBeConsolidatedEmail)  && !currentUserToBeConsolidatedEmail.equals("undefined")){
+      System.out.println("got here 6.5");
+      System.out.println("hashed email is:");
+      System.out.println("currentUserToBeConsolidatedEmail is: "+ currentUserToBeConsolidatedEmail);
+      System.out.println(User.generateEmailHash(currentUserToBeConsolidatedEmail));
       currentUsersToBeConsolidated = getUsersByHashedEmailAddress(myShepherd.getPM(), User.generateEmailHash(currentUserToBeConsolidatedEmail));
+      currentUsersToBeConsolidated.remove(currentUser);
+      //try getting it by email address if empty
+      if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()<1){
+        currentUsersToBeConsolidated = getUsersWithEmailAddress(myShepherd.getPM(), currentUserToBeConsolidatedEmail);
+        currentUsersToBeConsolidated.remove(currentUser);
+      }
+      System.out.println("currentUsersToBeConsolidated is:");
+      System.out.println(currentUsersToBeConsolidated.toString());
       if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
         //there's only one result. Go ahead and return that one
         System.out.println("got here 7");
         returnUser = currentUsersToBeConsolidated.get(0);
       }
       if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>1){
+        System.out.println("got here 7.5");
         //more than one result that way. Let's see if we can narrow it down to one individual using fullname instead
         if(Util.stringExists(currentUserToBeConsolidatedFullName)  && !currentUserToBeConsolidatedFullName.equals("undefined")){
             currentUsersToBeConsolidated = getUsersByFullname(myShepherd.getPM(), currentUserToBeConsolidatedFullName);
+            currentUsersToBeConsolidated.remove(currentUser);
           }
           if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
             //will still be >1 if currentUserToBeConsolidatedFullName is null or undefined
@@ -599,7 +658,10 @@ public class UserConsolidate extends HttpServlet {
     } //end check email if username missing or undefined
     //check fullname if username and email missing or undefined
     if(Util.stringExists(currentUserToBeConsolidatedFullName)  && !currentUserToBeConsolidatedFullName.equals("undefined")){
+      System.out.println("got here 8.5");
         currentUsersToBeConsolidated = getUsersByFullname(myShepherd.getPM(), currentUserToBeConsolidatedFullName);
+        currentUsersToBeConsolidated.remove(currentUser);
+        System.out.println("currentUsersToBeConsolidated is: " + currentUsersToBeConsolidated.toString());
         if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
           //there's only one result. Go ahead and return that one
           System.out.println("got here 9");
