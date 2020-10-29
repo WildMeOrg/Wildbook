@@ -526,10 +526,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     public String getLocationId() {
         return locationId;
     }
-    public void setVerbatimLocation(String vl) {
+    public void setVerbatimLocality(String vl) {
         verbatimLocality = vl;
     }
-    public String getVerbatimLocation() {
+    public String getVerbatimLocality() {
         return verbatimLocality;
     }
 
@@ -1501,7 +1501,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         obj.put("decimalLongitude", getDecimalLongitude());
         obj.put("customFields", this.getCustomFieldJSONObject());
         obj.put("locationId", getLocationId());
-        obj.put("verbatimLocality", getVerbatimLocation());
+        obj.put("verbatimLocality", getVerbatimLocality());
 
         if (!Util.collectionIsEmptyOrNull(taxonomies)) {
             org.json.JSONArray txs = new org.json.JSONArray();
