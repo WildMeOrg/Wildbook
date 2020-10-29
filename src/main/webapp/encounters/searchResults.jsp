@@ -174,11 +174,11 @@ var colDefn = [
 		label: '<%=encprops.getProperty("sightingID")%>',
 		value: _occurrenceID,
 	},
-  {
-		key: 'projectId',
-		label: '<%=encprops.getProperty("projectId")%>',
-		value: _projectId,
-	},
+//   {
+// 		key: 'projectId',
+// 		label: '<%=encprops.getProperty("projectId")%>',
+// 		value: _projectId,
+// 	},
   {
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
@@ -549,7 +549,8 @@ $(document).ready( function() {
 			jdoql: jdoql,
 			success: function() {
         searchResults = encs.models;
-        populateWithProjectIds();
+		//populateWithProjectIds();
+		doTable();
       },
 		});
 	});
@@ -626,96 +627,96 @@ function _occurrenceID(o) {
 	return o.get('occurrenceID');
 }
 
-function _projectId(o){
-  if (!o.attributes.individual.incrementalIds) return '';
-  console.log(o.attributes.individual.incrementalIds.join(', '));
-	return o.attributes.individual.incrementalIds.join(', ');
-}
+// function _projectId(o){
+//   if (!o.attributes.individual.incrementalIds) return '';
+//   console.log(o.attributes.individual.incrementalIds.join(', '));
+// 	return o.attributes.individual.incrementalIds.join(', ');
+// }
 
-function populateWithProjectIds(){
-  let projIdCount = parseInt('<%= projectIdCount %>');
-  if(projIdCount<1){
-    doTable();
-  }else{
-    if(projIdCount){
-      maxLoops = searchResults.length * projIdCount;
-    }
-    for (let i = 0 ; i < searchResults.length ; i++) {
-      let currentSearchResult = searchResults[i];
-      let encId = currentSearchResult.id;
-      let indId = currentSearchResult.attributes.individual.individualID;
-      let ajaxJson = {}
-      let projIdPrefix = '';
-        <%
-        if(projectIds!= null && projectIds.length>0){
-          for(int j=0; j<projectIds.length; j++){
-            Project currentProj = myShepherd.getProjectByUuid(projectIds[j]);
-            String currentProjIdPrefix = currentProj.getProjectIdPrefix();
-            %>
-            projIdPrefix = '<%= currentProjIdPrefix%>';
-            // console.log("got here c and projIdPrefix is: " + projIdPrefix);
-            ajaxJson['projectIdPrefix'] = projIdPrefix;
-            ajaxJson['individualIds'] = [];
-            if(indId){
-              ajaxJson['individualIds'].push({indId: indId});
-            }
-            doAjaxCall(encId, ajaxJson, maxLoops, i);
-            <%
-          } //end for of project IDs
-        } // end if for projectIds
-        %>
-      }
-  }
-}
+// function populateWithProjectIds(){
+//   let projIdCount = parseInt('<%= projectIdCount %>');
+//   if(projIdCount<1){
+//     doTable();
+//   }else{
+//     if(projIdCount){
+//       maxLoops = searchResults.length * projIdCount;
+//     }
+//     for (let i = 0 ; i < searchResults.length ; i++) {
+//       let currentSearchResult = searchResults[i];
+//       let encId = currentSearchResult.id;
+//       let indId = currentSearchResult.attributes.individual.individualID;
+//       let ajaxJson = {}
+//       let projIdPrefix = '';
+//         <%
+//         if(projectIds!= null && projectIds.length>0){
+//           for(int j=0; j<projectIds.length; j++){
+//             Project currentProj = myShepherd.getProjectByUuid(projectIds[j]);
+//             String currentProjIdPrefix = currentProj.getProjectIdPrefix();
+//             %>
+//             projIdPrefix = 'needs replacement with reference to current prefix';
+//             // console.log("got here c and projIdPrefix is: " + projIdPrefix);
+//             ajaxJson['projectIdPrefix'] = projIdPrefix;
+//             ajaxJson['individualIds'] = [];
+//             if(indId){
+//               ajaxJson['individualIds'].push({indId: indId});
+//             }
+//             doAjaxCall(encId, ajaxJson, maxLoops, i);
+//             <%
+//           } //end for of project IDs
+//         } // end if for projectIds
+//         %>
+//       }
+//   }
+// }
 
-function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
-  $.ajax({
-      url: wildbookGlobals.baseUrl + '../ProjectGet',
-      type: 'POST',
-      data: JSON.stringify(requestJson),
-      dataType: 'json',
-      contentType: 'application/json',
-      success: function(data) {
-        if(data){
-          if(data.incrementalIdArr && data.incrementalIdArr.length>0){
-            for(let i=0; i< data.incrementalIdArr.length; i++){
-              projIdCallCounter ++;
-              let currentIncrementalId = data.incrementalIdArr[i].projectIncrementalId;
-              if(currentIncrementalId){
-                let counter = 0;
-                uniqueTracker.forEach(entry => {
-                  if (entry.encId === encId && entry.incrementalId === currentIncrementalId){
-                    counter ++;
-                  }
-                });
-                if(counter <1){ //this encounter ID + incremental ID combo hasn't been seen before
-                  if(searchResults[indexOfSearchResults].attributes.individual.incrementalIds){
-                    searchResults[indexOfSearchResults].attributes.individual.incrementalIds.push(currentIncrementalId);
-                  }else{
-                    searchResults[indexOfSearchResults].attributes.individual.incrementalIds = [currentIncrementalId];
-                  }
-                }
-              }
-            }
-            if(maxLoops == projIdCallCounter){
-              doTable();
-            }
-          }else{
-            //no incrementalIdArr structure in data returned, but the counter should increment anyway
-            projIdCallCounter ++;
+// function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
+//   $.ajax({
+//       url: wildbookGlobals.baseUrl + '../ProjectGet',
+//       type: 'POST',
+//       data: JSON.stringify(requestJson),
+//       dataType: 'json',
+//       contentType: 'application/json',
+//       success: function(data) {
+//         if(data){
+//           if(data.incrementalIdArr && data.incrementalIdArr.length>0){
+//             for(let i=0; i< data.incrementalIdArr.length; i++){
+//               projIdCallCounter ++;
+//               let currentIncrementalId = data.incrementalIdArr[i].projectIncrementalId;
+//               if(currentIncrementalId){
+//                 let counter = 0;
+//                 uniqueTracker.forEach(entry => {
+//                   if (entry.encId === encId && entry.incrementalId === currentIncrementalId){
+//                     counter ++;
+//                   }
+//                 });
+//                 if(counter <1){ //this encounter ID + incremental ID combo hasn't been seen before
+//                   if(searchResults[indexOfSearchResults].attributes.individual.incrementalIds){
+//                     searchResults[indexOfSearchResults].attributes.individual.incrementalIds.push(currentIncrementalId);
+//                   }else{
+//                     searchResults[indexOfSearchResults].attributes.individual.incrementalIds = [currentIncrementalId];
+//                   }
+//                 }
+//               }
+//             }
+//             if(maxLoops == projIdCallCounter){
+//               doTable();
+//             }
+//           }else{
+//             //no incrementalIdArr structure in data returned, but the counter should increment anyway
+//             projIdCallCounter ++;
 
-            //handle edge case where last entry in searchResults doesn't have incrementalIdArr structure in data returned
-            if(maxLoops == projIdCallCounter){
-              doTable();
-            }
-          }
-        }
-      },
-      error: function(x,y,z) {
-          console.warn('%o %o %o', x, y, z);
-      }
-  });
-}
+//             //handle edge case where last entry in searchResults doesn't have incrementalIdArr structure in data returned
+//             if(maxLoops == projIdCallCounter){
+//               doTable();
+//             }
+//           }
+//         }
+//       },
+//       error: function(x,y,z) {
+//           console.warn('%o %o %o', x, y, z);
+//       }
+//   });
+// }
 
 function _colRowNum(o) {
 	return o._rowNum;

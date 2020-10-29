@@ -429,16 +429,6 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
         return rtn;
     }
 
-  // public String getIncrementalProjectId(Project project){
-  //   String result = null;
-  //   if (project!=null) {
-  //     if (hasNameSubstring(project.getNextIncrementalIndividualId())){
-  //       result = project.getNextIncrementalIndividualId();
-  //     }
-  //   }
-  //   return result;
-  // }
-
   public void addIncrementalProjectId(Project project) {
     if (project!=null) {
       if (!hasNameKey(project.getProjectIdPrefix())) {
@@ -1011,9 +1001,9 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     return getWebUrl(this.getIndividualID(), req);
   }
 
-  public String getHyperlink(HttpServletRequest req) {
-    return "<a href=\""+getWebUrl(req)+"\"> Individual "+getDisplayName(req)+ "</a>";
-  }
+  // public String getHyperlink(HttpServletRequest req) {
+  //   return "<a href=\""+getWebUrl(req)+"\"> Individual "+getDisplayName(req)+ "</a>";
+  // }
 
 
 
