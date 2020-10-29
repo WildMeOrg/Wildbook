@@ -404,19 +404,28 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     setLatLonFromEncs();
   }
 
-  //this just picks first enc with values -- we could get fancier
-  public void setLatLonFromEncs() {
-    if (Util.collectionIsEmptyOrNull(encounters)) return;
-    for (Encounter enc: getEncounters()) {
-        Double lat = enc.getDecimalLatitudeAsDouble();
-        Double lon = enc.getDecimalLongitudeAsDouble();
-        if (!Util.isValidDecimalLatitude(lat) || !Util.isValidDecimalLongitude(lon)) continue;
-        setDecimalLatitude(lat);
-        setDecimalLongitude(lon);
-        return;
+    public void setLatLonFromEncs() {
+        Double[] ll = getLatLonFromEncs();
+        if (ll == null) return;
+        setDecimalLatitude(ll[0]);
+        setDecimalLongitude(ll[1]);
+        setVersion();
     }
-    setVersion();
-  }
+
+    //this just picks first enc with values -- we could get fancier
+    public Double[] getLatLonFromEncs() {
+        if (Util.collectionIsEmptyOrNull(encounters)) return null;
+        for (Encounter enc: getEncounters()) {
+            Double lat = enc.getDecimalLatitudeAsDouble();
+            Double lon = enc.getDecimalLongitudeAsDouble();
+            if (!Util.isValidDecimalLatitude(lat) || !Util.isValidDecimalLongitude(lon)) continue;
+            Double[] ll = new Double[2];
+            ll[0] = lat;
+            ll[1] = lon;
+            return ll;
+        }
+        return null;
+    }
 
   public String getLatLonString() {
     String latStr = (decimalLatitude!=null) ? decimalLatitude.toString() : "";
@@ -531,6 +540,46 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     }
     public String getVerbatimLocality() {
         return verbatimLocality;
+    }
+
+    //these are for falling back on values derived from encounters if need be
+    public String getLocationIdSomehow() {
+        if (locationId != null) return locationId;
+        if (Util.collectionIsEmptyOrNull(encounters)) return null;
+        for (Encounter enc : encounters) {
+            if (enc.getLocationId() != null) return enc.getLocationId();
+        }
+        return null;
+    }
+    public String getVerbatimLocalitySomehow() {
+        if (verbatimLocality != null) return verbatimLocality;
+        if (Util.collectionIsEmptyOrNull(encounters)) return null;
+        for (Encounter enc : encounters) {
+            if (enc.getVerbatimLocality() != null) return enc.getVerbatimLocality();
+        }
+        return null;
+    }
+    public ComplexDateTime getStartTimeSomehow() {
+        if (startTime != null) return startTime;
+        if (Util.collectionIsEmptyOrNull(encounters)) return null;;
+        ComplexDateTime lowest = null;
+        for (Encounter enc : encounters) {
+            ComplexDateTime et = enc.getTime();
+            if (et == null) continue;
+            if ((lowest == null) || (lowest.gmtLong() > et.gmtLong())) lowest = et;
+        }
+        return lowest;
+    }
+    public ComplexDateTime getEndTimeSomehow() {
+        if (endTime != null) return endTime;
+        if (Util.collectionIsEmptyOrNull(encounters)) return null;
+        ComplexDateTime highest = null;
+        for (Encounter enc : encounters) {
+            ComplexDateTime et = enc.getTime();
+            if (et == null) continue;
+            if ((highest == null) || (highest.gmtLong() < et.gmtLong())) highest = et;
+        }
+        return highest;
     }
 
   /**
@@ -1428,11 +1477,15 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
             }
         }
 
+/*  we currently DO NOT *set* values that can be derived from encounters -- these will be *reported* via GET however.....
+    based on discussion 2020-10-29 w/tanya
+
         //these will fill out UNSET values based on encounter(s) if possible
         occ.setLatLonFromEncs(false);
         occ.setStartEndFromEncounters();  //will only set if setStartTime() and setEndTime() didnt happen
         //TODO do we also set taxonomies?  unknown at this point
         // what about locationId?  verbatimLocality?
+*/
 
         //auto-set
         occ.setDWCDateLastModified();
@@ -1451,8 +1504,12 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
-        if (startTime != null) obj.put("startTime", startTime.toIso8601());
-        if (endTime != null) obj.put("endTime", endTime.toIso8601());
+        //if (startTime != null) obj.put("startTime", startTime.toIso8601());
+        //if (endTime != null) obj.put("endTime", endTime.toIso8601());
+        ComplexDateTime st = getStartTimeSomehow();
+        ComplexDateTime et = getEndTimeSomehow();
+        if (st != null) obj.put("startTime", st.toIso8601());
+        if (et != null) obj.put("endTime", et.toIso8601());
 
         if (!Util.collectionIsEmptyOrNull(this.encounters)) {
             org.json.JSONObject encCounts = new org.json.JSONObject();
@@ -1497,11 +1554,21 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         obj.put("behavior", getGroupBehavior());
         obj.put("distance", getDistance());
         obj.put("bearing", getBearing());
-        obj.put("decimalLatitude", getDecimalLatitude());
-        obj.put("decimalLongitude", getDecimalLongitude());
         obj.put("customFields", this.getCustomFieldJSONObject());
-        obj.put("locationId", getLocationId());
-        obj.put("verbatimLocality", getVerbatimLocality());
+
+        if (hasLatLon()) {
+            obj.put("decimalLatitude", getDecimalLatitude());
+            obj.put("decimalLongitude", getDecimalLongitude());
+        } else {
+            Double[] ll = getLatLonFromEncs();
+            if (ll != null) {
+                obj.put("decimalLatitude", ll[0]);
+                obj.put("decimalLongitude", ll[1]);
+            }
+        }
+
+        obj.put("locationId", getLocationIdSomehow());
+        obj.put("verbatimLocality", getVerbatimLocalitySomehow());
 
         if (!Util.collectionIsEmptyOrNull(taxonomies)) {
             org.json.JSONArray txs = new org.json.JSONArray();
