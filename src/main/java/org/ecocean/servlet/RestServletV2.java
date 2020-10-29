@@ -792,7 +792,14 @@ rtn.put("_payload", payload);
                 SystemLog.info("RestServlet.handlePost() instance={} created={}", instanceId, occ);
                 myShepherd.commitDBTransaction();
                 rtn.put("success", true);
-                rtn.put("result", occ.asApiJSONObject());   //TODO what expand to pass?
+                rtn.put("result", occ.asApiJSONObject());   //TODO what detail to pass?
+            } else if (cls.equals("org.ecocean.Encounter")) {
+                Encounter enc = Encounter.fromApiJSONObject(myShepherd, payload);
+                myShepherd.getPM().makePersistent(enc);
+                SystemLog.info("RestServlet.handlePost() instance={} created={}", instanceId, enc);
+                myShepherd.commitDBTransaction();
+                rtn.put("success", true);
+                rtn.put("result", enc.asApiJSONObject());   //TODO what detail to pass?
             } else {
                 SystemLog.error("RestServlet.handlePost() passed invalid class {}, instance={}", cls, instanceId);
                 rtn.put("message", _rtnMessage("invalid_class", payload));
