@@ -84,7 +84,7 @@ public class Configuration implements java.io.Serializable {
         return DataDefinition.coerceJSONObject(this.getContent(), this._precheckSingle());
     }
     public JSONArray getValueAsJSONArray() throws DataDefinitionException {
-        return DataDefinition.coerceJSONArray(this.getContent(), this._precheckSingle());
+        return DataDefinition.coerceJSONArray(this.getContent(), this._precheckMultiple());
     }
 
     public List<String> getValueAsStringList() throws DataDefinitionException {
