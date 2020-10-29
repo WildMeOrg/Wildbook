@@ -5,6 +5,7 @@ import org.ecocean.User;
 import org.ecocean.Organization;
 import org.ecocean.Shepherd;
 import org.ecocean.customfield.*;
+import org.ecocean.SystemLog;
 
 import java.util.Set;
 import java.util.Iterator;
@@ -370,6 +371,25 @@ System.out.println("=============== " + mth + " -> returnType = " + rtnCls + " y
         return defn;
     }
 
+
+/*
+    this is for fromApiJSONObject() calls on sub-classes.   its just to get around the boring setFoo redundancy now.  optimize later!
+    NOTE: this is ugly and uses reflection.   optimize/change later???
+*/
+    public boolean setFromJSONObject(String key, Class cls, org.json.JSONObject json) throws IOException {
+        SystemLog.debug("trying key=" + key + " with json=" + json);
+        if ((key == null) || (json == null) || !json.has(key)) return false;
+        String setterName = "set" + key.substring(0,1).toUpperCase() + key.substring(1);
+        try {
+            Object val = null;
+            if (!json.isNull(key)) val = json.get(key);
+            Method setter = this.getClass().getMethod(setterName, cls);
+            setter.invoke(this, cls.cast(val));
+        } catch (java.lang.NoSuchMethodException | java.lang.IllegalAccessException | java.lang.reflect.InvocationTargetException ex) {
+            throw new IOException("setter woes: " + ex.toString());
+        }
+        return true;
+    }
 
     //kinda utility/convenience thing for opts
     private static boolean optsBoolean(Object val) {

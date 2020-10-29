@@ -268,6 +268,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     setSubmitterIDFromEncs();
   }
   public void setSubmitterIDFromEncs(){
+    if (Util.collectionIsEmptyOrNull(encounters)) return;
     for (Encounter enc: encounters) {
       if (Util.stringExists(enc.getSubmitterID())) {
         setSubmitterID(enc.getSubmitterID());
@@ -302,7 +303,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         setVersion();
     }
     public void setSubmittersFromEncounters() {  //note: this overrides any previously set
-        if (encounters == null) return;
+        if (Util.collectionIsEmptyOrNull(encounters)) return;
         submitters = new ArrayList<User>();
         for (Encounter enc : encounters) {
             if (enc.getSubmitters() == null) continue;
@@ -398,12 +399,14 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
 
 
   public void setLatLonFromEncs(boolean overwrite) {
+    if (Util.collectionIsEmptyOrNull(encounters)) return;
     if (!overwrite && hasLatLon()) return;
     setLatLonFromEncs();
   }
 
   //this just picks first enc with values -- we could get fancier
   public void setLatLonFromEncs() {
+    if (Util.collectionIsEmptyOrNull(encounters)) return;
     for (Encounter enc: getEncounters()) {
         Double lat = enc.getDecimalLatitudeAsDouble();
         Double lon = enc.getDecimalLongitudeAsDouble();
@@ -1436,24 +1439,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         occ.setDateTimeCreated();
         occ.setVersion();
         return occ;
-    }
-
-/*
-    NOTE: this is ugly and uses reflection.  its just to get around the boring setFoo redundancy now.  optimize later!
-*/
-    public boolean setFromJSONObject(String key, Class cls, org.json.JSONObject json) throws IOException {
-        SystemLog.debug("trying key=" + key + " with json=" + json);
-        if ((key == null) || (json == null) || !json.has(key)) return false;
-        String setterName = "set" + key.substring(0,1).toUpperCase() + key.substring(1);
-        try {
-            Object val = null;
-            if (!json.isNull(key)) val = json.get(key);
-            Method setter = this.getClass().getMethod(setterName, cls);
-            setter.invoke(this, cls.cast(val));
-        } catch (java.lang.NoSuchMethodException | java.lang.IllegalAccessException | java.lang.reflect.InvocationTargetException ex) {
-            throw new IOException("setter woes: " + ex.toString());
-        }
-        return true;
     }
 
     public org.json.JSONObject asApiJSONObject() {
