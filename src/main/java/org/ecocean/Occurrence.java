@@ -76,7 +76,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
   private String comments = "None";
   private String modified;
     private String locationId;
-    private String verbatimLocation;
+    private String verbatimLocality;
   private String dateTimeCreated;
 
   // ASWN fields
@@ -401,19 +401,16 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
     if (!overwrite && hasLatLon()) return;
     setLatLonFromEncs();
   }
+
+  //this just picks first enc with values -- we could get fancier
   public void setLatLonFromEncs() {
     for (Encounter enc: getEncounters()) {
-      String lat = enc.getDecimalLatitude();
-      String lon = enc.getDecimalLongitude();
-      if (lat!=null && lon!=null && !lat.equals("-1.0") && !lon.equals("-1.0")) {
-        try {
-          setDecimalLatitude(Double.valueOf(lat));
-          setDecimalLongitude(Double.valueOf(lon));
-          return;
-        } catch (Exception e) {
-          System.out.println("Occurrence.setLatLonFromEncs could not parse values ("+lat+", "+lon+")");
-        }
-      }
+        Double lat = enc.getDecimalLatitudeAsDouble();
+        Double lon = enc.getDecimalLongitudeAsDouble();
+        if (!Util.isValidDecimalLatitude(lat) || !Util.isValidDecimalLongitude(lon)) continue;
+        setDecimalLatitude(lat);
+        setDecimalLongitude(lon);
+        return;
     }
     setVersion();
   }
@@ -527,10 +524,10 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         return locationId;
     }
     public void setVerbatimLocation(String vl) {
-        verbatimLocation = vl;
+        verbatimLocality = vl;
     }
     public String getVerbatimLocation() {
-        return verbatimLocation;
+        return verbatimLocality;
     }
 
   /**
@@ -1386,7 +1383,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         occ.setFromJSONObject("decimalLongitude", Double.class, jsonIn);
         occ.setFromJSONObject("behavior", String.class, jsonIn);
         occ.setFromJSONObject("locationId", String.class, jsonIn);  //TODO validate value?
-        occ.setFromJSONObject("verbatimLocation", String.class, jsonIn);
+        occ.setFromJSONObject("verbatimLocality", String.class, jsonIn);
 
         org.json.JSONArray jencs = jsonIn.optJSONArray("encounters");
         if (jencs != null) {
@@ -1404,7 +1401,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 }
                 occ.addEncounter(enc);
             }
-            occ.setStartEndFromEncounters();  //will only set if setStartTime() and setEndTime() didnt happen
         }
 
         org.json.JSONArray jtxs = jsonIn.optJSONArray("taxonomies");
@@ -1428,6 +1424,12 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
                 occ.addSubmissionContentReference(new SubmissionContentReference(jscr));
             }
         }
+
+        //these will fill out UNSET values based on encounter(s) if possible
+        occ.setLatLonFromEncs(false);
+        occ.setStartEndFromEncounters();  //will only set if setStartTime() and setEndTime() didnt happen
+        //TODO do we also set taxonomies?  unknown at this point
+        // what about locationId?  verbatimLocality?
 
         //auto-set
         occ.setDWCDateLastModified();
@@ -1514,7 +1516,7 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         obj.put("decimalLongitude", getDecimalLongitude());
         obj.put("customFields", this.getCustomFieldJSONObject());
         obj.put("locationId", getLocationId());
-        obj.put("verbatimLocation", getVerbatimLocation());
+        obj.put("verbatimLocality", getVerbatimLocation());
 
         if (!Util.collectionIsEmptyOrNull(taxonomies)) {
             org.json.JSONArray txs = new org.json.JSONArray();
