@@ -32,6 +32,7 @@ import org.ecocean.social.Relationship;
 import org.ecocean.social.SocialUnit;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
 import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -2609,6 +2610,17 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           member.setMarkedIndividual(this);
           myShepherd.updateDBTransaction();
         }
+      }
+      
+      //check for a ScheduledIndividualMerge that may have other
+      String filter="select from org.ecocean.scheduled.ScheduledIndividualMerge where primaryIndividual.individualID =='"+other.getIndividualID()+"' || secondaryIndividual.individualID == '"+other.getIndividualID()+"'";
+      Query q=myShepherd.getPM().newQuery(filter);
+      Collection c=(Collection)q.execute();
+      ArrayList<ScheduledIndividualMerge> merges=new ArrayList<ScheduledIndividualMerge>(c);
+      //throw out any scheduled merge related to this individual as it is now being merged.
+      for(ScheduledIndividualMerge merge:merges) {
+        myShepherd.getPM().deletePersistent(merge);
+        myShepherd.updateDBTransaction();
       }
       
       
