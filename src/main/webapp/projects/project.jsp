@@ -467,7 +467,8 @@ function removeEncounterFromProjectAjax(el) {
 }
 
 function goToIAResults(taskId) {
-  window.location.replace('/iaResults.jsp?taskId='+taskId);
+  let projectIdPrefix = '<%= project.getProjectIdPrefix()%>';
+  window.location.replace('/iaResults.jsp?taskId='+taskId+'&projectIdPrefix='+projIdPrefix);
 }
 
 function generateIALinkingMenu(json, encId) {
