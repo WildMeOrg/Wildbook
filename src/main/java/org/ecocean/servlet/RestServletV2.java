@@ -799,7 +799,7 @@ rtn.put("_payload", payload);
                 myShepherd.rollbackDBTransaction();
             }
         } catch (Exception ex) {
-            SystemLog.error("RestServlet.handlePost() threw exception {}", ex);
+            SystemLog.error("RestServlet.handlePost() threw exception {}", ex.toString(), ex);
             rtn.put("message", _rtnMessage("error", payload, ex.toString()));
             myShepherd.rollbackDBTransaction();
         }
