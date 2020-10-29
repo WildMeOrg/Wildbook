@@ -2114,6 +2114,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public String getLocationID() {
     return locationID;
   }
+    public String getLocationId() {
+        return locationID;
+    }
 
   public void setLocationID(String newLocationID) {
     if (newLocationID!=null) {
@@ -2123,6 +2126,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       this.locationID = null;
     }
   }
+    public void setLocationId(String lid) {  //cuz reflection (and standards!)
+        locationID = lid;
+    }
 
   public Double getMaximumDepthInMeters() {
     return maximumDepthInMeters;
@@ -3979,6 +3985,8 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     public static Encounter fromApiJSONObject(Shepherd myShepherd, org.json.JSONObject jsonIn) throws IOException {
         Encounter enc = new Encounter(false);
 
+        enc.setTime(ComplexDateTime.gentlyFromIso8601(jsonIn.optString("time", null)));
+
         org.json.JSONObject jtx = jsonIn.optJSONObject("taxonomy");
         if (jtx != null) {
             Taxonomy tx = myShepherd.getTaxonomyById(jtx.optString("id", null));
@@ -3986,6 +3994,24 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
             if (!tx.isValidSiteTaxonomy(myShepherd)) throw new IOException("non-site taxonomy " + tx);
             enc.setTaxonomy(tx);
         }
+
+        enc.setFromJSONObject("decimalLatitude", Double.class, jsonIn);
+        enc.setFromJSONObject("decimalLongitude", Double.class, jsonIn);
+        enc.setFromJSONObject("behavior", String.class, jsonIn);
+        enc.setFromJSONObject("locationId", String.class, jsonIn);  //TODO validate value?  or should it be in setLocationId() ??
+        enc.setFromJSONObject("lifeStage", String.class, jsonIn);  //ditto?
+        enc.setFromJSONObject("sex", String.class, jsonIn);  //ditto?
+        enc.setFromJSONObject("country", String.class, jsonIn);
+        enc.setFromJSONObject("verbatimLocality", String.class, jsonIn);
+
+        org.json.JSONObject jind = jsonIn.optJSONObject("individual");
+        if (jind != null) {
+            MarkedIndividual indiv = myShepherd.getMarkedIndividual(jind.optString("id", null));
+            if (indiv == null) throw new IOException("invalid individual: " + jind + "; CREATION of MarkedIndividual not yet supported!");
+            enc.setIndividual(indiv);
+        }
+
+        enc.setDWCDateLastModified();  //sets "version".   sigh
         return enc;
     }
 
@@ -4001,11 +4027,28 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
 
         if (detLvl.equals(DETAIL_LEVEL_MIN)) return obj;
 
-        if (time != null) obj.put("time", time.toIso8601());
-        if (this.hasIncompleteTime()) obj.put("timeValues", this.timeValues());
+        if (time != null) {
+            obj.put("time", time.toIso8601());
+        } else if (this.hasIncompleteTime()) {
+            obj.put("timeValues", this.timeValues());
+        } else {  //this "should not happen" *IF* we convert complete times to .time .... tsk
+            SystemLog.warn("bummer, have to deriveComplexDateTime() on the fly for {}", toString());
+            ComplexDateTime cdt = deriveComplexDateTime();
+            if (cdt != null) obj.put("time", cdt.toIso8601());
+        }
 
         Taxonomy tx = this.getTaxonomy();
         if (tx != null) obj.put("taxonomy", tx.asApiJSONObject());
+
+        obj.put("sex", getSex());
+        obj.put("lifeStage", getLifeStage());
+        obj.put("behavior", getBehavior());
+        obj.put("decimalLatitude", getDecimalLatitude());
+        obj.put("decimalLongitude", getDecimalLongitude());
+        obj.put("customFields", this.getCustomFieldJSONObject());
+        obj.put("locationId", getLocationId());
+        obj.put("country", getCountry());
+        obj.put("verbatimLocality", getVerbatimLocality());
 
         obj.put("customFields", this.getCustomFieldJSONObject());
         return obj;
