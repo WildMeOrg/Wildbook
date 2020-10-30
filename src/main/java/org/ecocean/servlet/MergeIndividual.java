@@ -17,6 +17,7 @@ import org.apache.shiro.web.util.WebUtils;
 
 import org.ecocean.*;
 import org.ecocean.scheduled.ScheduledIndividualMerge;
+import org.ecocean.security.Collaboration;
 
 
 public class MergeIndividual extends HttpServlet {
@@ -106,17 +107,27 @@ public class MergeIndividual extends HttpServlet {
       if (userPrincipal!=null) {
         currentUsername = userPrincipal.getName();
       }
-
+      
+      //if we can't determine who is requeting this, no merge
       if (currentUsername!=null) {
-        List<String> allUniqueUsers = new ArrayList<>(mark1Users);
+        
+        /*
+        ArrayList<String> allUniqueUsers = new ArrayList<>(mark1Users);
         for (String user : mark2Users) {
           if (!allUniqueUsers.contains(user)&&!"".equals(user)&&user!=null) {
             allUniqueUsers.add(user);
             System.out.println("unique user == "+user);
           }
-        }
-
-        if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
+          
+          
+        }//end for
+        */
+        
+        //WB-1017
+        //1. if user is in role admin, they can force the automatic merge. we trust our admins. this also prevents unnecessary database calls.
+        //2. if User has full edit access to every Encounter of both MarkedIndividuals, they are trusted to make this decision automatically
+        //if (allUniqueUsers.size()==1&&allUniqueUsers.get(0).equals(currentUsername)) {
+        if(request.isUserInRole("admin") || (Collaboration.canUserFullyEditMarkedIndividual(mark1, request) && Collaboration.canUserFullyEditMarkedIndividual(mark2, request))) {  
           canMergeAutomatically = true;
         } else {
           ScheduledIndividualMerge merge = new ScheduledIndividualMerge(mark1, mark2, twoWeeksFromNowLong(), currentUsername);

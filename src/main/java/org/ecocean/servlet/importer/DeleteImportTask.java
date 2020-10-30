@@ -7,6 +7,7 @@ import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
+import org.ecocean.ia.Task;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 
@@ -56,14 +57,22 @@ public class DeleteImportTask extends HttpServlet {
            Occurrence occ = myShepherd.getOccurrence(enc);
            MarkedIndividual mark = myShepherd.getMarkedIndividualQuiet(enc.getIndividualID());
 
-           if (enc.getAnnotations()!=null) {
-             for (Annotation ann: enc.getAnnotations()) {
-               myShepherd.throwAwayAnnotation(ann);
+           ArrayList<Annotation> anns = enc.getAnnotations();
+           for (Annotation ann : anns) {
+             enc.removeAnnotation(ann);
+             myShepherd.updateDBTransaction();
+             List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
+             if (iaTasks!=null&&!iaTasks.isEmpty()) {
+               for (Task iaTask : iaTasks) {
+                 iaTask.removeObject(ann);
+                 myShepherd.updateDBTransaction();
+               }
              }
+             myShepherd.throwAwayAnnotation(ann);
+             myShepherd.updateDBTransaction();
            }
 
-           // get weird foreign key errors related to ENCOUNTER_ANNOTATIONS without this
-           enc.setAnnotations(new ArrayList<Annotation>());
+
 
            //handle occurrences
            if (occ!=null) {

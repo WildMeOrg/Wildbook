@@ -430,6 +430,9 @@
 				
 				/DeleteImportTask = authc, roles[researcher]
 
+				/MergeIndividual = authc, roles[researcher]
+				/ScheduledIndividualMergeUpdate = authc, roles[researcher]
+
         /ProjectIA = authc, roles[researcher]
 
         /UserPreferences = authc, roles[researcher]
