@@ -76,6 +76,8 @@
                   <div class="form-inline col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <label class="control-label text-danger"><strong><%=props.getProperty("projectIdPrefix") %></strong></label>
                     <input class="form-control" type="text" style="position: relative; z-index: 101;" id="projectIdPrefix" name="projectIdPrefix" size="20" />
+                    <br/>
+                    <label class="control-label"><small><%=props.getProperty("projectIdInstructions") %></small></label>
                   </div>
                 </div>
                 <div class="form-group row">
