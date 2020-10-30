@@ -189,7 +189,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   <style type="text/css">
-
 .id-action {
     display: none;
 }
@@ -745,7 +744,7 @@ $(function() {
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
 				if(enc.hasMarkedIndividual() && enc.getIndividual()!=null) {
-          		String dispName = enc.getIndividual().getDisplayName(request);
+          		String dispName = enc.getIndividual().getDisplayName(request, myShepherd);
 					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
@@ -1497,8 +1496,9 @@ if(enc.getLocation()!=null){
     								 String hrefVal="";
     								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
-    									hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
-    									indyDisplayName=enc.getDisplayName();
+                      hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
+                      
+    									indyDisplayName=enc.getIndividual().getDisplayName(request, myShepherd);
     								 }
                      				%>
                      					<a href="<%=hrefVal %>">
@@ -2799,7 +2799,9 @@ else {
 					                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
 					                            <%
 					                          }
+
 					                        %>
+                                  </div>
 					                        </div>
 					                      </div>
 
@@ -2816,6 +2818,25 @@ else {
 					                      	}
 
                       	}
+                        List<Project> projects = myShepherd.getProjectsForEncounter(enc);
+                        MarkedIndividual indie = myShepherd.getMarkedIndividual(enc);
+                        if(projects!=null && projects.size()>0){
+                          %>
+                            <div id="project-ids">
+                              <p><strong><%=encprops.getProperty("projects") %></strong></p>
+                          <%
+                          for(int i=0; i< projects.size(); i++){
+                            if(indie != null && indie.getName(projects.get(i).getProjectIdPrefix()) != null){
+                              %>
+                              <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= indie.getName(projects.get(i).getProjectIdPrefix())%></p>
+                              <%
+                            }else{
+                              %>
+                                <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= encprops.getProperty("noIdIn")%></p>
+                              <%
+                            }
+                          }
+                        }
                          				//insert here
 %>
 

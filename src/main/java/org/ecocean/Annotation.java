@@ -735,7 +735,10 @@ System.out.println("[1] getMatchingSet params=" + params);
             + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus()
             + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         }
-        if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";  //need another VARIABLE declaration
+        if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";
+        
+        if (filter.matches(".*\\bproject\\b.*")) filter += "; org.ecocean.Project project";
+
         return getMatchingSetForFilter(myShepherd, filter);
     }
 
@@ -831,6 +834,7 @@ System.out.println("[1] getMatchingSet params=" + params);
     private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
         if (taskParams == null) return "";
         String userId = taskParams.optString("userId", null);
+
         JSONObject j = taskParams.optJSONObject("matchingSetFilter");
         if (j == null) return "";
         String f = "";
@@ -888,6 +892,13 @@ System.out.println("[1] getMatchingSet params=" + params);
                 if (opt.equals("me")) f += " && enc.submitters.contains(user) && user.uuid == '" + userId + "' ";
                 ///TODO also handle "collab" (users you collab with)   :/
             }
+        }
+
+        // add projectID to filter
+        String projectId = j.optString("projectId", null);
+        if (Util.stringExists(projectId)) {
+            System.out.println("----> Adding PROJECT ID to matching set filter");
+            f+= " && project.id == '"+projectId+"' && project.encounters.contains(enc) ";
         }
 
         return f;

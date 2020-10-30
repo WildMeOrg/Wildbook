@@ -68,9 +68,11 @@ wildbook.Collection.BaseClass = Backbone.Collection.extend({
 			if (options.jdoql.toLowerCase().indexOf('where') == 0) options.jdoql = 'SELECT FROM ' + this.model.prototype.className() + ' ' + options.jdoql;
 			var noDecorate='';
 			var fetch='';
+			let useProjectContext='';
+			if(options.useProjectContext=="true")useProjectContext='useProjectContext=true&';
 			if(options.noDecorate)noDecorate='noDecorate=true&';
 			if(options.fetch)fetch='fetch='+options.fetch+'&';
-			this._altUrl = '?'+noDecorate+fetch+'query=' + options.jdoql;  //note this does not need the classname like /api/org.ecocean.Foo
+			this._altUrl = '?'+noDecorate+useProjectContext+fetch+'query=' + options.jdoql;  //note this does not need the classname like /api/org.ecocean.Foo
 		} else if (options && options.fields) {
 			this._altUrl = this.model.prototype.className();
 			var arg = [];

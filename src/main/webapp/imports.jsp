@@ -260,7 +260,7 @@ if (itask == null) {
             out.println("<td><a title=\"" + enc.getOccurrenceID() + "\" href=\"occurrence.jsp?number=" + enc.getOccurrenceID() + "\">" + (Util.isUUID(enc.getOccurrenceID()) ? enc.getOccurrenceID().substring(0,8) : enc.getOccurrenceID()) + "</a></td>");
         }
         if (enc.hasMarkedIndividual()) {
-            out.println("<td><a title=\"" + enc.getIndividualID() + "\" href=\"individuals.jsp?number=" + enc.getIndividualID() + "\">" + enc.getIndividual().getDisplayName() + "</a></td>");
+            out.println("<td><a title=\"" + enc.getIndividualID() + "\" href=\"individuals.jsp?number=" + enc.getIndividualID() + "\">" + enc.getIndividual().getDisplayName(request, myShepherd) + "</a></td>");
         } else {
             out.println("<td class=\"dim\">-</td>");
         }
@@ -319,7 +319,8 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 <% } %>
 </p>
 
-<% if (adminMode) { %>
+<% if (adminMode) { 
+%>
     <div id="ia-send-div">
     
 	    <%
@@ -335,7 +336,10 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 	    	
 	    <%
 	    }
-	    if("complete".equals(itask.getStatus()) && Collaboration.canUserAccessImportTask(myShepherd.getImportTask(request.getParameter("taskId")),request)){
+ } //end if admin mode
+
+//who can delete an ImportTask? admin, orgAdmin, or the creator of the ImportTask
+if("complete".equals(itask.getStatus()) && (adminMode||(itask.getCreator()!=null && request.getUserPrincipal()!=null && itask.getCreator().getUsername().equals(request.getUserPrincipal().getName())))) {
 	    %>
 	    	<div style="margin-bottom: 20px;">
 	    		<form onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this ImportTask and all its data?');" name="deleteImportTask" class="editFormMeta" method="post" action="DeleteImportTask">
@@ -343,12 +347,12 @@ Image formats generated? <%=(foundChildren ? "<b class=\"yes\">yes</b>" : "<b cl
 	              	<input style="width: 200px;" align="absmiddle" name="deleteIT" type="submit" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="Delete ImportTask" />
 	        	</form>
 	    	</div>
-    	<%
-	    }
-    	%>
+<%
+}
+%>
     	
     </div>
-<% } %>
+
 </p>
 
 

@@ -29,7 +29,6 @@ import net.jpountz.xxhash.XXHashFactory;
 import net.jpountz.xxhash.StreamingXXHash32;
 import net.jpountz.xxhash.XXHash32;
 
-
 //EXIF-related imports
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.io.FileInputStream;
@@ -1065,12 +1065,18 @@ public class Util {
     public static void mark(String msg) {
         mark(msg, -1);
     }
+
     public static void mark(String msg, long startTime) {
         long t = System.currentTimeMillis();
         DateTime now = new DateTime();
         String diff = "0";
         if (startTime > 0l) diff = Long.toString(t - startTime);
         System.out.println(now.toString() + " MARK [" + msg + "," + t + "," + diff + "]");
+    }
+
+    public static String scrubURL(URL u) {
+      if (u == null) return (String) null;
+      return u.toString().replace("#", "%23");
     }
 
   public static JSONObject copy(JSONObject original) {
