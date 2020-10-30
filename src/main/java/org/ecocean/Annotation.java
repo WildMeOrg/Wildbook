@@ -807,8 +807,14 @@ System.out.println("[1] getMatchingSet params=" + params);
 
     private String getMatchingSetFilterIAClassClause(boolean filterIAClass, String iaClass) {
         if (!filterIAClass) return "";
+/*
+        [LOCAL] giraffespotter treats all (both) iaClass values it gets back as the same: giraffe_reticulate or giraffe_masai
+        therefore, we are going to forego even caring about this here.
+
         String iaClassClause = " && iaClass.equals('"+iaClass+"') ";
         return iaClassClause;
+*/
+        return "";
     }
 
     private String getPartClause(Shepherd myShepherd) {
