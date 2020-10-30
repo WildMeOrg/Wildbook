@@ -176,22 +176,22 @@ public class MarkedIndividual implements java.io.Serializable {
     //  which is a uuid, but chops that to the first 8 char.  sorry-not-sorry?
     //  note that if keyHint is null, default is used
     public String getDisplayName() {
-        System.out.println("[INFO]: Called MarkedIndividual.getDisplayName()");
+        //System.out.println("[INFO]: Called MarkedIndividual.getDisplayName()");
         return getDisplayName(null);
     }
 
     public String getDisplayName(Object keyHint) {
-      System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(keyHint)");
+      //System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(keyHint)");
       return getDisplayName(keyHint, null, null);
     }
 
     public String getDisplayName(HttpServletRequest request) {
-      System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(request)");
+      //System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(request)");
       return getDisplayName(null, request, null);
     }
 
     public String getDisplayName(HttpServletRequest request, Shepherd myShepherd) {
-      System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(request,myShepherd)");
+      //System.out.println("[INFO]: Called MarkedIndividual.getDisplayName(request,myShepherd)");
       return getDisplayName(null, request, myShepherd);
     }
 
