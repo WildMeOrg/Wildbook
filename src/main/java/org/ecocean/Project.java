@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -69,7 +70,18 @@ public class Project implements java.io.Serializable {
     }
 
     public String getNextIncrementalIndividualId() {
-        return projectIdPrefix + nextIndividualIdIncrement;
+        if (!projectIdPrefix.contains("#")) {
+            return projectIdPrefix + nextIndividualIdIncrement;
+        }
+        String nextName = projectIdPrefix.replace("#","0");
+        int poundCount = StringUtils.countMatches(projectIdPrefix,"#");
+        int currentDigits = String.valueOf(nextIndividualIdIncrement).length();
+        if (poundCount>currentDigits) {
+            nextName = nextName.substring(0, nextName.length() - currentDigits);
+        } else {
+            nextName = nextName.replace("0", "");
+        }
+        return nextName+nextIndividualIdIncrement;
     }
 
     public void adjustIncrementalIndividualId(int adjustment) {
@@ -229,24 +241,6 @@ public class Project implements java.io.Serializable {
         this.encounters = new ArrayList<>();
     }
 
-    // public List<MarkedIndividual> getAllIndividualsForProject() {
-    //     ArrayList<MarkedIndividual> mis = null;
-    //     if (encounters!=null) {
-    //         for (final Encounter enc : encounters) {
-    //             final MarkedIndividual mi = enc.getIndividual();
-    //             if (mi!=null) {
-    //                 if (mis==null) {
-    //                     mis = new ArrayList<>();
-    //                 }
-    //                 if (!mis.contains(mi)) {
-    //                     mis.add(mi);
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     return mis;
-    // }
-
     public int numEncounters() {
         if (encounters!=null) {
             return encounters.size();
@@ -261,7 +255,6 @@ public class Project implements java.io.Serializable {
         }
         return 0;
     }
-
 
     public JSONObject asJSONObject() {
         return asJSONObject(null, null);
