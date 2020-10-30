@@ -1,0 +1,172 @@
+[
+   {
+      "itisTsn" : 180524,
+      "commonName" : "Minke whale",
+      "scientificName" : "Balaenoptera acutorostrata"
+   },
+   {
+      "itisTsn" : 180526,
+      "commonName" : "Sei whale",
+      "scientificName" : "Balaenoptera borealis"
+   },
+   {
+      "itisTsn" : 612597,
+      "commonName" : "Bryde's whale",
+      "scientificName" : "Balaenoptera brydei"
+   },
+   {
+      "commonName" : "Bryde's Eden's whale",
+      "itisTsn" : 180525,
+      "scientificName" : "Balaenoptera edeni"
+   },
+   {
+      "commonName" : "Blue whale",
+      "itisTsn" : 180528,
+      "scientificName" : "Balaenoptera musculus"
+   },
+   {
+      "itisTsn" : 180527,
+      "commonName" : "Fin whale",
+      "scientificName" : "Balaenoptera physalus"
+   },
+   {
+      "itisTsn" : 555654,
+      "commonName" : "Long-beaked common dolphin",
+      "scientificName" : "Delphinus capensis"
+   },
+   {
+      "commonName" : "Short-beaked common dolphin",
+      "itisTsn" : 180438,
+      "scientificName" : "Delphinus delphis"
+   },
+   {
+      "itisTsn" : 180679,
+      "commonName" : "Dugong",
+      "scientificName" : "Dugong dugon"
+   },
+   {
+      "itisTsn" : 552771,
+      "commonName" : "Southern right whale",
+      "scientificName" : "Eubalaena australis"
+   },
+   {
+      "commonName" : "North Atlantic right whale",
+      "itisTsn" : 180537,
+      "scientificName" : "Eubalaena glacialis"
+   },
+   {
+      "itisTsn" : 180461,
+      "commonName" : "Pygmy killer whale",
+      "scientificName" : "Feresa attenuata"
+   },
+   {
+      "itisTsn" : 180466,
+      "scientificName" : "Globicephala macrorhynchus",
+      "commonName" : "Short-finned pilot whale"
+   },
+   {
+      "scientificName" : "Grampus griseus",
+      "itisTsn" : 180457,
+      "commonName" : "Risso's dolphin"
+   },
+   {
+      "scientificName" : "Kogia breviceps",
+      "itisTsn" : 180491,
+      "commonName" : "Pygmy sperm whale"
+   },
+   {
+      "commonName" : "Dwarf sperm whale",
+      "itisTsn" : 180492,
+      "scientificName" : "Kogia sima"
+   },
+   {
+      "itisTsn" : 180442,
+      "scientificName" : "Lagenorhynchus albirostris",
+      "commonName" : "White-beaked dolphin"
+   },
+   {
+      "scientificName" : "Megaptera novaeangliae",
+      "itisTsn" : 180530,
+      "commonName" : "Humpback whale"
+   },
+   {
+      "itisTsn" : 180478,
+      "commonName" : "Finless porpoise",
+      "scientificName" : "Neophocaena phocaenoides"
+   },
+   {
+      "scientificName" : "Orcaella brevirostris",
+      "itisTsn" : 180471,
+      "commonName" : "Irrawaddy dolphin"
+   },
+   {
+      "scientificName" : "Orcinus orca",
+      "itisTsn" : 180469,
+      "commonName" : "Orca whale"
+   },
+   {
+      "itisTsn" : 180488,
+      "commonName" : "Sperm whale",
+      "scientificName" : "Physeter macrocephalus"
+   },
+   {
+      "scientificName" : "Pseudorca crassidens",
+      "itisTsn" : 180463,
+      "commonName" : "False killer whale"
+   },
+   {
+      "itisTsn" : 180419,
+      "commonName" : "Indo-Pacific humpback dolphin",
+      "scientificName" : "Sousa chinensis"
+   },
+   {
+      "itisTsn" : 612594,
+      "scientificName" : "Sousa plumbea",
+      "commonName" : "Indian Ocean humpback dolphin"
+   },
+   {
+      "itisTsn" : 180430,
+      "commonName" : "Pantropical spotted dolphin",
+      "scientificName" : "Stenella attenuata"
+   },
+   {
+      "commonName" : "Striped dolphin",
+      "itisTsn" : 180434,
+      "scientificName" : "Stenella coeruleoalba"
+   },
+   {
+      "commonName" : "Atlantic spotted dolphin",
+      "itisTsn" : 552460,
+      "scientificName" : "Stenella frontalis"
+   },
+   {
+      "itisTsn" : 180429,
+      "scientificName" : "Stenella longirostris",
+      "commonName" : "Spinner dolphin"
+   },
+   {
+      "commonName" : "Rough-toothed dolphin",
+      "itisTsn" : 180417,
+      "scientificName" : "Steno bredanensis"
+   },
+   {
+      "itisTsn" : 612596,
+      "scientificName" : "Tursiops aduncus",
+      "commonName" : "Indo-Pacific bottlenose dolphin"
+   },
+   {
+      "itisTsn" : 180426,
+      "commonName" : "Bottlenose dolphin",
+      "scientificName" : "Tursiops truncatus"
+   },
+   {
+      "itisTsn" : 180493,
+      "commonName" : "Beaked whale",
+      "scientificName" : "Ziphiidae"
+   },
+   {
+      "itisTsn" : 180498,
+      "commonName" : "Cuvier's beaked whale",
+      "scientificName" : "Ziphius cavirostris"
+   }
+]

@@ -566,6 +566,8 @@ rtn.put("_payload", payload);
                             if (txId != null) throw new IOException(key + " passed invalid Taxonomy id=" + txId);  //but not if we have an id!!
                             if (txSN == null) throw new IOException(key + " passed invalid Taxonomy scientificName");  //nor missing sciname
                             tx = new Taxonomy(txSN, jtx.optString("commonName", null));
+                            int itis = jtx.optInt("itisTsn", -1);
+                            if (itis > 0) tx.setItisTsn(itis);
                             myShepherd.getPM().makePersistent(tx);
                         }
                         setTaxs.put(tx.asApiJSONObject());

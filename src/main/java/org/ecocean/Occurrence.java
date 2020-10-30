@@ -1504,8 +1504,6 @@ public class Occurrence extends org.ecocean.api.ApiCustomFields implements java.
         org.json.JSONObject obj = new org.json.JSONObject();
         obj.put("id", this.getId());
         obj.put("version", this.getVersion());
-        //if (startTime != null) obj.put("startTime", startTime.toIso8601());
-        //if (endTime != null) obj.put("endTime", endTime.toIso8601());
         ComplexDateTime st = getStartTimeSomehow();
         ComplexDateTime et = getEndTimeSomehow();
         if (st != null) obj.put("startTime", st.toIso8601());
