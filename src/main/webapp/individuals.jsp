@@ -121,7 +121,7 @@ else{
 <jsp:include page="header.jsp" flush="true"/>
 <%
 if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
-    System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
+    //System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
     id = request.getParameter("id");
     if (id==null) id = request.getParameter("number");
 	myShepherd.beginDBTransaction();
@@ -150,9 +150,9 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 		          }
 		        }
 		      }
-		      System.out.println("");
-		      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
-		      System.out.println("This marked individual has "+numAnns+" anotations");
+		      //System.out.println("");
+		      //System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+		      //System.out.println("This marked individual has "+numAnns+" anotations");
 		
 					//boolean visible = indie.canUserAccess(request);
 		      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
@@ -1602,7 +1602,9 @@ if (sharky.getNames() != null) {
               var persistenceID = "";
               var relationshipID = $("#inputPersistenceID").val();
               if ((relationshipID != null) && (relationshipID != "")) {
-                  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                  //persistenceID = relationshipID;
+            	  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                  
               }
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
@@ -1959,6 +1961,8 @@ if (sharky.getNames() != null) {
               $(document).on('click', '.editRelationshipBtn', function (event) {
                 $("#setRelationshipResultDiv").hide();
                 var relationshipID = event.target.value;
+                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                
                 getRelationshipData(relationshipID);
 		$("#inputPersistenceID").val(relationshipID);
 		$("#individual1").val("<%=individualID%>");
@@ -1988,7 +1992,7 @@ if (sharky.getNames() != null) {
                 });
 
                 var relationshipID = ($(this).attr("value"));
-                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                var persistenceID = persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
                 var deletedMarkedIndividualName1 = "<%=individualID%>";
                 $("div[value='" + relationshipID + "']").hide();
                 $("#remove" + relationshipID).show();

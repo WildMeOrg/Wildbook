@@ -77,7 +77,7 @@ public class Collaborate extends HttpServlet {
 		rtn.put("message", props.getProperty("inviteResponseMessageAnon"));
 
 	} else if (request.getParameter("getNotificationsWidget") != null) {
-		rtn.put("content", Collaboration.getNotificationsWidgetHtml(request));
+		rtn.put("content", Collaboration.getNotificationsWidgetHtml(request, myShepherd));
 		rtn.put("success", "true");
 
 	} else if (request.getParameter("getNotifications") != null) {
@@ -101,13 +101,12 @@ public class Collaborate extends HttpServlet {
 				html += "<div class=\"collaboration-invite-notification\" data-username=\"" + c.getUsername1() + "\">" + c.getUsername1() +emailMessage+ " <input class=\"yes\" type=\"button\" value=\"" + props.getProperty("buttonApprove") + "\" /> <input class=\"no\" type=\"button\" value=\"" + props.getProperty("buttonDeny") + "\" /></div>";
 			}
 		}
-		String button = "<p><input onClick=\"$('.popup').remove()\" type=\"button\" value=\"close\" /></p>";
 		if (html.equals("")) {
-			rtn.put("content", props.getProperty("notificationsNone") + button);
+			rtn.put("content", "<label id='no-notifications-label'>"+props.getProperty("notificationsNone")+"</label>");
 		} else {
 			// we need to find somehow the email of the requester here
 			System.out.println("COLLABORATE.java: username="+username+", currentUsername="+currentUsername);
-			rtn.put("content", "<h2>" + props.getProperty("notificationsTitle") + "</h2>" + html + button);
+			rtn.put("content", "<h2>" + props.getProperty("notificationsTitle") + "</h2>" + html);
 		}
 
 	// Change of state on existing collaboration

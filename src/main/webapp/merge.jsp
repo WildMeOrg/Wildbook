@@ -243,14 +243,15 @@ try {
 
     	$("#mergeForm").attr("action", "MergeIndividual");
 
-      $.post("/MergeIndividual", {
+      $.post("MergeIndividual", {
       	"id1": id1,
       	"id2": id2,
       	"sex": sex,
       	"taxonomy": taxonomy
       },
       function() {
-      	var confirmUrl = '/mergeComplete.jsp?oldNameA='+fullNameA+'&oldNameB='+fullNameB+'&newId='+id1;
+		updateNotificationsWidget();
+      	var confirmUrl = 'mergeComplete.jsp?oldNameA='+fullNameA+'&oldNameB='+fullNameB+'&newId='+id1;
       	alert("Successfully merged individual! Now redirecting to "+confirmUrl);
 				window.location = confirmUrl;
 
