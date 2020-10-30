@@ -2803,7 +2803,9 @@ else {
                                   </div>
 					                        </div>
 					                      </div>
+
 					                  </div>
+
 					<%
 					                         	}
 
@@ -6592,32 +6594,16 @@ function iaMatchFilterGo() {
 
 		<%
 		Properties iaprops = ShepherdProperties.getProperties("IA.properties", "", context);
+    IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+    Taxonomy taxy = enc.getTaxonomy(myShepherd);
 
-		String IBEISIdentOptRoot="IBEISIdentOpt";
-		if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null){
-			String speciesIBEISIdentOptRoot=IBEISIdentOptRoot+"_"+enc.getGenus()+"_"+enc.getSpecificEpithet();
-			if(iaprops.getProperty(speciesIBEISIdentOptRoot+"0")!=null){
-				IBEISIdentOptRoot=speciesIBEISIdentOptRoot;
-				System.out.println("Setting IBEISIdentOptRoot in matching dialog to: "+IBEISIdentOptRoot);
-			}
-		}
-		int rootIter=0;
-		while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-			String val="HotSpotter";
-			String queryDict="";
-			try {
-			     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
-				%>
-				optArray.push(<%=jsonObject.toString()  %>);
-				<%
-			}
-			catch (Exception err){
-			     err.printStackTrace();
-			     val="HotSpotter";
-			}
-
-			rootIter++;
-		}
+    JSONArray allIdentOpts = iaConfig.getAllIdentOpts(taxy);
+    for (int algNum=0; algNum<allIdentOpts.length(); algNum++) {
+      JSONObject thisIdentOpt = allIdentOpts.getJSONObject(algNum);
+        %>
+        optArray.push(<%=thisIdentOpt.toString()  %>);
+        <%
+    }
 		%>
 
 $('.ia-match-filter-dialog input').each(function(i, el) {
@@ -6798,43 +6784,24 @@ $(".search-collapse-header").click(function(){
 
 <%
 
-rootIter=0;
-while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
+JSONArray identConfigs = iaConfig.getAllIdentConfigs(taxy);
 
-	if(rootIter==0){
-		%>
-		<div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
+  %>
+  <div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
+  <%
+for(int algNum=0; algNum<identConfigs.length(); algNum++) {
+  JSONObject algConfig = identConfigs.getJSONObject(algNum);
+  JSONObject queryConfigDict = algConfig.optJSONObject("query_config_dict");
 
-		<%
-	}
+  String description = algConfig.optString("description");
+  if (!Util.stringExists(description) && queryConfigDict!=null) {
+    description = queryConfigDict.optString("pipeline_root");
+  }
+  if (!Util.stringExists(description)) description = "HotSpotter pattern matcher";
 
+  out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
 
-	String val="HotSpotter";
-	String queryDict="";
-	try {
-	     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
-	     queryDict=jsonObject.toString();
-
-	     if(iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter)!=null){
-	    	 val=iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter);
-	     }
-	     else{
-	     	val=(new JSONObject(jsonObject.getJSONObject("queryConfigDict").toString())).optString("pipeline_root");
-	     }
-	}
-	catch (Exception err){
-	     err.printStackTrace();
-	     val="HotSpotter";
-	}
-	if(val==null || val.trim().equals("")){
-		val="HotSpotter";
-	}
-
-	out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + rootIter + "\" name=\"match-filter-algorithm\" value=\"" + rootIter+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + rootIter + "\">" + val + " </label></div>");
-
-	rootIter++;
 }
-
 
 %>
 

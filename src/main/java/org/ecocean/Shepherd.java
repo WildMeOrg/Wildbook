@@ -3222,7 +3222,7 @@ public class Shepherd {
     try {
       tempShark = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, id.trim()), true)));
     } catch (Exception nsoe) {
-      nsoe.printStackTrace();
+      //nsoe.printStackTrace();
       return null;
     }
     return tempShark;
