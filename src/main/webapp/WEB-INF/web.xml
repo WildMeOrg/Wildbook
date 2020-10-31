@@ -373,7 +373,7 @@
 
 				/EncounterSetString = authc
 				/OrganizationEdit = authc, roles[admin]
-				/MergeIndividual = authc
+
 
 				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
 				
@@ -399,6 +399,17 @@
 				/OccurrenceSetMetadataField = authc, roles[researcher]
 				
 				/ImportTaskDetection = authc, roles[admin]
+				
+				
+				/imports.jsp = authc
+				
+				/DeleteImportTask = authc, roles[researcher]
+
+				/MergeIndividual = authc, roles[researcher]
+				/ScheduledIndividualMergeUpdate = authc, roles[researcher]
+				
+				/UserGetNotifications = authc
+				
 
             </param-value>
         </init-param>
@@ -2548,6 +2559,37 @@
     <servlet-name>ImportTaskDetection</servlet-name>
     <url-pattern>/ImportTaskDetection</url-pattern>
   </servlet-mapping>
+  
+    <servlet>
+    <servlet-name>DeleteImportTask</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.DeleteImportTask</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>DeleteImportTask</servlet-name>
+    <url-pattern>/DeleteImportTask</url-pattern>
+  </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>UserGetNotifications</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserGetNotifications</servlet-class>
+  </servlet>
+  
+   <servlet>
+    <servlet-name>UserGetSimpleJSON</servlet-name>
+    <servlet-class>org.ecocean.servlet.UserGetSimpleJSON</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>UserGetSimpleJSON</servlet-name>
+    <url-pattern>/UserGetSimpleJSON</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>UserGetNotifications</servlet-name>
+    <url-pattern>/UserGetNotifications</url-pattern>
+  </servlet-mapping>
+
   
 
 
