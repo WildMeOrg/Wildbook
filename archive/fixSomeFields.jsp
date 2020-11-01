@@ -3,7 +3,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
-org.ecocean.grid.*,
+org.ecocean.grid.*,org.ecocean.media.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
 <%
@@ -26,7 +26,7 @@ int numFixes=0;
 
 <body>
 
-<ul>
+
 <%
 
 myShepherd.beginDBTransaction();
@@ -34,20 +34,26 @@ myShepherd.beginDBTransaction();
 
 try{
 
-	Iterator allEncs=myShepherd.getAllEncounters();
+	String filter="select from org.ecocean.Annotation where iaClass == 'mantaCR'";
+	Query q=myShepherd.getPM().newQuery(filter);
+	Collection c= (Collection)q.execute();
+	ArrayList<Annotation> annots=new ArrayList<Annotation>(c);
+	q.closeAll();
 	
-
-
-	while(allEncs.hasNext()){
+	%>
+	<p>Matches: <%=annots.size() %></p>
+	<ul>
+	<%
+	
+	for(Annotation annot:annots){
 		
-		Encounter enc=(Encounter)allEncs.next();
-		if((enc.getIndividualID()!=null)&&((enc.getIndividualID().trim().equals(""))|(enc.getIndividualID().toLowerCase().equals("unassigned")))){
-			numFixes++;
-			enc.setIndividualID(null);
-			myShepherd.commitDBTransaction();
-			myShepherd.beginDBTransaction();
-		}
-
+		MediaAsset ma=annot.getMediaAsset();
+		%>
+		
+		<li><%=ma.getDetectionStatus() %></li>
+		<%
+		ma.setDetectionStatus("complete");
+		myShepherd.updateDBTransaction();
 
 	}
 	myShepherd.rollbackDBTransaction();

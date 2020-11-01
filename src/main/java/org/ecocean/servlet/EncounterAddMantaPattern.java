@@ -588,6 +588,7 @@ System.out.println("params.get(\"path\") -> " + params.get("path"));
                       crMa.addLabel("CR");
                       crMa.addKeyword(crKeyword);
                       crMa.updateMinimalMetadata();
+                      crMa.setDetectionStatus("complete");
                       System.out.println("    + updated made media asset");
                       MediaAssetFactory.save(crMa, myShepherd);
                       System.out.println("    + saved media asset "+crMa.toString());
