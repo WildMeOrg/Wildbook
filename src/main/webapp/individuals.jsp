@@ -528,11 +528,13 @@ if (sharky.getNames() != null) {
 	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
         MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
         List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
-        for(Project currentProject: projects){
-          String researchProjId = currentProject.getProjectIdPrefix();
-          if (nameKey.contains(researchProjId)){
-            inProjectsAndWillGetDisplayedInSeparateSection = true;
-            continue;
+        if (projects!=null&&projects.size()>0) {
+          for(Project currentProject: projects){
+            String researchProjId = currentProject.getProjectIdPrefix();
+            if (nameKey.contains(researchProjId)){
+              inProjectsAndWillGetDisplayedInSeparateSection = true;
+              continue;
+            }
           }
         }
         if(inProjectsAndWillGetDisplayedInSeparateSection == true){
