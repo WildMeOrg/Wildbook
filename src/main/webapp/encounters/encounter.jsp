@@ -4984,7 +4984,8 @@ button#upload-button {
                {"filename": filenames[0] }
               ]
             }
-          ]
+          ],
+          "taxonomy":"<%=enc.getTaxonomyString() %>"
         }),
         success: function(d) {
           console.info('Success! Got back '+JSON.stringify(d));
