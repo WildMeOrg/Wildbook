@@ -50,11 +50,145 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
+		//let's pre-populate important info for logged in users
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
+    String project="";
+    Shepherd myShepherd=new Shepherd(context);
+		User user = null;
+    myShepherd.setAction("submit.jsp1");
+    myShepherd.beginDBTransaction();
+    String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+    if(qualifier==null) {qualifier="default";}
+    else{qualifier=qualifier.replaceAll(".properties","");}
+    if(request.getRemoteUser()!=null){
+        submitterName=request.getRemoteUser();
+
+        if(myShepherd.getUser(submitterName)!=null){
+            user=myShepherd.getUser(submitterName);
+            if(user.getFullName()!=null){submitterName=user.getFullName();}
+            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+            if(user.getUserProject()!=null){project=user.getUserProject();}
+        }
+
+    }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
+
 
     boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
 
 
 %>
+
+<script>
+$(document).ready( function() {
+	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+	<%
+	if(user != null){
+		%>
+		let userId = '<%= user.getId()%>';
+		let requestForProjectNames = {};
+		requestForProjectNames['ownerId'] = userId;
+		doAjaxForProject(requestForProjectNames,userId);
+		<%
+	}else{
+		%>
+
+		<%
+	}
+	%>
+});
+
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
+	console.log("populateProjectNameDropdown entered");
+	console.log("options are: ");
+	console.log(options);
+	console.log("values are: ");
+	console.log(values);
+	debugger;
+	// if(options.length<1){
+	// 	isVisible=false;
+	// }
+		let projectNameHtml = '';
+		projectNameHtml += '<div class="col-xs-6 col-md-4">';
+		if(loggedOutDefaultDesired){
+			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
+		}
+		if(isVisible){
+			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
+			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}else{
+			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}
+		if(defaultSelectItem){
+			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
+			options = options.remove(defaultSelectItem);
+		}
+		for(let i=0; i<options.length; i++){
+			if(options[i] === selectedOption){
+				projectNameHtml += '<option value="'+ values[i] +'" selected>'+ options[i] +'</option>';
+			}else{
+				projectNameHtml += '<option value="'+ values[i] + '">'+ options[i] +'</option>';
+			}
+		}
+		projectNameHtml += '</div>';
+		$("#proj-id-dropdown-container").empty();
+		$("#proj-id-dropdown-container").append(projectNameHtml);
+}
+
+Array.prototype.remove = function() {
+    var what, a = arguments, L = a.length, ax;
+    while (L && this.length) {
+        what = a[--L];
+        while ((ax = this.indexOf(what)) !== -1) {
+            this.splice(ax, 1);
+        }
+    }
+    return this;
+};
+
+function getDefaultSelectedProject(){
+	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
+	return defaultProject;
+}
+
+function getDefaultSelectedProjectId(){
+	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>';
+	return defaultProjectId;
+}
+
+function getLoggedOutDefaultDesired(){
+	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>';
+	return loggedOutDefaultDesired;
+}
+
+function doAjaxForProject(requestJSON,userId){
+	$.ajax({
+			url: wildbookGlobals.baseUrl + '../ProjectGet',
+			type: 'POST',
+			data: JSON.stringify(requestJSON),
+			dataType: 'json',
+			contentType: 'application/json',
+			success: function(data) {
+				let projectNameResults = data.projects;
+				let projNameOptions = null;
+				if(projectNameResults){
+					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+					projNameIds = projectNameResults.map(entry =>{return entry.projectIdPrefix});
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+				}
+			},
+			error: function(x,y,z) {
+					console.warn('%o %o %o', x, y, z);
+			}
+	});
+}
+
+</script>
+
 
 <style type="text/css">
     .full_screen_map {
@@ -410,12 +544,12 @@ google.maps.event.addDomListener(window, 'load', initialize);
 	  action="spambot.jsp"
 	  method="post"
 	  enctype="multipart/form-data"
-      name="encounter_submission"
-      target="_self" dir="ltr"
-      lang="en"
-      onsubmit="return false;"
-      class="form-horizontal"
-      accept-charset="UTF-8"
+    name="encounter_submission"
+    target="_self" dir="ltr"
+    lang="en"
+    onsubmit="return false;"
+    class="form-horizontal"
+    accept-charset="UTF-8"
 >
 
 <div class="dz-message"></div>
@@ -636,7 +770,7 @@ function showUploadBox() {
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
         <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
-</div>
+			</div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <p class="help-block">
@@ -683,31 +817,6 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 
     <%
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
-    String project="";
-    Shepherd myShepherd=new Shepherd(context);
-    myShepherd.setAction("submit.jsp1");
-    myShepherd.beginDBTransaction();
-    String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
-    if(qualifier==null) {qualifier="default";}
-    else{qualifier=qualifier.replaceAll(".properties","");}
-    if(request.getRemoteUser()!=null){
-        submitterName=request.getRemoteUser();
-
-        if(myShepherd.getUser(submitterName)!=null){
-            User user=myShepherd.getUser(submitterName);
-            if(user.getFullName()!=null){submitterName=user.getFullName();}
-            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-            if(user.getUserProject()!=null){project=user.getUserProject();}
-        }
-
-    }
-    myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
 
 //add locationID to fields selectable
 
@@ -898,14 +1007,8 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
   <fieldset>
 
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterProject") %></label>
-      </div>
-      <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
-      </div>
-    </div>
+		<div class="form-group form-inline" id="proj-id-dropdown-container">
+		</div>
 
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
@@ -1323,9 +1426,11 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
+	// debugger;
 	console.log('sendButtonClicked()');
 	console.log('submitter email is: ' + $('#submitterEmail').val());
 	// $('.required-missing').removeClass('required-missing')
+	// if an mediaAsset is ever required
 	// if(!$('#theFiles').val()){
 	// 	console.log("No file submitted!");
 	// 	$('#theFiles').closest('.form-group').addClass('required-missing');
@@ -1349,7 +1454,7 @@ function sendButtonClicked() {
 			}
 	}
 
-	// if (!$('#submitterEmail').val()) {
+	// if (!$('#submitterEmail').val()) { //TODO comment back in if you want email address required in addition to validated
 	// 	// console.log("email address not present");
 	// 	$('#submitterEmail').parents('.form-group').addClass('required-missing');
 	// 	window.setTimeout(function() { alert('You must provide an email address first.'); }, 100);

@@ -23,7 +23,7 @@ import org.ecocean.grid.ScanWorkItem;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.genetics.*;
-import org.ecocean.social .*;
+import org.ecocean.social.*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
 import org.ecocean.ia.Task;
@@ -31,6 +31,8 @@ import org.ecocean.servlet.importer.ImportTask;
 import org.ecocean.datacollection.*;
 import org.ecocean.movement.Path;
 import org.ecocean.movement.SurveyTrack;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
+import org.ecocean.scheduled.WildbookScheduledTask;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -480,6 +482,49 @@ public class Shepherd {
     }
   }
 
+  public boolean storeNewProject(Project project) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(project);
+      commitDBTransaction();
+			return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Project in shepherd.storeNewProject().");
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+
+  public boolean storeNewWildbookScheduledTask(WildbookScheduledTask wst) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(wst);
+      commitDBTransaction();
+			return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new WildbookScheduledTask in shepherd.storeNewWildbookScheduledTask().");
+      e.printStackTrace();
+      return false;
+    }
+  }
+
+  public boolean storeNewScheduledIndividualMerge(ScheduledIndividualMerge wsim) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(wsim);
+      commitDBTransaction();
+			return true;
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new ScheduledIndividualMerge in shepherd.storeNewScheduledIndividualMerge().");
+      e.printStackTrace();
+      return false;
+    }
+  }
+
   public List getAllCollaborations() {
     Collection c;
     try {
@@ -579,6 +624,9 @@ public class Shepherd {
     pm.deletePersistent(word);
   }
 
+  public void throwAwayProject(Project project) {
+    pm.deletePersistent(project);
+  }
 
   public void throwAwaySuperSpotArray(SuperSpot[] spots) {
     if (spots != null) {
@@ -672,6 +720,17 @@ public class Shepherd {
     return collab;
   }
 
+  public Project getProject(String id) {
+    Project project = null;
+    try {
+      project = ((Project) (pm.getObjectById(pm.newObjectIdInstance(Project.class, id.trim()), true)));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return project;
+  }
+
   public Nest getNest(String num) {
     Nest tempEnc = null;
     try {
@@ -711,6 +770,18 @@ public class Shepherd {
     }
     return tempWork;
   }
+
+  public WildbookScheduledTask getWildbookScheduledTask(String id) {
+    WildbookScheduledTask task = null;
+    try {
+      task = (WildbookScheduledTask) (pm.getObjectById(pm.newObjectIdInstance(WildbookScheduledTask.class, id.trim()), true));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    return task;
+  }
+
   // finds the workspace that user 'owner' created and named 'name'
   public Workspace getWorkspaceForUser(String name, String owner) {
     Workspace result=null;
@@ -1126,6 +1197,56 @@ public class Shepherd {
     return (org.getId());
   }
 
+  public ArrayList<Project> getProjectsForUser(User user) {
+    Query query = null;
+    Iterator<Project> projectIter = null;
+    ArrayList<Project> projectArr = null;
+    try {
+      String filter = "SELECT FROM org.ecocean.Project WHERE users.contains(user)";
+      query = getPM().newQuery(filter);
+      query.declareParameters("User user");
+      Collection c = (Collection)query.execute(user);
+      projectIter = c.iterator();
+      while (projectIter.hasNext()) {
+        if (projectArr==null) {
+          projectArr = new ArrayList<>();
+        }
+        projectArr.add(projectIter.next());
+      }
+    } catch (JDOException jdoe) {
+      jdoe.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return projectArr;
+}
+
+  public Project getProjectByProjectIdPrefix(String projectIdPrefix) {
+    Project project = null;
+    String filter="SELECT FROM org.ecocean.Project WHERE projectIdPrefix == \""+projectIdPrefix.trim()+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      project=(Project)it.next();
+    }
+    query.closeAll();
+    return project;
+  }
+
+  public Project getProjectByUuid(String id) {
+    Project project = null;
+    String filter="SELECT FROM org.ecocean.Project WHERE id == \""+id.trim()+"\"";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    Iterator it = c.iterator();
+    if(it.hasNext()){
+      project=(Project)it.next();
+    }
+    query.closeAll();
+    return project;
+  }
+
   public List<User> getUsersWithUsername() {
     return getUsersWithUsername("username ascending");
   }
@@ -1520,6 +1641,102 @@ public class Shepherd {
     return itask;
   }
 
+  public List<String> getProjectIdPrefixsForEncounter(Encounter enc) {
+    List<Project> projects = getProjectsForEncounter(enc);
+    List<String> projectIdPrefixs = null;
+    if (projects!=null&&projects.size()>0) {
+      projectIdPrefixs = new ArrayList<>();
+      for (Project project : projects) {
+        projectIdPrefixs.add(project.getProjectIdPrefix());
+      }
+    }
+    return projectIdPrefixs;
+  }
+
+  public List<Project> getProjectsForEncounter(Encounter enc) {
+    List<Project> projects = null;
+    Query query = null;
+    try {
+      query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) && enc.catalogNumber=='" + enc.getID() + "'");
+      Collection c = (Collection) (query.execute());
+      Iterator it = c.iterator();
+      while (it.hasNext()) {
+        if (projects==null) {
+          projects = new ArrayList<Project>();
+        }
+        projects.add((Project) it.next());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return projects;
+  }
+
+  public List<Project> getParticipatingProjectsForUserId(String userId, String orderBy) {
+    List<Project> projects = null;
+    Query query = null;
+    String queryString = "SELECT FROM org.ecocean.Project WHERE users.contains(user) && user.username=='" + userId+"' ";
+    try {
+      if(!Util.stringExists(orderBy)){
+        queryString += "VARIABLES org.ecocean.User user";
+      }else{
+        queryString +=  "ORDER BY " + orderBy+" VARIABLES org.ecocean.User user";
+      }
+      System.out.println("getParticipatingProjectsForUserId() queryString: "+queryString);
+      query = pm.newQuery(queryString);
+      Collection c = (Collection) (query.execute());
+      Iterator it = c.iterator();
+      while (it.hasNext()) {
+        if (projects==null) {
+          projects = new ArrayList<Project>();
+        }
+        System.out.println("got "+projects.size()+" projects to return...");
+        projects.add((Project) it.next());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return projects;
+  }
+
+  public List<Project> getParticipatingProjectsForUserId(String userId) {
+    return getParticipatingProjectsForUserId(userId, null);
+  }
+
+  public List<Project> getOwnedProjectsForUserId(String userId, String orderBy) {
+    List<Project> projects = null;
+    Query query = null;
+    try {
+      if(!Util.stringExists(orderBy)){
+        query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE ownerId=='" + userId+ "'");
+      }else{
+        query = pm.newQuery("SELECT FROM org.ecocean.Project WHERE ownerId=='" + userId+ "' ORDER BY " + orderBy);
+      }
+      Collection c = (Collection) (query.execute());
+      Iterator it = c.iterator();
+      while (it.hasNext()) {
+        if (projects==null) {
+          projects = new ArrayList<Project>();
+        }
+        // System.out.println("got "+projects.size()+" projects to return...");
+        projects.add((Project) it.next());
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return projects;
+  }
+
+  public List<Project> getOwnedProjectsForUserId(String userId) {
+    return getOwnedProjectsForUserId(userId, null);
+  }
+
   public boolean isSurvey(String num) {
     try {
       Survey tempSvy = ((org.ecocean.Survey) (pm.getObjectById(pm.newObjectIdInstance(Survey.class, num.trim()), true)));
@@ -1779,6 +1996,15 @@ public class Shepherd {
   public boolean isPath(String name) {
     try {
       Path tempPath = ((org.ecocean.movement.Path) (pm.getObjectById(pm.newObjectIdInstance(Path.class, name.trim()), true)));
+    } catch (Exception nsoe) {
+      return false;
+    }
+    return true;
+  }
+
+  public boolean isProject(String id) {
+    try {
+      Project tempProject = ((org.ecocean.Project) (pm.getObjectById(pm.newObjectIdInstance(Project.class, id.trim()), true)));
     } catch (Exception nsoe) {
       return false;
     }
@@ -2290,6 +2516,21 @@ public class Shepherd {
     return al;
   }
 
+  public List<Organization> getAllCommonOrganizationsForTwoUsers(User user1, User user2) {
+    ArrayList<Organization> al = new ArrayList<Organization>();
+    try {
+      Query q = getPM().newQuery("SELECT FROM org.ecocean.Organization WHERE members.contains(user1) && members.contains(user2) && user1.uuid == \""+user1.getUUID()+"\" && user2.uuid == \""+user2.getUUID()+"\" VARIABLES org.ecocean.User user1;org.ecocean.User user2");
+      Collection results = (Collection) q.execute();
+      al = new ArrayList<Organization>(results);
+      q.closeAll();
+    }
+    catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return al;
+    }
+    return al;
+  }
+
   public List<Organization> getAllOrganizations() {
     ArrayList<Organization> al = new ArrayList<Organization>();
     try {
@@ -2602,6 +2843,54 @@ public class Shepherd {
     query.closeAll();
     return null;
 */
+  }
+
+  public ArrayList<Project> getAllProjectsForMarkedIndividual(MarkedIndividual individual) {
+    Query query = null;
+    Iterator<Project> projectIter = null;
+    ArrayList<Project> projectArr = null;
+    try {
+      String filter = "SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) && enc.individual == individual VARIABLES org.ecocean.Encounter enc";
+      query = getPM().newQuery(filter);
+      query.declareParameters("MarkedIndividual individual");
+      Collection c = (Collection)query.execute(individual);
+      projectIter = c.iterator();
+      while (projectIter.hasNext()) {
+        if (projectArr==null) {
+          projectArr = new ArrayList<>();
+        }
+        projectArr.add(projectIter.next());
+      }
+    } catch (JDOException jdoe) {
+      jdoe.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return projectArr;
+  }
+
+  public ArrayList<Project> getAllProjectsForEncounter(Encounter encounter) {
+    Query query = null;
+    Iterator<Project> projectIter = null;
+    ArrayList<Project> projectArr = null;
+    try {
+      String filter = "SELECT FROM org.ecocean.Project WHERE encounters.contains(enc) VARIABLES org.ecocean.Encounter enc";
+      query = getPM().newQuery(filter);
+      query.declareParameters("Encounter enc");
+      Collection c = (Collection)query.execute(encounter);
+      projectIter = c.iterator();
+      while (projectIter.hasNext()) {
+        if (projectArr==null) {
+          projectArr = new ArrayList<>();
+        }
+        projectArr.add(projectIter.next());
+      }
+    } catch (JDOException jdoe) {
+      jdoe.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return projectArr;
   }
 
   public List<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(MarkedIndividual indiv) {
@@ -2959,8 +3248,63 @@ public class Shepherd {
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     return acceptedEncounters;
-
   }
+
+  public ArrayList<ScheduledIndividualMerge> getAllIncompleteScheduledIndividualMerges() {
+    List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("!this.taskComplete && this.scheduledTaskType == \"ScheduledIndividualMerge\" ");
+    ArrayList<ScheduledIndividualMerge> mergeTasks = new ArrayList<>();
+    if (tasks!=null) {
+      for (WildbookScheduledTask task : tasks) {
+        ScheduledIndividualMerge mergeTask = (ScheduledIndividualMerge) task;
+        mergeTasks.add(mergeTask);
+      }
+    }
+    return mergeTasks;
+  }
+
+  public ArrayList<WildbookScheduledTask> getAllIncompleteWildbookScheduledTasks() {
+    return getAllWildbookScheduledTasksWithFilter("!this.taskComplete");
+  }
+
+  public ArrayList<ScheduledIndividualMerge> getAllCompleteScheduledIndividualMergesForUsername(String username) {
+    String usernameQuery = "";
+    if (username!=null&&!"".equals(username)) {
+      usernameQuery = " && this.initiatorName == \""+username.trim()+"\"";
+    }
+    // this is where long names get you
+    List<WildbookScheduledTask> tasks = getAllWildbookScheduledTasksWithFilter("this.taskComplete && this.scheduledTaskType == \"ScheduledIndividualMerge\""+usernameQuery);
+    ArrayList<ScheduledIndividualMerge> mergeTasks = new ArrayList<>();
+    if (tasks!=null) {
+      for (WildbookScheduledTask task : tasks) {
+        ScheduledIndividualMerge mergeTask = (ScheduledIndividualMerge) task;
+        mergeTasks.add(mergeTask);
+      }
+    }
+    return mergeTasks;
+  }
+
+  public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasks() {
+    return getAllWildbookScheduledTasksWithFilter("");
+  }
+
+  public ArrayList<WildbookScheduledTask> getAllWildbookScheduledTasksWithFilter(String filter) {
+    ArrayList<WildbookScheduledTask> taskList = new ArrayList();
+    Query query = null;
+    try {
+      Extent taskClass = pm.getExtent(WildbookScheduledTask.class, true);
+      query = pm.newQuery(taskClass, filter);
+      query.setOrdering("this.taskScheduledExecutionTimeLong descending");
+      Collection c = (Collection) (query.execute());
+      taskList = new ArrayList(c);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      query.closeAll();
+    }
+    return taskList;
+  }
+
+
 
   /**
    * Retrieves all encounters that are stored in the database but which have been rejected for the visual database
@@ -3037,12 +3381,29 @@ public class Shepherd {
     try {
       tempShark = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, id.trim()), true)));
     } catch (Exception nsoe) {
-      nsoe.printStackTrace();
+      //nsoe.printStackTrace();
       return null;
     }
     return tempShark;
   }
 
+  public List<MarkedIndividual> getMarkedIndividualsFromProject(Project project){
+    List<MarkedIndividual> individuals = new ArrayList<MarkedIndividual>();
+    try {
+      Query query = getPM().newQuery("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && project.encounters.contains(enc) VARIABLES org.ecocean.Encounter enc; org.ecocean.Project project ");
+      //query.declareParameters("Project project");
+      Collection c = (Collection) query.execute(project);
+      individuals = new ArrayList<MarkedIndividual>(c);
+      query.closeAll();
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      return individuals;
+    }
+    return individuals;
+  }
+
+  //we now use enc.getIndividual because there is a foreign-key connecting encs to inds without another SQL call
+  @Deprecated
   public MarkedIndividual getMarkedIndividualHard(Encounter enc) {
     String num = enc.getCatalogNumber();
     String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && enc.catalogNumber == \""+num+"\"  VARIABLES org.ecocean.Encounter enc";
@@ -3302,6 +3663,20 @@ public class Shepherd {
 
 
 
+
+  public ArrayList<Project> getAllProjects() {
+    Extent projectClass = null;
+    try {
+      projectClass = pm.getExtent(Project.class, true);
+    } catch (javax.jdo.JDOException jdoe) {
+      jdoe.printStackTrace();
+    }
+    Query projectQuery = pm.newQuery(projectClass);
+    Collection c = (Collection) (projectQuery.execute());
+    ArrayList<Project> list = new ArrayList<>(c);
+    projectQuery.closeAll();
+    return list;
+  }
 
   public Iterator getAllWorkspaces() {
     Extent allWorkspaces = null;
@@ -5227,8 +5602,6 @@ public class Shepherd {
       query.closeAll();
       return users;
   }
-
-
 
   public List<Encounter> getEncountersForPhotographer(User user, Shepherd myShepherd){
       ArrayList<Encounter> users=new ArrayList<Encounter>();

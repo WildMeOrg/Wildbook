@@ -25,6 +25,7 @@ import org.ecocean.Keyword;
 import org.ecocean.LabeledKeyword;
 import org.ecocean.Annotation;
 import org.ecocean.AccessControl;
+import org.ecocean.Taxonomy;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
@@ -44,6 +45,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Base64;
 import java.util.HashMap;
@@ -122,7 +124,7 @@ public class MediaAsset implements java.io.Serializable {
     protected DateTime userDateTime;
 
     // Variables used in the Survey, SurveyTrack, Path, Location model
-    
+
     private String correspondingSurveyTrackID;
     private String correspondingSurveyID;
 
@@ -233,7 +235,7 @@ public class MediaAsset implements java.io.Serializable {
     public void setOccurrence(Occurrence occ) {
       this.occurrence = occ;
     }
-    
+
     public void setCorrespondingSurveyTrackID(String id) {
       if (id != null && !id.equals("")) {
         correspondingSurveyTrackID = id;
@@ -246,13 +248,13 @@ public class MediaAsset implements java.io.Serializable {
       }
       return null;
     }
-    
+
     public void setCorrespondingSurveyID(String id) {
       if (id != null && !id.equals("")) {
         correspondingSurveyID = id;
       }
     }
-    
+
     public String getCorrespondingSurveyID() {
       if (correspondingSurveyID != null) {
         return correspondingSurveyID;
@@ -632,6 +634,24 @@ public class MediaAsset implements java.io.Serializable {
         return (getAnnotations().size() > 0);
     }
 
+    public List<Taxonomy> getTaxonomies(Shepherd myShepherd) {
+        Set<Taxonomy> taxis = new HashSet<Taxonomy>();
+        for (Annotation ann: getAnnotations()) {
+            Taxonomy taxy = ann.getTaxonomy(myShepherd);
+            taxis.add(taxy);
+        }
+        return new ArrayList(taxis);
+    }
+    public Taxonomy getTaxonomy(Shepherd myShepherd) {
+        for (Annotation ann: getAnnotations()) {
+            Taxonomy taxy = ann.getTaxonomy(myShepherd);
+            if (taxy!=null) return taxy;
+        }
+        return null;
+    }
+
+
+
     public List<Annotation> getAnnotationsSortedPositionally() {
         List<Annotation> ord = new ArrayList<Annotation>(this.getAnnotations());
         if (Util.collectionSize(ord) < 2) return ord;  //no sorting necessary
@@ -714,7 +734,7 @@ public class MediaAsset implements java.io.Serializable {
             if (i == 0) {
                 String localURL = store.getUsage().substring(16);
                 return new URL(localURL);
-            } 
+            }
         } catch (java.net.MalformedURLException ex) {}
         return store.webURL(this);
     }
@@ -760,9 +780,9 @@ public class MediaAsset implements java.io.Serializable {
     public URL containerURLIfPresent() {
         String containerName = CommonConfiguration.getProperty("containerName","context0");
 
-        URL localURL = store.getConfig().getURL("webroot"); 
+        URL localURL = store.getConfig().getURL("webroot");
         if (localURL == null) return null;
-        String hostname = localURL.getHost(); 
+        String hostname = localURL.getHost();
 
         if (containerName!=null&&containerName!="") {
             try {
@@ -816,7 +836,7 @@ public class MediaAsset implements java.io.Serializable {
             ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
             if ((kids != null) && (kids.size() > 0)) {
                 MediaAsset kid = kids.get(0);
-                return kid; 
+                return kid;
 
             } ///not sure how to pick if we have more than one!  "probably rare" case anyway....
         }
@@ -935,7 +955,7 @@ public class MediaAsset implements java.io.Serializable {
         org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException{
       return sanitizeJson(request,jobj, true);
     }
-    
+
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
         org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
           String context = ServletUtilities.getContext(request);
@@ -1007,7 +1027,7 @@ public class MediaAsset implements java.io.Serializable {
                             jf.put("encounterId", enc.getCatalogNumber());
                             if (enc.hasMarkedIndividual()) {
                                 jf.put("individualId", enc.getIndividualID());
-                                String displayName = enc.getDisplayName();
+                                String displayName = enc.getIndividual().getDisplayName(request, myShepherd);
                                 if (!Util.stringExists(displayName)) displayName = enc.getIndividualID();
                                 jf.put("displayName", displayName);
                             }
@@ -1070,7 +1090,7 @@ public class MediaAsset implements java.io.Serializable {
                 }
                 jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
             }
-            
+
             //myShepherd.rollbackDBTransaction();
             //myShepherd.closeDBTransaction();
 
@@ -1280,20 +1300,20 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         for(int i=0;i<numKeywords;i++){
           Keyword kw=keywords.get(i);
           if (kw==null) return false;
-          if((keywordName.equals(kw.getIndexname())||keywordName.equals(kw.getDisplayName()))) return true; 
+          if((keywordName.equals(kw.getIndexname())||keywordName.equals(kw.getDisplayName()))) return true;
         }
       }
-      
+
       return false;
     }
-    
+
     public boolean hasKeyword(Keyword key){
       if(keywords!=null){
         if(keywords.contains(key)){return true;}
       }
       return false;
     }
-    
+
     public void removeKeyword(Keyword k) {
       if (keywords != null) {
         if (keywords.contains(k)) keywords.remove(k);

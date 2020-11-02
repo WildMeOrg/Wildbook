@@ -148,18 +148,6 @@ new_message.append("<html><body>");
 
 <%=props.getProperty("questions") %> <a href="mailto:<%=CommonConfiguration.getAutoEmailAddress(context) %>"><%=CommonConfiguration.getAutoEmailAddress(context) %></a></p>
 
-<%
-if (taskId!=null&&!"".equals(taskId)) {
-%>
-
-<p>
-  <b><a href="//<%=CommonConfiguration.getURLLocation(request)%>/iaResults.jsp?taskId=<%=taskId%>"><%=props.getProperty("viewIAResults") %></b></a>.
-</p>
-<br>
-<%
-}
-%>
-
 <p>
 	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
 </p>

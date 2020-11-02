@@ -186,11 +186,11 @@
 					//smallest vs largest analysis
 					if(thisEnc.getAverageMeasurementEventInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()<=measurementValues[b].getMin()){
 						smallestIndies[b]=thisEnc.getIndividualID();
-						smallestIndiesDisplayName[b]=thisEnc.getDisplayName();
+						smallestIndiesDisplayName[b]=thisEnc.getIndividual().getDisplayName(request, myShepherd);
 					}
 					else if(thisEnc.getAverageMeasurementEventInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()>=measurementValues[b].getMax()){
 						largestIndies[b]=thisEnc.getIndividualID();
-						largestIndiesDisplayName[b]=thisEnc.getDisplayName();
+						largestIndiesDisplayName[b]=thisEnc.getIndividual().getDisplayName(request, myShepherd);
 					}
 					
 					//males versus females analysis
@@ -282,14 +282,14 @@
 		 if (thisEnc.getMaxDistanceBetweenTwoSightings()>maxTravelDistance){
 			 maxTravelDistance=thisEnc.getMaxDistanceBetweenTwoSightings();
 			 farthestTravelingIndividual=thisEnc.getIndividualID();
-			 farthestTravelingIndividualDisplayName=thisEnc.getDisplayName();
+			 farthestTravelingIndividualDisplayName=thisEnc.getIndividual().getDisplayName(request, myShepherd);
 		 }
 		 
 		 //max time calc
 		 if (thisEnc.getMaxTimeBetweenTwoSightings()>maxTimeBetweenResights){
 			 maxTimeBetweenResights=thisEnc.getMaxTimeBetweenTwoSightings();
 			 longestResightedIndividual=thisEnc.getIndividualID();
-			 longestResightedIndividualDisplayName=thisEnc.getDisplayName();
+			 longestResightedIndividualDisplayName=thisEnc.getIndividual().getDisplayName(request, myShepherd);
 		 }
 		 
 		 //maxYearsBetweenSightings calc

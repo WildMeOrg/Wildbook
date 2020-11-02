@@ -123,7 +123,7 @@ wildbook.Collection.Encounters = wildbook.Collection.BaseClass.extend({
 	model: wildbook.Model.Encounter,
 	url: function() {
 		var u = wildbookGlobals.baseUrl + '/api/';
-		if (this._altUrl) { 
+		if (this._altUrl) {
 			u += this._altUrl;
 		} else {
 			u += this.model.prototype.className();

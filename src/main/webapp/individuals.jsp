@@ -120,29 +120,10 @@ else{
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <%
-if (request.getParameter("number")!=null) {
-	String oldWorld = request.getParameter("number").trim();
-        //we also check individualID (uuid) too, just in case some href in jsp is still using number=
-
-        Query q = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "SELECT \"INDIVIDUALID\" FROM \"MARKEDINDIVIDUAL\" WHERE \"LEGACYINDIVIDUALID\" = ? OR \"ALTERNATEID\" LIKE ? OR \"INDIVIDUALID\" = ?");
-        List results = (List) q.execute(oldWorld, "%" + oldWorld + "%", oldWorld);
-
-        String tryId = null;
-        if (results.iterator().hasNext()) tryId = (String) results.iterator().next();
-        q.closeAll();
-        response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        response.setHeader("Location", "individuals.jsp?id=" + tryId);
-        response.flushBuffer();
-        // what was the below return meant to do? it breaks the page
-        // return;
-
-}
-
-id = request.getParameter("id");
-if (id==null) id = request.getParameter("number");
-if (id!=null&&!"".equals(id)&&myShepherd.isMarkedIndividual(id)) {
-System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
-
+if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
+    //System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
+    id = request.getParameter("id");
+    if (id==null) id = request.getParameter("number");
 	myShepherd.beginDBTransaction();
 	try {
 
@@ -155,73 +136,26 @@ System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
 
 			int numEncs=myEncs.size();
 
-      // This is a big hack to make sure an encounter's annotations are loaded into the JDO cache
-      // without this hack
-      int numAnns = 0;
-      for (Object obj: myEncs) {
-        Encounter enc = (Encounter) obj;
-        if (enc!=null && enc.getAnnotations()!=null) {
-          for (org.ecocean.Annotation ann: enc.getAnnotations()) {
-            if (ann!=null) {
-              String makeSureWeHaveIt = ann.getIAClass();
-              numAnns++;
-            }
-          }
-        }
-      }
-      System.out.println("");
-      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
-      System.out.println("This marked individual has "+numAnns+" anotations");
+	      	// This is a big hack to make sure an encounter's annotations are loaded into the JDO cache
+	      	// without this hack
+	      	int numAnns = 0;
+		      for (Object obj: myEncs) {
+		        Encounter enc = (Encounter) obj;
+		        if (enc!=null && enc.getAnnotations()!=null) {
+		          for (Annotation ann: enc.getAnnotations()) {
+		            if (ann!=null) {
+		              String makeSureWeHaveIt = ann.getIAClass();
+		              numAnns++;
+		            }
+		          }
+		        }
+		      }
+		      //System.out.println("");
+		      //System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+		      //System.out.println("This marked individual has "+numAnns+" anotations");
 
-			//boolean visible = indie.canUserAccess(request);
-      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
-      System.out.println("We got visible = "+visible);
-
-      String ipAddress = request.getHeader("X-FORWARDED-FOR");
-      if (ipAddress == null) ipAddress = request.getRemoteAddr();
-      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
-      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
-      System.out.println("    From IP: "+ipAddress);
-      System.out.println("    "+currentTimeString);
-      System.out.println("    Individual: "+indie);
-      System.out.println("    is visible: "+visible);
-      System.out.println("    request.getAuthType(): "+request.getAuthType());
-      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
-      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
-      System.out.println("");
-
-
-			if (!visible) {
-
-        // remove any potentially-sensitive data, labeled with the secure-field class
-        System.out.println("Not visible! Printing stuff!");
-        %>
-        <script src="/javascript/hide-secure-fields.js"></script>
-        <%
-  			ArrayList<String> uids = indie.getAllAssignedUsers();
-				ArrayList<String> possible = new ArrayList<String>();
-				for (String u : uids) {
-					Collaboration c = null;
-					if (collabs != null) c = Collaboration.findCollaborationWithUser(u, collabs);
-					if ((c == null) || (c.getState() == null)) {
-						User user = myShepherd.getUser(u);
-						String fullName = u;
-						if (user!=null && user.getFullName()!=null) fullName = user.getFullName();
-						possible.add(u + ":" + fullName.replace(",", " ").replace(":", " ").replace("\"", " "));
-					}
-				}
-				String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
-				cmsg = cmsg.replace("'", "\\'");
-
-				if (possible.size() > 0) {
-    			String arr = new Gson().toJson(possible);
-					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
-				} else {
-					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
-					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
-				}
-			}
-
+					//boolean visible = indie.canUserAccess(request);
+		      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
 
 
 				if (!visible) {
@@ -421,19 +355,20 @@ input.nameKey, input.nameValue {
 
     // edit button click area!!
     $("#edit").click(function() {
-      $(".namebutton").css("visibility", "visible");
-      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue, .hidden").hide();
+      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue,.nameValue .hidden,.namebutton .hidden, .deletename .hidden").hide();
       $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
     });
+
+    //btn btn-sm editFormBtn namebutton
+    //.nameValue .hidden,.namebutton .hidden, .deletename .hidden
     $("#closeEdit").click(function() {
       //$(".namebutton").css("visibility", "hidden");
       $(".editForm, input.nameKey, input.nameValue, #defaultNameColon, input.namebutton, input.btn.deletename").hide();
       $(".clickDateText").hide();
       $(".noEditText, span.nameKey, span.nameValue").show();
     });
-
   });
 
 </script>
@@ -485,16 +420,21 @@ $(document).ready(function() {
           MarkedIndividual sharky=myShepherd.getMarkedIndividual(id);
 
           // replace this with canUserViewIndividual?
-//          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
+          // boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
           boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
-
 
           //System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
               String myNickname = "";
-              myNickname = sharky.getDisplayName("Nickname");
+
+              String nameInProjectContext = sharky.getDisplayName(request, myShepherd);
+              if (nameInProjectContext!=null) {
+                myNickname = nameInProjectContext;
+              } else {
+                myNickname = sharky.getDisplayName("Nickname");
+              }
             %>
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
@@ -516,9 +456,10 @@ $(document).ready(function() {
             <%
 
 
-          } else {
+          } else { // no nicknames allowed in cc.props
+            System.out.println("no nicknames allowed, trying sharky.getDisplayName(request, myShepherd) = "+sharky.getDisplayName(request, myShepherd) );
             %>
-            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName()%>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName(request, myShepherd)%>
             <%
             if(CommonConfiguration.allowAdoptions(context)){
                   %>
@@ -556,7 +497,7 @@ if (sharky.getNames() != null) {
 
     // if (allNames != null) out.println("<span title=\"id " + sharky.getId() + "\">" + allNames + "</span>");
 
-    System.out.println("displayName="+sharky.getDisplayName());
+    System.out.println("displayName="+sharky.getDisplayName(request, myShepherd));
 
     %>
     <div class="namesection default">
@@ -577,12 +518,27 @@ if (sharky.getNames() != null) {
       <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
     </div><%
 
+
     // make UI for non-default names here
     if ((sharky.getNames() != null) && (sharky.getNames().size() > 0) && (sharky.getNames().getKeys()!=null)){
     	System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
+      boolean inProjectsAndWillGetDisplayedInSeparateSection = false;
 	    for (String nameKey: sharky.getNames().getKeys()) {
 	      if (MultiValue.isDefault(nameKey)) continue;
 	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
+        MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
+        List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
+        for(Project currentProject: projects){
+          String researchProjId = currentProject.getProjectIdPrefix();
+          if (nameKey.contains(researchProjId)){
+            inProjectsAndWillGetDisplayedInSeparateSection = true;
+            continue;
+          }
+        }
+        if(inProjectsAndWillGetDisplayedInSeparateSection == true){
+          inProjectsAndWillGetDisplayedInSeparateSection = false;
+          continue;
+        }
 	      String nameLabel=nameKey;
 	      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
 	      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
@@ -601,12 +557,64 @@ if (sharky.getNames() != null) {
 	        <span class="nameCheck">&check;</span>
 	        <span class="nameError">X</span>
 	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
-	      </div><%
+	      </div>
+
+        <%
 	    }
 	}
 
+  MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
+  List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
+  if(projects!=null && projects.size()>0){
+    for(Project currentProject: projects){
+      String researchProjId = currentProject.getProjectIdPrefix();
+      String researchProjName = currentProject.getResearchProjectName();
+      String incrementalId = indie.getName(researchProjId);
+      if(incrementalId != null){
+        %>
+        <div class="namesection <%=researchProjName%>">
+	        <span class="nameKey" data-oldkey="<%=researchProjName%>"><em><%=researchProjName%></em></span>
+	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjName%>" placeholder="<%= researchProjName%>" >
+	        <span id="nameColon">:</span>
+
+	        <span class="nameValue <%=researchProjId%>" data-oldvalue="<%=incrementalId%>"><%=incrementalId%></span>
+	        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=incrementalId%>" placeholder="<%=incrementalId %>" >
+	        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+
+	        <span class="nameCheck">&check;</span>
+	        <span class="nameError">X</span>
+	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+	      </div>
+
+        <%
+      }else{
+        String noIdTxt = props.getProperty("noIdIn");
+        %>
+        <div class="namesection <%=researchProjId%>">
+          <span class="nameKey" data-oldkey="<%=researchProjId%>"><em><%=researchProjId%></em></span>
+          <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjId%>" placeholder="<%= researchProjId%>" >
+          <span id="nameColon">:</span>
+
+          <span class="nameValue <%=researchProjId%>" data-oldvalue="<%=noIdTxt%>"><%=noIdTxt%></span>
+          <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=noIdTxt%>" placeholder="<%=noIdTxt %>" >
+          <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+
+          <span class="nameCheck">&check;</span>
+          <span class="nameError">X</span>
+          <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+        </div>
+
+        <%
+      }
+    }
+  }
+
     // "add new name" Edit section
     %>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+
     <div class="newnameButton">
       <input id="newNameButton" class="btn btn-sm editFormBtn namebutton newname" type="submit" value="Add New Name">
     </div>
@@ -760,16 +768,9 @@ if (sharky.getNames() != null) {
       });
     });
   </script>
-
-
-
     <%
-
-
 }
             %></p>
-
-
             <%
             String sexValue="";
             if(sharky.getSex()!=null){sexValue=sharky.getSex();}
@@ -846,7 +847,7 @@ if (sharky.getNames() != null) {
             <%
               }
               %>
-
+                </div>
         </div>
 
         <div class="col-sm-6">
@@ -867,7 +868,7 @@ if (sharky.getNames() != null) {
             //if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
 
             %>
-            <p class="noEditText"><%=props.getProperty("birthdate")  %> <span id="displayBirth"><%=displayTimeOfBirth%></span></p>
+            <p class="noEditText"><%=props.getProperty("birthdate") %>: <span id="displayBirth"><%=displayTimeOfBirth%></span></p>
 
 
             <script type="text/javascript">
@@ -1667,7 +1668,9 @@ if (sharky.getNames() != null) {
               var persistenceID = "";
               var relationshipID = $("#inputPersistenceID").val();
               if ((relationshipID != null) && (relationshipID != "")) {
-                  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                  //persistenceID = relationshipID;
+            	  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                  
               }
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
@@ -2024,6 +2027,8 @@ if (sharky.getNames() != null) {
               $(document).on('click', '.editRelationshipBtn', function (event) {
                 $("#setRelationshipResultDiv").hide();
                 var relationshipID = event.target.value;
+                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                
                 getRelationshipData(relationshipID);
 		$("#inputPersistenceID").val(relationshipID);
 		$("#individual1").val("<%=individualID%>");
@@ -2053,7 +2058,7 @@ if (sharky.getNames() != null) {
                 });
 
                 var relationshipID = ($(this).attr("value"));
-                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                var persistenceID = persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
                 var deletedMarkedIndividualName1 = "<%=individualID%>";
                 $("div[value='" + relationshipID + "']").hide();
                 $("#remove" + relationshipID).show();
@@ -2114,7 +2119,7 @@ if (sharky.getNames() != null) {
 		%>
 
         $(document).ready(function() {
-          getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName() %>");
+          getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName(request, myShepherd) %>");
         });
         </script>
 
@@ -2122,10 +2127,10 @@ if (sharky.getNames() != null) {
 
           <div role="navigation">
             <ul class="nav nav-tabs">
-              <li id="cooccurrenceDiagramTab" >
+              <li id="cooccurrenceDiagramTab" class="active">
                 <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a>
               </li>
-              <li id="cooccurrenceTableTab" class="active">
+              <li id="cooccurrenceTableTab">
                 <a href="#cooccurrenceTable"><%=props.getProperty("cooccurrence")%> Table</a>
               </li>
             </ul>
@@ -2464,6 +2469,7 @@ if (sharky.getNames() != null) {
    $( window ).resize(function(){
      cropDesktopPics(maxHeight);
    });
+
    </script>
 
 

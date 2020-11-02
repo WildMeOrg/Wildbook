@@ -56,7 +56,6 @@ java.util.*" %>
         HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
         if (orient == null) return null;
         for (String k : orient.keySet()) {
-System.out.println("rotationInfo: " + k + "=" + orient.get(k) + " on " + ma);
             if (orient.get(k).matches(".*90.*")) return orient.get(k);
             if (orient.get(k).matches(".*270.*")) return orient.get(k);
         }
@@ -179,7 +178,7 @@ function forceLink(el) {
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
-		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName()+"</a><br>";
+		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName(request, imageShepherd)+"</a><br>";
 		      }
 		      	//System.out.println("    EMG: got indID element "+individualID);
 

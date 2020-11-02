@@ -94,6 +94,7 @@
 				/gallery.jsp = authc
 				/encounters/encounter.jsp = authc
 				/encounters/encounterMediaGallery.jsp = authc
+				/encounters/projectManagement.jsp = authc
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
 
@@ -159,7 +160,7 @@
        /AddSurveyTrackToSurvey = authc, roles[researcher]
 
 		   /ImportSRGD = authc, roles[admin]
-		        /IndividualCreate = authc, roles[researcher]
+
 		        /OccurrenceCreate = authc, roles[researcher]
 		        /OccurrenceRemoveEncounter = authc, roles[researcher]
 		        /IndividualRemoveEncounter = authc, roles[researcher]
@@ -212,7 +213,7 @@
 				   /TissueSampleSetMeasurement = authc, roles[researcher]
 				  /TissueSampleRemoveHaplotype = authc, roles[researcher]
 				   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
-					/IndividualCreate = authc, roles[researcher]
+					
 				        /OccurrenceCreate = authc, roles[researcher]
 				        /OccurrenceRemoveEncounter = authc, roles[researcher]
 				        /IndividualRemoveEncounter = authc, roles[researcher]
@@ -305,15 +306,19 @@
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
 
+        /UserGetNotifications = authc
+
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
 
 					/IndividualSetNickName = authc, roles[researcher]
+          /IndividualCreateForProject = authc, roles[researcher]
+          /IndividualAddIncrementalProjectId = authc, roles[researcher]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
 
 					/ResurrectDeletedEncounter = authc,roles[admin]
-					/ResurrectDeletedAdoption = = authc,roles[admin]
+
 				/OccurrenceSearchExportMetadataExcel = authc, roles[researcher]
         /EncounterSearchExportMetadataExcel = authc, roles[researcher]
                  /OccurrenceSearchExportGtm = authc, roles[researcher]
@@ -330,6 +335,9 @@
 				/ExportWekaPredictorARFF = authc, roles[admin]
 
 				/pictureBook.jsp = authc, roles[researcher]
+				/projects/projectList.jsp = authc, roles[researcher]
+				/projects/project.jsp = authc, roles[researcher]
+				/projects/createProject.jsp = authc, roles[researcher]
 
 				/EncounterSetSurveyAndTrack = authc, roles[researcher]
 				/OccurrenceSetSurveyAndTrack = authc, roles[researcher]
@@ -381,7 +389,6 @@
 				/OccurrenceClusterMASet = authc, roles[researcher]
 				/OccurrenceSetObservation = authc, roles[researcher]
 				/EncounterSetObservation = authc, roles[researcher]
-				/EncounterVMData = authc, roles[researcher]
 				/encounters/encounterVM.jsp = authc, roles[researcher]
 
 				/SimpleCMRSpecifySessions.jsp = authc, roles[researcher]
@@ -389,20 +396,44 @@
 				/sutime/** = authc
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
+
+
 				/AnnotationEdit = authc, roles[admin]
+
 				/EncounterSetString = authc
 				/OrganizationEdit = authc, roles[admin]
         /UserGetSimpleJSON = authc
 				/MergeIndividual = authc, roles[researcher]
+
+        /ScheduledIndividualMergeUpdate = authc, roles[researcher]
+
+				/GetEncounterSearchGoogleMapsPoints = authc, roles[researcher]
+
 				/obrowse.jsp = authc, roles[admin]
 				/merge.jsp = authc, roles[researcher]
 				/mergeComplete.jsp = authc, roles[researcher]
 				/AnnotationSetMatchAgainst = authc, roles[admin]
+
 				/MembershipCreate = authc
 				/MembershipDelete = authc
         /RemoveDynamicProperty = authc, roles[researcher]
+
+
 				/encounters/manualAnnotation.jsp = authc, roles[researcher]
+
 				/ImportTaskDetection = authc, roles[admin]
+				
+				/imports.jsp = authc
+				
+				/DeleteImportTask = authc, roles[researcher]
+
+				/MergeIndividual = authc, roles[researcher]
+				/ScheduledIndividualMergeUpdate = authc, roles[researcher]
+
+        /ProjectIA = authc, roles[researcher]
+
+        /UserPreferences = authc, roles[researcher]
+				
             </param-value>
         </init-param>
     </filter>
@@ -432,6 +463,36 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
+
+  <servlet>
+    <servlet-name>ProjectCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectCreate</servlet-class>
+  </servlet>
+
+    <servlet>
+    <servlet-name>ProjectDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectDelete</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ProjectGet</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectGet</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ProjectUpdate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectUpdate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ProjectIA</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectIA</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>TranslationsGet</servlet-name>
+    <servlet-class>org.ecocean.servlet.TranslationsGet</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterRemoveUser</servlet-name>
@@ -532,6 +593,16 @@
   </servlet>
 
   <servlet>
+    <servlet-name>IndividualAddIncrementalProjectId</servlet-name>
+    <servlet-class>org.ecocean.servlet.IndividualAddIncrementalProjectId</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>IndividualCreateForProject</servlet-name>
+    <servlet-class>org.ecocean.servlet.IndividualCreateForProject</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>IndividualSetName</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualSetName</servlet-class>
   </servlet>
@@ -624,6 +695,10 @@
       <servlet-class>org.ecocean.servlet.UserResetAcceptedUserAgreement</servlet-class>
   </servlet>
 
+  <servlet>
+      <servlet-name>UserGetNotifications</servlet-name>
+      <servlet-class>org.ecocean.servlet.UserGetNotifications</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
@@ -690,6 +765,11 @@
    <servlet>
     <servlet-name>MergeIndividual</servlet-name>
     <servlet-class>org.ecocean.servlet.MergeIndividual</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ScheduledIndividualMergeUpdate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ScheduledIndividualMergeUpdate</servlet-class>
   </servlet>
 
     <servlet>
@@ -1075,6 +1155,7 @@
   </servlet>
 
 
+
     <servlet>
       <servlet-name>OccurrenceCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.OccurrenceCreate</servlet-class>
@@ -1111,6 +1192,16 @@
     <url-pattern>/OrganizationEdit</url-pattern>
   </servlet-mapping>
 
+    <servlet>
+    <servlet-name>OrganizationGet</servlet-name>
+    <servlet-class>org.ecocean.servlet.OrganizationGet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>OrganizationGet</servlet-name>
+    <url-pattern>/OrganizationGet</url-pattern>
+  </servlet-mapping>
+
   <servlet>
     <servlet-name>UserGetSimpleJSON</servlet-name>
     <servlet-class>org.ecocean.servlet.UserGetSimpleJSON</servlet-class>
@@ -1119,6 +1210,11 @@
   <servlet-mapping>
     <servlet-name>UserGetSimpleJSON</servlet-name>
     <url-pattern>/UserGetSimpleJSON</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>UserGetNotifications</servlet-name>
+    <url-pattern>/UserGetNotifications</url-pattern>
   </servlet-mapping>
 
       <servlet>
@@ -1624,6 +1720,36 @@
     <servlet-class>org.ecocean.servlet.export.OccurrenceSearchExportGtm</servlet-class>
   </servlet>
 
+  <servlet-mapping>
+    <servlet-name>ProjectCreate</servlet-name>
+    <url-pattern>/ProjectCreate</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectDelete</servlet-name>
+    <url-pattern>/ProjectDelete</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectGet</servlet-name>
+    <url-pattern>/ProjectGet</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectUpdate</servlet-name>
+    <url-pattern>/ProjectUpdate</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectIA</servlet-name>
+    <url-pattern>/ProjectIA</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>TranslationsGet</servlet-name>
+    <url-pattern>/TranslationsGet</url-pattern>
+  </servlet-mapping>
+
   <!--SUTime testing-->
         <servlet>
         <servlet-name>SUTimeServlet</servlet-name>
@@ -1758,6 +1884,16 @@
   <servlet-mapping>
 	  <servlet-name>SimpleCMROutput</servlet-name>
 	  <url-pattern>/SimpleCMROutput</url-pattern>
+  </servlet-mapping>
+
+    <servlet-mapping>
+          <servlet-name>IndividualAddIncrementalProjectId</servlet-name>
+          <url-pattern>/IndividualAddIncrementalProjectId</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>IndividualCreateForProject</servlet-name>
+    <url-pattern>/IndividualCreateForProject</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -1899,10 +2035,7 @@
     <url-pattern>/IndividualAddComment</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>IndividualCreate</servlet-name>
-    <url-pattern>/IndividualCreate</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>EncounterForm</servlet-name>
@@ -1912,6 +2045,11 @@
   <servlet-mapping>
     <servlet-name>MergeIndividual</servlet-name>
     <url-pattern>/MergeIndividual</url-pattern>
+  </servlet-mapping>
+
+    <servlet-mapping>
+    <servlet-name>ScheduledIndividualMergeUpdate</servlet-name>
+    <url-pattern>/ScheduledIndividualMergeUpdate</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -2051,12 +2189,6 @@
     <servlet-name>EncounterSetTags</servlet-name>
     <url-pattern>/EncounterSetTags</url-pattern>
   </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>EncounterVMData</servlet-name>
-    <url-pattern>/EncounterVMData</url-pattern>
-  </servlet-mapping>
-
 
   <servlet-mapping>
     <servlet-name>EncounterResetDate</servlet-name>
@@ -2561,10 +2693,6 @@
     <url-pattern>/LoginUserSocial</url-pattern>
   </servlet-mapping>
 
-  <servlet>
-    <servlet-name>EncounterVMData</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterVMData</servlet-class>
-  </servlet>
   <servlet-mapping>
     <servlet-name>EncounterSetObservation</servlet-name>
     <url-pattern>/EncounterSetObservation</url-pattern>
@@ -2592,7 +2720,7 @@
     <url-pattern>/AddOccToTrack</url-pattern>
   </servlet-mapping>
 
-        <servlet>
+  <servlet>
     <servlet-name>AnnotationSetMatchAgainst</servlet-name>
     <servlet-class>org.ecocean.servlet.AnnotationSetMatchAgainst</servlet-class>
   </servlet>
@@ -2602,7 +2730,7 @@
     <url-pattern>/AnnotationSetMatchAgainst</url-pattern>
   </servlet-mapping>
 
-          <servlet>
+  <servlet>
     <servlet-name>ImportTaskDetection</servlet-name>
     <servlet-class>org.ecocean.servlet.ImportTaskDetection</servlet-class>
   </servlet>
@@ -2610,6 +2738,36 @@
   <servlet-mapping>
     <servlet-name>ImportTaskDetection</servlet-name>
     <url-pattern>/ImportTaskDetection</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>DeleteImportTask</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.DeleteImportTask</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>DeleteImportTask</servlet-name>
+    <url-pattern>/DeleteImportTask</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>GetCurrentIAInfo</servlet-name>
+    <servlet-class>org.ecocean.servlet.GetCurrentIAInfo</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>GetCurrentIAInfo</servlet-name>
+    <url-pattern>/GetCurrentIAInfo</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>UserPreferences</servlet-name>
+    <servlet-class>org.ecocean.servlet.UserPreferences</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>UserPreferences</servlet-name>
+    <url-pattern>/UserPreferences</url-pattern>
   </servlet-mapping>
 
 </web-app>

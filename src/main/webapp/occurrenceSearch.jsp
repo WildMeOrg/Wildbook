@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.io.IOException" %>
-<%@ page import="org.ecocean.SearchUtilities" %>
+<%@ page import="org.ecocean.FormUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%
@@ -417,20 +417,11 @@ function FSControl(controlDiv, map) {
     <div id="date" style="display:none;">
       <p><%=props.getProperty("dateInstructions") %></p>
 
-<!--  date of birth and death -->
-      <p><strong><%=occProps.getProperty("dateStart")+" "+occProps.getProperty("range")%>:</strong></p>
+      <p><strong><%=occProps.getProperty("eventDate")%>:</strong></p>
       <table>
         <tr>
-          <td><%=occProps.getProperty("start") %> <input type="text" id="eventStartDate-From" name="eventStartDate-From" class="addDatePicker"/></td>
-          <td><%=occProps.getProperty("end") %> <input type="text" id="eventStartDate-To" name="eventStartDate-To" class="addDatePicker"/></td>
-        </tr>
-      </table>
-
-      <p><strong><%=occProps.getProperty("dateEnd")+" "+occProps.getProperty("range")%>:</strong></p>
-      <table>
-        <tr>
-          <td><%=occProps.getProperty("start") %> <input type="text" id="eventEndDate-From" name="eventEndDate-From" class="addDatePicker"/></td>
-          <td><%=occProps.getProperty("end") %> <input type="text" id="eventEndDate-To" name="eventEndDate-To" class="addDatePicker"/></td>
+          <td><%=occProps.getProperty("start") %> <input type="text" id="eventDateFrom" name="eventDateFrom" class="addDatePicker"/></td>
+          <td><%=occProps.getProperty("end") %> <input type="text" id="eventDateTo" name="eventDateTo" class="addDatePicker"/></td>
         </tr>
       </table>
 
@@ -445,17 +436,6 @@ function FSControl(controlDiv, map) {
   </td>
 </tr>
 
-
-
-
-
-
-
-<%
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
-  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
-  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
-%>
 
 
 
@@ -517,16 +497,16 @@ function FSControl(controlDiv, map) {
                   : myShepherd.getAllStrVals(Occurrence.class, fieldName);
                 // in case we tried and failed to find custom values:
                 if (Util.isEmpty(posVals)) posVals = myShepherd.getAllStrVals(Occurrence.class, fieldName);
-                SearchUtilities.printStringFieldSearchRow(fieldName,posVals,out, occProps);
+                FormUtilities.printStringFieldSearchRow(fieldName,posVals,out, occProps);
               }
 
               List<String> allTaxonomyNames = myShepherd.getAllTaxonomyNames();
-              SearchUtilities.printStringFieldSearchRow("taxonomy0",allTaxonomyNames,out, occProps);
+              FormUtilities.printStringFieldSearchRow("taxonomy0",allTaxonomyNames,out, occProps);
 
 
               for (String fieldName : OccurrenceQueryProcessor.SIMPLE_STRING_FIELDS) {
                 if (listVals.contains(fieldName)) continue; // already printed
-                SearchUtilities.printStringFieldSearchRow(fieldName, out, occProps);
+                FormUtilities.printStringFieldSearchRow(fieldName, out, occProps);
               }
               %>
               </table>
@@ -581,7 +561,7 @@ inShepherd.closeDBTransaction();
 %>
 
 <%
-  SearchUtilities.setUpOrgDropdown(true, occProps, out, request, myShepherd);
+  FormUtilities.setUpOrgDropdown("organizationId", true, occProps, out, request, myShepherd);
 %>
 </div>
 </td>
