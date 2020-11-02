@@ -12,7 +12,6 @@ context=ServletUtilities.getContext(request);
   myShepherd.setAction("confirmSubmit.jsp");
 	//HttpSession session = request.getSession(false);
 
-
 	String filesOKMessage = "";
 	if (session.getAttribute("filesOKMessage") != null) { filesOKMessage = session.getAttribute("filesOKMessage").toString(); }
 	String filesBadMessage = "";
@@ -28,8 +27,6 @@ context=ServletUtilities.getContext(request);
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
   props = ShepherdProperties.getProperties("submit.properties", langCode,context);
 
-
-
   //email_props.load(getClass().getResourceAsStream("/bundles/confirmSubmitEmails.properties"));
 
 
@@ -44,7 +41,6 @@ context=ServletUtilities.getContext(request);
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   if(!encountersDir.exists()){encountersDir.mkdirs();}
   File thisEncounterDir = null;// = new File();  //gets set after we have encounter
-
 
 %>
 
@@ -76,6 +72,7 @@ new_message.append("<html><body>");
   if (!number.equals("fail")) {
 
     myShepherd.beginDBTransaction();
+
     try {
 
       enc = myShepherd.getEncounter(number);
@@ -85,8 +82,6 @@ new_message.append("<html><body>");
 			String thisEncDirString=Encounter.dir(shepherdDataDir,enc.getCatalogNumber());
 			thisEncounterDir=new File(thisEncDirString);
 			if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
-			
-			
 			
       if ((enc.getAdditionalImageNames() != null) && (enc.getAdditionalImageNames().size() > 0)) {
         addText = (String)enc.getAdditionalImageNames().get(0);
@@ -122,8 +117,6 @@ new_message.append("<html><body>");
         emailPhoto = true;
       }
 	*/
-     
-
 
     } catch (Exception e) {
       System.out.println("Error encountered in confirmSubmit.jsp:");
@@ -134,8 +127,9 @@ new_message.append("<html><body>");
     
   }
 
-  String taskId = request.getParameter("taskId").trim();
-%>
+  //String taskId = request.getParameter("taskId").trim();
+
+  %>
 
 <h1 class="intro"><%=props.getProperty("success") %></h1>
 
