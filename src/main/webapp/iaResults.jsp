@@ -149,8 +149,6 @@ if (request.getParameter("acmId") != null) {
 		num = enc.getCatalogNumber();
 	}
 */
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
 	myShepherd.rollbackAndClose();
 	out.println(rtn.toString());
 	return;
