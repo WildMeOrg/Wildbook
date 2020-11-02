@@ -30,6 +30,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.ecocean.media.*;
+import org.ecocean.resumableupload.UploadServlet;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -198,19 +200,8 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
     - local (via CommonConfiguration tmp dir and "filename" value)
     - URL
 */
-        String uploadTmpDir = CommonConfiguration.getUploadTmpDirForUser(request);
-        S3AssetStore sourceStoreS3 = null;
-        String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
-        if (s3key != null) {
-            JSONObject s3j = new JSONObject();
-            s3j.put("AWSAccessKeyId", s3key);
-            s3j.put("AWSSecretAccessKey", CommonConfiguration.getProperty("s3upload_secretAccessKey", context));
-            s3j.put("bucket", CommonConfiguration.getProperty("s3upload_bucket", context));
-            AssetStoreConfig cfg = new AssetStoreConfig(s3j.toString());
-System.out.println("source config -> " + cfg.toString());
-            //note: sourceStore (and any MediaAssets created on it) should remain *temporary* and not be persisted!
-            sourceStoreS3 = new S3AssetStore("temporary upload s3", cfg, false);
-        }
+        String uploadTmpDir = UploadServlet.getUploadDir(request);
+
 
         AssetStore targetStore = AssetStore.getDefault(myShepherd); //see below about disabled user-provided stores
         HashMap<String,MediaAssetSet> sets = new HashMap<String,MediaAssetSet>();
@@ -287,32 +278,7 @@ System.out.println("source config -> " + cfg.toString());
                         targetMA = urlStore.create(params);
                     }
 
-                } else {  //if we fall thru, then we are going to assume S3
-                    if (sourceStoreS3 == null) throw new IOException("s3upload_ properties not set; no source S3 AssetStore possible in createMediaAssets()");
-                    //key must begin with "SETID/" otherwise it fails security sanity check
-                    if ((setId != null) && (params.optString("key", "FAIL").indexOf(setId + "/") != 0)) {
-                        System.out.println("WARNING createMediaAssets() asset params=" + params.toString() + " failed key value for setId=" + setId + "; skipping");
-                        continue;
-                    }
-                    MediaAsset sourceMA = sourceStoreS3.create(params);
-
-                    File fakeFile = new File(params.get("key").toString());
-                    params = targetStore.createParameters(fakeFile); //really just use bucket here
-                    if (accessKey != null) params.put("accessKey", accessKey);
-                    String dirId = setId;
-                    if (dirId == null) dirId = Util.generateUUID();
-                    params.put("key", Util.hashDirectories(dirId, "/") + "/" + fakeFile.getName());
-System.out.println(i + ") params -> " + params.toString());
-                    targetMA = targetStore.create(params);
-                    try {
-                        // we cannot use sourceMA.copyAssetTo(targetMA) as that uses aws credentials of the source AssetStore; we are assuming the target
-                        //   is stronger (since it is not the temporary store)
-                        targetStore.copyAsset(sourceMA, targetMA);
-                    } catch (Exception ex) {
-                        System.out.println("WARNING: MediaAssetCreate failed to copy " + sourceMA + " to " + targetMA + ": " + ex.toString());
-                        success = false;
-                    }
-                }
+                } 
 
                 if (success) {
 /*
