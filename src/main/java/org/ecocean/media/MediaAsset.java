@@ -1549,7 +1549,10 @@ System.out.println("INFO: assignEncounters() needsEncounter ==> " + needsEncount
             whichever = myEncs.iterator().next();
         }
 
-        if ((nonPartCt > 1) || hasDuplicateParts || (myEncs.size() > 1)) {
+        boolean contiguousAnnots = Annotation.areContiguous(annots);
+System.out.println("INFO: assignEncounters() contiguousAnnots = " + contiguousAnnots);
+
+        if ((nonPartCt > 1) || hasDuplicateParts || !contiguousAnnots || (myEncs.size() > 1)) {
             System.out.println(">>>>> assignEncounters() MANY ENCS ; myEncs=" + myEncs);
             /*
                 we dont know where to assign needsEncounter annots, so they each get own Encounter
