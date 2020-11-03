@@ -108,13 +108,20 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 	console.log(options);
 	console.log("values are: ");
 	console.log(values);
-	let orgParameter = '<%= request.getParameter("organization")%>';
-	if(orgParameter){
-		console.log("orgParameter is: " + orgParameter);
+	// let orgParameter = '<%= request.getParameter("organization")%>';
+	// if(orgParameter){
+	// 	console.log("orgParameter is: " + orgParameter);
+	// }
+	let useCustomStyle = '<%= ServletUtilities.useCustomStyle(request,CommonConfiguration.getDefaultProjectOrganizationParameter(context)) %>' == "true"?true: false;
+	if(useCustomStyle){
+		console.log("useCustomStyle is: " + useCustomStyle);
+		console.log(typeof useCustomStyle);
 	}
-	if(orgParameter===getDefaultProjectOrganizationParameter()){
-		//do nothing unusual
+	if(useCustomStyle){
+		//do nothin	g unusual
+		console.log("use custom style reached");
 	}else{
+		console.log("user custom style not reached");
 		defaultSelectItem = null;
 		defaultSelectItemId = null;
 		loggedOutDefaultDesired = false;
