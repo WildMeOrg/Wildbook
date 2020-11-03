@@ -112,7 +112,7 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 	if(orgParameter){
 		console.log("orgParameter is: " + orgParameter);
 	}
-	if(orgParameter==="indocet"){
+	if(orgParameter===getDefaultProjectOrganizationParameter()){
 		//do nothing unusual
 	}else{
 		defaultSelectItem = null;
@@ -127,7 +127,7 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 		projectNameHtml += '<div class="col-xs-6 col-md-4">';
 		if(loggedOutDefaultDesired){
 			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
-			console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
+			// console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
 		}
 		if(isVisible){
 			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
@@ -165,6 +165,11 @@ Array.prototype.remove = function() {
 function getDefaultSelectedProject(){
 	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
 	return defaultProject;
+}
+
+function getDefaultProjectOrganizationParameter(){
+	let defaultProjectOrganizationParameter = '<%= CommonConfiguration.getDefaultProjectOrganizationParameter(context) %>';
+	return defaultProjectOrganizationParameter;
 }
 
 function getDefaultSelectedProjectId(){
