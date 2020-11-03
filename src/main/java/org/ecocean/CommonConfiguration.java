@@ -336,6 +336,10 @@ public class CommonConfiguration {
     return getProperty("defaultProjName", context).trim();
   }
 
+  public static String getDefaultProjectOrganizationParameter(String context){
+    return getProperty("defaultProjectOrganizationParameter", context).trim();
+  }
+
   public static String getDefaultSelectedProjectId(String context){
     return getProperty("defaultProjId", context).trim();
   }
@@ -367,7 +371,7 @@ public class CommonConfiguration {
         return dir.trim();
     }
 
-    
+
     public static String getImportDir(String context) {
         String dir = getProperty("importDir", context);
         if (dir == null) return null;
