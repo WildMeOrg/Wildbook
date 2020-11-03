@@ -108,7 +108,18 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 	console.log(options);
 	console.log("values are: ");
 	console.log(values);
-	debugger;
+	let orgParameter = '<%= request.getParameter("organization")%>';
+	if(orgParameter){
+		console.log("orgParameter is: " + orgParameter);
+	}
+	if(orgParameter==="indocet"){
+		//do nothing unusual
+	}else{
+		defaultSelectItem = null;
+		defaultSelectItemId = null;
+		loggedOutDefaultDesired = false;
+	}
+
 	// if(options.length<1){
 	// 	isVisible=false;
 	// }
@@ -116,6 +127,7 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 		projectNameHtml += '<div class="col-xs-6 col-md-4">';
 		if(loggedOutDefaultDesired){
 			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
+			console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
 		}
 		if(isVisible){
 			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
@@ -173,6 +185,8 @@ function doAjaxForProject(requestJSON,userId){
 			dataType: 'json',
 			contentType: 'application/json',
 			success: function(data) {
+				console.log("data are: ");
+				console.log(data);
 				let projectNameResults = data.projects;
 				let projNameOptions = null;
 				if(projectNameResults){
