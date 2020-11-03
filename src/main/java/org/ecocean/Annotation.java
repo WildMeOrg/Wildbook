@@ -1225,13 +1225,38 @@ Util.mark("Annotation.refreshLiteValid() refreshing " + this.acmId);
     public boolean contains(Annotation ann) {
         Rectangle myRect = getRect(this);
         Rectangle queryRect = getRect(ann);
+        if ((myRect == null) || (queryRect == null)) return false;
         return myRect.contains(queryRect);
     }
 
     public boolean intersects(Annotation ann) {
         Rectangle myRect = getRect(this);
         Rectangle queryRect = getRect(ann);
+        if ((myRect == null) || (queryRect == null)) return false;
         return myRect.intersects(queryRect);
+    }
+
+    public boolean intersectsAtLeastOne(List<Annotation> anns) {
+        if (Util.collectionIsEmptyOrNull(anns)) return false;
+        for (Annotation ann : anns) {
+            if (intersects(ann)) return true;
+        }
+        return false;
+    }
+
+    //they all are chained together; basically no gap between any single *or cluster* of these annots
+    // note: this skips all trivial annots, cuz those are always going to intersect everything
+    public static boolean areContiguous(List<Annotation> anns) {
+        if (Util.collectionIsEmptyOrNull(anns)) return false;
+        List<Annotation> nonTrivial = new ArrayList<Annotation>();
+        for (Annotation ann : anns) {
+            if (!ann.isTrivial()) nonTrivial.add(ann);
+        }
+System.out.println("areContiguous() has nonTrivial=" + nonTrivial);
+        if (nonTrivial.size() < 1) return false;
+        if (nonTrivial.size() == 1) return true;
+        Annotation first = nonTrivial.remove(0);
+        return (first.intersectsAtLeastOne(nonTrivial) && areContiguous(nonTrivial));   //yay recursion!
     }
 
     private Rectangle getRect(Annotation ann) {
