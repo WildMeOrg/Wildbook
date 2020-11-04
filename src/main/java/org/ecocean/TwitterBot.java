@@ -106,9 +106,11 @@ public class TwitterBot {
             }
             MediaAssetFactory.save(tweetMA, myShepherd);
             entities = tas.entitiesAsMediaAssets(tweetMA);
+            System.out.println("TwitterAssetStore just saved MediaAsset "+tweetMA.getId());
             if ((entities != null) && (entities.size() > 0)) {
                 for (MediaAsset ema : entities) {
                     MediaAssetFactory.save(ema, myShepherd);
+                    System.out.println("TwitterAssetStore just saved MediaAsset "+ema.getId());
                 }
             }
         }
@@ -155,20 +157,21 @@ public class TwitterBot {
     }
 
     //TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
-    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl, String taskId) {
-        JSONObject qj = new JSONObject();
-        qj.put("taskId", taskId);
-        qj.put("__context", context);
-        qj.put("__baseUrl", baseUrl);
-        JSONArray idArr = new JSONArray();
-        JSONObject maj = new JSONObject();
-        for (MediaAsset ma : mas) {
-            idArr.put(ma.getId());
-        }
-        maj.put("mediaAssetIds", idArr);
-        qj.put("detect", maj);
-        return qj;
-    }
+   private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl, String taskId) {
+       JSONObject qj = new JSONObject();
+       qj.put("taskId", taskId);
+       qj.put("__context", context);
+       qj.put("__baseUrl", baseUrl);
+       JSONArray idArr = new JSONArray();
+       JSONObject maj = new JSONObject();
+       for (MediaAsset ma : mas) {
+           idArr.put(ma.getId());
+       }
+       maj.put("mediaAssetIds", idArr);
+       qj.put("detect", maj);
+       return qj;
+   }
+
 
     public static void sendCourtesyTweet(String context, Status originTweet, MediaAsset ma) {
         Map<String,String> vars = new HashMap<String,String>();  //%SOURCE_TWEET_ID, %SOURCE_IMAGE_ID, %SOURCE_SCREENNAME, %INDIV_ID, %URL_INDIV, %URL_SUBMIT
@@ -572,14 +575,14 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
             //get Tweet comments for faster review on Encounter page
             enc.setOccurrenceRemarks(originTweet.getText());
 
-
-
+            //get the Wildbook User for this tweet and set them as owner
+            if(originTweet.getUser()!=null && originTweet.getUser().getScreenName()!=null) {
+              User wildbookUser=myShepherd.getUserByTwitterHandle(originTweet.getUser().getScreenName().replaceAll("@",""));
+              if(wildbookUser!=null && wildbookUser.getUsername()!=null) {
+                enc.setSubmitterID(wildbookUser.getUsername());
+              }
+            }
         }
-
-
-
-
-
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?

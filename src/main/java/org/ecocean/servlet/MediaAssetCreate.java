@@ -314,7 +314,7 @@ System.out.println("no MediaAssetSet; created " + targetMA);
                         haveNoSet.add(targetMA);
                     }
                     mas.add(targetMA);
-<<<<<<< HEAD
+
                 }
 
             }
@@ -337,30 +337,6 @@ System.out.println("no MediaAssetSet; created " + targetMA);
                     }
                     System.out.println("MediaAssetCreate.attachToEncounter added " + artn.getJSONArray("assets").length() + " assets to Enc " + enc.getCatalogNumber());
                 }
-=======
-                }
-
-            }
-
-            //this duplicates some of MediaAssetAttach, but lets us get done in one API call
-            //  TODO we dont sanity-check *ownership* of the encounter.... :/
-            JSONObject attEnc = st.optJSONObject("attachToEncounter");
-            JSONObject attOcc = st.optJSONObject("attachToOccurrence");
-            if (attEnc != null) {
-                JSONObject artn = new JSONObject();
-                Encounter enc = myShepherd.getEncounter(attEnc.optString("id", "__FAIL__"));
-                if (enc != null) {
-                    artn.put("id", enc.getCatalogNumber());
-                    artn.put("type", "Encounter");
-                    artn.put("assets", new JSONArray());
-                    for (MediaAsset ema : mas) {
-                        if (enc.hasTopLevelMediaAsset(ema.getId())) continue;
-                        enc.addMediaAsset(ema);
-                        artn.getJSONArray("assets").put(ema.getId());
-                    }
-                    System.out.println("MediaAssetCreate.attachToEncounter added " + artn.getJSONArray("assets").length() + " assets to Enc " + enc.getCatalogNumber());
-                }
->>>>>>> hotfix-indocet
                 attachRtn.put(artn);
             } else if (attOcc != null) {  //this requires a little extra, to make the enc, minimum is taxonomy
                 String tax = attOcc.optString("taxonomy", null);
