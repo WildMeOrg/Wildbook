@@ -103,12 +103,14 @@ $(document).ready( function() {
 });
 
 function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
-	console.log("populateProjectNameDropdown entered");
-	console.log("options are: ");
-	console.log(options);
-	console.log("values are: ");
-	console.log(values);
-	debugger;
+	let useCustomStyle = '<%= ServletUtilities.useCustomStyle(request,CommonConfiguration.getDefaultProjectOrganizationParameter(context)) %>' == "true"?true: false;
+	if(useCustomStyle){
+		//do nothing unusual
+	}else{
+		defaultSelectItem = null;
+		defaultSelectItemId = null;
+		loggedOutDefaultDesired = false;
+	}
 	// if(options.length<1){
 	// 	isVisible=false;
 	// }
@@ -116,6 +118,7 @@ function populateProjectNameDropdown(options, values, selectedOption, isVisible,
 		projectNameHtml += '<div class="col-xs-6 col-md-4">';
 		if(loggedOutDefaultDesired){
 			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
+			// console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
 		}
 		if(isVisible){
 			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
@@ -153,6 +156,11 @@ Array.prototype.remove = function() {
 function getDefaultSelectedProject(){
 	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
 	return defaultProject;
+}
+
+function getDefaultProjectOrganizationParameter(){
+	let defaultProjectOrganizationParameter = '<%= CommonConfiguration.getDefaultProjectOrganizationParameter(context) %>';
+	return defaultProjectOrganizationParameter;
 }
 
 function getDefaultSelectedProjectId(){
@@ -1362,9 +1370,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
-	// debugger;
-	console.log('sendButtonClicked()');
-	console.log('submitter email is: ' + $('#submitterEmail').val());
 	// $('.required-missing').removeClass('required-missing')
 	// if an mediaAsset is ever required
 	// if(!$('#theFiles').val()){
@@ -1374,7 +1379,6 @@ function sendButtonClicked() {
 	// 	return false;
 	// }
 	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
-		console.log("no location info entered");
 		$('#location').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
 		return false;
@@ -1407,7 +1411,6 @@ function sendButtonClicked() {
   // }
 
 	if (!$('#datepicker').val()) {
-		console.log("no date picked");
 		$('#datepicker').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must set a date first.'); }, 100);
 		return false;

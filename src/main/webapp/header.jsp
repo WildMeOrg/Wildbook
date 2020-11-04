@@ -63,10 +63,10 @@ boolean loggingOut = Util.requestHasVal(request, "loggedOut");
 
 myShepherd.beginDBTransaction();
 try {
-	
+
 	//notifications widget
 	notificationsWidget=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
-	
+
   if(request.getUserPrincipal()!=null && !loggingOut){
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
@@ -91,7 +91,7 @@ finally{
 
 <html>
     <head>
-      
+
       <!-- Global site tag (gtag.js) - Google Analytics -->
       <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-5"></script>
 
@@ -516,10 +516,11 @@ finally{
 							<%
                             }
                             if(request.isUserInRole("admin")) { %>
-                              <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
-                              <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
+                                <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
+                                <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
 
-                     
+                                <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
+
                                 <%
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
@@ -535,8 +536,8 @@ finally{
                                 <li><a target="_blank" href="https://www.wildbook.org"><%=props.getProperty("shepherdDoc")%></a></li>
                                 <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
 
-                              
-                                <% 
+
+                                <%
 
 
                             } //end if admin
