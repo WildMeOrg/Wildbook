@@ -103,23 +103,14 @@ $(document).ready( function() {
 });
 
 function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
-	console.log("populateProjectNameDropdown entered");
-	console.log("options are: ");
-	console.log(options);
-	console.log("values are: ");
-	console.log(values);
-	let orgParameter = '<%= request.getParameter("organization")%>';
-	if(orgParameter){
-		console.log("orgParameter is: " + orgParameter);
-	}
-	if(orgParameter===getDefaultProjectOrganizationParameter()){
+	let useCustomStyle = '<%= ServletUtilities.useCustomStyle(request,CommonConfiguration.getDefaultProjectOrganizationParameter(context)) %>' == "true"?true: false;
+	if(useCustomStyle){
 		//do nothing unusual
 	}else{
 		defaultSelectItem = null;
 		defaultSelectItemId = null;
 		loggedOutDefaultDesired = false;
 	}
-
 	// if(options.length<1){
 	// 	isVisible=false;
 	// }
@@ -190,8 +181,6 @@ function doAjaxForProject(requestJSON,userId){
 			dataType: 'json',
 			contentType: 'application/json',
 			success: function(data) {
-				console.log("data are: ");
-				console.log(data);
 				let projectNameResults = data.projects;
 				let projNameOptions = null;
 				if(projectNameResults){
@@ -1381,9 +1370,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
-	// debugger;
-	console.log('sendButtonClicked()');
-	console.log('submitter email is: ' + $('#submitterEmail').val());
 	// $('.required-missing').removeClass('required-missing')
 	// if an mediaAsset is ever required
 	// if(!$('#theFiles').val()){
@@ -1393,7 +1379,6 @@ function sendButtonClicked() {
 	// 	return false;
 	// }
 	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
-		console.log("no location info entered");
 		$('#location').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
 		return false;
@@ -1426,7 +1411,6 @@ function sendButtonClicked() {
   // }
 
 	if (!$('#datepicker').val()) {
-		console.log("no date picked");
 		$('#datepicker').closest('.form-group').addClass('required-missing');
 		window.setTimeout(function() { alert('You must set a date first.'); }, 100);
 		return false;
