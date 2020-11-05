@@ -525,6 +525,12 @@ public class Encounter implements java.io.Serializable {
 
     }
 
+    //need to get ALL project id's from db, there is no single. methods reside on shepherd
+    @Deprecated
+    public String getProjectId(){
+      return "Bloop";
+    }
+
 
     public String getZebraClass() {
         return zebraClass;
@@ -983,15 +989,16 @@ public class Encounter implements java.io.Serializable {
   public static String getWebUrl(String encId, String serverUrl) {
     return (serverUrl+"/encounters/encounter.jsp?number="+encId);
   }
-  public String getHyperlink(HttpServletRequest req, int labelLength) {
-    String label="";
-    if (labelLength==1) label = "Enc ";
-    if (labelLength> 1) label = "Encounter ";
-    return "<a href=\""+getWebUrl(req)+"\">"+label+getCatalogNumber()+ "</a>";
-  }
-  public String getHyperlink(HttpServletRequest req) {
-    return getHyperlink(req, 1);
-  }
+
+  // public String getHyperlink(HttpServletRequest req, int labelLength) {
+  //   String label="";
+  //   if (labelLength==1) label = "Enc ";
+  //   if (labelLength> 1) label = "Encounter ";
+  //   return "<a href=\""+getWebUrl(req)+"\">"+label+getCatalogNumber()+ "</a>";
+  // }
+  // public String getHyperlink(HttpServletRequest req) {
+  //   return getHyperlink(req, 1);
+  // }
 
   /**
    * Sets the phone number of the person who took the primaryImage this encounter.
@@ -3218,12 +3225,22 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
-	          boolean fullAccess = this.canUserAccess(request);
+            boolean fullAccess = this.canUserAccess(request);
 
+            String useProjectContext = "false";
+            if (request.getParameter("useProjectContext")!=null) {
+              useProjectContext = request.getParameter("useProjectContext");
+            }
 
             if (fullAccess) {
-              if (this.individual!=null) jobj.put("individualID", this.individual.getIndividualID());
-              if (this.individual!=null) jobj.put("displayName", this.individual.getDisplayName());
+              if (this.individual!=null){
+                jobj.put("individualID", this.individual.getIndividualID());
+                if ("true".equals(useProjectContext)) {
+                  jobj.put("displayName", this.individual.getDisplayName(request));
+                } else {
+                  jobj.put("displayName", this.individual.getDisplayName());
+                }
+              }
               return jobj;
             }
 
