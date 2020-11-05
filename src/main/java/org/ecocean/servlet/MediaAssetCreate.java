@@ -116,7 +116,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
             out.close();
             return;
         }
-
+        
         JSONObject res=new JSONObject();
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MediaAssetCreate.class_nonum");
@@ -155,7 +155,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
               }
               if (allMAs.size() > 0) {
                   System.out.println("Starting IA.intakeMediaAssets");
-
+                  
                   final Task parentTask = new Task();
                   Task task = null;
                   Taxonomy taxy=null;
@@ -163,7 +163,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
                     taxy=new Taxonomy(j.getString("taxonomy"));
                   }
                   if(taxy!=null) {
-                    task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask);
+                    task = IA.intakeMediaAssetsOneSpecies(myShepherd, allMAs, taxy, parentTask); 
                   }
                   else {
                     task = IA.intakeMediaAssets(myShepherd, allMAs);
@@ -200,19 +200,8 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
     - local (via CommonConfiguration tmp dir and "filename" value)
     - URL
 */
-        String uploadTmpDir = CommonConfiguration.getUploadTmpDirForUser(request);
-        S3AssetStore sourceStoreS3 = null;
-        String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
-        if (s3key != null) {
-            JSONObject s3j = new JSONObject();
-            s3j.put("AWSAccessKeyId", s3key);
-            s3j.put("AWSSecretAccessKey", CommonConfiguration.getProperty("s3upload_secretAccessKey", context));
-            s3j.put("bucket", CommonConfiguration.getProperty("s3upload_bucket", context));
-            AssetStoreConfig cfg = new AssetStoreConfig(s3j.toString());
-System.out.println("source config -> " + cfg.toString());
-            //note: sourceStore (and any MediaAssets created on it) should remain *temporary* and not be persisted!
-            sourceStoreS3 = new S3AssetStore("temporary upload s3", cfg, false);
-        }
+        String uploadTmpDir = UploadServlet.getUploadDir(request);
+
 
         AssetStore targetStore = AssetStore.getDefault(myShepherd); //see below about disabled user-provided stores
         HashMap<String,MediaAssetSet> sets = new HashMap<String,MediaAssetSet>();
@@ -289,7 +278,7 @@ System.out.println("source config -> " + cfg.toString());
                         targetMA = urlStore.create(params);
                     }
 
-                }
+                } 
 
                 if (success) {
 /*
@@ -314,7 +303,6 @@ System.out.println("no MediaAssetSet; created " + targetMA);
                         haveNoSet.add(targetMA);
                     }
                     mas.add(targetMA);
-
                 }
 
             }
@@ -417,3 +405,5 @@ System.out.println("no MediaAssetSet; created " + targetMA);
     }
 
 }
+  
+  
