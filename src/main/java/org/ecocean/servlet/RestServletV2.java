@@ -626,6 +626,7 @@ rtn.put("_payload", payload);
             rtn.put("valueNotSet", true);
             rtn.put("message", _rtnMessage("configuration_no_value"));
         }
+        rtn.put("version", conf.getModified());
         return rtn;
     }
 
