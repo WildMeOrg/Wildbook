@@ -44,6 +44,7 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static void consolidateUser(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
+    System.out.println("consolidating user " + userToBeConsolidated.toString() + " into user " + userToRetain.toString());
     List<Encounter> photographerEncounters=getPhotographerEncountersForUser(myShepherd.getPM(),userToBeConsolidated);
     if(photographerEncounters!=null && photographerEncounters.size()>0){
       for(int j=0; j<photographerEncounters.size(); j++){
@@ -69,6 +70,7 @@ public class UserConsolidate extends HttpServlet {
     myShepherd.getPM().deletePersistent(userToBeConsolidated);
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
+    System.out.println("......consolidation complete");
   }
 
   public static int consolidateUsersAndNameless(Shepherd myShepherd,User useMe,List<User> dupes){
@@ -123,28 +125,6 @@ public class UserConsolidate extends HttpServlet {
     if(Util.stringExists(currentOccurrenceSubmitter) && currentDupe.getUsername().equals(currentOccurrenceSubmitter)){
       if(Util.stringExists(useMe.getUsername())){
         currentOccurrence.setSubmitterID(useMe.getUsername());
-      }
-    }
-  }
-
-  public void manualConsolidateByUsername(Shepherd myShepherd, String userNameOfDesiredUseMe){
-    PersistenceManager persistenceManager = myShepherd.getPM();
-    List<User> potentialUsers = getUsersByUsername(persistenceManager, userNameOfDesiredUseMe);
-    if(potentialUsers.size() == 1){
-      User useMe = potentialUsers.get(0);
-      String hashedEmail = useMe.getHashedEmailAddress();
-      List<User> dupesToBeSubsumed =getUsersByHashedEmailAddress(persistenceManager,useMe.getHashedEmailAddress());
-      dupesToBeSubsumed.remove(useMe);
-      int numDupes=dupesToBeSubsumed.size();
-      for(int i=0;i<dupesToBeSubsumed.size();i++){
-        User currentDupeUser=dupesToBeSubsumed.get(i);
-        consolidateUser(myShepherd, useMe, currentDupeUser);
-        dupesToBeSubsumed.remove(currentDupeUser);
-        i--; //TODO really?
-      }
-    } else{
-      for(int j =0; j<potentialUsers.size(); j++){
-        //TODO inspect this
       }
     }
   }
@@ -257,8 +237,8 @@ public class UserConsolidate extends HttpServlet {
   public static void consolidatePhotographers(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
     List<User> photographers=enc.getPhotographers();
     if(photographers.contains(currentUser)){
-      photographers.remove(currentUser); //TODO comment back in
-      photographers.add(useMe); //TODO comment back in
+      photographers.remove(currentUser);
+      photographers.add(useMe);
     }
     enc.setPhotographers(photographers);
     myShepherd.commitDBTransaction();
@@ -541,7 +521,6 @@ public class UserConsolidate extends HttpServlet {
           }
         }
         if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
-          //will still be >1 if currentUserToBeConsolidatedEmail is null or undefined
           //there's only one result. Go ahead and return that one
           returnUser = currentUsersToBeConsolidated.get(0);
         }
@@ -552,7 +531,6 @@ public class UserConsolidate extends HttpServlet {
             currentUsersToBeConsolidated.remove(currentUser);
           }
           if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
-            //will still be >1 if currentUserToBeConsolidatedFullName is null or undefined
             //there's only one result. Go ahead and return that one
             returnUser = currentUsersToBeConsolidated.get(0);
           }
@@ -580,7 +558,6 @@ public class UserConsolidate extends HttpServlet {
             currentUsersToBeConsolidated.remove(currentUser);
           }
           if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
-            //will still be >1 if currentUserToBeConsolidatedFullName is null or undefined
             //there's only one result. Go ahead and return that one
             returnUser = currentUsersToBeConsolidated.get(0);
           }
@@ -593,8 +570,7 @@ public class UserConsolidate extends HttpServlet {
         if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
           //there's only one result. Go ahead and return that one
           returnUser = currentUsersToBeConsolidated.get(0);
-        }else{
-          }
+        }
     }//end check fullname if username and email missing or undefined
     return returnUser;
   }
