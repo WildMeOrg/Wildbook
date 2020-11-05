@@ -127,24 +127,23 @@ int numFixes=0;
     	myShepherd.closeDBTransaction();
     }
     %>
-
-    </ol>
-    <form action="../UserConsolidate?context=context0"
-    method="post"
-    id="manual-consolidate-form"
-    name="manual-consolidate-form"
-    lang="en"
-    class="form-horizontal"
-    accept-charset="UTF-8">
-    <h2>Manually Consolidate By Username</h2>
-        <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-          <label class="control-label text-danger" for="username-input">Enter Username You Want to Keep</label>
-          <input class="form-control" type="text" style="position: relative; z-index: 101;" name="username-input" id="username-input"/>
-        </div>
-      <button id="submitManualButton" class="large" type="submit">
-        Consolidate
-        <span class="button-icon" aria-hidden="true" />
-      </button>
-    </form>
+      </ol>
+      <form action="../UserConsolidate?context=context0"
+      method="post"
+      id="manual-consolidate-form"
+      name="manual-consolidate-form"
+      lang="en"
+      class="form-horizontal"
+      accept-charset="UTF-8">
+      <h2>Manually Consolidate By Username</h2>
+          <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+            <label class="control-label text-danger" for="username-input">Enter Username You Want to Keep</label>
+            <input class="form-control" type="text" style="position: relative; z-index: 101;" name="username-input" id="username-input"/>
+          </div>
+        <button id="submitManualButton" class="large" type="submit">
+          Consolidate
+          <span class="button-icon" aria-hidden="true" />
+        </button>
+      </form>
   </body>
 </html>

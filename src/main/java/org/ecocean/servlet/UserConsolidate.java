@@ -427,8 +427,8 @@ public class UserConsolidate extends HttpServlet {
         successStatus = true;
         User currentUser = myShepherd.getUser(userName);
         List<User> similarUsers = getSimilarUsers(currentUser, myShepherd.getPM());
-        similarUsers.remove(currentUser);
         if(similarUsers != null){
+          similarUsers.remove(currentUser);
           if(similarUsers.size()>0){
             for(int j=0; j<similarUsers.size(); j++){
               JSONObject currentUserJson = new JSONObject();
