@@ -113,7 +113,7 @@ public class TwitterBot {
                     System.out.println("TwitterAssetStore just saved MediaAsset "+ema.getId());
                 }
             }
-        } 
+        }
         else {
             ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " already stored, so skipping");
@@ -125,10 +125,10 @@ public class TwitterBot {
         System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
         if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
-        
+
         String taxonomyString = taxonomyStringFromTweet(tweet, context);
         Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
-        
+
         Encounter enc=new Encounter(false);
         if(taxy!=null)enc.setTaxonomy(taxy);
         myShepherd.getPM().makePersistent(enc);
@@ -137,30 +137,41 @@ public class TwitterBot {
           enc.addMediaAsset(ma);
           myShepherd.updateDBTransaction();
         }
-        
+
         System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies for taxonomy: "+taxy.getScientificName());
         // compare this to prev. logic in detectionQueueJob method below
         IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
 
+        //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
+        String baseUrl = IA.getBaseURL(context);
+        JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
+        qj.put("tweetAssetId", tweetMA.getId());
+        try {
+            org.ecocean.servlet.IAGateway.addToQueue(context, qj.toString());
+            System.out.println("INFO: TwitterBot.processIncomingTweet() added detection taskId=" + qj.optString("taskId") + " to IAQueue");
+        } catch (IOException ioe) {
+            System.out.println("ERROR: TwitterBot.processIncomingTweet() during addToQueue threw " + ioe.toString());
+        }
     }
 
     //TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
-    private static JSONObject detectionQueueJob(Status tweet, List<MediaAsset> mas, String context, String baseUrl, String taskId) {
-        JSONObject qj = new JSONObject();
-        qj.put("taskId", taskId);
-        qj.put("__context", context);
-        qj.put("__baseUrl", baseUrl);
-        JSONArray idArr = new JSONArray();
-        JSONObject maj = new JSONObject();
-        for (MediaAsset ma : mas) {
-            idArr.put(ma.getId());
-        }
-        maj.put("mediaAssetIds", idArr);
-        qj.put("detect", maj);
-        return qj;
-    }
+   private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl, String taskId) {
+       JSONObject qj = new JSONObject();
+       qj.put("taskId", taskId);
+       qj.put("__context", context);
+       qj.put("__baseUrl", baseUrl);
+       JSONArray idArr = new JSONArray();
+       JSONObject maj = new JSONObject();
+       for (MediaAsset ma : mas) {
+           idArr.put(ma.getId());
+       }
+       maj.put("mediaAssetIds", idArr);
+       qj.put("detect", maj);
+       return qj;
+   }
+
 
     public static void sendCourtesyTweet(String context, Status originTweet, MediaAsset ma) {
         Map<String,String> vars = new HashMap<String,String>();  //%SOURCE_TWEET_ID, %SOURCE_IMAGE_ID, %SOURCE_SCREENNAME, %INDIV_ID, %URL_INDIV, %URL_SUBMIT
@@ -463,6 +474,7 @@ System.out.println("processDetectionResults() -> " + mas);
 
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         //vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
+        // TODO: only send below tweet if every detection job for the tweet has returned negative. This will take some research.
         sendTweet(tweetText(context, "tweetTextIANone", vars), originTweet.getId());
         return "Failed to find any Annotations; sent tweet";
     }
@@ -570,15 +582,7 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
                 enc.setSubmitterID(wildbookUser.getUsername());
               }
             }
-
-
-
         }
-
-
-
-
-
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
