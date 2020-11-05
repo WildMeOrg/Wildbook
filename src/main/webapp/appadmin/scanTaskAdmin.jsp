@@ -357,7 +357,7 @@ else{
 						<%
 						if(scanEnc.getIndividual()!=null){
 						%>
-						<a href="../individuals.jsp?number=<%=scanEnc.getIndividual().getDisplayName()%>"><%=scanEnc.getIndividual().getDisplayName()%></a>
+						<a href="../individuals.jsp?number=<%=scanEnc.getIndividual().getDisplayName()%>"><%=scanEnc.getIndividual().getDisplayName(request, myShepherd)%></a>
 						<%
       					}
       					else{

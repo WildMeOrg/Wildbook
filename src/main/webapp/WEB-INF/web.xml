@@ -94,6 +94,7 @@
 				/gallery.jsp = authc
 				/encounters/encounter.jsp = authc
 				/encounters/encounterMediaGallery.jsp = authc
+				/encounters/projectManagement.jsp = authc
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
 
@@ -315,6 +316,8 @@
 				    /MyAccountRemoveProfileImage = authc
 
 					/IndividualSetNickName = authc, roles[researcher]
+          /IndividualCreateForProject = authc, roles[researcher]
+          /IndividualAddIncrementalProjectId = authc, roles[researcher]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
 
@@ -335,6 +338,9 @@
 				/ExportWekaPredictorARFF = authc, roles[admin]
 
 				/pictureBook.jsp = authc, roles[researcher]
+				/projects/projectList.jsp = authc, roles[researcher]
+				/projects/project.jsp = authc, roles[researcher]
+				/projects/createProject.jsp = authc, roles[researcher]
 
 				/EncounterSetSurveyAndTrack = authc, roles[researcher]
 				/OccurrenceSetSurveyAndTrack = authc, roles[researcher]
@@ -429,6 +435,11 @@
 
 				/MergeIndividual = authc, roles[researcher]
 				/ScheduledIndividualMergeUpdate = authc, roles[researcher]
+
+        /ProjectIA = authc, roles[researcher]
+
+        /UserPreferences = authc, roles[researcher]
+
             </param-value>
         </init-param>
     </filter>
@@ -460,10 +471,34 @@
   </filter-mapping>
 
   <servlet>
-    <servlet-class>org.ecocean.servlet.TranslationsGet</servlet-class>
-    <servlet-name>TranslationsGet</servlet-name>
+    <servlet-name>ProjectCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectCreate</servlet-class>
   </servlet>
 
+    <servlet>
+    <servlet-name>ProjectDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectDelete</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ProjectGet</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectGet</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ProjectUpdate</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectUpdate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ProjectIA</servlet-name>
+    <servlet-class>org.ecocean.servlet.ProjectIA</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>TranslationsGet</servlet-name>
+    <servlet-class>org.ecocean.servlet.TranslationsGet</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterRemoveUser</servlet-name>
@@ -556,6 +591,16 @@
   <servlet>
     <servlet-name>IndividualSetNickName</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualSetNickName</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>IndividualAddIncrementalProjectId</servlet-name>
+    <servlet-class>org.ecocean.servlet.IndividualAddIncrementalProjectId</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>IndividualCreateForProject</servlet-name>
+    <servlet-class>org.ecocean.servlet.IndividualCreateForProject</servlet-class>
   </servlet>
 
   <servlet>
@@ -1124,6 +1169,16 @@
     <url-pattern>/OrganizationEdit</url-pattern>
   </servlet-mapping>
 
+    <servlet>
+    <servlet-name>OrganizationGet</servlet-name>
+    <servlet-class>org.ecocean.servlet.OrganizationGet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>OrganizationGet</servlet-name>
+    <url-pattern>/OrganizationGet</url-pattern>
+  </servlet-mapping>
+
   <servlet>
     <servlet-name>UserGetSimpleJSON</servlet-name>
     <servlet-class>org.ecocean.servlet.UserGetSimpleJSON</servlet-class>
@@ -1629,8 +1684,33 @@
   </servlet>
 
   <servlet-mapping>
-    <url-pattern>/TranslationsGet</url-pattern>
+    <servlet-name>ProjectCreate</servlet-name>
+    <url-pattern>/ProjectCreate</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectDelete</servlet-name>
+    <url-pattern>/ProjectDelete</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectGet</servlet-name>
+    <url-pattern>/ProjectGet</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectUpdate</servlet-name>
+    <url-pattern>/ProjectUpdate</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>ProjectIA</servlet-name>
+    <url-pattern>/ProjectIA</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
     <servlet-name>TranslationsGet</servlet-name>
+    <url-pattern>/TranslationsGet</url-pattern>
   </servlet-mapping>
 
   <!--SUTime testing-->
@@ -1761,6 +1841,16 @@
   <servlet-mapping>
           <servlet-name>IndividualSetName</servlet-name>
           <url-pattern>/IndividualSetName</url-pattern>
+  </servlet-mapping>
+
+    <servlet-mapping>
+          <servlet-name>IndividualAddIncrementalProjectId</servlet-name>
+          <url-pattern>/IndividualAddIncrementalProjectId</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>IndividualCreateForProject</servlet-name>
+    <url-pattern>/IndividualCreateForProject</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -2592,7 +2682,7 @@
     <url-pattern>/AddOccToTrack</url-pattern>
   </servlet-mapping>
 
-        <servlet>
+  <servlet>
     <servlet-name>AnnotationSetMatchAgainst</servlet-name>
     <servlet-class>org.ecocean.servlet.AnnotationSetMatchAgainst</servlet-class>
   </servlet>
@@ -2602,7 +2692,7 @@
     <url-pattern>/AnnotationSetMatchAgainst</url-pattern>
   </servlet-mapping>
 
-          <servlet>
+  <servlet>
     <servlet-name>ImportTaskDetection</servlet-name>
     <servlet-class>org.ecocean.servlet.ImportTaskDetection</servlet-class>
   </servlet>

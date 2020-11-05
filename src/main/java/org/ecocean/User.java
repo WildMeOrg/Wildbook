@@ -58,20 +58,21 @@ public class User implements Serializable {
 
 	//String currentContext;
 
-  	//String currentContext;
-
-
-    private List<Organization> organizations = null;
-
-  	private boolean acceptedUserAgreement=false;
-
-  private boolean receiveEmails=true;
+    //String currentContext;
 
   //serialized JSON
   private String preferences = "";
   //standard preference keys
   private static final String PROJECT_CONTEXT = "projectContext";
 
+
+
+
+  private List<Organization> organizations = null;
+
+  private boolean acceptedUserAgreement=false;
+
+  private boolean receiveEmails=true;
 
   // turning this off means the user is greedy and mean: they never share data and nobody ever shares with them
   private Boolean sharing=true;
@@ -495,9 +496,7 @@ public class User implements Serializable {
     }
 
     public org.json.JSONObject getPreferencesAsJSON() {
-      if (preferences == null) {
-        return new org.json.JSONObject();
-      }
+      if (preferences == null || "".equals(preferences)) return new org.json.JSONObject();
       return Util.stringToJSONObject(preferences);
     }
 
@@ -534,6 +533,12 @@ public class User implements Serializable {
     public void setProjectIdForPreferredContext(String id) {
       if (id!=null) {
         setPreference(PROJECT_CONTEXT, id);
+      }
+    }
+
+    public void setProjectForPreferredContext(Project project) {
+      if (project!=null) {
+        setProjectIdForPreferredContext(project.getId());
       }
     }
 
