@@ -226,6 +226,9 @@ try{
               if(data[keyForDataInResponseChecking] === "FoundMoreThanOneMatchOrNoMatchesForUser"){
                   responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.foundMoreThanOneMatchOrNoMatchesForUser);
               }
+              if(data[keyForDataInResponseChecking] === "ErrorConsolidatingReportToStaff"){
+                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.errorConsolidatingReportToStaff);
+              }
             }
           });
           // if(data.success && shouldDisplayWhetherDoneBefore){
