@@ -208,11 +208,11 @@ public class UserConsolidate extends HttpServlet {
   public static void consolidateEncounterSubmitters(Shepherd myShepherd, Encounter enc, User useMe, User userToRemove){
     System.out.println("removing "+ userToRemove.toString() +" from submitters list in encounter " + enc.toString() + " and adding user " + useMe.toString());
     List<User> subs=enc.getSubmitters();
+    if(!subs.contains(useMe)){
+      subs.add(useMe);
+    }
     if(subs.contains(userToRemove)){
       subs.remove(userToRemove);
-      subs.add(useMe);
-    } else{
-      //TODO Jon, should I remove userToRemove anyway in this case??
     }
     enc.setSubmitters(subs);
     myShepherd.commitDBTransaction();
@@ -246,11 +246,11 @@ public class UserConsolidate extends HttpServlet {
   public static void consolidatePhotographers(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
     System.out.println("transferring photographer "+ currentUser.toString() +" in encounter "+ enc.toString() +" to photographer " + useMe.toString());
     List<User> photographers=enc.getPhotographers();
+    if(!photographers.contains(useMe)){
+      photographers.add(useMe);
+    }
     if(photographers.contains(currentUser)){
       photographers.remove(currentUser);
-      photographers.add(useMe);
-    } else{
-      //TODO Jon should I still remove currentUser??
     }
     enc.setPhotographers(photographers);
     myShepherd.commitDBTransaction();
