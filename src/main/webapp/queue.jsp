@@ -408,7 +408,7 @@ if (!forceList && (encs.size() > 0)) {
 }
 
 String[] theads = new String[]{"ID", "Sub Date"};
-if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date", "Dec Ct", "Flags"};
+if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date", "Col Date", "Dec Ct", "Flags"};
 %>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -443,7 +443,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 .th-2, .th-3 {
     width: 12em;
 }
-.th-4 {
+.th-4, .th-5 {
     width: 4em;
 }
 
@@ -556,7 +556,12 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
 <td><a target="_new" <%=((indivId == null) ? "" : "href=\"individuals.jsp?number=" + indivId + "\"")%>><%=indivName%></a></td>
 <td class="col-matchphoto-<%=ct%>"><a target="_new" <%=((ct < 0) ? "" : "href=\"individualGallery.jsp?id=" + indivId + "\"")%>><%=((ct < 0) ? "-" : ct)%></a></td><%
         }
-        out.println("<td>" + enc.getDate() + "</td>");
+
+        if (enc.getDWCDateAddedLong()!=null) {
+            out.println("<td>" + new DateTime(enc.getDWCDateAddedLong()).toLocalDate() + "</td>");
+        } else {
+            out.println("<td class=\"col-muted\">-</td>");
+        }
 
         if (isAdmin) {
             List<String> skipUsers = Arrays.asList("cmv2", "cmvolunteer", "testvolunteer1", "tomcat", "volunteer", "kitizenscience");
@@ -567,6 +572,12 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
             query.closeAll();
             int dct = 0;
             int fct = 0;
+            if (enc.getDateInMilliseconds()!=null) {
+                out.println("<td class=\"col-date\">" + new DateTime(enc.getDateInMilliseconds()).toLocalDate() + "</td>");
+            } else {
+                out.println("<td class=\"col-muted\">-</td>");
+            }
+
             Map<String,Integer> fmap = new HashMap<String,Integer>();
             for (Decision dec : decs) {
                 if ((dec.getUser() != null) && skipUsers.contains(dec.getUser().getUsername())) continue;
@@ -587,6 +598,7 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
                     }
                 }
             }
+
             out.println("<td class=\"col-dct-" + dct + "\">" + dct + "</td>");
             out.println("<td " + ((fct == 0) ? "" : " title=\"" + String.join(" | ", fmap.keySet()) + "\"") + " class=\"col-flag" + ((fct > 0) ? " is-flagged" : "") + " col-fct-" + fct + "\">" + fct + "</td>");
         }
