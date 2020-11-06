@@ -53,7 +53,12 @@ int numFixes=0;
                   %>
                   <%= currentSimilarUser.getUsername() + "; " + currentSimilarUser.getEmailAddress() + "; " + currentSimilarUser.getFullName()%>,
                   <%
-                  UserConsolidate.consolidateUser(myShepherd, currentUser, currentSimilarUser);
+                  // try{
+                  //   UserConsolidate.consolidateUser(myShepherd, currentUser, currentSimilarUser);
+                  // } catch(Exception e){
+                      // System.out.println("error consolidating user: " + currentSimilarUser.toString() + " into user: " + currentUser.toString());
+                  //   e.printStackTrace();
+                  // }
                 }
               }
             }
