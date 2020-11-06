@@ -471,6 +471,7 @@ SystemLog.debug("RestServlet.handleConfiguration() instance={} payload={}", inst
                 if (bundle == null) {
                     rtn.put("message", _rtnMessage("invalid_bundle_id"));
                 } else {
+                    long bversion = 0l;
                     JSONObject res = new JSONObject();
                     res.put("bundleId", id);
                     JSONArray arr = bundle.optJSONArray("bundle");
@@ -480,10 +481,12 @@ SystemLog.debug("RestServlet.handleConfiguration() instance={} payload={}", inst
                             String bid = arr.optString(i, null);
                             if (bid == null) continue;
                             conf = ConfigurationUtil.getConfiguration(myShepherd, bid);
+                            if (conf.getModified() > bversion) bversion = conf.getModified();
                             JSONObject kid = confGetTree(conf, isAdmin, definition, myShepherd);
                             if (kid != null) content.put(conf.getId(), kid);
                         }
                         res.put("configuration", content);
+                        res.put("version", bversion);
                     }
                     rtn.put("response", res);
                     rtn.put("success", true);
