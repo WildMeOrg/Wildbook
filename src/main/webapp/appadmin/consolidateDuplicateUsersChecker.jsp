@@ -53,6 +53,7 @@ int numFixes=0;
                   %>
                   <%= currentSimilarUser.getUsername() + "; " + currentSimilarUser.getEmailAddress() + "; " + currentSimilarUser.getFullName()%>,
                   <%
+                  UserConsolidate.consolidateUser(myShepherd, currentUser, currentSimilarUser);
                 }
               }
             }
