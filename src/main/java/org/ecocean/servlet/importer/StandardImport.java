@@ -1092,10 +1092,8 @@ public class StandardImport extends HttpServlet {
 
       // end add to projects
 
-
-  	String scar = getIntAsString(row, "Encounter.distinguishingScar");
+  	String scar = getStringOrInt(row, "Encounter.distinguishingScar");
   	if (scar!=null) enc.setDistinguishingScar(scar);
-
 
   	// SAMPLES
     TissueSample sample = null;
