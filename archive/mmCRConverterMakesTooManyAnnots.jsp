@@ -1,8 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
-org.joda.time.format.DateTimeFormatter,org.ecocean.ia.plugin.*,
-org.joda.time.format.ISODateTimeFormat,java.net.*,org.json.JSONObject,org.apache.commons.io.*,
+org.joda.time.format.DateTimeFormatter,
+org.joda.time.format.ISODateTimeFormat,java.net.*,org.json.JSONObject,
 org.ecocean.grid.*,org.ecocean.media.*,org.ecocean.mmutil.*,org.ecocean.identity.IBEISIA,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
@@ -129,8 +129,6 @@ int encHasMatchAgainst=0;
 int mismatchEncs =0;
 
 ArrayList<String> misMatchEncArray=new ArrayList<String>();
-File f=new File("/tmp/mmMissingAnnotUUID.json");
-String s=FileUtils.readFileToString(f);
 
 
 myShepherd.beginDBTransaction();
@@ -139,50 +137,78 @@ myShepherd.beginDBTransaction();
 try{
 
 	//String filter="select from org.ecocean.Annotation where iaClass == 'mantaCR'";
-	String filter="select from org.ecocean.Encounter where annotations.contains(annot) && annot.iaClass=='mantaCR' VARIABLES org.ecocean.Annotation annot";
+	String filter="select from org.ecocean.Encounter where catalogNumber!=null";
 	Query q=myShepherd.getPM().newQuery(filter);
 	Collection c= (Collection)q.execute();
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
 	q.closeAll();
 	%>
 	<p>Num encs: <%=encs.size() %></p>
-	<ul>
 	<%  
-	
-	WildbookIAM wim = new WildbookIAM(context);
-	
     for (Encounter enc:encs) {
     	try{
-    		
-    		ArrayList<Annotation> anns=new ArrayList<Annotation>();
-			
+	    	//temp
+	    	 //if(enc.getCatalogNumber().equals("b76ac30f-abb9-4cf3-9bfb-14f144883ffe")){
+		    	  
 	    	
-    		ArrayList<String> matchable=new ArrayList<String>();
-    		int dupes=0;
+	    	if(enc.getMmaCompatible())mmaCompatible++;
+	    	boolean hasMatchAgainst=false;
+	    	boolean hasMismatch=false;
 	    	List<Annotation> annots=enc.getAnnotations();
 	    	for(Annotation annot:annots){
-	    		
-    			if(annot.getAcmId()==null || s.indexOf(annot.getAcmId())!=-1){
-    				
-    				mismatch++;
-    				//if(mismatch==1){
-    					if(annot.getAcmId()!=null){
-    						System.out.println("Wiping: "+annot.getAcmId());
-    						annot.setAcmId(null);
-    						
-    						myShepherd.updateDBTransaction();
-    					}
-    					anns.add(annot);
-    					
-    				//}
-    				
-    				
-    			}
-	    		
+	    		File file=annot.getMediaAsset().localPath().toFile();
+				if(MediaUtilities.isAcceptableImageFile(file)){
+			      
+			      boolean matcherFilesExist=MantaMatcherUtilities.checkMatcherFilesExist(file);
+			      if (matcherFilesExist){
+			    	  crCount++;
+	
+	
+			      }
+				  if(annot.getMatchAgainst() && annot.getIAClass() !=null && annot.getIAClass().equals("mantaCR")){
+					  matchAgainst++;
+					  hasMatchAgainst=true;
+				  }
+				  if(matcherFilesExist && enc.getMmaCompatible() && (annot.getIAClass()==null || annot.getIAClass().equals("manta_ray_giant") ||  (annot.getIAClass().equals("mantaCR") && !annot.getMatchAgainst()))){
+					  mismatch++;
+					  hasMismatch=true;
+					  
+					  //let's convert!
+					  Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(annot.getMediaAsset());
+				    	   if (mmFiles.get("CR")!=null && mmFiles.get("CR").exists()) {
+				    	        File crFile=mmFiles.get("CR");
+				    	        //System.out.println(crFile.getAbsolutePath());
+				    	        String crPath=crFile.getAbsolutePath().replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "");
+								  %>
+								  <p>Converting encounter <a target="_blank" href="../encounters/encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a>...
+								  <%
+								  boolean worked=convertMediaAsset(annot.getMediaAsset(), myShepherd, crPath, context);
+							  	 //boolean worked=true;
+								  if(worked){
+							  	 %>
+							  	 ...worked!</p>
+							  	 <%
+							  	 }
+							  	 else{
+							  		%>
+								  	 ...FAILED!</p>
+								  	 <%
+				    	    }
+	
+					  	 }
+					  //}
+					  
+					}
+	    		}
 	    	} //end for annots
-
-	    	if(anns.size()>0)wim.sendAnnotations(anns, true, myShepherd);
-			myShepherd.updateDBTransaction();
+	    	if(hasMatchAgainst){
+	    		encHasMatchAgainst++;
+	    	}
+	    	if(enc.getMmaCompatible() && !hasMatchAgainst){
+	    		 misMatchEncArray.add(enc.getCatalogNumber());
+				  
+	    	}
+    	
 	    }
 		catch(Exception ce){
 			ce.printStackTrace();
@@ -205,9 +231,25 @@ finally{
 }
 
 %>
-</ul>
-<p>Annots missing acmIDs: <%=mismatch %></p>
 
+<p>Num CR files: <%=crCount %></p>
+<p>Num matchAgainst Annots: <%=matchAgainst %></p>
+<p>mismatch: <%=misMatchEncArray.size() %>
+	<ul>
+		<%
+		for(String sEnc:misMatchEncArray){
+		%>
+			<li><a target="_blank" href="../encounters/encounter.jsp?number=<%=sEnc %>"><%=sEnc %></a></li>
+		<%
+		}
+		%>
+	
+	</ul>
+</p>
+<p>mmaCompatible Encs: <%=mmaCompatible %></p>
+<p>haveMatchablAnnot Encs: <%=encHasMatchAgainst %></p>
+
+<p>Done successfully: <%=numFixes %></p>
 
 </body>
 </html>

@@ -1,8 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
-org.joda.time.format.DateTimeFormatter,org.ecocean.ia.plugin.*,
-org.joda.time.format.ISODateTimeFormat,java.net.*,org.json.JSONObject,org.apache.commons.io.*,
+org.joda.time.format.DateTimeFormatter,
+org.joda.time.format.ISODateTimeFormat,java.net.*,org.json.JSONObject,
 org.ecocean.grid.*,org.ecocean.media.*,org.ecocean.mmutil.*,org.ecocean.identity.IBEISIA,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 
@@ -129,8 +129,6 @@ int encHasMatchAgainst=0;
 int mismatchEncs =0;
 
 ArrayList<String> misMatchEncArray=new ArrayList<String>();
-File f=new File("/tmp/mmMissingAnnotUUID.json");
-String s=FileUtils.readFileToString(f);
 
 
 myShepherd.beginDBTransaction();
@@ -139,7 +137,7 @@ myShepherd.beginDBTransaction();
 try{
 
 	//String filter="select from org.ecocean.Annotation where iaClass == 'mantaCR'";
-	String filter="select from org.ecocean.Encounter where annotations.contains(annot) && annot.iaClass=='mantaCR' VARIABLES org.ecocean.Annotation annot";
+	String filter="select from org.ecocean.Encounter where mmaCompatible == true";
 	Query q=myShepherd.getPM().newQuery(filter);
 	Collection c= (Collection)q.execute();
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
@@ -148,41 +146,43 @@ try{
 	<p>Num encs: <%=encs.size() %></p>
 	<ul>
 	<%  
-	
-	WildbookIAM wim = new WildbookIAM(context);
-	
     for (Encounter enc:encs) {
     	try{
-    		
-    		ArrayList<Annotation> anns=new ArrayList<Annotation>();
-			
 	    	
     		ArrayList<String> matchable=new ArrayList<String>();
     		int dupes=0;
 	    	List<Annotation> annots=enc.getAnnotations();
 	    	for(Annotation annot:annots){
 	    		
-    			if(annot.getAcmId()==null || s.indexOf(annot.getAcmId())!=-1){
+    			if(annot.getIAClass()!=null && annot.getIAClass().equals("mantaCR") && annot.getMatchAgainst()){
     				
-    				mismatch++;
-    				//if(mismatch==1){
-    					if(annot.getAcmId()!=null){
-    						System.out.println("Wiping: "+annot.getAcmId());
-    						annot.setAcmId(null);
-    						
-    						myShepherd.updateDBTransaction();
-    					}
-    					anns.add(annot);
+    				MediaAsset ma=annot.getMediaAsset();
+    				String maACMID=ma.getAcmId();
+    				if(maACMID!=null){
     					
-    				//}
-    				
+    					if(!matchable.contains(maACMID)){
+    						matchable.add(maACMID);
+    					}
+    					else{
+    						dupes++;
+    						
+    						//if(enc.getCatalogNumber().equals("750badbd-4c16-41e2-8eef-c1f20bdf8bcf")){
+    							enc.removeAnnotation(annot);
+    							myShepherd.getPM().deletePersistent(annot);
+    							myShepherd.updateDBTransaction();
+    						//}
+    						
+    					}
+    					
+    				}
     				
     			}
 	    		
 	    	} //end for annots
 
-	    	if(anns.size()>0)wim.sendAnnotations(anns, true, myShepherd);
-			myShepherd.updateDBTransaction();
+    	%>
+    	<li><%=dupes %>: <%=enc.getCatalogNumber() %></li>
+    	<%
 	    }
 		catch(Exception ce){
 			ce.printStackTrace();
@@ -206,7 +206,7 @@ finally{
 
 %>
 </ul>
-<p>Annots missing acmIDs: <%=mismatch %></p>
+
 
 
 </body>
