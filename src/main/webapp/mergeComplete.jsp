@@ -75,7 +75,7 @@ table td,th {
 		
 			<h3>Successfully Merged Individuals</h3>
 		
-			<p><%=props.getProperty("individual") %> <%=oldNameA%> <%=props.getProperty("and") %> <%=oldNameB%> <%=props.getProperty("wereCombined") %> <a href='<%=mark.getWebUrl(request)%>'><%=mark.getDisplayName()%></a>
+			<p><%=props.getProperty("individual") %> <%=oldNameA%> <%=props.getProperty("and") %> <%=oldNameB%> <%=props.getProperty("wereCombined") %> <a href='<%=mark.getWebUrl(request)%>'><%=mark.getDisplayName(request, myShepherd)%></a>
 			<br>	
 			<p><%=props.getProperty("containsAll") %></p>
 			<br>
@@ -87,7 +87,7 @@ table td,th {
 
 				<h3>Merge Scheduled</h3>
 		
-				<p><%=props.getProperty("individual") %> <%=oldNameA%> <%=props.getProperty("and") %> <%=oldNameB%> <%=props.getProperty("willBeCombined") %> <a href='<%=mark.getWebUrl(request)%>'><%=mark.getDisplayName()%></a>
+				<p><%=props.getProperty("individual") %> <%=oldNameA%> <%=props.getProperty("and") %> <%=oldNameB%> <%=props.getProperty("willBeCombined") %> <a href='<%=mark.getWebUrl(request)%>'><%=mark.getDisplayName(request, myShepherd)%></a>
 				<br>	
 				<p><%=props.getProperty("scheduledFor") %></p>
 				<br>

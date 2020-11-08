@@ -1,12 +1,13 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties, java.util.Collections" %>
 <%@ page import="java.util.Properties, java.io.IOException" %>
-<%@ page import="org.ecocean.SearchUtilities" %>
+<%@ page import="org.ecocean.FormUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
+  User currentUser = AccessControl.getUser(request, myShepherd);
   myShepherd.setAction("individualSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   GregorianCalendar cal = new GregorianCalendar();
@@ -237,6 +238,7 @@ if(compareAgainst.getGeneticSex()!=null){
 <p><em><strong><%=props.getProperty("instructions")%>
 </strong></em></p>
 <form action="<%=formAction %>" method="get" name="individualSearch" id="search">
+  <input type="hidden" name="hiddenIncrementId" id="hiddenIncrementId" />
     <%
 	if(request.getParameter("individualDistanceSearch")!=null){
 	%>
@@ -1370,8 +1372,11 @@ else {
         %>
       </select>
       <%
-      SearchUtilities.setUpOrgDropdown(true, props, out, request, myShepherd);
+      FormUtilities.setUpOrgDropdown("organizationId", true, props, out, request, myShepherd);
+      FormUtilities.setUpProjectDropdown(true, 6, "Project Name", "projectId", props, out, request, myShepherd);
       %>
+      <div id="incremental-id-container">
+      </div>
 </div>
 </td>
 </tr>
@@ -1384,7 +1389,7 @@ else {
 </tr>
 </table>
 <br />
-<input name="submitSearch" type="submit" id="submitSearch" value="<%=props.getProperty("goSearch")%>" />
+<input name="submitSearch" type="submit" id="submitSearch" onclick="addIncrementalIdsToUrlParams()" value="<%=props.getProperty("goSearch")%>" />
 </form>
 </td>
 </tr>
@@ -1393,6 +1398,115 @@ else {
 </div>
 <script type="text/javascript" src="javascript/formNullRemover.js"></script>
 <jsp:include page="footer.jsp" flush="true"/>
+<script>
+
+let incrementalIdsOnSearchList = [];
+
+function doAutocompleteAjax(json, response){
+  console.log("doAutocompleteAjax entered and request is: ");
+  $.ajax({
+    url: wildbookGlobals.baseUrl + '../ProjectGet',
+    type: 'POST',
+    data: JSON.stringify(json),
+    dataType: "json",
+    contentType : 'application/json',
+    success: function(data){
+      let res = null;
+      res = $.map(data.autocompleteArr, function(item){
+          let projectIncrementalId = "";
+          if(typeof item.projectIncrementalId == 'undefined' || item.projectIncrementalId == undefined || item.projectIncrementalId===""){
+            return;
+          }
+          if(item.projectIncrementalId!=null && item.projectIncrementalId!="undefined"){
+            projectIncrementalId=item.projectIncrementalId;
+          }
+          let label = ("Incremental ID: " + projectIncrementalId);
+          return {label: label, value: item.projectIncrementalId};
+      });
+      response(res);
+    }
+  });
+}
+
+function updateindividualIncrementalIdsDisplay(){
+  incrementalIdsOnSearchList = [...new Set(incrementalIdsOnSearchList)];
+  $('#individualIncrementalIdsList').empty();
+  $('#access-list-title-container').empty();
+  if(incrementalIdsOnSearchList.length >0){
+    $('#access-list-title-container').append("<strong>Incremental IDs to Search For</strong>");
+  }
+  for(i=0; i<incrementalIdsOnSearchList.length; i++){
+    let elem = "<div class=\"chip\">" + incrementalIdsOnSearchList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\" onclick=\"removeIncrementalIdFromSearchParameters('" + incrementalIdsOnSearchList[i] + "'); return false\"></span></div>";
+    $('#individualIncrementalIdsList').append(elem);
+  }
+}
+
+function addIncrementalIdToSearchParameters(selectedIncrementalId){
+  incrementalIdsOnSearchList.push(selectedIncrementalId);
+  updateindividualIncrementalIdsDisplay();
+}
+
+function removeIncrementalIdFromSearchParameters(name){
+  incrementalIdsOnSearchList = incrementalIdsOnSearchList.filter(element => element !== name);
+  updateindividualIncrementalIdsDisplay();
+}
+
+function addIncrementalIdsToUrlParams(){
+  console.log("addIncrementalIdsToUrlParams entered. incrementalIdsOnSearchList is: ");
+  console.log(incrementalIdsOnSearchList);
+  $('#hiddenIncrementId').val(incrementalIdsOnSearchList.join(";")); // only way I could figure out to pass these as part of the URL. $('#individualIncrementalIds').val(incrementalIdsOnSearchList.join(";")); didn't work
+  debugger;
+}
+
+function populateIncrementalIdHtml(){
+  console.log("populateIncrementalIdHtml called")
+  $('#incremental-id-container').empty();
+  let incrementalIdHtml = '';
+  // incrementalIdHtml += '<div class="form-group row">';
+  incrementalIdHtml += '<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">';
+  incrementalIdHtml += '<label><strong><%=props.getProperty("incrementalIdLab") %></strong></label>';
+  incrementalIdHtml += '<input class="form-control" name="individualIncrementalIds" type="text" id="individualIncrementalIds" placeholder="<%=props.getProperty("typeToSearch") %>">';
+  incrementalIdHtml += '</div>';
+  incrementalIdHtml += '<div id="individualIncrementalIdsListContainer">';
+  incrementalIdHtml += '<div id="access-list-title-container">';
+  incrementalIdHtml += '</div>';
+  incrementalIdHtml += '<div id="individualIncrementalIdsList">';
+  incrementalIdHtml += '</div>';
+  incrementalIdHtml += '</div>';
+  // incrementalIdHtml += '</div>';
+  $("#incremental-id-container").append(incrementalIdHtml);
+}
+
+$(document).ready(function() {
+  console.log("ready");
+  // populateIncrementalIdHtml(); //This is a vestige of when we were going to implement autocomplete search for individual incremental IDs...before realizing that we could just search by individual names in the identity filter
+  // $('#individualIncrementalIds').autocomplete({
+    source: function(request, response){
+      if(request){
+        let searchTerm = request.term;
+        let username = '<%= currentUser.getUsername()%>';
+        let json = {};
+        json['username'] = username;
+        json['currentInput'] = searchTerm;
+        json['getUserIncrementalIds'] = 'true';
+        console.log("json is: ");
+        console.log(json);
+        doAutocompleteAjax(json, response);
+      }
+    }
+  });
+
+  $( "#individualIncrementalIds" ).on( "autocompleteselect", function( event, result ) {
+    console.log("autocompleteselect happens. Result is: ");
+    console.log(result);
+    let selectedIncrementalId = result.item.value;
+    addIncrementalIdToSearchParameters(selectedIncrementalId);
+    $(this).val("");
+    return false;
+  });
+
+});
+</script>
 
 <%
   myShepherd.closeDBTransaction();

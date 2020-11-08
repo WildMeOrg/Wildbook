@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
-         org.ecocean.servlet.ServletUtilities, java.io.File,
+         java.io.File,
          java.io.FileOutputStream, java.io.OutputStreamWriter,
          java.util.*, org.datanucleus.api.rest.orgjson.JSONArray,
          org.json.JSONObject, org.datanucleus.api.rest.RESTUtils,
@@ -8,1051 +8,336 @@
          java.nio.charset.StandardCharsets,
          java.net.URLEncoder " %>
 
-
-<%!
-
-String dispToString(Integer i) {
-	if (i==null) return "";
-	return i.toString();
-}
-
-%>
-
-
 <%
-
 String context="context0";
 context=ServletUtilities.getContext(request);
-  String langCode=ServletUtilities.getLanguageCode(request);
-  Properties projprops = new Properties();
-  projprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
-  Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("searchResults.jsp");
-  try{
-    //--let's estimate the number of results that might be unique
-    Integer numUniqueEncounters = null;
-    Integer numUnidentifiedEncounters = null;
-    Integer numDuplicateEncounters = null;
+String langCode=ServletUtilities.getLanguageCode(request);
+Properties projProps = new Properties();
+projProps=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
+Properties props = new Properties();
+props=ShepherdProperties.getProperties("projectManagement.properties", langCode, context);
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("projectManagement.jsp");
+User currentUser = myShepherd.getUser(request);
+if(currentUser == null){
+}
+// System.out.println("currentUser is " + currentUser.getUsername());
+try{
+  //--let's estimate the number of results that might be unique
+  Integer numUniqueEncounters = null;
+  Integer numUnidentifiedEncounters = null;
+  Integer numDuplicateEncounters = null;
 %>
+<style type="text/css">
+  .disabled-btn { /* moving this to _encounter-pages.less AND moving that beneath buttons custom import in manta.less did not work. */
+    background:#62676d30;
+    border:0;
+    color:#fff;
+    line-height:2em;
+    padding:7px 13px;
+    font-weight:300;
+    vertical-align:middle;
+    margin-right:10px;
+    margin-top:15px
+  }
+</style>
 
 <jsp:include page="../header.jsp" flush="true"/>
-
 <script src="../javascript/underscore-min.js"></script>
 <script src="../javascript/backbone-min.js"></script>
 <script src="../javascript/core.js"></script>
 <script src="../javascript/classes/Base.js"></script>
-
 <link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
-
 <link rel="stylesheet" href="../css/pageableTable.css" />
 <script src="../javascript/tsrt.js"></script>
-
-
-
 <div class="container maincontent">
-
-
-      <h1 class="intro"><%=projprops.getProperty("title")%>
-      </h1>
-
+  <h1 class="intro"><%=projProps.getProperty("title")%></h1>
 <%
-
 String queryString="";
 if(request.getQueryString()!=null){queryString=request.getQueryString();}
-
 %>
-
-
 <ul id="tabmenu">
-
-  <li><a><%=projprops.getProperty("table")%>
+  <li><a
+    href="searchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("table")%>
   </a></li>
   <li><a class="active"
-    href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projprops.getProperty("projectManagement")%>
+    href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("projectManagement")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projprops.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projprops.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=projProps.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=projprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=projProps.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=queryString %>"><%=projprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=queryString %>"><%=projProps.getProperty("export")%>
    </a></li>
-
 </ul>
 
-
-<p><%=projprops.getProperty("belowMatches")%></p>
-
-<style>
-.ptcol-maxYearsBetweenResightings {
-	width: 100px;
-}
-.ptcol-numberLocations {
-	width: 100px;
-}
-
-</style>
-
 <script type="text/javascript">
-
 	var needIAStatus = false;
-
-/*
-
-    <strong><%=projprops.getProperty("markedIndividual")%>
-    <strong><%=projprops.getProperty("number")%>
-    if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
-
-	    <strong><%=projprops.getProperty("taxonomy")%>
-	    <strong><%=projprops.getProperty("submitterName")%>
-	    <strong><%=projprops.getProperty("date")%>
-	    <strong><%=projprops.getProperty("location")%>
-	    <strong><%=projprops.getProperty("locationID")%>
-	    <strong><%=projprops.getProperty("occurrenceID")%>
-*/
-
-
 <%
 	String encsJson = "false";
-
-
-StringBuffer prettyPrint=new StringBuffer("");
-
-Map<String,Object> paramMap = new HashMap<String, Object>();
-
-String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
-
+  StringBuffer prettyPrint=new StringBuffer("");
+  Map<String,Object> paramMap = new HashMap<String, Object>();
+  String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
 %>
-
-
-
 var searchResults = <%=encsJson%>;
-
 var jdoql = '<%= URLEncoder.encode(filter,StandardCharsets.UTF_8.toString()) %>';
-
-$(document).keydown(function(k) {
-	if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
-	if (k.which == 38) return tableDn();
-	if (k.which == 40) return tableUp();
-	if (k.which == 33) return nudge(-howMany);
-	if (k.which == 34) return nudge(howMany);
-});
-
-
-var colDefn = [
-
-	{
-		key: 'individualID',
-		label: '<%=projprops.getProperty("ID")%>',
-		value: _colIndLink,
-		sortValue: function(o) { return o.get("displayName"); },
-	},
-	{
-		key: 'occurrenceID',
-		label: '<%=projprops.getProperty("sightingID")%>',
-		value: _occurrenceID,
-	},
-  {
-    key: 'otherCatalogNumbers',
-    label: '<%=projprops.getProperty("alternateID")%>'//'Alternate ID',
-  },
-	{
-		key: 'date',
-		label: '<%=projprops.getProperty("date")%>',
-		value: _colEncDate,
-		sortValue: _colEncDateSort,
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-	// {
-	// 	key: 'verbatimLocality',
-	// 	label: '<%=projprops.getProperty("location")%>',
-	// },
-	{
-		key: 'locationID',
-		label: '<%=projprops.getProperty("locationID")%>',
-		value: _notUndefined('locationID'),
-	},
-	{
-		key: 'taxonomy',
-		label: '<%=projprops.getProperty("taxonomy")%>',
-		value: _colTaxonomy,
-	},
-	{
-		key: 'submitterID',
-		label: '<%=projprops.getProperty("submitterName")%>',
-		value: _notUndefined('submitterID'),
-	},
-	{
-		key: 'creationDate',
-		label: '<%=projprops.getProperty("created")%>',
-		value: _colCreationDate,
-		sortValue: _colCreationDateSort,
-	},
-	{
-		key: 'modified',
-		label: '<%=projprops.getProperty("editDate")%>',
-		value: _colModified,
-		sortValue: _colModifiedSort,
-	}
-
-];
-
-
 var howMany = 10;
 var start = 0;
 var results = [];
-
-var sortCol = 7;
-var sortReverse = true;
-
-var counts = {
-	total: 0,
-	ided: 0,
-	unid: 0,
-	dailydup: 0,
-};
-
-var sTable = false;
-
-
-var iaResults;
-function doTable() {
-	iaResults = {};
-	if (needIAStatus) {
-		for (var i = 0 ; i < searchResults.length ; i++) {
-			if (searchResults[i].get('individualID') && (searchResults[i].get('individualID') != 'Unassigned')) continue;
-			var anns = searchResults[i].get('annotations');
-			if (!anns || (anns.length < 1)) continue;
-			searchResults[i].set('_iaResults', {});
-			iaResults[i] = {};
-			for (var a = 0 ; a < anns.length ; a++) {
-				iaResults[i][anns[a].id] = [];
-			}
-		}
-		colDefn.splice(1, 0, {
-			key: 'ia',
-			label: 'ID match',
-			value: _colIA,
-			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); },
-			sortValue: _colIASort
-		});
-
-		var allIds = [];
-		for (var i in iaResults) {
-			for (var annId in iaResults[i]) {
-				allIds.push(annId);
-			}
-		}
-
-		jQuery.ajax({
-			url: '../ia',
-			type: 'POST',
-			contentType: 'application/javascript',
-			dataType: 'json',
-			data: JSON.stringify({ taskSummary: allIds }),
-			success: function(d) { updateIAResults(d); },
-			error: function(a,b,c) { console.warn('%o %o %o', a, b, c); alert('error finding IA results'); },
-		});
-	}
-/*
-	for (var i = 0 ; i < searchResults.length ; i++) {
-		searchResults[i] = new wildbook.Model.Encounter(searchResults[i]);
-	}
-*/
-
-	sTable = new SortTable({
-		data: searchResults,
-		perPage: howMany,
-		sliderElement: $('#results-slider'),
-		columns: colDefn
-	});
-
-	$('#results-table').addClass('tablesorter').addClass('pageableTable');
-	var th = '<thead><tr>';
-		for (var c = 0 ; c < colDefn.length ; c++) {
-			var cls = 'ptcol-' + colDefn[c].key;
-			if (!colDefn[c].nosort) {
-				if (sortCol < 0) { //init
-					sortCol = c;
-					cls += ' headerSortUp';
-				}
-				cls += ' header" onClick="return headerClick(event, ' + c + ');';
-			}
-			th += '<th class="' + cls + '">' + colDefn[c].label + '</th>';
-		}
-	$('#results-table').append(th + '</tr></thead>');
-	for (var i = 0 ; i < howMany ; i++) {
-		var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
-		for (var c = 0 ; c < colDefn.length ; c++) {
-			r += '<td class="ptcol-' + colDefn[c].key + ' tdw"><div></div></td>';
-		}
-		r += '</tr>';
-		$('#results-table').append(r);
-	}
-
-	$('.ptcol-thumb.tdw').removeClass('tdw');
-
-	sTable.initSort();
-	sTable.initValues();
-
-
-	newSlice(sortCol, sortReverse);
-
-	$('#progress').hide();
-	sTable.sliderInit();
-	show();
-	computeCounts();
-	displayCounts();
-
-	$('#results-table').on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
-		if (!sTable.opts.sliderElement) return;
-		ev.preventDefault();
-		var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
-		if (delta != 0) nudge(-delta);
-	});
-
-}
-
-
-
-function updateIAResults(d) {
-	console.info('iaresults -> %o', d);
-	if (d.error || !d.success || !d.taskSummary) {
-		if (!d.error) d.error = 'unknown';
-		alert('error getting IA results: ' + d.error);
-		return;
-	}
-	var needUpdating = [];
-	var foundAnns = [];
-	for (var i in iaResults) {
-		var updated = false;
-		for (var annId in iaResults[i]) {
-			if (d.taskSummary[annId]) {
-				var r = searchResults[i].get('_iaResults');
-				if (!r) {
-					console.error('searchResults[%s] did not have _iaResults!?', i);
-					continue;
-				}
-				r[annId] = d.taskSummary[annId];
-				updated = true;
-				foundAnns.push(annId);
-			}
-		}
-		if (updated) needUpdating.push(i);
-	}
-	for (var annId in d.taskSummary) {
-		if (foundAnns.indexOf(annId) < 0) {
-			console.warn('taskSummary reported an annotation we dont care about: %s', annId);
-		}
-	}
-	console.log('needUpdating -> %o', needUpdating);
-	if (needUpdating.length < 1) return;
-
-	//refresh the values where needed, then the sorting for the IA summary column
-	for (var i = 0 ; i < needUpdating.length ; i++) {
-		sTable.refreshValue(needUpdating[i], 1);
-	}
-	sTable.refreshSort(1);
-	newSlice(sortCol);
-	show();  //update table to show changes
-}
-
-
-function rowClick(el) {
-	console.log(el);
-	var w = window.open('encounter.jsp?number=' + el.getAttribute('data-id'), '_blank');
-	w.focus();
-	return false;
-}
-
-function headerClick(ev, c) {
-	start = 0;
-	ev.preventDefault();
-	console.log(c);
-	if (sortCol == c) {
-		sortReverse = !sortReverse;
-	} else {
-		sortReverse = false;
-	}
-	sortCol = c;
-
-	$('#results-table th.headerSortDown').removeClass('headerSortDown');
-	$('#results-table th.headerSortUp').removeClass('headerSortUp');
-	if (sortReverse) {
-		$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortUp');
-	} else {
-		$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortDown');
-	}
-console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
-	newSlice(sortCol, sortReverse);
-	show();
-}
-
-
-function show() {
-	$('#results-table td').html('');
-	$('#results-table tbody tr').show();
-	for (var i = 0 ; i < results.length ; i++) {
-		var privateResults = searchResults[results[i]].get('_sanitized') || false;
-		var title = 'Encounter ' + searchResults[results[i]].id;
-		if (privateResults) {
-			title += ' [private]';
-			$($('#results-table tbody tr')[i]).addClass('collab-private');
-		} else {
-			$($('#results-table tbody tr')[i]).removeClass('collab-private');
-		}
-		$('#results-table tbody tr')[i].title = title;
-		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
-		for (var c = 0 ; c < colDefn.length ; c++) {
-			$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
-		}
-	}
-	if (results.length < howMany) {
-		$('#results-slider').hide();
-		for (var i = 0 ; i < (howMany - results.length) ; i++) {
-			$('#results-table tbody tr')[i + results.length].style.display = 'none';
-		}
-	} else {
-		$('#results-slider').show();
-	}
-
-	//if (sTable.opts.sliderElement) sTable.opts.sliderElement.slider('option', 'value', 100 - (start / (searchResults.length - howMany)) * 100);
-	sTable.sliderSet(100 - (start / (sTable.matchesFilter.length - howMany)) * 100);
-	displayPagePosition();
-}
-
-function computeCounts() {
-	counts.total = sTable.matchesFilter.length;
-	counts.unid = 0;
-	counts.ided = 0;
-	counts.dailydup = 0;
-	var uniq = {};
-
-	for (var i = 0 ; i < counts.total ; i++) {
-		var iid = searchResults[sTable.matchesFilter[i]].get('individualID');
-		if (!iid) {
-			counts.unid++;
-		} else {
-			var k = iid + ':' + searchResults[sTable.matchesFilter[i]].get('year') + ':' + searchResults[sTable.matchesFilter[i]].get('month') + ':' + searchResults[sTable.matchesFilter[i]].get('day');
-			if (!uniq[k]) {
-				uniq[k] = true;
-				counts.ided++;
-			} else {
-				counts.dailydup++;
-			}
-		}
-	}
-/*
-	var k = Object.keys(uniq);
-	counts.ided = k.length;
-*/
-}
-
-
-function displayCounts() {
-	for (var w in counts) {
-		$('#count-' + w).html(counts[w]);
-	}
-}
-
-
-function displayPagePosition() {
-	if (sTable.matchesFilter.length < 1) {
-		$('#table-info').html('<b>no matches found</b>');
-		return;
-	}
-
-	var max = start + howMany;
-	if (sTable.matchesFilter.length < max) max = sTable.matchesFilter.length;
-	$('#table-info').html((start+1) + ' - ' + max + ' of ' + sTable.matchesFilter.length);
-}
-
-
-function newSlice(col, reverse) {
-	results = sTable.slice(col, start, start + howMany, reverse);
-}
-
-
-function nudge(n) {
-	start += n;
-	if ((start + howMany) > sTable.matchesFilter.length) start = sTable.matchesFilter.length - howMany;
-	if (start < 0) start = 0;
-console.log('start -> %d', start);
-	newSlice(sortCol, sortReverse);
-	show();
-}
-
-function tableDn() {
-	return nudge(-1);
-	start--;
-	if (start < 0) start = 0;
-	newSlice(sortCol, sortReverse);
-	show();
-}
-
-function tableUp() {
-	return nudge(1);
-	start++;
-	if (start > sTable.matchesFilter.length - 1) start = sTable.matchesFilter.length - 1;
-	newSlice(sortCol, sortReverse);
-	show();
-}
-
-
-
-////////
 var encs;
 $(document).ready( function() {
 	wildbook.init(function() {
 		encs = new wildbook.Collection.Encounters();
 		encs.fetch({
-/*
-			// h/t http://stackoverflow.com/questions/9797970/backbone-js-progress-bar-while-fetching-collection
-			xhr: function() {
-				var xhr = $.ajaxSettings.xhr();
-				xhr.onprogress = fetchProgress;
-				return xhr;
-			},
-*/
 			fetch: "searchResults",
 			noDecorate: true,
 			jdoql: jdoql,
-			success: function() { searchResults = encs.models; doTable(); },
+			success: function() {
+        searchResults = encs.models;
+      },
 		});
 	});
 });
-
-
-function fetchProgress(ev) {
-	if (!ev.lengthComputable) return;
-	var percent = ev.loaded / ev.total;
-console.info(percent);
-}
-
-// a functor!
-function _notUndefined(fieldName) {
-  function _helperFunc(o) {
-    if (!o.get(fieldName)) return '';
-    return o.get(fieldName);
-  }
-  return _helperFunc;
-}
-// non-functor version!
-function _notUndefinedValue(obj, fieldName) {
-  function _helperFunc(o) {
-    if (!o.get(fieldName)) return '';
-    return o.get(fieldName);
-  }
-  return _helperFunc(obj);
-}
-
-
-function _colIndividual(o) {
-	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.individualID + '">' + o.individualID + '</a></b> ';
-	var i = '<b>' + o.individualID + '</b> ';
-	if (!extra[o.individualID]) return i;
-	i += (extra[o.individualID].firstIdent || '') + ' <i>';
-	i += (extra[o.individualID].genusSpecies || '') + '</i>';
-	return i;
-}
-
-
-function _colNumberEncounters(o) {
-	if (!extra[o.individualID]) return '';
-	var n = extra[o.individualID].numberEncounters;
-	if (n == undefined) return '';
-	return n;
-}
-
-/*
-function _colYearsBetween(o) {
-	return o.get('maxYearsBetweenResightings');
-}
-*/
-
-function _colNumberLocations(o) {
-	if (!extra[o.individualID]) return '';
-	var n = extra[o.individualID].locations;
-	if (n == undefined) return '';
-	return n;
-}
-
-
-function _colTaxonomy(o) {
-	var genus = _notUndefinedValue(o, 'genus');
-	var species = _notUndefinedValue(o, 'specificEpithet');
-	//console.log('colTaxonomy got genus '+genus+' and species '+species+' for object '+JSON.stringify(o));
-	return genus+' '+species;
-}
-
-function _occurrenceID(o) {
-	if (!o.get('occurrenceID')) return '';
-	return o.get('occurrenceID');
-}
-
-
-function _colRowNum(o) {
-	return o._rowNum;
-}
-
-
-function _xxxcolThumb(o) {
-	if (!extra[o.individualID]) return '';
-	var url = extra[o.individualID].thumbUrl;
-	if (!url) return '';
-	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
-}
-
-
-function _colModified(o) {
-	var m = o.get('modified');
-	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) return '';
-	return d.toLocaleDateString();
-}
-
-function _submitterID(o) {
-	if (o['submitterID']      != undefined) return o['submitterID'];
-	if (o['submitterProject'] != undefined) return o['submitterProject'];
-	if (o['submitterName']    != undefined) return o['submitterName'];
-	return '';
-}
-
-function _textExtraction(n) {
-	var s = $(n).text();
-	var skip = new RegExp('^(none|unassigned|)$', 'i');
-	if (skip.test(s)) return 'zzzzz';
-	return s;
-}
-
-
-
-
-
-
-var tableContents = document.createDocumentFragment();
-
-function xdoTable() {
-	resultsTable = new pageableTable({
-		columns: colDefn,
-		tableElement: $('#results-table'),
-		sliderElement: $('#results-slider'),
-		tablesorterOpts: {
-			headers: { 0: {sorter: false} },
-			textExtraction: _textExtraction,
-		},
-	});
-
-	resultsTable.tableInit();
-
-	encs = new wildbook.Collection.Encounters();
-	var addedCount = 0;
-	encs.on('add', function(o) {
-		var row = resultsTable.tableCreateRow(o);
-		row.click(function() { var w = window.open('encounter.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
-		row.addClass('clickable');
-		row.appendTo(tableContents);
-		addedCount++;
-/*
-		var percentage = Math.floor(addedCount / searchResults.length * 100);
-console.log(percentage);
-$('#progress').html(percentage);
-*/
-		if (addedCount >= searchResults.length) {
-			$('#results-table').append(tableContents);
-		}
-	});
-
-	_.each(searchResults, function(o) {
-//console.log(o);
-		encs.add(new wildbook.Model.Encounter(o));
-	});
-	$('#progress').remove();
-	resultsTable.tableShow();
-
-/*
-	encs.fetch({
-		//fields: { individualID: 'newMatch' },
-		success: function() {
-			$('#progress').remove();
-			resultsTable.tableShow();
-		}
-	});
-*/
-
-}
-
-
-function _colIndLink(o) {
-	var iid = o.get('individualID');
-	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
-	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
-//
-//
-	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + o.get("displayName") + '</a>';
-}
-
-
-//stops propagation of click to enclosing <TR> which wants click too
-function justA(ev) {
-	ev.stopPropagation();
-	return true;
-}
-
-
-//new way
-
-function _colEncDate(o) {
-	return o.dateAsString();
-}
-
-function _colEncDateSort(o) {
-	var d = o.date();
-	if (!d) return 0;
-	return d.getTime();
-}
-
-//old way
-//function _colEncDate(o) {
-//	var d = o.date();
-//	if (!d) return '';
-//	return d.toLocaleDateString();
-//}
-
-//function _colEncDateSort(o) {
-//	var d = o.date();
-//	if (!d) return '';
-//	return d.getTime();
-//}
-
-
-function _colFileName(o) {
-  if (!o.get('annotations')) return 'none';
-  var outStrings = [];
-  for (id in o.get('annotations')) {
-    var ann = o.get('annotations')[id];
-    //note: assuming 0th feature "may be bad" ?   TODO
-    if (ann.features && ann.features.length && ann.features[0].mediaAsset && ann.features[0].mediaAsset.filename) {
-      outStrings.push(ann.features[0].mediaAsset.filename);
-    }
-/*
-    if (ann.mediaAsset != undefined) {
-      var urlString = ann.mediaAsset.url;
-      var pieces = urlString.split('/');
-      var betweenLastSlashAndJpg = pieces[pieces.length-1].split('.')[0];
-      outStrings[outStrings.length] = betweenLastSlashAndJpg;
-      //console.log('\t added url string: '+ann.mediaAsset.url);
-    }
-    console.log('\t no mediaAsset found in annotation '+JSON.stringify(ann));
-*/
-  }
-  return outStrings.join(',\n');
-}
-function _colAlternateID(o) {
-  if (!o.get('otherCatalogNumbers')) return '';
-}
-
-function _colRowNum(o) {
-	return o._rowNum;
-}
-
-
-function _colIA(o) {
-	if (!o.get('_iaResults')) return '';
-	//for sorting.  not it is asc numeric, so smaller appears at top
-	var sortWeights = {
-		pending: 0,
-		'success-match': 3,
-		'success-miss': 5,
-		error: 7,
-		unknown: 9,
-	};
-	var res = [];
-	var total = {};
-	var mostRecent = 0;
-	var mostRecentNice = '';
-	for (var annId in o.get('_iaResults')) {
-		var sum = _colAnnIASummary(annId, o.get('_iaResults')[annId]);
-		if (sum.mostRecent > mostRecent) {
-			mostRecent = sum.mostRecent;
-			mostRecentNice = sum.mostRecentNice;
-		}
-		res.push(sum.html);
-		for (var flav in sum.data) {
-			if (sum.data[flav] < 1) continue;
-			if (!total[flav]) total[flav] = 0;
-			total[flav] += sum.data[flav];
-		}
-	}
-	if (res.length < 1) return '<span class="ia-ann-summary"><span class="ia-unknown">?</span></span>';
-	if (Object.keys(total).length == 1) {
-		var flav = Object.keys(total)[0];
-		o.set('_sortWeight', sortWeights[flav] + '.' + (10000000000000 - mostRecent));
-		return '<span class="ia-ann-summary" title="' + total[flav] + ' ' + flav + ' on ' + res.length + ' imgs; most recent run ' + sum.mostRecentNice + '"><span class="ia-' + flav + '">' + total[flav] + '</span></span>';
-	}
-
-	//for sortWeight, we pick the lowest value
-	var sw = 500;
-	for (var flav in total) {
-		if (sortWeights[flav] < sw) sw = sortWeights[flav];
-	}
-	o.set('_sortWeight', sw + '.' + (10000000000000 - mostRecent));
-	return res.join('');
-}
-
-function _colAnnIASummary(annId, sum) {
-	console.log('%s ------> %o', annId, sum);
-		var mostRecent = 0;
-	var mostRecentTaskId = false;
-	var flav = ['success-match', 'success-miss', 'pending', 'error', 'unknown'];
-	var r = {};
-	for (var i = 0 ; i < flav.length ; i++) {
-		r[flav[i]] = 0;
-	}
-	for (var taskId in sum) {
-		if (!sum[taskId].timestamp || !sum[taskId].status || !sum[taskId].status._response) {
-			console.warn('unknown summary on annId=%s, taskId=%s -> %o', annId, taskId, sum[taskId]);
-			r.unknown++;
-			continue;
-		}
-
-		if (sum[taskId].timestamp > mostRecent) {
-			mostRecent = sum[taskId].timestamp;
-			mostRecentTaskId = taskId;
-		}
-	}
-
-	if (mostRecentTaskId) {
-		if (sum[mostRecentTaskId].status && sum[mostRecentTaskId].status._response && sum[mostRecentTaskId].status._response.status && sum[mostRecentTaskId].status._response.response && sum[mostRecentTaskId].status._response.status.success) {
-			if (sum[mostRecentTaskId].status._response.response && sum[mostRecentTaskId].status._response.response.json_result &&
-			    (sum[mostRecentTaskId].status._response.response.json_result.length > 0)) {
-				var numMatches = 0;
-//console.warn(sum[mostRecentTaskId].status._response.response.json_result);
-				for (var m = 0 ; m < sum[mostRecentTaskId].status._response.response.json_result.length ; m++) {
-					if (!sum[mostRecentTaskId].status._response.response.json_result[m].daid_list) continue;
-					numMatches += sum[mostRecentTaskId].status._response.response.json_result[m].daid_list.length;
-				}
-				if (numMatches > 0) {
-					r['success-match']++;
-				} else {
-					r['success-miss']++;
-				}
-			} else {
-				console.warn('got IA results, but could not parse on annId=%s, taskId=%s -> %s', annId, mostRecentTaskId, sum[mostRecentTaskId].status);
-				r.error++;
-			}
-		} else if (!sum[mostRecentTaskId].status._response.success || sum[mostRecentTaskId].status._response.error) {
-			console.warn('error on annId=%s, taskId=%s -> %s', annId, mostRecentTaskId, sum[mostRecentTaskId].status._response.error || 'non-success');
-			r.error++;
-		} else {  //guess this means we are waiting on results?
-			console.warn('reporting pending on annId=%s, taskId=%s -> %o', annId, mostRecentTaskId, sum[mostRecentTaskId].status._response);
-			r.pending++;
-		}
-
-
-/* old way, to show *all* results
-		if (sum[taskId].timestamp > mostRecent) mostRecent = sum[taskId].timestamp;
-
-		//wtf, gimme a break, nested json!
-		if (sum[taskId].status && sum[taskId].status._response && sum[taskId].status._response.status && sum[taskId].status._response.response && sum[taskId].status._response.status.success) {
-			if (sum[taskId].status._response.response && sum[taskId].status._response.response.json_result &&
-			    (sum[taskId].status._response.response.json_result.length > 0)) {
-				var numMatches = 0;
-//console.warn(sum[taskId].status._response.response.json_result);
-				for (var m = 0 ; m < sum[taskId].status._response.response.json_result.length ; m++) {
-					if (!sum[taskId].status._response.response.json_result[m].daid_list) continue;
-					numMatches += sum[taskId].status._response.response.json_result[m].daid_list.length;
-				}
-				if (numMatches > 0) {
-					r['success-match']++;
-				} else {
-					r['success-miss']++;
-				}
-			} else {
-				console.warn('got IA results, but could not parse on annId=%s, taskId=%s -> %s', annId, taskId, sum[taskId].status);
-				r.error++;
-			}
-		} else if (!sum[taskId].status._response.success || sum[taskId].status._response.error) {
-			console.warn('error on annId=%s, taskId=%s -> %s', annId, taskId, sum[taskId].status._response.error || 'non-success');
-			r.error++;
-		} else {  //guess this means we are waiting on results?
-			console.warn('reporting pending on annId=%s, taskId=%s -> %o', annId, taskId, sum[taskId].status._response);
-			r.pending++;
-		}
-*/
-	}
-
-	var rtn = '';
-	var expl = '';
-	for (var i = 0 ; i < flav.length ; i++) {
-		if (r[flav[i]] < 1) continue;
-		rtn += '<span class="ia-' + flav[i] + '">' + r[flav[i]] + '</span>';
-		expl += ' ' + flav[i] + ':' + r[flav[i]];
-	}
-	if (!rtn) return '<span class="ia-error">!</span>';
-	var d = new Date(mostRecent);
-	return {
-		html: '<span class="ia-ann-summary" title="annot ' + annId + '; most recent run ' + d.toLocaleString() + ';' + expl + '">' + rtn + '</span>',
-		mostRecent: mostRecent,
-		mostRecentNice: d.toLocaleString(),
-		data: r
-	};
-}
-
-
-function _colIASort(o) {
-//console.info('[%s] weight=%o | has _iaResults %o', o.id, o.get('_sortWeight'), !(!o.get('_iaResults')));
-	if (o.get('_sortWeight')) return o.get('_sortWeight');
-	if (!o.get('_iaResults')) return 1000;
-	return 0;
-}
-
-function _colThumb(o) {
-	var url = wildbook.cleanUrl(o.thumbUrl());
-	if (!url) return '';
-	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /><span class="collab-icon"></span></div>';
-	return '<img src="' + url + '" />';
-}
-
-
-function _colModified(o) {
-	var m = o.get('modified');
-	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) return '';
-	return d.toLocaleDateString();
-}
-
-function _colModifiedSort(o) {
-	var m = o.get('modified');
-	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) return '';
-	return d.getTime();
-}
-
-function _colCreationDate(o) {
-	var m = o.get('dwcDateAdded');
-	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) return '';
-	return d.toLocaleDateString();
-}
-
-function _colCreationDateSort(o) {
-	var m = o.get('dwcDateAddedLong');
-	if (!m) return '';
-	//var d = wildbook.parseDate(m);
-	//if (!wildbook.isValidDate(d)) return 0;
-	return m;
-}
-
-
-
-function _textExtraction(n) {
-	var s = $(n).text();
-	var skip = new RegExp('^(none|unassigned|)$', 'i');
-	if (skip.test(s)) return 'zzzzz';
-	return s;
-}
-
-
-function applyFilter() {
-	var t = $('#filter-text').val();
-console.log(t);
-	sTable.filter(t);
-	start = 0;
-	newSlice(0);
-	show();
-	computeCounts();
-	displayCounts();
-}
-
 </script>
+<%
+try{
+  String order ="catalogNumber ASC NULLS LAST";
+  EncounterQueryResult result = EncounterQueryProcessor.processQuery(myShepherd, request, order);
+  System.out.println("got past EncounterQueryProcessor");
+  List<Encounter> encounters = result.getResult();
+  List<Encounter> encountersUserCanAdd = new ArrayList<Encounter>();
+  List<Encounter> encountersUserCannotAdd = new ArrayList<Encounter>();
+  if(encounters != null && encounters.size()>0){
+    for(int i=0; i< encounters.size(); i++){
+      Encounter currentEncounter = encounters.get(i);
+      if(ServletUtilities.isUserAuthorizedForEncounter(currentEncounter, request) == true){
+        encountersUserCanAdd.add(currentEncounter);
+      } else{
+          encountersUserCannotAdd.add(currentEncounter);
+      }
+    }
+  }
+  %>
+  <div class="padded-from-the-top">
+    <p><%= props.getProperty("encountersToBeAdded")%> <strong><%= encountersUserCanAdd.size()%></strong></p>
+    </br>
+    <p><%= props.getProperty("encountersNotToBeAdded")%> <strong><%= encountersUserCannotAdd.size()%></strong></p>
+  </div>
+  <form id="add-encounter-to-project-form"
+  method="post"
+  enctype="multipart/form-data"
+  name="add-encounter-to-project-form"
+  action="../ProjectUpdate"
+  accept-charset="UTF-8">
+  <div class="row flexbox padded-for-the-gods" id="project-list-container">
+  <%
+  if(currentUser != null){
+    System.out.println("currentUser not null");
+    FormUtilities.setUpProjectDropdown(false, 6,"Select Projects To Add To","id", projProps, out, request, myShepherd);
 
-<p class="table-filter-text">
-<input placeholder="<%=projprops.getProperty("filterByText") %>" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="<%=projprops.getProperty("filter") %>" />
-<input type="button" value="<%=projprops.getProperty("clear") %>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
-<span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
-</p>
-<div class="pageableTable-wrapper">
-	<div id="progress">Loading results table...</div>
-	<table id="results-table"></table>
-	<div id="results-slider"></div>
-</div>
-
-
-<p>
-<table width="810" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td align="left">
-      <p><strong><%=projprops.getProperty("matchingEncounters")%>
-      </strong>: <span id="count-total"></span>
-        <%
-          if (request.getUserPrincipal()!=null) {
-        %>
-        <br/>
-        <span id="count-ided"><%=dispToString(numUniqueEncounters)%></span> <%=projprops.getProperty("identifiedUnique")%><br/>
-        <span id="count-unid"><%=dispToString(numUnidentifiedEncounters)%></span> <%=projprops.getProperty("unidentified")%><br/>
-        <span id="count-dailydup"><%=dispToString(numDuplicateEncounters)%></span> <%=projprops.getProperty("dailyDuplicates")%>
-        <%
-          }
-        %>
-      </p>
-      <%
-        myShepherd.beginDBTransaction();
+    // List<Project> projects = myShepherd.getOwnedProjectsForUserId(currentUser.getUUID());
+    List<Project> projects = new ArrayList<Project>();
+    List<Project> userProjects = myShepherd.getOwnedProjectsForUserId(currentUser.getId(), "researchProjectName");
+    List<Project> projectsUserBelongsTo = myShepherd.getParticipatingProjectsForUserId(currentUser.getUsername());
+    if(userProjects != null && userProjects.size()>0){
+      for(int i=0; i<userProjects.size(); i++){
+        if(!projects.contains(userProjects.get(i))){ //avoid duplicates
+          projects.add(userProjects.get(i));
+        }
+      }
+    }
+    if(projectsUserBelongsTo != null && projectsUserBelongsTo.size()>0){
+      for(int i=0; i<projectsUserBelongsTo.size(); i++){
+        if(!projects.contains(projectsUserBelongsTo.get(i))){ //avoid duplicates
+          projects.add(projectsUserBelongsTo.get(i));
+        }
+      }
+    }
+    
+    if(projects != null && projects.size()>0){
+      System.out.println("projects not null");
       %>
-      <p><strong><%=projprops.getProperty("totalEncounters")%>
-      </strong>: <%=(myShepherd.getNumEncounters() + (myShepherd.getNumUnidentifiableEncounters()))%>
-      </p>
-    </td>
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 bump-down flex-left-justify">
+        <table class="row tissueSample alernatingRows">
+        <strong><%= props.getProperty("encountersInProject")%></strong>
+          <thead>
+            <tr>
+              <th><%= props.getProperty("projectName")%></th>
+              <th><%= props.getProperty("numberAlreadyInProject")%></th>
+            </tr>
+          </thead>
+          <tbody>
+      <%
+      int encounterAlreadyInProjectCounter = 0;
+      List<Integer> encounterCountsAlreadyInProject = new ArrayList<Integer>();
+      for(int i=0; i<projects.size(); i++){
+        encounterAlreadyInProjectCounter = 0;
+        Project currentProject = projects.get(i);
+        List<Encounter> currentEncounters = currentProject.getEncounters();
+        for(int j=0; j<currentEncounters.size(); j++){
+          if(encounters.contains(currentEncounters.get(j))){
+            encounterAlreadyInProjectCounter ++;
+          }
+        }
+        %>
+        <tr>
+          <td><%= currentProject.getResearchProjectName() %></td>
+          <td id="<%= currentProject.getId()%>"><%= encounterAlreadyInProjectCounter%></td>
+        <tr>
+        <%
+        encounterCountsAlreadyInProject.add(encounterAlreadyInProjectCounter);
+      }
+      %>
+            </tbody>
+          </table>
+        </div>
+      <%
+    }
+    %>
+    </div>
+    <button type="button" id="add-project-button" onclick="addProjects();">Add to Project(s) <span class="glyphicon glyphicon-plus"><span></button>
+    <button  class="disabled-btn" id="disabled-add-project-button" style="display: none;">Add to Project(s) <span class="glyphicon glyphicon-plus"><span></button>
+    </form>
 
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td align="left">
-
-      <p><strong><%=projprops.getProperty("queryDetails")%>
-      </strong></p>
-
-      <p class="caption"><strong><%=projprops.getProperty("prettyPrintResults") %>
-      </strong><br/>
-        <%=prettyPrint.toString().replaceAll("locationField", projprops.getProperty("location")).replaceAll("locationCodeField", projprops.getProperty("locationID")).replaceAll("verbatimEventDateField", projprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", projprops.getProperty("alternateID")).replaceAll("behaviorField", projprops.getProperty("behavior")).replaceAll("Sex", projprops.getProperty("sex")).replaceAll("nameField", projprops.getProperty("nameField")).replaceAll("selectLength", projprops.getProperty("selectLength")).replaceAll("numResights", projprops.getProperty("numResights")).replaceAll("vesselField", projprops.getProperty("vesselField"))%>
-      </p>
-
-      <p class="caption"><strong><%=projprops.getProperty("jdoql")%>
-      </strong><br/>
-        <%=filter %>
-      </p>
-
-    </td>
-  </tr>
-</table>
+    <%
+  }
+  System.out.println("got past getting encounters");
+}catch(Exception e){e.printStackTrace();}
+%>
+  <div id="adding-div" class="alert alert-info" role="alert" style="display: none;">
+    <%= props.getProperty("addingEncounters")%>
+  </div>
+  <div id="empty-form-div" class="alert alert-warning" role="alert" style="display: none;">
+    <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <%= props.getProperty("noProjectsSelected")%>
+  </div>
+  <div id="alert-div" class="alert alert-success" role="alert" style="display: none;">
+    <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong><%= props.getProperty("success")%></strong> <%= props.getProperty("encountersAdded")%> <a href="/projects/projectList.jsp"><%= props.getProperty("here")%></a>
+  </div>
+  <div id="alert-div-warn" class="alert alert-danger" role="alert" style="display: none;">
+    <button type="button" class="close" onclick="dismissAlert()" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <%= props.getProperty("encountersNotAdded")%>
+  </div>
 </div>
+<script>
+function dismissAlert(){
+  $('#alert-div').hide();
+  $('#alert-div-warn').hide();
+  $('#empty-form-div').hide();
+}
 
+function addProjects(){
+  disableAddButton();
+  $('#adding-div').show();
+  let formDataArray = $("#add-encounter-to-project-form").serializeArray();
+  if(formDataArray.length==1 && formDataArray[0].value ==="None"){
+    $('#adding-div').hide();
+    $('#empty-form-div').show();
+    enableAddButton();
+  } else{
+    let formJson = {};
+    formJson["projects"] = [];
+    for(i=0; i<formDataArray.length; i++){
+      let currentName = formDataArray[i].name;
+      if (currentName === "id"){
+        let currentProjId = formDataArray[i].value;
+        formJson = constructProjectObjJsonFromIdAndAddToJsonArray(currentProjId, formJson);
+      }else{
+        console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
+      }
+    }
+    doAjaxCall(formJson);
+  }
+}
+
+function doAjaxCall(formJson){
+  $.ajax({
+    url: wildbookGlobals.baseUrl + '../ProjectUpdate',
+    type: 'POST',
+    data: JSON.stringify(formJson),
+    dataType: 'json',
+    contentType : 'application/json',
+    success: function(data){
+      let modifiedStatus = data["modified"];
+      if(modifiedStatus){
+        updateEncountersAddedInDom(data);
+        $('#adding-div').hide();
+        enableAddButton();
+        $('#alert-div').show();
+      }
+      if(!modifiedStatus){
+        $('#adding-div').hide();
+        enableAddButton();
+        $('#alert-div-warn').show();
+      }
+    },
+    error: function(x,y,z) {
+      console.warn('%o %o %o', x, y, z);
+    }
+  });
+}
+
+function enableAddButton(){
+  $('#disabled-add-project-button').hide();
+  $('#add-project-button').show();
+}
+
+function disableAddButton(){
+  $('#add-project-button').hide();
+  $('#disabled-add-project-button').show();
+}
+
+function updateEncountersAddedInDom(data){
+  let formDataArray = $("#add-encounter-to-project-form").serializeArray();
+  if(formDataArray){
+    for(i=0; i<formDataArray.length; i++){
+        let currentName = formDataArray[i].name;
+        if (currentName === "id"){
+          let currentProjId = formDataArray[i].value;
+          let currentCount = parseInt(data["encountersAddedForProj_" + currentProjId]);
+          let currentNumber = parseInt($('#'+ currentProjId).text());
+          $('#'+currentProjId).html(currentNumber+ currentCount);
+        }else{
+          console.log("ack I shouldn't get here!!!!!!!!!!!!!!!!!!");
+        }
+    }
+  }
+}
+
+function constructProjectObjJsonFromIdAndAddToJsonArray(projectUuid, formJson){
+  let singleProjObj = {id: projectUuid};
+  singleProjObj["encountersToAdd"]=[];
+  <%
+    String order ="catalogNumber ASC NULLS LAST";
+    EncounterQueryResult result = EncounterQueryProcessor.processQuery(myShepherd, request, order);
+    List<Encounter> encounters = result.getResult();
+    for(int i=0; i<encounters.size(); i++){
+      %>
+      singleProjObj["encountersToAdd"].push("<%= encounters.get(i).getCatalogNumber()%>");
+      <%
+    }
+  %>
+  formJson["projects"].push(singleProjObj);
+  return formJson;
+}
+</script>
 <%
   }
   catch(Exception e){e.printStackTrace();}
   finally{
-	  myShepherd.rollbackDBTransaction();
-	  myShepherd.closeDBTransaction();
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
   }
-  //rEncounters = null;
-
 %>
-
-
 
 <jsp:include page="../footer.jsp" flush="true"/>

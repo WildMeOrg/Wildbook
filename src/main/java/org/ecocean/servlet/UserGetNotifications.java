@@ -63,17 +63,18 @@ public class UserGetNotifications extends HttpServlet {
 
             if (username!=null&&!"".equals(username)) {
 
-                notificationArr = addAllScheduledIndividualMergeNotifications(notificationArr, myShepherd, username);
+                notificationArr = addAllScheduledIndividualMergeNotifications(notificationArr, myShepherd, username, request);
 
             }
 
             res.put("notifications", notificationArr);
 
             PrintWriter out = response.getWriter();
+            res.put("success", "true");
             out.println(res);
             out.close();
             myShepherd.closeDBTransaction();
-            res.put("success", "true");
+            response.setStatus(HttpServletResponse.SC_OK);
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             addErrorMessage(res, "NullPointerException npe");
@@ -97,16 +98,16 @@ public class UserGetNotifications extends HttpServlet {
         res.put("error", error);
     }
 
-    private JSONArray addAllScheduledIndividualMergeNotifications(JSONArray notificationArr, Shepherd myShepherd, String username) {
+    private JSONArray addAllScheduledIndividualMergeNotifications(JSONArray notificationArr, Shepherd myShepherd, String username, HttpServletRequest request) {
         ArrayList<ScheduledIndividualMerge> pendingMerges = myShepherd.getAllIncompleteScheduledIndividualMerges();
         System.out.println("all incomplete merges: "+pendingMerges.size());
         for (ScheduledIndividualMerge pendingMerge : pendingMerges) {
             if (pendingMerge.isUserParticipent(username)) {
                 System.out.println("Is pending merge ignored by user? : "+pendingMerge.ignoredByUser(username));
                 if (pendingMerge.isDenied()&&!pendingMerge.ignoredByUser(username)) {
-                    notificationArr.put(individualMergeDeniedNotification(pendingMerge, username));
+                    notificationArr.put(individualMergeDeniedNotification(pendingMerge, username, myShepherd, request));
                 } else if (!pendingMerge.ignoredByUser(username)) {
-                    notificationArr.put(individualMergePendingNotification(pendingMerge, username));
+                    notificationArr.put(individualMergePendingNotification(pendingMerge, username, myShepherd, request));
                 }
             }
         }
@@ -115,36 +116,36 @@ public class UserGetNotifications extends HttpServlet {
         for (ScheduledIndividualMerge completeMerge : completeMergesOwnedByUser) {
             System.out.println("Is merge ignored by user? : "+completeMerge.ignoredByUser(username));
             if (!completeMerge.ignoredByUser(username)) {
-                notificationArr.put(individualMergeCompleteNotification(completeMerge, username));
+                notificationArr.put(individualMergeCompleteNotification(completeMerge, username, myShepherd, request));
             }
         }
         return notificationArr;
     }
 
-    private JSONObject individualMergeDeniedNotification(ScheduledIndividualMerge merge, String username) {
-        JSONObject note = getBasicMergeNotificationJSON(merge, username);
+    private JSONObject individualMergeDeniedNotification(ScheduledIndividualMerge merge, String username, Shepherd myShepherd, HttpServletRequest request) {
+        JSONObject note = getBasicMergeNotificationJSON(merge, username, myShepherd, request);
         note.put("notificationType", "mergeDenied");
         note.put("deniedBy", merge.getUsernameThatDeniedMerge());
         note.put("secondaryIndividualId", merge.getSecondaryIndividual().getId());
-        note.put("secondaryIndividualName", merge.getSecondaryIndividual().getDisplayName());
+        note.put("secondaryIndividualName", merge.getSecondaryIndividual().getDisplayName(request, myShepherd));
         return note;
     }
 
-    private JSONObject individualMergePendingNotification(ScheduledIndividualMerge merge, String username) {
-        JSONObject note = getBasicMergeNotificationJSON(merge, username);
+    private JSONObject individualMergePendingNotification(ScheduledIndividualMerge merge, String username, Shepherd myShepherd, HttpServletRequest request) {
+        JSONObject note = getBasicMergeNotificationJSON(merge, username, myShepherd, request);
         note.put("notificationType", "mergePending");
         note.put("secondaryIndividualId", merge.getSecondaryIndividual().getId());
-        note.put("secondaryIndividualName", merge.getSecondaryIndividual().getDisplayName());
+        note.put("secondaryIndividualName", merge.getSecondaryIndividual().getDisplayName(request, myShepherd));
         return note;
     }
 
-    private JSONObject individualMergeCompleteNotification(ScheduledIndividualMerge merge, String username) {
-        JSONObject note = getBasicMergeNotificationJSON(merge, username);
+    private JSONObject individualMergeCompleteNotification(ScheduledIndividualMerge merge, String username, Shepherd myShepherd, HttpServletRequest request) {
+        JSONObject note = getBasicMergeNotificationJSON(merge, username, myShepherd, request);
         note.put("notificationType", "mergeComplete");
         return note;
     }
 
-    private JSONObject getBasicMergeNotificationJSON(ScheduledIndividualMerge merge, String username) {
+    private JSONObject getBasicMergeNotificationJSON(ScheduledIndividualMerge merge, String username, Shepherd myShepherd, HttpServletRequest request) {
         // stuff commmon to all merge notifications
         JSONObject note = new JSONObject();
         note.put("taskId", merge.getId());
@@ -155,7 +156,7 @@ public class UserGetNotifications extends HttpServlet {
             note.put("ownedByMe", "false");
         }
         note.put("primaryIndividualId", merge.getPrimaryIndividual().getId());
-        note.put("primaryIndividualName", merge.getPrimaryIndividual().getDisplayName());
+        note.put("primaryIndividualName", merge.getPrimaryIndividual().getDisplayName(request, myShepherd));
         note.put("mergeExecutionDate", merge.getTaskScheduledExecutionDateString());
 
         return note;

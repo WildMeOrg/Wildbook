@@ -51,6 +51,16 @@ java.util.*" %>
     return false;
   }
 
+    String rotationInfo(MediaAsset ma) {
+        if ((ma == null) || (ma.getMetadata() == null)) return null;
+        HashMap<String,String> orient = ma.getMetadata().findRecurse(".*orient.*");
+        if (orient == null) return null;
+        for (String k : orient.keySet()) {
+            if (orient.get(k).matches(".*90.*")) return orient.get(k);
+            if (orient.get(k).matches(".*270.*")) return orient.get(k);
+        }
+        return null;
+    }
   %>
 
 <%
@@ -167,7 +177,7 @@ function forceLink(el) {
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
-		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName()+"</a><br>";
+		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName(request, imageShepherd)+"</a><br>";
 		      }
 		      	System.out.println("    EMG: got indID element "+individualID);
 
@@ -226,6 +236,7 @@ function forceLink(el) {
                                                 ja.put("iaClass", ann.getIAClass());
                                                 ja.put("identificationStatus", ann.getIdentificationStatus());
                                                 j.put("annotation", ja);
+                                                j.put("rotation", rotationInfo(ma));
 						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
 
 							if ((ann.getFeatures() == null) || (ann.getFeatures().size() < 1)) continue;

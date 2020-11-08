@@ -42,7 +42,10 @@ try{
 	    out.println("{");
 	
 	    String sql = 
-	        "SELECT \"ANNOTATION\".\"ACMID\" as annotAcmId, " +
+			"SELECT \"ANNOTATION\".\"ACMID\" as annotAcmId, " +
+
+			"\"ANNOTATION\".\"IACLASS\" as annotIaClass, " +
+
 	        "\"ANNOTATION\".\"MATCHAGAINST\" as annotMatchAgainst, " +
 	        "concat(\"ENCOUNTER\".\"GENUS\", ' ', \"ENCOUNTER\".\"SPECIFICEPITHET\") as species from " +
 	        " \"ANNOTATION\"  " +
@@ -57,6 +60,7 @@ try{
 	    String prev = null;
 	    List<Boolean> mag = new ArrayList<Boolean>();
 	    List<String> spec = new ArrayList<String>();
+		List<String> iaClass = new ArrayList<String>();
 	    int ct = 0;
 	    while (it.hasNext()) {
 	        Object[] f = (Object[])it.next();
@@ -64,19 +68,30 @@ try{
 	        if (prev == null) prev = id;
 	        if (!prev.equals(id)) {
 	            if (ct > 0) out.print(", ");
-	            out.println("\"" + prev + "\": { \"match\": " + (new JSONArray(mag)).toString() + ", \"species\": " + (new JSONArray(spec)).toString() + "}"); 
+	            out.println("\"" + prev + "\": { \"match\": " + (new JSONArray(mag)).toString() + ", \"species\": " + (new JSONArray(spec)).toString() +  ", \"iaClass\": " + (new JSONArray(iaClass)).toString() + "}"); 
 	            mag = new ArrayList<Boolean>();
 	            spec = new ArrayList<String>();
+				iaClass = new ArrayList<String>();
 	            ct++;
 	            prev = id;
-	        }
-	        mag.add((Boolean)f[1]);
-	        String sp = (String)f[2];
+			}
+			
+			String thisIaClass = (String)f[1];
+			if ((thisIaClass == null) || thisIaClass.equals("") || thisIaClass.equals(" ")) {
+				iaClass.add(null);
+			} else {
+				iaClass.add(thisIaClass);
+			}
+			
+			mag.add((Boolean)f[2]);
+			
+	        String sp = (String)f[3];
 	        if ((sp == null) || sp.equals("") || sp.equals(" ")) {
 	            spec.add(null);
 	        } else {
 	            spec.add(sp);
-	        }
+			}
+			
 	/*
 	        Object id = it.next();
 	        if (it.hasNext()) {
