@@ -205,6 +205,12 @@ console.warn('ias => %o', ias);
     //this is now handled by a div in encounters.jsp
     matchFilter: function(aid, ma) {
         iaMatchFilterAnnotationIds.push(aid);
+        var iaClass = ma && ma.annotation && ma.annotation.iaClass;
+        $('.mfalgo-item').show();
+        if (iaClass) {
+            $('.mfalgo-item').hide();
+            $('.mfalgo-iaclass-' + iaClass).show();
+        }
         $('.ia-match-filter-dialog').show();
     },
 

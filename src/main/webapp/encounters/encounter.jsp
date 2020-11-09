@@ -6787,13 +6787,30 @@ $(".search-collapse-header").click(function(){
 
 <%
 
-JSONArray identConfigs = iaConfig.getAllIdentConfigs(taxy);
+////JSONArray identConfigs = iaConfig.getAllIdentConfigs(taxy);
+
+Map<String,JSONObject> identConfigs = new HashMap<String,JSONObject>();
+for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
+    for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
+        String key = idOpt.toString();
+        if (identConfigs.containsKey(key)) {
+            identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
+        } else {
+            JSONArray iac = new JSONArray();
+            iac.put(iaClass);
+            idOpt.put("_iaClasses", iac);
+            identConfigs.put(key, idOpt);
+        }
+    }
+}
 
   %>
   <div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
   <%
-for(int algNum=0; algNum<identConfigs.length(); algNum++) {
-  JSONObject algConfig = identConfigs.getJSONObject(algNum);
+
+int algNum = 0;
+for (JSONObject algConfig : identConfigs.values()) {
+  //JSONObject algConfig = identConfigs.getJSONObject(algNum);
   JSONObject queryConfigDict = algConfig.optJSONObject("query_config_dict");
 
   boolean enabled = algConfig.optBoolean("default", true);
@@ -6803,8 +6820,13 @@ for(int algNum=0; algNum<identConfigs.length(); algNum++) {
   }
   if (!Util.stringExists(description)) description = "HotSpotter pattern matcher";
 
-  out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\" " + (enabled ? "checked" : "") + " /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
+  String forClasses = "";
+  for (int i = 0 ; i < algConfig.getJSONArray("_iaClasses").length() ; i++) {
+    forClasses += " mfalgo-iaclass-" + algConfig.getJSONArray("_iaClasses").optString(i, "__FAIL__");
+  }
 
+  out.println("<div class=\"mfalgo-item " + forClasses + " item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\" " + (enabled ? "checked" : "") + " /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
+  algNum++;
 }
 
 %>
