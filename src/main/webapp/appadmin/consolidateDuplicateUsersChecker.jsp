@@ -24,17 +24,17 @@ Shepherd myShepherd=new Shepherd(context);
 int numFixes=0;
 %>
 
-<html>
-  <head>
-    <title>Consolidate Duplicate Users</title>
-  </head>
-  <body>
+<jsp:include page="../header.jsp" flush="true"/>
+    <script>
+      let txt = getText("myUsers.properties");
+    </script>
     <ol>
     <%
     myShepherd.beginDBTransaction();
     try{
       List<User> users=myShepherd.getAllUsers();
       if(users!=null && users.size()>0){
+        System.out.println(users.size() + " total users in the database");
         for(int i=0;i<users.size();i++){
           User currentUser=users.get(i);
           if(currentUser!=null){
@@ -53,28 +53,89 @@ int numFixes=0;
                   %>
                   <%= currentSimilarUser.getUsername() + "; " + currentSimilarUser.getEmailAddress() + "; " + currentSimilarUser.getFullName()%>,
                   <%
-                  // try{
-                  //   UserConsolidate.consolidateUser(myShepherd, currentUser, currentSimilarUser);
-                  // } catch(Exception e){
-                      // System.out.println("error consolidating user: " + currentSimilarUser.toString() + " into user: " + currentUser.toString());
-                  //   e.printStackTrace();
-                  // }
+                  try{
+                    // UserConsolidate.consolidateUser(myShepherd, currentUser, currentSimilarUser);
+                    %>
+                    <script>
+                    $(document).ready(function() {
+                      let ajaxJson = {};
+                      ajaxJson['mergeDesired'] = true; //should be true even if userInfoArr is empty
+                      ajaxJson['username'] = '<%= currentUser.getUsername()%>';
+                      ajaxJson['userInfoArr'] = [];
+                      ajaxJson['userInfoArr'].push({username: '<%= currentSimilarUser.getUsername()%>', email: '<%= currentSimilarUser.getEmailAddress()%>', fullname: '<%= currentSimilarUser.getFullName()%>'});
+                      console.log("ajaxJson is: ");
+                      console.log(ajaxJson);
+                      doAjaxCallForMergingUser(ajaxJson);
+                    });
+                    function doAjaxCallForMergingUser(jsonRequest){
+                      $.ajax({
+                      url: wildbookGlobals.baseUrl + '../UserConsolidate',
+                      type: 'POST',
+                      data: JSON.stringify(jsonRequest),
+                      dataType: 'json',
+                      contentType: 'application/json',
+                      success: function(data) {
+                          console.log("data are");
+                          console.log(data);
+                          let responseArray =[];
+                          jsonRequest.userInfoArr.forEach(userInfoObj =>{
+                            let keyForDataInResponseChecking = "details_"+userInfoObj.username+"__"+userInfoObj.email+"__"+userInfoObj.fullname;
+                            let valuesOfUserInfoObjPrettified = Object.values(userInfoObj).join(", ");
+                            if(data[keyForDataInResponseChecking]){
+                              if(data[keyForDataInResponseChecking] === "SingleMatchFoundForUserAndConsdolidated"){
+                                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.singleMatchFoundForUserAndConsdolidated);
+                              }
+                              if(data[keyForDataInResponseChecking] === "FoundMoreThanOneMatchOrNoMatchesForUser"){
+                                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.foundMoreThanOneMatchOrNoMatchesForUser);
+                              }
+                              if(data[keyForDataInResponseChecking] === "ErrorConsolidatingReportToStaff"){
+                                  responseArray.push(valuesOfUserInfoObjPrettified + ": " + txt.errorConsolidatingReportToStaff);
+                              }
+                            }
+                          });
+                          // if(data.success && shouldDisplayWhetherDoneBefore){
+                          displayConfirmations(responseArray);
+                          },
+                          error: function(x,y,z) {
+                              console.warn('%o %o %o', x, y, z);
+                          }
+                      });
+                    }
+
+                    function displayConfirmations(arrayOfResponses){
+                      let confirmationHtml = '';
+                      confirmationHtml += '<h3>'+txt.completed+'</h3>'
+                      arrayOfResponses.forEach(response =>{
+                        confirmationHtml += '<p>' + response + '</p>';
+                      });
+                      $('#content-container').empty();
+                      $('#content-container').append(confirmationHtml);
+                    }
+                    </script>
+                    <%
+                  } catch(Exception e){
+                      System.out.println("error consolidating user: " + currentSimilarUser.toString() + " into user: " + currentUser.toString());
+                    e.printStackTrace();
+                  }
                 }
               }
             }
             %>
             </p>
+            <div class="content-container"></div>
             <%
           }
         }
       }
     }
     catch(Exception e){
-    	myShepherd.rollbackDBTransaction();
+      System.out.println("error in consolidateDuplicateUsersChecker.jsp in the whole try catch loop");
+      e.printStackTrace();
+
     }
     finally{
+      myShepherd.rollbackDBTransaction();
     	myShepherd.closeDBTransaction();
     }
     %>
-  </body>
-</html>
+<jsp:include page="../footer.jsp" flush="true"/>
