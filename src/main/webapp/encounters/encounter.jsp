@@ -6796,13 +6796,14 @@ for(int algNum=0; algNum<identConfigs.length(); algNum++) {
   JSONObject algConfig = identConfigs.getJSONObject(algNum);
   JSONObject queryConfigDict = algConfig.optJSONObject("query_config_dict");
 
+  boolean enabled = algConfig.optBoolean("default", true);
   String description = algConfig.optString("description");
   if (!Util.stringExists(description) && queryConfigDict!=null) {
     description = queryConfigDict.optString("pipeline_root");
   }
   if (!Util.stringExists(description)) description = "HotSpotter pattern matcher";
 
-  out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
+  out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\" " + (enabled ? "checked" : "") + " /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
 
 }
 
