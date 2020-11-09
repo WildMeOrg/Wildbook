@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.util.Properties;
@@ -235,6 +236,11 @@ public class IA {
         for (List<Annotation> annsOneIAClass: annotsByIaClass) {
 
             List<JSONObject> opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
+            //now we remove ones with default=false (they may get added in below via matchingAlgorithms param (via newOpts)
+            Iterator<JSONObject> itr = opts.iterator();
+            while (itr.hasNext()) {
+                if (!itr.next().optBoolean("default", true)) itr.remove(); 
+            }
 
             System.out.println("identOpts: "+opts.toString());
             if ((opts == null) || (opts.size() < 1)) continue;  // no ID for this iaClass.
