@@ -237,12 +237,14 @@ public class IA {
 
             List<JSONObject> opts = iaConfig.identOpts(myShepherd, annsOneIAClass.get(0));
             //now we remove ones with default=false (they may get added in below via matchingAlgorithms param (via newOpts)
-            Iterator<JSONObject> itr = opts.iterator();
-            while (itr.hasNext()) {
-                if (!itr.next().optBoolean("default", true)) itr.remove(); 
+            if (opts != null) {
+                Iterator<JSONObject> itr = opts.iterator();
+                while (itr.hasNext()) {
+                    if (!itr.next().optBoolean("default", true)) itr.remove(); 
+                }
             }
 
-            System.out.println("identOpts: "+opts.toString());
+            System.out.println("identOpts: "+opts);
             if ((opts == null) || (opts.size() < 1)) continue;  // no ID for this iaClass.
             List<Task> tasks = new ArrayList<Task>();
             JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
