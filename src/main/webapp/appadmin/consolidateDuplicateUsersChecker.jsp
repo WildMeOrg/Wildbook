@@ -67,6 +67,7 @@ int numFixes=0;
                       console.log(ajaxJson);
                       doAjaxCallForMergingUser(ajaxJson);
                     });
+                    
                     function doAjaxCallForMergingUser(jsonRequest){
                       $.ajax({
                       url: wildbookGlobals.baseUrl + '../UserConsolidate',
@@ -93,9 +94,9 @@ int numFixes=0;
                               }
                             }
                           });
-                          // if(data.success && shouldDisplayWhetherDoneBefore){
+                          // if(data.success && shouldDisplayWhetherDoneBefore){}
                           displayConfirmations(responseArray);
-                          },
+                        },
                           error: function(x,y,z) {
                               console.warn('%o %o %o', x, y, z);
                           }
@@ -134,7 +135,7 @@ int numFixes=0;
 
     }
     finally{
-      myShepherd.rollbackDBTransaction();
+      myShepherd.commitDBTransaction();
     	myShepherd.closeDBTransaction();
     }
     %>
