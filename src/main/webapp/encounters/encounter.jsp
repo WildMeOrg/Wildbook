@@ -6595,18 +6595,34 @@ function iaMatchFilterGo() {
 
 
 		<%
-		Properties iaprops = ShepherdProperties.getProperties("IA.properties", "", context);
     IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
     Taxonomy taxy = enc.getTaxonomy(myShepherd);
 
-    JSONArray allIdentOpts = iaConfig.getAllIdentOpts(taxy);
-    for (int algNum=0; algNum<allIdentOpts.length(); algNum++) {
-      JSONObject thisIdentOpt = allIdentOpts.getJSONObject(algNum);
-        %>
-        optArray.push(<%=thisIdentOpt.toString()  %>);
-        <%
+Map<String,JSONObject> identConfigs = new HashMap<String,JSONObject>();
+for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
+    for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
+        String key = idOpt.toString();
+        if (identConfigs.containsKey(key)) {
+            identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
+        } else {
+            JSONArray iac = new JSONArray();
+            iac.put(iaClass);
+            idOpt.put("_iaClasses", iac);
+            identConfigs.put(key, idOpt);
+        }
     }
-		%>
+}
+
+//we need to keep this in the same order so we can get values out in the same way
+List<JSONObject> identConfigsValues = new ArrayList<JSONObject>();
+for (JSONObject val : identConfigs.values()) {
+    identConfigsValues.add(val);
+    //now we add this js line to add it in same order:
+%>
+        optArray.push(<%=val.toString()%>);
+<%
+}
+%>
 
 $('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
@@ -6785,31 +6801,11 @@ $(".search-collapse-header").click(function(){
     </div>
 -->
 
-<%
-
-////JSONArray identConfigs = iaConfig.getAllIdentConfigs(taxy);
-
-Map<String,JSONObject> identConfigs = new HashMap<String,JSONObject>();
-for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
-    for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
-        String key = idOpt.toString();
-        if (identConfigs.containsKey(key)) {
-            identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
-        } else {
-            JSONArray iac = new JSONArray();
-            iac.put(iaClass);
-            idOpt.put("_iaClasses", iac);
-            identConfigs.put(key, idOpt);
-        }
-    }
-}
-
-  %>
   <div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
   <%
 
 int algNum = 0;
-for (JSONObject algConfig : identConfigs.values()) {
+for (JSONObject algConfig : identConfigsValues) {
   //JSONObject algConfig = identConfigs.getJSONObject(algNum);
   JSONObject queryConfigDict = algConfig.optJSONObject("query_config_dict");
 
