@@ -691,7 +691,7 @@ rtn.put("_payload", payload);
             if (id == null) break;  //we dont try others cuz if this one failed, they all likely will!
             JSONObject j = new JSONObject();
             j.put("id", id);
-            j.put("version", version);
+            j.put("version", (version == null) ? 0 : version);
             rtn.put(j);
         }
         query.closeAll();
