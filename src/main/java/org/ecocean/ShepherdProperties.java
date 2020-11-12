@@ -118,6 +118,7 @@ public class ShepherdProperties {
 
     public static Properties getProperties(String fileName, String langCode, String context, String overridePrefix){
         System.out.println("ShepherdProperties.getProperties() is DEPRECATED; please consider upgrading code; called with: " + fileName + ", " + langCode + ", " + context + ", " + overridePrefix);
+        if (fileName != null) throw new RuntimeException("bailing to prevent loop");
         if (Util.stringExists(langCode)) return getPropertiesLEGACY(fileName, langCode, context, overridePrefix);
 
         if ((fileName == null) || !fileName.endsWith(".properties")) throw new RuntimeException("ShepherdProperties.getProperties() invalid fileName=" + fileName);
