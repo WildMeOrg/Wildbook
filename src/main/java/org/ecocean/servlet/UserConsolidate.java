@@ -48,36 +48,36 @@ public class UserConsolidate extends HttpServlet {
     System.out.println("consolidating user " + userToBeConsolidated.toString() + " into user " + userToRetain.toString());
     // myShepherd.beginDBTransaction();
 
-    // List<Encounter> photographerEncounters=getPhotographerEncountersForUser(myShepherd.getPM(),userToBeConsolidated);
-    // if(photographerEncounters!=null && photographerEncounters.size()>0){
-    //   for(int j=0; j<photographerEncounters.size(); j++){
-    //     Encounter currentEncounter=photographerEncounters.get(j);
-    //     consolidatePhotographers(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
-    //   }
-    // }
-    // List<Encounter> submitterEncounters=getSubmitterEncountersForUser(myShepherd.getPM(),userToBeConsolidated);
-    // if(submitterEncounters!=null && submitterEncounters.size()>0){
-    //   for(int k=0;k<submitterEncounters.size();k++){
-    //     Encounter currentEncounter=submitterEncounters.get(k);
-    //     consolidateEncounterSubmitters(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
-    //     consolidateMainEncounterSubmitterId(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
-    //     consolidateEncounterInformOthers(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
-    //   }
-    // }
-    // List<Occurrence> submitterOccurrences = getSubmitterOccurrencesForUser(myShepherd.getPM(), userToBeConsolidated);
-    // if(submitterOccurrences!=null && submitterOccurrences.size()>0){
-    //   for(int j=0;j<submitterOccurrences.size(); j++){
-    //     Occurrence currentOccurrence = submitterOccurrences.get(j);
-    //     if(currentOccurrence!=null){
-    //       consolidateOccurrenceSubmitters(myShepherd, currentOccurrence, userToRetain, userToBeConsolidated);
-    //     }
-    //   }
-    // }
+    List<Encounter> photographerEncounters=getPhotographerEncountersForUser(myShepherd.getPM(),userToBeConsolidated);
+    if(photographerEncounters!=null && photographerEncounters.size()>0){
+      for(int j=0; j<photographerEncounters.size(); j++){
+        Encounter currentEncounter=photographerEncounters.get(j);
+        consolidatePhotographers(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
+      }
+    }
+    List<Encounter> submitterEncounters=getSubmitterEncountersForUser(myShepherd.getPM(),userToBeConsolidated);
+    if(submitterEncounters!=null && submitterEncounters.size()>0){
+      for(int k=0;k<submitterEncounters.size();k++){
+        Encounter currentEncounter=submitterEncounters.get(k);
+        consolidateEncounterSubmitters(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
+        consolidateMainEncounterSubmitterId(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
+        consolidateEncounterInformOthers(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
+      }
+    }
+    List<Occurrence> submitterOccurrences = getSubmitterOccurrencesForUser(myShepherd.getPM(), userToBeConsolidated);
+    if(submitterOccurrences!=null && submitterOccurrences.size()>0){
+      for(int j=0;j<submitterOccurrences.size(); j++){
+        Occurrence currentOccurrence = submitterOccurrences.get(j);
+        if(currentOccurrence!=null){
+          consolidateOccurrenceSubmitters(myShepherd, currentOccurrence, userToRetain, userToBeConsolidated);
+        }
+      }
+    }
 
     consolidateImportTaskCreator(myShepherd, userToRetain, userToBeConsolidated);
     System.out.println(".....consolidateImportTaskCreator ended");
 
-    // myShepherd.getPM().deletePersistent(userToBeConsolidated);
+    myShepherd.getPM().deletePersistent(userToBeConsolidated);
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
     System.out.println("......consolidation complete");
@@ -114,9 +114,9 @@ public class UserConsolidate extends HttpServlet {
     System.out.println("query is: " + filter);
   	List<ImportTask> impTasks=new ArrayList<ImportTask>();
     Query query=myShepherd.getPM().newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      impTasks=new ArrayList<ImportTask>(c);
+    Collection collection = (Collection) (query.execute());
+    if(collection!=null){
+      impTasks=new ArrayList<ImportTask>(collection);
     }
     query.closeAll();
     System.out.println("got here 1 with userToRetain: " + userToRetain.toString() + " and userToBeConsolidated: " + userToBeConsolidated.toString());
@@ -251,48 +251,102 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static List<User> getSimilarUsers(User user, PersistenceManager persistenceManager){
-    String baseQueryString="SELECT * FROM \"USERS\" WHERE ";
-    String fullNameFilter = "\"FULLNAME\" ilike '%" + user.getFullName() + "%'";
-    String emailFilter = "\"EMAILADDRESS\" ilike '%" + user.getEmailAddress() + "%'";
-    String userNameFilter = "\"USERNAME\" ilike '%" + user.getUsername() + "%'";
+    // String baseQueryString="SELECT * FROM \"USERS\" WHERE ";
+    // String fullNameFilter = "\"FULLNAME\" matches '%" + user.getFullName() + "%'";
+    // String emailFilter = "\"EMAILADDRESS\" matches '%" + user.getEmailAddress() + "%'";
+    // String userNameFilter = "\"USERNAME\" matches '%" + user.getUsername() + "%'";
     Boolean fullNameExists = user.getFullName() != null && !user.getFullName().equals("");
     Boolean emailExists = user.getEmailAddress() != null && !user.getEmailAddress().equals("");
     Boolean userNameExists = user.getUsername() != null && !user.getUsername().equals("");
-    String combinedQuery = baseQueryString;
+    // String combinedQuery = baseQueryString;
+    Query query = persistenceManager.newQuery(User.class); //, "javax.jdo.query.SQL"
+    List<User> similarUsers=new ArrayList<User>();
+    Map params = new HashMap();
+    Collection collection = null;
     if(fullNameExists && emailExists && userNameExists){
-      combinedQuery = combinedQuery + fullNameFilter + " OR " + emailFilter + " OR " + userNameFilter;
+      query.setFilter("this.fullname matches :fullNameVar || this.emailaddress matches :emailVar || this.username matches :usernameVar");
+      params = new HashMap();
+      params.put("fullNameVar", user.getFullName());
+      params.put("emailVar",  user.getEmailAddress() );
+      params.put("usernameVar",  user.getUsername() );
+      query.setNamedParameters(params);
+      collection = (Collection) (query.execute());
+      // combinedQuery = combinedQuery + fullNameFilter + " || " + emailFilter + " || " + userNameFilter;
     }
     if(fullNameExists && userNameExists && !emailExists){
-      combinedQuery = combinedQuery + fullNameFilter + " OR " + userNameFilter;
+      query.setFilter("this.fullname matches :fullNameVar || this.username matches :usernameVar");
+      params = new HashMap();
+      params.put("fullNameVar", user.getFullName());
+      params.put("usernameVar",  user.getUsername() );
+      query.setNamedParameters(params);
+      // query.declareParameters("String fullNameVar, String usernameVar");
+      collection = (Collection) (query.execute());
+      // combinedQuery = combinedQuery + fullNameFilter + " || " + userNameFilter;
     }
     if(fullNameExists && emailExists && !userNameExists){
-      combinedQuery = combinedQuery + fullNameFilter + " OR " + emailFilter;
+      query.setFilter("this.fullname matches :fullNameVar || this.emailaddress matches :emailVar");
+      params = new HashMap();
+      params.put("fullNameVar", user.getFullName());
+      params.put("emailVar",  user.getEmailAddress() );
+      query.setNamedParameters(params);
+      // query.declareParameters("String fullNameVar, String emailVar");
+      collection = (Collection) (query.execute());
+      // combinedQuery = combinedQuery + fullNameFilter + " || " + emailFilter;
     }
     if(emailExists && userNameExists && !fullNameExists){
-      combinedQuery = combinedQuery + emailFilter + " OR " + userNameFilter;
+      query.setFilter("this.emailaddress matches :emailVar || this.username matches :usernameVar");
+      params = new HashMap();
+      params.put("emailVar",  user.getEmailAddress() );
+      params.put("usernameVar",  user.getUsername() );
+      query.setNamedParameters(params);
+      // query.declareParameters("String emailVar, String usernameVar");
+      collection = (Collection) (query.execute());
+      // collection = (Collection) (query.execute( user.getEmailAddress() ,  user.getUsername() ));
+      // combinedQuery = combinedQuery + emailFilter + " || " + userNameFilter;
     }
     if(fullNameExists && !userNameExists && !emailExists){
-      combinedQuery = combinedQuery + fullNameFilter;
+      query.setFilter("this.fullname matches :fullNameVar");
+      params = new HashMap();
+      params.put("fullNameVar", user.getFullName());
+      query.setNamedParameters(params);
+      // query.declareParameters("String fullNameVar");
+      collection = (Collection) (query.execute());
+      // combinedQuery = combinedQuery + fullNameFilter;
     }
     if(emailExists && !userNameExists && !fullNameExists){
-      combinedQuery = combinedQuery + emailFilter;
+      query.setFilter("this.emailaddress matches :emailVar");
+      params = new HashMap();
+      params.put("emailVar",  user.getEmailAddress() );
+      query.setNamedParameters(params);
+      query.declareParameters("String emailVar");
+      collection = (Collection) (query.execute());
+      // combinedQuery = combinedQuery + emailFilter;
     }
     if(userNameExists && !emailExists && !fullNameExists){
-      combinedQuery = combinedQuery + userNameFilter;
+      query.setFilter("this.username matches :usernameVar");
+      params = new HashMap();
+      params.put("usernameVar",  user.getUsername() );
+      query.setNamedParameters(params);
+      // query.declareParameters("String usernameVar");
+      collection = (Collection) (query.execute());
+      // combinedQuery = combinedQuery + userNameFilter;
     }
-  	List<User> similarUsers=new ArrayList<User>();
-    System.out.println("combined query is: " + combinedQuery);
-    if(!combinedQuery.equals(baseQueryString)){
-      Query query = persistenceManager.newQuery("javax.jdo.query.SQL", combinedQuery);
-      query.setClass(User.class);
-      Collection c = (Collection) (query.execute());
-      similarUsers=new ArrayList<User>(c);
-      // List<User> tmp = (List<User>) query.execute();
-      // if(tmp!=null){
-      //   similarUsers=new ArrayList<User>(tmp);
-      // }
-      query.closeAll();
+    if(!userNameExists && !emailExists && !fullNameExists){
+      return similarUsers;
     }
+  	// List<User> similarUsers=new ArrayList<User>();
+    similarUsers=new ArrayList<User>(collection);
+    query.closeAll();
+    // System.out.println("combined query is: " + combinedQuery);
+    // if(!combinedQuery.equals(baseQueryString)){
+    //   // Query query = persistenceManager.newQuery("javax.jdo.query.SQL", combinedQuery);
+    //   // query.setClass(User.class);
+    //   // Collection collection = (Collection) (query.execute());
+    //   // List<User> tmp = (List<User>) query.execute();
+    //   // if(tmp!=null){
+    //   //   similarUsers=new ArrayList<User>(tmp);
+    //   // }
+    // }
     return similarUsers;
   }
 
@@ -329,9 +383,9 @@ public class UserConsolidate extends HttpServlet {
   	String filter="SELECT FROM org.ecocean.Encounter where (submitters.contains(user)) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
   	List<Encounter> encs=new ArrayList<Encounter>();
     Query query=persistenceManager.newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      encs=new ArrayList<Encounter>(c);
+    Collection collection = (Collection) (query.execute());
+    if(collection!=null){
+      encs=new ArrayList<Encounter>(collection);
     }
     query.closeAll();
     return encs;
@@ -341,9 +395,9 @@ public class UserConsolidate extends HttpServlet {
   	String filter="SELECT FROM org.ecocean.Occurrence where (submitters.contains(user)) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
   	List<Occurrence> encs=new ArrayList<Occurrence>();
     Query query=persistenceManager.newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      encs=new ArrayList<Occurrence>(c);
+    Collection collection = (Collection) (query.execute());
+    if(collection!=null){
+      encs=new ArrayList<Occurrence>(collection);
     }
     query.closeAll();
     return encs;
@@ -353,9 +407,9 @@ public class UserConsolidate extends HttpServlet {
   	String filter="SELECT FROM org.ecocean.Encounter where this.submitterEmail==user.emailAddress && user.username==null || user.username==\"N/A\" VARIABLES org.ecocean.User user";
   	List<Encounter> encs=new ArrayList<Encounter>();
     Query query = persistenceManager.newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      encs=new ArrayList<Encounter>(c);
+    Collection collection = (Collection) (query.execute());
+    if(collection!=null){
+      encs=new ArrayList<Encounter>(collection);
       for(int i=0; i<encs.size(); i++){
         Encounter currentEncounter = encs.get(i);
       }
@@ -369,9 +423,9 @@ public class UserConsolidate extends HttpServlet {
     if(!"".equals(emailAddress) && emailAddress!=null){
       String filter="SELECT FROM org.ecocean.User where \"" + emailAddress + "\"==this.emailAddress && this.username==null || this.username==\"N/A\" ";
       Query query=persistenceManager.newQuery(filter);
-      Collection c = (Collection) (query.execute());
-      if(c!=null){
-        usernamelessUsers=new ArrayList<User>(c);
+      Collection collection = (Collection) (query.execute());
+      if(collection!=null){
+        usernamelessUsers=new ArrayList<User>(collection);
         for(int i=0; i<usernamelessUsers.size(); i++){
           User currentUser = usernamelessUsers.get(i);
         }
@@ -386,9 +440,9 @@ public class UserConsolidate extends HttpServlet {
   	String filter="SELECT FROM org.ecocean.Encounter where (photographers.contains(user)) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
   	List<Encounter> encs=new ArrayList<Encounter>();
     Query query= persistenceManager.newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      encs=new ArrayList<Encounter>(c);
+    Collection collection = (Collection) (query.execute());
+    if(collection!=null){
+      encs=new ArrayList<Encounter>(collection);
     }
     query.closeAll();
     return encs;
@@ -398,9 +452,9 @@ public class UserConsolidate extends HttpServlet {
     List<User> users=new ArrayList<User>();
     String filter="SELECT FROM org.ecocean.User WHERE username == \""+username+"\"";
     Query query=persistenceManager.newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      users=new ArrayList<User>(c);
+    Collection collection = (Collection) (query.execute());
+    if(collection!=null){
+      users=new ArrayList<User>(collection);
     }
   	return users;
   }
@@ -409,9 +463,9 @@ public class UserConsolidate extends HttpServlet {
     List<User> users=new ArrayList<User>();
     String filter="SELECT FROM org.ecocean.User WHERE fullName == \""+fullname+"\"";
     Query query=persistenceManager.newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      users=new ArrayList<User>(c);
+    Collection collection = (Collection) (query.execute());
+    if(collection!=null){
+      users=new ArrayList<User>(collection);
       query.closeAll();
     }
   	return users;
@@ -421,9 +475,9 @@ public class UserConsolidate extends HttpServlet {
     List<User> users=new ArrayList<User>();
     String filter = "SELECT FROM org.ecocean.User WHERE hashedEmailAddress == \""+hashedEmail+"\"";
     Query query = persistenceManager.newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      users=new ArrayList<User>(c);
+    Collection collection = (Collection) (query.execute());
+    if(collection!=null){
+      users=new ArrayList<User>(collection);
       query.closeAll();
     }
   	return users;
@@ -436,9 +490,9 @@ public class UserConsolidate extends HttpServlet {
       List<User> users=new ArrayList<User>();
       String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \""+emailAddress+"\"";
       Query query = persistenceManager.newQuery(filter);
-      Collection c = (Collection) (query.execute());
-      if(c!=null){
-        users=new ArrayList<User>(c);
+      Collection collection = (Collection) (query.execute());
+      if(collection!=null){
+        users=new ArrayList<User>(collection);
       }
       if(users.size()>0){
         return users;
@@ -459,9 +513,9 @@ public class UserConsolidate extends HttpServlet {
       List<User> users=new ArrayList<User>();
       String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \""+emailAddress+"\"";
       Query query = persistenceManager.newQuery(filter);
-      Collection c = (Collection) (query.execute());
-      if(c!=null){
-        users=new ArrayList<User>(c);
+      Collection collection = (Collection) (query.execute());
+      if(collection!=null){
+        users=new ArrayList<User>(collection);
       }
       if(users.size()>0){
         return users.get(0);
