@@ -339,6 +339,7 @@ public class ShepherdPMF {
         //if(pmf!=null){pmf.close();}
 
 SystemLog.info("dbConnectionURL={}", dnProperties.getProperty("datanucleus.ConnectionURL"));
+        if (dnProperties.getProperty("datanucleus.ConnectionURL") == null) throw new RuntimeException("dbConnectionURL could not be found; perhaps you need to set tomcat environment variable DB_CONNECTION_URL ?");
         pmfs.put(key, JDOHelper.getPersistenceManagerFactory(dnProperties));
         return pmfs.get(key);
 
