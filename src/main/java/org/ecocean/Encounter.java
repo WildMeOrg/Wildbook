@@ -3594,6 +3594,8 @@ throw new Exception();
         enc.setRecordedBy(this.getRecordedBy());
         enc.setState(this.getState());  //not too sure about this one?
         enc.setAlternateID(this.getAlternateID());
+        enc.setOccurrenceRemarks(this.getOccurrenceRemarks());
+        enc.addComments("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
         ImportTask itask = getImportTask(myShepherd);
         if (itask != null) itask.addEncounter(enc);
         return enc;
