@@ -58,6 +58,9 @@ int numFixes=0;
                     %>
                     <script>
                     $(document).ready(function() {
+                      <%
+                        if(currentSimilarUser.getUsername()!=null){
+                      %>
                       let ajaxJson = {};
                       ajaxJson['mergeDesired'] = true; //should be true even if userInfoArr is empty
                       ajaxJson['username'] = '<%= currentUser.getUsername()%>';
@@ -66,8 +69,11 @@ int numFixes=0;
                       console.log("ajaxJson is: ");
                       console.log(ajaxJson);
                       doAjaxCallForMergingUser(ajaxJson);
+                      <%
+                        }
+                      %>
                     });
-                    
+
                     function doAjaxCallForMergingUser(jsonRequest){
                       $.ajax({
                       url: wildbookGlobals.baseUrl + '../UserConsolidate',
@@ -117,10 +123,10 @@ int numFixes=0;
                   } catch(Exception e){
                       System.out.println("error consolidating user: " + currentSimilarUser.toString() + " into user: " + currentUser.toString());
                     e.printStackTrace();
-                  }
-                }
-              }
-            }
+                  } //end catch
+                } // end if currentSimilarUser!=null
+              } // end for loop of similarUsers
+            } // end if users!=null && users.size()>0
             %>
             </p>
             <div class="content-container"></div>
