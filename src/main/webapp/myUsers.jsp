@@ -215,6 +215,8 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
+          console.log("data coming back are:");
+          console.log(data);
           let responseArray =[];
           jsonRequest.userInfoArr.forEach(userInfoObj =>{
             let keyForDataInResponseChecking = "details_"+userInfoObj.username+"__"+userInfoObj.email+"__"+userInfoObj.fullname;
