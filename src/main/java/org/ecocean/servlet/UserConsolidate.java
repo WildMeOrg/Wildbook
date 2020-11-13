@@ -108,14 +108,20 @@ public class UserConsolidate extends HttpServlet {
   public static void consolidateEncounterSubmitters(Shepherd myShepherd, Encounter enc, User useMe, User userToRemove){
     System.out.println("removing "+ userToRemove.toString() +" from submitters list in encounter " + enc.toString() + " and adding user " + useMe.toString());
     if(!useMe.equals(userToRemove)){
+      System.out.println("got here c1");
       List<User> subs=enc.getSubmitters();
+      System.out.println("got here c2");
       if(subs!=null && userToRemove!=null && subs.contains(userToRemove)){
+        System.out.println("got here c3");
         subs.remove(userToRemove);
       }
       if(subs!=null && useMe!=null && !subs.contains(useMe)){
+        System.out.println("got here c4");
         subs.add(useMe);
       }
+      System.out.println("got here c5");
       enc.setSubmitters(subs);
+      System.out.println("got here c6");
     }
   }
 
