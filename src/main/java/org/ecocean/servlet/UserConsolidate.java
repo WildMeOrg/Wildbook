@@ -52,7 +52,6 @@ public class UserConsolidate extends HttpServlet {
     if(photographerEncounters!=null && photographerEncounters.size()>0){
       for(int j=0; j<photographerEncounters.size(); j++){
         Encounter currentEncounter=photographerEncounters.get(j);
-        System.out.println("dedupe got here 2 past currentEncounter assignment");
         consolidatePhotographers(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
@@ -60,44 +59,25 @@ public class UserConsolidate extends HttpServlet {
     }
     List<Encounter> submitterEncounters=getSubmitterEncountersForUser(myShepherd.getPM(),userToBeConsolidated);
     if(submitterEncounters!=null && submitterEncounters.size()>0){
-      System.out.println("dedupe got here 4 submitter encoutners not null");
       for(int k=0;k<submitterEncounters.size();k++){
         Encounter currentEncounter=submitterEncounters.get(k);
-        System.out.println("dedupe got here 5 about to enter consolidateEncounterSubmitters");
         consolidateEncounterSubmitters(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
-        System.out.println("dedupe got here 6 past consolidateEncounterSubmitters");
-        // myShepherd.commitDBTransaction();
-        // myShepherd.beginDBTransaction();
         consolidateMainEncounterSubmitterId(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
-        System.out.println("dedupe got here 7 past consolidateMainEncounterSubmitterId");
-
-        System.out.println("dedupe got here 8 ignore this one");
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
       }
     }
-    System.out.println("dedupe got here 9");
     List<Occurrence> submitterOccurrences = getSubmitterOccurrencesForUser(myShepherd.getPM(), userToBeConsolidated);
-    System.out.println("dedupe got here 10 past getSubmitterOccurrencesForUser");
     if(submitterOccurrences!=null && submitterOccurrences.size()>0){
-      System.out.println("dedupe got here 11 submitterOccurrences not null or empty");
       for(int j=0;j<submitterOccurrences.size(); j++){
         Occurrence currentOccurrence = submitterOccurrences.get(j);
         if(currentOccurrence!=null){
-          System.out.println("dedupe got here 12 about to consolidateOccurrenceSubmitters");
           consolidateOccurrenceSubmitters(myShepherd, currentOccurrence, userToRetain, userToBeConsolidated);
-          System.out.println("dedupe got here 13 just finished consolidateOccurrenceSubmitters");
         }
       }
     }
-    System.out.println("dedupe got here 14 about to enter consolidateEncounterInformOthers");
     consolidateEncounterInformOthers(myShepherd, userToRetain, userToBeConsolidated);
-    System.out.println("dedupe got here 15 exited consolidateEncounterInformOthers and entering consolidateImportTaskCreator");
-
     consolidateImportTaskCreator(myShepherd, userToRetain, userToBeConsolidated);
-    System.out.println("dedupe got here 16 exited consolidateImportTaskCreator");
-    System.out.println("dedupe .....consolidateImportTaskCreator ended");
-
     myShepherd.getPM().deletePersistent(userToBeConsolidated);
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
@@ -107,29 +87,16 @@ public class UserConsolidate extends HttpServlet {
   public static void consolidateEncounterSubmitters(Shepherd myShepherd, Encounter enc, User useMe, User userToRemove){
     System.out.println("dedupe removing "+ userToRemove.toString() +" from submitters list in encounter " + enc.toString() + " and adding user " + useMe.toString());
     if(!useMe.equals(userToRemove)){
-      System.out.println("dedupe got here c1");
       List<User> subs=enc.getSubmitters();
-      System.out.println("dedupe got here c2");
       if(subs!=null && userToRemove!=null && subs.contains(userToRemove)){
-        System.out.println("dedupe got here c3");
         subs.remove(userToRemove);
-        // enc.getSubmitters().remove(userToRemove);
-        // myShepherd.commitDBTransaction();
-        // myShepherd.beginDBTransaction();
       }
       if(subs!=null && useMe!=null && !subs.contains(useMe)){
-        System.out.println("dedupe got here c4");
-        // enc.getSubmitters().add(useMe);
-        // enc.addSubmitter(useMe);
-        // myShepherd.commitDBTransaction();
-        // myShepherd.beginDBTransaction();
         subs.add(useMe);
       }
-      System.out.println("dedupe got here c5");
       enc.setSubmitters(subs);
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
-      // System.out.println("dedupe got here c6");
     }
   }
 
@@ -138,8 +105,6 @@ public class UserConsolidate extends HttpServlet {
     if(enc.getSubmitterID()!=null && userToRemove.getUsername()!=null && enc.getSubmitterID().equals(userToRemove.getUsername())){
       enc.setSubmitterID(useMe.getUsername());
     }
-    // myShepherd.commitDBTransaction();
-    // myShepherd.beginDBTransaction();
   }
 
   public static void consolidateImportTaskCreator(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
@@ -150,34 +115,22 @@ public class UserConsolidate extends HttpServlet {
     Query query=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     if(c!=null){
-      System.out.println("dedupe got here a collection is not null");
       impTasks=new ArrayList<ImportTask>(c);
     }
     query.closeAll();
-    System.out.println("dedupe got here b with userToRetain: " + userToRetain.toString() + " and userToBeConsolidated: " + userToBeConsolidated.toString());
     if(impTasks!=null && impTasks.size()>0){
-      System.out.println("dedupe got here c impTasks not null and size is: " + impTasks.size());
       for(int i=0; i<impTasks.size(); i++){
-        System.out.println("dedupe got here d with index: " + i);
         ImportTask currentImportTask = impTasks.get(i);
         if(currentImportTask.getCreator()!=null & currentImportTask.getCreator().equals(userToBeConsolidated)){
-          System.out.println("dedupe setting creator");
           currentImportTask.setCreator(userToRetain);
-          // myShepherd.commitDBTransaction();
-          // myShepherd.beginDBTransaction();
         }
       }
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
-      System.out.println("dedupe got here e");
     }else{
-      System.out.println("dedupe got here instead f");
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
     }
-    // myShepherd.commitDBTransaction();
-    // myShepherd.beginDBTransaction();
-    System.out.println("dedupe got here g just committed transaction and started new one in consolidateImportTaskCreator. Ending consolidateImportTaskCreator....");
   }
 
   public static void consolidateEncounterInformOthers(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
@@ -188,15 +141,11 @@ public class UserConsolidate extends HttpServlet {
     Query query=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
     if(c!=null){
-      System.out.println("dedupe got here l collection is not null");
       encs=new ArrayList<Encounter>(c);
     }
     query.closeAll();
-    System.out.println("dedupe got here m with userToRetain: " + userToRetain.toString() + " and userToBeConsolidated: " + userToBeConsolidated.toString());
     if(encs!=null && encs.size()>0){
-      System.out.println("dedupe got here n encs not null and size is: " + encs.size());
       for(int i=0; i<encs.size(); i++){
-        System.out.println("dedupe got here o with index: " + i);
         Encounter currentEncounter = encs.get(i);
         if(currentEncounter.getInformOthers()!=null){
           List<User> currentInformOthers = currentEncounter.getInformOthers();
@@ -211,18 +160,13 @@ public class UserConsolidate extends HttpServlet {
       }
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
-      System.out.println("dedupe got here e");
     }else{
-      System.out.println("dedupe got here instead f");
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
     }
-    // myShepherd.commitDBTransaction();
-    // myShepherd.beginDBTransaction();
-    System.out.println("dedupe got here g just committed transaction and started new one in consolidateEncounterInformOthers. Ending consolidateEncounterInformOthers....");
   }
 
-  public static int consolidateUsersAndNameless(Shepherd myShepherd,User useMe,List<User> dupes){
+  public static int consolidateUsersAndNameless(Shepherd myShepherd,User useMe,List<User> dupes){ //TODO this is not up-to-date with consolidateUser. Use that as a model when the time comes. Lots of wonky db commit weirdness, so be careful out there -MF
     PersistenceManager persistenceManager = myShepherd.getPM();
   	dupes.remove(useMe);
   	int numDupes=dupes.size();
@@ -314,9 +258,6 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static List<User> getSimilarUsers(User user, PersistenceManager persistenceManager){
-    // Connection conn = ServletUtilities.getConnection();
-    // PreparedStatement preparedStatement = conn.prepareStatement("SELECT * FROM \"USERS\" WHERE ?%");
-    // ps.setString(1, "Having's Quotes");
     String baseQueryString="SELECT * FROM \"USERS\" WHERE ";
     String fullNameFilter = "\"FULLNAME\" ilike ?1"; //" + user.getFullName() + "
     String emailFilter = "\"EMAILADDRESS\" ilike '%" + user.getEmailAddress() + "%'";
@@ -347,16 +288,12 @@ public class UserConsolidate extends HttpServlet {
       combinedQuery = combinedQuery + userNameFilter;
     }
   	List<User> similarUsers=new ArrayList<User>();
-    System.out.println("dedupe combined query is: " + combinedQuery);
+    System.out.println("dedupe combined query for getSimilarUsers is: " + combinedQuery);
     if(!combinedQuery.equals(baseQueryString)){
-      // PreparedStatement preparedStatement = conn.prepareStatement(combinedQuery);
-      // preparedStatement.setString(1, user.getFullName());
       Query query = persistenceManager.newQuery("javax.jdo.query.SQL", combinedQuery);
-      // query.setParameters("%"+user.getFullName()+"%");
       query.setClass(User.class);
-      System.out.println("dedupe query before execution is: " + query.toString());
       Collection c = null;
-      if(fullNameExists){ //should only expect a parameter if combinedQuery includes the fullName part
+      if(fullNameExists){ //it should only expect a parameter if combinedQuery includes the fullName part
         c = (Collection) (query.execute("%"+user.getFullName()+"%"));
       } else{
         c = (Collection) (query.execute());
@@ -369,11 +306,6 @@ public class UserConsolidate extends HttpServlet {
     }
     return similarUsers;
   }
-
-  // public static String handleEdgeCasesForFullName(String unprocessedFullName){
-  //   System.out.println("dedupe handleEdgeCasesForFullName entered. unprocessedFullName is: " + unprocessedFullName);
-  //   String processedFullName = unprocessedFullName
-  // }
 
   public static void consolidateUsernameless(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
     //TODO flesh this out when you have a "Public" user
@@ -401,8 +333,6 @@ public class UserConsolidate extends HttpServlet {
         photographers.remove(currentUser);
       }
       enc.setPhotographers(photographers);
-      // myShepherd.commitDBTransaction();
-      // myShepherd.beginDBTransaction();
     }
   }
 
@@ -464,7 +394,6 @@ public class UserConsolidate extends HttpServlet {
 
 
   public static List<Encounter> getPhotographerEncountersForUser(PersistenceManager persistenceManager, User user){
-    System.out.println("dedupe getPhotographerEncountersForUser entered");
   	String filter="SELECT FROM org.ecocean.Encounter where (photographers.contains(user)) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
   	List<Encounter> encs=new ArrayList<Encounter>();
     Query query= persistenceManager.newQuery(filter);
@@ -473,7 +402,6 @@ public class UserConsolidate extends HttpServlet {
       encs=new ArrayList<Encounter>(c);
     }
     query.closeAll();
-    System.out.println("dedupe getPhotographerEncountersForUser exited");
     return encs;
   }
 
@@ -515,7 +443,6 @@ public class UserConsolidate extends HttpServlet {
   public static List<User> getUsersWithEmailAddress(PersistenceManager persistenceManager,String emailAddress){
     System.out.println("dedupe getUsersWithEmailAddress entered");
     if(emailAddress != null){
-      // emailAddress = emailAddress.toLowerCase().trim();
       List<User> users=new ArrayList<User>();
       String filter = "SELECT FROM org.ecocean.User WHERE emailAddress == \""+emailAddress+"\"";
       Query query = persistenceManager.newQuery(filter);
@@ -610,12 +537,10 @@ public class UserConsolidate extends HttpServlet {
 
       //consolidate the user duplicates indicated by user
       if(mergeDesired==true && Util.stringExists(userName)){
-        // System.out.println("dedupe got here a");
         User currentUser = myShepherd.getUser(userName);
         if(currentUser!=null){
           successStatus = true;
           if(userInfoArr != null && userInfoArr.length()>0){
-            // System.out.println("dedupe got here b and userInfoArr length is: " + userInfoArr.length());
             for(int i = 0; i<userInfoArr.length(); i++){
               JSONObject currentUserToBeConsolidatedInfo = userInfoArr.getJSONObject(i);
               String currentUserToBeConsolidatedUsername = currentUserToBeConsolidatedInfo.optString("username", null);
@@ -623,10 +548,8 @@ public class UserConsolidate extends HttpServlet {
               String currentUserToBeConsolidatedFullName = currentUserToBeConsolidatedInfo.optString("fullname", null);
               User userToBeConsolidated =  narrowDownUsersToBeMergedToOneIfPossible(currentUser, myShepherd, currentUserToBeConsolidatedUsername, currentUserToBeConsolidatedEmail, currentUserToBeConsolidatedFullName);
               if(userToBeConsolidated!=null){
-                // System.out.println("dedupe got here c and userToBeConsolidated is: " + userToBeConsolidated.toString());
                 //only found one match
                 try{
-                  // System.out.println("dedupe got here d calling consolidateUser with currentUser: " + currentUser + " and userToBeConsolidated: " + userToBeConsolidated.toString());
                   consolidateUser(myShepherd, currentUser, userToBeConsolidated);
                   returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"SingleMatchFoundForUserAndConsdolidated");
                 }
