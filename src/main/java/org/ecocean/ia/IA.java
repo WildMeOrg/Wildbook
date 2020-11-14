@@ -323,71 +323,79 @@ System.out.println("INFO: IA.intakeAnnotations() finished as " + topTask);
     //possibly (should?) have .taskId, and *definitely* should have .__context and .__baseUrl
     //  note: this is processed *from the queue* and as such does not have "output"
     public static void handleRest(JSONObject jin) {
-System.out.println("JIN JIN JIN: " + jin);
+        System.out.println("JIN JIN JIN: " + jin);
         if (jin == null) return;
         String context = jin.optString("__context", null);
         if (context == null) throw new RuntimeException("IA.handleRest(): passed data has no __context");
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IA.handleRest");
         myShepherd.beginDBTransaction();
-        String taskId = jin.optString("taskId", Util.generateUUID());
-        Task topTask = Task.load(taskId, myShepherd);
-        if (topTask == null) topTask = new Task(taskId);
-        myShepherd.storeNewTask(topTask);
-        JSONObject opt = jin.optJSONObject("opt");  // should use this to decide how to branch differently than "default"
-
-        //for now (TODO) we just send MAs off to detection and annots off to identification
-
-        JSONArray mlist = jin.optJSONArray("mediaAssetIds");
-        if ((mlist != null) && (mlist.length() > 0)) {
-System.out.println("MLIST: " + mlist);
-            List<MediaAsset> mas = new ArrayList<MediaAsset>();
-            for (int i = 0 ; i < mlist.length() ; i++) {
-                int mid = mlist.optInt(i, -1);
-                if (mid < 1) continue;
-                MediaAsset ma = MediaAssetFactory.load(mid, myShepherd);
-System.out.println(i + " -> " + ma);
-                if (ma == null) continue;
-                mas.add(ma);
-            }
-            Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
-            System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask + " for " + topTask);
-            topTask.addChild(mtask);
+        try {
+          String taskId = jin.optString("taskId", Util.generateUUID());
+          Task topTask = Task.load(taskId, myShepherd);
+          if (topTask == null) topTask = new Task(taskId);
+          myShepherd.storeNewTask(topTask);
+          JSONObject opt = jin.optJSONObject("opt");  // should use this to decide how to branch differently than "default"
+  
+          //for now (TODO) we just send MAs off to detection and annots off to identification
+  
+          JSONArray mlist = jin.optJSONArray("mediaAssetIds");
+          if ((mlist != null) && (mlist.length() > 0)) {
+              System.out.println("MLIST: " + mlist);
+              List<MediaAsset> mas = new ArrayList<MediaAsset>();
+              for (int i = 0 ; i < mlist.length() ; i++) {
+                  int mid = mlist.optInt(i, -1);
+                  if (mid < 1) continue;
+                  MediaAsset ma = MediaAssetFactory.load(mid, myShepherd);
+                  System.out.println(i + " -> " + ma);
+                  if (ma == null) continue;
+                  mas.add(ma);
+              }
+              Task mtask = intakeMediaAssets(myShepherd, mas, topTask);
+              System.out.println("INFO: IA.handleRest() just intook MediaAssets as " + mtask + " for " + topTask);
+              topTask.addChild(mtask);
+          }
+          JSONArray alist = jin.optJSONArray("annotationIds");
+          if ((alist != null) && (alist.length() > 0)) {
+              List<Annotation> anns = new ArrayList<Annotation>();
+              for (int i = 0 ; i < alist.length() ; i++) {
+                  String aid = alist.optString(i, null);
+                  if (aid == null) continue;
+                  Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, aid), true)));
+                  if (ann == null) continue;
+                  anns.add(ann);
+              }
+  
+              // okay, if we are sending another ID job from the hburger menu, the media asset needs to be added to your top level 'root' task,
+              // or else you will link to the original root task
+              List<MediaAsset> masForNewRoot = new ArrayList<>();
+              for (Annotation ann : anns) {
+                  MediaAsset ma = ann.getMediaAsset();
+                  if (ma!=null && !masForNewRoot.contains(ma)) {
+                      masForNewRoot.add(ma);
+                  }
+              }
+              // i cant think of a scenario where we would get here and accidently double-add mas... but jic
+              for (MediaAsset ma : masForNewRoot) {
+                  if (!topTask.getObjectMediaAssets().contains(ma)) {
+                      topTask.addObject(ma);
+                  }
+              }
+  
+              Task atask = intakeAnnotations(myShepherd, anns, topTask);
+              System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
+              topTask.addChild(atask);
+              myShepherd.getPM().refresh(topTask);
+          }
+          myShepherd.commitDBTransaction();
         }
-        JSONArray alist = jin.optJSONArray("annotationIds");
-        if ((alist != null) && (alist.length() > 0)) {
-            List<Annotation> anns = new ArrayList<Annotation>();
-            for (int i = 0 ; i < alist.length() ; i++) {
-                String aid = alist.optString(i, null);
-                if (aid == null) continue;
-                Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, aid), true)));
-                if (ann == null) continue;
-                anns.add(ann);
-            }
-
-            // okay, if we are sending another ID job from the hburger menu, the media asset needs to be added to your top level 'root' task,
-            // or else you will link to the original root task
-            List<MediaAsset> masForNewRoot = new ArrayList<>();
-            for (Annotation ann : anns) {
-                MediaAsset ma = ann.getMediaAsset();
-                if (ma!=null && !masForNewRoot.contains(ma)) {
-                    masForNewRoot.add(ma);
-                }
-            }
-            // i cant think of a scenario where we would get here and accidently double-add mas... but jic
-            for (MediaAsset ma : masForNewRoot) {
-                if (!topTask.getObjectMediaAssets().contains(ma)) {
-                    topTask.addObject(ma);
-                }
-            }
-
-            Task atask = intakeAnnotations(myShepherd, anns, topTask);
-            System.out.println("INFO: IA.handleRest() just intook Annotations as " + atask + " for " + topTask);
-            topTask.addChild(atask);
-            myShepherd.getPM().refresh(topTask);
+        catch(Exception e) {
+          e.printStackTrace();
+          myShepherd.rollbackDBTransaction();
         }
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        finally {
+          myShepherd.closeDBTransaction();
+        }
     }
 
     //via IAGateway servlet, we handle the work
