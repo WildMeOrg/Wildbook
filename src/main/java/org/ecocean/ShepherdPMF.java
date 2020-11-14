@@ -59,6 +59,7 @@ public class ShepherdPMF {
 
         dnProperties.setProperty("javax.jdo.PersistenceManagerFactoryClass", "org.datanucleus.api.jdo.JDOPersistenceManagerFactory");
 
+/*
         Properties props = new Properties();
         String shepherdDataDir="shepherd_data_dir";
         
@@ -102,6 +103,28 @@ public class ShepherdPMF {
               dnProperties.setProperty(name, props.getProperty(name).trim());
           }
         }
+*/
+
+        //now all the misc properties which used to be defined in jdoconfig.properties
+        dnProperties.setProperty("datanucleus.schema.autoCreateAll", "true");
+        dnProperties.setProperty("datanucleus.NontransactionalRead", "true");
+        dnProperties.setProperty("datanucleus.Multithreaded", "true");
+        dnProperties.setProperty("datanucleus.RestoreValues", "true");
+        dnProperties.setProperty("datanucleus.storeManagerType", "rdbms");
+        dnProperties.setProperty("datanucleus.maxFetchDepth", "-1");
+        dnProperties.setProperty("datanucleus.cache.collections.lazy", "false");
+        // this is to allow INSERT (etc) direct sql... danger?
+        dnProperties.setProperty("datanucleus.query.sql.allowAll", "true");
+
+        //connection pooling
+        dnProperties.setProperty("datanucleus.connectionPoolingType", "dbcp2");
+        dnProperties.setProperty("datanucleus.connectionPool.maxIdle", "10");
+        dnProperties.setProperty("datanucleus.connectionPool.minIdle", "5");
+        dnProperties.setProperty("datanucleus.connectionPool.maxActive", "30");
+        dnProperties.setProperty("datanucleus.connectionPool.maxWait", "-1");
+        dnProperties.setProperty("datanucleus.connectionPool.testSQL", "SELECT 1");
+        dnProperties.setProperty("datanucleus.connectionPool.timeBetweenEvictionRunsMillis", "240000");
+
         if (forceReadOnly) dnProperties.setProperty("javax.jdo.option.ReadOnly", "true");
 
         /*****************************************************************************************************************************************************/
