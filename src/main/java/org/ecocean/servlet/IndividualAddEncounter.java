@@ -147,28 +147,34 @@ public class IndividualAddEncounter extends HttpServlet {
               //youTube postback check
               youTubePostback(enc2add, myShepherd, context);
 
-            } catch (Exception le) {
+            } 
+            catch (RuntimeException e) {
+              e.printStackTrace();
+              myShepherd.rollbackDBTransaction();
+              throw new RuntimeException(e.getMessage());
+            }
+            catch (Exception le) {
               le.printStackTrace();
               myShepherd.rollbackDBTransaction();
               throw new RuntimeException(failureMessage.toString());
   
             }
-              myShepherd.commitDBTransaction();
-              response.setStatus(HttpServletResponse.SC_OK);
-              out.println(responseJSON);
-  
-        			
-              //send emails if appropriate
-              if ("false".equals(request.getParameter("noemail"))) {
-                try {
-                  System.out.println("About to send emails to interested users in IndividualAddEncounter.java");
-                  executeEmails(myShepherd, request,addToMe,newIndy, enc2add, context, langCode);
-                }
-                catch(Exception excepty) {
-                  excepty.printStackTrace();
-                  myShepherd.rollbackDBTransaction();
-                }
+            myShepherd.commitDBTransaction();
+            response.setStatus(HttpServletResponse.SC_OK);
+            out.println(responseJSON);
+
+      			
+            //send emails if appropriate
+            if ("false".equals(request.getParameter("noemail"))) {
+              try {
+                System.out.println("About to send emails to interested users in IndividualAddEncounter.java");
+                executeEmails(myShepherd, request,addToMe,newIndy, enc2add, context, langCode);
               }
+              catch(Exception excepty) {
+                excepty.printStackTrace();
+                myShepherd.rollbackDBTransaction();
+              }
+            }
 
   
           } 
