@@ -184,6 +184,12 @@ public class IndividualAddEncounter extends HttpServlet {
         }
       
       } 
+      catch (RuntimeException e) {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        out.println(failureMessage);
+        myShepherd.rollbackDBTransaction();
+        e.printStackTrace();
+      }
       catch (Exception e) {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println(failureMessage);
