@@ -35,17 +35,15 @@ int numFixes=0;
       List<User> users=myShepherd.getAllUsers();
       if(users!=null && users.size()>0){
         System.out.println(users.size() + " total users in the database");
-        for(int i=0;i<users.size();i++){
-          List<User> userMasterListToRemoveFrom=myShepherd.getAllUsers();
-          nonNullUsers = UserConsolidate.removeNulls(userMasterListToRemoveFrom);
+          List<User> nonNullUsers = UserConsolidate.removeNulls(users);
+          List<User> userMasterListToRemoveFrom = nonNullUsers;
           System.out.println(nonNullUsers.size() + " non null users in the database");
-          User currentUser= UserConsolidate.chooseARandomUserFromList(nonNullUsers);
+          for(int i=0;i<nonNullUsers.size();i++){
+          User currentUser= UserConsolidate.chooseARandomUserFromList(userMasterListToRemoveFrom);
+          userMasterListToRemoveFrom.remove(currentUser);
           if(currentUser!=null){
 
             List<User> similarUsers = UserConsolidate.getSimilarUsers(currentUser, myShepherd.getPM());
-            // if(similarUsers!=null){
-            //   similarUsers.remove(currentUser);
-            // }
             if(similarUsers!=null && similarUsers.size()>0){
               %>
               <p><%= currentUser.getUsername() + "; " + currentUser.getEmailAddress() +"; " + currentUser.getFullName()%>,
@@ -57,9 +55,9 @@ int numFixes=0;
                   <%= currentSimilarUser.getUsername() + "; " + currentSimilarUser.getEmailAddress() + "; " + currentSimilarUser.getFullName()%>,
                   <%
                   try{
-                    // UserConsolidate.consolidateUser(myShepherd, currentUser, currentSimilarUser);
+                    UserConsolidate.consolidateUser(myShepherd, currentUser, currentSimilarUser);
                     %>
-                    <script>
+                    <!-- <script>
                     $(document).ready(function() {
                       <%
                         if(currentSimilarUser.getUsername()!=null){
@@ -121,7 +119,7 @@ int numFixes=0;
                       $('#content-container').empty();
                       $('#content-container').append(confirmationHtml);
                     }
-                    </script>
+                    </script> -->
                     <%
                   } catch(Exception e){
                       System.out.println("error consolidating user: " + currentSimilarUser.toString() + " into user: " + currentUser.toString());
