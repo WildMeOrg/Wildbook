@@ -232,7 +232,7 @@ public class IndividualAddEncounter extends HttpServlet {
       failureMessage.append("<p>The following Encounters contain the same annotation but have a different individual ID. An annotation can only have one ID inherited from its Encounters. <ul>");
       for(Encounter enc:conflictingEncs) {
         //failureMessage.append("<li>"+enc.getEncounterNumber()+" ("+enc.getIndividual().getIndividualID()+")</li>");
-        failureMessage.append("<li>"+enc.getEncounterNumber()+"</li>");
+        failureMessage.append("<li><a target=\"_blank\" href=\"encounter.jsp?number="+enc.getEncounterNumber()+"\">"+enc.getEncounterNumber()+"</a></li>");
         
       }
       failureMessage.append("</ul></p>");
