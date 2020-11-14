@@ -707,10 +707,11 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static User chooseARandomUserFromList(List<User>users){
+    System.out.println("dedupe chooseARandomUserFromList called");
     int maxInd = users.size();
     System.out.println("dedupe highest index in chooseARandomNonNullUserFromRemainingList is: " + maxInd);
     Random randVar = new Random();
-    int randIndex = randVar.nextInt(maxInd+1); //+1 because you want maxInd to also be a valid choice
+    int randIndex = randVar.nextInt(maxInd); //maxInd itself is excluded
     System.out.println("dedupe randIndex is: " + randIndex);
     return users.get(randIndex); //TODO update this
   }
