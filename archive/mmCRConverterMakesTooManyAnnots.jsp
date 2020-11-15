@@ -9,27 +9,22 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 
 <%!
 
-public boolean convertMediaAsset(MediaAsset parent, Shepherd myShepherd, String crPath, String context){
+public boolean convertMediaAsset(Encounter enc, Shepherd myShepherd, String crPath, String context, String viewpoint){
     
 	try{
 		//this is making some big assumptions about the parent only having one annot to the encounter!
-	    String iaClass = "mantaCR";
+	    String iaClass = "whalesharkCR";
 	    Keyword crKeyword = myShepherd.getOrCreateKeyword("CR Image");
 	    AssetStore astore = AssetStore.getDefault(myShepherd);
-	    ArrayList<Annotation> anns = parent.getAnnotations();
-	    if (Util.collectionIsEmptyOrNull(anns)) return false;
-	    Encounter enc = null;
-	    for (Annotation ann : anns) {
-	        enc = ann.findEncounter(myShepherd);
-	        if (enc != null) break;
-	    }
+	    //if (Util.collectionIsEmptyOrNull(anns)) return false;
+
 	
 	
 	    JSONObject params = new JSONObject();
 	    params.put("path", crPath);
 	    MediaAsset ma = new MediaAsset(astore, params);
 	    ////ma.setParentId(mId);  //no, this is TOO wacky
-	    ma.addDerivationMethod("crParentId", parent.getId());  //lets do this instead
+	    //ma.addDerivationMethod("crParentId", parent.getId());  //lets do this instead
 	    ma.addLabel("CR");
 	    ma.addKeyword(crKeyword);
 	    ma.updateMinimalMetadata();
@@ -58,6 +53,7 @@ public boolean convertMediaAsset(MediaAsset parent, Shepherd myShepherd, String 
 	    Annotation ann = new Annotation(null, ft, iaClass);
 	    ann.setMatchAgainst(true);
 	    ann.setIAClass(iaClass);
+	    ann.setViewpoint(viewpoint);
 	    
 	
 	    //System.out.println(" added annot to enc");
@@ -121,6 +117,9 @@ int numFixes=0;
 
 <%
 
+int left=0;
+int right=0;
+
 int crCount=0;
 int matchAgainst=0;
 int mismatch=0;
@@ -142,72 +141,60 @@ try{
 	Collection c= (Collection)q.execute();
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
 	q.closeAll();
+	
+    //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+    //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    //if(!encountersDir.exists()){encountersDir.mkdirs();}
+    
+
+	
 	%>
 	<p>Num encs: <%=encs.size() %></p>
 	<%  
     for (Encounter enc:encs) {
     	try{
-	    	//temp
-	    	 //if(enc.getCatalogNumber().equals("b76ac30f-abb9-4cf3-9bfb-14f144883ffe")){
-		    	  
-	    	
-	    	if(enc.getMmaCompatible())mmaCompatible++;
-	    	boolean hasMatchAgainst=false;
-	    	boolean hasMismatch=false;
-	    	List<Annotation> annots=enc.getAnnotations();
-	    	for(Annotation annot:annots){
-	    		File file=annot.getMediaAsset().localPath().toFile();
-				if(MediaUtilities.isAcceptableImageFile(file)){
-			      
-			      boolean matcherFilesExist=MantaMatcherUtilities.checkMatcherFilesExist(file);
-			      if (matcherFilesExist){
-			    	  crCount++;
-	
-	
-			      }
-				  if(annot.getMatchAgainst() && annot.getIAClass() !=null && annot.getIAClass().equals("mantaCR")){
-					  matchAgainst++;
-					  hasMatchAgainst=true;
-				  }
-				  if(matcherFilesExist && enc.getMmaCompatible() && (annot.getIAClass()==null || annot.getIAClass().equals("manta_ray_giant") ||  (annot.getIAClass().equals("mantaCR") && !annot.getMatchAgainst()))){
-					  mismatch++;
-					  hasMismatch=true;
-					  
-					  //let's convert!
-					  Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(annot.getMediaAsset());
-				    	   if (mmFiles.get("CR")!=null && mmFiles.get("CR").exists()) {
-				    	        File crFile=mmFiles.get("CR");
-				    	        //System.out.println(crFile.getAbsolutePath());
-				    	        String crPath=crFile.getAbsolutePath().replaceAll("/var/lib/tomcat8/webapps/shepherd_data_dir/", "");
-								  %>
-								  <p>Converting encounter <a target="_blank" href="../encounters/encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a>...
-								  <%
-								  boolean worked=convertMediaAsset(annot.getMediaAsset(), myShepherd, crPath, context);
-							  	 //boolean worked=true;
-								  if(worked){
-							  	 %>
-							  	 ...worked!</p>
-							  	 <%
-							  	 }
-							  	 else{
-							  		%>
-								  	 ...FAILED!</p>
-								  	 <%
-				    	    }
-	
-					  	 }
-					  //}
-					  
-					}
-	    		}
-	    	} //end for annots
-	    	if(hasMatchAgainst){
-	    		encHasMatchAgainst++;
-	    	}
-	    	if(enc.getMmaCompatible() && !hasMatchAgainst){
-	    		 misMatchEncArray.add(enc.getCatalogNumber());
-				  
-	    	}
+    		
+    		if(enc.getSpots()!=null && enc.getSpots().size()>0  && enc.getSpotImageFileName()!=null){
+    			
+    		    File crFile = new File(Encounter.dir(shepherdDataDir, enc.getCatalogNumber()) + "/" + enc.getSpotImageFileName());
+
+    			
+   	    	  //File crFile=new File(enc.,enc.getSpotImageFileName());
+   	          System.out.println(crFile.getAbsolutePath());
+   	          String crPath=crFile.getAbsolutePath().replaceAll("/var/lib/tomcat8/webapps/wildbook_data_dir/", "");
+			  %>
+			  <p>Converting left encounter <a target="_blank" href="../encounters/encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a>...
+			  <%
+			  //if(enc.getCatalogNumber().equals("f0f7da20-8172-4934-b7a3-4c3778f4cab3")){
+				  boolean worked=convertMediaAsset(enc, myShepherd, crPath, context, "left");
+			  //}
+				left++;
+    		}
+    		
+    		if(enc.getRightSpots()!=null && enc.getRightSpots().size()>0 && enc.getRightSpotImageFileName()!=null){
+    			
+    			File crFile = new File(Encounter.dir(shepherdDataDir, enc.getCatalogNumber()) + "/" + enc.getRightSpotImageFileName());
+
+    			
+   	    	  	//File crFile=new File(enc.,enc.getSpotImageFileName());
+   	          	System.out.println(crFile.getAbsolutePath());
+   	          	String crPath=crFile.getAbsolutePath().replaceAll("/var/lib/tomcat8/webapps/wildbook_data_dir/", "");
+			  	%>
+			  	<p>Converting right encounter <a target="_blank" href="../encounters/encounter.jsp?number=<%=enc.getCatalogNumber() %>"><%=enc.getCatalogNumber() %></a>...
+			  	<%
+			  	//if(enc.getCatalogNumber().equals("f0f7da20-8172-4934-b7a3-4c3778f4cab3")){
+					  boolean worked=convertMediaAsset(enc, myShepherd, crPath, context, "right");
+				//  }
+			  	right++;
+    			
+    		}
+    		
+
+
     	
 	    }
 		catch(Exception ce){
@@ -232,24 +219,8 @@ finally{
 
 %>
 
-<p>Num CR files: <%=crCount %></p>
-<p>Num matchAgainst Annots: <%=matchAgainst %></p>
-<p>mismatch: <%=misMatchEncArray.size() %>
-	<ul>
-		<%
-		for(String sEnc:misMatchEncArray){
-		%>
-			<li><a target="_blank" href="../encounters/encounter.jsp?number=<%=sEnc %>"><%=sEnc %></a></li>
-		<%
-		}
-		%>
-	
-	</ul>
-</p>
-<p>mmaCompatible Encs: <%=mmaCompatible %></p>
-<p>haveMatchablAnnot Encs: <%=encHasMatchAgainst %></p>
-
-<p>Done successfully: <%=numFixes %></p>
+<p>Left: <%=left %></p>
+<p>Right: <%=right %></p>
 
 </body>
 </html>
