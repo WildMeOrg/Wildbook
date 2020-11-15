@@ -36,7 +36,7 @@ int numStringNull=0;
 
 try {
 
-	String filter="select from org.ecocean.Encounter where specificEpithet == 'macrocephalus'";
+	String filter="select from org.ecocean.Encounter where genus == 'Megaptera'";
 	Query q=myShepherd.getPM().newQuery(filter);
 	Collection c=(Collection)q.execute();
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
@@ -46,14 +46,57 @@ try {
 	
 		
 		for(Annotation annot:enc.getAnnotations()){
-			if(annot.getIAClass()!=null && !annot.getIAClass().equals("whale_fluke")){
-				
-				System.out.println(annot.getIAClass());
-				
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("hippopotamus") ){
 				annot.setIAClass(null);
 				myShepherd.updateDBTransaction();
-				
 			}
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("whale_shark") ){
+				annot.setIAClass(null);
+				myShepherd.updateDBTransaction();
+			}
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("whale_humpback+fluke") ){
+				annot.setIAClass("whale_fluke");
+				myShepherd.updateDBTransaction();
+			}
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("domesticated_cow") ){
+				annot.setIAClass(null);
+				myShepherd.updateDBTransaction();
+			}
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("lion") ){
+				annot.setIAClass(null);
+				myShepherd.updateDBTransaction();
+			}
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("person") ){
+				annot.setIAClass(null);
+				myShepherd.updateDBTransaction();
+			}
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("turtle_sea") ){
+				annot.setIAClass(null);
+				myShepherd.updateDBTransaction();
+			}
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("elephant_savanna") ){
+				annot.setIAClass(null);
+				myShepherd.updateDBTransaction();
+			}
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("antelope") ){
+				annot.setIAClass(null);
+				myShepherd.updateDBTransaction();
+			}
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("giraffe_masai") ){
+				annot.setIAClass(null);
+				myShepherd.updateDBTransaction();
+			}
+			//whale_fluke+fin_dorsal+fin_dorsal
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("whale_fin+fin_dorsal") ){
+				annot.setIAClass("whale_humpback+fin_dorsal");
+				myShepherd.updateDBTransaction();
+			}
+			//whale_fluke+fin_dorsal:
+			if(annot.getIAClass()!=null && annot.getIAClass().equals("whale_fin+fin_dorsal+fin_dorsal") ){
+				annot.setIAClass("whale_humpback+fin_dorsal");
+				myShepherd.updateDBTransaction();
+			}
+				
 		}
 		
 		
@@ -149,6 +192,7 @@ try {
 
 }
 catch(Exception e){
+	e.printStackTrace();
 	myShepherd.rollbackDBTransaction();
 }
 finally{
