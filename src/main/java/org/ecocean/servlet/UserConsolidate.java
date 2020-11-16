@@ -78,6 +78,7 @@ public class UserConsolidate extends HttpServlet {
     }
     consolidateEncounterInformOthers(myShepherd, userToRetain, userToBeConsolidated);
     consolidateImportTaskCreator(myShepherd, userToRetain, userToBeConsolidated);
+    consolidateRoles(myShepherd, userToRetain, userToBeConsolidated);
     myShepherd.getPM().deletePersistent(userToBeConsolidated);
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
@@ -131,6 +132,30 @@ public class UserConsolidate extends HttpServlet {
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
     }
+  }
+
+  public static void consolidateRoles(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
+    System.out.println("dedupe consolidating roles from user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
+    if(Util.stringExists(userToBeConsolidated.getUsername())){
+      //username appeared to be the only linking information from the USER_ROLES table, so any sql efforts felt analogous to using myShepherd.getAllRolesForUserInContext, especially given that this is not going to be a particularly time-consuming fetch nor repeated task for each user...
+      List<Role> consolidatedUserRoles = myShepherd.getAllRolesForUserInContext(userToBeConsolidated.getUsername(), myShepherd.getContext());
+      List<Role> retainedUserRoles = myShepherd.getAllRolesForUserInContext(userToRetain.getUsername(), myShepherd.getContext());
+      if(consolidatedUserRoles!=null && consolidatedUserRoles.size()>0){
+        for(int i=0; i<consolidatedUserRoles.size(); i++){
+          Role currentRole = consolidatedUserRoles.get(i);
+          if(!retainedUserRoles.contains(currentRole)){
+            //it's a new role for the retained user; add it. Note: this because the role usernames are different, this will in effect capture all retainedUserRoles. But since username is converted downstream, this is not actually a bug. Might could be improved (slightly inefficient), but should work fine.
+            if(Util.stringExists(userToRetain.getUsername())){
+              currentRole.setUsername(userToRetain.getUsername());
+              myShepherd.getPM().makePersistent(currentRole);
+              System.out.println("dedupe adding role with username " + currentRole.getUsername() + " and role name: " + currentRole.getRolename() + " from user: " + userToBeConsolidated.toString() +" into user: " + userToRetain.toString());
+            } //end if userToRetain name
+          } //end if current role not found in retainedUserRoles
+        } //end for loop of consolidatedUserRoles
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      } //end if consolidatedUserRoles exists and has >0 elements
+   }//end if userToBeConsolidated has no username
   }
 
   public static void consolidateEncounterInformOthers(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
