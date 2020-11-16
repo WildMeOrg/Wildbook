@@ -92,6 +92,32 @@ public HashMap<String, Long> getMediaAssetDetectionStatusesForSpecies(String gen
 	return map;
 }
 
+public HashMap<String, Long> getMediaAssetDetectionStatusesForSpeciesByACMID(String genus, String specificEpithet, Shepherd myShepherd){
+	HashMap<String, Long> map=new HashMap<String, Long>();
+	Query q=myShepherd.getPM().newQuery("SELECT DISTINCT detectionStatus FROM org.ecocean.media.MediaAsset where enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+	Collection c=(Collection)q.execute();
+	ArrayList<String> al=new ArrayList<String>(c);
+	q.closeAll();
+	for(String str:al){
+		//System.out.println(str);
+		Long myValue=new Long(0);
+		if(str==null || str.equals("null")){
+			Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where acmId!=null && enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && detectionStatus==null && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+			myValue=(Long) q2.execute();
+			q2.closeAll();
+			map.put("null", myValue);
+		}
+		else{
+			Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.media.MediaAsset where acmId!=null && enc.annotations.contains(annot) && annot.features.contains(feat) && feat.asset==this && detectionStatus=='"+str+"' && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc; org.ecocean.Annotation annot; org.ecocean.media.Feature feat");
+			myValue=(Long) q2.execute();
+			q2.closeAll();
+			map.put(str, myValue);
+		}
+		//System.out.println(str+":"+myValue);
+	}
+	return map;
+}
+
 %>
 
 
@@ -155,13 +181,17 @@ try {
 		<ul>
 		<%
 		HashMap<String, Long> map=getMediaAssetDetectionStatusesForSpecies(genus, specificEpithet, myShepherd);
+		HashMap<String, Long> mapACMID=getMediaAssetDetectionStatusesForSpeciesByACMID(genus, specificEpithet, myShepherd);
+		
 		//System.out.println("keySet: "+map.keySet().toString());
 		Iterator<String> iter=map.keySet().iterator();
 		while(iter.hasNext()){
 			String key=iter.next();
 			//System.out.println("key:" +key);
 			%>
-			<li><%=key %>: <%=map.get(key) %></li>
+			<li><%=key %>: <%=map.get(key) %>
+				<ul><li>Have acmID: <%=map.get(key) %></li></ul>
+			</li>
 			<%
 		}
 		%>
