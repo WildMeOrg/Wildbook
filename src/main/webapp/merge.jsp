@@ -12,7 +12,6 @@ java.io.UnsupportedEncodingException
 " %>
 
 <%
-
 String context = ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 Properties props = new Properties();
@@ -20,23 +19,16 @@ String langCode=ServletUtilities.getLanguageCode(request);
 props = ShepherdProperties.getProperties("merge.properties", langCode,context);
 myShepherd.setAction("merge.jsp");
 User currentUser = AccessControl.getUser(request, myShepherd);
-
 String indIdA = request.getParameter("individualA");
 String indIdB = request.getParameter("individualB");
-
 String newId = indIdA;
-
 MarkedIndividual markA = myShepherd.getMarkedIndividualQuiet(indIdA);
 MarkedIndividual markB = myShepherd.getMarkedIndividualQuiet(indIdB);
 MarkedIndividual[] inds = {markA, markB};
-
 String fullNameA = indIdA;
 if (markA!=null) fullNameA += " ("+URLEncoder.encode(markA.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
 String fullNameB = indIdB;
 if (markB!=null) fullNameB += " ("+URLEncoder.encode(markB.getDisplayName(request, myShepherd), StandardCharsets.UTF_8.toString())+")";
-
-
-
 %>
 
 <jsp:include page="header.jsp" flush="true" />
@@ -50,7 +42,6 @@ table td,th {
 #mergeBtn {
 	float: right;
 }
-
 table.compareZone tr th {
 	background: inherit;
 }
@@ -72,7 +63,6 @@ table.compareZone tr th {
     <%}%>
     doAjaxForProjectIndividuals(requestJsonForIndividualsProjects);
 	});
-
   function callForIncrementalIdsAndPopulate(projIdPrefix, numProjects){
     let incrementalIdJsonRequest = {};
     incrementalIdJsonRequest['projectIdPrefix'] = projIdPrefix;
@@ -82,8 +72,6 @@ table.compareZone tr th {
     <%}%>
     doAjaxForProject(incrementalIdJsonRequest, numProjects);
   }
-
-
   function doAjaxForProject(requestJSON, numProjects){
     $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -118,7 +106,6 @@ table.compareZone tr th {
         }
     });
   }
-
   function compareUserProjectsToConflictedOnesOnIndividuals(userProjNames, conflictingProjsOnIndividuals){
     let shouldShow = true;
     let conflictingProjectToWhichUserHasNoAccess = [];
@@ -142,7 +129,6 @@ table.compareZone tr th {
       $('#not-permitted').show();
     }
   }
-
   function populateContactList(conflictingProjectToWhichUserHasNoAccess, conflictingProjectOwnerForUserToContact){
     let contactListHtml = '';
     contactListHtml += '';
@@ -162,7 +148,6 @@ table.compareZone tr th {
     $("#proj-contact-list").empty();
     $("#proj-contact-list").append(contactListHtml);
   }
-
   function doAjaxForProjectIndividuals(requestJSON){
     $.ajax({
         url: wildbookGlobals.baseUrl + '../ProjectGet',
@@ -184,183 +169,19 @@ table.compareZone tr th {
                   projIdPrefixesBelongingToIndividuals = projIdPrefixesBelongingToIndividuals.concat(currentIndividaulsProjectIdPrefixes);
                   projIdPrefixesBelongingToIndividuals = [...new Set(projIdPrefixesBelongingToIndividuals)];
                 }
-
-<h1>Marked Individual Merge Tool</h1>
-<p class="instructions">Confirm the merged values for each of the fields below.</p>
-<p class="instructions"><span class="text-danger bg-danger">Fields in red</span> have conflicting values and require attention.</p>
-
-<%
-// build query for EncounterMediaGallery here
-//String queryString = "SELECT FROM org.ecocean.Encounter WHERE individual.individualID == '"+indIdA+"' || individual.individualID == '"+indIdB+"'";
-//System.out.println("Merge.jsp has queryString "+queryString);
-
-// consider including an enc media gallery below?
-%>
-<%
-
-
-try {
-
-
-
-	%>
-
-	<form id="mergeForm"
-		action="MergeIndividual"
-	  method="post"
-	  enctype="multipart/form-data"
-    name="merge_individual_submission"
-    target="_self" dir="ltr"
-    lang="en"
-    onsubmit="console.log('the form has been submitted!');"
-    class="form-horizontal"
-    accept-charset="UTF-8"
-	>
-	<table class="compareZone">
-		<tr class="row header">
-			<th class="col-md-2"></th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<th class="col-md-2"><h2>
-				<a href='<%=ind.getWebUrl(request)%>'><%=ind.getDisplayName()%></a>
-			</h2></th>
-			<%}%>
-			<th><h2>
-				Merged Individual
-			</h2></th>
-		</tr>
-
-		<tr class="row names">
-			<th>Names</th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<td class="col-md-2">
-				<% for (String key: ind.getNameKeys()) {
-					String nameStr = String.join(", ", ind.getNamesList(key));
-					%><span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/><%
-				}
-				%>
-			</td>
-			<%}%>
-			<td class="col-md-2 mergedNames">
-				<%
-				MultiValue allNames = MultiValue.merge(markA.getNames(), markB.getNames());
-				for (String key: allNames.getKeys()) {
-					String nameStr = String.join(", ", allNames.getValuesAsList(key));
-					%><span class="nameKey"><%=key%></span>: <span class="nameValues"><%=nameStr%></span><br/><%
-				}
-				%>
-			</td>
-		</tr>
-
-
-
-		<tr class="row encounters">
-			<th># Encounters</th>
-			<% int totalEncs = 0;
-			for (MarkedIndividual ind: inds) {
-				int encs = ind.numEncounters();
-				totalEncs+= encs;
-				%>
-				<td class="col-md-2">
-					<%=encs%>
-				</td>
-			<%}%>
-			<td class="col-md-2">
-				<%=totalEncs%>
-			</td>
-		</tr>
-
-		<tr class="row species check_for_diff">
-			<th>Species</th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<td class="col-md-2 diff_check">
-				<%=ind.getGenusSpeciesDeep()%>
-			</td>
-			<%}%>
-
-			<td class="merge-field">
-
-				<%
-				String mergeTaxy = Util.betterValue(markA.getGenusSpeciesDeep(), markB.getGenusSpeciesDeep());
-				%>
-				 <input name="taxonomy" type="text" class="" id="taxonomyInput" value="<%=mergeTaxy%>"/>
-			</td>
-		</tr>
-
-		<tr class="row sex check_for_diff">
-			<th>Sex</th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<td class="col-md-2 diff_check">
-				<%=ind.getSex()%>
-			</td>
-			<%}%>
-			<td class="merge-field">
-
-				<%
-				String mergeSex = Util.betterValue(markA.getSex(), markB.getSex());
-				%>
-				 <input name="sex" type="text" class="" id="sexInput" value="<%=mergeSex%>"/>
-			</td>
-		</tr>
-
-
-		<!--
-		<tr class="row comments check_for_diff">
-			<th>Notes</th>
-			<% for (MarkedIndividual ind: inds) {%>
-			<td class="col-md-2">
-				<%=ind.getComments()%>
-			</td>
-			<%}%>
-			<td class="col-md-2 merge-field">
-				<%=markA.getMergedComments(markB, request, myShepherd)%>
-			</td>
-		-->
-
-		</tr>
-	</table>
-
-  <input type="submit" name="Submit" value="Merge Individuals" id="mergeBtn" class="btn btn-md editFormBtn"/>
-
-	</form>
-
-
-	<script type="text/javascript">
-  $(document).ready(function() {
-    $("#mergeBtn").click(function(event) {
-
-    	console.log("mergeBtn was clicked");
-      event.preventDefault();
-    	console.log("mergeBtn continues");
-
-    	var id1="<%=indIdA%>";
-    	var id2="<%=indIdB%>";
-    	var fullNameA = '<%=fullNameA%>';
-    	var fullNameB = '<%=fullNameB%>';
-
-    	var sex = $("#sexInput").val();
-    	var taxonomy = $("#taxonomyInput").val();
-    	console.log("Clicked with id1="+id1+", id2="+id2+", sex="+sex+", tax="+taxonomy);
-
-    	$("#mergeForm").attr("action", "MergeIndividual");
-
-      $.post("MergeIndividual", {
-      	"id1": id1,
-      	"id2": id2,
-      	"sex": sex,
-      	"taxonomy": taxonomy
-      },
-      function() {
-		updateNotificationsWidget();
-      	var confirmUrl = 'mergeComplete.jsp?oldNameA='+fullNameA+'&oldNameB='+fullNameB+'&newId='+id1;
-      	alert("Successfully merged individual! Now redirecting to "+confirmUrl);
-				window.location = confirmUrl;
-
-      })
-      .fail(function(response) {
-      	alert("FAILURE!!");
+              }
+              //done with fetching project names and id prefixes belonging to individuals
+              populateProjectRows(projNamesBelongingToIndividuals, projIdPrefixesBelongingToIndividuals);
+            }
+            else{
+            // no projects on the individuals, so no project rows to populate
+            }
+          },
+          error: function(x,y,z) {
+              console.warn('%o %o %o', x, y, z);
+          }
       });
   }
-
   function populateProjectIdRow(incrementalIds, projName, projUuid, projId, projOwner){
     let projectIdHtml = '';
     <% for (int i=0; i<inds.length; i++) {%>
@@ -410,7 +231,6 @@ try {
       }
     }
   }
-
   function betterValWithTieBreaker(candidate1, candidate2){
     if (candidate1!=null && candidate2!=null && candidate1.trim() === candidate2.trim()) {
       // return shorter string (less whitespace)
@@ -429,7 +249,6 @@ try {
     }
     return candidate1;
   }
-
   function getDeprecatedIncrementalIdFromOptions (stringOfSemiColonDelimitedCumulativeDesiredIncrementalIds, arrayOfOptionElements){
     let returnVal = "_";
     for(let i=0; i<arrayOfOptionElements.length; i++){
@@ -443,7 +262,6 @@ try {
     }
     return returnVal;
   }
-
   function concatenateToConsolidationString(index, totalElementLength, candidateArrAsString, currentArrEntry){
     let returnVal = "";
     if(index == totalElementLength-1){
@@ -454,7 +272,6 @@ try {
     }
     return returnVal;
   }
-
   function populateProjectRows(projectNames, projectIds){
     let projectIdHtml = '';
     if(projectNames.length>0){
@@ -469,16 +286,18 @@ try {
       for(let j =0; j<projectNames.length; j++){ //projectNames and projectIds must be linked; otherwise, this will break
         callForIncrementalIdsAndPopulate(projectIds[j],projectNames.length);
       }
+    } else {
+      $('#everything-else').show();
+      $('#progress-div').hide();
+      $('#not-permitted').hide();
     }
   }
-
 	function replaceDefaultKeyStrings() {
 		$('span.nameKey').each(function(i, el) {
 			var fixedHtml = $(this).html().replace("*","Default").replace("_legacyIndividualID_","Legacy IndividualID").replace("_nickName_","nickname").replace("_alternateID_","Alternate ID");
 			$(this).html(fixedHtml);
 		});
 	}
-
 	function highlightMergeConflicts() {
 		$(".row.check_for_diff").each(function(i, el) {
       if($(this).children("td.diff_check").first().html()){
