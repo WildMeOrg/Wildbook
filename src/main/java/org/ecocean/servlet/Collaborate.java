@@ -77,7 +77,7 @@ public class Collaborate extends HttpServlet {
 		rtn.put("message", props.getProperty("inviteResponseMessageAnon"));
 
 	} else if (request.getParameter("getNotificationsWidget") != null) {
-		rtn.put("content", Collaboration.getNotificationsWidgetHtml(request));
+		rtn.put("content", Collaboration.getNotificationsWidgetHtml(request, myShepherd));
 		rtn.put("success", "true");
 
 	} else if (request.getParameter("getNotifications") != null) {
