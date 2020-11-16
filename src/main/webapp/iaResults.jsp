@@ -1135,7 +1135,6 @@ console.info('%d ===> %s', num, acmId);
 	h = '<div id="'+taskId+'+'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
 
-	$('#task-' + taskId).append(h);
 	let paramString = 'iaResults.jsp?acmId=' + acmId;
 	let projectId = getSelectedProjectIdPrefix();
 	if (projectId!=""&&projectId!=undefined) {
@@ -1150,7 +1149,6 @@ console.info('%d ===> %s', num, acmId);
      }
      imgs.append(h);
 	
-	//$('#task-' + taskId).append(h);
 	console.log("PARAMSTRING: "+paramString);
 	
 	$.ajax({
