@@ -148,7 +148,7 @@ public class CalendarXMLServer extends HttpServlet {
                     String displayName="";
                     if(tempEnc.getIndividual()!=null) {
                       individualID=tempEnc.getIndividual().getIndividualID();
-                      displayName=tempEnc.getIndividual().getDisplayName();
+                      displayName=tempEnc.getIndividual().getDisplayName(request, myShepherd);
                     }
                     
                     String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";

@@ -53,6 +53,7 @@ import org.ecocean.MailThreadExecutorService;
 import org.ecocean.Util;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Keyword;
+import org.ecocean.Project;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.Measurement;
@@ -61,6 +62,7 @@ import org.ecocean.media.*;
 import org.ecocean.ia.Task;
 import org.ecocean.NotificationMailer;
 import org.ecocean.ShepherdProperties;
+import org.ecocean.IAJsonProperties;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
@@ -116,6 +118,7 @@ public void doGet(HttpServletRequest request, HttpServletResponse response) thro
   }
 
 private final String UPLOAD_DIRECTORY = "/tmp";
+private List<Project> projects = new ArrayList<Project>();
 
     //little helper function for pulling values as strings even if null (not set via form)
     private String getVal(Map formValues, String key) {
@@ -158,6 +161,19 @@ private final String UPLOAD_DIRECTORY = "/tmp";
     }
     return list;
   }
+
+  // private List<Project> getProjects(Map formValues){
+  //   List<Project> projects = new ArrayList<Project>();
+  //   String projectNames = getVal(formValues, "proj-id-dropdown");
+  //   if(Util.stringExists(projectNames)){
+  //     System.out.println("projectNames is: " + projectNames);
+  //   }
+  //   String defaultProject = getVal(formValues, "defaultSelection");
+  //   if(Util.stringExists(defaultProject)){
+  //     System.out.println("defaultProject is: " + defaultProject);
+  //   }
+  //   return projects;
+  // }
 
 
   private List<Measurement> getMeasurements(Map formValues, String encID, String context) {
@@ -338,10 +354,20 @@ System.out.println("*** trying redirect?");
                 List<FileItem> multiparts = upload.parseRequest(request);
                 //List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
 
+                List<String> projectIdSelection = new ArrayList<String>();
                 for(FileItem item : multiparts){
                     if (item.isFormField()) {  //plain field
                         formValues.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
-//System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString("UTF-8") + ")");
+                        if(item.getFieldName().equals("defaultProject")){
+                          if(!projectIdSelection.contains(item.getString().trim())){
+                            projectIdSelection.add(item.getString().trim());
+                          }
+                        }
+                        if(item.getFieldName().equals("proj-id-dropdown")){
+                          if(!projectIdSelection.contains(item.getString().trim())){
+                            projectIdSelection.add(item.getString().trim());
+                          }
+                        }
                     } else if (item.getName().startsWith("socialphoto_")) {
                         System.out.println(item.getName() + ": " + item.getString("UTF-8"));
                     } else {  //file
@@ -356,10 +382,16 @@ System.out.println("*** trying redirect?");
                         }
                     }
                 }
-
                 doneMessage = "File Uploaded Successfully";
                 fileSuccess = true;
-
+                if(projectIdSelection != null){
+                  for(String projectId: projectIdSelection){
+                    Project currentProject = myShepherd.getProjectByProjectIdPrefix(projectId);
+                    if(currentProject!=null){
+                      projects.add(currentProject);
+                    }
+                  }
+                }
             } catch (Exception ex) {
                 doneMessage = "File Upload Failed due to " + ex;
             }
@@ -368,8 +400,6 @@ System.out.println("*** trying redirect?");
             doneMessage = "Sorry this Servlet only handles file upload request";
             System.out.println("Not a multi-part form submission!");
         }
-
-
 
         if (formValues.get("social_files_id") != null) {
           System.out.println("BBB: Social_files_id: "+formValues.get("social_files_id"));
@@ -525,7 +555,6 @@ System.out.println("*** trying redirect?");
           }
           else{hour=-1;}
 
-
                   //System.out.println("At the end of time processing I see: "+year+"-"+month+"-"+day+" "+hour+":"+minutes);
 
               }
@@ -586,6 +615,15 @@ System.out.println("about to do enc()");
             }
             enc.setEncounterNumber(encID);
 
+            //add encounter to projects
+            if(projects!=null){
+              for(Project currentProject: projects){
+                if(currentProject!=null && enc!=null){
+                  currentProject.addEncounter(enc);
+                }
+              }
+            }
+
 
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
 System.out.println("enc ?= " + enc.toString());
@@ -641,9 +679,6 @@ System.out.println("enc ?= " + enc.toString());
             subE = subE.toLowerCase();
             String subO=getVal(formValues, "submitterOrganization");
             if (Util.stringExists(subO)) enc.setSubmitterOrganization(subO);
-            String subP=getVal(formValues, "submitterProject");
-            if (Util.stringExists(subP)) enc.setSubmitterOrganization(subP);
-            //User user=null;
             List<User> submitters=new ArrayList<User>();
             if((subE!=null)&&(!subE.trim().equals(""))) {
 
@@ -659,7 +694,6 @@ System.out.println("enc ?= " + enc.toString());
                 else {
                   User user=new User(tok,Util.generateUUID()); //TODO delete TODO comment if this is still here
                   user.setAffiliation(subO);
-                  user.setUserProject(subP);
                   if((numTokens==1)&&(subN!=null)){user.setFullName(subN);}
                   myShepherd.getPM().makePersistent(user);
                   myShepherd.commitDBTransaction();
@@ -840,14 +874,14 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       enc.setSatelliteTag(getSatelliteTag(formValues));
       enc.setSex(getVal(formValues, "sex"));
       enc.setLivingStatus(getVal(formValues, "livingStatus"));
-      
+
       // Process patterning code.
       if (CommonConfiguration.showProperty("showPatterningCode", context)) {
         String pc = getVal(formValues, "patterningCode").trim();
         if (CommonConfiguration.getIndexedPropertyValues("patterningCode", context).contains(pc))
           enc.setPatterningCode(pc);
       }
-      
+
       if(formValues.get("scars")!=null){
         enc.setDistinguishingScar(formValues.get("scars").toString());
       }
@@ -1103,49 +1137,50 @@ System.out.println("depth --> " + formValues.get("depth").toString());
         if (!llSet) enc.setLatLonFromAssets();
         if (enc.getYear() < 1) enc.setDateFromAssets();
 
-            String newnum = "";
-            if (!spamBot) {
-                newnum = myShepherd.storeNewEncounter(enc, encID);
-                enc.refreshAssetFormats(myShepherd);
+        String newnum = "";
+        if (!spamBot) {
+            newnum = myShepherd.storeNewEncounter(enc, encID);
+            enc.refreshAssetFormats(myShepherd);
 
-                //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
-                //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
+            //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them
+            //  note: we dont send Annotations here, as they are always(forever?) trivial annotations, so pretty disposable
 
-                // might want to set detection status here (on the main thread)
+            // might want to set detection status here (on the main thread)
 
-                for (MediaAsset ma: enc.getMedia()) {
-                    ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
-                }
+            // only start IA stuff if we have config for this species
 
-                Task parentTask = null;  //this is *not* persisted, but only used so intakeMediaAssets will inherit its params
-                if (locCode != null) {
-                    parentTask = new Task();
-                    JSONObject tp = new JSONObject();
-                    JSONObject mf = new JSONObject();
-                    mf.put("locationId", locCode);
-                    tp.put("matchingSetFilter", mf);
-                    parentTask.setParameters(tp);
-                }
-                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask);  //TODO are they *really* persisted for another thread (queue)
-                myShepherd.storeNewTask(task);
-                Logger log = LoggerFactory.getLogger(EncounterForm.class);
-                log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
-System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
-                org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+            if (iaConfig.hasIA(enc, myShepherd)) {
+              for (MediaAsset ma: enc.getMedia()) {
+                ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+              }
+
+              Task parentTask = null;  //this is *not* persisted, but only used so intakeMediaAssets will inherit its params
+              if (locCode != null) {
+                  parentTask = new Task();
+                  JSONObject tp = new JSONObject();
+                  JSONObject mf = new JSONObject();
+                  mf.put("locationId", locCode);
+                  tp.put("matchingSetFilter", mf);
+                  parentTask.setParameters(tp);
+              }
+              Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask);  //TODO are they *really* persisted for another thread (queue)
+              myShepherd.storeNewTask(task);
+              Logger log = LoggerFactory.getLogger(EncounterForm.class);
+              log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
+              System.out.println("EncounterForm saved task "+task);
+            } else {
+              System.out.println("EncounterForm did NOT start any IA tasks for encounter "+enc+" bc no ia config was found---IAJsonProperties.hasIA returned false");
             }
+
+System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+            org.ecocean.ShepherdPMF.getPMF(context).getDataStoreCache().evictAll();
+        }
 
       if (newnum.equals("fail")) {
         request.setAttribute("number", "fail");
         return;
       }
-
-
-
-
-
-
-
-
 
       //return a forward to display.jsp
       System.out.println("Ending data submission.");

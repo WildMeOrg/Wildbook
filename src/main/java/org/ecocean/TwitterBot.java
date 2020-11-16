@@ -34,6 +34,7 @@ import org.ecocean.identity.IBEISIA;
 import org.ecocean.queue.*;
 import org.ecocean.RateLimitation;
 import org.ecocean.ia.Task;
+import org.ecocean.ia.IA;
 
 import com.google.gson.Gson;
 
@@ -105,12 +106,15 @@ public class TwitterBot {
             }
             MediaAssetFactory.save(tweetMA, myShepherd);
             entities = tas.entitiesAsMediaAssets(tweetMA);
+            System.out.println("TwitterAssetStore just saved MediaAsset "+tweetMA.getId());
             if ((entities != null) && (entities.size() > 0)) {
                 for (MediaAsset ema : entities) {
                     MediaAssetFactory.save(ema, myShepherd);
+                    System.out.println("TwitterAssetStore just saved MediaAsset "+ema.getId());
                 }
             }
-        } else {
+        }
+        else {
             ///TODO ... do we even *want* to process a tweet that is already stored??????  going to say NO for now!
             System.out.println("WARNING: TwitterBot.processIncomingTweet() -- tweet " + tweet.getId() + " already stored, so skipping");
             myShepherd.rollbackDBTransaction();
@@ -118,19 +122,30 @@ public class TwitterBot {
             return;
             //entities = (load the children from retrieved tweetMA)
         }
-System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
+        System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweetMA + "\n-------\n");
         sendCourtesyTweet(context, tweet, ((entities == null) || (entities.size() < 1)) ? null : entities.get(0));
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
         if ((entities == null) || (entities.size() < 1)) return;  //no IA for you!
 
-        String baseUrl = CommonConfiguration.getServerURL(context);
-        if (baseUrl == null) {
-            System.out.println("DANGER! could not obtain baseUrl in TwitterBot.processIncomingTweet() for tweet " + tweet.getId() + "; failing miserably!");
-            return;
+        String taxonomyString = taxonomyStringFromTweet(tweet, context);
+        Taxonomy taxy = myShepherd.getOrCreateTaxonomy(taxonomyString);
+
+        Encounter enc=new Encounter(false);
+        if(taxy!=null)enc.setTaxonomy(taxy);
+        myShepherd.getPM().makePersistent(enc);
+        myShepherd.updateDBTransaction();
+        for(MediaAsset ma:entities) {
+          enc.addMediaAsset(ma);
+          myShepherd.updateDBTransaction();
         }
 
+        System.out.println("TwitterBot is calling IA.intakeMediaAssetsOneSpecies for taxonomy: "+taxy.getScientificName());
+        // compare this to prev. logic in detectionQueueJob method below
+        IA.intakeMediaAssetsOneSpecies(myShepherd, entities, taxy, task);
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+
         //need to add to queue *after* commit above, so that queue can get it from the db immediately (if applicable)
+        String baseUrl = IA.getBaseURL(context);
         JSONObject qj = detectionQueueJob(entities, context, baseUrl, task.getId());
         qj.put("tweetAssetId", tweetMA.getId());
         try {
@@ -142,20 +157,21 @@ System.out.println("\n---------\nprocessIncomingTweet:\n" + tweet + "\n" + tweet
     }
 
     //TODO this should probably live somewhere more useful.  and be resolved to be less confusing re: IAIntake?
-    private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl, String taskId) {
-        JSONObject qj = new JSONObject();
-        qj.put("taskId", taskId);
-        qj.put("__context", context);
-        qj.put("__baseUrl", baseUrl);
-        JSONArray idArr = new JSONArray();
-        JSONObject maj = new JSONObject();
-        for (MediaAsset ma : mas) {
-            idArr.put(ma.getId());
-        }
-        maj.put("mediaAssetIds", idArr);
-        qj.put("detect", maj);
-        return qj;
-    }
+   private static JSONObject detectionQueueJob(List<MediaAsset> mas, String context, String baseUrl, String taskId) {
+       JSONObject qj = new JSONObject();
+       qj.put("taskId", taskId);
+       qj.put("__context", context);
+       qj.put("__baseUrl", baseUrl);
+       JSONArray idArr = new JSONArray();
+       JSONObject maj = new JSONObject();
+       for (MediaAsset ma : mas) {
+           idArr.put(ma.getId());
+       }
+       maj.put("mediaAssetIds", idArr);
+       qj.put("detect", maj);
+       return qj;
+   }
+
 
     public static void sendCourtesyTweet(String context, Status originTweet, MediaAsset ma) {
         Map<String,String> vars = new HashMap<String,String>();  //%SOURCE_TWEET_ID, %SOURCE_IMAGE_ID, %SOURCE_SCREENNAME, %INDIV_ID, %URL_INDIV, %URL_SUBMIT
@@ -400,11 +416,19 @@ System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n
                 }
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("TwitterBot.startCollection()");
-                myShepherd.beginDBTransaction();
-                int t = collectTweets(myShepherd);
-                myShepherd.commitDBTransaction();
-                myShepherd.closeDBTransaction();
-                if ((t != 0) || (count % 1 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
+                try {
+                  myShepherd.beginDBTransaction();
+                  int t = collectTweets(myShepherd);
+                  if ((t != 0) || (count % 1 == 0)) System.out.println("INFO: TwitterBot.startCollection(" + context + ") collectTweets() -> " + t + "  [" + new LocalDateTime() + " count=" + count + " uptime=" + ((System.currentTimeMillis() - collectorStartTime) / (60*1000)) + " min]");
+                  myShepherd.commitDBTransaction();
+                }
+                catch(Exception e) {
+                  e.printStackTrace();
+                  myShepherd.rollbackDBTransaction();
+                }
+                finally{
+                  myShepherd.closeDBTransaction();
+                }
             }
         },
         20,  //initial delay
@@ -450,6 +474,7 @@ System.out.println("processDetectionResults() -> " + mas);
 
         vars.put("SOURCE_SCREENNAME", originTweet.getUser().getScreenName());
         //vars.put("SOURCE_TWEET_ID", Long.toString(originTweet.getId()));
+        // TODO: only send below tweet if every detection job for the tweet has returned negative. This will take some research.
         sendTweet(tweetText(context, "tweetTextIANone", vars), originTweet.getId());
         return "Failed to find any Annotations; sent tweet";
     }
@@ -508,20 +533,20 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         if ((originTweet == null) || (anns == null)) return;
 
         String tx = taxonomyStringFromTweet(originTweet, myShepherd.getContext());
-        
+
         //use NLP to get Date/Location if available in Tweet
         String newDetectedDate=ParseDateLocation.parseDate(rootDir, myShepherd.getContext(), originTweet);
-        
-        
+
+
         for (Annotation ann : anns) {
-          
+
             Encounter enc = ann.findEncounter(myShepherd);
             if (enc == null) continue;
             System.out.println("INFO: TwitterBot.updateEncounter() using tx=" + tx + " for " + enc);
             enc.setTaxonomyFromString(tx);
-            enc.setState("unapproved");        
-            
-           
+            enc.setState("unapproved");
+
+
             if(newDetectedDate!=null){
               DateTimeFormatter parser3 = ISODateTimeFormat.dateParser();
               DateTime dt=parser3.parseDateTime(newDetectedDate);
@@ -535,29 +560,29 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
                 enc.setYear(dt.getYear());
                 enc.setMonth(dt.getMonthOfYear());
                 enc.setDay(-1);
-                
+
               }
               else if(newDetectedDate.length()==4){
                 enc.setYear(dt.getYear());
                 enc.setMonth(-1);
-                
+
               }
             }
-            
+
             //location?
             setLocationIDFromTweet(enc, originTweet, myShepherd.getContext());
-            
+
             //get Tweet comments for faster review on Encounter page
             enc.setOccurrenceRemarks(originTweet.getText());
-            
-            
 
+            //get the Wildbook User for this tweet and set them as owner
+            if(originTweet.getUser()!=null && originTweet.getUser().getScreenName()!=null) {
+              User wildbookUser=myShepherd.getUserByTwitterHandle(originTweet.getUser().getScreenName().replaceAll("@",""));
+              if(wildbookUser!=null && wildbookUser.getUsername()!=null) {
+                enc.setSubmitterID(wildbookUser.getUsername());
+              }
+            }
         }
-        
-        
-
-        
-        
     }
 
     // mostly for ContextDestroyed in StartupWildbook..... i think?
@@ -593,12 +618,12 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
         }
         return TwitterUtil.getProperty(context, "taxonomyDefault");
     }
-    
+
     public static void setLocationIDFromTweet(Encounter enc, Status tweet, String context) {
-      
+
       /*
        * Step 1. Support explicit hashtagging Encounter.locationID
-       * 
+       *
        */
       String locationID="";
       String location="";
@@ -624,10 +649,10 @@ System.out.println("processIdentificationResults() [taskId=" + taskId + " > root
           e.printStackTrace();
         }
       }
-      
+
       /*
        * Step 2. If not explicitly set from a hashtag, let's try to get Encounter.locationID from the text
-       * 
+       *
        */
       try {
 
