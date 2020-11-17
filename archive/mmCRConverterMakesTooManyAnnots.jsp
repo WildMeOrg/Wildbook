@@ -70,11 +70,11 @@ public boolean convertMediaAsset(Encounter enc, Shepherd myShepherd, String crPa
         ArrayList<Annotation> annList = new ArrayList<Annotation>();
         annList.add(ann);
         try {
-          System.out.println("    + sending asset to IA");
-          IBEISIA.sendMediaAssetsNew(maList, context);
-          System.out.println("    + asset sent, sending annot");
-          IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
-          System.out.println("    + annot sent.");
+          //System.out.println("    + sending asset to IA");
+          //IBEISIA.sendMediaAssetsNew(maList, context);
+          //System.out.println("    + asset sent, sending annot");
+          //IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
+          //System.out.println("    + annot sent.");
         } catch (Exception e) {
           e.printStackTrace();
           System.out.println("hit above exception while trying to send CR ma & annot to IA");
@@ -136,7 +136,8 @@ myShepherd.beginDBTransaction();
 try{
 
 	//String filter="select from org.ecocean.Annotation where iaClass == 'mantaCR'";
-	String filter="select from org.ecocean.Encounter where catalogNumber!=null";
+	//String filter="select from org.ecocean.Encounter where catalogNumber!=null";
+	String filter="SELECT FROM org.ecocean.Encounter WHERE ( ( annotations.contains(photo0) && photo0.features.contains(feat0) && !feat0.asset.keywords.contains(word0) && ( word0.indexname == 'a8ce962375b743b50175cda6ab240002' )) ) VARIABLES org.ecocean.Annotation photo0;org.ecocean.Keyword word0;org.ecocean.media.Feature feat0";
 	Query q=myShepherd.getPM().newQuery(filter);
 	Collection c= (Collection)q.execute();
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);

@@ -128,10 +128,6 @@ int mmaCompatible=0;
 int encHasMatchAgainst=0;
 int mismatchEncs =0;
 
-ArrayList<String> misMatchEncArray=new ArrayList<String>();
-File f=new File("/tmp/mmMissingAnnotUUID.json");
-String s=FileUtils.readFileToString(f);
-
 
 myShepherd.beginDBTransaction();
 
@@ -139,7 +135,7 @@ myShepherd.beginDBTransaction();
 try{
 
 	//String filter="select from org.ecocean.Annotation where iaClass == 'mantaCR'";
-	String filter="select from org.ecocean.Encounter where annotations.contains(annot) && annot.iaClass=='mantaCR' VARIABLES org.ecocean.Annotation annot";
+	String filter="select from org.ecocean.Encounter where annotations.contains(annot) && annot.iaClass=='whalesharkCR' VARIABLES org.ecocean.Annotation annot";
 	Query q=myShepherd.getPM().newQuery(filter);
 	Collection c= (Collection)q.execute();
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
@@ -151,38 +147,50 @@ try{
 	
 	WildbookIAM wim = new WildbookIAM(context);
 	
+	ArrayList<Annotation> anns=new ArrayList<Annotation>();
+	ArrayList<MediaAsset> assets=new ArrayList<MediaAsset>();
+	ArrayList<String> acmIds=new ArrayList<String>();
+	
     for (Encounter enc:encs) {
     	try{
     		
-    		ArrayList<Annotation> anns=new ArrayList<Annotation>();
-			
-	    	
     		ArrayList<String> matchable=new ArrayList<String>();
     		int dupes=0;
 	    	List<Annotation> annots=enc.getAnnotations();
 	    	for(Annotation annot:annots){
 	    		
-    			if(annot.getAcmId()==null || s.indexOf(annot.getAcmId())!=-1){
+	    		
+	    		
+    			if(annot.getAcmId()==null){
+    				
     				
     				mismatch++;
-    				//if(mismatch==1){
-    					if(annot.getAcmId()!=null){
-    						System.out.println("Wiping: "+annot.getAcmId());
-    						annot.setAcmId(null);
-    						
-    						myShepherd.updateDBTransaction();
-    					}
-    					anns.add(annot);
+    				if(annot.getIAClass()!=null && annot.getIAClass().equals("whalesharkCR")) 
+    				{
     					
-    				//}
-    				
+    					MediaAsset asset=annot.getMediaAsset();
+    					if(asset!=null && asset.getAcmId()!=null){
+    						
+    						String m_acmId=asset.getAcmId();
+    		    			if(!acmIds.contains(m_acmId)){		
+    		    					anns.add(annot);
+    		    					acmIds.add(m_acmId);
+    		    			}
+    						
+    					}
+    					
+        				
+    					
+        	    		//if(ma!=null && ma.getAcmId()==null){
+        	    		//	assets.add(ma);
+        	    		//}
+    				}
     				
     			}
 	    		
 	    	} //end for annots
 
-	    	if(anns.size()>0)wim.sendAnnotations(anns, true, myShepherd);
-			myShepherd.updateDBTransaction();
+			//myShepherd.updateDBTransaction();
 	    }
 		catch(Exception ce){
 			ce.printStackTrace();
@@ -190,6 +198,58 @@ try{
 			myShepherd.beginDBTransaction();
 		}
 	}//end for encs
+    
+    /*
+	if(assets.size()>0){
+		int counter=0;
+		System.out.println("Assets needing acmID" + assets.size());
+		%>
+		<li><%="Assets needing acmID" + assets.size() %></li>
+		<%
+		//System.out.println("Send mediaassets for enc: "+enc.getCatalogNumber());
+		ArrayList<MediaAsset> sendMe=new ArrayList<MediaAsset>();
+		for(MediaAsset asset:assets){
+			sendMe.add(asset);
+			if(sendMe.size()==250){
+				counter++;
+				wim.sendMediaAssets(sendMe, true);
+				myShepherd.updateDBTransaction();
+				System.out.println("Sent MediAssets batch "+counter+":" + sendMe.size());
+				sendMe=new ArrayList<MediaAsset>();
+				
+			}
+		}
+		wim.sendMediaAssets(sendMe, true);
+		myShepherd.updateDBTransaction();
+		System.out.println("Sent MediAssets batch "+counter+":" + sendMe.size());
+		
+	}*/
+	%>
+	<li><%="Annotations needing acmID" + anns.size() %></li>
+	<%
+	if(anns.size()>0){
+		int counter=0;
+		System.out.println("Annots needing acmID" + anns.size());
+		//System.out.println("Send mediaassets for enc: "+enc.getCatalogNumber());
+		ArrayList<Annotation> sendMe=new ArrayList<Annotation>();
+		for(Annotation asset:anns){
+			sendMe.add(asset);
+			if(sendMe.size()>=250){
+				System.out.println("Sending Annotations batch "+counter+":" + sendMe.size());
+				counter++;
+				wim.sendAnnotations(sendMe, true, myShepherd);
+				myShepherd.updateDBTransaction();
+				System.out.println("Sent Annotations batch "+counter+":" + sendMe.size());
+				
+				sendMe=new ArrayList<Annotation>();
+			}
+		}
+		wim.sendAnnotations(sendMe, true, myShepherd);
+		myShepherd.updateDBTransaction();
+		
+		
+	}
+    
     
     
 	myShepherd.rollbackDBTransaction();
