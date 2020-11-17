@@ -152,6 +152,7 @@ System.out.println("====> params = " + params);
     myShepherd.updateDBTransaction();
     System.out.println("    + updated transaction, about to make children");
     crMa.updateStandardChildren(myShepherd);
+    crMa.updateMetadata();
     System.out.println("    + updated children for asset "+crMa.toString()+"; hasFamily = "+crMa.hasFamily(myShepherd));
     String speciesString = enc.getTaxonomyString();
     Annotation ann = new Annotation(speciesString, crMa);
@@ -173,8 +174,10 @@ System.out.println("====> params = " + params);
     try {
       System.out.println("    + sending asset to IA");
       IBEISIA.sendMediaAssetsNew(maList, context);
+      myShepherd.updateDBTransaction();
       System.out.println("    + asset sent, sending annot");
       IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
+      myShepherd.updateDBTransaction();
       System.out.println("    + annot sent.");
     } 
     catch (Exception e) {
