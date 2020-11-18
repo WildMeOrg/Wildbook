@@ -719,7 +719,7 @@ public final class NotificationMailer implements Runnable {
     if (ind != null) {
       map.put("@INDIVIDUAL_LINK@", String.format("%s/individuals.jsp?id=%s", map.get("@URL_LOCATION@"), ind.getIndividualID()));
       map.put("@INDIVIDUAL_ID@", ind.getIndividualID());
-      map.put("@INDIVIDUAL_DISPLAYNAME@", ind.getDisplayName());
+      map.put("@INDIVIDUAL_DISPLAYNAME@", ind.getDisplayName(req));
       map.put("@INDIVIDUAL_SEX@", ind.getSex());
       map.put("@INDIVIDUAL_NAME@", ind.getName());
       map.put("@INDIVIDUAL_NICKNAME@", ind.getNickName());

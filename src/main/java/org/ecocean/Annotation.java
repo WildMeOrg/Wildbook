@@ -594,6 +594,7 @@ public class Annotation implements java.io.Serializable {
         return new ToStringBuilder(this)
                 .append("id", id)
                 .append("species", species)
+                .append("iaClass", iaClass)
                 .append("bbox", getBbox())
 /*
                 //.append("transform", ((getTransformMatrix == null) ? null : Arrays.toString(getTransformMatrix())))
@@ -735,7 +736,10 @@ System.out.println("[1] getMatchingSet params=" + params);
             + "' && enc.annotations.contains(this) && enc.genus == '" + enc.getGenus()
             + "' && enc.specificEpithet == '" + enc.getSpecificEpithet() + "' VARIABLES org.ecocean.Encounter enc";
         }
-        if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";  //need another VARIABLE declaration
+        if (filter.matches(".*\\buser\\b.*")) filter += "; org.ecocean.User user";
+        
+        if (filter.matches(".*\\bproject\\b.*")) filter += "; org.ecocean.Project project";
+
         return getMatchingSetForFilter(myShepherd, filter);
     }
 
@@ -831,6 +835,7 @@ System.out.println("[1] getMatchingSet params=" + params);
     private String getMatchingSetFilterFromParameters(JSONObject taskParams) {
         if (taskParams == null) return "";
         String userId = taskParams.optString("userId", null);
+
         JSONObject j = taskParams.optJSONObject("matchingSetFilter");
         if (j == null) return "";
         String f = "";
@@ -888,6 +893,13 @@ System.out.println("[1] getMatchingSet params=" + params);
                 if (opt.equals("me")) f += " && enc.submitters.contains(user) && user.uuid == '" + userId + "' ";
                 ///TODO also handle "collab" (users you collab with)   :/
             }
+        }
+
+        // add projectID to filter
+        String projectId = j.optString("projectId", null);
+        if (Util.stringExists(projectId)) {
+            System.out.println("----> Adding PROJECT ID to matching set filter");
+            f+= " && project.id == '"+projectId+"' && project.encounters.contains(enc) ";
         }
 
         return f;
@@ -979,7 +991,8 @@ System.out.println("  >> findEncounterDeep() -> ann = " + ann);
     // look for "sibling" Annotations on same MediaAsset.  if one of them has an Encounter, we clone that.
     // additionally, if one is a trivial annotation, we drop it after.  if no siblings are found, we create
     // an Encounter based on this Annotation (which may get us something, e.g. species, date, loc)
-    public Encounter toEncounter(Shepherd myShepherd) {
+    //  ######   NOTE: this is going away due to WB-945.  (see MediaAsset.assignEncounters() instead)   ######
+    public Encounter toEncounterDEPRECATED(Shepherd myShepherd) {
         // fairly certain this will *never* happen as code currently stands.  this (Annotation) is always new, and
         //  therefore unattached to any Encounter for sure.   so skipping this for now!
         ////Encounter enc = this.findEncounter(myShepherd);
@@ -1282,13 +1295,38 @@ Util.mark("Annotation.refreshLiteValid() refreshing " + this.acmId);
     public boolean contains(Annotation ann) {
         Rectangle myRect = getRect(this);
         Rectangle queryRect = getRect(ann);
+        if ((myRect == null) || (queryRect == null)) return false;
         return myRect.contains(queryRect);
     }
 
     public boolean intersects(Annotation ann) {
         Rectangle myRect = getRect(this);
         Rectangle queryRect = getRect(ann);
+        if ((myRect == null) || (queryRect == null)) return false;
         return myRect.intersects(queryRect);
+    }
+
+    public boolean intersectsAtLeastOne(List<Annotation> anns) {
+        if (Util.collectionIsEmptyOrNull(anns)) return false;
+        for (Annotation ann : anns) {
+            if (intersects(ann)) return true;
+        }
+        return false;
+    }
+
+    //they all are chained together; basically no gap between any single *or cluster* of these annots
+    // note: this skips all trivial annots, cuz those are always going to intersect everything
+    public static boolean areContiguous(List<Annotation> anns) {
+        if (Util.collectionIsEmptyOrNull(anns)) return false;
+        List<Annotation> nonTrivial = new ArrayList<Annotation>();
+        for (Annotation ann : anns) {
+            if (!ann.isTrivial()) nonTrivial.add(ann);
+        }
+System.out.println("areContiguous() has nonTrivial=" + nonTrivial);
+        if (nonTrivial.size() < 1) return false;
+        if (nonTrivial.size() == 1) return true;
+        Annotation first = nonTrivial.remove(0);
+        return (first.intersectsAtLeastOne(nonTrivial) && areContiguous(nonTrivial));   //yay recursion!
     }
 
     private Rectangle getRect(Annotation ann) {

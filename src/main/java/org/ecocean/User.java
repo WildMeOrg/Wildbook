@@ -58,12 +58,19 @@ public class User implements Serializable {
 	
 	//String currentContext;
   	
-  	//String currentContext;
-  	
-  	
-    private List<Organization> organizations = null;
+    //String currentContext;
 
-  	private boolean acceptedUserAgreement=false;
+  //serialized JSON
+  private String preferences = "";
+  //standard preference keys
+  private static final String PROJECT_CONTEXT = "projectContext";
+
+
+
+  	
+  private List<Organization> organizations = null;
+
+  private boolean acceptedUserAgreement=false;
   
   private boolean receiveEmails=true; 
 
@@ -490,6 +497,54 @@ public class User implements Serializable {
         jobj.put("organizations", orgIDs.toArray());
       }
       return jobj;
+    }
+
+    public org.json.JSONObject getPreferencesAsJSON() {
+      if (preferences == null || "".equals(preferences)) return new org.json.JSONObject();
+      return Util.stringToJSONObject(preferences);
+    }
+
+    public void setPreferencesJSON(org.json.JSONObject json) {
+      preferences = json.toString();
+    }
+
+    public void setPreference(String key, String value) {
+      org.json.JSONObject prefsJSON = getPreferencesAsJSON();
+      if (Util.stringExists(key)&&prefsJSON!=null) {
+        prefsJSON.put(key, value);
+        setPreferencesJSON(prefsJSON);
+      } else {
+        System.out.println("[WARN]: Error setting preference for user: key="+key+" value="+value);
+      }
+    }
+
+    public String getPreference(String key) {
+      org.json.JSONObject prefsJSON = getPreferencesAsJSON();
+      if (prefsJSON!=null) {
+        Object valueOb = prefsJSON.optString(key,null);
+        String value = null;
+        if (valueOb!=null) value = (String) valueOb; 
+        if (Util.stringExists(value)) {
+          return value;
+        }
+      }
+      return null;
+    }
+
+    public void setProjectIdForPreferredContext(String id) {
+      if (id!=null) {
+        setPreference(PROJECT_CONTEXT, id);
+      }
+    }
+
+    public void setProjectForPreferredContext(Project project) {
+      if (project!=null) {
+        setProjectIdForPreferredContext(project.getId());
+      }
+    }
+
+    public String getProjectIdForPreferredContext() {
+      return getPreference(PROJECT_CONTEXT);
     }
 
 }

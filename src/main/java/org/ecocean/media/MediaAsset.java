@@ -26,6 +26,7 @@ import org.ecocean.LabeledKeyword;
 import org.ecocean.Annotation;
 import org.ecocean.AccessControl;
 import org.ecocean.Taxonomy;
+import org.ecocean.IAJsonProperties;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
@@ -48,6 +49,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Base64;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
 import java.util.Comparator;
@@ -1013,7 +1015,7 @@ public class MediaAsset implements java.io.Serializable {
                             jf.put("encounterId", enc.getCatalogNumber());
                             if (enc.hasMarkedIndividual()) {
                                 jf.put("individualId", enc.getIndividualID());
-                                String displayName = enc.getDisplayName();
+                                String displayName = enc.getIndividual().getDisplayName(request, myShepherd);
                                 if (!Util.stringExists(displayName)) displayName = enc.getIndividualID();
                                 jf.put("displayName", displayName);
                             }
@@ -1518,5 +1520,141 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         return isValidImageForIA();
     }
 
+/*
+    WB-945 new magick.  this look at our annots (which may *or may not* have been created via detection results) and decide
+    if they need to have new encounter(s) made to hold them.  this will be based on their sibling annots on this asset, among other things.
+
+    note: current logic here ignores edge-case where annots may span multiple species.  this is due in part to the fact that deriving
+    species from iaClass is a gray area in some wildbooks.  this will need to be a future enhancement.  TODO
+    IAJsonProperties.taxonomyFromIAClass() may help toward this end, but it is new and can give null results.
+*/
+    public List<Encounter> assignEncounters(Shepherd myShepherd) {
+        List<Encounter> newEncs = new ArrayList<Encounter>();
+        List<Annotation> annots = this.getAnnotations();
+        List<Annotation> trivialAnnots = new ArrayList<Annotation>();
+        if (Util.collectionIsEmptyOrNull(annots)) {
+            System.out.println("INFO: assignEncounters() finds no annots on " + this);
+            return newEncs;
+        }
+        Set<Encounter> myEncs = new HashSet<Encounter>();
+        List<Annotation> needsEncounter = new ArrayList<Annotation>();
+        Map<String,Integer> partCt = new HashMap<String,Integer>();  //holds count for each type of part
+        int nonPartCt = 0;
+        for (Annotation ann : annots) {
+            Encounter enc = ann.findEncounter(myShepherd);
+            if (enc == null) {
+                if (!ann.isTrivial()) needsEncounter.add(ann);  //see comment below
+            } else {
+                myEncs.add(enc);
+            }
+            if (ann.isTrivial() && (enc != null)) {  //i guess it would be weird to have trivial with no enc, but we dont want it!
+                trivialAnnots.add(ann);
+            } else if (ann.getIAClass() == null) {
+                //what do we do here?
+                System.out.println("INFO: assignEncounters() has no iaClass for " + ann);
+            } else if (ann.getIAClass().indexOf("+") > -1) {  //we are a part, i guess?
+                partCt.put(ann.getIAClass(), partCt.getOrDefault(ann.getIAClass(), 0) + 1);
+            } else {  //"non-part" (aka, um, whole? body?)
+                nonPartCt++;
+            }
+        }
+        boolean hasDuplicateParts = false;
+        for (String part : partCt.keySet()) {
+            if (partCt.get(part) > 1) hasDuplicateParts = true;
+        }
+
+        //okay, now we try to make sense of what we have......
+        if (needsEncounter.size() < 1) return newEncs;  //easiest!
+System.out.println("INFO: assignEncounters() needsEncounter ==> " + needsEncounter);
+
+        Encounter whichever = null;
+        //if we dont have *any* enc, we create one out of the blue... probably rare edge case
+        if (myEncs.isEmpty()) {
+            //this assumes we are dealing with all the same species (so makes one enc to clone), based on first annotation
+            whichever = new Encounter();  //will be used to attach annots below
+            DateTime dt = this.getDateTime();
+            if (dt != null) whichever.setDateInMilliseconds(dt.getMillis());
+            if (needsEncounter.get(0).getIAClass() != null) {
+                try {
+                    IAJsonProperties iaJson = new IAJsonProperties();
+                    whichever.setTaxonomy(iaJson.taxonomyFromIAClass(needsEncounter.get(0).getIAClass(), myShepherd));  //might work!
+                } catch (Exception ex) {
+                    System.out.println("INFO: assignEncounters() could not load iaJson, so could not deduce taxonomy for " + whichever + " -- " + ex.toString());
+                }
+            }
+            myShepherd.getPM().makePersistent(whichever);
+            System.out.println("INFO: assignEncounters() has empty myEncs for " + this.toString() + ", so created`whichever=" + whichever);
+        } else {
+            whichever = myEncs.iterator().next();
+        }
+
+        boolean contiguousAnnots = Annotation.areContiguous(annots);
+System.out.println("INFO: assignEncounters() contiguousAnnots = " + contiguousAnnots);
+
+        if ((nonPartCt > 1) || hasDuplicateParts || !contiguousAnnots || (myEncs.size() > 1)) {
+            System.out.println(">>>>> assignEncounters() MANY ENCS ; myEncs=" + myEncs);
+            /*
+                we dont know where to assign needsEncounter annots, so they each get own Encounter
+                - if we have any trivialAnnots, we use those up first and bump them out
+                - when no trivialAnnots, we duplicate "a random encounter" (aka whichever) and attach there
+            */
+            for (Annotation ann : needsEncounter) {
+                if (trivialAnnots.size() > 0) {
+                    Annotation tann = trivialAnnots.remove(0);
+                    tann.setMatchAgainst(false);
+                    Encounter tenc = tann.findEncounter(myShepherd);  //should never be null, so hope you arent here cuz of a npe
+                    tenc.replaceAnnotation(tann, ann);
+                    tenc.setDWCDateLastModified();
+                    tenc.resetDateInMilliseconds();
+System.out.println(">>>>> ******** [1] assignEncounters() trivial " + tann + " replaced by " + ann + " on " + tenc);
+                    if (!newEncs.contains(tenc)) newEncs.add(tenc);
+                } else {  //new enc based on whichever
+                    try {
+                        Encounter newEnc = whichever.cloneWithoutAnnotations(myShepherd);  //ok, not really random
+                        newEnc.addAnnotation(ann);
+                        newEnc.setDWCDateAdded();
+                        newEnc.setDWCDateLastModified();
+                        newEnc.resetDateInMilliseconds();
+                        newEnc.setSpecificEpithet(whichever.getSpecificEpithet());
+                        newEnc.setGenus(whichever.getGenus());
+                        newEnc.setSex(null);
+                        myShepherd.getPM().makePersistent(newEnc);
+System.out.println(">>>>> ******** [1] assignEncounters() cloned " + whichever + " for " + ann + " yielding " + newEnc);
+                        if (!newEncs.contains(newEnc)) newEncs.add(newEnc);
+                    } catch (Exception ex){
+                        System.out.println("ERROR: assignEncounters() failed to clone " + whichever + " for " + ann + " -> " + ex.toString());
+                        ex.printStackTrace();
+                    }
+                }
+            }
+
+        } else {  //all needsEncounter annots can live in harmony.  myEncs should only have 1 enc (or 0, if we created whichever)
+            System.out.println(">>>>> assignEncounters() ONE ENC ; myEncs=" + myEncs);
+            for (Annotation ann : needsEncounter) {
+                if (trivialAnnots.size() > 0) {  //we have a trivial, lets replace it
+                    Annotation tann = trivialAnnots.remove(0);
+                    tann.setMatchAgainst(false);
+                    Encounter tenc = tann.findEncounter(myShepherd);  //i believe(???) this will always be whenever
+                    if (tenc != null) {
+                        tenc.replaceAnnotation(tann, ann);
+                        tenc.setDWCDateLastModified();
+                        tenc.resetDateInMilliseconds();
+System.out.println(">>>>> ******** [2] assignEncounters() trivial " + tann + " replaced by " + ann + " on " + tenc);
+                        if (!newEncs.contains(tenc)) newEncs.add(tenc);
+                    }
+                } else {  //no trivials left, so we just throw it on whichever
+                    whichever.addAnnotation(ann);
+                    whichever.setDWCDateLastModified();
+                    whichever.resetDateInMilliseconds();
+System.out.println(">>>>> ******** [2] assignEncounters() added " + ann + " to " + whichever);
+                    if (!newEncs.contains(whichever)) newEncs.add(whichever);
+                }
+            }
+            //after all annots, we *should* only have 1 enc (whichever) in newEncs!!
+        }
+
+System.out.println(">>>>> assignEncounters() EXIT ; size=" + newEncs.size() + " newEncs=" + newEncs);
+        return newEncs;
+    }
 
 }
