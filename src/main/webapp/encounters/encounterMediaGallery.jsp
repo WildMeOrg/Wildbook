@@ -628,7 +628,7 @@ if(request.getParameter("encounterNumber")!=null){
 	        data: JSON.stringify({"detach":"true","number":"<%=encNum%>","annotation":aid}),
 	        success: function(d) {
 	          console.info("I detached Annotation "+aid+" from encounter <%=encNum%>");
-	          $('[id^="image-enhancer-wrapper-' + maId + '-"]').closest('figure').remove()
+	          $('[id^="image-enhancer-wrapper-' + maId + '-'+aid+'"]').closest('figure').remove()
 
 	        },
 	        error: function(x,y,z) {
