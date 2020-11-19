@@ -7,10 +7,25 @@
 			"formSchema": { "displayOrder": 0, "panel": true }
 		}
 	},
+	"testSecret" : {
+		"__meta" : {
+			"type" : "string",
+			"private" : true,
+			"defaultValue": ""
+		}
+	},
 	"needsSetup" : {
 		"__meta" : {
 			"type" : "boolean",
 			"defaultValue": true,
+			"formSchema": { "hidden": true },
+			"readOnly": true
+		}
+	},
+	"adminUserCreated" : {
+		"__meta" : {
+			"type" : "boolean",
+			"defaultValue": false,
 			"formSchema": { "hidden": true },
 			"readOnly": true
 		}
