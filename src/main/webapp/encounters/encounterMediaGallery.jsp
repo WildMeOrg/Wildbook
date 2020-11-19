@@ -844,26 +844,49 @@ function doImageEnhancer(sel) {
            if(!encNum.equals("")){
         	%>
         	
-            ['remove this annotation', function(enh) {
-            	
-			var maId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-           	var aid = imageEnhancer.annotationIdFromElement(el.context);
-           	removeAnnotation(maId,aid);
-		
-            }],
-            ['remove this image', function(enh) {
-        		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-        		removeAsset(mid);
-            }]
+	            
+	            ['remove this image', function(enh) {
+	        		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+	        		removeAsset(mid);
+	            }]
+	            
             <%
     		}
             %>
 
-/*
-            ['replace this image', function(enh) {
-            }],
-*/
+            
+          
 	];
+        
+			//remove annotation option for non-trivial annots
+        	opt.menu.push(
+	        	[
+	        		function(obj){
+	        				if (!obj || !obj.imgEl || !obj.imgEl.context) return false;
+	        				var mid = imageEnhancer.mediaAssetIdFromElement(obj.imgEl);
+	        				var ma = assetById(mid);
+	        				if (!ma) return false;
+	        				if(ma.features && ma.features[0] && ma.features[0].type){
+	        					return 'remove annotation';
+	        				}
+	        				return false;
+	        		}
+	        		, 
+	        		function(enh) {
+					var maId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+		           	var aid = imageEnhancer.annotationIdFromElement(enh.imgEl.context);
+		           	removeAnnotation(maId,aid);
+	            	}
+	        	]
+        	);
+        	
+     
+        opt.menu.push(['create
+        	
+        	//optional feature region', function(enh) {
+            var mid = enh.imgEl.data('enh-mediaassetid');
+            window.location.href = 'encounterCR.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
+        }]);
 
         wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
 <%
