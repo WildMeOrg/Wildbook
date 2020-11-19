@@ -601,6 +601,7 @@ System.out.println("params.get(\"path\") -> " + params.get("path"));
                       ann.setMatchAgainst(true);
                       String iaClass = "mantaCR"; // should we change this?
                       ann.setIAClass(iaClass);
+                      ann.setViewpoint("down");
                       enc.addAnnotation(ann);
                       System.out.println("    + made annotation "+ann.toString());
                       myShepherd.getPM().makePersistent(ann);

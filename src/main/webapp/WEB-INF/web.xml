@@ -410,7 +410,7 @@
 				
 				/UserGetNotifications = authc
 				 
-				/EncounterDeleteAnnotation = authc, roles[researcher]
+				/EncounterRemoveAnnotation = authc, roles[researcher]
             </param-value>
         </init-param>
     </filter>
@@ -2593,12 +2593,12 @@
   
 
    <servlet>
-    <servlet-name>EncounterDeleteAnnotation</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterDeleteAnnotation</servlet-class>
+    <servlet-name>EncounterRemoveAnnotation</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterRemoveAnnotation</servlet-class>
   </servlet>
 
   <servlet-mapping>
-    <servlet-name>EncounterDeleteAnnotation</servlet-name>
-    <url-pattern>/EncounterDeleteAnnotation</url-pattern>
+    <servlet-name>EncounterRemoveAnnotation</servlet-name>
+    <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
 </web-app>
