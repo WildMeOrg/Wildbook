@@ -409,8 +409,8 @@
 				/ScheduledIndividualMergeUpdate = authc, roles[researcher]
 				
 				/UserGetNotifications = authc
-				
-
+				 
+				/EncounterDeleteAnnotation = authc, roles[researcher]
             </param-value>
         </init-param>
     </filter>
@@ -2592,5 +2592,13 @@
 
   
 
+   <servlet>
+    <servlet-name>EncounterDeleteAnnotation</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterDeleteAnnotation</servlet-class>
+  </servlet>
 
+  <servlet-mapping>
+    <servlet-name>EncounterDeleteAnnotation</servlet-name>
+    <url-pattern>/EncounterDeleteAnnotation</url-pattern>
+  </servlet-mapping>
 </web-app>

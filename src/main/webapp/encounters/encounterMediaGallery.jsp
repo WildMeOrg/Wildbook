@@ -624,7 +624,7 @@ if(request.getParameter("encounterNumber")!=null){
 
   //
   var removeAsset = function(maId) {
-    if (confirm("Are you sure you want to remove this image from the encounter? The image will not be deleted from the database, and this action is reversible.")) {
+    if (confirm("Are you sure you want to remove this image from the encounter? The image will not be deleted from the database, and this action is reversible. However, all annotations related to this image will also be removed from this Encounter. Proceed to remove image and annotations?")) {
       $.ajax({
         url: '../MediaAssetAttach',
         type: 'POST',
@@ -649,6 +649,29 @@ if(request.getParameter("encounterNumber")!=null){
   }
 
 
+  
+  var removeAnnotation = function(maId, aid) {
+	    if (confirm("Are you sure you want to remove this Annotation from the encounter?")) {
+	      $.ajax({
+	        url: '../EncounterRemoveAnnotation',
+	        type: 'POST',
+	        dataType: 'json',
+	        contentType: "application/json",
+	        data: JSON.stringify({"detach":"true","number":"<%=encNum%>","annotation":aid}),
+	        success: function(d) {
+	          console.info("I detached Annotation "+aid+" from encounter <%=encNum%>");
+	          $('[id^="image-enhancer-wrapper-' + maId + '-"]').closest('figure').remove()
+
+	        },
+	        error: function(x,y,z) {
+	          console.warn("failed to remove Annotation: "+aid);
+	          console.warn('%o %o %o', x, y, z);
+	        }
+	      });
+	    }
+	  }
+  
+  
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
     console.log("   EMG asset "+index+" id: "+assetId);
@@ -852,10 +875,18 @@ function doImageEnhancer(sel) {
            <%
            if(!encNum.equals("")){
         	%>
-            ['remove this image', function(enh) {
-		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
-		removeAsset(mid);
+        	
+            ['remove this annotation', function(enh) {
+            	
+			var maId = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+           	var aid = imageEnhancer.annotationIdFromElement(el.context);
+           	removeAnnotation(maId,aid);
+		
             }],
+            ['remove this image', function(enh) {
+        		var mid = imageEnhancer.mediaAssetIdFromElement(enh.imgEl);
+        		removeAsset(mid);
+            }]
             <%
     		}
             %>
