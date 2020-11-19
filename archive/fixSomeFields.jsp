@@ -159,34 +159,48 @@ try{
 	    	List<Annotation> annots=enc.getAnnotations();
 	    	for(Annotation annot:annots){
 	    		
-	    		
-	    		
-    			if(annot.getAcmId()==null){
-    				
-    				
-    				mismatch++;
-    				if(annot.getIAClass()!=null && annot.getIAClass().equals("whalesharkCR")) 
-    				{
-    					
-    					MediaAsset asset=annot.getMediaAsset();
-    					if(asset!=null && asset.getAcmId()!=null){
-    						
-    						String m_acmId=asset.getAcmId();
-    		    			if(!acmIds.contains(m_acmId)){		
-    		    					anns.add(annot);
-    		    					acmIds.add(m_acmId);
-    		    			}
-    						
-    					}
-    					
-        				
-    					
-        	    		//if(ma!=null && ma.getAcmId()==null){
-        	    		//	assets.add(ma);
-        	    		//}
-    				}
-    				
-    			}
+	    		MediaAsset asset=annot.getMediaAsset();
+	    		if(asset!=null){
+		    		String m_acmId=null;
+		    		if(asset.getAcmId()!=null)m_acmId=asset.getAcmId();
+
+	    			//if(annot.getAcmId()==null){
+	    				
+	    				//asset.updateMetadata();
+	    				//myShepherd.updateDBTransaction();
+	    				
+	    				mismatch++;
+	    				if(annot.getIAClass()!=null && annot.getIAClass().equals("whalesharkCR")) 
+	    				{
+	    					
+	    					
+	    					if(asset.getAcmId()==null){
+	    						
+	    						assets.add(asset);
+	    		    			//if(m_acmId!=null && !acmIds.contains(m_acmId)){		
+	    		    					
+	    		    					
+	    		    			//}
+	    		    			
+	    						
+	    					}
+	    					if(annot.getAcmId()==null){
+	    						anns.add(annot);
+	    					}
+	        				
+	    					
+	        	    		//if(ma!=null && ma.getAcmId()==null){
+	        	    		//	assets.add(ma);
+	        	    		//}
+	    				}
+	    				if(m_acmId!=null)acmIds.add(m_acmId);
+	    				
+	    			//}
+    			
+	    	}
+	    		else{
+	    			mismatch++;
+	    		}
 	    		
 	    	} //end for annots
 
@@ -199,7 +213,7 @@ try{
 		}
 	}//end for encs
     
-    /*
+    
 	if(assets.size()>0){
 		int counter=0;
 		System.out.println("Assets needing acmID" + assets.size());
@@ -210,7 +224,7 @@ try{
 		ArrayList<MediaAsset> sendMe=new ArrayList<MediaAsset>();
 		for(MediaAsset asset:assets){
 			sendMe.add(asset);
-			if(sendMe.size()==250){
+			if(sendMe.size()>=250){
 				counter++;
 				wim.sendMediaAssets(sendMe, true);
 				myShepherd.updateDBTransaction();
@@ -223,7 +237,7 @@ try{
 		myShepherd.updateDBTransaction();
 		System.out.println("Sent MediAssets batch "+counter+":" + sendMe.size());
 		
-	}*/
+	}
 	%>
 	<li><%="Annotations needing acmID" + anns.size() %></li>
 	<%
@@ -267,6 +281,7 @@ finally{
 %>
 </ul>
 <p>Annots missing acmIDs: <%=mismatch %></p>
+<p>Assets missing acmIDs: <%=mismatchEncs %></p>
 
 
 </body>
