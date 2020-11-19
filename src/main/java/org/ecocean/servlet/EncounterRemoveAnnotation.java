@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.ia.Task;
 import org.ecocean.media.MediaAsset;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.servlet.ServletConfig;
@@ -78,57 +79,52 @@ public class EncounterRemoveAnnotation extends HttpServlet {
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if(!encountersDir.exists()){encountersDir.mkdirs();}
     
+    JSONObject args = new JSONObject();
+
+    try {
+      args = ServletUtilities.jsonFromHttpServletRequest(request);
+    } catch (JSONException e){
+      // urgh... depending on if POSTing from Postman or $.ajax, parameters must be handled differently.
+      args.put("number", request.getParameter("number"));
+      args.put("annotation", request.getParameter("annotation"));
+      //leave this print in case of shenanigans even though we have alternate behavior
+      e.printStackTrace();
+    }
+
+    String encID = args.optString("number");
+    String annotID = args.optString("annotation");
+    
     //boolean isOwner = true;
     JSONObject res = new JSONObject();
     res.put("success",false);
     myShepherd.beginDBTransaction();
     try {
-      if ((request.getParameter("number") != null)&&(myShepherd.isEncounter(request.getParameter("number")))) {
-        Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
-        
+      if ((encID != null)&&(myShepherd.isEncounter(encID))) {
+        Encounter enc = myShepherd.getEncounter(encID);
+        if(ServletUtilities.isUserAuthorizedForEncounter(enc,request) && annotID != null && myShepherd.getAnnotation(annotID)!=null) {
   
-        if(ServletUtilities.isUserAuthorizedForEncounter(enc,request) && request.getParameter("annotation") != null && myShepherd.getAnnotation(request.getParameter("annotation"))!=null) {
-  
-            Annotation ann=myShepherd.getAnnotation(request.getParameter("annotation"));
+            Annotation ann=myShepherd.getAnnotation(annotID);
           
-              //first do the immediate task, remove this Annot from the Encounter
-              enc.removeAnnotation(ann);
-              setDateLastModified(enc);
-              myShepherd.updateDBTransaction();
+                
+              //overall: don't delete trivial annotations. in that case, delete image command from menu
               
-              //next, check if this belongs to another Encounter. 
-              //If it does NOT belong to another Encounter, remove it from related tasks
-              if(Encounter.findByAnnotation(ann, myShepherd)==null) {
-                List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
-                if (iaTasks!=null&&!iaTasks.isEmpty()) {
-                  for (Task iaTask : iaTasks) {
-                    iaTask.removeObject(ann);
-                    myShepherd.updateDBTransaction();
-                  }
-                }
-                
-              }
-              
-              //if this annot is the last annot for this MediaAsset on this Encounter
-              //then revert the annot to trivial to preserve the MediaAsset's association to the Annotation
-              MediaAsset asset=ann.getMediaAsset();
-              if(asset!=null) {
-                
-                List<MediaAsset> assets=enc.getMedia();
-                if(!assets.contains(asset)) {
-                
+              //if not trivial but has no sibs, revert to trivial
+                if(!ann.isTrivial() && (ann.getSiblings()==null||ann.getSiblings().size()==0)) {
+                 
                   Annotation newAnnot=ann.revertToTrivial(myShepherd);
-                  newAnnot.setMatchAgainst(false);
-                  enc.addAnnotation(newAnnot);
+                  myShepherd.getPM().deletePersistent(ann);
                   myShepherd.updateDBTransaction();
                 }
-                myShepherd.commitDBTransaction();
+                //otherwise just delete and move on
+                else if(!ann.isTrivial()) {
+                  enc.removeAnnotation(ann);
+                  myShepherd.getPM().deletePersistent(ann);
+                  myShepherd.commitDBTransaction();
+                }
                 
                 response.setStatus(HttpServletResponse.SC_OK);
                 res.put("success",true);
-              }
-              
-        
+
         }
         else {
           myShepherd.rollbackDBTransaction();
