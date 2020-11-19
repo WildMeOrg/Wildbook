@@ -245,7 +245,6 @@ public class IA {
             }
 
             System.out.println("identOpts: "+opts);
-            if ((opts == null) || (opts.size() < 1)) continue;  // no ID for this iaClass.
             List<Task> tasks = new ArrayList<Task>();
             JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
             if (parentTask != null && parentTask.getParameters()!=null) {
@@ -268,6 +267,8 @@ public class IA {
 
               }
             }
+            if ((opts == null) || (opts.size() < 1)) continue;  // no ID for this iaClass.
+            
             // just one IA class, one algorithm case
             if (opts.size() == 1 && annotsByIaClass.size() == 1) {
                 newTaskParams.put("ibeis.identification", ((opts.get(0) == null) ? "DEFAULT" : opts.get(0)));
