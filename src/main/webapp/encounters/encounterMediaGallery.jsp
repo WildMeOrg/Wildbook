@@ -881,10 +881,10 @@ function doImageEnhancer(sel) {
         	);
         	
      
-        	 opt.menu.push(['create optional feature region', function(enh) {
-                 var mid = enh.imgEl.data('enh-mediaassetid');
-                 window.location.href = 'encounterCR.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
-             }]);
+        	// opt.menu.push(['create optional feature region', function(enh) {
+            //     var mid = enh.imgEl.data('enh-mediaassetid');
+            //     window.location.href = 'encounterCR.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
+            // }]);
 
         wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
 <%
@@ -1056,6 +1056,9 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         fel.data('encounterId', feat.encounterId);
     }
     if (focused) tooltip = '<i style="color: #840;">this encounter</i>';
+    for (var i = 0 ; i < assets.length ; i++) {
+    	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.iaClass)tooltip=tooltip+'<br>IA class: '+assets[i].annotation.iaClass;
+    }
 
     fel.prop('id', feat.id);
     if (feat.annotationIsOfInterest) {
