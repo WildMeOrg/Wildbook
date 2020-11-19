@@ -245,7 +245,6 @@ public class IA {
             }
 
             System.out.println("identOpts: "+opts);
-            if ((opts == null) || (opts.size() < 1)) continue;  // no ID for this iaClass.
             List<Task> tasks = new ArrayList<Task>();
             JSONObject newTaskParams = new JSONObject();  //we merge parentTask.parameters in with opts from above
             if (parentTask != null && parentTask.getParameters()!=null) {
