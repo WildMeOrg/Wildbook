@@ -57,6 +57,15 @@ public class Collaboration implements java.io.Serializable {
 		return this.username1;
 	}
 
+	public void swapUser(String user1Name, String user2Name){
+		setUsername1(user2Name);
+		setUsername2(user1Name);
+	}
+
+	public void swapUser(User user1, User user2){
+		swapUser(user1.getUsername(), user2.getUsername());
+	}
+
 	public void setUsername1(String name) {
 		this.username1 = name;
 		this.setId();
@@ -307,10 +316,10 @@ public class Collaboration implements java.io.Serializable {
 					n++;
 				}
 			}
-		} 
+		}
 		catch (Exception e) {
 			//e.printStackTrace();
-		} 
+		}
 
 		if (n > 0) notif = "<div onClick=\"return showNotifications(this);\">" + collabProps.getProperty("notifications") + " <span class=\"notification-pill\">" + n + "</span></div>";
 		return notif;
@@ -326,7 +335,7 @@ public class Collaboration implements java.io.Serializable {
 		}
 	}
 
-	// here "View" is a weaker action than "Access". 
+	// here "View" is a weaker action than "Access".
 	// "View" means "you can see that the data exists but may not necessarily access the data"
 	public static boolean canUserViewOwnedObject(String ownerName, HttpServletRequest request, Shepherd myShepherd) {
 		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
@@ -340,8 +349,8 @@ public class Collaboration implements java.io.Serializable {
 		// if they own it
 		if (viewer!=null && owner!=null && viewer.getUUID()!=null && viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
 		// if viewer and owner have sharing turned on
-		if (((viewer!=null && 
-				viewer.hasSharing() && 
+		if (((viewer!=null &&
+				viewer.hasSharing() &&
 				(owner==null || owner.hasSharing())) )) return true; // just based on sharing
 		// if they have a collaboration
 		return canCollaborate(viewer, owner, ServletUtilities.getContext(request));
@@ -380,12 +389,12 @@ public class Collaboration implements java.io.Serializable {
     }
     return false;
 	}
-	
+
 	 public static boolean canUserAccessImportTask(ImportTask occ, HttpServletRequest request) {
-	    
+
 	   //first check if the User on the ImportTask matches the current user
 	   if(occ.getCreator()!=null && request.getUserPrincipal()!=null && occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {return true;}
-	   
+
 	   //otherwise check the Encounters
 	    List<Encounter> all = occ.getEncounters();
 	    if ((all == null) || (all.size() < 1)) return true;
@@ -404,7 +413,7 @@ public class Collaboration implements java.io.Serializable {
 		}
 		return false;
 	}
-	
+
 	//Check if User (via request) has edit access to every Encounter in this Individual
 	 public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
 	    Vector<Encounter> all = mi.getEncounters();
@@ -414,7 +423,7 @@ public class Collaboration implements java.io.Serializable {
 	    }
 	    return true;
 	  }
-	
+
 	 public static boolean canUserAccessSocialUnit(SocialUnit su, HttpServletRequest request) {
 	    List<MarkedIndividual> all = su.getMarkedIndividuals();
 	    if ((all == null) || (all.size() < 1)) return true;
