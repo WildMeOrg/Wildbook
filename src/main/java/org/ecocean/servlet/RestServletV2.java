@@ -182,7 +182,9 @@ System.out.println("######>>>>>> payload=" + payload);
         }
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
-        out.println(rtn.toString());
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.length());
+        out.println(rtnS);
         out.close();
     }
 
@@ -345,7 +347,9 @@ System.out.println("######>>>>>> payload=" + payload);
         }
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(rtn.toString());
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.length());
+        out.println(rtnS);
         out.close();
         return rtn;
     }
@@ -367,7 +371,9 @@ System.out.println("######>>>>>> payload=" + payload);
             response.setStatus(401);
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
-            out.println(rtn.toString());
+            String rtnS = rtn.toString();
+            response.setContentLength(rtnS.length());
+            out.println(rtnS);
             out.close();
             return;
         }
@@ -385,7 +391,9 @@ System.out.println("######>>>>>> payload=" + payload);
             response.setStatus(401);
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
-            out.println(rtn.toString());
+            String rtnS = rtn.toString();
+            response.setContentLength(rtnS.length());
+            out.println(rtnS);
             out.close();
             return;
         }
@@ -402,7 +410,9 @@ System.out.println("######>>>>>> payload=" + payload);
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         response.setContentType("application/javascript");
-        out.println(rtn.toString());
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.length());
+        out.println(rtnS);
         out.close();
     }
     private void handleLogout(HttpServletRequest request, HttpServletResponse response, JSONObject payload, String instanceId, String context) throws ServletException, IOException {
@@ -417,7 +427,9 @@ System.out.println("######>>>>>> payload=" + payload);
         rtn.put("success", true);
         rtn.put("transactionId", instanceId);
         rtn.put("message", _rtnMessage("success"));
-        out.println(rtn.toString());
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.length());
+        out.println(rtnS);
         out.close();
     }
 
@@ -593,7 +605,9 @@ rtn.put("_payload", payload);
             myShepherd.closeDBTransaction();
             rtn.put("message", _rtnMessage("configuration_set_error", null, ex.toString()));
             SystemLog.error("RestServlet.handleConfiguration() instance={} rolling back db transaction due to exception on SET operation: {}", instanceId, ex.toString());
-            out.println(rtn.toString());
+            String rtnS = rtn.toString();
+            response.setContentLength(rtnS.length());
+            out.println(rtnS);
             out.close();
             return;
         }
@@ -606,7 +620,9 @@ rtn.put("_payload", payload);
         }
         rtn.put("updated", new JSONArray(updated));
         rtn.put("message", _rtnMessage("success"));
-        out.println(rtn.toString());
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.length());
+        out.println(rtnS);
         out.close();
     }
 
@@ -701,7 +717,9 @@ rtn.put("_payload", payload);
         myShepherd.closeDBTransaction();
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
-        out.println(rtn.toString());
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.length());
+        out.println(rtnS);
         out.close();
     }
 
@@ -736,7 +754,9 @@ rtn.put("_payload", payload);
         myShepherd.closeDBTransaction();
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
-        out.println(jarr.toString());
+        String rtnS = jarr.toString();
+        response.setContentLength(rtnS.length());
+        out.println(rtnS);
         out.close();
     }
 
@@ -768,7 +788,9 @@ rtn.put("_payload", payload);
         myShepherd.closeDBTransaction();
         response.setContentType("application/javascript");
         PrintWriter out = response.getWriter();
-        out.println(rtn);
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.length());
+        out.println(rtnS);
         out.close();
     }
 
@@ -820,7 +842,9 @@ rtn.put("_payload", payload);
         }
 
         myShepherd.closeDBTransaction();
-        out.println(rtn.toString());
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.length());
+        out.println(rtnS);
         out.close();
         return;
     }
@@ -884,7 +908,9 @@ rtn.put("_payload", payload);
         myShepherd.closeDBTransaction();
         rtn.put("success", true);
 
-        out.println(rtn.toString());
+        String rtnS = rtn.toString();
+        response.setContentLength(rtnS.length());
+        out.println(rtnS);
         out.close();
         return;
     }
