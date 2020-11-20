@@ -593,7 +593,7 @@ if(request.getParameter("encounterNumber")!=null){
 
   //
   var removeAsset = function(maId) {
-    if (confirm("Are you sure you want to remove this image from the encounter? The image will not be deleted from the database, and this action is reversible. However, all annotations related to this image will also be removed from this Encounter. Proceed to remove image and annotations?")) {
+    if (confirm("Are you sure you want to remove this image? This will also remove all annotations associated with this image. The image will not be deleted from the database and can be recovered.")) {
       $.ajax({
         url: '../MediaAssetAttach',
         type: 'POST',
@@ -629,8 +629,13 @@ if(request.getParameter("encounterNumber")!=null){
 	        data: JSON.stringify({"detach":"true","number":"<%=encNum%>","annotation":aid}),
 	        success: function(d) {
 	          console.info("I detached Annotation "+aid+" from encounter <%=encNum%>");
-	          $('[id^="image-enhancer-wrapper-' + maId + '-'+aid+'"]').closest('figure').remove()
-
+	          //var res=JSON.parse(d);
+	          if(d.revertToTrivial){
+	        	  $('#image-enhancer-wrapper-' + maId + '-'+aid).remove();
+	          }
+	          else{
+	          	$('[id^="image-enhancer-wrapper-' + maId + '-'+aid+'"]').closest('figure').remove();
+	          }
 	        },
 	        error: function(x,y,z) {
 	          console.warn("failed to remove Annotation: "+aid);
