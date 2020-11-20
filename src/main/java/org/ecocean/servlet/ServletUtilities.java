@@ -758,6 +758,7 @@ public static JSONObject jsonAnyFromHttpServletRequest(HttpServletRequest reques
     reader.close();
   }
   String raw = sb.toString();
+  SystemLog.debug("jsonAnyFromHttpServletRequest() got raw={}", raw);
   //from here, either type will throw exception if string is malformed
   if (raw.matches("(?s)^\\s*\\[.*$")) {
     JSONObject j = new JSONObject();
