@@ -114,6 +114,7 @@ public class EncounterRemoveAnnotation extends HttpServlet {
                   Annotation newAnnot=ann.revertToTrivial(myShepherd);
                   myShepherd.getPM().deletePersistent(ann);
                   myShepherd.updateDBTransaction();
+                  res.put("revertToTrivial",true);
                 }
                 //otherwise just delete and move on
                 else if(!ann.isTrivial()) {
