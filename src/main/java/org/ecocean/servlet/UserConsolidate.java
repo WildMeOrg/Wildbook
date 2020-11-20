@@ -10,6 +10,7 @@
  import org.ecocean.*;
  import org.ecocean.servlet.importer.*;
  import java.sql.*;
+ import org.ecocean.security.Collaboration;
  import com.oreilly.servlet.multipart.FilePart;
  import com.oreilly.servlet.multipart.MultipartParser;
  import com.oreilly.servlet.multipart.ParamPart;
@@ -48,10 +49,12 @@ public class UserConsolidate extends HttpServlet {
   public static void consolidateUser(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
     System.out.println("dedupe consolidating user " + userToBeConsolidated.toString() + " into user " + userToRetain.toString());
 
-    List<Encounter> photographerEncounters=getPhotographerEncountersForUser(myShepherd.getPM(),userToBeConsolidated);
+    List<Encounter> photographerEncounters=getPhotographerEncountersForUser(myShepherd.getPM(), userToBeConsolidated);
     if(photographerEncounters!=null && photographerEncounters.size()>0){
+      System.out.println("got here 1 DELETEME photographerEncounters nonzero");
       for(int j=0; j<photographerEncounters.size(); j++){
         Encounter currentEncounter=photographerEncounters.get(j);
+        System.out.println("dedupe DELETEME about to enter consolidatePhotographers for encounter: " + currentEncounter.toString());
         consolidatePhotographers(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
@@ -67,32 +70,133 @@ public class UserConsolidate extends HttpServlet {
         myShepherd.beginDBTransaction();
       }
     }
-    List<Occurrence> submitterOccurrences = getSubmitterOccurrencesForUser(myShepherd.getPM(), userToBeConsolidated);
+    List<Occurrence> submitterOccurrences = getOccurrencesForUser(myShepherd.getPM(), userToBeConsolidated);
     if(submitterOccurrences!=null && submitterOccurrences.size()>0){
       for(int j=0;j<submitterOccurrences.size(); j++){
         Occurrence currentOccurrence = submitterOccurrences.get(j);
         if(currentOccurrence!=null){
-          consolidateOccurrenceSubmitters(myShepherd, currentOccurrence, userToRetain, userToBeConsolidated);
+          consolidateOccurrenceData(myShepherd, currentOccurrence, userToRetain, userToBeConsolidated);
         }
       }
     }
     consolidateEncounterInformOthers(myShepherd, userToRetain, userToBeConsolidated);
     consolidateImportTaskCreator(myShepherd, userToRetain, userToBeConsolidated);
     consolidateRoles(myShepherd, userToRetain, userToBeConsolidated);
+    consolidateCollaborations(myShepherd, userToRetain, userToBeConsolidated);
+    consolidateProjects(myShepherd, userToRetain, userToBeConsolidated);
+    consolidateOrganizations(myShepherd, userToRetain, userToBeConsolidated);
+    //Note: we made the executive decision to not include AccessControl. Might affect just a handfull of flukebook uers. JVO agrees. -MF
+
     myShepherd.getPM().deletePersistent(userToBeConsolidated);
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
     System.out.println("dedupe ......consolidation complete");
   }
 
+  public static void consolidateOrganizations(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
+    // System.out.println("dedupe consolidating organizations from user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
+    if(userToBeConsolidated!=null){
+      List<Organization> consolidatedUserOrganizations = userToBeConsolidated.getOrganizations();
+      if(consolidatedUserOrganizations!=null && consolidatedUserOrganizations.size()>0){
+        for(int i=0; i<consolidatedUserOrganizations.size(); i++){
+          Organization currentOrganization = consolidatedUserOrganizations.get(i);
+          if(currentOrganization!=null){
+            System.out.println("dedupe adding user: " + userToRetain.toString() + " to organization: " + currentOrganization.toString() + " if it doesn’t already exist there");
+            currentOrganization.addMember(userToRetain); //shouldn't allow you to add them twice
+          }
+        } //end for loop of consolidatedUserOrganizations
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      } //end if consolidatedUserProjectsInWhichUserIsListedInUsers exists and has >0 elements
+   }//end if userToBeConsolidated null check
+  }
+
+  public static void consolidateProjects(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
+    // System.out.println("dedupe consolidating projects from user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
+    //check projects where consolidated user is listed in users lists
+    if(userToBeConsolidated!=null){
+      List<Project> consolidatedUserProjectsInWhichUserIsListedInUsers = myShepherd.getProjectsForUser(userToBeConsolidated);
+      if(consolidatedUserProjectsInWhichUserIsListedInUsers!=null && consolidatedUserProjectsInWhichUserIsListedInUsers.size()>0){
+        for(int i=0; i<consolidatedUserProjectsInWhichUserIsListedInUsers.size(); i++){
+          Project currentProject = consolidatedUserProjectsInWhichUserIsListedInUsers.get(i);
+          if(currentProject!=null){
+            System.out.println("dedup removing user: "+userToBeConsolidated.toString()+" from project: "+currentProject.toString());
+            currentProject.removeUser(userToBeConsolidated);
+            if(currentProject.getUsers()!=null && !currentProject.getUsers().contains(userToRetain)){
+              System.out.println("dedup adding user: "+userToRetain.toString()+" to project: "+currentProject.toString());
+              currentProject.addUser(userToRetain);
+            }
+          }
+        } //end for loop of consolidatedUserProjectsInWhichUserIsListedInUsers
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      } //end if consolidatedUserProjectsInWhichUserIsListedInUsers exists and has >0 elements
+
+      //check projects where consolidated user is listed as owner and set new owner. Should not be any captured here that aren't captured above, but being super paranoid about it
+      List<Project> projectsWithConsolidatedUserAsOwner = myShepherd.getProjectsOwnedByUser(userToBeConsolidated);
+      if(projectsWithConsolidatedUserAsOwner!=null && projectsWithConsolidatedUserAsOwner.size()>0){
+        for(int i=0; i<projectsWithConsolidatedUserAsOwner.size(); i++){
+          Project currentProject = projectsWithConsolidatedUserAsOwner.get(i);
+          if(currentProject!=null && userToRetain!=null){
+            System.out.println("setting user: " + userToRetain.toString() + " as owner in project: " + currentProject.toString());
+            currentProject.setOwner(userToRetain);
+          }
+        } //end for loop of projectsWithConsolidatedUserAsOwner
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      } //end if consolidatedUserProjects exists and has >0 elements
+    } // end userToBeConsolidated null check
+  }
+
+
+  public static void consolidateCollaborations(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
+    // System.out.println("dedupe consolidating collaborations from user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
+    if(Util.stringExists(userToBeConsolidated.getUsername())){
+      List<Collaboration> consolidatedUserCollaborations = Collaboration.collaborationsForUser(myShepherd, userToBeConsolidated.getUsername());
+      if(consolidatedUserCollaborations!=null && consolidatedUserCollaborations.size()>0){
+        for(int i=0; i<consolidatedUserCollaborations.size(); i++){
+          Collaboration currentCollaboration = consolidatedUserCollaborations.get(i);
+
+          boolean swapNeeded = !currentCollaboration.getUsername1().equals(userToBeConsolidated.getUsername());
+          if(swapNeeded){
+            System.out.println("currentCollaboration before swap is: " + currentCollaboration.toString());
+            currentCollaboration.swapUser(currentCollaboration.getUsername1(), currentCollaboration.getUsername2());
+            System.out.println("currentCollaboration after swap is: " + currentCollaboration.toString());
+            //TODO I can't tell if this persists yet...
+          }
+          //now we know for sure that userName1 of the collaboration is our userToBeConsolidated.getUsername()...
+          if(Util.stringExists(userToRetain.getUsername())){
+            Collaboration possibleCollabAlreadyExisting = Collaboration.collaborationBetweenUsers(myShepherd, currentCollaboration.getUsername2(), userToRetain.getUsername());
+            if(possibleCollabAlreadyExisting!=null){
+              //don't need to create a new one because it already exists
+            }else{
+              //create a new collab
+              Collaboration newCollaboration = new Collaboration(userToRetain.getUsername(), currentCollaboration.getUsername2());
+              myShepherd.getPM().makePersistent(newCollaboration);
+              System.out.println("dedupe created new collaboration between user: "+userToRetain.toString()+" and user: "+currentCollaboration.getUsername2());
+            }
+          }
+          //remove the old collab
+          System.out.println("dedupe removing collaboration between user: " + currentCollaboration.getUsername1() + " and user: " +  currentCollaboration.getUsername2());
+          myShepherd.throwAwayCollaboration(currentCollaboration);
+        } //end for loop of consolidatedUserCollaborations
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      } //end if consolidatedUserCollaborations exists and has >0 elements
+   }//end if userToBeConsolidated has no username
+  }
+
+
+
   public static void consolidateEncounterSubmitters(Shepherd myShepherd, Encounter enc, User useMe, User userToRemove){
-    System.out.println("dedupe removing "+ userToRemove.toString() +" from submitters list in encounter " + enc.toString() + " and adding user " + useMe.toString());
     if(!useMe.equals(userToRemove)){
       List<User> subs=enc.getSubmitters();
       if(subs!=null && userToRemove!=null && subs.contains(userToRemove)){
+        System.out.println("dedupe removing user: " + userToRemove.toString() + " from submitters list in encounter: " + enc.toString());
         subs.remove(userToRemove);
       }
       if(subs!=null && useMe!=null && !subs.contains(useMe)){
+        System.out.println("dedupe adding user: " + useMe.toString() + " to submitters list in encounter: " + enc.toString());
         subs.add(useMe);
       }
       enc.setSubmitters(subs);
@@ -102,16 +206,15 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static void consolidateMainEncounterSubmitterId(Shepherd myShepherd, Encounter enc, User useMe, User userToRemove){
-    System.out.println("dedupe changing submitterId for encounter "+ enc.toString() +" from user "+ userToRemove.toString() +" to user " + useMe.toString());
     if(enc.getSubmitterID()!=null && userToRemove.getUsername()!=null && enc.getSubmitterID().equals(userToRemove.getUsername())){
+      System.out.println("dedupe changing submitterId for encounter "+ enc.toString() +" from user "+ userToRemove.toString() +" to user " + useMe.toString());
       enc.setSubmitterID(useMe.getUsername());
     }
   }
 
   public static void consolidateImportTaskCreator(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
-    System.out.println("dedupe consolidating import tasks created by user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
     String filter="SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE creator.uuid==\""+userToBeConsolidated.getUUID()+"\""; // && user.uuid==\""+userToBeConsolidated.getUUID()+"\" VARIABLES org.ecocean.User user"
-    System.out.println("dedupe query is: " + filter);
+    // System.out.println("dedupe query is: " + filter);
   	List<ImportTask> impTasks=new ArrayList<ImportTask>();
     Query query=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
@@ -123,6 +226,7 @@ public class UserConsolidate extends HttpServlet {
       for(int i=0; i<impTasks.size(); i++){
         ImportTask currentImportTask = impTasks.get(i);
         if(currentImportTask.getCreator()!=null & currentImportTask.getCreator().equals(userToBeConsolidated)){
+          System.out.println("dedupe consolidating import task: " + currentImportTask.toString() + " created by user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
           currentImportTask.setCreator(userToRetain);
         }
       }
@@ -135,7 +239,7 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static void consolidateRoles(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
-    System.out.println("dedupe consolidating roles from user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
+    // System.out.println("dedupe consolidating roles from user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
     if(Util.stringExists(userToBeConsolidated.getUsername())){
       //username appeared to be the only linking information from the USER_ROLES table, so any sql efforts felt analogous to using myShepherd.getAllRolesForUserInContext, especially given that this is not going to be a particularly time-consuming fetch nor repeated task for each user...
       List<Role> consolidatedUserRoles = myShepherd.getAllRolesForUserInContext(userToBeConsolidated.getUsername(), myShepherd.getContext());
@@ -159,9 +263,9 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static void consolidateEncounterInformOthers(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
-    System.out.println("dedupe consolidating inform others containing user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
+    // System.out.println("dedupe consolidating inform others in encounters containing user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
     String filter="SELECT FROM org.ecocean.Encounter WHERE this.informOthers.contains(user) && user.uuid=='" + userToBeConsolidated.getUUID() + "' VARIABLES org.ecocean.User user"; // && user.uuid==\""+userToBeConsolidated.getUUID()+"\" VARIABLES org.ecocean.User user"
-    System.out.println("dedupe query is: " + filter);
+    // System.out.println("dedupe query is: " + filter);
   	List<Encounter> encs=new ArrayList<Encounter>();
     Query query=myShepherd.getPM().newQuery(filter);
     Collection c = (Collection) (query.execute());
@@ -175,9 +279,11 @@ public class UserConsolidate extends HttpServlet {
         if(currentEncounter.getInformOthers()!=null){
           List<User> currentInformOthers = currentEncounter.getInformOthers();
           if(currentInformOthers.contains(userToBeConsolidated)){
+            System.out.println("dedupe removing user: " + userToBeConsolidated.toString() + " from informOthers in encounter: " + currentEncounter.toString());
             currentInformOthers.remove(userToBeConsolidated);
           }
           if(!currentInformOthers.contains(userToRetain)){
+            System.out.println("dedupe adding user: " + userToRetain.toString() + " to informOthers in encounter: " + currentEncounter.toString());
             currentInformOthers.add(userToRetain);
           }
           currentEncounter.setInformOthers(currentInformOthers);
@@ -221,11 +327,11 @@ public class UserConsolidate extends HttpServlet {
       //   consolidateUsernameless(myShepherd, currentEncounter, useMe, currentDupe);
   		// }
 
-      List<Occurrence> submitterOccurrences = getSubmitterOccurrencesForUser(persistenceManager, currentDupe);
+      List<Occurrence> submitterOccurrences = getOccurrencesForUser(persistenceManager, currentDupe);
       if(submitterOccurrences!=null && submitterOccurrences.size()>0){
         for(int j=0;j<submitterOccurrences.size(); j++){
           Occurrence currentOccurrence = submitterOccurrences.get(j);
-          consolidateOccurrenceSubmitters(myShepherd, currentOccurrence, useMe, currentDupe);
+          consolidateOccurrenceData(myShepherd, currentOccurrence, useMe, currentDupe);
           myShepherd.commitDBTransaction();
       		myShepherd.beginDBTransaction();
         }
@@ -240,16 +346,45 @@ public class UserConsolidate extends HttpServlet {
   	return numDupes;
   }
 
-  public static void consolidateOccurrenceSubmitters(Shepherd myShepherd, Occurrence currentOccurrence, User useMe, User currentDupe){
-    String currentOccurrenceSubmitter = currentOccurrence.getSubmitterID();
-    System.out.println("dedupe transferring submitterId in occurence " + currentOccurrence.toString() + " from user " + currentDupe.toString() + " to user " + useMe.toString());
-    if(Util.stringExists(currentOccurrenceSubmitter) && Util.stringExists(currentDupe.getUsername()) && currentDupe.getUsername().equals(currentOccurrenceSubmitter)){
-      if(Util.stringExists(useMe.getUsername())){
+  public static void consolidateOccurrenceData(Shepherd myShepherd, Occurrence currentOccurrence, User useMe, User currentDupe){
+    // System.out.println("dedupe transferring submitterId in occurence " + currentOccurrence.toString() + " from user " + currentDupe.toString() + " to user " + useMe.toString());
+
+    //reset submitterID if it matches the former user's username
+    String currentOccurrenceSubmitterId = currentOccurrence.getSubmitterID();
+    if(Util.stringExists(currentOccurrenceSubmitterId) && Util.stringExists(currentDupe.getUsername()) && currentDupe.getUsername().equals(currentOccurrenceSubmitterId)){
+      if(Util.stringExists(useMe.getUsername())) {
+        System.out.println("dedupe transferring submitterId in occurence " + currentOccurrence.toString() + " from user " + currentDupe.toString() + " to user " + useMe.toString());
         currentOccurrence.setSubmitterID(useMe.getUsername());
-      } else{
-        //TODO Jon, should I set it to null in this case??
       }
-    }
+    } //end if currentOccurrenceSubmitterId and currentDupe username exist and match
+
+    //remove old user from submitters list and add new one if not already present
+    List<User> currentSubmitters = currentOccurrence.getSubmitters();
+    if(currentSubmitters!=null && currentSubmitters.size()>0){
+      if(currentDupe!=null){
+        System.out.println("dedupe removing user: " + currentDupe.toString() + " from submitters list in occurence " + currentOccurrence.toString());
+        currentSubmitters.remove(currentDupe);
+      }
+      if(!currentSubmitters.contains(useMe)){
+        System.out.println("dedupe adding user: " + useMe.toString() + " to submitters list in occurence " + currentOccurrence.toString());
+        currentSubmitters.add(useMe);
+      }
+      currentOccurrence.setSubmitters(currentSubmitters);
+    } // end if currentSubmitters not null and not empty
+
+    //remove old user from inform others and add the new one in if it's missing
+    List<User> currentInformOthers = currentOccurrence.getInformOthers();
+    if(currentInformOthers!=null && currentInformOthers.size()>0){
+      if(currentDupe!=null){
+        System.out.println("dedupe removing user: " + currentDupe.toString() + " from informOthers list in occurence " + currentOccurrence.toString());
+        currentInformOthers.remove(currentDupe);
+      }
+      if(!currentInformOthers.contains(useMe)){
+        System.out.println("dedupe adding user: " + currentDupe.toString() + " to informOthers list in occurence " + currentOccurrence.toString());
+        currentInformOthers.add(useMe);
+      }
+      currentOccurrence.setInformOthers(currentInformOthers);
+    } // end if currentInformOthers not null and not empty
   }
 
   public static List<String> getEmailAddressesOfUsersWithMoreThanOneAccountAssociatedWithEmailAddress(List<User> allUsers, PersistenceManager persistenceManager){
@@ -348,14 +483,16 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static void consolidatePhotographers(Shepherd myShepherd, Encounter enc, User useMe, User currentUser){
-    System.out.println("dedupe transferring photographer "+ currentUser.toString() +" in encounter "+ enc.toString() +" to photographer " + useMe.toString());
+    // System.out.println("dedupe transferring photographer "+ currentUser.toString() +" in encounter "+ enc.toString() +" to photographer " + useMe.toString());
     if(!useMe.equals(currentUser)){
       List<User> photographers=enc.getPhotographers();
-      if(photographers!=null && useMe !=null && !photographers.contains(useMe)){
-        photographers.add(useMe);
-      }
       if(photographers!=null && currentUser!=null && photographers.contains(currentUser)){
+        System.out.println("dedupe removing photographer: " + currentUser.toString() + " from encounter:" + enc.toString());
         photographers.remove(currentUser);
+      }
+      if(photographers!=null && useMe !=null && !photographers.contains(useMe)){
+        System.out.println("dedupe adding photographer: " + currentUser.toString() + " to encounter:" + enc.toString());
+        photographers.add(useMe);
       }
       enc.setPhotographers(photographers);
     }
@@ -373,16 +510,25 @@ public class UserConsolidate extends HttpServlet {
     return encs;
   }
 
-  public static List<Occurrence> getSubmitterOccurrencesForUser(PersistenceManager persistenceManager, User user){
-  	String filter="SELECT FROM org.ecocean.Occurrence where (submitters.contains(user)) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
-  	List<Occurrence> encs=new ArrayList<Occurrence>();
-    Query query=persistenceManager.newQuery(filter);
-    Collection c = (Collection) (query.execute());
-    if(c!=null){
-      encs=new ArrayList<Occurrence>(c);
+  public static List<Occurrence> getOccurrencesForUser(PersistenceManager persistenceManager, User user){
+    //TODO not just submitters...
+    List<Occurrence> occurrences=new ArrayList<Occurrence>();
+    if(user!=null){
+      String filter="SELECT FROM org.ecocean.Occurrence where (submitters.contains(user) || informOthers.contains(user) ) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+      if(Util.stringExists(user.getUsername())){
+        filter="SELECT FROM org.ecocean.Occurrence where (submitters.contains(user) || informOthers.contains(user) || submitterID==\"" + user.getUsername()+ "\") && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+      }
+      System.out.println("query in getOccurrencesForUser is: " + filter);
+      Query query=persistenceManager.newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      if(c!=null){
+        occurrences=new ArrayList<Occurrence>(c);
+        System.out.println("there are " + occurrences.size() + " occurrences in the getOccurrencesForUser search");
+      }
+      query.closeAll();
     }
-    query.closeAll();
-    return encs;
+    System.out.println("SUCCESS!!! returning occurrences…");
+    return occurrences;
   }
 
   public static List<Encounter> getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress(PersistenceManager persistenceManager, User user){
@@ -419,12 +565,16 @@ public class UserConsolidate extends HttpServlet {
 
 
   public static List<Encounter> getPhotographerEncountersForUser(PersistenceManager persistenceManager, User user){
-  	String filter="SELECT FROM org.ecocean.Encounter where (photographers.contains(user)) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+    System.out.println("entered getPhotographerEncountersForUser");
+  	String filter="SELECT FROM org.ecocean.Encounter where photographers.contains(user) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+    System.out.println("query in getPhotographerEncountersForUser is: " + filter);
   	List<Encounter> encs=new ArrayList<Encounter>();
     Query query= persistenceManager.newQuery(filter);
     Collection c = (Collection) (query.execute());
     if(c!=null){
+      System.out.println("collection in getPhotographerEncountersForUser not null");
       encs=new ArrayList<Encounter>(c);
+      System.out.println("encs are: " + encs.toString());
     }
     query.closeAll();
     return encs;
@@ -568,26 +718,31 @@ public class UserConsolidate extends HttpServlet {
           if(userInfoArr != null && userInfoArr.length()>0){
             for(int i = 0; i<userInfoArr.length(); i++){
               JSONObject currentUserToBeConsolidatedInfo = userInfoArr.getJSONObject(i);
+              String currentUserToBeConsolidatedUuid = currentUserToBeConsolidatedInfo.optString("uuid", null);
+              if(Util.stringExists(currentUserToBeConsolidatedUuid)){
+                System.out.println("dedupe currentUserToBeConsolidatedUuid is: " + currentUserToBeConsolidatedUuid);
+              }
               String currentUserToBeConsolidatedUsername = currentUserToBeConsolidatedInfo.optString("username", null);
               String currentUserToBeConsolidatedEmail = currentUserToBeConsolidatedInfo.optString("email", null);
               String currentUserToBeConsolidatedFullName = currentUserToBeConsolidatedInfo.optString("fullname", null);
-              User userToBeConsolidated =  narrowDownUsersToBeMergedToOneIfPossible(currentUser, myShepherd, currentUserToBeConsolidatedUsername, currentUserToBeConsolidatedEmail, currentUserToBeConsolidatedFullName);
+              User userToBeConsolidated =  myShepherd.getUserByUUID(currentUserToBeConsolidatedUuid);
               if(userToBeConsolidated!=null){
+                System.out.println("userToBeConsolidated identified by uuid: " + userToBeConsolidated.toString());
                 //only found one match
                 try{
                   consolidateUser(myShepherd, currentUser, userToBeConsolidated);
-                  returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"SingleMatchFoundForUserAndConsdolidated");
+                  returnJson.put("details_" + currentUserToBeConsolidatedUuid+ "__" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"SingleMatchFoundForUserAndConsdolidated");
                 }
                   catch(Exception e){
                       e.printStackTrace();
                       System.out.println("dedupe error consolidating user: " + userToBeConsolidated.toString() + " into user: " + currentUser.toString());
                       successStatus = false;
-                      returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"ErrorConsolidatingReportToStaff");
+                      returnJson.put("details_" + currentUserToBeConsolidatedUuid+ "__" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"ErrorConsolidatingReportToStaff");
                   } finally{
                   }
               }else{
                 //found more than one match or none.
-                returnJson.put("details_" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"FoundMoreThanOneMatchOrNoMatchesForUser");
+                returnJson.put("details_" + currentUserToBeConsolidatedUuid+ "__" + currentUserToBeConsolidatedUsername+"__" + currentUserToBeConsolidatedEmail + "__" + currentUserToBeConsolidatedFullName,"FoundMoreThanOneMatchOrNoMatchesForUser");
                 successStatus = false;
               }
             }
@@ -621,98 +776,6 @@ public class UserConsolidate extends HttpServlet {
     }
   }
 
-  private User narrowDownUsersToBeMergedToOneIfPossible(User currentUser, Shepherd myShepherd, String currentUserToBeConsolidatedUsername, String currentUserToBeConsolidatedEmail, String currentUserToBeConsolidatedFullName){
-    User returnUser = null;
-    List<User> currentUsersToBeConsolidated = new ArrayList<User>();
-
-    //check by username
-    if(Util.stringExists(currentUserToBeConsolidatedUsername) && !currentUserToBeConsolidatedUsername.equals("undefined")){
-      //fetch user if username exists
-      currentUsersToBeConsolidated = getUsersByUsername(myShepherd.getPM(), currentUserToBeConsolidatedUsername);
-      if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>0){
-        currentUsersToBeConsolidated.remove(currentUser);
-      }
-      if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
-        //there's only one result. Go ahead and return that one
-        returnUser = currentUsersToBeConsolidated.get(0);
-      }
-      if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>1){
-        //more than one result. Let's see if we can narrow it down to one individual using email instead
-        if(Util.stringExists(currentUserToBeConsolidatedEmail)  && !currentUserToBeConsolidatedEmail.equals("undefined")){
-          currentUsersToBeConsolidated = getUsersByHashedEmailAddress(myShepherd.getPM(), User.generateEmailHash(currentUserToBeConsolidatedEmail));
-          if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>0){
-            currentUsersToBeConsolidated.remove(currentUser);
-          }
-          //try getting it by email address if empty
-          if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()<1){
-            currentUsersToBeConsolidated = getUsersWithEmailAddress(myShepherd.getPM(), currentUserToBeConsolidatedEmail);
-            if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>0){
-              currentUsersToBeConsolidated.remove(currentUser);
-            }
-          }
-        }
-        if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
-          //there's only one result. Go ahead and return that one
-          returnUser = currentUsersToBeConsolidated.get(0);
-        }
-        if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>1){
-          //more than one result that way. Let's see if we can narrow it down to one individual using fullname instead
-          if(Util.stringExists(currentUserToBeConsolidatedFullName)  && !currentUserToBeConsolidatedFullName.equals("undefined")){
-            currentUsersToBeConsolidated = getUsersByFullname(myShepherd.getPM(), currentUserToBeConsolidatedFullName);
-            if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>0){
-              currentUsersToBeConsolidated.remove(currentUser);
-            }
-          }
-          if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
-            //there's only one result. Go ahead and return that one
-            returnUser = currentUsersToBeConsolidated.get(0);
-          }
-        }//end if more than one result for email address
-      }//end if more than one result for username
-    } //end if for username //end check by username
-
-    //check email if username missing or undefined
-    if(Util.stringExists(currentUserToBeConsolidatedEmail)  && !currentUserToBeConsolidatedEmail.equals("undefined")){
-      currentUsersToBeConsolidated = getUsersByHashedEmailAddress(myShepherd.getPM(), User.generateEmailHash(currentUserToBeConsolidatedEmail));
-      if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>0){
-        currentUsersToBeConsolidated.remove(currentUser);
-      }
-      //try getting it by email address if empty
-      if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()<1){
-        currentUsersToBeConsolidated = getUsersWithEmailAddress(myShepherd.getPM(), currentUserToBeConsolidatedEmail);
-        if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>0){
-          currentUsersToBeConsolidated.remove(currentUser);
-        }
-      }
-      if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
-        //there's only one result. Go ahead and return that one
-        returnUser = currentUsersToBeConsolidated.get(0);
-      }
-      if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>1){
-        //more than one result that way. Let's see if we can narrow it down to one individual using fullname instead
-        if(Util.stringExists(currentUserToBeConsolidatedFullName)  && !currentUserToBeConsolidatedFullName.equals("undefined")){
-            currentUsersToBeConsolidated = getUsersByFullname(myShepherd.getPM(), currentUserToBeConsolidatedFullName);
-            if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()>0){
-              currentUsersToBeConsolidated.remove(currentUser);
-            }
-          }
-          if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
-            //there's only one result. Go ahead and return that one
-            returnUser = currentUsersToBeConsolidated.get(0);
-          }
-      }
-    } //end check email if username missing or undefined
-    //check fullname if username and email missing or undefined
-    if(Util.stringExists(currentUserToBeConsolidatedFullName)  && !currentUserToBeConsolidatedFullName.equals("undefined")){
-        currentUsersToBeConsolidated = getUsersByFullname(myShepherd.getPM(), currentUserToBeConsolidatedFullName);
-        currentUsersToBeConsolidated.remove(currentUser);
-        if(currentUsersToBeConsolidated!=null && currentUsersToBeConsolidated.size()==1){
-          //there's only one result. Go ahead and return that one
-          returnUser = currentUsersToBeConsolidated.get(0);
-        }
-    }//end check fullname if username and email missing or undefined
-    return returnUser;
-  }
 
   private void addErrorMessage(JSONObject res, String error) {
         res.put("error", error);
