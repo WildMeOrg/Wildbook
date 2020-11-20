@@ -509,7 +509,9 @@ SystemLog.debug("RestServlet.handleConfiguration() instance={} payload={}", inst
             }
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
-            out.println(rtn.toString());
+            String rtnS = rtn.toString();
+            response.setContentLength(rtnS.length());
+            out.println(rtnS);
             out.close();
             return;
         }
