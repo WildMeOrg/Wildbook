@@ -98,10 +98,12 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
+        console.log("data for doAjaxForGetDuplicateUsers");
+        console.log(data);
           let users = data.users;
           if(users && users.length>0){
             for(let i=0; i<users.length; i++){
-              populateCandidateUser(users[i].username, users[i].email,users[i].fullname);
+              populateCandidateUser(users[i].username, users[i].email,users[i].fullname, users[i].uuid);
             }
           }else{
             populateNoDuplicates();
@@ -113,7 +115,7 @@ try{
       });
     }
 
-    function populateCandidateUser(username, email, fullname){
+    function populateCandidateUser(username, email, fullname, uuid){
       let candidateHtml = '';
       candidateHtml += '<div class="flex-container">';
       candidateHtml += '<div class="candidate-block">';
@@ -147,10 +149,10 @@ try{
       candidateHtml += '</div>';
       candidateHtml +=  '<div class="radio-container">';
       candidateHtml +=  '<div class="radio-button-pair-container">';
-      candidateHtml +=  '<input type="radio" id="merge-radio" name="radio__' + username+'__'+email+ '__'+fullname +'" value="merge" data-id="radio__' + username+ '__' +email+'__'+fullname +'" onclick="radioClicked()">';
+      candidateHtml +=  '<input type="radio" id="merge-radio" name="radio__' + uuid+'__'+username + '__'+ email+ '__'+fullname +'" value="merge" data-id="radio__' + uuid + '__' + username + '__' + email + '__' + fullname +'" onclick="radioClicked()">';
       candidateHtml +=  '<label for="merge-radio">' + txt.merge + '</label>';
       candidateHtml +=  '<br>';
-      candidateHtml +=  '<input type="radio" id="noClaim-radio" name="radio__' + username+ '__'+email+'__'+fullname +'" value="noClaim" data-id="radio__' + username+ '__' +email+'__'+fullname +'" onclick="radioClicked()">';
+      candidateHtml +=  '<input type="radio" id="noClaim-radio" name="radio__' + uuid + '__'+ username + '__' + email + '__' + fullname +'" value="noClaim" data-id="radio__' + uuid + '__' + username + '__' + email +'__'+fullname +'" onclick="radioClicked()">';
       candidateHtml +=  '<label for="noClaim-radio">' + txt.doNotClaim + '</label>';
       candidateHtml +=  '</div>';
       candidateHtml +=  '</div>';
@@ -197,7 +199,7 @@ try{
                 let currentUserDetails = $(currentRadioElement).data().id.split("__");
                 // ajaxJson['mergeDesired'] = true;
                 currentUserDetails.shift();
-                ajaxJson['userInfoArr'].push({username: currentUserDetails[0], email: currentUserDetails[1], fullname: currentUserDetails[2]});
+                ajaxJson['userInfoArr'].push({uuid:currentUserDetails[0], username: currentUserDetails[1], email: currentUserDetails[2], fullname: currentUserDetails[3]});
               }
             }
           }
@@ -219,7 +221,7 @@ try{
           console.log(data);
           let responseArray =[];
           jsonRequest.userInfoArr.forEach(userInfoObj =>{
-            let keyForDataInResponseChecking = "details_"+userInfoObj.username+"__"+userInfoObj.email+"__"+userInfoObj.fullname;
+            let keyForDataInResponseChecking = "details_"+userInfoObj.uuid+"__"+userInfoObj.username+"__"+userInfoObj.email+"__"+userInfoObj.fullname;
             let valuesOfUserInfoObjPrettified = Object.values(userInfoObj).join(", ");
             if(data[keyForDataInResponseChecking]){
               if(data[keyForDataInResponseChecking] === "SingleMatchFoundForUserAndConsdolidated"){
