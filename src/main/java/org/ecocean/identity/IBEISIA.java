@@ -1626,9 +1626,22 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
     }
 */
 
+/*
+    WB-945 - this is the re-tooling of this method which does nothing with encounter(s)
+    REMINDER TODO:
+        shouldUpdateSpeciesFromIa() no longer gets called here and thus should be called once all annots are made, i guess/
+*/
+    public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, String context, String rootDir) {
+        Annotation ann = convertAnnotation(asset, jann, myShepherd, context, rootDir);
+        if (ann == null) return null;
+        myShepherd.getPM().makePersistent(ann);
+System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with no Encounter!]");
+        return ann;
+    }
 
 //{"xtl":910,"height":413,"theta":0,"width":444,"class":"giraffe_reticulated","confidence":0.2208,"ytl":182}
-    public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, String context, String rootDir, boolean skipEncounter) {
+    // WB-945 - this is the old deprecated version for prosperity or whatever
+    public static Annotation createAnnotationFromIAResultDEPRECATED(JSONObject jann, MediaAsset asset, Shepherd myShepherd, String context, String rootDir, boolean skipEncounter) {
 
         Annotation ann = convertAnnotation(asset, jann, myShepherd, context, rootDir);
         if (ann == null) return null;
@@ -1640,7 +1653,8 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with n
 
         Encounter enc = null;
         try {
-            enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
+            //removed due to deprecating ann.toEncounter() for WB-945
+            //enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
             myShepherd.getPM().makePersistent(enc);
 
             enc.detectedAnnotation(myShepherd, ann);  //this is a stub presently, so meh?
@@ -1665,7 +1679,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
             uuids.add(ann.getAcmId());
             species.add(taxonomyString);
             try {
-                iaUpdateSpecies(uuids, species, context);
+                //iaUpdateSpecies(uuids, species, context);
             } catch (Exception ex) {
                 System.out.println("ERROR: iaUpdateSpecies() failed! " + ex.toString());
                 ex.printStackTrace();
@@ -1674,6 +1688,34 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
             System.out.println("WARNING: cannot update IA, no taxonomy on " + ann);
         }
         return ann;
+    }
+
+    //this takes the place of iaUpdateSpecies code above that has been deprecated
+    //  basically tells IA to alter the species associated with these annots
+    public static int updateSpeciesOnIA(Shepherd myShepherd, List<Annotation> anns) {
+        if (Util.collectionIsEmptyOrNull(anns)) return 0;
+        List<String> uuids = new ArrayList<String>();
+        List<String> species = new ArrayList<String>();
+        for (Annotation ann : anns) {
+            Encounter enc = ann.findEncounter(myShepherd);
+System.out.println("updateSpeciesOnIA(): " + ann + " is on " + enc);
+            if ((enc == null) || (ann.getAcmId() == null)) continue;
+            String taxonomyString = enc.getTaxonomyString();
+            if (!shouldUpdateSpeciesFromIa(taxonomyString, myShepherd.getContext())) continue;
+            uuids.add(ann.getAcmId());
+            species.add(taxonomyString);
+        }
+System.out.println("updateSpeciesOnIA(): " + uuids);
+System.out.println("updateSpeciesOnIA(): " + species);
+        if (uuids.size() > 0) {
+            try {
+                iaUpdateSpecies(uuids, species, myShepherd.getContext());
+            } catch (Exception ex) {
+                System.out.println("ERROR: updateSpeciesOnIA() - iaUpdateSpecies() failed! " + ex.toString());
+                ex.printStackTrace();
+            }
+        }
+        return uuids.size();
     }
 
     public static boolean shouldUpdateSpeciesFromIa(String taxonomyString, String context) {
@@ -1753,7 +1795,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
                 } catch (NullPointerException npe) {continue;}
             }
         }
-        System.out.println("---- Did not find an identicle feature.");
+        System.out.println("---- Did not find an identical feature.");
         return false;
     }
 
@@ -1942,6 +1984,10 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
     6. how do (when do) we kick off *identification* on an annotation? and what are the target annotations?
     7.  etc???
 */
+/*
+    update due to WB-945 work:  we now must _first_ build all the Annotations, and then after that decide how they get distributed
+    to Encounters... 
+*/
             if ((rlist != null) && (rlist.length() > 0) && (ilist != null) && (ilist.length() == rlist.length())) {
                 FeatureType.initAll(myShepherd);
                 JSONArray needReview = new JSONArray();
@@ -1972,6 +2018,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     if(janns.length()==0) {
                       //OK, for some species and conditions we may just want to trust the user
                       //that there is an animal in the image and set trivial annot to matchAgainst=true
+                        //WB-945 note: this case janns is empty, so loop below will be skipped
 
                       if(asset.getAnnotations()!=null && asset.getAnnotations().size()==1 && asset.getAnnotations().get(0).isTrivial()) {
 
@@ -2007,7 +2054,9 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                         }
                         //these are annotations we can make automatically from ia detection.  we also do the same upon review return
                         //  note this creates other stuff too, like encounter
-                        Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, context, rootDir, skipEncounters);
+                        //Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, context, rootDir, skipEncounters);
+                        //WB-945 update: new version *will not* create encounter(s)
+                        Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, context, rootDir);
                         if (ann == null) {
                             System.out.println("WARNING: IBEISIA detection callback could not create Annotation from " + asset + " and " + jann);
                             continue;
@@ -2025,8 +2074,13 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     } else {
                         asset.setDetectionStatus(STATUS_COMPLETE);
                     }
-                    if (newAnns.length() > 0) amap.put(Integer.toString(asset.getId()), newAnns);
+                    if (newAnns.length() > 0) {
+                        List<Encounter> assignedEncs = asset.assignEncounters(myShepherd);  //WB-945 here is where we make some encounter(s) if we need to
+                        rtn.put("_assignedEncsSize", assignedEncs.size());
+                        amap.put(Integer.toString(asset.getId()), newAnns);
+                    }
                 }
+                updateSpeciesOnIA(myShepherd, allAnns);  //tells IA what species we know about these annots now
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 if (amap.length() > 0) rtn.put("annotations", amap);  //needed to kick off ident jobs with return value

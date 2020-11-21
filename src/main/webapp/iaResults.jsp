@@ -83,9 +83,6 @@ int RESMAX_DEFAULT = 12;
 int RESMAX = (nResults!=null) ? nResults : RESMAX_DEFAULT;
 
 String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to keep waiting.";
-
-response.setHeader("Access-Control-Allow-Origin", "*");
-
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("acmId") != null) {
 	String acmId = request.getParameter("acmId");
@@ -211,11 +208,11 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	String indyUUID = null;
 	MarkedIndividual indiv = null;
 	MarkedIndividual indiv2 = null;
-	String displayName = null;
+	String individualID = null;
 	try {
 
-		displayName = request.getParameter("individualID");
-		if (displayName!=null) displayName = displayName.trim();
+		individualID = request.getParameter("individualID");
+		if (individualID!=null) individualID = individualID.trim();
 		// from query enc
 		indiv = myShepherd.getMarkedIndividual(enc);
 		// from target enc
@@ -253,35 +250,36 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 		try {
 
-			// if there is a newIndividualID set in the URL, lets get it.
-			// getting the indy using it will be easier than trying to get around caching of the retrieved encounters
-			//if (indyUUID!=null&&!"".equals(indyUUID)) {
-			//
-			//}
-
 			enc.setState("approved");
 			enc2.setState("approved");
-
+			
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
-				if (Util.stringExists(displayName)) {
+				if (Util.stringExists(individualID)) {
 					System.out.println("CASE 1: both indy null");
-					indiv = new MarkedIndividual(displayName, enc);
+					if (Util.isUUID(individualID)) {
+						indiv = myShepherd.getMarkedIndividual(individualID);
+					} 
+					if (indiv==null) {
+						indiv = new MarkedIndividual(individualID, enc);
+					}
+
 					myShepherd.getPM().makePersistent(indiv);
 					//check for project to add new name with prefix
 					if (projectId!=null) {
 						Project project = myShepherd.getProjectByProjectIdPrefix(projectId);
-						if (project!=null&&project.getNextIncrementalIndividualId().equals(displayName)) {
+						if (project!=null&&project.getNextIncrementalIndividualId().equals(individualID)) {
 							project.getNextIncrementalIndividualIdAndAdvance();
 							myShepherd.updateDBTransaction();
 						}
 						
-						indiv.addNameByKey(projectId, displayName);
+						indiv.addNameByKey(projectId, individualID);
 						res.put("newIncrementalId", indiv.getDisplayName(projectId));
 					}
 					myShepherd.updateDBTransaction();
-					res.put("newIndividualUUID", indiv.getId());
-					res.put("individualName", displayName);
+					//res.put("newIndividualUUID", indiv.getId());
+					res.put("individualName", indiv.getDisplayName(request, myShepherd));
+					res.put("individualId", indiv.getId());
 					enc.setIndividual(indiv);
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
@@ -299,26 +297,26 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 				indiv.addEncounter(enc2);
 				res.put("individualName", indiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
-			}
+			} 	
 
 			// target enc has indy
 			if (indiv==null&&indiv2!=null) {
 				System.out.println("CASE 3: target enc indy is null");
-				enc.setIndividual(indiv2);
+				enc.setIndividual(indiv2);					
 				indiv2.addEncounter(enc);
 				res.put("individualName", indiv2.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
-			}
+			} 
 
 
 			String matchMsg = enc.getMatchedBy();
 			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
 			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-			enc.setMatchedBy(matchMsg);
+			enc.setMatchedBy(matchMsg); 
 			enc2.setMatchedBy(matchMsg);
 
 			if (res.optString("error", null) == null) res.put("success", true);
-
+			
 		} catch (Exception e) {
 			enc.setState("unapproved");
 			enc2.setState("unapproved");
@@ -331,10 +329,10 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 		return;
-	}
+	} 
 
 	if (indiv == null && indiv2 == null) {
-		res.put("error", "No valid record could be found or created for name: " + displayName);
+		res.put("error", "No valid record could be found or created for name: " + individualID);
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
@@ -346,7 +344,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		myShepherd.closeDBTransaction();
 	}
 
-	res.put("error", "Unknown error setting individual " + displayName);
+	res.put("error", "Unknown error setting individual " + individualID);
 	out.println(res.toString());
 	return;
 }
@@ -488,18 +486,18 @@ h4.intro.accordion .rotate-chevron.down {
 </style>
 
 <script>
-
-
+	
+	
 	animatedcollapse.addDiv('instructions', 'fade=1');
 	animatedcollapse.init();
 	$("h4.accordion a").click(function() {
 		$(this).children(".rotate-chevron").toggleClass("down");
 	});
-
+	
 	//Map of the OpenSeadragon viewers
 	var viewers = new Map();
 	var features=new Map();
-
+	
 </script>
 
 
@@ -714,7 +712,7 @@ function init2() {   //called from wildbook.init() when finished
 				$('#initial-waiter').remove();
 			}
 		}
-		console.log("-- >> What are the current tasks? : "+JSON.stringify(tasks));
+		//console.log("-- >> What are the current tasks? : "+JSON.stringify(tasks));
 		if (onlyNullTaskType==true) {
 			console.log("RELOADING!");
 			clearTimeout(reloadTimeout);
@@ -995,8 +993,6 @@ function showTaskResult(res, taskId) {
                     algoDesc = 'CurvRank dorsal fin trailing edge algorithm';
                 } else if (algoInfo == 'Finfindr') {
                     algoDesc = 'finFindR dorsal fin trailing edge algorithm';
-                } else if (algoInfo == 'Pie') {
-                    algoDesc = 'Pose-Invariant Embeddings pattern matcher';
                 }
                 algoDesc = '<span title="' + algoInfo + '">'+algoDesc+'</span>';
 
@@ -1154,6 +1150,8 @@ console.info('%d ===> %s', num, acmId);
      }
      imgs.append(h);
 	
+	console.log("PARAMSTRING: "+paramString);
+	
 	$.ajax({
 		url: paramString,  //hacktacular!
 		type: 'GET',
@@ -1221,18 +1219,18 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
             var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
             	//console.log(mainAsset.url);
-
+                
             	var img = $('<img src="' + mainAsset.url + '" />');
                 //var imgLink=$('<a target="_blank" href="' + mainAsset.url + '" />');
                 //imgLink.append(img);
-
+            	
                 ft.metadata = mainAsset.metadata;
                 img.on('load', function(ev) { imageLoaded(ev.target, ft, mainAsset); });
                 //$('#task-' + taskId + ' .annot-' + acmId).append(imgLink);
+                
 
-
-
-
+     
+                
               		var viewer=OpenSeadragon({
                     	id: taskId+"+"+acmId,
                         tileSources: {
@@ -1248,16 +1246,16 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         animationTime: 0,
 
                 	});
-
+                	
               		//viewer.world.setAutoRefigureSizes(true);
-
+              		
                 	viewer.addHandler('open', function() {
                 		var ft = features.get(viewer.id.split('+')[1]);
                 		//console.log(ft);
                 		var marginFactor=1;
                 		var width=ft.parameters.width;
                 	   	var height=ft.parameters.height;
-
+                	   	
                 	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
                         if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
@@ -1265,16 +1263,16 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         var elt = document.createElement("div");
                         elt.id = "overlay-"+acmId+"-"+viewer.id;
                         elt.className = "seadragon-highlight";
-
-
+                       
+                        
                         viewer.addOverlay({
                             element: elt,
                             checkResize: true,
                             location: viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*scale, ft.parameters.y*scale, ft.parameters.width*scale, ft.parameters.height*scale)
                         });
-
+                	
                 	});
-
+    
                 	viewer.addHandler('full-screen', event => {
                 		if(event.fullPage==false){
                 			var eventArgs={
@@ -1282,15 +1280,15 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 							};
                 	    	//console.log("Trying to call switchAnnots on amId: "+);
                 	    	viewer.raiseEvent("switchAnnots", eventArgs);
-
+                	    	
                 	    }
                 	});
-
+                	
                 	viewer.addHandler('switchAnnots', event => {
                 		//console.log("switch annots with acmId: "+event.acmId);
-
+                		
                 		var marginFactor=1.0;
-
+                		
                 		//need to get annot feature
                 		var ft = features.get(viewer.id.split('+')[1]);
                 		//console.log("switch annots with acmId: "+event.acmId+"("+ft.parameters.width+","+ft.parameters.height+","+ft.parameters.x+","+ft.parameters.y+")");
@@ -1301,17 +1299,17 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
                 	});
+                	
 
-
-
+                	
                 	//add this viewer to the global Map
                 	viewers.set(taskId+"+"+acmId,viewer);
                 	features.set(acmId, ft);
-
-
+            	
+            	
             	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
-
-
+                
+                
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
@@ -1490,7 +1488,8 @@ function annotCheckbox(el) {
 				if (!nextId) {
 					nextId = '';
 				}
-				h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" value="'+nextId+'" placeholder="Type new or existing name" ';
+				
+				h  = '<input id="autocomplete-individual-name" class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" value="'+nextId+'" placeholder="Type new or existing name" ';
 				h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 				h += ' data-match-enc-id="' + jel.data('encid') + '" ';
 				h += '/>'; 
@@ -1506,24 +1505,17 @@ function annotCheckbox(el) {
 			}
 		});
 
-		// need to make sure the correct ID's are present to propagate one way or other, filter by project. (annotCheckbox call line 1312)
-
-		// neither has an ID to propagate, make new incremental
-
-		// project is selected, provide next project id as option
-
-		// build our own 'h' element here and populate after ajax call to get next
-
 	} else if (jel.data('individ')) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
 	} else if (queryAnnotation.indivId) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
 	} else {
-                //disable onChange for now -- as autocomplete will trigger!
 		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
-		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
+		h += ' data-match-task-id="' + taskId + '" ';
+		h += ' data-match-display-name="' + jel.data('displayname') + '" ';
+		h += ' /> <input type="button" value="Set individual on both encounters" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />';
 	}
 
 	if (allowSyncReturn) {
@@ -1533,15 +1525,18 @@ function annotCheckbox(el) {
 	}
 }
 
+var nameUUIDCache = {};
 function setIndivAutocomplete(el) {
-    if (!el || !el.length) return;
+	if (!el || !el.length) return;
     var args = {
-        resMap: function(data) {
-            var res = $.map(data, function(item) {
-                if (item.type != 'individual') return null;
-                var label = item.label;
-                if (item.species) label += '   ( ' + item.species + ' )';
-                return { label: label, type: item.type, value: item.value };
+		resMap: function(data) {
+			var res = $.map(data, function(item) {
+				if (item.type != 'individual') return null;
+                let label = item.label;
+				let justName = label;
+				if (item.species) label += '   ( ' + item.species + ' )';
+				nameUUIDCache[justName] = item.value;
+				return { label: label, type: item.type, value: justName, id: item.value };
             });
             return res;
         }
@@ -1643,18 +1638,18 @@ function drawFeature(imgEl, ft, asset) {
     var zoomFactor = imgEl.naturalHeight/ft.parameters.height;
 
     var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
-
-
+    
+    
     /* values are from-top, from-right, from-bottom, from-left */
-
+    
     //imgEl.setAttribute("style", "transform-origin: 0 0;transform: scale("+zoomFactor+");margin-left: -"+ft.parameters.x*scale*zoomFactor+";margin-top: -"+ft.parameters.y*scale*zoomFactor+"px;position: absolute;clip-path: inset("+ (ft.parameters.y)*scale + "px " + (ft.metadata.width-ft.parameters.x-ft.parameters.width)*scale + "px "+(ft.metadata.height-ft.parameters.height-ft.parameters.y)*scale + "px "+ft.parameters.x*scale + "px )");
-
-
-
+   
+    
+    
     //imgEl.css("transform-origin", "0 0");
     //imgEl.css("transform", "translate(-100%, 50%) rotate(45deg) translate(100%, -50%)");
-
-
+    
+    
 //console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
     //if (scale == 1) return;
     imgEl.setAttribute('data-feature-drawn', true);
@@ -1785,7 +1780,13 @@ console.warn(inds);
 // sends everything to java on the page and returns JSON with encounter and indy ID
 function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 	var msgTarget = '#enc-action';  //'#approval-buttons';
-	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s', indivID, encID, encID2, taskId);
+
+	if (nameUUIDCache.hasOwnProperty(indivID)) {
+		displayName = indivID;
+		indivID = nameUUIDCache[indivID];
+	}
+
+	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s displayName=%s', indivID, encID, encID2, taskId, displayName);
 	if (!indivID || !encID) {
 		jQuery(msgTarget).html('Argument errors');
 		return;
@@ -1793,12 +1794,12 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 	jQuery(msgTarget).html('<i>saving changes...</i>');
 	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
 	let projectId = getSelectedProjectIdPrefix();
-	console.log('should i add name as project based? '+projectId);
 	if (projectId&&projectId!=NONE_SELECTED) {
 		url += '&projectId='+projectId;
 		console.log('adding projectId to URL for new name!!');
 	}
 	if (encID2) url += '&enc2=' + encID2;
+
 	jQuery.ajax({
 		url: url,
 		type: 'GET',
@@ -1807,17 +1808,15 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 			console.warn(d);
 			if (d.success) {
 				jQuery(msgTarget).html('<i><b>Update successful</b></i>');
-				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + d.individualName + '</a>';
+				var indivLink = ' <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a>';
 				if (encID2) {
 					$(".enc-title .indiv-link").remove();
 					$(".enc-title #enc-action").remove();
-					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivID + '">' + d.individualName + '</a></span>');
+					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a></span>');
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
-
 					// updates encounters in results list with name and link to indy
-					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter
+					$("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter  
 					$("#encnum"+d.encounterId2).append(indivLink); // likely, should be newly matched target encounter(s)
-
 				}
 			} else {
 				console.warn('error returned: %o', d);
@@ -1834,9 +1833,10 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 
 
 function approveNewIndividual(el) {
+	// 'jel' as the input element contains the dsiplayName as a value
 	var jel = $(el);
-	console.info('name=%s; qe=%s, me=%s, projectId=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'));
-	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'));
+	console.info('name=%s; qe=%s, me=%s, taskId=%s, displayName=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
 }
 
 function encDisplayString(encId) {
