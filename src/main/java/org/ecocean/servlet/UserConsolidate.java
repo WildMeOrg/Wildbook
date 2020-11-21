@@ -511,24 +511,35 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static List<Occurrence> getOccurrencesForUser(PersistenceManager persistenceManager, User user){
-    //TODO not just submitters...
-    List<Occurrence> occurrences=new ArrayList<Occurrence>();
+    // since a complicated join like "SELECT FROM org.ecocean.Occurrence where (submitters.contains(user) || informOthers.contains(user) ) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user" is not super tractable, we will go with three different database queries, and combine their results into one list
+    List<Occurrence> allOccurrences=new ArrayList<Occurrence>();
+    List<String> queryList = new ArrayList<String>();
     if(user!=null){
-      String filter="SELECT FROM org.ecocean.Occurrence where (submitters.contains(user) || informOthers.contains(user) ) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+      String queryStringSubmitters = "SELECT FROM org.ecocean.Occurrence where submitters.contains(user) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+      queryList.add(queryStringSubmitters);
+      String queryStringInformOthers = "SELECT FROM org.ecocean.Occurrence where informOthers.contains(user) && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+      queryList.add(queryStringInformOthers);
       if(Util.stringExists(user.getUsername())){
-        filter="SELECT FROM org.ecocean.Occurrence where (submitters.contains(user) || informOthers.contains(user) || submitterID==\"" + user.getUsername()+ "\") && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+        String queryStringSubmitterId = "SELECT FROM org.ecocean.Occurrence where submitterID==\"" + user.getUsername()+ "\" && user.uuid==\""+user.getUUID()+"\" VARIABLES org.ecocean.User user";
+        queryList.add(queryStringSubmitterId);
       }
-      System.out.println("query in getOccurrencesForUser is: " + filter);
-      Query query=persistenceManager.newQuery(filter);
-      Collection c = (Collection) (query.execute());
-      if(c!=null){
-        occurrences=new ArrayList<Occurrence>(c);
-        System.out.println("there are " + occurrences.size() + " occurrences in the getOccurrencesForUser search");
+      if(queryList!=null && queryList.size()>0){
+        for(String currentQuery: queryList){
+          System.out.println("query in getOccurrencesForUser is: " + currentQuery);
+          Query query=persistenceManager.newQuery(currentQuery);
+          Collection c = (Collection) (query.execute());
+          if(c!=null){
+            List<Occurrence> currentOccurrences=new ArrayList<Occurrence>(c);
+            System.out.println("there are " + currentOccurrences.size() + " occurrences in the getOccurrencesForUser search: " + currentQuery);
+            allOccurrences.addAll(c);
+          }
+          query.closeAll();
+        }
       }
-      query.closeAll();
     }
-    System.out.println("SUCCESS!!! returning occurrences…");
-    return occurrences;
+    System.out.println("SUCCESS!!! returning " + allOccurrences.size() + "occurrences…");
+    System.out.println(allOccurrences.toString());
+    return allOccurrences;
   }
 
   public static List<Encounter> getEncountersForUsersThatDoNotHaveUsernameButHaveSameEmailAddress(PersistenceManager persistenceManager, User user){
