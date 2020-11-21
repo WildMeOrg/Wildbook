@@ -394,6 +394,7 @@ try{
 	    fparams.put("_manualAnnotation", System.currentTimeMillis());
 	    ft = new Feature("org.ecocean.boundingBox", fparams);
 	    ma.addFeature(ft);
+	    ma.setDetectionStatus("complete");
 	    Annotation ann = new Annotation(null, ft, iaClass);
 	    ann.setMatchAgainst(matchAgainst);
 	    ann.setViewpoint(viewpoint);
