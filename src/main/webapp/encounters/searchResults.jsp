@@ -1,9 +1,9 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, 
-         org.ecocean.servlet.ServletUtilities, java.io.File, 
-         java.io.FileOutputStream, java.io.OutputStreamWriter, 
-         java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, 
-         org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, 
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
+         org.ecocean.servlet.ServletUtilities, java.io.File,
+         java.io.FileOutputStream, java.io.OutputStreamWriter,
+         java.util.*, org.datanucleus.api.rest.orgjson.JSONArray,
+         org.json.JSONObject, org.datanucleus.api.rest.RESTUtils,
          org.datanucleus.api.jdo.JDOPersistenceManager,
          java.nio.charset.StandardCharsets,
          java.net.URLEncoder " %>
@@ -36,10 +36,24 @@ context=ServletUtilities.getContext(request);
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("searchResults.jsp");
+  String[] projectIds = null;
+  int projectIdCount = 0;
+  if(Util.isUUID(request.getParameter("projectId"))){
+    projectIds = request.getParameterValues("projectId");
+    if(projectIds!=null){
+      projectIdCount = projectIds.length;
+    }
+  }
 
+  String useProjectContext = "false";
+  if (Util.stringExists(request.getUserPrincipal().getName())) {
+	  User user = myShepherd.getUser(request.getUserPrincipal().getName());
+	  String projectUUID = user.getProjectIdForPreferredContext();
+	  if (Util.stringExists(projectUUID)) {
+		  useProjectContext = "true";
+	  }
+  }
 
-
-  int numResults = 0;
 
 
   //Vector rEncounters = new Vector();
@@ -60,170 +74,7 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-
-<style type="text/css">
-
-#results-table thead tr {
-	height: 4em;
-}
-
-.ia-ann-summary {
-	margin: 0 2px;
-}
-
-.ia-success-match, .ia-success-miss, .ia-pending, .ia-error, .ia-unknown {
-	padding: 0 3px;
-	color: #FFF;
-	font-weight: bold;
-}
-
-.ptcol-ia .ia-success-match {
-	background-color: #1A0;
-}
-.ptcol-ia .ia-success-miss {
-	background-color: #222;
-}
-.ptcol-ia .ia-pending {
-	background-color: #42F;
-}
-.ptcol-ia .ia-error {
-	background-color: #D20;
-}
-.ptcol-ia .ia-unknown {
-	background-color: #888;
-}
-
-
-.ptcol-individualID {
-	position: relative;
-}
-.ptcol-individualID a.pt-vm-button {
-	position: absolute;
-	display: none;
-	left: 5px;
-	top: 5px;
-	border: solid 1px black;
-	border-radius: 3px;
-	background-color: #DDD;
-	padding: 0 3px;
-	color: black;
-	text-decoration: none;
-	cursor: pointer;
-}
-
-.ptcol-otherCatalogNumbers {
-  width: 75px !important;
-}
-
-tr.clickable:hover td {
-	background-color: #EFA !important;
-}
-
-tr:hover .ptcol-individualID span.unassigned {
-	display:hidden;
-}
-
-tr:hover .ptcol-individualID a.pt-vm-button {
-	display: inline-block;
-}
-a.pt-vm-button:hover {
-	background-color: #FF5;
-}
-
-.ptcol-thumb {
-	width: 75px !important;
-}
-
-td.tdw {
-	position: relative;
-}
-
-td.tdw div {
-	height: 16px;
-	overflow-y: hidden;
-}
-
-
-td.tdw:hover div {
-	position: absolute;
-	z-index: 20;
-	background-color: #EFA;
-	outline: 3px solid #EFA;
-	min-height: 16px;
-	height: auto;
-	overflow-y: auto;
-}
-
-
-  #tabmenu {
-    color: #000;
-    border-bottom: 1px solid #CDCDCD;
-    margin: 12px 0px 0px 0px;
-    padding: 0px;
-    z-index: 1;
-    padding-left: 10px
-  }
-
-  #tabmenu li {
-    display: inline;
-    overflow: hidden;
-    list-style-type: none;
-  }
-
-  #tabmenu a, a.active {
-    color: #000;
-    background: #E6EEEE;
-     
-    border: 1px solid #CDCDCD;
-    padding: 2px 5px 0px 5px;
-    margin: 0;
-    text-decoration: none;
-    border-bottom: 0px solid #FFFFFF;
-  }
-
-  #tabmenu a.active {
-    background: #8DBDD8;
-    color: #000000;
-    border-bottom: 1px solid #8DBDD8;
-  }
-
-  #tabmenu a:hover {
-    color: #000;
-    background: #8DBDD8;
-  }
-
-  #tabmenu a:visited {
-
-  }
-
-  #tabmenu a.active:hover {
-    color: #000;
-    border-bottom: 1px solid #8DBDD8;
-  }
-
-
-	.collab-private {
-		background-color: #FDD;
-	}
-
-	.collab-private td {
-		background-color: transparent !important;
-	}
-
-	.collab-private .collab-icon {
-		position: absolute;
-		left: -15px;
-		z-index: -1;
-		width: 13px;
-		height: 13px;
-		background: url(../images/lock-icon-tiny.png) no-repeat;
-	}
-
-</style>
-
 <jsp:include page="../header.jsp" flush="true"/>
-
-<script src="../javascript/tablesorter/jquery.tablesorter.js"></script>
 
 <script src="../javascript/underscore-min.js"></script>
 <script src="../javascript/backbone-min.js"></script>
@@ -243,25 +94,35 @@ td.tdw:hover div {
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
 
+<%
+
+String queryString="";
+if(request.getQueryString()!=null){queryString=request.getQueryString();}
+
+%>
+
 
 <ul id="tabmenu">
 
   <li><a class="active"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+    href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+  </a></li>
+  <li><a
+    href="../xcalendar/calendar.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=encprops.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=queryString %>"><%=encprops.getProperty("export")%>
    </a></li>
 
 </ul>
@@ -269,48 +130,16 @@ td.tdw:hover div {
 
 <p><%=encprops.getProperty("belowMatches")%></p>
 
-<style>
-.ptcol-maxYearsBetweenResightings {
-	width: 100px;
-}
-.ptcol-numberLocations {
-	width: 100px;
-}
-
-</style>
-
 <script type="text/javascript">
+  let uniqueTracker = [];
+  let projIdCallCounter = 0;
+  let maxLoops = 0;
 
 	var needIAStatus = false;
 
-/*
-
-    <strong><%=encprops.getProperty("markedIndividual")%>
-    <strong><%=encprops.getProperty("number")%>
-    if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
-    	
-	    <strong><%=encprops.getProperty("taxonomy")%>
-	    <strong><%=encprops.getProperty("submitterName")%>
-	    <strong><%=encprops.getProperty("date")%>
-	    <strong><%=encprops.getProperty("location")%>
-	    <strong><%=encprops.getProperty("locationID")%>
-	    <strong><%=encprops.getProperty("occurrenceID")%>
-*/
-
-
 <%
 	String encsJson = "false";
-/*
-	JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-	if (rEncounters instanceof Collection) {
-		JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, jdopm.getExecutionContext());
-		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, ((JDOPersistenceManager)pm).getExecutionContext());
-		encsJson = jsonobj.toString();
-	} else {
-		JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(rEncounters, jdopm.getExecutionContext());
-		encsJson = jsonobj.toString();
-	}
-*/
+
 
 StringBuffer prettyPrint=new StringBuffer("");
 
@@ -320,23 +149,8 @@ String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, p
 
 %>
 
-
-
 var searchResults = <%=encsJson%>;
-
 var jdoql = '<%= URLEncoder.encode(filter,StandardCharsets.UTF_8.toString()) %>';
-
-var testColumns = {
-	//thumb: { label: 'Thumb', val: _colThumb },
-	individualID: { label: 'ID', val: _colIndLink },
-	date: { label: 'Date', val: _colEncDate },
-	verbatimLocality: { label: 'Location' },
-	//locationID: { label: 'Location ID' },
-	taxonomy: { label: 'Taxonomy', val: _colTaxonomy },
-	submitterID: { label: 'Submitter' },
-	creationDate: { label: 'Created', val: _colCreationDate },
-	modified: { label: 'Edit Date', val: _colModified },
-};
 
 $(document).keydown(function(k) {
 	if ((k.which == 38) || (k.which == 40) || (k.which == 33) || (k.which == 34)) k.preventDefault();
@@ -351,10 +165,20 @@ var colDefn = [
 
 	{
 		key: 'individualID',
-		label: 'ID',
+		label: '<%=encprops.getProperty("ID")%>',
 		value: _colIndLink,
-		//sortValue: function(o) { return o.individualID.toLowerCase(); },
+		sortValue: function(o) { return o.get("displayName"); },
 	},
+	{
+		key: 'occurrenceID',
+		label: '<%=encprops.getProperty("sightingID")%>',
+		value: _occurrenceID,
+	},
+//   {
+// 		key: 'projectId',
+// 		label: '<%=encprops.getProperty("projectId")%>',
+// 		value: _projectId,
+// 	},
   {
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
@@ -387,13 +211,13 @@ var colDefn = [
 	},
 	{
 		key: 'creationDate',
-		label: 'Created',
+		label: '<%=encprops.getProperty("created")%>',
 		value: _colCreationDate,
 		sortValue: _colCreationDateSort,
 	},
 	{
 		key: 'modified',
-		label: 'Edit Date',
+		label: '<%=encprops.getProperty("editDate")%>',
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
@@ -405,8 +229,8 @@ var howMany = 10;
 var start = 0;
 var results = [];
 
-var sortCol = -1;
-var sortReverse = false;
+var sortCol = 7;
+var sortReverse = true;
 
 var counts = {
 	total: 0,
@@ -467,7 +291,7 @@ function doTable() {
 		data: searchResults,
 		perPage: howMany,
 		sliderElement: $('#results-slider'),
-		columns: colDefn,
+		columns: colDefn
 	});
 
 	$('#results-table').addClass('tablesorter').addClass('pageableTable');
@@ -499,7 +323,7 @@ function doTable() {
 	sTable.initValues();
 
 
-	newSlice(sortCol);
+	newSlice(sortCol, sortReverse);
 
 	$('#progress').hide();
 	sTable.sliderInit();
@@ -633,7 +457,7 @@ function computeCounts() {
 
 	for (var i = 0 ; i < counts.total ; i++) {
 		var iid = searchResults[sTable.matchesFilter[i]].get('individualID');
-		if (iid == 'Unassigned') {
+		if (!iid) {
 			counts.unid++;
 		} else {
 			var k = iid + ':' + searchResults[sTable.matchesFilter[i]].get('year') + ':' + searchResults[sTable.matchesFilter[i]].get('month') + ':' + searchResults[sTable.matchesFilter[i]].get('day');
@@ -706,7 +530,9 @@ function tableUp() {
 ////////
 var encs;
 $(document).ready( function() {
+	
 	wildbook.init(function() {
+		let useProjectContext = "<%=useProjectContext%>";
 		encs = new wildbook.Collection.Encounters();
 		encs.fetch({
 /*
@@ -717,10 +543,21 @@ $(document).ready( function() {
 				return xhr;
 			},
 */
+			useProjectContext: useProjectContext,
+			fetch: "searchResults",
+			noDecorate: true,
 			jdoql: jdoql,
-			success: function() { searchResults = encs.models; doTable(); },
+			success: function() {
+        searchResults = encs.models;
+		//populateWithProjectIds();
+		doTable();
+      },
 		});
 	});
+  // $('#results-table').change(function(){
+  //   console.log("results table changed");
+  //   _projectId();
+  // });
 });
 
 
@@ -732,7 +569,7 @@ console.info(percent);
 
 // a functor!
 function _notUndefined(fieldName) {
-  function _helperFunc(o) {	
+  function _helperFunc(o) {
     if (!o.get(fieldName)) return '';
     return o.get(fieldName);
   }
@@ -740,12 +577,13 @@ function _notUndefined(fieldName) {
 }
 // non-functor version!
 function _notUndefinedValue(obj, fieldName) {
-  function _helperFunc(o) {	
+  function _helperFunc(o) {
     if (!o.get(fieldName)) return '';
     return o.get(fieldName);
   }
   return _helperFunc(obj);
 }
+
 
 function _colIndividual(o) {
 	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.individualID + '">' + o.individualID + '</a></b> ';
@@ -781,10 +619,104 @@ function _colNumberLocations(o) {
 function _colTaxonomy(o) {
 	var genus = _notUndefinedValue(o, 'genus');
 	var species = _notUndefinedValue(o, 'specificEpithet');
-	//console.log('colTaxonomy got genus '+genus+' and species '+species+' for object '+JSON.stringify(o));
 	return genus+' '+species;
 }
 
+function _occurrenceID(o) {
+	if (!o.get('occurrenceID')) return '';
+	return o.get('occurrenceID');
+}
+
+// function _projectId(o){
+//   if (!o.attributes.individual.incrementalIds) return '';
+//   console.log(o.attributes.individual.incrementalIds.join(', '));
+// 	return o.attributes.individual.incrementalIds.join(', ');
+// }
+
+// function populateWithProjectIds(){
+//   let projIdCount = parseInt('<%= projectIdCount %>');
+//   if(projIdCount<1){
+//     doTable();
+//   }else{
+//     if(projIdCount){
+//       maxLoops = searchResults.length * projIdCount;
+//     }
+//     for (let i = 0 ; i < searchResults.length ; i++) {
+//       let currentSearchResult = searchResults[i];
+//       let encId = currentSearchResult.id;
+//       let indId = currentSearchResult.attributes.individual.individualID;
+//       let ajaxJson = {}
+//       let projIdPrefix = '';
+//         <%
+//         if(projectIds!= null && projectIds.length>0){
+//           for(int j=0; j<projectIds.length; j++){
+//             Project currentProj = myShepherd.getProjectByUuid(projectIds[j]);
+//             String currentProjIdPrefix = currentProj.getProjectIdPrefix();
+//             %>
+//             projIdPrefix = 'needs replacement with reference to current prefix';
+//             // console.log("got here c and projIdPrefix is: " + projIdPrefix);
+//             ajaxJson['projectIdPrefix'] = projIdPrefix;
+//             ajaxJson['individualIds'] = [];
+//             if(indId){
+//               ajaxJson['individualIds'].push({indId: indId});
+//             }
+//             doAjaxCall(encId, ajaxJson, maxLoops, i);
+//             <%
+//           } //end for of project IDs
+//         } // end if for projectIds
+//         %>
+//       }
+//   }
+// }
+
+// function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
+//   $.ajax({
+//       url: wildbookGlobals.baseUrl + '../ProjectGet',
+//       type: 'POST',
+//       data: JSON.stringify(requestJson),
+//       dataType: 'json',
+//       contentType: 'application/json',
+//       success: function(data) {
+//         if(data){
+//           if(data.incrementalIdArr && data.incrementalIdArr.length>0){
+//             for(let i=0; i< data.incrementalIdArr.length; i++){
+//               projIdCallCounter ++;
+//               let currentIncrementalId = data.incrementalIdArr[i].projectIncrementalId;
+//               if(currentIncrementalId){
+//                 let counter = 0;
+//                 uniqueTracker.forEach(entry => {
+//                   if (entry.encId === encId && entry.incrementalId === currentIncrementalId){
+//                     counter ++;
+//                   }
+//                 });
+//                 if(counter <1){ //this encounter ID + incremental ID combo hasn't been seen before
+//                   if(searchResults[indexOfSearchResults].attributes.individual.incrementalIds){
+//                     searchResults[indexOfSearchResults].attributes.individual.incrementalIds.push(currentIncrementalId);
+//                   }else{
+//                     searchResults[indexOfSearchResults].attributes.individual.incrementalIds = [currentIncrementalId];
+//                   }
+//                 }
+//               }
+//             }
+//             if(maxLoops == projIdCallCounter){
+//               doTable();
+//             }
+//           }else{
+//             //no incrementalIdArr structure in data returned, but the counter should increment anyway
+//             projIdCallCounter ++;
+
+//             //handle edge case where last entry in searchResults doesn't have incrementalIdArr structure in data returned
+//             if(maxLoops == projIdCallCounter){
+//               doTable();
+//             }
+//           }
+//         }
+//       },
+//       error: function(x,y,z) {
+//           console.warn('%o %o %o', x, y, z);
+//       }
+//   });
+// }
 
 function _colRowNum(o) {
 	return o._rowNum;
@@ -808,9 +740,10 @@ function _colModified(o) {
 }
 
 function _submitterID(o) {
-	var m = o.get('submitterName');
-	if (!m) m = o.get('submitterProject');
-	return m;
+	if (o['submitterID']      != undefined) return o['submitterID'];
+	if (o['submitterProject'] != undefined) return o['submitterProject'];
+	if (o['submitterName']    != undefined) return o['submitterName'];
+	return '';
 }
 
 function _textExtraction(n) {
@@ -829,7 +762,7 @@ var tableContents = document.createDocumentFragment();
 
 function xdoTable() {
 	resultsTable = new pageableTable({
-		columns: testColumns,
+		columns: colDefn,
 		tableElement: $('#results-table'),
 		sliderElement: $('#results-slider'),
 		tablesorterOpts: {
@@ -884,7 +817,7 @@ function _colIndLink(o) {
 	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
 //
 //
-	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
+	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + o.get("displayName") + '</a>';
 }
 
 
@@ -920,10 +853,6 @@ function _colEncDateSort(o) {
 //	return d.getTime();
 //}
 
-function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
-	return o.get('genus') + ' ' + o.get('specificEpithet');
-}
 
 function _colFileName(o) {
   if (!o.get('annotations')) return 'none';
@@ -1139,11 +1068,11 @@ function _colCreationDate(o) {
 }
 
 function _colCreationDateSort(o) {
-	var m = o.get('dwcDateAdded');
+	var m = o.get('dwcDateAddedLong');
 	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) return 0;
-	return d.getTime();
+	//var d = wildbook.parseDate(m);
+	//if (!wildbook.isValidDate(d)) return 0;
+	return m;
 }
 
 

@@ -142,31 +142,33 @@ public class GeocoordConverter {
     return ERROR_dOUBLE_TUPLE;
   }
 
-
   public static double[] gpsToUtm(double latitude, double longitude) {
-
     try {
       System.out.println("========= BEGIN CONVERTING GPS to UTM ==========");
-
+      
       int zoneNumber = DEFAULT_UTM_ZONE_NUMBER;
       double utmZoneCenterLongitude = zoneCenterLongitude(zoneNumber);
       System.out.println("  Zone "+zoneNumber+" w/ center longitude "+utmZoneCenterLongitude);
-
+      
       MathTransformFactory mtFactory = ReferencingFactoryFinder.getMathTransformFactory(null);
       ReferencingFactoryContainer factories = new ReferencingFactoryContainer(null);
-
+      
       GeographicCRS geoCRS = org.geotools.referencing.crs.DefaultGeographicCRS.WGS84;
       CartesianCS cartCS = org.geotools.referencing.cs.DefaultCartesianCS.GENERIC_2D;
-
+      
       ParameterValueGroup parameters = mtFactory.getDefaultParameters("Transverse_Mercator");
       parameters.parameter("central_meridian").setValue(utmZoneCenterLongitude);
       parameters.parameter("latitude_of_origin").setValue(0.0);
       parameters.parameter("scale_factor").setValue(0.9996);
       parameters.parameter("false_easting").setValue(500000.0);
       parameters.parameter("false_northing").setValue(0.0);
+      
+      Map<String,String> properties = Collections.singletonMap("name", "WGS 84 / UTM Zone " + zoneNumber);
 
-      Map properties = Collections.singletonMap("name", "WGS 84 / UTM Zone " + zoneNumber);
-      ProjectedCRS projCRS = factories.createProjectedCRS(properties, geoCRS, null, parameters, cartCS);
+      CRSFactory crsFactory = factories.getCRSFactory();
+      DefiningConversion conv = new DefiningConversion("GPS to UTM", parameters);
+      ProjectedCRS projCRS = crsFactory.createProjectedCRS(properties, geoCRS, conv, cartCS);
+      //ProjectedCRS projCRS = factories.createProjectedCRS(properties, geoCRS, null, parameters, cartCS);
 
       MathTransform transform = CRS.findMathTransform(geoCRS, projCRS);
 

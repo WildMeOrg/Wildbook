@@ -218,13 +218,13 @@ if (allSpotMAs != null) {
 	  		if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
 	  			
-	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>">Groth: Left-side scan results</a><br />
+	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&taskID=scanL<%=encNum%>">Groth: Left-side scan results</a><br />
 	  		<%
 	  		}
 	  		if((rightScanResults.exists())&&(enc.getNumRightSpots()>0)) {
 	  		%> 
 	  			
-	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true">Groth: Right-side scan results</a><br /> 
+	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&taskID=scanR<%=encNum%>&rightSide=true">Groth: Right-side scan results</a><br /> 
 	  		<%
 	  		}
 		//}

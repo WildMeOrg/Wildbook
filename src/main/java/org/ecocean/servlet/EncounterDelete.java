@@ -22,6 +22,8 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
+import org.ecocean.ia.Task;
+import org.ecocean.servlet.importer.ImportTask;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -30,8 +32,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
+import java.util.ArrayList;
 //import java.util.Iterator;
-//import java.util.List;
+import java.util.List;
 import java.util.Map;
 //import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -93,7 +96,6 @@ public class EncounterDelete extends HttpServlet {
         //myShepherd.beginDBTransaction();
 
         try {
-
           Encounter backUpEnc = myShepherd.getEncounterDeepCopy(enc2trash.getEncounterNumber());
 
           String savedFilename = request.getParameter("number") + ".dat";
@@ -101,30 +103,61 @@ public class EncounterDelete extends HttpServlet {
           if(!thisEncounterDir.exists()){
             thisEncounterDir.mkdirs();
             System.out.println("Trying to create the folder to store a dat file in EncounterDelete2: "+thisEncounterDir.getAbsolutePath());
-          
+            File serializedBackup = new File(thisEncounterDir, savedFilename);
+            FileOutputStream fout = new FileOutputStream(serializedBackup);
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+            oos.writeObject(backUpEnc);
+            oos.close();  
           }
+        
+        } catch (NotSerializableException nse) {
+          System.out.println("[WARN]: The encounter "+enc2trash.getCatalogNumber()+" could not be serialized.");
+          nse.printStackTrace();
+        }
 
-          File serializedBackup = new File(thisEncounterDir, savedFilename);
-          FileOutputStream fout = new FileOutputStream(serializedBackup);
-          ObjectOutputStream oos = new ObjectOutputStream(fout);
-          oos.writeObject(backUpEnc);
-          oos.close();
+        try {
+
+          Occurrence occ = myShepherd.getOccurrenceForEncounter(enc2trash.getID());
+          if (occ==null&&(enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
+            occ = myShepherd.getOccurrence(enc2trash.getOccurrenceID());
+          }
           
-          if((enc2trash.getOccurrenceID()!=null)&&(myShepherd.isOccurrence(enc2trash.getOccurrenceID()))) {
-            Occurrence occur=myShepherd.getOccurrence(enc2trash.getOccurrenceID());
-            occur.removeEncounter(enc2trash);
+          if(occ!=null) {
+            occ.removeEncounter(enc2trash);
             enc2trash.setOccurrenceID(null);
             
             //delete Occurrence if it's last encounter has been removed.
-            if(occur.getNumberEncounters()==0){
-              myShepherd.throwAwayOccurrence(occur);
+            if(occ.getNumberEncounters()==0){
+              myShepherd.throwAwayOccurrence(occ);
             }
             
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
-     
           }
 
+          List<Project> projects = myShepherd.getProjectsForEncounter(enc2trash);
+          if (projects!=null&&!projects.isEmpty()) {
+            for (Project project : projects) {
+              project.removeEncounter(enc2trash);
+              myShepherd.updateDBTransaction();
+            }
+          }
+          
+          //Remove it from an ImportTask if needed
+          ImportTask task=myShepherd.getImportTaskForEncounter(enc2trash.getCatalogNumber());
+          if(task!=null) {
+            task.removeEncounter(enc2trash);
+            task.addLog("Servlet EncounterDelete removed Encounter: "+enc2trash.getCatalogNumber());
+            myShepherd.updateDBTransaction();
+          }
+
+          if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
+            ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);
+            itask.removeEncounter(enc2trash);
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
+          
           //Set all associated annotations matchAgainst to false
           enc2trash.useAnnotationsForMatching(false);
           
@@ -146,6 +179,22 @@ public class EncounterDelete extends HttpServlet {
           enc2trash.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Deleted this encounter from the database.");
           myShepherd.commitDBTransaction();
 
+          ArrayList<Annotation> anns = enc2trash.getAnnotations();
+          for (Annotation ann : anns) {
+            myShepherd.beginDBTransaction();
+            enc2trash.removeAnnotation(ann);
+            myShepherd.updateDBTransaction();
+            List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
+            if (iaTasks!=null&&!iaTasks.isEmpty()) {
+              for (Task iaTask : iaTasks) {
+                iaTask.removeObject(ann);
+                myShepherd.updateDBTransaction();
+              }
+            }
+            myShepherd.throwAwayAnnotation(ann);
+            myShepherd.commitDBTransaction();
+          }
+
           //now delete for good
           myShepherd.beginDBTransaction();
           myShepherd.throwAwayEncounter(enc2trash);
@@ -163,15 +212,22 @@ public class EncounterDelete extends HttpServlet {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have removed encounter " + request.getParameter("number") + " from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter " + request.getParameter("number") + " to have it restored.");
+          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
+          int allStatesSize=allStates.size();
+          if(allStatesSize>0){
+            for(int i=0;i<allStatesSize;i++){
+              String stateName=allStates.get(i);
+              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
+            }
+          }
           
           out.println(ServletUtilities.getFooter(context));
 
 
 
-        } 
-        catch (Exception edel) {
+        } catch (Exception edel) {
           locked = true;
-          log.warn("Failed to serialize encounter: " + request.getParameter("number"), edel);
+          //log.warn("Failed to serialize encounter: " + request.getParameter("number"), edel);
           edel.printStackTrace();
           myShepherd.rollbackDBTransaction();
 
@@ -204,7 +260,7 @@ public class EncounterDelete extends HttpServlet {
             }
           }
           out.println(ServletUtilities.getFooter(context));
-
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
         }
         */
@@ -213,8 +269,8 @@ public class EncounterDelete extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("Encounter " + request.getParameter("number") + " is assigned to a Marked Individual and cannot be deleted until it has been removed from that individual.");
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
-        
+        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println(ServletUtilities.getFooter(context));
       }
       
@@ -226,6 +282,7 @@ public class EncounterDelete extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't know which encounter you're trying to remove.");
       out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
     }
 

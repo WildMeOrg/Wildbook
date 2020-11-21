@@ -9,7 +9,7 @@ import java.util.*;
 import org.ecocean.*;
 import org.ecocean.genetics.BiologicalMeasurement;
 import org.ecocean.servlet.ServletUtilities;
-//import org.springframework.mock.web.MockHttpServletRequest;
+import org.ecocean.security.HiddenIndividualReporter;
 
 import jxl.write.*;
 import jxl.*;
@@ -185,11 +185,13 @@ public class SOCPROGExport extends HttpServlet{
 
            
             Vector iterateMe=query2Individuals;
-            
+            HiddenIndividualReporter hiddenData = new HiddenIndividualReporter(iterateMe, request, myShepherd);
+            hiddenData.writeHiddenDataReport(workbookOBIS,2); // since 0 and 1 are in use above;
             
             for(int k=0;k<iterateMe.size();k++){
               
               MarkedIndividual indy=(MarkedIndividual)iterateMe.get(k);
+              if (hiddenData.contains(indy)) continue;
               //System.out.println("          Individual: "+indy.getIndividualID());
               Vector encs=indy.getEncounters();
               int numEncs=encs.size();
@@ -254,11 +256,11 @@ public class SOCPROGExport extends HttpServlet{
                     
                     
                     //
-                    if(enc.getIndividualID()!=null){
-                      Label popLabel4a1 = new Label(5, count, enc.getIndividualID().replaceAll("[^a-zA-Z0-9]", ""));
+                    if(enc.getIndividual()!=null){
+                      Label popLabel4a1 = new Label(5, count, enc.getIndividual().getDefaultName().replaceAll("[^a-zA-Z0-9]", ""));
                       sheet.addCell(popLabel4a1);
                       
-                      Label popLabel4a2 = new Label(0, count, enc.getIndividualID());
+                      Label popLabel4a2 = new Label(0, count, enc.getIndividual().getDefaultName());
                       sheet2.addCell(popLabel4a2);
                       
                     }

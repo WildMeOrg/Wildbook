@@ -96,7 +96,7 @@ console.log('iCanvas init');
 			document.getElementsByTagName('body')[0].appendChild(this.iconImgs[i]);
 		}
 
-		this.imageReady();
+		//this.imageReady();
 	};
 
 	this.imageReady = function() {

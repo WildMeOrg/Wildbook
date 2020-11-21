@@ -9,21 +9,12 @@ table.tableFeedback, table.tableFeedback tr, table.tableFeedback tr th {
 }
 table.tableFeedback {
   background-color: #fff; /* so transparent colors on the table look good */
-    font-size: 0.8em;
+  max-height: 70%;
+  min-height: 69%;
 }
 
 tr.header-row th:last-child {
   width: 300px;
-}
-
-.tableFeedback tr:not(.headerRow):hover {
-    background-color: rgba(200, 200, 30, 0.3);
-}
-
-
-/* this is cuz :hover above was getting blocked by rotated headerRow !!!??  :( */
-tr.headerRow {
-    pointer-events: none;
 }
 
 div.tableFeedbackWrapper td {
@@ -33,9 +24,15 @@ div.tableFeedbackWrapper td {
 }
 
 div.tableFeedbackWrapper th {
-  color: #888;
+  color: #fff;
 }
 
+.tableFeedbackColumnHeader {
+  color: black;
+  text-decoration-color: black;
+  text-decoration: underline;
+  font-family: sans-serif;
+}
 
 /* Rotate table headers */
 th.rotate {
@@ -62,19 +59,47 @@ th.rotate > div {
 }
 
 td.cellFeedback:hover {
-  outline: 2px solid rgba(0, 0, 0, 0.4);
+  border: 1px solid black;
   cursor: cell;
 }
   
-td.cellFeedback.success, td.cellFeedback.blank {
-  background-color: rgba(0, 255, 0, 0.4);
+td.cellFeedback.success, .importFieldSuccess {
+  background-color: rgba(0, 255, 0, 0.4); /* found green for cells with values and success retrieving them */
 }
 
-td.cellFeedback.error {
-  background-color: rgba(255, 0, 0, 0.4);
+td.cellFeedback.error, .importFieldError {
+  background-color: rgba(255, 0, 0, 0.4); /* exception parsing */
 }
 
-td.cellFeedback.null {
-  background-color: rgba(128, 128, 128, 0.2); /* less intense than error b/c sometimes this is OK */
+td.cellFeedback.blank, .importFieldBlank {
+  background-color: rgba(102,204,255,0.4);    /* blue - fully processed but empty */
 }
 
+td.cellFeedback.null, .importFieldNull {
+  background-color: rgba(255, 200, 0, 0.4); /* yellow... can be okay but not preffered state for 'empty' */
+}
+
+.importFieldBlank, .importFieldError, .importFieldNull, .importFieldSuccess {
+  height: 20px;
+  width: 20px;
+  margin: 3px;
+  display: block;
+}
+
+  /*
+.boxed-list {
+  height: 500rem;
+  width: auto;
+  overflow: hidden;
+  overflow-y: scroll;
+  overflow-x: scroll;
+}
+  */
+
+.import-commiting {
+  color: darkred;
+}
+
+/* .tableTopScrollbar {
+
+} */

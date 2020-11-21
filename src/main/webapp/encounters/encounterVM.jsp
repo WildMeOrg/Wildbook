@@ -16,71 +16,14 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" %>
 <%@ page import="java.text.DecimalFormat" %>
 <%@ page import="java.util.*" %>
 <%@ page import="javax.jdo.Extent" %>
 <%@ page import="javax.jdo.Query" %>
 <%@ page import="org.ecocean.*" %>
-<%@ page import="org.ecocean.servlet.ServletUtilities" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>    
 
-<%!
-
-  //shepherd must have an open trasnaction when passed in
-  public String getNextIndividualNumber(Encounter enc, Shepherd myShepherd) {
-    String returnString = "";
-    try {
-      String lcode = enc.getLocationCode();
-      if ((lcode != null) && (!lcode.equals(""))) {
-
-        //let's see if we can find a string in the mapping properties file
-        Properties props = new Properties();
-        //set up the file input stream
-        props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
-
-        //let's see if the property is defined
-        if (props.getProperty(lcode) != null) {
-          returnString = props.getProperty(lcode);
-
-
-          int startNum = 1;
-          boolean keepIterating = true;
-
-          //let's iterate through the potential individuals
-          while (keepIterating) {
-            String startNumString = Integer.toString(startNum);
-            if (startNumString.length() < 3) {
-              while (startNumString.length() < 3) {
-                startNumString = "0" + startNumString;
-              }
-            }
-            String compositeString = returnString + startNumString;
-            if (!myShepherd.isMarkedIndividual(compositeString)) {
-              keepIterating = false;
-              returnString = compositeString;
-            } else {
-              startNum++;
-            }
-
-          }
-          return returnString;
-
-        }
-
-
-      }
-      return returnString;
-    } 
-    catch (Exception e) {
-      e.printStackTrace();
-      return returnString;
-    }
-  }
-
-%>
 
 <%
   String context="context0";
@@ -121,6 +64,7 @@
   pageContext.setAttribute("num", num);
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("encounterVM.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   boolean proceed = true;
@@ -171,19 +115,12 @@
 	});
 </script>
 
-<br />
-
-<br />
+<div class="container maincontent">
 
 
 <div id="candidate-full-zoom"></div>
 
-	<div id="wrapper">
-		<div id="page">
-			<jsp:include page="../header.jsp" flush="true">
-  				<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-			</jsp:include>
-			<div id="main">
+
 			<%
   			myShepherd.beginDBTransaction();
 
@@ -231,8 +168,7 @@ catch(Exception e){
 	%>
 	<p>Hit an error.<br /> <%=e.toString()%></p>
 
-</body>
-</html>
+
 <%
 }
 
@@ -242,14 +178,6 @@ catch(Exception e){
   		myShepherd.closeDBTransaction();
 		%>
 		<p class="para">There is no encounter #<%=num%> in the database. Please double-check the encounter number and try again.</p>
-
-
-<form action="encounter.jsp" method="post" name="encounter"><strong>Go
-  to encounter: </strong> <input name="number" type="text" value="<%=num%>" size="20"> <input name="Go" type="submit" value="Submit" /></form>
-
-
-<p><font color="#990000"><a href="../individualSearchResults.jsp">View all individuals</a></font></p>
-
 
 <%
 }

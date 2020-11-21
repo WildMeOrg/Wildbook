@@ -2,15 +2,26 @@
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Properties" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
+<%@ page import="java.util.List, java.util.Map, org.datanucleus.api.rest.orgjson.JSONObject,java.util.Collections" %>
+<%@ page import="java.util.Properties, java.io.IOException" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="org.ecocean.FormUtilities" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%!
+// here I'll define some methods that will end up in classEditTemplate
+
+
+%>
+
+
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
 
 String langCode=ServletUtilities.getLanguageCode(request);
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
+
 
 %>
 
@@ -22,6 +33,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
   <!-- STEP2 Place inside the head section -->
   <script type="text/javascript">
     animatedcollapse.addDiv('location', 'fade=1')
+    animatedcollapse.addDiv('keywords', 'fade=1')
     animatedcollapse.addDiv('map', 'fade=1')
     animatedcollapse.addDiv('date', 'fade=1')
     animatedcollapse.addDiv('observation', 'fade=1')
@@ -52,8 +64,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
  if(!langCode.equals("en")){
  %>
 
-<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
-<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+<script src="../javascript/timepicker/datepicker-<%=langCode %>.js"></script>
+<script src="../javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
 
  <%
  }
@@ -62,8 +74,34 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 </head>
 
-<style type="text/css">v\:* {
-  behavior: url(#default#VML);  
+<style type="text/css">
+/* this .search-collapse-header .rotate-chevron logic doesn't work
+ because animatedcollapse.js is eating the click event (I think.).
+ It's unclear atm where/whether to modify animatedcollapse.js to
+ rotate this chevron.
+*/
+.search-collapse-header .rotate-chevron {
+    -moz-transition: transform 0.5s;
+    -webkit-transition: transform 0.5s;
+    transition: transform 0.5s;
+}
+.search-collapse-header .rotate-chevron.down {
+    -ms-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+</style>
+<script>
+$(".search-collapse-header a").click(function(){
+    console.log("LOG!: collapse-header is clicked!");
+    $(this).children(".rotate-chevron").toggleClass("down");
+});
+</script>
+
+
+<style type="text/css"> {
+  behavior: url(#default#VML);
    .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
 .ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
@@ -96,6 +134,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     .ui_tpicker_minute_label {margin-bottom:5px !important;}
 }
 </style>
+
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 
@@ -112,7 +151,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
     sw_long_element.value = "";
 
   }
-  
+
   $( function() {
 	  $( "#datepicker1" ).datetimepicker({
 	      changeMonth: true,
@@ -128,7 +167,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 	      showTimezone:false
 	    });
 	    $( "#datepicker1" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
-	
+
 	    $( "#datepicker2" ).datetimepicker({
 	        changeMonth: true,
 	        changeYear: true,
@@ -143,7 +182,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 	        showTimezone:false
 	      });
 	      $( "#datepicker2" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
-		
+
 	      //date added pickers
 	      $( "#dateaddedpicker1" ).datetimepicker({
 		      changeMonth: true,
@@ -159,7 +198,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 		      showTimezone:false
 		    });
 		    $( "#dateaddedpicker1" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
-		
+
 		    $( "#dateaddedpicker2" ).datetimepicker({
 		        changeMonth: true,
 		        changeYear: true,
@@ -185,16 +224,14 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("encounterSearch.jsp");
-  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();
-
+  boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
 
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
   encprops=ShepherdProperties.getProperties("encounterSearch.properties", langCode, context);
 
-  
+
 %>
 
 <div class="container maincontent">
@@ -204,26 +241,23 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <p>
 
 <h1 class="intro"><img src="../images/Crystal_Clear_action_find.png" width="50px" height="50px" align="absmiddle"> <%=encprops.getProperty("title")%>
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>searching#encounter_search" target="_blank">
-    <img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
-  </a>
 </h1>
 </p>
 <p><em><%=encprops.getProperty("instructions")%>
 </em></p>
 
-<form action="searchResults.jsp" method="get" name="search" id="search">
+<form action="searchResults.jsp" method="get" name="encounterSearch" id="search">
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
-			
+
 			if(myShepherd.isSinglePhotoVideo(request.getParameter("referenceImageName"))){
 				SinglePhotoVideo mySPV=myShepherd.getSinglePhotoVideo(request.getParameter("referenceImageName"));
 				//int slashPosition=request.getParameter("referenceImageName").indexOf("/");
 				String encNum=mySPV.getCorrespondingEncounterNumber();
 				Encounter thisEnc = myShepherd.getEncounter(encNum);
-				
-				
+
+
 		%>
 <p><strong><%=encprops.getProperty("referenceImage") %></strong></p>
 
@@ -235,10 +269,10 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <table>
 											<tr>
 												<td align="left" valign="top">
-										
+
 												<table>
 										<%
-										
+
 										//prep the params
 										if(thisEnc.getLocation()!=null){
 										%>
@@ -255,7 +289,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 										<%
 										if(thisEnc.getIndividualID()!=null){
 										%>
-											<tr><td><span class="caption"><%=encprops.getProperty("identifiedAs") %> 
+											<tr><td><span class="caption"><%=encprops.getProperty("identifiedAs") %>
 											<%
 											if(!thisEnc.getIndividualID().equals("Unassigned")){
 											%>
@@ -276,15 +310,15 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 										}
 										%>
 										<tr><td><span class="caption"><%=encprops.getProperty("encounter") %> <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
-										
 
-										
-										
+
+
+
 <%
 										if(thisEnc.getVerbatimEventDate()!=null){
 										%>
 											<tr>
-											
+
 											<td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %> <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
 										<%
 										}
@@ -302,14 +336,11 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 <tr>
   <td width="810px">
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a>
-      <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
-        color="#000000"><%=encprops.getProperty("locationFilter") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><span class="el el-lg el-chevron-down rotate-chevron"></span> <%=encprops.getProperty("locationFilter") %></a></h4>
 
 
-    
+
 <script type="text/javascript">
 //alert("Prepping map functions.");
 var center = new google.maps.LatLng(0, 0);
@@ -321,17 +352,17 @@ var overlays = [];
 
 
 var overlaysSet=false;
- 
+
 var geoXml = null;
 var geoXmlDoc = null;
 var kml = null;
 var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
- 
+
 
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	var mapZoom = 1;
+	var mapZoom = 1.5;
 	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -370,10 +401,10 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 
         //alert("Finished initialize method!");
 
-          
+
  }
-  
- 
+
+
   function setOverlays() {
 	  //alert("In setOverlays!");
 	  if(!overlaysSet){
@@ -384,50 +415,50 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 
          });
 
-		
-	
+
+
         geoXml.parse(filename);
-        
+
     	var iw = new google.maps.InfoWindow({
     		content:'<%=encprops.getProperty("loadingMapData") %>',
     		position:center});
-         
+
     	iw.open(map);
-    	
+
     	google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
 
 		  overlaysSet=true;
       }
-	    
+
    }
- 
-//not using this function right now. kept because it might be useful later  
-function useData(doc){	
+
+//not using this function right now. kept because it might be useful later
+function useData(doc){
 	geoXmlDoc = doc;
 	kml = geoXmlDoc[0];
     if (kml.markers) {
 	 for (var i = 0; i < kml.markers.length; i++) {
 	     //if(i==0){alert(kml.markers[i].getVisible());
 	 }
-   } 
+   }
 }
 
 
 
   google.maps.event.addDomListener(window, 'load', initialize);
-  
-  
+
+
     </script>
 
     <div id="map">
       <p><%=encprops.get("useTheArrow") %></p>
 
       <div id="map_canvas" style="width: 770px; height: 510px; "></div>
-      
+
       <div id="map_overlay_buttons">
- 
+
           <input type="button" value="<%=encprops.getProperty("loadMarkers") %>" onclick="setOverlays();" />&nbsp;
- 
+
 
       </div>
       <p><%=encprops.getProperty("northeastCorner") %> <%=encprops.getProperty("latitude") %> <input type="text" id="ne_lat" name="ne_lat"></input> <%=encprops.getProperty("longitude") %>
@@ -440,10 +471,9 @@ function useData(doc){
 </tr>
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.get("locationFilterText") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.get("locationFilterText") %></a></h4>
 
     <div id="location" style="display:none; ">
       <p><%=encprops.getProperty("locationInstructions") %></p>
@@ -454,43 +484,18 @@ function useData(doc){
         </em>
       </p>
 
-      <p><strong><%=encprops.getProperty("locationID")%></strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>locationID"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br>
+      <p><strong><%=encprops.getProperty("locationID")%></strong><br>
         (<em><%=encprops.getProperty("locationIDExample")%>
         </em>)</p>
 
       <%
-        List<String> locIDs = myShepherd.getAllLocationIDs();
-        int totalLocIDs = locIDs.size();
+      String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+      if(qualifier==null) {qualifier="default";}
+      else{qualifier=qualifier.replaceAll(".properties","");}
 
-        if (totalLocIDs >= 1) {
       %>
+		<%=LocationID.getHTMLSelector(true, "",qualifier,"locationCodeField","locationCodeField","") %>
 
-      <select multiple name="locationCodeField" id="locationCodeField" size="10">
-        <option value="None"></option>
-        <%
-          for (int n = 0; n < totalLocIDs; n++) {
-            String word = locIDs.get(n);
-            if (word!=null&&!"".equals(word)&&!"None".equals(word)) {
-        %>
-        <option value="<%=word%>"><%=word%></option>
-        <%
-            }
-          }
-        %>
-      </select>
-      <%
-      } else {
-      %>
-      <p><em><%=encprops.getProperty("noLocationIDs")%>
-      </em></p>
-      <%
-        }
-      %>
-      
-      
       <%
 
 if(CommonConfiguration.showProperty("showCountry",context)){
@@ -502,40 +507,25 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         </em>
 
 </td></tr><tr><td>
-  
-  <select name="country" id="country" multiple="multiple" size="5">
-  	<option value="None" selected="selected"></option>
-  <%
-  			       boolean hasMoreCountries=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMoreCountries){
-  			       	  String currentCountry = "country"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMoreCountries=false;
-  			          }
-  			          
-			       }
-			       if(stageNum==0){%>
-			    	   <em><%=encprops.getProperty("noCountries")%></em>
-			       <% 
-			       }
-			       %>
-			       
 
+  <select name="country" id="country" multiple="multiple" size="5">
+  	<option value="" selected="selected"></option>
+  		<%
+  		List<String> countries = (useCustomProperties)
+  			? CommonConfiguration.getIndexedPropertyValues("country", request)
+  			: CommonConfiguration.getIndexedPropertyValues("country", context); //passing context doesn't check for custom props
+  		for (String country: countries) {
+  			%><option value="<%=country%>"><%=country%></option><%
+	  	}
+      if(Util.isEmpty(countries)){%>
+    	  <em><%=encprops.getProperty("noCountries")%></em>
+      <%}%>
   </select>
   </td></tr></table>
 <%
 }
 %>
-      
+
     </div>
   </td>
 
@@ -544,10 +534,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("dateFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("dateFilters") %></a></h4>
   </td>
 </tr>
 
@@ -557,24 +546,21 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <div id="date" style="display:none;">
       <p><%=encprops.getProperty("dateInstructions") %></p>
       <strong><%=encprops.getProperty("sightingDates")%></strong><br/>
-      
+
 
       <table width="720">
         <tr>
-          <td width="720"> 
+          <td width="720">
 	          <%=encprops.get("start") %>&nbsp;
 	          <input  class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="datepicker1" name="datepicker1" size="20" />
 	           &nbsp;<%=encprops.get("end") %>&nbsp;
 	          <input class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="datepicker2" name="datepicker2" size="20" />
-	          
+
           </td>
         </tr>
       </table>
 
-      <p><strong><%=encprops.getProperty("verbatimEventDate")%></strong> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>verbatimEventDate"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span></p>
+      <p><strong><%=encprops.getProperty("verbatimEventDate")%></strong> </p>
 
       <%
         List<String> vbds = myShepherd.getAllVerbatimEventDates();
@@ -616,18 +602,18 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         <p><strong><%= encprops.getProperty("releaseDate") %></strong></p>
         <p>From: <input name="releaseDateFrom"/> to <input name="releaseDateTo"/> <%=encprops.getProperty("releaseDateFormat") %></p>
       </c:if>
-   
-     
+
+
       <p><strong><%=encprops.getProperty("addedsightingDates")%></strong></p>
 
        <table width="720">
         <tr>
-          <td width="720"> 
+          <td width="720">
 	          <%=encprops.get("start") %>&nbsp;
 	          <input  class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="dateaddedpicker1" name="dateaddedpicker1" size="20" />
 	           &nbsp;<%=encprops.get("end") %>&nbsp;
 	          <input class="form-control" type="text" style="position: relative; z-index: 101;width: 200px;" id="dateaddedpicker2" name="dateaddedpicker2" size="20" />
-	          
+
           </td>
         </tr>
       </table>
@@ -638,10 +624,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("observationFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("observationFilters") %></a></h4>
   </td>
 </tr>
 
@@ -675,7 +660,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         <td>
          <strong><%=encprops.getProperty("genusSpecies")%></strong>: <select name="genusField" id="genusField">
 		<option value=""></option>
-				       
+
 				       <%
 				       boolean hasMoreTax=true;
 				       int taxNum=0;
@@ -683,7 +668,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				       	  String currentGenuSpecies = "genusSpecies"+taxNum;
 				       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 				       	  	%>
-				       	  	 
+
 				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context)%></option>
 				       	  	<%
 				       		taxNum++;
@@ -691,11 +676,11 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				          else{
 				             hasMoreTax=false;
 				          }
-				          
+
 				       }
 				       %>
-				       
-				       
+
+
 			      </select>
         </td>
 	</tr>
@@ -713,9 +698,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
           </label>
           </td>
         </tr>
-        
+
         <!-- Begin search code for Observations -->
-        
+
 		<tr>
 			<td>
 				<br/>
@@ -724,46 +709,43 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 					<label><%=encprops.getProperty("obSearchHeader")%></label>
 				</p>
         </br>
-        
+
 				<p>
 					<input name="observationKey1" type="text" id="observationKey1" value="" placeholder="<%=encprops.getProperty("observationName") %>">
 					<input name="observationValue1" type="text" id="observationValue1" value="" placeholder="<%=encprops.getProperty("observationValue") %>">
 				</p>
-      
+
 				<div id="additionalObsFields"></div>
         </br>
 				<input name="numSearchedObs" type="hidden" id="numSearchedObs" value="1" >
-				<input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=encprops.getProperty("addAnotherOb")%>" class="btn btn-sm" />				
+				<input name="AddAnotherObBtn" type="button" id="addAnotherObBtn" value="<%=encprops.getProperty("addAnotherOb")%>" class="btn btn-sm" />
 			</td>
 			<br/>
-		</tr>	
+		</tr>
 		<script>
 			$(document).ready(function(){
 				var num = 2;
 				$('#addAnotherObBtn').click(function(){
-					var obField = '<p><input name="observationKey'+num+'" type="text" id="observationKey'+num+'" value="" placeholder="Observation Name"><input name="observationValue'+num+'" type="text" id="observationValue'+num+'" value="" placeholder="Observation Value"></p>';	
-					$('#additionalObsFields').append(obField);	
-					$('#numSearchedObs').val(num); 
-					num++;		
+					var obField = '<p><input name="observationKey'+num+'" type="text" id="observationKey'+num+'" value="" placeholder="Observation Name"><input name="observationValue'+num+'" type="text" id="observationValue'+num+'" value="" placeholder="Observation Value"></p>';
+					$('#additionalObsFields').append(obField);
+					$('#numSearchedObs').val(num);
+					num++;
 				});
 			});
 		</script>
 		<!-- End Search Code For Observations -->
-		
+
         <tr>
           <td valign="top"><strong><%=encprops.getProperty("behavior")%>:</strong>
-            <em> <span class="para">
-								<a href="<%=CommonConfiguration.getWikiLocation(context)%>behavior" target="_blank">
-                  <img src="../images/information_icon_svg.gif" alt="Help" border="0"
-                       align="absmiddle"/>
-                </a>
-							</span>
+            <em>
             </em><br/>
               <%
-				List<String> behavs = myShepherd.getAllBehaviors();
+				List<String> behavs = (useCustomProperties)
+					? CommonConfiguration.getIndexedPropertyValues("behavior", request)
+					: myShepherd.getAllBehaviors();
 				int totalBehavs=behavs.size();
 
-				
+
 				if(totalBehavs>1){
 				%>
 
@@ -797,6 +779,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       </p>
   </td>
 </tr>
+
+<!-- groupRole categorical: using ClassEditTemplate -->
+<%
+ClassEditTemplate.printStringFieldSearchRowCategories("groupRole",out,encprops);
+%>
+
 <%
 
 if(CommonConfiguration.showProperty("showLifestage",context)){
@@ -804,18 +792,18 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 <tr valign="top">
   <td><strong><%=encprops.getProperty("lifeStage")%>:</strong>
-  
+
   <select name="lifeStageField" id="lifeStageField">
   	<option value="None" selected="selected"></option>
   <%
   			       boolean hasMoreStages=true;
   			       int stageNum=0;
-  			       
+
   			       while(hasMoreStages){
   			       	  String currentLifeStage = "lifeStage"+stageNum;
   			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
   			       	  	%>
-  			       	  	 
+
   			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
   			       	  	<%
   			       		stageNum++;
@@ -823,12 +811,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   			          else{
   			        	hasMoreStages=false;
   			          }
-  			          
+
 			       }
 			       if(stageNum==0){%>
 			    	   <p><em><%=encprops.getProperty("noStages")%></em></p>
 			       <% }
-			       
+
  %>
   </select></td>
 </tr>
@@ -841,18 +829,18 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 %>
 <tr valign="top">
   <td><strong><%=encprops.getProperty("patterningCode")%></strong>
-  
+
   <select name="patterningCodeField" id="patterningCodeField">
   	<option value="None" selected="selected"></option>
   <%
   			       boolean hasMorePatterningCodes=true;
   			       int stageNum=0;
-  			       
+
   			       while(hasMorePatterningCodes){
   			       	  String currentLifeStage = "patterningCode"+stageNum;
   			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
   			       	  	%>
-  			       	  	 
+
   			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
   			       	  	<%
   			       		stageNum++;
@@ -860,12 +848,12 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   			          else{
   			        	hasMorePatterningCodes=false;
   			          }
-  			          
+
 			       }
 			       if(stageNum==0){%>
 			    	   <p><em><%=encprops.getProperty("noPatterningCodes")%></em></p>
 			       <% }
-			       
+
  %>
   </select></td>
 </tr>
@@ -896,62 +884,6 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </c:forEach>
 <tr><td></td></tr>
 </c:if>
-<tr><td>
-      <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
-            <label> 
-            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
-            </label>
-      </p>
-      </td></tr>
-<%
-  int totalKeywords = myShepherd.getNumKeywords();
-%>
-<tr>
-  <td valign="top"><%=encprops.getProperty("hasKeywordPhotos")%><br/>
-    <%
-
-      if (totalKeywords > 0) {
-    %>
-
-    <select multiple size="10" name="keyword" id="keyword" >
-      <option value="None"></option>
-      <%
-
-
-        Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
-        for (int n = 0; n < totalKeywords; n++) {
-          Keyword word = keys.next();
-      %>
-      <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
-      </option>
-      <%
-        }
-
-      %>
-
-    </select>
-    </td>
-    </tr>
-           <tr><td>
-      <p>
-            <label> 
-            	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
-            </label> <%=encprops.getProperty("orPhotoKeywords")%> 
-      </p>
-      </td></tr>
-    <%
-    } else {
-    %>
-
-    <p><em><%=encprops.getProperty("noKeywords")%>
-    </em>
-</td>
-</tr>
-        <%
-					
-				}
-				%>
-  
 
 
 </table>
@@ -960,20 +892,228 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </td>
 </tr>
 
+
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("identityFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('keywords')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("imageLabelFilters") %></a></h4>
+
+    <div id="keywords" style="display:none; ">
+    	<table id="labeled-kw-table">
+    		<tr>
+	    		<td>
+			      <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
+			            <label>
+			            	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
+			            </label>
+			      </p>
+			    </td>
+		      </tr>
+				<tr><td><strong><%=encprops.getProperty("imageLabelFilters") %></strong></td></tr>
+				<tr><td colspan="3"><p><em>Filter by Labeled Keywords on an Encounter's photos. Select labels and (optionally) values for Labeled Keywords below.</em>
+					<ul>
+						<li>If you select a label and no values, the search will include all possible values for that label.</li>
+						<li>If you select multiple values, the search will include results with that label and <em>any</em> of the selected values: the values are separated by OR in our query.</li>
+						<li>If you select multiple labels, the search will include results with <em>all</em> of the label queries: the labels are separated by AND in our query.</li>
+					</ul>
+				</p></tr>
+				<tr><td>Encounter has keyword with label: </td><td id="lkw-value-instruction" style="display:none;">and value(s):</td></tr>
+				<% int kwNo=0; %>
+					<tr valign="top" class="labeled-kw-container labeled-kw <%=kwNo%>" data-lkw-no="<%=kwNo%>">
+					  <td class="label">
+						  <select name="label0" id="label0" onChange="return selectKeywordLabel(this)">
+						  	<option value="None" selected="selected"></option>
+						  	<%
+								Map<String, List<String>> labelsToValues = LabeledKeyword.labelUIMap(request);
+								JSONObject labeledKwsJson = new JSONObject(labelsToValues);
+								for(String label: labelsToValues.keySet()) {
+								  %>
+						     	<option value="<%=label%>"><%=label%></option>
+						     	<%
+								}
+						 	%>
+						  </select>
+						</td>
+						<td class="values lkw-values <%=kwNo%>"></td>
+						<td>
+							<input type="button" class="new-lkw <%=kwNo%>" value="Add Keyword" onclick="addLabeledKeyword(this);" style="display:none">
+						</td>
+					</tr>
+
+		    <%
+          int numStandardKeywords = myShepherd.getAllKeywordsList().size();
+          int numLabeledKeywords = myShepherd.getAllLabeledKeywords().size();
+        %>
+        <tr><td><strong><%=encprops.getProperty("keywordFilters") %></strong></td></tr>
+        <tr>
+          <td><p><%=encprops.getProperty("hasKeywordPhotos")%>
+          </p>
+            <%
+              if (numStandardKeywords> 0) {
+            %>
+
+            <select multiple name="keyword" id="keyword" size="10">
+              <option value="None"></option>
+              <%
+                if (numStandardKeywords>0&&numLabeledKeywords>0) {
+                  %>
+                  <option disabled><strong><em><%=encprops.getProperty("standard")%></em></strong></option>
+                  <%
+                }
+
+                Iterator<Keyword> keys = myShepherd.getAllKeywords();
+                while (keys.hasNext()) {
+                  Keyword word = keys.next();
+              %>
+              <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
+              </option>
+              <%
+            }
+            System.out.println("got here to end of keyword section....");
+            System.out.println("prior to closing kw query line... ");
+            //kwQuery.closeAll();
+
+            if (numStandardKeywords>0&&numLabeledKeywords>0) {
+              %>
+              <option disabled><em><i><%=encprops.getProperty("labeled")%></i></em></option>
+              <%
+            }
+
+            // second section here for the labeled keywords
+            if (numLabeledKeywords>0) {
+              List<LabeledKeyword> lkwList = myShepherd.getAllLabeledKeywords();
+
+              for (LabeledKeyword lkw : lkwList) {
+
+                %>
+                <option value="<%=lkw.getIndexname()%>"><%=lkw.getReadableName()%>
+                </option>
+                <%
+              }
+            }
+            %>
+            </select>
+
+            </td>
+        </tr>
+
+            <tr><td>
+      <p>
+            <label>
+            	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
+            </label> <strong><%=encprops.getProperty("orPhotoKeywords")%> </strong>
+      </p>
+      </td></tr>
+            <%
+            // show if no found keywords
+            } else {
+            %>
+
+            <p><em><%=encprops.getProperty("noKeywords")%>
+            </em></p></td>
+        </tr>
+
+            <%
+              }
+            %>
+
+
+			</table>
+		</div>
+	</td>
+</tr>
+
+<style>
+	tr.labeled-kw td select {
+		color: black;
+	}
+
+</style>
+
+<script>
+console.log("reaching this block????");
+var labelsToValues = <%=labeledKwsJson%>;
+
+function selectKeywordLabel(el) {
+  var label = $(el).val();
+  var number = $(el).closest('tr.labeled-kw-container').data("lkw-no");
+  console.log("Select keyword label: label %s, number %s",label,number);
+  showValueOptions(number, label);
+  $('input.new-lkw').hide();
+  $('input.new-lkw.'+number).show();
+	$("#lkw-value-instruction").show();
+
+}
+function showValueOptions(lkwNumber, label) {
+	var row = $('tr.labeled-kw.'+lkwNumber);
+	console.log("showValueOptions got row "+row);
+
+	var values = labelsToValues[label];
+	console.log("showValueOptions got options "+JSON.stringify(values));
+
+	var valueName = "label"+lkwNumber+".values";
+	var valueSelector = '<select multiple name="'+valueName+'" id="'+valueName+'" >';
+	for (i in values) {
+		var value = values[i];
+		console.log("value %s is %s",i,value);
+		valueSelector += '<option value="'+value+'">'+value+'</option>';
+	}
+	valueSelector += '</select>'
+
+	console.log("valueSelector = "+valueSelector);
+	$('td.lkw-values.'+lkwNumber).html(valueSelector);
+
+	//$('tr.labeled-kw').append(valueSelector);
+
+}
+
+function addLabeledKeyword(el) {
+   console.log("in addLabeledKeyword method...");
+	 var number = $(el).closest('tr.labeled-kw-container').data("lkw-no");
+	 var nextNum = number+1;
+	 // now we need to add the entire tr for a labeled keyword
+
+	 var labelSelector = "<select name='label"+nextNum+"' id='label"+nextNum+"' onChange='return selectKeywordLabel(this)'>";
+	 labelSelector += "<option value='None' selected='selected'></option>";
+	 for (label in labelsToValues) {
+	 	labelSelector += "<option value='"+label+"'>"+label+"</option>";
+	 }
+	 labelSelector += "</select>";
+
+	var newElem = $([
+	  "<tr valign='top' class='labeled-kw-container labeled-kw "+nextNum+"' data-lkw-no='"+nextNum+"'>",
+	  "  <td class='label'>",
+	  "    "+labelSelector,
+	  "  </td>",
+	  "  <td class='values lkw-values "+nextNum+"'></td>",
+	  "  <td>",
+	  "    <input type='button' class='new-lkw "+nextNum+"' value='Add Keyword' onclick='addLabeledKeyword(this);' style='display:none'>",
+	  "  </td>",
+	  "</tr>"
+	].join("\n"));
+	console.log("constructed newElem %o", newElem);
+	$('table#labeled-kw-table').append(newElem);
+
+
+}
+
+
+</script>
+
+<tr>
+  <td>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("identityFilters") %></a></h4>
   </td>
 </tr>
 <tr>
   <td>
     <div id="identity" style="display:none; ">
       <p><%=encprops.getProperty("identityInstructions") %></p>
-      <input name="resightOnly" type="checkbox" id="resightOnly" value="true" /> <%=encprops.getProperty("include")%> 
-   
+      <input name="resightOnly" type="checkbox" id="resightOnly" value="true" /> <%=encprops.getProperty("include")%>
+
    <select name="numResights" id="numResights">
       <option value="1" selected>1</option>
       <option value="2">2</option>
@@ -996,27 +1136,18 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 
       <p><strong><%=encprops.getProperty("alternateID")%>:</strong> <em> <input
         name="alternateIDField" type="text" id="alternateIDField" size="10"
-        maxlength="35"> <span class="para"><a
-        href="<%=CommonConfiguration.getWikiLocation(context)%>alternateID"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" width="15" height="15" border="0"
-                             align="absmiddle"/></a></span>
+        maxlength="35">
         <br></em></p>
-        
-        
-            
+
+
+
             <p><strong><%=encprops.getProperty("individualID")%></strong> <em> <input
               name="individualID" type="text" id="individualID" size="25"
-              maxlength="100"> <span class="para"><a
-              href="<%=CommonConfiguration.getWikiLocation(context)%>individualID"
-              target="_blank"><img src="../images/information_icon_svg.gif"
-                                   alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
-              <br />
-              
-              <%=encprops.getProperty("multipleIndividualID")%></em></p>
-        
-      
-        
+              maxlength="100">
+        	</em></p>
+
+
+
     </div>
   </td>
 </tr>
@@ -1029,10 +1160,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 <c:if test="${showMetalTags or showAcousticTag or showSatelliteTag}">
  <tr>
      <td>
-     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-       href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
-       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-       <font color="#000000"><%=encprops.getProperty("tagsTitle") %></font></a></h4>
+     <h4 class="intro search-collapse-header"><a
+       href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+       <%=encprops.getProperty("tagsTitle") %></a></h4>
      </td>
  </tr>
  <tr>
@@ -1040,8 +1170,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
         <div id="tags" style="display:none;">
         <p><%=encprops.getProperty("tagsInstructions") %></p>
         <c:if test="${showMetalTags}">
-            <% 
-              pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); 
+            <%
+              pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context));
             %>
             <h5><%=encprops.getProperty("metalTags") %></h5>
             <table>
@@ -1084,29 +1214,25 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 
 <tr>
   <td>
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("biologicalSamples") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("biologicalSamples") %></a></h4>
   </td>
 </tr>
 <tr>
   <td>
     <div id="genetics" style="display:none; ">
       <p><%=encprops.getProperty("biologicalInstructions") %></p>
-      
+
       <p><strong><%=encprops.getProperty("hasTissueSample")%>: </strong>
-            <label> 
+            <label>
             	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
             </label>
       </p>
       <p><strong><%=encprops.getProperty("tissueSampleID")%>:</strong>
-        <input name="tissueSampleID" type="text" size="50">    
+        <input name="tissueSampleID" type="text" size="50">
       </p>
-      <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para">
-      <a href="<%=CommonConfiguration.getWikiLocation(context)%>haplotype"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+      <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para"></span> <br />
                              (<em><%=encprops.getProperty("locationIDExample")%></em>)
    </p>
 
@@ -1139,12 +1265,10 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       <%
         }
       %>
-      
-      
+
+
     <p><strong><%=encprops.getProperty("geneticSex")%>:</strong> <span class="para">
-      <a href="<%=CommonConfiguration.getWikiLocation(context)%>geneticSex"
-        target="_blank"><img src="../images/information_icon_svg.gif"
-                             alt="Help" border="0" align="absmiddle"/></a></span> <br />
+      </span> <br />
                              (<em><%=encprops.getProperty("locationIDExample")%></em>)
    </p>
 
@@ -1177,8 +1301,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       <%
         }
       %>
-      
-      
+
+
       <%
     pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode,context));
 %>
@@ -1202,20 +1326,17 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </c:forEach>
 <tr><td></td></tr>
 </table>
-    
-      <p><strong><%=encprops.getProperty("msmarker")%>:</strong> 
+
+      <p><strong><%=encprops.getProperty("msmarker")%>:</strong>
       <span class="para">
-      	<a href="<%=CommonConfiguration.getWikiLocation(context)%>loci" target="_blank">
-      		<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
-      	</a>
-      </span> 
+      </span>
    </p>
 <p>
 
       <%
         List<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
-		
+
         if (totalLoci >= 1) {
 			%>
             <table border="0">
@@ -1225,16 +1346,16 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
             String word = loci.get(n);
             if (!word.equals("")) {
         	%>
-        	
+
         	<tr><td width="100px"><input name="<%=word%>" type="checkbox" value="<%=word%>"><%=word%></input></td><td><%=encprops.getProperty("allele")%> 1: <input name="<%=word%>_alleleValue0" type="text" size="5" maxlength="10" />&nbsp;&nbsp;</td><td><%=encprops.getProperty("allele")%> 2: <input name="<%=word%>_alleleValue1" type="text" size="5" maxlength="10" /></td></tr>
-        		
+
         	<%
             }
           }
 %>
 <tr><td colspan="3">
 
-<%=encprops.getProperty("alleleRelaxValue")%>: +/- 
+<%=encprops.getProperty("alleleRelaxValue")%>: +/-
 <%
 int alleleRelaxMaxValue=0;
 try{
@@ -1246,7 +1367,7 @@ catch(Exception d){}
 <%
 for(int k=0;k<alleleRelaxMaxValue;k++){
 %>
-	<option value="<%=k%>"><%=k%></option>	
+	<option value="<%=k%>"><%=k%></option>
 <%
 }
 %>
@@ -1254,7 +1375,7 @@ for(int k=0;k<alleleRelaxMaxValue;k++){
 </td></tr>
 </table>
 <%
-      } 
+      }
 else {
       %>
       <p><em><%=encprops.getProperty("noLoci")%>
@@ -1262,7 +1383,7 @@ else {
       <%
         }
       %>
-   
+
 </p>
 
 
@@ -1276,10 +1397,9 @@ else {
 <tr>
   <td>
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("metadataFilters") %></font></a></h4>
+    <h4 class="intro search-collapse-header"><a
+      href="javascript:animatedcollapse.toggle('metadata')" style="text-decoration:none"><span class="el el-chevron-down rotate-chevron"></span>
+      <%=encprops.getProperty("metadataFilters") %></a></h4>
   </td>
 </tr>
 
@@ -1298,7 +1418,7 @@ else {
      		<p><select size="<%=(numProps+1) %>" multiple="multiple" name="state" id="state">
      		<option value="None"></option>
      		<%
-     		
+
      		for(int y=0;y<numProps;y++){
      		%>
      			<option value="<%=values.get(y) %>"><%=values.get(y) %></option>
@@ -1309,15 +1429,19 @@ else {
 			</p>
 		</td>
         </tr>
-		
-		<tr>
-  <td><br /><strong><%=encprops.getProperty("submitterName")%></strong>
+
+<tr>
+  <td><br /><strong><%=encprops.getProperty("submitterName")%></strong><br />
     <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
     </em>
   </td>
 </tr>
 
-
+<% FormUtilities.printStringFieldSearchRow("submitterProject", out, encprops); %>
+<%
+  FormUtilities.setUpOrgDropdown("organizationId", false, encprops, out, request, myShepherd);
+  FormUtilities.setUpProjectDropdown(false, 6, "Project Name", "projectId", encprops, out, request, myShepherd);
+%>
 
 <tr>
   <td><br /><strong><%=encprops.getProperty("additionalComments")%></strong>
@@ -1327,40 +1451,30 @@ else {
 </tr>
 
 <tr>
-<td>
-
-      <%
-      	Shepherd inShepherd=new Shepherd("context0");
-      inShepherd.setAction("encounterSearch.jsp2");
-      myShepherd.beginDBTransaction();
-        List<User> users = inShepherd.getUsersWithUsername("username ascending");
-        int numUsers = users.size();
-
-      %>
-	<br /><strong><%=encprops.getProperty("username")%></strong><br />
-      <select multiple size="5" name="username" id="username">
-        <option value="None"></option>
+  <td>
         <%
-          for (int n = 0; n < numUsers; n++) {
-            String username = users.get(n).getUsername();
-            String userFullName=username;
-            if(users.get(n).getFullName()!=null){
-            	userFullName=users.get(n).getFullName();
-            }
-            
-        	%>
-        	<option value="<%=username%>"><%=username%></option>
-        	<%
-          }
+
+          //List<String> users = myShepherd.getAllUsernames();
+        	List<String> users = myShepherd.getAllNativeUsernames();
+          users.remove(null);
+          Collections.sort(users,String.CASE_INSENSITIVE_ORDER);
+          int numUsers = users.size();
+
         %>
-      </select>
-<%
-inShepherd.rollbackDBTransaction();
-inShepherd.closeDBTransaction();
+  	<br /><strong><%=encprops.getProperty("username")%></strong><br />
+        <select multiple size="5" name="username" id="username">
+          <option value="None"></option>
+          <%
+            for (int n = 0; n < numUsers; n++) {
+              String username = users.get(n);
 
-%>
-
-</td>
+          	%>
+          	<option value="<%=username%>"><%=username%></option>
+          	<%
+            }
+          %>
+        </select>
+  </td>
 </tr>
     </table>
     </div>
@@ -1390,7 +1504,7 @@ inShepherd.closeDBTransaction();
 </table>
 <br />
 </div>
+
+<script type="text/javascript" src="../javascript/formNullRemover.js"></script>
+
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
-

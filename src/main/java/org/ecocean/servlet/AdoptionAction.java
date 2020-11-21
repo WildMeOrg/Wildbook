@@ -64,11 +64,11 @@ public class AdoptionAction extends HttpServlet {
   private final String UPLOAD_DIRECTORY = "/tmp";
 
   //little helper function for pulling values as strings even if null (not set via form)
-  private String getVal(HashMap<String,String> fv, String key) {
-    if (fv.get(key) == null) {
+  private String getVal(HashMap<String,String> formValues, String key) {
+    if (formValues.get(key) == null) {
       return "";
     }
-    return fv.get(key);
+    return formValues.get(key);
   }
 
 
@@ -171,7 +171,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
 
         //set form value hashmap
-        HashMap<String,String> fv = new HashMap<String,String>();
+        HashMap<String,String> formValues = new HashMap<String,String>();
 
 
 
@@ -195,7 +195,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
             for(FileItem item : multiparts){
               if (item.isFormField()) {  //plain field
-                fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
+                formValues.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
     //System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString("UTF-8") + ")");
 
               } else {  //file
@@ -238,10 +238,10 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
         //if (fileSuccess) {
 
-          if ((fv.get("number") != null) && !fv.get("number").equals("")) {
+          if ((formValues.get("number") != null) && !formValues.get("number").equals("")) {
 
             //handle adoption number processing
-            number = fv.get("number");
+            number = formValues.get("number");
             if ((number != null) && (!number.equals(""))) {
               isEdit = true;
               System.out.println("Ping! Hit adoption number recieved by action servlet.");
@@ -252,56 +252,56 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             //end adoption number/id processing
           }
 
-            if ((fv.get("adopterName") != null) && !fv.get("adopterName").equals("")) {
-              adopterName = fv.get("adopterName").trim();
+            if ((formValues.get("adopterName") != null) && !formValues.get("adopterName").equals("")) {
+              adopterName = formValues.get("adopterName").trim();
             }
-            if ((fv.get("adopterAddress") != null) && !fv.get("adopterAddress").equals("")) {
-              adopterAddress = fv.get("adopterAddress").trim();
+            if ((formValues.get("adopterAddress") != null) && !formValues.get("adopterAddress").equals("")) {
+              adopterAddress = formValues.get("adopterAddress").trim();
             }
-            if ((fv.get("adopterEmail") != null) && !fv.get("adopterEmail").equals("")) {
-              adopterEmail = fv.get("adopterEmail").trim();
-            }
-
-            if ((fv.get("adoptionStartDate") != null) && !fv.get("adoptionStartDate").equals("")) {
-              adoptionStartDate = fv.get("adoptionStartDate").trim();
+            if ((formValues.get("adopterEmail") != null) && !formValues.get("adopterEmail").equals("")) {
+              adopterEmail = formValues.get("adopterEmail").trim();
             }
 
-            if ((fv.get("adoptionEndDate") != null) && !fv.get("adoptionEndDate").equals("")) {
-              adoptionEndDate = fv.get("adoptionEndDate").trim();
+            if ((formValues.get("adoptionStartDate") != null) && !formValues.get("adoptionStartDate").equals("")) {
+              adoptionStartDate = formValues.get("adoptionStartDate").trim();
             }
 
-            if ((fv.get("adopterQuote") != null) && !fv.get("adopterQuote").equals("")) {
-              adopterQuote = fv.get("adopterQuote").trim();
+            if ((formValues.get("adoptionEndDate") != null) && !formValues.get("adoptionEndDate").equals("")) {
+              adoptionEndDate = formValues.get("adoptionEndDate").trim();
             }
 
-            if ((fv.get("adoptionManager") != null) && !fv.get("adoptionManager").equals("")) {
-              adoptionManager = fv.get("adoptionManager").trim();
+            if ((formValues.get("adopterQuote") != null) && !formValues.get("adopterQuote").equals("")) {
+              adopterQuote = formValues.get("adopterQuote").trim();
             }
 
-            if ((fv.get("shark") != null) && !fv.get("shark").equals("")) {
-              shark = fv.get("shark").trim();
+            if ((formValues.get("adoptionManager") != null) && !formValues.get("adoptionManager").equals("")) {
+              adoptionManager = formValues.get("adoptionManager").trim();
             }
 
-            if ((fv.get("encounter") != null) && !fv.get("encounter").equals("")) {
-              encounter = fv.get("encounter").trim();
+            if ((formValues.get("shark") != null) && !formValues.get("shark").equals("")) {
+              shark = formValues.get("shark").trim();
             }
 
-            if ((fv.get("notes") != null) && !fv.get("notes").equals("")) {
-              notes = fv.get("notes").trim();
+            if ((formValues.get("encounter") != null) && !formValues.get("encounter").equals("")) {
+              encounter = formValues.get("encounter").trim();
             }
 
-            if ((fv.get("adoptionType") != null) && !fv.get("adoptionType").equals("")) {
-              adoptionType = fv.get("adoptionType").trim();
+            if ((formValues.get("notes") != null) && !formValues.get("notes").equals("")) {
+              notes = formValues.get("notes").trim();
             }
 
-            if ((fv.get("text") != null) && !fv.get("text").equals("")) {
-              text = fv.get("text").trim();
+            if ((formValues.get("adoptionType") != null) && !formValues.get("adoptionType").equals("")) {
+              adoptionType = formValues.get("adoptionType").trim();
+            }
+
+            if ((formValues.get("text") != null) && !formValues.get("text").equals("")) {
+              text = formValues.get("text").trim();
             }
 
             // New nickname to save to marked individual object.
 
-            if ((fv.get("newNickName") != null) && !fv.get("newNickName").equals("")) {
-              newNickName = fv.get("newNickName").trim();
+            if ((formValues.get("newNickName") != null) && !formValues.get("newNickName").equals("")) {
+              newNickName = formValues.get("newNickName").trim();
             }
 
 /*
@@ -317,8 +317,8 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       }
       */
 
-            if ((fv.get("g-recaptcha-response") != null) && !fv.get("g-recaptcha-response").equals("")) {
-              gresp = fv.get("g-recaptcha-response").trim();
+            if ((formValues.get("g-recaptcha-response") != null) && !formValues.get("g-recaptcha-response").equals("")) {
+              gresp = formValues.get("g-recaptcha-response").trim();
             }
 
             if (isEdit) {

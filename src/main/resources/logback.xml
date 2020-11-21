@@ -57,6 +57,19 @@
       </layout>
     </encoder>
   </appender>
+  
+    <appender name="EMAILS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>/data/wildbook_data_dir/logs/email.htm</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <fileNamePattern>/data/wildbook_data_dir/logs/%d{yyyy-MM-}email.htm</fileNamePattern>
+      </rollingPolicy>
+    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+      <!-- Assigned PatternLayoutEncoder by default -->
+      <layout class="ch.qos.logback.classic.html.HTMLLayout">
+        <pattern>${htmlPattern}</pattern>
+      </layout>
+    </encoder>
+  </appender>
 
 
   <root level="OFF"/>
@@ -84,5 +97,11 @@
   <logger name="org.apache.jsp.logout_jsp" level="INFO">
     <appender-ref ref="USERFILE"/>
   </logger>
+  
+<logger name="org.ecocean.NotificationMailer" level="INFO">
+    <appender-ref ref="EMAILS"/>
+  </logger>
+  
+  
 
 </configuration>

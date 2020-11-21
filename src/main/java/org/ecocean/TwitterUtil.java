@@ -6,13 +6,19 @@
 package org.ecocean;
 
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.Properties;
+
 import org.ecocean.servlet.ServletUtilities;
 import org.joda.time.LocalDateTime;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
+
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import com.google.gson.Gson;
 
@@ -24,10 +30,10 @@ import org.ecocean.media.MediaAssetMetadata;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.IBEISIA;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 */
+
 
 /*
 import java.net.URL;
@@ -131,6 +137,17 @@ public class TwitterUtil {
         return toStatus(ma.getMetadata().getData().getJSONObject("twitterRawJson"));
     }
 
+    public static List<String> getHashtags(Status tweet) {
+        List<String> rtn = new ArrayList<String>();
+        if (tweet == null) return rtn;
+        HashtagEntity[] ht = tweet.getHashtagEntities();
+        if ((ht == null) || (ht.length < 1)) return rtn;
+        for (int i = 0 ; i < ht.length ; i++) {
+            rtn.add(ht[i].getText());
+        }
+        return rtn;
+    }
+
     public static String getProperty(String context, String key) {
         if (Props.get(context) == null) Props.put(context, ShepherdProperties.getProperties("twitter.properties", "", context));
         if (Props.get(context) == null) throw new RuntimeException("could not load twitter.properties for " + context);  //ouch
@@ -163,7 +180,8 @@ public class TwitterUtil {
     .setOAuthConsumerSecret(consumerSecret)
     .setOAuthAccessToken(accessToken)
     .setJSONStoreEnabled(true)
-    .setOAuthAccessTokenSecret(accessTokenSecret);
+    .setOAuthAccessTokenSecret(accessTokenSecret)
+    .setTweetModeExtended(true);
     return new TwitterFactory(cb.build());
   }
 
@@ -172,7 +190,16 @@ public class TwitterUtil {
     //  queueing will take into account rates etc.
     public static Status sendTweet(String tweetText) throws TwitterException {
         if (tfactory == null) throw new TwitterException("TwitterUtil has not been initialized");
+        if (tweetText == null) throw new TwitterException("TwitterUtil.sendTweet() got null tweetText");
         return tfactory.getInstance().updateStatus(tweetText);
+    }
+    //send a tweet *in reply to* another  (if replyToId is null (or negative or zero!), it basically reverts to non-reply)
+    public static Status sendTweet(String tweetText, Long replyToId) throws TwitterException {
+        if (tfactory == null) throw new TwitterException("TwitterUtil has not been initialized");
+        if (tweetText == null) throw new TwitterException("TwitterUtil.sendTweet() got null tweetText");
+        StatusUpdate stat = new StatusUpdate(tweetText);
+        if ((replyToId != null) && (replyToId > 0)) stat.setInReplyToStatusId(replyToId);
+        return tfactory.getInstance().updateStatus(stat);
     }
 
     //given an "entity" (child) MediaAsset of a tweet, will return the parent tweet MediaAsset
@@ -183,6 +210,18 @@ public class TwitterUtil {
         if (parentMA.getStore() instanceof TwitterAssetStore) return parentMA;
         return null;
     }
+    
+    public static String getText(Status tweet) {
+      if (tweet == null) return null;
+      String text = tweet.getText();
+      return text;
+  }
+   
+    public static Date getPostingDate(Status tweet) {
+      if (tweet == null) return null;
+      java.util.Date date = tweet.getCreatedAt();
+      return date;
+  }
 
 
 }

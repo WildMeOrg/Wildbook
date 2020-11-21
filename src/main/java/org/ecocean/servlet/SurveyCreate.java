@@ -131,9 +131,9 @@ public class SurveyCreate extends HttpServlet {
           SurveyTrack st = null;
           try {
             myShepherd.beginDBTransaction();
-            st = createSurveyTrack(request, sv);
+            st = createSurveyTrack(request);
             myShepherd.commitDBTransaction();
-            st.setParentSurveyID(sv.getID());
+            //st.setParentSurveyID(sv.getID());
             String vessel = null;
             if (request.getParameter("vessel")!=null) {
               vessel = request.getParameter("vessel");
@@ -192,8 +192,8 @@ public class SurveyCreate extends HttpServlet {
     return null;
   }
 
-  private SurveyTrack createSurveyTrack(HttpServletRequest request, Survey sv) {
-    SurveyTrack st = new SurveyTrack(sv.getID());  
+  private SurveyTrack createSurveyTrack(HttpServletRequest request) {
+    SurveyTrack st = new SurveyTrack();
     if (request.getParameter("vessel")!=null) {
       String vessel = null;
       vessel = request.getParameter("vessel");
@@ -221,7 +221,8 @@ public class SurveyCreate extends HttpServlet {
   }
   
   private Path createPath(HttpServletRequest request, SurveyTrack st) {
-    Path pth = new Path(st);
+    Path pth = new Path();
+    st.setPath(pth);
     return pth;
   }
   

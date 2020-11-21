@@ -1,0 +1,39 @@
+version: '3'
+services:
+  postgresql:
+    image: "postgres:9.6"
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=wildbook
+      - POSTGRES_PASSWORD=wildbook
+      - POSTGRES_DB=wildbook
+    volumes:
+      - ./wildbook_db_postgresql:/var/lib/postgresql/data
+    restart: always
+
+  wildbook:
+    image: "wildme/wildbook:latest"
+    ports:
+      - "8080:8080"
+      - "8009:8009"
+    volumes:
+      - ./wildbook_tomcat_data_dir:/data/wildbook_data_dir/
+    environment:
+      - DB_CONNECTION_URL=jdbc:postgresql://postgres:5432/wildbook
+    restart: always
+    links:
+      - postgresql
+    depends_on:
+      - postgresql
+
+  nginx:
+    image: "wildme/nginx:latest"
+    ports:
+      - "80:80"
+    restart: always
+    links:
+      - wildbook
+    depends_on:
+      - wildbook
+      
