@@ -31,8 +31,18 @@
                {"name": "Anacapa Island- Landing Cove", "id": "Anacapa Island- Landing Cove"},
     
                {"name": "Anacapa Island- Lighthouse Reef", "id": "Anacapa Island- Lighthouse Reef"},
+               
+               {"name": "Anacapa Island- Northeast Side", "id": "Anacapa Island- Northeast Side"},
+               
+               {"name": "Anacapa Island- Northwest Side", "id": "Anacapa Island- Northwest Side"},
     
                {"name": "Anacapa Island- Parallel Reefs", "id": "Anacapa Island- Parallel Reefs"},
+               
+               {"name": "Anacapa Island- Rat Rock", "id": "Anacapa Island- Rat Rock"},
+               
+               {"name": "Anacapa Island- Southeast Side", "id": "Anacapa Island- Southeast Side"},
+               
+               {"name": "Anacapa Island- Southwest Side", "id": "Anacapa Island- Southwest Side"},
     
                {"name": "Anacapa Island- Surveyor's Rock", "id": "Anacapa Island- Surveyor's Rock"},
     
@@ -47,6 +57,8 @@
            {"name": "Cabrillo Marine Aquarium", "id": "Cabrillo Marine Aquarium"},
 
            {"name": "Cabrillo National Monument", "id": "Cabrillo National Monument"},
+              
+           {"name": "Carpinteria Reef", "id": "Carpinteria Reef"},   
 
            {"name": "Catalina Island", "id": "Catalina Island", "locationID":[
 
@@ -109,6 +121,8 @@
                 {"name": "La Jolla- Marine Room", "id": "La Jolla- Marine Room"}
 
             ]},
+              
+            {"name": "Naples", "id": "Naples"},  
 
             {"name": "New Brighton Beach", "id": "New Brighton Beach"},
 
@@ -174,6 +188,12 @@
                 {"name": "Santa Cruz Island- Yellow Banks", "id": "Santa Cruz Island- Yellow Banks"}
                 
             ]},
+              
+            {"name": "Santa Rosa Island", "id": "Santa Rosa Island", "locationID":[
+
+                {"name": "Santa Rosa Island- Carrington Point", "id": "Santa Rosa Island- Carrington Point"}
+ 
+            ]},  
                 
             {"name": "Santa Monica- Wreck of the Star of Scotland", "id": "Santa Monica- Wreck of the Star of Scotland"},
 
