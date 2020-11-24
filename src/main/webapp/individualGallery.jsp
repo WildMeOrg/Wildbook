@@ -158,6 +158,13 @@ function adjustBox(id) {
     }, 300);
 }
 
+function zoomOut(el, imgWrapperClass) {
+    console.log("zoomOut clicked");
+    event.stopPropagation();
+    var iEl = $(el).closest(imgWrapperClass).find('img');
+    iEl.panzoom('reset'); //changing the width of the image was getting wonky with both the image and bounding box. Talked to Tanya, and the full zoom out was close enough to encounterDecide.jsp's behavior to be acceptable
+    adjustBox(iEl.attr('id').substr(4));
+}
 
 </script>
 
@@ -198,6 +205,34 @@ function adjustBox(id) {
     border-radius: 4px;
     padding: 2px 10px;
 }
+
+.zoom-hint {
+    position: absolute;
+    top: 45px;
+    right: 10px;
+    display: inline-block;
+    z-index: 100;
+    background-color: rgba(255,255,255,0.4);
+    border-radius: 10px;
+    padding: 10px;
+    pointer-events: none;
+}
+.match-asset-wrapper .zoom-hint {
+    right: 15px !important;
+}
+.zoom-hint .el-zoom-in {
+    pointer-events: none;
+    margin-bottom: 15px;
+    cursor: zoom-in;
+}
+.zoom-hint .el-zoom-out {
+    pointer-events: visible;
+    cursor: zoom-out;
+}
+
+.zoom-hint .el {
+    display: block;
+}
 </style>
 <jsp:include page="header.jsp" flush="true" />
 <script src="tools/panzoom/jquery.panzoom.min.js"></script>
@@ -231,6 +266,7 @@ if (!Util.collectionIsEmptyOrNull(indiv.getEncounters())) for (Encounter enc : i
 
 <div id="wrapper-<%=ma.getId()%>" class="img-wrapper">
     <img id="img-<%=ma.getId()%>" class="gallery-img" src="<%=url%>" onLoad="imgLoaded(this);" />
+    <div class="zoom-hint" xstyle="transform: scale(0.75);"><span class="el el-lg el-zoom-in"></span><span onClick="return zoomOut(this, '.img-wrapper')" class="el el-lg el-zoom-out"></span></div>
 
 <% if (admin) { %>
     <div class="img-info"
