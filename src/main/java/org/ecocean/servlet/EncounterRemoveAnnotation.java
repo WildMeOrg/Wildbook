@@ -101,7 +101,12 @@ public class EncounterRemoveAnnotation extends HttpServlet {
     try {
       if ((encID != null)&&(myShepherd.isEncounter(encID))) {
         Encounter enc = myShepherd.getEncounter(encID);
-        if(ServletUtilities.isUserAuthorizedForEncounter(enc,request) && annotID != null && myShepherd.getAnnotation(annotID)!=null) {
+        if(    ServletUtilities.isUserAuthorizedForEncounter(enc,request) 
+            && annotID != null   
+            && myShepherd.getAnnotation(annotID)!=null 
+            && enc.getAnnotations()!=null
+            && enc.getAnnotations().contains(myShepherd.getAnnotation(annotID))
+         ) {
   
             Annotation ann=myShepherd.getAnnotation(annotID);
           
