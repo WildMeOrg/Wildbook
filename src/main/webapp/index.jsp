@@ -109,7 +109,7 @@ catch(Exception e){
         </div>
         <div id="messageBox"> 
             <div>
-                <h2 class="vidcap"><%=props.getProperty("4cetaceanResearch") %></h2>
+                <h2 class="vidcap"></h2>
 
             </div>
         </div>   
