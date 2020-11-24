@@ -290,7 +290,8 @@ System.out.println("about to do enc()");
 
       //enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + ServletUtilities.getRemoteHost(request) + "</p>");
 
-        enc.setState("test");
+        enc.setState("incoming");
+
       if (!getVal(fv, "locCode").equals("")) {
         enc.setLocationCode(locCode);
       }
@@ -328,11 +329,8 @@ System.out.println("about to do enc()");
                     tp.put("matchingSetFilter", mf);
                     parentTask.setParameters(tp);
                 }
-String task = "<TASK>";
-/*
                 Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask);  //TODO are they *really* persisted for another thread (queue)
                 myShepherd.storeNewTask(task);
-*/
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum + "; IA => " + task);
