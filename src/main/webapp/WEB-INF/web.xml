@@ -437,6 +437,7 @@
 
         /UserPreferences = authc, roles[researcher]
 				
+		/EncounterDeleteAnnotation = authc, roles[researcher]
             </param-value>
         </init-param>
     </filter>
@@ -2717,6 +2718,16 @@
   <servlet-mapping>
     <servlet-name>UserPreferences</servlet-name>
     <url-pattern>/UserPreferences</url-pattern>
+  </servlet-mapping>
+
+ <servlet>
+    <servlet-name>EncounterDeleteAnnotation</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterDeleteAnnotation</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>EncounterDeleteAnnotation</servlet-name>
+    <url-pattern>/EncounterDeleteAnnotation</url-pattern>
   </servlet-mapping>
 
 </web-app>
