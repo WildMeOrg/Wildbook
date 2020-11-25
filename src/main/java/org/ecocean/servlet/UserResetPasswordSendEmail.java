@@ -89,10 +89,31 @@ public class UserResetPasswordSendEmail extends HttpServlet {
     if ((request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals(""))) {
       
     //output success statement
-      out.println(ServletUtilities.getHeader(request));
       
       String username=request.getParameter("username").trim();
 
+
+        String key = request.getParameter("key");
+        // note: we dont *require* key here!  :(   imho we should have recaptcha for the web-facing version of this.
+        if (key != null) {
+            String apiKey = CommonConfiguration.getProperty("kitsci_api_key", context);
+            if (apiKey == null) apiKey = "MUST_SET_kitsci_api_key_" + Util.generateUUID();  //pretty much guarantees failure!
+            String wantKey = org.ecocean.media.AssetStore.hexStringSHA256(apiKey + ":" + username);
+            boolean ok = ((key != null) && key.toLowerCase().equals(wantKey));  //java lib uses lowercase hex in wantKey
+            System.out.println("UserResetPasswordSendEmail: key=[" + key + "] vs wantKey=[" + wantKey + "] on username=[" + username + "] => " + ok);
+            if (!ok) {
+                response.setContentType("text/plain");
+                out.println("{ \"success\": false, \"error\": \"invalid value\" }");
+                out.close();
+                return;
+            }
+        }
+
+        if (key == null) {
+            out.println(ServletUtilities.getHeader(request));
+        } else {
+            response.setContentType("text/plain");
+        }
         
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("UserResetPasswordSendEmail.class");
@@ -132,12 +153,20 @@ public class UserResetPasswordSendEmail extends HttpServlet {
           NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "passwordReset", tagMap, true);  //override user.receiveEmails
           es.execute(mailer);
           es.shutdown();
-          
-          out.println("If a user with that username or email address was found, we just sent them an email. Please check your Inbox and follow the link in the email to reset your password. If you don't see an email, don't forget to check your spam folder. Thank you!");
+
+            if (key == null) {
+                out.println("If a user with that username or email address was found, we just sent them an email. Please check your Inbox and follow the link in the email to reset your password. If you don't see an email, don't forget to check your spam folder. Thank you!");
+            } else {
+                out.println("{ \"success\": true }");
+            }
           
         }
         else{
-          out.println("No email address was registered with that username. Please contact a system administrator to reset your password.");
+            if (key == null) {
+                out.println("No email address was registered with that username. Please contact a system administrator to reset your password.");
+            } else {
+                out.println("{ \"success\": false, \"error\": \"invalid value\" }");
+            }
           
         }
         
@@ -152,8 +181,10 @@ public class UserResetPasswordSendEmail extends HttpServlet {
             
             
             
+        if (key == null) {
             out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
+        }
             
 
       
