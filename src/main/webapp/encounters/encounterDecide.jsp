@@ -586,7 +586,10 @@ h1 { background: none !important; }
     padding: 2px 10px;
 }
 
-
+.part-2-instructions {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
 </style>
 
 <script type="text/javascript">
@@ -722,6 +725,7 @@ var attributeReadable = {
 };
 function enableMatch() {
     $('#secondary-instructions').html('Does the cat in this submission (left) match a cat already in our database (right)? Scroll through our list and select "Matches this cat" or "None of these cats match".');
+    $('#secondary-instructions').addClass('part-2-instructions');
     $('.column-attributes').hide();
     $('.column-match').show();
     $('#subtitle').text('Step 2');
@@ -1060,14 +1064,14 @@ function adjustBox(id) {
 <body>
 
 <div class="container maincontent">
-<h1>Submission <%=((enc.getEventID() == null) ? enc.getCatalogNumber().substring(0,8) : enc.getEventID())%>: <span id="subtitle">Step 1</span></h1>
+<h2>Submission <%=((enc.getEventID() == null) ? enc.getCatalogNumber().substring(0,8) : enc.getEventID())%>: <span id="subtitle">Step 1</span></h2>
 
 <%= NoteField.buildHtmlDiv("59b4eb8f-b77f-4259-b939-5b7c38d4504c", request, myShepherd) %>
 <div class="org-ecocean-notefield-default" id="default-59b4eb8f-b77f-4259-b939-5b7c38d4504c">
 <p>
 There are two steps to processing each submission: selecting cat attributes, and then looking to see if the cat has a match in the database.
 </p>
-<h2 id="secondary-instructions"></h2>
+<h3 id="secondary-instructions"></h3>
 </div>
 
 <b id="width-info"></b>
@@ -1097,7 +1101,7 @@ There are two steps to processing each submission: selecting cat attributes, and
     <div class="column-attributes">
 
         <div class="attribute" style="display: none;">
-            <h2>Flag Problems</h2>
+            <h3>Flag Problems</h3>
             <div id="flag">
                 <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-detection" /><label for="flag-detection">Some photos missing (this) cat<span class="flag-note">A submission may include some photos that do not have a cat in them, or multi-cat submissions that are split into multiple submissions to process may some have photos without the focal cat.  Do any photos not contain the focal cat?</span></label></div>
                 <div class="input-wrapper"><input type="checkbox" name="flag" id="flag-sensitive" /><label for="flag-sensitive">Sensitive or private information<span class="flag-note">To respect the privacy of those in our communities, our system should detect and automatically blur human faces, street signs, house numbers, license plates, and company logos. Do the photos in this submission contain any unblurred private information?</span></label></div>
@@ -1106,7 +1110,7 @@ There are two steps to processing each submission: selecting cat attributes, and
         </div>
 
         <div class="attribute">
-            <h2>Primary Color / Coat Pattern</h2>
+            <h3>Primary Color / Coat Pattern</h3>
             <div id="colorPattern" class="attribute-select">
                 <div id="black" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_black.jpg" />
@@ -1144,7 +1148,7 @@ There are two steps to processing each submission: selecting cat attributes, and
         </div>
 
         <div class="attribute">
-            <h2>Ear Tip</h2>
+            <h3>Ear Tip</h3>
             <p class="attribute-info">Zoom all the way in to check.  Ear tipping can be difficult to see, and it depends on the angle of the photo and the amount of ear tip removed.<br />When in doubt, select unknown.</p>
             <div id="earTip" class="attribute-select">
                 <div id="yes_left" class="attribute-option">
@@ -1167,7 +1171,7 @@ There are two steps to processing each submission: selecting cat attributes, and
         </div>
 
         <div class="attribute">
-            <h2>Life Stage</h2>
+            <h3>Life Stage</h3>
             <div id="lifeStage" class="attribute-select">
                 <div id="kitten" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_kitten.jpg" />
@@ -1181,7 +1185,7 @@ There are two steps to processing each submission: selecting cat attributes, and
         </div>
 
         <div class="attribute">
-            <h2>Collar</h2>
+            <h3>Collar</h3>
             <div id="collar" class="attribute-select">
                 <div id="yes" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_collar.jpg" />
@@ -1199,7 +1203,7 @@ There are two steps to processing each submission: selecting cat attributes, and
         </div>
 
         <div class="attribute">
-            <h2>Sex</h2>
+            <h3>Sex</h3>
             <div id="sex" class="attribute-select">
                 <div id="male" class="attribute-option">
                     <img class="attribute-image" src="../images/instructions_male.jpg" />
@@ -1217,7 +1221,7 @@ There are two steps to processing each submission: selecting cat attributes, and
         </div>
 
         <div id="save-div" class="attribute">
-            <h2>Save / Complete</h2>
+            <h3>Save / Complete</h3>
             <p id="save-incomplete">
 Make selections for all the options above, and then save here.
             </p>
