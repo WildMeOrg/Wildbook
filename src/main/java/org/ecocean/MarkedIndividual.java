@@ -1442,7 +1442,7 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     }
   }
 
-  public Double getAverageMeasurementEventInPeriod(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth, String measurementType) {
+  public Double getAverageMeasurementInPeriod(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth, String measurementType) {
 
     double avgMeasurementEvent = 0;
     int numMeasurementEvents = 0;
