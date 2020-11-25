@@ -281,12 +281,15 @@ try{
 	//ok, we now know that we have a MediaAsset
 	//now let's check if we need to force Encounter cloning
 	List<Annotation> annots=ma.getAnnotations();
+	
 	//we would expect at least a trivial annotation, so if annots>=2, we know we need to clone
-	if(annots.size()>1){
+	//also don't clone if this is a part
+	if(annots.size()>1 && iaClass!=null && iaClass.indexOf("+")==-1){
 		cloneEncounter=true;
 	}
+	//also don't clone if this is a part
 	//if the one annot isn't trivial, then we have to clone the encounter as well
-	else if(annots.size()==1 && !annots.get(0).isTrivial()){
+	else if(annots.size()==1 && !annots.get(0).isTrivial() && iaClass!=null &&  iaClass.indexOf("+")==-1){
 		cloneEncounter=true;
 	}
 	

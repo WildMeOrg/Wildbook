@@ -3718,6 +3718,11 @@ throw new Exception();
         enc.setOccurrenceID(this.getOccurrenceID());
         enc.setRecordedBy(this.getRecordedBy());
         enc.setState(this.getState());  //not too sure about this one?
+
+        enc.setAlternateID(this.getAlternateID());
+        enc.setOccurrenceRemarks(this.getOccurrenceRemarks());
+        enc.addComments("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
+
         ImportTask itask = getImportTask(myShepherd);
         if (itask != null) itask.addEncounter(enc);
         return enc;
@@ -4006,5 +4011,22 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
             ann.refreshLiteIndividual(indivId);
         }
     }
+
+
+    //basically mean id-equivalent, so deal
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof Encounter)) return false;
+        Encounter two = (Encounter)u2;
+        if ((this.getCatalogNumber() == null) || (two == null) || (two.getCatalogNumber() == null)) return false;
+        return this.getCatalogNumber().equals(two.getCatalogNumber());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two identical for null values
+        return this.getCatalogNumber().hashCode();
+    }
+
+
+
 
 }

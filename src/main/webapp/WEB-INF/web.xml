@@ -1874,8 +1874,6 @@
         <url-pattern>/TissueSampleSetSexAnalysis</url-pattern>
   </servlet-mapping>
 
-
-
       <servlet-mapping>
         <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
         <url-pattern>/TissueSampleSetMicrosatelliteMarkers</url-pattern>
