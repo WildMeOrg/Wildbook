@@ -190,7 +190,7 @@ try {
 			//System.out.println("key:" +key);
 			%>
 			<li><%=key %>: <%=map.get(key) %>
-				<ul><li>Have acmID: <%=map.get(key) %></li></ul>
+				<ul><li>Have acmID: <%=mapACMID.get(key) %></li></ul>
 			</li>
 			<%
 		}
