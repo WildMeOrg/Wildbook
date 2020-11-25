@@ -16,7 +16,7 @@
     "grevyi": "@Equus.quagga",
     "quagga": {
       "_default":{
-        "_id_config": "@Equus.quagga.zebra._id_conf"
+        "_id_conf": "@Equus.quagga.zebra._id_conf"
       },
       "_detect_conf": [
         {
