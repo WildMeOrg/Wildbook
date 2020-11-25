@@ -572,7 +572,13 @@ if (isAdmin) theads = new String[]{"ID", "State", "Cat", "MatchPhoto", "Sub Date
             query.closeAll();
             int dct = 0;
             int fct = 0;
-            if (enc.getDateInMilliseconds()!=null) {
+            if (enc.getVerbatimEventDate()!=null) {
+                String eventDateStr = enc.getVerbatimEventDate();
+                if (eventDateStr.length()>10) {
+                    eventDateStr = eventDateStr.substring(0,10);
+                }
+                out.println("<td class=\"col-date\">"+eventDateStr+"</td>");
+            } else if (enc.getDateInMilliseconds()!=null) {
                 out.println("<td class=\"col-date\">" + new DateTime(enc.getDateInMilliseconds()).toLocalDate() + "</td>");
             } else {
                 out.println("<td class=\"col-muted\">-</td>");
