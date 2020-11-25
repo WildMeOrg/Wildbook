@@ -115,6 +115,8 @@ public class StandardImport extends HttpServlet {
 
   Sheet sheet = null;
 
+  final static String[] acceptedImageTypes = {"jpg", "jpeg", "png", "bmp", "gif"};
+
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
@@ -1341,14 +1343,24 @@ public class StandardImport extends HttpServlet {
     String resolvedPath = null;
     String fullPath = null;
     try {
+
       if (localPath==null||"null".equals(localPath)) {
         feedback.logParseError(assetColIndex(i), localPath, row);
         return null;
       }
+
       localPath = Util.windowsFileStringToLinux(localPath).trim();
       fullPath = photoDirectory+"/"+localPath;
-      fullPath = fullPath.replaceAll("//","/");
+      fullPath = fullPath.replace("//","/"); 
       resolvedPath = resolveHumanEnteredFilename(fullPath);
+
+      if (resolvedPath!=null) {
+        String suffix = resolvedPath.split(".")[resolvedPath.length()-1].toLowerCase();
+        if (!Arrays.asList(acceptedImageTypes).contains(suffix)) {
+          feedback.logParseError(assetColIndex(i), "Bad Img Type: "+localPath, row);
+          return null;
+        }
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }
