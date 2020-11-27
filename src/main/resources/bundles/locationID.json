@@ -40,6 +40,9 @@
 			  "name": "Indonesia", "id": "Indonesia" },
 			  
 			  {
+			  "name": "Japan", "id": "Japan" },
+			  
+			  {
 			  "name": "Malaysia", "id": "Malaysia" },
 			  
 			  {
@@ -78,16 +81,19 @@
 			  "name": "2g", "id": "2g" },
 			  
 			  {
-			  "name": "2h", "id": "2h" },
-			  
-			  {
-			  "name": "2h1", "id": "2h1" },
-			  
-			  {
-			  "name": "2h2", "id": "2h2" },
-			  
-			  {
-			  "name": "2h3", "id": "2h3" },
+			  "name": "South Atlantic", "id": "2h", "locationID":[
+				  {
+				  "name": "St. Helena Island", "id": "2h1" },
+				  
+				  {
+				  "name": "Ascension Island", "id": "2h2" },
+				  
+				  {
+				  "name": "Brazil", "id": "2h3" },
+				   {
+				  "name": "Azores", "id": "2h4" }
+			  ] 
+			  },
 			  
 			  {
 			  "name": "4a", "id": "4a" },
