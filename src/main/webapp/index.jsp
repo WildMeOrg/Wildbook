@@ -328,6 +328,7 @@ try{
 	numLeafy=qc.getQueryByName("numLeafyIndividuals3").executeCountQuery(myShepherd).intValue();
 	numWeedy=qc.getQueryByName("numWeedyIndividuals3").executeCountQuery(myShepherd).intValue();
 
+	/*
 	if (numEncounters>0) {
 			Encounter oldestEnc = (Encounter) qc.getQueryByName("oldestEncounterMillis").executeQuery(myShepherd).get(0);
 			Encounter youngestEnc = (Encounter) qc.getQueryByName("youngestEncounterMillis").executeQuery(myShepherd).get(0);
@@ -341,6 +342,7 @@ try{
 			}
 
 	}
+	*/
 
 	//if (youngestEnc!=null&&oldestEnc!=null&&youngestEnc.get(0)!=null&&oldestEnc.get(0)!=null) {
 
@@ -567,17 +569,20 @@ finally{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                         long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
 
-	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+	                    Map<String,Integer> spotters = myShepherd.getTopSubmittersPhotographersSinceTimeInDescendingOrder(startTime);
 	                    int numUsersToDisplay=3;
 	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
 	                    Iterator<String> keys=spotters.keySet().iterator();
 	                    Iterator<Integer> values=spotters.values().iterator();
 	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
-	                          String spotter=keys.next();
+	                          
+	                    	String spotter=keys.next();
+	                    	System.out.println("spotter: "+spotter);
 	                          int numUserEncs=values.next().intValue();
-	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
-	                              User thisUser=myShepherd.getUser(spotter);
+	                          String profilePhotoURL="images/user-profile-white-transparent.png";
+	                          User thisUser=myShepherd.getUserByUUID(spotter);
+	                          if(thisUser!=null && !(thisUser.getUsername()!=null && thisUser.getUsername().equals("siowamteam"))){
+		                        	
 	                              if(thisUser.getUserImage()!=null){
 	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
 	                              }
@@ -595,7 +600,7 @@ finally{
 	                                    <%
 	                                      }
 	                                    %>
-	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
+	                                    <p><em><%=thisUser.getFullName() %></em> <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
 	                                </li>
 
 	                           <%
