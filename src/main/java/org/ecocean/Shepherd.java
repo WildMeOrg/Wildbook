@@ -5249,6 +5249,45 @@ public class Shepherd {
 
     return sortByValues(matchingUsers);
   }
+  
+  public Map<String,Integer> getTopSubmittersPhotographersSinceTimeInDescendingOrder(long startTime){
+
+    System.out.println("getTopSubmittersPhotographersSinceTimeInDescendingOrder...start");
+
+    Map<String,Integer> matchingUsers=new HashMap<String,Integer>();
+
+
+    String filter = "select from org.ecocean.User where fullName != null && enc.dwcDateAddedLong >= "+startTime+" && (enc.submitters.contains(this) || enc.photographers.contains(this)) VARIABLES org.ecocean.Encounter enc";
+    Query q = pm.newQuery(filter);
+    Collection c = (Collection) (q.execute());
+    ArrayList<User> allUsers = new ArrayList<User>(c);
+    q.closeAll();
+
+    //System.out.println("     All users: "+numAllUsers);
+    QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
+    for(User user:allUsers){
+
+        if(qc.getQueryByName(("numRecentEncounters_"+user.getUUID()))!=null){
+          CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+user.getUUID()));
+          matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
+          System.out.println("found "+"numRecentEncounters_"+user.getUUID());
+        }
+
+        else{
+          String userFilter = "SELECT FROM org.ecocean.Encounter WHERE (submitters.contains(user) || photographers.contains(user)) && user.uuid == '"+user.getUUID()+"' && dwcDateAddedLong >= "+startTime+" VARIABLES org.ecocean.User user";
+          //update rankings hourly
+          CachedQuery cq=new CachedQuery(("numRecentEncounters_"+user.getUUID()),userFilter,3600000);
+          qc.addCachedQuery(cq);
+          matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
+          System.out.println("not found "+"numRecentEncounters_"+user.getUUID());
+
+        }
+
+    }
+
+    System.out.println("getTopSubmittersPhotographersSinceTimeInDescendingOrder...end");
+    return sortByValues(matchingUsers);
+  }
 
   public static <K, V extends Comparable<V>> Map<K, V> sortByValues(final Map<K, V> map) {
     Comparator<K> valueComparator =  new Comparator<K>() {
