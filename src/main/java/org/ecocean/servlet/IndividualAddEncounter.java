@@ -105,7 +105,7 @@ public class IndividualAddEncounter extends HttpServlet {
               } catch (Exception ex) {
                   ex.printStackTrace();
                   myShepherd.rollbackDBTransaction();
-                  throw new RuntimeException(failureMessage.toString());
+                  throw new RuntimeException(ex.getMessage());
               }
           } else {
              System.out.println("IndividualAddEncounter: Retrieving an existing individual=" + indivID);
