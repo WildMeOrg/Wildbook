@@ -1113,6 +1113,14 @@ System.out.println("depth --> " + fv.get("depth").toString());
             String newnum = "";
             if (!spamBot) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
+
+                //need to find blur features before we refresh assets
+                ArrayList<MediaAsset> mas = enc.getMedia();
+                if (!Util.collectionIsEmptyOrNull(mas)) for (MediaAsset ma : mas) {
+                    FeatureType.initAll(myShepherd);
+                    ma.makeBlurFeatures();
+                }
+
                 enc.refreshAssetFormats(myShepherd);
 
                 //*after* persisting this madness, then lets kick MediaAssets to IA for whatever fate awaits them

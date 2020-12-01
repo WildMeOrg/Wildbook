@@ -1458,8 +1458,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
                     int y = Integer.parseInt(data[i * 4 + 2]);
                     params.put("x", x);
                     params.put("y", y);
-                    params.put("width", Integer.parseInt(data[i * 4 + 3]) - x);
-                    params.put("height", Integer.parseInt(data[i * 4 + 4]) - y);
+                    //abs() cuz sometimes the other x coord is slightly to the left (!?) and negative numbers make ugly blurs  FIXME?
+                    params.put("width", Math.abs(Integer.parseInt(data[i * 4 + 3]) - x));
+                    params.put("height", Math.abs(Integer.parseInt(data[i * 4 + 4]) - y));
                     Feature ft = new Feature("org.ecocean.blurBox", params);
                     this.addFeature(ft);
                     fts.add(ft);
