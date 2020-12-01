@@ -2284,7 +2284,6 @@ if(enc.getLocation()!=null){
 	      <p class="para"><h4><%=encprops.getProperty("submitter") %></h4>
 	      <%
 	       if(enc.getSubmitters()!=null){
-           System.out.println("got here e enc submitters not null and submitters size is: " + enc.getSubmitters().size());
 	    	   %>
 	    	   <table id="submitters" width="100%">
 	    	   <tbody>
@@ -2807,7 +2806,6 @@ else {
 				<!-- START USER ATTRIBUTE -->
 								<%
  								if(isAdmin){
-                  System.out.println("got here b is admin");
  								%>
 
     							<table>
@@ -2825,13 +2823,10 @@ else {
      									<td>
                          				<%
                          				if(enc.getAssignedUsername()!=null){
-
                         	 				String username=enc.getAssignedUsername();
-                                  System.out.println("got here c username is: " + username);
                         	 				Shepherd aUserShepherd=new Shepherd("context0");
                         	 				aUserShepherd.setAction("encounter.jsp2");
                          					if(aUserShepherd.getUser(username)!=null){
-                                    System.out.println("got here b2 aUserShepherd get user(username) not null");
                          					%>
                                 			<%
 
@@ -2839,7 +2834,6 @@ else {
                                 			String profilePhotoURL="../images/empty_profile.jpg";
 
                          					if((thisUser != null) && (thisUser.getUserImage()!=null)){
-                                    System.out.println("got here d thisUser is: " + thisUser.toString());
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
                          					}
                          					%>
@@ -2847,7 +2841,6 @@ else {
                          					String displayName="";
                          					if((thisUser != null) && (thisUser.getDisplayName()!=null)){
                          						displayName=thisUser.getDisplayName();
-                                    System.out.println("got here b3 displayName is: " + displayName);
                          						%>
                          					<%
                          					}
@@ -2869,7 +2862,6 @@ else {
                         %>
                         <%
                         if((thisUser != null) && (thisUser.getAffiliation()!=null)){
-                          System.out.println("got here b4 thisUser and getAffiliation not null");
                         %>
                         <!-- <p><strong><%=displayName %></strong></p> -->
                         <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
