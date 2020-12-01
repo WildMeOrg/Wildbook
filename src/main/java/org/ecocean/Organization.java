@@ -40,7 +40,7 @@ public class Organization implements java.io.Serializable {
     // if individualNameKey != null, this organization has a special nameKey that is used to create an org-wide catalog
     // e.g. IndoCet wants to generate IndoCet names;
     private String individualNameKey = null;
-    
+
     public Organization() {
         this((String)null);
     }
@@ -96,11 +96,16 @@ public class Organization implements java.io.Serializable {
         this.updateModified();
     }
     public void addMember(User u) {
+        System.out.println("got here 13a");
         if (u == null) return;
         if (members == null) members = new ArrayList<User>();
+        System.out.println("got here 13b");
         if (!members.contains(u)) members.add(u);
+        System.out.println("got here 13c");
         this.membersReciprocate(u);
+        System.out.println("got here 13d");
         this.updateModified();
+        System.out.println("got here 13e");
     }
     public int addMembers(List<User> ulist) {
         int ct = 0;
@@ -320,9 +325,13 @@ public class Organization implements java.io.Serializable {
     //this is to handle the bidirectional dn madness when *adding* members
     //  (removing are handled internally above)
     private void membersReciprocate(List<User> mems) {
+      System.out.println("got here 13c1");
         if (mems == null) return;
+        System.out.println("got here 13c2 and mems size is: " + mems.size());
         for (User mem : mems) {
+          System.out.println("got here 13c3");
             if ((mem.getOrganizations() != null) && !mem.getOrganizations().contains(this)) mem.getOrganizations().add(this);
+            System.out.println("got here 13c4");
         }
     }
     private void membersReciprocate(User mem) {
@@ -431,4 +440,3 @@ public class Organization implements java.io.Serializable {
 
 */
 }
-
