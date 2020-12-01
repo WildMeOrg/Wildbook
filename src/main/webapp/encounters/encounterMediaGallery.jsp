@@ -1014,7 +1014,7 @@ function featureSortOrder(feat) {
 }
 
 function enhancerDisplayFeature(el, opt, focusAnnId, feat, zdelta) {
-    if (!feat.type) return;  //unity, skip
+    if (!feat.type || feat.type != 'org.ecocean.boundingBox') return;  //unity, skip
     if (!feat.parameters) return; //wtf???
     //TODO other than boundingBox
     var scale = el.data('enhancerScale') || 1;

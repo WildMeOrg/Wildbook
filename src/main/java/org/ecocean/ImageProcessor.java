@@ -25,6 +25,8 @@ import java.io.InputStreamReader;
 import java.io.File;
 
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.Feature;
+import org.json.JSONObject;
 import java.util.Calendar;
 import java.util.Arrays;
 import javax.imageio.*;
@@ -143,6 +145,7 @@ public final class ImageProcessor implements Runnable {
         if (cname != null) comment += " | " + cname;
         String maId = "unknown";
         String rotation = "";
+        String early = "";
         if (this.parentMA != null) {
             if (this.parentMA.getUUID() != null) {
                 maId = this.parentMA.getUUID();
@@ -158,7 +161,14 @@ public final class ImageProcessor implements Runnable {
             } else if (this.parentMA.hasLabel("rotate270")) {
                 rotation = "-flip -transverse";
             }
+            if (!Util.collectionIsEmptyOrNull(this.parentMA.getFeatures())) for (Feature ft : this.parentMA.getFeatures()) {
+                if (!ft.isType("org.ecocean.blurBox")) continue;
+                JSONObject p = ft.getParameters();
+                if (p == null) continue;
+                early += " -region " + p.optInt("width", 1) + "x" + p.optInt("height", 1) + "+" + p.optInt("x", 1) + "+" + p.optInt("y", 1) + " -blur 0x30 +region ";
+            }
         }
+System.out.println("ImageProcessor: early => " + early);
         comment += " | v" + Long.toString(System.currentTimeMillis());
         try {
             InetAddress ip = InetAddress.getLocalHost();
@@ -176,6 +186,7 @@ public final class ImageProcessor implements Runnable {
                                   //.replaceAll("%imagesource", this.imageSourcePath)
                                   //.replaceAll("%imagetarget", this.imageTargetPath)
                                   .replaceAll("%maId", maId)
+                                  .replaceAll("%early", early)
                                   .replaceAll("%additional", rotation);
 
         //walk thru transform array and replace "tN" with transform[N]

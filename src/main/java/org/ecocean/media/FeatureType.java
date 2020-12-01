@@ -110,6 +110,7 @@ public class FeatureType implements java.io.Serializable {
         //we hard-code these here for now?  at least they can go thru git
         String[] ftypes = new String[]{
             "org.ecocean.boundingBox",   //our go-to for typical IA-created Annotations
+            "org.ecocean.blurBox",   //our go-to for typical IA-created Annotations
             "org.ecocean.flukeEdge.referenceSpots",
             "org.ecocean.flukeEdge.edgeSpots",
             "org.ecocean.dorsalEdge.referenceSpots",

@@ -53,6 +53,8 @@ import java.util.UUID;
 import java.awt.datatransfer.MimeTypeParseException;
 import java.io.File;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 //import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -1429,6 +1431,53 @@ System.out.println(">> updateStandardChildren(): type = " + type);
             }
         }
         return isValidImageForIA();
+    }
+
+    public List<Feature> makeBlurFeatures() {
+        List<Feature> fts = new ArrayList<Feature>();
+        String[] command = new String[2];
+        command[0] = "/usr/local/bin/blur.sh";
+        command[1] = this.localPath().toString();
+        ProcessBuilder pb = new ProcessBuilder();
+        pb.command(command);
+        System.out.println("makeBlurFeatures() starting command=" + String.join(" ", command));
+
+        try {
+            Process proc = pb.start();
+            BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+            String line;
+            while ((line = stdInput.readLine()) != null) {
+                System.out.println(">>>> " + line);
+                String[] data = line.split(" ");
+                //note:  data[0] is filename, so 4-tuples start at [1]
+                if (data.length % 4 != 1) throw new Exception("data.length incorrect for: " + line);
+                for (int i = 0 ; i < data.length / 4 ; i++) {
+                    JSONObject params = new JSONObject();
+                    int x = Integer.parseInt(data[i * 4 + 1]);
+                    int y = Integer.parseInt(data[i * 4 + 2]);
+                    params.put("x", x);
+                    params.put("y", y);
+                    params.put("width", Integer.parseInt(data[i * 4 + 3]) - x);
+                    params.put("height", Integer.parseInt(data[i * 4 + 4]) - y);
+                    Feature ft = new Feature("org.ecocean.blurBox", params);
+                    this.addFeature(ft);
+                    fts.add(ft);
+                    System.out.println("makeBlurFeatures() created " + ft);
+                }
+            }
+            while ((line = stdError.readLine()) != null) {
+                System.out.println("!!!! " + line);
+            }
+            proc.waitFor();
+            System.out.println("makeBlurFeatures() process completed");
+            ////int returnCode = p.exitValue();
+        } catch (Exception ioe) {
+            ioe.printStackTrace();
+            System.out.println("makeBlurFeatures() trouble running processor: " + ioe.toString());
+        }
+        System.out.println("makeBlurFeatures() exiting");
+        return fts;
     }
 
 
