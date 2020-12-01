@@ -95,62 +95,26 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static void consolidateOrganizations(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
-    // System.out.println("got here 1 dedupe consolidating organizations from user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
-    //TODO organizations have members, but Users also have lists of organizations. Removing members from an org ultimately removes organizations from the user
     if(userToBeConsolidated!=null){
-      System.out.println("got here 2");
       List<Organization> organizationsOfUserToBeConsolidated = userToBeConsolidated.getOrganizations();
       List<Organization> organizationsOfUserToRetain = userToRetain.getOrganizations();
-      System.out.println("got here 3");
       if(organizationsOfUserToBeConsolidated!=null && organizationsOfUserToBeConsolidated.size()>0){
-        System.out.println("got here 4");
         for(int i=0; i<organizationsOfUserToBeConsolidated.size(); i++){
-          System.out.println("got here 5. Index is: " + i);
           Organization currentOrganization = organizationsOfUserToBeConsolidated.get(i);
-          System.out.println("got here 6");
           if(currentOrganization!=null){
             if(!organizationsOfUserToRetain.contains(currentOrganization)){
-              System.out.println("got here 7");
               System.out.println("dedupe removing user: " + userToBeConsolidated.toString() + " from organization: " + currentOrganization.toString() + " and adding user: " + userToRetain.toString());
               currentOrganization.removeMember(userToBeConsolidated);
               currentOrganization.addMember(userToRetain);
-              // currentOrganization.updateModified();
-              // System.out.println("got here 7.1");
-              // myShepherd.commitDBTransaction();
-              // myShepherd.beginDBTransaction();
-              // System.out.println("got here 7.2");
-              // organizationsOfUserToRetain.add(currentOrganization);
-              // System.out.println("got here 7.3");
               myShepherd.commitDBTransaction();
               myShepherd.beginDBTransaction();
-              System.out.println("got here 8");
-              // currentOrganization.addMember(userToRetain);
-              // userToRetain.setOrganizations(organizationsOfUserToRetain);
-              // System.out.println("got here 8.1");
-              // myShepherd.commitDBTransaction();
-              // myShepherd.beginDBTransaction();
-              // System.out.println("got here 8.2");
             }
-            // userToBeConsolidated.getOrganizations
-            //TODO User.setOrganizations
-            // List<User> currentMembers = currentOrganization.getMembers();
-            System.out.println("got here 9");
           }//end if currentOrganization!=null
-          System.out.println("got here 10");
         } //end for loop of organizationsOfUserToBeConsolidated
-        System.out.println("got here 11");
-        // System.out.println("organizationsOfUserToRetain about to be set is: " + organizationsOfUserToRetain.toString());
-        // userToRetain.setOrganizations(organizationsOfUserToRetain);
-        // System.out.println("got here 12");
-        // userToBeConsolidated.setOrganizations(new ArrayList<Organization>());
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
-        System.out.println("got here 12");
-        // System.out.println("got here 14");
       } //end if consolidatedUserProjectsInWhichUserIsListedInUsers exists and has >0 elements
-      // System.out.println("got here 15");
    }//end if userToBeConsolidated null check
-   System.out.println("got here 13");
   }
 
   public static void consolidateProjects(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
@@ -281,7 +245,6 @@ public class UserConsolidate extends HttpServlet {
   }
 
   public static void consolidateRoles(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
-    // System.out.println("dedupe consolidating roles from user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
     if(Util.stringExists(userToBeConsolidated.getUsername())){
       //username appeared to be the only linking information from the USER_ROLES table, so any sql efforts felt analogous to using myShepherd.getAllRolesForUserInContext, especially given that this is not going to be a particularly time-consuming fetch nor repeated task for each user...
       List<Role> consolidatedUserRoles = myShepherd.getAllRolesForUserInContext(userToBeConsolidated.getUsername(), myShepherd.getContext());
