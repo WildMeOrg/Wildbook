@@ -54,79 +54,80 @@ int numFixes=0;
         User aFlam = myShepherd.getUserByUUID("209a2d33-90ef-4ee4-9aa3-e319574ce33c");
         User userToRetain = AMMTofo;
         User userToBeConsolidated = aFlam;
+
         List<Organization> originalOrganizationsOfUserToRetain = userToRetain.getOrganizations();
-        System.out.println("got here 1 dedupe consolidating organizations from user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
-        if(userToBeConsolidated==null){
-          System.out.println("userToBeConsolidated is null!");
-        }
-        //TODO organizations have members, but Users also have lists of organizations. Removing members from an org ultimately removes organizations from the user
-        if(userToBeConsolidated!=null){
-          // System.out.println("got here 2");
-          List<Organization> organizationsOfUserToBeConsolidated = userToBeConsolidated.getOrganizations();
-          List<Organization> organizationsOfUserToRetain = userToRetain.getOrganizations();
-          // System.out.println("got here 3");
-          if(organizationsOfUserToBeConsolidated!=null && organizationsOfUserToBeConsolidated.size()==0){
-            System.out.println("organizationsOfUserToBeConsolidated is empty!");
-          }
-          if(organizationsOfUserToBeConsolidated!=null && organizationsOfUserToBeConsolidated.size()>0){
-            // System.out.println("got here 4");
-            for(int i=0; i<organizationsOfUserToBeConsolidated.size(); i++){
-              System.out.println("got here 5. Index is: " + i);
-              Organization currentOrganization = organizationsOfUserToBeConsolidated.get(i);
-              // System.out.println("got here 6");
-              if(currentOrganization!=null){
-                if(!organizationsOfUserToRetain.contains(currentOrganization)){
-                  System.out.println("got here 7");
-                  currentOrganization.updateModified();
-                  System.out.println("got here 7.1");
-                  myShepherd.commitDBTransaction();
-                  myShepherd.beginDBTransaction();
-                  System.out.println("got here 7.2");
-                  System.out.println("organizationsOfUserToRetain before adding a member is: " + organizationsOfUserToRetain.toString());
-                  organizationsOfUserToRetain.add(currentOrganization);
-                  System.out.println("organizationsOfUserToRetain after adding a member is: " + organizationsOfUserToRetain.toString());
-                  System.out.println("got here 7.3");
-                  myShepherd.commitDBTransaction();
-                  myShepherd.beginDBTransaction();
-                  System.out.println("got here 8");
-                  // currentOrganization.addMember(userToRetain);
-                  userToRetain.setOrganizations(organizationsOfUserToRetain);
-                  List<Organization> newOrganizationsOfUserToRetain = userToRetain.getOrganizations();
-                  System.out.println("got here 8.1");
-                  System.out.println("newOrganizationsOfUserToRetain is: " + newOrganizationsOfUserToRetain.toString());
-                  myShepherd.commitDBTransaction();
-                  myShepherd.beginDBTransaction();
-                  System.out.println("got here 8.2");
-                  System.out.println("newOrganizationsOfUserToRetain is: " + newOrganizationsOfUserToRetain.toString());
-                }
-                // userToBeConsolidated.getOrganizations
-                //TODO User.setOrganizations
-                List<User> currentMembers = currentOrganization.getMembers();
-                System.out.println("got here 9");
-              }//end if currentOrganization!=null
-              System.out.println("got here 10");
-            } //end for loop of organizationsOfUserToBeConsolidated
-            System.out.println("got here 11");
-            System.out.println("organizationsOfUserToRetain about to be set is: " + organizationsOfUserToRetain.toString());
-            userToRetain.setOrganizations(organizationsOfUserToRetain);
-            System.out.println("got here 12");
-            userToBeConsolidated.setOrganizations(new ArrayList<Organization>());
-            myShepherd.commitDBTransaction();
-            myShepherd.beginDBTransaction();
-            System.out.println("got here 13");
-            // System.out.println("got here 14");
-          } //end if consolidatedUserProjectsInWhichUserIsListedInUsers exists and has >0 elements
-          // System.out.println("got here 15");
-       }//end if userToBeConsolidated null check
-       System.out.println("got here 16");
-       List<Organization> finalOrganizationsOfUserToRetain = userToRetain.getOrganizations();
-       System.out.println("finalOrganizationsOfUserToRetain is: " + finalOrganizationsOfUserToRetain.toString());
+        System.out.println("mark before consoldiating orgs: " + originalOrganizationsOfUserToRetain.toString());
+        UserConsolidate.consolidateOrganizations(myShepherd, userToRetain, userToBeConsolidated);
+        List<Organization> finalOrganizationsOfUserToRetain = userToRetain.getOrganizations();
+        System.out.println("mark after consolidating orgs finalOrganizationsOfUserToRetain is: " + finalOrganizationsOfUserToRetain.toString());
+       //  System.out.println("got here 1 dedupe consolidating organizations from user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString());
+       //  if(userToBeConsolidated==null){
+       //    System.out.println("userToBeConsolidated is null!");
+       //  }
+       //  //TODO organizations have members, but Users also have lists of organizations. Removing members from an org ultimately removes organizations from the user
+       //  if(userToBeConsolidated!=null){
+       //    // System.out.println("got here 2");
+       //    List<Organization> organizationsOfUserToBeConsolidated = userToBeConsolidated.getOrganizations();
+       //    List<Organization> organizationsOfUserToRetain = userToRetain.getOrganizations();
+       //    // System.out.println("got here 3");
+       //    if(organizationsOfUserToBeConsolidated!=null && organizationsOfUserToBeConsolidated.size()==0){
+       //      System.out.println("organizationsOfUserToBeConsolidated is empty!");
+       //    }
+       //    if(organizationsOfUserToBeConsolidated!=null && organizationsOfUserToBeConsolidated.size()>0){
+       //      // System.out.println("got here 4");
+       //      for(int i=0; i<organizationsOfUserToBeConsolidated.size(); i++){
+       //        System.out.println("got here 5. Index is: " + i);
+       //        Organization currentOrganization = organizationsOfUserToBeConsolidated.get(i);
+       //        // System.out.println("got here 6");
+       //        if(currentOrganization!=null){
+       //          if(!organizationsOfUserToRetain.contains(currentOrganization)){
+       //            System.out.println("got here 7");
+       //            currentOrganization.updateModified();
+       //            System.out.println("got here 7.1");
+       //            myShepherd.commitDBTransaction();
+       //            myShepherd.beginDBTransaction();
+       //            System.out.println("got here 7.2");
+       //            System.out.println("organizationsOfUserToRetain before adding a member is: " + organizationsOfUserToRetain.toString());
+       //            organizationsOfUserToRetain.add(currentOrganization);
+       //            System.out.println("organizationsOfUserToRetain after adding a member is: " + organizationsOfUserToRetain.toString());
+       //            System.out.println("got here 7.3");
+       //            myShepherd.commitDBTransaction();
+       //            myShepherd.beginDBTransaction();
+       //            System.out.println("got here 8");
+       //            // currentOrganization.addMember(userToRetain);
+       //            userToRetain.setOrganizations(organizationsOfUserToRetain);
+       //            List<Organization> newOrganizationsOfUserToRetain = userToRetain.getOrganizations();
+       //            System.out.println("got here 8.1");
+       //            System.out.println("newOrganizationsOfUserToRetain is: " + newOrganizationsOfUserToRetain.toString());
+       //            myShepherd.commitDBTransaction();
+       //            myShepherd.beginDBTransaction();
+       //            System.out.println("got here 8.2");
+       //            System.out.println("newOrganizationsOfUserToRetain is: " + newOrganizationsOfUserToRetain.toString());
+       //          }
+       //          // userToBeConsolidated.getOrganizations
+       //          //TODO User.setOrganizations
+       //          List<User> currentMembers = currentOrganization.getMembers();
+       //          System.out.println("got here 9");
+       //        }//end if currentOrganization!=null
+       //        System.out.println("got here 10");
+       //      } //end for loop of organizationsOfUserToBeConsolidated
+       //      System.out.println("got here 11");
+       //      System.out.println("organizationsOfUserToRetain about to be set is: " + organizationsOfUserToRetain.toString());
+       //      userToRetain.setOrganizations(organizationsOfUserToRetain);
+       //      System.out.println("got here 12");
+       //      userToBeConsolidated.setOrganizations(new ArrayList<Organization>());
+       //      myShepherd.commitDBTransaction();
+       //      myShepherd.beginDBTransaction();
+       //      System.out.println("got here 13");
+       //      // System.out.println("got here 14");
+       //    } //end if consolidatedUserProjectsInWhichUserIsListedInUsers exists and has >0 elements
+       //    // System.out.println("got here 15");
+       // }//end if userToBeConsolidated null check
+       // System.out.println("got here 16");
+       // List<Organization> finalOrganizationsOfUserToRetain = userToRetain.getOrganizations();
+       // System.out.println("finalOrganizationsOfUserToRetain is: " + finalOrganizationsOfUserToRetain.toString());
 
 
-
-
-
-        // UserConsolidate.consolidateOrganizations(myShepherd, userToRetain, userToBeConsolidated);
        //  System.out.println("got here y");
        //  if(userToRetain!=null && userToBeConsolidated!=null){
        //    List<Organization> organizationsOfUserToBeConsolidated = userToBeConsolidated.getOrganizations();
