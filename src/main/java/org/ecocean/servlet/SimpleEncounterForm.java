@@ -307,6 +307,14 @@ System.out.println("about to do enc()");
         //if (enc.getYear() < 1) enc.setDateFromAssets();
 
                 String newnum = myShepherd.storeNewEncounter(enc, encID);
+
+                //need to find blur features before we refresh assets
+                ArrayList<MediaAsset> mas = enc.getMedia();
+                if (!Util.collectionIsEmptyOrNull(mas)) for (MediaAsset ma : mas) {
+                    FeatureType.initAll(myShepherd);
+                    ma.makeBlurFeatures();
+                }
+
                 enc.refreshAssetFormats(myShepherd);
                 rtn.put("success", true);
                 rtn.put("encounterId", newnum);
