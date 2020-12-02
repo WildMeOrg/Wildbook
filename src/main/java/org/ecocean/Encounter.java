@@ -126,6 +126,7 @@ public class Encounter extends org.ecocean.api.ApiCustomFields implements java.i
   private String verbatimLocality;
   private String occurrenceRemarks = "";
   private String modified;
+    private Long version;
   private String occurrenceID;
   private String recordedBy;
   private String otherCatalogNumbers;
@@ -1932,15 +1933,17 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
     public void setDWCDateLastModified() {
         modified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        setVersion();
     }
 
+    public void setVersion(Long v) {
+        version = v;
+    }
+    public void setVersion() {
+        version = System.currentTimeMillis();
+    }
     public Long getVersion() {
-        if (modified == null) return null;
-        try {
-            DateTime dt = new DateTime(modified.replace(' ', 'T'));  //cuz format is ^ above  :/
-            return dt.getMillis();
-        } catch (Exception ex) {}
-        return null;
+        return version;
     }
 
   public String getDWCDateAdded() {

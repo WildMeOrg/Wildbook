@@ -690,7 +690,17 @@ rtn.put("_payload", payload);
             return;
         }
 
+        Long sinceVersion = null;
+        if (request.getParameter("sinceVersion") != null) {
+            try {
+                sinceVersion = Long.parseLong(request.getParameter("sinceVersion"));
+            } catch (NumberFormatException nex) {
+                SystemLog.warn("could not parse passed sinceVersion=", nex);
+            }
+        }
+
         String jdo = "SELECT FROM " + className;
+        if (sinceVersion != null) jdo += " WHERE version > " + sinceVersion.toString();
 ///TODO set fetchDepth = 0 or whatever to make fast
         Query query = myShepherd.getPM().newQuery("JDOQL", jdo);
         Collection c = (Collection) (query.execute());

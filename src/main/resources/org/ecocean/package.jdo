@@ -310,6 +310,10 @@
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
 
+      <field name="version" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+
       <field name="endDateInMilliseconds" persistence-modifier="persistent">
         <column jdbc-type="BIGINT" allows-null="true"/>
       </field>
