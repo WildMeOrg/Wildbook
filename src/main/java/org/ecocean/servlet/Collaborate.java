@@ -139,6 +139,7 @@ public class Collaborate extends HttpServlet {
   			try {
   				if ("revoke".equals(actionForExisting)) {
   					collab.setState(Collaboration.STATE_REJECTED);
+  					collab.setEditInitiator(null);
   					myShepherd.updateDBTransaction();
   					System.out.println("Set existing approved collab to rejected: id="+collabId+"  state="+collab.getState());
   					rtn.put("success", true);
@@ -173,12 +174,13 @@ public class Collaborate extends HttpServlet {
               username = collab.getUsername1();
               // if this is reached, the user was the recipient of the original collab invite but is initiator of this one.
               // user position indicates the flow of the invite, so we must switch and update date/time
-              collab.setUsername1(currentUsername);
-              collab.setUsername2(username);
-              collab.setDateTimeCreated();
+              //collab.setUsername1(currentUsername);
+              //collab.setUsername2(username);
+              //collab.setDateTimeCreated();
             }
             rtn = sendCollaborationInvite(myShepherd, username, currentUsername, props, rtn, request, context, true);
             collab.setState(Collaboration.STATE_EDIT_PENDING_PRIV);
+            collab.setEditInitiator(currentUsername);
             
             
             myShepherd.updateDBTransaction();
@@ -219,14 +221,16 @@ public class Collaborate extends HttpServlet {
         else if (approve.equals("edit") && collab.getState()!=null && collab.getState().equals(Collaboration.STATE_APPROVED)){
           System.out.println("Approve? Yes Edit? Yes");
           collab.setState(Collaboration.STATE_EDIT_PENDING_PRIV);
+          collab.setEditInitiator(currentUsername);
         } 
-  			else if (approve.equals("edit") && collab.getState()!=null && collab.getState().equals(Collaboration.STATE_EDIT_PENDING_PRIV)){
+  			else if (approve.equals("edit") && collab.getState()!=null && collab.getState().equals(Collaboration.STATE_EDIT_PENDING_PRIV) && !currentUsername.equals(collab.getEditInitiator())){
   			  System.out.println("Approve? Yes Edit? Yes");
   			  collab.setState(Collaboration.STATE_EDIT_PRIV);
   			} 
   			else {
   			  System.out.println("Rejected");
   				collab.setState(Collaboration.STATE_REJECTED);
+  				collab.setEditInitiator(null);
   			}
   			System.out.println("/Collaborate: new .getState() = "+collab.getState()+" for collab "+collab);
   			rtn.put("success", true);
