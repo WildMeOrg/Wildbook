@@ -35,7 +35,7 @@ myShepherd.setAction("exportACMIDandID.jsp");
 myShepherd.beginDBTransaction();
 
 
-String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc1515) && ( enc1515.submitterID != \"wgrp\" ) && ( enc1515.submitterID != \"fmtest\" ) && enc1515.genus == \"Megaptera\" VARIABLES org.ecocean.Encounter enc1515";
+String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc1515) && ( enc1515.submitterID == 'eve.jourdain' )  && enc1515.genus == 'Orcinus' VARIABLES org.ecocean.Encounter enc1515";
 
 
 //Create a FetchGroup on the PMF called "TestGroup" for MyClass
@@ -57,12 +57,12 @@ try {
 	for(MarkedIndividual indy:list){
 		List<Encounter> encs=indy.getEncounterList();
 		for(Encounter enc:encs){
-			List<MediaAsset> assets=enc.getMedia();
-			for(MediaAsset asset:assets){
-				if(asset.getAcmId()!=null){
+			List<Annotation> annots=enc.getAnnotations();
+			for(Annotation annot:annots){
+				if(annot.getAcmId()!=null && annot.getIAClass()!=null && annot.getIAClass().equals("whale_orca+fin_dorsal") && annot.getMediaAsset()!=null && annot.getMediaAsset().getAcmId()!=null){
 
 					
-					sb.append(asset.getAcmId()+","+indy.getIndividualID()+"\n");
+					sb.append(annot.getAcmId()+","+indy.getIndividualID()+","+indy.getDisplayName()+","+annot.getMediaAsset().getAcmId()+"\n");
 					
 					
 				}
@@ -70,7 +70,7 @@ try {
 		}
 	}
 	
-	Util.writeToFile(sb.toString(), "/tmp/exportACMIDs.csv");
+	Util.writeToFile(sb.toString(), "/tmp/exportACMIDOrcaDorsals5.csv");
 	
 	%>
 	<p>Exported file written to: /tmp/exportACMIDs.csv</p>
