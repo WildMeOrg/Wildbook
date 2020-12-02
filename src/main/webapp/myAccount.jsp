@@ -141,7 +141,7 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 					var uname = p.data('username');
 					p.html('&nbsp;').addClass('throbbing');
 					$.ajax({
-						url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uname + '&approve=' + which,
+						url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uname + '&approve=' + which+'&collabId='+ev.target.getAttribute('id'),
 						dataType: 'json',
 						success: function(d) {
 							if (d.success) {
@@ -394,9 +394,11 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 				// need a revoke button from either direction
 				if ("state_rejected".equals(msg)) {
 					click += "<span class=\"collab-button\"><input type=\"button\" class=\"add-view-permissions\" value=\"" + collabProps.getProperty("buttonAddViewPerm") + "\"></span>";
-				} else if (msg.equals("state_initialized")) {
+				} 
+				else if (msg.equals("state_initialized")) {
 					click += "<span class=\"collab-button\"></span>"; // empty placeholder
-				} else {
+				} 
+				else {
 					click += "<span class=\"collab-button\"><input type=\"button\" class=\"revoke-view-permissions\" value=\"" + collabProps.getProperty("buttonRevokeViewPerm") + "\"></span>";
 				}
 
@@ -415,7 +417,15 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
 						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
 
-					} else if (state.equals(Collaboration.STATE_APPROVED)) {
+					}
+					else if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
+						msg = "state_initialized_me";
+						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
+						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
+
+					}
+					else if (state.equals(Collaboration.STATE_APPROVED)) {
 						click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
 						click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
 					} else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
@@ -425,10 +435,22 @@ if (dispUsername.length() > 20) dispUsername = dispUsername.substring(0,20);
 					} else if ("state_rejected".equals(msg)) {
 						click += "<span class=\"collab-button\"></span>"; //empty placeholder
 					}
-					h += "<div class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername2() + "</b> from <b>" + c.getUsername1() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
+					h += "<div id=\""+c.getId()+"\" class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername2() + "</b> from <b>" + c.getUsername1() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 
 				} else {
-					h += "<div class=\"collabRow notmine " +cls+ "\"><span class=\"who collab-info\">from <b>" + c.getUsername1() + "</b> to <b>" + c.getUsername2() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
+					if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
+						msg = "state_initialized_me";
+						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
+						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
+
+					}
+					else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
+						click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
+						click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
+						System.out.println("EDITABLE State msg = "+msg);
+					}
+					h += "<div id=\""+c.getId()+"\" class=\"collabRow notmine " +cls+ "\"><span class=\"who collab-info\">from <b>" + c.getUsername1() + "</b> to <b>" + c.getUsername2() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 				}
 			}
 		}
