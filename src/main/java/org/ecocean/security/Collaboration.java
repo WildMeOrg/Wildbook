@@ -37,6 +37,7 @@ public class Collaboration implements java.io.Serializable {
 	public static final String STATE_APPROVED = "approved";
 	// one step higher than approved is having edit privileges
 	public static final String STATE_EDIT_PRIV = "edit";
+	 public static final String STATE_EDIT_PENDING_PRIV = "edit_pending";
 
 	//JDOQL required empty instantiator
 	public Collaboration() {}
