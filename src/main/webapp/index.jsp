@@ -561,15 +561,73 @@ finally{
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2><%=props.getProperty("topSpotters")%></h2>
+                    <h2>Top submitters (past 30 days)</h2>
                     <ul class="encounter-list list-unstyled">
                     <%
                     myShepherd.beginDBTransaction();
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
-                        long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
+                        long startTime = System.currentTimeMillis() - Long.valueOf(2592000000L);
 
-	                    Map<String,Integer> spotters = myShepherd.getTopSubmittersPhotographersSinceTimeInDescendingOrder(startTime);
+	                    Map<String,Integer> spotters = myShepherd.getTopSubmittersSinceTimeInDescendingOrder(startTime);
+	                    int numUsersToDisplay=3;
+	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
+	                    Iterator<String> keys=spotters.keySet().iterator();
+	                    Iterator<Integer> values=spotters.values().iterator();
+	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
+	                          
+	                    	String spotter=keys.next();
+	                    	System.out.println("spotter: "+spotter);
+	                          int numUserEncs=values.next().intValue();
+	                          String profilePhotoURL="images/user-profile-white-transparent.png";
+	                          User thisUser=myShepherd.getUserByUUID(spotter);
+	                          if(thisUser!=null && !(thisUser.getUsername()!=null && thisUser.getUsername().equals("siowamteam"))){
+		                        	
+	                              if(thisUser.getUserImage()!=null){
+	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+	                              }
+	                              //System.out.println(spotters.values().toString());
+	                            Integer myInt=spotters.get(spotter);
+	                            //System.out.println(spotters);
+
+	                          %>
+	                                <li>
+	                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+	                                    <%
+	                                    if(thisUser.getAffiliation()!=null){
+	                                    %>
+	                                    <small><%=thisUser.getAffiliation() %></small>
+	                                    <%
+	                                      }
+	                                    %>
+	                                    <p><em><%=thisUser.getFullName() %></em> <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
+	                                </li>
+
+	                           <%
+	                           numUsersToDisplay--;
+	                    }
+	                   } //end while
+                    }
+                    catch(Exception e){e.printStackTrace();}
+                    finally{myShepherd.rollbackDBTransaction();}
+
+                   %>
+
+                    </ul>
+                    <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters") %></a>
+                </div>
+            </section>
+             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+                <div class="focusbox-inner opec">
+                    <h2>Top photographers (past 30 days)</h2>
+                    <ul class="encounter-list list-unstyled">
+                    <%
+                    myShepherd.beginDBTransaction();
+                    try{
+	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
+                        long startTime = System.currentTimeMillis() - Long.valueOf(2592000000L);
+
+	                    Map<String,Integer> spotters = myShepherd.getTopPhotographersSinceTimeInDescendingOrder(startTime);
 	                    int numUsersToDisplay=3;
 	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
 	                    Iterator<String> keys=spotters.keySet().iterator();
