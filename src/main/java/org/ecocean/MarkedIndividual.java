@@ -612,15 +612,22 @@ System.out.println("MarkedIndividual.allNamesValues() sql->[" + sql + "]");
     }
 
     for(int c=0;c<myEncs.length;c++) {
-      Encounter temp=myEncs[c];
-      if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
-        haveData.add(temp);
-      }
-      else if(useLocales && (temp.getLocationID()!=null) && (localesProps.getProperty(temp.getLocationID())!=null)){
-        haveData.add(temp);
-      }
-
-      }
+      String catalogNumber="";
+      try {
+          Encounter temp=myEncs[c];
+          if(temp!=null)catalogNumber=temp.getCatalogNumber();
+          if((temp.getDWCDecimalLatitude()!=null)&&(temp.getDWCDecimalLongitude()!=null)) {
+            haveData.add(temp);
+          }
+          else if(useLocales && (temp.getLocationID()!=null) && (localesProps.getProperty(temp.getLocationID())!=null)){
+            haveData.add(temp);
+          }
+        }
+        catch(Exception e) {
+          System.out.println("Hit exception in MarkedIndividual.returnEncountersWithGPSData for Encounter: "+catalogNumber);
+          e.printStackTrace();
+        }
+    }
 
     return haveData;
 
