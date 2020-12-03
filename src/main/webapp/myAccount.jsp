@@ -379,6 +379,7 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
  		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String me = request.getUserPrincipal().getName();
+		System.out.println("ME: "+me);
 		String h = "";
 		// for developing the edit button without having to update a properties file
 		for (Collaboration c : collabs) {
@@ -387,13 +388,13 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 			String msg = "state_" + c.getState();
 			String click = "";
 
-			if (state!=null) { // should always have state
+			if (state!=null) {
 
 				// need a revoke button from either direction
-				if ("state_rejected".equals(msg)) {
-					click += "<span class=\"collab-button\"><input type=\"button\" class=\"add-view-permissions\" value=\"" + collabProps.getProperty("buttonAddViewPerm") + "\"></span>";
+				if (state.equals(Collaboration.STATE_REJECTED)) {
+					click += "<span class=\"collab-button\"><input type=\"button\" id=\"addView-"+c.getId()+"\" class=\"add-view-permissions\" value=\"" + collabProps.getProperty("buttonAddViewPerm") + "\"></span>";
 				} 
-				else if (msg.equals("state_initialized")) {
+				else if (state.equals(Collaboration.STATE_INITIALIZED)) {
 					click += "<span class=\"collab-button\"></span>"; // empty placeholder
 				} 
 				else {
@@ -402,62 +403,74 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
 				click += "<input type=\"hidden\" class=\"collabId\" value=\""+c.getId()+"\">";
 
-				// user number 1 should  be the initiator
-				if (c.getUsername2().equals(me)) {
 
-					System.out.println("I am the recipient of this collaboration! id="+c.getId());
-					if (msg.equals("state_initialized")) {
+				if (state.equals(Collaboration.STATE_INITIALIZED)) {
 
-						// the recipient is the one who approves or denies
+					// the recipient is the one who approves or denies
 
-						msg = "state_initialized_me";
+					msg = "state_initialized_me";
+					if(c.getEditInitiator()!=null && !c.getEditInitiator().equals(me)){
+						msg = "state_initialized";
 						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
 						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
 						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
-
 					}
-					else if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
-						msg = "state_initialized_me";
-						if(!me.equals(c.getEditInitiator()))click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
-						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
-						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
-
-					}
-					else if (state.equals(Collaboration.STATE_APPROVED)) {
-						click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
-						click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
-					} 
-					else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
-						click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
-						click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
-						System.out.println("EDITABLE State msg = "+msg);
-					} 
-					else if ("state_rejected".equals(msg)) {
-						click += "<span class=\"collab-button\"></span>"; //empty placeholder
-					}
-					h += "<div id=\""+c.getId()+"\" class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername2() + "</b> from <b>" + c.getUsername1() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
-
-				} 
-				else {
-					if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
-						msg = "state_initialized_me";
-						if(!me.equals(c.getEditInitiator()))click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
-						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
-						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
-
-					}
-					else if (state.equals(Collaboration.STATE_APPROVED)) {
-						click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
-						click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
-					} 
-					else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
-						click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
-						click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
-						System.out.println("EDITABLE State msg = "+msg);
-					}
-					h += "<div id=\""+c.getId()+"\" class=\"collabRow notmine " +cls+ "\"><span class=\"who collab-info\">from <b>" + c.getUsername1() + "</b> to <b>" + c.getUsername2() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 				}
+				else if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
+					msg = "state_edit_invited";
+					cls="state-initialized";
+					if(c.getEditInitiator()!=null && !c.getEditInitiator().equals(me)){
+						msg = "state_edit_pend";
+						click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+						click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
+						click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
+					}
+					else{
+						click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"revoke\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
+						click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
+					}
+					
+				}
+				else if (state.equals(Collaboration.STATE_APPROVED)) {
+					click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
+					click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
+				} 
+				else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
+					click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
+					click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
+					System.out.println("EDITABLE State msg = "+msg);
+				} 
+				else if ("state_rejected".equals(msg)) {
+					click += "<span class=\"collab-button\"></span>"; //empty placeholder
+				}
+				h += "<div id=\""+c.getId()+"\" class=\"collabRow mine "+ cls+ "\"><span class=\"who collab-info\">to <b>" + c.getUsername2() + "</b> from <b>" + c.getUsername1() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
+
+				/*
+				else {
+				if (state.equals(Collaboration.STATE_EDIT_PENDING_PRIV)) {
+					msg = "state_initialized_me";
+					if(!me.equals(c.getEditInitiator()))click += " <span class=\"invite-response-buttons collab-button\" data-username=\"" + c.getUsername1() + "\"><input type=\"button\" class=\"edit\" value=\"" + collabProps.getProperty("buttonApprove") + "\">";
+					click += "<input type=\"button\" class=\"no\" value=\"" + collabProps.getProperty("buttonDeny") + "\"></span>";
+					click += "<script>$('.invite-response-buttons input').click(function(ev) { clickApproveDeny(ev); });</script>";
+
+				}
+				else if (state.equals(Collaboration.STATE_APPROVED)) {
+					click += " <span class=\"add-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"edit\" id='edit-"+c.getId()+"' value=\"" + collabProps.getProperty("buttonAddEditPerm") + "\">";
+					click += "<script>$('.add-edit-perm-button input').click(function(ev) { clickEditPermissions(ev); });</script>";
+				} 
+				else if (state.equals(Collaboration.STATE_EDIT_PRIV)) {
+					click += " <span class=\"revoke-edit-perm-button collab-button\" data-username=\""+c.getUsername1()+"\"><input type=\"button\" class=\"yes\" value=\"" + collabProps.getProperty("buttonRevokeEditPerm") + "\">";
+					click += "<script>$('.revoke-edit-perm-button input').click(function(ev) { clickApproveDeny(ev); });</script>";
+					System.out.println("EDITABLE State msg = "+msg);
+				}
+				h += "<div id=\""+c.getId()+"\" class=\"collabRow notmine " +cls+ "\"><span class=\"who collab-info\">from <b>" + c.getUsername1() + "</b> to <b>" + c.getUsername2() + "</b></span><span class=\"state collab-info\">" + collabProps.getProperty(msg) + "</span>" + click + "</div>";
 			}
+			}
+				
+				*/
+				
+			} //end if state!=null
+	
 		}
 		if (h.equals("")) h = "<p id=\"none-line\">none</p>";
 		out.println("<div class=\"collab-list\"><h1>" + collabProps.getProperty("collaborationTitle") + "</h1>" + h + "</div>");
@@ -686,7 +699,7 @@ $.ajax({
 		}
 	},
 	error: function(x,y,z) {
-		console.log(" got an error..!");
+		console.log(" gt an error..!");
 		console.warn('%o %o %o', x, y, z);
 	}
 });
