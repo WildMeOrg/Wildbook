@@ -98,16 +98,36 @@ public class Collaborate extends HttpServlet {
     	
     	//get Notifications for User (e.g., after login)
     	else if (request.getParameter("getNotifications") != null) {
+    	  
+    	  //get new collab invites
     	  List<Collaboration> collabs = Collaboration.collaborationsForUser(context, currentUsername, Collaboration.STATE_INITIALIZED);
+    	  
+    	  //get edit collab invites
+    	  List<Collaboration> collabs_edits = Collaboration.collaborationsForUser(context, currentUsername, Collaboration.STATE_EDIT_PENDING_PRIV);
+        
+    	  collabs.addAll(collabs_edits);
+    	  
     	  System.out.println("/Collaborate: inside getNotifications: #collabs = "+collabs.size()+"collabs = "+collabs);
     	  String html = "";
     	  for (Collaboration c : collabs) {
   
     	    System.out.println("/Collaborate: inside collabs list");
+    	    String type="";
+    	    String cclass="";
+    	    String id="";
+    	    if(c.getState().equals(Collaboration.STATE_INITIALIZED)) {
+    	      type="view-only";
+    	      cclass="yes";
+    	    }
+    	    else {
+    	      type="edit";
+    	      cclass="edit";
+    	      //id="id=\""+c.getId()+"\"";
+    	    }
+    	    
+    	    if (!c.getEditInitiator().equals(currentUsername)) {  //this user did not initiate
   
-    	    if (!c.getUsername1().equals(currentUsername)) {  //this user did not initiate
-  
-    	      String requesterName = c.getUsername1();
+    	      String requesterName = c.getEditInitiator();
     	      User requester = myShepherd.getUser(requesterName);
     	      String reqEmail = (requester!=null) ? requester.getEmailAddress() : null;
     	      String emailMessage =  "";
@@ -115,7 +135,7 @@ public class Collaborate extends HttpServlet {
     	        emailMessage = " ("+reqEmail+") ";
     	      }
     	      System.out.println("COLLABORATE: requester "+requesterName+" got user "+requester+" and emailMessage "+emailMessage);
-    	      html += "<div class=\"collaboration-invite-notification\" data-username=\"" + c.getUsername1() + "\">" + c.getUsername1() +emailMessage+ " <input class=\"yes\" type=\"button\" value=\"" + props.getProperty("buttonApprove") + "\" /> <input class=\"no\" type=\"button\" value=\"" + props.getProperty("buttonDeny") + "\" /></div>";
+    	      html += "<div class=\"collaboration-invite-notification\" data-username=\"" + requesterName + "\">" + requesterName +" ("+type+")" + emailMessage+ " <input "+id+" class=\""+cclass+"\" type=\"button\" value=\"" + props.getProperty("buttonApprove") + "\" /> <input class=\"no\" type=\"button\" value=\"" + props.getProperty("buttonDeny") + "\" /></div>";
     	    }
     	  } //end for loop
     	  if (html.equals("")) {
@@ -233,9 +253,17 @@ public class Collaborate extends HttpServlet {
   			  collab.setState(Collaboration.STATE_EDIT_PRIV);
   			} 
   			else {
+  			  
+          if(collab.getState()!=null && (collab.getState().equals(Collaboration.STATE_EDIT_PRIV) || collab.getState().equals(Collaboration.STATE_EDIT_PENDING_PRIV))) {
+            collab.setState(Collaboration.STATE_APPROVED);
+          }
+          //otherwise, kick them down to truly rejected
+          else {collab.setState(Collaboration.STATE_REJECTED);}
+          collab.setEditInitiator(null);
+  			  
   			  System.out.println("Rejected");
-  				collab.setState(Collaboration.STATE_REJECTED);
-  				collab.setEditInitiator(null);
+  				
+  				
   			}
   			System.out.println("/Collaborate: new .getState() = "+collab.getState()+" for collab "+collab);
   			rtn.put("success", true);

@@ -345,6 +345,9 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 		}
 	</script>
 
+<%
+if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && CommonConfiguration.getProperty("allowSocialMediaLogin", request).equals("true")){
+%>
 	<h2><%=props.getProperty("socialMediaConnections") %></h2>
 
 	<div style="padding-bottom: 10px;">
@@ -371,8 +374,8 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	}
 	%>
 	</div>
-
 <%
+}
 	Properties collabProps = new Properties();
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
 
@@ -473,7 +476,7 @@ response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 	
 		}
 		if (h.equals("")) h = "<p id=\"none-line\">none</p>";
-		out.println("<div class=\"collab-list\"><h1>" + collabProps.getProperty("collaborationTitle") + "</h1>" + h + "</div>");
+		out.println("<div class=\"collab-list\"><a name=\"collaborations\"><h2>" + collabProps.getProperty("collaborationTitle") + "</h2></a>" + h + "</div>");
 
 		String rootWebappPath = getServletContext().getRealPath("/");
 		File webappsDir = new File(rootWebappPath).getParentFile();

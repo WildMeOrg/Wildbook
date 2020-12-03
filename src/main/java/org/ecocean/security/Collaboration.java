@@ -296,7 +296,7 @@ public class Collaboration implements java.io.Serializable {
 		List<Collaboration> collabs = collaborationsForCurrentUser(request);
 		int n = 0;
 		for (Collaboration c : collabs) {
-			if (c.username2.equals(username) && c.getState().equals(STATE_INITIALIZED)) n++;
+			if (c.getEditInitiator()!=null && !c.getEditInitiator().equals(username) && (c.getState().equals(STATE_INITIALIZED) || c.getState().equals(STATE_EDIT_PENDING_PRIV))) n++;
 		}
 
 		// make Notifications class to do this outside Collaboration, eeergghh
