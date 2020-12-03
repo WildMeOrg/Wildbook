@@ -123,7 +123,7 @@ java.util.Properties" %>
 		h += "<li>type: <b>" + ((f.getType() == null) ? "[null] (unity)" : f.getType()) + "</b></li>";
 		h += "<li>" + showMediaAsset(f.getMediaAsset(), req, myShepherd) + "</li>";
 		h += "<li>" + showAnnotation(f.getAnnotation(), req, myShepherd) + "</li>";
-        h += "<script>addFeature('" + f.getId() + "', " + f.getParametersAsString() + ");</script>";
+        h += "<script>addFeature('" + f.getId() + "', " + f.getParametersAsString() + ", '" + f.getType() + "');</script>";
 		h += "<li>parameters: " + niceJson(f.getParameters()) + "</li>";
 		return h + "</ul></div>";
 	}
@@ -438,6 +438,11 @@ body {
     outline: dashed 2px rgba(255,255,0,0.8);
     box-shadow: 0 0 0 2px rgba(0,0,0,0.6);
 }
+
+.featurebox-type-orgecoceanblurBox {
+    outline: dotted 1px rgba(100,255,0,0.8) !important;
+}
+
 .mediaasset {
 	position: relative;
 }
@@ -487,8 +492,9 @@ console.log('feature=%o', features[featId]);
     zoomToFeature(imgEl, { parameters: features[featId] });
     zoomedId = featId;
 }
-function addFeature(id, bbox) {
+function addFeature(id, bbox, type) {
     features[id] = bbox;
+    features[id].type = type;
 }
 
 function drawFeatures() {
@@ -501,7 +507,7 @@ function drawFeature(id) {
     var bbox = features[id];
     var el = $('#img-wrapper');
     var img = $('img')[0];
-    var f = $('<div title="' + id + '" id="feature-' + id + '" class="featurebox" />');
+    var f = $('<div title="' + id + '" id="feature-' + id + '" class="featurebox featurebox-type-' + (bbox.type || 'unknown').replaceAll('.', '') + '" />');
     el.append(f);
     if (!bbox || !bbox.width) return;  //trivial annot, so leave it as whole image
     var scale = img.height / img.naturalHeight;
