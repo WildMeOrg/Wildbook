@@ -138,7 +138,12 @@ public class Collaborate extends HttpServlet {
   		if (collab!=null) {
   			try {
   				if ("revoke".equals(actionForExisting)) {
-  					collab.setState(Collaboration.STATE_REJECTED);
+  					//if we're revoking edit permissions, kick them down to view
+  				  if(collab.getState()!=null && (collab.getState().equals(Collaboration.STATE_EDIT_PRIV) || collab.getState().equals(Collaboration.STATE_EDIT_PENDING_PRIV))) {
+  					  collab.setState(Collaboration.STATE_APPROVED);
+  					}
+  				  //otherwise, kick them down to truly rejected
+  					else {collab.setState(Collaboration.STATE_REJECTED);}
   					collab.setEditInitiator(null);
   					myShepherd.updateDBTransaction();
   					System.out.println("Set existing approved collab to rejected: id="+collabId+"  state="+collab.getState());
@@ -160,7 +165,7 @@ public class Collaborate extends HttpServlet {
   					}
   					rtn = sendCollaborationInvite(myShepherd, username, currentUsername, props, rtn, request, context, false);
   					collab.setState(Collaboration.STATE_INITIALIZED);
-  					
+  					collab.setEditInitiator(currentUsername);
   					
   					myShepherd.updateDBTransaction();
   				}
@@ -302,6 +307,7 @@ public class Collaborate extends HttpServlet {
 		if (collab==null) {
 			collab = Collaboration.create(currentUsername, username);
 			if(isEdit)collab.setState(Collaboration.STATE_EDIT_PENDING_PRIV );
+			collab.setEditInitiator(currentUsername);
 			myShepherd.storeNewCollaboration(collab);
 			myShepherd.updateDBTransaction();
 			rtn.put("collabId",collab.getId());
