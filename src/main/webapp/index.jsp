@@ -564,12 +564,20 @@ finally{
                     <h2>Top submitters (past 30 days)</h2>
                     <ul class="encounter-list list-unstyled">
                     <%
+                    
+                    ArrayList<String> ignoreThese=new ArrayList<String>();
+                    ignoreThese.add("tomcat");
+                    ignoreThese.add("siowamteam");
+                    ignoreThese.add("Chrissy");
+                    ignoreThese.add("admin");
+                    
+                    
                     myShepherd.beginDBTransaction();
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                         long startTime = System.currentTimeMillis() - Long.valueOf(2592000000L);
 
-	                    Map<String,Integer> spotters = myShepherd.getTopSubmittersSinceTimeInDescendingOrder(startTime);
+	                    Map<String,Integer> spotters = myShepherd.getTopSubmittersSinceTimeInDescendingOrder(startTime,ignoreThese);
 	                    int numUsersToDisplay=3;
 	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
 	                    Iterator<String> keys=spotters.keySet().iterator();
@@ -627,7 +635,7 @@ finally{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
                         long startTime = System.currentTimeMillis() - Long.valueOf(2592000000L);
 
-	                    Map<String,Integer> spotters = myShepherd.getTopPhotographersSinceTimeInDescendingOrder(startTime);
+	                    Map<String,Integer> spotters = myShepherd.getTopPhotographersSinceTimeInDescendingOrder(startTime,ignoreThese);
 	                    int numUsersToDisplay=3;
 	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
 	                    Iterator<String> keys=spotters.keySet().iterator();

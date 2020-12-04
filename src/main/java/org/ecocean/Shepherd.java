@@ -5250,7 +5250,7 @@ public class Shepherd {
     return sortByValues(matchingUsers);
   }
   
-  public Map<String,Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime){
+  public Map<String,Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopSubmittersSinceTimeInDescendingOrder...start");
 
@@ -5266,7 +5266,10 @@ public class Shepherd {
     //System.out.println("     All users: "+numAllUsers);
     QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
     for(User user:allUsers){
-
+        
+        //skip if this is on our ignore list
+        if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
+        
         if(qc.getQueryByName(("numRecentEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
@@ -5289,7 +5292,7 @@ public class Shepherd {
     return sortByValues(matchingUsers);
   }
   
-  public Map<String,Integer> getTopPhotographersSinceTimeInDescendingOrder(long startTime){
+  public Map<String,Integer> getTopPhotographersSinceTimeInDescendingOrder(long startTime, List<String> ignoreTheseUsernames){
 
     System.out.println("getTopPhotographersSinceTimeInDescendingOrder...start");
 
@@ -5306,6 +5309,9 @@ public class Shepherd {
     QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
     for(User user:allUsers){
 
+        //skip if this is on our ignore list
+        if(user.getUsername()!=null && !user.getUsername().trim().equals("") && ignoreTheseUsernames.contains(user.getUsername())) {continue;}
+      
         if(qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
