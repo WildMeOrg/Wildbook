@@ -5250,14 +5250,14 @@ public class Shepherd {
     return sortByValues(matchingUsers);
   }
   
-  public Map<String,Integer> getTopSubmittersPhotographersSinceTimeInDescendingOrder(long startTime){
+  public Map<String,Integer> getTopSubmittersSinceTimeInDescendingOrder(long startTime){
 
-    System.out.println("getTopSubmittersPhotographersSinceTimeInDescendingOrder...start");
+    System.out.println("getTopSubmittersSinceTimeInDescendingOrder...start");
 
     Map<String,Integer> matchingUsers=new HashMap<String,Integer>();
 
 
-    String filter = "select from org.ecocean.User where fullName != null && enc.dwcDateAddedLong >= "+startTime+" && (enc.submitters.contains(this) || enc.photographers.contains(this)) VARIABLES org.ecocean.Encounter enc";
+    String filter = "select from org.ecocean.User where fullName != null && enc.dwcDateAddedLong >= "+startTime+" && enc.submitters.contains(this) VARIABLES org.ecocean.Encounter enc";
     Query q = pm.newQuery(filter);
     Collection c = (Collection) (q.execute());
     ArrayList<User> allUsers = new ArrayList<User>(c);
@@ -5270,22 +5270,61 @@ public class Shepherd {
         if(qc.getQueryByName(("numRecentEncounters_"+user.getUUID()))!=null){
           CachedQuery cq=qc.getQueryByName(("numRecentEncounters_"+user.getUUID()));
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
-          System.out.println("found "+"numRecentEncounters_"+user.getUUID());
+          System.out.println("found "+"numRecentEncounters_"+user.getUUID()+"_"+cq.executeCountQuery(this));
         }
 
         else{
-          String userFilter = "SELECT FROM org.ecocean.Encounter WHERE (submitters.contains(user) || photographers.contains(user)) && user.uuid == '"+user.getUUID()+"' && dwcDateAddedLong >= "+startTime+" VARIABLES org.ecocean.User user";
+          String userFilter = "SELECT FROM org.ecocean.Encounter WHERE dwcDateAddedLong >= "+startTime+" && submitters.contains(user) && user.uuid == '"+user.getUUID()+"' VARIABLES org.ecocean.User user";
           //update rankings hourly
           CachedQuery cq=new CachedQuery(("numRecentEncounters_"+user.getUUID()),userFilter,3600000);
           qc.addCachedQuery(cq);
           matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
-          System.out.println("not found "+"numRecentEncounters_"+user.getUUID());
+          System.out.println("not found "+"numRecentEncounters_"+user.getUUID()+"_"+cq.executeCountQuery(this));
 
         }
 
     }
 
-    System.out.println("getTopSubmittersPhotographersSinceTimeInDescendingOrder...end");
+    System.out.println("getTopSubmittersSinceTimeInDescendingOrder...end");
+    return sortByValues(matchingUsers);
+  }
+  
+  public Map<String,Integer> getTopPhotographersSinceTimeInDescendingOrder(long startTime){
+
+    System.out.println("getTopPhotographersSinceTimeInDescendingOrder...start");
+
+    Map<String,Integer> matchingUsers=new HashMap<String,Integer>();
+
+
+    String filter = "select from org.ecocean.User where fullName != null && enc.dwcDateAddedLong >= "+startTime+" && enc.photographers.contains(this) VARIABLES org.ecocean.Encounter enc";
+    Query q = pm.newQuery(filter);
+    Collection c = (Collection) (q.execute());
+    ArrayList<User> allUsers = new ArrayList<User>(c);
+    q.closeAll();
+
+    //System.out.println("     All users: "+numAllUsers);
+    QueryCache qc=QueryCacheFactory.getQueryCache(getContext());
+    for(User user:allUsers){
+
+        if(qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()))!=null){
+          CachedQuery cq=qc.getQueryByName(("numRecentPhotoEncounters_"+user.getUUID()));
+          matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
+          System.out.println("found "+"numRecentPhotoEncounters_"+user.getUUID()+"_"+cq.executeCountQuery(this));
+        }
+
+        else{
+          String userFilter = "SELECT FROM org.ecocean.Encounter WHERE dwcDateAddedLong >= "+startTime+" && photographers.contains(user) && user.uuid == '"+user.getUUID()+"' VARIABLES org.ecocean.User user";
+          //update rankings hourly
+          CachedQuery cq=new CachedQuery(("numRecentPhotoEncounters_"+user.getUUID()),userFilter,3600000);
+          qc.addCachedQuery(cq);
+          matchingUsers.put(user.getUUID(), (cq.executeCountQuery(this)));
+          System.out.println("not found "+"numRecentPhotoEncounters_"+user.getUUID()+"_"+cq.executeCountQuery(this));
+
+        }
+
+    }
+
+    System.out.println("getTopPhotographersSinceTimeInDescendingOrder...end");
     return sortByValues(matchingUsers);
   }
 
