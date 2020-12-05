@@ -177,7 +177,7 @@ function forceLink(el) {
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
-		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName()+"</a><br>";
+		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName(request, imageShepherd)+"</a><br>";
 		      }
 		      	System.out.println("    EMG: got indID element "+individualID);
 
@@ -232,6 +232,7 @@ function forceLink(el) {
                                                 JSONObject ja = new JSONObject();
 						ja.put("id", ann.getId());
 						ja.put("matchAgainst", ann.getMatchAgainst());
+						ja.put("viewpoint", ann.getViewpoint());
                                                 //ja.put("acmId", ann.getAcmId());
                                                 ja.put("iaClass", ann.getIAClass());
                                                 ja.put("identificationStatus", ann.getIdentificationStatus());
@@ -624,7 +625,7 @@ if(request.getParameter("encounterNumber")!=null){
 
   //
   var removeAsset = function(maId) {
-    if (confirm("Are you sure you want to remove this image from the encounter? The image will not be deleted from the database, and this action is reversible. However, all annotations related to this image will also be removed from this Encounter. Proceed to remove image and annotations?")) {
+    if (confirm("Are you sure you want to remove this image? This will also remove all annotations associated with this image. The image will not be deleted from the database and can be recovered.")) {
       $.ajax({
         url: '../MediaAssetAttach',
         type: 'POST',
@@ -660,8 +661,13 @@ if(request.getParameter("encounterNumber")!=null){
 	        data: JSON.stringify({"detach":"true","number":"<%=encNum%>","annotation":aid}),
 	        success: function(d) {
 	          console.info("I detached Annotation "+aid+" from encounter <%=encNum%>");
-	          $('[id^="image-enhancer-wrapper-' + maId + '-'+aid+'"]').closest('figure').remove()
-
+	          //var res=JSON.parse(d);
+	          if(d.revertToTrivial){
+	        	  $('#image-enhancer-wrapper-' + maId + '-'+aid).remove();
+	          }
+	          else{
+	          	$('[id^="image-enhancer-wrapper-' + maId + '-'+aid+'"]').closest('figure').remove();
+	          }
 	        },
 	        error: function(x,y,z) {
 	          console.warn("failed to remove Annotation: "+aid);
@@ -913,10 +919,12 @@ function doImageEnhancer(sel) {
         	);
         	
      
+
         	 opt.menu.push(['create optional feature region', function(enh) {
                  var mid = enh.imgEl.data('enh-mediaassetid');
                  window.location.href = 'encounterCR.jsp?number=' + encounterNumber + '&mediaAssetId=' + mid;
              }]);
+
 
         wildbook.arrayMerge(opt.menu, wildbook.IA.imageMenuItems());
 <%
@@ -1089,7 +1097,8 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
     }
     if (focused) tooltip = '<i style="color: #840;">this encounter</i>';
     for (var i = 0 ; i < assets.length ; i++) {
-    	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.iaClass)tooltip=tooltip+'<br>IA class: '+assets[i].annotation.iaClass;
+    	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.iaClass){tooltip=tooltip+'<br>IA class: '+assets[i].annotation.iaClass;}
+    	if(assets[i].annotation!=null && assets[i].annotation.id==focusAnnId && assets[i].annotation.viewpoint){tooltip=tooltip+'<br>Viewpoint: '+assets[i].annotation.viewpoint;}
     }
 
     fel.prop('id', feat.id);
@@ -1098,7 +1107,9 @@ console.log('FEAT!!!!!!!!!!!!!!! scale=%o feat=%o', scale, feat);
         tooltip += '<br /><i style="color: #280; font-size: 0.8em;">Annotation of Interest</i>';
     }
     if (feat.parameters.viewpoint) tooltip += '<br /><i style="color: #285; font-size: 0.8em;">Viewpoint: <b>' + feat.parameters.viewpoint + '</b></i>';
-    if (focused) fel.addClass('image-enhancer-feature-focused');
+    if (focused) {
+    	fel.addClass('image-enhancer-feature-focused');
+    }
     fel.prop('data-tooltip', tooltip);
     fel.css({
         left: feat.parameters.x * scale,

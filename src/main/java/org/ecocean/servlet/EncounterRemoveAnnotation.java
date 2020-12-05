@@ -101,7 +101,12 @@ public class EncounterRemoveAnnotation extends HttpServlet {
     try {
       if ((encID != null)&&(myShepherd.isEncounter(encID))) {
         Encounter enc = myShepherd.getEncounter(encID);
-        if(ServletUtilities.isUserAuthorizedForEncounter(enc,request) && annotID != null && myShepherd.getAnnotation(annotID)!=null) {
+        if(    ServletUtilities.isUserAuthorizedForEncounter(enc,request) 
+            && annotID != null   
+            && myShepherd.getAnnotation(annotID)!=null 
+            && enc.getAnnotations()!=null
+            && enc.getAnnotations().contains(myShepherd.getAnnotation(annotID))
+         ) {
   
             Annotation ann=myShepherd.getAnnotation(annotID);
           
@@ -111,12 +116,33 @@ public class EncounterRemoveAnnotation extends HttpServlet {
               //if not trivial but has no sibs, revert to trivial
                 if(!ann.isTrivial() && (ann.getSiblings()==null||ann.getSiblings().size()==0)) {
                  
+                  
+                  
+                  List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
+                  if (iaTasks!=null&&!iaTasks.isEmpty()) {
+                    for (Task iaTask : iaTasks) {
+                      iaTask.removeObject(ann);
+                      myShepherd.updateDBTransaction();
+                    }
+                  }
+                  
                   Annotation newAnnot=ann.revertToTrivial(myShepherd);
+                  
                   myShepherd.getPM().deletePersistent(ann);
                   myShepherd.updateDBTransaction();
+                  res.put("revertToTrivial",true);
                 }
                 //otherwise just delete and move on
                 else if(!ann.isTrivial()) {
+                  
+                  List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
+                  if (iaTasks!=null&&!iaTasks.isEmpty()) {
+                    for (Task iaTask : iaTasks) {
+                      iaTask.removeObject(ann);
+                      myShepherd.updateDBTransaction();
+                    }
+                  }
+                  
                   enc.removeAnnotation(ann);
                   myShepherd.getPM().deletePersistent(ann);
                   myShepherd.commitDBTransaction();

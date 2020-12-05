@@ -51,6 +51,8 @@ if(request.getParameter("delete")!=null){
 		
 	}
 	
+	qc.loadQueries();
+	
 	
 	//remove cache files
 	String writePath=ShepherdProperties.getProperties("cache.properties","").getProperty("cacheRootDirectory");
@@ -133,7 +135,7 @@ try{
 		cquery.executeCollectionQuery(myShepherd,true);
 		%>
 		
-		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %></li>
+		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %>:<%=cquery.executeCountQuery(myShepherd) %></li>
 		
 		<%
 

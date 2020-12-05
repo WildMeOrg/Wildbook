@@ -5,7 +5,7 @@
 <%@ page import="java.util.List, java.util.Map, org.datanucleus.api.rest.orgjson.JSONObject,java.util.Collections" %>
 <%@ page import="java.util.Properties, java.io.IOException" %>
 <%@ page import="java.util.Arrays" %>
-<%@ page import="org.ecocean.SearchUtilities" %>
+<%@ page import="org.ecocean.FormUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%!
@@ -227,8 +227,6 @@ $(".search-collapse-header a").click(function(){
   myShepherd.setAction("encounterSearch.jsp");
   myShepherd.beginDBTransaction();
   boolean useCustomProperties = User.hasCustomProperties(request, myShepherd); // don't want to call this a bunch
-
-
 
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
@@ -1332,7 +1330,7 @@ function addLabeledKeyword(el) {
 
       <p><strong><%=encprops.getProperty("msmarker")%>:</strong>
       <span class="para">
-      </span> 
+      </span>
    </p>
 <p>
 
@@ -1440,9 +1438,10 @@ else {
   </td>
 </tr>
 
-<% SearchUtilities.printStringFieldSearchRow("submitterProject", out, encprops); %>
+<% FormUtilities.printStringFieldSearchRow("submitterProject", out, encprops); %>
 <%
-  SearchUtilities.setUpOrgDropdown(false, encprops, out, request, myShepherd);
+  FormUtilities.setUpOrgDropdown("organizationId", false, encprops, out, request, myShepherd);
+  FormUtilities.setUpProjectDropdown(false, 6, "Project Name", "projectId", encprops, out, request, myShepherd);
 %>
 
 <tr>
