@@ -92,7 +92,7 @@
 				/import/** = authc, roles[researcher]
 
 				/gallery.jsp = authc
-				/encounters/encounter.jsp = authc
+				#/encounters/encounter.jsp = authc
 				/encounters/encounterMediaGallery.jsp = authc
 				/encounters/projectManagement.jsp = authc
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
@@ -438,6 +438,12 @@
         /UserPreferences = authc, roles[researcher]
 				
 		/EncounterRemoveAnnotation = authc, roles[researcher]
+		
+		
+		/MantaMatcher = authc, roles[researcher]
+		/encounters/encounterCR.jsp = authc, roles[researcher]
+		/EncounterAddMantaPattern = authc, roles[researcher]
+		
             </param-value>
         </init-param>
     </filter>
@@ -2729,5 +2735,26 @@
     <servlet-name>EncounterRemoveAnnotation</servlet-name>
     <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
+  
+      <servlet>
+    <servlet-name>MantaMatcher</servlet-name>
+    <servlet-class>org.ecocean.servlet.MantaMatcher</servlet-class>
+  </servlet>
+  
+    <servlet-mapping>
+    <servlet-name>MantaMatcher</servlet-name>
+    <url-pattern>/MantaMatcher/*</url-pattern>
+  </servlet-mapping>
+  
+      <servlet>
+    <servlet-name>EncounterAddMantaPattern</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterAddMantaPattern</servlet-class>
+  </servlet>
+  
+        <servlet-mapping>
+      	<servlet-name>EncounterAddMantaPattern</servlet-name>
+      	<url-pattern>/EncounterAddMantaPattern</url-pattern>
+	</servlet-mapping>
+  
 
 </web-app>
