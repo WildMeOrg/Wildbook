@@ -310,7 +310,7 @@
 					/appadmin/consolidateDuplicateUsers.jsp = authc, roles[admin]
 					/appadmin/consolidateDuplicateUsersChecker.jsp = authc, roles[admin]
 					/appadmin/consolidateDuplicateUsersSandbox.jsp = authc, roles[admin]
-					/myUsers.jsp = authc, roles[researcher]
+					/myUsers.jsp = authc
 
         /UserGetNotifications = authc
 
