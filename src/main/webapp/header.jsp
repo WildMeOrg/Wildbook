@@ -488,6 +488,19 @@ finally{
                             if(request.getUserPrincipal()!=null) {
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
+                              
+
+
+                            <%
+                            if(CommonConfiguration.useSpotPatternRecognition(context)){
+                            %>
+                            	<li class="divider"></li>
+                            	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
+                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                            	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                            <%
+                            }
+                            %>
 
                               <li class="divider"></li>
                               <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
@@ -547,18 +560,6 @@ finally{
                               </ul>
                             </li>
 
-
-
-                            <%
-                            if(CommonConfiguration.useSpotPatternRecognition(context)){
-                            %>
-                            	<li class="divider"></li>
-                            	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
-                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
-                            	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                            <%
-                            }
-                            %>
                           </ul>
                         </li>
                       </ul>
