@@ -37,6 +37,9 @@ public class Collaboration implements java.io.Serializable {
 	public static final String STATE_APPROVED = "approved";
 	// one step higher than approved is having edit privileges
 	public static final String STATE_EDIT_PRIV = "edit";
+	 public static final String STATE_EDIT_PENDING_PRIV = "edit_pending";
+	 
+	 private String editInitiator;
 
 	//JDOQL required empty instantiator
 	public Collaboration() {}
@@ -293,7 +296,7 @@ public class Collaboration implements java.io.Serializable {
 		List<Collaboration> collabs = collaborationsForCurrentUser(request);
 		int n = 0;
 		for (Collaboration c : collabs) {
-			if (c.username2.equals(username) && c.getState().equals(STATE_INITIALIZED)) n++;
+			if (c.getEditInitiator()!=null && !c.getEditInitiator().equals(username) && (c.getState().equals(STATE_INITIALIZED) || c.getState().equals(STATE_EDIT_PENDING_PRIV))) n++;
 		}
 
 		// make Notifications class to do this outside Collaboration, eeergghh
@@ -431,6 +434,14 @@ public class Collaboration implements java.io.Serializable {
               .append("state", getState())
               .append("dateTimeCreated", getDateStringCreated())
               .toString();
+  }
+  
+  public String getEditInitiator() {return editInitiator;}
+  public void setEditInitiator(String username) {
+    if(username==null) {this.editInitiator=null;}
+    else {
+      this.editInitiator = username;
+    }
   }
 
 
