@@ -21,14 +21,17 @@ public String getSecurityMappings(String servletName,String paramValues){
 	
 	Matcher m = Pattern.compile("\\/("+servletName+").*(\n|\r)").matcher(paramValues);
 	
+	int numMatches=0;
 	while(m.find()){
-		servletSecurity+=m.group()+" ";
+		if(numMatches>0){servletSecurity=servletSecurity+"<br>"+m.group();}
+		else{
+			servletSecurity+=m.group();
+		}
+		numMatches++;
 	}
 	
 	return servletSecurity;
-	
 }
-
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -63,8 +66,8 @@ function showMapped () {
 
 $(document).ready(function() {
     //set initial state.
-    $('#hideMapped').val(this.checked);
-    hideMapped();
+    //$('#hideMapped').val(this.checked);
+    //hideMapped();
 
     $('#hideMapped').change(function() {
         if(this.checked) {
@@ -83,7 +86,20 @@ $(document).ready(function() {
 
 <h1>URL Security Review</h1>
 
-<p><input type="checkbox" name="hideChecked" id="hideMapped" checked="checked"> Hide secured mapped web.xml entries</p>
+<p>This page provides a visual summary of the security rules defined in web.xml in Wildbook. It iterates through mapped servlets from web.xml and iterates through JSP pages on the file system. For each JSP/servlet it finds, it them checks web.xml for the related Shiro security mappings.</p>
+<p>Notes:<br>
+  <ul>
+  	<li>Use the checkbox below to hide secured URLs and focus on unsecured URLS.</li>
+  	<li>If the "Security Rules" column is empty, the URL is exposed to the public and requires no login.</li>
+  	<li>Multiple entries in "Security Rules" may indicate duplicated and potentially conflicting entries.</li>
+  	<li>authc = "authentication" and means that login is required.</li>
+    <li>roles[...] = the authenticated user roles needed to access the URL. Any listed role (logical OR) will allow access.</li>
+  
+  </ul>
+
+</p>
+
+<p><input type="checkbox" name="hideChecked" id="hideMapped"> Hide secured mapped web.xml entries</p>
 
 
 <h2>Servlets</h2>
@@ -223,18 +239,20 @@ try{
 	for(int n=0;n<numJSPFiles;n++){
 		String mappedElementName="mapped";
 		File jFile=jspFiles.get(n);
-		String servletSecurity=getSecurityMappings(jFile.getName(),paramValues);
-		
-		//see if it's parent is mapped
-		if(servletSecurity.equals(""))servletSecurity=getSecurityMappings(jFile.getParentFile().getName(),paramValues);
-		
-		//if it's still unmapped,it's unmapped totally!
-		if(servletSecurity.equals("")){mappedElementName="unmapped";}
-		//ignore WEB-INF diretory, otherwise print
-		if((jFile.getAbsolutePath().indexOf("WEB-INF")==-1)&&(jFile.getAbsolutePath().indexOf("META-INF")==-1)){
-			%>
-			<tr name="<%=mappedElementName %>"><td><%=jFile.getAbsolutePath() %></td><td><%=servletSecurity %></td></tr>
-			<%
+		if(!jFile.isDirectory()){
+			String servletSecurity=getSecurityMappings(jFile.getName(),paramValues);
+			
+			//see if it's parent is mapped
+			if(servletSecurity.equals(""))servletSecurity=getSecurityMappings((jFile.getParentFile().getName()+"/\\*\\*"),paramValues);
+			
+			//if it's still unmapped,it's unmapped totally!
+			if(servletSecurity.equals("")){mappedElementName="unmapped";}
+			//ignore WEB-INF diretory, otherwise print
+			if((jFile.getAbsolutePath().indexOf("WEB-INF")==-1)&&(jFile.getAbsolutePath().indexOf("META-INF")==-1)){
+				%>
+				<tr name="<%=mappedElementName %>"><td><%=jFile.getAbsolutePath() %></td><td><%=servletSecurity %></td></tr>
+				<%
+			}
 		}
 	}
 	
@@ -264,5 +282,4 @@ finally{
 
 
 </div>
-</body>
-</html>
+<jsp:include page="../footer.jsp" flush="true"/>
