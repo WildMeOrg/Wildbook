@@ -244,10 +244,10 @@
 						/EncounterAddImage = authc, roles[researcher]
 						/KeywordHandler = authc, roles[researcher]
 
-						/AdoptionAction = authc, roles[admin]
-						/AdoptionForm = authc, roles[admin]
-						/DeleteAdoption = authc, roles[admin]
-						/ResurrectDeletedAdoption = authc, roles[admin]
+						/AdoptionAction = authc, roles[adoption]
+						/AdoptionForm = authc, roles[adoption]
+						/DeleteAdoption = authc, roles[adoption]
+						/ResurrectDeletedAdoption = authc, roles[adoption]
 
 						 /EncounterSetState = authc, roles[researcher]
 						 /EncounterDelete = authc, roles[researcher]
@@ -443,6 +443,9 @@
 		/MantaMatcher = authc, roles[researcher]
 		/encounters/encounterCR.jsp = authc, roles[researcher]
 		/EncounterAddMantaPattern = authc, roles[researcher]
+		
+		/adoptions/adoption.jsp = authc, roles[adoption]
+				  /adoptions/allAdoptions.jsp = authc, roles[adoption]
 		
             </param-value>
         </init-param>
