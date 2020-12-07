@@ -150,10 +150,10 @@ try{
       candidateHtml +=  '<div class="radio-container">';
       candidateHtml +=  '<div class="radio-button-pair-container">';
       candidateHtml +=  '<input type="radio" id="merge-radio" name="radio__' + uuid+'__'+username + '__'+ email+ '__'+fullname +'" value="merge" data-id="radio__' + uuid + '__' + username + '__' + email + '__' + fullname +'" onclick="radioClicked()">';
-      candidateHtml +=  '<label for="merge-radio">' + txt.merge + '</label>';
+      candidateHtml +=  '<label for="radio__' + uuid+'__'+username + '__'+ email+ '__'+fullname +'">' + txt.merge + '</label>';
       candidateHtml +=  '<br>';
       candidateHtml +=  '<input type="radio" id="noClaim-radio" name="radio__' + uuid + '__'+ username + '__' + email + '__' + fullname +'" value="noClaim" data-id="radio__' + uuid + '__' + username + '__' + email +'__'+fullname +'" onclick="radioClicked()">';
-      candidateHtml +=  '<label for="noClaim-radio">' + txt.doNotClaim + '</label>';
+      candidateHtml +=  '<label for="radio__' + uuid + '__'+ username + '__' + email + '__' + fullname +'">' + txt.doNotClaim + '</label>';
       candidateHtml +=  '</div>';
       candidateHtml +=  '</div>';
       candidateHtml += '</div>';
