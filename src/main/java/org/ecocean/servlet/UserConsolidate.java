@@ -66,7 +66,6 @@ public class UserConsolidate extends HttpServlet {
       for(int k=0;k<submitterEncounters.size();k++){
         Encounter currentEncounter=submitterEncounters.get(k);
         consolidateEncounterSubmitters(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
-        consolidateMainEncounterSubmitterId(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
       }
@@ -80,6 +79,7 @@ public class UserConsolidate extends HttpServlet {
         }
       }
     }
+    consolidateEncounterSubmitterIds(myShepherd, userToRetain, userToBeConsolidated);
     consolidateEncounterInformOthers(myShepherd, userToRetain, userToBeConsolidated);
     consolidateImportTaskCreator(myShepherd, userToRetain, userToBeConsolidated);
     consolidateRoles(myShepherd, userToRetain, userToBeConsolidated);
@@ -211,13 +211,6 @@ public class UserConsolidate extends HttpServlet {
     }
   }
 
-  public static void consolidateMainEncounterSubmitterId(Shepherd myShepherd, Encounter enc, User useMe, User userToRemove){
-    if(enc.getSubmitterID()!=null && userToRemove.getUsername()!=null && enc.getSubmitterID().equals(userToRemove.getUsername())){
-      System.out.println("dedupe changing submitterId for encounter "+ enc.toString() +" from user "+ userToRemove.toString() +" to user " + useMe.toString());
-      enc.setSubmitterID(useMe.getUsername());
-    }
-  }
-
   public static void consolidateImportTaskCreator(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
     String filter="SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE creator.uuid==\""+userToBeConsolidated.getUUID()+"\""; // && user.uuid==\""+userToBeConsolidated.getUUID()+"\" VARIABLES org.ecocean.User user"
     // System.out.println("dedupe query is: " + filter);
@@ -265,6 +258,35 @@ public class UserConsolidate extends HttpServlet {
         myShepherd.beginDBTransaction();
       } //end if consolidatedUserRoles exists and has >0 elements
    }//end if userToBeConsolidated has no username
+  }
+
+  public static void consolidateEncounterSubmitterIds(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
+    // System.out.println("dedupe consolidating encounter submitter IDs in encounters containing user: " + userToBeConsolidated.toString() + " into user: " + userToRetain.toString()); //TODO comment out
+    if(Util.stringExists(userToBeConsolidated.getUsername()) && Util.stringExists(userToRetain.getUsername())){ //can't look it up if userToBeConsolidated doesn't have username and can't change it to something if userToRetain doesn't have username
+      String filter="SELECT FROM org.ecocean.Encounter WHERE this.submitterID=='" + userToBeConsolidated.getUsername() + "' ";
+      System.out.println("dedupe query is: " + filter);
+      List<Encounter> encs=new ArrayList<Encounter>();
+      Query query=myShepherd.getPM().newQuery(filter);
+      Collection c = (Collection) (query.execute());
+      if(c!=null){
+        encs=new ArrayList<Encounter>(c);
+      }
+      query.closeAll();
+      if(encs!=null && encs.size()>0){
+        for(int i=0; i<encs.size(); i++){
+          Encounter currentEncounter = encs.get(i);
+          if(currentEncounter!=null){
+            System.out.println("dedupe changing submitterId for encounter "+ currentEncounter.toString() +" from user "+ userToBeConsolidated.toString() +" to user " + userToRetain.toString());
+            currentEncounter.setSubmitterID(userToRetain.getUsername());
+            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+          }
+        }
+      }else{
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
+      }
+    }
   }
 
   public static void consolidateEncounterInformOthers(Shepherd myShepherd, User userToRetain, User userToBeConsolidated){
@@ -321,7 +343,6 @@ public class UserConsolidate extends HttpServlet {
         for(int j=0;j<submitterEncounters.size();j++){
           Encounter currentEncounter=submitterEncounters.get(j);
           consolidateEncounterSubmitters(myShepherd, currentEncounter, useMe, currentDupe);
-          consolidateMainEncounterSubmitterId(myShepherd, currentEncounter, useMe, currentDupe);
         }
       }
       //TODO assign usernameless encounters to public maybe using the below, and maybe not
