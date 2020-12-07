@@ -50,16 +50,16 @@ int numFixes=0;
         // query.closeAll();
 
         // System.out.println("got here x");
-        User AMMTofo = myShepherd.getUserByUUID("702df060-0151-49f3-834a-4c3cd383c961");
-        User aFlam = myShepherd.getUserByUUID("209a2d33-90ef-4ee4-9aa3-e319574ce33c");
-        User userToRetain = AMMTofo;
-        User userToBeConsolidated = aFlam;
-
-        List<Organization> originalOrganizationsOfUserToRetain = userToRetain.getOrganizations();
-        System.out.println("mark before consoldiating orgs: " + originalOrganizationsOfUserToRetain.toString());
-        UserConsolidate.consolidateOrganizations(myShepherd, userToRetain, userToBeConsolidated);
-        List<Organization> finalOrganizationsOfUserToRetain = userToRetain.getOrganizations();
-        System.out.println("mark after consolidating orgs finalOrganizationsOfUserToRetain is: " + finalOrganizationsOfUserToRetain.toString());
+        // User AMMTofo = myShepherd.getUserByUUID("702df060-0151-49f3-834a-4c3cd383c961");
+        // User aFlam = myShepherd.getUserByUUID("209a2d33-90ef-4ee4-9aa3-e319574ce33c");
+        // User userToRetain = AMMTofo;
+        // User userToBeConsolidated = aFlam;
+        //
+        // List<Organization> originalOrganizationsOfUserToRetain = userToRetain.getOrganizations();
+        // System.out.println("mark before consoldiating orgs: " + originalOrganizationsOfUserToRetain.toString());
+        // UserConsolidate.consolidateOrganizations(myShepherd, userToRetain, userToBeConsolidated);
+        // List<Organization> finalOrganizationsOfUserToRetain = userToRetain.getOrganizations();
+        // System.out.println("mark after consolidating orgs finalOrganizationsOfUserToRetain is: " + finalOrganizationsOfUserToRetain.toString());
 
         // Encounter targetEncounter = myShepherd.getEncounter("967cd20d-6170-4334-a51e-6b409f30d130");
         // if(targetEncounter!=null){
@@ -78,8 +78,8 @@ int numFixes=0;
         //   }
         // }
 
-        // // User mfisher1 = myShepherd.getUserByUUID("411704e5-045e-45c7-a14c-53d8ada46bc7");
-        // User mfisher1_only_collaborator = myShepherd.getUserByUUID("07271b48-2d8d-4c93-a195-678204eb33b5");
+        User mfisher1 = myShepherd.getUserByUUID("b9cf74d7-f630-46fd-92d4-5209c247e20f");
+        User mfisher1_only_collaborator = myShepherd.getUserByUUID("07271b48-2d8d-4c93-a195-678204eb33b5");
         // if(targetEncounter!=null && mfisher1_only_collaborator!=null){
         //   System.out.println("targetEncounter is: " + targetEncounter.toString());
         //   System.out.println("mfisher1_only_collaborator is: " + mfisher1_only_collaborator.toString());
