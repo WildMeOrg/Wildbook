@@ -159,6 +159,8 @@
        /SurveySetObservation = authc, roles[researcher]
        /AddSurveyTrackToSurvey = authc, roles[researcher]
 
+			 /editOrg.jsp = authc, roles[admin]
+
 		   /ImportSRGD = authc, roles[admin]
 
 		        /OccurrenceCreate = authc, roles[researcher]
@@ -213,7 +215,7 @@
 				   /TissueSampleSetMeasurement = authc, roles[researcher]
 				  /TissueSampleRemoveHaplotype = authc, roles[researcher]
 				   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
-					
+
 				        /OccurrenceCreate = authc, roles[researcher]
 				        /OccurrenceRemoveEncounter = authc, roles[researcher]
 				        /IndividualRemoveEncounter = authc, roles[researcher]
@@ -425,9 +427,9 @@
 				/encounters/manualAnnotation.jsp = authc, roles[researcher]
 
 				/ImportTaskDetection = authc, roles[admin]
-				
+
 				/imports.jsp = authc
-				
+
 				/DeleteImportTask = authc, roles[researcher]
 
 				/MergeIndividual = authc, roles[researcher]
@@ -436,7 +438,7 @@
         /ProjectIA = authc, roles[researcher]
 
         /UserPreferences = authc, roles[researcher]
-				
+
 		/EncounterRemoveAnnotation = authc, roles[researcher]
             </param-value>
         </init-param>
@@ -2689,7 +2691,7 @@
     <servlet-name>ImportTaskDetection</servlet-name>
     <url-pattern>/ImportTaskDetection</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
     <servlet-name>DeleteImportTask</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.DeleteImportTask</servlet-class>

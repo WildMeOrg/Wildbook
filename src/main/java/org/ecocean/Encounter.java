@@ -3607,7 +3607,13 @@ throw new Exception();
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());
-        enc.setOccurrenceID(this.getOccurrenceID());
+
+        Occurrence occ = myShepherd.getOccurrence(this);
+        if (occ != null) {
+            occ.addEncounter(enc);
+            enc.setOccurrenceID(occ.getOccurrenceID());
+        }
+
         enc.setRecordedBy(this.getRecordedBy());
         enc.setState(this.getState());  //not too sure about this one?
 
