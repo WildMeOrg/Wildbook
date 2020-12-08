@@ -58,15 +58,14 @@ public class UserDelete extends HttpServlet {
     //if ((request.getParameter("uuid")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)) {
     if(   request.getParameter("uuid")!=null
           && myShepherd.getUserByUUID(request.getParameter("uuid"))!=null
-          && request.isUserInRole("orgAdmin")
           && request.getUserPrincipal().getName()!=null
           && myShepherd.getUsername(request)!=null
           && myShepherd.getUser(myShepherd.getUsername(request))!=null
           //to delete a user either be admin or orgAdmin in at least one of the same orgs
           && ( 
               request.isUserInRole("admin") 
-              || myShepherd.getAllCommonOrganizationsForTwoUsers(myShepherd.getUserByUUID(request.getParameter("uuid")), myShepherd.getUser(myShepherd.getUsername(request))).size()>0
-             ) 
+              || (request.isUserInRole("orgAdmin") && myShepherd.getAllCommonOrganizationsForTwoUsers(myShepherd.getUserByUUID(request.getParameter("uuid")), myShepherd.getUser(myShepherd.getUsername(request))).size()>0
+             )) 
     ){
       try {
         User ad = myShepherd.getUserByUUID(request.getParameter("uuid"));
@@ -107,8 +106,6 @@ public class UserDelete extends HttpServlet {
           myShepherd.commitDBTransaction();
           myShepherd.beginDBTransaction();
         }
-        
-        
         
         //now delete the user
         myShepherd.getPM().deletePersistent(ad);
