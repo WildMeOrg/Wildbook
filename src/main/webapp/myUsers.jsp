@@ -91,9 +91,6 @@ try{
     });
 
     function doAjaxCallForUserPreferenceGet(jsonRequest){
-      console.log("doAjaxCallForUserPreferenceGet entered");
-      console.log("jsonRequest is: ");
-      console.log(jsonRequest);
       displayProgressBar();
       $.ajax({
       url: wildbookGlobals.baseUrl + '../UserPreferences',
@@ -102,22 +99,18 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-        console.log("data coming back is: ");
-        console.log(data);
           if(data.success){
             if(data.userConsolidationChoicesMade==="false"){
               let userDuplicateJsonRequest = {};
               userDuplicateJsonRequest['username'] = '<%= currentUser.getUsername()%>';
               if(userDuplicateJsonRequest){
                 populatePage();
-                console.log("entering doAjaxForGetDuplicateUsers");
                 doAjaxForGetDuplicateUsers(userDuplicateJsonRequest);
               }
             }else{
               displayAlreadyMadeChoices();
             }
           }else{
-            console.log("got here!?");
           }
           },
           error: function(x,y,z) {
@@ -142,8 +135,6 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-        console.log("data for doAjaxForGetDuplicateUsers");
-        console.log(data);
           let users = data.users;
           if(users && users.length>0){
             for(let i=0; i<users.length; i++){
@@ -261,8 +252,6 @@ try{
       dataType: 'json',
       contentType: 'application/json',
       success: function(data) {
-          console.log("data coming back are:");
-          console.log(data);
           let responseArray =[];
           jsonRequest.userInfoArr.forEach(userInfoObj =>{
             let keyForDataInResponseChecking = "details_"+userInfoObj.uuid+"__"+userInfoObj.username+"__"+userInfoObj.email+"__"+userInfoObj.fullname;

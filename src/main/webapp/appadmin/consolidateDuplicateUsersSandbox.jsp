@@ -49,7 +49,6 @@ int numFixes=0;
         // }
         // query.closeAll();
 
-        // System.out.println("got here x");
         // User AMMTofo = myShepherd.getUserByUUID("702df060-0151-49f3-834a-4c3cd383c961");
         // User aFlam = myShepherd.getUserByUUID("209a2d33-90ef-4ee4-9aa3-e319574ce33c");
         // User userToRetain = AMMTofo;
