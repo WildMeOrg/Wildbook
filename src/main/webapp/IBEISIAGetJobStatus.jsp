@@ -113,7 +113,7 @@ System.out.println("---<< jobID=" + jobID + ", trying spawn . . . . . . . . .. .
 	System.out.println("((( done runIt() )))");
 	return;
 }
- 
+
 private void tryToGet(String jobID, String context, HttpServletRequest request) throws JSONException {
 System.out.println("<<<<<<<<<< tryToGet(" + jobID + ")----");
 	JSONObject statusResponse = new JSONObject();
@@ -132,7 +132,7 @@ System.out.println(statusResponse.toString());
 	jlog.put("jobID", jobID);
 
 	//Shepherd myShepherd=new Shepherd(context);
-	//myShepherd.setAction("IBEISIAGetJobStatus.jsp");			
+	//myShepherd.setAction("IBEISIAGetJobStatus.jsp");
 	//we have to find the taskID associated with this IBEIS-IA job
 	String taskID = IBEISIA.findTaskIDFromJobID(jobID, context);
 	if (taskID == null) {
@@ -168,7 +168,7 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		all.put("jobResult", rlog);
 
 		JSONObject proc = IBEISIA.processCallback(taskID, rlog, request);
-		System.out.println("processCallback returned --> " + proc);
+		IBEISIA.logProcessCallback(proc, taskID)
 	}
 } catch (Exception ex) {
 	System.out.println("whoops got exception: " + ex.toString());
