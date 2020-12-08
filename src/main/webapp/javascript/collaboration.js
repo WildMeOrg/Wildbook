@@ -216,12 +216,15 @@ function inBlockedPage() {
 
 function clickApproveDeny(ev) {
 	var which = ev.target.getAttribute('class');
+	var collabId = ev.target.getAttribute('id');
+	var collabIdString="";
+	if(collabId!=null)collabIdString="&collabId="+collabId.replace("edit-","");
 	var jel = $(ev.target);
 	var p = jel.parent();
 	var uname = p.data('username');
 	p.html('&nbsp;').addClass('throbbing');
 	$.ajax({
-		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uname + '&approve=' + which,
+		url: wildbookGlobals.baseUrl + '/Collaborate?json=1&username=' + uname + '&approve=' + which+'&actionForExisting='+which+collabIdString,
 		dataType: 'json',
 		success: function(d) {
 			if (d.success) {
