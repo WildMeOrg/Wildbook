@@ -208,7 +208,7 @@ try{
       pageHtml += '<div id="candidate-users-container">';
       pageHtml += '</div>';
       pageHtml += '<div class="submission-section">';
-      pageHtml += '<button class="disabled-btn proj-action-btn" id="disabled-apply-user-consolidation-button">' + txt.applyChanges + '<span class="button-icon" aria-hidden="true"></span></button>';
+      pageHtml += '<button class="disabled-btn proj-action-btn" id="disabled-apply-user-consolidation-button" onclick="alertUserThatTheyAreNotDone();">' + txt.applyChanges + '<span class="button-icon" aria-hidden="true"></span></button>';
       pageHtml += '<button type="button" id="apply-user-consolidation-button" onclick="applyButtonClicked();" class="sleeker-button" style="display: none;">';
       pageHtml += '<span>' + txt.applyChanges + '</span><span class="button-icon" aria-hidden="true"></span>';
       pageHtml += '</button>';
@@ -241,6 +241,10 @@ try{
           doAjaxCallForMergingUser(ajaxJson);
         }
       }
+    }
+
+    function alertUserThatTheyAreNotDone(){
+      alert("You must make a choice for each account to submit.");
     }
 
     function doAjaxCallForMergingUser(jsonRequest){
