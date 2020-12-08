@@ -442,7 +442,7 @@
 
         /ProjectIA = authc, roles[researcher]
 
-        /UserPreferences = authc, roles[researcher]
+        /UserPreferences = authc
 
 		/EncounterRemoveAnnotation = authc, roles[researcher]
             </param-value>

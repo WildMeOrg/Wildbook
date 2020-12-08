@@ -30,6 +30,7 @@ public class UserPreferences extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        System.out.println("entered doPost in UserPreferences.java");
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
