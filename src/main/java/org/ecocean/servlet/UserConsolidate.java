@@ -52,10 +52,8 @@ public class UserConsolidate extends HttpServlet {
 
     List<Encounter> photographerEncounters=getPhotographerEncountersForUser(myShepherd.getPM(), userToBeConsolidated);
     if(photographerEncounters!=null && photographerEncounters.size()>0){
-      System.out.println("got here 1 DELETEME photographerEncounters nonzero");
       for(int j=0; j<photographerEncounters.size(); j++){
         Encounter currentEncounter=photographerEncounters.get(j);
-        System.out.println("dedupe DELETEME about to enter consolidatePhotographers for encounter: " + currentEncounter.toString());
         consolidatePhotographers(myShepherd, currentEncounter, userToRetain, userToBeConsolidated);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
@@ -144,7 +142,7 @@ public class UserConsolidate extends HttpServlet {
         for(int i=0; i<projectsWithConsolidatedUserAsOwner.size(); i++){
           Project currentProject = projectsWithConsolidatedUserAsOwner.get(i);
           if(currentProject!=null && userToRetain!=null){
-            System.out.println("setting user: " + userToRetain.toString() + " as owner in project: " + currentProject.toString());
+            System.out.println("dedupe setting user: " + userToRetain.toString() + " as owner in project: " + currentProject.toString());
             currentProject.setOwner(userToRetain);
           }
         } //end for loop of projectsWithConsolidatedUserAsOwner
