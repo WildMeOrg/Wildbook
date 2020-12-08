@@ -45,12 +45,19 @@ public class UserPreferences extends HttpServlet {
 
         JSONObject res = new JSONObject();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
+        System.out.println("json from http servlet is: " + j.toString());
         String action = j.optString("action", null);
 
         try {
             res.put("success","false");
             if (Util.stringExists(action)) {
+              System.out.println("action exists");
                 User user = myShepherd.getUser(request);
+                if(user!=null){
+                  System.out.println("got user from request and they are: " + user.toString());
+                }else{
+                  System.out.println("ack no user that’s what’s wrong");
+                }
                 if ("setProjectContext".equals(action)) {
                     String defaultProjectId = j.optString("projectId", null);
                     if (Util.stringExists(defaultProjectId)) {
@@ -70,9 +77,13 @@ public class UserPreferences extends HttpServlet {
                   setSuccess(res, response);
                 }
                 if("getUserConsolidationChoiceStatus".equals(action)){
+                  System.out.println("got here a");
                   String consolidationStatus = user.getPreference("userConsolidationChoicesMade");
+                  System.out.println("got here b and consolidationStatus is: " + consolidationStatus);
                   if(Util.stringExists(consolidationStatus)){
+                    System.out.println("got here c");
                     res.put("userConsolidationChoicesMade", consolidationStatus);
+                    System.out.println("got here d");
                   } else{
                     res.put("userConsolidationChoicesMade", "false");
                   }

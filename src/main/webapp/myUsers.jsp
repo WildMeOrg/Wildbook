@@ -90,6 +90,50 @@ try{
       doAjaxCallForUserPreferenceGet(hasUserAlreadyMadeConsolidationChoicesJson);
     });
 
+    function doAjaxCallForUserPreferenceGet(jsonRequest){
+      console.log("doAjaxCallForUserPreferenceGet entered");
+      console.log("jsonRequest is: ");
+      console.log(jsonRequest);
+      displayProgressBar();
+      $.ajax({
+      url: wildbookGlobals.baseUrl + '../UserPreferences',
+      type: 'POST',
+      data: JSON.stringify(jsonRequest),
+      dataType: 'json',
+      contentType: 'application/json',
+      success: function(data) {
+        console.log("data coming back is: ");
+        console.log(data);
+          if(data.success){
+            if(data.userConsolidationChoicesMade==="false"){
+              let userDuplicateJsonRequest = {};
+              userDuplicateJsonRequest['username'] = '<%= currentUser.getUsername()%>';
+              if(userDuplicateJsonRequest){
+                populatePage();
+                console.log("entering doAjaxForGetDuplicateUsers");
+                doAjaxForGetDuplicateUsers(userDuplicateJsonRequest);
+              }
+            }else{
+              displayAlreadyMadeChoices();
+            }
+          }else{
+            console.log("got here!?");
+          }
+          },
+          error: function(x,y,z) {
+              console.warn('%o %o %o', x, y, z);
+          }
+      });
+    }
+
+    function displayAlreadyMadeChoices(){
+      let displayAlreadyMadeHtml = '';
+      displayAlreadyMadeHtml += '<h3>' + txt.alreadyBeenHere + '</h3>';
+      displayAlreadyMadeHtml += '<button onclick="changeUserConsolidationChoicesMadeToFalse()">' + txt.tryAgain + '</button>';
+      $('#content-container').empty();
+      $('#content-container').append(displayAlreadyMadeHtml);
+    }
+
     function doAjaxForGetDuplicateUsers(userDuplicateJsonRequest){
       $.ajax({
       url: wildbookGlobals.baseUrl + '../UserConsolidate',
@@ -301,41 +345,7 @@ try{
       });
     }
 
-    function doAjaxCallForUserPreferenceGet(jsonRequest){
-      displayProgressBar();
-      $.ajax({
-      url: wildbookGlobals.baseUrl + '../UserPreferences',
-      type: 'POST',
-      data: JSON.stringify(jsonRequest),
-      dataType: 'json',
-      contentType: 'application/json',
-      success: function(data) {
-          if(data.success){
-            if(data.userConsolidationChoicesMade==="false"){
-              let userDuplicateJsonRequest = {};
-              userDuplicateJsonRequest['username'] = '<%= currentUser.getUsername()%>';
-              if(userDuplicateJsonRequest){
-                populatePage();
-                doAjaxForGetDuplicateUsers(userDuplicateJsonRequest);
-              }
-            }else{
-              displayAlreadyMadeChoices();
-            }
-          }
-          },
-          error: function(x,y,z) {
-              console.warn('%o %o %o', x, y, z);
-          }
-      });
-    }
 
-    function displayAlreadyMadeChoices(){
-      let displayAlreadyMadeHtml = '';
-      displayAlreadyMadeHtml += '<h3>' + txt.alreadyBeenHere + '</h3>';
-      displayAlreadyMadeHtml += '<button onclick="changeUserConsolidationChoicesMadeToFalse()">' + txt.tryAgain + '</button>';
-      $('#content-container').empty();
-      $('#content-container').append(displayAlreadyMadeHtml);
-    }
 
     function changeUserConsolidationChoicesMadeToFalse(){
       let userPreferenceUpdateConsolidationChoiceJson = {};
