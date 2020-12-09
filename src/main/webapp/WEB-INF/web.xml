@@ -2477,4 +2477,15 @@
     <url-pattern>/AnnotationSetMatchAgainst</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>EncounterSearchExportExcelSimple</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.EncounterSearchExportExcelSimple</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>EncounterSearchExportExcelSimple</servlet-name>
+    <url-pattern>/EncounterSearchExportExcelSimple</url-pattern>
+  </servlet-mapping>
+
+
 </web-app>
