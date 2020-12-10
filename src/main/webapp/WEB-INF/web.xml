@@ -215,6 +215,7 @@
 				         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
 				         /EncounterSearchExportKML = authc, roles[researcher]
 				         /EncounterSearchExportExcelFile = authc, roles[researcher]
+                 /EncounterSearchExportExcelSimple = authc, roles[researcher]
                  /EncounterSearchExportMetadataExcel = authc, roles[researcher]
 				         /EncounterSearchExportShapefile = authc, roles[researcher]
 				         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
