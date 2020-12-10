@@ -65,10 +65,10 @@ public class EncounterRemoveUser extends HttpServlet {
     boolean locked = false;
     boolean isOwner = true;
 
- 
+
     myShepherd.beginDBTransaction();
     if ((request.getParameter("encounter") != null)&&(request.getParameter("type") != null) &&(request.getParameter("uuid") != null)&&(myShepherd.isEncounter(request.getParameter("encounter")))) {
-      
+
       Encounter changeMe = myShepherd.getEncounter(request.getParameter("encounter"));
       setDateLastModified(changeMe);
       String type=request.getParameter("type").trim();
@@ -76,7 +76,7 @@ public class EncounterRemoveUser extends HttpServlet {
 
 
       try {
-        
+
         User user=myShepherd.getUserByUUID(request.getParameter("uuid"));
 
         if(type.equals("submitter")){
@@ -84,7 +84,7 @@ public class EncounterRemoveUser extends HttpServlet {
           users.remove(user);
           changeMe.setSubmitters(users);
           changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed user "+user.getUUID()+" of type " + type + ".</p>");
-          myShepherd.commitDBTransaction();
+          myShepherd.updateDBTransaction();
           response.setStatus(HttpServletResponse.SC_OK);
         }
         else if(type.equals("photographer")){
@@ -92,7 +92,7 @@ public class EncounterRemoveUser extends HttpServlet {
           users.remove(user);
           changeMe.setPhotographers(users);
           changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed user "+user.getUUID()+" of type " + type + ".</p>");
-          myShepherd.commitDBTransaction();
+          myShepherd.updateDBTransaction();
           response.setStatus(HttpServletResponse.SC_OK);
         }
         else if(type.equals("informOther")){
@@ -100,39 +100,42 @@ public class EncounterRemoveUser extends HttpServlet {
           users.remove(user);
           changeMe.setInformOthers(users);
           changeMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed user "+user.getUUID()+" of type " + type + ".</p>");
-          myShepherd.commitDBTransaction();
+          myShepherd.updateDBTransaction();
           response.setStatus(HttpServletResponse.SC_OK);
         }
         else{
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
-        
-        
-      } 
+
+
+      }
       catch (Exception le) {
         locked = true;
         le.printStackTrace();
-        myShepherd.rollbackDBTransaction();
+        // myShepherd.rollbackDBTransaction();
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      }finally {
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+          out.println(response);
       }
 
 
       if(locked) {
-        
+
         out.println("<strong>Failure:</strong> Encounter state was NOT updated because another user is currently modifying this reconrd. Please try to reset the scarring again in a few seconds.");
-        
+
       }
-    } 
+    }
     else {
 
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
     }
 
 
     out.close();
-    myShepherd.closeDBTransaction();
+    // myShepherd.closeDBTransaction();
   }
 }
-  
-  
