@@ -28,6 +28,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.TwitterUtil;
 import org.ecocean.TwitterBot;
 import org.ecocean.IAJsonProperties;
+import org.ecocean.servlet.importer.ImportTask;
 
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ConcurrentHashMap;
@@ -2074,6 +2075,33 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                         List<Encounter> assignedEncs = asset.assignEncounters(myShepherd);  //WB-945 here is where we make some encounter(s) if we need to
                         rtn.put("_assignedEncsSize", assignedEncs.size());
                         amap.put(Integer.toString(asset.getId()), newAnns);
+
+                        //now we have to collect them under an Occurrence and/or ImportTask as applicable   [WB-430]
+                        //  we basically pick the first of these we find (in case there is more than one?)
+                        //  and only assign it where there is none.  #TODO is that wise? would we rather consolidate if under many occs???
+                        if (!Util.collectionIsEmptyOrNull(assignedEncs)) {
+                            ImportTask itask = null;
+                            Occurrence occ = null;
+                            for (Encounter enc : assignedEncs) {
+                                if (itask == null) itask = enc.getImportTask(myShepherd);
+                                if (occ == null) occ = myShepherd.getOccurrence(enc);
+                            }
+                            if (occ == null) {  //make one if we have none
+                                occ = new Occurrence();
+                                occ.setOccurrenceID(Util.generateUUID());
+                                occ.setDWCDateLastModified();
+                                occ.setDateTimeCreated();
+                                occ.addComments("<i>created after assignEncounters</i>");
+                            }
+                            for (Encounter enc : assignedEncs) {
+                                if ((itask != null) && (enc.getImportTask(myShepherd) == null)) itask.addEncounter(enc);
+                                if (myShepherd.getOccurrence(enc) == null) {
+                                    occ.addEncounter(enc);
+                                    enc.setOccurrenceID(occ.getOccurrenceID());
+                                }
+                            }
+                            myShepherd.getPM().makePersistent(occ);  //just in case it is new
+                        }
                     }
                 }
                 updateSpeciesOnIA(myShepherd, allAnns);  //tells IA what species we know about these annots now

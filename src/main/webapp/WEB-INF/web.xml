@@ -159,6 +159,8 @@
        /SurveySetObservation = authc, roles[researcher]
        /AddSurveyTrackToSurvey = authc, roles[researcher]
 
+			 /editOrg.jsp = authc, roles[admin]
+
 		   /ImportSRGD = authc, roles[admin]
 
 		        /OccurrenceCreate = authc, roles[researcher]
@@ -213,7 +215,7 @@
 				   /TissueSampleSetMeasurement = authc, roles[researcher]
 				  /TissueSampleRemoveHaplotype = authc, roles[researcher]
 				   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
-					
+
 				        /OccurrenceCreate = authc, roles[researcher]
 				        /OccurrenceRemoveEncounter = authc, roles[researcher]
 				        /IndividualRemoveEncounter = authc, roles[researcher]
@@ -306,6 +308,11 @@
 
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
+					/UserConsolidate = authc
+					/appadmin/consolidateDuplicateUsers.jsp = authc, roles[admin]
+					/appadmin/consolidateDuplicateUsersChecker.jsp = authc, roles[admin]
+					/appadmin/consolidateDuplicateUsersSandbox.jsp = authc, roles[admin]
+					/myUsers.jsp = authc
 
         /UserGetNotifications = authc
 
@@ -425,9 +432,9 @@
 				/encounters/manualAnnotation.jsp = authc, roles[researcher]
 
 				/ImportTaskDetection = authc, roles[admin]
-				
+
 				/imports.jsp = authc
-				
+
 				/DeleteImportTask = authc, roles[researcher]
 
 				/MergeIndividual = authc, roles[researcher]
@@ -435,8 +442,8 @@
 
         /ProjectIA = authc, roles[researcher]
 
-        /UserPreferences = authc, roles[researcher]
-				
+        /UserPreferences = authc
+
 		/EncounterRemoveAnnotation = authc, roles[researcher]
             </param-value>
         </init-param>
@@ -909,6 +916,11 @@
       <servlet-name>UserSelfUpdate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserSelfUpdate</servlet-class>
   </servlet>
+
+	<servlet>
+		<servlet-name>UserConsolidate</servlet-name>
+		<servlet-class>org.ecocean.servlet.UserConsolidate</servlet-class>
+</servlet>
 
       <servlet>
         <servlet-name>UserDelete</servlet-name>
@@ -1883,6 +1895,11 @@
           <url-pattern>/UserSelfUpdate</url-pattern>
   </servlet-mapping>
 
+	<servlet-mapping>
+		<servlet-name>UserConsolidate</servlet-name>
+		<url-pattern>/UserConsolidate</url-pattern>
+</servlet-mapping>
+
      <servlet-mapping>
             <servlet-name>UserDelete</servlet-name>
             <url-pattern>/UserDelete</url-pattern>
@@ -2689,7 +2706,7 @@
     <servlet-name>ImportTaskDetection</servlet-name>
     <url-pattern>/ImportTaskDetection</url-pattern>
   </servlet-mapping>
-  
+
   <servlet>
     <servlet-name>DeleteImportTask</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.DeleteImportTask</servlet-class>
