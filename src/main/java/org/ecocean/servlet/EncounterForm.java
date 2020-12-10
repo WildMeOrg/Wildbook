@@ -223,7 +223,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        HashMap fv = new HashMap();
+        HashMap<String,String> fv = new HashMap();
 
         //IMPORTANT - processingNotes can be used to add notes on data handling (e.g., poorly formatted dates) that can be reconciled later by the reviewer
         //Example usage: processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(fv, "datepicker")+"</p>");
@@ -354,7 +354,16 @@ System.out.println("*** trying redirect?");
                 //List<FileItem> multiparts = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
                 for(FileItem item : multiparts){
                     if (item.isFormField()) {  //plain field
-                        fv.put(item.getFieldName(), ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon
+                      String fieldName = item.getFieldName();
+                      if (fv.containsKey(fieldName)) {
+                        //case for multi select form field
+                        String currentVal = fv.get(fieldName);
+                        String newVal = (currentVal +", "+ ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));
+                        fv.put(fieldName, newVal);
+                      } else {
+                        fv.put(fieldName, ServletUtilities.preventCrossSiteScriptingAttacks(item.getString("UTF-8").trim()));  //TODO do we want trim() here??? -jon .. yes! -colin 
+                      }
+
 //System.out.println("got regular field (" + item.getFieldName() + ")=(" + item.getString("UTF-8") + ")");
                     } else if (item.getName().startsWith("socialphoto_")) {
                         System.out.println(item.getName() + ": " + item.getString("UTF-8"));
@@ -794,9 +803,6 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
 
 
       if (fv.get("flukeType") != null && fv.get("flukeType").toString().length() > 0) {
-                    System.out.println("        ENCOUNTERFORM:");
-                    System.out.println("        ENCOUNTERFORM:");
-                    System.out.println("        ENCOUNTERFORM:");
             String kwName = fv.get("flukeType").toString();
             Keyword kw = myShepherd.getOrCreateKeyword(kwName);
             for (Annotation ann: enc.getAnnotations()) {
@@ -807,8 +813,6 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
                     System.out.println("ENCOUNTERFORM: added flukeType keyword to encounter: "+kwName);
                 }
             }
-                                System.out.println("        ENCOUNTERFORM:");
-                    System.out.println("        ENCOUNTERFORM:");
 
         }
 

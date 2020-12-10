@@ -1142,6 +1142,10 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
         </div>
 
+        <%
+        List<String> behaviors=CommonConfiguration.getIndexedPropertyValues("behavior", context);
+        if (behaviors!=null&&!behaviors.isEmpty()) {
+        %>
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_behavior") %></label>
@@ -1149,7 +1153,30 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="behavior" type="text" id="behavior" size="75" data-toggle="tooltip" title="<%=props.getProperty("behaviorTooltip")%>">
+
+
+            <select multiple class="form-control" name="behavior" id="behavior" data-toggle="tooltip" title="<%=props.getProperty("behaviorTooltip")%>">
+              <%
+              for (String behavior : behaviors) {
+                if (behavior!=null&&!"".equals(behavior)) {
+              %>
+              
+                <option value="<%=behavior%>" class="form-control behavior-option"><%=behavior%></option>
+            
+        <%
+                }
+              }
+        }
+        %>
+            </select>
+
+            <script>
+              $('.behavior-option').mousedown(function(e) {
+                  e.preventDefault();
+                  $(this).prop('selected', !$(this).prop('selected'));
+                  return false;
+              });
+            </script>
           </div>
         </div>
 
