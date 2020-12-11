@@ -51,7 +51,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.amazonaws.services.route53.model.GetGeoLocationRequest;
+//import com.amazonaws.services.route53.model.GetGeoLocationRequest;
 
 public class StandardImport extends HttpServlet {
 
@@ -114,6 +114,8 @@ public class StandardImport extends HttpServlet {
   HashMap<String,Integer> allColsMap = new HashMap<String,Integer>();
 
   Sheet sheet = null;
+
+  final static String[] acceptedImageTypes = {"jpg", "jpeg", "png", "bmp", "gif"};
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -510,8 +512,11 @@ public class StandardImport extends HttpServlet {
       
     }
 
-
-
+    //close out our workbook cleanly, releasing resources.
+    try {
+      wb.close();
+    }
+    catch(Exception closer) {closer.printStackTrace();}
     //fs.close();
 
 
@@ -1027,12 +1032,69 @@ public class StandardImport extends HttpServlet {
       /*
        * End informOther imports
        */
-      
 
 
-  	String scar = getIntAsString(row, "Encounter.distinguishingScar");
+      // add to Project or projects
+      boolean hasAnotherProject = true;
+      int projectIncrement = 0;
+      while (hasAnotherProject) {
+        try {
+          String projectIdPrefixKey = "Encounter.project"+projectIncrement+".projectIdPrefix";
+          String projectIdPrefix = getString(row,projectIdPrefixKey);
+          String researchProjectNameKey = "Encounter.project"+projectIncrement+".researchProjectName";
+          String researchProjectName = getString(row,researchProjectNameKey);
+          String ownerNameKey = "Encounter.project"+projectIncrement+".ownerUsername";
+          String ownerName = getString(row,ownerNameKey);
+          if (Util.stringExists(projectIdPrefix)&&Util.stringExists(researchProjectName)) {
+            projectIdPrefix = projectIdPrefix.trim();
+            //if this project already exists, use it. bail on other specifics.
+            Project project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix);
+            if (project==null) {
+
+              
+              if (Util.stringExists(ownerName)) {
+                ownerName = ownerName.trim();
+                User owner = myShepherd.getUser(ownerName);
+                if (owner==null&&committing) {
+                  owner = new User(Util.generateUUID());
+                  owner.setUsername(ownerName);
+                  myShepherd.getPM().makePersistent(owner);
+                }
+
+                if (owner!=null&&committing) {
+                  project = new Project(projectIdPrefix);
+                  if (Util.stringExists(researchProjectName)) {
+                    projectIdPrefix = projectIdPrefix.trim();
+                    project.setResearchProjectName(researchProjectName);
+                  }
+                  project.setOwner(owner);
+                  myShepherd.storeNewProject(project);
+                }
+              }
+            }
+            if (committing) {
+              project.addEncounter(enc);
+              myShepherd.updateDBTransaction();
+            }
+            if (unusedColumns!=null) {
+              unusedColumns.remove(projectIdPrefix);
+              if (unusedColumns.contains(ownerNameKey)) unusedColumns.remove(ownerNameKey);
+              if (unusedColumns.contains(researchProjectNameKey)) unusedColumns.remove(researchProjectNameKey);
+            }
+            projectIncrement++;
+          } else {
+            hasAnotherProject = false;
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+          break;
+        }
+      }
+
+      // end add to projects
+
+  	String scar = getStringOrInt(row, "Encounter.distinguishingScar");
   	if (scar!=null) enc.setDistinguishingScar(scar);
-
 
   	// SAMPLES
     TissueSample sample = null;
@@ -1280,14 +1342,24 @@ public class StandardImport extends HttpServlet {
     String resolvedPath = null;
     String fullPath = null;
     try {
+
       if (localPath==null||"null".equals(localPath)) {
         feedback.logParseError(assetColIndex(i), localPath, row);
         return null;
-      } 
+      }
+
       localPath = Util.windowsFileStringToLinux(localPath).trim();
       fullPath = photoDirectory+"/"+localPath;
-      fullPath = fullPath.replaceAll("//","/"); 
+      fullPath = fullPath.replace("//","/"); 
       resolvedPath = resolveHumanEnteredFilename(fullPath);
+
+      if (resolvedPath!=null) {
+        String suffix = resolvedPath.split(".")[resolvedPath.length()-1].toLowerCase();
+        if (!Arrays.asList(acceptedImageTypes).contains(suffix)) {
+          feedback.logParseError(assetColIndex(i), "Bad Img Type: "+localPath, row);
+          return null;
+        }
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -1670,7 +1742,7 @@ System.out.println("use existing MA [" + fhash + "] -> " + myAssets.get(fhash));
       if (!newIndividual) {
         mark.addEncounter(enc);
         enc.setIndividual(mark);
-        System.out.println("loadIndividual notnew individual: "+mark.getDisplayName());
+        System.out.println("loadIndividual notnew individual: "+mark.getDisplayName(request, myShepherd));
       }
       else {
         enc.setIndividual(mark);

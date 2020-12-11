@@ -52,14 +52,14 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
         } finally {
             myShepherd.updateDBTransaction();
         }
-        
+
     }
-    
+
     private void mergeIndividuals(MarkedIndividual primaryIndividual, MarkedIndividual secondaryIndividual, Shepherd myShepherd) {
         if (primaryIndividual!=null&&secondaryIndividual!=null) {
             try {
                 System.out.println("MergeIndividual task is within execution time. Trying to merge individuals.");
-                primaryIndividual.mergeIndividual(secondaryIndividual, initiatorName);
+                primaryIndividual.mergeIndividual(secondaryIndividual, initiatorName,myShepherd);
                 myShepherd.updateDBTransaction();
                 MarkedIndividual tempSecondaryIndividual = secondaryIndividual;
                 //avoiding a foreign key error
@@ -73,7 +73,7 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
         } else {
             System.out.println("[ERROR]: Could not perform automatic mergeIndividuals action with ScheduledIndividualMerge due to null candidate individual.");
         }
-       
+
     }
 
     private void setParticipants() {
@@ -90,12 +90,12 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
             participants.addAll(usernameMasterList);
             for (String username : usernameMasterList) {
                 ArrayList<Boolean> denyIgnore = new ArrayList<>(1);
-    
+
                 //on instantiation, no one has denied the action
                 denyIgnore.add(0, Boolean.FALSE);
                 //or ignored it
                 denyIgnore.add(1, Boolean.FALSE);
-    
+
                 participantsDeniedIgnored.put(username, denyIgnore);
             }
             System.out.println("List of Scheduled merge participants: "+Arrays.toString(participants.toArray()));
@@ -130,6 +130,7 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
 
     public boolean ignoredByUser(String username) {
         List<Boolean> stateForUser = participantsDeniedIgnored.get(username);
+        if (stateForUser==null) return Boolean.FALSE;
         return stateForUser.get(1);
     }
 
@@ -138,7 +139,7 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
             if (participantsDeniedIgnored.get(participant)!=null&&participantsDeniedIgnored.get(participant).get(0)) {
                 return participant;
             }
-        }   
+        }
         return null;
     }
 
@@ -157,5 +158,5 @@ public class ScheduledIndividualMerge extends WildbookScheduledTask {
     public MarkedIndividual getSecondaryIndividual() {
         return secondaryIndividual;
     }
-    
+
 }
