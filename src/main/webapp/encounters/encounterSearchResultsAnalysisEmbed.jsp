@@ -321,10 +321,12 @@
  			 
  			Integer valueForYear=encountersPerYear.get(year)+1;
  			if((thisEnc.getSubmitterID()!=null)&&(thisEnc.getSubmitterID().equals("wildbookai"))){
- 				encountersPerYearAI.put(year, valueForYear);
+ 				Integer thisInt = encountersPerYearAI.get(year)+1;
+ 				encountersPerYearAI.put(year, thisInt);
  			}
  			else{
- 				encountersPerYear.put(year, valueForYear);
+ 				Integer thisInt = encountersPerYear.get(year)+1;
+ 				encountersPerYear.put(year, thisInt);
  			}
  			//System.out.println("    I just put: "+year+":"+valueForYear);	 
  	        

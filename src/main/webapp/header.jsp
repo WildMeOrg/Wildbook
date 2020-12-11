@@ -128,7 +128,16 @@ finally{
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
-      <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+
+     <%
+     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+     %>
+    	 <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+     <%
+     }
+     %>
+
+
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
 	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
@@ -146,8 +155,13 @@ finally{
      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
 	   <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
 
-
+	 <%
+     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+     %>
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
+      <%
+      }
+      %>
 
 
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
@@ -499,6 +513,7 @@ finally{
                             if(request.getUserPrincipal()!=null) {
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
+                              <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
 
                               <li class="divider"></li>
                               <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
@@ -627,7 +642,12 @@ finally{
                             } else {
                                 label = "";
                             }
-                            return {label: label + item.label,
+
+                            if(item.nickname != null){
+                            	nickname = " ("+item.nickname+")";
+                            }
+
+                            return {label: label + item.label+nickname,
                                     value: item.value,
                                     type: item.type};
                             });
@@ -637,6 +657,27 @@ finally{
                 });
             }
         });
+        //prevent enter key on tyeahead
+        $('#search-site').keydown(function (e) {
+                	    if (e.keyCode == 13) {
+                	        e.preventDefault();
+                	        return false;
+                	    }
+        });
+
+
+        // if there is an organization param, set it as a cookie so you can get yer stylez without appending to all locations
+        let urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("organization")) {
+          let orgParam = urlParams.get("organization");
+          $.cookie("wildbookOrganization", orgParam, {
+              path    : '/',
+              secure  : false,
+              expires : 1
+          });
+        }
+
+
         </script>
 
         <!-- ****/header**** -->

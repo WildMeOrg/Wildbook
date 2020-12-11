@@ -50,14 +50,14 @@ public class User implements Serializable {
   private long userID;
 
   private long lastLogin=-1;
-  
+
 	private String username;
 	private String password ;
 	private String salt;
 	private String uuid;
-	
+
 	//String currentContext;
-  	
+
     //String currentContext;
 
   //serialized JSON
@@ -67,12 +67,12 @@ public class User implements Serializable {
 
 
 
-  	
+
   private List<Organization> organizations = null;
 
   private boolean acceptedUserAgreement=false;
-  
-  private boolean receiveEmails=true; 
+
+  private boolean receiveEmails=true;
 
   // turning this off means the user is greedy and mean: they never share data and nobody ever shares with them
   private Boolean sharing=true;
@@ -103,7 +103,7 @@ public class User implements Serializable {
   	  RefreshDate();
   	  this.lastLogin=-1;
   	}
-  	
+
     public User(String email,String uuid){
       this.uuid=uuid;
       setEmailAddress(email);
@@ -115,7 +115,7 @@ public class User implements Serializable {
       RefreshDate();
       this.lastLogin=-1;
     }
-    
+
     public User(String uuid){
       this.uuid=uuid;
       setReceiveEmails(false);
@@ -203,7 +203,7 @@ public class User implements Serializable {
     if (user == null) return false;
     return user.hasCustomProperties();
   }
-  
+
   public static boolean hasCustomProperties(HttpServletRequest request) {
      Shepherd myShepherd = new Shepherd(request);
      myShepherd.setAction("User.hasCustomProperties");
@@ -404,7 +404,7 @@ public class User implements Serializable {
 
     //public String getCurrentContext(){return currentContext;}
     //public void setCurrentContext(String newContext){currentContext=newContext;}
-		
+
     public String getUUID() {return uuid;}
     public String getId() { return uuid; }  //adding this "synonym"(?) for consistency
 
@@ -496,10 +496,6 @@ public class User implements Serializable {
         return uuid.hashCode();
     }
 
-
-
-
-
     public String toString() {
         return new ToStringBuilder(this)
                 .append("uuid", uuid)
@@ -507,7 +503,7 @@ public class User implements Serializable {
                 .append("fullName", fullName)
                 .toString();
     }
-    
+
     // Returns a somewhat rest-like JSON object containing the metadata
     public JSONObject uiJson(HttpServletRequest request, boolean includeOrganizations) throws JSONException {
       JSONObject jobj = new JSONObject();
@@ -537,9 +533,9 @@ public class User implements Serializable {
       preferences = json.toString();
     }
 
-    public void setPreference(String key, String value) {
+    public void setPreference(String key, String value) { //really, this is an update -MF
       org.json.JSONObject prefsJSON = getPreferencesAsJSON();
-      if (Util.stringExists(key)&&prefsJSON!=null) {
+      if (Util.stringExists(key)&&Util.stringExists(value)&&prefsJSON!=null) {
         prefsJSON.put(key, value);
         setPreferencesJSON(prefsJSON);
       } else {
@@ -550,11 +546,14 @@ public class User implements Serializable {
     public String getPreference(String key) {
       org.json.JSONObject prefsJSON = getPreferencesAsJSON();
       if (prefsJSON!=null) {
-        Object valueOb = prefsJSON.optString(key,null);
-        String value = null;
-        if (valueOb!=null) value = (String) valueOb; 
-        if (Util.stringExists(value)) {
-          return value;
+        Object valueOb = null;
+        try{
+          valueOb = prefsJSON.get(key);
+        } catch(org.json.JSONException je){
+        } finally{
+          String value = null;
+          if (valueOb!=null) value = (String) valueOb;
+          return value; //return it even if null
         }
       }
       return null;
