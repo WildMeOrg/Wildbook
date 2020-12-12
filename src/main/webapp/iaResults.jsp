@@ -113,9 +113,41 @@ Shepherd myShepherd = new Shepherd(request);
 myShepherd.setAction("matchResults nameKey getter");
 myShepherd.beginDBTransaction();
 User user = myShepherd.getUser(request);
+String currentUsername = "";
+if (user!=null){
+	currentUsername = user.getUsername();
+}
+
 String nextNameKey = (user!=null) ? user.getIndividualNameKey() : null;
+
 boolean usesAutoNames = Util.stringExists(nextNameKey);
+
 String nextName = (usesAutoNames) ? MultiValue.nextUnusedValueForKey(nextNameKey, myShepherd) : null;
+
+String projectIdPrefix = request.getParameter("projectIdPrefix");
+String researchProjectName = null;
+String researchProjectUUID = null;
+String nextNameString = "";
+// okay, are we going to use an incremental name from the project side?
+if (Util.stringExists(projectIdPrefix)) {
+	Project projectForAutoNaming = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
+	if (projectForAutoNaming!=null) {
+		researchProjectName = projectForAutoNaming.getResearchProjectName();
+		researchProjectUUID = projectForAutoNaming.getId();
+		nextNameKey = projectForAutoNaming.getProjectIdPrefix();
+		nextName = projectForAutoNaming.getNextIncrementalIndividualId();
+		usesAutoNames = true;
+		if (usesAutoNames) {
+			if (Util.stringExists(nextNameKey)) {
+				nextNameString += (nextNameKey+": ");
+			}
+			if (Util.stringExists(nextName)) {
+				nextNameString += nextName;
+			}
+		}
+	}
+}
+
 myShepherd.rollbackAndClose();
 //myShepherd.closeDBTransaction();
 //System.out.println("IARESULTS: New nameKey block got key, value "+nextNameKey+", "+nextName+" for user "+user);
@@ -127,7 +159,6 @@ int RESMAX_DEFAULT = 12;
 int RESMAX = (nResults!=null) ? nResults : RESMAX_DEFAULT;
 
 String gaveUpWaitingMsg = "Gave up trying to obtain results. Refresh page to keep waiting.";
-
 //this is a quick hack to produce a useful set of info about an Annotation (as json) ... poor mans api?  :(
 if (request.getParameter("acmId") != null) {
 	String acmId = request.getParameter("acmId");
@@ -136,16 +167,20 @@ if (request.getParameter("acmId") != null) {
 	myShepherd.beginDBTransaction();
     ArrayList<Annotation> anns = null;
 	JSONObject rtn = new JSONObject("{\"success\": false}");
-	//Encounter enc = null;
 	try {
-        	anns = myShepherd.getAnnotationsWithACMId(acmId);
+		anns = myShepherd.getAnnotationsWithACMId(acmId);
 	} catch (Exception ex) {}
 	if ((anns == null) || (anns.size() < 1)) {
 		rtn.put("error", "unknown error");
 	} else {
-        JSONArray janns = new JSONArray();
+		JSONArray janns = new JSONArray();
+		System.out.println("trying projectIdPrefix in iaResults... "+projectIdPrefix);
+		Project project = null;
+		if (Util.stringExists(projectIdPrefix)) {
+			project = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
+		}
         for (Annotation ann : anns) {
-        				if (ann.getMatchAgainst()==true) {
+			if (ann.getMatchAgainst()==true) {
 				JSONObject jann = new JSONObject();
 				jann.put("id", ann.getId());
 				jann.put("acmId", ann.getAcmId());
@@ -155,6 +190,28 @@ if (request.getParameter("acmId") != null) {
                                     if (ma.getStore() instanceof TwitterAssetStore) jm.put("url", ma.webURL());
                                     jm.put("rotation", rotationInfo(ma));
 			            jann.put("asset", jm);
+				}
+				if (project!=null) {
+					try {
+						Encounter enc = ann.findEncounter(myShepherd);
+
+						if (enc!=null) {;
+							System.out.println("All encs for project: "+Arrays.asList(project.getEncounters()).toString());
+						}
+
+						if (project.getEncounters()!=null&&project.getEncounters().contains(enc)) {
+							System.out.println("num encounters in project: "+project.getEncounters().size());
+							MarkedIndividual individual = enc.getIndividual();
+							if (individual!=null) {
+								List<String> projectNames = individual.getNamesList(projectIdPrefix);
+								jann.put("incrementalProjectId", projectNames.get(0));
+								jann.put("projectIdPrefix", projectIdPrefix);
+								jann.put("projectUUID", project.getId());
+							}
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 				janns.put(jann);
 			}
@@ -177,16 +234,21 @@ if (request.getParameter("acmId") != null) {
 
 //TODO security for this stuff, obvs?
 //quick hack to set id & approve
+String taskId = request.getParameter("taskId");
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
-        String taskId = request.getParameter("taskId");
-	String displayName = request.getParameter("individualID");
-	if (displayName!=null) displayName = displayName.trim();
+  String taskId = request.getParameter("taskId");
+  String displayName = request.getParameter("individualID");
+  if (displayName!=null) displayName = displayName.trim();
 	JSONObject res = new JSONObject("{\"success\": false}");
 	res.put("encounterId", request.getParameter("number"));
 	res.put("encounterId2", request.getParameter("enc2"));
-	res.put("individualId", displayName);
-        res.put("taskId", taskId);
-System.out.println("RES=" + res.toString(4));
+	res.put("individualId", request.getParameter("individualID"));
+	res.put("taskId", taskId);
+	String projectId = null;
+	if (Util.stringExists(request.getParameter("projectId"))) {
+		res.put("projectId", request.getParameter("projectId"));
+		projectId = request.getParameter("projectId");
+	}
 
 	myShepherd = new Shepherd(context);
 	myShepherd.setAction("iaResults.jsp2");
@@ -225,8 +287,11 @@ System.out.println("RES=" + res.toString(4));
 	String indyUUID = null;
 	MarkedIndividual indiv = null;
 	MarkedIndividual indiv2 = null;
+	String individualID = null;
 	try {
 
+		individualID = request.getParameter("individualID");
+		if (individualID!=null) individualID = individualID.trim();
 		// from query enc
 		indiv = myShepherd.getMarkedIndividual(enc);
 		// from target enc
@@ -244,6 +309,10 @@ System.out.println("RES=" + res.toString(4));
 		// if both have an id, throw an error. any deecision to override would be arbitrary
 		// should get to MERGE option instead of getting here anyway
 		if (indiv!=null&&indiv2!=null) {
+
+
+			// need nuance here.. if both individuals are present but there is not a project ID allow set
+
 			res.put("error", "Both encounters already have an ID. You must remove one or reassign from the Encounter page.");
 			out.println(res.toString());
 			myShepherd.rollbackDBTransaction();
@@ -260,15 +329,9 @@ System.out.println("RES=" + res.toString(4));
 
 		try {
 
-			// if there is a newIndividualID set in the URL, lets get it.
-			// getting the indy using it will be easier than trying to get around caching of the retrieved encounters
-			//if (indyUUID!=null&&!"".equals(indyUUID)) {
-			//	
-			//}
- 
 			enc.setState("approved");
 			enc2.setState("approved");
-			
+
 			// neither have an individual
 			if (indiv==null&&indiv2==null) {
                                 // giraffespotter specific (for now?)
@@ -297,11 +360,40 @@ System.out.println("RES=" + res.toString(4));
                                             }
                                         }
 					if (indiv == null) indiv = new MarkedIndividual(displayName, enc);
+          
+          //TODO need to set project-based naming. Talk to JVO about it.
+          //check for project to add new name with prefix
+					// if (projectId!=null) {
+					// 	Project project = myShepherd.getProjectByProjectIdPrefix(projectId);
+					// 	if (project!=null&&project.getNextIncrementalIndividualId().equals(individualID)) {
+					// 		project.getNextIncrementalIndividualIdAndAdvance();
+					// 		myShepherd.updateDBTransaction();
+					// 	}
+					// 	indiv.addNameByKey(projectId, individualID);
+					// 	res.put("newIncrementalId", indiv.getDisplayName(projectId));
+					// }
+
 					res.put("newIndividualUUID", indiv.getId());
 					res.put("individualId", indiv.getId());
 					res.put("individualName", displayName);
 					myShepherd.getPM().makePersistent(indiv);
+
+
+					//check for project to add new name with prefix
+					if (projectId!=null) {
+						Project project = myShepherd.getProjectByProjectIdPrefix(projectId);
+						if (project!=null&&project.getNextIncrementalIndividualId().equals(individualID)) {
+							project.getNextIncrementalIndividualIdAndAdvance();
+							myShepherd.updateDBTransaction();
+						}
+
+						indiv.addNameByKey(projectId, individualID);
+						res.put("newIncrementalId", indiv.getDisplayName(projectId));
+					}
 					myShepherd.updateDBTransaction();
+					//res.put("newIndividualUUID", indiv.getId());
+					res.put("individualName", indiv.getDisplayName(request, myShepherd));
+					res.put("individualId", indiv.getId());
 					enc.setIndividual(indiv);
 					enc2.setIndividual(indiv);
 					indiv.addEncounter(enc2);
@@ -321,31 +413,31 @@ System.out.println("RES=" + res.toString(4));
 				enc2.setIndividual(indiv);
 				indiv.addEncounter(enc2);
 				res.put("individualId", indiv.getId());
-				res.put("individualName", indiv.getDisplayName());
+				res.put("individualName", indiv.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
                                 setImportTaskComplete(myShepherd, enc2);
-			} 	
+			}
 
 			// target enc has indy
 			if (indiv==null&&indiv2!=null) {
 				System.out.println("CASE 3: target enc indy is null");
-				enc.setIndividual(indiv2);					
+				enc.setIndividual(indiv2);
 				indiv2.addEncounter(enc);
 				res.put("individualId", indiv2.getId());
-				res.put("individualName", indiv2.getDisplayName());
+				res.put("individualName", indiv2.getDisplayName(request, myShepherd));
 				myShepherd.updateDBTransaction();
                                 setImportTaskComplete(myShepherd, enc);
-			} 
+			}
 
 
 			String matchMsg = enc.getMatchedBy();
 			if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
 			matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-			enc.setMatchedBy(matchMsg); 
+			enc.setMatchedBy(matchMsg);
 			enc2.setMatchedBy(matchMsg);
 
 			if (res.optString("error", null) == null) res.put("success", true);
-			
+
 		} catch (Exception e) {
 			enc.setState("unapproved");
 			enc2.setState("unapproved");
@@ -358,7 +450,7 @@ System.out.println("RES=" + res.toString(4));
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 		return;
-	} 
+	}
 
         //special case where we just want to name query enc as next available name
         if ((indiv == null) && (indiv2 == null) && (enc2 == null) && (enc != null) && NEXT_NAME_LOCATION.equals(displayName)) {
@@ -387,7 +479,7 @@ System.out.println("RES=" + res.toString(4));
 		String matchMsg = enc.getMatchedBy();
 		if ((matchMsg == null) || matchMsg.equals("Unknown")) matchMsg = "";
 		matchMsg += "<p>match approved via <i>iaResults</i> (by <i>" + AccessControl.simpleUserString(request) + "</i>) " + ((taskId == null) ? "<i>unknown Task ID</i>" : "Task <b>" + taskId + "</b>") + "</p>";
-		enc.setMatchedBy(matchMsg); 
+		enc.setMatchedBy(matchMsg);
 		res.put("success", true);
 		out.println(res.toString());
 		myShepherd.commitDBTransaction();
@@ -396,7 +488,7 @@ System.out.println("RES=" + res.toString(4));
         }
 
 	if (indiv == null && indiv2 == null) {
-		res.put("error", "No valid record could be found or created for name: " + displayName);
+		res.put("error", "No valid record could be found or created for name: " + individualID);
 		out.println(res.toString());
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
@@ -408,48 +500,75 @@ System.out.println("RES=" + res.toString(4));
 		myShepherd.closeDBTransaction();
 	}
 
-	res.put("error", "Unknown error setting individual " + displayName);
+	res.put("error", "Unknown error setting individual " + individualID);
 	out.println(res.toString());
 	return;
 }
 
 // confirm no match and set next automatic name
 if (request.getParameter("encId")!=null && request.getParameter("noMatch")!=null) {
-	String encId = request.getParameter("encId");
-	myShepherd = new Shepherd(request);
-	myShepherd.setAction("iaResults.jsp - no match case");
-	myShepherd.beginDBTransaction();
-	JSONObject rtn = new JSONObject("{\"success\": false}");
-	Encounter enc = myShepherd.getEncounter(encId);
-	if (enc==null) {
-		rtn.put("error", "could not find Encounter "+encId+" in the database.");
+
+	try {
+		String encId = request.getParameter("encId");
+		myShepherd = new Shepherd(request);
+		myShepherd.setAction("iaResults.jsp - no match case");
+		myShepherd.beginDBTransaction();
+		JSONObject rtn = new JSONObject("{\"success\": false}");
+		Encounter enc = myShepherd.getEncounter(encId);
+		if (enc==null) {
+			rtn.put("error", "could not find Encounter "+encId+" in the database.");
+			out.println(rtn.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+			return;
+		}
+
+		String useNextProjectId = request.getParameter("useNextProjectId");
+		boolean validToName = false;
+
+		System.out.println("useNextProjectId= "+useNextProjectId+" Util.stringExists(nextNameKey)="+Util.stringExists(nextNameKey)+"  Util.stringExists(nextName)= "+Util.stringExists(nextName)+"");
+
+		if (("true".equals(useNextProjectId) || Util.stringExists(nextNameKey) ) && Util.stringExists(nextName)) {
+			validToName = true;
+		}
+
+		if (!validToName) {
+			rtn.put("error", "Was unable to set the next automatic name. Got key="+nextNameKey+" and val="+nextName);
+			out.println(rtn.toString());
+			myShepherd.rollbackDBTransaction();
+			myShepherd.closeDBTransaction();
+			return;
+		}
+
+		MarkedIndividual mark = enc.getIndividual();
+
+		if (mark==null) {
+			mark = new MarkedIndividual(enc);
+			myShepherd.getPM().makePersistent(mark);
+			myShepherd.updateDBTransaction();
+		}
+
+		if (validToName&&"true".equals(useNextProjectId)) {
+			System.out.println("trying to set next PROJECT automatic name.......");
+			Project projectForAutoNaming = myShepherd.getProjectByProjectIdPrefix(projectIdPrefix.trim());
+			mark.addIncrementalProjectId(projectForAutoNaming);
+		} else {
+			System.out.println("trying to set USER BASED automatic name.......");
+			// old user based id
+			mark.addName(nextNameKey, nextName);
+		}
+
+		System.out.println("RTN for no match naming: "+rtn.toString());
+
+		rtn.put("success",true);
 		out.println(rtn.toString());
-		myShepherd.rollbackDBTransaction();
+		myShepherd.commitDBTransaction();
 		myShepherd.closeDBTransaction();
 		return;
-	}
-	if (!Util.stringExists(nextName) || !Util.stringExists(nextNameKey)) {
-		rtn.put("error", "Was unable to decide on the next automatic name. Got key="+nextNameKey+" and val="+nextName);
-		out.println(rtn.toString());
-		myShepherd.rollbackDBTransaction();
-		myShepherd.closeDBTransaction();
-		return;
-	}
-	MarkedIndividual mark = enc.getIndividual();
 
-	if (mark==null) {
-		mark = new MarkedIndividual(enc);
-		myShepherd.getPM().makePersistent(mark);
-		myShepherd.updateDBTransaction();
+	} catch (Exception e) {
+		e.printStackTrace();
 	}
-
-	mark.addName(nextNameKey, nextName);
-
-	rtn.put("success",true);
-	out.println(rtn.toString());
-	myShepherd.commitDBTransaction();
-	myShepherd.closeDBTransaction();
-	return;
 
 }
 
@@ -530,21 +649,27 @@ h4.intro.accordion .rotate-chevron.down {
     -webkit-transform: rotate(90deg);
     transform: rotate(90deg);
 }
+
+#projectDropdownSpan {
+	position: absolute;
+	padding-top: 25px;
+}
+
 </style>
 
 <script>
-	
-	
+
+
 	animatedcollapse.addDiv('instructions', 'fade=1');
 	animatedcollapse.init();
 	$("h4.accordion a").click(function() {
 		$(this).children(".rotate-chevron").toggleClass("down");
 	});
-	
+
 	//Map of the OpenSeadragon viewers
 	var viewers = new Map();
 	var features=new Map();
-	
+
 </script>
 
 
@@ -578,12 +703,15 @@ h4.intro.accordion .rotate-chevron.down {
 		<button class="scoreType <%=annotationScoreSelected %>" <%=annotationOnClick %> >Image Scores</button>
 
 		</span>
+		<div id="projectDropdownDiv">
+			<span hidden class="control-label" id="projectDropdownSpan">
+				<label>Project Selection</label>
+				<select name="projectDropdown" id="projectDropdown">
+				</select>
+			</span>
+		</div>
 
 		<style>
-			span#nextNameArea {
-				position: relative;
-				top: 28px; /* sum of the adjacent buttons' top margin and top padding to align text*/
-		}
 		div#result_settings {
 			text-align: center;
 		}
@@ -600,19 +728,6 @@ h4.intro.accordion .rotate-chevron.down {
                     position: relative;
                 }
 		</style>
-
-		<%
-		// a centered button to use the next autogenerated name upon matching
-		if (usesAutoNames) {
-			%>
-			<span id='nextNameArea'>
-				<strong>Auto-naming:</strong>
-				Use next name <strong><%=nextNameKey%>: <%=nextName%></strong>?
-				<input type='checkbox' name='useNextName' value='nextName'>
-			</span>
-			<%
-		}
-		%>
 
 		<script>
 			var nResultsClicker = function() {
@@ -730,6 +845,12 @@ var timers = {};
 
 var INDIVIDUAL_SCORES = <%=individualScores%>;
 
+var projectIdPrefix = '<%=projectIdPrefix%>';
+var researchProjectName = '<%=researchProjectName%>';
+var NONE_SELECTED = 'None Selected';
+var projectData = {};
+var projectACMIds = [];
+
 function toggleScoreType() {
 	INDIVIDUAL_SCORES = !INDIVIDUAL_SCORES;
 	$('#encounter-info').remove();
@@ -767,7 +888,7 @@ function init2() {   //called from wildbook.init() when finished
 				$('#initial-waiter').remove();
 			}
 		}
-		console.log("-- >> What are the current tasks? : "+JSON.stringify(tasks));
+		//console.log("-- >> What are the current tasks? : "+JSON.stringify(tasks));
 		if (onlyNullTaskType==true) {
 			console.log("RELOADING!");
 			clearTimeout(reloadTimeout);
@@ -790,7 +911,7 @@ function tryTaskId(tid) {
     wildbook.IA.fetchTaskResponse(tid, function(x) {
         if ((x.status == 200) && x.responseJSON && x.responseJSON.success && x.responseJSON.task) {
             processTask(x.responseJSON.task); //this will be json task (w/children)
-	    console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
+	    //console.log("TRY TASK RESPONSE!!!!                "+JSON.stringify(x.responseJSON.task));
         } else {
         		// the below alert was erroneously displaying when a tid was just in the queue
             //alert('Error fetching task id=' + tid);
@@ -848,8 +969,15 @@ function grabTaskResult(tid) {
 	var mostRecent = false;
 	var gotResult = false;
 //console.warn('------------------- grabTaskResult(%s)', tid);
+
+	let paramStr = 'iaLogs.jsp?taskId=' + tid;
+	console.log("do i have a projectId in grabTaskResult()????? "+projectIdPrefix);
+	if (projectIdPrefix!=null&&projectIdPrefix.length>0) {
+		paramStr += "&projectId="+projectIdPrefix;
+	}
+
 	$.ajax({
-		url: 'iaLogs.jsp?taskId=' + tid,
+		url: paramStr,
 		type: 'GET',
 		dataType: 'json',
 		success: function(d) {
@@ -860,12 +988,20 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 				if (d[i].serviceJobId && (d[i].serviceJobId != '-1')) {
 					if (!jobIdMap[tid]) jobIdMap[tid] = { timestamp: d[i].timestamp, jobId: d[i].serviceJobId, manualAttempts: 0 };
 				}
-				//console.log('d[i].status._action --> %o', d[i].status._action);
+				//console.log("d[i].projectData : "+JSON.stringify(d([i].projectData));
+				if (d[i].projectData) {
+					projectData = d[i].projectData;
+					if (d[i].projectACMIds) {
+						projectACMIds = d[i].projectACMIds;
+					}
+				}
+
 				if (d[i].status && d[i].status._action == 'getJobResult') {
+
 					showTaskResult(d[i], tid);
 					i = d.length;
 					gotResult = true;
-					console.log("removing initial waiter!");
+					//console.log("removing initial waiter!");
 					$("#initial-waiter").remove();
 
 				} else {
@@ -882,7 +1018,7 @@ console.info('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> got %o on task.id=%s', d, tid);
 				if (jobIdMap[tid]) {
 					var tooLong = 15 * 60 * 1000;
 					var elapsed = approxServerTime() - jobIdMap[tid].timestamp;
-					console.warn("elapsed = %.1f min", elapsed / 60000);
+					//console.warn("elapsed = %.1f min", elapsed / 60000);
 					if (elapsed > tooLong) {
 						if (timers[tid] && timers[tid].timeout) clearTimeout(timers[tid].timeout);
 						$('#wait-message-' + tid).removeClass('throbbing').html('attempting to fetch results');
@@ -924,7 +1060,6 @@ console.info('age = %.2fmin', age / (60*1000));
 			}
 		},
 		error: function(a,b,c) {
-console.info('!!>> got %o', d);
 			console.error(a, b, c);
 			$("#initial-waiter").remove();
 			$('#task-' + tid).append('<p class="error">there was an error with task ' + tid + '</p>');
@@ -991,7 +1126,7 @@ function showAdvancedAlgInfo() {
 	// This noImageScoresMessage is shown/hidden with css using an imageScores class on the task container div
 	deepsenseMsg += '<li class="noImageScoresMessage">This algorithm does not return per-image match scores, so only name scores are displayed.</li>'
 	deepsenseMsg += '</ul>'
-	console.log("Showing AdvancedAlgInfo for deepsense with message: "+deepsenseMsg+" on object %o", deepsenseInfoSpan);
+	//console.log("Showing AdvancedAlgInfo for deepsense with message: "+deepsenseMsg+" on object %o", deepsenseInfoSpan);
 	deepsenseInfoSpan.html(deepsenseMsg);
 
 }
@@ -1016,7 +1151,7 @@ function showTaskResult(res, taskId) {
 			res.status._response.response.json_result.cm_dict) {
 		var algoInfo = (res.status._response.response.json_result.query_config_dict &&
 			res.status._response.response.json_result.query_config_dict.pipeline_root);
-		console.log("Algo info is "+algoInfo);
+		//console.log("Algo info is "+algoInfo);
 		var qannotId = res.status._response.response.json_result.query_annot_uuid_list[0]['__UUID__'];
 
 		//$('#task-' + res.taskId).append('<p>' + JSON.stringify(res.status._response.response.json_result) + '</p>');
@@ -1081,8 +1216,9 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 			$('#task-' + res.taskId + ' .task-summary').append('<p class="xerror">Image Analysis has returned and no match was found.</p>');
 			return;
 		}
-		var max = sorted.length;
-		if (max > RESMAX) max = RESMAX;
+		var maxToEvaluate = sorted.length;
+		if (maxToEvaluate > RESMAX) maxToEvaluate = RESMAX;
+
 		// ----- BEGIN Hotspotter IA Illustration: here we construct the illustration link URLs for each dannot -----
 		// these URLs are passed-along and rendered in html by displayAnnotDetails
 		var resJSON = res.status._response.response.json_result['cm_dict'][qannotId];
@@ -1091,41 +1227,59 @@ console.log('algoDesc %o %s %s', res.status._response.response.json_result.query
 		var query_annot_uuid = qannotId;
 		var version = "heatmask";
 
-		for (var i = 0 ; i < max ; i++) {
+
+		for (var i = 0 ; i < maxToEvaluate; i++) {
+
+
 			var d = sorted[i].split(/\s/);
-			var acmId = d[0];
+			if (!d) break;
+			var acmId = d[1];
 			var database_annot_uuid = d[1];
 			var has_illustration = d[2];
-			console.log("has_illustration = "+has_illustration);
 
-			var illustUrl;
-			if (has_illustration) {
-				illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
-				illustUrl += "&query_annot_uuid="+query_annot_uuid;
-				illustUrl += "&database_annot_uuid="+database_annot_uuid;
-				illustUrl += "&version="+version;
-			} else {
-				illustUrl = false;
+			console.log("in annot loop, i="+i+" maxToEvaluate="+maxToEvaluate+" this acmId: "+acmId);
+
+			let isSelected = isProjectSelected();
+			let validEnc = true;
+
+			if (isSelected) {
+				validEnc = projectACMIds.includes(acmId);
+				console.log("Project ACM Ids : "+projectACMIds);
 			}
 
-			//console.log("ILLUSTRATION "+i+" "+illustUrl);
+			if ((isSelected&&validEnc)||!isSelected) {
 
-			// no illustration for DTW
-			//if (algoInfo == 'OC_WDTW') illustUrl = false;
+				console.log("has_illustration = "+has_illustration);
 
-			// var adjustedScore = d[0] / 1000
-			var adjustedScore = d[0]
-			displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
-			// ----- END Hotspotter IA Illustration-----
+				var illustUrl;
+				if (has_illustration) {
+					illustUrl = "api/query/graph/match/thumb/?extern_reference="+extern_reference;
+					illustUrl += "&query_annot_uuid="+query_annot_uuid;
+					illustUrl += "&database_annot_uuid="+database_annot_uuid;
+					illustUrl += "&version="+version;
+				} else {
+					illustUrl = false;
+				}
+
+				var adjustedScore = d[0];
+				displayAnnot(res.taskId, d[1], i, adjustedScore, illustUrl);
+				// ----- END Hotspotter IA Illustration-----
+			} else {
+				// we have skipped an annotation here due to it not being present in a project. let another through to make max possible
+				if (maxToEvaluate<sorted.length) {
+					maxToEvaluate++;
+				}
+			}
+
 		}
-		$('.annot-summary').on('mousemove', function(ev) { 
-			console.log('mouseover2 with num viewers: '+viewers.size);
-			annotClick(ev); 
+		$('.annot-summary').on('mousemove', function(ev) {
+			//console.log('mouseover2 with num viewers: '+viewers.size);
+			annotClick(ev);
 			var m_acmId = ev.currentTarget.getAttribute('data-acmid');
 			var taskId = $(ev.currentTarget).closest('.task-content').attr('id').substring(5);
 			//tell seadragon to pan to the annotation
 			if(viewers.has(taskId+"+"+m_acmId )){
-				console.log("Found viewer: "+taskId+"+"+m_acmId );
+				//console.log("Found viewer: "+taskId+"+"+m_acmId );
 				var viewer=viewers.get(taskId+"+"+m_acmId );
 				var eventArgs={
 					acmId: m_acmId,
@@ -1157,23 +1311,30 @@ console.info('%d ===> %s', num, acmId);
 	//now the image guts
 	h = '<div id="'+taskId+'+'+acmId+'" title="acmId=' + acmId + '"  class="annot-wrapper annot-wrapper-' + ((num < 0) ? 'query' : 'dict') + ' annot-' + acmId + '">';
 	//h += '<div class="annot-info">' + (num + 1) + ': <b>' + score + '</b></div></div>';
-	
-	
+
+	let paramString = 'iaResults.jsp?acmId=' + acmId;
+	let projectId = getSelectedProjectIdPrefix();
+	if (projectId!=""&&projectId!=undefined) {
+		paramString += "&projectIdPrefix="+projectId;
+	}
+
+
 	var imgs = $('#task-' + taskId + ' .bonus-wrapper');
     if (!imgs.length) {
             imgs = $('<div style="height: 400px;" class="bonus-wrapper" />');
             imgs.appendTo('#task-' + taskId)
      }
      imgs.append(h);
-	
-	//$('#task-' + taskId).append(h);
-	
-	
+
+	console.log("PARAMSTRING: "+paramString);
+
 	$.ajax({
-		url: 'iaResults.jsp?acmId=' + acmId,  //hacktacular!
+		url: paramString,  //hacktacular!
 		type: 'GET',
 		dataType: 'json',
-		complete: function(d) { displayAnnotDetails(taskId, d, num, illustrationUrl, acmId); }
+		complete: function(d) {
+			displayAnnotDetails(taskId, d, num, illustrationUrl, acmId);
+		}
 	});
 }
 
@@ -1198,16 +1359,27 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
         var mainAsset = false;
         var otherAnnots = [];
         var h = 'Matching results';
-        var acmId;
+		var acmId;
+		var incrementalProjectId;
+		var projectUUID;
 
         for (var i = 0 ; i < res.responseJSON.annotations.length ; i++) {
             acmId = res.responseJSON.annotations[i].acmId;  //should be same for all, so lets just set it
             console.info('[%d/%d] annot id=%s, acmId=%s', i, res.responseJSON.annotations.length, res.responseJSON.annotations[i].id, res.responseJSON.annotations[i].acmId);
             if (tasks[taskId].annotationIds.indexOf(res.responseJSON.annotations[i].id) >= 0) {  //got it (usually query annot)
-                console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
+                //console.info(' -- looks like we got a hit on %s', res.responseJSON.annotations[i].id);
                 mainAnnId = res.responseJSON.annotations[i].id;
-            }
-            //we "should" only need the first asset we find -- as they "should" all be identical!
+			}
+			if (res.responseJSON.annotations[i].incrementalProjectId&&res.responseJSON.annotations[i].incrementalProjectId.length>0) {
+				incrementalProjectId = res.responseJSON.annotations[i].incrementalProjectId;
+				console.log("Got this incrementalProjectId in displayAnnotDetails() : "+incrementalProjectId);
+			}
+			if (res.responseJSON.annotations[i].projectUUID&&res.responseJSON.annotations[i].projectUUID.length>0) {
+				projectUUID = res.responseJSON.annotations[i].projectUUID;
+				console.log("Got this projectId in displayAnnotDetails() : "+incrementalProjectId);
+			}
+			//we "should" only need the first asset we find -- as they "should" all be identical!
+
             if (!res.responseJSON.annotations[i].asset) continue;  //no asset, meh continue
             if (mainAsset) {
                 otherAnnots.push(res.responseJSON.annotations[i]);
@@ -1223,18 +1395,18 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
             var ft = findMyFeature(acmId, mainAsset);
             if (mainAsset.url) {
             	//console.log(mainAsset.url);
-                
+
             	var img = $('<img src="' + mainAsset.url + '" />');
                 //var imgLink=$('<a target="_blank" href="' + mainAsset.url + '" />');
                 //imgLink.append(img);
-            	
+
                 ft.metadata = mainAsset.metadata;
                 img.on('load', function(ev) { imageLoaded(ev.target, ft, mainAsset); });
                 //$('#task-' + taskId + ' .annot-' + acmId).append(imgLink);
-                
 
-     
-                
+
+
+
               		var viewer=OpenSeadragon({
                     	id: taskId+"+"+acmId,
                         tileSources: {
@@ -1250,16 +1422,16 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         animationTime: 0,
 
                 	});
-                	
+
               		//viewer.world.setAutoRefigureSizes(true);
-              		
+
                 	viewer.addHandler('open', function() {
                 		var ft = features.get(viewer.id.split('+')[1]);
                 		//console.log(ft);
                 		var marginFactor=1;
                 		var width=ft.parameters.width;
                 	   	var height=ft.parameters.height;
-                	   	
+
                 	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
                         if (ft.metadata && ft.metadata.height) scale = viewer.world.getItemAt(0).getContentSize().y / ft.metadata.height;
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
@@ -1267,16 +1439,16 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         var elt = document.createElement("div");
                         elt.id = "overlay-"+acmId+"-"+viewer.id;
                         elt.className = "seadragon-highlight";
-                       
-                        
+
+
                         viewer.addOverlay({
                             element: elt,
                             checkResize: true,
                             location: viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*scale, ft.parameters.y*scale, ft.parameters.width*scale, ft.parameters.height*scale)
                         });
-                	
+
                 	});
-    
+
                 	viewer.addHandler('full-screen', event => {
                 		if(event.fullPage==false){
                 			var eventArgs={
@@ -1284,18 +1456,18 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 							};
                 	    	//console.log("Trying to call switchAnnots on amId: "+);
                 	    	viewer.raiseEvent("switchAnnots", eventArgs);
-                	    	
+
                 	    }
                 	});
-                	
+
                 	viewer.addHandler('switchAnnots', event => {
                 		//console.log("switch annots with acmId: "+event.acmId);
-                		
+
                 		var marginFactor=1.0;
-                		
+
                 		//need to get annot feature
                 		var ft = features.get(viewer.id.split('+')[1]);
-                		console.log("switch annots with acmId: "+event.acmId+"("+ft.parameters.width+","+ft.parameters.height+","+ft.parameters.x+","+ft.parameters.y+")");
+                		//console.log("switch annots with acmId: "+event.acmId+"("+ft.parameters.width+","+ft.parameters.height+","+ft.parameters.x+","+ft.parameters.y+")");
                 		var width=ft.parameters.width;
                 	   	var height=ft.parameters.height;
                 	   	var scale = ft.metadata.height / viewer.world.getItemAt(0).getContentSize().y;
@@ -1303,17 +1475,17 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         var rec=viewer.world.getItemAt(0).imageToViewportRectangle(ft.parameters.x*marginFactor*scale, ft.parameters.y*marginFactor*scale, width/marginFactor*scale, height/marginFactor*scale);
                 	   	viewer.viewport.fitBounds(rec);
                 	});
-                	
 
-                	
+
+
                 	//add this viewer to the global Map
                 	viewers.set(taskId+"+"+acmId,viewer);
                 	features.set(acmId, ft);
-            	
-            	
+
+
             	$('#task-' + taskId + ' .annot-' + acmId).addClass("seadragon");
-                
-                
+
+
             } else {
                 $('#task-' + taskId + ' .annot-' + acmId).append('<img src="images/no_images.jpg" style="padding: 5px" />');
             }
@@ -1331,18 +1503,24 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
 
                 var encDisplay = encId;
                 var taxonomy = ft.genus+' '+ft.specificEpithet;
-                console.log('Taxonomy: '+taxonomy);
+                //console.log('Taxonomy: '+taxonomy);
                 if (encId.trim().length == 36) encDisplay = encId.substring(0,6)+"...";
-                var indivId = ft.individualId;
-		console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
+				var indivId = ft.individualId;
+
+				//console.log(" ----------------------> CHECKBOX FEATURE: "+JSON.stringify(ft));
                 var displayName = ft.displayName;
                 if (isQueryAnnot) addNegativeButton(encId, displayName);
 
 				// if the displayName isn't there, we didn't get it from the queryAnnot. Lets get it from one of the encs on the results list.
 				if (typeof displayName == 'undefined' || displayName == "" || displayName == null) {
-					console.log("Did you get in the display name finder block??? Ye!");
+					//console.log("Did you get in the display name finder block??? Ye!");
 					displayName = $('.enc-title .indiv-link').text();
 				}
+
+				console.log("indivId: "+indivId+" projectIdPrefix: "+projectIdPrefix+" incrementalProjectId: "+incrementalProjectId+" displayName: "+displayName);
+
+				let thisResultLine = $('#task-'+taskId+' .annot-summary-'+acmId);
+
                 if (encId) {
                 	console.log("Main asset encId = "+encId);
                     h += ' for <a  class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="open encounter ' + encId + '">Enc ' + encId.substring(0,6) + '</a>';
@@ -1350,23 +1528,32 @@ function displayAnnotDetails(taskId, res, num, illustrationUrl, acmIdPassed) {
                         h += '<input style="position: absolute; left: -60px; top: 30px; transform: scale(0.7);" type="button" value="Set new name [ ' + nextNamesByLocation[encId] + ' ] for just this Encounter" onClick="$(this).hide(); return approvalButtonClick(\'' + encId + '\', NEXT_NAME_LOCATION);" />';
                     }
                     $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="enc-link" target="_new" href="encounters/encounter.jsp?number=' + encId + '" title="encounter ' + encId + '">Enc ' + encDisplay + '</a>');
-                    
+
 					if (!indivId) {
-						$('#task-' + taskId + ' .annot-summary-' + acmId).append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');			
+						thisResultLine.append('<span class="indiv-link-target" id="encnum'+encId+'"></span>');
 					}
-                }
-                if (indivId) {
+				}
+
+				if (isProjectSelected()) {
+					console.log("trying to show project-based id for asset...(UUID: "+projectUUID+" )");
+					h += ' in <a class="project-link" target="_new" href="/projects/project.jsp?id=<%=researchProjectUUID%>" title="Open Project '+researchProjectName+'">Project: ' + researchProjectName.substring(0,15) + '</a>';
+
+					if (incrementalProjectId) {
+						thisResultLine.append('<a class="indiv-link" target="_new" href="/projects/project.jsp?id='+projectUUID+'" title="Project Id: '+incrementalProjectId+'">' + incrementalProjectId.substring(0,15) + '</a>');
+					}
+				}
+
+				if (indivId&&(incrementalProjectId!=displayName)) {
                     h += ' of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + indivId + '"  title="'+displayName+'">' + displayName + '</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
+                    thisResultLine.append('<a class="indiv-link" target="_new" href="individuals.jsp?number=' + indivId + '" title="'+displayName+'">' + displayName.substring(0,15) + '</a>');
                 }
                 if (taxonomy && taxonomy=='Eubalaena glacialis') {
                     //h += ' <a class="indiv-link" title="open individual page" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">'+displayName+' of NARW Cat.</a>';
-                    $('#task-' + taskId + ' .annot-summary-' + acmId).append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
+                    thisResultLine.append('<a class="indiv-link" target="_new" href="http://rwcatalog.neaq.org/#/whales/' + displayName + '">Catalog</a>');
                 }
 
                 if (encId || indivId) {
-console.log("XX %o", displayName);
-            $('#task-' + taskId + ' .annot-summary-' + acmId).append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '') + '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
+					thisResultLine.append('<input title="use this encounter" type="checkbox" class="annot-action-checkbox-inactive" id="annot-action-checkbox-' + mainAnnId +'" data-displayname="'+displayName+'" data-encid="' + (encId || '')+ '" data-individ="' + (indivId || '') + '" onClick="return annotCheckbox(this);" />');
                 }
                 h += '<div id="enc-action">' + headerDefault + '</div>';
                 if (isQueryAnnot) {
@@ -1420,6 +1607,11 @@ console.info('qdata[%s] = %o', taskId, qdata);
     if (imgInfo) $('#task-' + taskId + ' .annot-' + acmId).append('<div class="img-info">' + imgInfo + '</div>');
 }
 
+function getSelectedProjectIdPrefix() {
+	let selectedValue = $("#projectDropdown option:selected").val();
+	if (selectedValue==""||selectedValue==undefined||selectedValue==null||selectedValue=="null") return "";
+	return selectedValue;
+}
 
 function annotCheckbox(el) {
 	var jel = $(el);
@@ -1433,7 +1625,12 @@ function annotCheckbox(el) {
 	jel.removeClass('annot-action-checkbox-inactive').addClass('annot-action-checkbox-active');
 	jel.parent().addClass('annot-summary-checked');
 
-	var h;
+
+	let selectedProjectIdPrefix = getSelectedProjectIdPrefix();
+	if (selectedProjectIdPrefix==NONE_SELECTED) selectedProjectIdPrefix = '';
+	let allowSyncReturn = true;
+
+	var h = '<i>Getting next ID...</i>';
 	if (!queryAnnotation.encId || !jel.data('encid')) {
 		h = '<i>Insufficient encounter data for any actions</i>';
 	} else if (jel.data('individ')==queryAnnotation.indivId) {
@@ -1442,12 +1639,45 @@ function annotCheckbox(el) {
 		// construct link to merge page
 		var link = "merge.jsp?individualA="+jel.data('individ')+"&individualB="+queryAnnotation.indivId;
 		h = 'These encounters are already assigned to two <b>different individuals</b>.  <a href="'+link+'" class="button" > Merge Individuals</a>';
+	} else if (selectedProjectIdPrefix.length>0&&!jel.data('individ')&&!queryAnnotation.indivId) {
+		allowSyncReturn = false;
+		let requestJSON = {};
+		requestJSON['projectIdPrefix'] = selectedProjectIdPrefix;
+		requestJSON['action'] = 'getNextIdForProject';
+		$.ajax({
+			url: wildbookGlobals.baseUrl + '../ProjectGet',
+			type: 'POST',
+			data: JSON.stringify(requestJSON),
+			dataType: 'json',
+			contentType: 'application/json',
+			success: function(d) {
+				console.info('Retrieved next incremental ID for '+selectedProjectIdPrefix+'! Got back '+JSON.stringify(d));
+				let nextId = d.nextId;
+				if (!nextId) {
+					nextId = '';
+				}
+
+				h  = '<input id="autocomplete-individual-name" class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" value="'+nextId+'" placeholder="Type new or existing name" ';
+				h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
+				h += ' data-match-enc-id="' + jel.data('encid') + '" ';
+				h += '/>';
+				h += '<input type="button" value="New Project ID For Both Encounters" data-projectId="'+selectedProjectIdPrefix+'" onClick="approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
+
+				$('#enc-action').html(h);
+
+				setIndivAutocomplete($('#enc-action .needs-autocomplete'));
+				return true;
+			},
+			error: function(x,y,z) {
+				console.warn('%o %o %o', x, y, z);
+			}
+		});
+
 	} else if (jel.data('individ')) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
 	} else if (queryAnnotation.indivId) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + jel.data('encid') + '\', \'' + queryAnnotation.indivId + '\', \'' +queryAnnotation.encId+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Use individual ' +jel.data('displayname')+ ' for unnamed match below" />';
 	} else {
-                //disable onChange for now -- as autocomplete will trigger!
 		h = '<input class="needs-autocomplete" xonChange="approveNewIndividual(this);" size="20" placeholder="Type new or existing name" ';
 		h += ' data-query-enc-id="' + queryAnnotation.encId + '" ';
 		h += ' data-match-enc-id="' + jel.data('encid') + '" ';
@@ -1457,20 +1687,20 @@ function annotCheckbox(el) {
 		    h += ' <input type="button" value="Set new name [ ' + nextNamesByLocation[queryAnnotation.encId] + ' ] on both" onClick="$(\'#new-name-both\').val(NEXT_NAME_LOCATION); approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
                 }
 	}
-	$('#enc-action').html(h);
-        setIndivAutocomplete($('#enc-action .needs-autocomplete'));
-	return true;
 }
 
+var nameUUIDCache = {};
 function setIndivAutocomplete(el) {
-    if (!el || !el.length) return;
+	if (!el || !el.length) return;
     var args = {
-        resMap: function(data) {
-            var res = $.map(data, function(item) {
-                if (item.type != 'individual') return null;
-                var label = item.label;
-                if (item.species) label += '   ( ' + item.species + ' )';
-                return { label: label, type: item.type, value: item.value };
+		resMap: function(data) {
+			var res = $.map(data, function(item) {
+				if (item.type != 'individual') return null;
+                let label = item.label;
+				let justName = label;
+				if (item.species) label += '   ( ' + item.species + ' )';
+				nameUUIDCache[justName] = item.value;
+				return { label: label, type: item.type, value: justName, id: item.value };
             });
             return res;
         }
@@ -1571,17 +1801,17 @@ function drawFeature(imgEl, ft, asset) {
     var zoomFactor = imgEl.naturalHeight/ft.parameters.height;
 
     var f = $('<div title="' + ft.id + '" id="feature-' + ft.id + '" class="featurebox" />');
-    
-    
+
+
     /* values are from-top, from-right, from-bottom, from-left */
-    
+
     //imgEl.setAttribute("style", "transform-origin: 0 0;transform: scale("+zoomFactor+");margin-left: -"+ft.parameters.x*scale*zoomFactor+";margin-top: -"+ft.parameters.y*scale*zoomFactor+"px;position: absolute;clip-path: inset("+ (ft.parameters.y)*scale + "px " + (ft.metadata.width-ft.parameters.x-ft.parameters.width)*scale + "px "+(ft.metadata.height-ft.parameters.height-ft.parameters.y)*scale + "px "+ft.parameters.x*scale + "px )");
-   
-    
-    
+
+
+
     //imgEl.css("transform-origin", "0 0");
     //imgEl.css("transform", "translate(-100%, 50%) rotate(45deg) translate(100%, -50%)");
-    
+
 //console.info('mmmm scale=%f (ht=%d/%d)', scale, imgEl.height, imgEl.naturalHeight);
     //if (scale == 1) return;
     imgEl.setAttribute('data-feature-drawn', true);
@@ -1703,7 +1933,7 @@ console.warn(inds);
 	var h = ' <div id="approval-buttons">';
 	for (var i = 0 ; i < inds.length ; i++) {
 		h += '<input type="button" onClick="approvalButtonClick(\'' + qann.encounter.catalogNumber + '\', \'' +
-		     inds[i] + '\');" value="Approve as assigned to ' + inds[i] + '" />';
+		     inds[i] + '\',);" value="Approve as assigned to ' + inds[i] + '" />';
 	}
 	return h + '</div>';
 }
@@ -1712,14 +1942,26 @@ console.warn(inds);
 // sends everything to java on the page and returns JSON with encounter and indy ID
 function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 	var msgTarget = '#enc-action';  //'#approval-buttons';
-	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s', indivID, encID, encID2, taskId);
+
+	if (nameUUIDCache.hasOwnProperty(indivID)) {
+		displayName = indivID;
+		indivID = nameUUIDCache[indivID];
+	}
+
+	console.info('approvalButtonClick: id(%s) => %s %s taskId=%s displayName=%s', indivID, encID, encID2, taskId, displayName);
 	if (!indivID || !encID) {
 		jQuery(msgTarget).html('Argument errors');
 		return;
 	}
 	jQuery(msgTarget).html('<i>saving changes...</i>');
 	var url = 'iaResults.jsp?number=' + encID + '&taskId=' + taskId + '&individualID=' + indivID;
+	let projectId = getSelectedProjectIdPrefix();
+	if (projectId&&projectId!=NONE_SELECTED) {
+		url += '&projectId='+projectId;
+		console.log('adding projectId to URL for new name!!');
+	}
 	if (encID2) url += '&enc2=' + encID2;
+
 	jQuery.ajax({
 		url: url,
 		type: 'GET',
@@ -1734,9 +1976,8 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 					$(".enc-title #enc-action").remove();
 					$(".enc-title").append('<span> of <a class="indiv-link" title="open individual page" target="_new" href="individuals.jsp?number=' + d.individualId + '">' + d.individualName + '</a></span>');
 					$(".enc-title").append('<div id="enc-action"><i><b>  Update Successful</b></i></div>');
-					
 					// updates encounters in results list with name and link to indy
-				        $("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter  
+				        $("#encnum"+d.encounterId).append(indivLink); // unlikely, should be the query encounter
 					$("#encnum"+d.encounterId2).append(indivLink); // likely, should be newly matched target encounter(s)
 
 				} else {
@@ -1757,9 +1998,10 @@ function approvalButtonClick(encID, indivID, encID2, taskId, displayName) {
 
 
 function approveNewIndividual(el) {
+	// 'jel' as the input element contains the dsiplayName as a value
 	var jel = $(el);
-	console.info('name=%s; qe=%s, me=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'));
-	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'));
+	console.info('name=%s; qe=%s, me=%s, taskId=%s, displayName=%s', jel.val(), jel.data('query-enc-id'), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
+	return approvalButtonClick(jel.data('query-enc-id'), jel.val(), jel.data('match-enc-id'), jel.data('match-task-id'), jel.data('match-display-name'));
 }
 
 function encDisplayString(encId) {
@@ -1769,65 +2011,40 @@ function encDisplayString(encId) {
 
 
 function negativeButtonClick(encId, oldDisplayName) {
+
 	var confirmMsg = 'Confirm no match?\n\n';
 	confirmMsg += 'By clicking \'OK\', you are confirming that there is no correct match in the results below. ';
-	if (oldDisplayName != ("")) {
-		confirmMsg+= 'The next <%=nextNameKey%> name will be added to individual '+oldDisplayName;
+	if (oldDisplayName&&oldDisplayName!=""&&oldDisplayName.length) {
+		confirmMsg+= 'The name <%=nextNameString%> will be added to individual '+oldDisplayName;
 	} else {
-		confirmMsg+= 'A new individual will be created with the next <%=nextNameKey%> name and applied to encounter '+encDisplayString(encId);
+		confirmMsg+= 'A new individual will be created with name <%=nextNameString%> and applied to encounter '+encDisplayString(encId);
 	}
 	confirmMsg+= ' to record your decision.';
 
-	// $('#confirm-negative-dialog').show();
-	// $('#confirm-negative-dialog').dialog({
- //  buttons: [
- //    {
- //      text: "OK",
- //      click: function() {
-	// 			$.ajax({
-	// 				url: 'iaResults.jsp?encId=' + encId+'&noMatch=true',  //hacktacular!
-	// 				type: 'GET',
-	// 				dataType: 'json',
-	// 				complete: function(d) { noMatchConfirmationCallback(); }
-	// 			});
-	// 		}
-	// 	},
-	// 	{
-	// 		text: "close",
-	// 		click: function() {$(this).dialog("close")}
-	// 	}
- //  ],
- //  modal: true,
+	let paramStr = 'encId='+encId+'&noMatch=true';
+	let projectId = '<%=projectIdPrefix%>';
+	if (projectId&&projectId.length) {
+		paramStr += '&useNextProjectId=true&projectIdPrefix='+projectId;
+	}
 
-	// 	// buttons: {
-	// 	// 	OK: function() {
-	// 	// 		$.ajax({
-	// 	// 			url: 'iaResults.jsp?encId=' + encId+'&noMatch=true',  //hacktacular!
-	// 	// 			type: 'GET',
-	// 	// 			dataType: 'json',
-	// 	// 			complete: function(d) { noMatchConfirmationCallback(); }
-	// 	// 		});
-	// 	// 	},
-	// 	// 	close: function() {$(this).dialog("close");}
-	// 	// },
-	// 	// modal: true
-	// });
-	// $('#confirm-negative-dialog').show();
+	console.log("paramStr for 'negativeButtonClick' : "+paramStr);
 
 	if (confirm(confirmMsg)) {
 		$.ajax({
-			url: 'iaResults.jsp?encId=' + encId+'&noMatch=true',  //hacktacular!
+			url: 'iaResults.jsp?' + paramStr,  //hacktacular!
 			type: 'GET',
 			dataType: 'json',
-			complete: function(d) { updateNameCallback(d, oldDisplayName); }
+			complete: function(d) {
+				console.log("RTN from negativeButtonClick : "+JSON.stringify(d));
+				updateNameCallback(d, oldDisplayName);
+			}
 		})
 	}
-
 }
 
-function  updateNameCallback(d, oldDisplayName) {
+function updateNameCallback(d, oldDisplayName) {
 	console.log("Update name callback! got d="+d+" and stringify = "+JSON.stringify(d));
-	console.alert("Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName);
+	alert("Success! Added name <%=nextNameKey%>: <%=nextName%> to "+oldDisplayName);
 }
 
 function addNegativeButton(encId, oldDisplayName) {
@@ -1844,7 +2061,112 @@ function addNegativeButton(encId, oldDisplayName) {
 	}
 }
 
+function getProjectData(currentUsername, selectedProject) {
+  let requestJSON = {};
+  requestJSON['participantId'] = currentUsername;
+  console.log("all requestJSON for populateProjectDropdown() : "+JSON.stringify(requestJSON));
+  $.ajax({
+      url: wildbookGlobals.baseUrl + '../ProjectGet',
+      type: 'POST',
+      data: JSON.stringify(requestJSON),
+      dataType: 'json',
+      contentType: 'application/json',
+      success: function(d) {
+          console.info('Success in ProjectGet retrieving data! Got back '+JSON.stringify(d));
+		  let projectsArr = d.projects;
+		  if (projectsArr.length) {
+			populateProjectsDropdown(projectsArr, selectedProject);
+		  }
+      },
+      error: function(x,y,z) {
+          console.warn('%o %o %o', x, y, z);
+      }
+  });
+}
 
+function populateProjectsDropdown(projectsArr, selectedProject) {
+	$('#projectDropdownSpan').removeAttr('hidden');
+	let dropdown = $('#projectDropdownSpan #projectDropdown');
+	let emptyOption;
+	if (!selectedProject||selectedProject==""||selectedProject||"null"||!selectedProject.length) {
+		emptyOption = $('<option selected class="projectSelectOption">'+NONE_SELECTED+'</option>');
+	} else {
+		emptyOption = $('<option value="" class="projectSelectOption">'+NONE_SELECTED+'</option>');
+	}
+	dropdown.append(emptyOption);
+	for (i=0;i<projectsArr.length;i++) {
+		let project = projectsArr[i];
+		let selectEl;
+		if (selectedProject&&selectedProject==project.projectIdPrefix) {
+			selectEl = $('<option selected class="projectSelectOption" value="'+project.projectIdPrefix+'">'+project.researchProjectName+'</option>');
+		} else {
+			selectEl = $('<option class="projectSelectOption" value="'+project.projectIdPrefix+'">'+project.researchProjectName+'</option>');
+		}
+		dropdown.append(selectEl);
+	}
+}
+
+$(document).ready(function(){
+	let currentUsername = '<%=currentUsername%>';
+	let selectedProject = '<%=projectIdPrefix%>';
+	if (selectedProject=="null"||selectedProject=="") selectedProject = false;
+	if (currentUsername.length) {
+		getProjectData(currentUsername, selectedProject);
+	}
+});
+
+function isProjectSelected() {
+	let dropdownVal = $("#projectDropdown").val();
+	if (dropdownVal&&dropdownVal!=""&&dropdownVal!="null"&&dropdownVal!=NONE_SELECTED) {
+		return true;
+	}
+	return false;
+}
+
+$('#projectDropdown').on('change', function() {
+	let taskId = '<%=taskId%>';
+	let reloadURL = "../iaResults.jsp?taskId="+taskId;
+	let selectedProject = $("#projectDropdown").val();
+	if (selectedProject&&selectedProject.length) {
+		reloadURL += "&projectIdPrefix="+selectedProject;
+	}
+	window.location.href = reloadURL;
+	//applyResearchProjectLinks()
+});
+
+// this is messy, but i'm avoiding another database hit
+var projectForEncCache = {};
+
+function selectedProjectContainsEncounter(acmId) {
+	console.log("entering selectedProjectContainsEncounte servlet for acmId"+acmId);
+	let selectedProject = $("#projectDropdown").val();
+	let requestJSON = {};
+	requestJSON['projectIdPrefix'] = selectedProject;
+	requestJSON['acmId'] = acmId;
+	requestJSON['annotInProject'] = "true";
+
+	$.ajax({
+		url: wildbookGlobals.baseUrl + '../ProjectGet',
+		type: 'POST',
+		data: JSON.stringify(requestJSON),
+		dataType: 'json',
+		async: true,
+		contentType: 'application/json',
+		success: function(d) {
+			if (d.inProject=="true"||d.inProject==true) {
+				return true;
+			}
+
+		},
+		error: function(x,y,z) {
+			console.warn('%o %o %o', x, y, z);
+
+			return false;
+
+		}
+	});
+	return true;
+
+}
 
 </script>
-

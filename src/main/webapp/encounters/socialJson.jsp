@@ -21,7 +21,7 @@ public JSONObject uiJson(MarkedIndividual indy, HttpServletRequest request) thro
   JSONObject jobj = new JSONObject();
 
   jobj.put("individualID", indy.getIndividualID());
-  jobj.put("displayName", indy.getDisplayName());
+  jobj.put("displayName", indy.getDisplayName(request));
   jobj.put("sex", indy.getSex());
   jobj.put("nickname", indy.getNickName());
   jobj.put("nickname", indy.getNickName());

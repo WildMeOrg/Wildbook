@@ -189,7 +189,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   <style type="text/css">
-
 .id-action {
     display: none;
 }
@@ -750,7 +749,7 @@ $(function() {
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
 				if(enc.hasMarkedIndividual() && enc.getIndividual()!=null) {
-          		String dispName = enc.getIndividual().getDisplayName(request);
+          		String dispName = enc.getIndividual().getDisplayName(request, myShepherd);
 					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
@@ -1492,8 +1491,9 @@ if(enc.getLocation()!=null){
     								 String hrefVal="";
     								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
-    									hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
-    									indyDisplayName=enc.getDisplayName();
+                      hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
+                      
+    									indyDisplayName=enc.getIndividual().getDisplayName(request, myShepherd);
     								 }
                      				%>
                      					<a href="<%=hrefVal %>">
@@ -2794,7 +2794,9 @@ else {
 					                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
 					                            <%
 					                          }
+
 					                        %>
+                                  </div>
 					                        </div>
 					                      </div>
 
@@ -2811,6 +2813,25 @@ else {
 					                      	}
 
                       	}
+                        List<Project> projects = myShepherd.getProjectsForEncounter(enc);
+                        MarkedIndividual indie = myShepherd.getMarkedIndividual(enc);
+                        if(projects!=null && projects.size()>0){
+                          %>
+                            <div id="project-ids">
+                              <p><strong><%=encprops.getProperty("projects") %></strong></p>
+                          <%
+                          for(int i=0; i< projects.size(); i++){
+                            if(indie != null && indie.getName(projects.get(i).getProjectIdPrefix()) != null){
+                              %>
+                              <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= indie.getName(projects.get(i).getProjectIdPrefix())%></p>
+                              <%
+                            }else{
+                              %>
+                                <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= encprops.getProperty("noIdIn")%></p>
+                              <%
+                            }
+                          }
+                        }
                          				//insert here
 %>
 
@@ -4988,7 +5009,8 @@ button#upload-button {
                {"filename": filenames[0] }
               ]
             }
-          ]
+          ],
+          "taxonomy":"<%=enc.getTaxonomyString() %>"
         }),
         success: function(d) {
           console.info('Success! Got back '+JSON.stringify(d));
@@ -6576,18 +6598,34 @@ function iaMatchFilterGo() {
 
 
 		<%
-		Properties iaprops = ShepherdProperties.getProperties("IA.properties", "", context);
     IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
     Taxonomy taxy = enc.getTaxonomy(myShepherd);
 
-    JSONArray allIdentOpts = iaConfig.getAllIdentOpts(taxy);
-    for (int algNum=0; algNum<allIdentOpts.length(); algNum++) {
-      JSONObject thisIdentOpt = allIdentOpts.getJSONObject(algNum);
-        %>
-        optArray.push(<%=thisIdentOpt.toString()  %>);
-        <%
+Map<String,JSONObject> identConfigs = new HashMap<String,JSONObject>();
+for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
+    for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
+        String key = idOpt.toString();
+        if (identConfigs.containsKey(key)) {
+            identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
+        } else {
+            JSONArray iac = new JSONArray();
+            iac.put(iaClass);
+            idOpt.put("_iaClasses", iac);
+            identConfigs.put(key, idOpt);
+        }
     }
-		%>
+}
+
+//we need to keep this in the same order so we can get values out in the same way
+List<JSONObject> identConfigsValues = new ArrayList<JSONObject>();
+for (JSONObject val : identConfigs.values()) {
+    identConfigsValues.add(val);
+    //now we add this js line to add it in same order:
+%>
+        optArray.push(<%=val.toString()%>);
+<%
+}
+%>
 
 $('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
@@ -6608,6 +6646,7 @@ console.log('SENDING ===> %o', data);
 console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
         wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
     });
+    iaMatchFilterAnnotationIds = [];  //clear it out in case user sends again from this page
     //TODO uncheck everything????
     $('.ia-match-filter-dialog').hide();
 }
@@ -6766,25 +6805,28 @@ $(".search-collapse-header").click(function(){
     </div>
 -->
 
-<%
-
-JSONArray identConfigs = iaConfig.getAllIdentConfigs(taxy);
-
-  %>
   <div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
   <%
-for(int algNum=0; algNum<identConfigs.length(); algNum++) {
-  JSONObject algConfig = identConfigs.getJSONObject(algNum);
+
+int algNum = 0;
+for (JSONObject algConfig : identConfigsValues) {
+  //JSONObject algConfig = identConfigs.getJSONObject(algNum);
   JSONObject queryConfigDict = algConfig.optJSONObject("query_config_dict");
 
+  boolean enabled = algConfig.optBoolean("default", true);
   String description = algConfig.optString("description");
   if (!Util.stringExists(description) && queryConfigDict!=null) {
     description = queryConfigDict.optString("pipeline_root");
   }
   if (!Util.stringExists(description)) description = "HotSpotter pattern matcher";
 
-  out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
+  String forClasses = "";
+  for (int i = 0 ; i < algConfig.getJSONArray("_iaClasses").length() ; i++) {
+    forClasses += " mfalgo-iaclass-" + algConfig.getJSONArray("_iaClasses").optString(i, "__FAIL__").replaceAll("\\+", "-");
+  }
 
+  out.println("<div class=\"mfalgo-item " + forClasses + " item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\" " + (enabled ? "checked" : "") + " data-default-checked=\"" + enabled + "\" /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
+  algNum++;
 }
 
 %>

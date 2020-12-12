@@ -43,9 +43,6 @@ public class TranslationsGet extends HttpServlet {
         }
         System.out.println("==> In TranslationsGet Servlet ");
         String context= ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("TranslationsGet.java");
-        myShepherd.beginDBTransaction();
         JSONObject res = new JSONObject();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
@@ -91,8 +88,6 @@ public class TranslationsGet extends HttpServlet {
             addErrorMessage(res, "TranslationGet: Exception e while getting translations.");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } finally {
-            myShepherd.rollbackDBTransaction();
-            myShepherd.closeDBTransaction();
             if (out!=null) {
                 out.println(res);
                 out.close();

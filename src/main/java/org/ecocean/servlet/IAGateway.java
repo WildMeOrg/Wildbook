@@ -392,6 +392,11 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
         return;
     }
 
+/*
+    WB-945 note:  i am pretty sure detection *review* has been abandonded / atrophied / deprecated at this point.
+    this is relevant here because a call to IBEISIA.createAnnotationFromIAResult() is made here.  it has been replaced with deprecated
+    version here for this reason.
+*/
     if ("detectionReviewPost".equals(qstr)) {
         String url = IA.getProperty("context0", "IBEISIARestUrlDetectReview");
         if (url == null) throw new IOException("IBEISIARestUrlDetectReview url not set");
@@ -437,7 +442,7 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
                     for (int a = 0 ; a < alist.length() ; a++) {
                         JSONObject jann = alist.optJSONObject(a);
                         if (jann == null) continue;
-                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd, context, rootDir, false);
+                        Annotation ann = IBEISIA.createAnnotationFromIAResultDEPRECATED(jann, ma, myShepherd, context, rootDir, false);
                         if (ann == null) continue;
                         //myShepherd.getPM().makePersistent(ann);  //done in createAnnotationFromIAResult
                         thisAnns.put(ann.getId());

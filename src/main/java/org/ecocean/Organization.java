@@ -40,7 +40,7 @@ public class Organization implements java.io.Serializable {
     // if individualNameKey != null, this organization has a special nameKey that is used to create an org-wide catalog
     // e.g. IndoCet wants to generate IndoCet names;
     private String individualNameKey = null;
-    
+
     public Organization() {
         this((String)null);
     }
@@ -431,4 +431,3 @@ public class Organization implements java.io.Serializable {
 
 */
 }
-

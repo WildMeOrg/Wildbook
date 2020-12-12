@@ -256,7 +256,7 @@ public class EncounterSearchExportSocialNetwork extends HttpServlet{
               sheet.addCell(lNumberx27);
             }
             if (enc.getIndividual()!=null) {
-              Label lNumberx28 = new Label(28, count, enc.getIndividual().getDisplayName());
+              Label lNumberx28 = new Label(28, count, enc.getIndividual().getDisplayName(request, myShepherd));
               sheet.addCell(lNumberx28);
             }
             if (enc.getLocationCode() != null) {
