@@ -152,7 +152,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
 }
 
 maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {
-      console.log("      MALIB! maJsonToFigureElemCaptionGrid called for maJson "+maJson);
+  console.log("      MALIB! maJsonToFigureElemCaptionGrid called for maJson "+maJson);
 
   intoElem.append('<div class=\"col-md-6\"></div>');
   intoElem = intoElem.find('div.col-md-6').last();
@@ -540,21 +540,26 @@ maLib.isImage = function(maJson) {
 }
 
 maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
+
     if (maLib.isImage(maJson)) return false;
     if (!maJson.url) return false;
-    var caption = (caption || '') + (maCaptionFunction ? maCaptionFunction(maJson) : '');
+
+    caption = (caption || '') + (maCaptionFunction ? maCaptionFunction(maJson) : '');
+    
     var regexp = new RegExp("^video/(ogg|m4v|mp4|webm)$");
+
+    var filename = maJson.url;
+    var i = filename.lastIndexOf("/");
+    if (i >= 0) filename = filename.substring(i + 1);
+
     if (maJson.metadata && maJson.metadata.contentType && regexp.test(maJson.metadata.contentType)) {
-        intoElem.append('<div><video style="width: 100%;" controls>' +
+        intoElem.append('<div class="video-display"><video class="video-element" style="width: 100%;" controls>' +
         '<source src="' + maJson.url + '" type="' + maJson.metadata.contentType + '" />' +
         '<div><a target="_new" href="' + maJson.url + '">play video</a></div>' +
-        '</video><div class="video-caption">' + caption + '</div></div>');
+        '</video><div class="video-caption"><small>File: <b>' + filename + '</b></small></div></div>');
     } else {
-        var filename = maJson.url;
-        var i = filename.lastIndexOf("/");
-        if (i >= 0) filename = filename.substring(i + 1);
-        intoElem.append('<div style="text-align: center;"><a style="padding: 10px; background-color: #AAA; margin: 10px;" target="_new" href="' +
-        maJson.url + '">open file <b>' + filename + '</b></a><div class="unknown-caption">' + caption + '</div></div>');
+        intoElem.append('<div class="non-image-display" style="text-align: center;"><a download style="padding: 10px; background-color: #AAA; margin: 10px;" href="' +
+        maJson.url + '"><small>File: <b>' + filename + '</b></small></a></div>');
     }
     return true;
 }
