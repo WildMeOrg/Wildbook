@@ -409,8 +409,6 @@
 				/EncounterRemoveUser = authc, roles[researcher]
 				/EncounterAddUser = authc, roles[researcher]
 
-				/IndividualSetName = authc, roles[researcher]
-
 				/AnnotationEdit = authc, roles[admin]
 
 				/EncounterSetString = authc
@@ -2526,11 +2524,6 @@
   <servlet-mapping>
     <servlet-name>IndividualSetNickName</servlet-name>
     <url-pattern>/IndividualSetNickName</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>IndividualSetName</servlet-name>
-    <url-pattern>/IndividualSetName</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
