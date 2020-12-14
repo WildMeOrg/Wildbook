@@ -10,7 +10,7 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 <%!
 
 public ArrayList<String> getIAClassesForSpecies(String genus, String specificEpithet, Shepherd myShepherd){
-	
+
 	Query q=myShepherd.getPM().newQuery("SELECT DISTINCT iaClass FROM org.ecocean.Annotation where enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
 	Collection c=(Collection)q.execute();
 	ArrayList<String> al=new ArrayList<String>(c);
@@ -29,7 +29,39 @@ public Long countIAClassInstances(String genus, String specificEpithet, String i
 		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
 		myValue=(Long) q2.execute();
 		q2.closeAll();
-		
+
+	}
+	return myValue;
+}
+
+public Long countMatchableIAClassInstances(String genus, String specificEpithet, String iaClass, Shepherd myShepherd){
+	Long myValue=new Long(0);
+	if(iaClass==null || iaClass.equals("null")){
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass==null && matchAgainst == true && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		myValue=(Long) q2.execute();
+		q2.closeAll();
+	}
+	else{
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && matchAgainst == true && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		myValue=(Long) q2.execute();
+		q2.closeAll();
+
+	}
+	return myValue;
+}
+
+public Long countACMIDIAClassInstances(String genus, String specificEpithet, String iaClass, Shepherd myShepherd){
+	Long myValue=new Long(0);
+	if(iaClass==null || iaClass.equals("null")){
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass==null && acmId != null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		myValue=(Long) q2.execute();
+		q2.closeAll();
+	}
+	else{
+		Query q2=myShepherd.getPM().newQuery("SELECT count(this) FROM org.ecocean.Annotation where iaClass=='"+iaClass+"' && acmId != null && enc.annotations.contains(this) && enc.genus=='"+genus+"' && enc.specificEpithet=='"+specificEpithet+"' VARIABLES org.ecocean.Encounter enc");
+		myValue=(Long) q2.execute();
+		q2.closeAll();
+
 	}
 	return myValue;
 }
@@ -116,9 +148,9 @@ int duped=0;
 
 
 try {
-	
+
 	List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
-	
+
 	for(String str:species){
 			%>
 			<h3><%=str %></h3>
@@ -134,7 +166,13 @@ try {
 			for(String iaClass:iaClasses){
 				Long num=countIAClassInstances(genus, specificEpithet, iaClass, myShepherd);
 				%>
-				<li><%=iaClass %>: <%=num %></li>
+				<li><%=iaClass %>: <%=num %>
+					<ul>
+						<li>matchAgainst=true: <%=countMatchableIAClassInstances(genus, specificEpithet, iaClass, myShepherd) %></li>
+						<li>Have acmID: <%=countACMIDIAClassInstances(genus, specificEpithet, iaClass, myShepherd) %></li>
+					</ul>
+
+				</li>
 				<%
 			}
 		%>
@@ -144,7 +182,7 @@ try {
 		<%
 		HashMap<String, Long> map=getMediaAssetDetectionStatusesForSpecies(genus, specificEpithet, myShepherd);
 		HashMap<String, Long> mapACMID=getMediaAssetDetectionStatusesForSpeciesByACMID(genus, specificEpithet, myShepherd);
-		
+
 		//System.out.println("keySet: "+map.keySet().toString());
 		Iterator<String> iter=map.keySet().iterator();
 		while(iter.hasNext()){
@@ -152,7 +190,7 @@ try {
 			//System.out.println("key:" +key);
 			%>
 			<li><%=key %>: <%=map.get(key) %>
-				<ul><li>Have acmID: <%=map.get(key) %></li></ul>
+				<ul><li>Have acmID: <%=mapACMID.get(key) %></li></ul>
 			</li>
 			<%
 		}

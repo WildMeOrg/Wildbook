@@ -735,16 +735,15 @@ try {
 
     if(		request.getParameter("isEdit")!=null
     		&& request.getParameter("uuid") != null
-    		&& myShepherd.getUserByUUID(request.getParameter("uuid"))!=null
-    	    &&(request.isUserInRole("orgAdmin")) 
+    		&& myShepherd.getUserByUUID(request.getParameter("uuid"))!=null 
     	    && request.getUserPrincipal().getName()!=null
     	    && myShepherd.getUsername(request)!=null
     	    && myShepherd.getUser(myShepherd.getUsername(request))!=null
     	    //to delete a user either be admin or orgAdmin in at least one of the same orgs
     	    && ( 
     	              request.isUserInRole("admin") 
-    	              || myShepherd.getAllCommonOrganizationsForTwoUsers(myShepherd.getUserByUUID(request.getParameter("uuid")), myShepherd.getUser(myShepherd.getUsername(request))).size()>0
-    	    ) 
+    	              || (request.isUserInRole("orgAdmin") && myShepherd.getAllCommonOrganizationsForTwoUsers(myShepherd.getUserByUUID(request.getParameter("uuid")), myShepherd.getUser(myShepherd.getUsername(request))).size()>0
+    	    )) 
     ){
     %>
     <h2><%=props.getProperty("deleteUserQuestion")%></h2>

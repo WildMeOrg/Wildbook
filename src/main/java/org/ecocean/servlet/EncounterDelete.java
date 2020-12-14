@@ -133,7 +133,14 @@ public class EncounterDelete extends HttpServlet {
             
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
-     
+          }
+
+          List<Project> projects = myShepherd.getProjectsForEncounter(enc2trash);
+          if (projects!=null&&!projects.isEmpty()) {
+            for (Project project : projects) {
+              project.removeEncounter(enc2trash);
+              myShepherd.updateDBTransaction();
+            }
           }
           
           //Remove it from an ImportTask if needed
@@ -143,8 +150,6 @@ public class EncounterDelete extends HttpServlet {
             task.addLog("Servlet EncounterDelete removed Encounter: "+enc2trash.getCatalogNumber());
             myShepherd.updateDBTransaction();
           }
-          
-          
 
           if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
             ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);
