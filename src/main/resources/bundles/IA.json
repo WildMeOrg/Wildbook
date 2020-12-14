@@ -21,7 +21,6 @@
         {
           "start_detect": "http://104.42.42.134:5013/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
-          "labeler_model_tag": "snow_leopard_v0",
           "model_tag": "snow_leopard_v0",
           "nms_thresh": 0.40,
           "sensitivity": 0.44
@@ -48,7 +47,6 @@
         {
           "start_detect": "http://104.42.42.134:5013/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
-          "labeler_model_tag": "jaguar_v3",
           "model_tag": "jaguar_v3",
           "nms_thresh": 0.70,
           "sensitivity": 0.70
