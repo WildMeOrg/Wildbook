@@ -236,7 +236,6 @@ if (request.getParameter("acmId") != null) {
 //quick hack to set id & approve
 String taskId = request.getParameter("taskId");
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
-  String taskId = request.getParameter("taskId");
   String displayName = request.getParameter("individualID");
   if (displayName!=null) displayName = displayName.trim();
 	JSONObject res = new JSONObject("{\"success\": false}");
@@ -360,7 +359,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
                                             }
                                         }
 					if (indiv == null) indiv = new MarkedIndividual(displayName, enc);
-          
+
           //TODO need to set project-based naming. Talk to JVO about it.
           //check for project to add new name with prefix
 					// if (projectId!=null) {
