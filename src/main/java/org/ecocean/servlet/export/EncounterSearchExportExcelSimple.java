@@ -38,7 +38,7 @@ public class EncounterSearchExportExcelSimple extends HttpServlet {
         myShepherd.setAction("EncounterSearchExportExcelSimple.class");
 
         
-        String filename = "encounterSearchResults_export_" + request.getRemoteUser() + ".xlsx";
+        String filename = "encounterSearchResults_export_" + request.getRemoteUser() + ".xls";
 
         String rootWebappPath = getServletContext().getRealPath("/");
         File webappsDir = new File(rootWebappPath).getParentFile();
@@ -78,13 +78,8 @@ public class EncounterSearchExportExcelSimple extends HttpServlet {
                     e.printStackTrace();
                 }
 
-                // let's set up some cell formats
-                //WritableCellFormat floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
-                //WritableCellFormat integerFormat = new WritableCellFormat(NumberFormats.INTEGER);
-
-                // let's write out headers for the OBIS export file
-                WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile);
-                WritableSheet sheet = workbookOBIS.createSheet("Search Results", 0);
+                WritableWorkbook workbook = Workbook.createWorkbook(excelFile);
+                WritableSheet sheet = workbook.createSheet("Search Results", 0);
 
 
                 // headers only, columns processed in loop below
@@ -334,14 +329,10 @@ public class EncounterSearchExportExcelSimple extends HttpServlet {
 
                 } // end for loop iterating encounters
 
-                hiddenData.writeHiddenDataReport(workbookOBIS);
+                hiddenData.writeHiddenDataReport(workbook);
 
-                workbookOBIS.write();
-                workbookOBIS.close();
-
-                // end Excel export =========================================================
-
-                // business logic end here
+                workbook.write();
+                workbook.close();
 
                 outp.close();
                 outp = null;
@@ -354,7 +345,7 @@ public class EncounterSearchExportExcelSimple extends HttpServlet {
                 out.println(
                         "<html><body><p><strong>Error encountered</strong> with file writing. Check the relevant log.</p>");
                 out.println(
-                        "<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
+                        "<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelSimple servlet</p></body></html>");
                 out.println(ServletUtilities.getFooter(context));
                 out.close();
                 outp.close();
@@ -368,7 +359,7 @@ public class EncounterSearchExportExcelSimple extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<html><body><p><strong>Error encountered</strong></p>");
             out.println(
-                    "<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelFile servlet</p></body></html>");
+                    "<p>Please let the webmaster know you encountered an error at: EncounterSearchExportExcelSimple servlet</p></body></html>");
             out.println(ServletUtilities.getFooter(context));
             out.close();
         }
