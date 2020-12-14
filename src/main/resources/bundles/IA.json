@@ -47,9 +47,9 @@
         {
           "start_detect": "http://104.42.42.134:5013/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
-          "model_tag": "jaguar_v3",
-          "nms_thresh": 0.70,
-          "sensitivity": 0.70
+          "model_tag": "jaguar_v2",
+          "nms_thresh": 0.50,
+          "sensitivity": 0.50
         }
       ],
       "onca": "@Panthera.onca.jaguar",
