@@ -1671,6 +1671,7 @@ function annotCheckbox(el) {
 				console.warn('%o %o %o', x, y, z);
 			}
 		});
+                return true;
 
 	} else if (jel.data('individ')) {
 		h = '<b>Confirm</b> action: &nbsp; <input onClick="approvalButtonClick(\'' + queryAnnotation.encId + '\', \'' + jel.data('individ') + '\', \'' +jel.data('encid')+ '\' , \'' + taskId + '\' , \'' + jel.data('displayname') + '\');" type="button" value="Set to individual ' +jel.data('displayname')+ '" />';
@@ -1686,6 +1687,9 @@ function annotCheckbox(el) {
 		    h += ' <input type="button" value="Set new name [ ' + nextNamesByLocation[queryAnnotation.encId] + ' ] on both" onClick="$(\'#new-name-both\').val(NEXT_NAME_LOCATION); approveNewIndividual($(this.parentElement).find(\'.needs-autocomplete\')[0])" />'
                 }
 	}
+	$('#enc-action').html(h);
+	setIndivAutocomplete($('#enc-action .needs-autocomplete'));
+	return true;
 }
 
 var nameUUIDCache = {};
