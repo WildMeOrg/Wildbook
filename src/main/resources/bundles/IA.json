@@ -2,14 +2,14 @@
   "_note": "The hierarchy of this file is genus->species->ia_class->_id_conf (id config). detect_config is under Genus->species. Keys with a leading underscore and their children are non-biological categories of config, like _id_conf and _detection_conf. Keys without leading underscores are semantic lookups that are derived from Wildbook data, e.g. Megaptera.novaeangliae.whale_fluke.",
   "_global": {
     "_note": "according to drew, these are not used and should be set within _confs below!",
-    "add_images": "http://104.42.42.134:5013/api/image/json/",
-    "add_annotations": "http://104.42.42.134:5013/api/annot/json/",
-    "start_identify": "http://104.42.42.134:5013/api/engine/query/graph/",
-    "identify_review": "http://104.42.42.134:5013/api/review/query/graph/",
-    "start_detect": "http://104.42.42.134:5013/api/engine/detect/cnn/lightnet/",
-    "detect_review": "http://104.42.42.134:5013/api/review/detect/cnn/yolo/",
-    "get_job_status": "http://104.42.42.134:5013/api/engine/job/status/",
-    "get_job_result": "http://104.42.42.134:5013/api/engine/job/result/"
+    "add_images": "https://tier2.dyn.wildme.io:5013/api/image/json/",
+    "add_annotations": "https://tier2.dyn.wildme.io:5013/api/annot/json/",
+    "start_identify": "https://tier2.dyn.wildme.io:5013/api/engine/query/graph/",
+    "identify_review": "https://tier2.dyn.wildme.io:5013/api/review/query/graph/",
+    "start_detect": "https://tier2.dyn.wildme.io:5013/api/engine/detect/cnn/lightnet/",
+    "detect_review": "https://tier2.dyn.wildme.io:5013/api/review/detect/cnn/yolo/",
+    "get_job_status": "https://tier2.dyn.wildme.io:5013/api/engine/job/status/",
+    "get_job_result": "https://tier2.dyn.wildme.io:5013/api/engine/job/result/"
   },
   "_default": "@Panthera.uncia",
   "Panthera": {
@@ -19,7 +19,7 @@
       },
       "_detect_conf": [
         {
-          "start_detect": "http://104.42.42.134:5013/api/engine/detect/cnn/lightnet/",
+          "start_detect": "https://tier2.dyn.wildme.io:5013/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "snow_leopard_v0",
           "nms_thresh": 0.40,
@@ -45,7 +45,7 @@
       "snow_leopard":"@Panthera.uncia.snow_leopard._id_conf",
       "_detect_conf": [
         {
-          "start_detect": "http://104.42.42.134:5013/api/engine/detect/cnn/lightnet/",
+          "start_detect": "https://tier2.dyn.wildme.io:5013/api/engine/detect/cnn/lightnet/",
           "labeler_algo": "densenet",
           "model_tag": "jaguar_v2",
           "nms_thresh": 0.50,
