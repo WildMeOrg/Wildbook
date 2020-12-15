@@ -36,8 +36,23 @@ context=ServletUtilities.getContext(request);
 
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("searchResults.jsp");
+  String[] projectIds = null;
+  int projectIdCount = 0;
+  if(Util.isUUID(request.getParameter("projectId"))){
+    projectIds = request.getParameterValues("projectId");
+    if(projectIds!=null){
+      projectIdCount = projectIds.length;
+    }
+  }
 
-
+  String useProjectContext = "false";
+  if (Util.stringExists(request.getUserPrincipal().getName())) {
+	  User user = myShepherd.getUser(request.getUserPrincipal().getName());
+	  String projectUUID = user.getProjectIdForPreferredContext();
+	  if (Util.stringExists(projectUUID)) {
+		  useProjectContext = "true";
+	  }
+  }
 
 
 
@@ -92,6 +107,9 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
   <li><a class="active"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a
+    href="projectManagement.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("projectManagement")%>
+  </a></li>
+  <li><a
     href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
@@ -112,34 +130,12 @@ if(request.getQueryString()!=null){queryString=request.getQueryString();}
 
 <p><%=encprops.getProperty("belowMatches")%></p>
 
-<style>
-.ptcol-maxYearsBetweenResightings {
-	width: 100px;
-}
-.ptcol-numberLocations {
-	width: 100px;
-}
-
-</style>
-
 <script type="text/javascript">
+  let uniqueTracker = [];
+  let projIdCallCounter = 0;
+  let maxLoops = 0;
 
 	var needIAStatus = false;
-
-/*
-
-    <strong><%=encprops.getProperty("markedIndividual")%>
-    <strong><%=encprops.getProperty("number")%>
-    if (<%=CommonConfiguration.showProperty("showTaxonomy",context)%>) {
-
-	    <strong><%=encprops.getProperty("taxonomy")%>
-	    <strong><%=encprops.getProperty("submitterName")%>
-	    <strong><%=encprops.getProperty("date")%>
-	    <strong><%=encprops.getProperty("location")%>
-	    <strong><%=encprops.getProperty("locationID")%>
-	    <strong><%=encprops.getProperty("occurrenceID")%>
-*/
-
 
 <%
 	String encsJson = "false";
@@ -153,10 +149,7 @@ String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, p
 
 %>
 
-
-
 var searchResults = <%=encsJson%>;
-
 var jdoql = '<%= URLEncoder.encode(filter,StandardCharsets.UTF_8.toString()) %>';
 
 $(document).keydown(function(k) {
@@ -181,6 +174,11 @@ var colDefn = [
 		label: '<%=encprops.getProperty("sightingID")%>',
 		value: _occurrenceID,
 	},
+//   {
+// 		key: 'projectId',
+// 		label: '<%=encprops.getProperty("projectId")%>',
+// 		value: _projectId,
+// 	},
   {
     key: 'otherCatalogNumbers',
     label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
@@ -532,7 +530,9 @@ function tableUp() {
 ////////
 var encs;
 $(document).ready( function() {
+	
 	wildbook.init(function() {
+		let useProjectContext = "<%=useProjectContext%>";
 		encs = new wildbook.Collection.Encounters();
 		encs.fetch({
 /*
@@ -543,12 +543,21 @@ $(document).ready( function() {
 				return xhr;
 			},
 */
+			useProjectContext: useProjectContext,
 			fetch: "searchResults",
 			noDecorate: true,
 			jdoql: jdoql,
-			success: function() { searchResults = encs.models; doTable(); },
+			success: function() {
+        searchResults = encs.models;
+		//populateWithProjectIds();
+		doTable();
+      },
 		});
 	});
+  // $('#results-table').change(function(){
+  //   console.log("results table changed");
+  //   _projectId();
+  // });
 });
 
 
@@ -610,7 +619,6 @@ function _colNumberLocations(o) {
 function _colTaxonomy(o) {
 	var genus = _notUndefinedValue(o, 'genus');
 	var species = _notUndefinedValue(o, 'specificEpithet');
-	//console.log('colTaxonomy got genus '+genus+' and species '+species+' for object '+JSON.stringify(o));
 	return genus+' '+species;
 }
 
@@ -619,6 +627,96 @@ function _occurrenceID(o) {
 	return o.get('occurrenceID');
 }
 
+// function _projectId(o){
+//   if (!o.attributes.individual.incrementalIds) return '';
+//   console.log(o.attributes.individual.incrementalIds.join(', '));
+// 	return o.attributes.individual.incrementalIds.join(', ');
+// }
+
+// function populateWithProjectIds(){
+//   let projIdCount = parseInt('<%= projectIdCount %>');
+//   if(projIdCount<1){
+//     doTable();
+//   }else{
+//     if(projIdCount){
+//       maxLoops = searchResults.length * projIdCount;
+//     }
+//     for (let i = 0 ; i < searchResults.length ; i++) {
+//       let currentSearchResult = searchResults[i];
+//       let encId = currentSearchResult.id;
+//       let indId = currentSearchResult.attributes.individual.individualID;
+//       let ajaxJson = {}
+//       let projIdPrefix = '';
+//         <%
+//         if(projectIds!= null && projectIds.length>0){
+//           for(int j=0; j<projectIds.length; j++){
+//             Project currentProj = myShepherd.getProjectByUuid(projectIds[j]);
+//             String currentProjIdPrefix = currentProj.getProjectIdPrefix();
+//             %>
+//             projIdPrefix = 'needs replacement with reference to current prefix';
+//             // console.log("got here c and projIdPrefix is: " + projIdPrefix);
+//             ajaxJson['projectIdPrefix'] = projIdPrefix;
+//             ajaxJson['individualIds'] = [];
+//             if(indId){
+//               ajaxJson['individualIds'].push({indId: indId});
+//             }
+//             doAjaxCall(encId, ajaxJson, maxLoops, i);
+//             <%
+//           } //end for of project IDs
+//         } // end if for projectIds
+//         %>
+//       }
+//   }
+// }
+
+// function doAjaxCall(encId, requestJson, maxLoops, indexOfSearchResults){
+//   $.ajax({
+//       url: wildbookGlobals.baseUrl + '../ProjectGet',
+//       type: 'POST',
+//       data: JSON.stringify(requestJson),
+//       dataType: 'json',
+//       contentType: 'application/json',
+//       success: function(data) {
+//         if(data){
+//           if(data.incrementalIdArr && data.incrementalIdArr.length>0){
+//             for(let i=0; i< data.incrementalIdArr.length; i++){
+//               projIdCallCounter ++;
+//               let currentIncrementalId = data.incrementalIdArr[i].projectIncrementalId;
+//               if(currentIncrementalId){
+//                 let counter = 0;
+//                 uniqueTracker.forEach(entry => {
+//                   if (entry.encId === encId && entry.incrementalId === currentIncrementalId){
+//                     counter ++;
+//                   }
+//                 });
+//                 if(counter <1){ //this encounter ID + incremental ID combo hasn't been seen before
+//                   if(searchResults[indexOfSearchResults].attributes.individual.incrementalIds){
+//                     searchResults[indexOfSearchResults].attributes.individual.incrementalIds.push(currentIncrementalId);
+//                   }else{
+//                     searchResults[indexOfSearchResults].attributes.individual.incrementalIds = [currentIncrementalId];
+//                   }
+//                 }
+//               }
+//             }
+//             if(maxLoops == projIdCallCounter){
+//               doTable();
+//             }
+//           }else{
+//             //no incrementalIdArr structure in data returned, but the counter should increment anyway
+//             projIdCallCounter ++;
+
+//             //handle edge case where last entry in searchResults doesn't have incrementalIdArr structure in data returned
+//             if(maxLoops == projIdCallCounter){
+//               doTable();
+//             }
+//           }
+//         }
+//       },
+//       error: function(x,y,z) {
+//           console.warn('%o %o %o', x, y, z);
+//       }
+//   });
+// }
 
 function _colRowNum(o) {
 	return o._rowNum;

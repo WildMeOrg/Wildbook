@@ -206,7 +206,7 @@ span.illustrationLink a {
     display: inline-flex;
 }
 
-.enc-link, .indiv-link {
+.enc-link, .indiv-link, .project-link {
 	vertical-align: middle;
 	font-size: 0.8em;
 	padding: 0 3px;
@@ -218,12 +218,12 @@ span.illustrationLink a {
 	white-space: nowrap;
 	max-width: 6em;
 }
-.enc-link:hover, .indiv-link:hover {
+.enc-link:hover, .indiv-link:hover, .project-link:hover {
 	background-color: #DD4;
 	text-decoration: none;
 }
 
-.task-title .enc-link, .task-title .indiv-link {
+.task-title .enc-link, .task-title .indiv-link, .task-title .project-link {
 	max-width: none !important;
 }
 

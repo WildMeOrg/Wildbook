@@ -65,9 +65,9 @@ public class Membership implements java.io.Serializable {
         return mi;
     }
 
-    public String getMarkedIndividualDisplayName() {
-        return mi.getDisplayName();
-    }
+    // public String getMarkedIndividualDisplayName() {
+    //     return mi.getDisplayName();
+    // }
 
     public String getRole() {
         return role;
