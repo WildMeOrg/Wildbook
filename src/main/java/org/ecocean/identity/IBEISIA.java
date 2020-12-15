@@ -1731,6 +1731,7 @@ System.out.println("updateSpeciesOnIA(): " + species);
         String iaClass = iaResult.optString("class", "_FAIL_");
         Taxonomy taxonomyBeforeDetection = ma.getTaxonomy(myShepherd);
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+        iaClass = iaConf.convertIAClassForTaxonomy(iaClass, taxonomyBeforeDetection);
 
         if (!iaConf.isValidIAClass(taxonomyBeforeDetection, iaClass)) {  //null could mean "invalid IA taxonomy"
             System.out.println("WARNING: convertAnnotation found false for isValidIAClass("+taxonomyBeforeDetection+", "+iaClass+"). Continuing anyway to make & save the annotation");
@@ -1987,7 +1988,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
 */
 /*
     update due to WB-945 work:  we now must _first_ build all the Annotations, and then after that decide how they get distributed
-    to Encounters... 
+    to Encounters...
 */
             if ((rlist != null) && (rlist.length() > 0) && (ilist != null) && (ilist.length() == rlist.length())) {
                 FeatureType.initAll(myShepherd);
@@ -2484,12 +2485,11 @@ System.out.println("identification most recent action found is " + action);
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) throw new RuntimeException("could not get annot species for iaClass");
 
             // iaClass... not your scientific name species
-            String iaClass = rtn.getJSONArray("response").optString(0, null);
 
-            // String returnedIAClass = rtn.getJSONArray("response").optString(0, null);
-            // IAJsonProperties iaConf = IAJsonProperties.iaConfig();
-            // Taxonomy taxy = ma.getTaxonomy(myShepherd);
-            // String iaClass = iaConf.convertIAClassForTaxonomy(returnedIAClass, taxy);
+            String returnedIAClass = rtn.getJSONArray("response").optString(0, null);
+            IAJsonProperties iaConf = IAJsonProperties.iaConfig();
+            Taxonomy taxy = ma.getTaxonomy(myShepherd);
+            String iaClass = iaConf.convertIAClassForTaxonomy(returnedIAClass, taxy);
 
             Annotation ann = new Annotation(convertSpeciesToString(iaClass), ft, iaClass);
             ann.setIAExtractedKeywords(myShepherd, originalTaxy);
