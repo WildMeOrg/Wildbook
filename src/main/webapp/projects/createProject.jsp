@@ -165,7 +165,7 @@
       $('#projectUserIdsList').empty();
       $('#access-list-title-container').empty();
       if(userNamesOnAccessList.length >0){
-        $('#access-list-title-container').append("<strong>"+txt.usersForAccess+"/strong>");
+        $('#access-list-title-container').append("<strong>"+txt.usersForAccess+"</strong>");
       }
       for(i=0; i<userNamesOnAccessList.length; i++){
         let elem = "<div class=\"chip\">" + userNamesOnAccessList[i].split(":")[0] + "  <span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\" onclick=\"removeUserFromProj('" + userNamesOnAccessList[i] + "'); return false\"></span></div>";

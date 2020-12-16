@@ -106,7 +106,7 @@ if((request.getParameter("rangeStart")!=null)&&(request.getParameter("rangeEnd")
 }
 
 
-
+String isUserLoggedIn = String.valueOf(request.getUserPrincipal()!=null);
 
 // collect every MediaAsset as JSON into the 'all' array
 JSONArray all = new JSONArray();
@@ -121,7 +121,9 @@ try {
   	int numEncs=encs.size();
   System.out.println("EncounterMediaGallery got "+numEncs+" encs");
 
-  %><script>
+
+  %>
+<script>
 
 
 function forceLink(el) {
@@ -130,7 +132,9 @@ function forceLink(el) {
 	el.stopPropagation();
 }
 
-  </script>
+</script>
+
+
   <%
     List<String> maAcms = new ArrayList<String>();
     List<String> maIds = new ArrayList<String>();
@@ -173,29 +177,38 @@ function forceLink(el) {
 
 
 		      String filename = ma.getFilename();
-		      System.out.println("    EMG: got ma at "+filename);
+		      //System.out.println("    EMG: got ma at "+filename);
 
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
-		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName(request, imageShepherd)+"</a><br>";
+		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<span class=\"capos-individual-id\"><a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividual().getIndividualID()+"\">"+enc.getIndividual().getDisplayName()+"</a></1></span>><br>";
 		      }
-		      	System.out.println("    EMG: got indID element "+individualID);
+		      	//System.out.println("    EMG: got indID element "+individualID);
 
-
-		      //Start caption render JSP side
-              String[] capos=new String[1];
-		      capos[0]="<p style=\"color: white;\"><em>"+filename+"</em><br>";
-              capos[0]+=individualID;
-
+		      
+                //Start caption render JSP side
+                String[] capos=new String[1];
+                capos[0]= "<p class=\"capos-individual-filename\" style=\"color: white;\"><em>"+filename+"</em><br>";
+                
+                capos[0]+=individualID;
+                
+                capos[0]+= "<span class=\"capos-encounter-id\">"+encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber().substring(0,14)+"</a></span><br>";
+                
+                capos[0]+= "<span class=\"capos-encounter-date\">"+encprops.getProperty("date")+" "+enc.getDate()+"<br></span>";
+                
+                if (enc.getLocation()!=null&&!"".equals(enc.getLocation())) {
+                    capos[0]+= "<span class=\"capos-encounter-location\">"+encprops.getProperty("location")+" "+enc.getLocation()+"</span><br>";
+                }
               // place to retreive current mid from photoswipe to refresh keyword UI
               capos[0]+="<div class=\"current-asset-id\" id=\"current-asset-id-"+ma.getId()+"\"></div>";
 
-		      capos[0]+=encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a><br>";
-		      capos[0]+=encprops.getProperty("date")+" "+enc.getDate()+"<br>";
+                capos[0] += "<span class=\"capos-encounter-location-id\">"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"</span><br>";
+                    
+                capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></span></p>";
+                
 
-		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></p>";
-		      captionLinks.add(capos);
-		      System.out.println("    EMG: got capos "+capos[0]);
+              captionLinks.add(capos);
+		      //System.out.println("    EMG: got capos "+capos[0]);
 
 		      //end caption render JSP side
 
@@ -204,7 +217,7 @@ function forceLink(el) {
 
 
 		  		if (ma != null) {
-		  			System.out.println("    EMG: ma is not null");
+		  			//System.out.println("    EMG: ma is not null");
                     if (ma.getMetadata() != null) ma.getMetadata().getDataAsString(); //temp hack to make sure metadata available, remove at yer peril
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject("{\"_skipChildren\": true}"));
 		  			if (j != null) {
@@ -561,6 +574,13 @@ div.gallery-download {
 }
 .gallery-download a:hover {
     background-color: #CCA;
+}
+
+.video-caption {
+    color: black !important;
+    border-color: darkgrey;
+    border-style: solid;
+    border-width: 1px;
 }
 
 
@@ -1711,6 +1731,26 @@ function populateTaskResults(task, asset) {
 
 
 </script>
+
+<%
+if (!Util.booleanNotFalse(CommonConfiguration.getProperty("videoDLNotLoggedIn", context))) {
+%>
+
+<script>
+var isUserLoggedIn = "<%=isUserLoggedIn%>";
+console.log("isUserLoggedIn = "+isUserLoggedIn);
+$(document).ready(function() {
+    if ("false"==isUserLoggedIn) {
+        $(".video-element").bind("contextmenu",function(e){
+            return false;
+        });
+    }
+});
+</script>
+
+<%
+}
+%>
 <style>
 	#match-tools {
 		padding: 5px 15px;
