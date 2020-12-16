@@ -83,12 +83,27 @@ try{
     </div>
     <script>
     let txt = getText("myUsers.properties");
+    let headerTxt = getText("header.properties");
     $(document).ready(function() {
-      let hasUserAlreadyMadeConsolidationChoicesJson = {};
-      hasUserAlreadyMadeConsolidationChoicesJson['username'] = '<%= currentUser.getUsername()%>';
-      hasUserAlreadyMadeConsolidationChoicesJson['action'] = 'getUserConsolidationChoiceStatus';
-      doAjaxCallForUserPreferenceGet(hasUserAlreadyMadeConsolidationChoicesJson);
+      let userEmail = '<%= currentUser.getEmailAddress()%>';
+      if(isValidEmail(userEmail)){
+        let hasUserAlreadyMadeConsolidationChoicesJson = {};
+        hasUserAlreadyMadeConsolidationChoicesJson['username'] = '<%= currentUser.getUsername()%>';
+        hasUserAlreadyMadeConsolidationChoicesJson['action'] = 'getUserConsolidationChoiceStatus';
+        doAjaxCallForUserPreferenceGet(hasUserAlreadyMadeConsolidationChoicesJson);
+      }else{
+        promptUserToUpdateTheirEmailAddress(userEmail);
+      }
     });
+
+    function isValidEmail(email) {
+      if(email){
+        var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(email.toLowerCase()) && email;
+      } else {
+        return false;
+      }
+    }
 
     function doAjaxCallForUserPreferenceGet(jsonRequest){
       displayProgressBar();
@@ -117,6 +132,16 @@ try{
               console.warn('%o %o %o', x, y, z);
           }
       });
+    }
+
+    function promptUserToUpdateTheirEmailAddress(currentEmailAddress){
+      let updateYourEmailAddressHtml = '';
+      updateYourEmailAddressHtml += '<h4>' + txt.updateYourEmailMessagePt1 + ': ' + '</h4>' + currentEmailAddress;
+      updateYourEmailAddressHtml += '<br>';
+      updateYourEmailAddressHtml += '<h4>' + txt.updateYourEmailMessagePt2 + ' <a href=' + '<%=urlLoc %>' + '/myAccount.jsp>' + headerTxt.myAccount + '</a></h4>';
+      updateYourEmailAddressHtml += '<h4>' + txt.updateYourEmailMessagePt3 + '</h4>';
+      $('#content-container').empty();
+      $('#content-container').append(updateYourEmailAddressHtml);
     }
 
     function displayAlreadyMadeChoices(){
