@@ -17,7 +17,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
-props = ShepherdProperties.getProperties("header.properties", langCode, context);
+props = ShepherdProperties.getProperties("footer.properties", langCode, context);
 
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
@@ -92,19 +92,17 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <img src="<%=urlLoc%>/images/partner-logos/wilddolphinproject-logo1.png" alt="Wild Dolphin Projec Logo" style="height:120px; margin-right:20px;" />
 
 
-                        <a href="http://www.wildbook.org" title="This site is Powered by Wildbook">
-                          <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" style="height: 150px;"/>
+												<a href="https://wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
+		                      <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
                         </a>
 
                       <%
 
                     } else  {
                     %>
-                    <a href="http://www.wildbook.org" title="This site is Powered by Wildbook" class="pull-right">
-                      <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" class="pull-right" style="
-  											height: 150px;
-  										"/>
-                    </a>
+										<a href="https://wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
+											<img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
+										</a>
                     <%}%>
                     </p>
                 </div>

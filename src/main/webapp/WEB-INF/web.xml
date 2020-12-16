@@ -74,8 +74,8 @@
 
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
-				/appadmin/users.jsp = authc, roles[orgAdmin]
-				/appadmin/iaSpeciesDiff.jsp = = authcBasicWildbook,roles[rest]
+								/appadmin/users.jsp = authc, roles[orgAdmin]
+								/appadmin/iaSpeciesDiff.jsp = = authcBasicWildbook,roles[rest]
 
 
                 /appadmin/** = authc, roles[admin]
@@ -414,10 +414,10 @@
         /UserGetSimpleJSON = authc
 
 				/MergeIndividual = authc, roles[researcher]
-				
+
 				/UpdateStandard = authc, roles[admin]
 				/uploader.jsp = authc, roles[researcher]
-				
+
 
         /ScheduledIndividualMergeUpdate = authc, roles[researcher]
 
