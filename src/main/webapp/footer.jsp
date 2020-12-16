@@ -42,7 +42,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 
                     <a href="https://wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
-                      <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: 150px; width: auto"/>
+                      <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
                     </a>
                 </div>
                 </div>
