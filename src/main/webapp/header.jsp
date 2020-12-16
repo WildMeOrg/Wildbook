@@ -43,6 +43,31 @@ Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String notifications="";
+myShepherd.beginDBTransaction();
+try {
+
+	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+
+  if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
+    user = myShepherd.getUser(request);
+    username = (user!=null) ? user.getUsername() : null;
+    String orgName = "indocet";
+    Organization indocetOrg = myShepherd.getOrganizationByName(orgName);
+    indocetUser = ((user!=null && user.hasAffiliation(orgName)) || (indocetOrg!=null && indocetOrg.hasMember(user)));
+  	if(user.getUserImage()!=null){
+  	  profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+  	}
+  }
+}
+catch(Exception e){
+  System.out.println("Exception on indocetCheck in header.jsp:");
+  e.printStackTrace();
+  myShepherd.closeDBTransaction();
+}
+finally{
+  myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
+}
 
 if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 
@@ -70,7 +95,16 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
-      <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+
+     <%
+     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+     %>
+    	 <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+     <%
+     }
+     %>
+
+
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
 	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
@@ -88,8 +122,13 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
 	   <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
 
-
+	 <%
+     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+     %>
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
+      <%
+      }
+      %>
 
 
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
@@ -342,22 +381,24 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
 
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
+
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
-                      <!-- submit encounter, survey -->
 
-                      <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-
-                      <!-- <li class="dropdown">
+                      <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-							              <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
-                        </ul>
-                      </li> -->
 
-                      <!-- end submit -->
+                            <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
+                            <!--
+                              <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
+                            -->
+
+                            <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                         </ul>
+                      </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -473,6 +514,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                             }
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
+                              <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
 
                             <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
                                 <li class="divider"></li>
@@ -509,25 +551,56 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
-                                <% 
+                                <%
                                 }
-                                
+
                                 %>
                                 <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
                                 <%
-                            } //end if admin 
-                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) { %>
-	    	                  	<li class="divider"></li>
-	    	                  	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-	    	                  	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-	    	                 	<%
 
-                    		}
+                            } //end if admin
+                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
+                            %>
+                            	<li class="divider"></li>
+                            	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                            	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
+                           	<%
+
+
+                          	}
+                            %>
+                            <li class="dropdown">
+                              <ul class="dropdown-menu" role="menu">
+                              <%
+                              if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+                              %>
+                                <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
+                              <%
+                              }
+                              %>
+                                <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+
+
+
+                              </ul>
+                            </li>
+
+
+
+                            <%
+                            if(CommonConfiguration.useSpotPatternRecognition(context)){
+                            %>
+                            	<li class="divider"></li>
+                            	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
+                            	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                            	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                            <%
+                            }
                             %>
                         </ul>
                       </li>
-                      
-                      
+
+
                       <%
                       }
                       %>
