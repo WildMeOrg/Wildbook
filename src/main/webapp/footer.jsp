@@ -36,12 +36,12 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                 <div class="row">
                   <div class="col-sm-6" style="margin-top:40px;">
                     <small>This software is distributed under the GPL v2 license and is intended to support mark-recapture field studies.
-                  <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
+                  <br> <a href="https://www.wildme.org/#/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
                   </div>
                   <div class="col-sm-6">
 
 
-                    <a href="https://wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
+                    <a href="https://www.wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
                       <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
                     </a>
                 </div>
