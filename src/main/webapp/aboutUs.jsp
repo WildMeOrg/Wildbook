@@ -33,7 +33,7 @@ For over two decades, Botswana Predator Conservation has been working to study a
 Learn more about Wild Me, and donate to their work here: https://www.wildme.org/
 </p>
 <p>
-    <a href="https://www.wildme.org/"><img width="300px" style="max-width: 100%;" alt="Wild Me Logo" src="cust/mantamatcher/img/wild-me-logo-high-resolution_512.png" class="img-responsive center-block"></a>
+    <a href="https://www.wildme.org/"><img width="300px" style="max-width: 100%;" alt="Wild Me Logo" src="images/WildMe-Logo-04.png" class="img-responsive center-block"></a>
 </p>
 
 <br/>
@@ -65,7 +65,7 @@ You can find out more about their work here: <a href="http://www.popecol.org/res
     <div class="col-sm-6 col-md-6 col-lg-6">
         <img src="images/Wildmove_Logo.jpg" alt="Wildmove Logo" class="img-responsive center-block">
     </div>
-</div>    
+</div>
 <br/>
 
 <p>
@@ -83,4 +83,3 @@ Learn more about Mowa Safaris here:  <a href="https://www.mowasafaris.com">https
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
-
