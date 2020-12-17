@@ -40,7 +40,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                     <p>
                       The rights to images on Wildbook are held by the contributors of those images. Wild Me reserves only the right to use these images as training data for new computer vision algorithms.
                     </p>
-                    <p> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a>
+                    <p> <a href="http://www.wildme.org/#/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a>
                     </p></small>
                   </div>
                   <div class="col-sm-6" style="margin-top:40px;">
@@ -92,7 +92,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <img src="<%=urlLoc%>/images/partner-logos/wilddolphinproject-logo1.png" alt="Wild Dolphin Projec Logo" style="height:120px; margin-right:20px;" />
 
 
-												<a href="https://wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
+												<a href="https://www.wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
 		                      <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
                         </a>
 
@@ -100,7 +100,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                     } else  {
                     %>
-										<a href="https://wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
+										<a href="https://www.wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
 											<img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
 										</a>
                     <%}%>
