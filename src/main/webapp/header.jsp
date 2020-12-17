@@ -425,6 +425,7 @@ finally{
                             <li><a target="_blank" href="<%=urlLoc %>/learnMore.jsp"><%=props.getProperty("learnAboutShepherd")%></a></li>
                             <li><a target="_blank" href="<%=urlLoc %>/privacyPolicy.jsp"><%=props.getProperty("privacyPolicy")%></a></li>
                             <li><a target="_blank" href="<%=urlLoc %>/termsOfUse.jsp"><%=props.getProperty("termsOfUse")%></a></li>
+                        	<li class="divider"></li>
                         </ul>
                       </li>
                       <li class="dropdown">
