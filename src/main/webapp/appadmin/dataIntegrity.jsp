@@ -34,14 +34,12 @@ props = ShepherdProperties.getProperties("dataIntegrity.properties", langCode, c
 <p>Look for duplicated annotations to clean up your data set.</p>
 <p><a target="_blank" href="duplicateAnnotations.jsp">Click here to check</a></p>      
 
-<<<<<<< HEAD
-=======
+
 		<h3>URL Access Security Checks</h3>
 <p>Look for URLs in Wildbook that should or should not be accessible to the public or users with certain roles.</p>
 <p><a target="_blank" href="urlSecurityCheck.jsp">Click here to check</a></p>      
 
 
->>>>>>> manualUserConsolidate
 	</div>
 
 <jsp:include page="../footer.jsp" flush="true"/>
