@@ -413,7 +413,6 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                         </ul>
                       </li>
 
-                      <%--
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -425,15 +424,8 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                         }
                         %>
                           <li><a href="http://wiki.whaleshark.org/doku.php?id=user_agreement" target="_blank"><%=props.getProperty("userAgreement")%></a></li>
-
-                          <!--  examples of navigation dividers
-                          <li class="divider"></li>
-                          <li class="dropdown-header">Nav header</li>
-                           -->
-
                         </ul>
                       </li>
-                      --%>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -460,17 +452,21 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                           <li class="dropdown-header"><%=props.getProperty("states")%></li>
 
                         <!-- list encounters by state -->
-                          <% boolean moreStates=true;
+                          <%
+                          boolean moreStates=true;
                              int cNum=0;
                              while(moreStates) {
                                  String currentLifeState = "encounterState"+cNum;
-                                 if (CommonConfiguration.getProperty(currentLifeState,context)!=null) { %>
+                                 if (CommonConfiguration.getProperty(currentLifeState,context)!=null) {
+                                   %>
                                    <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState,context) %>"><%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState,context))+" "))%></a></li>
-                                 <% cNum++;
+                                   <%
+                                   cNum++;
                                  } else {
                                      moreStates=false;
                                  }
                             } //end while %>
+                          %>
                           <li class="divider"></li>
                           <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
                           <li><a href="<%=urlLoc %>/xcalendar/calendar2.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
@@ -487,10 +483,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
-
                               <!-- <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp"><%=props.getProperty("surveySearch")%></a></li> -->
-
-
                            </ul>
                       </li>
 
@@ -508,15 +501,20 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <% if (CommonConfiguration.getWikiLocation(context)!=null) { %>
+                            <%
+                            if (CommonConfiguration.getWikiLocation(context)!=null) {
+                              %>
                               <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>/photographing.jsp"><%=props.getProperty("userWiki")%></a></li>
                             <%
                             }
                             %>
+
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
                               <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
 
-                            <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
+                            <%
+                              if(CommonConfiguration.useSpotPatternRecognition(context)) {
+                            %>
                                 <li class="divider"></li>
                                   <li class="dropdown-header">SharkGrid</li>
 
@@ -524,14 +522,17 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
                                  <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
                                 <li class="divider"></li>
-                                <% } %>
+                            <% } %>
 
 
                             <%
-                            if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) { %>
+                              if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) {
+                            %>
                               <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
-                            <% }
-                            if(request.isUserInRole("admin")) { %>
+                            <%
+                              }
+                              if(request.isUserInRole("admin")) {
+                            %>
 
 
                             <li class="dropdown-header">Admins Only</li>
@@ -541,68 +542,71 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 
                                 <%
-                                if (CommonConfiguration.getIPTURL(context) != null) { %>
+                                if (CommonConfiguration.getIPTURL(context) != null) {
+                                %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
-                                <% } %>
+                                <%
+                                  }
+                                %>
+
                                 <li><a href="<%=urlLoc %>/appadmin/kwAdmin.jsp"><%=props.getProperty("photoKeywords")%></a></li>
-                                <% if (CommonConfiguration.allowAdoptions(context)) { %>
+                                <%
+                                  if (CommonConfiguration.allowAdoptions(context)) {
+                                %>
                                   <li class="divider"></li>
                                   <li class="dropdown-header"><%=props.getProperty("adoptions")%></li>
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
                                 <%
-                                }
-
+                                  }
                                 %>
-                                <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
-                                <%
 
+                                <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
+
+                                <%
                             } //end if admin
-                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
+                            %>
+
+                            <%
+                              if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
                             %>
                             	<li class="divider"></li>
                             	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
                             	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
                            	<%
-
-
-                          	}
+                          	 }
                             %>
+
                             <li class="dropdown">
                               <ul class="dropdown-menu" role="menu">
                               <%
-                              if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+                                if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
                               %>
                                 <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
                               <%
-                              }
+                                }
                               %>
                                 <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
-
-
-
                               </ul>
                             </li>
 
-
-
                             <%
-                            if(CommonConfiguration.useSpotPatternRecognition(context)){
+                              if(CommonConfiguration.useSpotPatternRecognition(context)){
                             %>
                             	<li class="divider"></li>
                             	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
                             	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
                             	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
                             <%
-                            }
+                              }
                             %>
                         </ul>
                       </li>
 
 
                       <%
-                      }
+                        }
                       %>
                     </ul>
 
