@@ -16,13 +16,15 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-
+<!DOCTYPE html>
 <html>
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.ShepherdProperties,
              org.ecocean.servlet.ServletUtilities,
              org.ecocean.CommonConfiguration,
              org.ecocean.Shepherd,
+             org.ecocean.Util,
+             org.ecocean.Organization,
              org.ecocean.User,
              java.util.ArrayList,
              java.util.List,
@@ -42,12 +44,33 @@ props = ShepherdProperties.getProperties("header.properties", langCode, context)
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("header.jsp");
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
+
+String pageTitle = (String)request.getAttribute("pageTitle");  //allows custom override from calling jsp (must set BEFORE include:header)
+if (pageTitle == null) {
+    pageTitle = CommonConfiguration.getHTMLTitle(context);
+} else {
+    pageTitle = CommonConfiguration.getHTMLTitle(context) + " | " + pageTitle;
+}
+
+String username = null;
+User user = null;
+String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+// we use this arg bc we can only log out *after* including the header on logout.jsp. this way we can still show the logged-out view in the header
+boolean loggingOut = Util.requestHasVal(request, "loggedOut");
+
+boolean indocetUser = false;
+String organization = request.getParameter("organization");
+if (organization!=null && organization.toLowerCase().equals("indocet"))  {
+  indocetUser = true;
+}
 String notifications="";
 myShepherd.beginDBTransaction();
 try {
-
+	
 	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
-
+	
   if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
@@ -69,46 +92,60 @@ finally{
   myShepherd.closeDBTransaction();
 }
 
-if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println("INFO: MarkedIndividual.NAMES_CACHE initialized");
 
 %>
 
 
+<html>
     <head>
-      <title><%=CommonConfiguration.getHTMLTitle(context)%>
-      </title>
+
+      <!-- Global site tag (gtag.js) - Google Analytics -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30944767-12"></script>
+
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-30944767-12');
+      </script>
+
+      <title><%=pageTitle%></title>
       <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+      <meta charset="UTF-8">
       <meta name="Description"
             content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
       <meta name="Keywords"
             content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
       <link rel="shortcut icon"
-            href="//<%=urlLoc %>/images/favicon.ico"/>
+            href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
       <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
 
-      <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-
+      <%
+      if (indocetUser) {
+        %><link rel="stylesheet" href="<%=urlLoc %>/cust/indocet/overwrite.css" /><%
+      }
+      %>
+      <!-- Icon font necessary for indocet style, but for consistency will be applied everywhere -->
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/elusive-icons.min.css">
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
-
+     
      <%
      if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
-     %>
+     %> 	
     	 <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
      <%
      }
      %>
-
-
+     
+     
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
 	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
-
-      <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
 
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
@@ -124,37 +161,34 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
 	 <%
      if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
-     %>
+     %> 
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
       <%
       }
       %>
-
+      
 
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
+      <script type="text/javascript"  src="<%=urlLoc %>/javascript/translator.js"></script>
+
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/notifications.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
-      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
+      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
 
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
   	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
-  	<!-- End Open Graph Tags -->
+  	<!-- End Open Graph Tags -->    
 
-    <!--  <link rel="stylesheet" href="/resources/demos/style.css">
-
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    -->
 
 	<!-- Clockpicker on creatSurvey jsp -->
     <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
-    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" />
-
+    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" /> 
+   
     <style>
       ul.nav.navbar-nav {
         width: 100%;
@@ -167,49 +201,29 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
     <body role="document">
 
         <!-- ****header**** -->
-        <header class="page-header clearfix">
+        <header class="page-header clearfix" style="padding-top: 0px;padding-bottom:0px;">
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a>
-                  <div class="search-and-secondary-wrapper">
-                  <%
-                  if(CommonConfiguration.allowAdoptions(context)){
-                  %>
-                    <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
-                  <%
-                  }
-                  %>
-                    <%-- <a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a> --%>
+                <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
 
+
                       <%
+	                      if(user != null && !loggingOut){
+	                          try {
+  		                    	  String fullname=request.getUserPrincipal().toString();
+                              if (user.getFullName()!=null) fullname=user.getFullName();
 
-	                      if(request.getUserPrincipal()!=null){
-	                    	  //myShepherd = new Shepherd(context);
-	                    	  //myShepherd.setAction("header.jsp");
-
-	                          try{
-	                        	  myShepherd.beginDBTransaction();
-	                        	  notifications=Collaboration.getNotificationsWidgetHtml(request,myShepherd) ;
-		                    	  String username = request.getUserPrincipal().toString();
-		                    	  User user = myShepherd.getUser(username);
-		                    	  String fullname=username;
-		                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
-		                    	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
-		                          if(user.getUserImage()!=null){
-		                          	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-		                          }
 
 		                  %>
 
-		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
+		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="<%=props.getProperty("yourAccount") %>" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
 		             				      <li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 
 		                      		<%
 	                          }
 	                          catch(Exception e){e.printStackTrace();}
-
 	                      }
 	                      else{
 	                      %>
@@ -221,9 +235,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
                       %>
 
-                       <!--
-                      <li><a href="#" title="">English</a></li>
-                     -->
+
 
 
 
@@ -335,7 +347,7 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                     </ul>
 
 
-                   <style type="text/css">
+                    <style type="text/css">
                       #header-search-button, #header-search-button:hover {
                         color: inherit;
                         background-color: inherit;
@@ -360,7 +372,9 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" href="https://SeadragonSearch.org/">SeadragonSearch.org - Powered by Wildbook</a>
+                  <a class="navbar-brand wildbook" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
+
                 </div>
               </div>
 
@@ -379,52 +393,35 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                   <div id="notifications"><%=notifications %></div>
                     <ul class="nav navbar-nav">
 
-
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
-
+                        
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
-
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-
+                            
                             <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-
+                            
                             <!--
                               <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
                             -->
 
                             <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
                          </ul>
-                      </li>
+                      </li>                      
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                        	<%--
-                          <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                          <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li>
-                          <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
-                          --%>
-							<li><a target="_blank" href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
-              <li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
-            <li class="divider"></li>
-                        </ul>
-                      </li>
+                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
 
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                        <%
-                        if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
-                        %>
-                          <li><a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a></li>
-                        <%
-                        }
-                        %>
-                          <li><a href="http://wiki.whaleshark.org/doku.php?id=user_agreement" target="_blank"><%=props.getProperty("userAgreement")%></a></li>
+                          	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
+
+                          	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                          	<li><a target="_blank" href="https://www.wildbook.org"><%=props.getProperty("learnAboutShepherd")%></a></li>
+                        	<li class="divider"></li>
                         </ul>
                       </li>
                       <li class="dropdown">
@@ -432,184 +429,139 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
 
-                          <%
-                          if(request.getUserPrincipal()!=null) {
-                          %>
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
-                          <%
-                          }
-                          %>
-
                         </ul>
                       </li>
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("occurrences")%> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("search")%></a></li>
 
-                      <%
-                      if(request.getUserPrincipal()!=null) {
-                      %>
-
+                          <li><a href="<%=urlLoc %>/occurrenceSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
+                        </ul>
+                      </li>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li class="dropdown-header"><%=props.getProperty("states")%></li>
 
                         <!-- list encounters by state -->
-                          <%
-                          boolean moreStates=true;
+                          <% boolean moreStates=true;
                              int cNum=0;
                              while(moreStates) {
                                  String currentLifeState = "encounterState"+cNum;
-                                 if (CommonConfiguration.getProperty(currentLifeState,context)!=null) {
-                                   %>
+                                 if (CommonConfiguration.getProperty(currentLifeState,context)!=null) { %>
                                    <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?state=<%=CommonConfiguration.getProperty(currentLifeState,context) %>"><%=props.getProperty("viewEncounters").trim().replaceAll(" ",(" "+WordUtils.capitalize(CommonConfiguration.getProperty(currentLifeState,context))+" "))%></a></li>
-                                   <%
-                                   cNum++;
+                                 <% cNum++;
                                  } else {
                                      moreStates=false;
                                  }
                             } //end while %>
-                          %>
                           <li class="divider"></li>
                           <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
-                          <li><a href="<%=urlLoc %>/xcalendar/calendar2.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
-                          <%-- <% if(request.getUserPrincipal()!=null) { %> --%>
+                          <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
+                          <% if(request.getUserPrincipal()!=null) { %>
                             <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?username=<%=request.getRemoteUser()%>"><%=props.getProperty("viewMySubmissions")%></a></li>
-                          <%-- <% } %> --%>
+                          <% } %>
                         </ul>
                       </li>
 
 
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="search-dropdown"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                              <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
-                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp"><%=props.getProperty("occurrenceSearch")%></a></li>
-                              <!-- <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp"><%=props.getProperty("surveySearch")%></a></li> -->
+                              <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp" id="encounter-search-link"><%=props.getProperty("encounterSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/individualSearch.jsp" id="individual-search-link"><%=props.getProperty("individualSearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/occurrenceSearch.jsp" id="occurrence-search-link"><%=props.getProperty("occurrenceSearch")%></a></li>
+                              <!--
+                              <li><a href="<%=urlLoc %>/surveys/surveySearch.jsp" id="survey-search-link"><%=props.getProperty("surveySearch")%></a></li>
+                              <li><a href="<%=urlLoc %>/encounters/searchComparison.jsp" id="search-comparison-link"><%=props.getProperty("locationSearch")%></a></li>
+                           	  -->
                            </ul>
                       </li>
 
-                      <%
-                      }
-                      %>
 
-                      <li>
-                        <a href="<%=urlLoc %>/contactus.jsp"><%=props.getProperty("contactUs")%> </a>
-                      </li>
-
-                      <%
-                      if(request.getUserPrincipal()!=null) {
-                      %>
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <%
-                            if (CommonConfiguration.getWikiLocation(context)!=null) {
-                              %>
-                              <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>/photographing.jsp"><%=props.getProperty("userWiki")%></a></li>
-                            <%
-                            }
+                            <% 
+                            if(request.getUserPrincipal()!=null) {
                             %>
-
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
-                              <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
 
-                            <%
-                              if(CommonConfiguration.useSpotPatternRecognition(context)) {
-                            %>
-                                <li class="divider"></li>
-                                  <li class="dropdown-header">SharkGrid</li>
-
-                                <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp">Check SharkGrid</a></li>
-
-                                 <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                                <li class="divider"></li>
-                            <% } %>
-
-
-                            <%
-                              if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) {
-                            %>
-                              <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
-                            <%
-                              }
-                              if(request.isUserInRole("admin")) {
-                            %>
-
-
-                            <li class="dropdown-header">Admins Only</li>
-                              <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
-                              <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-
+                              <li class="divider"></li>
+                              <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
+                              <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
+                              <li class="divider"></li>
+                            <% }
+                             
+                            
+                            if(request.isUserInRole("admin")) { %>
+                                <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
+                                <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
+                                
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 
-                                <%
-                                if (CommonConfiguration.getIPTURL(context) != null) {
-                                %>
+                                <% 
+                                if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
-                                <%
-                                  }
-                                %>
-
+                                <% } %>
                                 <li><a href="<%=urlLoc %>/appadmin/kwAdmin.jsp"><%=props.getProperty("photoKeywords")%></a></li>
-                                <%
-                                  if (CommonConfiguration.allowAdoptions(context)) {
-                                %>
+                                <% if (CommonConfiguration.allowAdoptions(context)) { %>
                                   <li class="divider"></li>
                                   <li class="dropdown-header"><%=props.getProperty("adoptions")%></li>
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
-                                <%
-                                  }
-                                %>
-
+                                <% } %>
+                                <li><a target="_blank" href="http://wiki.wildbook.org/"><%=props.getProperty("shepherdDoc")%></a></li>
                                 <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
 
-                                <%
-                            } //end if admin
-                            %>
+                              
+                             <% 
 
-                            <%
-                              if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
+                            } //end if admin
+                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) { 
                             %>
                             	<li class="divider"></li>
                             	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
                             	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
                            	<%
-                          	 }
+                           
+                           
+                          	}
                             %>
-
                             <li class="dropdown">
                               <ul class="dropdown-menu" role="menu">
                               <%
-                                if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+                              if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
                               %>
                                 <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
                               <%
-                                }
+                              }
                               %>
                                 <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+
+
+
                               </ul>
                             </li>
 
+
+
                             <%
-                              if(CommonConfiguration.useSpotPatternRecognition(context)){
+                            if(CommonConfiguration.useSpotPatternRecognition(context)){
                             %>
                             	<li class="divider"></li>
                             	<li class="dropdown-header"><%=props.getProperty("grid")%></li>
                             	<li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
                             	<li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
                             <%
-                              }
+                            }
                             %>
-                        </ul>
-                      </li>
-
-
-                      <%
-                        }
-                      %>
-                    </ul>
+                          </ul>
+                        </li>
+                      </ul>
 
 
 
@@ -620,7 +572,6 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
               </div>
             </nav>
         </header>
-
 
         <script>
         $('#search-site').autocomplete({
@@ -674,11 +625,11 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                             } else {
                                 label = "";
                             }
-
+                            
                             if(item.nickname != null){
                             	nickname = " ("+item.nickname+")";
                             }
-
+                            
                             return {label: label + item.label+nickname,
                                     value: item.value,
                                     type: item.type,
@@ -704,8 +655,8 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
         if (urlParams.has("organization")) {
           let orgParam = urlParams.get("organization");
           $.cookie("wildbookOrganization", orgParam, {
-              path    : '/',
-              secure  : false,
+              path    : '/',     
+              secure  : false, 
               expires : 1
           });
         }
@@ -714,10 +665,3 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
         </script>
 
         <!-- ****/header**** -->
-
-        <%
-        //close up the Shepherd
-  	  myShepherd.rollbackDBTransaction();
-  	  myShepherd.closeDBTransaction();
-
-        %>
