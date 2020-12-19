@@ -555,14 +555,6 @@ if(CommonConfiguration.getProperty("allowSocialMediaLogin", request)!=null && Co
     <h2><%=props.getProperty("myData") %></h2>
 
 
-<%
-
-String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+thisUser.getUsername()+"'";
-%>
-    <jsp:include page="encounters/encounterSearchResultsAnalysisEmbed.jsp" flush="true">
-    	<jsp:param name="jdoqlString" value="<%=jdoqlString %>" />
-    </jsp:include>
-
     <p><strong><%=props.getProperty("links2mydata") %></strong></p>
         <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
 
