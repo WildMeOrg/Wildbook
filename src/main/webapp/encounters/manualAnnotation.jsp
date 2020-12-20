@@ -217,7 +217,7 @@ try{
 		//Query q2 = myShepherd.getPM().newQuery("javax.jdo.query.SQL", "select distinct(\"IACLASS\") as v from \"ANNOTATION\" order by v");
 		//results = (List)q2.execute();
 		IAJsonProperties iaj=new IAJsonProperties();
-		List<String> results2=iaj.getValidIAClasses(enc.getTaxonomy(myShepherd));
+		List<String> results2=iaj.getValidIAClassesIgnoreRedirects(enc.getTaxonomy(myShepherd));
 		
 		Iterator<String> it2 = results2.iterator();
 		while (it2.hasNext()) {
