@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.Properties; 
+import java.util.Properties;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Arrays;
@@ -26,7 +26,7 @@ public class ShepherdProperties {
   public static Properties getProperties(String fileName){
     return getProperties(fileName, "en");
   }
-  
+
   public static Properties getProperties(String fileName, String langCode){
     return getProperties(fileName, langCode, "context0");
   }
@@ -42,11 +42,11 @@ public class ShepherdProperties {
   public static Properties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request) {
     return getProperties(fileName, langCode, context, getOverwriteStringForUser(request));
   }
-  
+
   public static Properties getOrgProperties(String fileName, String langCode, String context, HttpServletRequest request, Shepherd myShepherd) {
     return getProperties(fileName, langCode, context, getOverwriteStringForUser(request, myShepherd));
   }
-  
+
   public static Properties getOrgProperties(String fileName, String langCode, HttpServletRequest request) {
     return getOrgProperties(fileName, langCode, ServletUtilities.getContext(request), request);
   }
@@ -72,7 +72,7 @@ public class ShepherdProperties {
     if (user==null) return null;
     return getOverwriteStringForUser(user);
   }
-  
+
   public static String getOverwriteStringForUser(HttpServletRequest request) {
     Shepherd myShepherd = new Shepherd(request);
     myShepherd.setAction("getOverwriteStringForUser");
@@ -82,10 +82,10 @@ public class ShepherdProperties {
     myShepherd.closeDBTransaction();
     return myString;
   }
-  
-  
-  
-  
+
+
+
+
   public static String getOverwriteStringForUser(User user) {
     if (user == null || user.getOrganizations()==null) return null;
     for (Organization org: user.getOrganizations()) {
@@ -122,7 +122,7 @@ public class ShepherdProperties {
     String shepherdDataDir="wildbook_data_dir";
     Properties contextsProps=getContextsProperties();
     if(contextsProps.getProperty(context+"DataDir")!=null) {
-      shepherdDataDir=contextsProps.getProperty(context+"DataDir"); 
+      shepherdDataDir=contextsProps.getProperty(context+"DataDir");
     }
 
     if (Util.stringExists(langCode) && !langCode.endsWith("/")) langCode += "/";
@@ -144,7 +144,7 @@ public class ShepherdProperties {
         System.out.printf("\t Weird Shepherd.properties non-english case reached with langCode %s. Trying again with path %s.\n",langCode,defaultPathStr);
         defaultProps = loadProperties(defaultPathStr);
       } else {
-        System.out.printf("Super weird case met in ShepherdProperties.getProps(%s, %s, %s, %s). Returning generated default props.\n",fileName, langCode, context, overridePrefix);
+        // System.out.printf("Super weird case met in ShepherdProperties.getProps(%s, %s, %s, %s). Returning generated default props.\n",fileName, langCode, context, overridePrefix);
       }
     }
     Properties props = loadProperties(overridePathStr, defaultProps);
