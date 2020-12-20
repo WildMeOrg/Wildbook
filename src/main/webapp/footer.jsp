@@ -76,7 +76,7 @@ finally{
                     <%}%>
 
                     <a href="https://www.wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
-                      <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
+                      <img src="<%=urlLoc %>/images/WildMe-Logo-02.svg" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
                     </a>
                 </div>
                 </div>
