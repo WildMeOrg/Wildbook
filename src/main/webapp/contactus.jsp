@@ -18,9 +18,8 @@
   <p><%=props.getProperty("text1")%></p>
 
   <p><%=props.getProperty("text2")%></p>
-   
+
 <!-- end maintext -->
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
-
