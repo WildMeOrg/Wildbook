@@ -491,6 +491,10 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
                               <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
+                              <li class="divider"></li>
+                              <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
+                              <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
+                              <li class="divider"></li>
 
                             <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
                                 <li class="divider"></li>
