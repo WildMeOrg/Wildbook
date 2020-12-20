@@ -361,12 +361,12 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
 
                       <!-- submit encounter, survey -->
 
-                      <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
 
                        <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
 							             <!-- <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li> -->
+                           <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
                             <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
                         </ul>
                       </li>
@@ -377,13 +377,13 @@ if (org.ecocean.MarkedIndividual.initNamesCache(myShepherd)) System.out.println(
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
 
-                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
                           <%--
+                          <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
                           	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                            <li class="divider"></li>
                           --%>
                           	<li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
-                        	<li class="divider"></li>
                         </ul>
                       </li>
 
