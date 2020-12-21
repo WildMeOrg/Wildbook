@@ -1060,7 +1060,7 @@ public class Encounter implements java.io.Serializable {
   public static String getWebUrl(String encId, String serverUrl) {
     return (serverUrl+"/encounters/encounter.jsp?number="+encId);
   }
-  
+
   // public String getHyperlink(HttpServletRequest req, int labelLength) {
   //   String label="";
   //   if (labelLength==1) label = "Enc ";
@@ -3406,7 +3406,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
             boolean fullAccess = this.canUserAccess(request);
-            
+
             String useProjectContext = "false";
             if (request.getParameter("useProjectContext")!=null) {
               useProjectContext = request.getParameter("useProjectContext");
@@ -3420,7 +3420,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
                 } else {
                   jobj.put("displayName", this.individual.getDisplayName());
                 }
-              } 
+              }
               return jobj;
             }
 
@@ -3787,7 +3787,13 @@ throw new Exception();
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());
-        enc.setOccurrenceID(this.getOccurrenceID());
+
+        Occurrence occ = myShepherd.getOccurrence(this);
+        if (occ != null) {
+            occ.addEncounter(enc);
+            enc.setOccurrenceID(occ.getOccurrenceID());
+        }
+
         enc.setRecordedBy(this.getRecordedBy());
         enc.setState(this.getState());  //not too sure about this one?
 

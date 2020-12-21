@@ -3,23 +3,23 @@
 <%
 
   //setup our Properties object to hold all properties
-  
+
   String langCode = ServletUtilities.getLanguageCode(request);
 
   //set up the file input stream
   //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
   //props.load(propsInputStream);
-  
-  
 
-  
+
+
+
   String context=ServletUtilities.getContext(request);
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <div class="container maincontent">
           <h1 class="intro">Contact us </h1>
-     
+
 
         <p>The team welcomes your comments and questions.</p>
 
@@ -36,19 +36,17 @@
 </p>
 
 <h2>Logos</h2>
-The following logos may be used inconjunction with our project.
+The following logos may be used in conjunction with our project.
 
 <h3>Wild Me</h3>
 
-<p><img src="images/wild-me-logo-high-resolution.png" width="500px" height="*" /></p>
+<p><img src="images/WildMe-Logo-04.png" width="500px" height="*" /></p>
 
 <h3>Wildbook&reg;</h3>
 
 <p><img src="images/WildBook_logo_300dpi-04.png" width="500px" height="*" /></p>
 
 
-   
+
       <!-- end maintext -->
       </div>
-
-

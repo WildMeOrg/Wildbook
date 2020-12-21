@@ -38,6 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -1295,29 +1296,35 @@ System.out.println("depth --> " + formValues.get("depth").toString());
             // might want to set detection status here (on the main thread)
 
             // only start IA stuff if we have config for this species
-
-            IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
-            if (iaConfig.hasIA(enc, myShepherd)) {
-              for (MediaAsset ma: enc.getMedia()) {
-                ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+            try {
+              IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+              if (iaConfig.hasIA(enc, myShepherd)) {
+                for (MediaAsset ma: enc.getMedia()) {
+                  ma.setDetectionStatus(IBEISIA.STATUS_INITIATED);
+                }
+  
+                Task parentTask = null;  //this is *not* persisted, but only used so intakeMediaAssets will inherit its params
+                if (locCode != null) {
+                    parentTask = new Task();
+                    JSONObject tp = new JSONObject();
+                    JSONObject mf = new JSONObject();
+                    mf.put("locationId", locCode);
+                    tp.put("matchingSetFilter", mf);
+                    parentTask.setParameters(tp);
+                }
+                Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask);  //TODO are they *really* persisted for another thread (queue)
+                myShepherd.storeNewTask(task);
+                Logger log = LoggerFactory.getLogger(EncounterForm.class);
+                log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
+                System.out.println("EncounterForm saved task "+task);
+              } 
+              else {
+                System.out.println("EncounterForm did NOT start any IA tasks for encounter "+enc+" bc no ia config was found---IAJsonProperties.hasIA returned false");
               }
-
-              Task parentTask = null;  //this is *not* persisted, but only used so intakeMediaAssets will inherit its params
-              if (locCode != null) {
-                  parentTask = new Task();
-                  JSONObject tp = new JSONObject();
-                  JSONObject mf = new JSONObject();
-                  mf.put("locationId", locCode);
-                  tp.put("matchingSetFilter", mf);
-                  parentTask.setParameters(tp);
-              }
-              Task task = org.ecocean.ia.IA.intakeMediaAssets(myShepherd, enc.getMedia(), parentTask);  //TODO are they *really* persisted for another thread (queue)
-              myShepherd.storeNewTask(task);
-              Logger log = LoggerFactory.getLogger(EncounterForm.class);
-              log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
-              System.out.println("EncounterForm saved task "+task);
-            } else {
-              System.out.println("EncounterForm did NOT start any IA tasks for encounter "+enc+" bc no ia config was found---IAJsonProperties.hasIA returned false");
+            }
+            catch(Exception e) {
+              System.out.println("EncounterForm did NOT start any IA tasks for encounter "+enc+" bc no ia config was found.");
+              e.printStackTrace();
             }
 
 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
@@ -1336,8 +1343,10 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
         //send submitter on to confirmSubmit.jsp
         //response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
-        WebUtils.redirectToSavedRequest(request, response, ("/confirmSubmit.jsp?number=" + encID));
-
+        //WebUtils.redirectToSavedRequest(request, response, ("/confirmSubmit.jsp?number=" + encID));
+        RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(("/confirmSubmit.jsp?number=" + encID));
+        dispatcher.forward(request, response);   
+        
         //start email appropriate parties
         if(CommonConfiguration.sendEmailNotifications(context)){
           myShepherd.beginDBTransaction();

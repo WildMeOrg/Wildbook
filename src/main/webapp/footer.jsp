@@ -19,7 +19,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
-props = ShepherdProperties.getProperties("header.properties", langCode, context);
+props = ShepherdProperties.getProperties("footer.properties", langCode, context);
 
 
 String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
@@ -37,18 +37,18 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
                   <div class="col-sm-6" style="margin-top:40px;">
                     <small>This software is distributed under the GPL v2 license and is intended to support mark-recapture field studies.
-                    <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
+                    <br> <a href="https://www.wildme.org/#/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
                     </p>
                   </div>
 
-                  <div class="col-sm-3"> 
-                    <a href="http://www.wildbook.org" title="This site is Powered by Wildbook">
+                  <div class="col-sm-3">
+                    <a href="http://www.wildme.org" title="This site is Powered by Wildme">
                     <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" class="pull-right" style="
 											height: 150px;
 										"/>
                   </div>
 
-                  
+
                   <div class="col-sm-3">
 										<img src="<%=urlLoc %>/images/wwf_logo.jpg" alt=" logo" class="pull-right" style="
 											height: 150px;
@@ -56,6 +56,10 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                   </div>
 
 
+                    <a href="https://www.wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
+                      <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
+                    </a>
+                </div>
                 </div>
               </div>
             </div>
