@@ -70,9 +70,9 @@ if (organization!=null && organization.toLowerCase().equals("indocet"))  {
 String notifications="";
 myShepherd.beginDBTransaction();
 try {
-
+	
 	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
-
+	
   if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
@@ -132,16 +132,9 @@ finally{
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
-
-     <%
-     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
-     %>
-    	 <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
-     <%
-     }
-     %>
-
-
+     
+     
+     
       <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
 	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
@@ -157,14 +150,6 @@ finally{
      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
 	   <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
      <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
-
-	 <%
-     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
-     %>
-      <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
-      <%
-      }
-      %>
 
 
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
@@ -381,23 +366,25 @@ finally{
                     <ul class="nav navbar-nav">
 
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
-
+                        
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
 
-                            <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+                      <!-- submit encounter, survey -->
 
-                            <!--
-                              <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
-                            -->
+                      <li><a href ="<%=urlLoc %>/submit.jsp" id="report-encounter-header"><%=props.getProperty("report")%></a></li>
+                      <!--  <li class="dropdown"> -->
+                        <!--  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a> -->
+                        <!--  <ul class="dropdown-menu" role="menu"> -->
+							          <!--  <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li> -->
+                        <!--  </ul> -->
+                      <!--  </li>
+                      </ul>
+                      -->
 
                             <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                         </ul>
-                      </li>
+                      </li>                      
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -406,7 +393,7 @@ finally{
                         	<!-- <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li> -->
                                <!-- <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li> -->
                              <!-- <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li> -->
-                          	<li><a target="_blank" href="https://www.wildme.org/#/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
+                          	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         	<li class="divider"></li>
                         </ul>
                       </li>
@@ -492,19 +479,18 @@ finally{
                           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                       <% } %>
                         <ul class="dropdown-menu" role="menu">
-                            <%
+                            <% 
                             if(request.getUserPrincipal()!=null) {
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
-                              <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
 
                               <li class="divider"></li>
                               <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
                               <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
                               <li class="divider"></li>
                             <% }
-
-
+                             
+                            
                             if(request.isUserInRole("admin")) { %>
 
                               <li class="dropdown-header">Admins Only</li>
@@ -526,30 +512,17 @@ finally{
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
                                 <% } %>
-                                <li><a target="_blank" href="http://wiki.wildbook.org/"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <li><a href="<%=urlLoc %>/appadmin/dataIntegrity.jsp"><%=props.getProperty("dataIntegrity")%></a></li>
+
+                                <% 
+                                if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) { 
+                                %>
+                                  <li class="divider"></li>
+                                  <li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
+                                  <li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
                                 <%
+                                }
+                                %>
 
-                            } //end if admin
-                            if(CommonConfiguration.isCatalogEditable(context) && request.getRemoteUser()!=null) {
-                            %>
-                            	<li class="divider"></li>
-                            	<li><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                            	<li><a href="<%=urlLoc %>/imports.jsp"><%=props.getProperty("standardImportListing")%></a></li>
-                           	<%
-
-
-                          	}
-                            %>
-                            <li class="dropdown">
-                              <ul class="dropdown-menu" role="menu">
-                              <%
-                              if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
-                              %>
-                                <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
-                              <%
-                              }
-                              %>
                                 <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
 
                                 <%
@@ -575,7 +548,7 @@ finally{
                       </li>
                     </ul>
 
-
+                        
 
 
 
@@ -645,11 +618,11 @@ finally{
                             } else {
                                 label = "";
                             }
-
+                            
                             if(item.nickname != null){
                             	nickname = " ("+item.nickname+")";
                             }
-
+                            
                             return {label: label + item.label+nickname,
                                     value: item.value,
                                     type: item.type,
@@ -675,8 +648,8 @@ finally{
         if (urlParams.has("organization")) {
           let orgParam = urlParams.get("organization");
           $.cookie("wildbookOrganization", orgParam, {
-              path    : '/',
-              secure  : false,
+              path    : '/',     
+              secure  : false, 
               expires : 1
           });
         }
