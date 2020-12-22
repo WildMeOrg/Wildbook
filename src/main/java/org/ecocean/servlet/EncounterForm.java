@@ -556,7 +556,7 @@ System.out.println("*** trying redirect?");
               //boolean badDate=false;
               try{
                 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
-                String dateString = getVal(fv, "datepicker").replaceAll(" ", "T");
+                String dateString = getVal(formValues, "datepicker").replaceAll(" ", "T");
 
                 if (isBadDateString(dateString)) {
                   dateString = cleanSpotasharkDate(dateString);
@@ -857,14 +857,14 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       if (formValues.get("lifeStage") != null && formValues.get("lifeStage").toString().length() > 0) {
               enc.setLifeStage(formValues.get("lifeStage").toString());
           }
-      if (fv.get("hookmark") != null && fv.get("hookmark").toString().length() > 0) {
-        enc.setDynamicProperty("Hookmark", fv.get("hookmark").toString());
+      if (formValues.get("hookmark") != null && formValues.get("hookmark").toString().length() > 0) {
+        enc.setDynamicProperty("Hookmark", formValues.get("hookmark").toString());
     }
-      if (fv.get("flank") != null && fv.get("flank").toString().length() > 0) {
-        enc.setDynamicProperty("flank", fv.get("flank").toString());
+      if (formValues.get("flank") != null && formValues.get("flank").toString().length() > 0) {
+        enc.setDynamicProperty("flank", formValues.get("flank").toString());
     }
-      if (fv.get("nsharks") != null && fv.get("nsharks").toString().length() > 0) {
-        enc.setDynamicProperty("# sharks in cave", fv.get("nsharks").toString());
+      if (formValues.get("nsharks") != null && formValues.get("nsharks").toString().length() > 0) {
+        enc.setDynamicProperty("# sharks in cave", formValues.get("nsharks").toString());
     }
 
       if (formValues.get("flukeType") != null && formValues.get("flukeType").toString().length() > 0) {
