@@ -121,7 +121,7 @@ else{
 <jsp:include page="header.jsp" flush="true"/>
 <%
 if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
-    System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
+    //System.out.println("    |=-| INDIVIDUALS.JSP  INSIDE ID block");
     id = request.getParameter("id");
     if (id==null) id = request.getParameter("number");
 	myShepherd.beginDBTransaction();
@@ -150,30 +150,16 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 		          }
 		        }
 		      }
-		      System.out.println("");
-		      System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
-		      System.out.println("This marked individual has "+numAnns+" anotations");
-		
+		      //System.out.println("");
+		      //System.out.println("individuals.jsp: I think a bot is loading this page, so here's some loggin':");
+		      //System.out.println("This marked individual has "+numAnns+" anotations");
+
 					//boolean visible = indie.canUserAccess(request);
 		      visible = Collaboration.canUserAccessMarkedIndividual(indie, request);
-		      System.out.println("We got visible = "+visible);
-		
-		      String ipAddress = request.getHeader("X-FORWARDED-FOR");
-		      if (ipAddress == null) ipAddress = request.getRemoteAddr();
-		      if (ipAddress != null && ipAddress.contains(",")) ipAddress = ipAddress.split(",")[0];
-		      String currentTimeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
-		      System.out.println("    From IP: "+ipAddress);
-		      System.out.println("    "+currentTimeString);
-		      System.out.println("    Individual: "+indie);
-		      System.out.println("    is visible: "+visible);
-		      System.out.println("    request.getAuthType(): "+request.getAuthType());
-		      System.out.println("    request.getRemoteUser(): "+request.getRemoteUser());
-		      System.out.println("    request.isRequestedSessionIdValid(): "+request.isRequestedSessionIdValid());
-		      System.out.println("");
-	
+
 
 				if (!visible) {
-	
+
 			        // remove any potentially-sensitive data, labeled with the secure-field class
 			        System.out.println("Not visible! Printing stuff!");
 			        %>
@@ -193,7 +179,7 @@ if (request.getParameter("id")!=null || request.getParameter("number")!=null) {
 							}
 							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
 							cmsg = cmsg.replace("'", "\\'");
-			
+
 							if (possible.size() > 0) {
 			    			String arr = new Gson().toJson(possible);
 								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
@@ -369,14 +355,16 @@ input.nameKey, input.nameValue {
 
     // edit button click area!!
     $("#edit").click(function() {
-      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue, .hidden").hide();
+      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, span.nameKey, span.nameValue,.nameValue .hidden,.namebutton .hidden, .deletename .hidden").hide();
       $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID, input.nameKey, input.nameValue, #defaultNameColon, input.btn.deletename, input.namebutton, div.newnameButton").show();
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
       $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
     });
 
+    //btn btn-sm editFormBtn namebutton
+    //.nameValue .hidden,.namebutton .hidden, .deletename .hidden
     $("#closeEdit").click(function() {
-      $(".namebutton").css("visibility", "hidden");
+      //$(".namebutton").css("visibility", "hidden");
       $(".editForm, input.nameKey, input.nameValue, #defaultNameColon, input.namebutton, input.btn.deletename").hide();
       $(".clickDateText").hide();
       $(".noEditText, span.nameKey, span.nameValue").show();
@@ -432,16 +420,21 @@ $(document).ready(function() {
           MarkedIndividual sharky=myShepherd.getMarkedIndividual(id);
 
           // replace this with canUserViewIndividual?
-//          boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
+          // boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
           boolean isOwner = Collaboration.canUserAccessMarkedIndividual(sharky, request);
-
 
           //System.out.println("    |=-| INDIVIDUALS.JSP we have sharkID "+id+", isOwner="+isOwner+" and names "+sharky.getNames());
 
           if (CommonConfiguration.allowNicknames(context)) {
             if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
               String myNickname = "";
-              myNickname = sharky.getDisplayName("Nickname");
+
+              String nameInProjectContext = sharky.getDisplayName(request, myShepherd);
+              if (nameInProjectContext!=null) {
+                myNickname = nameInProjectContext;
+              } else {
+                myNickname = sharky.getDisplayName("Nickname");
+              }
             %>
 
             <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
@@ -463,9 +456,10 @@ $(document).ready(function() {
             <%
 
 
-          } else {
+          } else { // no nicknames allowed in cc.props
+            System.out.println("no nicknames allowed, trying sharky.getDisplayName(request, myShepherd) = "+sharky.getDisplayName(request, myShepherd) );
             %>
-            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName()%>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getDisplayName(request, myShepherd)%>
             <%
             if(CommonConfiguration.allowAdoptions(context)){
                   %>
@@ -503,7 +497,7 @@ if (sharky.getNames() != null) {
 
     // if (allNames != null) out.println("<span title=\"id " + sharky.getId() + "\">" + allNames + "</span>");
 
-    System.out.println("displayName="+sharky.getDisplayName());
+    System.out.println("displayName="+sharky.getDisplayName(request, myShepherd));
 
     %>
     <div class="namesection default">
@@ -524,12 +518,29 @@ if (sharky.getNames() != null) {
       <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
     </div><%
 
+
     // make UI for non-default names here
     if ((sharky.getNames() != null) && (sharky.getNames().size() > 0) && (sharky.getNames().getKeys()!=null)){
     	System.out.println("About to go through the names for keys: "+String.join(", ",sharky.getNames().getKeys()));
+      boolean inProjectsAndWillGetDisplayedInSeparateSection = false;
 	    for (String nameKey: sharky.getNames().getKeys()) {
 	      if (MultiValue.isDefault(nameKey)) continue;
 	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
+        MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
+        List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
+        if (projects!=null&&projects.size()>0) {
+          for(Project currentProject: projects){
+            String researchProjId = currentProject.getProjectIdPrefix();
+            if (nameKey.contains(researchProjId)){
+              inProjectsAndWillGetDisplayedInSeparateSection = true;
+              continue;
+            }
+          }
+        }
+        if(inProjectsAndWillGetDisplayedInSeparateSection == true){
+          inProjectsAndWillGetDisplayedInSeparateSection = false;
+          continue;
+        }
 	      String nameLabel=nameKey;
 	      if (MarkedIndividual.NAMES_KEY_NICKNAME.equals(nameKey)) nameLabel = nickname;
 	      else if (MarkedIndividual.NAMES_KEY_ALTERNATEID.equals(nameKey)) nameLabel = alternateID;
@@ -548,12 +559,64 @@ if (sharky.getNames() != null) {
 	        <span class="nameCheck">&check;</span>
 	        <span class="nameError">X</span>
 	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
-	      </div><%
+	      </div>
+
+        <%
 	    }
 	}
 
+  MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
+  List<Project> projects = myShepherd.getAllProjectsForMarkedIndividual(indie);
+  if(projects!=null && projects.size()>0){
+    for(Project currentProject: projects){
+      String researchProjId = currentProject.getProjectIdPrefix();
+      String researchProjName = currentProject.getResearchProjectName();
+      String incrementalId = indie.getName(researchProjId);
+      if(incrementalId != null){
+        %>
+        <div class="namesection <%=researchProjName%>">
+	        <span class="nameKey" data-oldkey="<%=researchProjName%>"><em><%=researchProjName%></em></span>
+	        <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjName%>" placeholder="<%= researchProjName%>" >
+	        <span id="nameColon">:</span>
+
+	        <span class="nameValue <%=researchProjId%>" data-oldvalue="<%=incrementalId%>"><%=incrementalId%></span>
+	        <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=incrementalId%>" placeholder="<%=incrementalId %>" >
+	        <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+
+	        <span class="nameCheck">&check;</span>
+	        <span class="nameError">X</span>
+	        <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+	      </div>
+
+        <%
+      }else{
+        String noIdTxt = props.getProperty("noIdIn");
+        %>
+        <div class="namesection <%=researchProjId%>">
+          <span class="nameKey" data-oldkey="<%=researchProjId%>"><em><%=researchProjId%></em></span>
+          <input class="form-control name nameKey" name="nameKey" type="text" id="nameKey" value="<%= researchProjId%>" placeholder="<%= researchProjId%>" >
+          <span id="nameColon">:</span>
+
+          <span class="nameValue <%=researchProjId%>" data-oldvalue="<%=noIdTxt%>"><%=noIdTxt%></span>
+          <input class="form-control name nameValue" name="nameValue" type="text" id="nameValue" value="<%=noIdTxt%>" placeholder="<%=noIdTxt %>" >
+          <input class="btn btn-sm editFormBtn namebutton" type="submit" value="Update">
+
+          <span class="nameCheck">&check;</span>
+          <span class="nameError">X</span>
+          <input class="btn btn-sm editFormBtn deletename" type="submit" value="X">
+        </div>
+
+        <%
+      }
+    }
+  }
+
     // "add new name" Edit section
     %>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+
     <div class="newnameButton">
       <input id="newNameButton" class="btn btn-sm editFormBtn namebutton newname" type="submit" value="Add New Name">
     </div>
@@ -707,16 +770,9 @@ if (sharky.getNames() != null) {
       });
     });
   </script>
-
-
-
     <%
-
-
 }
             %></p>
-
-
             <%
             String sexValue="";
             if(sharky.getSex()!=null){sexValue=sharky.getSex();}
@@ -793,7 +849,7 @@ if (sharky.getNames() != null) {
             <%
               }
               %>
-
+                </div>
         </div>
 
         <div class="col-sm-6">
@@ -814,7 +870,7 @@ if (sharky.getNames() != null) {
             //if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
 
             %>
-            <p class="noEditText"><%=props.getProperty("birthdate")  %> <span id="displayBirth"><%=displayTimeOfBirth%></span></p>
+            <p class="noEditText"><%=props.getProperty("birthdate") %>: <span id="displayBirth"><%=displayTimeOfBirth%></span></p>
 
 
             <script type="text/javascript">
@@ -1074,14 +1130,14 @@ if (sharky.getNames() != null) {
       </strong><br/> <%=vl%>
       <%
       if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-        %>  
+        %>
         <font size="-1"><a
-          href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=id%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>  
+          href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=id%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
           <%
         }
         %>
       </p>
-      
+
       <%
     }
   }
@@ -1089,12 +1145,13 @@ if (sharky.getNames() != null) {
   <%-- Relationship Graphs --%>
   <div>
     <!-- begin social unit memberships-->
-    
+
     <p><strong><%=props.getProperty("socialUnitMemberships")%></strong></p>
     <input class="btn btn-sm" type="button" id="editSocialMembership" value="<%=props.getProperty("editSocialMembership") %>">
     <br/>
 
     <div id="allDisplayMemberships">
+    <br/>
     <%
       List<SocialUnit> units = myShepherd.getAllSocialUnitsForMarkedIndividual(sharky);
       String unitName = "";
@@ -1110,113 +1167,106 @@ if (sharky.getNames() != null) {
                 if (membership.getStartDate()!=null) {startDate=String.valueOf(membership.getStartDate());}
                 if (membership.getEndDate()!=null) {endDate=String.valueOf(membership.getEndDate());}
                 boolean hasData = (role!=null&&!"".equals(role));
-          
-      %>  
+
+      %>
 
         <!--display current social unit membership-->
-        <br/>
-        <div id="displayMembership" class="socialUnitEditForm">
+        <div id="displayMembership<%=unitName%>" class="socialUnitEditForm socialUnitMargin">
           <div class="form-group row" style="padding: 5px;">
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupName") %></strong></label>
-              <p id="socialGroupName"><a href="socialUnit.jsp?name=<%=unitName%>"><%=unitName%></a></p>
+              <p class="socialGroupName"><a href="socialUnit.jsp?name=<%=unitName%>"><%=unitName%></a></p>
             </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialRoleName") %></strong></label>
-              <p id="socialRoleName"><%=role%></p>
+              <p class="socialRoleName"><%=role%></p>
             </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>
-              <p id="socialGroupMembershipStart"><%=startDate%></p>
+              <p class="socialGroupMembershipStart"><%=startDate%></p>
             </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupMembershipEnd") %></strong></label>
-              <p id="socialGroupMembershipEnd"><%=endDate%></p>
+              <p class="socialGroupMembershipEnd"><%=endDate%></p>
             </div>
 
           </div>
         </div>
 
-        <!-- form to edit or create social unit membership -->
-        
         <%
       }
     }
     %>
 
-    <!-- this section is made visible only when a new membership is created-->
-    <br/>
-    <div id="displayNewMembership" class="socialUnitEditForm hidden newMembershipFromServer">
-      <div class="form-group row">
-
-        <div class="col-xs-3 col-sm-2">
-          <label><strong><%=props.getProperty("socialGroupName") %></strong></label>
-          <p id="socialGroupName"></p>
-        </div>
-
-        <div class="col-xs-3 col-sm-2">
-          <label><strong><%=props.getProperty("socialRoleName") %></strong></label>
-          <p id="socialRoleName"></p>
-        </div>
-
-        <div class="col-xs-3 col-sm-2">
-          <label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>
-          <p id="socialGroupMembershipStart"></p>
-        </div>
-
-        <div class="col-xs-3 col-sm-2">
-          <label><strong><%=props.getProperty("socialGroupMembershipEnd") %></strong></label>
-          <p id="socialGroupMembershipEnd"></p>
-        </div>
-
-      </div>
-    </div>
-
   </div>
 
-
-
+        <!-- form to edit or create social unit membership -->
         <br/>
-        <div id="editOrCreateMembership" class="hidden socialUnitEditForm">
-          <div class="form-group row">
+        <div id="editOrCreateMembership" class="hidden socialUnitEditForm socialUnitMargin">
+          <div class="form-group row" style="padding: 5px;">
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupName") %></strong></label>
-              <input id="socialGroupNameField" class="form-control" value="<%=unitName%>" type="text"></input>
-            </div>  
+
+              <!-- if unit name is empty, only display the 'new field. '-->
+
+              <select id="socialGroupNameSelect" name="socialGroupNameSelect" onchange="socialGroupNameSelectChanged(this)">
+                <option value="new" selected>CREATE NEW</option>
+                <%
+                System.out.println("How many social unit??? "+units.size());
+                if (units!=null&&units.size()>0) {
+                  for (SocialUnit formUnit : units) {
+                    System.out.println("THIS UNIT:  "+formUnit.getSocialUnitName());
+                    String formUnitName = "Unassigned";
+                    if (formUnit.getSocialUnitName()!=null&&!"".equals(formUnit.getSocialUnitName())) formUnitName = formUnit.getSocialUnitName();
+                    %>
+                      <option value="<%=formUnitName%>"><%=props.getProperty("editSocialUnit")%> <%=formUnitName%></option>
+                    <%
+                  }
+                }
+                %>
+              </select>
+
+              <div id="newSocialGroupNameInput">
+                <label><small>New Social Unit Name</small></label>
+                <!-- should show current selection, like other fields, or nothing for new -->
+                <br/>
+                <input id="socialGroupNameField" class="form-control" value="<%=unitName%>" type="text"></input>
+              </div>
+            </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialRoleName") %></strong></label>
               <input id="socialRoleNameField" class="form-control" value="<%=role%>"type="text"></input>
-            </div>  
+            </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>
               <input id="socialGroupMembershipStartField" class="form-control" value="<%=startDate%>" type="date"></input>
-            </div>  
+            </div>
 
             <div class="col-xs-3 col-sm-2">
               <label><strong><%=props.getProperty("socialGroupMembershipEnd") %></strong></label>
               <input id="socialGroupMembershipEndField" class="form-control" value="<%=endDate%>" type="date"></input>
-            </div>  
+            </div>
 
-            <!--feedback from edit/create servlet and response-->
-            
-          </div>  
-          <input class="btn btn-sm btn" type="button" name="button" id="submitSocialMembership" value="<%=props.getProperty("editCreate")%>">
-          
-          <input class="btn btn-sm btn" type="button" name="button" id="deleteSocialMembership" value="<%=props.getProperty("deleteMembership")%>">
-          <label id="membershipActionResponse" ></label>
+          </div>
+          <div style="padding: 5px;">
+            <input class="btn btn-sm btn" type="button" name="button" id="submitSocialMembership" value="<%=props.getProperty("editCreate")%>">
+
+            <input class="btn btn-sm btn" type="button" name="button" id="deleteSocialMembership" value="<%=props.getProperty("deleteMembership")%>">
+            <!--sucess/fail message from servlet-->
+            <label id="membershipActionResponse" ></label>
+          </div>
           </br>
         </div>
-        
-        <br/>
 
-      <%  
+
+      <%
       }
       %>
 
@@ -1362,7 +1412,6 @@ if (sharky.getNames() != null) {
         <script type="text/javascript">
           $(document).ready(function() {
 
-              console.log("clicked edit social...");
               $(document).on('click', "#editSocialMembership",function(e) {
                   e.preventDefault();
                   console.log("CLICK!");
@@ -1371,19 +1420,16 @@ if (sharky.getNames() != null) {
               });
 
               $(document).on('click', "#submitSocialMembership",function(e) {
-                  console.log("clicked change/create social relationship...");
                   e.preventDefault();
                   console.log("CLICK SUBMIT social group!");
                   createOrEditMembership();
               });
 
               $(document).on('click', "#deleteSocialMembership",function(e) {
-                  console.log("clicked delete social relationship...");
                   e.preventDefault();
                   console.log("CLICK SUBMIT delete membership!");
                   deleteMembership();
                   clearSocialUnitMembershipFields();
-                  toggleEditSocialGroup();
               });
           });
 
@@ -1392,9 +1438,14 @@ if (sharky.getNames() != null) {
               var membershipJSON = {};
 
               let id = "<%=sharky.getIndividualID()%>";
-              console.log("create/edit membership for this ID: "+id);
               membershipJSON["miId"] = id;
-              membershipJSON["groupName"] = $("#socialGroupNameField").val();
+
+              if ($("#socialGroupNameSelect").val()=="new") {
+                membershipJSON["groupName"] = $("#socialGroupNameField").val();
+              } else {
+                membershipJSON["groupName"] = $("#socialGroupNameSelect").val();
+              }
+
               membershipJSON["roleName"] = $("#socialRoleNameField").val();
 
               if ($("#socialGroupMembershipStartField").val()) {
@@ -1407,87 +1458,145 @@ if (sharky.getNames() != null) {
                   membershipJSON["endDate"] = endDate;
               }
 
-              $.ajax({
-                  url: 'MembershipCreate',
-                  type: 'POST',
-                  dataType: 'json',
-                  contentType: 'application/javascript',
-                  data: JSON.stringify(membershipJSON),
-                
-                  success: function(d) {
-                      console.info('Success! Got back '+JSON.stringify(d));
-                      $("#membershipActionResponse").text("Success!");
+              if (membershipJSON["groupName"].length>0) {
+                $.ajax({
+                    url: 'MembershipCreate',
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/javascript',
+                    data: JSON.stringify(membershipJSON),
 
-                      updateSocialUnitMembershipFields(d);
-                  },
-                  error: function(x,y,z) {
-                      console.log("---> Err from MembershipCreate ajax");
-                      $("#membershipActionResponse").text("An error has occurred.");
-                      console.warn('%o %o %o', x, y, z);
-                  }
-              });
+                    success: function(d) {
+                        console.info('Success! Got back '+JSON.stringify(d));
+                        $("#membershipActionResponse").text("Success!");
+                        clearSocialUnitMembershipFields()
+                        updateSocialUnitMembershipFields(d);
+                    },
+                    error: function(x,y,z) {
+                        $("#membershipActionResponse").text("An error has occurred.");
+                        console.warn('%o %o %o', x, y, z);
+                    }
+                });
+              } else {
+                $("#membershipActionResponse").text("Valid Social Group name required.");
+              }
           }
 
         function deleteMembership() {
-            
+
             var membershipDeleteJSON = {};
 
             let id = "<%=sharky.getIndividualID()%>";
-            console.log("deleting membership for this id: "+id);
             membershipDeleteJSON["miId"] = id;
-            membershipDeleteJSON["groupName"] = $("#socialGroupNameField").val();
+
+            if ($("#socialGroupNameSelect").val()=="new") {
+              membershipDeleteJSON["groupName"] = $("#socialGroupNameField").val();
+            } else {
+              membershipDeleteJSON["groupName"] = $("#socialGroupNameSelect").val();
+            }
 
             console.warn("Sending to delete???? -------> "+JSON.stringify(membershipDeleteJSON))
 
-            $.ajax({
-                url: 'MembershipDelete',
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/javascript',
-                data: JSON.stringify(membershipDeleteJSON),
-              
-                success: function(d) {
-                    console.info('Success! Got back '+JSON.stringify(d));
-                    $("#membershipActionResponse").text("Success in DeleteMembership!");
-                    $("#displayMembership").remove();
-                },
-                //error: function(x,y,z) {
-                  error: function(d) {
-                    console.log("---> Err from MembershipDelete ajax");
-                    $("#membershipActionResponse").text("An error has occurred in DeleteMembership.");
-                    console.warn(JSON.stringify(d));
-                }
-            });
+            if (membershipDeleteJSON["groupName"].length>0) {
+              $.ajax({
+                  url: 'MembershipDelete',
+                  type: 'POST',
+                  dataType: 'json',
+                  contentType: 'application/javascript',
+                  data: JSON.stringify(membershipDeleteJSON),
+
+                  success: function(d) {
+                      console.info('Success! Got back '+JSON.stringify(d));
+                      $("#membershipActionResponse").text("Success in DeleteMembership!");
+
+                      // on success remove select option, and display div. leave edit form open
+                      console.log("cleaning up elements for group membership with "+d.groupName);
+                      $("#displayMembership"+d.groupName).remove();
+                      $("#socialGroupNameSelect option[value='"+d.groupName+"']").remove();
+
+                      //cheat a bit to reuse the method
+                      let nameSelect = {};
+                      nameSelect.value = "new";
+                      socialGroupNameSelectChanged(nameSelect);
+
+                  },
+                  //error: function(x,y,z) {
+                    error: function(d) {
+                      console.log("---> Err from MembershipDelete ajax");
+                      $("#membershipActionResponse").text("An error has occurred in DeleteMembership.");
+                      console.warn(JSON.stringify(d));
+                  }
+              });
+            }
         }
 
         function updateSocialUnitMembershipFields(json) {
 
           console.log("Yet again,,,,, the JSON: "+JSON.stringify(json));
 
-          var role = json["role"];
-          var groupName = json["groupName"];
-          var startDate = json["startDate"];
-          var endDate = json["endDate"];
+          let role = json["role"];
+          if (typeof role == 'undefined') role = "";
+          let groupName = json["groupName"];
+          if (typeof groupName == 'undefined') groupName = "";
+          let startDate = json["startDate"];
+          if (typeof startDate == 'undefined') startDate = "";
+          let endDate = json["endDate"];
+          if (typeof endDate == 'undefined') endDate = "";
 
-          if ($("#allDisplayMemberships","#displayMembership").length < 1) {
-            let dnm = $("#displayNewMembership");
-            dnm.removeClass("hidden");
-            dnm.attr("id", 'displayMembership');
+          console.log("typeof endDate: "+(typeof endDate));
+
+          if (json.isNewSocialUnit==false) {
+            // look for existing div with SU name
+            console.log("looking for this social unit div to modify: displayMembership"+json.groupName);
+            //$("#displayMembership"+json.groupName+" .socialGroupName").css("background-color", "red");
+            $("#displayMembership"+json.groupName+" .socialGroupNameField").text(groupName);
+            $("#displayMembership"+json.groupName+" .socialGroupName").html('<p class="socialGroupName"><a href="socialUnit.jsp?name='+groupName+'">'+groupName+'</a>');
+
+            $("#displayMembership"+json.groupName+" .socialRoleNameField").text(role);
+            $("#displayMembership"+json.groupName+" .socialRoleName").text(role);
+            $("#displayMembership"+json.groupName+" .socialGroupMembershipStart").text(startDate);
+            $("#displayMembership"+json.groupName+" .socialGroupMembershipStartField").text(startDate);
+            $("#displayMembership"+json.groupName+" .socialGroupMembershipEnd").text(endDate);
+            $("#displayMembership"+json.groupName+" .socialGroupMembershipEndField").text(endDate);
+          } else {
+            //generate and append div for new social unit
+            console.log("appending div for new social unit: "+json.groupName);
+
+            $('#socialGroupNameSelect').append('<option value="'+json.groupName+'">edit: '+json.groupName+'</option>');
+
+            let newMembershipDiv = "";
+            //newMembershipDiv+= '<br/>';
+            newMembershipDiv+= '<div id="displayMembership'+json.groupName+'" class="socialUnitEditForm newMembershipFromServer socialUnitMargin">';
+            newMembershipDiv+=   '<div class="form-group row" style="padding: 5px;">';
+
+            newMembershipDiv+=     '<div class="col-xs-3 col-sm-2">';
+            newMembershipDiv+=        '<label><strong><%=props.getProperty("socialGroupName") %></strong></label>';
+            newMembershipDiv+=        '<p class="socialGroupName"><a href="socialUnit.jsp?name='+groupName+'">'+groupName+'</a></p>';
+            newMembershipDiv+=    '</div>';
+
+            newMembershipDiv+=    '<div class="col-xs-3 col-sm-2">';
+            newMembershipDiv+=      '<label><strong><%=props.getProperty("socialRoleName") %></strong></label>';
+            newMembershipDiv+=      '<p class="socialRoleName">'+role+'</p>';
+            newMembershipDiv+=    '</div>';
+
+            newMembershipDiv+=    '<div class="col-xs-3 col-sm-2">';
+            newMembershipDiv+=      '<label><strong><%=props.getProperty("socialGroupMembershipStart") %></strong></label>';
+            newMembershipDiv+=      '<p class="socialGroupMembershipStart">'+startDate+'</p>';
+            newMembershipDiv+=    '</div>';
+
+            newMembershipDiv+=    '<div class="col-xs-3 col-sm-2">';
+            newMembershipDiv+=      '<label><strong><%=props.getProperty("socialGroupMembershipEnd") %></strong></label>';
+            newMembershipDiv+=      '<p class="socialGroupMembershipEnd">'+endDate+'</p>';
+            newMembershipDiv+=    '</div>';
+            newMembershipDiv+=  '</div>';
+            newMembershipDiv+= '</div>';
+
+            //if (!$("#allDisplayMemberships").last().is("br")) {
+            //  $("#allDisplayMemberships").append('<br/>');
+            //}
+            $("#allDisplayMemberships").append(newMembershipDiv);
+
           }
-
-          $("#socialGroupName").css("background-color", "red");
-
-          $("#socialGroupNameField").text(groupName);
-          $("#socialGroupName").text(groupName);
-
-          $("#socialRoleNameField").text(role);
-          $("#socialRoleName").text(role);
-
-          $("#socialGroupMembershipStart").text(startDate);
-          $("#socialGroupMembershipStartField").text(startDate);
-
-          $("#socialGroupMembershipEnd").text(endDate);
-          $("#socialGroupMembershipEndField").text(endDate);
         }
 
         function clearSocialUnitMembershipFields() {
@@ -1495,23 +1604,39 @@ if (sharky.getNames() != null) {
           $("#socialRoleNameField").val("");
           $("#socialGroupMembershipStartField").val("");
           $("#socialGroupMembershipEndField").val("");
-          $("#socialGroupName").empty();
-          $("#socialRoleName").empty();
-          $("#socialGroupMembershipStart").empty();
-          $("#socialGroupMembershipEnd").empty(); 
+        }
+
+        function socialGroupNameSelectChanged(nameSelect) {
+          $("#membershipActionResponse").empty();
+          console.log("changed social unit name selection in form to "+nameSelect.value);
+          clearSocialUnitMembershipFields();
+          if (nameSelect.value==="new") {
+            $("#newSocialGroupNameInput").show();
+            console.log("hiding delete button?");
+            $("#deleteSocialMembership").hide();
+          } else {
+            // auto fill other fields
+            $("#socialRoleNameField").val($("#displayMembership"+nameSelect.value+" .socialRoleName").html());
+            $("#socialGroupMembershipStartField").val($("#displayMembership"+nameSelect.value+" .socialGroupMembershipStart").html());
+            $("#socialGroupMembershipEndField").val($("#displayMembership"+nameSelect.value+" .socialGroupMembershipEnd").html());
+
+            $("#newSocialGroupNameInput").val("")
+            $("#newSocialGroupNameInput").hide();
+            console.log("showing delete button?");
+            $("#deleteSocialMembership").show();
+          }
         }
 
         function toggleEditSocialGroup() {
-            console.log("in method... ");
+            $("#membershipActionResponse").text();
+            $("select option[value='new']").prop("selected",true);
+            $("#newSocialGroupNameInput").show();
+            $("#deleteSocialMembership").hide();
+            clearSocialUnitMembershipFields();
             if ($("#editOrCreateMembership").hasClass("hidden")) {
-                console.log("============= editOrCreateMembership hasClass shown... ");
                 $("#editOrCreateMembership").removeClass("hidden");
-                $("#displayMembership").addClass("hidden");
-            //} else if (!$("#editOrCreateMembership").hasClass("hidden")) {
             } else {
-              console.log("============= !editOrCreateMembership hasClass hidden... ");
                 $("#editOrCreateMembership").addClass("hidden");
-                $("#displayMembership").removeClass("hidden");
             }
         }
 
@@ -1545,7 +1670,9 @@ if (sharky.getNames() != null) {
               var persistenceID = "";
               var relationshipID = $("#inputPersistenceID").val();
               if ((relationshipID != null) && (relationshipID != "")) {
-                  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                  //persistenceID = relationshipID;
+            	  persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                  
               }
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
@@ -1902,6 +2029,8 @@ if (sharky.getNames() != null) {
               $(document).on('click', '.editRelationshipBtn', function (event) {
                 $("#setRelationshipResultDiv").hide();
                 var relationshipID = event.target.value;
+                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                
                 getRelationshipData(relationshipID);
 		$("#inputPersistenceID").val(relationshipID);
 		$("#individual1").val("<%=individualID%>");
@@ -1931,7 +2060,7 @@ if (sharky.getNames() != null) {
                 });
 
                 var relationshipID = ($(this).attr("value"));
-                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                var persistenceID = persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
                 var deletedMarkedIndividualName1 = "<%=individualID%>";
                 $("div[value='" + relationshipID + "']").hide();
                 $("#remove" + relationshipID).show();
@@ -1974,25 +2103,25 @@ if (sharky.getNames() != null) {
 	<p><strong><%=props.getProperty("cooccurrence")%></strong></p>
 	<script type="text/javascript">
         <% String occurrenceIndividualID = sharky.getIndividualID();%>
-        <% 
-        
-        
-        
+        <%
+
+
+
         String individualGenus = sharky.getGenus();
 		String individualEpithet = sharky.getSpecificEpithet();
 		if(individualGenus == null || individualEpithet==null){
 			if(sharky.getGenusSpeciesDeep()!=null){
-				
+
 				StringTokenizer str=new StringTokenizer(sharky.getGenusSpeciesDeep()," ");
 				if(str.hasMoreTokens()){individualGenus=str.nextToken();}
 				if(str.hasMoreTokens()){individualEpithet=str.nextToken();}
 			}
 		}
-	
+
 		%>
 
         $(document).ready(function() {
-          getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName() %>");
+          getData("<%=occurrenceIndividualID%>", "<%=sharky.getDisplayName(request, myShepherd) %>");
         });
         </script>
 
@@ -2062,11 +2191,11 @@ if (sharky.getNames() != null) {
 	  	<input type="range" min=0 class="graphSlider" id="nodeCount">
       	      </div>
               <div class="coOccurrenceSliderWrapper">
-	        <label for="temporal">Temporal Threshold (Minutes) - <span class="sliderLabel" id="temporalVal"></span></label>
+	        <label for="temporal">Temporal Threshold (Hours) - <span class="sliderLabel" id="temporalVal"></span></label>
 	  	<input type="range" min=0 class="graphSlider" id="temporal">
       	      </div>
       	      <div class="coOccurrenceSliderWrapper">
-	        <label for="spatial">Spatial Threshold (Milli-Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
+	        <label for="spatial">Spatial Threshold (Degrees) - <span class="sliderLabel" id="spatialVal"></span></label>
 		<input type="range" min=0 class="graphSlider" id="spatial">
       	      </div>
     	    </div>
@@ -2202,7 +2331,7 @@ if (sharky.getNames() != null) {
                   for(int userNum=0;userNum<numUsers;userNum++){
                     User thisUser=relatedUsers.get(userNum);
                     String username=thisUser.getUsername();
-                    String profilePhotoURL="images/empty_profile.jpg";
+                    String profilePhotoURL="images/user-profile-grey-grey.png";
                     if(thisUser.getUserImage()!=null){
                       profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
                     }
@@ -2342,6 +2471,7 @@ if (sharky.getNames() != null) {
    $( window ).resize(function(){
      cropDesktopPics(maxHeight);
    });
+
    </script>
 
 
@@ -2387,6 +2517,6 @@ String pswipedir = urlLoc+"/photoswipe";
 <%-- Import Footer --%>
 <jsp:include page="footer.jsp" flush="true"/>
 
-<% 
+<%
   } //end if ! ?number=
 %>

@@ -14,13 +14,14 @@
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
+         org.ecocean.servlet.importer.ImportTask,
          org.ecocean.tag.*, java.awt.Dimension,
          org.json.JSONObject,
          org.json.JSONArray,
          javax.jdo.Extent, javax.jdo.Query,
-         java.io.File, java.text.DecimalFormat, 
+         java.io.File, java.text.DecimalFormat,
          org.ecocean.servlet.importer.ImportTask,
-         org.apache.commons.lang.StringEscapeUtils,
+         org.apache.commons.lang3.StringEscapeUtils,
          java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -187,7 +188,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   <style type="text/css">
-
 .id-action {
     display: none;
 }
@@ -743,7 +743,7 @@ $(function() {
 
 				String individuo="<a id=\"topid\">"+encprops.getProperty("unassigned")+"</a>";
 				if(enc.hasMarkedIndividual() && enc.getIndividual()!=null) {
-          		String dispName = enc.getIndividual().getDisplayName(request);
+          		String dispName = enc.getIndividual().getDisplayName(request, myShepherd);
 					individuo=encprops.getProperty("of")+"&nbsp;<a id=\"topid\" href=\"../individuals.jsp?id="+enc.getIndividualID()+"\">" + dispName + "</a>";
 				}
     			%>
@@ -841,8 +841,6 @@ if(enc.getLocation()!=null){
 
 <br>
 
-<a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
 <em><%=encprops.getProperty("locationID") %></em>
 <span>
 	<span id="displayLocationID">
@@ -857,6 +855,7 @@ if(enc.getLocation()!=null){
 		if(q==0){displayPath+=LocationID.getNameForLocationID(hier.get(q),null);}
 		else{displayPath+=" &rarr; "+LocationID.getNameForLocationID(hier.get(q),null);}
 	}
+        if (!Util.stringExists(displayPath) && Util.stringExists(enc.getLocationID())) displayPath = enc.getLocationID();
 	%>
 		<%=displayPath %>
 	</span>
@@ -865,8 +864,6 @@ if(enc.getLocation()!=null){
 <br>
 
 
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>country" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
   <em><%=encprops.getProperty("country") %></em>
   <%
   if(enc.getCountry()!=null){
@@ -1498,8 +1495,9 @@ if(enc.getLocation()!=null){
     								 String hrefVal="";
     								 String indyDisplayName="";
     								 if(enc.hasMarkedIndividual()){
-    									hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
-    									indyDisplayName=enc.getDisplayName();
+                      hrefVal="../individuals.jsp?langCode="+langCode+"&number="+enc.getIndividualID();
+                      
+    									indyDisplayName=enc.getIndividual().getDisplayName(request, myShepherd);
     								 }
                      				%>
                      					<a href="<%=hrefVal %>">
@@ -1630,7 +1628,12 @@ console.info('resetIdButtons()');
                         var number = $("#individualAddEncounterNumber").val();
                         var individual = $("#individualAddEncounterInput").val() || $("#individualNewAddEncounterInput").val();
                         var matchType = $("#matchType").val();
-                        var noemail = $( "input:checkbox:checked" ).val();
+
+                        var noemail = false;
+                        if ($("#noEmailCheckbox").is(":checked")) {
+                          noemail = true;
+                        }
+
                         var action = $("#individualAddEncounterAction").val();
                         var sendData = {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action, "forceNew": forceNew};
                         console.info('sendData=%o', sendData);
@@ -1748,7 +1751,7 @@ console.info('resetIdButtons()');
                       </div>
                       <div class="form-group row">
                         <div class="col-sm-5 col-xs-10">
-                          <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
+                          <label><input id="noEmailCheckbox" name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
                         </div>
                       </div>
                       </form>
@@ -2746,7 +2749,7 @@ else {
                                 			<%
 
                          					User thisUser=myShepherd.getUser(username);
-                                			String profilePhotoURL="../images/empty_profile.jpg";
+                                			String profilePhotoURL="../images/user-profile-grey-grey.png";
 
                          					if(thisUser.getUserImage()!=null){
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
@@ -2769,7 +2772,7 @@ else {
 					                        </div>
 					                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
 					                          <%-- <p> --%>
-					
+
 					                        <%
 					                        if(thisUser.getAffiliation()!=null){
 					                        %>
@@ -2777,34 +2780,36 @@ else {
 					                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
 					                        <%
 					                        }
-					
+
 					                        if(thisUser.getUserProject()!=null){
 					                        %>
 					                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
 					                        <%
 					                        }
-					
+
 					                        if(thisUser.getUserURL()!=null){
 					                            %>
 					                            <p><a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=encprops.getProperty("webSite") %></a></p>
 					                            <%
 					                          }
-					
+
 					                        if(thisUser.getUserStatement()!=null){
 					                            %>
 					                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
 					                            <%
 					                          }
+
 					                        %>
+                                  </div>
 					                        </div>
 					                      </div>
-					
+
 					                  </div>
-					
+
 					<%
 					                         	}
-					
-					
+
+
 					                      	else{
 					                      	%>
 					                      	&nbsp;
@@ -2812,6 +2817,25 @@ else {
 					                      	}
 
                       	}
+                        List<Project> projects = myShepherd.getProjectsForEncounter(enc);
+                        MarkedIndividual indie = myShepherd.getMarkedIndividual(enc);
+                        if(projects!=null && projects.size()>0){
+                          %>
+                            <div id="project-ids">
+                              <p><strong><%=encprops.getProperty("projects") %></strong></p>
+                          <%
+                          for(int i=0; i< projects.size(); i++){
+                            if(indie != null && indie.getName(projects.get(i).getProjectIdPrefix()) != null){
+                              %>
+                              <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= indie.getName(projects.get(i).getProjectIdPrefix())%></p>
+                              <%
+                            }else{
+                              %>
+                                <p><em><%= projects.get(i).getResearchProjectName()%></em> : <%= encprops.getProperty("noIdIn")%></p>
+                              <%
+                            }
+                          }
+                        }
                          				//insert here
 %>
 
@@ -2907,8 +2931,6 @@ if (isOwner) {
         %>
         <label>TapirLink:</label>&nbsp;
         <input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="tapirApprove" value="<%=encprops.getProperty("change")%>"/>
-        &nbsp;
-        <a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
       </form>
     </div>
 
@@ -4665,14 +4687,6 @@ if(isOwner){
       numDynProps++;
 %>
 <p class="para"> <em><%=nm%></em>: <%=vl%>
-  <%
-  %>
-
-  <%
-  %>
-
-  <%
-%>
 <!-- start dynamic form -->
 <div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" class="editFormDynamic">
   <p class="editTextDynamic"><strong><%=encprops.getProperty("set")%> <%=nm %></strong></p>
@@ -4685,11 +4699,14 @@ if(isOwner){
             <div class="col-sm-3">
               <label><%=encprops.getProperty("propertyValue")%>:</label>
             </div>
-            <div class="col-sm-5">
+            <div class="col-sm-3">
               <input name="value" type="text" class="form-control" id="dynInput" value="<%=vl %>"/>
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-3">
               <input name="Set" type="submit" id="dynEdit" value="<%=encprops.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn"/>
+              <span class="glyphicon glyphicon-remove remove-ob-x" onclick="removeDynamicProperty('<%=nm%>')" title="remove dynamic property"></span>
+            </div>
+            <div class="col-sm-3">
             </div>
           </div>
         </form>
@@ -4832,6 +4849,31 @@ button#upload-button {
 
 <script>
 
+  function removeDynamicProperty(dPropKey) {
+
+    let removeDPJSON = {};
+    removeDPJSON['encId'] = '<%=num%>';
+    removeDPJSON['dPropKey'] = dPropKey;
+
+    $.ajax({
+        url: '../RemoveDynamicProperty',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        data: JSON.stringify(removeDPJSON),
+
+        success: function(d) {
+          $("#dialogDP"+dPropKey).remove();
+        },
+          error: function(d) {
+            console.log("---> Err from RemoveDynamicProperty ajax");
+            console.warn(JSON.stringify(d));
+        }
+    });
+
+  }
+
+
   var keyToFilename = {};
   var filenames = [];
   var pendingUpload = -1;
@@ -4963,7 +5005,8 @@ button#upload-button {
                {"filename": filenames[0] }
               ]
             }
-          ]
+          ],
+          "taxonomy":"<%=enc.getTaxonomyString() %>"
         }),
         success: function(d) {
           console.info('Success! Got back '+JSON.stringify(d));
@@ -5054,7 +5097,7 @@ if(loggedIn){
     <strong><%=encprops.getProperty("tissueSamples") %></strong>
 </p>
     <p class="para">
-    	<a class="addBioSample toggleBtn" class="launchPopup"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a class="addBioSample toggleBtn" class="launchPopup"><%=encprops.getProperty("addTissueSample") %></a>
+    	<a class="addBioSample toggleBtn" class="launchPopup toggleBtn"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a class="addBioSample toggleBtn" class="launchPopup"><%=encprops.getProperty("addTissueSample") %></a>
     </p>
 
 <%
@@ -5435,7 +5478,7 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
 				%>
 				</span></td>
         <td style="border-style: none;">
-          <a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
+          <a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup toggleBtn"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
         </a>
 
 				<%
@@ -5453,32 +5496,51 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
 
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-<tr>
-  <td>
+  <tr>
+    <td>
 
-      <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
-      <%
-      SexAnalysis mtDNA=mito;
-      String analysisIDString=mtDNA.getAnalysisID();
-      %>
-      </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
-      </td></tr>
-      <tr><td>
-      <%
-      String haplotypeString="";
-      try{
-      	if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
-      }
-      catch(NullPointerException npe34){}
-      %>
-      <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
-      </td><td><input name="sex" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" />
-		</td></tr>
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+        <%
+        SexAnalysis mtDNA=new SexAnalysis();
+        String analysisIDString="";
+        if (mito.getAnalysisID()!=null) analysisIDString = mito.getAnalysisID();
+        %>
+        </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+        </td></tr>
+        <tr><td>
+        <%
+        String haplotypeString="";
+
+        try{
+          if(mito.getSex()!=null){haplotypeString=mito.getSex();}
+        } catch (NullPointerException npe34){}
+
+        ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
+
+        if (sexDefs!=null&&haplotypeString!=null) {
+          System.out.println("haplotypeString??? "+haplotypeString);
+          System.out.println("sexDefs:  "+Arrays.toString(sexDefs.toArray()));
+          sexDefs.remove(haplotypeString);
+        }
+        %>
+        <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
+        </td><td>
+          <select name="sex" id="geneticSexSelect">
+            <option value="<%=haplotypeString%>" selected><%=haplotypeString%></option>
+            <%
+            for (String sexDef : sexDefs) {
+            %>
+              <option value="<%=sexDef%>"><%=sexDef%></option>
+            <%
+            }
+            %>
+          </select>
+        </td></tr>
 
 		<tr><td>
 		 <%
       String processingLabTaskID="";
-      if(mtDNA.getProcessingLabTaskID()!=null){processingLabTaskID=mtDNA.getProcessingLabTaskID();}
+      if(mito.getProcessingLabTaskID()!=null){processingLabTaskID=mito.getProcessingLabTaskID();}
       %>
       <%=encprops.getProperty("processingLabTaskID")%><br />
       </td><td><input name="processingLabTaskID" type="text" size="20" maxlength="100" value="<%=processingLabTaskID %>" />
@@ -5487,7 +5549,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
 		 <%
       String processingLabName="";
-      if(mtDNA.getProcessingLabName()!=null){processingLabName=mtDNA.getProcessingLabName();}
+      if(mito.getProcessingLabName()!=null){processingLabName=mito.getProcessingLabName();}
       %>
       <%=encprops.getProperty("processingLabName")%><br />
       </td><td><input name="processingLabName type="text" size="20" maxlength="100" value="<%=processingLabName %>" />
@@ -5496,7 +5558,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
  		 <%
       String processingLabContactName="";
-      if(mtDNA.getProcessingLabContactName()!=null){processingLabContactName=mtDNA.getProcessingLabContactName();}
+      if(mito.getProcessingLabContactName()!=null){processingLabContactName=mito.getProcessingLabContactName();}
       %>
       <%=encprops.getProperty("processingLabContactName")%><br />
       </td><td><input name="processingLabContactName type="text" size="20" maxlength="100" value="<%=processingLabContactName %>" />
@@ -5505,7 +5567,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		<tr><td>
  		 <%
       String processingLabContactDetails="";
-      if(mtDNA.getProcessingLabContactDetails()!=null){processingLabContactDetails=mtDNA.getProcessingLabContactDetails();}
+      if(mito.getProcessingLabContactDetails()!=null){processingLabContactDetails=mito.getProcessingLabContactDetails();}
       %>
       <%=encprops.getProperty("processingLabContactDetails")%><br />
       </td><td><input name="processingLabContactDetails type="text" size="20" maxlength="100" value="<%=processingLabContactDetails %>" />
@@ -5538,7 +5600,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 			<tr>
 				<td style="border-style: none;">
 					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span>
-					<a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+					<a class="launchPopup toggleBtn" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 
         <a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>">
         <img style="border-style: none;width: 20px;height: 20px;" src="../images/cancel.gif" />
@@ -5718,7 +5780,7 @@ var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a class="launchPopup" id="setBioMeasure<%=thisSample.getSampleID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				</span></td><td style="border-style: none;"><a class="launchPopup toggleBtn" id="setBioMeasure<%=thisSample.getSampleID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 
 						<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -6180,27 +6242,47 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
 
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-<tr>
-  <td>
+  <tr>
+    <td>
 
-      <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
-      <%
-      SexAnalysis mtDNA=new SexAnalysis();
-      String analysisIDString="";
-      %>
-      </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
-      </td></tr>
-      <tr><td>
-      <%
-      String haplotypeString="";
-      try{
-      	if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
-      }
-      catch(NullPointerException npe34){}
-      %>
-      <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
-      </td><td><input name="sex" type="text" size="20" maxlength="100" value="<%=haplotypeString %>" />
-		</td></tr>
+        <%=encprops.getProperty("analysisID")%> (<%=encprops.getProperty("required")%>)<br />
+        <%
+        SexAnalysis mtDNA=new SexAnalysis();
+        String analysisIDString="";
+        %>
+        </td><td><input name="analysisID" type="text" size="20" maxlength="100" value="<%=analysisIDString %>" /><br />
+        </td></tr>
+        <tr><td>
+        <%
+        String haplotypeString="";
+
+        try{
+          if(mtDNA.getSex()!=null){haplotypeString=mtDNA.getSex();}
+        } catch (NullPointerException npe34){}
+
+        ArrayList<String> sexDefs = CommonConfiguration.getSequentialPropertyValues("sex", context);
+
+        if (sexDefs!=null&&haplotypeString!=null&&sexDefs.contains(haplotypeString)) {
+          sexDefs.remove(haplotypeString);
+        }
+        %>
+        <%=encprops.getProperty("geneticSex")%> (<%=encprops.getProperty("required")%>)<br />
+        </td><td>
+          <select name="sex" id="geneticSexSelect">
+            <%
+            if (sexDefs!=null&&haplotypeString!=null&&sexDefs.contains(haplotypeString)) {
+              %>
+              <option value="<%=haplotypeString%>" selected><%=haplotypeString%></option>
+              <%
+            }
+            for (String sexDef : sexDefs) {
+            %>
+              <option value="<%=sexDef%>"><%=sexDef%></option>
+            <%
+            }
+            %>
+          </select>
+        </td></tr>
 
 		<tr><td>
 		 <%
@@ -6512,34 +6594,34 @@ function iaMatchFilterGo() {
 
 
 		<%
-		Properties iaprops = ShepherdProperties.getProperties("IA.properties", "", context);
+    IAJsonProperties iaConfig = IAJsonProperties.iaConfig();
+    Taxonomy taxy = enc.getTaxonomy(myShepherd);
 
-		String IBEISIdentOptRoot="IBEISIdentOpt";
-		if(enc.getGenus()!=null && enc.getSpecificEpithet()!=null){
-			String speciesIBEISIdentOptRoot=IBEISIdentOptRoot+"_"+enc.getGenus()+"_"+enc.getSpecificEpithet();
-			if(iaprops.getProperty(speciesIBEISIdentOptRoot+"0")!=null){
-				IBEISIdentOptRoot=speciesIBEISIdentOptRoot;
-				System.out.println("Setting IBEISIdentOptRoot in matching dialog to: "+IBEISIdentOptRoot);
-			}
-		}
-		int rootIter=0;
-		while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-			String val="HotSpotter";
-			String queryDict="";
-			try {
-			     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
-				%>
-				optArray.push(<%=jsonObject.toString()  %>);
-				<%
-			}
-			catch (Exception err){
-			     err.printStackTrace();
-			     val="HotSpotter";
-			}
+Map<String,JSONObject> identConfigs = new HashMap<String,JSONObject>();
+for (String iaClass : iaConfig.getValidIAClasses(taxy)) {
+    for (JSONObject idOpt: iaConfig.identOpts(taxy, iaClass)) {
+        String key = idOpt.toString();
+        if (identConfigs.containsKey(key)) {
+            identConfigs.get(key).getJSONArray("_iaClasses").put(iaClass);
+        } else {
+            JSONArray iac = new JSONArray();
+            iac.put(iaClass);
+            idOpt.put("_iaClasses", iac);
+            identConfigs.put(key, idOpt);
+        }
+    }
+}
 
-			rootIter++;
-		}
-		%>
+//we need to keep this in the same order so we can get values out in the same way
+List<JSONObject> identConfigsValues = new ArrayList<JSONObject>();
+for (JSONObject val : identConfigs.values()) {
+    identConfigsValues.add(val);
+    //now we add this js line to add it in same order:
+%>
+        optArray.push(<%=val.toString()%>);
+<%
+}
+%>
 
 $('.ia-match-filter-dialog input').each(function(i, el) {
         if ((el.type != 'checkbox') || !el.checked) return;
@@ -6552,13 +6634,14 @@ $('.ia-match-filter-dialog input').each(function(i, el) {
         else{
         	data.taskParameters.matchingSetFilter[key].push(el.defaultValue);
         }
-        
+
     });
 console.log('SENDING ===> %o', data);
     wildbook.IA.getPluginByType('IBEIS').restCall(data, function(xhr, textStatus) {
 console.log('RETURNED ========> %o %o', textStatus, xhr.responseJSON.taskId);
         wildbook.openInTab('../iaResults.jsp?taskId=' + xhr.responseJSON.taskId);
     });
+    iaMatchFilterAnnotationIds = [];  //clear it out in case user sends again from this page
     //TODO uncheck everything????
     $('.ia-match-filter-dialog').hide();
 }
@@ -6717,45 +6800,29 @@ $(".search-collapse-header").click(function(){
     </div>
 -->
 
-<%
+  <div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
+  <%
 
-rootIter=0;
-while(iaprops.getProperty(IBEISIdentOptRoot+rootIter)!=null){
-	
-	if(rootIter==0){
-		%>
-		<div class="ia-match-filter-title"><%=encprops.getProperty("chooseAlgorithm")%></div>
-		
-		<%
-	}
-	
-	
-	String val="HotSpotter";
-	String queryDict="";
-	try {
-	     JSONObject jsonObject = new JSONObject(iaprops.getProperty(IBEISIdentOptRoot+rootIter));
-	     queryDict=jsonObject.toString();
+int algNum = 0;
+for (JSONObject algConfig : identConfigsValues) {
+  //JSONObject algConfig = identConfigs.getJSONObject(algNum);
+  JSONObject queryConfigDict = algConfig.optJSONObject("query_config_dict");
 
-	     if(iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter)!=null){
-	    	 val=iaprops.getProperty(IBEISIdentOptRoot+"Description"+rootIter);
-	     }
-	     else{
-	     	val=(new JSONObject(jsonObject.getJSONObject("queryConfigDict").toString())).optString("pipeline_root");
-	     }
-	}
-	catch (Exception err){
-	     err.printStackTrace();
-	     val="HotSpotter";
-	}
-	if(val==null || val.trim().equals("")){
-		val="HotSpotter";
-	}
+  boolean enabled = algConfig.optBoolean("default", true);
+  String description = algConfig.optString("description");
+  if (!Util.stringExists(description) && queryConfigDict!=null) {
+    description = queryConfigDict.optString("pipeline_root");
+  }
+  if (!Util.stringExists(description)) description = "HotSpotter pattern matcher";
 
-	out.println("<div class=\"item item-checked\"><input id=\"mfalgo-" + rootIter + "\" name=\"match-filter-algorithm\" value=\"" + rootIter+ "\" type=\"checkbox\"" + "checked" + " /><label for=\"mfa-" + rootIter + "\">" + val + " </label></div>");
+  String forClasses = "";
+  for (int i = 0 ; i < algConfig.getJSONArray("_iaClasses").length() ; i++) {
+    forClasses += " mfalgo-iaclass-" + algConfig.getJSONArray("_iaClasses").optString(i, "__FAIL__").replaceAll("\\+", "-");
+  }
 
-	rootIter++;
+  out.println("<div class=\"mfalgo-item " + forClasses + " item item-checked\"><input id=\"mfalgo-" + algNum + "\" name=\"match-filter-algorithm\" value=\"" + algNum+ "\" type=\"checkbox\" " + (enabled ? "checked" : "") + " data-default-checked=\"" + enabled + "\" /><label for=\"mfa-" + algNum + "\">" + description + " </label></div>");
+  algNum++;
 }
-
 
 %>
 

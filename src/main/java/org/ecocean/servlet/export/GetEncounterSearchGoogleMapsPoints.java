@@ -216,7 +216,7 @@ public class GetEncounterSearchGoogleMapsPoints extends HttpServlet {
                point.put("encSubdir",enc.subdir());
                point.put("rootURL",CommonConfiguration.getURLLocation(request));
                if(enc.getIndividual()!=null)point.put("individualID",ServletUtilities.handleNullString(enc.getIndividual().getIndividualID()));
-               if(enc.getIndividual()!=null)point.put("individualDisplayName",ServletUtilities.handleNullString(enc.getIndividual().getDisplayName()));
+               if(enc.getIndividual()!=null)point.put("individualDisplayName",ServletUtilities.handleNullString(enc.getIndividual().getDisplayName(request, myShepherd)));
                point.put("dataDirectoryName",CommonConfiguration.getDataDirectoryName(context));
                point.put("date",enc.getDate());
                

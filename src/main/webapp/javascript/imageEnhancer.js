@@ -101,7 +101,11 @@ console.log(' ><<<<<<<<>>>>>>>>>>>>> %o', ji);
         var w = $('#image-enhancer-wrapper-' + id + '-' + aid);
         //imgWidth is tricky... lazyloading means the actual image might not be here. but hey we (should?) have metadata width!
         var imgWidth = 1024;  //fallback, sorry. :(
-        if (asset && asset.metadata && asset.metadata.width) imgWidth = asset.metadata.width;
+        if (asset && asset.metadata) {
+            if (asset.metadata.width) imgWidth = asset.metadata.width;
+            if (asset.rotation && asset.metadata.height) imgWidth = asset.metadata.height;
+            console.warn('rotate? %o %dx%d => %d', asset.rotation, asset.metadata.width, asset.metadata.height, imgWidth);
+        }
         var scale = ji.width() / imgWidth;
         //var scale = ji.width() / img.naturalWidth;
         //var scale = ji.width() / 4000;
@@ -197,6 +201,14 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
             }
         } else {
             mid = el.getAttribute('data-enh-mediaassetid');
+        }
+        if (!mid) {
+            let gel = el;
+            if (!gel instanceof jQuery) {
+                gel = $(gel);
+            } 
+            let wrapperId = $(el).attr('id');
+            mid = wrapperId.replace("asset-id-", ""); 
         }
         if (!mid) {
             console.warn('imageEnhancer.mediaAssetIdFromElement() could not find mid on %o', el);

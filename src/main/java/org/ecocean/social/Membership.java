@@ -65,9 +65,9 @@ public class Membership implements java.io.Serializable {
         return mi;
     }
 
-    public String getMarkedIndividualDisplayName() {
-        return mi.getDisplayName();
-    }
+    // public String getMarkedIndividualDisplayName() {
+    //     return mi.getDisplayName();
+    // }
 
     public String getRole() {
         return role;
@@ -100,7 +100,10 @@ public class Membership implements java.io.Serializable {
     }
 
     public void setRole(String role) {
-        this.role = role;
+      if(role==null) {
+        this.role=null;
+      }
+      else {this.role = role;}
     }
 
     public void setStartDate(long startDate) {
@@ -136,6 +139,12 @@ public class Membership implements java.io.Serializable {
     public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
       return jobj;
     }
+    
+    public void setMarkedIndividual(MarkedIndividual indy) {
+      this.mi=indy;
+    }
+    
+    public void removeMarkedIndividual() {this.mi=null;}
 
 
 }

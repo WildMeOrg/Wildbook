@@ -9,7 +9,7 @@ Properties encprops = new Properties();
 //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResultsAnalysis.properties"));
 encprops=ShepherdProperties.getProperties("searchResultsAnalysis.properties", langCode, context);
 
-
+//TODO styles to follow can go in _encounter-pages.less if they don't conflict with ones already in there
 %>
 
 
@@ -86,7 +86,7 @@ td.tdw:hover div {
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-     
+
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -130,6 +130,9 @@ td.tdw:hover div {
  <ul id="tabmenu">
 
    <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("table")%>
+   </a></li>
+   <li><a
+     href="projectManagement.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("projectManagement")%>
    </a></li>
    <li><a
      href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("matchingImages")%>

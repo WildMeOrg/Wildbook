@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
+import org.ecocean.ia.Task;
 import org.ecocean.servlet.importer.ImportTask;
 
 import javax.servlet.ServletConfig;
@@ -31,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
+import java.util.ArrayList;
 //import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -131,7 +133,14 @@ public class EncounterDelete extends HttpServlet {
             
             myShepherd.commitDBTransaction();
             myShepherd.beginDBTransaction();
-     
+          }
+
+          List<Project> projects = myShepherd.getProjectsForEncounter(enc2trash);
+          if (projects!=null&&!projects.isEmpty()) {
+            for (Project project : projects) {
+              project.removeEncounter(enc2trash);
+              myShepherd.updateDBTransaction();
+            }
           }
           
           //Remove it from an ImportTask if needed
@@ -141,8 +150,6 @@ public class EncounterDelete extends HttpServlet {
             task.addLog("Servlet EncounterDelete removed Encounter: "+enc2trash.getCatalogNumber());
             myShepherd.updateDBTransaction();
           }
-          
-          
 
           if (myShepherd.getImportTaskForEncounter(enc2trash)!=null) {
             ImportTask itask = myShepherd.getImportTaskForEncounter(enc2trash);
@@ -171,6 +178,22 @@ public class EncounterDelete extends HttpServlet {
           //record who deleted this encounter
           enc2trash.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Deleted this encounter from the database.");
           myShepherd.commitDBTransaction();
+
+          ArrayList<Annotation> anns = enc2trash.getAnnotations();
+          for (Annotation ann : anns) {
+            myShepherd.beginDBTransaction();
+            enc2trash.removeAnnotation(ann);
+            myShepherd.updateDBTransaction();
+            List<Task> iaTasks = Task.getTasksFor(ann, myShepherd);
+            if (iaTasks!=null&&!iaTasks.isEmpty()) {
+              for (Task iaTask : iaTasks) {
+                iaTask.removeObject(ann);
+                myShepherd.updateDBTransaction();
+              }
+            }
+            myShepherd.throwAwayAnnotation(ann);
+            myShepherd.commitDBTransaction();
+          }
 
           //now delete for good
           myShepherd.beginDBTransaction();

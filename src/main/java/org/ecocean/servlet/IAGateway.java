@@ -392,6 +392,11 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
         return;
     }
 
+/*
+    WB-945 note:  i am pretty sure detection *review* has been abandonded / atrophied / deprecated at this point.
+    this is relevant here because a call to IBEISIA.createAnnotationFromIAResult() is made here.  it has been replaced with deprecated
+    version here for this reason.
+*/
     if ("detectionReviewPost".equals(qstr)) {
         String url = IA.getProperty("context0", "IBEISIARestUrlDetectReview");
         if (url == null) throw new IOException("IBEISIARestUrlDetectReview url not set");
@@ -437,7 +442,7 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
                     for (int a = 0 ; a < alist.length() ; a++) {
                         JSONObject jann = alist.optJSONObject(a);
                         if (jann == null) continue;
-                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd, context, rootDir, false);
+                        Annotation ann = IBEISIA.createAnnotationFromIAResultDEPRECATED(jann, ma, myShepherd, context, rootDir, false);
                         if (ann == null) continue;
                         //myShepherd.getPM().makePersistent(ann);  //done in createAnnotationFromIAResult
                         thisAnns.put(ann.getId());
@@ -514,7 +519,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     try {
         String containerName = IA.getProperty("context0", "containerName");
         baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
-        if (containerName!=null&&containerName!="") { 
+        if (containerName!=null&&containerName!="") {
             baseUrl = baseUrl.replace("localhost", containerName);
         }
 
@@ -605,6 +610,7 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
         if (jin == null) return res;
         JSONObject j = jin.optJSONObject("detect");
         if (j == null) return res;  // "should never happen"
+
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         List<MediaAsset> needOccurrences = new ArrayList<MediaAsset>();
         ArrayList<String> validIds = new ArrayList<String>();
@@ -652,9 +658,15 @@ System.out.println("LOADED???? " + taskId + " --> " + task);
             }
 */
             boolean success = true;
+            JSONObject detectArgs = jin.optJSONObject("__detect_args");
+            String detectUrl = jin.optString("__detect_url");
+            String detArgString = (detectArgs!=null) ? detectArgs.toString() : null;
+            System.out.println("_doDetect got detectUrl "+detectUrl+" and detectArgs "+detArgString);
+
             try {
                 res.put("sendMediaAssets", IBEISIA.sendMediaAssetsNew(mas,context));
-                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd);
+                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd, detectArgs, detectUrl);
+                // JSONObject sent = IBEISIA.sendDetect(mas, baseUrl, context, myShepherd);
                 res.put("sendDetect", sent);
                 String jobId = null;
                 if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))
@@ -798,8 +810,8 @@ System.out.println("+ starting ident task " + annTaskId);
         //Shepherd myShepherd = new Shepherd(context);
         //myShepherd.setAction("IAGateway._sendIdentificationTask");
         //myShepherd.beginDBTransaction();
-        
-        
+
+
         try {
             //TODO we might want to cache this examplars list (per species) yes?
 
@@ -810,7 +822,7 @@ System.out.println("+ starting ident task " + annTaskId);
                 if ((matchingSet == null) || (matchingSet.size() < 5)) {
                     System.out.println("=======> Small matching set for this Annotation id= "+ann.getId());
                     System.out.println("=======> Set size is: "+matchingSet.size());
-                    System.out.println("=======> Specific Epithet is: "+ann.findEncounter(myShepherd).getSpecificEpithet()+"    Genus is: "+ann.findEncounter(myShepherd).getGenus());   
+                    System.out.println("=======> Specific Epithet is: "+ann.findEncounter(myShepherd).getSpecificEpithet()+"    Genus is: "+ann.findEncounter(myShepherd).getGenus());
                 }
                 if (matchingSet.size() > limitTargetSize) {
                     System.out.println("WARNING: limited identification matchingSet list size from " + matchingSet.size() + " to " + limitTargetSize);
@@ -1282,9 +1294,9 @@ System.out.println("IAGateway.addToQueue() publishing: " + content);
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {
                 System.out.println("ERROR: IAGateway.processQueueMessage() 'detect' threw exception: " + ex.toString());
-                
+
             }
-            
+
             myShepherd.closeDBTransaction();
 
         } else if ((jobj.optJSONObject("identify") != null) && (jobj.optString("taskId", null) != null)) {  //ditto about taskId
@@ -1300,6 +1312,7 @@ System.out.println(" > taskId = " + jobj.getString("taskId"));
             String baseUrl = jobj.optString("__baseUrl", null);
 System.out.println("--- BEFORE _doIdentify() ---");
             try {
+                // here jobj contains queryconfigdict somehow
                 JSONObject rtn = _doIdentify(jobj, res, myShepherd, context, baseUrl);
                 System.out.println("INFO: IAGateway.processQueueMessage() 'identify' from successful --> " + rtn.toString());
                 myShepherd.commitDBTransaction();

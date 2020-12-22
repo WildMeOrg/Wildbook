@@ -76,7 +76,53 @@ public class IndividualQueryProcessor extends QueryProcessor {
     }
     //end location filter--------------------------------------------------------------------------------------
 
+    // filter for submitter organization ids------------------------------------------
+      if((request.getParameter("organizationId")!=null)&&(!request.getParameter("organizationId").equals("")) && Util.isUUID(request.getParameter("organizationId"))) {
+        String orgId = request.getParameter("organizationId");
+        filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && user.username == enc.submitterID && org.members.contains(user) && org.id == '" + orgId + "'";
+        String variables_statement = " VARIABLES org.ecocean.Encounter enc; org.ecocean.User user; org.ecocean.Organization org";
+        jdoqlVariableDeclaration = addVars(variables_statement, filter);
+        prettyPrint.append("Submitter organization is \""+orgId+"\".<br />");
+      }
+      //end submitter organization ids filter--------------------------------------------------------------------------------------
 
+      //filter for projectName-------------------
+      if(Util.isUUID(request.getParameter("projectId"))){
+        System.out.println("dammit you better get here");
+        filter = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && ";
+        String[] projectIds = request.getParameterValues("projectId");
+        if((projectIds!=null)&&(!projectIds[0].equals("None"))){
+          prettyPrint.append("Assigned to one of the following projects: ");
+          int numProjIds = projectIds.length;
+          String projIdFilter = "(";
+          for(int i=0; i<numProjIds; i++){
+            String currentProjId = projectIds[i].toLowerCase().replaceAll("%20", " ").trim();
+            if(!currentProjId.equals("")){
+              if(projIdFilter.equals("(")){
+                projIdFilter += " proj.id == \"" + currentProjId + "\"";
+              }else{
+                projIdFilter += " || proj.id == \"" + currentProjId + "\"";
+              }
+              // prettyPrint.append(filter + " " + projIdFilter);
+            }
+          }
+          projIdFilter += " )";
+          if(filter.equals("SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && proj.encounters.contains(enc) && ")){
+            filter += projIdFilter;
+          }else{
+            filter+=(" && " + projIdFilter);
+          }
+          prettyPrint.append(filter);
+          prettyPrint.append("<br/>");
+        }
+        // TODO
+        // filter = "SELECT FROM org.ecocean.Encounter WHERE proj.id == '" + projectId + "' && proj.encounters.contains(this)";
+        String variables_statement = " VARIABLES org.ecocean.Encounter enc; org.ecocean.Project proj";
+        jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
+      } else{
+        //TODO
+      }
+      //end filter for projectName------------------
 
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
@@ -122,7 +168,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
             prettyPrint.append("<br />");
     }
     //end individualID filters-----------------------------------------------
-    
+
 
 
 
@@ -312,7 +358,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
             String measurementVar = "measurement" + measurementsInQuery++;
             if(filter.indexOf("encounters.contains(enc)")==-1){
               measurementFilter.append("(encounters.contains(enc)) && ");
-            
+
             }
             measurementFilter.append("(enc.measurements.contains(" + measurementVar + ") && ");
             measurementFilter.append( measurementVar + ".value " + operator + " " + value);
@@ -336,7 +382,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
 
         filter=filterWithCondition(filter, measurementFilter.toString());
-      
+
     }
     // end measurement filters
 
@@ -413,9 +459,9 @@ public class IndividualQueryProcessor extends QueryProcessor {
         }
         jdoqlVariableDeclaration += "org.ecocean.genetics.BiologicalMeasurement biomeasurement" + i;
       }
-      
+
         filter=filterWithCondition(filter, bioMeasurementFilter.toString());
-      
+
     }
     // end BiologicalMeasurement filters
 
@@ -451,28 +497,28 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
     //start date added filter----------------------------
     if((request.getParameter("dateaddedpicker1")!=null)&&(!request.getParameter("dateaddedpicker1").trim().equals(""))&&(request.getParameter("dateaddedpicker2")!=null)&&(!request.getParameter("dateaddedpicker2").trim().equals(""))){
-      
+
       try{
           DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
           DateTime date1 = parser.parseDateTime(request.getParameter("dateaddedpicker1"));
           DateTime date2 = parser.parseDateTime(request.getParameter("dateaddedpicker2"));
-    
+
           prettyPrint.append("Encounter creation dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
-    
-        
+
+
         filter=filterWithCondition(filter,"((enc.dwcDateAddedLong >= "+date1.getMillis()+") && (enc.dwcDateAddedLong <= "+date2.getMillis()+"))");
 
-        
-    
+
+
       } catch(NumberFormatException nfe) {
         //do nothing, just skip on
         nfe.printStackTrace();
           }
         }
   //end date added filter------------------------------------------
-    
-    
-    
+
+
+
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
     String releaseDateToStr = request.getParameter("releaseDateTo");
     String pattern = CommonConfiguration.getProperty("releaseDateFormat",context);
@@ -486,7 +532,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
         filter += "(enc13.releaseDate >= releaseDateFrom)";
         filter += " && encounters.contains(enc13) ";
         parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateFrom");
-        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
+        jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
         paramMap.put("releaseDateFrom", releaseDateFrom);
         prettyPrint.append("release date >= " + simpleDateFormat.format(releaseDateFrom));
       } catch (Exception e) {
@@ -504,7 +550,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
           filter += " && encounters.contains(enc13) ";
         }
         parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateTo");
-        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
+        jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
         paramMap.put("releaseDateTo", releaseDateTo);
         prettyPrint.append("releaseDate <= " + simpleDateFormat.format(releaseDateTo));
       } catch (Exception e) {
@@ -543,9 +589,9 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
       filter += metalTagFilter.toString();
       for (int i = 0; i < metalTagsInQuery; i++) {
-        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.tag.MetalTag metalTag" + i);
+        jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.tag.MetalTag metalTag" + i);
       }
-      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc12");
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc12");
     }
 
     String satelliteTagFilter = processSatelliteTagFilter(request, prettyPrint);
@@ -555,7 +601,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
       filter += " (encounters.contains(enc10)) && ";
       filter += satelliteTagFilter;
-      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc10");
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc10");
     }
     String acousticTagFilter = processAcousticTagFilter(request, prettyPrint);
     if (acousticTagFilter.length() > 0) {
@@ -564,7 +610,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
       }
       filter += acousticTagFilter;
       filter += " && (encounters.contains(enc11)) ";
-      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc11");
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc11");
     }
 
     // end Tag Filters -------------------------------------------------
@@ -782,9 +828,9 @@ public class IndividualQueryProcessor extends QueryProcessor {
     if (Util.stringExists(nickVal)) nameIds.addAll(MarkedIndividual.findNameIds(".*" + nickVal + ".*"));
     if (nameIds.size() > 0) {
         String clause = " (names.id == " + String.join(" || names.id == ", nameIds) + ") ";
-        
+
             filter +=filterWithCondition(filter, clause);
-        
+
     }
 
 */
@@ -951,7 +997,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
 		}
 		if(request.getParameter("dead")==null) {
 			filter=filterWithCondition(filter,"!enc.livingStatus.startsWith('dead')");
-	
+
 			prettyPrint.append("Dead.<br />");
 		}
 	}
@@ -962,8 +1008,8 @@ public class IndividualQueryProcessor extends QueryProcessor {
     //submitter or photographer name filter------------------------------------------
     if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
       String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
-      
-      
+
+
       //String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
       String filterString=""+
          //" ( " +
@@ -973,17 +1019,17 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
                        +" (submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1)"
                          //+" || (submitter.fullName.toLowerCase().indexOf('"+nameString+"') != -1)"
-                         
+
                        +")"
                 +") "
          //   + " || (enc.photographers.contains(submitter) && (submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1)) "
          //    +"||(enc72.informothers.toLowerCase().indexOf('"+nameString+"') != -1)"
-          
+
          //+" ) "
          ;
-      
-      
-      
+
+
+
       if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.User submitter";}
       else{
         if(!jdoqlVariableDeclaration.contains("org.ecocean.User submitter")){jdoqlVariableDeclaration+=";org.ecocean.User submitter";}
@@ -991,13 +1037,13 @@ public class IndividualQueryProcessor extends QueryProcessor {
         //if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc72")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc72";}
 
       }
-      
-      
+
+
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
-      
+
       prettyPrint.append("Related fullName or emailAddress contains: \""+nameString+"\"<br />");
-      
+
     }
     //end name and email filter--------------------------------------------------------------------------------------
     */
@@ -1059,14 +1105,14 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
 
     if((request.getParameter("datepicker1")!=null)&&(!request.getParameter("datepicker1").trim().equals(""))&&(request.getParameter("datepicker2")!=null)&&(!request.getParameter("datepicker2").trim().equals(""))){
-      
-      
+
+
       try{
-        
+
         DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
         DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
         DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
-  
+
         long date1Millis=date1.getMillis();
         long date2Millis=date2.getMillis();
         //if same dateTime is set by both pickers, then add a full day of milliseconds to picker2 to cover the entire day
@@ -1082,7 +1128,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
 
 
 
-      } 
+      }
       catch(NumberFormatException nfe) {
         //do nothing, just skip on
         nfe.printStackTrace();
@@ -1244,7 +1290,7 @@ public class IndividualQueryProcessor extends QueryProcessor {
     filter += parameterDeclaration;
     myShepherd=null;
     System.out.println("IndividualQueryProcessor filter: "+filter);
-    
+
     //quick fix in case we have any duplicated '&& &&' due to bad query filter construction above
     filter=filter.replaceAll("&&\\s&&"," && ");
 
@@ -1555,19 +1601,9 @@ public class IndividualQueryProcessor extends QueryProcessor {
     return tagFilter.toString();
   }
 
-  public static String updateJdoqlVariableDeclaration(String jdoqlVariableDeclaration, String typeAndVariable) {
-    StringBuilder sb = new StringBuilder(jdoqlVariableDeclaration);
-    if (jdoqlVariableDeclaration.length() == 0) {
-      sb.append(" VARIABLES ");
-      sb.append(typeAndVariable);
-    }
-    else {
-      if (!jdoqlVariableDeclaration.contains(typeAndVariable)) {
-        sb.append("; ");
-        sb.append(typeAndVariable);
-      }
-    }
-    return sb.toString();
+  public static String addVars(String jdoqlVariableDeclaration, String vars){
+    QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, vars);
+    return jdoqlVariableDeclaration;
   }
 
   public static String updateParametersDeclaration(
@@ -1581,6 +1617,11 @@ public class IndividualQueryProcessor extends QueryProcessor {
     }
     sb.append(typeAndVariable);
     return sb.toString();
+  }
+
+  private static String addOrgVars(String jdoqlVariableDeclaration, String orgs) {
+    QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, orgs);
+    return jdoqlVariableDeclaration;
   }
 
 }
