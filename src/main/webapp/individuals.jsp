@@ -545,7 +545,6 @@ if (sharky.getNames() != null) {
       boolean inProjectsAndWillGetDisplayedInSeparateSection = false;
 	    for (String nameKey: sharky.getNames().getKeys()) {
 	      if (MultiValue.isDefault(nameKey)) continue;
-	      if (MultiValue.isDefault(nameKey)) continue;
 	      if (nameKey.equals("Nickname")) continue;
 	      if (MarkedIndividual.NAMES_KEY_LEGACYINDIVIDUALID.equals(nameKey)) continue;
         MarkedIndividual indie = myShepherd.getMarkedIndividual(id);
