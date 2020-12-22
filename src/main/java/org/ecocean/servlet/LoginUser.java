@@ -43,6 +43,10 @@ import org.ecocean.*;
 		String url = "/login.jsp";
 		System.out.println("Starting LoginUser servlet...");
 		
+		//String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+		//if(!urlLoc.contains("localhost")) {urlLoc="https:"+urlLoc;System.out.println("HTTPS!");}
+		//else {urlLoc="http:"+urlLoc;}
+		
 		//see /login.jsp for these form fields
 		String username = request.getParameter("username").trim();
 		String password = request.getParameter("password").trim();
@@ -83,7 +87,8 @@ import org.ecocean.*;
 	        subject.logout();
 	        redirectUser=true;
 	        url = CommonConfiguration.getProperty("userAgreementURL",context);
-	      } else {
+	      } 
+		  	else {
 		      System.out.println("LoginUser: user "+username+" has signed agreement. Redirecting...");
 	      	user.setLastLogin((new Date()).getTime());
 	      	url = "/welcome.jsp";}
@@ -113,13 +118,13 @@ import org.ecocean.*;
       myShepherd.closeDBTransaction();
 		}
 		
-		if (redirectUser) {
+	//	if (redirectUser) {
 		  // forward the request and response to the view
 		  RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
 		  dispatcher.forward(request, response);   
-		  return;
-		}
-
-		WebUtils.redirectToSavedRequest(request, response, url);
+		  //return;
+		//}
+		//System.out.println("url: "+url);
+		//WebUtils.issueRedirect(request, response, url);
 	}   	  	    
 }

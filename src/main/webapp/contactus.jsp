@@ -3,16 +3,16 @@
 <%
 
   //setup our Properties object to hold all properties
-  
+
   String langCode = ServletUtilities.getLanguageCode(request);
 
   //set up the file input stream
   //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
   //props.load(propsInputStream);
-  
-  
 
-  
+
+
+
   String context=ServletUtilities.getContext(request);
 
 %>
@@ -27,16 +27,14 @@
 
   <h2>Photos for Media Publications about Wildbook for Turtles</h2>
   <h2>Logos</h2>
-  
+
   <p>The following logos may be used inconjunction with our project.</p>
 
   <h3>Internet of Turtles</h3>
 
   <p><img src="images/iot_logo.png" width="400px" height="*" /></p>
 
-  <h3>Wild Me</h3>
-
-  <p><img src="images/wild-me-logo-high-resolution.png" width="300px" height="*" /></p>
+<p><img src="images/WildMe-Logo-04.png" width="500px" height="*" /></p>
 
   <h3>Wildbook&reg;</h3>
 
@@ -45,4 +43,3 @@
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
-

@@ -182,7 +182,12 @@ public class MergeIndividual extends HttpServlet {
 
         // redirect to the confirm page
         try {
-          WebUtils.redirectToSavedRequest(request, response, "/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1);
+          
+          //WebUtils.redirectToSavedRequest(request, response, "/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1);
+          
+          RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(("/confirmSubmit.jsp?oldNameA="+oldName1+"&oldNameB="+oldName2+"&newId="+ id1));
+          dispatcher.forward(request, response); 
+          
         }
         catch (IOException ioe) {
           ioe.printStackTrace();
