@@ -1572,7 +1572,9 @@ var isUserLoggedIn = "<%=isUserLoggedIn%>";
 console.log("isUserLoggedIn = "+isUserLoggedIn);
 $(document).ready(function() {
     if ("false"==isUserLoggedIn) {
-        $(".video-element").bind("contextmenu",function(e){
+        let vidEl = $(".video-element");
+        vidEl.attr("controlsList", "nodownload"); 
+        vidEl.bind("contextmenu",function(e){
             return false;
         });
     }
