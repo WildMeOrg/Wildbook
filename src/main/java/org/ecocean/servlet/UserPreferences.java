@@ -30,7 +30,6 @@ public class UserPreferences extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
@@ -46,21 +45,40 @@ public class UserPreferences extends HttpServlet {
         JSONObject res = new JSONObject();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
         String action = j.optString("action", null);
-        
+
         try {
             res.put("success","false");
-
             if (Util.stringExists(action)) {
-
                 User user = myShepherd.getUser(request);
+                if(user!=null){
+                }else{
+                }
                 if ("setProjectContext".equals(action)) {
                     String defaultProjectId = j.optString("projectId", null);
-                    if (defaultProjectId!=null) {
+                    if (Util.stringExists(defaultProjectId)) {
                         user.setProjectIdForPreferredContext(defaultProjectId);
                         myShepherd.updateDBTransaction();
                         setSuccess(res, response);
-                        System.out.println("Set default project ID for user: id= "+user.getProjectIdForPreferredContext());
                     }
+                }
+                if("setUserConsolidationChoicesTrue".equals(action)){
+                  user.setPreference("userConsolidationChoicesMade", "true");
+                  myShepherd.updateDBTransaction();
+                  setSuccess(res, response);
+                }
+                if("setUserConsolidationChoicesFalse".equals(action)){
+                  user.setPreference("userConsolidationChoicesMade", "false");
+                  myShepherd.updateDBTransaction();
+                  setSuccess(res, response);
+                }
+                if("getUserConsolidationChoiceStatus".equals(action)){
+                  String consolidationStatus = user.getPreference("userConsolidationChoicesMade");
+                  if(Util.stringExists(consolidationStatus)){
+                    res.put("userConsolidationChoicesMade", consolidationStatus);
+                  } else{
+                    res.put("userConsolidationChoicesMade", "false");
+                  }
+                  setSuccess(res, response);
                 }
             }
 

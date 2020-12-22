@@ -204,8 +204,16 @@ console.warn('ias => %o', ias);
 
     //this is now handled by a div in encounters.jsp
     matchFilter: function(aid, ma) {
-        iaMatchFilterAnnotationIds.push(aid);
+        iaMatchFilterAnnotationIds = [ aid ];
+        var iaClass = ma && ma.annotation && ma.annotation.iaClass;
+        $('.mfalgo-item').show();
+        if (iaClass) {
+            $('.mfalgo-item').hide();
+            $('.mfalgo-iaclass-' + iaClass.replaceAll('+', '-')).show();
+        }
+        $('.mfalgo-item [data-default-checked="true"]').prop('checked', true);  //check all that should be
         $('.ia-match-filter-dialog').show();
+        $('.mfalgo-item:hidden input').prop('checked', false);
     },
 
     //can assume task.parameters is set

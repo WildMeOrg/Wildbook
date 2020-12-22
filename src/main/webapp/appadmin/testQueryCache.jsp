@@ -43,28 +43,28 @@ if(request.getParameter("delete")!=null){
 	<%
 	List<StoredQuery> st=myShepherd.getAllStoredQueries();
 	for(int i=0;i<st.size();i++){
-		
+
 		StoredQuery s=st.get(i);
 		myShepherd.getPM().deletePersistent(s);
-		
+
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-		
+
 	}
-	
+
 	/*
 	Set<String> keys=qc.cachedQueries().keySet();
 	Iterator it=keys.iterator();
 	while(it.hasNext()){
 		String teatro=(String)it.next();
 		System.out.println("Deleting: "+teatro);
-		
+
 	}
 	*/
-	
+
 	qc.loadQueries();
-	
-	
+
+
 	//remove cache files
 	String writePath=ShepherdProperties.getProperties("cache.properties","").getProperty("cacheRootDirectory");
 	File cacheDir=new File(writePath);
@@ -73,9 +73,9 @@ if(request.getParameter("delete")!=null){
 		File f=files[i];
 		f.delete();
 	}
-}	
-     
-	
+}
+
+
 
 
 
@@ -117,7 +117,7 @@ try{
 		qc.loadQueries();
 
 	}
-	
+
 	if(qc.getQueryByName("numUsersWithRoles")==null){
 		StoredQuery sq=new StoredQuery("numUsersWithRoles", "SELECT DISTINCT username FROM org.ecocean.Role");
 		sq.setExpirationTimeoutDuration(600000);
@@ -126,7 +126,7 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries();
 	}
-	
+
 	if(qc.getQueryByName("numUsers")==null){
 		StoredQuery sq=new StoredQuery("numUsers", "SELECT FROM org.ecocean.User WHERE uuid != null");
 		sq.setExpirationTimeoutDuration(600000);
@@ -135,7 +135,7 @@ try{
 		myShepherd.beginDBTransaction();
 		qc.loadQueries();
 	}
-	
+
 	if(qc.getQueryByName("top3Encounters")==null){
 		StoredQuery sq=new StoredQuery("top3Encounters", "SELECT FROM org.ecocean.Encounter ORDER BY dwcDateAddedLong descending RANGE 1,4");
 		sq.setExpirationTimeoutDuration(600000);
@@ -145,12 +145,12 @@ try{
 		qc.loadQueries();
 	}
 
-	
-	
+
+
 
 	Map<String,CachedQuery> queries=qc.cachedQueries();
 	Set<String> keys=queries.keySet();
-	
+
 	%>
 	<h2>Round 1: Cached?</h2>
 	<ul>
@@ -166,9 +166,9 @@ try{
 		System.out.println("XXX"+cquery.getQueryString());
 		cquery.executeCollectionQuery(myShepherd,true);
 		%>
-		
-		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %></li>
-		
+
+		<li><%=cquery.getName() %>:<%=cquery.getQueryString() %>:<%=cquery.executeCountQuery(myShepherd) %></li>
+
 		<%
 
 	}
@@ -176,17 +176,17 @@ try{
 	%>
 	</ul>
 	<p>Round 1 took: <%=(end1-start1) %>
-	
 
-	
-	
+
+
+
 
 	<%
-	
-	
-	
+
+
+
 	myShepherd.rollbackDBTransaction();
-	
+
 
 }
 catch(Exception e){

@@ -28,6 +28,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.TwitterUtil;
 import org.ecocean.TwitterBot;
 import org.ecocean.IAJsonProperties;
+import org.ecocean.servlet.importer.ImportTask;
 
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +42,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -387,8 +389,8 @@ Util.mark("sendIdentify-D", startTime);
 		} else {
 		    System.out.println("tlist.size()=" + tlist.size()+" annnnd tnlist.size()="+tnlist.size());
 		}
-		System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlist.size());
-		System.out.println(map);
+		System.out.println("qlist.size()=" + qlist.size()+" annnnd qnlist.size()="+qnlist.size()+". not printing the map about to be POSTed because it's a big'un.");
+        //System.out.println(map);
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
 Util.mark("identify process pre-post end");
@@ -1625,9 +1627,22 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
     }
 */
 
+/*
+    WB-945 - this is the re-tooling of this method which does nothing with encounter(s)
+    REMINDER TODO:
+        shouldUpdateSpeciesFromIa() no longer gets called here and thus should be called once all annots are made, i guess/
+*/
+    public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, String context, String rootDir) {
+        Annotation ann = convertAnnotation(asset, jann, myShepherd, context, rootDir);
+        if (ann == null) return null;
+        myShepherd.getPM().makePersistent(ann);
+System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with no Encounter!]");
+        return ann;
+    }
 
 //{"xtl":910,"height":413,"theta":0,"width":444,"class":"giraffe_reticulated","confidence":0.2208,"ytl":182}
-    public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd, String context, String rootDir, boolean skipEncounter) {
+    // WB-945 - this is the old deprecated version for prosperity or whatever
+    public static Annotation createAnnotationFromIAResultDEPRECATED(JSONObject jann, MediaAsset asset, Shepherd myShepherd, String context, String rootDir, boolean skipEncounter) {
 
         Annotation ann = convertAnnotation(asset, jann, myShepherd, context, rootDir);
         if (ann == null) return null;
@@ -1639,7 +1654,8 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " [with n
 
         Encounter enc = null;
         try {
-            enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
+            //removed due to deprecating ann.toEncounter() for WB-945
+            //enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
             myShepherd.getPM().makePersistent(enc);
 
             enc.detectedAnnotation(myShepherd, ann);  //this is a stub presently, so meh?
@@ -1664,7 +1680,7 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
             uuids.add(ann.getAcmId());
             species.add(taxonomyString);
             try {
-                iaUpdateSpecies(uuids, species, context);
+                //iaUpdateSpecies(uuids, species, context);
             } catch (Exception ex) {
                 System.out.println("ERROR: iaUpdateSpecies() failed! " + ex.toString());
                 ex.printStackTrace();
@@ -1673,6 +1689,34 @@ System.out.println("* createAnnotationFromIAResult() CREATED " + ann + " on Enco
             System.out.println("WARNING: cannot update IA, no taxonomy on " + ann);
         }
         return ann;
+    }
+
+    //this takes the place of iaUpdateSpecies code above that has been deprecated
+    //  basically tells IA to alter the species associated with these annots
+    public static int updateSpeciesOnIA(Shepherd myShepherd, List<Annotation> anns) {
+        if (Util.collectionIsEmptyOrNull(anns)) return 0;
+        List<String> uuids = new ArrayList<String>();
+        List<String> species = new ArrayList<String>();
+        for (Annotation ann : anns) {
+            Encounter enc = ann.findEncounter(myShepherd);
+System.out.println("updateSpeciesOnIA(): " + ann + " is on " + enc);
+            if ((enc == null) || (ann.getAcmId() == null)) continue;
+            String taxonomyString = enc.getTaxonomyString();
+            if (!shouldUpdateSpeciesFromIa(taxonomyString, myShepherd.getContext())) continue;
+            uuids.add(ann.getAcmId());
+            species.add(taxonomyString);
+        }
+System.out.println("updateSpeciesOnIA(): " + uuids);
+System.out.println("updateSpeciesOnIA(): " + species);
+        if (uuids.size() > 0) {
+            try {
+                iaUpdateSpecies(uuids, species, myShepherd.getContext());
+            } catch (Exception ex) {
+                System.out.println("ERROR: updateSpeciesOnIA() - iaUpdateSpecies() failed! " + ex.toString());
+                ex.printStackTrace();
+            }
+        }
+        return uuids.size();
     }
 
     public static boolean shouldUpdateSpeciesFromIa(String taxonomyString, String context) {
@@ -1752,7 +1796,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
                 } catch (NullPointerException npe) {continue;}
             }
         }
-        System.out.println("---- Did not find an identicle feature.");
+        System.out.println("---- Did not find an identical feature.");
         return false;
     }
 
@@ -1788,8 +1832,31 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         return processCallback(taskID, resp, context, rootDir);
     }
 
+    public static void logCallback(String taskId, JSONObject resp) {
+        String jobId = resp.optString("jobId");
+        JSONObject _response = resp.optJSONObject("_response");
+        if (_response==null) {
+            System.out.println("error parsing callback response for taskId "+taskId);
+            System.out.println("got response: "+resp);
+            return;
+        }
+        JSONObject status = _response.optJSONObject("status");
+        if (status==null) {
+            System.out.println("error parsing callback response for taskId "+taskId);
+            System.out.println("got response: "+resp);
+            return;
+        }
+        boolean success = status.optBoolean("success");
+        if (success) {
+            System.out.println("processCallback got a successful response for taskId="+taskId+", jobId="+jobId);
+        } else {
+            System.out.println("processCallback got an UNsuccessful response for taskId="+taskId+", jobId="+jobId);
+            System.out.println("got response: "+resp);
+        }
+    }
+
     public static JSONObject processCallback(String taskID, JSONObject resp, String context, String rootDir) {
-System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
+        logCallback(taskID, resp);
         JSONObject rtn = new JSONObject("{\"success\": false}");
         rtn.put("taskId", taskID);
         if (taskID == null) return rtn;
@@ -1914,6 +1981,10 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
     6. how do (when do) we kick off *identification* on an annotation? and what are the target annotations?
     7.  etc???
 */
+/*
+    update due to WB-945 work:  we now must _first_ build all the Annotations, and then after that decide how they get distributed
+    to Encounters... 
+*/
             if ((rlist != null) && (rlist.length() > 0) && (ilist != null) && (ilist.length() == rlist.length())) {
                 FeatureType.initAll(myShepherd);
                 JSONArray needReview = new JSONArray();
@@ -1944,6 +2015,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     if(janns.length()==0) {
                       //OK, for some species and conditions we may just want to trust the user
                       //that there is an animal in the image and set trivial annot to matchAgainst=true
+                        //WB-945 note: this case janns is empty, so loop below will be skipped
 
                       if(asset.getAnnotations()!=null && asset.getAnnotations().size()==1 && asset.getAnnotations().get(0).isTrivial()) {
 
@@ -1979,7 +2051,9 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                         }
                         //these are annotations we can make automatically from ia detection.  we also do the same upon review return
                         //  note this creates other stuff too, like encounter
-                        Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, context, rootDir, skipEncounters);
+                        //Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, context, rootDir, skipEncounters);
+                        //WB-945 update: new version *will not* create encounter(s)
+                        Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd, context, rootDir);
                         if (ann == null) {
                             System.out.println("WARNING: IBEISIA detection callback could not create Annotation from " + asset + " and " + jann);
                             continue;
@@ -1997,8 +2071,40 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     } else {
                         asset.setDetectionStatus(STATUS_COMPLETE);
                     }
-                    if (newAnns.length() > 0) amap.put(Integer.toString(asset.getId()), newAnns);
+                    if (newAnns.length() > 0) {
+                        List<Encounter> assignedEncs = asset.assignEncounters(myShepherd);  //WB-945 here is where we make some encounter(s) if we need to
+                        rtn.put("_assignedEncsSize", assignedEncs.size());
+                        amap.put(Integer.toString(asset.getId()), newAnns);
+
+                        //now we have to collect them under an Occurrence and/or ImportTask as applicable   [WB-430]
+                        //  we basically pick the first of these we find (in case there is more than one?)
+                        //  and only assign it where there is none.  #TODO is that wise? would we rather consolidate if under many occs???
+                        if (!Util.collectionIsEmptyOrNull(assignedEncs)) {
+                            ImportTask itask = null;
+                            Occurrence occ = null;
+                            for (Encounter enc : assignedEncs) {
+                                if (itask == null) itask = enc.getImportTask(myShepherd);
+                                if (occ == null) occ = myShepherd.getOccurrence(enc);
+                            }
+                            if (occ == null) {  //make one if we have none
+                                occ = new Occurrence();
+                                occ.setOccurrenceID(Util.generateUUID());
+                                occ.setDWCDateLastModified();
+                                occ.setDateTimeCreated();
+                                occ.addComments("<i>created after assignEncounters</i>");
+                            }
+                            for (Encounter enc : assignedEncs) {
+                                if ((itask != null) && (enc.getImportTask(myShepherd) == null)) itask.addEncounter(enc);
+                                if (myShepherd.getOccurrence(enc) == null) {
+                                    occ.addEncounter(enc);
+                                    enc.setOccurrenceID(occ.getOccurrenceID());
+                                }
+                            }
+                            myShepherd.getPM().makePersistent(occ);  //just in case it is new
+                        }
+                    }
                 }
+                updateSpeciesOnIA(myShepherd, allAnns);  //tells IA what species we know about these annots now
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 if (amap.length() > 0) rtn.put("annotations", amap);  //needed to kick off ident jobs with return value
@@ -2067,10 +2173,18 @@ System.out.println("\\------ _tellEncounter enc = " + enc);
         myShepherd.setAction("IBEISIA.processCallbackIdentify");
         myShepherd.beginDBTransaction();
         for (int i = 0 ; i < ids.length ; i++) {
-            Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, ids[i]), true)));
-System.out.println("**** " + ann);
-            //"should not happen" that we have an annot with no acmId, since this is result post-IA (which needs acmId)
-            if (ann != null) anns.put((ann.getAcmId() != null) ? ann.getAcmId() : ann.getId(), ann);
+
+            try {
+              Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, ids[i]), true)));
+              System.out.println("**** " + ann);
+              //"should not happen" that we have an annot with no acmId, since this is result post-IA (which needs acmId)
+              if (ann != null) anns.put((ann.getAcmId() != null) ? ann.getAcmId() : ann.getId(), ann);
+
+            }
+            catch(Exception e) {
+              e.printStackTrace();
+            }
+
         }
         int numCreated = 0;
         JSONObject infDict = null;
@@ -3263,7 +3377,6 @@ System.out.println(">>>>>>>> age -> " + rtn);
         log("Prime image analysis for "+species, jobID, new JSONObject("{\"_action\": \"init\"}"), myShepherd.getContext());
 
         try {
-
             for (Encounter enc : targetEncs) {
                 ArrayList<Annotation> annotations = enc.getAnnotations();
                 for (Annotation ann : annotations) {
@@ -4027,7 +4140,7 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobId + ")");
                 all.put("jobResult", rlog);
 
                 JSONObject proc = processCallback(taskId, rlog, context, rootDir);
-System.out.println("processCallback returned --> " + proc);
+                logProcessCallback(proc, taskId);
             }
         } catch (Exception ex) {
             System.out.println("whoops got exception: " + ex.toString());
@@ -4044,6 +4157,36 @@ System.out.println("processCallback returned --> " + proc);
         all.put("_timestamp", System.currentTimeMillis());
 System.out.println("-------- >>> all.size() (omitting all.toString() because it's too big!) " + all.length() + "\n##################################################################");
         return;
+    }
+
+    public static void logProcessCallback(JSONObject proc, String taskId) {
+        boolean success = proc.optBoolean("success");
+        if (success) {
+            List<String> jobIds = getProcessCallbackJobIds(proc, taskId);
+            System.out.println("processCallback returned successfully for taskId="+taskId+" . IA job ids we found for this task are "+jobIds.toString());
+        } else {
+            System.out.println("processCallback returned UNsuccessfully for taskId="+taskId);
+            System.out.println("processCallback returned --> " + proc);
+        }
+    }
+
+    public static List<String> getProcessCallbackJobIds(JSONObject proc, String taskId) {
+        // this whole method is just navigating the pyramid of doom
+        JSONArray logs = proc.optJSONArray("_logs");
+        if (logs == null) {
+            System.out.println("failed to parse jobIds (couldn't find \"_logs\") from processCallback for task "+taskId);
+            return new ArrayList<String>();
+        }
+        Set<String> jobIds = new HashSet<String>();
+        for (int i=0; i<logs.length(); i++) {
+            JSONObject thisJson = logs.optJSONObject(i);
+            if (thisJson==null) continue;
+            String serviceJobId = thisJson.optString("serviceJobID");
+            if (Util.stringExists(serviceJobId) && !"-1".equals(serviceJobId)) {
+                jobIds.add(serviceJobId);
+            }
+        }
+        return Util.asSortedList(jobIds);
     }
 
 

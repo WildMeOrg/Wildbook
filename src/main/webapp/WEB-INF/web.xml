@@ -75,7 +75,7 @@
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
 				/appadmin/users.jsp = authc, roles[admin]
-				/appadmin/iaSpeciesDiff.jsp = = authcBasicWildbook,roles[rest]
+				/appadmin/iaSpeciesDiff.jsp = authcBasicWildbook,roles[rest]
 
 
                 /appadmin/** = authc, roles[admin]
@@ -158,6 +158,8 @@
        /SubmitSurvey = authc, roles[researcher]
        /SurveySetObservation = authc, roles[researcher]
        /AddSurveyTrackToSurvey = authc, roles[researcher]
+
+			 /editOrg.jsp = authc, roles[admin]
 
 		   /ImportSRGD = authc, roles[admin]
 
@@ -306,6 +308,11 @@
 
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
+					/UserConsolidate = authc
+					/appadmin/consolidateDuplicateUsers.jsp = authc, roles[admin]
+					/appadmin/consolidateDuplicateUsersChecker.jsp = authc, roles[admin]
+					/appadmin/consolidateDuplicateUsersSandbox.jsp = authc, roles[admin]
+					/myUsers.jsp = authc
 
         /UserGetNotifications = authc
 
@@ -435,8 +442,9 @@
 
         /ProjectIA = authc, roles[researcher]
 
-        /UserPreferences = authc, roles[researcher]
+        /UserPreferences = authc
 
+		/EncounterRemoveAnnotation = authc, roles[researcher]
             </param-value>
         </init-param>
     </filter>
@@ -909,6 +917,11 @@
       <servlet-name>UserSelfUpdate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserSelfUpdate</servlet-class>
   </servlet>
+
+	<servlet>
+		<servlet-name>UserConsolidate</servlet-name>
+		<servlet-class>org.ecocean.servlet.UserConsolidate</servlet-class>
+</servlet>
 
       <servlet>
         <servlet-name>UserDelete</servlet-name>
@@ -1885,6 +1898,11 @@
           <url-pattern>/UserSelfUpdate</url-pattern>
   </servlet-mapping>
 
+	<servlet-mapping>
+		<servlet-name>UserConsolidate</servlet-name>
+		<url-pattern>/UserConsolidate</url-pattern>
+</servlet-mapping>
+
      <servlet-mapping>
             <servlet-name>UserDelete</servlet-name>
             <url-pattern>/UserDelete</url-pattern>
@@ -2720,6 +2738,16 @@
   <servlet-mapping>
     <servlet-name>UserPreferences</servlet-name>
     <url-pattern>/UserPreferences</url-pattern>
+  </servlet-mapping>
+
+ <servlet>
+    <servlet-name>EncounterRemoveAnnotation</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterRemoveAnnotation</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>EncounterRemoveAnnotation</servlet-name>
+    <url-pattern>/EncounterRemoveAnnotation</url-pattern>
   </servlet-mapping>
 
 </web-app>
