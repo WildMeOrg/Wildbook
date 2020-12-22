@@ -75,7 +75,7 @@
 
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
 				/appadmin/users.jsp = authc, roles[admin]
-				/appadmin/iaSpeciesDiff.jsp = = authcBasicWildbook,roles[rest]
+				/appadmin/iaSpeciesDiff.jsp = authcBasicWildbook,roles[rest]
 
 
                 /appadmin/** = authc, roles[admin]
