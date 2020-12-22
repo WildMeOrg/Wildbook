@@ -1,4 +1,4 @@
-<%--
+  <%--
   ~ Wildbook - A Mark-Recapture Framework
   ~ Copyright (C) 2008-2015 Jason Holmberg
   ~
@@ -29,7 +29,7 @@
              java.util.ArrayList,
              java.util.List,
              java.util.Properties,
-             org.apache.commons.lang.WordUtils,
+             org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration
               "
@@ -382,7 +382,7 @@ finally{
                   </div>
 
                   <div id="navbar" class="navbar-collapse collapse">
-                  <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
+                  <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request, myShepherd) %></div>
                     <ul class="nav navbar-nav">
 
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
