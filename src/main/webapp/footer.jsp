@@ -17,7 +17,6 @@
         <%
 String context="context0";
 context=ServletUtilities.getContext(request);
-System.out.println("got here context is: " + context);
 String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("footer.properties", langCode, context);
