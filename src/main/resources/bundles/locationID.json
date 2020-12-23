@@ -1,0 +1,130 @@
+{
+  "description": "Hierarchical Encounter.locationID list in Wildbook",
+  "source": "http://en.wikipedia.org/wiki/List_of_seas",
+  "locationID": [
+	{ "name":"Advance II (AR-145)", "id":"Advance II (AR-145)", "locationID":[] },
+
+	{ "name":"Aeolus (AR-305)", "id":"Aeolus (AR-305)", "locationID":[] },
+	
+	{ "name":"Atlas", "id":"Atlas", "locationID":[] },
+	
+	{ "name":"Australia (East)", "id":"Australia (East)", "locationID":[] },
+	
+	{ "name":"BI - Broughton Island", "id":"BI - Broughton Island", "locationID":[] },
+	
+	{ "name":"British Splendour", "id":"British Splendour", "locationID":[] },
+	
+	{ "name":"BS - Big Seal", "id":"BS - Big Seal", "locationID":[] },
+	
+	{ "name":"BT -	Bait Grounds, Forster", "id":"BT -	Bait Grounds, Forster", "locationID":[] },
+	
+	{ "name":"Caribsea", "id":"Caribsea", "locationID":[] },
+	
+	{ "name":"Catherine M. Monahan", "id":"Catherine M. Monahan", "locationID":[] },
+	
+	{ "name":"CC -	Cherubs Cave", "id":"CC -	Cherubs Cave", "locationID":[] },
+	
+	{ "name":"CG -	Cod Grounds, Laurieton", "id":"CG -	Cod Grounds, Laurieton", "locationID":[] },
+	
+	{ "name":"CK", "id":"CK", "locationID":[] },
+	
+	{ "name":"Dixie Arrow", "id":"Dixie Arrow", "locationID":[] },
+	
+	{ "name":"DP -	Dalmeny Point", "id":"DP -	Dalmeny Point", "locationID":[] },
+	
+	{ "name":"E.M. Clark", "id":"E.M. Clark", "locationID":[] },
+	
+	{ "name":"FB -	Fairy Bower", "id":"FB -	Fairy Bower", "locationID":[] },
+	
+	{ "name":"FB - Fairy Bower", "id":"FB - Fairy Bower", "locationID":[] },
+	
+	{ "name":"FC -	Foggy Cave, Terrigal", "id":"FC -	Foggy Cave, Terrigal", "locationID":[] },
+	
+	{ "name":"FL -	Flinders Reef", "id":"FL -	Flinders Reef", "locationID":[] },
+	
+	{ "name":"FO - Forster", "id":"FO - Forster", "locationID":[] },
+	
+	{ "name":"FR - Fish Rock", "id":"FR - Fish Rock", "locationID":[] },
+	
+	{ "name":"Frying Pan Tower", "id":"Frying Pan Tower", "locationID":[] },
+	
+	{ "name":"GI -	Green Island", "id":"GI -	Green Island", "locationID":[] },
+	
+	{ "name":"Hesperides", "id":"Hesperides", "locationID":[] },
+	
+	{ "name":"Hyde (AR-386)", "id":"Hyde (AR-386)", "locationID":[] },
+	
+	{ "name":"Indra", "id":"Indra", "locationID":[] },
+	
+	{ "name":"John D. Gill", "id":"John D. Gill", "locationID":[] },
+	
+	{ "name":"JR - Julian Rocks", "id":"JR - Julian Rocks", "locationID":[] },
+	
+	{ "name":"LF -	Long Reef, Sydney", "id":"LF -	Long Reef, Sydney", "locationID":[] },
+	
+	{ "name":"LF - Long Reef, Sydney", "id":"LF - Long Reef, Sydney", "locationID":[] },
+	
+	{ "name":"LR - Latitude Reef, Forster", "id":"LR - Latitude Reef, Forster", "locationID":[] },
+	
+	{ "name":"LS - Little Seal", "id":"LS - Little Seal", "locationID":[] },
+	
+	{ "name":"Markham (AR-386)", "id":"Markham (AR-386)", "locationID":[] },
+	
+	{ "name":"MI - Montague Island", "id":"MI - Montague Island", "locationID":[] },
+	
+	{ "name":"MP - Magic Point", "id":"MP - Magic Point", "locationID":[] },
+	
+	{ "name":"MR -	Mermaid Reef", "id":"MR -	Mermaid Reef", "locationID":[] },
+	
+	{ "name":"NB -	North Bondi", "id":"NB -	North Bondi", "locationID":[] },
+	
+	{ "name":"NB - North Bondi", "id":"NB - North Bondi", "locationID":[] },
+	
+	{ "name":"Northeastern", "id":"Northeastern", "locationID":[] },
+	
+	{ "name":"Papoose", "id":"Papoose", "locationID":[] },
+	
+	{ "name":"PF -	Pinnacle Forster", "id":"PF -	Pinnacle Forster", "locationID":[] },
+	
+	{ "name":"Proteus", "id":"Proteus", "locationID":[] },
+	
+	{ "name":"SF -	Status Reef, Forster", "id":"SF -	Status Reef, Forster", "locationID":[] },
+	
+	{ "name":"SI", "id":"SI", "locationID":[] },
+	
+	{ "name":"SK -	Skeleton Reef, Forster", "id":"SK -	Skeleton Reef, Forster", "locationID":[] },
+	
+	{ "name":"Spar", "id":"Spar", "locationID":[] },
+	
+	{ "name":"Spar (AR-305)", "id":"Spar (AR-305)", "locationID":[] },
+	
+	{ "name":"SR -	Seal Rocks", "id":"SR -	Seal Rocks", "locationID":[] },
+	
+	{ "name":"SR - Seal Rocks", "id":"SR - Seal Rocks", "locationID":[] },
+	
+	{ "name":"SS -	South Solitary Island", "id":"SS -	South Solitary Island", "locationID":[] },
+	
+	{ "name":"TB -	The Barge", "id":"TB -	The Barge", "locationID":[] },
+	
+	{ "name":"TG -	Tollgate", "id":"TG -	Tollgate", "locationID":[] },
+	
+	{ "name":"U-352", "id":"U-352", "locationID":[] },
+	
+	{ "name":"USS Schurz", "id":"USS Schurz", "locationID":[] },
+	
+	{ "name":"USS Tarpon", "id":"USS Tarpon", "locationID":[] },
+	
+	{ "name":"Veturia", "id":"Veturia", "locationID":[] },
+	
+	{ "name":"WB", "id":"WB", "locationID":[] },
+	
+	{ "name":"W.E. Hutton", "id":"W.E. Hutton", "locationID":[] },
+	
+	{ "name":"WR -	Wolf Rock", "id":"WR -	Wolf Rock", "locationID":[] },
+	
+	{ "name":"WR - Wolf Rock", "id":"WR - Wolf Rock", "locationID":[] },
+	
+	{ "name":"null", "id":"null", "locationID":[] }
+  ]
+}
+

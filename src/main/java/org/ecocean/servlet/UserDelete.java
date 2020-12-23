@@ -55,12 +55,20 @@ public class UserDelete extends HttpServlet {
 
 
     myShepherd.beginDBTransaction();
-    if ((request.getParameter("uuid")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)) {
-
+    //if ((request.getParameter("uuid")!=null)&&(myShepherd.getUserByUUID(request.getParameter("uuid"))!=null)) {
+    if(   request.getParameter("uuid")!=null
+          && myShepherd.getUserByUUID(request.getParameter("uuid"))!=null
+          && request.getUserPrincipal().getName()!=null
+          && myShepherd.getUsername(request)!=null
+          && myShepherd.getUser(myShepherd.getUsername(request))!=null
+          //to delete a user either be admin or orgAdmin in at least one of the same orgs
+          && ( 
+              request.isUserInRole("admin") 
+              || (request.isUserInRole("orgAdmin") && myShepherd.getAllCommonOrganizationsForTwoUsers(myShepherd.getUserByUUID(request.getParameter("uuid")), myShepherd.getUser(myShepherd.getUsername(request))).size()>0
+             )) 
+    ){
       try {
         User ad = myShepherd.getUserByUUID(request.getParameter("uuid"));
-        
-        
         
         //first delete the roles
         if(ad.getUsername()!=null) {
@@ -98,8 +106,6 @@ public class UserDelete extends HttpServlet {
           myShepherd.commitDBTransaction();
           myShepherd.beginDBTransaction();
         }
-        
-        
         
         //now delete the user
         myShepherd.getPM().deletePersistent(ad);
@@ -139,6 +145,7 @@ public class UserDelete extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to remove the user account. I cannot find the user in the database.");
       out.println(ServletUtilities.getFooter(context));
 

@@ -109,9 +109,11 @@ public class EncounterSetTissueSample extends HttpServlet {
         out.println(ServletUtilities.getFooter(context));
 
       }
-    } else {
+    } 
+    else {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to set the biological sample. I cannot find the encounter that you intended it for in the database.");
       out.println(ServletUtilities.getFooter(context));
 

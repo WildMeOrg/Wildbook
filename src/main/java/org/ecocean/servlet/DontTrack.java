@@ -149,7 +149,7 @@ public class DontTrack extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully stopped the tracking of " + shark + " for e-mail address " + email + ".");
-
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark + "\">Go to " + shark + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
@@ -165,7 +165,7 @@ public class DontTrack extends HttpServlet {
         out.println("<strong>Failure!</strong> This record is currently being modified by another user, or the database is locked. Please wait a few seconds before trying to remove this e-mail address from tracking again.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark + "\">Return to " + shark + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
 
 
@@ -173,6 +173,7 @@ public class DontTrack extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to remove your e-mail address from the tracking list. I cannot find the encounter or marked individual that you indicated in the database, or you did not provide a valid e-mail address.");
       out.println(ServletUtilities.getFooter(context));
 

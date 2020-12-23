@@ -214,7 +214,7 @@ public class CachedQuery {
     public Integer executeCountQuery(Shepherd myShepherd){
       if((collectionQueryCount==null)||((expirationTimeoutDuration>-1)&&(System.currentTimeMillis()>nextExpirationTimeout))){
         try{
-          System.out.println("Executing executeCountQuery");
+          //System.out.println("Executing executeCountQuery");
           List<Object> c=executeQuery(myShepherd);
           collectionQueryCount=new Integer(c.size());
           nextExpirationTimeout=System.currentTimeMillis()+expirationTimeoutDuration;
@@ -266,7 +266,10 @@ public class CachedQuery {
               try{
                 jarr.put(Util.toggleJSONObject(RESTUtils.getJSONObjectFromPOJO(o, ec)));
               }
-              catch(Exception e){System.out.println("RESTUtils.getJSONObjectFromPOJO threw an exception on "+o.toString());}
+              catch(Exception e){
+                System.out.println("RESTUtils.getJSONObjectFromPOJO threw an exception on "+o.toString());
+                e.printStackTrace();
+              }
           }
       }
       JSONObject jsonobj=new JSONObject();

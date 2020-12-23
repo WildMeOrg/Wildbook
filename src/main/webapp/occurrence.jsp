@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, 
          com.google.gson.Gson,
+         org.ecocean.datacollection.Instant,
          org.ecocean.*,
          org.ecocean.tag.*,
          org.datanucleus.api.rest.orgjson.JSONObject
@@ -8,6 +9,8 @@
 
 <%
 
+boolean isLoggedIn=false;
+if(request.getUserPrincipal()!=null)isLoggedIn=true;
 String blocker = "";
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -96,7 +99,7 @@ context=ServletUtilities.getContext(request);
 	
 				if (possible.size() > 0) {
 	   			String arr = new Gson().toJson(possible);
-					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ") }) });</script>";
+					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
 				} else {
 					cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
 					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
@@ -238,6 +241,35 @@ context=ServletUtilities.getContext(request);
 	<div class="row">	
 		<div class="col-xs-12">
 		<br/>
+		<p><%=props.getProperty("species") %>: 
+<%
+    if (Util.collectionIsEmptyOrNull(occ.getTaxonomies())) {
+        out.println("-");
+    } else {
+        String wait = "";
+        out.println("<ul>");
+        for (Taxonomy tx : occ.getTaxonomies()) {
+            if (tx.getNonSpecific()) {
+                wait += "<li style=\"color: #888;\">" + tx.getScientificName() + "</li>";
+            } else {
+                out.println("<li><i>" + tx.getScientificName() + "</i></li>");
+            }
+        }
+        out.println(wait);
+        out.println("</ul>");
+    }
+%>
+</p>
+
+<%
+if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
+    out.println("<p>" + props.getProperty("behaviors") + ":<ul>");
+    for (Instant behav : occ.getBehaviors()) {
+        out.println("<li>" + behav.getValue().toString().substring(0,19) + " <b>" + behav.getName() + "</b></li>");
+    }
+    out.println("</ul></p>");
+}
+%>
 		<p><%=props.getProperty("groupBehavior") %>: 
 			<%if(occ.getGroupBehavior()!=null){%>
 				<%=occ.getGroupBehavior() %>
@@ -255,28 +287,20 @@ context=ServletUtilities.getContext(request);
 			            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
 			            <%=props.getProperty("groupBehavior") %>:
 			        
-				        <%if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){%>
-				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
-				        <%} else { %>
+				        <%
+				        List<String> groupBehaviors = CommonConfiguration.getIndexedPropertyValues("groupBehavior",request);
+				        System.out.println("We have groupBehaviors "+groupBehaviors);
+				        if (!Util.isEmpty(groupBehaviors)) {%>
 				        	<select name="behaviorComment" id="behaviorComment">
 				        		<option value=""></option>
-				   
-				   				<%
-				   				boolean hasMoreStages=true;
-				   				int taxNum=0;
-				   				while(hasMoreStages){
-				   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
-				   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-					   	  		%>
-					   	  	 
-					   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-					   	  		<%
-					   					taxNum++;
-				      				} else {
-				         				hasMoreStages=false;
-				      				}
-				   				}%>
-				  			</select>
+					   				<%
+					   					for (String groupBehavior: groupBehaviors) {
+					   					  String selected = (occ.getGroupBehavior()!=null && occ.getGroupBehavior().equals(groupBehavior)) ? "selected=\"selected\"" : "";
+              					%><option <%=selected %> value="<%=groupBehavior%>"><%=groupBehavior%></option>
+					   					<%}%>
+				  				</select>
+					   		<%} else {%>
+				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
 				        <%}%>
 			        	<input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
 			        </form>
@@ -296,8 +320,119 @@ context=ServletUtilities.getContext(request);
 		$("a#groupB").click(function() {
 		  dlgGroupB.dialog("open");
 		});
-	</script>  
+	</script>
 	
+	<!-- Visibility Index -->
+
+	<%
+	if ("true".equals(CommonConfiguration.getProperty("useVisibilityIndex", request))) {
+	%>
+		<!-- Visible field -->
+
+		<!-- add if enabled in cc.props -->
+		<p><%=props.getProperty("visibilityIndex") %>: 
+			<%
+			String viString = "";
+			if(occ.getVisibilityIndex()!=null){
+				viString = String.valueOf(occ.getVisibilityIndex());
+				if (viString.endsWith(".0")) {
+					viString = viString.replace(".0","");
+				} 	
+			}
+			%>
+			<span id="visibilityNum"><%=viString%></span>
+			&nbsp; 
+			<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%>
+				<a id="visibilityIndexEditButton" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>	
+				<label id="viResponseMessage"></label>
+			<%}%>
+		</p>
+		<!-- end Visible field -->
+
+		<!-- edit field -->
+		<div id="editVisibilityIndexDialog" title="<%=props.getProperty("setVisibilityIndex") %>" style="display:none">
+			<table border="1">
+			  <tr>
+			    <td align="left" valign="top">
+					<%=props.getProperty("visibilityIndex") %>:
+				
+					<%
+					List<String> vIndexes = CommonConfiguration.getIndexedPropertyValues("visibilityIndex",request);
+					System.out.println("getting vIndexes "+vIndexes);
+					if (!Util.isEmpty(vIndexes)) {%>
+						<select name="visibilityIndexSelect" id="visibilityIndexSelect">
+							<option value=""></option>
+								<%
+									for (String vi : vIndexes) {
+										String selected = (vi!=null && occ.getVisibilityIndex()!=null && occ.getVisibilityIndex().equals(vi)) ? "selected=\"selected\"" : ""; %>
+										<option <%=selected %> value="<%=vi%>"><%=vi%></option>
+									<%}%>
+							</select>
+						<%} else {%>
+					<%}%>
+					<!-- switch to call ajax method that closes dialog and updates <p>, axe form -->
+					<input name="visibilityIndexButton" type="button" id="visibilityIndexButton" onclick="occSetGroupBehavior()" value="<%=props.getProperty("set") %>">
+			    </td>
+			  </tr>
+			</table>
+		</div>
+		<!-- end edit field -->
+
+		<script>
+			var viDialog = $("#editVisibilityIndexDialog").dialog({
+			  autoOpen: false,
+			  draggable: false,
+			  resizable: false,
+			  width: 600
+			});
+			
+			$("a#visibilityIndexEditButton").click(function() {
+				viDialog.dialog("open");
+			});
+
+
+			function occSetGroupBehavior() {
+
+				let selectedVI = $("#visibilityIndexSelect").val();
+				let sendJSON = {};
+
+				sendJSON['occId'] = '<%=request.getParameter("number")%>';
+				sendJSON['visibilityIndex'] = selectedVI;
+
+				console.log("SENDING VI : "+selectedVI);
+
+				$.ajax({
+					url: wildbookGlobals.baseUrl + '/OccurrenceSetMetadataField',
+					type: 'POST',
+					dataType: "json",
+					contentType: 'application/javascript',
+					data: JSON.stringify(sendJSON),
+					success: function(d) {
+						console.info('Success! Got back '+JSON.stringify(d));
+						$("#viResponseMessage").text("Success!");
+						$("#visibilityNum").text(d.visibilityIndex);
+
+					},
+					error: function(x,y,z) {
+						$("#collabResp").text("There was an error sending this collaboration request.");
+						$("#viResponseMessage").text("Error, invalid selection.");
+						console.warn('%o %o %o', x, y, z);
+					}
+				});
+			}
+
+		</script>
+
+		<%
+		}
+		%>
+
+	<!-- end Visibility Index -->
+
+
+	
+		<p><%=props.getProperty("numAdults") %>: <%=occ.getNumAdults() %></p>
+
 		<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 		
 		<p>
@@ -329,7 +464,6 @@ context=ServletUtilities.getContext(request);
 			</table>
 		</div>
 		
-		
 	<script>
 		var dlgIndies = $("#dialogIndies").dialog({
 		  autoOpen: false,
@@ -347,7 +481,39 @@ context=ServletUtilities.getContext(request);
 				<%=occ.getLocationID() %>
 			<%}%>
 		</p>
-		
+
+<p>
+    <%=props.getProperty("latitude")%> /
+    <%=props.getProperty("longitude")%> /
+    <%=props.getProperty("bearing")%> /
+    <%=props.getProperty("distance")%> :
+    <%=occ.getDecimalLatitude()%>,
+    <%=occ.getDecimalLongitude()%> /
+    <%=occ.getBearing()%> m /
+    <%=occ.getDistance()%> m
+</p>
+
+<%
+if (!Util.collectionIsEmptyOrNull(occ.getSubmitters())) {
+    out.println("<p>" + props.getProperty("submittedBy") + ": ");
+    List<String> subs = new ArrayList<String>();
+    for (User sub : occ.getSubmitters()) {
+        subs.add(sub.getDisplayName());
+    }
+    out.println(String.join(", ", subs) + "</p>");
+}
+
+if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
+    out.println("<p>" + props.getProperty("contribBy") + ": ");
+    List<String> subs = new ArrayList<String>();
+    for (User sub : occ.getInformOthers()) {
+        subs.add(sub.getDisplayName());
+    }
+    out.println(String.join(", ", subs) + "</p>");
+}
+%>
+
+                </p>
 		<table id="encounter_report" style="width:100%;">
 			<tr>
 			
@@ -386,7 +552,7 @@ context=ServletUtilities.getContext(request);
 		    
 		    <td class="lineitem">
 		    	<%if (enc.hasMarkedIndividual()) {%>
-		    	<a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
+		    	<a href="individuals.jsp?id=<%=enc.getIndividualID()%>"><%=enc.getIndividual().getDisplayName(request, myShepherd)%></a>
 		    	<%}else{%>
 		    		&nbsp;
 		    	<%}%>
@@ -514,7 +680,7 @@ context=ServletUtilities.getContext(request);
 						if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 						%>
 							<h2>
-								<img src="../images/lightning_dynamic_props.gif" />
+								<img src="images/lightning_dynamic_props.gif" />
 								<%=props.getProperty("dynamicProperties")%>
 								<button class="btn btn-md" type="button" name="button"
 									id="editDynamic">Edit</button>
@@ -526,7 +692,7 @@ context=ServletUtilities.getContext(request);
 						} else {
 						%>
 						<h2>
-							<img src="../images/lightning_dynamic_props.gif" />
+							<img src="images/lightning_dynamic_props.gif" />
 							<%=props.getProperty("dynamicProperties")%>
 						</h2>
 						<br/>
@@ -606,9 +772,16 @@ context=ServletUtilities.getContext(request);
 						</div>
 					</form>
 				</div>		
-			</div>				
+			</div>		
+
 			<br/><br/>
-			
+		</div>
+		
+			<div>
+				<div style="margin-left: 10px; padding: 3px; border: solid #AAA 2px;" class="comments">Comments: <%=occ.getComments()%></div>
+
+			</div>
+
 			<%
 	  		}
 	  		else{
@@ -629,7 +802,7 @@ context=ServletUtilities.getContext(request);
   }
 	  
 		%>
-		
+
 </div> <!-- End Maincontent Div --> 
 
 <jsp:include page="footer.jsp" flush="true"/>

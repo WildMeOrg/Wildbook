@@ -1,10 +1,30 @@
 <%@ page
 		contentType="text/html; charset=utf-8"
 		language="java"
-     	import="org.ecocean.CommonConfiguration,org.ecocean.ContextConfiguration"
+     	import="org.ecocean.CommonConfiguration,
+      org.ecocean.ContextConfiguration,
+      org.ecocean.ShepherdProperties,
+      org.ecocean.servlet.ServletUtilities,
+      org.ecocean.Shepherd,
+      org.ecocean.User,
+      java.util.ArrayList,
+      java.util.List,
+      java.util.Properties,
+      org.apache.commons.text.WordUtils,
+      org.ecocean.security.Collaboration
+      "
 %>
         <%
-        String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+String context="context0";
+context=ServletUtilities.getContext(request);
+String langCode=ServletUtilities.getLanguageCode(request);
+Properties props = new Properties();
+props = ShepherdProperties.getProperties("header.properties", langCode, context);
+
+
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+
         %>
 
         <!-- footer -->
@@ -43,19 +63,9 @@
 
 
                 </div>
+                </div>
               </div>
             </div>
-
-            <script>
-				  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-				  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-				  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-				  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-				  ga('create', 'UA-30944767-5', 'auto');
-				  ga('send', 'pageview');
-
-			</script>
 
         </footer>
         <!-- /footer -->

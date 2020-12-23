@@ -66,8 +66,8 @@ public class EncounterLite implements java.io.Serializable {
   public EncounterLite(Encounter enc) {
     this.date = enc.getDate();
     this.encounterNumber = enc.getEncounterNumber();
-    if(enc.getIndividualID()!=null){
-      this.belongsToMarkedIndividual = enc.getIndividualID();
+    if(enc.getIndividual()!=null){
+      this.belongsToMarkedIndividual = enc.getIndividual().getIndividualID();
     }
     if(enc.getSex()!=null){
       this.sex = enc.getSex();
@@ -1652,4 +1652,8 @@ public class EncounterLite implements java.io.Serializable {
       rightReferenceSpotsY[q] = initSpots.get(q).getCentroidY();
     }
   }
+  
+  public String getBelongsToMarkedIndividual() {return belongsToMarkedIndividual;}
+  
+  
 }

@@ -4,7 +4,11 @@ package org.ecocean.security;
 import java.util.*;
 import java.io.Serializable;
 import org.ecocean.*;
+import org.ecocean.scheduled.ScheduledIndividualMerge;
+import org.ecocean.social.*;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.servlet.importer.ImportTask;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +35,11 @@ public class Collaboration implements java.io.Serializable {
 	public static final String STATE_INITIALIZED = "initialized";
 	public static final String STATE_REJECTED = "rejected";
 	public static final String STATE_APPROVED = "approved";
-
+	// one step higher than approved is having edit privileges
+	public static final String STATE_EDIT_PRIV = "edit";
+	 public static final String STATE_EDIT_PENDING_PRIV = "edit_pending";
+	 
+	 private String editInitiator;
 
 	//JDOQL required empty instantiator
 	public Collaboration() {}
@@ -42,6 +50,10 @@ public class Collaboration implements java.io.Serializable {
 		this.setUsername2(username2);
 		this.setState(STATE_INITIALIZED);
 		this.setDateTimeCreated();
+	}
+
+	public Collaboration(User u1, User u2) {
+		this(u1.getUsername(), u2.getUsername());
 	}
 
 	public String getUsername1() {
@@ -62,6 +74,11 @@ public class Collaboration implements java.io.Serializable {
 		this.setId();
 	}
 
+	public String getDateStringCreated() {
+		Date date = new Date(getDateTimeCreated());
+		return (date.toString());
+	}
+
 	public long getDateTimeCreated() {
 		return this.dateTimeCreated;
 	}
@@ -76,6 +93,16 @@ public class Collaboration implements java.io.Serializable {
 
 	public void setState(String s) {
 		this.state = s;
+	}
+
+	public void setApproved() {
+		this.setState(STATE_APPROVED);
+	}
+	public void setRejected() {
+		this.setState(STATE_REJECTED);
+	}
+	public boolean isApproved() {
+		return (this.state!=null && this.state.equals(STATE_APPROVED));
 	}
 
 	public String getState() {
@@ -121,6 +148,30 @@ public class Collaboration implements java.io.Serializable {
 		return collaborationsForUser(context, username, null);
 	}
 
+	public static List<Collaboration> collaborationsForUser(Shepherd myShepherd, String username) {
+		return collaborationsForUser(myShepherd, username, null);
+	}
+
+
+	// copied with Shepherd instead of context in hopes this fixes the issue where we couldn't save an updated collab with another shepherd
+  @SuppressWarnings("unchecked")
+	public static List<Collaboration> collaborationsForUser(Shepherd myShepherd, String username, String state) {
+		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username + "') || (username2 == '" + username + "'))";
+		if (state != null) {
+			queryString += " && state == '" + state + "'";
+		}
+//System.out.println("qry -> " + queryString);
+		//myShepherd.setAction("Collaboration.class1");
+		Query query = myShepherd.getPM().newQuery(queryString);
+    //ArrayList got = myShepherd.getAllOccurrences(query);
+		List returnMe=myShepherd.getAllOccurrences(query);
+		query.closeAll();
+    return returnMe;
+
+	}
+
+
+
   @SuppressWarnings("unchecked")
 	public static List<Collaboration> collaborationsForUser(String context, String username, String state) {
 //TODO cache!!!  (may be hit a lot)
@@ -141,25 +192,85 @@ public class Collaboration implements java.io.Serializable {
     return returnMe;
 	}
 
-	public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
-		return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
-/*
-		List<Collaboration> all = collaborationsForUser(context, u1);
-		for (Collaboration c : all) {
-			if (c.username1.equals(u2) || c.username2.equals(u2)) return c;
-		}
-		return null;
-*/
+	// public static Collaboration collaborationBetweenUsers(User u1, User u2, String context) {
+	// 	return collaborationBetweenUsers(context, u1.getUsername(), u2.getUsername());
+	// }
+
+	public static Collaboration collaborationBetweenUsers(Shepherd myShepherd, String u1, String u2) {
+		return findCollaborationWithUser(u2, collaborationsForUser(myShepherd, u1));
 	}
-	
-	public static boolean canCollaborate(String context, String u1, String u2) {
-		if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;  //TODO not sure???
+
+	public static Collaboration collaborationBetweenUsers(User u1, User u2, String context) {
+		if (u1==null || u2==null) return null;
+		return collaborationBetweenUsers(u1.getUsername(), u2.getUsername(), context);
+	}
+
+	public static Collaboration collaborationBetweenUsers(String username1, String username2, String context) {
+		if (username1==null || username2==null) return null;
+		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ";
+		queryString += "(username1 == '"+username1+"' && username2 == '"+username2+"') || ";
+		queryString += "(username1 == '"+username2+"' && username2 == '"+username1+"')";
+		Shepherd myShepherd = new Shepherd(context);
+		myShepherd.setAction("collaborationBetweenUsers");
+		myShepherd.beginDBTransaction();
+		Query query = myShepherd.getPM().newQuery(queryString);
+		Collection c=(Collection)query.execute();
+		ArrayList<Collaboration> results=new ArrayList<Collaboration>(c);
+		query.closeAll();
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+
+		if (results == null || results.size()<1) return null;
+		return ((Collaboration) results.get(0));
+	}
+
+
+
+	// public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
+	// 	return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
+	// }
+	private static boolean canCollaborate(User u1, User u2, String context) {
 		if (u1.equals(u2)) return true;
-		Collaboration c = collaborationBetweenUsers(context, u1, u2);
+		Collaboration c = collaborationBetweenUsers(u1, u2, context);
 		if (c == null) return false;
-		if (c.getState().equals(STATE_APPROVED)) return true;
+		if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV)) return true;
 		return false;
 	}
+	private static boolean canCollaborate(String context, String u1, String u2) {
+		if (User.isUsernameAnonymous(u1) || User.isUsernameAnonymous(u2)) return true;  //TODO not sure???
+		if (u1.equals(u2)) return true;
+		Collaboration c = collaborationBetweenUsers(u1, u2, context);
+		if (c == null) return false;
+		if (c.getState().equals(STATE_APPROVED) || c.getState().equals(STATE_EDIT_PRIV)) return true;
+		return false;
+	}
+
+	public static boolean canEditEncounter(Encounter enc, HttpServletRequest request) {
+		try {
+			String name1 = request.getUserPrincipal().getName();
+			String name2 = enc.getSubmitterID();
+			return canEdit(ServletUtilities.getContext(request), name1, name2);
+		} catch (Exception missingUser) {
+			System.out.println("Collaboration.canEditEncounter hit exception on request="+request+" and enc="+enc+"; returning false.");
+		}
+		return false;
+	}
+	public static boolean canEdit(String context, String u1, String u2) {
+		if (u1.equals(u2)) return true;
+		Collaboration c = collaborationBetweenUsers(u1, u2, context);
+		if (c == null) return false;
+		if (c.getState().equals(STATE_EDIT_PRIV)) return true;
+		return false;
+	}
+	public static boolean canEdit(String context, User u1, User u2) {
+		if (u1.equals(u2)) return true;
+		Collaboration c = collaborationBetweenUsers(u1, u2, context);
+		if (c == null) return false;
+		if (c.getState().equals(STATE_EDIT_PRIV)) return true;
+		return false;
+	}
+
+
 
 	public static Collaboration findCollaborationWithUser(String username, List<Collaboration> all) {
 		if (all == null) return null;
@@ -171,7 +282,7 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 
-	public static String getNotificationsWidgetHtml(HttpServletRequest request) {
+	public static String getNotificationsWidgetHtml(HttpServletRequest request, Shepherd myShepherd) {
 		String context = "context0";
 		context = ServletUtilities.getContext(request);
 		String langCode = ServletUtilities.getLanguageCode(request);
@@ -185,8 +296,25 @@ public class Collaboration implements java.io.Serializable {
 		List<Collaboration> collabs = collaborationsForCurrentUser(request);
 		int n = 0;
 		for (Collaboration c : collabs) {
-			if (c.username2.equals(username) && c.getState().equals(STATE_INITIALIZED)) n++;
+			if (c.getEditInitiator()!=null && !c.getEditInitiator().equals(username) && (c.getState().equals(STATE_INITIALIZED) || c.getState().equals(STATE_EDIT_PENDING_PRIV))) n++;
 		}
+
+		// make Notifications class to do this outside Collaboration, eeergghh
+		try {
+
+			ArrayList<ScheduledIndividualMerge> potentialForNotification = myShepherd.getAllCompleteScheduledIndividualMergesForUsername(username);
+			ArrayList<ScheduledIndividualMerge> incomplete = myShepherd.getAllIncompleteScheduledIndividualMerges();
+			potentialForNotification.addAll(incomplete);
+			for (ScheduledIndividualMerge merge : potentialForNotification) {
+				if (!merge.ignoredByUser(username)&&merge.isUserParticipent(username)) {
+					n++;
+				}
+			}
+		} 
+		catch (Exception e) {
+			//e.printStackTrace();
+		} 
+
 		if (n > 0) notif = "<div onClick=\"return showNotifications(this);\">" + collabProps.getProperty("notifications") + " <span class=\"notification-pill\">" + n + "</span></div>";
 		return notif;
 	}
@@ -201,45 +329,122 @@ public class Collaboration implements java.io.Serializable {
 		}
 	}
 
+	// here "View" is a weaker action than "Access". 
+	// "View" means "you can see that the data exists but may not necessarily access the data"
+	public static boolean canUserViewOwnedObject(String ownerName, HttpServletRequest request, Shepherd myShepherd) {
+		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
+		if (ownerName == null || request.isUserInRole("admin")) return true;
+		User viewer = myShepherd.getUser(request);
+		User owner = myShepherd.getUser(ownerName);
+		return canUserViewOwnedObject(viewer, owner, request);
+	}
 
-	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
+	public static boolean canUserViewOwnedObject(User viewer, User owner, HttpServletRequest request) {
+		// if they own it
+		if (viewer!=null && owner!=null && viewer.getUUID()!=null && viewer.getUUID().equals(owner.getUUID())) return true; // should really be user .equals() method
+		// if viewer and owner have sharing turned on
+		if (((viewer!=null && 
+				viewer.hasSharing() && 
+				(owner==null || owner.hasSharing())) )) return true; // just based on sharing
+		// if they have a collaboration
+		return canCollaborate(viewer, owner, ServletUtilities.getContext(request));
+	}
+
+	public static boolean canUserAccessOwnedObject(String ownerName, HttpServletRequest request) {
 		String context = ServletUtilities.getContext(request);
 		if (!securityEnabled(context)) return true;
 		if (request.isUserInRole("admin")) return true;  //TODO generalize and/or allow other roles all-access
-
 		if (request.getUserPrincipal() == null) return false;
-		return canUserAccessEncounter(enc, context, request.getUserPrincipal().getName());
-        }
-	public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
-		String owner = enc.getAssignedUsername();
-		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
+		String username = request.getUserPrincipal().getName();
+//System.out.println("username->"+username);
+		if (User.isUsernameAnonymous(ownerName)) return true;  //anon-owned is "fair game" to anyone
 //System.out.println("owner->" + owner);
 //System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
+		return canCollaborate(context, ownerName, username);
+
+	}
+
+	public static boolean canUserAccessEncounter(Encounter enc, HttpServletRequest request) {
+		return canUserAccessOwnedObject(enc.getAssignedUsername(), request);
+	}
+
+	public static boolean canUserAccessEncounter(Encounter enc, String context, String username) {
+	  String owner = enc.getAssignedUsername();
+		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
 		return canCollaborate(context, owner, username);
 	}
 
-
 	public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {
-  	ArrayList<Encounter> all = occ.getEncounters();
-		if ((all == null) || (all.size() < 1)) return true;
-		for (Encounter enc : all) {
-			if (canUserAccessEncounter(enc, request)) return true;  //one is good enough (either owner or in collab or no security etc)
-		}
-		return false;
+		if(canUserAccessOwnedObject(occ.getSubmitterID(), request)) return true;
+    ArrayList<Encounter> all = occ.getEncounters();
+    if ((all == null) || (all.size() < 1)) return true;
+    for (Encounter enc : all) {
+      if (canUserAccessEncounter(enc, request)) return true;  //one is good enough (either owner or in collab or no security etc)
+    }
+    return false;
 	}
+	
+	 public static boolean canUserAccessImportTask(ImportTask occ, HttpServletRequest request) {
+	    
+	   //first check if the User on the ImportTask matches the current user
+	   if(occ.getCreator()!=null && request.getUserPrincipal()!=null && occ.getCreator().getUsername().equals(request.getUserPrincipal().getName())) {return true;}
+	   
+	   //otherwise check the Encounters
+	    List<Encounter> all = occ.getEncounters();
+	    if ((all == null) || (all.size() < 1)) return true;
+	    for (Encounter enc : all) {
+	      if (canUserAccessEncounter(enc, request)) return true;  //one is good enough (either owner or in collab or no security etc)
+	    }
+	    return false;
+	  }
 
 
 	public static boolean canUserAccessMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
-		return true;  //FOR NOW(?) anyone can get to individual always
-/*
   	Vector<Encounter> all = mi.getEncounters();
 		if ((all == null) || (all.size() < 1)) return true;
 		for (Encounter enc : all) {
 			if (canUserAccessEncounter(enc, request)) return true;  //one is good enough (either owner or in collab or no security etc)
 		}
 		return false;
-*/
 	}
+	
+	//Check if User (via request) has edit access to every Encounter in this Individual
+	 public static boolean canUserFullyEditMarkedIndividual(MarkedIndividual mi, HttpServletRequest request) {
+	    Vector<Encounter> all = mi.getEncounters();
+	    if ((all == null) || (all.size() < 1)) return false;
+	    for (Encounter enc : all) {
+	      if (!canEditEncounter(enc, request)) return false;  //one is good enough (either owner or in collab or no security etc)
+	    }
+	    return true;
+	  }
+	
+	 public static boolean canUserAccessSocialUnit(SocialUnit su, HttpServletRequest request) {
+	    List<MarkedIndividual> all = su.getMarkedIndividuals();
+	    if ((all == null) || (all.size() < 1)) return true;
+	    for (MarkedIndividual indy : all) {
+	      if (canUserAccessMarkedIndividual(indy, request)) return true;  //one is good enough (either owner or in collab or no security etc)
+	    }
+	    return false;
+	  }
+
+  public String toString() {
+      return new ToStringBuilder(this)
+              .append("username1", getUsername1())
+              .append("username2", getUsername2())
+              .append("state", getState())
+              .append("dateTimeCreated", getDateStringCreated())
+              .toString();
+  }
+  
+  public String getEditInitiator() {return editInitiator;}
+  public void setEditInitiator(String username) {
+    if(username==null) {this.editInitiator=null;}
+    else {
+      this.editInitiator = username;
+    }
+  }
+
+
 
 /*   CURRENTLY NOT USED
 	public static boolean doesQueryExcludeUser(Query query, HttpServletRequest request) {

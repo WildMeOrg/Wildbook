@@ -1,10 +1,70 @@
+	.collab-private {
+		background-color: #FDD;
+	}
+
+	.collab-private td {
+		background-color: transparent !important;
+	}
+
+	.collab-private .collab-icon {
+		position: absolute;
+		left: -15px;
+		z-index: -1;
+		width: 13px;
+		height: 13px;
+		background: url(../images/lock-icon-tiny.png) no-repeat;
+	}
+
 .maincontent {
   padding-top: 30px;
 }
 
+.flexbox{
+  display: flex;
+  padding-bottom: 0.2em;
+  justify-content: space-evenly;
+}
+
+.flex-right-justify{
+  align-self: flex-end;
+  margin: auto;
+}
+.flex-left-justify{
+  align-self: flex-start;
+  margin: auto;
+}
+.flex-left-justify-no-margin{
+  align-self: flex-start;
+  margin: 0;
+}
+table.project-style {
+    border: 1px;
+    border-spacing: 2px;
+    border-color: gray;
+    border-collapse: collapse;
+    background-color: white;
+}
+table.project-style th {
+    border-width: 1px;
+    padding: 1px;
+    border-style: solid;
+    border-color: gray;
+    background-color: #99CCFF;
+    -moz-border-radius: ;
+		padding-right: 1em;
+}
+table.project-style td {
+    border-width: 1px;
+    padding: 2px;
+    border-style: solid;
+    border-color: gray;
+    background-color: white;
+    -moz-border-radius: ;
+		padding-right: 1em;
+}
 
 table.tissueSample {
-    border-width: 1px;
+    border: 1px;
     border-spacing: 2px;
     border-style: hidden;
     border-color: gray;
@@ -27,7 +87,6 @@ table.tissueSample td {
     background-color: white;
     -moz-border-radius: ;
 }
-
 
 .vm-button, .vm-button:hover {
 	/*
@@ -291,8 +350,13 @@ tr.no-access:hover td {
 }
 
 
+.merge-action-feedback {
+	font-weight: 500;
+	color: #060;
+}
 
-.collaboration-invite-notification {
+
+.collaboration-invite-notification, .merge-notification {
 	margin: 3px;
 	padding: 1px 3px 1px 3px;
 	background-color: #DDD;
@@ -300,10 +364,10 @@ tr.no-access:hover td {
 	line-height: 3.5em;
 	height: 60px;
 }
-.collaboration-invite-notification:hover {
+.collaboration-invite-notification:hover, .merge-notification:hover {
 	background-color: #DDE;
 }
-.collaboration-invite-notification input {
+.collaboration-invite-notification input, .merge-notification input {
 	padding: 0px 4px !important;
 	float: right;
 }
@@ -322,7 +386,7 @@ div.collab-list div {
 
 div.collab-list span.who {
 	font-size: 0.8em;
-	width: 30%;
+	width: 20%;
 	display: inline-block;
 	color: #555;
 }
@@ -339,6 +403,14 @@ div.collab-list div.mine span.who b {
 	color: #338;
 }
 
+.collab-info {
+	width: 20%;
+}
+
+.collab-button {
+	height:58px;
+	width: 30%;
+}
 
 div.collab-list span.state {
 	color: #DDD;
@@ -478,7 +550,7 @@ div.state-approved span.state {
   border-radius: 2px;
   left: 0;
   background-color: rgba(230, 230, 230, 0.9);
-  display: none; 
+  display: none;
   }
 
 .ui-autocomplete.ui-menu {
@@ -488,3 +560,134 @@ div.state-approved span.state {
 #encSearchCharterOperatorName {
 	max-width: 250px;
 } 
+
+// myAccount.jsp custom styles
+
+div.state-edit span.state {
+	background-color: green;
+	}
+	html body div.collab-list input[type="button"] {
+		/*
+		margin-top: 0;
+		margin-left: 4em;
+		*/
+		margin-top: 0;
+		float: right;
+	}
+	html body div.collab-list input[type="button"].no {
+		margin-left:0;
+	}
+	html body div.collab-list input[type="button"].no {
+		margin-left:0;
+	}
+
+	html body div.collab-list span.collab-button {
+		text-align:right;
+	}
+div div div.clear {
+clear: both;
+margin: 0;
+padding: 0;
+}
+div.collab-list div.collabRow {
+display: table;
+}
+div.collab-list div.collabRow span {
+display: table-cell;
+vertical-align: middle;
+}
+div.collab-list div.collabRow span {
+display: table-cell;
+vertical-align: middle;
+}
+div.collab-list div.collabRow span.state {
+width: 5em;
+height: 2em;
+text-align: center;
+}
+
+.collab-init-btn {
+	margin-top: 0px !important;
+	padding: 5px 15px !important;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0 25px;
+  height: 50px;
+  font-size: 16px;
+  line-height: 50px;
+  border-radius: 25px;
+  background-color: #f1f1f1;
+}
+
+// end myAccount.jsp custom styles
+
+.remove-ob-x {
+	color: darkred;
+	cursor: pointer;
+	padding: 7px;
+}
+
+.hoverRow tr:hover {
+  background-color: #e1ddd9;
+}
+.hoverRow tr:hover td {
+  background-color: transparent;
+}
+
+#projectDropdownSpan {
+	position: absolute;
+	padding-top: 25px;
+}
+
+.projectEditUserEl {
+	padding: 0.2em;
+	margin: 0.2em;
+	background-color: #E8E8E8;
+}
+
+#actionResultMessage {
+	font-weight: 500;
+}
+
+.actionResultSuccess {
+	background-color: #BEB;
+}
+
+.actionResultError {
+	background-color: #EBB;
+}
+
+.proj-action-btn {
+	padding: 0px 10px;
+	margin-top:4px;
+	margin-bottom: 4px;
+	width: 100%;
+}
+
+.btn-warn {
+	background-color: darkred;
+}
+
+.disabled-btn {
+	background-color: lightgray;
+}
+
+.projIaOption {
+	padding-left: 25px;
+	padding-top: 10;
+	border: solid;
+	margin-left: 0px;
+	border-width: 1px;
+}
+
+.projIaAnnot {
+	padding-top: 10px;
+}
+
+.visitIaBtn {
+	margin-left: 15px;
+	margin-top: 0px;
+	border-radius: 0%;
+}

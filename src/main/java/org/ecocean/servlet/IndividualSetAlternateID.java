@@ -66,8 +66,13 @@ public class IndividualSetAlternateID extends HttpServlet {
       MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
       alternateID = request.getParameter("alternateid");
       try {
-        myShark.setAlternateID(alternateID);
-        myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set alternate ID: " + alternateID + ".");
+        //FIXME  how should we actually set "alternate id" in world of .names MultiValue now.
+        //       probably need to pass in some sort of context/hint (e.g. "are you setting it for an org, yourself, etc?")
+        if (alternateID != null) {
+            System.out.println("WARNING: IndividualSetAlternateID servlet using legacy concept of alternateID, please fix this!");
+            myShark.setAlternateID(alternateID);
+            myShark.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Set alternate ID: " + alternateID + ".");
+        }
 
       } catch (Exception le) {
         locked = true;
@@ -78,26 +83,30 @@ public class IndividualSetAlternateID extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully changed the alternate ID for individual " + sharky + " to " + alternateID + ".</p>");
 
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
         String message = "The alternate ID for " + sharky + " was set to " + alternateID + ".";
-      } else {
+      } 
+      else {
 
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure!</strong> This individual is currently being modified by another user. Please wait a few seconds before trying to modify this individual again.");
 
-        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
 
       }
-    } else {
+    } 
+    else {
       myShepherd.rollbackDBTransaction();
-      out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      //out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the individual alternate ID. I cannot find the individual that you intended it for in the database.");
-      out.println(ServletUtilities.getFooter(context));
+      //out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();

@@ -1,7 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
-	      org.ecocean.media.MediaAsset,
+	            org.ecocean.media.MediaAsset,
+              org.ecocean.security.HiddenIndividualReporter,
               java.util.ArrayList,
               java.util.List,
               java.util.Map,
@@ -53,7 +54,7 @@ if(request.getParameter("locationCodeField")!=null){
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
 
-int numIndividualsOnPage=18;
+int numIndividualsOnPage=10;
 
 int startNum = 0;
 int endNum = numIndividualsOnPage;
@@ -132,13 +133,11 @@ else{
 	if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
 }
-
-
-
-if (rIndividuals.size() < listNum) {
-  listNum = rIndividuals.size();
+finally{
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+	myShepherd=null;
 }
-
 %>
 
 

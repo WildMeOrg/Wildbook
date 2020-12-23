@@ -122,11 +122,16 @@ div.file-item div {
 <div id="upcontrols" style="padding: 20px;">
 	<input type="file" id="file-chooser" webkitdirectory directory multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
 	<button id="upload-button">begin upload</button>
+	<br>
+	<p><b>If you have selected a large number of photos they may take a while to load in the interface.<b> Once you have clicked the 'Begin Upload' button the images will be sent, and you will automatically
+	be taken to the next page when they are finished.</p>
 <% System.out.println("Done with photos.jsp. About to print footer."); %>
 </div>
+
+</div> <!-- container maincontent -->
+
 <jsp:include page="../footer.jsp" flush="true"/>
-</body>
-</html>
+
 
 
 

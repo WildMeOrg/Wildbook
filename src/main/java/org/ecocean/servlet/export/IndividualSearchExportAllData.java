@@ -87,39 +87,37 @@ public class IndividualSearchExportAllData extends HttpServlet{
         WritableSheet sheet = workbook.createSheet("Individuals", 0);
         Label label0 = new Label(0, 0, "individualID");
         sheet.addCell(label0);
-        Label label1 = new Label(1, 0, "alternateid");
+        Label label1 = new Label(1, 0, "comments");
         sheet.addCell(label1);
-        Label label2 = new Label(2, 0, "comments");
+        Label label2 = new Label(2, 0, "sex");
         sheet.addCell(label2);
-        Label label2a = new Label(3, 0, "sex");
-        sheet.addCell(label2a);
-        Label label3 = new Label(4, 0, "genus");
+        Label label3 = new Label(3, 0, "genus");
         sheet.addCell(label3);
-        Label label5 = new Label(5, 0, "specificEpithet");
+        Label label5 = new Label(4, 0, "specificEpithet");
         sheet.addCell(label5);
-        Label label6 = new Label(6, 0, "nickName");
+        Label label6 = new Label(5, 0, "nickName");
         sheet.addCell(label6);
-        Label label7 = new Label(7, 0, "numberOfEncounters");
+        Label label7 = new Label(6, 0, "numberOfEncounters");
         sheet.addCell(label7);
-        Label label8 = new Label(8, 0, "numberAdditionalDataFiles");
+        Label label8 = new Label(7, 0, "numberAdditionalDataFiles");
         sheet.addCell(label8);
-        Label label9 = new Label(9, 0, "numberLocations");
+        Label label9 = new Label(8, 0, "numberLocations");
         sheet.addCell(label9);
-        Label label10 = new Label(10, 0, "dateFirstIdentified");
+        Label label10 = new Label(9, 0, "dateFirstIdentified");
         sheet.addCell(label10);
-        Label label11 = new Label(11, 0, "dateTimeCreated");
+        Label label11 = new Label(10, 0, "dateTimeCreated");
         sheet.addCell(label11);
-        Label label12 = new Label(12, 0, "dateTimeLatestSighting");
+        Label label12 = new Label(11, 0, "dateTimeLatestSighting");
         sheet.addCell(label12);
-        Label label13 = new Label(13, 0, "dynamicProperties");
+        Label label13 = new Label(12, 0, "dynamicProperties");
         sheet.addCell(label13);
-        Label label14 = new Label(14, 0, "patterningCode");
+        Label label14 = new Label(13, 0, "patterningCode");
         sheet.addCell(label14);
-        Label label15 = new Label(15, 0, "maxYearsBetweenResightings");
+        Label label15 = new Label(14, 0, "maxYearsBetweenResightings");
         sheet.addCell(label15);
-        Label label16 = new Label(16, 0, "timeOfBirth");
+        Label label16 = new Label(15, 0, "timeOfBirth");
         sheet.addCell(label16);
-        Label label17 = new Label(17, 0, "timeOfDeath");
+        Label label17 = new Label(16, 0, "timeOfDeath");
         sheet.addCell(label17);
 
         String value = "";
@@ -133,12 +131,6 @@ public class IndividualSearchExportAllData extends HttpServlet{
             if (value!=null && !value.equals("")) {
               Label indyIDLabel = new Label(0, count, mi.getIndividualID());
               sheet.addCell(indyIDLabel);
-            }
-
-            value = mi.getAlternateID();
-            if (value!=null && !value.equals("")) {
-              Label altID = new Label(1,count,value);
-              sheet.addCell(altID);
             }
 
             value = mi.getComments();

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, org.ecocean.security.HiddenOccReporter, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.json.JSONObject, org.json.JSONArray,  org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 
 
@@ -16,45 +16,7 @@
 
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
     props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
-    occProps = ShepherdProperties.getProperties("occurrence.properties");
-
-
-    int startNum = 1;
-    int endNum = 10;
-
-
-    try {
-
-      if (request.getParameter("startNum") != null) {
-        startNum = (new Integer(request.getParameter("startNum"))).intValue();
-      }
-      if (request.getParameter("endNum") != null) {
-        endNum = (new Integer(request.getParameter("endNum"))).intValue();
-      }
-
-    } catch (NumberFormatException nfe) {
-      startNum = 1;
-      endNum = 10;
-    }
-    int listNum = endNum;
-
-    int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
-    try {
-      month1 = (new Integer(request.getParameter("month1"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      month2 = (new Integer(request.getParameter("month2"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      year1 = (new Integer(request.getParameter("year1"))).intValue();
-    } catch (Exception nfe) {
-    }
-    try {
-      year2 = (new Integer(request.getParameter("year2"))).intValue();
-    } catch (Exception nfe) {
-    }
+    occProps = ShepherdProperties.getProperties("occurrence.properties",langCode, context);
 
 
     Shepherd myShepherd = new Shepherd(context);
@@ -63,19 +25,63 @@
 
 
     int numResults = 0;
+    int numOccurrences=0;
 
 
-    Vector<Occurrence> rIndividuals = new Vector<Occurrence>();
-    myShepherd.beginDBTransaction();
+    Vector<Occurrence> rOccurrences = new Vector<Occurrence>();
     String order ="";
+    String occsJson="";
+    String prettyPrint="";
+    String jdoqlRep="";
+    
+    myShepherd.beginDBTransaction();
+    try{
+    
+    	numOccurrences=myShepherd.getNumOccurrences();
+    
+    	OccurrenceQueryResult result = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
+    
+    	jdoqlRep=result.getJDOQLRepresentation();
+    	
+    	prettyPrint=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")));
+    	rOccurrences = result.getResult();
 
-    OccurrenceQueryResult result = OccurrenceQueryProcessor.processQuery(myShepherd, request, order);
-    rIndividuals = result.getResult();
+		// viewOnly=true arg means this hiddenData relates to viewing the summary results
+		HiddenOccReporter hiddenData = new HiddenOccReporter(rOccurrences, request, true,myShepherd);
+		rOccurrences = hiddenData.viewableResults(rOccurrences, true,myShepherd);
+
+	
+	   Vector histories = new Vector();
+	    int rOccurrencesSize=rOccurrences.size();
+
+	    int count = 0;
+	    int numNewlyMarked = 0;
 
 
-    if (rIndividuals.size() < listNum) {
-      listNum = rIndividuals.size();
+		JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
+
+		// this had none of the data. none of these columns were ever populated. come. on.
+		//JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rOccurrences, jdopm.getExecutionContext());
+
+		JSONArray jsonobj = new JSONArray();
+		for (Occurrence occ : rOccurrences) {
+			JSONObject occObject = occ.getJSONSummary();
+			jsonobj.put(occObject);
+		}
+
+		occsJson = jsonobj.toString();
+
     }
+    catch(Exception e){
+    	e.printStackTrace();
+    }
+	finally{
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+	}
+
+		
+
   %>
 
 <style type="text/css">
@@ -172,25 +178,7 @@
 </table>
 
 
-  <%
 
-    //set up the statistics counters
-
-
-    Vector histories = new Vector();
-    int rIndividualsSize=rIndividuals.size();
-
-    int count = 0;
-    int numNewlyMarked = 0;
-
-
-
-
-	JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
-	JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rIndividuals, jdopm.getExecutionContext());
-	String indsJson = jsonobj.toString();
-
-%>
 
 <style>
 .ptcol-maxYearsBetweenResightings {
@@ -207,7 +195,7 @@
 </style>
 <script type="text/javascript">
 
-var searchResults = <%=indsJson%>;
+var searchResults = <%=occsJson%>;
 
 /*
 var testColumns = {
@@ -236,94 +224,77 @@ $(document).keydown(function(k) {
 
 // functor!
 function _notUndefined(fieldName) {
-  function _helperFunc(o) {	
+  function _helperFunc(o) {
+	console.log("the fucking 'o' variable: "+JSON.stringify(o));  	
     if (o[fieldName] == undefined) return '';
     return o[fieldName];
   }
   return _helperFunc;
 }
 
-// Split up some collections before we try to display them. 
+function _notZero(fieldName) {
+  function _helperFunc(o) {
+    if (o[fieldName] == undefined || o[fieldName] == 0) return '';
+    return o[fieldName];
+  }
+  return _helperFunc;
+}
+function _species(o) {
+	var taxonomies = o['taxonomies'];
+	console.log("occ "+o['occurrenceID']+" taxonomies "+taxonomies);
+	if (o['taxonomies']==null || o['taxonomies'].length==0 || o['taxonomies']==undefined) return '';
+	return o['taxonomies'];
+}
+function _date(o) {
+	var millis = o['dateTimeLong'];
+	if (millis==null) return '';
+	var date = new Date(millis);
+	if (date==null) return '';
+	var dateStr = date.toISOString();
+	return dateStr.split('T')[0];
+}
+
 
 var colDefn = [
-/*
-	{
-		key: 'rowNum',
-		label: '#',
-		value: _colRowNum,
-	},
 
-  {
-    key: 'imageSet',
-    label: '<%=occProps.getProperty("imageSet")%>',
-    value: _notUndefined('imageSet'),
-  },
-  
-*/
  
   {
     key: 'ID',
-    label: 'ID',
+    label: '<%=occProps.getProperty("ID")%>',
     value: _notUndefined('occurrenceID'),
   },
   {
-    key: 'dateTimeCreated',
-    label: 'Date Created',
-    value: _notUndefined('dateTimeCreated'),
+    key: 'dateTimeLong',
+    label: '<%=occProps.getProperty("date")%>',
+    value: _date,
   },
   {
-	    key: 'correspondingSurveyID',
-	    label: 'Corresponding Survey',
-	    value: _notUndefined('correspondingSurveyID'),
-  }, 	
-  {
-	key: 'numberEncounters',
-	label: '<%=props.getProperty("numEncounters")%>',
-	value: _colNumberEncounters,
-	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    key: 'groupBehavior',
+    label: '<%=occProps.getProperty("groupBehavior")%>',
+    value: _notUndefined('groupBehavior'),
   },
   {
-		key: 'decimalLatitude',
-		label: 'latitude',
-    value: _notUndefined('decimalLatitude'),
-    sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
+    key: 'taxonomies',
+    label: '<%=occProps.getProperty("species")%>',
+    value: _species,
+  },
   {
-		key: 'decimalLongitude',
-		label: 'longitude',
-    value: _notUndefined('decimalLongitude'),
-    sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-  /*
+    key: 'locationIds',
+    label: '<%=occProps.getProperty("locationIds")%>',
+    value: _notUndefined('locationIds'),
+  },
+  {
+    key: 'encounterCount',
+    label: '<%=occProps.getProperty("encounterCount")%>',
+    value: _notUndefined('encounterCount'),
+    sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
+  },
   {
     key: 'individualCount',
-    label: 'Encounters',
+    label: '<%=occProps.getProperty("individualCount")%>',
     value: _notUndefined('individualCount'),
     sortFunction: function(a,b) { return parseInt(a) - parseInt(b); }
   },
-	{
-		key: 'individual',
-		label: '<%=props.getProperty("markedIndividual")%>',
-		value: _colIndividual,
-		sortValue: function(o) { return o.individualID.toLowerCase(); },
-		//sortFunction: function(a,b) {},
-	},
-
-	{
-		key: 'maxYearsBetweenResightings',
-		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	},
-	{
-		key: 'sex',
-		label: '<%=props.getProperty("sex")%>',//'Sex',
-	},
-	{
-		key: 'numberLocations',
-		label: '<%=props.getProperty("numLocationsSighted")%>',
-		value: _colNumberLocations,
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-	}*/
 
 ];
 
@@ -485,31 +456,7 @@ function show() {
 
 function computeCounts() {
 	counts.total = sTable.matchesFilter.length;
-	return;  //none of the below applies here! (cruft from encounters for prosperity)
-	counts.unid = 0;
-	counts.ided = 0;
-	counts.dailydup = 0;
-	var uniq = {};
-
-	for (var i = 0 ; i < counts.total ; i++) {
-		console.log('>>>>> what up? %o', searchResults[sTable.matchesFilter[i]]);
-		var iid = searchResults[sTable.matchesFilter[i]].individualID;
-		if (iid == 'Unassigned') {
-			counts.unid++;
-		} else {
-			var k = iid + ':' + searchResults[sTable.matchesFilter[i]].get('year') + ':' + searchResults[sTable.matchesFilter[i]].get('month') + ':' + searchResults[sTable.matchesFilter[i]].get('day');
-			if (!uniq[k]) {
-				uniq[k] = true;
-				counts.ided++;
-			} else {
-				counts.dailydup++;
-			}
-		}
-	}
-/*
-	var k = Object.keys(uniq);
-	counts.ided = k.length;
-*/
+	return;  
 }
 
 
@@ -571,44 +518,7 @@ $(document).ready( function() {
 
 var tableContents = document.createDocumentFragment();
 
-/*
-function doTable() {
-	resultsTable = new pageableTable({
-		columns: testColumns,
-		tableElement: $('#results-table'),
-		sliderElement: $('#results-slider'),
-		tablesorterOpts: {
-			headers: { 0: {sorter: false} },
-			textExtraction: _textExtraction,
-		},
-	});
 
-	resultsTable.tableInit();
-
-	inds = new wildbook.Collection.Occurrences();
-	var addedCount = 0;
-	inds.on('add', function(o) {
-		var row = resultsTable.tableCreateRow(o);
-		row.click(function() { var w = window.open('individuals.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
-		row.addClass('clickable');
-		row.appendTo(tableContents);
-		addedCount++;
-var percentage = Math.floor(addedCount / searchResults.length * 100);
-if (percentage % 3 == 0) console.log(percentage);
-		if (addedCount >= searchResults.length) {
-			$('#results-table').append(tableContents);
-		}
-	});
-
-	_.each(searchResults, function(o) {
-		inds.add(new wildbook.Model.Occurrence(o));
-	});
-	$('#progress').remove();
-	resultsTable.tableShow();
-
-
-}
-*/
 
 
 function _colIndividual(o) {
@@ -684,13 +594,15 @@ function _colModified(o) {
 	return d.toLocaleDateString();
 }
 
-function _colOccDate(o) {
-	var dateMillis = o.get('millis');
-	if (!dateMillis) return '';
-	var dateString = new Date(dateMillis).toString();
-	return dateString;
+function _colDate(o) {
+	var millis = o.dateAsString();
 }
 
+function _colDateSort(o) {
+	var d = o.date();
+	if (!d) return 0;
+	return d.getTime();
+}
 
 function _textExtraction(n) {
 	var s = $(n).text();
@@ -733,21 +645,11 @@ function applyFilter() {
     if (request.getParameter("subsampleMonths") != null) {
       subsampleMonths = true;
     }
-    numResults = count;
+    //numResults = count;
   %>
 </table>
 
 
-<%
-  myShepherd.rollbackDBTransaction();
-  startNum += 10;
-  endNum += 10;
-  if (endNum > numResults) {
-    endNum = numResults;
-  }
-
-
-%>
 
 <p>
 <table width="810" border="0" cellspacing="0" cellpadding="0">
@@ -756,18 +658,12 @@ function applyFilter() {
       <p><strong><%=occProps.getProperty("matchingOccurrences")%>
       </strong>: <span id="count-total"></span>
       </p>
-      <%
-      myShepherd.beginDBTransaction();
-      %>
+
       <p><strong><%=occProps.getProperty("totalOccurrences")%>
-    </strong>: <%=(myShepherd.getNumOccurrences())%>
+    </strong>: <%=numOccurrences %>
       </p>
     </td>
-    <%
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
 
-    %>
   </tr>
 </table>
 <%
@@ -782,12 +678,12 @@ function applyFilter() {
 
       <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
+        <%=prettyPrint %>
       </p>
 
       <p class="caption"><strong><%=props.getProperty("jdoql")%>
       </strong><br/>
-        <%=result.getJDOQLRepresentation()%>
+        <%=jdoqlRep %>
       </p>
 
     </td>
