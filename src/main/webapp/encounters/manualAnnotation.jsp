@@ -224,10 +224,10 @@ try{
 		    String v = (String)it2.next();
 		    //System.out.println("Encooded v: "+v);
 		    if (!Util.stringExists(v)) continue;
-		    if(IBEISIA.validIAClassForIdentification(v, context)){
+		    //if(IBEISIA.validIAClassForIdentification(v, context)){
 		    	//System.out.println("v:" +v+" versus iaCLass:"+iaClass);
 		    	clist += "<option" + (v.equals(iaClass) ? " selected" : "") + ">" + v + "</option>";
-		    }
+		    //}
 		}
 		clist += "</select></p>";
 		//q2.closeAll();
