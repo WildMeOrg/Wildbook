@@ -82,6 +82,12 @@
 					"id": "SGR",
 					"description": "Selous Game Reserve",
 					"defaultLatitude": -9.0, "defaultLongitude": 37.5
+				},
+				{
+					"name": "ANP",
+					"id": "ANP",
+					"description": "Arusha National Park",
+					"defaultLatitude": -3.2, "defaultLongitude": 36.8
 				}
 			]
 		},
