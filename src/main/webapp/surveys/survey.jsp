@@ -95,7 +95,10 @@ if (sv!=null) {
 	if (sv.getEffort()!=null) {
 		Measurement effortMeasurement = sv.getEffort();
 		String value = String.valueOf(effortMeasurement.getValue());
-		effortData += "<p>Calculated: "+value+" Hrs</p>";
+                String units = effortMeasurement.getUnits();
+                String label = effortMeasurement.getType();
+                if (label == null) label = "Effort";
+		effortData += "<p>" + label + ": " + value + " " + units + "</p>";
 	}
 	if (sv.getComments()!=null) {
 		comments = sv.getComments();
