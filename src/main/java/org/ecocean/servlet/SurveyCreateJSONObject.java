@@ -34,6 +34,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.movement.SurveyTrack;
 import org.ecocean.movement.Path;
+import org.ecocean.Measurement;
 import org.ecocean.User;
 import org.ecocean.Util;
 import org.ecocean.AccessControl;
@@ -88,6 +89,12 @@ System.out.println(startTime + " --> " + endTime);
         survey.addComments(user.getUUID());  //will be available thru occurrence/encounters more officially
         survey.setProjectName(jsonIn.optString("routeId", null));
         survey.setProjectType("route");
+
+        double survLen = jsonIn.optDouble("surveyLength", -1.0d);
+        if (survLen > 0.0d) {
+            Measurement lenMeas = new Measurement(null, "surveyLength", survLen, "m", null);
+            survey.setEffort(lenMeas);
+        }
 
         SurveyTrack trk = new SurveyTrack(Path.fromJSONArray(jsonIn.optJSONArray("path")));
 
