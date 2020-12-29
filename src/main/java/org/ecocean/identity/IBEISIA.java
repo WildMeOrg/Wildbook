@@ -1703,8 +1703,12 @@ System.out.println("updateSpeciesOnIA(): " + ann + " is on " + enc);
             if ((enc == null) || (ann.getAcmId() == null)) continue;
             String taxonomyString = enc.getTaxonomyString();
             if (!shouldUpdateSpeciesFromIa(taxonomyString, myShepherd.getContext())) continue;
+            
+            //WB-1251, switch species to iaClass
+            if(ann.getIAClass()==null)continue;
             uuids.add(ann.getAcmId());
-            species.add(taxonomyString);
+            //species.add(taxonomyString);
+            species.add(ann.getIAClass());
         }
 System.out.println("updateSpeciesOnIA(): " + uuids);
 System.out.println("updateSpeciesOnIA(): " + species);
