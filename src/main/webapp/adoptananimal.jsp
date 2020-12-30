@@ -1,11 +1,11 @@
-<%@ page 
-	contentType="text/html; charset=utf-8" 
-	language="java" 
+<%@ page
+	contentType="text/html; charset=utf-8"
+	language="java"
 	import="org.ecocean.servlet.ServletUtilities,
 			org.ecocean.*,
-			java.util.Properties, 
-			java.io.FileInputStream, 
-			java.io.File, 
+			java.util.Properties,
+			java.io.FileInputStream,
+			java.io.File,
 			java.io.FileNotFoundException,
 			java.util.Iterator
 			" %>
@@ -91,25 +91,26 @@ context=ServletUtilities.getContext(request);
 			</div>
 		</article>
 	</section> --%>
-	
+
 
 
 	<section class="adopters-featured">
 			<h2>Join the Family!</h2>
 			<article class="adopter-feature-gallery">
-			
+
 				<%
 				Shepherd myShepherd=new Shepherd(context);
+				myShepherd.setAction("adoptananimal.jsp");
 				myShepherd.beginDBTransaction();
 				try{
 					if(myShepherd.getNumAdoptions()>0){
 					Iterator<Adoption> adoptions=myShepherd.getAllAdoptionsNoQuery();
 					int iter=0;
 					while((adoptions.hasNext())&&(iter<4)){
-					
+
 					Adoption ad=adoptions.next();
 					%>
-			
+
 					<div class="adopter" style="width: 190px">
 						<div class="adopter-header" >
 							<p>Whale Shark Adopter</p>
@@ -135,7 +136,7 @@ context=ServletUtilities.getContext(request);
 					myShepherd.closeDBTransaction();
 				}
 				%>
-			
+
 			</article>
 		</section>
 

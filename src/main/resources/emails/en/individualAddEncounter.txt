@@ -19,12 +19,12 @@ nickname your animal
 Regards,
 Spotting Giant Sea Bass Research Team
 
-~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
 Hola,
 
-Nadamás un breve mensaje para avisarte que el encuentro con mero gigante que enviaste 
-coincide con un individuo identificado en la base de datos para la foto-identificación. 
+Nadamás un breve mensaje para avisarte que el encuentro con mero gigante que enviaste
+coincide con un individuo identificado en la base de datos para la foto-identificación.
 Haz clic en estos enlaces para aprender más detalles:
 
 Individuo previamente identificado: @INDIVIDUAL_ID@ (Alternate ID: @INDIVIDUAL_ALT_ID@)
@@ -34,4 +34,3 @@ Encuentro nuevo: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
 
 Gracias de nuevo por tu ayuda importante.
-         

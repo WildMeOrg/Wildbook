@@ -10,20 +10,21 @@
       java.util.ArrayList,
       java.util.List,
       java.util.Properties,
-      org.apache.commons.lang.WordUtils,
+      org.apache.commons.text.WordUtils,
       org.ecocean.security.Collaboration
       "
 %>
         <%
-        String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
-				String context="context0";
-				context=ServletUtilities.getContext(request);
-				// Make a properties object for lang support.
-				Properties props = new Properties();
-				// Find what language we are in.
-				String langCode = ServletUtilities.getLanguageCode(request);
-				// Grab the properties file with the correct language strings.
-				props = ShepherdProperties.getProperties("footer.properties", langCode, context);
+String context="context0";
+context=ServletUtilities.getContext(request);
+String langCode=ServletUtilities.getLanguageCode(request);
+Properties props = new Properties();
+props = ShepherdProperties.getProperties("footer.properties", langCode, context);
+
+
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+
         %>
 
         <!-- footer -->
@@ -32,14 +33,14 @@
             <div class="container-fluid">
               <div class="container main-section">
 
-                 <div class="row">        
+                 <div class="row">
                     <div class="col-xs-3 col-sm-3 col-md-3" style="margin-top:10px;">
-                      <a target="_blank" href="http://www.boi.ucsb.edu">                                             
+                      <a target="_blank" href="http://www.boi.ucsb.edu">
 	                      <img class="img-responsive" alt="boi logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/boi_logo.svg"/>
                       </a>
                     </div>
                     <div class="col-xs-2 col-sm-2 col-md-2" style="margin-top:10px;">
-                      <a target="_blank" href="http://lovelab.msi.ucsb.edu/">                      
+                      <a target="_blank" href="http://lovelab.msi.ucsb.edu/">
                         <img class="img-responsive" alt="love lab logo" src="<%=urlLoc%>/cust/mantamatcher/img/bass/love_lab_logo-little.png"/>
                       </a>
                     </div>
@@ -54,20 +55,20 @@
                       </a>
                     </div>
                     <div class="col-xs-3 col-sm-3 col-md-3" style="margin-top:10px;">
-                      <a target="_blank" href="http://www.wildbook.org" title="This site is Powered by Wildbook">
-                        <img class="img-responsive" src="<%=urlLoc%>/images/WildBook_logo_footer.png" alt="wildbook logo"/>
-                      </a> 
+											<a href="https://www.wildme.org/" class="col-sm-4" title="<%=props.getProperty("footerLogoTitle") %>">
+	                      <img src="<%=urlLoc %>/images/WildMe-Logo-04.png" alt=" logo" class="pull-right" style="height: auto; width: 180px"/>
+	                    </a>
                     </div>
                  </div>
-                 
+
                  <div class="row">
                     <p class="col-sm-12" style="margin-top:10px;">
                       <small><%=props.getProperty("licenceInfo")%>
-                      <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small> 
-                    </p>                                   	   
+                      <br> <a href="https://www.wildme.org/#/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
+                    </p>
                  </div>
-                 
-                  
+
+
               </div>
             </div>
 

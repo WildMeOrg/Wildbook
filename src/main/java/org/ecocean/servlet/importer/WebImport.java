@@ -32,7 +32,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 
 import org.joda.time.DateTime;
@@ -83,7 +83,7 @@ public class WebImport extends HttpServlet {
 
   public String fileInDir(String filename, String directoryPath) {
     if (directoryPath.endsWith("/")) return (directoryPath+filename);
-    return (directoryPath+"/"+filename); 
+    return (directoryPath+"/"+filename);
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
@@ -158,7 +158,7 @@ public class WebImport extends HttpServlet {
 
     int printPeriod = 1;
     if (committing) myShepherd.beginDBTransaction();
-    out.println("<h2>Parsed Import Table</h2>"); 
+    out.println("<h2>Parsed Import Table</h2>");
     System.out.println("debug0");
     System.out.println("feedback headers = "+feedback.colNames);
     feedback.printStartTable();
@@ -218,7 +218,7 @@ public class WebImport extends HttpServlet {
         //   +"<td> lifeStage "+enc.getLifeStage()+"</td>"
         //  out.println("</tr>");
         }
-        
+
       }
       catch (Exception e) {
         out.println("Encountered an error while importing the file.");
@@ -233,7 +233,7 @@ public class WebImport extends HttpServlet {
     out.println("<li>Filename: "+filename+"</li>");
     out.println("<li>File found = "+dataFound+"</li>");
     out.println("<li>Num Sheets = "+numSheets+"</li>");
-    out.println("<li>Num Rows = "+physicalNumberOfRows+"</li>");    
+    out.println("<li>Num Rows = "+physicalNumberOfRows+"</li>");
     out.println("<li>Num Cols = "+cols+"</li>");
     out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>committing = "+committing+"</em></li>");
@@ -264,9 +264,9 @@ public class WebImport extends HttpServlet {
     feedback.printFoundPhotos();
 
 
-    out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
+    out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");
 
-    out.println("<h2>Import completed successfully</h2>");    
+    out.println("<h2>Import completed successfully</h2>");
     //fs.close();
 
 
@@ -292,7 +292,7 @@ public class WebImport extends HttpServlet {
   }
 
   public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
-  	
+
   	Occurrence occ = getCurrentOccurrence(oldOcc, row);
   	// would love to have a more concise way to write following couplets, c'est la vie
 
@@ -431,7 +431,7 @@ public class WebImport extends HttpServlet {
     if (millis!=null) {
       if (hasTimeCategories) enc.setDateInMillisOnly(millis); // does not overwrite day/month/etc
       else enc.setDateInMilliseconds(millis);
-    } 
+    }
 
 
   	// Location
@@ -601,7 +601,7 @@ public class WebImport extends HttpServlet {
   		for (String columnHeader: colIndexMap.keySet()) {
   			if (columnHeader.contains(className+".")) {
   				fieldNames.add(columnHeader.split(className+".")[1]); // for Encounter.date returns date
-  			}	
+  			}
   		}
   	} catch (Exception e) {}
   	return fieldNames;
@@ -775,7 +775,7 @@ public class WebImport extends HttpServlet {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     int maxAssets = getNumAssets(row);
     int maxKeywords=2;
-    int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; // 
+    int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; //
     // we have up to two keywords per row.
     for (int i=n; i<stopAtKeyword; i++) {
       String kwColName = "Encounter.keyword0"+i;
@@ -1004,7 +1004,7 @@ public class WebImport extends HttpServlet {
       double val = row.getCell(i).getNumericCellValue();
       ans = new Long( (long) val );
     }
-    catch (Exception e){      
+    catch (Exception e){
       try {
         String str = getStringNoLog(row, i);
         if (str==null) ans = null;
@@ -1239,7 +1239,7 @@ public class WebImport extends HttpServlet {
     // }
 
     // return as;
-    
+
   }
 
 
@@ -1352,7 +1352,7 @@ public class WebImport extends HttpServlet {
         if (cell==null) str.append(nullCellHtml());
         else str.append(cell.html());
       }
-      str.append("</tr>"); 
+      str.append("</tr>");
       return str.toString();
     }
 
@@ -1416,7 +1416,7 @@ public class WebImport extends HttpServlet {
     public String titleStr() {
       if (isBlank) return "Cell was blank in excel file.";
       if (!success) return "ERROR: The import was unable to parse this cell. Please verify that your value conforms to the Wildbook Standard Format and re-import.";
-      return "Successfully parsed value from excel file.";    
+      return "Successfully parsed value from excel file.";
     }
 
 

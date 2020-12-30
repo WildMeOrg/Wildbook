@@ -33,7 +33,7 @@ public class Membership implements java.io.Serializable {
             this.startDate = startDate;
         }
         if (endDate!=null) {
-            this.endDate = endDate; 
+            this.endDate = endDate;
         }
     }
 
@@ -65,13 +65,13 @@ public class Membership implements java.io.Serializable {
         return mi;
     }
 
-    public String getMarkedIndividualDisplayName() {
-        return mi.getDisplayName();
-    }
+    // public String getMarkedIndividualDisplayName() {
+    //     return mi.getDisplayName();
+    // }
 
     public String getRole() {
         return role;
-    }    
+    }
 
     public Long getStartDateLong() {
         return startDate;
@@ -81,7 +81,7 @@ public class Membership implements java.io.Serializable {
         return endDate;
     }
 
-    public String getStartDate() { 
+    public String getStartDate() {
         if (startDate!=null) {
             DateTime dt = new DateTime(startDate);
             DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
@@ -100,7 +100,10 @@ public class Membership implements java.io.Serializable {
     }
 
     public void setRole(String role) {
-        this.role = role;
+      if(role==null) {
+        this.role=null;
+      }
+      else {this.role = role;}
     }
 
     public void setStartDate(long startDate) {
@@ -114,7 +117,7 @@ public class Membership implements java.io.Serializable {
     public String getId() {
         return id;
     }
-    
+
     // Returns a somewhat rest-like JSON object containing the metadata
     public JSONObject uiJson(HttpServletRequest request) throws JSONException {
       JSONObject jobj = new JSONObject();
@@ -125,7 +128,7 @@ public class Membership implements java.io.Serializable {
       jobj.put("mi", this.getMarkedIndividual().uiJson(request,false));
       return sanitizeJson(request,decorateJson(request, jobj));
     }
-    
+
     public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
       if (mi!=null && mi.canUserAccess(request)) return jobj;
       jobj.remove("mi");
@@ -136,6 +139,12 @@ public class Membership implements java.io.Serializable {
     public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
       return jobj;
     }
+    
+    public void setMarkedIndividual(MarkedIndividual indy) {
+      this.mi=indy;
+    }
+
+    public void removeMarkedIndividual() {this.mi=null;}
 
 
 }

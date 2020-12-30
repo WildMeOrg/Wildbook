@@ -2,8 +2,8 @@
     "description": "Hierarchical Encounter.locationIDs in Wildbook",
     "source": "http://en.wikipedia.org/wiki/List_of_seas",
     "locationID": [
-  
-  
+
+
           {
           "name": "Pacific Ocean",
           "locationID":[
@@ -11,56 +11,56 @@
            {"name": "Anacapa Island", "id": "Anacapa Island", "locationID":[
 
                {"name": "Anacapa Island- Admiral's Reef", "id": "Anacapa Island- Admiral's Reef"},
-    
+
                {"name": "Anacapa Island- Black Seabass Reef", "id": "Anacapa Island- Black Seabass Reef"},
-    
+
                {"name": "Anacapa Island- Brickyard", "id": "Anacapa Island- Brickyard"},
-    
+
                {"name": "Anacapa Island- Canyons", "id": "Anacapa Island- Canyons"},
-    
+
                {"name": "Anacapa Island- Cathedral Cove", "id": "Anacapa Island- Cathedral Cove"},
-    
+
                {"name": "Anacapa Island- Cathedral Point", "id": "Anacapa Island- Cathedral Point"},
-    
+
                {"name": "Anacapa Island- East Fish Camp", "id": "Anacapa Island- East Fish Camp"},
-    
+
                {"name": "Anacapa Island- Garden Spot", "id": "Anacapa Island- Garden Spot"},
-    
+
                {"name": "Anacapa Island- Goldfish Bowl", "id": "Anacapa Island- Goldfish Bowl"},
-    
+
                {"name": "Anacapa Island- Landing Cove", "id": "Anacapa Island- Landing Cove"},
-    
+
                {"name": "Anacapa Island- Lighthouse Reef", "id": "Anacapa Island- Lighthouse Reef"},
-               
+
                {"name": "Anacapa Island- Northeast Side", "id": "Anacapa Island- Northeast Side"},
-               
+
                {"name": "Anacapa Island- Northwest Side", "id": "Anacapa Island- Northwest Side"},
-    
+
                {"name": "Anacapa Island- Parallel Reefs", "id": "Anacapa Island- Parallel Reefs"},
-               
+
                {"name": "Anacapa Island- Rat Rock", "id": "Anacapa Island- Rat Rock"},
-               
+
                {"name": "Anacapa Island- Southeast Side", "id": "Anacapa Island- Southeast Side"},
-               
+
                {"name": "Anacapa Island- Southwest Side", "id": "Anacapa Island- Southwest Side"},
-    
+
                {"name": "Anacapa Island- Surveyor's Rock", "id": "Anacapa Island- Surveyor's Rock"},
-    
+
                {"name": "Anacapa Island- Underwater Island", "id": "Anacapa Island- Underwater Island"},
-    
+
                {"name": "Anacapa Island- Winfield Scott Wreck", "id": "Anacapa Island- Winfield Scott Wreck"}
 
            ] },
 
            {"name": "Birch Aquarium", "id": "Birch Aquarium"},
-              
+
            {"name": "Barn Kelp, SONGS site", "id": "Barn Kelp, SONGS site"},
 
            {"name": "Cabrillo Marine Aquarium", "id": "Cabrillo Marine Aquarium"},
 
            {"name": "Cabrillo National Monument", "id": "Cabrillo National Monument"},
-              
-           {"name": "Carpinteria Reef", "id": "Carpinteria Reef"},   
+
+           {"name": "Carpinteria Reef", "id": "Carpinteria Reef"},
 
            {"name": "Catalina Island", "id": "Catalina Island", "locationID":[
 
@@ -95,11 +95,11 @@
                {"name": "Catalina Island- Rock Quarry", "id": "Catalina Island- Rock Quarry"},
 
                {"name": "Catalina Island- Twin Rocks", "id": "Catalina Island- Twin Rocks"}
-               
+
             ]},
-               
+
             {"name": "Channel Islands", "id": "Channel Islands"},
-               
+
             {"name": "Goleta- Campus Point", "id": "Goleta- Campus Point"},
 
             {"name": "Goleta- Coal Oil Point", "id": "Goleta- Coal Oil Point"},
@@ -107,7 +107,7 @@
             {"name": "Goleta- Sands", "id": "Goleta- Sands"},
 
             {"name": "Half Moon Bay", "id": "Half Moon Bay"},
-              
+
             {"name": "Heal the Bay Aquarium", "id": "Heal the Bay Aquarium"},
 
             {"name": "Hermosa Artificial Reef", "id": "Hermosa Artificial Reef"},
@@ -125,8 +125,8 @@
                 {"name": "La Jolla- Marine Room", "id": "La Jolla- Marine Room"}
 
             ]},
-              
-            {"name": "Naples", "id": "Naples"},  
+
+            {"name": "Naples", "id": "Naples"},
 
             {"name": "New Brighton Beach", "id": "New Brighton Beach"},
 
@@ -158,9 +158,9 @@
                 {"name": "San Clemente Island- Nine Fathom Reef", "id": "San Clemente Island- Nine Fathom Reef"},
 
                 {"name": "San Clemente Island- Wilson Cove", "id": "San Clemente Island- Wilson Cove"}
-    
+
             ]},
-                
+
             {"name": "San Diego- HMCS Yukon", "id": "San Diego- HMCS Yukon"},
 
             {"name": "San Diego Bay", "id": "San Diego Bay"},
@@ -176,11 +176,11 @@
             {"name": "Santa Barbara Island", "id": "Santa Barbara Island", "locationID":[
 
                 {"name": "Santa Barbara Island- Arch Point", "id": "Santa Barbara Island- Arch Point"},
-    
+
                 {"name": "Santa Barbara Island- Shag Rock", "id": "Santa Barbara Island- Shag Rock"},
-    
+
                 {"name": "Santa Barbara Island- Sutil Island", "id": "Santa Barbara Island- Sutil Island"},
-    
+
                 {"name": "Santa Barbara Island- The Rookery", "id": "Santa Barbara Island- The Rookery"}
 
             ]},
@@ -190,15 +190,15 @@
                 {"name": "Santa Cruz Island- Blue Banks", "id": "Santa Cruz Island- Blue Banks"},
 
                 {"name": "Santa Cruz Island- Yellow Banks", "id": "Santa Cruz Island- Yellow Banks"}
-                
+
             ]},
-              
+
             {"name": "Santa Rosa Island", "id": "Santa Rosa Island", "locationID":[
 
                 {"name": "Santa Rosa Island- Carrington Point", "id": "Santa Rosa Island- Carrington Point"}
  
-            ]},  
-                
+            ]},
+
             {"name": "Santa Monica- Wreck of the Star of Scotland", "id": "Santa Monica- Wreck of the Star of Scotland"},
 
             {"name": "Solana Beach", "id": "Solana Beach"},
@@ -208,7 +208,7 @@
             {"name": "Torrey Pines State Beach", "id": "Torrey Pines State Beach"},
 
             {"name": "Wheeler North Reef, SONGS site", "id": "Wheeler North Reef, SONGS site"}
-  
+
           ],
 
           "id": "3",
