@@ -53,6 +53,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.net.URL;
+import java.net.URLEncoder;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.media.*;
@@ -65,6 +66,7 @@ import javax.servlet.ServletException;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
@@ -1708,7 +1710,7 @@ System.out.println("updateSpeciesOnIA(): " + ann + " is on " + enc);
             if(ann.getIAClass()==null)continue;
             uuids.add(ann.getAcmId());
             //species.add(taxonomyString);
-            species.add(ann.getIAClass());
+            species.add(ann.getIAClass().replaceAll("\\+","%2B"));
         }
 System.out.println("updateSpeciesOnIA(): " + uuids);
 System.out.println("updateSpeciesOnIA(): " + species);
@@ -2426,6 +2428,10 @@ System.out.println("identification most recent action found is " + action);
             System.out.println("INFO: setting iaBaseURL=" + iaBaseURL);
         }
         String ustr = iaBaseURL;
+        
+        System.out.println("!!!ustr: "+iaBaseURL);
+        System.out.println("!!!urlSuffix: "+urlSuffix);
+        
         if (urlSuffix != null) {
             if (urlSuffix.indexOf("/") == 0) urlSuffix = urlSuffix.substring(1);  //get rid of leading /
             ustr += urlSuffix;
@@ -3218,10 +3224,12 @@ System.out.println(">>>>>>>> sex -> " + rtn);
         }
         JSONArray idList = new JSONArray();
         JSONArray speciesList = new JSONArray();
+        System.out.println("!!!IGOTS: "+species.toString());
         for (int i = 0 ; i < uuids.size() ; i++) {
             idList.put(toFancyUUID(uuids.get(i)));
-            speciesList.put(species.get(i).replaceAll(" ", "_").toLowerCase());
+            speciesList.put(species.get(i));
         }
+        System.out.println("!!!IPUTS: "+speciesList.toString());
         JSONObject rtn = RestClient.put(iaURL(context, "/api/annot/species/json/?annot_uuid_list=" + idList.toString() + "&species_text_list=" + speciesList.toString()), null);
     }
 
@@ -4432,4 +4440,5 @@ System.out.println("iaList.size = " + iaList.size());
         return diff;
     }
 
+    
 }
