@@ -1653,7 +1653,7 @@ div.collab-list div {
 
 div.collab-list span.who {
 	font-size: 0.8em;
-	width: 30%;
+	width: 20%;
 	display: inline-block;
 	color: #555;
 }
@@ -1677,7 +1677,6 @@ div.collab-list span.state {
 	padding: 2px 5px 2px 5px;
 	border-radius: 3px;
 }
-
 
 div.collab-log {
 	margin-top: 18px;

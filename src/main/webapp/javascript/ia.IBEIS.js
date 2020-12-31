@@ -31,7 +31,7 @@ wildbook.IA.plugins.push({
         }
         // items is an array of two-element arrays. In each tuple is 1. what to display, 2. the click action
         // first elem: executes function if function, or just displays if string
-        var items = new Array(); 
+        var items = new Array();
 
         //this is the "start (new) job"
         items.push([
@@ -63,7 +63,7 @@ wildbook.IA.plugins.push({
                 wildbook.openInTab('encounterVM.jsp?number=' + encounterNumberFromElement(enh.imgEl) + '&mediaAssetId=' + mid);
             }
         ]);
-        
+
         //manual annotation.jsp
         items.push([
             function(enh) {  //the menu text
@@ -89,9 +89,15 @@ wildbook.IA.plugins.push({
         var iaStatus = wildbook.IA.getPluginByType('IBEIS').iaStatus(ma);
         var identActive = wildbook.IA.getPluginByType('IBEIS').iaStatusIdentActive(iaStatus);
         var requireSpecies = !(wildbook.IA.requireSpeciesForId() == 'false');
+
+        let detectionComplete = false;
+        if (ma.detectionStatus && ma.detectionStatus == 'complete') {
+            detectionComplete = true;
+        }
+
 console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identActive=%o, requireSpecies=%o', mode, mid, aid, ma, iaStatus, identActive, requireSpecies);
 
-	if (identActive && (ma.detectionStatus == 'complete') && ma.annotation && !ma.annotation.identificationStatus) {
+	if (identActive && detectionComplete && ma.annotation && !ma.annotation.identificationStatus) {
             if (mode == 'textStart') {
                 return '<span class="disabled">no matchable detection</span>';
             } else if (mode == 'funcStart') {
@@ -99,7 +105,8 @@ console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identAc
                 //wildbook.openInTab('../iaResults.jsp?taskId=' + iaStatus.taskId);
                 return;
             }
-	} else if (identActive) {
+    // allow results page only if detection is complete or there is a verifiable identification status
+	} else if (identActive && ( detectionComplete || ma.annotation.identificationStatus == ('pending' || 'complete'))) {
             if (mode == 'textStart') {
                 return 'match results';
             } else if (mode == 'funcStart') {
@@ -110,7 +117,7 @@ console.log('_iaMenuHelper: mode=%o, mid=%o, aid=%o, ma=%o, iaStatus=%o, identAc
         }
 
         //this should be the only thing we see until detection is done
-        if (!identActive && ma.detectionStatus && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
+        if (!detectionComplete && !(iaStatus && iaStatus.task && iaStatus.task.parameters && iaStatus.task.parameters.skipIdent)) {
             if (mode == 'textStart') {
                 return '<span class="disabled">Still waiting for detection. Refresh to see updates.</span>';
             } else {
@@ -197,8 +204,16 @@ console.warn('ias => %o', ias);
 
     //this is now handled by a div in encounters.jsp
     matchFilter: function(aid, ma) {
-        iaMatchFilterAnnotationIds.push(aid);
+        iaMatchFilterAnnotationIds = [ aid ];
+        var iaClass = ma && ma.annotation && ma.annotation.iaClass;
+        $('.mfalgo-item').show();
+        if (iaClass) {
+            $('.mfalgo-item').hide();
+            $('.mfalgo-iaclass-' + iaClass.replaceAll('+', '-')).show();
+        }
+        $('.mfalgo-item [data-default-checked="true"]').prop('checked', true);  //check all that should be
         $('.ia-match-filter-dialog').show();
+        $('.mfalgo-item:hidden input').prop('checked', false);
     },
 
     //can assume task.parameters is set
@@ -219,4 +234,3 @@ function registerTaskId(taskId) {
     $('#activeTaskId').remove();
     $('body').append('<p id="activeTaskId" style="display: none;">' + taskId + '</p>');
 }
-

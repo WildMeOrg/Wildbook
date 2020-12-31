@@ -19,12 +19,12 @@
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
     <geotools.version>23.0</geotools.version>
-	
+
 	<!--
 	 <project.http.version></project.http.version>
 	 <project.oauth.version></project.oauth.version>
 	 -->
-	 
+
   </properties>
 
   <repositories>
@@ -76,7 +76,7 @@
     <dependency>
         <groupId>com.healthmarketscience.jackcess</groupId>
         <artifactId>jackcess</artifactId>
-        <version>2.1.7</version>
+        <version>3.5.0</version>
     </dependency>
   <!--
    <dependency>
@@ -87,7 +87,7 @@
 		-->
 
         <!-- Optional Jars (for certain features) but required by maven for building. -->
-        
+
 		<!--
 		<dependency>
             <groupId>cglib</groupId>
@@ -124,7 +124,7 @@
     <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-core</artifactId>
-      <version>1.2.1</version>
+      <version>1.4.2</version>
     </dependency>
 
 	   <dependency>
@@ -140,13 +140,13 @@
         <artifactId>pac4j-oauth</artifactId>
         <version>1.9.7</version>
     </dependency>
-	
+
 	<dependency>
         <groupId>org.scribe</groupId>
         <artifactId>scribe</artifactId>
         <version>1.3.7</version>
     </dependency>
-    
+
     <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
@@ -182,7 +182,7 @@
 	<dependency>
   	   <groupId>commons-beanutils</groupId>
  	   <artifactId>commons-beanutils</artifactId>
-  	   <version>1.8.3</version>
+  	   <version>1.9.4</version>
 	</dependency>
 
     <dependency>
@@ -235,13 +235,13 @@
       <artifactId>commons-math</artifactId>
       <version>2.2</version>
     </dependency>
-    
+
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
       <version>4.1</version>
     </dependency>
-    
+
     <dependency>
     	<groupId>commons-collections</groupId>
     	<artifactId>commons-collections</artifactId>
@@ -257,7 +257,7 @@
 <dependency>
 	<groupId>commons-fileupload</groupId>
 	<artifactId>commons-fileupload</artifactId>
-	<version>1.3.1</version>
+	<version>1.3.3</version>
 </dependency>
 
 
@@ -425,7 +425,7 @@
             <artifactId>gt-shapefile</artifactId>
             <version>${geotools.version}</version>
         </dependency>
-		
+
 		<dependency>
   <groupId>org.geotools</groupId>
   <artifactId>gt-referencing</artifactId>
@@ -441,7 +441,7 @@
   <artifactId>gt-epsg-extension</artifactId>
   <version>${geotools.version}</version>
 </dependency>
-		
+
 		<!--
         <dependency>
             <groupId>org.geotools</groupId>
@@ -468,7 +468,7 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.7.12</version>
     </dependency>
-	
+
 <dependency>
     <groupId>org.twitter4j</groupId>
     <artifactId>twitter4j-core</artifactId>
@@ -494,7 +494,7 @@
 <dependency>
 	<groupId>com.mchange</groupId>
 	<artifactId>c3p0</artifactId>
-	<version>0.9.5.2</version>
+	<version>0.9.5.4</version>
 </dependency>
 
 
@@ -524,11 +524,13 @@
     <version>4.0.3</version>
 </dependency>
 
+<!--
 <dependency>
 	<groupId>org.springframework</groupId>
 	<artifactId>spring-core</artifactId>
 	<version>3.1.1.RELEASE</version>
 </dependency>
+-->
 
 <dependency>
   <groupId>com.stripe</groupId>
@@ -536,16 +538,11 @@
   <version>3.1.0</version>
 </dependency>
 
-  <dependency>
-      <groupId>com.google.http-client</groupId>
-      <artifactId>google-http-client-jackson</artifactId>
-      <version>1.23.0</version>
-  </dependency>
-<dependency>
+<!-- <dependency>
     <groupId>com.healthmarketscience.jackcess</groupId>
     <artifactId>jackcess</artifactId>
     <version>2.1.7</version>
-</dependency>
+</dependency> -->
 
 <dependency>
 	<groupId>com.opencsv</groupId>
@@ -566,7 +563,7 @@
             <artifactId>google-http-client-jackson2</artifactId>
             <version>${project.http.version}</version>
         </dependency>
-		
+
 <dependency>
 	<groupId>com.opencsv</groupId>
    	<artifactId>opencsv</artifactId>
@@ -588,8 +585,8 @@
   <artifactId>google-cloud-translate</artifactId>
   <version>1.15.0</version>
 </dependency>
-		
-	    
+
+
 	    <dependency>
 	      <groupId>com.google.truth</groupId>
 	      <artifactId>truth</artifactId>
@@ -602,41 +599,41 @@
   <artifactId>google-cloud-vision</artifactId>
   <version>1.15.0</version>
 </dependency>
-    
+
      <dependency>
       <groupId>com.google.auth</groupId>
       <artifactId>google-auth-library-oauth2-http</artifactId>
       <version>0.6.1</version>
      </dependency>
-     
+
      <dependency>
       <groupId>com.google.auth</groupId>
       <artifactId>google-auth-library-credentials</artifactId>
       <version>0.6.1</version>
     </dependency>
-    
+
 
 <!-- dependencies for Stanford NLP -->
 		<dependency>
 	    <groupId>edu.stanford.nlp</groupId>
 	    <artifactId>stanford-corenlp</artifactId>
 	    <version>3.9.1</version>
-		
+
 		 <exclusions>
-			<exclusion>  
+			<exclusion>
 				<groupId>com.google.protobuf</groupId>
 				<artifactId>protobuf-java</artifactId>
 			</exclusion>
-		</exclusions> 
-		
-		
+		</exclusions>
+
+
 		</dependency>
 		<!--
 		<dependency>
 		  <groupId>edu.stanford.nlp</groupId>
 		  <artifactId>stanford-corenlp</artifactId>
 		  <version>3.6.0</version>
-		  <classifier>models</classifier> 
+		  <classifier>models</classifier>
 		</dependency>
 		-->
 		<!-- streamlined and smaller SUTime only Stanford CoreNLP model JAR in the local repo-->
@@ -651,10 +648,10 @@
 		    <artifactId>stanford-parser</artifactId>
 		    <version>3.9.1</version>
 		</dependency>
-		
+
   <!-- YouTube Data V3 support -->
       <!-- This dependency is only used for the Topics API sample, which requires the Jackson JSON parser -->
-<!--         
+<!--
 		 <dependency>
               <groupId>org.codehaus.jackson</groupId>
               <artifactId>jackson-mapper-asl</artifactId>
@@ -699,7 +696,7 @@
       </resource>
     </resources>
 
-	
+
     <plugins>
 	<!--
       <plugin>
@@ -750,9 +747,9 @@
           <execution>
             <phase>install</phase>
             <goals>
-			
+
               <goal>javadoc</goal>
-			
+
             </goals>
           </execution>
         </executions>
@@ -770,7 +767,7 @@
             <additionalClasspathElement>${project.build.outputDirectory}</additionalClasspathElement>
           </additionalClasspathElements>
 
- 
+
 
           <connectors>
             <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
@@ -848,14 +845,15 @@
             <argument>target/classes/org/ecocean/package.jdo</argument>
             <argument>target/classes/org/ecocean/genetics/package.jdo</argument>
             <argument>target/classes/org/ecocean/grid/package.jdo</argument>
-			<argument>target/classes/org/ecocean/cache/package.jdo</argument>
+			      <argument>target/classes/org/ecocean/cache/package.jdo</argument>
             <argument>target/classes/org/ecocean/tag/package.jdo</argument>
             <argument>target/classes/org/ecocean/media/package.jdo</argument>
             <argument>target/classes/org/ecocean/identity/package.jdo</argument>
             <argument>target/classes/org/ecocean/ia/package.jdo</argument>
             <argument>target/classes/org/ecocean/servlet/importer/package.jdo</argument>
+            <argument>target/classes/org/ecocean/scheduled/package.jdo</argument>
             <argument>target/classes/org/ecocean/social/package.jdo</argument>
-			<argument>target/classes/org/ecocean/movement/package.jdo</argument>
+			      <argument>target/classes/org/ecocean/movement/package.jdo</argument>
           </arguments>
         </configuration>
         <executions>
@@ -897,14 +895,14 @@
 	  -->
 
 	<plugin>
-	<groupId>org.apache.tomcat.maven</groupId>  
- 	<artifactId>tomcat7-maven-plugin</artifactId>  
- 	<version>2.2</version>  
- 	<configuration>  
-  	<url>http://localhost:8080/manager/text</url>  
-  	<server>TomcatServer</server>    
-  	<username>admin</username>  
-  	<password></password>   
+	<groupId>org.apache.tomcat.maven</groupId>
+ 	<artifactId>tomcat7-maven-plugin</artifactId>
+ 	<version>2.2</version>
+ 	<configuration>
+  	<url>http://localhost:8080/manager/text</url>
+  	<server>TomcatServer</server>
+  	<username>admin</username>
+  	<password></password>
  	</configuration>
 	</plugin>
 
@@ -930,4 +928,12 @@
         </plugin>
     </plugins>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/WildbookOrg/Wildbook</url>
+    </repository>
+  </distributionManagement>
 </project>

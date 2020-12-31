@@ -54,11 +54,145 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
+		//let's pre-populate important info for logged in users
+    String submitterName="";
+    String submitterEmail="";
+    String affiliation= (request.getParameter("organization")!=null) ? request.getParameter("organization") : "";
+    String project="";
+		User user = null;
+    myShepherd.setAction("submit.jsp1");
+    myShepherd.beginDBTransaction();
+    if(request.getRemoteUser()!=null){
+        submitterName=request.getRemoteUser();
+        if(myShepherd.getUser(submitterName)!=null){
+            user=myShepherd.getUser(submitterName);
+            if(user.getFullName()!=null){submitterName=user.getFullName();}
+            if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
+            if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
+            if(user.getUserProject()!=null){project=user.getUserProject();}
+        }
+
+    }
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
 
     boolean useCustomProperties = User.hasCustomProperties(request); // don't want to call this a bunch
-
-
 %>
+
+<script>
+$(document).ready( function() {
+	populateProjectNameDropdown([],[],"", false, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+	<%
+	if(user != null){
+		%>
+		let userId = '<%= user.getId()%>';
+		let requestForProjectNames = {};
+		requestForProjectNames['ownerId'] = userId;
+		doAjaxForProject(requestForProjectNames,userId);
+		<%
+	}else{
+		%>
+
+		<%
+	}
+	%>
+});
+
+function populateProjectNameDropdown(options, values, selectedOption, isVisible, defaultSelectItem, defaultSelectItemId, loggedOutDefaultDesired){
+	let useCustomStyle = '<%= ServletUtilities.useCustomStyle(request,CommonConfiguration.getDefaultProjectOrganizationParameter(context)) %>' == "true"?true: false;
+	if(useCustomStyle){
+		//do nothing unusual
+	}else{
+		defaultSelectItem = null;
+		defaultSelectItemId = null;
+		loggedOutDefaultDesired = false;
+	}
+	// if(options.length<1){
+	// 	isVisible=false;
+	// }
+		let projectNameHtml = '';
+		projectNameHtml += '<div class="col-xs-6 col-md-4">';
+		if(loggedOutDefaultDesired){
+			projectNameHtml += '<input type="hidden" name="defaultProject" id="defaultProject" value="' + getDefaultSelectedProjectId() + '" />';
+			// console.log("hidden default project selected with name: " + getDefaultSelectedProjectId());
+		}
+		if(isVisible){
+			projectNameHtml += '<label class="control-label "><%=props.getProperty("projectMultiSelectLabel") %></label>';
+			projectNameHtml += '<select name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}else{
+			projectNameHtml += '<select style="display: none;" name="proj-id-dropdown" id="proj-id-dropdown" class="form-control" multiple="multiple">';
+		}
+		if(defaultSelectItem){
+			projectNameHtml += '<option value="' + defaultSelectItemId + '" selected>'+ defaultSelectItem +'</option>';
+			options = options.remove(defaultSelectItem);
+		}
+		for(let i=0; i<options.length; i++){
+			if(options[i] === selectedOption){
+				projectNameHtml += '<option value="'+ values[i] +'" selected>'+ options[i] +'</option>';
+			}else{
+				projectNameHtml += '<option value="'+ values[i] + '">'+ options[i] +'</option>';
+			}
+		}
+		projectNameHtml += '</div>';
+		$("#proj-id-dropdown-container").empty();
+		$("#proj-id-dropdown-container").append(projectNameHtml);
+}
+
+Array.prototype.remove = function() {
+    var what, a = arguments, L = a.length, ax;
+    while (L && this.length) {
+        what = a[--L];
+        while ((ax = this.indexOf(what)) !== -1) {
+            this.splice(ax, 1);
+        }
+    }
+    return this;
+};
+
+function getDefaultSelectedProject(){
+	let defaultProject = '<%= CommonConfiguration.getDefaultSelectedProject(context) %>';
+	return defaultProject;
+}
+
+function getDefaultProjectOrganizationParameter(){
+	let defaultProjectOrganizationParameter = '<%= CommonConfiguration.getDefaultProjectOrganizationParameter(context) %>';
+	return defaultProjectOrganizationParameter;
+}
+
+function getDefaultSelectedProjectId(){
+	let defaultProjectId = '<%= CommonConfiguration.getDefaultSelectedProjectId(context) %>';
+	return defaultProjectId;
+}
+
+function getLoggedOutDefaultDesired(){
+	let loggedOutDefaultDesired = '<%= CommonConfiguration.getLoggedOutDefaultDesired(context) %>';
+	return loggedOutDefaultDesired;
+}
+
+function doAjaxForProject(requestJSON,userId){
+	$.ajax({
+			url: wildbookGlobals.baseUrl + '../ProjectGet',
+			type: 'POST',
+			data: JSON.stringify(requestJSON),
+			dataType: 'json',
+			contentType: 'application/json',
+			success: function(data) {
+				let projectNameResults = data.projects;
+				let projNameOptions = null;
+				if(projectNameResults){
+					projNameOptions = projectNameResults.map(entry =>{return entry.researchProjectName});
+					projNameIds = projectNameResults.map(entry =>{return entry.projectIdPrefix});
+					populateProjectNameDropdown(projNameOptions,projNameIds,"", true, getDefaultSelectedProject(), getDefaultSelectedProjectId(), getLoggedOutDefaultDesired());
+				}
+			},
+			error: function(x,y,z) {
+					console.warn('%o %o %o', x, y, z);
+			}
+	});
+}
+
+</script>
+
 
 <style type="text/css">
     .full_screen_map {
@@ -510,12 +644,14 @@ function gpsLiveUpdate() {
 $('#social_files_iframe').on('load', function(ev) {
 	if (!ev || !ev.target) return;
 	var doc = ev.target.contentDocument || ev.target.contentWindow.contentDocument;
-	//console.warn('doc is %o', doc);
+	console.warn('doc is %o', doc);
 	if (doc === null) return;
-	var x = $(doc).find('body').text();
-	//console.log('body %o', x);
+//var x = $(doc).find('body').text();
+//console.warn('body %o', x);
 	var j = JSON.parse($(doc).find('body').text());
-	console.log('iframe returned %o', j);
+	console.info('iframe returned %o', j);
+
+
 	console.log("social_files_id : "+j.id);
 	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
 	//now do actual submit
@@ -735,33 +871,37 @@ function removeFile(id) {
       </ul>
       <label><%=props.getProperty("canAddOnce") %></label>
       <input type="hidden" id="toRemove" name="toRemove" value=""></input>
-    </div>
-
+		</div>
 </fieldset>
-<hr/>
-<fieldset class="field-indent">
 
-  <div class="form-group">
-    <div class="form-inline required col-xs-12 col-sm-12 col-md-6 col-lg-6">
-      <h4><%=props.getProperty("dateAndLocation")%></h4>
-      <p><label class="text-danger"><%=props.getProperty("submit_date") %></label></p>
-      <input class="form-control" type="text" id="datepicker" name="datepicker" size="20" data-toggle="tooltip" placeholder="2017-07-13 14:30" title="<%=props.getProperty("dateTooltip")%>"/>
-      <p><label><small><%=props.getProperty("submit_date_guide")%></small></label></p>
-    </div>
-    <%
-    if(CommonConfiguration.showReleaseDate(context)){
-    %>
+<hr />
+
+<fieldset>
+<h3><%=props.getProperty("dateAndLocation")%></h3>
+
+<div class="form-group required">
+
+    <div class="form-group required">
+
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-          <label class="text-danger"><%=props.getProperty("submit_releasedate") %></label>
-          <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
+        <label class="control-label text-danger"><%=props.getProperty("submit_date") %></label>
+        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
+				<p><label><small><%=props.getProperty("submit_date_guide")%></small></label></p>
+			</div>
+
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <p class="help-block">
+          <%=props.getProperty("examples") %>
+          <ul>
+            <li>2014-01-05 12:30</li>
+            <li>2014-03-23</li>
+            <li>2013-12</li>
+            <li>2010</li>
+          </ul>
+        </p>
       </div>
-    <%
-    }
-    %>
-  </div>
 
 </fieldset>
-
 <hr/>
 
 <fieldset class="field-indent">
@@ -774,8 +914,7 @@ function removeFile(id) {
     </div>
   </div>
 
-<%
-//add locationID to fields selectable
+    <%
 
 if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
@@ -880,48 +1019,16 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       <p class="help-block"><%=props.getProperty("ftConverter") %></p>
     </div>
 </fieldset>
-
 <hr/>
 
-    <%
-    System.out.println("93");
-    //let's pre-populate important info for logged in users
-    String submitterName="";
-    String submitterEmail="";
-    String affiliation="";
-    String project="";
-
-    try {
-
-      if(request.getRemoteUser()!=null){
-          submitterName=request.getRemoteUser();
-          myShepherd.beginDBTransaction();
-          if(myShepherd.getUser(submitterName)!=null){
-              User user=myShepherd.getUser(submitterName);
-              if(user.getFullName()!=null){submitterName=user.getFullName();}
-              if(user.getEmailAddress()!=null){submitterEmail=user.getEmailAddress();}
-              if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
-              if(user.getUserProject()!=null){project=user.getUserProject();}
-          }
-          myShepherd.rollbackDBTransaction();
-          myShepherd.closeDBTransaction();
-      }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    %>
-
-
-
-  <fieldset class="field-indent">
+  <fieldset>
     <div class="row">
       <div class="col-xs-12 col-lg-6">
 	      <h4><%=props.getProperty("aboutYou") %></h4>
         <p class="help-block"><%=props.getProperty("submit_contactinfo") %></p>
-        <div class="form-group form-inline">
+        <div class="form-group form-inline" id="test2">
           <div class="col-xs-6 col-md-4">
-            <label class="text-danger control-label"><%=props.getProperty("submit_name") %></label>
+            <label class="control-label"><%=props.getProperty("submit_name") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
             <input class="form-control" name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName %>" data-toggle="tooltip" title="<%=props.getProperty("nameTooltip")%>">
@@ -951,7 +1058,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
           </div>
         </div>
 
-        <div class="form-group form-inline">
+        <div class="form-group form-inline" id="test4">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("photographer_email") %></label>
           </div>
@@ -963,6 +1070,9 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     </div>
 
     <hr>
+
+		<div class="form-group form-inline" id="proj-id-dropdown-container">
+		</div>
     <div class="form-group">
       <div class="col-xs-12 col-md-12 col-lg-12">
 	    <h4><%=props.getProperty("commentsHeader") %></h4>
@@ -1001,7 +1111,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
       <div class="form-group hidden">
           <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("species") %></label>
+            <label class="control-label text-danger"><%=props.getProperty("species") %></label>
           </div>
 
           <div class="col-xs-6 col-lg-8">
@@ -1100,7 +1210,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             </select>
           </div>
         </div>
-
 <!-- This is just here in case they want to bring back alt ID at some point.  -->
 <%
 	boolean alt = false;
@@ -1120,8 +1229,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 <%
 	}
 %>
-
-<!--  end bracket for hiding altID -->
 
           <div class="col-xs-6 col-lg-8">
             <input class="form-control" name="occurrenceID" type="text" id="occurrenceID" size="75">
@@ -1393,21 +1500,66 @@ if (tagSwitch == true) {
 				  			'theme' : 'light'
 						});
 		        }
-
-
-
-
-
            </script>
-
         <%
          }
         %>
 <script>
 
 function sendButtonClicked() {
-	console.log('sendButtonClicked()');
+	// $('.required-missing').removeClass('required-missing')
+	// if an mediaAsset is ever required
+	// if(!$('#theFiles').val()){
+	// 	console.log("No file submitted!");
+	// 	$('#theFiles').closest('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must provide a photo or video.'); }, 100);
+	// 	return false;
+	// }
+	if(!$('#location').val() && !$('#locationID').val() && (!$('#lat').val() || !$('#longitude').val())){
+		$('#location').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must provide some kind of location information.'); }, 100);
+		return false;
+	}
 
+	if ($('#submitterEmail').val()) {
+			var email = $('#submitterEmail').val();
+	    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	    if(!re.test(email.toLowerCase())){
+				$('#submitterEmail').closest('.form-group').addClass('required-missing');
+				window.setTimeout(function() { alert('Please provide a valid email address.'); }, 100);
+				return false;
+			}
+	}
+
+	// if (!$('#submitterEmail').val()) { //TODO comment back in if you want email address required in addition to validated
+	// 	// console.log("email address not present");
+	// 	$('#submitterEmail').parents('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must provide an email address first.'); }, 100);
+	// 	return false;
+	// }else{
+	// 	var email = $('#submitterEmail').val();
+  //   var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  //   if(!re.test(email.toLowerCase())){
+	// 		console.log("not a valid email address");
+	// 		$('#submitterEmail').closest('.form-group').addClass('required-missing');
+	// 		window.setTimeout(function() { alert('You must provide a valid email address first.'); }, 100);
+	// 		return false;
+	// 	}
+  // }
+
+	if (!$('#datepicker').val()) {
+		$('#datepicker').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must set a date first.'); }, 100);
+		return false;
+	}
+
+	// if (!$('#genusSpecies').val()) {
+	// 	$('#genusSpecies').closest('.form-group').addClass('required-missing');
+	// 	window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+	// 	return false;
+	// }
+
+	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
 
     <%
@@ -1430,11 +1582,8 @@ function sendButtonClicked() {
    					if(!isEmpty(recaptachaResponse)) {
    						$("#encounterForm").attr("action", "EncounterForm");
 
-
-   						//ok all is well so far, but quick redirect if we're doing a social upload
    						if (sendSocialPhotosBackground()) return false;
 
-   						//if no social, proceed
    						submitForm();
    					}
 
@@ -1449,7 +1598,7 @@ function sendButtonClicked() {
 
 
       <p class="text-center">
-        <button id="submitEncounterButton" class="large" type="submit" onclick="return sendButtonClicked();">
+        <button id="submitEncounterButton" class="large" type="submit" onclick="sendButtonClicked();">
           <%=props.getProperty("submit_send") %>
           <span class="button-icon" aria-hidden="true" />
         </button>

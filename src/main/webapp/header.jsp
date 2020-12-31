@@ -29,7 +29,7 @@
              java.util.ArrayList,
              java.util.List,
              java.util.Properties,
-             org.apache.commons.lang.WordUtils,
+             org.apache.commons.text.WordUtils,
              org.ecocean.security.Collaboration,
              org.ecocean.ContextConfiguration
               "
@@ -65,8 +65,12 @@ String organization = request.getParameter("organization");
 if (organization!=null && organization.toLowerCase().equals("indocet"))  {
   indocetUser = true;
 }
+String notifications="";
 myShepherd.beginDBTransaction();
 try {
+
+	notifications=Collaboration.getNotificationsWidgetHtml(request, myShepherd);
+
   if(!indocetUser && request.getUserPrincipal()!=null && !loggingOut){
     user = myShepherd.getUser(request);
     username = (user!=null) ? user.getUsername() : null;
@@ -130,9 +134,6 @@ finally{
       <link rel="stylesheet" href="<%=urlLoc %>/fonts/elusive-icons-2.0.0/css/icon-style-overwrite.css">
 
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
-      <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
-	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
-	  
 	  <!--  Automatically generated favicon links from generator used by Francis -->
 	  <link rel="apple-touch-icon" sizes="57x57" href="//<%=CommonConfiguration.getURLLocation(request) %>/images/favicon/apple-icon-57x57.png">
 	  <link rel="apple-touch-icon" sizes="60x60" href="//<%=CommonConfiguration.getURLLocation(request) %>/images/favicon/apple-icon-60x60.png">
@@ -155,6 +156,19 @@ finally{
 
       <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
 
+     <%
+     if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
+     %>
+    	 <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+     <%
+     }
+     %>
+
+
+      <!-- <link href="<%=urlLoc %>/tools/timePicker/jquery.ptTimeSelect.css" rel="stylesheet" type="text/css"/> -->
+	    <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
+
+
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
       <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/javascript/core.js"></script>
@@ -168,30 +182,35 @@ finally{
 
 	 <%
      if((CommonConfiguration.getProperty("allowSocialMediaLogin", context)!=null)&&(CommonConfiguration.getProperty("allowSocialMediaLogin", context).equals("true"))){
-     %> 
+     %>
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
       <%
       }
       %>
-      
+
+
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
+      <script type="text/javascript"  src="<%=urlLoc %>/javascript/translator.js"></script>
+
+      <script type="text/javascript" src="<%=urlLoc %>/javascript/notifications.js"></script>
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
-      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />    
+      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
 
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
   	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
-  	<!-- End Open Graph Tags -->    
+  	<!-- End Open Graph Tags -->
+
 
 
 	<!-- Clockpicker on creatSurvey jsp -->
     <script type="text/javascript" src="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.js"></script>
-    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" /> 
-   
+    <link type="text/css" href="<%=urlLoc %>/tools/clockpicker/jquery-clockpicker.min.css" rel="stylesheet" />
+
     <style>
       ul.nav.navbar-nav {
         width: 100%;
@@ -202,7 +221,7 @@ finally{
     </head>
 
     <body role="document">
-    
+
     <!-- Gets rid of scrolling prompt if not on index page -->
     <script type="text/javascript">
     	$("body:not(.scrolled)").addClass("scrolled");
@@ -215,7 +234,7 @@ finally{
               <div class="header-top-wrapper">
                 <div class="container">
                 	                  <!-- add target="blank" to restore page opening in another tab -->
-                  
+
                 <!--<a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge"></a>-->
                 <!--  <img id="love-badge" src="/cust/mantamatcher/img/bass/little_love_logo.png"></img> -->
                   <div class="search-and-secondary-wrapper">
@@ -393,7 +412,8 @@ finally{
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand wildbook" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand indocet" target="_blank" href="<%=urlLoc %>" style="display: none">Wildbook for Mark-Recapture Studies</a>
 
                 </div>
               </div>
@@ -410,38 +430,41 @@ finally{
                   </div>
 
                   <div id="navbar" class="navbar-collapse collapse">
-                  <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
+                  <div id="notifications"><%=notifications %></div>
                     <ul class="nav navbar-nav">
 
                       <li><!-- the &nbsp on either side of the icon aligns it with the text in the other navbar items, because by default them being different fonts makes that hard. Added two for horizontal symmetry -->
-                        
+
                         <a href="<%=urlLoc %>">&nbsp<span class="el el-home"></span>&nbsp</a>
                       </li>
 
 
                       <% if (request.getUserPrincipal() != null) { %>
-                      
+
+
+                      <%} else {%>
+
+                        <!--
+                        <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+                        -->
+
+                      <%}%>
+
+
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("submit")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            
+
                             <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-                            
+
                             <!--
-                            <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
+                              <li class="dropdown"><a href="<%=urlLoc %>/surveys/createSurvey.jsp"><%=props.getProperty("createSurvey")%></a></li>
                             -->
-                            
+
                             <li class="dropdown"><a href="<%=urlLoc %>/import/instructions.jsp"><%=props.getProperty("bulkImport")%></a></li>
-                        </ul>
-                      </li>                      
-                      
-                      <%} else {%>
+                         </ul>
+                      </li>
 
-                        <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-
-                      <%}%>
-                      
-                      
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -451,12 +474,12 @@ finally{
                           	<li><a href="<%=urlLoc %>/aboutBass.jsp"><%=props.getProperty("aboutBass")%></a></li>
 
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
-                          	
+
                           	<li><a href="<%=urlLoc %>/whoAreWe.jsp"><%=props.getProperty("whoAreWe")%></a></li>
-                            
+
                         </ul>
                       </li>
-                      
+
                       <!--  added link directly to gallery for not logged in users, hide if logged in  -->
                       <% if (request.getUserPrincipal() == null) { %>
 					  	<li><a href="<%=urlLoc %>/gallery.jsp?startNum=0&endNum=17&sort=dateTimeLatestSighting"><%=props.getProperty("gallery")%></a></li>
@@ -499,11 +522,11 @@ finally{
                           <% } %>
                         </ul>
                       </li>
-				 <%}%>	
-					  <!-- Gonna hide the search nav tab if user is not logged in -->		
+				 <%}%>
+					  <!-- Gonna hide the search nav tab if user is not logged in -->
 					  <% if (request.getUserPrincipal() != null) { %>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" id="search-dropdown"><%=props.getProperty("search")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                               <li><a href="<%=urlLoc %>/encounters/encounterSearch.jsp"><%=props.getProperty("encounterSearch")%></a></li>
                               <li><a href="<%=urlLoc %>/individualSearch.jsp"><%=props.getProperty("individualSearch")%></a></li>
@@ -522,24 +545,27 @@ finally{
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("administer")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                            <% if (CommonConfiguration.getWikiLocation(context)!=null) { %>
-                              <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>/photographing.jsp"><%=props.getProperty("userWiki")%></a></li>
-                            <% }
+                            <%
                             if(request.getUserPrincipal()!=null) {
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
+                              <li><a href="<%=urlLoc %>/myUsers.jsp"><%=props.getProperty("manageUsers")%></a></li>
+
+                              <li class="divider"></li>
+                              <li class="dropdown-header"><%=props.getProperty("researchProjects")%></li>
+                              <li><a href="<%=urlLoc %>/projects/projectList.jsp"><%=props.getProperty("manageProjects")%></a></li>
+                              <li class="divider"></li>
                             <% }
-                            if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) { %>
-                              <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
-                            <% }
+
+
                             if(request.isUserInRole("admin")) { %>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-                                
+
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 								<!-- <li><a href="<%=urlLoc %>/appadmin/intelligentAgentReview.jsp?context=context0"><%=props.getProperty("intelligentAgentReview")%></a></li> -->
-								
-                                <% 
+
+                                <%
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
                                 <% } %>
@@ -594,11 +620,11 @@ finally{
                             </li>
 
 
-                            
+
                           </ul>
                         </li>
                       </ul>
-                      
+
 
 
 
@@ -661,11 +687,11 @@ finally{
                             } else {
                                 label = "";
                             }
-                            
+
                             if(item.nickname != null){
                             	nickname = " ("+item.nickname+")";
                             }
-                            
+
                             return {label: label + item.label+nickname,
                                     value: item.value,
                                     type: item.type,
@@ -691,8 +717,8 @@ finally{
         if (urlParams.has("organization")) {
           let orgParam = urlParams.get("organization");
           $.cookie("wildbookOrganization", orgParam, {
-              path    : '/',     
-              secure  : false, 
+              path    : '/',
+              secure  : false,
               expires : 1
           });
         }

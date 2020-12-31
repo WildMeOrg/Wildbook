@@ -24,7 +24,7 @@
   String langCode=ServletUtilities.getLanguageCode(request);
 
   String mapKey = CommonConfiguration.getGoogleMapsKey(context);
-  
+
   //set up the file input stream
   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
   props = ShepherdProperties.getProperties("submit.properties", langCode,context);
@@ -36,7 +36,7 @@
 
   //link path to submit page with appropriate language
   String submitPath = "submit.jsp";
-  
+
   //let's set up references to our file system components
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
@@ -69,55 +69,58 @@
   String submitter = "";
   List<User> informOthers = new ArrayList<User>()  ;
   String informMe = "";
-  String rootDir = getServletContext().getRealPath("/");
-  String baseDir = ServletUtilities.dataDir(context, rootDir);
+	String rootDir = getServletContext().getRealPath("/");
+	String baseDir = ServletUtilities.dataDir(context, rootDir);
 
   Encounter enc = null;
   if (!number.equals("fail")) {
     myShepherd.beginDBTransaction();
     try {
       enc = myShepherd.getEncounter(number);
-      
-      
+
+
 			thisEncounterDir = new File(enc.dir(baseDir));
 			String thisEncDirString=Encounter.dir(shepherdDataDir,enc.getCatalogNumber());
 			thisEncounterDir=new File(thisEncDirString);
 			if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
-			
-			
-			
+
+
+
       if ((enc.getAdditionalImageNames() != null) && (enc.getAdditionalImageNames().size() > 0)) {
         addText = (String)enc.getAdditionalImageNames().get(0);
       }
       if ((enc.getLocationCode() != null) && (!enc.getLocationCode().equals("None"))) {
-        
-    	  
+
+
     	  //the old way was to load a list of email addresses from a properties files using the locationID as the property key
     	  //informMe = email_props.getProperty(enc.getLocationCode());
-        
+
         //the new way loads email addresses based on User object roles matching location ID
-        informMe=myShepherd.getAllUserEmailAddressesForLocationID(enc.getLocationID(),context);
-        
-        
-      } else {
-        hasImages = false;
+
+
       }
+      //else {
+      //  hasImages = false;
+      //}
       new_message.append("Location: " + enc.getLocation() + "<br>");
       new_message.append("Date: " + enc.getDate() + "<br>");
       if(enc.getSex()!=null){
       	new_message.append("Sex: " + enc.getSex() + "<br>");
       }
-      new_message.append("Submitter: " + enc.getSubmitterName() + "<br>");
-      new_message.append("Email: " + enc.getSubmitterEmail() + "<br>");
-      new_message.append("Photographer: " + enc.getPhotographerName() + "<br>");
-      new_message.append("Email: " + enc.getPhotographerEmail() + "<br>");
+      //new_message.append("Submitter: " + enc.getSubmitterName() + "<br>");
+      //new_message.append("Email: " + enc.getSubmitterEmail() + "<br>");
+      //new_message.append("Photographer: " + enc.getPhotographerName() + "<br>");
+      //new_message.append("Email: " + enc.getPhotographerEmail() + "<br>");
       new_message.append("Comments: " + enc.getComments() + "<br>");
       new_message.append("</body></html>");
-      submitter = enc.getSubmitterEmail();
+      //submitter = enc.getSubmitterEmail();
+     /*
       if ((enc.getPhotographerEmail() != null) && (!enc.getPhotographerEmail().equals("None")) && (!enc.getPhotographerEmail().equals(""))) {
         photographer = enc.getPhotographerEmail();
         emailPhoto = true;
       }
+	*/
+
 
       if ((enc.getInformOthers() != null) && (enc.getInformOthers().size()<1)) {
         informOthers = enc.getInformOthers();
@@ -128,14 +131,15 @@
       e.printStackTrace();
     }
     myShepherd.rollbackDBTransaction();
-    myShepherd.closeDBTransaction();
-    
+    //myShepherd.closeDBTransaction();
+
   }
+
 
   String thumbLocation = thisEncounterDir.getAbsolutePath() + "/thumb.jpg";
   if (myShepherd.isAcceptableVideoFile(addText)) {
     addText = rootWebappPath+"/images/video_thumb.jpg";
-  } 
+  }
   else if(myShepherd.isAcceptableImageFile(addText)){
     addText = thisEncounterDir.getAbsolutePath() + "/" + addText;
   }
@@ -147,7 +151,7 @@
 
   File file2process = new File(addText);
   File thumbFile = new File(thumbLocation.substring(5));
-  
+
 
 
   if(file2process.exists() && myShepherd.isAcceptableImageFile(file2process.getName())){
@@ -156,7 +160,7 @@
   	int thumbnailHeight = 75;
   	int thumbnailWidth = 100;
 
-  
+
   	String height = "";
   	String width = "";
 
@@ -179,10 +183,10 @@
 	    thumbnailWidth = intWidth;
 	    thumbnailHeight = intHeight;
 	  }
-   
-  }  
-  
-  // I'm Not sure what the heck is going on with the code above this block. 
+
+  }
+
+  // I'm Not sure what the heck is going on with the code above this block.
   // It looks like it does some things i need, but every time I touch it something explodes.
   // This block is just grabbing thumbs to display. It just kinda plays quietly by itself.
   // It's hacky. I know.
@@ -226,16 +230,16 @@
 	    		}
 	   		}
 	  }
-  }	
+  }
 } catch (Exception e) {
 	e.printStackTrace();
 }
-  // End thumb block. 
+  // End thumb block.
 %>
 
 
 <div border="0" fillPaint="#ffffff"
-        output="<%=thumbLocation%>" expAfter="0" threading="limited" align="left" valign="left"> 
+        output="<%=thumbLocation%>" expAfter="0" threading="limited" align="left" valign="left">
 </div>
 
 <h1 class="intro"><%=props.getProperty("success") %></h1>
@@ -250,14 +254,14 @@
 <%=props.getProperty("questions") %> <a href="mailto:<%=CommonConfiguration.getAutoEmailAddress(context) %>"><%=CommonConfiguration.getAutoEmailAddress(context) %></a></p>
 
 <p>
-	
+
 	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>
 </p>
 <p>
 	<%=props.getProperty("emailExplanation") %>
 </p>
 <%if (!assetURLs.equals("<br>")) { %>
-<div class="row"id="thumbList"> 
+<div class="row"id="thumbList">
 	<%=assetURLs%>
 </div>
 <br>
@@ -275,7 +279,7 @@ Double mapLon = -1.0000;
 Double mapLat = -1.0000;
 if (enc2.getLatitudeAsDouble() != null && enc2.getLongitudeAsDouble() !=null) {
 	System.out.println("LAT FROM SUBMIT : "+Double.toString(enc2.getLatitudeAsDouble()));
-	System.out.println("LON FROM SUBMIT : "+Double.toString(enc2.getLatitudeAsDouble()));	
+	System.out.println("LON FROM SUBMIT : "+Double.toString(enc2.getLatitudeAsDouble()));
 	mapLat = enc2.getLatitudeAsDouble();
 	mapLon = enc2.getLongitudeAsDouble();
 } else {
@@ -300,14 +304,14 @@ $(function() {
   function resetMap() {
       var ne_lat_element;
       var ne_long_element;
-	  
-	  
+
+
 	  ne_lat_element = <%=mapLat%>;
 	  ne_long_element = <%=mapLon%>;
-  
+
       ne_lat_element.value = -1.00000;
    	  ne_long_element.value = -1.00000;
-	  
+
 
 
     }
@@ -370,8 +374,8 @@ function placeMarker() {
       google.maps.event.addListener(map, 'click', function(event) {
             placeMarker(event.latLng);
       });
-      
-      
+
+
  	 google.maps.event.addListener(map, 'dragend', function() {
  		var idleListener = google.maps.event.addListener(map, 'idle', function() {
  			google.maps.event.removeListener(idleListener);
@@ -381,15 +385,15 @@ function placeMarker() {
  			center = newCenter;
  			map.setCenter(map.getCenter());
  		});
- 		 
-	 }); 	 
- 	 
- 	 google.maps.event.addDomListener(window, "resize", function() {	 
+
+	 });
+
+ 	 google.maps.event.addDomListener(window, "resize", function() {
 	    	console.log("Resize Center : "+center);
 	    	google.maps.event.trigger(map, "resize");
 	  	    console.log("Resize : "+newCenter);
 	  	    map.setCenter(center);
-	 });  
+	 });
 }
 
 function fullScreen() {
@@ -470,7 +474,7 @@ if(!mapLon.equals(null) && !mapLat.equals(null) && !mapLon.equals(-1.0000) && !m
  	<script>
  	google.maps.event.addDomListener(window, 'load', initialize);
  	placeMarker();
- 	</script>	
+ 	</script>
 <%
 }
 %>
@@ -507,7 +511,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   // Email submitter and photographer
   if (submitter != null) {
     List<String> cOther = NotificationMailer.splitEmails(submitter);
-    
+
     for (String emailTo : cOther) {
     //for (User emailU : submitter) {
       //String emailTo = emailU.getEmailAddress();
@@ -549,10 +553,10 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   es.shutdown();
 }
 
+myShepherd.closeDBTransaction();
 myShepherd=null;
 
 %>
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
-

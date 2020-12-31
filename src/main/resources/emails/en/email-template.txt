@@ -4,8 +4,7 @@ SUBJECT: Email from Spotting Giant Sea Bass
 
 Saludos,
 
-El equipo de Spotting Giant Sea Bass 
-
+El equipo de Spotting Giant Sea Bass
 
 @REMOVEME_START@
 Do you want to REMOVE your email address from this database? Click the link
@@ -16,8 +15,8 @@ below to remove it. You will no longer receive updates on your encounters.
 
 ~ ~ ~
 @REMOVEME_START@
-¿Quiéres ELIMINAR tu correo electrónico de esta base de datos? Haz clic en 
-este enlace para eliminarla. Ya no recibirás más actualizaciones acerca de 
+¿Quiéres ELIMINAR tu correo electrónico de esta base de datos? Haz clic en
+este enlace para eliminarla. Ya no recibirás más actualizaciones acerca de
 tus encuentros.
 @REMOVEME_LINK@
 @REMOVEME_END@

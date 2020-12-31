@@ -17,8 +17,7 @@
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List,
 org.ecocean.grid.ScanTask,
@@ -61,7 +60,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 	}
 	myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
-  }	
+  }
   String encSubdir = Encounter.subdir(num);
 
 	/*
@@ -87,7 +86,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 <jsp:include page="../header.jsp" flush="true"/>
 
 <style type="text/css">
- 
+
   #tabmenu {
     color: #000;
     border-bottom: 1px solid #CDCDCD;
@@ -126,14 +125,14 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
+
   td, th {
     border: 1px solid black;
     padding: 5px;
@@ -237,7 +236,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     href="encounter.jsp?number=<%=num%>">Encounter
     <%=num%>
   </a></li>
-  
+
 
   <%
     String fileSider = "";
@@ -256,18 +255,18 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
       locationIDXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullLocationIDScan.xml");
     }
-    
-    
+
+
     if (locationIDXMLFile.exists()) {
   %>
 
   <%
     }
     %>
-    
+
     <li><a class="active">Modified Groth (Full)</a></li>
     <%
-    
+
     if (finalXMLFile.exists()) {
   %>
 
@@ -276,7 +275,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   </li>
   <%
     }
-    
+
 
 
   %>
@@ -430,7 +429,7 @@ $(document).ready(function() {
         <div id="match-info"></div>
         <div style="position: relative; display: inline-block; width: 20%; height: 3em;">
             <input id="match-button-prev" type="button" value="previous" onClick="return spotDisplayButton(-1)" />
-            <input id="match-button-next" type="button" value="next" onClick="return  1)" />
+            <input id="match-button-next" type="button" value="next" onClick="return  spotDisplayButton(1)" />
         </div>
     </div>
 </div>
@@ -447,7 +446,7 @@ function fitLeftImage() {
   let leftImgContainer = document.getElementById('match-side-0');
   let lRect = leftImage.getBoundingClientRect();
   console.log("current left image width: "+lRect.width);
-  console.log("current left container width: "+leftImgContainer.clientWidth); 
+  console.log("current left container width: "+leftImgContainer.clientWidth);
   if (lRect.width>leftImgContainer.clientWidth) {
     console.log("image WIDTH is out of bounds!");
     let newWidthScale = (leftImgContainer.clientWidth/lRect.width);
@@ -498,9 +497,9 @@ function fitRightImage() {
     <input type="button" id="mode-button-all" value="Show all matches" onClick="return toggleLocalMode(false);"/>
 </div>
 </p>
-  
+
       <a name="resultstable"></a>
-      
+
       <table class="tablesorter" width="800px">
       <thead>
         <tr align="left" valign="top">
@@ -508,7 +507,7 @@ function fitRightImage() {
           <th><strong> Encounter</strong></th>
           <th><strong>Fraction Matched Triangles </strong></th>
           <th><strong>Match Score </strong></th>
-    
+
           <th><strong>logM std. dev.</strong></th>
           <th><strong>Confidence</strong></th>
           <th><strong>Matched Keywords</strong></th>
@@ -569,7 +568,7 @@ function fitRightImage() {
             //end for loop
           }
 
-//or use XML output here	
+//or use XML output here
         } else {
           doc = xmlReader.read(file);
           root = doc.getRootElement();
@@ -582,7 +581,7 @@ function fitRightImage() {
             Element enc1 = (Element) encounters.get(0);
             Element enc2 = (Element) encounters.get(1);
         %>
-        
+
         <tr id="table-row-<%=ct%>" align="left" valign="top"
 class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ? "local" : "nonlocal")%>"
  style="cursor: pointer;" onClick="spotDisplayPair(<%=ct%>);" title="jump to this match pair">
@@ -687,7 +686,7 @@ class="tr-location-<%=(locationIDs.contains(enc1.attributeValue("locationID")) ?
     initresults = null;
     file = null;
     xmlReader = null;
-    
+
 if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != null)) {%>
       <p><font size="+1">Custom Scan</font></p>
       <%} else {%>
@@ -707,4 +706,3 @@ if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != n
 <br />
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-
