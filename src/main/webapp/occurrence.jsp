@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, 
+         import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration,
          com.google.gson.Gson,
          org.ecocean.datacollection.Instant,
          org.ecocean.*,
@@ -28,10 +28,10 @@ context=ServletUtilities.getContext(request);
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
   Properties props = new Properties();
   props = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
-  
+
   Properties encProps = new Properties();
   encProps = ShepherdProperties.getProperties("encounter.properties", langCode,context);
 
@@ -39,7 +39,7 @@ context=ServletUtilities.getContext(request);
   collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
   String number = request.getParameter("number").trim();
-  
+
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("occurrence.jsp");
 
@@ -51,11 +51,11 @@ context=ServletUtilities.getContext(request);
 %>
 
 <jsp:include page="header.jsp" flush="true"/>
-  
+
 <script src="javascript/sss.js"></script>
 <link rel="stylesheet" href="css/sss.css" type="text/css" media="all">
 <link rel="stylesheet" href="css/ecocean.css" type="text/css" media="all">
-  
+
 <script>
   jQuery(function($) {
     $('.slider').sss({
@@ -68,8 +68,8 @@ context=ServletUtilities.getContext(request);
       $(".slider").show();
   });
 </script>
-  
-<div class="container maincontent"> 
+
+<div class="container maincontent">
   <%
   Occurrence occ = null;
   boolean hasAuthority = false;
@@ -80,7 +80,7 @@ context=ServletUtilities.getContext(request);
 	      hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
 		  List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		  boolean visible = occ.canUserAccess(request);
-	
+
 		  if (!visible) {
 	  		ArrayList<String> uids = occ.getAllAssignedUsers();
 			ArrayList<String> possible = new ArrayList<String>();
@@ -96,7 +96,7 @@ context=ServletUtilities.getContext(request);
 				}
 				String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
 				cmsg = cmsg.replace("'", "\\'");
-	
+
 				if (possible.size() > 0) {
 	   			String arr = new Gson().toJson(possible);
 					blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateMultiHtml(" + arr + ", "+isLoggedIn+") }) });</script>";
@@ -106,47 +106,47 @@ context=ServletUtilities.getContext(request);
 				}
 			}
 		out.println(blocker);
-	 
+
 	%>
 		<table>
 			<tr>
 				<td valign="middle">
 	 				<h2><strong><img style="align: center;" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=occ.getOccurrenceID()%></h2>
 					<p class="caption"><em><%=props.getProperty("description") %></em></p>
-	  			</td>		
+	  			</td>
 	  		</tr>
 	  	</table>
 	  	<p>
 		<%
 		if (occ.getSurvey(myShepherd)!=null) {
 			String surveyID = occ.getSurvey(myShepherd).getID();
-		%>	
-			<strong><%=props.getProperty("correspondingSurvey") %>:&nbsp</strong> 
-				<a href="//<%=CommonConfiguration.getURLLocation(request)%>/surveys/survey.jsp?occID=<%=occ.getOccurrenceID()%>&surveyID=<%=surveyID%>"><%=surveyID%></a>			
-		<%	
+		%>
+			<strong><%=props.getProperty("correspondingSurvey") %>:&nbsp</strong>
+				<a href="//<%=CommonConfiguration.getURLLocation(request)%>/surveys/survey.jsp?occID=<%=occ.getOccurrenceID()%>&surveyID=<%=surveyID%>"><%=surveyID%></a>
+		<%
 		} else {
-		%>	
+		%>
 			<strong><%=props.getProperty("noSurvey") %></strong>
 		<%
 		}
 		if (isOwner) {
 		%>
 			<a class="" type="button" name="button" id="editSurvey" style="cursor: pointer;"><strong>Edit</strong></a>
-			<a class="" type="button" name="button" id="closeEditSurvey" style="display: none;cursor: pointer;"><strong>Close Edit</strong></a> 			
+			<a class="" type="button" name="button" id="closeEditSurvey" style="display: none;cursor: pointer;"><strong>Close Edit</strong></a>
 		<%
 		}
 		if (occ.getCorrespondingSurveyTrackID()!=null) {
 			String surveyTrackID = occ.getCorrespondingSurveyTrackID();
 		%>
-			<br/>	
-			<strong><%=props.getProperty("correspondingSurveyTrack") %>:&nbsp<%=surveyTrackID%></strong> 									
-		<%	
-		} 
-		%>		
+			<br/>
+			<strong><%=props.getProperty("correspondingSurveyTrack") %>:&nbsp<%=surveyTrackID%></strong>
+		<%
+		}
+		%>
 		</p>
-	
+
 		<!-- Triggers edit survey and track ID form. -->
-		
+
 	<script type="text/javascript">
 		$(document).ready(function() {
 		  var buttons = $("#editSurvey, #closeEditSurvey").on("click", function(){
@@ -161,19 +161,19 @@ context=ServletUtilities.getContext(request);
 		    $("#addSurveyForm").slideUp();
 		  });
 		});
-	</script>								
-			<% 
+	</script>
+			<%
 				if (isOwner) {
 			%>
 				<script type="text/javascript">
 	                  $(document).ready(function() {
 	                    $("#addOccurrence").click(function(event) {
 	                      event.preventDefault();
-	
+
 	                      var occID = $("#addOccNumber").val();
 	                      var surveyID = $("#surveyID").val();
 	                      var surveyTrackID = $("#surveyTrackID").val();
-	
+
 	                      $.post("../OccurrenceSetSurveyAndTrack", {"occID": occID, "surveyTrackID": surveyTrackID, "surveyID": surveyID},
 	                      function() {
 	                        $("#addOccErrorDiv").hide();
@@ -189,7 +189,7 @@ context=ServletUtilities.getContext(request);
 	                        $("#addOccurrence").show();
 	                      });
 	                    });
-	
+
 	                    $("#add2OccurrenceInput").click(function() {
 	                      $("#addOccError, #addOccCheck, #addOccErrorDiv").hide()
 	                      $("#addDiv").removeClass("has-success");
@@ -207,7 +207,7 @@ context=ServletUtilities.getContext(request);
 							<div class="form-group row">
 								<div class="col-sm-8" id="addDiv">
 									<label><%=props.getProperty("addSurvey")%>: </label>
-									<input name="surveyID" id="surveyID" type="text" class="form-control" placeholder="<%=props.getProperty("surveyID")%>" /> 	
+									<input name="surveyID" id="surveyID" type="text" class="form-control" placeholder="<%=props.getProperty("surveyID")%>" />
 									<br/>
 									<label><%=props.getProperty("addSurveyTrack")%>: </label><br/>
 									<label><small>Must be defined to link back from Survey.</small></label>
@@ -219,7 +219,7 @@ context=ServletUtilities.getContext(request);
 									<input name="Add" type="submit" id="addOccurrence" value="<%=props.getProperty("set")%>" class="btn btn-sm editSurveyFormBtn" />
 								</div>
 							</div>
-						</form>					
+						</form>
 					</div>
 					<div class="col-xs-6 col-lg-6">
 						<br>
@@ -228,20 +228,20 @@ context=ServletUtilities.getContext(request);
 			<%
 				}
 			%>
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-	<div class="row">	
+
+
+
+
+
+
+
+
+
+
+	<div class="row">
 		<div class="col-xs-12">
 		<br/>
-		<p><%=props.getProperty("species") %>: 
+		<p><%=props.getProperty("species") %>:
 <%
     if (Util.collectionIsEmptyOrNull(occ.getTaxonomies())) {
         out.println("-");
@@ -270,13 +270,13 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
     out.println("</ul></p>");
 }
 %>
-		<p><%=props.getProperty("groupBehavior") %>: 
+		<p><%=props.getProperty("groupBehavior") %>:
 			<%if(occ.getGroupBehavior()!=null){%>
 				<%=occ.getGroupBehavior() %>
 			<%}%>
-			&nbsp; 
+			&nbsp;
 			<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%>
-				<a id="groupB" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>	
+				<a id="groupB" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>
 			<%}%>
 		</p>
 		<div id="dialogGroupB" title="<%=props.getProperty("setGroupBehavior") %>" style="display:none">
@@ -284,9 +284,9 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 			  <tr>
 			    <td align="left" valign="top">
 			      <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
-			            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/> 
+			            <input name="number" type="hidden" value="<%=request.getParameter("number")%>"/>
 			            <%=props.getProperty("groupBehavior") %>:
-			        
+
 				        <%
 				        List<String> groupBehaviors = CommonConfiguration.getIndexedPropertyValues("groupBehavior",request);
 				        System.out.println("We have groupBehaviors "+groupBehaviors);
@@ -300,7 +300,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 					   					<%}%>
 				  				</select>
 					   		<%} else {%>
-				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea> 
+				        	<textarea name="behaviorComment" id="behaviorComment" maxlength="500"></textarea>
 				        <%}%>
 			        	<input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
 			        </form>
@@ -308,7 +308,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 			  </tr>
 			</table>
 		</div>
-	  
+
 	<script>
 		var dlgGroupB = $("#dialogGroupB").dialog({
 		  autoOpen: false,
@@ -316,12 +316,12 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 		  resizable: false,
 		  width: 600
 		});
-		
+
 		$("a#groupB").click(function() {
 		  dlgGroupB.dialog("open");
 		});
 	</script>
-	
+
 	<!-- Visibility Index -->
 
 	<%
@@ -330,20 +330,20 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 		<!-- Visible field -->
 
 		<!-- add if enabled in cc.props -->
-		<p><%=props.getProperty("visibilityIndex") %>: 
+		<p><%=props.getProperty("visibilityIndex") %>:
 			<%
 			String viString = "";
 			if(occ.getVisibilityIndex()!=null){
 				viString = String.valueOf(occ.getVisibilityIndex());
 				if (viString.endsWith(".0")) {
 					viString = viString.replace(".0","");
-				} 	
+				}
 			}
 			%>
 			<span id="visibilityNum"><%=viString%></span>
-			&nbsp; 
+			&nbsp;
 			<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%>
-				<a id="visibilityIndexEditButton" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>	
+				<a id="visibilityIndexEditButton" style="color:blue;cursor: pointer;"><img width="20px" height="20px" style="border-style: none;align: center;" src="images/Crystal_Clear_action_edit.png" /></a>
 				<label id="viResponseMessage"></label>
 			<%}%>
 		</p>
@@ -355,7 +355,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 			  <tr>
 			    <td align="left" valign="top">
 					<%=props.getProperty("visibilityIndex") %>:
-				
+
 					<%
 					List<String> vIndexes = CommonConfiguration.getIndexedPropertyValues("visibilityIndex",request);
 					System.out.println("getting vIndexes "+vIndexes);
@@ -385,7 +385,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 			  resizable: false,
 			  width: 600
 			});
-			
+
 			$("a#visibilityIndexEditButton").click(function() {
 				viDialog.dialog("open");
 			});
@@ -430,40 +430,40 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 	<!-- end Visibility Index -->
 
 
-	
+
 		<p><%=props.getProperty("numAdults") %>: <%=occ.getNumAdults() %></p>
 
 		<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
-		
+
 		<p>
-			<%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
+			<%=props.getProperty("estimatedNumMarkedIndividuals") %>:
 			<%if(occ.getIndividualCount()!=null){%>
 				<%=occ.getIndividualCount() %>
 			<%}%>
-			&nbsp; 
+			&nbsp;
 			<%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) { %>
 				<a id="indies" style="color:blue;cursor: pointer;">
 					<img width="20px" height="20px" style="border-style: none; align: center;" src="images/Crystal_Clear_action_edit.png"/>
-				</a>	
+				</a>
 			<%}%>
 		</p>
-		
-	  	<div id="dialogIndies" title="<%=props.getProperty("setIndividualCount") %>" style="display:none">           
+
+	  	<div id="dialogIndies" title="<%=props.getProperty("setIndividualCount") %>" style="display:none">
 			<table border="1" >
 			  <tr>
 			    <td align="left" valign="top">
 			      <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
-			        <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
+			        <input name="number" type="hidden" value="<%=request.getParameter("number")%>" />
 			            <%=props.getProperty("newIndividualCount") %>:
-			
-			        <input name="count" type="text" id="count" size="5" maxlength="7"></input> 
+
+			        <input name="count" type="text" id="count" size="5" maxlength="7"></input>
 			        <input name="individualCountButton" type="submit" id="individualCountName" value="<%=props.getProperty("set") %>">
 			      </form>
 			    </td>
 			  </tr>
 			</table>
 		</div>
-		
+
 	<script>
 		var dlgIndies = $("#dialogIndies").dialog({
 		  autoOpen: false,
@@ -471,12 +471,12 @@ if (!Util.collectionIsEmptyOrNull(occ.getBehaviors())) {
 		  resizable: false,
 		  width: 600
 		});
-		
+
 		$("a#indies").click(function() {
 		  dlgIndies.dialog("open");
 		});
 	</script>
-		<p><%=props.getProperty("locationID") %>: 
+		<p><%=props.getProperty("locationID") %>:
 			<%if(occ.getLocationID()!=null){%>
 				<%=occ.getLocationID() %>
 			<%}%>
@@ -516,13 +516,13 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
                 </p>
 		<table id="encounter_report" style="width:100%;">
 			<tr>
-			
+
 			<td align="left" valign="top">
-			
+
 			<p><strong><%=occ.getNumberEncounters()%>
 			</strong>
 			  <%=props.getProperty("numencounters")%>
-			</p> 
+			</p>
 		</table>
 		</div>
 	</div>
@@ -541,69 +541,69 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 		  </tr>
 		  <%
 		    Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
-		
+
 		    int total = dateSortedEncs.length;
 		    for (int i = 0; i < total; i++) {
 		      Encounter enc = dateSortedEncs[i];
-		      
+
 		  %>
 		  	<tr>
 		      <td class="lineitem"><%=enc.getDate()%></td>
-		    
+
 		    <td class="lineitem">
 		    	<%if (enc.hasMarkedIndividual()) {%>
-		    	<a href="individuals.jsp?id=<%=enc.getIndividualID()%>"><%=enc.getIndividual().getDisplayName(request)%></a>
+		    	<a href="individuals.jsp?id=<%=enc.getIndividualID()%>"><%=enc.getIndividual().getDisplayName(request, myShepherd)%></a>
 		    	<%}else{%>
 		    		&nbsp;
 		    	<%}%>
 		    </td>
-		    
+
 		    <%
 		    String location="&nbsp;";
 		    if(enc.getLocation()!=null){
 		    	location=enc.getLocation();
 		    }
 		    %>
-		    
+
 		    <td class="lineitem"><%=location%></td>
-		    
+
 		    <td width="100" height="32px" class="lineitem">
 		    	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
-		    		
-		    		<% //if the encounter has photos, show photo folder icon	    		
+
+		    		<% //if the encounter has photos, show photo folder icon
 		    		if ((enc.getMedia().size()>0)){%>
-		    			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="*" />    		
-		    		<%} 
+		    			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="*" />
+		    		<%}
 		    		//if the encounter has a tissue sample, show an icon
 		    		if((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)){
 		    		%>
 		    			<img src="images/microscope.gif" height="32px" width="*" />
 		    		<%}
 		    		//if the encounter has a measurement, show the measurement icon
-		    		if(enc.hasMeasurements()){%>	
+		    		if(enc.hasMeasurements()){%>
 		    			<img src="images/ruler.png" height="32px" width="*" />
 		        	<%}%>
-		    		
+
 		    	</a>
 		    </td>
-		    
+
 		    <td class="lineitem">
 		    	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%></a>
 		    </td>
-		
+
 		    <%if (enc.getAlternateID() != null) {%>
 			    <td class="lineitem"><%=enc.getAlternateID()%></td>
 		    <%} else {%>
 			    <td class="lineitem"><%=props.getProperty("none")%></td>
 		    <%}%>
-		
+
 			<%
 			String sexValue="&nbsp;";
 			if(enc.getSex()!=null){sexValue=enc.getSex();}
 			%>
-			
+
 		    <td class="lineitem"><%=sexValue %></td>
-		    
+
 		    <td class="lineitem">
 			    <%if(enc.getBehavior()!=null){%>
 			    	<%=enc.getBehavior() %>
@@ -611,7 +611,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 			    &nbsp;
 			    <%}%>
 			</td>
-			    
+
 			<td class="lineitem">
 			    <%if(enc.getHaplotype()!=null){%>
 			    <%=enc.getHaplotype() %>
@@ -622,12 +622,12 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 		  </tr>
 		  <%} //End of loop iterating over encounters. %>
 		</table>
-		
+
 		<!-- Start thumbnail images -->
 		<br/>
 			<p><strong><%=props.getProperty("imageGallery") %></strong></p>
 		<hr/>
-		
+
 		<div class="slider col-sm-12 center-slider">
 		  <%
 	      ArrayList<JSONObject> photoObjectArray = occ.getExemplarImages(request);
@@ -638,7 +638,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 		        JSONObject newMaJson = new JSONObject();
 		        newMaJson = photoObjectArray.get(extraImgNo);
 		        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
-		
+
 		        %>
 		        <div class="crop-outer">
 		          <div class="crop">
@@ -654,10 +654,10 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 		  }
 	      %>
 		</div>
-		 
+
 		<hr/>
 		<br/>
-		
+
 		<!-- Begin dual column for tags and observations -->
 		<div class="row">
 				<div class="col-xs-6">
@@ -699,17 +699,17 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 						<%
 						}
 								// Let's make a list of editable Observations... Dynamically!
-								
+
 						if (occ.getObservationArrayList() != null) {
 							ArrayList<Observation> obs = occ.getObservationArrayList();
 							System.out.println("Observations ... "+obs);
 							int numObservations = occ.getObservationArrayList().size();
 							for (Observation ob : obs) {
-								
+
 								String nm = ob.getName();
 								String vl = ob.getValue();
 						%>
-								
+
 								<p><em><%=nm%></em>:&nbsp<%=vl%></p>
 								<!-- Start dynamic (Observation) form. -->
 								<div style="display:none;" id="dialogDP<%=nm%>" class="editFormObservation" title="<%=props.getProperty("set")%> <%=nm%>">
@@ -717,7 +717,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 										<strong><%=props.getProperty("set")%> <%=nm%></strong>
 									</p>
 									<form name="editFormObservation" action="../OccurrenceSetObservation" method="post" class="editFormDynamic">
-										<input name="name" type="hidden" value="<%=nm%>" /> 
+										<input name="name" type="hidden" value="<%=nm%>" />
 										<input name="number" type="hidden" value="<%=number%>" />
 										<div class="form-group row">
 											<div class="col-sm-3">
@@ -732,8 +732,8 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 										</div>
 									</form>
 								</div>
-								
-					<%} 
+
+					<%}
 							if (numObservations == 0) {%>
 								<p><%=props.getProperty("none")%></p>
 					<%}
@@ -760,7 +760,7 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 							</div>
 						</div>
 						<div class="form-group row">
-							<div class="col-sm-3">		
+							<div class="col-sm-3">
 								<label><%=props.getProperty("propertyValue")%></label>
 							</div>
 							<div class="col-sm-5">
@@ -771,12 +771,12 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 							</div>
 						</div>
 					</form>
-				</div>		
-			</div>		
+				</div>
+			</div>
 
 			<br/><br/>
 		</div>
-		
+
 			<div>
 				<div style="margin-left: 10px; padding: 3px; border: solid #AAA 2px;" class="comments">Comments: <%=occ.getComments()%></div>
 
@@ -800,22 +800,9 @@ if (!Util.collectionIsEmptyOrNull(occ.getInformOthers())) {
 	  myShepherd.rollbackDBTransaction();
 	  myShepherd.closeDBTransaction();
   }
-	  
+
 		%>
 
-</div> <!-- End Maincontent Div --> 
+</div> <!-- End Maincontent Div -->
 
 <jsp:include page="footer.jsp" flush="true"/>
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  

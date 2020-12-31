@@ -29,7 +29,7 @@ import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -121,7 +121,7 @@ public class IndocetStandardImport extends HttpServlet {
     initColIndexVariables(firstRow);
     int cols = firstRow.getPhysicalNumberOfCells(); // No of columns
     int lastColNum = firstRow.getLastCellNum();
-		
+
 		out.println("<li>Num Cols = "+cols+"</li>");
     out.println("<li>Last col num = "+lastColNum+"</li>");
     out.println("<li><em>committing = "+committing+"</em></li>");
@@ -133,7 +133,7 @@ public class IndocetStandardImport extends HttpServlet {
 
     int printPeriod = 100;
     if (committing) myShepherd.beginDBTransaction();
-    out.println("<h2>Beginning row loop:</h2>"); 
+    out.println("<h2>Beginning row loop:</h2>");
     out.println("<ul>");
     // one encounter per-row. We keep these running.
     Occurrence occ = null;
@@ -189,7 +189,7 @@ public class IndocetStandardImport extends HttpServlet {
           +"</ul></li>");
 
         }
-        
+
       }
       catch (Exception e) {
         out.println("Encountered an error while importing the file.");
@@ -229,9 +229,9 @@ public class IndocetStandardImport extends HttpServlet {
     }
     out.println("</ul>");
 
-    out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");    
+    out.println("<h2><strong> "+numFolderRows+" </strong> Folder Rows</h2>");
 
-    out.println("<h2>Import completed successfully</h2>");    
+    out.println("<h2>Import completed successfully</h2>");
     //fs.close();
   }
 
@@ -255,7 +255,7 @@ public class IndocetStandardImport extends HttpServlet {
   }
 
   public Occurrence loadOccurrence(Row row, Occurrence oldOcc, Encounter enc) {
-  	
+
   	Occurrence occ = getCurrentOccurrence(oldOcc, row);
   	// would love to have a more concise way to write following couplets, c'est la vie
 
@@ -394,7 +394,7 @@ public class IndocetStandardImport extends HttpServlet {
     if (millis!=null) {
       if (hasTimeCategories) enc.setDateInMillisOnly(millis); // does not overwrite day/month/etc
       else enc.setDateInMilliseconds(millis);
-    } 
+    }
 
 
   	// Location
@@ -563,7 +563,7 @@ public class IndocetStandardImport extends HttpServlet {
   		for (String columnHeader: colIndexMap.keySet()) {
   			if (columnHeader.contains(className+".")) {
   				fieldNames.add(columnHeader.split(className+".")[1]); // for Encounter.date returns date
-  			}	
+  			}
   		}
   	} catch (Exception e) {}
   	return fieldNames;
@@ -737,7 +737,7 @@ public class IndocetStandardImport extends HttpServlet {
     ArrayList<Keyword> ans = new ArrayList<Keyword>();
     int maxAssets = getNumAssets(row);
     int maxKeywords=2;
-    int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; // 
+    int stopAtKeyword = (maxAssets==(n+1)) ? maxKeywords : n; //
     // we have up to two keywords per row.
     for (int i=n; i<stopAtKeyword; i++) {
       String kwColName = "Encounter.keyword0"+i;
@@ -944,7 +944,7 @@ public class IndocetStandardImport extends HttpServlet {
       double val = row.getCell(i).getNumericCellValue();
       return new Long( (long) val );
     }
-    catch (Exception e){      
+    catch (Exception e){
       try {
         String str = getString(row, i);
         if (str==null) return null;
@@ -1160,7 +1160,7 @@ public class IndocetStandardImport extends HttpServlet {
     // }
 
     // return as;
-    
+
   }
 
 

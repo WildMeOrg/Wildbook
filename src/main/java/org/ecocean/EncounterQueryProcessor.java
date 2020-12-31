@@ -38,11 +38,11 @@ public class EncounterQueryProcessor extends QueryProcessor {
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
     String jdoqlVariableDeclaration = "";
     String parameterDeclaration = "";
-    
-    
+
+
     String context="context0";
     context=ServletUtilities.getContext(request);
-    
+
     Shepherd myShepherd=new Shepherd(context);
     myShepherd.setAction("EncounterQueryProcessor.class");
 
@@ -56,6 +56,55 @@ public class EncounterQueryProcessor extends QueryProcessor {
       prettyPrint.append("locationField contains \""+locString+"\".<br />");
     }
     //end location filter--------------------------------------------------------------------------------------
+
+    //filter for organization-------------------
+    if((request.getParameter("organizationId")!=null) && (!request.getParameter("organizationId").equals("")) && Util.isUUID(request.getParameter("organizationId"))){
+      String orgId = request.getParameter("organizationId");
+      filter = "SELECT FROM org.ecocean.Encounter WHERE user.username == this.submitterID && org.members.contains(user) && org.id == '" + orgId + "'";
+      String variables_statement = " VARIABLES org.ecocean.User user; org.ecocean.Organization org";
+      jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
+    } else{
+      //TODO
+    }
+    //end filter for organization------------------
+
+    //filter for projectName-------------------
+    if(Util.isUUID(request.getParameter("projectId"))){
+      filter = SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ";
+      String[] projectIds = request.getParameterValues("projectId");
+      if((projectIds!=null)&&(!projectIds[0].equals("None"))){
+        prettyPrint.append("Assigned to one of the following projects: ");
+        int numProjIds = projectIds.length;
+        String projIdFilter = "(";
+        for(int i=0; i<numProjIds; i++){
+          String currentProjId = projectIds[i].toLowerCase().replaceAll("%20", " ").trim();
+          if(!currentProjId.equals("")){
+            if(projIdFilter.equals("(")){
+              projIdFilter += " proj.id == \"" + currentProjId + "\"";
+            }else{
+              projIdFilter += " || proj.id == \"" + currentProjId + "\"";
+            }
+            // prettyPrint.append(filter + " " + projIdFilter);
+          }
+        }
+        projIdFilter += " )";
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE + " proj.encounters.contains(this) && ")){
+          filter += projIdFilter;
+        }else{
+          filter+=(" && " + projIdFilter);
+        }
+        prettyPrint.append(filter);
+        prettyPrint.append("<br/>");
+      }
+      // TODO
+      // filter = "SELECT FROM org.ecocean.Encounter WHERE proj.id == '" + projectId + "' && proj.encounters.contains(this)";
+      String variables_statement = " VARIABLES org.ecocean.Project proj";
+      jdoqlVariableDeclaration = addOrgVars(variables_statement, filter);
+    } else{
+      //TODO
+    }
+    //end filter for projectName------------------
+
 
     //------------------------------------------------------------------
     //username filters-------------------------------------------------
@@ -213,7 +262,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
             prettyPrint.append("<br />");
     }
     //end individualID filters-----------------------------------------------
-    
+
     //------------------------------------------------------------------
     //individualIDExact filters-------------------------------------------------
     //supports one individualID parameter as well as comma-separated lists of individualIDs within them
@@ -228,10 +277,10 @@ public class EncounterQueryProcessor extends QueryProcessor {
             prettyPrint.append("<br />");
     }
     //end individualID filters-----------------------------------------------
-    
-    
-    
-    
+
+
+
+
 
   //------------------------------------------------------------------
     //patterningCode filters-------------------------------------------------
@@ -291,14 +340,14 @@ public class EncounterQueryProcessor extends QueryProcessor {
     }
     //end behavior filters-----------------------------------------------
     //------------------------------------------------------------------
-    
+
     //begin observation filters -----------------------------------------
     boolean hasValue = false;
     if (request.getParameter("numSearchedObs")!=null) {
       if (request.getParameter("observationKey1")!=null&&!request.getParameter("observationKey1").equals("")) {
         hasValue = true;
       }
-    }  
+    }
     Enumeration<String> allParams = request.getParameterNames();
     if (allParams!=null&&hasValue) {
       String keyID = "observationKey";
@@ -315,17 +364,17 @@ public class EncounterQueryProcessor extends QueryProcessor {
           String keyParam = request.getParameter(thisParam);
           String keyNum = thisParam.replace(keyID,"");
           if (keyParam!=null&&!keyParam.equals("")) {
-            obKeys.put(keyNum,keyParam);            
+            obKeys.put(keyNum,keyParam);
           }
         }
         if (thisParam!=null&&thisParam.startsWith(valID)) {
           String valParam = request.getParameter(thisParam);
           String valNum = thisParam.replace(valID,"");
           if (valParam!=null&&!valParam.equals("")) {
-            obVals.put(valNum,valParam);            
+            obVals.put(valNum,valParam);
           }
         }
-      }  
+      }
       for (int i=1;i<=numObsSearched;i++) {
         String num = String.valueOf(i);
         if (Util.basicSanitize(obKeys.get(num))!=null) {
@@ -339,12 +388,12 @@ public class EncounterQueryProcessor extends QueryProcessor {
             obQuery.append("&&");
           }
           obQuery.append("(observations.contains(observation"+num+") && ");
-          obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));        
+          obQuery.append("observation"+num+".name == "+Util.quote(thisKey.trim()));
           if (obVals.get(num)!=null&&!obVals.get(num).trim().equals("")) {
             String thisVal = Util.basicSanitize(obVals.get(num));
             prettyPrint.append(" is ");
-            prettyPrint.append(thisVal);              
-            obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim())); 
+            prettyPrint.append(thisVal);
+            obQuery.append(" && observation"+num+".value == "+Util.quote(thisVal.trim()));
           }
           obQuery.append(")");
         }
@@ -359,12 +408,8 @@ public class EncounterQueryProcessor extends QueryProcessor {
           System.out.println("ObQuery: "+obQuery);
           System.out.println("Filter? "+filter);
         }
-      }  
+      }
     }
-    
-    //-------------------------------------------------------------------
-
-    //Tag Filters--------------------------------------------------------
 
     StringBuilder metalTagFilter = new StringBuilder();
     Enumeration<String> parameterNames = request.getParameterNames();
@@ -397,7 +442,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
       }
       filter += metalTagFilter.toString();
       for (int i = 0; i < metalTagsInQuery; i++) {
-        updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.tag.MetalTag metalTag" + i);
+        QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.tag.MetalTag metalTag" + i);
       }
     }
 
@@ -695,10 +740,10 @@ public class EncounterQueryProcessor extends QueryProcessor {
 
     }
     //end hasPhoto filters-----------------------------------------------
-    
+
     //------------------------------------------------------------------
-    
-    
+
+
     //hasSpots filters-------------------------------------------------
     if(request.getParameter("hasSpots")!=null){
           prettyPrint.append("Has patterning points.");
@@ -707,10 +752,10 @@ public class EncounterQueryProcessor extends QueryProcessor {
             else if (filter.indexOf("spots != null")==-1){filter+=(" && spots !=null ");}
 
             prettyPrint.append("<br />");
-            
+
     }
     //end hasSpots filters-----------------------------------------------
-    
+
     //has no Spots filters-------------------------------------------------
     if(request.getParameter("hasNoSpots")!=null){
           prettyPrint.append("Has no patterning points.");
@@ -719,10 +764,10 @@ public class EncounterQueryProcessor extends QueryProcessor {
             else if (filter.indexOf("spots == null")==-1){filter+=(" && spots == null ");}
 
             prettyPrint.append("<br />");
-            
+
     }
     //end has no Spots filters-----------------------------------------------
-    
+
     //filter for encounters of MarkedIndividuals that have been resighted------------------------------------------
     if((request.getParameter("resightOnly")!=null)&&(request.getParameter("numResights")!=null)) {
       int numResights=1;
@@ -738,9 +783,9 @@ public class EncounterQueryProcessor extends QueryProcessor {
       if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.MarkedIndividual markedindy";}
       else {jdoqlVariableDeclaration+=";org.ecocean.MarkedIndividual markedindy";}
 
-      
-      
-      
+
+
+
     }
   //end if resightOnly--------------------------------------------------------------------------------------
 
@@ -792,14 +837,14 @@ public class EncounterQueryProcessor extends QueryProcessor {
                   if(kwIter>0){filter+=" "+photoKeywordOperator+" ";}
                   filter+=" ( annotations.contains(photo"+kwIter+")";
                 }
-                
+
                 if(filter.indexOf("photo"+kwIter+".features.contains(feat"+kwIter+")")==-1){filter+=" && photo"+kwIter+".features.contains(feat"+kwIter+")";}
 
 
                 if(filter.indexOf("feat"+kwIter+".asset.keywords.contains(word"+kwIter+")")==-1){filter+=" && feat"+kwIter+".asset.keywords.contains(word"+kwIter+")";}
                 filter+=(" && "+locIDFilter+")");
-            
-                
+
+
 
 
 
@@ -848,23 +893,23 @@ public class EncounterQueryProcessor extends QueryProcessor {
       // bc if we search for "fluke photo, of quality 3-5" we are talking about one photo with two keywords, not two photos
       if (labelN==0) {
         lkwFilter += "annotations.contains("+annotVar+")";
-        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Annotation "+annotVar);
+        jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Annotation "+annotVar);
 
       }
 
       // only one feature per annotation, so only one feature for all keywords
       String featVar = "feat"+annotNum;
-      if (labelN==0) { 
+      if (labelN==0) {
         lkwFilter += " && ";
         lkwFilter += annotVar+".features.contains("+featVar+")";
-        jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.media.Feature "+featVar);
+        jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.media.Feature "+featVar);
       }
 
       String wordVar = "word"+kwNum;
       if (labelN==0) lkwFilter += " && ";
       lkwFilter += featVar+".asset.keywords.contains("+wordVar+")";
       // TODO: is jdoql OK with typing wordVar as a LabeledKeyword even though features have a plain Keyword list?
-      jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.LabeledKeyword "+wordVar);
+      jdoqlVariableDeclaration = QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.LabeledKeyword "+wordVar);
       //------ done with variables and declarations for this LKW
 
       lkwFilter += " && "+wordVar+".label == "+Util.quote(label);
@@ -1069,8 +1114,8 @@ public class EncounterQueryProcessor extends QueryProcessor {
       }
 
     //end genetic sex filters-----------------------------------------------
-    
-  /*  
+
+  /*
   	//start photo filename filtering
 	    if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))) {
 
@@ -1078,8 +1123,8 @@ public class EncounterQueryProcessor extends QueryProcessor {
 	      String nameString=ServletUtilities.cleanFileName(ServletUtilities.preventCrossSiteScriptingAttacks(request.getParameter("filenameField").trim()));
 
 	      String locIDFilter="( photo.filename == \""+nameString+"\" )";
-	      
-	      
+
+
 	      if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="images.contains(photo) && "+locIDFilter;}
           else{
             filter+=" && images.contains(photo) && "+locIDFilter;
@@ -1090,7 +1135,7 @@ public class EncounterQueryProcessor extends QueryProcessor {
           if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.SinglePhotoVideo photo;";}
           else{
             jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo photo";
-            
+
           }
   }
 */
@@ -1172,19 +1217,14 @@ public class EncounterQueryProcessor extends QueryProcessor {
     //submitter or photographer name filter------------------------------------------
     if((request.getParameter("nameField")!=null)&&(!request.getParameter("nameField").equals(""))) {
       String nameString=request.getParameter("nameField").replaceAll("%20"," ").toLowerCase().trim();
-      
-      
       //String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(informothers.toLowerCase().indexOf('"+nameString+"') != -1))";
       String filterString=""+
          "("
              + "(submitters.contains(submitter) && ((submitter.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(submitter.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) || "
              + "(photographers.contains(photographer) && ((photographer.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographer.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1))) "
              +"||(informOthers.contains(other) && ((other.fullName.toLowerCase().indexOf('"+nameString+"') != -1)||(other.emailAddress.toLowerCase().indexOf('"+nameString+"') != -1)))"
-          
           +")";
-      
-      
-      
+
       if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.User submitter;org.ecocean.User photographer;org.ecocean.User other";}
       else{
         if(!jdoqlVariableDeclaration.contains("org.ecocean.User submitter")){jdoqlVariableDeclaration+=";org.ecocean.User submitter";}
@@ -1192,17 +1232,13 @@ public class EncounterQueryProcessor extends QueryProcessor {
         if(!jdoqlVariableDeclaration.contains("org.ecocean.User other")){jdoqlVariableDeclaration+=";org.ecocean.User other";}
 
       }
-      
-      
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
-      
       prettyPrint.append("Related fullName or emailAddress contains: \""+nameString+"\"<br />");
-      
     }
     //end name and email filter--------------------------------------------------------------------------------------
 
-    
+
     //additional comments filter------------------------------------------
     if((request.getParameter("additionalCommentsField")!=null)&&(!request.getParameter("additionalCommentsField").equals(""))) {
       String nameString=request.getParameter("additionalCommentsField").replaceAll("%20"," ").toLowerCase().trim();
@@ -1248,19 +1284,17 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     //start date filter----------------------------
     if((request.getParameter("datepicker1")!=null)&&(!request.getParameter("datepicker1").trim().equals(""))&&(request.getParameter("datepicker2")!=null)&&(!request.getParameter("datepicker2").trim().equals(""))){
-        
+
       try{
           DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
           DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
           DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
-    
           long date1Millis=date1.getMillis();
           long date2Millis=date2.getMillis();
           if(request.getParameter("datepicker1").trim().equals(request.getParameter("datepicker2").trim())){
             //if same dateTime is set by both pickers, then add a full day of milliseconds to picker2 to cover the entire day
             date2Millis+=(24*60*60*1000-1);
           }
-          
           prettyPrint.append("Dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
 
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
@@ -1270,37 +1304,37 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
         }
       }
       catch(Exception e){e.printStackTrace();}
-      }  
+      }
     //end date filter------------------------------------------
-    
-    
+
+
     //start date added filter----------------------------
     if((request.getParameter("dateaddedpicker1")!=null)&&(!request.getParameter("dateaddedpicker1").trim().equals(""))&&(request.getParameter("dateaddedpicker2")!=null)&&(!request.getParameter("dateaddedpicker2").trim().equals(""))){
-      
+
       try{
           DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
           DateTime date1 = parser.parseDateTime(request.getParameter("dateaddedpicker1"));
           DateTime date2 = parser.parseDateTime(request.getParameter("dateaddedpicker2"));
-    
+
           prettyPrint.append("Encounter creation dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
-    
-        
+
+
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
           filter+="((dwcDateAddedLong >= "+date1.getMillis()+") && (dwcDateAddedLong <= "+date2.getMillis()+"))";
         }
         else{
           filter+=" && ((dwcDateAddedLong >= "+date1.getMillis()+") && (dwcDateAddedLong <= "+date2.getMillis()+"))";
-    
+
         }
-        
-    
+
+
       } catch(NumberFormatException nfe) {
         //do nothing, just skip on
         nfe.printStackTrace();
           }
         }
   //end date added filter------------------------------------------
-    
+
 
     //filter for sex------------------------------------------
     if((request.getParameter("male")!=null)||(request.getParameter("female")!=null)||(request.getParameter("unknown")!=null)){
@@ -1326,7 +1360,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     //filter by sex--------------------------------------------------------------------------------------
 
 
- 
+
 
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
     String releaseDateToStr = request.getParameter("releaseDateTo");
@@ -1367,7 +1401,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     filter = filterWithGpsBox("decimalLatitude","decimalLongitude", filter, request);
 
     //end GPS filters-----------------------------------------------
-    
+
     if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null";}
 
 
@@ -1375,7 +1409,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     filter += parameterDeclaration;
     System.out.println("EncounterQueryProcessor filter: "+filter);
-    
+
     return filter;
 
   }
@@ -1612,6 +1646,11 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
       tagFilter.append(')');
     }
     return tagFilter.toString();
+  }
+
+  private static String addOrgVars(String jdoqlVariableDeclaration, String orgs) {
+    QueryProcessor.updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, orgs);
+    return jdoqlVariableDeclaration;
   }
 
 }

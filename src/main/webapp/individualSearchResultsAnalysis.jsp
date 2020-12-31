@@ -16,26 +16,26 @@
     //let's load encounterSearch.properties
     //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResultsAnalysis.properties"));
     encprops = ShepherdProperties.getProperties("individualSearchResultsAnalysis.properties", langCode,context);
 
 
     Properties measurementLabels=ShepherdProperties.getProperties("commonConfigurationLabels.properties", langCode, context);
-    
-    
-    
-    
+
+
+
+
     Properties haploprops = new Properties();
     //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
 	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
-   
-    
-    
+
+
+
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("individualSearchResultsAnalysis.jsp");
-    
+
     DecimalFormat df = new DecimalFormat("#.##");
 
     int numResults = 0;
@@ -43,7 +43,7 @@
     int numResultsWithGeneticSex=0;
     int numResultsWithMsMarkers=0;
     int numResultsWithHaplotype=0;
-    
+
 	//prep for measurements summary
 	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en",context);
 	int numMeasurementTypes=measurementTypes.size();
@@ -66,7 +66,7 @@
 		largestIndies[b]="";
 	}
 
-	
+
 	//prep for biomeasurements summary
 	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
 	int numBioMeasurementTypes=bioMeasurementTypes.size();
@@ -86,30 +86,30 @@
 		bioSmallestIndies[b]="";
 		bioLargestIndies[b]="";
 	}
-	
+
 	//retrieve dates from the URL
  int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
     try {
         DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
         DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
         DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
-        
+
         day1=date1.getDayOfMonth();
         month1=date1.getMonthOfYear();
         year1=date1.getYear();
-        
+
         day2=date2.getDayOfMonth();
         month2=date2.getMonthOfYear();
         year2=date2.getYear();
 
-        
-    } 
+
+    }
     catch (Exception nfe) {
     }
 
 
-	
-	
+
+
     //kick off the transaction
     myShepherd.beginDBTransaction();
 
@@ -120,16 +120,16 @@
 
     MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
     rIndividuals = result.getResult();
-    
+
     //let's prep the HashTable for the haplo pie chart
-    List<String> allHaplos2=myShepherd.getAllHaplotypes(); 
+    List<String> allHaplos2=myShepherd.getAllHaplotypes();
     int numHaplos2 = allHaplos2.size();
     Hashtable<String,Integer> pieHashtable = new Hashtable<String,Integer>();
  	for(int gg=0;gg<numHaplos2;gg++){
  		String thisHaplo=allHaplos2.get(gg);
  		pieHashtable.put(thisHaplo, new Integer(0));
  	}
- 	
+
  	//let's prep the max years between sightings column chart
 	Query yearsCoverageQuery=myShepherd.getPM().newQuery(result.getJDOQLRepresentation().replaceFirst("SELECT FROM","SELECT max(maxYearsBetweenResightings) FROM"));
  	int numYearsCoverage=0;
@@ -142,13 +142,13 @@
  	for(int t=0;t<numYearsCoverage;t++){
  		resightingYearsArray[t]=0;
  	}
-    
+
  	//let's prep the HashTable for the sex pie chart
  	Hashtable<String,Integer> sexHashtable = new Hashtable<String,Integer>();
  	sexHashtable.put("male", new Integer(0));
  	sexHashtable.put("female", new Integer(0));
  	sexHashtable.put("unknown", new Integer(0));
- 	
+
  	//let's prep for the firstSightings table
  	Hashtable<String,Integer> firstSightingsHashtable = new Hashtable<String,Integer>();
  	firstSightingsHashtable.put("First sighting", new Integer(0));
@@ -160,13 +160,13 @@
 	 String farthestTravelingIndividual="";
 	 String longestResightedIndividualDisplayName="";
 	 String farthestTravelingIndividualDisplayName="";
-	 
 
-	 
+
+
  	int resultSize=rIndividuals.size();
  	 for(int y=0;y<resultSize;y++){
  		MarkedIndividual thisEnc=(MarkedIndividual)rIndividuals.get(y);
- 		 
+
  		//genetic analysis checks
  		//and haplotype ie chart prep
  		 if(thisEnc.getHaplotype()!=null){
@@ -175,26 +175,26 @@
       		   pieHashtable.put(thisEnc.getHaplotype().trim(), thisInt);
       		   numResultsWithHaplotype++;
       	   }
- 	 	} 
- 		if(thisEnc.hasMsMarkers()){numResultsWithMsMarkers++;} 
+ 	 	}
+ 		if(thisEnc.hasMsMarkers()){numResultsWithMsMarkers++;}
  		if(thisEnc.hasGeneticSex()){numResultsWithGeneticSex++;}
- 		
+
  		//measurement
 		for(int b=0;b<numMeasurementTypes;b++){
 			if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType())!=null){
-				
+
 					measurementValues[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
-					
+
 					//smallest vs largest analysis
 					if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()<=measurementValues[b].getMin()){
 						smallestIndies[b]=thisEnc.getIndividualID();
-						smallestIndiesDisplayName[b]=thisEnc.getDisplayName();
+						smallestIndiesDisplayName[b]=thisEnc.getDisplayName(request, myShepherd);
 					}
 					else if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()>=measurementValues[b].getMax()){
 						largestIndies[b]=thisEnc.getIndividualID();
-						largestIndiesDisplayName[b]=thisEnc.getDisplayName();
+						largestIndiesDisplayName[b]=thisEnc.getDisplayName(request, myShepherd);
 					}
-					
+
 					//males versus females analysis
 					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
 						measurementValuesMales[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
@@ -202,29 +202,29 @@
 					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
 						measurementValuesFemales[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
 					}
-					
+
 					//first sights vs resights analysis
 					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,(month1-1),day1)).getTimeInMillis()){
 						 measurementValuesResights[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
-							
-				 		   
+
+
 					 }
 					 else{
 						 measurementValuesNew[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
-							
+
 					 }
-					
-					
-					
+
+
+
 			}
 		}
-		
+
  		//biomeasurement tabulation
 		for(int b=0;b<numBioMeasurementTypes;b++){
 			if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType())!=null){
-				
+
 					double val=thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue();
-				
+
 					bioMeasurementValues[b].addValue(val);
 					//System.out.println(bioMeasurementTypes.get(b).getType()+":"+val);
 					//smallest vs largest analysis
@@ -234,7 +234,7 @@
 					else if(val>=bioMeasurementValues[b].getMax()){
 						bioLargestIndies[b]=thisEnc.getIndividualID();
 					}
-					
+
 					//males versus females analysis
 					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
 						bioMeasurementValuesMales[b].addValue(val);
@@ -242,25 +242,25 @@
 					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
 						bioMeasurementValuesFemales[b].addValue(val);
 					}
-					
+
 					//first sights vs resights analysis
 					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,(month1-1),day1)).getTimeInMillis()){
 						 bioMeasurementValuesResights[b].addValue(val);
-							
-				 		   
+
+
 					 }
 					 else{
 						 bioMeasurementValuesNew[b].addValue(val);
-							
+
 					 }
-					
-					
-					
+
+
+
 			}
 		}
-		
- 		 
- 	    //sex pie chart 	
+
+
+ 	    //sex pie chart
  	    if(thisEnc.getSex()!=null){
  			if(thisEnc.getSex().equals("male")){
  		   		Integer thisInt = sexHashtable.get("male")+1;
@@ -279,54 +279,54 @@
  	    	Integer thisInt = sexHashtable.get("unknown")+1;
    		    sexHashtable.put("unknown", thisInt);
  	    }
- 	    
+
 		 //max distance calc
 		 if (thisEnc.getMaxDistanceBetweenTwoSightings()>maxTravelDistance){
 			 maxTravelDistance=thisEnc.getMaxDistanceBetweenTwoSightings();
 			 farthestTravelingIndividual=thisEnc.getIndividualID();
-			 farthestTravelingIndividualDisplayName=thisEnc.getDisplayName();
+			 farthestTravelingIndividualDisplayName=thisEnc.getDisplayName(request, myShepherd);
 		 }
-		 
+
 		 //max time calc
 		 if (thisEnc.getMaxTimeBetweenTwoSightings()>maxTimeBetweenResights){
 			 maxTimeBetweenResights=thisEnc.getMaxTimeBetweenTwoSightings();
 			 longestResightedIndividual=thisEnc.getIndividualID();
-			 longestResightedIndividualDisplayName=thisEnc.getDisplayName();
+			 longestResightedIndividualDisplayName=thisEnc.getDisplayName(request, myShepherd);
 		 }
-		 
+
 		 //maxYearsBetweenSightings calc
 		 resightingYearsArray[thisEnc.getMaxNumYearsBetweenSightings()]++;
-		 
+
 		 //firstSightings distribution
 		 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,(month1-1),day1)).getTimeInMillis()){
 	 		   Integer thisInt = firstSightingsHashtable.get("Previously sighted")+1;
 	  		   firstSightingsHashtable.put("Previously sighted", thisInt);
-	 		   
+
 		 }
 		 else{
 			 Integer thisInt = firstSightingsHashtable.get("First sighting")+1;
 	  		   firstSightingsHashtable.put("First sighting", thisInt);
 		 }
-		 
- 		 
- 	 }	
- 	 
 
 
- 	 
- 	 
+ 	 }
+
+
+
+
+
   %>
 
 
     <style type="text/css">
-     
+
       #map {
         width: 600px;
         height: 400px;
       }
 
     </style>
-  
+
 
 <style type="text/css">
   #tabmenu {
@@ -347,7 +347,7 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-     
+
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -367,21 +367,21 @@
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
-  
-  
+
+
+
 </style>
 
   <jsp:include page="header.jsp" flush="true"/>
- 
-  
+
+
       <script>
         function getQueryParameter(name) {
           name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
@@ -394,11 +394,11 @@
             return results[1];
         }
   </script>
-  
 
 
 
-    
+
+
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
 <script type="text/javascript">
@@ -410,11 +410,11 @@
         data.addColumn('number', 'No. Recorded');
         data.addRows([
           <%
-          List<String> allHaplos=myShepherd.getAllHaplotypes(); 
+          List<String> allHaplos=myShepherd.getAllHaplotypes();
           int numHaplos = allHaplos.size();
-          
 
-          
+
+
           for(int hh=0;hh<numHaplos;hh++){
           %>
           ['<%=allHaplos.get(hh)%>',    <%=pieHashtable.get(allHaplos.get(hh))%>]
@@ -426,7 +426,7 @@
 		  }
           }
 		  %>
-          
+
         ]);
 
         var options = {
@@ -437,9 +437,9 @@
                    String haploColor="CC0000";
                    if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
                 	   haploColor=encprops.getProperty("defaultMarkerColor");
-                   }   
+                   }
 
-                   
+
                    for(int yy=0;yy<numHaplos;yy++){
                        String haplo=allHaplos.get(yy);
                        if((haploprops.getProperty(haplo)!=null)&&(!haploprops.getProperty(haplo).trim().equals(""))){
@@ -450,15 +450,15 @@
 					<%
                    }
                    %>
-                   
-                   
+
+
           ]
         };
 
         var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
         chart.draw(data, options);
       }
-      
+
       google.setOnLoadCallback(drawSexChart);
       function drawSexChart() {
         var data = new google.visualization.DataTable();
@@ -469,7 +469,7 @@
           ['<%=encprops.getProperty("male") %>',    <%=sexHashtable.get("male")%>],
            ['<%=encprops.getProperty("female") %>',    <%=sexHashtable.get("female")%>],
            ['<%=encprops.getProperty("unknown") %>',    <%=sexHashtable.get("unknown")%>]
-          
+
         ]);
 
         <%
@@ -477,7 +477,7 @@
         if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
      	   haploColor=encprops.getProperty("defaultMarkerColor");
         }
-        
+
         %>
         var options = {
           width: 450, height: 300,
@@ -488,8 +488,8 @@
         var chart = new google.visualization.PieChart(document.getElementById('sexchart_div'));
         chart.draw(data, options);
       }
-      
-      
+
+
       google.setOnLoadCallback(drawFirstSightingChart);
       function drawFirstSightingChart() {
         var data = new google.visualization.DataTable();
@@ -499,7 +499,7 @@
 
           ['<%=encprops.getProperty("firstSighting") %>',    <%=firstSightingsHashtable.get("First sighting")%>],
            ['<%=encprops.getProperty("previouslyIdentified") %>',    <%=firstSightingsHashtable.get("Previously sighted")%>]
-           
+
 
         ]);
 
@@ -513,10 +513,10 @@
         var chart = new google.visualization.PieChart(document.getElementById('firstSighting_div'));
         chart.draw(data, options);
       }
-      
-      
-      
-      
+
+
+
+
       <%
       if(numYearsCoverage>0){
       %>
@@ -528,7 +528,7 @@
         data.addColumn('string', '<%=encprops.getProperty("calendarYearsBetweenResights") %>');
         data.addColumn('number', '<%=encprops.getProperty("numberMarkedIndividuals") %>');
         data.addRows([
-        <%              
+        <%
         for(int p=0;p<numYearsCoverage;p++){
         %>
           ['<%=p%>', <%=resightingYearsArray[p]%>]
@@ -554,11 +554,11 @@
       <%
       }
       %>
-      
-      
+
+
 </script>
 
-    
+
 <div class="container maincontent">
 
  <h1 class="intro"><%=encprops.getProperty("title")%></h1>
@@ -570,7 +570,7 @@ if (request.getQueryString() != null) {
   queryString = request.getQueryString();
 }
 %>
- 
+
   <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
@@ -581,7 +581,7 @@ if (request.getQueryString() != null) {
   </a></li>
     <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("export")%>
   </a></li>
- 
+
  </ul>
 
 
@@ -611,13 +611,13 @@ if(maxTimeBetweenResights>0){
 <p><strong><%=encprops.getProperty("measurements") %></strong></p>
 <%
  		//measurement
-		
+
 		if(measurementTypes.size()>0){
 			for(int b=0;b<numMeasurementTypes;b++){
 			%>
-				<p><%=encprops.getProperty("mean") %> <%=measurementLabels.getProperty(measurementTypes.get(b).getType()+".label")%>: 
-				<% 
-				
+				<p><%=encprops.getProperty("mean") %> <%=measurementLabels.getProperty(measurementTypes.get(b).getType()+".label")%>:
+				<%
+
 				//now report averages
 				if(measurementValues[b].getN()>0){
 				%>
@@ -628,7 +628,7 @@ if(maxTimeBetweenResights>0){
 					<li><%=encprops.getProperty("meanMales") %> <%=df.format(measurementValuesMales[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesMales[b].getStandardDeviation()) %>) N=<%=measurementValuesMales[b].getN() %></li>
 					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(measurementValuesFemales[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesFemales[b].getStandardDeviation()) %>) N=<%=measurementValuesFemales[b].getN() %></li>
 					<li><%=encprops.getProperty("meanNew") %> <%=df.format(measurementValuesNew[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesNew[b].getStandardDeviation()) %>) N=<%=measurementValuesNew[b].getN() %></li>
-					<li><%=encprops.getProperty("meanResight") %> <%=df.format(measurementValuesResights[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesResights[b].getStandardDeviation()) %>) N=<%=measurementValuesResights[b].getN() %></li>	
+					<li><%=encprops.getProperty("meanResight") %> <%=df.format(measurementValuesResights[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(measurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(measurementValuesResights[b].getStandardDeviation()) %>) N=<%=measurementValuesResights[b].getN() %></li>
 				</ul>
 				<%
 				}
@@ -637,7 +637,7 @@ if(maxTimeBetweenResights>0){
 					&nbsp;<%=encprops.getProperty("noValues") %>
 					<%
 				}
-				
+
 				%>
 				</p>
 			<%
@@ -646,20 +646,20 @@ if(maxTimeBetweenResights>0){
 		else{
 			%>
 			<p><%=encprops.getProperty("noTypes") %></p>
-			<% 
+			<%
 		}
 %>
 
 <p><strong><%=encprops.getProperty("bioMeasurements") %></strong></p>
 <%
  		//measurement
-		
+
 		if(bioMeasurementTypes.size()>0){
 			for(int b=0;b<numBioMeasurementTypes;b++){
 			%>
-				<p><%=encprops.getProperty("mean") %> <%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getType()+".label")%>: 
-				<% 
-				
+				<p><%=encprops.getProperty("mean") %> <%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getType()+".label")%>:
+				<%
+
 				//now report averages
 				if(bioMeasurementValues[b].getN()>0){
 				%>
@@ -670,7 +670,7 @@ if(maxTimeBetweenResights>0){
 					<li><%=encprops.getProperty("meanMales") %> <%=df.format(bioMeasurementValuesMales[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesMales[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales[b].getN() %></li>
 					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(bioMeasurementValuesFemales[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesFemales[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales[b].getN() %></li>
 					<li><%=encprops.getProperty("meanNew") %> <%=df.format(bioMeasurementValuesNew[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesNew[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesNew[b].getN() %></li>
-					<li><%=encprops.getProperty("meanResight") %> <%=df.format(bioMeasurementValuesResights[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesResights[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesResights[b].getN() %></li>	
+					<li><%=encprops.getProperty("meanResight") %> <%=df.format(bioMeasurementValuesResights[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesResights[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesResights[b].getN() %></li>
 				</ul>
 				<%
 				}
@@ -679,7 +679,7 @@ if(maxTimeBetweenResights>0){
 					&nbsp;<%=encprops.getProperty("noValues") %>
 					<%
 				}
-				
+
 				%>
 				</p>
 			<%
@@ -688,12 +688,12 @@ if(maxTimeBetweenResights>0){
 		else{
 			%>
 			<p><%=encprops.getProperty("noTypes") %></p>
-			<% 
+			<%
 		}
 
      try {
  %>
- 
+
 <p><strong><%=encprops.getProperty("charting") %></strong></p>
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
@@ -712,15 +712,15 @@ if(maxTimeBetweenResights>0){
 	<button type="button" id="gZoomOut">Zoom Out</button>
       </div>
       <div id="filterGender" class="filterOptions">
-        <label>	  
+        <label>
 	  <input type="checkbox" id="maleBox">
 	  <span>Male</span>
 	</label>
-	<label>	  
+	<label>
 	  <input type="checkbox" id="femaleBox">
 	  <span>Female</span>
 	</label>
-	<label>	  
+	<label>
 	  <input type="checkbox" id="unknownGenderBox">
 	  <span>Unknown Gender</span>
 	</label>
@@ -736,11 +736,11 @@ if(maxTimeBetweenResights>0){
       </label>
       </div>
       <div class="filterOptions">
-	<label>	  
+	<label>
 	  <input type="checkbox" id="selectFamilyBox">
 	  <span>Select Family</span>
 	</label>
-        <label>	  
+        <label>
 	  <input type="checkbox" id="filterFamilyBox">
 	  <span>Filter Family</span>
 	</label>
@@ -774,7 +774,7 @@ if(maxTimeBetweenResights>0){
   let querier = new JSONQuerier(wildbookGlobals);
   querier.preFetchData(null, null, null, [setupSocialGraph], ["#socialDiagram"], [parser]);
 </script>
-	 
+
  <div id="chart_div"></div>
 
 <div id="sexchart_div"></div>
@@ -787,20 +787,20 @@ if(numYearsCoverage>0){
  <div id="columnchart_div"></div>
  <%
 }
-     } 
+     }
      catch (Exception e) {
        e.printStackTrace();
      }
- 
 
 
 
- 
- 
+
+
+
    myShepherd.rollbackDBTransaction();
    myShepherd.closeDBTransaction();
    rIndividuals = null;
- 
+
 %>
  <table>
   <tr>
@@ -822,10 +822,8 @@ if(numYearsCoverage>0){
     </td>
   </tr>
 </table>
- 
+
  </div>
- 
- 
+
+
  <jsp:include page="footer.jsp" flush="true"/>
-
-

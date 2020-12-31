@@ -30,7 +30,6 @@ import net.jpountz.xxhash.XXHashFactory;
 import net.jpountz.xxhash.StreamingXXHash32;
 import net.jpountz.xxhash.XXHash32;
 
-
 //EXIF-related imports
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.io.FileInputStream;
@@ -109,7 +109,7 @@ public class Util {
     }
     return list;
   }
-  
+
   public static ArrayList<String> findVesselNames(String langCode,String context) {
     ArrayList<String> list = new ArrayList<String>();
     List<String> types = CommonConfiguration.getIndexedPropertyValues(VESSEL,context);
@@ -121,17 +121,19 @@ public class Util {
     }
     return list;
   }
-  
+
   public static ArrayList<String> findSpeciesNames(String langCode, String context) {
     ArrayList<String> nameArr = new ArrayList<>();
     List<String> nameList = CommonConfiguration.getIndexedPropertyValues(GENUS_SPECIES,context);
     if (nameList.size() > 0) {
       for  (String name : nameList) {
         nameArr.add(name);
-      }  
+      }
     }
     return nameArr;
-  } 
+  }
+
+
 
   public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
@@ -470,8 +472,8 @@ public class Util {
         if (jin == null) return null;
         return stringToJSONObject(jin.toString());
     }
-    
-    
+
+
     public static org.datanucleus.api.rest.orgjson.JSONArray toggleJSONArray(org.json.JSONArray jin) {
       if (jin == null) return null;
       return stringToDatanucleusJSONArray(jin.toString());
@@ -480,8 +482,6 @@ public class Util {
       if (jin == null) return null;
       return stringToJSONArray(jin.toString());
     }
-    
-    
 
     //this basically just swallows exceptions in parsing and returns a null if failure
     public static JSONObject stringToJSONObject(String s) {
@@ -520,9 +520,9 @@ public class Util {
       }
       return j;
     }
-    
+
     //NEW
-    
+
     //this basically just swallows exceptions in parsing and returns a null if failure
     public static JSONArray stringToJSONArray(String s) {
         JSONArray j = null;
@@ -545,8 +545,8 @@ public class Util {
       }
       return j;
     }
-    
-    
+
+
     //NEW
 
     public static org.datanucleus.api.rest.orgjson.JSONArray concatJsonArrayInPlace(org.datanucleus.api.rest.orgjson.JSONArray toBeReturned, org.datanucleus.api.rest.orgjson.JSONArray toBeAdded) throws org.datanucleus.api.rest.orgjson.JSONException {
@@ -648,7 +648,7 @@ public class Util {
         double[] cll = new double[2];
         double dx = distance * Math.sin(Math.toRadians(bearing));
         double dy = distance * Math.cos(Math.toRadians(bearing));
-        cll[0] = latMetersToDegrees(latDegreesToMeters(decimalLatitude) + dy); 
+        cll[0] = latMetersToDegrees(latDegreesToMeters(decimalLatitude) + dy);
         cll[1] = lonMetersToDegrees(lonDegreesToMeters(decimalLongitude, decimalLatitude) + dx, decimalLatitude);
         return cll;
     }
@@ -742,17 +742,6 @@ public class Util {
         return matcher.matches();
     }
 
-    public static String sanitizeURLParameter(String param) {
-      String sanitized = "";
-      sanitized = param.replace("alert", "");
-      sanitized = sanitized.replace("script", "");
-      sanitized = sanitized.replace("<", "");
-      sanitized = sanitized.replace(">", "");
-      sanitized = sanitized.replace(")", "");
-      sanitized = sanitized.replace("(", "");
-      return sanitized;
-    }
-
     public static String addToJDOFilter(String constraint, String filter, String origFilter) {
       if (filter.equals(origFilter)) return (filter + constraint);
       else return (filter + " && " + constraint);
@@ -804,7 +793,7 @@ public class Util {
     public static boolean isEmpty(Collection c) {
       return (c==null || c.size()==0);
     }
-    
+
     //these two utility functions handle the case where the argument (Collection, and subclasses like Lists) is null!
     public static boolean collectionIsEmptyOrNull(Collection c) {
         return (collectionSize(c) == 0);
@@ -857,7 +846,7 @@ public class Util {
     public static boolean integerExists(Integer val) {
       return (val!=null && intExists(val));
     }
-    
+
     public static void writeToFile(String data, String absolutePath) throws FileNotFoundException {
       File file=new File(absolutePath);
       try{
@@ -928,7 +917,7 @@ public class Util {
     public static boolean fileExists(String filepath) {
       File f = new File(filepath);
       return (f.exists() && !f.isDirectory());
-    } 
+    }
 
     //handles fuzzy case where url?key=value wants to test that 'key' is "set" (namely exists *and* is not explicitely "false")
     public static boolean requestParameterSet(String value) {
@@ -940,7 +929,7 @@ public class Util {
     public static boolean booleanNotFalse(String value) {
         return requestParameterSet(value);
     }
-        
+
     public static String basicSanitize(String input) {
       //String sanitized = null;
       //if (input!=null) {
@@ -964,7 +953,7 @@ public class Util {
         "'", "<%", "<s", "<i", "alert(", "prompt(", "confirm(",
          "\"", "</", "&#38;", "&#39;", "&#40;", "&#41;", "&#60;",
         "&#62;", "&#34;", "var ", ">var", "var+", "href=",
-        ".*", "src=", "%20", "\">", "()", ");", ")&", "$(", "${", 
+        ".*", "src=", "%20", "\">", "()", ");", ")&", "$(", "${",
         "new+", "%3C", "%3E", "%27", "%22", "><", "=\"",
         "document.get", "document.add", "document.cookie",
         "document[", "javascript", ":edit", "&quot", "\\u",
@@ -1078,6 +1067,7 @@ public class Util {
     public static void mark(String msg) {
         mark(msg, -1);
     }
+
     public static void mark(String msg, long startTime) {
         long t = System.currentTimeMillis();
         DateTime now = new DateTime();
@@ -1085,6 +1075,14 @@ public class Util {
         if (startTime > 0l) diff = Long.toString(t - startTime);
         System.out.println(now.toString() + " MARK [" + msg + "," + t + "," + diff + "]");
     }
+
+    public static String scrubURL(URL u) {
+      if (u == null) return (String) null;
+      return u.toString().replace("#", "%23");
+    }
+
+  public static JSONObject copy(JSONObject original) {
+    return new JSONObject(original, JSONObject.getNames(original));
+  }
+
 }
-
-

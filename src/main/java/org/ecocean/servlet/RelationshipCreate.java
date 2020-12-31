@@ -84,8 +84,10 @@ public class RelationshipCreate extends HttpServlet {
             MarkedIndividual individual2=myShepherd.getMarkedIndividual(request.getParameter("markedIndividualName2"));
             
             if((request.getParameter("persistenceID")!=null)&&(!request.getParameter("persistenceID").equals(""))){  
-              Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));           
-              rel=(Relationship)myShepherd.getPM().getObjectById(identity);
+              //Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));           
+              //rel=(Relationship)myShepherd.getPM().getObjectById(identity);
+              rel=(Relationship) myShepherd.getPM().getObjectById(Relationship.class,request.getParameter("persistenceID"));
+              
             }
             else{
               rel=new Relationship(request.getParameter("type"), individual1, individual2);

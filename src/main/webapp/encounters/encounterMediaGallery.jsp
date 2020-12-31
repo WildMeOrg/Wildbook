@@ -164,7 +164,7 @@ function forceLink(el) {
                         if ((ma.getAcmId() != null) && !maAcms.contains(ma.getAcmId())) maAcms.add(ma.getAcmId());
                         maIds.add(Integer.toString(ma.getId()));
 
-                        
+
 
 		      String filename = ma.getFilename();
 		      //System.out.println("    EMG: got ma at "+filename);
@@ -175,35 +175,35 @@ function forceLink(el) {
 		      }
 		      	//System.out.println("    EMG: got indID element "+individualID);
 
-		      
+
                 //Start caption render JSP side
                 String[] capos=new String[1];
                 capos[0]= "<p class=\"capos-individual-filename\" style=\"color: white;\"><em>"+filename+"</em><br>";
-                
+
                 capos[0]+=individualID;
-                
+
                 capos[0]+= "<span class=\"capos-encounter-id\">"+encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber().substring(0,14)+"</a></span><br>";
-                
+
                 capos[0]+= "<span class=\"capos-encounter-date\">"+encprops.getProperty("date")+" "+enc.getDate()+"<br></span>";
-                
+
                 if (enc.getLocation()!=null&&!"".equals(enc.getLocation())) {
                     capos[0]+= "<span class=\"capos-encounter-location\">"+encprops.getProperty("location")+" "+enc.getLocation()+"</span><br>";
                 }
 
                 capos[0] += "<span class=\"capos-encounter-location-id\">"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"</span><br>";
-                    
+
                 capos[0] += "<span class=\"capos-parent-asset\">"+encprops.getProperty("paredMediaAssetID")+" <a style=\"color: white;\" target=\"_blank\" href=\"../obrowse.jsp?type=MediaAsset&id="+ma.getId()+"\">"+ma.getId()+"</a></span></p>";
-                
+
 
               captionLinks.add(capos);
 		      //System.out.println("    EMG: got capos "+capos[0]);
 
 		      //end caption render JSP side
-		      
+
 		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
 		  		//if (!ann.isTrivial()) continue;  ///or not?
 
-		  		
+
 		  		if (ma != null) {
 		  			//System.out.println("    EMG: ma is not null");
                     if (ma.getMetadata() != null) ma.getMetadata().getDataAsString(); //temp hack to make sure metadata available, remove at yer peril
@@ -287,7 +287,7 @@ System.out.println("\n\n==== got detected frame! " + ma + " -> " + ann.getFeatur
     //this is kinda hacky cuz it is sql-specific
     if (maAcms.size() > 0) {
         String sql = "select \"MEDIAASSET\".\"ID\" as assetId, \"MEDIAASSET\".\"ACMID\" as assetAcmId, \"ENCOUNTER\".\"CATALOGNUMBER\" as encId, \"ENCOUNTER\".\"INDIVIDUALID\" as indivId from \"MEDIAASSET\" join \"MEDIAASSET_FEATURES\" on (\"ID\" = \"ID_OID\") join \"ANNOTATION_FEATURES\" using (\"ID_EID\") join \"ENCOUNTER_ANNOTATIONS\" on (\"ANNOTATION_FEATURES\".\"ID_OID\" = \"ENCOUNTER_ANNOTATIONS\".\"ID_EID\") join \"ENCOUNTER\" on (\"ENCOUNTER_ANNOTATIONS\".\"CATALOGNUMBER_OID\" = \"ENCOUNTER\".\"CATALOGNUMBER\") where \"MEDIAASSET\".\"ACMID\" in ('" + String.join("', '", maAcms) + "') AND \"MEDIAASSET\".\"ID\" not in (" + String.join(", ", maIds) + ");";
-// assetid |              assetacmid              |                encid                 | individ 
+// assetid |              assetacmid              |                encid                 | individ
         Query q = imageShepherd.getPM().newQuery("javax.jdo.query.SQL", sql);
         List results = (List)q.execute();
         Iterator it = results.iterator();
@@ -400,7 +400,7 @@ figcaption div {
 }
 
 .image-enhancer-keyword.labeled-keyword span.keyword-label, span.keyword-label {
-  font-weight: bold; 
+  font-weight: bold;
 }
 
 .caption-youtube {
@@ -633,7 +633,7 @@ if(request.getParameter("encounterNumber")!=null){
 
     	<% System.out.println("    EMG: calling grid version"); %>
 
-      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
+      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction);
     } else {
     	    	    console.log("   EMG : isGrid false!");
 
@@ -742,13 +742,13 @@ console.log(ma);
         h += '<input type="button" value="swap Annots: ' + niceId(myFeat.annotationId) + ' ==&gt; [Enc ' + niceId(ma.features[i].encounterId)+ '] // ' + niceId(ma.features[i].annotationId) + ' ==&gt; [Enc ' + niceId(myFeat.encounterId) + ']" ';
         h += ' onClick="swapEncounters(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         if (myFeat.individualId && ma.features[i].individualId) {
-            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + niceId(ma.features[i].encounterId) + ')" '; 
+            h += '<input type="button" value="swap this name (' + myFeat.individualId + ') with ' + ma.features[i].individualId + ' (on Enc ' + niceId(ma.features[i].encounterId) + ')" ';
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         } else if (myFeat.individualId) {
-            h += '<input type="button" value="set name ' + myFeat.individualId + ' on [Enc ' + niceId(ma.features[i].encounterId) + '] (unset this)" '; 
+            h += '<input type="button" value="set name ' + myFeat.individualId + ' on [Enc ' + niceId(ma.features[i].encounterId) + '] (unset this)" ';
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         } else if (ma.features[i].individualId) {
-            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on the above Encounter (unset ' + niceId(ma.features[i].encounterId) + ')" '; 
+            h += '<input type="button" value="set name ' + ma.features[i].individualId + ' on the above Encounter (unset ' + niceId(ma.features[i].encounterId) + ')" ';
             h += ' onClick="return swapAnnotIndivIds(\'' + myFeat.annotationId + '\', \'' + ma.features[i].annotationId + '\');" />';
         }
     }
@@ -863,7 +863,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 	<%
     }
 	%>
-	
+
 
 /*
         if (true) {
@@ -1285,17 +1285,17 @@ console.info("############## mid=%s -> %o", mid, ma);
     //let h = '<div onmouseover="allVisible(this)" onmouseout="resetVisibility(this)" class="image-enhancer-keyword-wrapper">';
 
     // if this is a refresh, it will already have this element
-    let hasWrapper = el.has('.image-enhancer-keyword-wrapper').length; 
+    let hasWrapper = el.has('.image-enhancer-keyword-wrapper').length;
 
     let h = '';
 
     if (!hasWrapper) {
         h += '<div class="image-enhancer-keyword-wrapper">';
-	    h += '<div class="image-enhancer-keyword-wrapper-hover">';  
+	    h += '<div class="image-enhancer-keyword-wrapper-hover">';
     }
-    
+
     // the refresh on 1235 removes the above, and so below
-  
+
     for (var i = 0 ; i < ma.keywords.length ; i++) {
     var kw = ma.keywords[i];
     thisHas.push(kw.indexname);
@@ -1573,7 +1573,7 @@ console.log("isUserLoggedIn = "+isUserLoggedIn);
 $(document).ready(function() {
     if ("false"==isUserLoggedIn) {
         let vidEl = $(".video-element");
-        vidEl.attr("controlsList", "nodownload"); 
+        vidEl.attr("controlsList", "nodownload");
         vidEl.bind("contextmenu",function(e){
             return false;
         });

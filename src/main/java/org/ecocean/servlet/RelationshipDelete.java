@@ -52,7 +52,7 @@ public class RelationshipDelete extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    
+
 
     //set up for response
     response.setContentType("text/html");
@@ -61,67 +61,46 @@ public class RelationshipDelete extends HttpServlet {
     context=ServletUtilities.getContext(request);
 
     if ((request.getParameter("persistenceID")!=null)&&(!request.getParameter("persistenceID").equals(""))) {
-      
-    
+
+
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("RelationshipDelete.class");
-        
+
         Relationship rel=new Relationship();
-        
+
         myShepherd.beginDBTransaction();
-      
-          Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));           
-          rel=(Relationship)myShepherd.getPM().getObjectById(identity);
-   
+        try {
+
+          //rel=((Relationship) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Relationship.class, request.getParameter("persistenceID")), true)));
+
+          rel=(Relationship) myShepherd.getPM().getObjectById(Relationship.class,request.getParameter("persistenceID"));
+
+
           if(rel!=null){
-            myShepherd.getPM().deletePersistent(rel);
-            myShepherd.commitDBTransaction();  
-            myShepherd.beginDBTransaction();  
-            
-            if(rel.getRelatedSocialUnitName()!=null){
-              
-              //delete the community too if it has no relationships
-              if(myShepherd.getAllRelationshipsForCommunity(rel.getRelatedSocialUnitName()).size()==0){
-                SocialUnit myComm=myShepherd.getCommunity(rel.getRelatedSocialUnitName());
-                myShepherd.getPM().deletePersistent(myComm);
-                myShepherd.commitDBTransaction();  
-                myShepherd.beginDBTransaction(); 
-              }
-              
-            }
-            
+              myShepherd.getPM().deletePersistent(rel);
+              myShepherd.updateDBTransaction();
+              out.println("<strong>Success:</strong> The relationship of type " + request.getParameter("type") + " between " + request.getParameter("markedIndividualName1")+" and "+request.getParameter("markedIndividualName2")+" was deleted.");
+
+
           }
+        }
+        catch(Exception e) {
+          out.println("<strong>Failure:</strong> I did not have all of the information required.");
+          e.printStackTrace();
+        }
+        finally {
+          myShepherd.rollbackAndClose();
+          out.close();
+          return;
+        }
+
+    }
+    else {
+      out.println("<strong>Failure:</strong> I did not have all of the information required.");
+      out.close();
+    }
 
 
-        myShepherd.commitDBTransaction();    
-        myShepherd.closeDBTransaction();
-        myShepherd=null;
-       
 
-            //output success statement
-            //out.println(ServletUtilities.getHeader(request));
-             out.println("<strong>Success:</strong> The relationship of type " + request.getParameter("type") + " between " + request.getParameter("markedIndividualName1")+" and "+request.getParameter("markedIndividualName2")+" was deleted.");
-          
-            //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
-            //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
-            //out.println(ServletUtilities.getFooter(context));
-
-}
-else{
-  //out.println(ServletUtilities.getHeader(request));
-  out.println("<strong>Failure:</strong> I did not have all of the information required.");
-
- //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
- //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
- //out.println(ServletUtilities.getFooter(context));
-  
-  
-}
-
-
-    out.close();
-    
   }
 }
-
-

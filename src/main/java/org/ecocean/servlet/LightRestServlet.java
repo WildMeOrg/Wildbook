@@ -87,7 +87,7 @@ public class LightRestServlet extends HttpServlet
     private static final String[] Encounter_Light_Str_Fields = {"catalogNumber","individualID","occurrenceID","sex","otherCatalogNumbers","verbatimLocality","locationID","submitterName","submitterProject","submitterID","submitterOrganization","genus","specificEpithet", "dwcDateAdded","modified"};
     private static final String[] Encounter_Light_Int_Fields = {"year","month","day"};
     private static final String[] Encounter_Light_Long_Fields = {"dwcDateAddedLong"};
-    
+
 
     public static final NucleusLogger LOGGER_REST = NucleusLogger.getLoggerInstance("DataNucleus.REST");
 
@@ -99,7 +99,7 @@ public class LightRestServlet extends HttpServlet
     /* (non-Javadoc)
      * @see javax.servlet.GenericServlet#destroy()
      */
-    
+
     /*
     public void destroy()
     {
@@ -246,14 +246,14 @@ public class LightRestServlet extends HttpServlet
                 //PersistenceManager pm = pmf.getPersistenceManager();
                 String servletID=Util.generateUUID();
                 //ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "new");
-                
+
         System.out.println("        LIGHTREST: has queryString "+queryString);
-                
+
                 try
                 {
                     myShepherd.beginDBTransaction();
                     //ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "begin");
-                    
+
 
                     Query query = myShepherd.getPM().newQuery("JDOQL", queryString);
                     if (fetchParam != null)
@@ -282,7 +282,7 @@ public class LightRestServlet extends HttpServlet
                     resp.setStatus(200);
                     myShepherd.commitDBTransaction();
                     //ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "commit");
-                    
+
                 } catch (Exception e) {
                     System.out.println("Exception on lightRestServlet!");
                     e.printStackTrace();
@@ -293,13 +293,13 @@ public class LightRestServlet extends HttpServlet
                     {
                       myShepherd.rollbackDBTransaction();
                         //ShepherdPMF.setShepherdState("LightRestServlet.class"+"_"+servletID, "rollback");
-                        
+
                     }
                     myShepherd.closeDBTransaction();
                     //ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "close");
                     //ShepherdPMF.removeShepherdState("LightRestServlet.class"+"_"+servletID);
-                    
-                    
+
+
                 }
                 return;
             }
@@ -453,7 +453,7 @@ public class LightRestServlet extends HttpServlet
                         //ShepherdPMF.removeShepherdState("LightRestServlet.class");
                         return;
                     }
-                    
+
                   }
                   else{
                     JSONObject error = new JSONObject();
@@ -485,13 +485,13 @@ public class LightRestServlet extends HttpServlet
                     //resp.getWriter().write(jsonobj.toString());
                     resp.setHeader("Content-Type","application/json");
                     //pm.currentTransaction().commit();
-                    
+
                 }
                 catch (NucleusObjectNotFoundException ex)
                 {
                     resp.setContentLength(0);
                     resp.setStatus(404);
-                   
+
                 }
                 catch (NucleusException ex)
                 {
@@ -500,7 +500,7 @@ public class LightRestServlet extends HttpServlet
                     resp.getWriter().write(error.toString());
                     resp.setStatus(404);
                     resp.setHeader("Content-Type", "application/json");
-                    
+
                 }
                 finally
                 {
@@ -546,21 +546,21 @@ public class LightRestServlet extends HttpServlet
     {
         resp.setHeader("Access-Control-Allow-Origin", "*");
         //getPMF(req);
-        
 
-        
-        
+
+
+
         if (req.getContentLength() < 1)
         {
             resp.setContentLength(0);
             resp.setStatus(400);// bad request
             return;
         }
-        
+
         Shepherd myShepherd=new Shepherd(req);
         myShepherd.setAction("LightRestServlet.class.POST");
         myShepherd.beginDBTransaction();
-        
+
         char[] buffer = new char[req.getContentLength()];
         req.getReader().read(buffer);
         String str = new String(buffer);
@@ -964,15 +964,15 @@ System.out.println(thisRequest);
                     if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
                     else if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
                     else if (cls.getName().equals("org.ecocean.Adoption")) throw new NucleusUserException("Cannot access org.ecocean.Adoption objects at this time");
-                    
+
                 }
             } else {
                 cls = result.getClass();
                 if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
                 else if (cls.getName().equals("org.ecocean.Role")) throw new NucleusUserException("Cannot access org.ecocean.Role objects at this time");
                 else if (cls.getName().equals("org.ecocean.Adoption")) throw new NucleusUserException("Cannot access org.ecocean.Adoption objects at this time");
-                
-                
+
+
             }
             return out;
         }
@@ -992,12 +992,12 @@ System.out.println(thisRequest);
             }
 
             JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(obj, ec);
-            
+
             //call decorateJson on object
             Method sj = null;
             try {
                 sj = obj.getClass().getMethod("decorateJson", new Class[] { HttpServletRequest.class, JSONObject.class });
-            } 
+            }
             catch (NoSuchMethodException nsm) { //do nothing
                 System.out.println("i guess " + obj.getClass() + " does not have decorateJson() method");
             }
@@ -1006,14 +1006,14 @@ System.out.println(thisRequest);
                 try {
                     jobj = (JSONObject)sj.invoke(obj, req, jobj);
                     //System.out.println("decorateJson result: " +jobj.toString());
-                } 
+                }
                 catch (Exception ex) {
                   ex.printStackTrace();
                   System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
                 }
             }
-            
-            
+
+
             //call sanitize Json
            sj = null;
             try {
@@ -1030,10 +1030,10 @@ System.out.println(thisRequest);
                   //System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
                 }
             }
-            
-  
-            
-            
+
+
+
+
             return jobj;
         }
 
@@ -1142,10 +1142,11 @@ System.out.println("??? TRY COMPRESS ??");
           }
 
             // add the individual's display name if it has one
-            if (enc.getIndividual()!=null && Util.stringExists(enc.getIndividual().getDisplayName())) {
+            if (enc.getIndividual()!=null && Util.stringExists(enc.getIndividual().getDisplayName(req, myShepherd))) {
                 try {
-                    jobj.put("displayName",enc.getIndividual().getDisplayName());
-                } catch (org.datanucleus.api.rest.orgjson.JSONException thisIsTheStupidestFuckingLibraryForMakingMeHandleThisJustToPutAFuckingStringOnAnObject) {
+                    jobj.put("displayName",enc.getIndividual().getDisplayName(req, myShepherd));
+                } catch (org.datanucleus.api.rest.orgjson.JSONException je) {
+                    je.printStackTrace();
                 }
 
             }

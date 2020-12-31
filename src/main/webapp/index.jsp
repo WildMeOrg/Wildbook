@@ -49,7 +49,7 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 %>
 
 <style type="text/css">
-.full_screen_map {	
+.full_screen_map {
 position: absolute !important;
 top: 0px !important;
 left: 0px !important;
@@ -69,13 +69,13 @@ margin-bottom: 8px !important;
 
 
 <!-- Adds fade-away scroll down prompt.  -->
-<!-- Credit to Colin Irwin http://www.silvabokis.com for 
+<!-- Credit to Colin Irwin http://www.silvabokis.com for
 	the code this was based off of. -->
 <script>
 $(window).load(function() {
 	$("body.scrolled").removeClass("scrolled");
 	$("body:not(.scrolled)").addClass("not-scrolled");
-	
+
 });
 $(window).scroll(function(){
     offset = $(this).scrollTop();
@@ -83,7 +83,7 @@ $(window).scroll(function(){
         $("body:not(.scrolled)").addClass("scrolled");
         $("body.scrolled)").removeClass("not-scrolled");
    } else {
-       $("body.scrolled").removeClass("scrolled");   	
+       $("body.scrolled").removeClass("scrolled");
        $("body:not(.scrolled)").addClass("not-scrolled");
    }
 });
@@ -95,7 +95,7 @@ $(window).scroll(function(){
   var map;
   var mapZoom = 6;
   var center;
-  var newCenter;	
+  var newCenter;
 //Define the overlay, derived from google.maps.OverlayView
   function Label(opt_options) {
    // Initialization
@@ -140,7 +140,7 @@ $(window).scroll(function(){
      google.maps.event.removeListener(this.listeners_[i]);
    }
   };
-  
+
 
   // Implement draw
   Label.prototype.draw = function() {
@@ -165,12 +165,12 @@ $(window).scroll(function(){
 
     	// Create an array of styles for our Google Map.
   	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
-		
+
     	//dummy array to feed into styled map input. Just here so I don't have to alter the styling code ic case they need all/some of it back later.
     	var blankStyles = [];
 
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-		
+
     	if (center == null) {
 	    	center = new google.maps.LatLng(32.6104351,-117.3712712);
     	} else {
@@ -192,10 +192,10 @@ $(window).scroll(function(){
     	  var fsControl = new FSControl(fsControlDiv, map);
     	  fsControlDiv.index = 1;
     	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
-    	    
-    	    
-    	    // !!! Whack All the styling and hardcode satellite type map.  !!! 
-    	    
+
+
+    	    // !!! Whack All the styling and hardcode satellite type map.  !!!
+
     	    //map.setMapTypeId('satellite');
 
         var markers = [];
@@ -212,7 +212,7 @@ $(window).scroll(function(){
  			    }
 
  		});
- 		
+
 
 
  		// let's add map points for our locationIDs
@@ -286,22 +286,22 @@ $(window).scroll(function(){
     			center = newCenter;
     			map.setCenter(map.getCenter());
     		});
-    		 
- 	     }); 	 
-    	 
-    	 google.maps.event.addDomListener(window, "resize", function() {	 
+
+ 	     });
+
+    	 google.maps.event.addDomListener(window, "resize", function() {
  	    	console.log("Resize Center : "+center);
  	    	google.maps.event.trigger(map, "resize");
  	  	    console.log("Resize : "+newCenter);
  	  	    map.setCenter(center);
- 	     });    
+ 	     });
 
  	 } // end initialize function
- 	  	  
- 	  	 
 
- 	 
- 	 
+
+
+
+
 
       function fullScreen(){
   		$("#map_canvas").addClass('full_screen_map');
@@ -373,12 +373,12 @@ $(window).scroll(function(){
  	  	  fullScreen();
  	  	}
  	  });
-  	  
+
   	  // Setup the click event listeners: toggle the full screen
   	}
     google.maps.event.addDomListener(window, 'load', initialize);
 
-  	
+
 
   </script>
 
@@ -409,9 +409,17 @@ QueryCache qc=QueryCacheFactory.getQueryCache(context);
 //dispatcher.forward(request, response);
 
 
-try {
-    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+try{
+
+
+    //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
     numEncounters=myShepherd.getNumEncounters();
+    //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
+    //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
+    numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
+    numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
+    numUsersWithRoles = numUsers-numDataContributors;
 
 	Iterator<Encounter> encs = myShepherd.getAllEncountersNoQuery();
 	while (encs.hasNext()) {
@@ -430,18 +438,111 @@ try {
 		}
 	}
     numDataContributors=myShepherd.getNumUsers();
-    //This should get the number of unique emails from encounter submissions for a ROUGH estimate of contributing individuals. 
-	numCitScientists=myShepherd.getNumberUniqueSubmissionEmails(); 	
+    //This should get the number of unique emails from encounter submissions for a ROUGH estimate of contributing individuals.
+	numCitScientists=myShepherd.getNumberUniqueSubmissionEmails();
 
 } catch (Exception e){
 	System.out.println("################# Exception retrieving numbers for index.jsp counters.");
     e.printStackTrace();
-	//myShepherd.closeDBTransaction();
+    System.out.println("INFO: *** If you are seeing an exception here (via index.jsp) your likely need to setup QueryCache");
+    System.out.println("      *** This entails configuring a directory via cache.properties and running appadmin/testQueryCache.jsp");
 } finally {
    myShepherd.rollbackDBTransaction();
 }
 %>
 
+<style>
+
+
+
+
+#fullScreenDiv{
+    width:100%;
+   /* Set the height to match that of the viewport. */
+
+    width: auto;
+    padding:0!important;
+    margin: 0!important;
+    position: relative;
+}
+#video{
+    width: 100vw;
+    height: auto;
+    object-fit: cover;
+    left: 0px;
+    top: 0px;
+    z-index: -1;
+}
+
+h2.vidcap {
+	font-size: 2.4em;
+
+	color: #fff;
+	font-weight:300;
+	text-shadow: 1px 2px 2px #333;
+	margin-top: 35%;
+}
+
+
+
+/* The container for our text and stuff */
+#messageBox{
+    position: absolute;  top: 0;  left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height:100%;
+}
+
+@media screen and (min-width: 851px) {
+	h2.vidcap {
+	    font-size: 3.3em;
+	    margin-top: -45%;
+	}
+}
+
+@media screen and (max-width: 850px) and (min-width: 551px) {
+
+
+	#fullScreenDiv{
+	    width:100%;
+	   /* Set the height to match that of the viewport. */
+
+	    width: auto;
+	    padding-top:50px!important;
+	    margin: 0!important;
+	    position: relative;
+	}
+
+	h2.vidcap {
+	    font-size: 2.4em;
+	    margin-top: 55%;
+	}
+
+}
+@media screen and (max-width: 550px) {
+
+
+	#fullScreenDiv{
+	    width:100%;
+	   /* Set the height to match that of the viewport. */
+
+	    width: auto;
+	    padding-top:150px!important;
+	    margin: 0!important;
+	    position: relative;
+	}
+
+	h2.vidcap {
+	    font-size: 1.8em;
+	    margin-top: 100%;
+	}
+
+}
+
+
+</style>
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
@@ -462,7 +563,7 @@ try {
 
 	</div>
 	<div id="image-credit">
-		<p id="credit-text"><i style="color:white;"><%= props.getProperty("heroImageCredit") %></i></p>	
+		<p id="credit-text"><i style="color:white;"><%= props.getProperty("heroImageCredit") %></i></p>
 	</div>
 
 
@@ -551,42 +652,43 @@ try {
 
             <!-- Random user profile to select -->
             <%
+            //myShepherd.beginDBTransaction();
             try{
-			myShepherd.beginDBTransaction();
-			User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
-				if(featuredUser!=null){
-					String profilePhotoURL="images/user-profile-white-transparent.png";
-					if(featuredUser.getUserImage()!=null){
-						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-					}
+								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+            if(featuredUser!=null){
+                String profilePhotoURL="images/user-profile-white-transparent.png";
+                if(featuredUser.getUserImage()!=null){
+                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+                }
 
-				%>
-					<section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-						<div class="focusbox-inner opec">
-							<h2><%=props.getProperty("ourContributors") %></h2>
-							<div>
-								<img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
-								<p><%=featuredUser.getFullName() %>
-									<%
-									if(featuredUser.getAffiliation()!=null){
-									%>
-									<i><%=featuredUser.getAffiliation() %></i>
-									<%
-									}
-									%>
-								</p>
-								<p><%=featuredUser.getUserStatement() %></p>
-							</div>
-							<a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
-						</div>
-					</section>
-				<%
-				} // end if
-            } catch (Exception e) {
-				//myShepherd.closeDBTransaction();
-				e.printStackTrace();
-			} finally{
-            	//myShepherd.closeDBTransaction();
+            %>
+                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+                    <div class="focusbox-inner opec">
+                        <h2><%=props.getProperty("ourContributors") %></h2>
+                        <div>
+                            <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
+                            <p><%=featuredUser.getFullName() %>
+                                <%
+                                if(featuredUser.getAffiliation()!=null){
+                                %>
+                                <i><%=featuredUser.getAffiliation() %></i>
+                                <%
+                                }
+                                %>
+                            </p>
+                            <p><%=featuredUser.getUserStatement() %></p>
+                        </div>
+                        <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("showContributors") %></a>
+                    </div>
+                </section>
+            <%
+            } // end if
+
+            }
+            catch(Exception e){e.printStackTrace();}
+            finally{
+
+            	//myShepherd.rollbackDBTransaction();
             }
             %>
 
@@ -594,7 +696,7 @@ try {
 			</section>
             <section class="col-xs-12 col-sm-6 col-md-6 col-lg-6 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2><%=props.getProperty("latestEncs") %></h2>
+                    <h2><%=props.getProperty("latestAnimalEncounters") %></h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
@@ -644,8 +746,8 @@ try {
             if (topSpotterSwitch == true) {
             %>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-            
-            
+
+
                 <div class="focusbox-inner opec">
                     <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
@@ -677,7 +779,7 @@ try {
 
 	                          %>
 	                                <li>
-	                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+	                                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
 	                                    <%
 	                                    if(thisUser.getAffiliation()!=null){
 	                                    %>
@@ -704,7 +806,7 @@ try {
                     </ul>
                     <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters") %></a>
                 </div>
-                
+
             </section>
             <!-- end spotter switch -->
             <%}%>
@@ -744,7 +846,7 @@ try {
                 <div class="row">
                 	<div class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
 	                    <img src="cust/mantamatcher/img/bass/Ian_Uhalt.jpg" alt="" />
-	          			<label class="image_label"><%=props.getProperty("quoteImageCaption") %></label>                	
+	          			<label class="image_label"><%=props.getProperty("quoteImageCaption") %></label>
                 	</div>
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1><%=props.getProperty("whyWeDoThis") %></h1>
@@ -766,7 +868,9 @@ try {
 
 </div>
 
-<% if (CommonConfiguration.allowAdoptions(context)) {%>
+<%
+if((CommonConfiguration.getProperty("allowAdoptions", context)!=null)&&(CommonConfiguration.getProperty("allowAdoptions", context).equals("true"))){
+%>
 <div class="container-fluid">
     <section class="container main-section">
 
@@ -790,7 +894,7 @@ try {
 		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
 
 		                	%>
-		                    <img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
+		                    <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" alt="" class="pull-right round lazyload">
 		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
 		                    <%
 		                    if(adopt.getAdopterQuote()!=null){
@@ -815,23 +919,19 @@ try {
 
         </section>
 
-
         <hr/>
         <%= props.getProperty("donationText") %>
     </section>
 </div>
-<%}%>
+<%
+}
+%>
+
 <jsp:include page="footer.jsp" flush="true"/>
 
-<script>
-window.addEventListener("resize", function(e) { $("#map_canvas").height($("#map_canvas").width()*0.662); });
-google.maps.event.addDomListener(window, "resize", function() {
-	 google.maps.event.trigger(map, "resize");
-	 map.fitBounds(bounds);
-	});
-</script>
 
 <%
+myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
 %>

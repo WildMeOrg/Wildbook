@@ -2,6 +2,7 @@ package org.ecocean;
 
 import java.io.File;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import java.net.URL;
 
 import org.ecocean.*;
 import org.ecocean.queue.*;
+import org.ecocean.scheduled.WildbookScheduledTask;
 import org.ecocean.ia.IA;
 import org.ecocean.ia.IAPluginManager;
 import org.ecocean.grid.MatchGraphCreationThread;
@@ -143,6 +145,12 @@ public class StartupWildbook implements ServletContextListener {
         TwitterBot.startServices(context);
 
         AnnotationLite.startup(sContext, context);
+
+        try {
+            startWildbookScheduledTaskThread(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -208,6 +216,32 @@ public class StartupWildbook implements ServletContextListener {
         }
     }
 
+    private static void startWildbookScheduledTaskThread(String context) {
+        System.out.println("STARTING: StartupWildbook.startWildbookScheduledTaskThread()");
+        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+        ses.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("[INFO]: checking for scheduled tasks to execute...");
+                Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("WildbookScheduledTaskThread");
+                try {
+                    ArrayList<WildbookScheduledTask> scheduledTasks = myShepherd.getAllIncompleteWildbookScheduledTasks();
+                    for (WildbookScheduledTask scheduledTask : scheduledTasks) {
+                        if (scheduledTask.isTaskEligibleForExecution()) {
+                            scheduledTask.execute(myShepherd);
+                        }
+                    }
+                } catch (Exception e) {
+                    myShepherd.rollbackAndClose();
+                    e.printStackTrace();
+                }
+                myShepherd.closeDBTransaction();
+            }
+            //}, 0, 2, TimeUnit.HOURS); //TODO restore desired interval after testing
+            }, 0, 1, TimeUnit.HOURS);
+    }
+
 
     public void contextDestroyed(ServletContextEvent sce) {
         ServletContext sContext = sce.getServletContext();
@@ -225,10 +259,15 @@ public class StartupWildbook implements ServletContextListener {
       ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
       es.execute(new MatchGraphCreationThread());
     }
-    
+
     public static void runGridClient(){
       System.out.println("Entering runGridClient StartupWildbook method.");
     }
+
+    public static boolean skipInit(ServletContextEvent sce, String extra) {
+        ServletContext sc = sce.getServletContext();
+/*   WARNING!  this bad hackery to try to work around "double deployment" ... yuck!
+     see:  https://octopus.com/blog/defining-tomcat-context-paths
 
     public static boolean skipInit(ServletContextEvent sce, String extra) {
         ServletContext sc = sce.getServletContext();
@@ -246,11 +285,11 @@ public class StartupWildbook implements ServletContextListener {
         return skip;
     }
 
-/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem... 
+/*  NOTE: this is back-burnered for now.... maybe it will be useful later?  cant quite figure out *when* tomcat is "double startup" problem...
     //this is very hacky but is meant to be a way for us to make sure we arent just deploying.... TODO do this right????
     private static boolean properStartupResource(ServletContextEvent sce) {
         if (sce == null) return false;
-        ServletContext context = sce.getServletContext(); 
+        ServletContext context = sce.getServletContext();
         if (context == null) return false;
         URL res = null;
         try {
@@ -277,4 +316,3 @@ System.out.println("  StartupWildbook.properStartupResource() res = " + res);
     }
 
 }
-

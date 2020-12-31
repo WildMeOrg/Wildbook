@@ -33,7 +33,7 @@ public class MembershipCreate extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
     }
-    
+
     public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         ServletUtilities.doOptions(request, response);
     }
@@ -62,11 +62,11 @@ public class MembershipCreate extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MembershipCreate.java");
         myShepherd.beginDBTransaction();
-        
+
         JSONObject res = new JSONObject();
         MarkedIndividual mi = null;
-        try {            
-            
+        try {
+
             res.put("success","false");
             miId = j.optString("miId", "").trim();
             System.out.println("miID: "+miId);
@@ -77,7 +77,7 @@ public class MembershipCreate extends HttpServlet {
                 startDate = j.optString("startDate", null);
                 System.out.println("miID: "+miId);
                 endDate = j.optString("endDate", null);
-                
+
                 //we only need the year-month-day
                 if(startDate !=null && startDate.indexOf("T")!=-1) {
                   startDate=startDate.substring(0,startDate.indexOf("T"));
@@ -85,10 +85,10 @@ public class MembershipCreate extends HttpServlet {
                 if(endDate != null && endDate.indexOf("T")!=-1) {
                   endDate=endDate.substring(0,endDate.indexOf("T"));
                 }
-                
+
                 System.out.println("startDate: "+startDate);
                 System.out.println("endDate: "+endDate);
-                
+
                 SocialUnit su = myShepherd.getSocialUnit(groupName);
                 boolean isNew = false;
                 if (su==null) {
@@ -99,39 +99,44 @@ public class MembershipCreate extends HttpServlet {
                 }
                 //DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
                 DateTimeFormatter formatter = ISODateTimeFormat.dateOptionalTimeParser();
-                
+
                 Membership membership = null;
                 if (su.hasMarkedIndividualAsMember(mi)) {
                     membership = su.getMembershipForMarkedIndividual(mi);
                 } else {
                     System.out.println("New membership!");
-             
+
                     // yer one of us now, mate
                     membership = new Membership(mi);
                     myShepherd.storeNewMembership(membership);
                     su.addMember(membership);
                     myShepherd.updateDBTransaction();
                 }
-                
+
                 if (startDate!=null&&!"".equals(startDate)) {
-                  DateTime startDT = DateTime.parse(startDate, formatter); 
+                  DateTime startDT = DateTime.parse(startDate, formatter);
                   System.out.println("StartDate parsed: "+startDT.toString());
-                  Long startLong = startDT.getMillis();   
+                  Long startLong = startDT.getMillis();
                   membership.setStartDate(startLong.longValue());
-                } 
+                }
                 if (endDate!=null&&!"".equals(endDate)) {
                   DateTime endDT = DateTime.parse(endDate, formatter);
                   System.out.println("EndDate parsed: "+endDT.toString());
-                  Long endLong = endDT.getMillis(); 
+                  Long endLong = endDT.getMillis();
                   membership.setEndDate(endLong.longValue());
                 }
-                if (roleName!=null&&!"".equals(roleName)) { 
-                  membership.setRole(roleName);
+                if (roleName!=null) {
+                  if(roleName.trim().equals("")) {
+                    membership.setRole(null);
+                  }
+                  else {
+                    membership.setRole(roleName);
+                  }
                 }
-                
+
                 myShepherd.updateDBTransaction();
                 
-    
+
                 response.setContentType("text/plain");
                 response.setStatus(HttpServletResponse.SC_OK);
                 res.put("isNewSocialUnit",isNew);
@@ -141,17 +146,17 @@ public class MembershipCreate extends HttpServlet {
                 res.put("startDate", startDate);
                 res.put("endDate", endDate);
                 res.put("success","true");
-            } 
+            }
             //don't know which MarkedIndividual this is
             else {
-              
+
               res.put("success","false");
               res.put("error","Unknown MarkedIndividual.");
               response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-              
+
             }
-            
-            
+
+
 
             out.println(res);
             out.close();
@@ -178,7 +183,7 @@ public class MembershipCreate extends HttpServlet {
         }
 
         //System.out.println("prototype MembershipCreate servlet end");
-    
+
     }
 
 

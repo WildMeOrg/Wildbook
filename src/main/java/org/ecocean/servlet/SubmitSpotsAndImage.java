@@ -26,12 +26,15 @@ import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
 
+import org.ecocean.Annotation;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
 import org.ecocean.grid.EncounterLite;
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.Encounter;
+import org.ecocean.Keyword;
 import org.ecocean.Shepherd;
 import org.ecocean.SuperSpot;
 import org.ecocean.media.*;
@@ -115,8 +118,8 @@ public class SubmitSpotsAndImage extends HttpServlet {
 
     AssetStore store = AssetStore.getDefault(myShepherd);
     //this should put it in the same old (pre-MediaAsset) location to maintain url pattern
-    
-    
+
+
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -127,41 +130,84 @@ public class SubmitSpotsAndImage extends HttpServlet {
     String thisEncDirString=Encounter.dir(shepherdDataDir,encId);
     File thisEncounterDir=new File(thisEncDirString);
     if(!thisEncounterDir.exists()){thisEncounterDir.mkdirs();System.out.println("I am making the encDir: "+thisEncDirString);}
-    
+
     //now persist
     JSONObject params = store.createParameters(new File("encounters/" + Encounter.subdir(encId) + "/extract" + (rightSide ? "Right" : "") + encId + ".jpg"));
 System.out.println("====> params = " + params);
-    MediaAsset ma = store.create(params);
-    File edir = ma.localPath().getParent().toFile();
-System.out.println("edir ? " + edir);
-    if (!edir.exists()) edir.mkdirs();
-    ma.copyInBase64(json.optString("imageData", null));
-    ma.addLabel("_spot" + (rightSide ? "Right" : ""));
-    ma.setParentId(maId);
-    ma.addDerivationMethod("spotTool", json.optJSONObject("imageToolValues"));
-    ma.updateMinimalMetadata();
-    MediaAssetFactory.save(ma, myShepherd);
-System.out.println("created???? " + ma);
+    MediaAsset crMa = store.create(params);
+    crMa.copyInBase64(json.optString("imageData", null));
+    crMa.addLabel("_spot" + (rightSide ? "Right" : ""));  //we are sticking with "legacy" '_spot' for left
+    crMa.setParentId(maId);
+    crMa.addDerivationMethod("spotTool", json.optJSONObject("imageToolValues"));
+    //ma.updateMinimalMetadata();
+
+    Keyword crKeyword = myShepherd.getOrCreateKeyword("CR Image");
+    String crParentId = request.getParameter("dataCollectionEventID");
+    //crMa.addDerivationMethod("crParentId", crParentId);
+    //crMa.addLabel("CR");
+    crMa.addKeyword(crKeyword);
+    crMa.updateMinimalMetadata();
+    crMa.setDetectionStatus("complete");
+    System.out.println("    + updated made media asset");
+    MediaAssetFactory.save(crMa, myShepherd);
+    System.out.println("    + saved media asset "+crMa.toString());
+    myShepherd.updateDBTransaction();
+    System.out.println("    + updated transaction, about to make children");
+    crMa.updateStandardChildren(myShepherd);
+    crMa.updateMetadata();
+    System.out.println("    + updated children for asset "+crMa.toString()+"; hasFamily = "+crMa.hasFamily(myShepherd));
+    String speciesString = enc.getTaxonomyString();
+    Annotation ann = new Annotation(speciesString, crMa);
+    ann.setMatchAgainst(true);
+    String iaClass = "whalesharkCR"; // should we change this?
+    ann.setIAClass(iaClass);
+    if(rightSide) {ann.setViewpoint("right");}
+    else {ann.setViewpoint("left");}
+    enc.addAnnotation(ann);
+    System.out.println("    + made annotation "+ann.toString());
+    myShepherd.getPM().makePersistent(ann);
+    System.out.println("    + saved annotation");
+
+    // we need to intake mediaassets so they get acmIds and are matchable
+    ArrayList<MediaAsset> maList = new ArrayList<MediaAsset>();
+    maList.add(crMa);
+    ArrayList<Annotation> annList = new ArrayList<Annotation>();
+    annList.add(ann);
+    try {
+      System.out.println("    + sending asset to IA");
+      IBEISIA.sendMediaAssetsNew(maList, context);
+      myShepherd.updateDBTransaction();
+      System.out.println("    + asset sent, sending annot");
+      IBEISIA.sendAnnotationsNew(annList, context, myShepherd);
+      myShepherd.updateDBTransaction();
+      System.out.println("    + annot sent.");
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("hit above exception while trying to send CR ma & annot to IA");
+    }
+    System.out.println("    + done processing new CR annot");
+
 
     if (rightSide) {
         enc.setRightSpots(spots);
         enc.setRightReferenceSpots(refSpots);
-    } 
+    }
     else {
         enc.setSpots(spots);
         enc.setLeftReferenceSpots(refSpots);
     }
-    
+
     //reset the entry in the GridManager graph
     GridManager gm = GridManagerFactory.getGridManager();
     gm.addMatchGraphEntry(encId, new EncounterLite(enc));
-    
+
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
 
     JSONObject rtn = new JSONObject("{\"success\": true}");
-    rtn.put("spotAssetId", ma.getId());
-    rtn.put("spotAssetUrl", ma.webURL());
+    rtn.put("spotAssetId", crMa.getId());
+    rtn.put("spotAssetUrl", crMa.webURL());
     response.setContentType("text/plain");
     PrintWriter out = response.getWriter();
     out.println(rtn.toString());
@@ -186,11 +232,9 @@ System.out.println("created???? " + ma);
       }
       catch(Exception e){
         e.printStackTrace();
-        
+
       }
       return null;
     }
 
 }
-
-

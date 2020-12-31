@@ -224,7 +224,7 @@ org.datanucleus.api.rest.orgjson.JSONObject" %>
 		if (count>maxPages) break;
 
 		String id = mark.getIndividualID();
-		String altID = mark.getDisplayName();
+		String altID = mark.getDisplayName(request, myShepherd);
 		//if (Util.shouldReplace(mark.getNickName(), altID)) altID = mark.getNickName();
 		String altIDStr = (Util.stringExists(mark.getNickName())) ? ("<em>("+mark.getNickName()+")</em>") : "";
 		System.out.println("PictureBook: proceeded past hasHeader check");

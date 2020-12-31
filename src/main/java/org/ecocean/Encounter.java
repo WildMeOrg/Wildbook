@@ -59,6 +59,7 @@ import org.ecocean.ia.IA;
 import org.ecocean.media.*;
 import org.ecocean.PointLocation;
 import org.ecocean.Survey;
+import org.ecocean.servlet.importer.ImportTask;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -118,10 +119,8 @@ public class Encounter implements java.io.Serializable {
   private int year = 0;
   private Double decimalLatitude;
   private Double decimalLongitude;
-  
   private Double endDecimalLatitude;
   private Double endDecimalLongitude;
-  
   private String verbatimLocality;
   private String occurrenceRemarks = "";
   private String modified;
@@ -180,15 +179,10 @@ public class Encounter implements java.io.Serializable {
 
   // for searchability
   private String imageNames;
-  
-  
   private List<User> submitters;
   private List<User> photographers;
   private List<User> informOthers;
-
-
-    private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
-
+  private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
 
   /*
     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
@@ -229,35 +223,25 @@ public class Encounter implements java.io.Serializable {
   private String hashedPhotographerEmail;
   private String hashedInformOthers;
   private String informothers;
-	
   //name, email, phone, address of the encounter photographer
   private String photographerName, photographerEmail, photographerPhone, photographerAddress;
-	
   //a Vector of Strings defining the relative path to each photo. The path is relative to the servlet base directory
   public Vector additionalImageNames = new Vector();
-	
   //a Vector of Strings of email addresses to notify when this encounter is modified
   private Vector interestedResearchers = new Vector();
-	
   //time metrics of the report
   private int hour = 0;
   private String minutes = "00";
-
   private String state="";
-
   //the globally unique identifier (GUID) for this Encounter
   private String guid;
-
   private Long endDateInMilliseconds;
   private Long dateInMilliseconds;
-	
   //describes how the shark was measured
   private String size_guess = "none provided";
-	
   //String reported GPS values for lat and long of the encounter
   private String gpsLongitude = "", gpsLatitude = "";
   private String gpsEndLongitude = "", gpsEndLatitude = "";
-	
   //whether this encounter has been rejected and should be hidden from public display
   //unidentifiable encounters generally contain some data worth saving but not enough for accurate photo-identification
   //private boolean unidentifiable = false;
@@ -265,57 +249,44 @@ public class Encounter implements java.io.Serializable {
   //public boolean hasSpotImage = false;
   //whether this encounter has a right-side spot image extracted
   //public boolean hasRightSpotImage = false;
-	
   //Indicates whether this record can be exposed via TapirLink
   private boolean okExposeViaTapirLink = false;
-	
   //whether this encounter has been approved for public display
   //private boolean approved = true;
   //integers of the latitude and longitude degrees
   //private int lat=-1000, longitude=-1000;
   //name of the stored file from which the left-side spots were extracted
   public String spotImageFileName = "";
-	
   //name of the stored file from which the right-side spots were extracted
   public String rightSpotImageFileName = "";
-	
   //string descriptor of the most obvious scar (if any) as reported by the original submitter
   //we also use keywords to be more specific
   public String distinguishingScar = "None";
   //describes how this encounter was matched to an existing shark - by eye, by pattern recognition algorithm etc.
-
   //DEPRECATING OLD DATA CONSTRUCT
   //private int numSpotsLeft = 0;
   //private int numSpotsRight = 0;
-
-
   //SPOTS
   //an array of the extracted left-side superSpots
   //private superSpot[] spots;
   private ArrayList<SuperSpot> spots;
-
   //an array of the extracted right-side superSpots
   //private superSpot[] rightSpots;
   private ArrayList<SuperSpot> rightSpots;
-
   //an array of the three extracted left-side superSpots used for the affine transform of the I3S algorithm
   //private superSpot[] leftReferenceSpots;
   private ArrayList<SuperSpot> leftReferenceSpots;
-
   //an array of the three extracted right-side superSpots used for the affine transform of the I3S algorithm
   //private superSpot[] rightReferenceSpots;
   private ArrayList<SuperSpot> rightReferenceSpots;
-
   //an open ended string that allows a type of patterning to be identified.
   //as an example, see the use of color codes at splashcatalog.org, allowing pre-defined fluke patterning types
   //to be used to help narrow the search for a marked individual
   private String patterningCode;
-
   //submitting organization and project further detail the scope of who submitted this project
   private String submitterOrganization;
   private String submitterProject;
   private List<String> submitterResearchers;
-
   //hold submittedData
   //private List<DataCollectionEvent> collectedData;
   private List<TissueSample> tissueSamples;
@@ -327,37 +298,25 @@ public class Encounter implements java.io.Serializable {
   private AcousticTag acousticTag;
   private SatelliteTag satelliteTag;
   private DigitalArchiveTag digitalArchiveTag;
-
   private Boolean mmaCompatible = false;
-  
   // Variables used in the Survey, SurveyTrack, Path, Location model
-  
   private String correspondingSurveyTrackID = null;
   private String correspondingSurveyID = null;
-  
-  
   // This is the eventual replacement for the old decimal lat lon and other location data.
   private PointLocation pointLocation;
-  
   // This is the number used to cross reference with dates to find occurances. (Read Lab)
   private String sightNo = "";
-  
-
   // This is what researchers eyeball is the individual's ID in the field
   // it could be a name that only has meaning in the context of that day's work
   // (not necessarily an individual name from the WB database)
   private String fieldID;
-
   // This is a standard 1-5 color scale used by cetacean researchers
   private Integer flukeType;
-
   // added by request for ASWN, this is the role an individual served in its occurrence
   // (from a standard list like Escort Male)
   private String groupRole;
-
   // identifies the import/dataset this came from for data provenance
   private String dataSource;
-
   //start constructors
 
   /**
@@ -422,7 +381,7 @@ public class Encounter implements java.io.Serializable {
     }
     private boolean annotationsAreEmpty() {
       return( this.annotations == null       ||
-              this.annotations.size() == 0 || 
+              this.annotations.size() == 0 ||
              (this.annotations.size() == 1 && (this.annotations.get(0)==null)) );
     }
 
@@ -442,7 +401,7 @@ public class Encounter implements java.io.Serializable {
       }
       Occurrence occ = myShepherd.getOccurrence(enc2);
       if (occ!=null) {
-        occ.removeEncounter(enc2);        
+        occ.removeEncounter(enc2);
         occ.addEncounter(this); // duplicate-safe
       }
       // remove tissue samples because of bogus foreign key constraint that prevents deletion
@@ -522,6 +481,12 @@ public class Encounter implements java.io.Serializable {
 
       // skip time stuff bc if the time is different we probably don't want to combine the encounters anyway.
 
+    }
+
+    //need to get ALL project id's from db, there is no single. methods reside on shepherd
+    @Deprecated
+    public String getProjectId(){
+      return "Bloop";
     }
 
 
@@ -738,7 +703,8 @@ public class Encounter implements java.io.Serializable {
   public Double getSizeAsDouble() {
     return size;
   }
-  
+
+
 
   /**
    * Sets the units of the recorded size and depth of the shark for this encounter.
@@ -982,15 +948,16 @@ public class Encounter implements java.io.Serializable {
   public static String getWebUrl(String encId, String serverUrl) {
     return (serverUrl+"/encounters/encounter.jsp?number="+encId);
   }
-  public String getHyperlink(HttpServletRequest req, int labelLength) {
-    String label="";
-    if (labelLength==1) label = "Enc ";
-    if (labelLength> 1) label = "Encounter ";
-    return "<a href=\""+getWebUrl(req)+"\">"+label+getCatalogNumber()+ "</a>";
-  }
-  public String getHyperlink(HttpServletRequest req) {
-    return getHyperlink(req, 1);
-  }
+
+  // public String getHyperlink(HttpServletRequest req, int labelLength) {
+  //   String label="";
+  //   if (labelLength==1) label = "Enc ";
+  //   if (labelLength> 1) label = "Encounter ";
+  //   return "<a href=\""+getWebUrl(req)+"\">"+label+getCatalogNumber()+ "</a>";
+  // }
+  // public String getHyperlink(HttpServletRequest req) {
+  //   return getHyperlink(req, 1);
+  // }
 
   /**
    * Sets the phone number of the person who took the primaryImage this encounter.
@@ -1089,7 +1056,7 @@ public class Encounter implements java.io.Serializable {
   public void setDataSource(String dataSource) {
     this.dataSource = dataSource;
   }
-  
+
   public String getImageOriginalName() {
     MediaAsset ma = getPrimaryMediaAsset();
     if (ma == null) return null;
@@ -1622,7 +1589,6 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return submitterID;
   }
 
-  
   public Vector getInterestedResearchers() {
     return interestedResearchers;
   }
@@ -1630,7 +1596,8 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void addInterestedResearcher(String email) {
     interestedResearchers.add(email);
   }
-  
+
+
 
  /*
   public boolean isApproved() {
@@ -1884,7 +1851,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public Long getDWCDateAddedLong(){
     return dwcDateAddedLong;
   }
-  
+
   public Long getDwcDateAddedLong(){
     return dwcDateAddedLong;
   }
@@ -1926,9 +1893,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setReleaseDate(Long releaseDate) {
     this.releaseDateLong = releaseDate;
   }
-  
+
   // Survey ect associations...
-  
+
   public void setSurveyTrackID(String id) {
     if (id != null && !id.equals("")) {
       this.correspondingSurveyTrackID = id;
@@ -1941,38 +1908,38 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     }
     return null;
   }
-  
+
   public void setPointLocation(PointLocation loc) {
     if (loc.getID() != null) {
       this.pointLocation = loc;
     }
   }
-  
+
   public PointLocation getPointLocation() {
     if (pointLocation != null) {
       return pointLocation;
     }
     return null;
   }
-  
+
   public String getSurveyID() {
     if (correspondingSurveyID != null && !correspondingSurveyID.equals("")) {
       return correspondingSurveyID;
-    }  
+    }
     return null;
   }
-  
+
   public void setSurveyID(String id) {
     if (id != null && !id.equals("")) {
       this.correspondingSurveyID = id;
     }
   }
-  
-  
+
+
   public void setSurvey() {
-    
+
   }
-  
+
   // TODO Get all this lat lon over to Locations
 
   public void setDWCDecimalLatitude(double lat) {
@@ -2109,7 +2076,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       this.decimalLongitude = lon;
       gpsLongitude = Util.decimalLatLonToString(lon);
   }
-  
+
   public Double getEndDecimalLatitudeAsDouble(){return (endDecimalLatitude == null) ? null : endDecimalLatitude.doubleValue();}
 
   public void setEndDecimalLatitude(Double lat){
@@ -2122,7 +2089,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setEndDecimalLongitude(Double lon) {
       this.endDecimalLongitude = lon;
       gpsEndLongitude = Util.decimalLatLonToString(lon);
-  } 
+  }
 
   public String getOccurrenceRemarks() {
     return occurrenceRemarks;
@@ -2243,7 +2210,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         String token = st.nextToken();
         int equalPlace = token.indexOf("=");
         try {
-          tm.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));          
+          tm.put(token.substring(0, equalPlace), token.substring(equalPlace + 1));
         } catch (java.lang.StringIndexOutOfBoundsException soe) {
           // Swallow the exception.
         }
@@ -2280,7 +2247,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       }
     }
   }
-  
+
   public void resetDynamicProperties() {
     dynamicProperties = null;
   }
@@ -2484,26 +2451,26 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (this.minutes.length() == 1) this.minutes = "0" + this.minutes;
         this.dateInMilliseconds = ms;
     }
-    
-    
+
+
   public Long getEndDateInMilliseconds() {
     return endDateInMilliseconds;
-  }  
-  
+  }
+
   public void setEndDateInMilliseconds(long ms) {
     this.endDateInMilliseconds = ms;
   }
-  
+
   private String milliToMonthDayYear(Long millis) {
     DateTime dt = new DateTime(millis);
     DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm a");
-    return dtf.print(dt); 
+    return dtf.print(dt);
   }
-  
+
   public String getStartDateTime() {
     return milliToMonthDayYear(dateInMilliseconds);
   }
-  
+
   public String getEndDateTime() {
     return milliToMonthDayYear(endDateInMilliseconds);
   }
@@ -2519,7 +2486,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     if(decimalLongitude!=null){return Double.toString(decimalLongitude);}
     return null;
   }
-  
+
   public String getEndDecimalLongitude(){
     if(endDecimalLongitude!=null){return Double.toString(endDecimalLongitude);}
     return null;
@@ -2529,7 +2496,6 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     if(endDecimalLatitude!=null){return Double.toString(endDecimalLatitude);}
     return null;
   }
-
 
 
   public String getSubmitterProject() {
@@ -2728,7 +2694,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public void setSatelliteTag(SatelliteTag satelliteTag) {
       this.satelliteTag = satelliteTag;
     }
-    
+
     public DigitalArchiveTag getDTag() {
       return digitalArchiveTag;
     }
@@ -2874,9 +2840,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //pretty much only useful for frames pulled from video (after detection, to be made into encounters)
     public static List<Encounter> collateFrameAnnotations(List<Annotation> anns, Shepherd myShepherd) {
         if ((anns == null) || (anns.size() < 1)) return null;
-          
-        //Determine skipped frames before another encounter should be made. 
-      int minGapSize = 4;  
+
+        //Determine skipped frames before another encounter should be made.
+      int minGapSize = 4;
       try {
         String gapFromProperties = IA.getProperty(myShepherd.getContext(), "newEncounterFrameGap");
         if (gapFromProperties!=null) {
@@ -2963,12 +2929,12 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
             //set the video ID as the EventID for distinct access later
             newEnc.setEventID("youtube:"+parentRoot.getParameters().optString("id"));
             if ((parentRoot.getMetadata() != null) && (parentRoot.getMetadata().getData() != null)) {
-                
+
                 if (parentRoot.getMetadata().getData().optJSONObject("basic") != null) {
                     newEnc.setSubmitterName(parentRoot.getMetadata().getData().getJSONObject("basic").optString("author_name", "[unknown]") + " (by way of YouTube)");
                     consolidatedRemarks+="<p>From YouTube video: <i>" + parentRoot.getMetadata().getData().getJSONObject("basic").optString("title", "[unknown]") + "</i></p>";
                     newEnc.addComments(consolidatedRemarks);
-                    
+
                     //add a dynamic property to make a quick link to the video
                 }
                 if (parentRoot.getMetadata().getData().optJSONObject("detailed") != null) {
@@ -2977,7 +2943,7 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
                         desc += "<p><b>tags:</b> " + parentRoot.getMetadata().getData().getJSONObject("detailed").getJSONArray("tags").toString() + "</p>";
                     }
                     consolidatedRemarks+=desc;
-                    
+
                 }
             }
             newEnc.setOccurrenceRemarks(consolidatedRemarks);
@@ -3224,16 +3190,22 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
         }
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-            
-	          boolean fullAccess = this.canUserAccess(request);
-	        
-
+            boolean fullAccess = this.canUserAccess(request);
+            String useProjectContext = "false";
+            if (request.getParameter("useProjectContext")!=null) {
+              useProjectContext = request.getParameter("useProjectContext");
+            }
             if (fullAccess) {
-              if (this.individual!=null) jobj.put("individualID", this.individual.getIndividualID());
-              if (this.individual!=null) jobj.put("displayName", this.individual.getDisplayName());
+              if (this.individual!=null){
+                jobj.put("individualID", this.individual.getIndividualID());
+                if ("true".equals(useProjectContext)) {
+                  jobj.put("displayName", this.individual.getDisplayName(request));
+                } else {
+                  jobj.put("displayName", this.individual.getDisplayName());
+                }
+              }
               return jobj;
             }
-
             jobj.remove("gpsLatitude");
             jobj.remove("location");
             jobj.remove("gpsLongitude");
@@ -3243,25 +3215,19 @@ System.out.println(" (final)cluster [" + groupsMade + "] -> " + newEnc);
             jobj.remove("genus");
             jobj.remove("specificEpithet");
             jobj.put("_sanitized", true);
-
             return jobj;
         }
-	
-	
-  public JSONObject decorateJsonNoAnnots(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
-  
-  
+  public JSONObject decorateJsonNoAnnots(HttpServletRequest request, JSONObject jobj) throws JSONException {
     jobj.put("location", this.getLocation());
-    
-  
+
     //these are for convenience, like .hasImages above (for use in table building e.g.)
     if ((this.getTissueSamples() != null) && (this.getTissueSamples().size() > 0)) jobj.put("hasTissueSamples", true);
     if (this.hasMeasurements()) jobj.put("hasMeasurements", true);
-    
+
     return jobj;
   }
-	
+
   public JSONObject decorateJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
 
     jobj=decorateJsonNoAnnots(request,jobj);
@@ -3582,7 +3548,7 @@ throw new Exception();
 
 
     //note this sets some things (e.g. species) which might (should!) need to be adjusted after, e.g. with setSpeciesFromAnnotations()
-    public Encounter cloneWithoutAnnotations() {
+    public Encounter cloneWithoutAnnotations(Shepherd myShepherd) {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality);
         enc.setCatalogNumber(Util.generateUUID());
         System.out.println("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
@@ -3597,10 +3563,24 @@ throw new Exception();
         enc.setSex(this.getSex());
         enc.setLocationID(this.getLocationID());
         enc.setVerbatimLocality(this.getVerbatimLocality());
-        enc.setOccurrenceID(this.getOccurrenceID());
+        Occurrence occ = myShepherd.getOccurrence(this);
+        if (occ != null) {
+            occ.addEncounter(enc);
+            enc.setOccurrenceID(occ.getOccurrenceID());
+        }
         enc.setRecordedBy(this.getRecordedBy());
         enc.setState(this.getState());  //not too sure about this one?
+        enc.setAlternateID(this.getAlternateID());
+        enc.setOccurrenceRemarks(this.getOccurrenceRemarks());
+        enc.addComments("NOTE: cloneWithoutAnnotations(" + this.catalogNumber + ") -> " + enc.getCatalogNumber());
+        ImportTask itask = getImportTask(myShepherd);
+        if (itask != null) itask.addEncounter(enc);
         return enc;
+    }
+
+    //for convenience
+    public ImportTask getImportTask(Shepherd myShepherd) {
+        return myShepherd.getImportTaskForEncounter(this);
     }
 
     //this is a special state only used now for match.jsp but basically means the data should be mostly hidden and soon deleted, roughly speaking???
@@ -3641,16 +3621,16 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                 .append("numAnnotations", ((annotations == null) ? 0 : annotations.size()))
                 .toString();
     }
-    
+
     public boolean hasMediaFromAssetStoreType(AssetStoreType aType){
       System.out.println("Entering Encounter.hasMediaFromAssetStoreType");
       if(getMediaAssetsOfType(aType).size()>0){return true;}
       return false;
     }
-    
+
     public ArrayList<MediaAsset> getMediaAssetsOfType(AssetStoreType aType){
       System.out.println("Entering Encounter.getMediaAssetsOfType");
-      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();     
+      ArrayList<MediaAsset> results=new ArrayList<MediaAsset>();
       try{
         ArrayList<MediaAsset> assets=getMedia();
         int numAssets=assets.size();
@@ -3672,9 +3652,9 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     }
     public void addObservationArrayList(ArrayList<Observation> arr) {
       if (observations.isEmpty()) {
-        observations=arr;      
+        observations=arr;
       } else {
-       observations.addAll(arr); 
+       observations.addAll(arr);
       }
     }
     public void addObservation(Observation obs) {
@@ -3688,9 +3668,9 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
                break;
             }
           }
-        } 
+        }
         if (!found) {
-          observations.add(obs);        
+          observations.add(obs);
         }
       } else {
         observations.add(obs);
@@ -3701,7 +3681,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
         for (Observation ob : observations) {
           if (ob.getName() != null) {
             if (ob.getName().toLowerCase().trim().equals(obName.toLowerCase().trim())) {
-              return ob;            
+              return ob;
             }
           }
         }
@@ -3732,18 +3712,18 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
           }
           counter++;
         }
-      }  
-    } 
+      }
+    }
 
-    
+
     public List<User> getSubmitters(){
       return submitters;
     }
-    
+
     public List<User> getInformOthers(){
       return informOthers;
     }
-    
+
     public List<String> getSubmitterEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3757,7 +3737,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }
       return listy;
     }
-    
+
     public List<String> getHashedSubmitterEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3771,11 +3751,11 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }
       return listy;
     }
-    
+
     public List<User> getPhotographers(){
       return photographers;
     }
-    
+
     public List<String> getPhotographerEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3789,7 +3769,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }
       return listy;
     }
-    
+
     public List<String> getInformOthersEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3803,7 +3783,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }
       return listy;
     }
-    
+
     public List<String> getHashedPhotographerEmails(){
       ArrayList<String> listy=new ArrayList<String>();
       ArrayList<User> subs=new ArrayList<User>();
@@ -3817,7 +3797,7 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }
       return listy;
     }
-    
+
     public void addSubmitter(User user) {
         if (user == null) return;
         if (submitters == null) submitters = new ArrayList<User>();
@@ -3836,15 +3816,15 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
       }
     }
 
-    
-    
+
+
     public void setPhotographers(List<User> photographers) {
       if(photographers==null){this.photographers=null;}
       else{
         this.photographers=photographers;
       }
     }
-    
+
    public void addInformOther(User user) {
       if (user == null) return;
       if (informOthers == null) informOthers = new ArrayList<User>();
@@ -3855,9 +3835,9 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
     if(informOthers==null){this.informOthers=null;}
     else{
       this.informOthers=users;
-    } 
+    }
   }
-    
+
   public static List<String> getIndividualIDs(Collection<Encounter> encs) {
     Set<String> idSet = new HashSet<String>();
     for (Encounter enc: encs) {
@@ -3881,5 +3861,21 @@ System.out.println(">>>>> detectedAnnotation() on " + this);
             ann.refreshLiteIndividual(indivId);
         }
     }
+
+    //basically mean id-equivalent, so deal
+    public boolean equals(final Object u2) {
+        if (u2 == null) return false;
+        if (!(u2 instanceof Encounter)) return false;
+        Encounter two = (Encounter)u2;
+        if ((this.getCatalogNumber() == null) || (two == null) || (two.getCatalogNumber() == null)) return false;
+        return this.getCatalogNumber().equals(two.getCatalogNumber());
+    }
+    public int hashCode() {  //we need this along with equals() for collections methods (contains etc) to work!!
+        if (this.getCatalogNumber() == null) return Util.generateUUID().hashCode();  //random(ish) so we dont get two identical for null values
+        return this.getCatalogNumber().hashCode();
+    }
+
+
+
 
 }

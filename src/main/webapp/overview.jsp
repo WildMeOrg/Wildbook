@@ -21,12 +21,12 @@ props = ShepherdProperties.getProperties("overview.properties", langCode, contex
 <div class="container maincontent">
 
 
-        
-        
+
+
   <h1><%=props.getProperty("mainHeader") %></h1>
   <h2><%=props.getProperty("overviewHeader")%></h2>
 
-	
+
   <p>
     <%=props.getProperty("paragraph1") %>
   </p>
@@ -38,23 +38,23 @@ props = ShepherdProperties.getProperties("overview.properties", langCode, contex
   <div class="container">
     <div class="row">
       <div class="col-xs-3">
-      </div>	
+      </div>
       <div class="col-xs-6">
 	    <img class="bass_image" src="cust/mantamatcher/img/bass/diverJeffAboutProject.jpg" />
 	    <label class="image_label"><%=props.getProperty("diverJeffImage") %></label>
       </div>
     </div>
   </div>
-	
+
   <p>
-    <%=props.getProperty("paragraph3") %>  
+    <%=props.getProperty("paragraph3") %>
   </p>
 
   <br>
 
   <!--
   <p>
-    <%=props.getProperty("paragraph4") %> 
+    <%=props.getProperty("paragraph4") %>
   </p>
   -->
 
@@ -69,11 +69,11 @@ props = ShepherdProperties.getProperties("overview.properties", langCode, contex
   <p>
     <%=props.getProperty("paragraph7") %>
   </p>
-  
+
   <div class="container">
     <div class="row">
       <div class="col-xs-3">
-      </div>	
+      </div>
       <div class="col-xs-6">
 	    <img class="bass_image" src="cust/mantamatcher/img/bass/danHardingAboutProject.png" />
 	    <label class="image_label"><%=props.getProperty("danHardingImage") %></label>
@@ -84,4 +84,3 @@ props = ShepherdProperties.getProperties("overview.properties", langCode, contex
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
-

@@ -22,7 +22,7 @@ import org.ecocean.*;
  * Uses JSecurity to authenticate a user
  * If user can be authenticated successfully
  * forwards user to /welcome.jsp
- * 
+ *
  * If user cannot be authenticated then forwards
  * user to the /login.jsp which will display
  * an error message
@@ -32,27 +32,31 @@ import org.ecocean.*;
  	static final long serialVersionUID = 1L;
 	public LoginUser() {
 		super();
-	}   	
-	
+	}
+
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doPost(request, response);
-	}  	
-	
+	}
+
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		String url = "/login.jsp";
 		System.out.println("Starting LoginUser servlet...");
-		
+
+		//String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+		//if(!urlLoc.contains("localhost")) {urlLoc="https:"+urlLoc;System.out.println("HTTPS!");}
+		//else {urlLoc="http:"+urlLoc;}
+
 		//see /login.jsp for these form fields
 		String username = request.getParameter("username").trim();
 		String password = request.getParameter("password").trim();
-		
+
 		String salt="";
 		String context=ServletUtilities.getContext(request);
 		Shepherd myShepherd=new Shepherd(context);
 		myShepherd.setAction("LoginUser.class");
 		myShepherd.beginDBTransaction();
-		
+
 		try {
 	    User user = myShepherd.getUser(username);
 	    salt = user.getSalt();
@@ -62,19 +66,19 @@ import org.ecocean.*;
 		catch(Exception e){
 		  myShepherd.rollbackDBTransaction();
 		}
-		
+
     String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
 		UsernamePasswordToken token = new UsernamePasswordToken(username, hashedPassword);
 		boolean redirectUser=false;
-	
+
 		try {
-			
+
 			// get the user (aka subject) associated with this request.
-			Subject subject = SecurityUtils.getSubject();			
+			Subject subject = SecurityUtils.getSubject();
 			subject.login(token);
-	
+
 		  myShepherd.beginDBTransaction();
-		  
+
 		  if(myShepherd.getUser(username)!=null){
 		  	User user=myShepherd.getUser(username);
 		  	// if we need to show the user agreement
@@ -83,22 +87,23 @@ import org.ecocean.*;
 	        subject.logout();
 	        redirectUser=true;
 	        url = CommonConfiguration.getProperty("userAgreementURL",context);
-	      } else {
+	      }
+		  	else {
 		      System.out.println("LoginUser: user "+username+" has signed agreement. Redirecting...");
 	      	user.setLastLogin((new Date()).getTime());
 	      	url = "/welcome.jsp";}
 	      }
-		    
+
 		    myShepherd.commitDBTransaction();
 				//clear the information stored in the token
 				token.clear();
-			
-		} 
+
+		}
 		catch (UnknownAccountException ex) {
 			// username not found
 			ex.printStackTrace();
 			request.setAttribute("error", ex.getMessage() );
-		} 
+		}
 		catch (IncorrectCredentialsException ex) {
 			// wrong password
 			ex.printStackTrace();
@@ -112,14 +117,14 @@ import org.ecocean.*;
 		  myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
 		}
-		
-		if (redirectUser) {
+
+	//	if (redirectUser) {
 		  // forward the request and response to the view
 		  RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
-		  dispatcher.forward(request, response);   
-		  return;
-		}
-
-		WebUtils.redirectToSavedRequest(request, response, url);
-	}   	  	    
+		  dispatcher.forward(request, response);
+		  //return;
+		//}
+		//System.out.println("url: "+url);
+		//WebUtils.issueRedirect(request, response, url);
+	}
 }
