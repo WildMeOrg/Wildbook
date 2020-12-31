@@ -30,6 +30,12 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 String context="context0";
 context=ServletUtilities.getContext(request);
 
+Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("submit.jsp1");
+String qualifier=ShepherdProperties.getOverwriteStringForUser(request,myShepherd);
+if(qualifier==null) {qualifier="default";}
+else{qualifier=qualifier.replaceAll(".properties","");}
+
 String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
   GregorianCalendar cal = new GregorianCalendar();
@@ -138,8 +144,8 @@ String mapKey = CommonConfiguration.getGoogleMapsKey(context);
 
 <script type="text/javascript">
 
-/* As you may have surmised, this bit enables bootstrap tooltips. 
- * 
+/* As you may have surmised, this bit enables bootstrap tooltips.
+ *
  */
 $(document).ready(function(){
     if ($(window).width()>700) {
@@ -325,8 +331,8 @@ function placeMarker(location) {
       google.maps.event.addListener(map, 'click', function(event) {
             placeMarker(event.latLng);
       });
-      
-      
+
+
  	 google.maps.event.addListener(map, 'dragend', function() {
  		var idleListener = google.maps.event.addListener(map, 'idle', function() {
  			google.maps.event.removeListener(idleListener);
@@ -336,15 +342,15 @@ function placeMarker(location) {
  			center = newCenter;
  			map.setCenter(map.getCenter());
  		});
- 		 
-	 }); 	 
- 	 
- 	 google.maps.event.addDomListener(window, "resize", function() {	 
+
+	 });
+
+ 	 google.maps.event.addDomListener(window, "resize", function() {
 	    	console.log("Resize Center : "+center);
 	    	google.maps.event.trigger(map, "resize");
 	  	    console.log("Resize : "+newCenter);
 	  	    map.setCenter(center);
-	 });  
+	 });
 }
 
 function fullScreen() {
@@ -426,13 +432,13 @@ function gpsLiveUpdate() {
 
 	if ($("#lat").val().length > 3 && $("#lat").val().slice(-1) != ".") {
 		if	(!isNaN($("#lat").val())) {
-			liveLat = $("#lat").val();			
+			liveLat = $("#lat").val();
 			gmapLat = liveLat;
 		}
 	}
 	if ($("#longitude").val().length > 3 && $("#longitude").val().slice(-1) != ".") {
 		if	(!isNaN($("#longitude").val())) {
-			liveLon = $("#longitude").val();			
+			liveLon = $("#longitude").val();
 			gmapLon = liveLon;
 		}
 	}
@@ -442,7 +448,7 @@ function gpsLiveUpdate() {
 	    marker = new google.maps.Marker({
 	          position: newCoords,
 	          map: map
-	    });		
+	    });
 		initialize();
 	}
 }
@@ -455,7 +461,7 @@ function gpsLiveUpdate() {
 
   <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
       <div class="row">
-      
+
         <div class="col-xs-12">
           <h1 class="intro"><%=props.getProperty("submit_report") %></h1>
           <p><%=props.getProperty("submit_overview") %></p>
@@ -525,7 +531,7 @@ var toRemove = [];
 var fileListGlobal = [];
 var fileNameListGlobal = [];
 function updateList(inp) {
-    //All this is getting reset onChange because the fileItem is immutable. 
+    //All this is getting reset onChange because the fileItem is immutable.
     fileListGlobal = [];
     fileNameListGlobal = [];
     toRemove = [];
@@ -554,7 +560,7 @@ function updateList(inp) {
     }
     //document.getElementById('input-file-list').innerHTML = fileListHTML;
     document.getElementById('uploadList').innerHTML = fileListHTML;
-    // For every file in the length of the final list, add an event listener based on it's index. This listener modifies the array of toRemove files on the backend. 
+    // For every file in the length of the final list, add an event listener based on it's index. This listener modifies the array of toRemove files on the backend.
 }
 
 
@@ -703,13 +709,13 @@ function removeFile(id) {
         <div id="submitupload" class="input-file-drop">
             <% if (isIE) { %>
             <div><%=props.getProperty("dragInstructionsIE")%></div>
-            
+
               <input class="ie fileInput0" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-            
+
             <% } else { %>
-            
+
              <input class="nonIE fileInput0" name="theFiles" type="file" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" multiple size="30" onChange="updateList(this);" />
-            
+
             <div><%=props.getProperty("dragInstructions")%></div>
             <% } %>
             <!-- <div style="display:none;" id="input-file-list"></div> -->
@@ -724,8 +730,8 @@ function removeFile(id) {
     </div>
 
     <div>
-      <ul id="uploadList" style="list-style:none;"> 
-      
+      <ul id="uploadList" style="list-style:none;">
+
       </ul>
       <label><%=props.getProperty("canAddOnce") %></label>
       <input type="hidden" id="toRemove" name="toRemove" value=""></input>
@@ -776,29 +782,10 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
     <div class="form-group required">
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <p><label class=""><%=props.getProperty("studySites") %></label></p>
-        <select name="locationID" id="locationID" class="form-control" data-toggle="tooltip" title="<%=props.getProperty("studySiteTooltip")%>">
-            <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreLocationsIDs=true;
-                         int locNum=0;
+				<div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+          <%=LocationID.getHTMLSelector(false, null,qualifier,"locationID","locationID","form-control") %>
+      	</div>
 
-                         while(hasMoreLocationsIDs){
-                               String currentLocationID = "locationID"+locNum;
-                               if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
-                                   %>
-
-                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
-                                   <%
-                                 locNum++;
-                            }
-                            else{
-                               hasMoreLocationsIDs=false;
-                            }
-
-                       }
-
-     %>
-      </select>
       </div>
     </div>
 <%
@@ -843,7 +830,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     -->
     <p class="help-block">
         <%=props.getProperty("mapExplanation") %></p>
-	
+
     <p id="map_canvas" style="width: 578px; height: 383px; "></p>
     <p id="map_overlay_buttons"></p>
 </div>
@@ -885,7 +872,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       <input id="submitElevation" class="form-control" name="elevation" type="text" placeholder="Distance in Feet" id="elevation">
     </div>
   </div>
-	<br/>	
+	<br/>
 <%
 }
 %>
@@ -903,12 +890,11 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     String submitterEmail="";
     String affiliation="";
     String project="";
+
     try {
 
       if(request.getRemoteUser()!=null){
           submitterName=request.getRemoteUser();
-          Shepherd myShepherd=new Shepherd(context);
-          myShepherd.setAction("submit.jsp1");
           myShepherd.beginDBTransaction();
           if(myShepherd.getUser(submitterName)!=null){
               User user=myShepherd.getUser(submitterName);
@@ -923,7 +909,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
     } catch (Exception e) {
       e.printStackTrace();
-    } 
+    }
     %>
 
 
@@ -975,7 +961,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         </div>
       </div>
     </div>
-    
+
     <hr>
     <div class="form-group">
       <div class="col-xs-12 col-md-12 col-lg-12">
@@ -988,8 +974,8 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         <textarea class="form-control" name="comments" id="comments" rows="5" data-toggle="tooltip" title="<%=props.getProperty("commentsTooltip")%>"></textarea>
       </div>
     </div>
-    
-    
+
+
   </fieldset>
 
   <hr/>
@@ -1003,7 +989,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   </h4>
 
     <div id="advancedInformation" fade="1" style="display: none;">
-  	    
+
       <h4><%=props.getProperty("aboutAnimal") %></h4>
         <hr>
         <fieldset class="field-indent">
@@ -1030,7 +1016,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
                      if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
-                      
+
 
                     	for(int q=0;q<numGenusSpeciesProps;q++){
                            String currentGenuSpecies = "genusSpecies"+q;
@@ -1114,12 +1100,12 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             </select>
           </div>
         </div>
-        
+
 <!-- This is just here in case they want to bring back alt ID at some point.  -->
-<% 
+<%
 	boolean alt = false;
 	if (alt == true) {
-	
+
 %>
 				<div class="form-group">
 					<div class="col-xs-6 col-md-4">
@@ -1130,8 +1116,8 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
 					</div>
 				</div>
-				
-<% 
+
+<%
 	}
 %>
 
@@ -1160,9 +1146,9 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
               for (String behavior : behaviors) {
                 if (behavior!=null&&!"".equals(behavior)) {
               %>
-              
+
                 <option value="<%=behavior%>" class="form-control behavior-option"><%=behavior%></option>
-            
+
         <%
                 }
               }
@@ -1284,8 +1270,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
       <hr/>
-      
-<!--  turns on and off tag section of advanced info for submission -->	
+
+<!--  turns on and off tag section of advanced info for submission -->
 <%
 boolean tagSwitch = false;
 if (tagSwitch == true) {
@@ -1387,12 +1373,12 @@ if (tagSwitch == true) {
       </div>
       </div>
 
-  <hr>	
+  <hr>
 
          <%
          if(request.getRemoteUser()==null){
          %>
-     
+
 	<div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
            <script>
 		         //we need to first check here if we need to do the background social image send... in which case,
@@ -1421,7 +1407,7 @@ if (tagSwitch == true) {
 
 function sendButtonClicked() {
 	console.log('sendButtonClicked()');
-	
+
 	console.log('fell through -- must be no social!');
 
     <%
@@ -1443,15 +1429,15 @@ function sendButtonClicked() {
    					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
    					if(!isEmpty(recaptachaResponse)) {
    						$("#encounterForm").attr("action", "EncounterForm");
-   						
-   						
+
+
    						//ok all is well so far, but quick redirect if we're doing a social upload
    						if (sendSocialPhotosBackground()) return false;
-   						
+
    						//if no social, proceed
    						submitForm();
    					}
-   					
+
 		}
 	//alert(recaptachaResponse);
 	<%
